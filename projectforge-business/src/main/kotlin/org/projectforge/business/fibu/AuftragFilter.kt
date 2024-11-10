@@ -49,8 +49,7 @@ class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPe
 
   val auftragsStatuses = mutableListOf<AuftragsStatus>()
 
-  val auftragsPositionStatuses: List<AuftragsPositionsStatus>
-    get() = auftragsStatuses.map { it.asAuftragsPositionStatus() }
+  val auftragsPositionStatuses = mutableListOf<AuftragsStatus>()
 
   val auftragsPositionsArten = ArrayList<AuftragsPositionsArt>()
 

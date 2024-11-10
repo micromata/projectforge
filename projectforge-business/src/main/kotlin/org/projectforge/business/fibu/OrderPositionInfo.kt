@@ -40,7 +40,7 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
     val auftragId = order.id
     val auftragNummer = order.nummer
     val titel = position.titel
-    val status = position.status ?: AuftragsPositionsStatus.POTENZIAL //  default value shouldn't occur!
+    val status = position.status ?: AuftragsStatus.POTENZIAL //  default value shouldn't occur!
     val paymentType = position.paymentType
     val art = position.art
     val personDays = position.personDays
@@ -52,7 +52,7 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
      * For finished postio
      */
     val vollstaendigFakturiert =
-        position.vollstaendigFakturiert == true && status == AuftragsPositionsStatus.ABGESCHLOSSEN
+        position.vollstaendigFakturiert == true && status == AuftragsStatus.ABGESCHLOSSEN
     val periodOfPerformanceType = position.periodOfPerformanceType
     val periodOfPerformanceBegin = position.periodOfPerformanceBegin
     val periodOfPerformanceEnd = position.periodOfPerformanceEnd
@@ -97,7 +97,7 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
         orderedNetSum = if (order.auftragsStatus.orderState == AuftragsOrderState.ORDERED) netSum else BigDecimal.ZERO
         toBeInvoiced = if (status.orderState == AuftragsOrderState.LOST) {
             false
-        } else if (order.auftragsStatus == AuftragsStatus.ABGESCHLOSSEN || status == AuftragsPositionsStatus.ABGESCHLOSSEN) {
+        } else if (order.auftragsStatus == AuftragsStatus.ABGESCHLOSSEN || status == AuftragsStatus.ABGESCHLOSSEN) {
             !vollstaendigFakturiert
         } else false
         invoicedSum = BigDecimal.ZERO

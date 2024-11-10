@@ -117,7 +117,7 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
     )
     elements.add(
       UIFilterListElement("positionsStatus", label = translate("fibu.auftrag.positions"), defaultFilter = true)
-        .buildValues(AuftragsPositionsStatus::class.java)
+        .buildValues(AuftragsStatus::class.java)
     )
     elements.add(
       UIFilterListElement(

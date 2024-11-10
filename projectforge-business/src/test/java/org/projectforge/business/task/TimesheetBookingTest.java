@@ -24,9 +24,7 @@
 package org.projectforge.business.task;
 
 import org.junit.jupiter.api.Test;
-import org.projectforge.business.fibu.AuftragDO;
-import org.projectforge.business.fibu.AuftragDao;
-import org.projectforge.business.fibu.AuftragsPositionDO;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.common.task.TaskStatus;
@@ -158,14 +156,17 @@ public class TimesheetBookingTest extends AbstractTestBase {
         persistenceService.runInTransaction(context -> {
             logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
             AuftragsPositionDO pos1 = new AuftragsPositionDO();
+            pos1.setStatus(AuftragsStatus.GELEGT);
             pos1.setTask(getTask("TBT-5.1"));
             pos1.setTitel("Pos 1");
             AuftragsPositionDO pos2 = new AuftragsPositionDO();
-            pos1.setTask(getTask("TBT-5.2.1.1"));
-            pos1.setTitel("Pos 2");
+            pos2.setStatus(AuftragsStatus.GELEGT);
+            pos2.setTask(getTask("TBT-5.2.1.1"));
+            pos2.setTitel("Pos 2");
             final AuftragDO auftrag = new AuftragDO()
                     .addPosition(pos1)
                     .addPosition(pos2);
+            auftrag.setAuftragsStatus(AuftragsStatus.GELEGT);
             auftrag.setNummer(auftragDao.getNextNumber(auftrag));
             auftragDao.insert(auftrag);
             return null;

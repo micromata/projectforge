@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.utils.SourcesUtils
 
-private val log = KotlinLogging.logger {}
+// private val log = KotlinLogging.logger {}
 
 /**
  * This main method generates the [HistoryOldTypeClassMapping.oldTypeClassMapping] map.

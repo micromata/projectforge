@@ -129,21 +129,12 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @get:JoinColumn(name = "contact_person_fk", nullable = true)
     open var contactPerson: PFUserDO? = null
 
-    val contactPersonId: Long?
-        @Transient
-        get() = contactPerson?.id
-
-
     @PropertyInfo(i18nKey = "fibu.kunde")
     @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "kunde_fk", nullable = true)
     open var kunde: KundeDO? = null
-
-    val kundeId: Long?
-        @Transient
-        get() = kunde?.nummer
 
     /**
      * Freitextfeld, falls Kunde nicht aus Liste gewählt werden kann bzw. für Rückwärtskompatibilität mit alten Kunden.
@@ -159,10 +150,6 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "projekt_fk", nullable = true)
     open var projekt: ProjektDO? = null
-
-    val projektId: Long?
-        @Transient
-        get() = projekt?.id
 
     @PropertyInfo(i18nKey = "fibu.auftrag.titel")
     @FullTextField
@@ -346,18 +333,6 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     val paymentSchedulesExcludingDeleted: List<PaymentScheduleDO>
         @Transient
         get() = paymentSchedules?.filter { !it.deleted } ?: emptyList()
-
-    val projectManagerId: Long?
-        @Transient
-        get() = if (projectManager != null) projectManager!!.id else null
-
-    val headOfBusinessManagerId: Long?
-        @Transient
-        get() = if (headOfBusinessManager != null) headOfBusinessManager!!.id else null
-
-    val salesManagerId: Long?
-        @Transient
-        get() = if (salesManager != null) salesManager!!.id else null
 
     val assignedPersons: String
         @Transient

@@ -202,7 +202,7 @@ open class ForecastExport { // open needed by Wicket.
             var currentRow = 9
             var orderPositionFound = false
             for (auftragDO in orderList) {
-                auftragDO.projektId?.let { projektId ->
+                auftragDO.projekt?.id?.let { projektId ->
                     ctx.projectIds.add(projektId)
                 }
                 val orderInfo = ordersCache.getOrderInfo(auftragDO)

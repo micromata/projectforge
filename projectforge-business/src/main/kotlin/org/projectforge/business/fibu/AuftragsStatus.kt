@@ -46,11 +46,12 @@ enum class AuftragsStatus(
     ABGESCHLOSSEN("abgeschlossen"),
     ABGELEHNT("abgelehnt"),
     ERSETZT("ersetzt"),
-    ESKALATION("eskalation");
+    ESKALATION("eskalation"),
+    OPTIONAL("optional");
 
     val orderState: AuftragsOrderState
         get() = when (this) {
-            IN_ERSTELLUNG, POTENZIAL, GELEGT, LOI -> AuftragsOrderState.POTENTIAL
+            IN_ERSTELLUNG, POTENZIAL, GELEGT, LOI, OPTIONAL -> AuftragsOrderState.POTENTIAL
             BEAUFTRAGT, ABGESCHLOSSEN, ESKALATION -> AuftragsOrderState.ORDERED
             ABGELEHNT, ERSETZT -> AuftragsOrderState.LOST
         }
@@ -60,24 +61,6 @@ enum class AuftragsStatus(
          * @return The full i18n key including the i18n prefix "fibu.auftrag.status.".
          */
         get() = "fibu.auftrag.status.$key"
-
-    /**
-     * Converts this to equivalent enum AuftragsPositionsStatus.
-     * @return
-     */
-    fun asAuftragsPositionStatus(): AuftragsPositionsStatus {
-        return when (this) {
-            IN_ERSTELLUNG -> AuftragsPositionsStatus.IN_ERSTELLUNG
-            POTENZIAL -> AuftragsPositionsStatus.POTENZIAL
-            GELEGT -> AuftragsPositionsStatus.GELEGT
-            LOI -> AuftragsPositionsStatus.LOI
-            BEAUFTRAGT -> AuftragsPositionsStatus.BEAUFTRAGT
-            ABGESCHLOSSEN -> AuftragsPositionsStatus.ABGESCHLOSSEN
-            ABGELEHNT -> AuftragsPositionsStatus.ABGELEHNT
-            ERSETZT -> AuftragsPositionsStatus.ERSETZT
-            ESKALATION -> AuftragsPositionsStatus.ESKALATION
-        }
-    }
 
     fun isIn(vararg status: AuftragsStatus): Boolean {
         return status.contains(this)

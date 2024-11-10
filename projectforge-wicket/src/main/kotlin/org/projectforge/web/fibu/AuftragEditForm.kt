@@ -460,7 +460,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO) :
     if (project == null) {
       return
     }
-    if (getData()!!.kundeId == null && StringUtils.isBlank(getData()!!.kundeText) == true) {
+    if (getData()!!.kunde == null && StringUtils.isBlank(getData()!!.kundeText) == true) {
       getData()!!.kunde = project.kunde
       kundeSelectPanel!!.textField.modelChanged()
       target?.add(kundeSelectPanel!!.textField)
@@ -646,9 +646,9 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO) :
             position.nettoSumme
           }
           if (position.status != null) {
-            if (position.status == AuftragsPositionsStatus.ABGELEHNT || position.status == AuftragsPositionsStatus.ERSETZT || (position
+            if (position.status == AuftragsStatus.ABGELEHNT || position.status == AuftragsStatus.ERSETZT || (position
                 .status
-                  == AuftragsPositionsStatus.OPTIONAL)
+                  == AuftragsStatus.OPTIONAL)
             ) {
               invoiced = BigDecimal.ZERO
             }
@@ -666,8 +666,8 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO) :
 
         // DropDownChoice status
         val fs = posGridBuilder.newFieldset(getString("status"))
-        val statusChoiceRenderer = LabelValueChoiceRenderer<AuftragsPositionsStatus>(
-          fs, AuftragsPositionsStatus.values()
+        val statusChoiceRenderer = LabelValueChoiceRenderer<AuftragsStatus>(
+          fs, AuftragsStatus.values()
         )
         val statusChoice = DropDownChoice(
           fs.dropDownChoiceId,
