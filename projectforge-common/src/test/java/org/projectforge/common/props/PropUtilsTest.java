@@ -26,7 +26,7 @@ package org.projectforge.common.props;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.projectforge.common.anots.PropertyInfo;
-import org.projectforge.test.TestUtils;
+import org.projectforge.commons.test.TestUtils;
 
 public class PropUtilsTest {
 

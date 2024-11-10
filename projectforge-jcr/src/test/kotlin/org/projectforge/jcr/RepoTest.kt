@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.projectforge.common.MaxFileSizeExceeded
-import org.projectforge.test.TestUtils
+import org.projectforge.commons.test.TestUtils
 import java.io.File
 import java.io.FileOutputStream
 import java.util.*

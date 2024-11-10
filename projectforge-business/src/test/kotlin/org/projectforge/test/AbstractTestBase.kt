@@ -41,6 +41,7 @@ import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserPrefCache
 import org.projectforge.business.user.service.UserService
+import org.projectforge.commons.test.TestUtils
 import org.projectforge.database.DatabaseSupport
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.AccessException
@@ -383,8 +384,16 @@ abstract class AbstractTestBase protected constructor() {
         Assertions.assertEquals(createdReadonlies, activities.createdReadonlies, "createdReadonlies: $activities")
         Assertions.assertEquals(activeReadonlies, activities.activeReadonlies, "activeTransactions: $activities")
         Assertions.assertEquals(activeTransactions, activities.activeTransactions, "activeTransactions: $activities")
-        Assertions.assertEquals(activeReadonliesSinceLastSave, activities.activeReadonliesSinceLastSave, "activeTransactions: $activities")
-        Assertions.assertEquals(activeTransactionsSinceLastSave, activities.activeTransactionsSinceLastSave, "activeTransactions: $activities")
+        Assertions.assertEquals(
+            activeReadonliesSinceLastSave,
+            activities.activeReadonliesSinceLastSave,
+            "activeTransactions: $activities"
+        )
+        Assertions.assertEquals(
+            activeTransactionsSinceLastSave,
+            activities.activeTransactionsSinceLastSave,
+            "activeTransactions: $activities"
+        )
     }
 
     fun createHistoryTester(): HistoryTester {

@@ -27,7 +27,7 @@ import net.lingala.zip4j.io.inputstream.ZipInputStream
 import net.lingala.zip4j.model.LocalFileHeader
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.test.TestUtils
+import org.projectforge.commons.test.TestUtils
 import java.io.*
 
 class ZipUtilsTest {

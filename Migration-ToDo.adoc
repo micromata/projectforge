@@ -1,10 +1,11 @@
 Aktuell:
-- Bezahlte Debitorenrechnungen werden alle als Offen geführt.
-- Update caches after single load or modification.
-- Kreditorenlist: es wird gefetched wie blöde.
-- LiquidityList: es wird gefetched wie blöde.
-- Kostzuweisungsexport: es wird gefetched wie blöde.
+- fakturiert in Aufträgen ist 0
+- to be invoiced count in Auftrag
 - AuftragListe: fakturiertsum nicht berechnet.
+- Update caches after single load or modification.
+- LiquidityList: es wird gefetched wie blöde.
+- Forecast in Auftragslist fehlerhaft
+- Kostzuweisungsexport: es wird gefetched wie blöde.
 - 2024-11-09T16:18:19.834Z user:kai  WARN 23413 --- [projectforge-application] [0.1-8080-exec-2] o.p.business.user.AbstractUserPrefCache  : Can't deserialize user preferences: null, userId=2, area=null, key='TeamCalendarPage.userPrefs' (may-be ok after a new ProjectForge release). string=!rO0AB...vnj7nRSToOXX1PrEWobDsFAAA=
 
 - remove all BaseDO.xxxId (lazy fetch) and replace callee by baseDO?.id
@@ -29,7 +30,6 @@ postrgesql.conf:
   - Suche in Urlaubskorrekturen
   - Suche in History
 - HistoryConvertContext: Am Ende alle displayProperties übernehmen.
-- PersistenceContext-callstat: mehrere zulassen.
 
 - ProjektEdit: History enthält keine neuen Kost2DOs/Arten (Einträge sind aber da).
 - CronReindexingHourlyJob ohne Effekt.
@@ -40,10 +40,8 @@ postrgesql.conf:
 - HistoryEntry: EmployeeValidityAttrDO.insert muss sinnvoll für Anzeige formatiert werden.
 - Scripte nach Renamings testen
 - Cascade aller Entitäten prüfen (z. B. war GroupTaskAccessDO.task auf Merged!!!!) Abgleich mit autoUpdateCollectionEntries (evtl. kann auf autoUpdateCollectionEntries verzichtet werden, zumindest aber Sanity-Check in CandH.)
-- ehcache prüfen, transaction logging checken
 - PFHistoryMasterDO: Indexe setzen, wenn Einträge wieder gehen.
 - XML-Import für Testsystem
-- AddressDO: valueBridge for numbers
 - TypeBinding: ProjektDO, Kost1DO, Kost2DO, ...: Add path to list of searchable items
 - @WithHistory: AuftragDO, TeamEventDO
 - UserRights zu Benutzer hinzufügen testen (Reihenfolge update/save wichtig)

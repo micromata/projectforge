@@ -167,6 +167,7 @@
 
     <modules>
         <module>projectforge-common</module>
+        <module>projectforge-commons-test</module>
         <module>projectforge-model</module>
         <module>projectforge-business</module>
         <module>projectforge-jcr</module>
@@ -275,7 +276,7 @@
         <webauthn4j-spring-security-core.version>0.10.0.RELEASE</webauthn4j-spring-security-core.version> <!-- Check 11.08.2024 -->
         <xmlgraphics-commons.version>2.9</xmlgraphics-commons.version> <!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/xmlgraphics-commons -->
         <xmlgraphics-batik-codec.version>1.17</xmlgraphics-batik-codec.version> <!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-transcoder -->
-        <xstream.version>1.4.20</xstream.version> <!-- https://mvnrepository.com/artifact/com.thoughtworks.xstream/xstream -->
+        <xstream.version>1.4.21</xstream.version> <!-- https://mvnrepository.com/artifact/com.thoughtworks.xstream/xstream -->
 
         <!-- Jaxb -->
         <com.sun.xml.bind.jaxb.version>4.0.5</com.sun.xml.bind.jaxb.version>
