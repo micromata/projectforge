@@ -31,6 +31,12 @@
         <!-- PF -->
         <dependency>
             <groupId>org.projectforge</groupId>
+            <artifactId>projectforge-commons-test</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectforge</groupId>
             <artifactId>projectforge-wicket</artifactId>
             <version>${project.version}</version>
         </dependency>

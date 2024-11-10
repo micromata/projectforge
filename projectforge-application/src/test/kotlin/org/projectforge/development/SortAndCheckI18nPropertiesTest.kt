@@ -49,7 +49,7 @@ class SortAndCheckI18nPropertiesTest {
     assertEquals("", SortAndCheckI18nPropertiesMain.reduceMultiLine(""))
     assertEquals("test", SortAndCheckI18nPropertiesMain.reduceMultiLine("test"))
     assertEquals("test... (multiline)", SortAndCheckI18nPropertiesMain.reduceMultiLine("test\\\nline 2"))
-    println(multiline)
+    // println(multiline)
     assertEquals(reducedMultiline, SortAndCheckI18nPropertiesMain.reduceMultiLine(multiline))
 
     assertEquals("", SortAndCheckI18nPropertiesMain.commentMultiLine(""))
