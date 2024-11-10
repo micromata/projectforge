@@ -82,7 +82,7 @@ internal class DBCriteriaResultIterator<O : ExtendedBaseDO<Long>>(
             }
             return scrollableResults.get()
         } catch (ex: Exception) {
-            log.error(ex) { "Error in DBCriteriaResultIterator.next(): " }
+            log.error(ex) { "Error in DBCriteriaResultIterator.next(), counter=$counter: " }
             return null
         }
     }

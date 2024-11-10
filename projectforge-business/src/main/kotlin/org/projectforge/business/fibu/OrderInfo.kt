@@ -54,6 +54,7 @@ class OrderInfo() : Serializable {
     }
 
     var id: Long? = null
+    var deleted: Boolean = false
     var nummer: Int? = null
     var titel: String? = null
     var status = AuftragsStatus.POTENZIAL
@@ -78,6 +79,7 @@ class OrderInfo() : Serializable {
 
     fun updateFields(order: AuftragDO, paymentSchedules: Collection<PaymentScheduleDO>? = null) {
         id = order.id
+        deleted = order.deleted
         nummer = order.nummer
         titel = order.titel
         order.auftragsStatus.let {
@@ -180,7 +182,7 @@ class OrderInfo() : Serializable {
         paymentSchedules: Collection<PaymentScheduleDO>?,
     ) {
         updateFields(order, paymentSchedules)
-        positionInfos?.forEach { it.recalculate() }
+        positionInfos?.forEach { it.recalculate(this) }
         netSum = positionInfos?.sumOf { it.netSum } ?: BigDecimal.ZERO
         orderedNetSum = if (status.orderState != AuftragsOrderState.LOST) {
             positionInfos?.sumOf { it.orderedNetSum } ?: BigDecimal.ZERO
@@ -195,7 +197,7 @@ class OrderInfo() : Serializable {
         invoicedSum = positionInfos?.sumOf { it.invoicedSum } ?: BigDecimal.ZERO
         positionAbgeschlossenUndNichtVollstaendigFakturiert = positionInfos?.any { it.toBeInvoiced } == true
         toBeInvoicedSum = calculateToBeInvoicedSum(positionInfos, paymentSchedules)
-        notYetInvoicedSum = orderedNetSum - invoicedSum
+        notYetInvoicedSum = positionInfos?.sumOf { it.notYetInvoiced } ?: BigDecimal.ZERO
         if (notYetInvoicedSum < BigDecimal.ZERO) {
             notYetInvoicedSum = BigDecimal.ZERO
         }
@@ -213,6 +215,16 @@ class OrderInfo() : Serializable {
                     log.debug("Finished order and/or positions and to be invoiced: ${order.id}")
                 }
             }
+        }
+        if (deleted) {
+            toBeInvoiced = false
+            netSum = BigDecimal.ZERO
+            orderedNetSum = BigDecimal.ZERO
+            akquiseSum = BigDecimal.ZERO
+            toBeInvoicedSum = BigDecimal.ZERO
+            positionAbgeschlossenUndNichtVollstaendigFakturiert = false
+            notYetInvoicedSum = BigDecimal.ZERO
+            paymentSchedulesReached = false
         }
     }
 
