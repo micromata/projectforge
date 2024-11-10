@@ -85,7 +85,7 @@ class AuftragsJdbcService {
                     it.number = rs.getShort("number")
                     it.deleted = rs.getBoolean("deleted")
                     it.titel = getString(rs, "titel")
-                    it.status = AuftragsPositionsStatus.safeValueOf(rs.getString("status"))
+                    it.status = AuftragsStatus.safeValueOf(rs.getString("status"))
                     it.paymentType = AuftragsPositionsPaymentType.safeValueOf(rs.getString("paymenttype"))
                     it.art = AuftragsPositionsArt.safeValueOf(rs.getString("art"))
                     it.personDays = getBigDecimal(rs, "person_days")
