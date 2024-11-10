@@ -115,7 +115,7 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedListener<
         }
     }
 
-    fun setOrderInfo(order: AuftragDO, checkRefresh: Boolean = false) {
+    fun setOrderInfo(order: AuftragDO, checkRefresh: Boolean = true) {
         order.info = getOrderInfo(order, checkRefresh = checkRefresh)
     }
 

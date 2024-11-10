@@ -18,6 +18,12 @@
     <dependencies>
         <dependency>
             <groupId>org.projectforge</groupId>
+            <artifactId>projectforge-commons-test</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectforge</groupId>
             <artifactId>projectforge-common</artifactId>
             <version>${project.version}</version>
         </dependency>

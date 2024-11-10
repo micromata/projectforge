@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.test.TestUtils
+import org.projectforge.commons.test.TestUtils
 
 class JobsHandlerTest {
   @Test

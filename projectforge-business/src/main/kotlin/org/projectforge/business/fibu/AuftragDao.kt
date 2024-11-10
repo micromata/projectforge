@@ -494,7 +494,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
     }
 
     override fun afterLoad(obj: AuftragDO) {
-        auftragsCache.setOrderInfo(obj)
+        auftragsCache.setOrderInfo(obj, false)
     }
 
     override fun afterLoad(list: List<AuftragDO>): List<AuftragDO> {

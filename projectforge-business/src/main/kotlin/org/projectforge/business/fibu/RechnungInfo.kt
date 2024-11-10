@@ -61,6 +61,9 @@ class RechnungInfo(invoice: AbstractRechnungDO) : Serializable {
 
     val discountMaturity = invoice.discountMaturity
 
+    /**
+     * The status of the invoice. Only available for [RechnungDO].
+     */
     var status: RechnungStatus? = if (invoice is RechnungDO) invoice.status else null
 
     /**

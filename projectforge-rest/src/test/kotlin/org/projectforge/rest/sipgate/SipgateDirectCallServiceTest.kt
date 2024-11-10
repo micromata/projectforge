@@ -29,7 +29,7 @@ import org.projectforge.business.sipgate.SipgateDevice
 import org.projectforge.business.sipgate.SipgateNumber
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.test.TestUtils
+import org.projectforge.commons.test.TestUtils
 
 
 class SipgateDirectCallServiceTest {

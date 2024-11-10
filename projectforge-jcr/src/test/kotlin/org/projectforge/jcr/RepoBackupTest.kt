@@ -25,7 +25,7 @@ package org.projectforge.jcr
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.test.TestUtils
+import org.projectforge.commons.test.TestUtils
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.ZipInputStream

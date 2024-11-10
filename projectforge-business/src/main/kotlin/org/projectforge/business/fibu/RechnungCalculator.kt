@@ -90,7 +90,11 @@ object RechnungCalculator {
         info.isBezahlt = if (info.netSum.compareTo(BigDecimal.ZERO) == 0) {
             true
         } else if (info.bezahlDatum != null && zahlBetrag != null && zahlBetrag.compareTo(BigDecimal.ZERO) != 0) {
-            info.status == RechnungStatus.BEZAHLT
+            if (rechnung is RechnungDO) {
+                info.status == RechnungStatus.BEZAHLT
+            } else {
+                true
+            }
         } else {
             false
         }
