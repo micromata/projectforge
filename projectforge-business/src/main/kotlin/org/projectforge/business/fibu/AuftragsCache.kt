@@ -41,10 +41,13 @@ private val log = KotlinLogging.logger {}
 @Service
 class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
     @Autowired
-    private lateinit var auftragsJdbcService: AuftragsJdbcService
+    private lateinit var auftragsCacheService: AuftragsCacheService
 
     @Autowired
     private lateinit var rechnungDao: RechnungDao
+
+    @Autowired
+    private lateinit var auftragDao: AuftragDao
 
     private var orderInfoMap = mutableMapOf<Long, OrderInfo>()
 
@@ -57,7 +60,9 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
     @PostConstruct
     private fun init() {
         instance = this
+        auftragDao.auftragsCache = this
         rechnungDao.register(rechnungListener)
+        auftragDao.register(auftragListener)
     }
 
     fun getOrderPositionInfosByAuftragId(auftragId: Long?): Collection<OrderPositionInfo>? {
@@ -177,9 +182,9 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
         log.info("Refreshing AuftragsCache...")
         val duration = LogDuration()
         // Don't use fetch.
-        val orderPositions = auftragsJdbcService.selectNonDeletedAuftragsPositions().groupBy { it.auftragId }
-        val orders = auftragsJdbcService.selectAuftragsList()
-        val paymentSchedules = auftragsJdbcService.selectNonDeletedPaymentSchedules().groupBy { it.auftragId }
+        val orderPositions = auftragsCacheService.selectNonDeletedAuftragsPositions().groupBy { it.auftragId }
+        val orders = auftragsCacheService.selectAuftragsList()
+        val paymentSchedules = auftragsCacheService.selectNonDeletedPaymentSchedules().groupBy { it.auftragId }
         val nOrderInfoMap = mutableMapOf<Long, OrderInfo>()
         val nOrderPositionMapByPosId = mutableMapOf<Long, OrderPositionInfo>()
         val nOrderPositionIdsMapByOrder = mutableMapOf<Long, MutableList<Long>>()
@@ -210,7 +215,6 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
                 paymentSchedules[order.id]
             )
         }
-
         orderInfoMap = nOrderInfoMap
         orderPositionMapByPosId = nOrderPositionMapByPosId
         orderPositionIdsMapByOrder = nOrderPositionIdsMapByOrder
@@ -223,11 +227,21 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
          * Set order as expired, if any invoice on this order was changed.
          */
         override fun afterInsertOrModify(obj: RechnungDO, operationType: OperationType) {
-            obj.positionen?.forEach { pos ->
+            setExpired()
+            /*obj.positionen?.forEach { pos ->
                 pos.auftragsPosition?.auftrag?.let {
                     setExpired(it)
                 }
-            }
+            }*/
+        }
+    }
+
+    private val auftragListener = object : BaseDOModifiedListener<AuftragDO> {
+        /**
+         * Set order as expired, if any invoice on this order was changed.
+         */
+        override fun afterInsertOrModify(obj: AuftragDO, operationType: OperationType) {
+            setExpired()
         }
     }
 
