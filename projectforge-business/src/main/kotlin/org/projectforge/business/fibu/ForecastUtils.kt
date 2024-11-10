@@ -76,7 +76,7 @@ object ForecastUtils { // open needed by Wicket.
      */
     @JvmStatic
     fun computeProbabilityNetSum(order: OrderInfo, pos: OrderPositionInfo): BigDecimal {
-        val netSum = if (pos.nettoSumme != null) pos.nettoSumme else BigDecimal.ZERO
+        val netSum = if (pos.netSum != null) pos.netSum else BigDecimal.ZERO
         val probability = getProbabilityOfAccurence(order, pos)
         return netSum.multiply(probability)
     }

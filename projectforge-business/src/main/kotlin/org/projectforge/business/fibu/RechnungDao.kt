@@ -231,6 +231,9 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     }
 
     private fun validate(rechnung: RechnungDO) {
+        if (rechnung.datum == null) {
+            throw UserException("validation.required.valueNotPresent", MessageParam("fibu.rechnung.datum", MessageParamType.I18N_KEY))
+        }
         val status = rechnung.status
         val zahlBetrag = rechnung.zahlBetrag
         val zahlBetragExists = (zahlBetrag != null && zahlBetrag.compareTo(BigDecimal.ZERO) != 0)

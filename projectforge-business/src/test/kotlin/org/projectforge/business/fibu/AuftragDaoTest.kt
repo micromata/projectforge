@@ -66,14 +66,16 @@ class AuftragDaoTest : AbstractTestBase() {
     @Test
     fun getNextNumber() {
         logon(TEST_FINANCE_USER)
-        var auftrag = AuftragDO()
-        auftrag.nummer = auftragDao.getNextNumber(auftrag)
-        auftrag.addPosition(AuftragsPositionDO())
+        var auftrag = createOrder().also { order ->
+            order.nummer = auftragDao.getNextNumber(order)
+            order.addPosition(createOrderPos())
+        }
         auftragDao.insert(auftrag)
         Assertions.assertEquals(dbNumber++, auftrag.nummer)
-        auftrag = AuftragDO()
-        auftrag.nummer = auftragDao.getNextNumber(auftrag)
-        auftrag.addPosition(AuftragsPositionDO())
+        auftrag = createOrder().also { order ->
+            order.nummer = auftragDao.getNextNumber(order)
+            order.addPosition(createOrderPos())
+        }
         auftragDao.insert(auftrag)
         Assertions.assertEquals(dbNumber++, auftrag.nummer)
     }
@@ -85,9 +87,10 @@ class AuftragDaoTest : AbstractTestBase() {
         lateinit var id2: Serializable
         lateinit var id3: Serializable
         persistenceService.runInTransaction { _ ->
-            var auftrag1 = AuftragDO()
-            auftrag1.nummer = auftragDao.getNextNumber(auftrag1)
-            auftragDao.setContactPerson(auftrag1, getUserId(TEST_FINANCE_USER))
+            var auftrag1 = createOrder().also {
+                it.nummer = auftragDao.getNextNumber(it)
+                auftragDao.setContactPerson(it, getUserId(TEST_FINANCE_USER))
+            }
             try {
                 suppressErrorLogs {
                     id1 = auftragDao.insert(auftrag1)
@@ -96,28 +99,30 @@ class AuftragDaoTest : AbstractTestBase() {
             } catch (ex: UserException) {
                 Assertions.assertEquals("fibu.auftrag.error.auftragHatKeinePositionen", ex.i18nKey)
             }
-            auftrag1.addPosition(AuftragsPositionDO())
+            auftrag1.addPosition(createOrderPos())
             id1 = auftragDao.insert(auftrag1)
             dbNumber++ // Needed for getNextNumber test;
             auftrag1 = auftragDao.find(id1, attached = true)!! // Attached is important, otherwise deadlock.
 
-            val auftrag2 = AuftragDO()
-            auftrag2.nummer = auftragDao.getNextNumber(auftrag2)
-            auftragDao.setContactPerson(auftrag2, getUserId(TEST_PROJECT_MANAGER_USER))
-            auftrag2.addPosition(AuftragsPositionDO())
+            val auftrag2 = createOrder().also {
+                it.nummer = auftragDao.getNextNumber(it)
+                auftragDao.setContactPerson(it, getUserId(TEST_PROJECT_MANAGER_USER))
+                it.addPosition(createOrderPos())
+            }
             id2 = auftragDao.insert(auftrag2)
             dbNumber++ // Needed for getNextNumber test;
 
-            val auftrag3 = AuftragDO()
-            auftrag3.nummer = auftragDao.getNextNumber(auftrag3)
-            auftragDao.setContactPerson(auftrag3, getUserId(TEST_PROJECT_MANAGER_USER))
-            val dateTime = now().minusYears(6) // 6 years old.
-            auftrag3.angebotsDatum = dateTime.localDate
-            auftrag3.auftragsStatus = AuftragsStatus.ABGESCHLOSSEN
-            val position = AuftragsPositionDO()
-            position.vollstaendigFakturiert = true
-            position.status = AuftragsPositionsStatus.ABGESCHLOSSEN
-            auftrag3.addPosition(position)
+            val auftrag3 = createOrder().also {
+                it.nummer = auftragDao.getNextNumber(it)
+                auftragDao.setContactPerson(it, getUserId(TEST_PROJECT_MANAGER_USER))
+                val dateTime = now().minusYears(6) // 6 years old.
+                it.angebotsDatum = dateTime.localDate
+                it.auftragsStatus = AuftragsStatus.ABGESCHLOSSEN
+                val position = createOrderPos()
+                position.vollstaendigFakturiert = true
+                position.status = AuftragsPositionsStatus.ABGESCHLOSSEN
+                it.addPosition(position)
+            }
             id3 = auftragDao.insert(auftrag3)
             dbNumber++ // Needed for getNextNumber test;
             logon(TEST_PROJECT_MANAGER_USER)
@@ -167,10 +172,11 @@ class AuftragDaoTest : AbstractTestBase() {
             projekt1.projektManagerGroup = group1
             id = projektDao.insert(projekt1)
             projekt1 = projektDao.find(id, attached = true)!! // Attached is important, otherwise deadlock.
-            auftrag1 = AuftragDO()
-            auftrag1.nummer = auftragDao.getNextNumber(auftrag1)
-            auftrag1.projekt = projekt1
-            auftrag1.addPosition(AuftragsPositionDO())
+            auftrag1 = createOrder().also {
+                it.nummer = auftragDao.getNextNumber(it)
+                it.projekt = projekt1
+                it.addPosition(createOrderPos())
+            }
             id = auftragDao.insert(auftrag1)
             dbNumber++ // Needed for getNextNumber test;
             auftrag1 = auftragDao.find(id, attached = true)!! // Attached is important, otherwise deadlock.
@@ -180,10 +186,11 @@ class AuftragDaoTest : AbstractTestBase() {
             projekt2.projektManagerGroup = group2
             id = projektDao.insert(projekt2)
             projekt2 = projektDao.find(id, attached = true)!! // Attached is important, otherwise deadlock.
-            auftrag2 = AuftragDO()
-            auftrag2.nummer = auftragDao.getNextNumber(auftrag2)
-            auftrag2.projekt = projekt2
-            auftrag2.addPosition(AuftragsPositionDO())
+            auftrag2 = createOrder().also {
+                it.nummer = auftragDao.getNextNumber(it)
+                it.projekt = projekt2
+                it.addPosition(createOrderPos())
+            }
             id = auftragDao.insert(auftrag2)
             dbNumber++ // Needed for getNextNumber test;
             auftrag2 = auftragDao.find(id, attached = true)!! // Attached is important, otherwise deadlock.
@@ -235,10 +242,11 @@ class AuftragDaoTest : AbstractTestBase() {
             id = projektDao.insert(projekt)
             projekt = projektDao.find(id, attached = true)!! // Attached is important, otherwise deadlock.
 
-            var auftrag = AuftragDO()
-            auftrag.nummer = auftragDao.getNextNumber(auftrag)
-            auftrag.projekt = projekt
-            auftrag.addPosition(AuftragsPositionDO())
+            var auftrag = createOrder().also {
+                it.nummer = auftragDao.getNextNumber(it)
+                it.projekt = projekt
+                it.addPosition(createOrderPos())
+            }
             id = auftragDao.insert(auftrag)
             auftragId = id
             dbNumber++ // Needed for getNextNumber test;
@@ -329,9 +337,10 @@ class AuftragDaoTest : AbstractTestBase() {
 
     private fun checkNoWriteAccess(auftrag: AuftragDO, who: String) {
         try {
-            val auf = AuftragDO()
-            val number = auftragDao.getNextNumber(auf)
-            auf.nummer = number
+            val auf = createOrder().also {
+                val number = auftragDao.getNextNumber(it)
+                it.nummer = number
+            }
             suppressErrorLogs {
                 auftragDao.insert(auf)
             }
@@ -356,10 +365,11 @@ class AuftragDaoTest : AbstractTestBase() {
         lateinit var id1: Serializable
         lateinit var position: AuftragsPositionDO
         logon(TEST_FINANCE_USER)
-        auftrag1 = AuftragDO()
-        auftrag1.nummer = auftragDao.getNextNumber(auftrag1)
-        auftragDao.setContactPerson(auftrag1, getUserId(TEST_PROJECT_MANAGER_USER))
-        auftrag1.addPosition(AuftragsPositionDO())
+        auftrag1 = createOrder().also {
+            it.nummer = auftragDao.getNextNumber(it)
+            auftragDao.setContactPerson(it, getUserId(TEST_PROJECT_MANAGER_USER))
+            it.addPosition(createOrderPos())
+        }
         id1 = auftragDao.insert(auftrag1)
         persistenceService.runInTransaction { _ ->
             dbNumber++ // Needed for getNextNumber test;
@@ -415,26 +425,28 @@ class AuftragDaoTest : AbstractTestBase() {
         logon(TEST_FINANCE_USER)
         lateinit var id: Serializable
         persistenceService.runInTransaction { _ ->
-            var auftrag = AuftragDO()
-            auftrag.nummer = auftragDao.getNextNumber(auftrag)
-            auftrag.addPosition(AuftragsPositionDO())
-            auftrag.addPosition(AuftragsPositionDO())
-            auftrag.addPosition(AuftragsPositionDO())
-            auftrag.addPosition(AuftragsPositionDO())
+            var auftrag = createOrder().also {
+                it.nummer = auftragDao.getNextNumber(it)
+                it.addPosition(createOrderPos())
+                it.addPosition(createOrderPos())
+                it.addPosition(createOrderPos())
+                it.addPosition(createOrderPos())
+            }
             id = auftragDao.insert(auftrag)
         }
         persistenceService.runInTransaction { _ ->
             dbNumber++ // Needed for getNextNumber test;
             var auftrag = auftragDao.find(id, attached = true)!!
             Assertions.assertEquals(1, auftrag.positionenIncludingDeleted!!.size)
-            auftrag = AuftragDO()
-            auftrag.nummer = auftragDao.getNextNumber(auftrag)
-            auftrag.addPosition(AuftragsPositionDO())
-            auftrag.addPosition(AuftragsPositionDO())
-            val position = AuftragsPositionDO()
-            position.titel = "Hurzel"
-            auftrag.addPosition(position)
-            auftrag.addPosition(AuftragsPositionDO())
+            auftrag = createOrder().also {
+                it.nummer = auftragDao.getNextNumber(it)
+                it.addPosition(createOrderPos())
+                it.addPosition(createOrderPos())
+                val position = createOrderPos()
+                position.titel = "Hurzel"
+                it.addPosition(position)
+                it.addPosition(createOrderPos())
+            }
             id = auftragDao.insert(auftrag)
             dbNumber++ // Needed for getNextNumber test;
             auftrag = auftragDao.find(id, attached = true)!!
@@ -449,17 +461,17 @@ class AuftragDaoTest : AbstractTestBase() {
     @Test
     fun validateDatesInPaymentScheduleWithinPeriodOfPerformanceOfPosition() {
         persistenceService.runInTransaction { _ ->
-            val auftrag = AuftragDO()
+            val auftrag = createOrder()
             val auftragsPositions = auftrag.ensureAndGetPositionen()
             val paymentSchedules = auftrag.ensureAndGetPaymentSchedules()
 
             auftrag.periodOfPerformanceBegin = LocalDate.of(2017, 5, 1)
             auftrag.periodOfPerformanceEnd = LocalDate.of(2017, 6, 30)
 
-            val pos1 = AuftragsPositionDO()
+            val pos1 = createOrderPos()
             pos1.number = 1.toShort()
 
-            val pos2 = AuftragsPositionDO()
+            val pos2 = createOrderPos()
             pos2.number = 2.toShort()
             pos2.periodOfPerformanceType = PeriodOfPerformanceType.OWN
             pos2.periodOfPerformanceBegin = LocalDate.of(2017, 5, 24)
@@ -533,15 +545,15 @@ class AuftragDaoTest : AbstractTestBase() {
     @Test
     fun validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition() {
         persistenceService.runInTransaction { _ ->
-            val auftrag = AuftragDO()
+            val auftrag = createOrder()
             val auftragsPositions = auftrag.ensureAndGetPositionen()
             val paymentSchedules = auftrag.ensureAndGetPaymentSchedules()
 
-            val pos1 = AuftragsPositionDO()
+            val pos1 = createOrderPos()
             pos1.number = 1.toShort()
             pos1.nettoSumme = BigDecimal(2000)
 
-            val pos2 = AuftragsPositionDO()
+            val pos2 = createOrderPos()
             pos2.number = 2.toShort()
             pos2.nettoSumme = BigDecimal(5000)
 
@@ -639,6 +651,18 @@ class AuftragDaoTest : AbstractTestBase() {
         }
     }
 
+    private fun createOrder(): AuftragDO {
+        return AuftragDO().also {
+            it.auftragsStatus = AuftragsStatus.GELEGT
+        }
+    }
+
+    private fun createOrderPos(): AuftragsPositionDO {
+        return AuftragsPositionDO().also {
+            it.status = AuftragsPositionsStatus.GELEGT
+        }
+    }
+
     private fun setPeriodOfPerformanceStartDateAndEndDate(
         auftragFilter: AuftragFilter, startYear: Int, startMonth: Int, startDay: Int,
         endYear: Int, endMonth: Int, endDay: Int
@@ -651,12 +675,13 @@ class AuftragDaoTest : AbstractTestBase() {
         beginYear: Int, beginMonth: Int, beginDay: Int, endYear: Int, endMonth: Int,
         endDay: Int
     ): AuftragDO {
-        val auftrag = AuftragDO()
-        auftrag.nummer = auftragDao.getNextNumber(auftrag)
-        dbNumber++
-        auftrag.addPosition(AuftragsPositionDO())
-        auftrag.periodOfPerformanceBegin = LocalDate.of(beginYear, beginMonth, beginDay)
-        auftrag.periodOfPerformanceEnd = LocalDate.of(endYear, endMonth, endDay)
+        val auftrag = createOrder().also {
+            it.nummer = auftragDao.getNextNumber(it)
+            dbNumber++
+            it.addPosition(createOrderPos())
+            it.periodOfPerformanceBegin = LocalDate.of(beginYear, beginMonth, beginDay)
+            it.periodOfPerformanceEnd = LocalDate.of(endYear, endMonth, endDay)
+        }
         return auftrag
     }
 

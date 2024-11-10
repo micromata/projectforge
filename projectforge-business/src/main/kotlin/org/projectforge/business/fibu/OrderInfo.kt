@@ -56,7 +56,7 @@ class OrderInfo() : Serializable {
     var id: Long? = null
     var nummer: Int? = null
     var titel: String? = null
-    var auftragsStatus: AuftragsStatus? = null
+    var auftragsStatus = AuftragsStatus.POTENZIAL
     var angebotsDatum: LocalDate? = null
     var created: Date? = null
     var erfassungsDatum: LocalDate? = null
@@ -80,7 +80,13 @@ class OrderInfo() : Serializable {
         id = order.id
         nummer = order.nummer
         titel = order.titel
-        auftragsStatus = order.auftragsStatus
+        order.auftragsStatus.let {
+            if (it != null) {
+                auftragsStatus = it
+            } else {
+                log.error { "Order without status: $order shouldn't occur. Assuming POTENZIAL." }
+            }
+        }
         angebotsDatum = order.angebotsDatum
         created = order.created
         erfassungsDatum = order.erfassungsDatum
@@ -110,8 +116,17 @@ class OrderInfo() : Serializable {
             }
         }
 
+    /**
+     * The sum of all net sums of the positions of the order without positions which are rejected or replaced
+     * ([AuftragsPositionsStatus.ABGELEHNT], [AuftragsPositionsStatus.ERSETZT]).
+     * @see calculateNetSum
+     */
     var netSum = BigDecimal.ZERO
 
+    /**
+     * The sum of all net sums of the positions (only ordered positions) of the order.
+     * @see calculateOrderedNetSum
+     */
     var orderedNetSum = BigDecimal.ZERO
 
     var akquiseSum = BigDecimal.ZERO
@@ -159,11 +174,16 @@ class OrderInfo() : Serializable {
         paymentSchedules: Collection<PaymentScheduleDO>?,
     ) {
         updateFields(order, paymentSchedules)
-        netSum = calculateNetSum(positionInfos)
-        orderedNetSum = calculateOrderedNetSum(order, positionInfos)
-        analyzeInvoices(positionInfos) // Calculates invoicedSum and positionAbgeschlossenUndNichtVollstaendigFakturiert.
+        positionInfos?.forEach { it.recalculate(this) }
+        netSum = positionInfos?.sumOf { it.netSum } ?: BigDecimal.ZERO
+        orderedNetSum = positionInfos?.sumOf { it.orderedNetSum } ?: BigDecimal.ZERO
+        invoicedSum = positionInfos?.sumOf { it.invoicedSum } ?: BigDecimal.ZERO
+        positionAbgeschlossenUndNichtVollstaendigFakturiert = positionInfos?.any { it.toBeInvoiced } == true
         toBeInvoicedSum = calculateToBeInvoicedSum(positionInfos, paymentSchedules)
         notYetInvoicedSum = orderedNetSum - invoicedSum
+        if (notYetInvoicedSum < BigDecimal.ZERO) {
+            notYetInvoicedSum = BigDecimal.ZERO
+        }
         isVollstaendigFakturiert = calculateIsVollstaendigFakturiert(order, positionInfos, paymentSchedules)
         personDays = calculatePersonDays(positionInfos)
         paymentSchedulesReached =
@@ -188,57 +208,7 @@ class OrderInfo() : Serializable {
         }
     }
 
-    /**
-     * Analyzes the invoices of the positions and calculates the invoiced sum and the flag positionAbgeschlossenUndNichtVollstaendigFakturiert.
-     */
-    private fun analyzeInvoices(positions: Collection<OrderPositionInfo>?) {
-        invoicedSum = BigDecimal.ZERO
-        positions?.forEach { pos ->
-            RechnungCache.instance.getRechnungsPosInfosByAuftragsPositionId(pos.id, false)?.let { set ->
-                invoicedSum += RechnungDao.getNettoSumme(set)
-                infoPositions?.find { it.id == pos.id }?.invoicedSum = invoicedSum
-            }
-            if (pos.toBeInvoiced) {
-                positionAbgeschlossenUndNichtVollstaendigFakturiert = true
-            }
-        }
-    }
-
     private companion object {
-        fun calculateNetSum(positions: Collection<OrderPositionInfo>?): BigDecimal {
-            positions ?: return BigDecimal.ZERO
-            return positions
-                .filter {
-                    it.nettoSumme != null &&
-                            it.status !in listOf(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT)
-                }
-                .sumOf { it.nettoSumme ?: BigDecimal.ZERO }
-        }
-
-        /**
-         * Adds all net sums of the positions (only ordered positions) and return the total sum. The order itself
-         * must be of state LOI, commissioned (beauftragt) or escalation.
-         * @param order The order to get the net sum from.
-         * @param positions The positions of the order.
-         * @return The total net sum of the order.
-         */
-        fun calculateOrderedNetSum(order: AuftragDO, positions: Collection<OrderPositionInfo>?): BigDecimal {
-            if (order.auftragsStatus?.isNotIn(
-                    AuftragsStatus.BEAUFTRAGT,
-                    AuftragsStatus.ESKALATION,
-                    AuftragsStatus.ABGESCHLOSSEN
-                ) == true
-            ) {
-                return BigDecimal.ZERO
-            }
-            return positions?.filter {
-                it.status?.isIn(
-                    AuftragsPositionsStatus.ABGESCHLOSSEN,
-                    AuftragsPositionsStatus.BEAUFTRAGT,
-                    AuftragsPositionsStatus.ESKALATION,
-                ) == true
-            }?.sumOf { it.nettoSumme ?: BigDecimal.ZERO } ?: BigDecimal.ZERO
-        }
 
         fun calculateToBeInvoicedSum(
             positions: Collection<OrderPositionInfo>?,
@@ -253,7 +223,7 @@ class OrderInfo() : Serializable {
             positions?.filter { it.toBeInvoiced }?.forEach { pos ->
                 if (!posWithPaymentReached.contains(pos.number)) {
                     // Amount wasn't already added from payment schedule:
-                    pos.nettoSumme?.let { nettoSumme -> sum = sum.add(nettoSumme) }
+                    pos.netSum.let { nettoSumme -> sum = sum.add(nettoSumme) }
                 }
             }
             return sum
@@ -275,26 +245,13 @@ class OrderInfo() : Serializable {
                 // Only finished orders can be fully invoiced.
                 return false
             }
-            positions?.forEach { pos ->
-                if (pos.vollstaendigFakturiert != true &&
-                    (pos.status?.isIn(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT) != true)
-                ) {
-                    // Only finished positions which are not rejected or replaced can be fully invoiced.
-                    return false
-                }
+            if (positions?.any { !it.vollstaendigFakturiert } == true) {
+                // Only fully invoiced positions can be fully invoiced.
+                return false
             }
-            paymentSchedules?.filter { it.valid && !it.vollstaendigFakturiert }?.forEach { paymentSchedule ->
-                positions?.find { it.number == paymentSchedule.number }?.let { pos ->
-                    if (pos.status?.isIn(
-                            AuftragsPositionsStatus.ABGESCHLOSSEN,
-                            AuftragsPositionsStatus.BEAUFTRAGT,
-                            AuftragsPositionsStatus.ESKALATION,
-                        ) == true && pos.vollstaendigFakturiert != true
-                    ) {
-                        // Only finished positions which are not fully invoiced can be fully invoiced.
-                        return false
-                    }
-                }
+            if (paymentSchedules?.any { it.valid && !it.vollstaendigFakturiert } == true) {
+                // Only fully invoiced payment schedules can be fully invoiced.
+                return false
             }
             return true
         }

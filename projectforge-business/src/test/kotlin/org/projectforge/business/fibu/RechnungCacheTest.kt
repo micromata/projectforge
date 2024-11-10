@@ -48,11 +48,11 @@ class RechnungCacheTest : AbstractTestBase() {
         lateinit var auftrag: AuftragDO
         persistenceService.runInTransaction {
             logon(getUser(TEST_FINANCE_USER))
-            auftrag = AuftragDO()
-            var auftragsPosition = AuftragsPositionDO()
+            auftrag = createOrder()
+            var auftragsPosition = createOrderPos()
             auftragsPosition.titel = "Pos 1"
             auftrag.addPosition(auftragsPosition)
-            auftragsPosition = AuftragsPositionDO()
+            auftragsPosition = createOrderPos()
             auftragsPosition.titel = "Pos 2"
             auftrag.addPosition(auftragsPosition)
             auftrag.nummer = auftragDao.getNextNumber(auftrag)
@@ -78,19 +78,18 @@ class RechnungCacheTest : AbstractTestBase() {
         }
         rechnungDao.insert(rechnung1)
         lateinit var rechnung2: RechnungDO
-        persistenceService.runInTransaction {
-            rechnung2 = RechnungDO()
+        rechnung2 = RechnungDO().also {
             val position = RechnungsPositionDO()
             position.auftragsPosition = auftrag.getPosition(1.toShort())
             position.einzelNetto = BigDecimal("400")
             position.text = "2.1"
-            rechnung2.addPosition(position)
-            rechnung2.nummer = rechnungDao.getNextNumber(rechnung2)
-            rechnung2.datum = today.localDate
-            rechnung2.faelligkeit = LocalDate.now()
-            rechnung2.projekt = initTestDB.addProjekt(null, 1, "foo")
-            rechnungDao.insert(rechnung2)
+            it.addPosition(position)
+            it.nummer = rechnungDao.getNextNumber(it)
+            it.datum = today.localDate
+            it.faelligkeit = LocalDate.now()
+            it.projekt = initTestDB.addProjekt(null, 1, "foo")
         }
+        rechnungDao.insert(rechnung2)
         var posInfos: Collection<RechnungPosInfo>? = rechnungCache.getRechnungsPosInfosByAuftragId(auftrag.id)
         Assertions.assertEquals(3, posInfos!!.size, "3 invoice positions expected.")
         // The positions are sorted by invoice number and position number.
@@ -121,5 +120,17 @@ class RechnungCacheTest : AbstractTestBase() {
         posInfos = rechnungCache.getRechnungsPosInfosByAuftragId(auftrag.id)
         Assertions.assertEquals(2, posInfos!!.size, "2 invoice positions expected.")
         Assertions.assertEquals(0, BigDecimal("300").compareTo(getNettoSumme(posInfos)))
+    }
+
+    private fun createOrder(): AuftragDO {
+        return AuftragDO().also {
+            it.auftragsStatus = AuftragsStatus.GELEGT
+        }
+    }
+
+    private fun createOrderPos(): AuftragsPositionDO {
+        return AuftragsPositionDO().also {
+            it.status = AuftragsPositionsStatus.GELEGT
+        }
     }
 }
