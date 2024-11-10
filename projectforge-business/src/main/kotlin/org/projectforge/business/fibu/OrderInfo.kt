@@ -56,7 +56,7 @@ class OrderInfo() : Serializable {
     var id: Long? = null
     var nummer: Int? = null
     var titel: String? = null
-    var auftragsStatus = AuftragsStatus.POTENZIAL
+    var status = AuftragsStatus.POTENZIAL
     var angebotsDatum: LocalDate? = null
     var created: Date? = null
     var erfassungsDatum: LocalDate? = null
@@ -82,7 +82,7 @@ class OrderInfo() : Serializable {
         titel = order.titel
         order.auftragsStatus.let {
             if (it != null) {
-                auftragsStatus = it
+                status = it
             } else {
                 log.error { "Order without status: $order shouldn't occur. Assuming POTENZIAL." }
             }
@@ -108,11 +108,10 @@ class OrderInfo() : Serializable {
     val auftragsStatusAsString: String?
         @Transient
         get() {
-            if (isVollstaendigFakturiert == true) {
-                return I18nHelper.getLocalizedMessage("fibu.auftrag.status.fakturiert")
-            }
-            auftragsStatus.let {
-                return if (it != null) I18nHelper.getLocalizedMessage(it.i18nKey) else null
+            return if (isVollstaendigFakturiert == true) {
+                I18nHelper.getLocalizedMessage("fibu.auftrag.status.fakturiert")
+            } else {
+                I18nHelper.getLocalizedMessage(status.i18nKey)
             }
         }
 
@@ -124,11 +123,14 @@ class OrderInfo() : Serializable {
     var netSum = BigDecimal.ZERO
 
     /**
-     * The sum of all net sums of the positions (only ordered positions) of the order.
+     * The sum of all net sums of the positions (only ordered positions) of this order. This value is 0 for lost orders.
      * @see calculateOrderedNetSum
      */
     var orderedNetSum = BigDecimal.ZERO
 
+    /**
+     * For not lost orders the sum of all akquise sums of the positions of this order.
+     */
     var akquiseSum = BigDecimal.ZERO
 
 
@@ -137,6 +139,10 @@ class OrderInfo() : Serializable {
 
     /**
      * Gets the sum of reached payment schedules amounts and finished positions (abgeschlossen) but not yet invoiced.
+     * It's a little bit tricky because a payment schedule can be assigned to a position and a position can have a to-be-invoiced amount.
+     * A payment schedule may also be unassigned to a position.
+     * So, the to-be-invoiced amount might be faulty.
+     * @see calculateToBeInvoicedSum
      */
     var toBeInvoicedSum = BigDecimal.ZERO
 
@@ -174,9 +180,18 @@ class OrderInfo() : Serializable {
         paymentSchedules: Collection<PaymentScheduleDO>?,
     ) {
         updateFields(order, paymentSchedules)
-        positionInfos?.forEach { it.recalculate(this) }
+        positionInfos?.forEach { it.recalculate() }
         netSum = positionInfos?.sumOf { it.netSum } ?: BigDecimal.ZERO
-        orderedNetSum = positionInfos?.sumOf { it.orderedNetSum } ?: BigDecimal.ZERO
+        orderedNetSum = if (status.orderState != AuftragsOrderState.LOST) {
+            positionInfos?.sumOf { it.orderedNetSum } ?: BigDecimal.ZERO
+        } else {
+            BigDecimal.ZERO
+        }
+        akquiseSum = if (status.orderState != AuftragsOrderState.LOST) {
+            positionInfos?.sumOf { it.akquiseSum } ?: BigDecimal.ZERO
+        } else {
+            BigDecimal.ZERO
+        }
         invoicedSum = positionInfos?.sumOf { it.invoicedSum } ?: BigDecimal.ZERO
         positionAbgeschlossenUndNichtVollstaendigFakturiert = positionInfos?.any { it.toBeInvoiced } == true
         toBeInvoicedSum = calculateToBeInvoicedSum(positionInfos, paymentSchedules)
@@ -199,17 +214,16 @@ class OrderInfo() : Serializable {
                 }
             }
         }
-        order.auftragsStatus.let { status ->
-            if (status == null ||
-                status.isIn(AuftragsStatus.POTENZIAL, AuftragsStatus.IN_ERSTELLUNG, AuftragsStatus.GELEGT)
-            ) {
-                akquiseSum = netSum
-            }
-        }
     }
 
     private companion object {
 
+        /**
+         * Sums all to be invoiced amounts of the positions and payment schedules.
+         * It's a little bit tricky because a payment schedule can be assigned to a position and a position can have a to-be-invoiced amount.
+         * A payment schedule may also be unassigned to a position.
+         * The to-be-invoiced amount of a position will only be added, if not already reached by a payment schedule assigned to this position.
+         */
         fun calculateToBeInvoicedSum(
             positions: Collection<OrderPositionInfo>?,
             paymentSchedules: Collection<PaymentScheduleDO>?
@@ -217,15 +231,13 @@ class OrderInfo() : Serializable {
             var sum = BigDecimal.ZERO
             val posWithPaymentReached = mutableSetOf<Short?>()
             paymentSchedules?.filter { it.toBeInvoiced }?.forEach { schedule ->
-                posWithPaymentReached.add(schedule.positionNumber)
-                schedule.amount?.let { amount -> sum = sum.add(amount) }
-            }
-            positions?.filter { it.toBeInvoiced }?.forEach { pos ->
-                if (!posWithPaymentReached.contains(pos.number)) {
-                    // Amount wasn't already added from payment schedule:
-                    pos.netSum.let { nettoSumme -> sum = sum.add(nettoSumme) }
+                schedule.amount?.let { amount ->
+                    posWithPaymentReached.add(schedule.positionNumber)
+                    sum += amount
                 }
             }
+            sum += positions?.filter { !posWithPaymentReached.contains(it.number) }?.sumOf { it.toBeInvoicedSum }
+                ?: BigDecimal.ZERO
             return sum
         }
 

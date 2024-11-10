@@ -80,7 +80,20 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
      */
     var netSum = BigDecimal.ZERO
 
+    /**
+     * Sum of not yet ordered positions [AuftragsOrderState.POTENTIAL].
+     */
+    var akquiseSum = BigDecimal.ZERO
+
     var invoicedSum = BigDecimal.ZERO
+
+    /**
+     * Sum of the position which should be invoiced. This might be ignored if there are reached payment schedules for
+     * this position. This is determined by the parent [OrderInfo].
+     */
+    var toBeInvoicedSum = BigDecimal.ZERO
+
+    var notYetInvoiced = BigDecimal.ZERO
 
     init {
         if (position.status == null) {
@@ -89,20 +102,30 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
         if (position.deleted) {
             throw IllegalArgumentException("Position is deleted: $position")
         }
-        recalculate(order)
+        recalculate()
     }
 
-    fun recalculate(order: OrderInfo) {
+    /**
+     * The fields are independent of the order status. The OrderInfo parent object has to consider the order status.
+     */
+    fun recalculate() {
         netSum = if (status.orderState != AuftragsOrderState.LOST) dbNetSum else BigDecimal.ZERO
-        orderedNetSum = if (order.auftragsStatus.orderState == AuftragsOrderState.ORDERED) netSum else BigDecimal.ZERO
+        orderedNetSum = if (status.orderState == AuftragsOrderState.ORDERED) netSum else BigDecimal.ZERO
         toBeInvoiced = if (status.orderState == AuftragsOrderState.LOST) {
             false
-        } else if (order.auftragsStatus == AuftragsStatus.ABGESCHLOSSEN || status == AuftragsStatus.ABGESCHLOSSEN) {
+        } else if (status == AuftragsStatus.ABGESCHLOSSEN) {
             !vollstaendigFakturiert
         } else false
         invoicedSum = BigDecimal.ZERO
         RechnungCache.instance.getRechnungsPosInfosByAuftragsPositionId(id)?.let { set ->
             invoicedSum += RechnungDao.getNettoSumme(set)
         }
+        toBeInvoicedSum = if (toBeInvoiced) netSum - invoicedSum else BigDecimal.ZERO
+        notYetInvoiced = if (status.orderState != AuftragsOrderState.LOST) {
+            netSum - invoicedSum
+        } else {
+            BigDecimal.ZERO
+        }
+        akquiseSum = if (status.orderState == AuftragsOrderState.POTENTIAL) dbNetSum else BigDecimal.ZERO
     }
 }
