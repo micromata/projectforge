@@ -88,7 +88,7 @@ object ForecastUtils { // open needed by Wicket.
     fun getProbabilityOfAccurence(order: OrderInfo, pos: OrderPositionInfo): BigDecimal {
         // See ForecastExportProbabilities.xlsx
         // Excel rows: Order 1-4
-        if (order.auftragsStatus?.isIn(AuftragsStatus.ABGELEHNT, AuftragsStatus.ERSETZT) == true
+        if (order.status?.isIn(AuftragsStatus.ABGELEHNT, AuftragsStatus.ERSETZT) == true
             || pos.status?.isIn(AuftragsStatus.ABGELEHNT, AuftragsStatus.ERSETZT) == true
         ) {
             return BigDecimal.ZERO
@@ -102,15 +102,15 @@ object ForecastUtils { // open needed by Wicket.
             return BigDecimal.ONE
         }
         // Excel rows: Order 8
-        if (order.auftragsStatus == AuftragsStatus.POTENZIAL) {
+        if (order.status == AuftragsStatus.POTENZIAL) {
             return getGivenProbability(order, BigDecimal.ZERO)
         }
         // Excel rows: Order 9-10
-        if (order.auftragsStatus?.isIn(AuftragsStatus.ABGESCHLOSSEN, AuftragsStatus.BEAUFTRAGT) == true) {
+        if (order.status?.isIn(AuftragsStatus.ABGESCHLOSSEN, AuftragsStatus.BEAUFTRAGT) == true) {
             return BigDecimal.ONE
         }
         // Excel rows: Order 11-12
-        if (order.auftragsStatus?.isIn(
+        if (order.status?.isIn(
                 AuftragsStatus.ESKALATION,
                 AuftragsStatus.GELEGT,
                 AuftragsStatus.IN_ERSTELLUNG
@@ -130,7 +130,7 @@ object ForecastUtils { // open needed by Wicket.
             }
         }
         // Excel rows: Order 13
-        if (order.auftragsStatus == AuftragsStatus.LOI
+        if (order.status == AuftragsStatus.LOI
             && pos.status?.isIn(
                 AuftragsStatus.ESKALATION,
                 AuftragsStatus.GELEGT,

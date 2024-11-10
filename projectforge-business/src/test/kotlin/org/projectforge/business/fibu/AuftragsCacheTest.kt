@@ -25,7 +25,6 @@ package org.projectforge.business.fibu
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.commons.test.TestUtils
 import org.projectforge.commons.test.TestUtils.Companion.assertSame
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,12 +38,84 @@ class AuftragsCacheTest : AbstractTestBase() {
     private lateinit var auftragsCache: AuftragsCache
 
     @Autowired
-    private lateinit var auftragsCacheService: AuftragsCacheService
-
-    @Autowired
     private lateinit var rechnungDao: RechnungDao
 
     @Test
+    fun `test order workflow with invoices`() {
+        val order = AuftragDO().also {
+            it.addPosition(AuftragsPositionDO().also { pos ->
+                pos.titel = "Pos 1"
+                pos.nettoSumme = 100.toBigDecimal()
+                pos.status = AuftragsStatus.GELEGT
+            })
+            it.addPosition(AuftragsPositionDO().also { pos ->
+                pos.titel = "Pos 2"
+                pos.nettoSumme = 200.toBigDecimal()
+                pos.status = AuftragsStatus.GELEGT
+            })
+            it.addPosition(AuftragsPositionDO().also { pos ->
+                pos.titel = "Pos 3"
+                pos.nettoSumme = 400.toBigDecimal()
+                pos.status = AuftragsStatus.GELEGT
+            })
+            it.auftragsStatus = AuftragsStatus.GELEGT
+            it.nummer = auftragDao.nextNumber
+        }
+        auftragDao.insert(order, checkAccess = false)
+        auftragsCache.getOrderInfo(order.id).also { orderInfo ->
+            assertValues(orderInfo, akquiseSum = 700, netSum = 700)
+        }
+        order.auftragsStatus = AuftragsStatus.BEAUFTRAGT
+        order.positionen!!.find { it.titel == "Pos 1" }!!.status = AuftragsStatus.BEAUFTRAGT
+        order.positionen!!.find { it.titel == "Pos 2" }!!.status = AuftragsStatus.ABGELEHNT
+        order.positionen!!.find { it.titel == "Pos 3" }!!.status = AuftragsStatus.OPTIONAL
+        auftragDao.update(order, checkAccess = false)
+        auftragsCache.getOrderInfo(order.id).let { orderInfo ->
+            assertValues(orderInfo, akquiseSum = 400, netSum = 500, orderedNetSum = 100, notYetInvoicedSum = 100)
+        }
+        order.positionen!!.find { it.titel == "Pos 1" }!!.status = AuftragsStatus.ABGESCHLOSSEN
+        auftragDao.update(order, checkAccess = false)
+        auftragsCache.getOrderInfo(order.id).also { orderInfo ->
+            assertValues(
+                orderInfo, akquiseSum = 400, netSum = 500, orderedNetSum = 100,
+                toBeInvoicedSum = 100, notYetInvoicedSum = 100, toBeInvoiced = true
+            )
+        }
+        order.addPaymentSchedule(PaymentScheduleDO().also { schedule ->
+            schedule.amount = 50.toBigDecimal()
+            schedule.reached = true
+        })
+        auftragDao.update(order, checkAccess = false)
+        auftragsCache.getOrderInfo(order.id).also { orderInfo ->
+            // 100 for position to be invoiced and 50 by reached payment schedule which is not assigned to a position.
+            assertValues(
+                orderInfo, akquiseSum = 400, netSum = 500, orderedNetSum = 100,
+                toBeInvoicedSum = 150, notYetInvoicedSum = 100, toBeInvoiced = true
+            )
+        }
+        order.addPaymentSchedule(PaymentScheduleDO().also { schedule ->
+            schedule.amount = 25.toBigDecimal()
+            schedule.reached = true
+            schedule.vollstaendigFakturiert = true
+        })
+        order.addPaymentSchedule(PaymentScheduleDO().also { schedule ->
+            schedule.amount = 80.toBigDecimal()
+            schedule.reached = true
+            schedule.positionNumber = order.positionen!!.find { it.titel == "Pos 1" }!!.number
+        })
+        auftragDao.update(order, checkAccess = false)
+        auftragsCache.getOrderInfo(order.id).also { orderInfo ->
+            // (25) is ignored (already fully invoiced).
+            // 80 for position to be invoiced is "overwritten" by 80 of payment schedule.
+            // 50 by reached payment schedule which is not assigned to a position.
+            assertValues(
+                orderInfo, akquiseSum = 400, netSum = 500, orderedNetSum = 100,
+                toBeInvoicedSum = 130, notYetInvoicedSum = 100, toBeInvoiced = true
+            )
+        }
+    }
+
+        @Test
     fun `test order in akquisition with invoices`() {
         val order = AuftragDO().also {
             it.addPosition(AuftragsPositionDO().also { pos ->
@@ -61,19 +132,8 @@ class AuftragsCacheTest : AbstractTestBase() {
             it.nummer = auftragDao.nextNumber
         }
         auftragDao.insert(order, checkAccess = false)
-        Assertions.assertNotNull(auftragDao.find(order.id, false))
-        var orderInfo = auftragsCache.getOrderInfo(order.id)
-        Assertions.assertNotNull(orderInfo, "Order with id=${order.id} not found.")
-        assertSame(300, orderInfo!!.akquiseSum, "Akquise sum.")
-        assertSame(300, orderInfo.netSum, "Net sum.")
-        orderInfo.apply {
-            TestUtils.assertZero(
-                invoicedSum,
-                toBeInvoicedSum,
-                notYetInvoicedSum,
-                orderedNetSum,
-                message = "Values must be zero.",
-            )
+        auftragsCache.getOrderInfo(order.id).let { orderInfo ->
+            assertValues(orderInfo, akquiseSum = 300, netSum = 300)
         }
         val invoice = RechnungDO().also {
             it.addPosition(RechnungsPositionDO().also { pos -> // 50 of 100
@@ -92,18 +152,28 @@ class AuftragsCacheTest : AbstractTestBase() {
             it.nummer = rechnungDao.nextNumber
         }
         rechnungDao.insert(invoice, checkAccess = false)
-        orderInfo = auftragsCache.getOrderInfo(order.id)
-        Assertions.assertNotNull(orderInfo)
-        assertSame(300, orderInfo!!.akquiseSum, "Akquise sum.")
-        assertSame(300, orderInfo.netSum, "Net sum.")
-        assertSame(250, orderInfo.invoicedSum, "Invoiced sum.")
-        assertSame(0, orderInfo.notYetInvoicedSum, "Not yet invoiced sum. Order not yet signed, so 0 expected!")
-        orderInfo.apply {
-            TestUtils.assertZero(
-                orderedNetSum,
-                toBeInvoicedSum, // No position is set to be invoiced.
-                message = "Values must be zero. No position is ordered or to be invoiced.",
-            )
+        auftragsCache.getOrderInfo(order.id).let { orderInfo ->
+            assertValues(orderInfo, akquiseSum = 300, netSum = 300, invoicedSum = 250)
         }
+    }
+
+    private fun assertValues(
+        orderInfo: OrderInfo?,
+        akquiseSum: Int = 0,
+        netSum: Int = 0,
+        orderedNetSum: Int = 0,
+        invoicedSum: Int = 0,
+        notYetInvoicedSum: Int = 0,
+        toBeInvoicedSum: Int = 0,
+        toBeInvoiced: Boolean = false,
+    ) {
+        Assertions.assertNotNull(orderInfo, "OrderInfo not found.")
+        assertSame(orderedNetSum, orderInfo!!.orderedNetSum, "Ordered sum.")
+        assertSame(akquiseSum, orderInfo.akquiseSum, "Akquise sum.")
+        assertSame(netSum, orderInfo.netSum, "Net sum.")
+        assertSame(notYetInvoicedSum, orderInfo.notYetInvoicedSum, "Not yet invoiced sum.")
+        assertSame(invoicedSum, orderInfo.invoicedSum, "Invoiced sum.")
+        assertSame(toBeInvoicedSum, orderInfo.toBeInvoicedSum, "To be invoiced sum.")
+        Assertions.assertEquals(toBeInvoiced, orderInfo.toBeInvoiced, "To be invoiced.")
     }
 }

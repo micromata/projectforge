@@ -122,8 +122,8 @@ public class OrderPositionsPanel extends Panel {
         final StringBuilder tooltip = new StringBuilder();
         tooltip.append(StringUtils.defaultString(pos.getAuftrag().getTitel())).append(" (").append(
                 NumberFormatter.format(totalPersonDays)).append(" ").append(getString("projectmanagement.personDays.short")).append(")");
-        if (pos.getAuftrag().getAuftragsStatus() != null) {
-            tooltip.append(", ").append(getString(pos.getAuftrag().getAuftragsStatus().getI18nKey()));
+        if (pos.getAuftrag().getStatus() != null) {
+            tooltip.append(", ").append(getString(pos.getAuftrag().getStatus().getI18nKey()));
         }
         WicketUtils.addTooltip(link, tooltip.toString(), buf.toString());
     }

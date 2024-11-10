@@ -23,7 +23,6 @@
 
 package org.projectforge.business.fibu
 
-import jakarta.annotation.PostConstruct
 import jakarta.persistence.Tuple
 import jakarta.persistence.criteria.JoinType
 import org.apache.commons.collections4.CollectionUtils
@@ -386,6 +385,9 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
                 "validation.required.valueNotPresent",
                 MessageParam("fibu.auftrag.nummer", MessageParamType.I18N_KEY)
             )
+        }
+        if (obj.auftragsStatus == null || obj.auftragsStatus == AuftragsStatus.OPTIONAL) {
+            throw UserException("Order status not given. OPTIONAL not supported.")
         }
         if (obj.id == null) {
             // Neuer Auftrag/Angebot

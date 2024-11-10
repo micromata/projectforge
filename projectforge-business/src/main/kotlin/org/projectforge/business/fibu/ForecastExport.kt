@@ -383,7 +383,7 @@ open class ForecastExport { // open needed by Wicket.
         sheet.setStringValue(
             row,
             ForecastCol.AUFTRAG_STATUS.header,
-            if (order.auftragsStatus != null) translate(order.auftragsStatus!!.i18nKey) else ""
+            if (order.status != null) translate(order.status!!.i18nKey) else ""
         )
         sheet.setStringValue(
             row,
