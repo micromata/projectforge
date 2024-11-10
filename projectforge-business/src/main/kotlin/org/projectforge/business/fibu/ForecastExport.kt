@@ -31,6 +31,7 @@ import mu.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.excel.ExcelDateFormats
 import org.projectforge.business.excel.XlsContentProvider
+import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.common.DateFormatType
@@ -67,6 +68,9 @@ open class ForecastExport { // open needed by Wicket.
 
     @Autowired
     private lateinit var ordersCache: AuftragsCache
+
+    @Autowired
+    private lateinit var projektCache: ProjektCache
 
     @Autowired
     private lateinit var rechnungCache: RechnungCache
@@ -217,7 +221,7 @@ open class ForecastExport { // open needed by Wicket.
                     continue
                 }
 
-                if (ForecastUtils.auftragsStatusToShow.contains(auftragDO.auftragsStatus)) {
+                if (ForecastUtils.auftragsStatusToShow.contains(auftragDO.status)) {
                     orderInfo.infoPositions?.forEach { pos ->
                         if (pos.status in ForecastUtils.auftragsPositionsStatusToShow) {
                             addOrderPosition(ctx, currentRow++, orderInfo, pos)
@@ -308,8 +312,9 @@ open class ForecastExport { // open needed by Wicket.
                     PFDay(invoice.datum!!).localDate,
                     ctx.excelDateFormat
                 )
+                val projekt = projektCache.getProjektIfNotInitialized(invoice.projekt)
                 sheet.setStringValue(rowNumber, InvoicesCol.CUSTOMER.header, invoice.kundeAsString)
-                sheet.setStringValue(rowNumber, InvoicesCol.PROJECT.header, invoice.projekt?.name)
+                sheet.setStringValue(rowNumber, InvoicesCol.PROJECT.header, projekt?.name)
                 sheet.setStringValue(rowNumber, InvoicesCol.SUBJECT.header, invoice.betreff)
                 sheet.setStringValue(rowNumber, InvoicesCol.POS_TEXT.header, pos.text)
                 invoice.bezahlDatum?.let {

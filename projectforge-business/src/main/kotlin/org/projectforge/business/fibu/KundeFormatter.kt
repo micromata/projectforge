@@ -24,7 +24,6 @@
 package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
-import org.hibernate.Hibernate
 import org.projectforge.business.fibu.KostFormatter.Companion.ABBREVIATION_LENGTH
 import org.projectforge.business.fibu.KostFormatter.FormatType
 import org.projectforge.business.fibu.kost.KundeCache
@@ -82,13 +81,13 @@ class KundeFormatter {
          */
         @JvmStatic
         fun formatKundeAsString(kunde: KundeDO?, kundeText: String?): String {
-            var useKunde: KundeDO? = kunde
-            if (!Hibernate.isInitialized(kunde)) {
-                useKunde = instance.kundeCache.getKunde(kunde?.nummer)
-            }
+            return internalFormatKundeAsString(instance.kundeCache.getKundeIfNotInitialized(kunde), kundeText)
+        }
+
+        internal fun internalFormatKundeAsString(kunde: KundeDO?, kundeText: String?): String {
             return listOfNotNull(
                 kundeText.takeIf { !it.isNullOrBlank() },
-                useKunde?.name.takeIf { !useKunde?.name.isNullOrBlank() }
+                kunde?.name.takeIf { !kunde?.name.isNullOrBlank() }
             ).joinToString(separator = "; ")
         }
     }

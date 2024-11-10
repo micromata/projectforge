@@ -113,7 +113,7 @@ class ForecastExportTest : AbstractTestBase() {
                             probability: Int? = null): AuftragDO {
         val order = AuftragDO()
         order.nummer = auftragDao.nextNumber
-        order.auftragsStatus = status
+        order.status = status
         order.angebotsDatum = date.localDate
         order.periodOfPerformanceBegin = periodOfPerformanceBegin?.localDate
         order.periodOfPerformanceEnd = periodOfPerformanceEnd?.localDate

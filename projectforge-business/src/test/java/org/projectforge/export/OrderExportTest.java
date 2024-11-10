@@ -62,7 +62,7 @@ public class OrderExportTest extends AbstractTestBase
     KundeDO kunde = new KundeDO();
     kunde.setName("Kundenname");
     a.setKunde(kunde);
-    a.setAuftragsStatus(AuftragsStatus.ESKALATION);
+    a.setStatus(AuftragsStatus.ESKALATION);
     a.setStatusBeschreibung("TESTBESCHREIBUNG");
     a.setPeriodOfPerformanceBegin(LocalDate.of(2020, Month.OCTOBER, 2));
     a.setPeriodOfPerformanceEnd(LocalDate.of(2030, Month.OCTOBER, 2));
@@ -106,7 +106,7 @@ public class OrderExportTest extends AbstractTestBase
     KundeDO kunde = new KundeDO();
     kunde.setName("Kundenname");
     a.setKunde(kunde);
-    a.setAuftragsStatus(AuftragsStatus.ESKALATION);
+    a.setStatus(AuftragsStatus.ESKALATION);
     a.setStatusBeschreibung("TESTBESCHREIBUNG");
     a.setPeriodOfPerformanceBegin(LocalDate.of(2020, Month.OCTOBER, 2));
     a.setPeriodOfPerformanceEnd(LocalDate.of(2030, Month.OCTOBER, 2));

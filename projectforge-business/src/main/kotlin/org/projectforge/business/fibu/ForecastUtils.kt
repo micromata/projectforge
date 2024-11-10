@@ -65,7 +65,7 @@ object ForecastUtils { // open needed by Wicket.
 
     @JvmStatic
     fun getPaymentSchedule(order: OrderInfo, pos: OrderPositionInfo): List<OrderInfo.PaymentScheduleInfo> {
-        val schedules = order.paymentSchedules ?: return emptyList()
+        val schedules = order.paymentScheduleEntries ?: return emptyList()
         return schedules
             .filter { it.positionNumber != null && it.scheduleDate != null && it.amount != null }
             .filter { it.positionNumber!!.toInt() == pos.number.toInt() }

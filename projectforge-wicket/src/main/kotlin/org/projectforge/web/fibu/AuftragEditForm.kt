@@ -161,7 +161,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO) :
       )
       val statusChoice = DropDownChoice(
         fs.dropDownChoiceId,
-        PropertyModel(data, "auftragsStatus"), statusChoiceRenderer.values,
+        PropertyModel(data, "status"), statusChoiceRenderer.values,
         statusChoiceRenderer
       )
       statusChoice.setNullValid(false).isRequired = true

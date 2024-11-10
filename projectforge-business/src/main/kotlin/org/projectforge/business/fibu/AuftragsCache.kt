@@ -187,9 +187,9 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
         log.info("Refreshing AuftragsCache...")
         val duration = LogDuration()
         // Don't use fetch.
-        val orderPositions = auftragsCacheService.selectNonDeletedAuftragsPositions().groupBy { it.auftragId }
+        val orderPositions = auftragsCacheService.selectNonDeletedAuftragsPositions().groupBy { it.auftrag?.id }
         val orders = auftragsCacheService.selectAuftragsList()
-        val paymentSchedules = auftragsCacheService.selectNonDeletedPaymentSchedules().groupBy { it.auftragId }
+        val paymentSchedules = auftragsCacheService.selectNonDeletedPaymentSchedules().groupBy { it.auftrag?.id }
         val nOrderInfoMap = mutableMapOf<Long, OrderInfo>()
         val nOrderPositionMapByPosId = mutableMapOf<Long, OrderPositionInfo>()
         val nOrderPositionIdsMapByOrder = mutableMapOf<Long, MutableList<Long>>()

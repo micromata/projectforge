@@ -117,7 +117,7 @@ class AuftragDaoTest : AbstractTestBase() {
                 auftragDao.setContactPerson(it, getUserId(TEST_PROJECT_MANAGER_USER))
                 val dateTime = now().minusYears(6) // 6 years old.
                 it.angebotsDatum = dateTime.localDate
-                it.auftragsStatus = AuftragsStatus.ABGESCHLOSSEN
+                it.status = AuftragsStatus.ABGESCHLOSSEN
                 val position = createOrderPos()
                 position.vollstaendigFakturiert = true
                 position.status = AuftragsStatus.ABGESCHLOSSEN
@@ -391,7 +391,7 @@ class AuftragDaoTest : AbstractTestBase() {
         }
         persistenceService.runInTransaction { _ ->
             auftrag1 = auftragDao.find(id1, attached = true)!! // Attached is important, otherwise deadlock.
-            auftrag1.auftragsStatus = AuftragsStatus.ABGESCHLOSSEN
+            auftrag1.status = AuftragsStatus.ABGESCHLOSSEN
             auftragDao.update(auftrag1)
         }
 
@@ -653,7 +653,7 @@ class AuftragDaoTest : AbstractTestBase() {
 
     private fun createOrder(): AuftragDO {
         return AuftragDO().also {
-            it.auftragsStatus = AuftragsStatus.GELEGT
+            it.status = AuftragsStatus.GELEGT
         }
     }
 

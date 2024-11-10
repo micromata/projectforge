@@ -58,14 +58,14 @@ class AuftragsCacheTest : AbstractTestBase() {
                 pos.nettoSumme = 400.toBigDecimal()
                 pos.status = AuftragsStatus.GELEGT
             })
-            it.auftragsStatus = AuftragsStatus.GELEGT
+            it.status = AuftragsStatus.GELEGT
             it.nummer = auftragDao.nextNumber
         }
         auftragDao.insert(order, checkAccess = false)
         auftragsCache.getOrderInfo(order.id).also { orderInfo ->
             assertValues(orderInfo, akquiseSum = 700, netSum = 700)
         }
-        order.auftragsStatus = AuftragsStatus.BEAUFTRAGT
+        order.status = AuftragsStatus.BEAUFTRAGT
         order.positionen!!.find { it.titel == "Pos 1" }!!.status = AuftragsStatus.BEAUFTRAGT
         order.positionen!!.find { it.titel == "Pos 2" }!!.status = AuftragsStatus.ABGELEHNT
         order.positionen!!.find { it.titel == "Pos 3" }!!.status = AuftragsStatus.OPTIONAL
@@ -128,7 +128,7 @@ class AuftragsCacheTest : AbstractTestBase() {
                 pos.nettoSumme = 200.toBigDecimal()
                 pos.status = AuftragsStatus.GELEGT
             })
-            it.auftragsStatus = AuftragsStatus.GELEGT
+            it.status = AuftragsStatus.GELEGT
             it.nummer = auftragDao.nextNumber
         }
         auftragDao.insert(order, checkAccess = false)

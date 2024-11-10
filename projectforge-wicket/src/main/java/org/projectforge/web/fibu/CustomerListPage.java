@@ -120,7 +120,7 @@ public class CustomerListPage extends AbstractListPage<CustomerListForm, KundeDa
           final IModel<KundeDO> rowModel)
       {
         final KundeDO kunde = rowModel.getObject();
-        final KontoDO konto = WicketSupport.get(KontoCache.class).getKonto(kunde.getKontoId());
+        final KontoDO konto = WicketSupport.get(KontoCache.class).getKontoIfNotInitialized(kunde.getKonto());
         item.add(new Label(componentId, konto != null ? konto.formatKonto() : ""));
         cellItemListener.populateItem(item, componentId, rowModel);
       }

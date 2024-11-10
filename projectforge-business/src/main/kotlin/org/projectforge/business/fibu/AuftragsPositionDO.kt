@@ -147,14 +147,6 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   @get:Column(name = "mode_of_payment_type", length = 13)
   open var modeOfPaymentType: ModeOfPaymentType? = null
 
-  val auftragId: Long?
-    @Transient
-    get() = auftrag?.id
-
-  val taskId: Long?
-    @Transient
-    get() = task?.id
-
   val isEmpty: Boolean
     @Transient
     get() {
@@ -187,7 +179,7 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   override fun equals(other: Any?): Boolean {
     if (other is AuftragsPositionDO) {
       val o = other as AuftragsPositionDO?
-      return this.number == o!!.number && this.auftragId == o.auftragId
+      return this.number == o!!.number && this.auftrag?.id == o.auftrag?.id
     }
     return false
   }

@@ -232,7 +232,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             queryFilter.createJoin("paymentSchedules", JoinType.LEFT)
             queryFilter.add(
                 or(
-                    eq("auftragsStatus", AuftragsStatus.ABGESCHLOSSEN),
+                    eq("status", AuftragsStatus.ABGESCHLOSSEN),
                     eq("positionen.status", AuftragsStatus.ABGESCHLOSSEN),
                     eq("paymentSchedules.reached", true)
                 )
@@ -289,7 +289,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         }
         val orCriterions: MutableList<DBPredicate> = ArrayList()
 
-        orCriterions.add(isIn<Any>("auftragsStatus", auftragsStatuses))
+        orCriterions.add(isIn<Any>("status", auftragsStatuses))
 
         orCriterions.add(isIn<Any>("positionen.status", myFilter.auftragsPositionStatuses))
 
@@ -378,7 +378,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
                 MessageParam("fibu.auftrag.nummer", MessageParamType.I18N_KEY)
             )
         }
-        if (obj.auftragsStatus == null || obj.auftragsStatus == AuftragsStatus.OPTIONAL) {
+        if (obj.status == null || obj.status == AuftragsStatus.OPTIONAL) {
             throw UserException("Order status not given. OPTIONAL not supported.")
         }
         if (obj.id == null) {

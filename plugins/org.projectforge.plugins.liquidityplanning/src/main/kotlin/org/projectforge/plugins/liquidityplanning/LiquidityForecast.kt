@@ -166,7 +166,7 @@ class LiquidityForecast() : Serializable {
             if (projectId != null) {
                 ensureAndAddDebitorPaymentValue("project#$projectId", timeForPayment, amount)
             }
-            val customerId = invoice.kunde?.id
+            val customerId = invoice.kunde?.nummer
             if (customerId != null) {
                 ensureAndAddDebitorPaymentValue("customer#$customerId", timeForPayment, amount)
             }

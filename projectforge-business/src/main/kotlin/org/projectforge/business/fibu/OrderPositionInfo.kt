@@ -56,7 +56,7 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
     val periodOfPerformanceType = position.periodOfPerformanceType
     val periodOfPerformanceBegin = position.periodOfPerformanceBegin
     val periodOfPerformanceEnd = position.periodOfPerformanceEnd
-    val taskId = position.taskId
+    val taskId = position.task?.id
     val bemerkung = position.bemerkung.abbreviate(30)
 
     /**
@@ -110,7 +110,8 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
 
     /**
      * The fields are independent of the order status. The OrderInfo parent object has to consider the order status.
-     * @param order The parent order. If the order is closed, the ordered position are considered as to be invoiced.
+     * @param order The parent order. If the order is closed, the ordered position are considered as to be invoiced. This position will be marked
+     * as to-be-invoiced if there is a payment schedule for this position marked as reached.
      */
     fun recalculate(order: OrderInfo) {
         netSum = if (status.orderState != AuftragsOrderState.LOST) dbNetSum else BigDecimal.ZERO
@@ -118,7 +119,9 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
         toBeInvoiced = if (status.orderState == AuftragsOrderState.LOST) {
             false
         } else if (status == AuftragsStatus.ABGESCHLOSSEN ||
-            (order.status == AuftragsStatus.ABGESCHLOSSEN && status.orderState == AuftragsOrderState.ORDERED)
+            (order.status == AuftragsStatus.ABGESCHLOSSEN && status.orderState == AuftragsOrderState.ORDERED) ||
+            // Now, check payment schedules
+            order.paymentScheduleEntries?.any { it.positionNumber == number && it.toBeInvoiced } == true
         ) {
             !vollstaendigFakturiert
         } else false
