@@ -102,6 +102,7 @@ class KostZuweisungExport {
      * Export all cost assignements of the given invoices as excel list.
      */
     fun exportRechnungen(list: List<AbstractRechnungDO>, sheetTitle: String): ByteArray? {
+        rechnungService.fetchPositionen(list)
         val kostZuweisungenMap = rechnungService.selectKostzuweisungen(list).groupBy { it.rechnungsPosition?.id }
         val kostZuweisungen = mutableListOf<KostZuweisungDO>()
         list.forEach { rechnung ->
@@ -123,6 +124,7 @@ class KostZuweisungExport {
      * Export all cost assignements of the given invoices as excel list.
      */
     fun exportEingangsRechnungen(list: List<AbstractRechnungDO>, sheetTitle: String): ByteArray? {
+        rechnungService.fetchPositionen(list)
         val kostZuweisungenMap =
             rechnungService.selectKostzuweisungen(list).groupBy { it.eingangsrechnungsPosition?.id }
         val kostZuweisungen = mutableListOf<KostZuweisungDO>()
