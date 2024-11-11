@@ -26,7 +26,6 @@ package org.projectforge.business.fibu
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
 import org.hibernate.Hibernate
-import org.projectforge.business.scripting.Cache.getProjekt
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.jpa.PfPersistenceService

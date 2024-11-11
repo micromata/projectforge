@@ -21,8 +21,9 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.scripting
+package org.projectforge.business
 
+import jakarta.annotation.PostConstruct
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.KundeDO
@@ -34,11 +35,19 @@ import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.springframework.stereotype.Service
 
 /**
- * Helper cache for scripts for avoiding lazy loading of entities.
+ * Helper cache for avoiding lazy loading of entities. For convenient access to most caches.
+ * Ideal for usage by scripts.
  */
-object Cache {
+@Service
+class Cache {
+    @PostConstruct
+    private fun init() {
+        instance = this
+    }
+
     /**
      * Fills the user, kost2, project and customer of the given timesheet.
      * @param timesheet The timesheet to fill.
@@ -76,7 +85,7 @@ object Cache {
     }
 
     fun getProjektByKost2(kost2Id: Long?): ProjektDO? {
-        val projektId = getKost2(kost2Id)?.projektId ?: return null
+        val projektId = getKost2(kost2Id)?.projekt?.id ?: return null
         return getProjekt(projektId)
     }
 
@@ -87,5 +96,11 @@ object Cache {
     fun getKundeByKost2(kost2Id: Long?): KundeDO? {
         val projekt = getProjektByKost2(kost2Id) ?: return null
         return getKunde(projekt.kunde?.nummer)
+    }
+
+    companion object {
+        @JvmStatic
+        lateinit var instance: Cache
+            private set
     }
 }

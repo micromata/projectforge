@@ -154,18 +154,6 @@ open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
         @Transient
         get() = OldKostFormatter.formatToolTip(this)
 
-    val kost2ArtId: Long?
-        @Transient
-        get() = if (this.kost2Art == null) {
-            null
-        } else kost2Art!!.id
-
-    val projektId: Long?
-        @Transient
-        get() = if (this.projekt == null) {
-            null
-        } else projekt!!.id
-
     @Transient
     fun isEqual(nummernkreis: Int, bereich: Int, teilbereich: Int, kost2Art: Long): Boolean {
         return (this.nummernkreis == nummernkreis

@@ -197,9 +197,9 @@ public class TaskKostTest extends AbstractTestBase {
 
     private void assertKost2(final Kost2DO expected, final Kost2DO actual) {
         assertArrayEquals(new Integer[]{expected.getNummernkreis(), expected.getBereich(),
-                        expected.getTeilbereich(), expected.getKost2ArtId().intValue()},
+                        expected.getTeilbereich(), expected.getKost2Art().getId().intValue()},
                 new Integer[]{actual.getNummernkreis(), actual.getBereich(),
-                        actual.getTeilbereich(), actual.getKost2ArtId().intValue()},
+                        actual.getTeilbereich(), actual.getKost2Art().getId().intValue()},
                 "Kost2DO not expected.");
     }
 }

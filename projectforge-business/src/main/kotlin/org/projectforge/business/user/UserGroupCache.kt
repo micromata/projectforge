@@ -28,7 +28,6 @@ import mu.KotlinLogging
 import org.hibernate.Hibernate
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.login.Login
-import org.projectforge.business.scripting.Cache.getProjekt
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.jobs.JobHandler

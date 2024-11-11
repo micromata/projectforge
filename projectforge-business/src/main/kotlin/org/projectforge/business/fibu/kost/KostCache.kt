@@ -109,7 +109,7 @@ class KostCache : AbstractCache() {
         checkRefresh()
         synchronized(kost2Map) {
             return kost2Map.values.firstOrNull { kost2 ->
-                kost2.nummernkreis == nummernkreis && kost2.bereich == bereich && kost2.teilbereich == teilbereich && kost2.kost2ArtId == kost2art.toLong()
+                kost2.nummernkreis == nummernkreis && kost2.bereich == bereich && kost2.teilbereich == teilbereich && kost2.kost2Art?.id == kost2art.toLong()
             }
         }
     }
@@ -162,7 +162,7 @@ class KostCache : AbstractCache() {
         projektId ?: return emptySet()
         checkRefresh()
         synchronized(kost2Map) {
-            return kost2Map.values.filter { !it.deleted && it.projektId == projektId }
+            return kost2Map.values.filter { !it.deleted && it.projekt?.id == projektId }
                 .mapNotNull { it.kost2Art }
                 .toSet()
         }

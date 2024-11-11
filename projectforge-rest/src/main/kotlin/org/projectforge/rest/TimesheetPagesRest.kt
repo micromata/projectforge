@@ -24,10 +24,12 @@
 package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
+import org.jetbrains.kotlin.com.intellij.util.graph.CachingSemiGraph.cache
 import org.projectforge.Constants
-import org.projectforge.business.fibu.KundeDao
-import org.projectforge.business.fibu.ProjektDao
-import org.projectforge.business.fibu.kost.Kost2Dao
+import org.projectforge.business.Cache
+import org.projectforge.business.fibu.kost.KostCache
+import org.projectforge.business.fibu.kost.KundeCache
+import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.systeminfo.SystemInfoCache
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.timesheet.*
@@ -74,16 +76,19 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     private val dateTimeFormatter = DateTimeFormatter.instance()
 
     @Autowired
+    private lateinit var cache: Cache
+
+    @Autowired
     private lateinit var userService: UserService
 
     @Autowired
-    private lateinit var kost2Dao: Kost2Dao
+    private lateinit var kostCache: KostCache
 
     @Autowired
-    private lateinit var kundeDao: KundeDao
+    private lateinit var kundeCache: KundeCache
 
     @Autowired
-    private lateinit var projektDao: ProjektDao
+    private lateinit var projektCache: ProjektCache
 
     @Autowired
     private lateinit var teamEventRest: TeamEventPagesRest
@@ -128,6 +133,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
 
     override fun transformFromDB(obj: TimesheetDO, editMode: Boolean): Timesheet {
         val timesheet = Timesheet()
+        cache.populate(obj)
         timesheet.copyFrom(obj)
         // PFDay.fromOrNull(timesheet.startTime)
         return timesheet
@@ -398,18 +404,18 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                 ts.user!!.copyFromMinimal(user)
             }
             if (it.kost2Id != null) {
-                val kost2DO = kost2Dao.find(it.kost2Id, checkAccess = false)
+                val kost2DO = kostCache.getKost2(it.kost2Id)
                 if (kost2DO != null) {
                     val kost2 = Kost2()
                     ts.kost2 = kost2
                     kost2.copyFromMinimal(kost2DO)
-                    kost2DO.projektId?.let { projektId ->
-                        val projektDO = projektDao.find(projektId, checkAccess = false)
+                    kost2DO.projekt?.id?.let { projektId ->
+                        val projektDO = projektCache.getProjekt(projektId)
                         if (projektDO != null) {
                             val projekt = Project(projektId, name = projektDO.name)
                             kost2.project = projekt
                             projektDO.kunde?.nummer?.let { kundeId ->
-                                val kundeDO = kundeDao.find(kundeId, checkAccess = false)
+                                val kundeDO = kundeCache.getKunde(kundeId)
                                 if (kundeDO != null) {
                                     val kunde = Customer(kundeId, name = kundeDO.name)
                                     projekt.customer = kunde

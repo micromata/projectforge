@@ -116,7 +116,7 @@ open class AccountingRecord(
     fun create(record: BuchungssatzDO, debits: Boolean, businessUnit: String, customerGroup: String): AccountingRecord {
       val date = PFDay.from(record.datum!!)
       val cost2 = record.kost2!!
-      val projectId = cost2.projektId!!
+      val projectId = cost2.projekt!!.id!!
       val project = cost2.projekt!!
       val customerName = project.kunde?.name ?: "---"
       var revenue = BigDecimal.ZERO

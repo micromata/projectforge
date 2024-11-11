@@ -143,7 +143,7 @@ public class TeamCalCache extends AbstractCache {
     @Override
     protected void refresh() {
         log.info("Initializing TeamCalCache ...");
-        persistenceService.runIsolatedReadOnly(context -> {
+        persistenceService.runIsolatedReadOnly(true, context -> {
             TeamCalDao dao = ApplicationContextProvider.getApplicationContext().getBean(TeamCalDao.class);
             if (dao == null || teamCalRight == null) {
                 teamCalRight = (TeamCalRight) userRights.getRight(UserRightId.PLUGIN_CALENDAR);
@@ -158,8 +158,8 @@ public class TeamCalCache extends AbstractCache {
                 }
             }
             this.calendarMap = map;
+            log.info("Initializing of TeamCalCache done: " + context.formatStats(true));
             return null;
         });
-        log.info("Initializing of TeamCalCache done.");
     }
 }

@@ -56,17 +56,17 @@ open class UserRightDO : DefaultBaseDO, Comparable<UserRightDO>, Serializable, D
      */
     @get:Column(name = "right_id", length = 40, nullable = false)
     @GenericField // was: @Field(index = Index.YES, analyze = Analyze.NO)
-    var rightIdString: String? = null
+    open var rightIdString: String? = null
 
     @get:Column(length = 40)
     @get:Enumerated(EnumType.STRING)
     @GenericField // was:@Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
-    var value: UserRightValue? = null
+    open var value: UserRightValue? = null
 
     @get:JoinColumn(name = "user_fk", nullable = false)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @IndexedEmbedded(includeDepth = 1)
-    var user: PFUserDO? = null
+    open var user: PFUserDO? = null
 
     constructor()
 

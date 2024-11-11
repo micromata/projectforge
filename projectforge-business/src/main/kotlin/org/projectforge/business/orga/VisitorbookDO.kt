@@ -50,17 +50,17 @@ open class VisitorbookDO : DefaultBaseDO() {
     @FullTextField
     @PropertyInfo(i18nKey = "orga.visitorbook.lastname")
     @get:Column(name = "lastname", length = 30, nullable = false)
-    var lastname: String? = null
+    open var lastname: String? = null
 
     @FullTextField
     @PropertyInfo(i18nKey = "orga.visitorbook.firstname")
     @get:Column(name = "firstname", length = 30, nullable = false)
-    var firstname: String? = null
+    open var firstname: String? = null
 
     @FullTextField
     @PropertyInfo(i18nKey = "orga.visitorbook.company")
     @get:Column(name = "company")
-    var company: String? = null
+    open var company: String? = null
 
     @PropertyInfo(i18nKey = "orga.visitorbook.contactPerson")
     @IndexedEmbedded(includeDepth = 2, includePaths = ["user.firstname", "user.lastname"])
@@ -75,12 +75,12 @@ open class VisitorbookDO : DefaultBaseDO() {
             columnList = "visitorbook_id"
         ), jakarta.persistence.Index(name = "idx_fk_t_orga_employee_employee_id", columnList = "employee_id")]
     )
-    var contactPersons: Set<EmployeeDO>? = null
+    open var contactPersons: Set<EmployeeDO>? = null
 
     @PropertyInfo(i18nKey = "orga.visitorbook.visitortype")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "visitor_type", nullable = false)
-    var visitortype: VisitorType? = null
+    open var visitortype: VisitorType? = null
 
     /*
     @FullTextField(store = Store.YES)
@@ -94,7 +94,7 @@ open class VisitorbookDO : DefaultBaseDO() {
         mappedBy = "visitorbook", targetEntity = VisitorbookEntryDO::class
     )
     // @HistoryProperty(converter = TimependingHistoryPropertyConverter::class)
-    var entries: MutableList<VisitorbookEntryDO>? = null
+    open var entries: MutableList<VisitorbookEntryDO>? = null
 
     override fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
         var modificationStatus = super.copyValuesFrom(src, "timeableAttributes")
