@@ -45,7 +45,7 @@ private val log = KotlinLogging.logger {}
 //@HibernateSearchInfo(fieldInfoProvider = HibernateSearchAttrSchemaFieldInfoProvider::class, param = "visitorbook")
 @Table(name = "t_orga_visitorbook")
 @AUserRightId("ORGA_VISITORBOOK")
-class VisitorbookDO : DefaultBaseDO() {
+open class VisitorbookDO : DefaultBaseDO() {
 
     @FullTextField
     @PropertyInfo(i18nKey = "orga.visitorbook.lastname")
@@ -65,7 +65,7 @@ class VisitorbookDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "orga.visitorbook.contactPerson")
     @IndexedEmbedded(includeDepth = 2, includePaths = ["user.firstname", "user.lastname"])
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-    @get:ManyToMany(targetEntity = EmployeeDO::class, cascade = [CascadeType.MERGE], fetch = FetchType.LAZY)
+    @get:ManyToMany(targetEntity = EmployeeDO::class, fetch = FetchType.LAZY)
     @get:JoinTable(
         name = "T_ORGA_VISITORBOOK_EMPLOYEE",
         joinColumns = [JoinColumn(name = "VISITORBOOK_ID")],
@@ -76,12 +76,6 @@ class VisitorbookDO : DefaultBaseDO() {
         ), jakarta.persistence.Index(name = "idx_fk_t_orga_employee_employee_id", columnList = "employee_id")]
     )
     var contactPersons: Set<EmployeeDO>? = null
-        get() {
-            if (field == null) {
-                this.contactPersons = HashSet()
-            }
-            return field
-        }
 
     @PropertyInfo(i18nKey = "orga.visitorbook.visitortype")
     @get:Enumerated(EnumType.STRING)

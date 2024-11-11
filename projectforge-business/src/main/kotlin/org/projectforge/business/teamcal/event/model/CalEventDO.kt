@@ -42,7 +42,7 @@ import java.util.*
     )]
 ) //@WithHistory(noHistoryProperties = {"lastUpdate", "created"}, nestedEntities = {TeamEventAttendeeDO.class})
 @AUserRightId(value = "PLUGIN_CALENDAR_EVENT")
-class CalEventDO : DefaultBaseDO(), ICalendarEvent {
+open class CalEventDO : DefaultBaseDO(), ICalendarEvent {
     /**
      * @return the calendar
      */

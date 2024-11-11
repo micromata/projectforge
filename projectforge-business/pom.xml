@@ -463,20 +463,22 @@
             </resource>
         </resources>
         <plugins>
-            <!-- Needed for lazy loading, but didn't work for AddressDO.images: -->
-            <!--plugin>
+            <!-- Hibernate Bytecode Enhancement Plugin -->
+            <!-- plugin> Doesn't work with Kotlin. Entities are lazy loaded if detached.
                 <groupId>org.hibernate.orm.tooling</groupId>
                 <artifactId>hibernate-enhance-maven-plugin</artifactId>
                 <version>${hibernate.version}</version>
                 <executions>
                     <execution>
-                        <configuration>
-                            <failOnError>true</failOnError>
-                            <enableLazyInitialization>true</enableLazyInitialization>
-                        </configuration>
                         <goals>
                             <goal>enhance</goal>
                         </goals>
+                        <configuration>
+                            <failOnError>false</failOnError>
+                            <enableLazyInitialization>true</enableLazyInitialization>
+                            <enableDirtyTracking>true</enableDirtyTracking>
+                            <enableAssociationManagement>true</enableAssociationManagement>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin-->
@@ -503,6 +505,12 @@
                             <goal>test-compile</goal>
                         </goals>
                         <configuration>
+                            <!--args> Used for testing enhancers.
+                                <arg>-Xjsr305=strict</arg>
+                            </args>
+                            <compilerPlugins>
+                                <plugin>all-open</plugin>
+                            </compilerPlugins-->
                             <sourceDirs>
                                 <sourceDir>${project.basedir}/src/test/kotlin</sourceDir>
                                 <sourceDir>${project.basedir}/src/test/java</sourceDir>
@@ -510,6 +518,18 @@
                         </configuration>
                     </execution>
                 </executions>
+                <!--dependencies> Checks with enhancers. Not needed for production.
+                    <dependency>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-allopen</artifactId>
+                        <version>${kotlin.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-noarg</artifactId>
+                        <version>${kotlin.version}</version>
+                    </dependency>
+                </dependencies-->
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
