@@ -1,7 +1,6 @@
 Aktuell:
 - Suche nach Auftragsnummern in Auftragsliste
 - Update caches after single load or modification.
-- Kostzuweisungsexport: es wird gefetched wie blöde.
 - 2024-11-09T16:18:19.834Z user:kai  WARN 23413 --- [projectforge-application] [0.1-8080-exec-2] o.p.business.user.AbstractUserPrefCache  : Can't deserialize user preferences: null, userId=2, area=null, key='TeamCalendarPage.userPrefs' (may-be ok after a new ProjectForge release). string=!rO0AB...vnj7nRSToOXX1PrEWobDsFAAA=
 
 - remove all BaseDO.xxxId (lazy fetch) and replace callee by baseDO?.id
@@ -10,8 +9,6 @@ Aktuell:
   - employeeSalaryList: lädt wie blöde nach dem Editieren. (Excel-Exports auch zuviele SQLs)
   - AddressKampagnen: ebd. (massenhaft SQLs)
 - Suche nach Kontonummer in KontoDO
-
-- Test: Kostzuweisungsexport, Rechnungserzeugung
 
 - Lazy-Breakpoint: AbstractLazyInitializer.initialize (#170)
 org.hibernate.persister.entity.AbstractEntityPersister#generateSelectLazy:
@@ -31,7 +28,6 @@ postrgesql.conf:
 - CronReindexingHourlyJob ohne Effekt.
 - Protokoll einsehen: http://localhost:8080/react/logViewer/dynamic/1
 - Reindizierung der letzten n einträge nicht migriert (sinnvoll?).
-- Suche in History
 - history-entries bei EmployeeValidityAttrDO nichtssagend.
 - HistoryEntry: EmployeeValidityAttrDO.insert muss sinnvoll für Anzeige formatiert werden.
 - Scripte nach Renamings testen

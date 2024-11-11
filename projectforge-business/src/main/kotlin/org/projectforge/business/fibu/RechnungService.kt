@@ -26,6 +26,7 @@ package org.projectforge.business.fibu
 import jakarta.persistence.Tuple
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
+import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.framework.persistence.database.TupleUtils.getBigDecimal
 import org.projectforge.framework.persistence.database.TupleUtils.getLong
@@ -43,6 +44,9 @@ import kotlin.reflect.full.createInstance
 class RechnungService {
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
+
+    @Autowired
+    private lateinit var kostCache: KostCache
 
     fun fetchPositionen(invoices: List<AbstractRechnungDO>) {
         val invoiceIds = invoices.map { it.id!! }
@@ -92,22 +96,18 @@ class RechnungService {
     fun selectKostzuweisungen(
         invoices: List<AbstractRechnungDO>,
     ): List<KostZuweisungDO> {
+        if (invoices.isEmpty()) {
+            return emptyList()
+        }
+        val entityClass = invoices.first()::class
         val positionen = invoices.flatMap { it.positionen ?: emptyList() }
-        val entityClass = positionen.first()::class
         val posIds = positionen.map { it.id!! }
-        return selectKostzuweisungen(entityClass, posIds)
-    }
-
-    fun selectKostzuweisungen(
-        entityClass: KClass<*>,
-        positionIds: Collection<Long>
-    ): List<KostZuweisungDO> {
         return persistenceService.runIsolatedReadOnly { context ->
             val em = context.em
             val replacement = if (entityClass == RechnungDO::class) "rechnungsPosition" else "eingangsrechnungsPosition"
             val sql = SELECT_KOST_ZUWEISUNGEN.replace("{rechnungsPosition}", replacement)
             val query = em.createQuery(sql, Tuple::class.java)
-            query.setParameter("positionIds", positionIds)
+            query.setParameter("positionIds", posIds)
             val tuples = query.resultList
             tuples.map { tuple ->
                 KostZuweisungDO().also { zuweisung ->
@@ -115,19 +115,20 @@ class RechnungService {
                     zuweisung.netto = getBigDecimal(tuple, "netto")
                     zuweisung.index = getShort(tuple, "index")!!
                     getLong(tuple, "kost1Id")?.let { kost1Id ->
-                        zuweisung.kost1 = Kost1DO().also { it.id = kost1Id }
+                        zuweisung.kost1 = kostCache.getKost1(kost1Id)
                     }
                     getLong(tuple, "kost2Id")?.let { kost2Id ->
-                        zuweisung.kost2 = Kost2DO().also { it.id = kost2Id }
+                        zuweisung.kost2 = kostCache.getKost2(kost2Id)
                     }
                     getLong(tuple, "rechnungsPositionId")?.let { rechnungsPositionId ->
-                        val instance = entityClass.createInstance()
-                        if (instance is RechnungsPositionDO) {
-                            zuweisung.rechnungsPosition = instance.also { it.id = rechnungsPositionId }
+                        val pos = positionen.find { it.id == rechnungsPositionId }
+                        if (entityClass == RechnungDO::class) {
+                            zuweisung.rechnungsPosition = pos as RechnungsPositionDO
                         } else {
-                            instance as EingangsrechnungsPositionDO
-                            zuweisung.eingangsrechnungsPosition = instance.also { it.id = rechnungsPositionId }
+                            zuweisung.eingangsrechnungsPosition = pos as EingangsrechnungsPositionDO
                         }
+                        pos.kostZuweisungen = pos.kostZuweisungen ?: mutableListOf()
+                        pos.kostZuweisungen!!.add(zuweisung)
                     }
                 }
             }
