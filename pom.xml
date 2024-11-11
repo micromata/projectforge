@@ -217,10 +217,8 @@
 
         <!--kotlin.compiler.incremental>true</kotlin.compiler.incremental--> <!-- It's experimentell, so don't use it for now -->
 
-        <hibernate.version>6.6.1.Final</hibernate.version>
-        <hibernate-search.version>7.1.1.Final</hibernate-search.version> <!-- Check 11.08.2024 -->
-        <!--hibernate-entitymanager.version>5.6.15.Final</hibernate-entitymanager.version--> <!-- Check 11.08.2024 -->
-
+        <hibernate.version>6.6.2.Final</hibernate.version>
+        <hibernate-search.version>7.2.1.Final</hibernate-search.version> <!-- Check 11.08.2024 -->
 
         <apacheds.version>1.5.7</apacheds.version>
         <com.google.zxing.version>3.5.3</com.google.zxing.version> <!-- Check 11.08.2024 -->
@@ -248,6 +246,7 @@
         <jakarta.servlet.jsp-api.version>4.0.0</jakarta.servlet.jsp-api.version> <!-- https://mvnrepository.com/artifact/jakarta.servlet.jsp/jakarta.servlet.jsp-api -->
         <jakarta.ws.rs.version>4.0.0</jakarta.ws.rs.version> <!-- Check 11.08.2024 -->
         <jakarta.xml.bind-api.version>4.0.2</jakarta.xml.bind-api.version>
+        <jboss-logging.version>3.6.0.Final</jboss-logging.version>
         <jersey.version>3.1.8</jersey.version>  <!-- Check 11.08.2024 -->
         <jfreechart.version>1.5.5</jfreechart.version>  <!-- Check 11.08.2024 -->
         <!-- log4j-over-slf4j: -->
