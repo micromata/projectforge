@@ -32,6 +32,8 @@ import org.projectforge.common.BeanHelper
 import org.projectforge.common.logging.LogUtils.logDebugFunCall
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils
+import java.math.BigDecimal
+import java.math.BigInteger
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -506,9 +508,15 @@ abstract class DBPredicate(
             searchClassInfo: HibernateSearchClassInfo,
         ) {
             logDebugFunCall(log) { it.mtd("FullSearch.handledByFullTextQuery(...)") }
-            if (searchClassInfo.numericFieldNames.isNotEmpty() && NumberUtils.isCreatable(queryString)) {
+            if (NumberUtils.isCreatable(queryString)) {
                 val number = NumberUtils.createNumber(queryString)
-                search(searchPredicateFactory, boolCollector, number.toString(), searchClassInfo.numericFieldNames)
+                search(
+                    searchPredicateFactory,
+                    boolCollector,
+                    number,
+                    searchClassInfo.numericFieldNames,
+                    searchClassInfo.stringFieldNames
+                )
             } else if (searchFields.isNullOrEmpty()) {
                 search(searchPredicateFactory, boolCollector, queryString, searchClassInfo.stringFieldNames)
             } else {
@@ -537,11 +545,53 @@ abstract class DBPredicate(
             )
         }
 
+        private fun search(
+            searchPredicateFactory: SearchPredicateFactory,
+            boolCollector: BooleanPredicateOptionsCollector<*>,
+            value: Number,
+            numericFields: Array<Pair<String, Class<*>>>,
+            stringFields: Array<String>,
+        ) {
+            val predicates = numericFields.map {
+                searchPredicateFactory
+                    .range()
+                    .field(it.first)
+                    .between(getValue(value, it.second), getValue(value, it.second))
+            }.toTypedArray()
+            logDebugFunCall(log) {
+                it.mtd("search(value, fields)")
+                    .msg("bool.must(or(f.id().matching(${value}), f.range()[${numericFields.joinToString { "${it.first}:${it.second}" }}], f.queryString().fields(${stringFields.joinToString()}).matching(\"$value\")))")
+            }
+            boolCollector.must(
+                searchPredicateFactory.or(
+                    searchPredicateFactory
+                        .id()
+                        .matching(value.toLong()),
+                    searchPredicateFactory.queryString()
+                        .fields(*stringFields)
+                        .matching(value.toString()),
+                    *predicates
+                )
+            )
+        }
+
 
         /*override fun addTo(qb: DBQueryBuilderByFullText<*>) {
             logDebugFunCall(log) { it.mtd("FullSearch.addTo(qb)").msg("queryString=$queryString") }
             qb.fulltextSearch(queryString)
         }*/
+    }
+
+    fun getValue(value: Number, type: Class<*>): Any {
+        return when (type) {
+            Int::class.java -> value.toInt()
+            Long::class.java -> value.toLong()
+            Float::class.java -> value.toFloat()
+            Double::class.java -> value.toDouble()
+            BigDecimal::class.java -> BigDecimal(value.toString())
+            BigInteger::class.java -> BigInteger(value.toString())
+            else -> value
+        }
     }
 
     class IsNull(field: String) : DBPredicate(field, false) {
