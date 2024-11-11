@@ -23,12 +23,10 @@
 
 package org.projectforge.business.fibu
 
-import com.github.javaparser.Position.pos
 import mu.KotlinLogging
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.KostZuweisungDO
-import org.projectforge.framework.persistence.database.JdbcUtils
 import org.projectforge.framework.persistence.database.JdbcUtils.getBigDecimal
 import org.projectforge.framework.persistence.database.JdbcUtils.getInt
 import org.projectforge.framework.persistence.database.JdbcUtils.getLocalDate

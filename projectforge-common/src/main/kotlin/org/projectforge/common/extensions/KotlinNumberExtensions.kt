@@ -84,7 +84,7 @@ fun Number?.formatDigits(digits: Int): String {
             is BigInteger -> this.abs()
             is Byte -> this.toInt().absoluteValue
             is Short -> this.toInt().absoluteValue
-            else -> throw IllegalArgumentException("Unsupported number type")
+            else -> throw IllegalArgumentException("Unsupported number type: $this")
         }
         return "-${absolute.toString().padStart(digits - 1, '0')}"
     }
@@ -115,5 +115,20 @@ fun Number?.formatMillis(): String {
         // minutes > 0 -> String.format("%02d:%02d.%03d", minutes, seconds, milliseconds)
         // else -> String.format("%02d.%03d", seconds, milliseconds)
         else -> String.format("%02d:%02d.%03d", minutes, seconds, milliseconds)
+    }
+}
+
+fun Number?.isZeroOrNull(): Boolean {
+    this ?: return true
+    return when (this) {
+        is Int -> this != 0
+        is Long -> this != 0L
+        is Float -> this != 0f
+        is Double -> this != 0.0
+        is BigDecimal -> this.compareTo(BigDecimal.ZERO) != 0
+        is BigInteger -> this != BigInteger.ZERO
+        is Byte -> this.toInt() != 0
+        is Short -> this.toInt() != 0
+        else -> throw IllegalArgumentException("Unsupported number type: $this")
     }
 }
