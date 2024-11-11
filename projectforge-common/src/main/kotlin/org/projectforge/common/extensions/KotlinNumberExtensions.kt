@@ -118,17 +118,30 @@ fun Number?.formatMillis(): String {
     }
 }
 
+fun Number.asBigDecimal(): BigDecimal {
+    return when (this) {
+        is BigDecimal -> this
+        is Long -> this.toBigDecimal()
+        is Int -> this.toBigDecimal()
+        is Short -> BigDecimal(this.toInt())
+        is Float -> this.toBigDecimal()
+        is Double -> this.toBigDecimal()
+        else -> BigDecimal(this.toDouble())
+    }
+}
+
 fun Number?.isZeroOrNull(): Boolean {
     this ?: return true
     return when (this) {
-        is Int -> this != 0
-        is Long -> this != 0L
-        is Float -> this != 0f
-        is Double -> this != 0.0
-        is BigDecimal -> this.compareTo(BigDecimal.ZERO) != 0
-        is BigInteger -> this != BigInteger.ZERO
-        is Byte -> this.toInt() != 0
-        is Short -> this.toInt() != 0
+        is Int -> this == 0
+        is Long -> this == 0L
+        is Float -> this.absoluteValue < 0.000001
+        is Double -> this.absoluteValue < 0.000001
+        is BigDecimal -> this.compareTo(BigDecimal.ZERO) == 0
+        is BigInteger -> this == BigInteger.ZERO
+        is Byte -> this.toInt() == 0
+        is Short -> this.toInt() == 0
         else -> throw IllegalArgumentException("Unsupported number type: $this")
     }
 }
+
