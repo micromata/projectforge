@@ -487,7 +487,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
         Assertions.assertEquals(nummernkreis, kost2!!.nummernkreis)
         Assertions.assertEquals(bereich, kost2.bereich)
         Assertions.assertEquals(teilbereich, kost2.teilbereich)
-        Assertions.assertEquals(art, kost2.kost2ArtId as Long)
+        Assertions.assertEquals(art, kost2.kost2Art?.id as Long)
     }
 
     private fun createTimesheet(

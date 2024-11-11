@@ -198,15 +198,10 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
   @get:Column(length = 4000)
   override var note: String? = null
 
+  // @get:OneToMany(fetch = FetchType.LAZY)
+  // @get:JoinColumn(name = "team_event_fk")
+  @get:Transient
   open var attendees: MutableSet<TeamEventAttendeeDO>? = null
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "team_event_fk")
-    get() {
-      if (field == null) {
-        field = HashSet()
-      }
-      return field
-    }
 
   @get:Column
   open var ownership: Boolean? = null
@@ -239,16 +234,11 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
   @get:Column(name = "reminder_action_type")
   open var reminderActionType: ReminderActionType? = null
 
-  @PersistenceBehavior(autoUpdateCollectionEntries = true)
-  @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
-  @get:JoinColumn(name = "team_event_fk2")
+  //@PersistenceBehavior(autoUpdateCollectionEntries = true)
+  //@get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
+  //@get:JoinColumn(name = "team_event_fk2")
+  @get:Transient
   open var attachments: MutableSet<TeamEventAttachmentDO>? = null
-    get() {
-      if (field == null) {
-        field = TreeSet()
-      }
-      return field
-    }
 
   open var creator: PFUserDO? = null
     @ManyToOne(fetch = FetchType.LAZY)

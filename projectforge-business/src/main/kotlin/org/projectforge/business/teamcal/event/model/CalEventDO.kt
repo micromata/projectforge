@@ -54,7 +54,7 @@ open class CalEventDO : DefaultBaseDO(), ICalendarEvent {
     @get:ManyToOne(fetch = FetchType.LAZY)
     @IndexedEmbedded(includeDepth = 1)
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-    var calendar: TeamCalDO? = null
+    open var calendar: TeamCalDO? = null
 
     /**
      * @return the startDate
@@ -66,7 +66,7 @@ open class CalEventDO : DefaultBaseDO(), ICalendarEvent {
     @PropertyInfo(i18nKey = "plugins.teamcal.event.beginDate")
     @GenericField
     override // was: @Field(index = Index.YES, analyze = Analyze.NO) @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
-    var startDate: Date? = null
+    open var startDate: Date? = null
 
     /**
      * @return the endDate
@@ -78,7 +78,7 @@ open class CalEventDO : DefaultBaseDO(), ICalendarEvent {
     @PropertyInfo(i18nKey = "plugins.teamcal.event.endDate")
     @GenericField
     override // was: @Field(index = Index.YES, analyze = Analyze.NO) @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
-    var endDate: Date? = null
+    open var endDate: Date? = null
 
     /**
      * Loads or creates the team event uid. Its very important that the uid is always the same in every ics file, which is
@@ -125,7 +125,7 @@ open class CalEventDO : DefaultBaseDO(), ICalendarEvent {
      * @param icsData the icsData to set
      */
     @get:Column(name = "ics", length = 10000)
-    var icsData: String? = null
+    open var icsData: String? = null
 
     @PropertyInfo(i18nKey = "plugins.teamcal.event.allDay")
     override var allDay: Boolean = false

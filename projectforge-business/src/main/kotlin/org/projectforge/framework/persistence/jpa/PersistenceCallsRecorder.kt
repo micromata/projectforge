@@ -35,7 +35,7 @@ import org.hibernate.stat.spi.StatisticsImplementor
  * If you want to use it in a multithreaded context, you have to synchronize it.
  * Please note, that the indirect database calls e.g. on lazy loading aren't counted.
  *
- * Lazy-Breakpoint: AbstractLazyInitializer.initialize (#170)
+ * Lazy-Breakpoint: AbstractLazyInitializer.initialize (#134)
  * org.hibernate.persister.entity.AbstractEntityPersister#generateSelectLazy:
  *
  */

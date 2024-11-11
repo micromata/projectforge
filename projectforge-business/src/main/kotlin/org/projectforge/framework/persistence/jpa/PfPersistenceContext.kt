@@ -76,6 +76,7 @@ class PfPersistenceContext internal constructor(
         callStats = PersistenceCallsRecorder(em, extended)
     }
 
+    @JvmOverloads
     fun formatStats(withDuration: Boolean = true, extended: Boolean = false): String {
         val callsStatsString = callStats?.toString(extended)
         val stats = PfPersistenceContextThreadLocal.getStatsState().getActivities(savedStats).asString(withDuration)

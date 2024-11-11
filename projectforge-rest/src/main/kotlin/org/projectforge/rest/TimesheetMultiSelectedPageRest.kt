@@ -248,7 +248,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
                         }
                         if (!availableKost2s.isNullOrEmpty() && timesheet.kost2?.projekt != project) {
                             // Try to find kost2 with same type (last 2 digits of projects)
-                            availableKost2s.find { it.kost2ArtId == timesheet.kost2?.kost2ArtId }?.let { newKost2 ->
+                            availableKost2s.find { it.kost2Art?.id == timesheet.kost2?.kost2Art?.id }?.let { newKost2 ->
                                 timesheet.kost2 = newKost2
                             }
                         }

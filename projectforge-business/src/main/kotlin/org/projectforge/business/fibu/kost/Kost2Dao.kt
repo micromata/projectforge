@@ -155,10 +155,10 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
     }
 
     override fun onInsertOrModify(obj: Kost2DO, operationType: OperationType) {
-        if (obj.projektId != null) {
+        if (obj.projekt?.id != null) {
             // Projekt ist gegeben. Dann müssen auch die Ziffern stimmen:
             val projekt =
-                projektDao.find(obj.projektId) // Bei Neuanlage ist Projekt nicht wirklich gebunden.
+                projektDao.find(obj.projekt?.id) // Bei Neuanlage ist Projekt nicht wirklich gebunden.
             if (projekt!!.nummernkreis != obj.nummernkreis || projekt.bereich != obj.bereich || projekt.nummer != obj.teilbereich) {
                 throw UserException(
                     ("Inkonsistenz bei Kost2: "
@@ -181,7 +181,7 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
         }
         val other = if (obj.id == null) {
             // New kost entry
-            getKost2(obj.nummernkreis, obj.bereich, obj.teilbereich, obj.kost2ArtId!!)
+            getKost2(obj.nummernkreis, obj.bereich, obj.teilbereich, obj.kost2Art?.id!!)
         } else {
             // kost entry already exists. Check maybe changed:
             persistenceService.selectNamedSingleResult(
@@ -190,7 +190,7 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
                 Pair("nummernkreis", obj.nummernkreis),
                 Pair("bereich", obj.bereich),
                 Pair("teilbereich", obj.teilbereich),
-                Pair("kost2ArtId", obj.kost2ArtId),
+                Pair("kost2ArtId", obj.kost2Art?.id),
                 Pair("id", obj.id),
             )
         }
