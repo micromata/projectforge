@@ -64,7 +64,7 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
         get() = fieldInfos.filter { it.isStringSearchSupported() }.map { it.luceneField }.toTypedArray()
 
     val numericFieldNames
-        get() = fieldInfos.filter { it.isNumericSearchSupported() }.map { it.luceneField }.toTypedArray()
+        get() = fieldInfos.filter { it.isNumericSearchSupported() }.map { Pair(it.luceneField, it.type) }.toTypedArray()
 
     private val clazz: Class<*>
 
