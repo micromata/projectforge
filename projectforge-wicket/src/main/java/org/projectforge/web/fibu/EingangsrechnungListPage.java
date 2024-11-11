@@ -305,7 +305,7 @@ public class EingangsrechnungListPage
                 + "_"
                 + DateHelper.getDateAsFilenameSuffix(new Date())
                 + ".xls";
-        final byte[] xls = WicketSupport.get(KostZuweisungExport.class).exportRechnungen(rechnungen, getString("fibu.common.creditor"));
+        final byte[] xls = WicketSupport.get(KostZuweisungExport.class).exportEingangsRechnungen(rechnungen, getString("fibu.common.creditor"));
         if (xls == null || xls.length == 0) {
             log.error("Oups, xls has zero size. Filename: " + filename);
             return;
