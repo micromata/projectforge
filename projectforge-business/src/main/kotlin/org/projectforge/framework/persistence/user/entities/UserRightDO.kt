@@ -50,7 +50,7 @@ import java.io.Serializable
     NamedQuery(name = UserRightDO.FIND_ALL_BY_USER_ID, query = "from UserRightDO where user.id=:userId"),
 )
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
-class UserRightDO : DefaultBaseDO, Comparable<UserRightDO>, Serializable, DisplayNameCapable {
+open class UserRightDO : DefaultBaseDO, Comparable<UserRightDO>, Serializable, DisplayNameCapable {
     /**
      * Only for storing the right id in the data base.
      */

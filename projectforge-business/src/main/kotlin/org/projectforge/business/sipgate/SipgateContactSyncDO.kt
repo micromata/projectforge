@@ -146,7 +146,7 @@ open class SipgateContactSyncDO {
   /**
    * Id of the local address connected to this remote contact of Sipgate.
    */
-  @get:ManyToOne(cascade = [CascadeType.MERGE])
+  @get:ManyToOne
   @get:JoinColumn(name = "address_id")
   @get:JsonIgnore
   open var address: AddressDO? = null
