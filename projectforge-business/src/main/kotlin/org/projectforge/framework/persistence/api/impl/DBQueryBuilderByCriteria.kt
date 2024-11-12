@@ -26,7 +26,6 @@ package org.projectforge.framework.persistence.api.impl
 import jakarta.persistence.EntityManager
 import jakarta.persistence.criteria.Predicate
 import mu.KotlinLogging
-import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -63,11 +62,12 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Long>>(
         }
     }
 
-    fun createResultIterator(resultPredicates: List<DBPredicate>): DBResultIterator<O> {
+    fun createResultIterator(resultPredicates: List<DBPredicate>, queryFilter: QueryFilter): DBResultIterator<O> {
         return DBCriteriaResultIterator(
             entityManager,
             ctx.cr.select(ctx.root).where(*predicates.toTypedArray()).orderBy(*order.toTypedArray()),
             resultPredicates,
+            queryFilter,
         )
     }
 

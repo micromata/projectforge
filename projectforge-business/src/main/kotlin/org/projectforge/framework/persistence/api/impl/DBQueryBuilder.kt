@@ -140,7 +140,7 @@ class DBQueryBuilder<O : ExtendedBaseDO<Long>>(
             return dbQueryBuilderByFullText.createResultIterator(fullTextPredicates, resultPredicates)
         }
         logDebugFunCall(log) { it.mtd("result()").msg("criteriaSearch") }
-        return dbQueryBuilderByCriteria.createResultIterator(resultPredicates)
+        return dbQueryBuilderByCriteria.createResultIterator(resultPredicates, queryFilter)
     }
 
     /**

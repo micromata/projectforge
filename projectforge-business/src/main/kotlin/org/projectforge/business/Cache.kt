@@ -141,7 +141,9 @@ class Cache {
     }
 
     fun getEmployeeIfNotInitialized(employee: EmployeeDO?): EmployeeDO? {
-        return employeeCache.getEmployeeIfNotInitialized(employee)
+        return employeeCache.getEmployeeIfNotInitialized(employee)?.also {
+            it.user = getUserIfNotInitialized(it.user)
+        }
     }
 
     fun getEmployeeByUserId(userId: Long?): EmployeeDO? {

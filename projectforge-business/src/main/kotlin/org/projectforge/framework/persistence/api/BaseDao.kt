@@ -309,7 +309,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
         return select(queryFilter, checkAccess)
     }
 
-    open fun createQueryFilter(filter: BaseSearchFilter?): QueryFilter {
+    open fun createQueryFilter(filter: BaseSearchFilter? = null): QueryFilter {
         return QueryFilter(filter)
     }
 

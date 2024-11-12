@@ -67,7 +67,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
 )
     : MutableList<O> {
   magicFilter.sortAndLimitMaxRowsWhileSelect = true
-  val queryFilter = QueryFilter()
+  val queryFilter = baseDao.createQueryFilter()
   val customResultFilters = pagesRest.preProcessMagicFilter(queryFilter, magicFilter)
   magicFilter.sortProperties = magicFilter.sortProperties.distinctBy { it.property }.toMutableList()
   MagicFilterProcessor.doIt(baseDao.doClass, magicFilter, queryFilter)

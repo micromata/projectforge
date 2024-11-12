@@ -105,6 +105,8 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
 
     var sortAndLimitMaxRowsWhileSelect: Boolean = true
 
+    var entityGraphName: String? = null
+
     fun getExtendedBooleanValue(key: String): Boolean {
         val value = extended[key] ?: return false
         if (value is Boolean) {

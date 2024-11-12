@@ -694,7 +694,7 @@ open class VacationService {
                                 VacationStats.format(
                                     numberOfWorkingDays
                                 )
-                            }. Ignoring half-day switch."
+                            }). Ignoring half-day switch."
                         )
                     }
                 }
@@ -709,7 +709,7 @@ open class VacationService {
                                 VacationStats.format(
                                     numberOfWorkingDays
                                 )
-                            }. Ignoring half-day switch."
+                            }. Ignoring half-day switch"
                         )
                     }
                 }
