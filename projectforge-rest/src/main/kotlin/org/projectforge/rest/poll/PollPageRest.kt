@@ -24,6 +24,7 @@
 package org.projectforge.rest.poll
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
@@ -64,7 +65,6 @@ import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
-import jakarta.servlet.http.HttpServletRequest
 
 
 @RestController
@@ -122,10 +122,10 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     override fun transformFromDB(obj: PollDO, editMode: Boolean): Poll {
         val poll = Poll()
         poll.copyFrom(obj)
-        User.restoreDisplayNames(poll.fullAccessUsers, userService)
-        Group.restoreDisplayNames(poll.fullAccessGroups, groupService)
-        User.restoreDisplayNames(poll.attendees, userService)
-        Group.restoreDisplayNames(poll.groupAttendees, groupService)
+        User.restoreDisplayNames(poll.fullAccessUsers)
+        Group.restoreDisplayNames(poll.fullAccessGroups)
+        User.restoreDisplayNames(poll.attendees)
+        Group.restoreDisplayNames(poll.groupAttendees)
         return poll
     }
 
@@ -271,7 +271,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                     )
             )
 
-        if(!dto.isAlreadyCreated()) {
+        if (!dto.isAlreadyCreated()) {
 
             fieldset
                 .add(
@@ -357,7 +357,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                         .add(
                             UICol(colWidth)
                                 .add(
-                                    UITextArea (
+                                    UITextArea(
                                         "customemailcontent",
                                         label = "poll.email-content-field",
                                         tooltip = "poll.email-content-tooltip",
@@ -433,7 +433,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val poll = Poll()
         val pollDo = pollDao.find(id.toLong())!!
         poll.copyFrom(pollDo)
-        User.restoreDisplayNames(poll.attendees, userService)
+        User.restoreDisplayNames(poll.attendees)
         val bytes: ByteArray? = excelExport
             .getExcel(poll)
         val filename = ("${poll.title}_${LocalDateTime.now().year}_Result.xlsx")
@@ -456,47 +456,48 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val responseEntity = super.saveOrUpdate(request, postData)
         val fuemailSent = false
 
-            if (postData.data.state == PollDO.State.FINISHED) {
+        if (postData.data.state == PollDO.State.FINISHED) {
 
 
-                val poll = Poll()
-                val id: String
-                id = postData.data.id.toString()
-                val pollDo = pollDao.find(id.toInt())!!
-                poll.copyFrom(pollDo)
-                User.restoreDisplayNames(poll.attendees, userService)
+            val poll = Poll()
+            val id: String
+            id = postData.data.id.toString()
+            val pollDo = pollDao.find(id.toInt())!!
+            poll.copyFrom(pollDo)
+            User.restoreDisplayNames(poll.attendees)
 
-                val excel = excelExport.getExcel(poll)
-                val filename = ("${postData.data.title}_${LocalDateTime.now().year}_Result.xlsx")
+            val excel = excelExport.getExcel(poll)
+            val filename = ("${postData.data.title}_${LocalDateTime.now().year}_Result.xlsx")
 
-                val mailAttachment = object : MailAttachment {
-                    override fun getFilename(): String {
-                        return filename
-                    }
-
-                    override fun getContent(): ByteArray? {
-                        return excel
-                    }
+            val mailAttachment = object : MailAttachment {
+                override fun getFilename(): String {
+                    return filename
                 }
 
-                if (fuemailSent != true) {
-
-                    val owner = userService.getUser(postData.data.owner?.id)
-                    val mailFrom = owner?.email.toString()
-                    val mailTo = pollMailService.getAllFullAccessEmails(postData.data)
-                    val mailSubject = translateMsg("poll.mail.ended.fullAccess.subject", postData.data.title)
-                    val mailContent = translateMsg("poll.mail.ended.fullAccess.content", postData.data.title, owner?.displayName)
-
-                    pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent, listOf(mailAttachment))
+                override fun getContent(): ByteArray? {
+                    return excel
                 }
+            }
+
+            if (fuemailSent != true) {
 
                 val owner = userService.getUser(postData.data.owner?.id)
                 val mailFrom = owner?.email.toString()
-                val mailTo = pollMailService.getAllAttendesEmails(postData.data)
-                val mailSubject = translateMsg("poll.mail.ended.subject", postData.data.title)
-                val mailContent = translateMsg("poll.mail.ended.content", postData.data.title, owner?.displayName)
-                pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
+                val mailTo = pollMailService.getAllFullAccessEmails(postData.data)
+                val mailSubject = translateMsg("poll.mail.ended.fullAccess.subject", postData.data.title)
+                val mailContent =
+                    translateMsg("poll.mail.ended.fullAccess.content", postData.data.title, owner?.displayName)
+
+                pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent, listOf(mailAttachment))
             }
+
+            val owner = userService.getUser(postData.data.owner?.id)
+            val mailFrom = owner?.email.toString()
+            val mailTo = pollMailService.getAllAttendesEmails(postData.data)
+            val mailSubject = translateMsg("poll.mail.ended.subject", postData.data.title)
+            val mailContent = translateMsg("poll.mail.ended.content", postData.data.title, owner?.displayName)
+            pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
+        }
         return responseEntity
     }
 
@@ -511,10 +512,9 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
         postData.data.customemailcontent = postData.data.customemailcontent?.replace("\n", "<br>")
 
-        super.onBeforeSaveOrUpdate(request, obj,postData)
+        super.onBeforeSaveOrUpdate(request, obj, postData)
 
     }
-
 
 
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
@@ -560,7 +560,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                     val mailTo = pollMailService.getAllMails(postData.data)
 
                     mailSubject = translateMsg("poll.mail.created.subject", obj.title, obj.deadline)
-                    mailContent = translateMsg(content,
+                    mailContent = translateMsg(
+                        content,
                         obj.title,
                         owner?.displayName,
                         "<p>Hier kommst du direkt <a href=\"http://localhost:8080/react/pollResponse/dynamic/?pollId=${obj.id}\"> zur Umfrage</a></p>",
@@ -568,11 +569,12 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                         obj.deadline
                     )
                     pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
-                }  else if (!subject.isNullOrEmpty() && content.isNullOrEmpty()) {
+                } else if (!subject.isNullOrEmpty() && content.isNullOrEmpty()) {
                     val mailTo = pollMailService.getAllMails(postData.data)
 
                     mailSubject = translateMsg("$subject", obj.title, obj.deadline)
-                    mailContent = translateMsg("poll.mail.created.content",
+                    mailContent = translateMsg(
+                        "poll.mail.created.content",
                         obj.title,
                         owner?.displayName,
                         "http://localhost:8080/react/pollResponse/dynamic/?pollId=${obj.id}",
@@ -581,11 +583,12 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                     )
                     pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
 
-                } else if (!subject.isNullOrEmpty() && !content.isNullOrEmpty()){
+                } else if (!subject.isNullOrEmpty() && !content.isNullOrEmpty()) {
                     val mailTo = pollMailService.getAllMails(postData.data)
 
                     mailSubject = translateMsg("$subject", obj.title, obj.deadline)
-                    mailContent = translateMsg(content,
+                    mailContent = translateMsg(
+                        content,
                         obj.title,
                         owner?.displayName,
                         "<p>Hier kommst du direkt <a href=\"http://localhost:8080/react/pollResponse/dynamic/?pollId=${obj.id}\"> zur Umfrage</a></p>",
@@ -653,7 +656,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             val groupIds = dto.groupAttendees?.filter { it.id != null }?.map { it.id!! }?.toLongArray()
             val userIds = UserService().getUserIds(groupService.getGroupUsers(groupIds))
             val users = User.toUserList(userIds)
-            User.restoreDisplayNames(users, userService)
+            User.restoreDisplayNames(users)
             val allUsers = dto.attendees?.toMutableList() ?: mutableListOf()
 
             users?.forEach { user ->
@@ -669,7 +672,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             val groupIds = dto.fullAccessGroups?.filter { it.id != null }?.map { it.id!! }?.toLongArray()
             val userIds = UserService().getUserIds(groupService.getGroupUsers(groupIds))
             val users = User.toUserList(userIds)
-            User.restoreDisplayNames(users, userService)
+            User.restoreDisplayNames(users)
             val allUsers = dto.fullAccessUsers?.toMutableList() ?: mutableListOf()
 
             users?.forEach { user ->
@@ -898,24 +901,24 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 .add(lc, "title", "description", "location")
                 .add(
                     UIRow()
-                     .add(
-                         UICol(colWidth)
-                            .add(
-                            UISelect.createUserSelect(
-                                lc,
-                                "owner",
-                                false,
-                                "poll.owner",
-                            )
-                        )
-                     )
-                .add(
-                    UICol(colWidth)
                         .add(
-                            lc,
-                            "deadline",
+                            UICol(colWidth)
+                                .add(
+                                    UISelect.createUserSelect(
+                                        lc,
+                                        "owner",
+                                        false,
+                                        "poll.owner",
+                                    )
+                                )
                         )
-                    )
+                        .add(
+                            UICol(colWidth)
+                                .add(
+                                    lc,
+                                    "deadline",
+                                )
+                        )
                 )
         } else {
             fieldset

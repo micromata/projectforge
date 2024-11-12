@@ -26,6 +26,7 @@ package org.projectforge.business.fibu.kost
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.LockModeType
 import mu.KotlinLogging
+import org.hibernate.Hibernate
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
@@ -97,6 +98,19 @@ class KostCache : AbstractCache() {
     }
 
     /**
+     * Returns the Kost2DO if it is initialized (Hibernate). Otherwise, it will be loaded from the database.
+     * Prevents lazy loadings.
+     */
+    fun getKost2IfNotInitialized(kost2: Kost2DO?): Kost2DO? {
+        val id = kost2?.id ?: return null
+        if (Hibernate.isInitialized(kost2)) {
+            return kost2
+        }
+        return getKost2(id)
+    }
+
+
+    /**
      * @param kostString Format ######## or #.###.##.## is supported.
      * @see .getKost2
      */
@@ -137,6 +151,18 @@ class KostCache : AbstractCache() {
         synchronized(kost1Map) {
             return kost1Map[kost1Id]
         }
+    }
+
+    /**
+     * Returns the Kost1DO if it is initialized (Hibernate). Otherwise, it will be loaded from the database.
+     * Prevents lazy loadings.
+     */
+    fun getKost1IfNotInitialized(kost1: Kost1DO?): Kost1DO? {
+        val id = kost1?.id ?: return null
+        if (Hibernate.isInitialized(kost1)) {
+            return kost1
+        }
+        return getKost1(id)
     }
 
     /**

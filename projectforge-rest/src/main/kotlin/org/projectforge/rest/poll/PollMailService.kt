@@ -23,16 +23,17 @@
 
 package org.projectforge.rest.poll
 
+import mu.KotlinLogging
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.mail.Mail
 import org.projectforge.mail.MailAttachment
 import org.projectforge.mail.SendMail
 import org.projectforge.rest.dto.User
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+
+private val log = KotlinLogging.logger {}
 
 @Service
 class PollMailService {
@@ -42,11 +43,6 @@ class PollMailService {
 
     @Autowired
     private lateinit var groupService: GroupService
-
-    @Autowired
-    private lateinit var userService: UserService
-
-    private val log: Logger = LoggerFactory.getLogger(PollMailService::class.java)
 
     fun sendMail(
         from: String,
@@ -97,8 +93,8 @@ class PollMailService {
             }
         }
 
-        User.restoreDisplayNames(userList, userService)
-        User.restoreEmails(userList, userService)
+        User.restoreDisplayNames(userList)
+        User.restoreEmails(userList)
         return userList.mapNotNull { it.email }
     }
 
@@ -108,7 +104,7 @@ class PollMailService {
 
         val userList = fullAccessUser
 
-        User.restoreEmails(userList, userService)
+        User.restoreEmails(userList)
         return userList.mapNotNull { it.email }
     }
 
@@ -117,7 +113,7 @@ class PollMailService {
 
         val userList = attendees
 
-        User.restoreEmails(userList, userService)
+        User.restoreEmails(userList)
         return userList!!.mapNotNull { it.email }
     }
 }

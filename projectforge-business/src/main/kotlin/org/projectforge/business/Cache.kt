@@ -24,17 +24,27 @@
 package org.projectforge.business
 
 import jakarta.annotation.PostConstruct
+import org.projectforge.business.address.AddressbookCache
+import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.ProjektDO
+import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.business.fibu.kost.ProjektCache
+import org.projectforge.business.task.TaskDO
+import org.projectforge.business.task.TaskTree
+import org.projectforge.business.teamcal.admin.TeamCalCache
+import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.business.vacation.model.VacationDO
+import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 /**
@@ -43,6 +53,30 @@ import org.springframework.stereotype.Service
  */
 @Service
 class Cache {
+    @Autowired
+    private lateinit var addressbookCache: AddressbookCache
+
+    @Autowired
+    private lateinit var employeeCache: EmployeeCache
+
+    @Autowired
+    private lateinit var kostCache: KostCache
+
+    @Autowired
+    private lateinit var kundeCache: KundeCache
+
+    @Autowired
+    private lateinit var projektCache: ProjektCache
+
+    @Autowired
+    private lateinit var taskTree: TaskTree
+
+    @Autowired
+    private lateinit var teamCalCache: TeamCalCache
+
+    @Autowired
+    private lateinit var userGroupCache: UserGroupCache
+
     @PostConstruct
     private fun init() {
         instance = this
@@ -55,33 +89,104 @@ class Cache {
      */
     fun populate(timesheet: TimesheetDO): TimesheetDO {
         timesheet.user = getUser(timesheet.userId)
-        val kost2 = getKost2(timesheet.kost2Id)
-        val projekt = getProjektByKost2(timesheet.kost2Id)
-        val kunde = getKunde(projekt?.kunde?.nummer)
-        projekt?.let { it.kunde = kunde }
-        kost2?.let { it.projekt = projekt }
-        timesheet.kost2 = kost2
+        timesheet.task = getTask(timesheet.taskId)
+        timesheet.kost2 = getKost2(timesheet.kost2Id)?.also { populate(it) }
         return timesheet
     }
 
-    fun getUser(userId: Long?): PFUserDO? {
-        return UserGroupCache.getInstance().getUser(userId)
+    /**
+     * Fills the user, kost2, project and customer of the given timesheets.
+     * @param kost2 The kost2 to fill.
+     * @return The filled kost2 for chaining.
+     */
+    fun populate(kost2: Kost2DO): Kost2DO {
+        val projekt = getProjektByKost2(kost2.id)
+        val kunde = getKunde(projekt?.kunde?.nummer)
+        projekt?.let { it.kunde = kunde }
+        kost2.let { it.projekt = projekt }
+        return kost2
+    }
+
+    /**
+     * Fills the employee, manager, replacement and other replacements of the given vacation.
+     * @param vacation The vacation to fill.
+     * @return The filled kost2 for chaining.
+     */
+    fun populate(vacation: VacationDO): VacationDO {
+        vacation.employee = getEmployeeIfNotInitialized(vacation.employee)
+        vacation.manager = getEmployeeIfNotInitialized(vacation.manager)
+        vacation.replacement = getEmployeeIfNotInitialized(vacation.replacement)
+        vacation.otherReplacements = vacation.otherReplacements?.mapNotNull { getEmployeeIfNotInitialized(it) }?.toMutableSet()
+        return vacation
+    }
+
+    /**
+     * Gets the kost2 from the KostCache first and then fills the user, kost2, project and customer.
+     * @param kost2Id The kost2Id to fill.
+     */
+    fun getAndPopulateKost2(kost2Id: Long?): Kost2DO? {
+        return getKost2(kost2Id)?.also { populate(it) }
+    }
+
+    fun getAddressbook(addressbookId: Long?): AddressbookDO? {
+        return addressbookCache.getAddressbook(addressbookId)
+    }
+
+    fun getAddressbookIfNotInitialized(addressbook: AddressbookDO?): AddressbookDO? {
+        return addressbookCache.getAddressbookIfNotInitialized(addressbook)
+    }
+
+    fun getEmployee(employeeId: Long?): EmployeeDO? {
+        return employeeCache.getEmployee(employeeId)
+    }
+
+    fun getEmployeeIfNotInitialized(employee: EmployeeDO?): EmployeeDO? {
+        return employeeCache.getEmployeeIfNotInitialized(employee)
     }
 
     fun getEmployeeByUserId(userId: Long?): EmployeeDO? {
-        return EmployeeCache.instance.getEmployeeByUserId(userId)
+        return employeeCache.getEmployeeByUserId(userId)
     }
 
-    fun getUserByEmployeeId(employeeId: Long?): PFUserDO? {
-        return EmployeeCache.instance.getUserByEmployee(employeeId)
+    fun getGroup(groupId: Long?): GroupDO? {
+        return userGroupCache.getGroup(groupId)
+    }
+
+    fun getGroupIfNotInitialized(groupDO: GroupDO?): GroupDO? {
+        return userGroupCache.getGroupIfNotInitialized(groupDO)
+    }
+
+    fun getKost1(kost1Id: Long?): Kost1DO? {
+        return kostCache.getKost1(kost1Id)
+    }
+
+    fun getKost1IfNotInitialized(kost1DO: Kost1DO?): Kost1DO? {
+        return kostCache.getKost1IfNotInitialized(kost1DO)
     }
 
     fun getKost2(kost2Id: Long?): Kost2DO? {
-        return KostCache.instance.getKost2(kost2Id)
+        return kostCache.getKost2(kost2Id)
+    }
+
+    fun getKost2IfNotInitialized(kost2DO: Kost2DO?): Kost2DO? {
+        return kostCache.getKost2IfNotInitialized(kost2DO)
+    }
+
+    fun getKunde(kundeId: Long?): KundeDO? {
+        return kundeCache.getKunde(kundeId)
+    }
+
+    fun getKundeByKost2(kost2Id: Long?): KundeDO? {
+        val projekt = getProjektByKost2(kost2Id) ?: return null
+        return getKunde(projekt.kunde?.nummer)
+    }
+
+    fun getKundeIfNotInitialized(kunde: KundeDO?): KundeDO? {
+        return kundeCache.getKundeIfNotInitialized(kunde)
     }
 
     fun getProjekt(projektId: Long?): ProjektDO? {
-        return ProjektCache.instance.getProjekt(projektId)
+        return projektCache.getProjekt(projektId)
     }
 
     fun getProjektByKost2(kost2Id: Long?): ProjektDO? {
@@ -89,13 +194,36 @@ class Cache {
         return getProjekt(projektId)
     }
 
-    fun getKunde(kundeId: Long?): KundeDO? {
-        return KundeCache.instance.getKunde(kundeId)
+    fun getProjektIfNotInitialized(projektDO: ProjektDO?): ProjektDO? {
+        return projektCache.getProjektIfNotInitialized(projektDO)
     }
 
-    fun getKundeByKost2(kost2Id: Long?): KundeDO? {
-        val projekt = getProjektByKost2(kost2Id) ?: return null
-        return getKunde(projekt.kunde?.nummer)
+    fun getTask(taskId: Long?): TaskDO? {
+        return taskTree.getTaskById(taskId)
+    }
+
+    fun getTaskIfNotInitialized(taskDO: TaskDO?): TaskDO? {
+        return taskTree.getTaskIfNotInitialized(taskDO)
+    }
+
+    fun getTeamCal(calId: Long?): TeamCalDO? {
+        return teamCalCache.getCalendar(calId)
+    }
+
+    fun getTeamCalIfNotInitialized(teamCal: TeamCalDO?): TeamCalDO? {
+        return teamCalCache.getCalendarIfNotInitialized(teamCal)
+    }
+
+    fun getUser(userId: Long?): PFUserDO? {
+        return userGroupCache.getUser(userId)
+    }
+
+    fun getUserByEmployeeId(employeeId: Long?): PFUserDO? {
+        return employeeCache.getUserByEmployee(employeeId)
+    }
+
+    fun getUserIfNotInitialized(userDO: PFUserDO?): PFUserDO? {
+        return userGroupCache.getUserIfNotInitialized(userDO)
     }
 
     companion object {

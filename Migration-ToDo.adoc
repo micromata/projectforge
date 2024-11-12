@@ -1,5 +1,5 @@
 Aktuell:
-- Update caches after single load or modification.
+- Urlaubseintragsliste: fetcht zuviel (replacements must or loaded at once on afterload).
 - 2024-11-09T16:18:19.834Z user:kai  WARN 23413 --- [projectforge-application] [0.1-8080-exec-2] o.p.business.user.AbstractUserPrefCache  : Can't deserialize user preferences: null, userId=2, area=null, key='TeamCalendarPage.userPrefs' (may-be ok after a new ProjectForge release). string=!rO0AB...vnj7nRSToOXX1PrEWobDsFAAA=
 
 - remove all BaseDO.xxxId (lazy fetch) and replace callee by baseDO?.id
@@ -9,7 +9,7 @@ Aktuell:
   - AddressKampagnen: ebd. (massenhaft SQLs)
 - Suche nach Kontonummer in KontoDO
 
-- Lazy-Breakpoint: AbstractLazyInitializer.initialize (#170)
+- Lazy-Breakpoint: AbstractLazyInitializer.initialize (#134)
 org.hibernate.persister.entity.AbstractEntityPersister#generateSelectLazy:
 
 postrgesql.conf:
@@ -48,6 +48,8 @@ Später
 - Hibernate-Search: K+S etc.
 - Besuchsbuch und EmployeeValidSinceAttr: DisplayEntries von Besuchtagen mit Datum des Besuchs versehen.
 - Suche-Seite hat veraltete Bereiche, AddressListPage läuft auf Fehler.
+- OrderExport: paymentSchedules werden gefetcht.
+- Update caches after single load or modification.
 
 Ganz später
 - Kalenderlist ruft x-fach DB: FIND GroupDO resultClass=GroupDO auf.

@@ -24,11 +24,13 @@
 package org.projectforge.business.teamcal
 
 import org.apache.commons.lang3.StringUtils
+import org.projectforge.business.Cache
 import org.projectforge.business.timesheet.TimesheetDO
 
 object CalendarHelper {
   @JvmStatic
   fun getTitle(timesheet: TimesheetDO): String {
+    Cache.instance.populate(timesheet)
     val kost2 = timesheet.kost2
     val task = timesheet.task
     val buf = StringBuilder()

@@ -171,7 +171,7 @@ public class EmployeeSalaryExportDao {
 
     for (final EmployeeSalaryDO salary : list) {
       final PropertyMapping mapping = new PropertyMapping();
-      final PFUserDO user = userGroupCache.getUser(salary.getEmployee().getUserId());
+      final PFUserDO user = userGroupCache.getUser(salary.getEmployee().getUser().getId());
       Validate.isTrue(year == salary.getYear());
       Validate.isTrue(month == salary.getMonth());
       final MonthlyEmployeeReport report = monthlyEmployeeReportDao.getReport(year, month, user);
@@ -223,7 +223,7 @@ public class EmployeeSalaryExportDao {
       addEmployeeRow(employeeSheet, salary.getEmployee(), numberOfWorkingDays, netDuration, report);
     }
     for (final EmployeeDO employee : missedEmployees) {
-      final PFUserDO user = userGroupCache.getUser(employee.getUserId());
+      final PFUserDO user = userGroupCache.getUser(employee.getUser().getId());
       final PropertyMapping mapping = new PropertyMapping();
       mapping.add(ExcelColumn.MITARBEITER, user.getFullname());
       mapping.add(ExcelColumn.SUMME, "***");
@@ -247,7 +247,7 @@ public class EmployeeSalaryExportDao {
 
   private void addEmployeeRow(final ExportSheet sheet, final EmployeeDO employee, final BigDecimal numberOfWorkingDays, final BigDecimal totalDuration,
                               final MonthlyEmployeeReport report) {
-    final PFUserDO user = userGroupCache.getUser(employee.getUserId());
+    final PFUserDO user = userGroupCache.getUser(employee.getUser().getId());
     final ExportRow row = sheet.addRow();
     row.addCell(0, user.getFullname());
     // Wochenstunden

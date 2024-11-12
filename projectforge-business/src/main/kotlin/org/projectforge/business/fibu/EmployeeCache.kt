@@ -61,7 +61,7 @@ open class EmployeeCache : AbstractCache() {
     fun getEmployee(id: Long?): EmployeeDO? {
         id ?: return null
         checkRefresh()
-        return employeeMap[id]
+        return employeeMap[id]?.also { it.user = userGroupCache.getUserIfNotInitialized(it.user) }
     }
 
     /**
@@ -98,7 +98,7 @@ open class EmployeeCache : AbstractCache() {
     fun getUserByEmployee(employeeId: Long?): PFUserDO? {
         employeeId ?: return null
         val employee = getEmployee(employeeId) ?: return null
-        return userGroupCache.getUser(employee.userId)
+        return userGroupCache.getUser(employee.user?.id)
     }
 
     fun setStatusAndAnnualLeave(employee: EmployeeDO?) {
@@ -142,7 +142,7 @@ open class EmployeeCache : AbstractCache() {
                     validSinceEntry.employee?.id?.let { employeeId ->
                         map[employeeId]?.let { employee ->
                             employee.status = validSinceEntry.status
-                            log.debug { "EmployeeCache.refresh: Set status=${validSinceEntry.status} for employeeId=$employeeId, userId=${employee.userId}" }
+                            log.debug { "EmployeeCache.refresh: Set status=${validSinceEntry.status} for employeeId=$employeeId, userId=${employee.user?.id}" }
                         }
                     }
                 }
@@ -152,7 +152,7 @@ open class EmployeeCache : AbstractCache() {
                     validSinceEntry.employee?.id?.let { employeeId ->
                         map[employeeId]?.let { employee ->
                             employee.annualLeave = validSinceEntry.annualLeave
-                            log.debug { "EmployeeCache.refresh: Set annualLeave=${validSinceEntry.annualLeave} for employeeId=$employeeId, userId=${employee.userId}" }
+                            log.debug { "EmployeeCache.refresh: Set annualLeave=${validSinceEntry.annualLeave} for employeeId=$employeeId, userId=${employee.user?.id}" }
                         }
                     }
                 }

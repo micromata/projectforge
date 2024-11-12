@@ -27,6 +27,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.text.StringEscapeUtils;
 import org.projectforge.business.common.OutputType;
+import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskFormatter;
@@ -229,7 +230,10 @@ public class MonthlyEmployeeReport implements Serializable {
     this.employee = employee;
     if (employee != null) {
       this.user = employee.getUser();
-      this.kost1Id = employee.getKost1Id();
+      Kost1DO kost1 = employee.getKost1();
+      if (kost1 != null) {
+        this.kost1Id = kost1.getId();
+      }
     }
   }
 

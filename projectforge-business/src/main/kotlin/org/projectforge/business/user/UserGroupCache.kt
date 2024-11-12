@@ -28,6 +28,7 @@ import mu.KotlinLogging
 import org.hibernate.Hibernate
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.login.Login
+import org.projectforge.business.task.TaskDO
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.jobs.JobHandler
@@ -107,6 +108,18 @@ open class UserGroupCache : AbstractCache() {
     fun getGroup(group: ProjectForgeGroup): GroupDO? {
         checkRefresh()
         return groupMap.values.find { group.matches(it.name) }
+    }
+
+    /**
+     * Returns the GroupDO if it is initialized (Hibernate). Otherwise, it will be loaded from the database.
+     * Prevents lazy loadings.
+     */
+    fun getGroupIfNotInitialized(group: GroupDO?): GroupDO? {
+        val id = group?.id ?: return null
+        if (Hibernate.isInitialized(group)) {
+            return group
+        }
+        return getGroup(id)
     }
 
     fun getGroup(groupId: Long?): GroupDO? {

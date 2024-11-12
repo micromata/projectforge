@@ -65,14 +65,14 @@ class EmployeePagesRest :
     override fun transformFromDB(obj: EmployeeDO, editMode: Boolean): Employee {
         val employee = Employee()
         employee.copyFrom(obj)
-        userGroupCache.getUser(obj.userId)?.let { userDO ->
+        userGroupCache.getUser(obj.user?.id)?.let { userDO ->
             User(userDO).let { user ->
                 user.firstname = userDO.firstname
                 user.lastname = userDO.lastname
                 employee.user = user
             }
         }
-        kostCache.getKost1(obj.kost1Id)?.let { kost ->
+        kostCache.getKost1(obj.kost1?.id)?.let { kost ->
             Kost1(kost).let { dto ->
                 employee.kost1 = dto
             }

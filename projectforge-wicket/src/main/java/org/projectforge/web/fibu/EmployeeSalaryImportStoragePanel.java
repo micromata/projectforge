@@ -59,7 +59,7 @@ class EmployeeSalaryImportStoragePanel extends AbstractImportStoragePanel<Employ
         final String styleRightAlign = (style == null) ? s : style + " " + s;
         final EmployeeSalaryDO employeeSalary = (EmployeeSalaryDO) element.getValue();
         final EmployeeDO employee = employeeSalary != null ? employeeCache.getEmployee(employeeSalary.getEmployeeId()) : null;
-        final PFUserDO user = employee != null ? userGroupCache.getUser(employee.getUserId()) : null;
+        final PFUserDO user = employee != null ? userGroupCache.getUser(employee.getUser().getId()) : null;
         addCell(cellRepeater, employee != null ? employee.getStaffNumber() : "", styleRightAlign);
         addCell(cellRepeater, employee != null ? user.getFullname() : "", styleRightAlign);
         addCell(cellRepeater, employeeSalary != null ? employeeSalary.getYear() : null, styleRightAlign);

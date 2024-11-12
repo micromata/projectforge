@@ -23,6 +23,7 @@
 
 package org.projectforge.business.teamcal.admin;
 
+import org.hibernate.Hibernate;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
 import org.projectforge.business.user.UserRightId;
@@ -67,6 +68,21 @@ public class TeamCalCache extends AbstractCache {
     public TeamCalDO getCalendar(final Long calendarId) {
         checkRefresh();
         return calendarMap.get(calendarId);
+    }
+
+    /**
+     * Returns the TeamCalDO if it is initialized (Hibernate). Otherwise, it will be loaded from the database.
+     * Prevents lazy loadings.
+     */
+    public TeamCalDO getCalendarIfNotInitialized(TeamCalDO teamCalDO) {
+        Long id = teamCalDO.getId();
+        if (id == null) {
+            return teamCalDO;
+        }
+        if (Hibernate.isInitialized(teamCalDO)) {
+            return teamCalDO;
+        }
+        return getCalendar(id);
     }
 
     /**

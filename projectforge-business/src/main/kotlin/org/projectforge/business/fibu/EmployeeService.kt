@@ -26,6 +26,7 @@ package org.projectforge.business.fibu
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
+import org.projectforge.business.Cache
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFilter
 import org.projectforge.framework.i18n.translateMsg
@@ -46,6 +47,9 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 class EmployeeService {
+    @Autowired
+    private lateinit var cache: Cache
+
     @Autowired
     private lateinit var employeeDao: EmployeeDao
 
@@ -74,7 +78,7 @@ class EmployeeService {
      */
     fun isEmployeeActive(employee: EmployeeDO, showRecentlyLeavers: Boolean = false): Boolean {
         employee.austrittsDatum.let { quitDate ->
-            val user = employee.user
+            val user = cache.getUser(employee.user?.id)
             quitDate
                 ?: // No quit date given. Employee is active if user is not deleted or deactivated.
                 return user == null || (!user.deactivated && !user.deleted) // user is only null in tests.

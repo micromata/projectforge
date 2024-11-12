@@ -256,12 +256,25 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
     }
 
     fun getTaskById(id: Long?): TaskDO? {
+        id ?: return null
         checkRefresh()
         val node = getTaskNodeById(id)
         if (node != null) {
             return node.getTask()
         }
         return null
+    }
+
+    /**
+     * Returns the TaskDO if it is initialized (Hibernate). Otherwise, it will be loaded from the database.
+     * Prevents lazy loadings.
+     */
+    fun getTaskIfNotInitialized(task: TaskDO?): TaskDO? {
+        val id = task?.id ?: return null
+        if (Hibernate.isInitialized(task)) {
+            return task
+        }
+        return getTaskById(id)
     }
 
     /**

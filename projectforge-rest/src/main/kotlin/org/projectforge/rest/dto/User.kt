@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.business.Cache
 import org.projectforge.business.ldap.PFUserDOConverter
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
@@ -41,222 +42,225 @@ import org.projectforge.framework.time.TimeNotation
 import java.util.*
 
 class User(
-  id: Long? = null,
-  displayName: String? = null,
-  var username: String? = null,
-  var firstname: String? = null,
-  var nickname: String? = null,
-  var jiraUsername: String? = null,
-  var lastname: String? = null,
-  var gender: Gender? = null,
-  var mobilePhone: String? = null,
-  var description: String? = null,
-  var organization: String? = null,
-  var email: String? = null,
-  var deactivated: Boolean = false,
-  var timeZone: String? = null,
-  var locale: Locale? = null,
-  var dateFormat: String? = null,
-  var excelDateFormat: String? = null,
-  var timeNotation: TimeNotation? = null,
-  var personalPhoneIdentifiers: String? = null,
-  var assignedGroups: MutableList<Group>? = null,
-  var lastLogin: Date? = null,
-  var lastLoginTimeAgo: String? = null,
-  /**
-   * Timestamp and time ago: 2022-16-15 18:49 (5 minutes ago)
-   */
-  var lastLoginFormatted: String? = null,
-  var sshPublicKey: String? = null,
-  var gpgPublicKey: String? = null,
-  var rightsAsString: String? = null,
-  var ldapValues: UserLdapValues? = null,
-  var localUser: Boolean? = false,
-  var restrictedUser: Boolean? = false,
-  var hrPlanning: Boolean? = false,
+    id: Long? = null,
+    displayName: String? = null,
+    var username: String? = null,
+    var firstname: String? = null,
+    var nickname: String? = null,
+    var jiraUsername: String? = null,
+    var lastname: String? = null,
+    var gender: Gender? = null,
+    var mobilePhone: String? = null,
+    var description: String? = null,
+    var organization: String? = null,
+    var email: String? = null,
+    var deactivated: Boolean = false,
+    var timeZone: String? = null,
+    var locale: Locale? = null,
+    var dateFormat: String? = null,
+    var excelDateFormat: String? = null,
+    var timeNotation: TimeNotation? = null,
+    var personalPhoneIdentifiers: String? = null,
+    var assignedGroups: MutableList<Group>? = null,
+    var lastLogin: Date? = null,
+    var lastLoginTimeAgo: String? = null,
+    /**
+     * Timestamp and time ago: 2022-16-15 18:49 (5 minutes ago)
+     */
+    var lastLoginFormatted: String? = null,
+    var sshPublicKey: String? = null,
+    var gpgPublicKey: String? = null,
+    var rightsAsString: String? = null,
+    var ldapValues: UserLdapValues? = null,
+    var localUser: Boolean? = false,
+    var restrictedUser: Boolean? = false,
+    var hrPlanning: Boolean? = false,
 ) : BaseDTODisplayObject<PFUserDO>(id = id, displayName = displayName) {
 
-  /**
-   * For admin's user page for setting initial password while creating new users.
-   */
-  var password: String? = null
+    /**
+     * For admin's user page for setting initial password while creating new users.
+     */
+    var password: String? = null
 
-  /**
-   * For admin's user page for setting initial wlan password while creating new users.
-   */
-  var wlanPassword: String? = null
+    /**
+     * For admin's user page for setting initial wlan password while creating new users.
+     */
+    var wlanPassword: String? = null
 
-  var stayLoggedInTokenCreationDate: Date? = null
-  var calendarExportTokenCreationDate: Date? = null
-  var davTokenCreationDate: Date? = null
-  var restClientTokenCreationDate: Date? = null
+    var stayLoggedInTokenCreationDate: Date? = null
+    var calendarExportTokenCreationDate: Date? = null
+    var davTokenCreationDate: Date? = null
+    var restClientTokenCreationDate: Date? = null
 
-  var stayLoggedInTokenCreationTimeAgo: String? = null
-  var calendarExportTokenCreationTimeAgo: String? = null
-  var davTokenCreationTimeAgo: String? = null
-  var restClientTokenCreationTimeAgo: String? = null
+    var stayLoggedInTokenCreationTimeAgo: String? = null
+    var calendarExportTokenCreationTimeAgo: String? = null
+    var davTokenCreationTimeAgo: String? = null
+    var restClientTokenCreationTimeAgo: String? = null
 
-  var lastPasswordChange: Date? = null
-  var lastPasswordChangeFormatted: String? = null
-  var lastWlanPasswordChange: Date? = null
-  var lastWlanPasswordChangeFormatted: String? = null
+    var lastPasswordChange: Date? = null
+    var lastPasswordChangeFormatted: String? = null
+    var lastWlanPasswordChange: Date? = null
+    var lastWlanPasswordChangeFormatted: String? = null
 
-  var userRights: MutableList<UserRightDto>? = null
+    var userRights: MutableList<UserRightDto>? = null
 
-  /**
-   * @see copyFromMinimal
-   */
-  constructor(src: PFUserDO) : this() {
-    copyFromMinimal(src)
-  }
-
-  fun add(userRightDto: UserRightDto) {
-    if (userRights == null) {
-      userRights = mutableListOf()
+    /**
+     * @see copyFromMinimal
+     */
+    constructor(src: PFUserDO) : this() {
+        copyFromMinimal(src)
     }
-    userRights!!.add(userRightDto)
-  }
 
-  override fun copyFromMinimal(src: PFUserDO) {
-    super.copyFromMinimal(src)
-    this.username = src.username
-  }
-
-  override fun copyFrom(src: PFUserDO) {
-    super.copyFrom(src)
-    lastLogin?.let { date ->
-      lastLoginTimeAgo = TimeAgo.getMessage(date)
-      lastLoginFormatted = TimeAgo.getDateAndMessage(date)
-    }
-    lastPasswordChange?.let { date ->
-      lastPasswordChangeFormatted = TimeAgo.getDateAndMessage(date)
-    }
-    lastWlanPasswordChange?.let { date ->
-      lastWlanPasswordChangeFormatted = TimeAgo.getDateAndMessage(date)
-    }
-    timeZone = src.timeZoneString
-    if (accessChecker.isLoggedInUserMemberOfAdminGroup) {
-      // Rights
-      val sb = StringBuilder()
-      userDao.getUserRights(src.id)?.forEachIndexed { index, rightDO ->
-        if (index > 0) {
-          sb.append(", ")
+    fun add(userRightDto: UserRightDto) {
+        if (userRights == null) {
+            userRights = mutableListOf()
         }
-        sb.append(translate(userRightService.getRightId(rightDO.rightIdString).i18nKey))
-        sb.append(
-          when (rightDO.value) {
-            UserRightValue.READONLY -> " (ro)"
-            UserRightValue.PARTLYREADWRITE -> " (prw)"
-            UserRightValue.READWRITE -> " (rw)"
-            else -> ""
-          }
-        )
-      }
-      rightsAsString = sb.toString()
-      val newAssignedGroups = mutableSetOf<Group>()
-      userGroupCache.getUserGroups(src)?.forEach { groupId ->
-        userGroupCache.getGroup(groupId)?.let { groupDO ->
-          val group = Group()
-          group.copyFromMinimal(groupDO)
-          if (!newAssignedGroups.any { it.id == groupDO.id }) {
-            newAssignedGroups.add(group)
-          }
+        userRights!!.add(userRightDto)
+    }
+
+    override fun copyFromMinimal(src: PFUserDO) {
+        super.copyFromMinimal(src)
+        this.username = src.username
+    }
+
+    override fun copyFrom(src: PFUserDO) {
+        super.copyFrom(src)
+        lastLogin?.let { date ->
+            lastLoginTimeAgo = TimeAgo.getMessage(date)
+            lastLoginFormatted = TimeAgo.getDateAndMessage(date)
         }
-      }
-      assignedGroups = newAssignedGroups.sortedBy { it.displayName?.lowercase() }.toMutableList()
-      PFUserDOConverter.readLdapUserValues(src.ldapValues)?.let { srcValues ->
-        ldapValues = UserLdapValues.create(srcValues)
-      }
-    }
-  }
-
-  override fun copyTo(dest: PFUserDO) {
-    super.copyTo(dest)
-    dest.timeZoneString = timeZone
-    ldapValues?.let {
-      val ldapUserValues = it.convert()
-      dest.ldapValues = PFUserDOConverter.getLdapValuesAsXml(ldapUserValues)
-    }
-  }
-
-  fun ensureLdapValues(): UserLdapValues {
-    ldapValues?.let { return it }
-    UserLdapValues().let {
-      ldapValues = it
-      return it
-    }
-  }
-
-
-  companion object {
-    private val accessChecker = ApplicationContextProvider.getApplicationContext().getBean(AccessChecker::class.java)
-    private val userDao = ApplicationContextProvider.getApplicationContext().getBean(UserDao::class.java)
-    private val userGroupCache = UserGroupCache.getInstance()
-    private val userRightService =
-      ApplicationContextProvider.getApplicationContext().getBean(UserRightService::class.java)
-
-    fun getUser(userId: Long?, minimal: Boolean = true): User? {
-      userId ?: return null
-      val userDO = userDao.findOrLoad(userId) ?: return null
-      val user = User()
-      if (minimal) {
-        user.copyFromMinimal(userDO)
-      } else {
-        user.copyFrom(userDO)
-      }
-      return user
+        lastPasswordChange?.let { date ->
+            lastPasswordChangeFormatted = TimeAgo.getDateAndMessage(date)
+        }
+        lastWlanPasswordChange?.let { date ->
+            lastWlanPasswordChangeFormatted = TimeAgo.getDateAndMessage(date)
+        }
+        timeZone = src.timeZoneString
+        if (accessChecker.isLoggedInUserMemberOfAdminGroup) {
+            // Rights
+            val sb = StringBuilder()
+            userDao.getUserRights(src.id)?.forEachIndexed { index, rightDO ->
+                if (index > 0) {
+                    sb.append(", ")
+                }
+                sb.append(translate(userRightService.getRightId(rightDO.rightIdString).i18nKey))
+                sb.append(
+                    when (rightDO.value) {
+                        UserRightValue.READONLY -> " (ro)"
+                        UserRightValue.PARTLYREADWRITE -> " (prw)"
+                        UserRightValue.READWRITE -> " (rw)"
+                        else -> ""
+                    }
+                )
+            }
+            rightsAsString = sb.toString()
+            val newAssignedGroups = mutableSetOf<Group>()
+            userGroupCache.getUserGroups(src)?.forEach { groupId ->
+                userGroupCache.getGroup(groupId)?.let { groupDO ->
+                    val group = Group()
+                    group.copyFromMinimal(groupDO)
+                    if (!newAssignedGroups.any { it.id == groupDO.id }) {
+                        newAssignedGroups.add(group)
+                    }
+                }
+            }
+            assignedGroups = newAssignedGroups.sortedBy { it.displayName?.lowercase() }.toMutableList()
+            PFUserDOConverter.readLdapUserValues(src.ldapValues)?.let { srcValues ->
+                ldapValues = UserLdapValues.create(srcValues)
+            }
+        }
     }
 
-    /**
-     * Converts csv of user ids to list of user (only with id and displayName = "???", no other content).
-     */
-    fun toUserList(str: String?): List<User>? {
-      if (str.isNullOrBlank()) return null
-      return toLongArray(str)?.map { User(it, "???") }
+    override fun copyTo(dest: PFUserDO) {
+        super.copyTo(dest)
+        dest.timeZoneString = timeZone
+        ldapValues?.let {
+            val ldapUserValues = it.convert()
+            dest.ldapValues = PFUserDOConverter.getLdapValuesAsXml(ldapUserValues)
+        }
     }
 
-    /**
-     * Converts csv of user ids to list of user id's.
-     */
-    fun toLongArray(str: String?): LongArray? {
-      if (str.isNullOrBlank()) return null
-      return StringHelper.splitToLongs(str, ",", false)
+    fun ensureLdapValues(): UserLdapValues {
+        ldapValues?.let { return it }
+        UserLdapValues().let {
+            ldapValues = it
+            return it
+        }
     }
 
-    /**
-     * Converts user list to list of long values (of format supported by [toUserList]).
-     */
-    fun toLongList(users: List<User>?): String? {
-      return users?.filter { it.id != null }?.joinToString { "${it.id}" }
-    }
 
-    /**
-     * Set display names of any existing user in the given list.
-     * @see UserService.getUser
-     */
-    fun restoreDisplayNames(users: List<User>?, userService: UserService) {
-      users?.forEach { it.displayName = userService.getUser(it.id)?.displayName }
-    }
+    companion object {
+        private val accessChecker =
+            ApplicationContextProvider.getApplicationContext().getBean(AccessChecker::class.java)
+        private val userDao = ApplicationContextProvider.getApplicationContext().getBean(UserDao::class.java)
+        private val userGroupCache = UserGroupCache.getInstance()
+        private val userRightService =
+            ApplicationContextProvider.getApplicationContext().getBean(UserRightService::class.java)
 
-    fun restoreEmails(users: List<User>?, userService: UserService) {
-      users?.forEach { it.email = userService.getUser(it.id)?.email }
-    }
+        fun getUser(userId: Long?, minimal: Boolean = true): User? {
+            userId ?: return null
+            val userDO = userDao.findOrLoad(userId) ?: return null
+            val user = User()
+            if (minimal) {
+                user.copyFromMinimal(userDO)
+            } else {
+                user.copyFrom(userDO)
+            }
+            return user
+        }
 
-    /**
-     * Converts csv of user ids to list of user.
-     */
-    fun toUserNames(userIds: String?, userService: UserService): String {
-      val users = toUserList(userIds)
-      restoreDisplayNames(users, userService)
-      return users?.joinToString { it.displayName ?: "???" } ?: ""
-    }
+        /**
+         * Converts csv of user ids to list of user (only with id and displayName = "???", no other content).
+         */
+        fun toUserList(str: String?): List<User>? {
+            if (str.isNullOrBlank()) return null
+            return toLongArray(str)?.map { User(it, "???") }
+        }
 
-    fun getAssignedGroupDOs(user: User): List<GroupDO>? {
-      return user.assignedGroups?.map {
-        val groupDO = GroupDO()
-        it.copyTo(groupDO)
-        groupDO
-      }
+        /**
+         * Converts csv of user ids to list of user id's.
+         */
+        fun toLongArray(str: String?): LongArray? {
+            if (str.isNullOrBlank()) return null
+            return StringHelper.splitToLongs(str, ",", false)
+        }
+
+        /**
+         * Converts user list to list of long values (of format supported by [toUserList]).
+         */
+        fun toLongList(users: List<User>?): String? {
+            return users?.filter { it.id != null }?.joinToString { "${it.id}" }
+        }
+
+        /**
+         * Set display names of any existing user in the given list.
+         * @see UserService.getUser
+         */
+        fun restoreDisplayNames(users: List<User>?) {
+            val cache = Cache.instance
+            users?.forEach { it.displayName = cache.getUser(it.id)?.displayName ?: "???" }
+        }
+
+        fun restoreEmails(users: List<User>?) {
+            val cache = Cache.instance
+            users?.forEach { it.email = cache.getUser(it.id)?.email }
+        }
+
+        /**
+         * Converts csv of user ids to list of user.
+         */
+        fun toUserNames(userIds: String?): String {
+            val users = toUserList(userIds)
+            restoreDisplayNames(users)
+            return users?.joinToString { it.displayName ?: "???" } ?: ""
+        }
+
+        fun getAssignedGroupDOs(user: User): List<GroupDO>? {
+            return user.assignedGroups?.map {
+                val groupDO = GroupDO()
+                it.copyTo(groupDO)
+                groupDO
+            }
+        }
     }
-  }
 }

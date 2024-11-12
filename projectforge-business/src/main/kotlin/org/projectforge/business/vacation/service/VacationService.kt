@@ -164,7 +164,7 @@ open class VacationService {
             val stats = VacationStats(employee, year, baseDate)
             // Get employee from database if not initialized (user not given).
             val employeeDO =
-                if (employee.userId == null) employeeDao.find(employee.id, checkAccess = false) else employee
+                if (employee.user?.id == null) employeeDao.find(employee.id, checkAccess = false) else employee
             if (employeeDO == null) {
                 log.warn("Shouldn't occur: employee not found by id #${employee.id}")
                 return@runInTransaction stats
