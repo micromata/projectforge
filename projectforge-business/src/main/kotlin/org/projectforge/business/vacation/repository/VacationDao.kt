@@ -41,6 +41,7 @@ import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortOrder
@@ -407,6 +408,13 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
                     .collect(Collectors.toList())
         }
         return resultList
+    }
+
+    override fun createQueryFilter(filter: BaseSearchFilter?): QueryFilter {
+        return super.createQueryFilter(filter).also {
+            // it.createJoin("otherReplacements")
+            it.entityGraphName = VacationDO.ENTITY_GRAPH_WITH_OTHER_REPLACEMENTIDS
+        }
     }
 
     open fun getActiveVacationForYear(employee: EmployeeDO?, year: Int, withSpecial: Boolean): List<VacationDO> {

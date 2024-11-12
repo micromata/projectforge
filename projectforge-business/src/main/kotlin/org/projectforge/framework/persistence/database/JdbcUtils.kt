@@ -25,6 +25,7 @@ package org.projectforge.framework.persistence.database
 
 import java.math.BigDecimal
 import java.sql.ResultSet
+import java.sql.Timestamp
 import java.time.LocalDate
 import java.util.Date
 
@@ -126,5 +127,16 @@ object JdbcUtils {
      */
     fun getDate(rs: ResultSet, columnName: String): Date? {
         return rs.getDate(columnName).takeIf { rs.wasNull().not() }
+    }
+
+    /**
+     * Returns the value of the specified column as a Timestamp.
+     * If the value is SQL NULL, the method returns null.
+     * @param rs The ResultSet to get the value from.
+     * @param columnName The name of the column to get the value from.
+     * @return The value of the specified column as a Date or null if the value is SQL NULL.
+     */
+    fun getTimestamp(rs: ResultSet, columnName: String): Timestamp? {
+        return rs.getTimestamp(columnName).takeIf { rs.wasNull().not() }
     }
 }

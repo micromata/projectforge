@@ -33,111 +33,155 @@ import org.projectforge.business.fibu.EmployeeValidSinceAttrDO
 import org.projectforge.business.fibu.EmployeeValidSinceAttrType
 import org.projectforge.business.orga.VisitorbookDO
 import org.projectforge.business.orga.VisitorbookEntryDO
+import org.projectforge.framework.persistence.database.JdbcUtils.getLocalDate
+import org.projectforge.framework.persistence.database.JdbcUtils.getLong
+import org.projectforge.framework.persistence.database.JdbcUtils.getString
+import org.projectforge.framework.persistence.database.JdbcUtils.getTimestamp
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DriverManagerDataSource
-import org.springframework.jdbc.support.rowset.SqlRowSet
 import java.io.File
-import javax.sql.DataSource
+import java.sql.Connection
+import java.sql.ResultSet
+import kotlin.math.abs
 
 private val log = KotlinLogging.logger {}
 
 /**
  * Migrates old mgc attributes (timed) from employee and visitorbook to new validity period attributes.
  */
-class V7_6_0_2__RemoveMGC : BaseJavaMigration() {
+@Suppress("ClassName")
+class V8_0_2__RemoveMGC : BaseJavaMigration() {
+    companion object {
+        private val SELECT_HISTORY_ATTR_DATA = """
+            SELECT t.datacol, t.datarow, t.parent_pk
+            FROM t_pf_history_attr_data AS t
+            ORDER BY parent_pk, datarow
+            """.trimIndent()
+        private const val SELECT_VALUE_FROM_HISTORY_ATTR = "SELECT t.value FROM t_pf_history_attr AS t WHERE pk = ?"
+        private const val SELECT_USER_IDS = "SELECT t.pk AS pk FROM t_pf_user AS t"
+        private const val UPDATE_HISTORY_ATTR = "UPDATE t_pf_history_attr SET value = ? WHERE pk = ?"
+        private val INSERT_EMPLOYEE_ATTR = """
+            INSERT INTO t_fibu_employee_valid_since_attr
+                        (pk, created, last_update, deleted, employee_fk, type, valid_since, value)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """.trimIndent()
+        private val INSERT_VISITORBOOK = """
+            INSERT INTO t_orga_visitorbook_entry (pk, created, last_update, deleted, visitorbook_fk, date_of_visit, arrived, departed)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """.trimIndent()
+        private val SELECT_EMPLOYEE_TIMED = """
+            SELECT a.pk AS pk1, a.createdat, a.createdby, a.modifiedat, a.modifiedby, a.start_time, a.end_time, a.employee_id AS object_id, a.group_name,
+                   b.pk AS pk2, b.value, b.propertyname, b.createdby AS createdby_b, b.createdat AS createdat_b, b.modifiedby AS modifiedby_b, b.modifiedat AS modifiedat_b
+            FROM t_fibu_employee_timed a JOIN t_fibu_employee_timedattr b ON a.pk=b.parent
+            WHERE a.group_name IN ('employeestatus', 'employeeannualleave') ORDER BY a.pk
+        """.trimIndent()
+        private val SELECT_VISITOR_BOOK_TIMED = """
+            SELECT a.pk AS pk1, a.createdat, a.createdby, a.modifiedat, a.modifiedby, a.start_time, a.visitor_id AS object_id, a.group_name,
+                   b.pk AS pk2, b.value, b.propertyname, b.createdby AS createdby_b, b.createdat AS createdat_b, b.modifiedby AS modifiedby_b, b.modifiedat AS modifiedat_b
+            FROM t_orga_visitorbook_timed a
+            JOIN t_orga_visitorbook_timedattr b ON a.pk=b.parent
+            ORDER BY a.pk
+        """.trimIndent()
+        private const val SELECT_FROM_MASTER_TABLE = "SELECt t.pk AS object_id FROM <masterTable> AS t"
+    }
+
     override fun migrate(context: Context) {
         log.info { "Migrating attributes with period validity from mgc: Employee (annual leave, status) and entries from Visitorbook" }
-        val dataSource = context.configuration.dataSource
-        migrateHistoryAttrWithData(dataSource)
-        migrateEmployees(dataSource)
-        migrateVisitorbook(dataSource)
+        // JdbcTemplate can't be used, because autoCommit is set to false since PF 8.0 and JdbcTemplate doesn't support autoCommit.
+        val connection = context.connection
+        try {
+            connection.autoCommit = true
+            migrateHistoryAttrWithData(connection)
+            migrateEmployees(connection)
+            migrateVisitorbook(connection)
+        } catch (ex: Exception) {
+            // Behandle Ausnahmen, falls notwendig
+            ex.printStackTrace()
+            throw ex
+        } finally {
+            connection.autoCommit = false
+        }
     }
 
-    internal fun migrateHistoryAttrWithData(dataSource: DataSource) {
+    internal fun migrateHistoryAttrWithData(connection: Connection) {
         class HistoryAttr(val pk: Long, var value: String, val alreadyProcessed: Boolean)
 
-        val jdbcTemplate = JdbcTemplate(dataSource)
-        var resultSet =
-            jdbcTemplate.queryForRowSet("select t.datacol, t.datarow, t.parent_pk from t_pf_history_attr_data as t order by parent_pk, datarow")
         var parent = HistoryAttr(-1, "", true)
-        while (resultSet.next()) {
-            val datacol = resultSet.getString("datacol")
-            resultSet.getInt("datarow")
-            val parentPk = resultSet.getLong("parent_pk")
-            if (parentPk != parent.pk) {
-                if (parent.pk != -1L) {
-                    // Update parent before processing next parent.
-                    updateParent(parent.pk, parent.value, parent.alreadyProcessed)
-                }
-                val parentMap =
-                    jdbcTemplate.queryForList("select t.pk, t.value from t_pf_history_attr as t where pk = ?", parentPk)
-                require(parentMap.size == 1)
-                val value = parentMap[0]["value"] as String
-                val alreadyProcessed =
-                    if (value.length > 2990) { // Old length of value field was 2990.
-                        log.info { "Entry already processed (migration called twice?). Ignoring t_pf_history_attr_data for entry with pk=$parentPk, value.length=${value.length}." }
-                        true
-                    } else {
-                        false
+        connection.createStatement().use { statement ->
+            statement.executeQuery(SELECT_HISTORY_ATTR_DATA).use { resultSet ->
+                while (resultSet.next()) {
+                    val datacol = getString(resultSet, "datacol")
+                    resultSet.getInt("datarow")
+                    val parentPk = getLong(resultSet, "parent_pk")
+                    if (parentPk != parent.pk) {
+                        if (parent.pk != -1L) {
+                            // Update parent before processing next parent.
+                            updateParent(connection, parent.pk, parent.value, parent.alreadyProcessed)
+                        }
+                        connection.prepareStatement(SELECT_VALUE_FROM_HISTORY_ATTR).use { secondStatement ->
+                            secondStatement.setLong(1, parentPk!!)
+                            secondStatement.executeQuery().use { secondResultSet ->
+                                secondResultSet.next()
+                                val value = getString(secondResultSet, "value") ?: ""
+                                require(!secondResultSet.next()) { "Multiple rows for parentPk=$parentPk not expected and not supported. Migration will fail. $SELECT_VALUE_FROM_HISTORY_ATTR with pk=$parentPk" }
+                                val alreadyProcessed =
+                                    if (value.length > 2990) { // Old length of value field was 2990.
+                                        log.info { "Entry already processed (migration called twice?). Ignoring t_pf_history_attr_data for entry with pk=$parentPk, value.length=${value.length}." }
+                                        true
+                                    } else {
+                                        false
+                                    }
+                                parent = HistoryAttr(parentPk, value, alreadyProcessed)
+                            }
+                        }
                     }
-                parent = HistoryAttr(parentPk, value, alreadyProcessed)
+                    parent.value += datacol
+                }
             }
-            parent.value += datacol
         }
-        updateParent(parent.pk, parent.value, parent.alreadyProcessed)
-        val userIds = mutableSetOf<Long>()
-        resultSet = jdbcTemplate.queryForRowSet("select t.pk as pk from t_pf_user as t")
-        while (resultSet.next()) {
-            userIds.add(resultSet.getLong("pk"))
-        }
+        updateParent(connection, parent.pk, parent.value, parent.alreadyProcessed)
     }
 
-    private fun updateParent(pk: Long, value: String, alreadyProcessed: Boolean) {
+    private fun updateParent(connection: Connection, pk: Long, value: String, alreadyProcessed: Boolean) {
         if (!alreadyProcessed) {
             if (value.length > 50000) {
                 throw IllegalArgumentException("Value too long: ${value.length} (> 50.000)")
             }
             log.info { "Migrating t_pf_history_attr entry with attr_data: $pk" }
-            // jdbcTemplate.update("update t_pf_history_attr set value = ? where pk = ?", value, pk)
-            // println("update t_pf_history_attr set value = $value where pk = $pk")
+            connection.prepareStatement(UPDATE_HISTORY_ATTR).use { secondStatement ->
+                secondStatement.setString(1, value)
+                secondStatement.setLong(2, pk)
+                secondStatement.executeUpdate()
+            }
+            log.info { "update t_pf_history_attr set value = $value where pk = $pk" }
         }
     }
 
-    internal fun migrateEmployees(dataSource: DataSource) {
-        val jdbcTemplate = JdbcTemplate(dataSource)
-        readEmployees(dataSource).forEach { dbAttr ->
+    internal fun migrateEmployees(connection: Connection) {
+        readEmployees(connection).forEach { dbAttr ->
             val oldAttr = dbAttr.getTransientAttribute("oldAttr") as TimedAttr
-            val sqlInsert =
-                "INSERT INTO t_fibu_employee_valid_since_attr (pk, created, last_update, deleted, employee_fk, type, valid_since, value) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
             try {
-                jdbcTemplate.update(
-                    sqlInsert,
-                    dbAttr.id,
-                    oldAttr.createdatA,
-                    oldAttr.modifiedatA,
-                    false,
-                    dbAttr.employee!!.id,
-                    dbAttr.type!!.name,
-                    dbAttr.validSince,
-                    dbAttr.value,
-                )
-                log.info { "Migrated employee attribute: $dbAttr" }
+                connection.prepareStatement(INSERT_EMPLOYEE_ATTR).use { statement ->
+                    statement.setLong(1, dbAttr.id!!)
+                    statement.setTimestamp(2, oldAttr.createdatA)
+                    statement.setTimestamp(3, oldAttr.modifiedatA)
+                    statement.setBoolean(4, false)
+                    statement.setLong(5, dbAttr.employee!!.id!!)
+                    statement.setString(6, dbAttr.type!!.name)
+                    statement.setDate(7, java.sql.Date.valueOf(dbAttr.validSince))
+                    statement.setString(8, dbAttr.value)
+                    statement.executeUpdate()
+                    log.info { "Migrated employee attribute: $dbAttr" }
+                }
             } catch (ex: DuplicateKeyException) {
-                log.info { "Employee already migrated (migration called twice?). Don't overwrite entry t_fibu_employee_valid_since_attr.${dbAttr.id}." }
+                log.info { "Employee already migrated (migration called twice?). Don't overwrite entry t_fibu_employee_valid_since_attr.${dbAttr.id}: ex=${ex.message}" }
             }
         }
     }
 
-    internal fun readEmployees(dataSource: DataSource): List<EmployeeValidSinceAttrDO> {
-        val list = read(
-            dataSource,
-            "t_fibu_employee",
-            "select a.pk as pk1, a.createdat, a.createdby, a.modifiedat, a.modifiedby, a.start_time, a.end_time, a.employee_id as object_id, a.group_name, b.pk as pk2, b.value, b.propertyname, b.createdby as createdby_b, b.createdat as createdat_b, b.modifiedby as modifiedby_b, b.modifiedat as modifiedat_b "
-                    + "from t_fibu_employee_timed a JOIN t_fibu_employee_timedattr b ON a.pk=b.parent "
-                    + "WHERE a.group_name IN ('employeestatus', 'employeeannualleave') ORDER BY a.pk",
-            type = TYPE.EMPLOYEE,
-        )
+    internal fun readEmployees(connection: Connection): List<EmployeeValidSinceAttrDO> {
+        val list = read(connection, "t_fibu_employee", SELECT_EMPLOYEE_TIMED, type = TYPE.EMPLOYEE)
         val resultList = mutableListOf<EmployeeValidSinceAttrDO>()
         list.forEach { attr ->
             val dbAttr = EmployeeValidSinceAttrDO()
@@ -157,7 +201,7 @@ class V7_6_0_2__RemoveMGC : BaseJavaMigration() {
             employee.id = attr.objectId
             dbAttr.employee = employee
             attr.startTime?.let { startTime ->
-                dbAttr.validSince = startTime.toLocalDate()
+                dbAttr.validSince = startTime
             }
             dbAttr.setTransientAttribute("oldAttr", attr)
             resultList.add(dbAttr)
@@ -166,54 +210,45 @@ class V7_6_0_2__RemoveMGC : BaseJavaMigration() {
         return resultList
     }
 
-    internal fun migrateVisitorbook(dataSource: DataSource) {
-        val dbAttrs = readVisitorBook(dataSource)
+    internal fun migrateVisitorbook(connection: Connection) {
+        val dbAttrs = readVisitorBook(connection)
         dbAttrs.forEach { dbAttr ->
             if (dbAttr.getTransientAttribute("oldArrivedAttr") == null && dbAttr.getTransientAttribute("oldDepartedAttr") == null) {
                 throw IllegalStateException("oldArrivedAttr and oldDepartedAttr is null: $dbAttr")
             }
         }
-        val jdbcTemplate = JdbcTemplate(dataSource)
         dbAttrs.forEach { dbAttr ->
             val oldAttr = dbAttr.getTransientAttribute("oldArrivedAttr") as? TimedAttr?
                 ?: dbAttr.getTransientAttribute("oldDepartedAttr") as? TimedAttr?
             requireNotNull(oldAttr)
-            val sqlInsert =
-                "INSERT INTO t_orga_visitorbook_entry (pk, created, last_update, deleted, visitorbook_fk, date_of_visit, arrived, departed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
             try {
-                jdbcTemplate.update(
-                    sqlInsert,
-                    dbAttr.id,
-                    oldAttr.createdatB,
-                    oldAttr.modifiedatB, // Ignore oldDepartedAttr (doesn't really matter)
-                    false,
-                    dbAttr.visitorbook!!.id,
-                    dbAttr.dateOfVisit,
-                    dbAttr.arrived,
-                    dbAttr.departed,
-                )
-                log.info { "Migrated visitorbook entry: $dbAttr" }
+                connection.prepareStatement(INSERT_VISITORBOOK).use { statement ->
+                    statement.setLong(1, dbAttr.id!!)
+                    statement.setTimestamp(2, oldAttr.createdatB)
+                    statement.setTimestamp(3, oldAttr.modifiedatB)
+                    statement.setBoolean(4, false)
+                    statement.setLong(5, dbAttr.visitorbook!!.id!!)
+                    statement.setDate(6, java.sql.Date.valueOf(dbAttr.dateOfVisit))
+                    statement.setString(7, dbAttr.arrived)
+                    statement.setString(8, dbAttr.departed)
+                    statement.executeUpdate()
+                    log.info { "Migrated visitorbook entry: $dbAttr" }
+                }
             } catch (ex: DuplicateKeyException) {
-                log.info { "Visitorbook already migrated (migration called twice?). Don't overwrite entry t_orga_visitorbook_entry.${dbAttr.id}." }
+                log.info { "Visitorbook already migrated (migration called twice?). Don't overwrite entry t_orga_visitorbook_entry.${dbAttr.id}. msg=${ex.message}" }
             }
         }
     }
 
-    internal fun readVisitorBook(dataSource: DataSource): List<VisitorbookEntryDO> {
-        val list = read(
-            dataSource,
-            "t_orga_visitorbook",
-            "select a.pk as pk1, a.createdat, a.createdby, a.modifiedat, a.modifiedby, a.start_time, a.visitor_id as object_id, a.group_name, b.pk as pk2, b.value, b.propertyname, b.createdby as createdby_b, b.createdat as createdat_b, b.modifiedby as modifiedby_b, b.modifiedat as modifiedat_b "
-                    + "from t_orga_visitorbook_timed a JOIN t_orga_visitorbook_timedattr b ON a.pk=b.parent ORDER BY a.pk",
-            type = TYPE.VISITORBOOK,
-        )
+    internal fun readVisitorBook(connection: Connection): List<VisitorbookEntryDO> {
+        val list = read(connection, "t_orga_visitorbook", SELECT_VISITOR_BOOK_TIMED, type = TYPE.VISITORBOOK)
         val result = mutableListOf<VisitorbookEntryDO>()
         list.forEach { attr ->
             if (attr.startTime == null) {
                 throw IllegalStateException("startTime is null: $attr")
             }
             val existingAttr =
-                result.find { it.visitorbook?.id == attr.objectId && it.dateOfVisit == attr.startTime.toLocalDate() }
+                result.find { it.visitorbook?.id == attr.objectId && it.dateOfVisit == attr.startTime }
             val dbAttr = existingAttr ?: VisitorbookEntryDO()
             if (existingAttr == null) {
                 result.add(dbAttr)
@@ -225,7 +260,7 @@ class V7_6_0_2__RemoveMGC : BaseJavaMigration() {
                 throw IllegalStateException("visitorbook.id is null: $attr")
             }
             dbAttr.visitorbook = visitorbook
-            dbAttr.dateOfVisit = attr.startTime.toLocalDate()
+            dbAttr.dateOfVisit = attr.startTime
             if (dbAttr.dateOfVisit == null) {
                 throw IllegalStateException("Date of visit (startTime) is null: $attr")
             }
@@ -253,35 +288,39 @@ class V7_6_0_2__RemoveMGC : BaseJavaMigration() {
     }
 
     private fun read(
-        dataSource: DataSource,
+        connection: Connection,
         masterTable: String,
         joinSelectSql: String,
         type: TYPE,
     ): List<TimedAttr> {
-        val jdbcTemplate = JdbcTemplate(dataSource)
         val validMasterIds = mutableSetOf<Long>()
-        var resultSet = jdbcTemplate.queryForRowSet("select t.pk as object_id from $masterTable as t")
-        while (resultSet.next()) {
-            validMasterIds.add(resultSet.getLong("object_id"))
+        val sql = SELECT_FROM_MASTER_TABLE.replace("<masterTable>", masterTable)
+        connection.prepareStatement(sql).use { statement ->
+            statement.executeQuery().use { resultSet ->
+                while (resultSet.next()) {
+                    validMasterIds.add(getLong(resultSet, "object_id")!!)
+                }
+            }
         }
         val userIds = mutableSetOf<Long>()
-        resultSet = jdbcTemplate.queryForRowSet("select t.pk as pk from t_pf_user as t")
-        // select a.pk as pk1, a.createdat, a.createdby, a.modifiedat, a.modifiedby, a.start_time, a.end_time, a.employee_id as object_id, a.group_name, b.pk as pk2, b.value, b.propertyname, b.createdby as createdby_b, b.createdat as createdat_b, b.modifiedby as modifiedby_b, b.modifiedat as modifiedat_b from t_fibu_employee_timed a JOIN t_fibu_employee_timedattr b ON a.pk=b.parent WHERE a.group_name IN ('employeestatus', 'employeeannualleave') ORDER BY pk
-        while (resultSet.next()) {
-            userIds.add(resultSet.getLong("pk"))
+        connection.prepareStatement(SELECT_USER_IDS).use { statement ->
+            statement.executeQuery().use { resultSet ->
+                while (resultSet.next()) {
+                    userIds.add(getLong(resultSet, "pk")!!)
+                }
+            }
         }
         val list = mutableListOf<TimedAttr>()
-        resultSet =
-            jdbcTemplate.queryForRowSet(joinSelectSql)
-        while (resultSet.next()) {
-            val data = TimedAttr(
-                resultSet,
-                type = type,
-            )
-            if (!validMasterIds.contains(data.objectId)) {
-                throw IllegalStateException("Object with id=${data.objectId} not found in $masterTable: $data")
+        connection.prepareStatement(joinSelectSql).use { statement ->
+            statement.executeQuery().use { resultSet ->
+                while (resultSet.next()) {
+                    val data = TimedAttr(resultSet, type = type)
+                    if (!validMasterIds.contains(data.objectId)) {
+                        throw IllegalStateException("Object with id=${data.objectId} not found in $masterTable: $data")
+                    }
+                    list.add(data)
+                }
             }
-            list.add(data)
         }
         if (type == TYPE.EMPLOYEE) {
             val occurrence = list.groupingBy { it.pk1 }.eachCount()
@@ -304,14 +343,14 @@ class V7_6_0_2__RemoveMGC : BaseJavaMigration() {
 
 private enum class TYPE { EMPLOYEE, VISITORBOOK }
 
-private class TimedAttr(resultSet: SqlRowSet, type: TYPE) {
-    val pk1 = resultSet.getLong("pk1")
-    val pk2 = resultSet.getLong("pk2")
-    val createdatA = resultSet.getTimestamp("createdat")
-    val createdbyA = resultSet.getString("createdby")
-    val modifiedatA = resultSet.getTimestamp("modifiedat")
-    val modifiedbyA = resultSet.getString("modifiedby")
-    val startTime = resultSet.getDate("start_time")
+private class TimedAttr(resultSet: ResultSet, type: TYPE) {
+    val pk1 = getLong(resultSet, "pk1")
+    val pk2 = getLong(resultSet, "pk2")
+    val createdatA = getTimestamp(resultSet, "createdat")
+    val createdbyA = getString(resultSet, "createdby")
+    val modifiedatA = getTimestamp(resultSet, "modifiedat")
+    val modifiedbyA = getString(resultSet, "modifiedby")
+    val startTime = getLocalDate(resultSet, "start_time")
     val endTime = if (type == TYPE.EMPLOYEE) resultSet.getDate("end_time") else null
 
     /**
@@ -363,7 +402,7 @@ private class TimedAttr(resultSet: SqlRowSet, type: TYPE) {
         if (a == null || b == null) {
             return false
         }
-        return Math.abs(a.time - b.time) < Constants.MILLIS_PER_HOUR
+        return abs(a.time - b.time) < Constants.MILLIS_PER_HOUR
     }
 
     override fun toString(): String {
@@ -410,9 +449,10 @@ fun main() {
         this.username = username
         this.password = password
     }
-    // V7_6_0_2__RemoveMGC().readEmployees(dataSource)
-    V7_6_0_2__RemoveMGC().migrateEmployees(dataSource)
-    // V7_6_0_2__RemoveMGC().readVisitorBook(dataSource)
-    // V7_6_0_2__RemoveMGC().migrateVisitorbook(dataSource)
-    // V7_6_0_2__RemoveMGC().migrateHistoryAttrWithData(dataSource)
+    val connection = dataSource.connection
+    V8_0_2__RemoveMGC().readEmployees(connection)
+    V8_0_2__RemoveMGC().migrateEmployees(connection)
+    V8_0_2__RemoveMGC().readVisitorBook(connection)
+    V8_0_2__RemoveMGC().migrateVisitorbook(connection)
+    //V8_0_0_2__RemoveMGC().migrateHistoryAttrWithData(connection)
 }

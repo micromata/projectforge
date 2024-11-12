@@ -29,6 +29,7 @@ import mu.KotlinLogging
 import org.hibernate.ScrollMode
 import org.hibernate.ScrollableResults
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.QueryFilter
 
 private val log = KotlinLogging.logger {}
 
@@ -61,12 +62,19 @@ internal class DBCriteriaResultIterator<O : ExtendedBaseDO<Long>>(
     val entityManager: EntityManager,
     criteria: CriteriaQuery<O>,
     val resultPredicates: List<DBPredicate>,
+    val queryFilter: QueryFilter,
 ) : DBResultIterator<O> {
     private val scrollableResults: ScrollableResults<O>
     private var counter = 0
 
     init {
         val query = entityManager.createQuery(criteria)
+
+        queryFilter.entityGraphName?.let { entityGraphName ->
+            val entityGraph = entityManager.getEntityGraph(entityGraphName)
+            query.setHint("jakarta.persistence.loadgraph", entityGraph);
+        }
+
         val hquery = query.unwrap(org.hibernate.query.Query::class.java)
         @Suppress("UNCHECKED_CAST")
         scrollableResults = hquery.scroll(ScrollMode.FORWARD_ONLY) as ScrollableResults<O>
