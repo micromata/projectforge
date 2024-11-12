@@ -30,12 +30,12 @@ import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.projectforge.business.common.HibernateSearchPhoneNumberBridge
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.business.common.HibernateSearchPhoneNumberBridge
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.LabelValueBean
 import java.time.LocalDate
@@ -297,7 +297,14 @@ open class AddressDO : DefaultBaseDO(), DisplayNameCapable {
                 columnList = "addressbook_id"
             )]
     )
-    open var addressbookList: MutableSet<AddressbookDO>? = mutableSetOf()
+    open var addressbookList: MutableSet<AddressbookDO>? = null
+
+    fun add(addressbook: AddressbookDO) {
+        if (addressbookList == null) {
+            addressbookList = mutableSetOf()
+        }
+        addressbookList!!.add(addressbook)
+    }
 
     // @FieldBridge(impl = HibernateSearchInstantMessagingBridge.class)
     // @FullTextField(index = Index.YES /*TOKENIZED*/, store = Store.NO)

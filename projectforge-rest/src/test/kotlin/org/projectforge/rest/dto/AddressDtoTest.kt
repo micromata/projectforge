@@ -30,7 +30,7 @@ import org.projectforge.business.address.AddressbookDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.test.AbstractTestBase
 
-class AddressDtoTest: AbstractTestBase() {
+class AddressDtoTest : AbstractTestBase() {
 
     @Test
     fun dtoTest() {
@@ -47,7 +47,7 @@ class AddressDtoTest: AbstractTestBase() {
         addressbook.description = "Description"
         addressbook.title = "Title"
         addressbook.owner = user
-        src.addressbookList!!.add(addressbook)
+        src.add(addressbook)
         val dest = Address()
         dest.copyFrom(src)
 

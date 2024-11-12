@@ -149,11 +149,11 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
                 attached = true,
             )
             addressList.forEach { address ->
-                if (address.addressbookList!!.size == 1 && address.addressbookList!!.contains(obj)) {
+                if (address.addressbookList?.size == 1 && address.addressbookList!!.contains(obj)) {
                     // Add global address book, if no other address book is left:
                     address.addressbookList!!.add(globalAddressbook)
                 }
-                address.addressbookList!!.remove(obj)
+                address.addressbookList?.remove(obj)
                 context.update(address)
             }
         }

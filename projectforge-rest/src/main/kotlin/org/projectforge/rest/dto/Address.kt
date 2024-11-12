@@ -110,11 +110,10 @@ class Address(
     override fun copyTo(dest: AddressDO) {
         super.copyTo(dest)
         if (!addressbookList.isNullOrEmpty()) {
-            dest.addressbookList = mutableSetOf()
             addressbookList?.forEach { srcAddressbook ->
                 val addressbook = AddressbookDO()
                 srcAddressbook.copyTo(addressbook)
-                dest.addressbookList!!.add(addressbook)
+                dest.add(addressbook)
             }
         }
     }

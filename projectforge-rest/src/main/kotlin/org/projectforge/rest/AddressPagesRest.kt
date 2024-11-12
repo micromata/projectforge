@@ -138,8 +138,7 @@ class AddressPagesRest
     val address = super.newBaseDO(request)
     address.addressStatus = AddressStatus.UPTODATE
     address.contactStatus = ContactStatus.ACTIVE
-    address.addressbookList = mutableSetOf()
-    address.addressbookList?.add(addressbookDao.globalAddressbook)
+    address.add(addressbookDao.globalAddressbook)
     return address
   }
 
