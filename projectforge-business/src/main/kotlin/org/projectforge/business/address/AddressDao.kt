@@ -278,70 +278,54 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         if (addressbookRight == null) {
             addressbookRight = userRights.getRight(UserRightId.MISC_ADDRESSBOOK) as AddressbookRight
         }
-        if (obj?.addressbookList == null) {
-            //Nothing to check, should not happen, but does
+        val addressbookList = obj?.addressbookList ?: addressbookCache.getAddressbooksForAddress(obj)
+        if (addressbookList.isNullOrEmpty()) {
             return true
         }
         when (operationType) {
             OperationType.SELECT -> {
-                addressbookCache.getAddressbooksForAddress(obj)?.forEach { ab ->
+                addressbookList.forEach { ab ->
                     if (addressbookRight!!.checkGlobal(ab) || addressbookRight!!.getAccessType(ab, user.id)
                             .hasAnyAccess()
                     ) {
                         return true
                     }
                 }
-                if (throwException) {
-                    throw AccessException(user, "access.exception.userHasNotRight", addressbookRight, operationType)
-                }
-                return false
             }
 
-            OperationType.INSERT, OperationType.UPDATE, OperationType.DELETE -> {
-                for (ab in obj.addressbookList!!) {
+            else -> {
+                for (ab in addressbookList) {
                     if (addressbookRight!!.checkGlobal(ab) || addressbookRight!!.hasFullAccess(
-                            addressbookCache.getAddressbook(
-                                ab
-                            ), user.id
+                            addressbookCache.getAddressbook(ab), user.id
                         )
                     ) {
                         return true
                     }
                 }
-                if (throwException) {
-                    throw AccessException(user, "access.exception.userHasNotRight", addressbookRight, operationType)
-                }
-                return false
-            }
-
-            else -> {
-                if (throwException) {
-                    throw AccessException(user, "access.exception.userHasNotRight", addressbookRight, operationType)
-                }
-                return false
             }
         }
+        if (throwException) {
+            throw AccessException(user, "access.exception.userHasNotRight", addressbookRight, operationType)
+        }
+        return false
     }
 
     override fun beforeInsertOrModify(obj: AddressDO, operationType: OperationType) {
         if (obj.id == null) {
-            if (obj.addressbookList == null) {
-                val addressbookSet = mutableSetOf<AddressbookDO>()
-                obj.addressbookList = addressbookSet
-            }
-            if (obj.addressbookList!!.isEmpty()) {
-                obj.addressbookList!!.add(addressbookDao.globalAddressbook)
+            if (obj.addressbookList.isNullOrEmpty()) {
+                // Add global addressbook if no address book set.
+                obj.add(addressbookDao.globalAddressbook)
             }
         } else {
             //Check addressbook changes
-            val dbAddress = find(obj.id, checkAccess = false)
+            val dbAddress = find(obj.id, checkAccess = false)!!
             val addressbookRight = userRights.getRight(UserRightId.MISC_ADDRESSBOOK) as AddressbookRight
-            for (dbAddressbook in dbAddress!!.addressbookList!!) {
+            dbAddress.addressbookList?.forEach { dbAddressbook ->
                 //If user has no right for assigned addressbook, it could not be removed
                 if (!addressbookRight.hasSelectAccess(loggedInUser, dbAddressbook)
                     && !obj.addressbookList!!.contains(dbAddressbook)
                 ) {
-                    obj.addressbookList!!.add(dbAddressbook)
+                    obj.add(dbAddressbook)
                 }
             }
         }
