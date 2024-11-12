@@ -48,8 +48,6 @@ public interface GroupService
 
   String getGroupname(Long groupId);
 
-  String getDisplayName(Long groupId);
-
   String getGroupnames(Long userId);
 
 }

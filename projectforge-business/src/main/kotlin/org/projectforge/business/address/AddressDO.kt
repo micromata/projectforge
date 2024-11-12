@@ -297,7 +297,7 @@ open class AddressDO : DefaultBaseDO(), DisplayNameCapable {
                 columnList = "addressbook_id"
             )]
     )
-    open var addressbookList: MutableSet<AddressbookDO>? = HashSet()
+    open var addressbookList: MutableSet<AddressbookDO>? = mutableSetOf()
 
     // @FieldBridge(impl = HibernateSearchInstantMessagingBridge.class)
     // @FullTextField(index = Index.YES /*TOKENIZED*/, store = Store.NO)

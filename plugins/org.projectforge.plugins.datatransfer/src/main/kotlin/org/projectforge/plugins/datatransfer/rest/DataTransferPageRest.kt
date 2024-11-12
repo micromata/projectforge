@@ -75,14 +75,11 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var groupService: GroupService
 
-  @Autowired
-  private lateinit var userService: UserService
-
   @PostConstruct
   private fun postConstruct() {
     attachmentsServicesRest.register(
       dataTransferAreaPagesRest.category,
-      DataTransferAttachmentsActionListener(attachmentsService, dataTransferAreaDao, groupService, userService)
+      DataTransferAttachmentsActionListener(attachmentsService, dataTransferAreaDao)
     )
   }
 
@@ -344,7 +341,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
 
   private fun convertData(id: Long): Pair<DataTransferAreaDO, DataTransferArea> {
     val dbObj = dataTransferAreaDao.find(id)!!
-    val dto = DataTransferArea.transformFromDB(dbObj, dataTransferAreaDao, groupService, userService)
+    val dto = DataTransferArea.transformFromDB(dbObj, dataTransferAreaDao)
     if (hasEditAccess(dto, dbObj)) {
       dto.externalPassword = dbObj.externalPassword
     }

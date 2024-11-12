@@ -23,8 +23,6 @@
 
 package org.projectforge.plugins.datatransfer.rest
 
-import org.projectforge.business.group.service.GroupService
-import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
@@ -36,36 +34,34 @@ import org.projectforge.rest.AttachmentsActionListener
  * Listener on data transfer uploads to renew stats data.
  */
 class DataTransferAttachmentsActionListener(
-  attachmentsService: AttachmentsService,
-  private val dataTransferAreaDao: DataTransferAreaDao,
-  private val groupService: GroupService,
-  private val userService: UserService,
+    attachmentsService: AttachmentsService,
+    private val dataTransferAreaDao: DataTransferAreaDao,
 ) :
-  AttachmentsActionListener(attachmentsService) {
+    AttachmentsActionListener(attachmentsService) {
 
-  override fun createResponseData(
-    obj: ExtendedBaseDO<Long>,
-    jcrPath: String,
-    attachmentsAccessChecker: AttachmentsAccessChecker,
-    listId: String?
-  ): Any {
-    if (obj is DataTransferAreaDO) {
-      val dbObj = dataTransferAreaDao.find(obj.id, checkAccess = false)!! // Get fresh db version.
-      val area = DataTransferArea.transformFromDB(dbObj, dataTransferAreaDao, groupService, userService)
-      area.attachments = attachmentsService.getAttachments(jcrPath, dbObj.id!!, attachmentsAccessChecker, listId)
-      return area
-    } else {
-      // Shouldn't occur.
-      return super.createResponseData(obj, jcrPath, attachmentsAccessChecker, listId)
+    override fun createResponseData(
+        obj: ExtendedBaseDO<Long>,
+        jcrPath: String,
+        attachmentsAccessChecker: AttachmentsAccessChecker,
+        listId: String?
+    ): Any {
+        if (obj is DataTransferAreaDO) {
+            val dbObj = dataTransferAreaDao.find(obj.id, checkAccess = false)!! // Get fresh db version.
+            val area = DataTransferArea.transformFromDB(dbObj, dataTransferAreaDao)
+            area.attachments = attachmentsService.getAttachments(jcrPath, dbObj.id!!, attachmentsAccessChecker, listId)
+            return area
+        } else {
+            // Shouldn't occur.
+            return super.createResponseData(obj, jcrPath, attachmentsAccessChecker, listId)
+        }
     }
-  }
 
-  override fun createDownloadBasefileName(obj: Any): String {
-    if (obj is DataTransferAreaDO) {
-      return obj.displayName
-    } else {
-      // Shouldn't occur.
-      return super.createDownloadBasefileName(obj)
+    override fun createDownloadBasefileName(obj: Any): String {
+        if (obj is DataTransferAreaDO) {
+            return obj.displayName
+        } else {
+            // Shouldn't occur.
+            return super.createDownloadBasefileName(obj)
+        }
     }
-  }
 }

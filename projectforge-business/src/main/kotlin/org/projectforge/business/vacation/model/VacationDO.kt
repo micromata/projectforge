@@ -29,6 +29,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
+import org.projectforge.business.Cache
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
@@ -72,7 +73,7 @@ open class VacationDO : DefaultBaseDO() {
      * The employee.
      */
     @PropertyInfo(i18nKey = "vacation.employee")
-    @IndexedEmbedded(includePaths = ["user.firstname", "user.lastname"])
+    @IndexedEmbedded(includeDepth = 2, includePaths = ["user.firstname", "user.lastname"])
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "employee_id", nullable = false)
@@ -90,7 +91,7 @@ open class VacationDO : DefaultBaseDO() {
      * Coverage (during leave). This is the main responsible colleague for replacement.
      */
     @PropertyInfo(i18nKey = "vacation.replacement")
-    @IndexedEmbedded(includeDepth = 1)
+    @IndexedEmbedded(includeDepth = 2, includePaths = ["user.firstname", "user.lastname"])
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "replacement_id", nullable = false)
@@ -100,7 +101,7 @@ open class VacationDO : DefaultBaseDO() {
      * Other employees as substitutes.
      */
     @PropertyInfo(i18nKey = "vacation.replacement.others")
-    @IndexedEmbedded(includeDepth = 1)
+    @IndexedEmbedded(includeDepth = 2, includePaths = ["user.firstname", "user.lastname"])
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToMany(fetch = FetchType.LAZY)
     @get:JoinTable(
@@ -174,9 +175,11 @@ open class VacationDO : DefaultBaseDO() {
 
     @Transient
     fun getVacationmode(): VacationMode {
-        val currentUserId = ThreadLocalUserContext.loggedInUserId
-        val employeeUserId = if (employee != null && employee!!.user != null) employee!!.user!!.id else null
-        val managerUserId = if (manager != null && manager!!.user != null) manager!!.user!!.id else null
+        val currentUserId = ThreadLocalUserContext.requiredLoggedInUserId
+        val employeeDO = Cache.instance.getEmployeeIfNotInitialized(employee)
+        val employeeUserId = employeeDO?.user?.id
+        val managerUserDO = Cache.instance.getEmployeeIfNotInitialized(manager)
+        val managerUserId = managerUserDO?.user?.id
         if (currentUserId == employeeUserId) {
             return VacationMode.OWN
         }
@@ -190,7 +193,8 @@ open class VacationDO : DefaultBaseDO() {
 
     @Transient
     fun isReplacement(userId: Long?): Boolean {
-        return userId != null && replacement?.userId == userId
+        val replacementDO = Cache.instance.getEmployeeIfNotInitialized(replacement)
+        return userId != null && replacementDO?.user?.id == userId
     }
 
     fun hasOverlap(other: VacationDO): Boolean {

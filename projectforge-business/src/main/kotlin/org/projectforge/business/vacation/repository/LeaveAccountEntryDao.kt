@@ -95,7 +95,7 @@ open class LeaveAccountEntryDao : BaseDao<LeaveAccountEntryDO>(LeaveAccountEntry
                 ProjectForgeGroup.HR_GROUP,
                 ProjectForgeGroup.ORGA_TEAM
             )
-                    || (user.id != null && user.id == obj?.employee?.userId)) // User has select access to his own entries.
+                    || (user.id != null && user.id == obj?.employee?.user?.id)) // User has select access to his own entries.
         } else {
             accessChecker.hasLoggedInUserRight(
                 UserRightId.HR_VACATION,

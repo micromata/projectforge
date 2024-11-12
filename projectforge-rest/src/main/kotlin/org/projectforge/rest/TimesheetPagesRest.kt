@@ -24,7 +24,6 @@
 package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
-import org.jetbrains.kotlin.com.intellij.util.graph.CachingSemiGraph.cache
 import org.projectforge.Constants
 import org.projectforge.business.Cache
 import org.projectforge.business.fibu.kost.KostCache
@@ -404,23 +403,17 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                 ts.user!!.copyFromMinimal(user)
             }
             if (it.kost2Id != null) {
-                val kost2DO = kostCache.getKost2(it.kost2Id)
+                val kost2DO = cache.getAndPopulateKost2(it.kost2Id)
                 if (kost2DO != null) {
                     val kost2 = Kost2()
                     ts.kost2 = kost2
                     kost2.copyFromMinimal(kost2DO)
-                    kost2DO.projekt?.id?.let { projektId ->
-                        val projektDO = projektCache.getProjekt(projektId)
-                        if (projektDO != null) {
-                            val projekt = Project(projektId, name = projektDO.name)
-                            kost2.project = projekt
-                            projektDO.kunde?.nummer?.let { kundeId ->
-                                val kundeDO = kundeCache.getKunde(kundeId)
-                                if (kundeDO != null) {
-                                    val kunde = Customer(kundeId, name = kundeDO.name)
-                                    projekt.customer = kunde
-                                }
-                            }
+                    kost2DO.projekt?.let { projektDO ->
+                        val projekt = Project(projektDO.id, name = projektDO.name)
+                        kost2.project = projekt
+                        projektDO.kunde?.let { kundeDO ->
+                            val kunde = Customer(kundeDO.id, name = kundeDO.name)
+                            projekt.customer = kunde
                         }
                     }
                 }

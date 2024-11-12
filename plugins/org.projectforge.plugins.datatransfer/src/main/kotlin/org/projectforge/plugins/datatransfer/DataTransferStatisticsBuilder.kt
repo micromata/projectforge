@@ -26,8 +26,6 @@ package org.projectforge.plugins.datatransfer
 import mu.KotlinLogging
 import org.projectforge.business.admin.SystemStatisticsData
 import org.projectforge.business.admin.SystemsStatisticsBuilderInterface
-import org.projectforge.business.group.service.GroupService
-import org.projectforge.business.user.service.UserService
 import org.projectforge.common.extensions.abbreviate
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -47,8 +45,6 @@ open class DataTransferStatisticsBuilder() : SystemsStatisticsBuilderInterface {
             return
         }
         val dataTransferAreaDao = WicketSupport.get(DataTransferAreaDao::class.java)
-        val userService = WicketSupport.get(UserService::class.java)
-        val groupService = WicketSupport.get(GroupService::class.java)
         val list = dataTransferAreaDao.selectAll(checkAccess = false)
         list.sortedByDescending { it.attachmentsSize }.forEachIndexed { index, dbo ->
             if (dbo.attachmentsCounter ?: 0 == 0 || index >= 30) {
@@ -56,10 +52,10 @@ open class DataTransferStatisticsBuilder() : SystemsStatisticsBuilderInterface {
             }
             val size = AttachmentsInfo.getAttachmentsSizeFormatted(dbo.attachmentsCounter, dbo.attachmentsSize)
 
-            val admins = User.toUserNames(dbo.adminIds, userService)
-            val accessUsers = User.toUserNames(dbo.accessUserIds, userService)
+            val admins = User.toUserNames(dbo.adminIds)
+            val accessUsers = User.toUserNames(dbo.accessUserIds)
             val accessUserString = if (accessUsers.isBlank()) "" else ", access users=[$accessUsers]"
-            val accessGroups = Group.toGroupNames(dbo.accessGroupIds, groupService)
+            val accessGroups = Group.toGroupNames(dbo.accessGroupIds)
             val accessGroupString = if (accessGroups.isBlank()) "" else ", access groups=[$accessGroups]"
             val externalAccess = if (dbo.externalDownloadEnabled == true || dbo.externalUploadEnabled == true) {
                 ", external access=[download=${dbo.externalDownloadEnabled == true}, upload=${dbo.externalUploadEnabled == true}]"

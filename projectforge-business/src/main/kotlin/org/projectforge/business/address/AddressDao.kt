@@ -84,8 +84,6 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
     @Autowired
     private lateinit var teamEventDao: TeamEventDao
 
-    private lateinit var addressCache: AddressCache
-
     private lateinit var birthdayCache: BirthdayCache
 
     protected open val deletionListeners: MutableList<AddressDeletionListener> = ArrayList()
@@ -96,7 +94,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
 
     @PostConstruct
     private fun postConstruct() {
-        addressCache = AddressCache(this)
+        addressbookCache.setAddressDao(this)
         birthdayCache = BirthdayCache(this, persistenceService)
     }
 
@@ -286,7 +284,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         }
         when (operationType) {
             OperationType.SELECT -> {
-                for (ab in addressCache.getAddressbooks(obj)!!) {
+                addressbookCache.getAddressbooksForAddress(obj)?.forEach { ab ->
                     if (addressbookRight!!.checkGlobal(ab) || addressbookRight!!.getAccessType(ab, user.id)
                             .hasAnyAccess()
                     ) {

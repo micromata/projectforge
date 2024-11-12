@@ -28,7 +28,6 @@ import mu.KotlinLogging
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
-import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.vacation.model.VacationStatus
@@ -76,9 +75,6 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
 
     @Autowired
     private lateinit var employeeDao: EmployeeDao
-
-    @Autowired
-    private lateinit var groupService: GroupService
 
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
@@ -211,7 +207,7 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
             data.startDate = PFDay.now().beginOfMonth.date
         }
         Employee.restoreDisplayNames(data.employees)
-        Group.restoreDisplayNames(data.groups, groupService)
+        Group.restoreDisplayNames(data.groups)
     }
 
     private fun setSessionData(request: HttpServletRequest, data: Data) {

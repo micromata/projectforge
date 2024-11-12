@@ -23,14 +23,13 @@
 
 package org.projectforge.rest
 
-import org.projectforge.business.group.service.GroupService
+import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.business.Cache
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.teamcal.admin.right.TeamCalRight
 import org.projectforge.business.teamcal.externalsubscription.SubscriptionUpdateInterval
 import org.projectforge.business.teamcal.service.CalendarFeedService
-import org.projectforge.business.user.service.UserService
-import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -47,26 +46,21 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import jakarta.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/teamCal")
-class TeamCalPagesRest : AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(TeamCalDao::class.java, "plugins.teamcal.title") {
+class TeamCalPagesRest :
+    AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(TeamCalDao::class.java, "plugins.teamcal.title") {
+
+    @Autowired
+    private lateinit var cache: Cache
 
     @Autowired
     private lateinit var calendarFeedService: CalendarFeedService
 
-    @Autowired
-    private lateinit var groupService: GroupService
-
-    @Autowired
-    private lateinit var userService: UserService
-
-    @Autowired
-    private lateinit var accessChecker: AccessChecker
-
     override fun transformFromDB(obj: TeamCalDO, editMode: Boolean): TeamCal {
         val teamCal = TeamCal()
+        obj.owner = cache.getUser(obj.ownerId)
         teamCal.copyFrom(obj)
         var anonymize = true
         if (editMode) {
@@ -85,16 +79,16 @@ class TeamCalPagesRest : AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(Te
         }
 
         // Group names needed by React client (for ReactSelect):
-        Group.restoreDisplayNames(teamCal.fullAccessGroups, groupService)
-        Group.restoreDisplayNames(teamCal.readonlyAccessGroups, groupService)
-        Group.restoreDisplayNames(teamCal.minimalAccessGroups, groupService)
-        Group.restoreDisplayNames(teamCal.includeLeaveDaysForGroups, groupService)
+        Group.restoreDisplayNames(teamCal.fullAccessGroups)
+        Group.restoreDisplayNames(teamCal.readonlyAccessGroups)
+        Group.restoreDisplayNames(teamCal.minimalAccessGroups)
+        Group.restoreDisplayNames(teamCal.includeLeaveDaysForGroups)
 
         // Usernames needed by React client (for ReactSelect):
-        User.restoreDisplayNames(teamCal.fullAccessUsers, userService)
-        User.restoreDisplayNames(teamCal.readonlyAccessUsers, userService)
-        User.restoreDisplayNames(teamCal.minimalAccessUsers, userService)
-        User.restoreDisplayNames(teamCal.includeLeaveDaysForUsers, userService)
+        User.restoreDisplayNames(teamCal.fullAccessUsers)
+        User.restoreDisplayNames(teamCal.readonlyAccessUsers)
+        User.restoreDisplayNames(teamCal.minimalAccessUsers)
+        User.restoreDisplayNames(teamCal.includeLeaveDaysForUsers)
 
         return teamCal
     }
@@ -120,29 +114,50 @@ class TeamCalPagesRest : AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(Te
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
-      layout.add(UITable.createUIResultSetTable()
-                        .add(lc, "title", "externalSubscriptionUrlAnonymized", "description", "owner",
-                                "accessStatusString", "lastUpdate"))//, "externalSubscription"))
+    override fun createListLayout(
+        request: HttpServletRequest,
+        layout: UILayout,
+        magicFilter: MagicFilter,
+        userAccess: UILayout.UserAccess
+    ) {
+        layout.add(
+            UITable.createUIResultSetTable()
+                .add(
+                    lc, "title", "externalSubscriptionUrlAnonymized", "description", "owner",
+                    "accessStatusString", "lastUpdate"
+                )
+        )//, "externalSubscription"))
         layout.getTableColumnById("owner").formatter = UITableColumn.Formatter.USER
         layout.getTableColumnById("lastUpdate").formatter = UITableColumn.Formatter.TIMESTAMP_MINUTES
         layout.getTableColumnById("accessStatusString").title = "access.title.heading"
 
         val exportMenu = MenuItem("calendar.export", i18nKey = "export")
-        exportMenu.add(MenuItem("calendar.exportTimesheets",
+        exportMenu.add(
+            MenuItem(
+                "calendar.exportTimesheets",
                 i18nKey = "plugins.teamcal.export.timesheets",
                 type = MenuItemTargetType.MODAL,
-                url = CalendarSubscriptionInfoPageRest.getTimesheetUserUrl()))
-        exportMenu.add(MenuItem("calendar.exportWeekOfYears",
+                url = CalendarSubscriptionInfoPageRest.getTimesheetUserUrl()
+            )
+        )
+        exportMenu.add(
+            MenuItem(
+                "calendar.exportWeekOfYears",
                 i18nKey = "plugins.teamcal.export.weekOfYears",
                 tooltip = "plugins.teamcal.export.weekOfYears.tooltip",
                 type = MenuItemTargetType.MODAL,
-                url = CalendarSubscriptionInfoPageRest.getWeekOfYearUrl()))
-        exportMenu.add(MenuItem("calendar.exportHolidays",
+                url = CalendarSubscriptionInfoPageRest.getWeekOfYearUrl()
+            )
+        )
+        exportMenu.add(
+            MenuItem(
+                "calendar.exportHolidays",
                 i18nKey = "plugins.teamcal.export.holidays",
                 tooltip = "plugins.teamcal.export.holidays.tooltip",
                 type = MenuItemTargetType.MODAL,
-                url = CalendarSubscriptionInfoPageRest.getHolidaysUrl()))
+                url = CalendarSubscriptionInfoPageRest.getHolidaysUrl()
+            )
+        )
         layout.add(exportMenu, 0)
     }
 
@@ -154,47 +169,133 @@ class TeamCalPagesRest : AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(Te
         val subscriptionInfo = CalendarSubscriptionInfo(translate("plugins.teamcal.subscription"), dto.accessStatus)
         subscriptionInfo.initUrls(calendarFeedService, dto.id)
         val layout = super.createEditLayout(dto, userAccess)
-                .add(UIFieldset(UILength(md = 12, lg = 12))
-                        .add(UIRow()
-                                .add(UICol()
-                                        .add(UIInput("title", lc))
-                                        .add(lc, "description")
-                                        .add(UICustomized("calendar.editExternalSubscription",
-                                                values = mutableMapOf("intervals" to intervals))))))
-                .add(UIFieldset(UILength(md = 12, lg = 12), title = "access.title.heading")
-                        .add(UIRow()
-                                .add(UICol(UILength(md = 6))
-                                        .add(lc, "owner")))
-                        .add(UIRow()
-                                .add(UIFieldset(6, title = "access.users")
-                                        .add(UISelect.createUserSelect(lc, "fullAccessUsers", true, "plugins.teamcal.fullAccess"))
-                                        .add(UISelect.createUserSelect(lc, "readonlyAccessUsers", true, "plugins.teamcal.readonlyAccess"))
-                                        .add(UISelect.createUserSelect(lc, "minimalAccessUsers", true, "plugins.teamcal.minimalAccess", tooltip = "plugins.teamcal.minimalAccess.users.hint")))
-                                .add(UIFieldset(6, title = "access.groups")
-                                        .add(UISelect.createGroupSelect(lc, "fullAccessGroups", true, "plugins.teamcal.fullAccess"))
-                                        .add(UISelect.createGroupSelect(lc, "readonlyAccessGroups", true, "plugins.teamcal.readonlyAccess"))
-                                        .add(UISelect.createGroupSelect(lc, "minimalAccessGroups", true, "plugins.teamcal.minimalAccess", tooltip = "plugins.teamcal.minimalAccess.groups.hint")))))
-                .add(UIFieldset(UILength(md = 12, lg = 12), title = "vacation")
-                        .add(UIRow()
-                                .add(UICol()
-                                        .add(UISelect.createUserSelect(lc, "includeLeaveDaysForUsers", true)))
-                                .add(UICol()
-                                        .add(UISelect.createGroupSelect(lc, "includeLeaveDaysForGroups", true)))))
+            .add(
+                UIFieldset(UILength(md = 12, lg = 12))
+                    .add(
+                        UIRow()
+                            .add(
+                                UICol()
+                                    .add(UIInput("title", lc))
+                                    .add(lc, "description")
+                                    .add(
+                                        UICustomized(
+                                            "calendar.editExternalSubscription",
+                                            values = mutableMapOf("intervals" to intervals)
+                                        )
+                                    )
+                            )
+                    )
+            )
+            .add(
+                UIFieldset(UILength(md = 12, lg = 12), title = "access.title.heading")
+                    .add(
+                        UIRow()
+                            .add(
+                                UICol(UILength(md = 6))
+                                    .add(lc, "owner")
+                            )
+                    )
+                    .add(
+                        UIRow()
+                            .add(
+                                UIFieldset(6, title = "access.users")
+                                    .add(
+                                        UISelect.createUserSelect(
+                                            lc,
+                                            "fullAccessUsers",
+                                            true,
+                                            "plugins.teamcal.fullAccess"
+                                        )
+                                    )
+                                    .add(
+                                        UISelect.createUserSelect(
+                                            lc,
+                                            "readonlyAccessUsers",
+                                            true,
+                                            "plugins.teamcal.readonlyAccess"
+                                        )
+                                    )
+                                    .add(
+                                        UISelect.createUserSelect(
+                                            lc,
+                                            "minimalAccessUsers",
+                                            true,
+                                            "plugins.teamcal.minimalAccess",
+                                            tooltip = "plugins.teamcal.minimalAccess.users.hint"
+                                        )
+                                    )
+                            )
+                            .add(
+                                UIFieldset(6, title = "access.groups")
+                                    .add(
+                                        UISelect.createGroupSelect(
+                                            lc,
+                                            "fullAccessGroups",
+                                            true,
+                                            "plugins.teamcal.fullAccess"
+                                        )
+                                    )
+                                    .add(
+                                        UISelect.createGroupSelect(
+                                            lc,
+                                            "readonlyAccessGroups",
+                                            true,
+                                            "plugins.teamcal.readonlyAccess"
+                                        )
+                                    )
+                                    .add(
+                                        UISelect.createGroupSelect(
+                                            lc,
+                                            "minimalAccessGroups",
+                                            true,
+                                            "plugins.teamcal.minimalAccess",
+                                            tooltip = "plugins.teamcal.minimalAccess.groups.hint"
+                                        )
+                                    )
+                            )
+                    )
+            )
+            .add(
+                UIFieldset(UILength(md = 12, lg = 12), title = "vacation")
+                    .add(
+                        UIRow()
+                            .add(
+                                UICol()
+                                    .add(UISelect.createUserSelect(lc, "includeLeaveDaysForUsers", true))
+                            )
+                            .add(
+                                UICol()
+                                    .add(UISelect.createGroupSelect(lc, "includeLeaveDaysForGroups", true))
+                            )
+                    )
+            )
         if (dto.id != null) {
             // Show subscription barcode and url only for existing entries.
-            layout.add(UIFieldset(UILength(md = 12, lg = 12))
-                    .add(UIRow()
-                            .add(UICol()
-                                    .add(UICustomized("calendar.subscriptionInfo",
-                                            values = mutableMapOf("subscriptionInfo" to subscriptionInfo))))))
+            layout.add(
+                UIFieldset(UILength(md = 12, lg = 12))
+                    .add(
+                        UIRow()
+                            .add(
+                                UICol()
+                                    .add(
+                                        UICustomized(
+                                            "calendar.subscriptionInfo",
+                                            values = mutableMapOf("subscriptionInfo" to subscriptionInfo)
+                                        )
+                                    )
+                            )
+                    )
+            )
         }
-        layout.addTranslations("plugins.teamcal.externalsubscription.label",
-                "plugins.teamcal.externalsubscription.label",
-                "plugins.teamcal.externalsubscription.url.tooltip",
-                "plugins.teamcal.externalsubscription.url",
-                "plugins.teamcal.externalsubscription.updateInterval",
-                "plugins.teamcal.export.reminder.checkbox",
-                "plugins.teamcal.export.reminder.checkbox.tooltip")
+        layout.addTranslations(
+            "plugins.teamcal.externalsubscription.label",
+            "plugins.teamcal.externalsubscription.label",
+            "plugins.teamcal.externalsubscription.url.tooltip",
+            "plugins.teamcal.externalsubscription.url",
+            "plugins.teamcal.externalsubscription.updateInterval",
+            "plugins.teamcal.export.reminder.checkbox",
+            "plugins.teamcal.export.reminder.checkbox.tooltip"
+        )
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }
