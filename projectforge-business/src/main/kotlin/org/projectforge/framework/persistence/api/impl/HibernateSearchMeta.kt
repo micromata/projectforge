@@ -23,23 +23,31 @@
 
 package org.projectforge.framework.persistence.api.impl
 
+import mu.KotlinLogging
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.IDao
+
+private val log = KotlinLogging.logger {}
 
 object HibernateSearchMeta {
     private val classInfos = mutableMapOf<Class<*>, HibernateSearchClassInfo>()
 
     fun getSearchFields(dao: IDao<*>): Array<String>? {
         if (dao !is BaseDao) return null
-        return getClassInfo(dao).allFieldNames
+        return ensureClassInfo(dao).allFieldNames
     }
 
-    fun getClassInfo(baseDao: BaseDao<*>): HibernateSearchClassInfo {
-        var result = classInfos[baseDao.doClass]
-        if (result == null) {
-            result = HibernateSearchClassInfo(baseDao)
-            classInfos[baseDao.doClass] = result
+    fun getClassInfo(baseDO: Class<*>): HibernateSearchClassInfo {
+        synchronized(classInfos) {
+            return classInfos[baseDO] ?: throw IllegalArgumentException("No HibernateSearchClassInfo found for $baseDO")
         }
-        return result
+    }
+
+    fun ensureClassInfo(baseDao: BaseDao<*>): HibernateSearchClassInfo {
+        synchronized(classInfos) {
+            return classInfos[baseDao.doClass] ?: HibernateSearchClassInfo(baseDao).also {
+                classInfos[baseDao.doClass] = it
+            }
+        }
     }
 }

@@ -23,12 +23,12 @@
 
 package org.projectforge.framework.persistence.api.impl
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
+import mu.KotlinLogging
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.DocumentId
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
@@ -41,18 +41,17 @@ import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.metamodel.HibernateMetaModel.getEntityInfo
 import org.projectforge.framework.persistence.search.ClassBridge
-import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
+import kotlin.Throws
 
+private val log = KotlinLogging.logger {}
 
 class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
-    @JsonIgnore
-    private val log = LoggerFactory.getLogger(HibernateSearchClassInfo::class.java)
-
     private val fieldInfos = mutableListOf<HibernateSearchFieldInfo>()
 
     @JsonSerialize(using = ClassBridgesSerializer::class)
@@ -64,7 +63,7 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
     val stringFieldNames
         get() = fieldInfos.filter { it.isStringSearchSupported() }.map { it.luceneField }.toTypedArray()
 
-    val numericFieldNames
+    val numericFields
         get() = fieldInfos.filter { it.isNumericSearchSupported() }.map { Pair(it.luceneField, it.type) }.toTypedArray()
 
     private val clazz: Class<*>
@@ -154,7 +153,7 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
         return classBridges.find { it.name == name }
     }
 
-    internal fun get(field: String): HibernateSearchFieldInfo? {
+    fun get(field: String): HibernateSearchFieldInfo? {
         return fieldInfos.find { it.javaProp == field || it.luceneField == field }
     }
 
@@ -170,6 +169,9 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
             info = HibernateSearchFieldInfo(fieldName, fieldType)
         }
         var isSearchField = false
+        if (getEntityInfo(clazz)?.getPropertyInfo(fieldName) != null) {
+            info.persistentField = true
+        }
         accessible.getAnnotationsByType(FullTextField::class.java)?.forEach { ann ->
             info.add(ann)
             isSearchField = true

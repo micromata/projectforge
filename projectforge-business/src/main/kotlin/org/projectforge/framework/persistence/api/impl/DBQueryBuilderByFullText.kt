@@ -28,7 +28,6 @@ import mu.KotlinLogging
 import org.projectforge.common.logging.LogUtils.logDebugFunCall
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import java.text.SimpleDateFormat
 import java.time.format.DateTimeFormatter
@@ -52,7 +51,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Long>>(
             throw UnsupportedOperationException("MultiFieldQueryParser not yet implemented.")
         }
         logDebugFunCall(log) { it.mtd("init") }
-        searchClassInfo = HibernateSearchMeta.getClassInfo(baseDao)
+        searchClassInfo = HibernateSearchMeta.getClassInfo(baseDao.doClass)
     }
 
     fun formatMultiParserValue(field: String, value: Any): String {

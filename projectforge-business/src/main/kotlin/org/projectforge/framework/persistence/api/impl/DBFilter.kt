@@ -53,9 +53,6 @@ class DBFilter(
         sortProperties.add(sortProperty)
     }
 
-    @Transient
-    internal val log = org.slf4j.LoggerFactory.getLogger(DBFilter::class.java)
-
     override fun toString(): String {
         return ToStringUtil.toJsonString(this)
     }

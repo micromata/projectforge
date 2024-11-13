@@ -51,7 +51,7 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
     private var result: List<O>
     private var resultIndex = -1
     private var firstIndex = 0
-    private val searchClassInfo = HibernateSearchMeta.getClassInfo(baseDao)
+    private val searchClassInfo = HibernateSearchMeta.getClassInfo(baseDao.doClass)
 
     init {
         result = nextResultBlock()

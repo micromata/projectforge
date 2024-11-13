@@ -59,10 +59,6 @@ class MagicFilter(
    */
   var multiSelection: Boolean? = null,
 ) : AbstractFavorite(name, id) {
-
-  @Transient
-  internal val log = org.slf4j.LoggerFactory.getLogger(MagicFilter::class.java)
-
   var sortProperties = mutableListOf<SortProperty>()
 
   /**
