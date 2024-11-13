@@ -43,8 +43,6 @@ public class KontoFormComponent extends PFAutoCompleteTextField<KontoDO>
 {
   private static final long serialVersionUID = -9086404806066376969L;
 
-  private KontoDao kontoDao = WicketSupport.get(KontoDao.class);
-
   class KontoConverter implements IConverter
   {
     private static final long serialVersionUID = -6179453515097650206L;
@@ -61,7 +59,7 @@ public class KontoFormComponent extends PFAutoCompleteTextField<KontoDO>
       } catch (final NumberFormatException ex) {
         return null;
       }
-      return kontoDao.getKonto(number);
+      return WicketSupport.get(KontoDao.class).getKonto(number);
     }
 
     @Override
@@ -106,7 +104,7 @@ public class KontoFormComponent extends PFAutoCompleteTextField<KontoDO>
   {
     final BaseSearchFilter filter = new BaseSearchFilter();
     filter.setSearchString(input);
-    final List<KontoDO> list = kontoDao.select(filter);
+    final List<KontoDO> list = WicketSupport.get(KontoDao.class).select(filter);
     Collections.sort(list, new Comparator<KontoDO>()
     {
       @Override

@@ -30,6 +30,8 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.ObjectPath
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyValue
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.common.anots.PropertyInfo
@@ -48,6 +50,13 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
     @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(nullable = false)
     open var datum: LocalDate? = null
+
+    @get:PropertyInfo(i18nKey = "calendar.year")
+    @get:Transient
+    @get:GenericField
+    @get:IndexingDependency(derivedFrom = [ObjectPath(PropertyValue(propertyName = "datum"))])
+    open val year: Int
+        get() = datum?.year ?: 0
 
     @PropertyInfo(i18nKey = "fibu.rechnung.betreff")
     @FullTextField

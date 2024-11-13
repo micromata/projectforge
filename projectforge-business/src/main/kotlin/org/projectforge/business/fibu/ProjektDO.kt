@@ -175,8 +175,11 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
     @get:JoinColumn(name = "konto_id")
     open var konto: KontoDO? = null
 
+    @get:PropertyInfo(i18nKey = "fibu.kost2")
+    @get:Transient
+    @get:GenericField
+    @get:IndexingDependency(derivedFrom = [ObjectPath(PropertyValue(propertyName = "id"))])
     val kost: String
-        @Transient
         get() = KostFormatter.instance.formatProjekt(this)
 
     /**

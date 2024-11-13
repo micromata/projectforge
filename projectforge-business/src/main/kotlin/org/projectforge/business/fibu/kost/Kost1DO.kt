@@ -25,21 +25,14 @@ package org.projectforge.business.fibu.kost
 
 import jakarta.persistence.*
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.persistence.search.ClassBridge
 
 @Entity
 @Indexed
-@TypeBinding(binder = TypeBinderRef(type = HibernateSearchKost1TypeBinder::class))
-@ClassBridge(name = "nummer") // nummer should be used in HibernateSearchKost1Bridge as field name.
 @Table(
     name = "T_FIBU_KOST1",
     uniqueConstraints = [UniqueConstraint(columnNames = ["nummernkreis", "bereich", "teilbereich", "endziffer"])]
@@ -111,8 +104,11 @@ open class Kost1DO : DefaultBaseDO(), DisplayNameCapable {
      *
      * @see KostFormatter.formatKost1
      */
+    @get:PropertyInfo(i18nKey = "fibu.kost1")
+    @get:Transient
+    @get:GenericField
+    @get:IndexingDependency(derivedFrom = [ObjectPath(PropertyValue(propertyName = "id"))])
     val formattedNumber: String
-        @Transient
         get() = KostFormatter.instance.formatKost1(this, KostFormatter.FormatType.FORMATTED_NUMBER)
 
     /**

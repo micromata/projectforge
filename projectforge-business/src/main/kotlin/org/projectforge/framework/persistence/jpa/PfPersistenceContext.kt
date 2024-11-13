@@ -33,7 +33,7 @@ import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.jpa.PersistenceCallsRecorder.CallType
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext.ContextType
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext.Companion.ENTITY_GRAPH_HINT_KEY
 
 private val log = KotlinLogging.logger {}
 

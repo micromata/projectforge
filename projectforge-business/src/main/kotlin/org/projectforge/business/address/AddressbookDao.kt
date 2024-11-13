@@ -23,15 +23,14 @@
 
 package org.projectforge.business.address
 
-import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserRightId
-import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
-import org.projectforge.framework.persistence.history.*
+import org.projectforge.framework.persistence.history.HistoryFormatUtils
+import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -163,6 +162,6 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
         const val GLOBAL_ADDRESSBOOK_ID: Long = 1
         const val GLOBAL_ADDRESSBOOK_TITLE = "Global"
         const val GLOBAL_ADDRESSBOOK_DESCRIPTION = "The global addressbook"
-        val ADDITIONAL_SEARCH_FIELDS = arrayOf("usersgroups", "owner.username", "owner.firstname", "owner.lastname")
+        val ADDITIONAL_SEARCH_FIELDS = arrayOf("owner.username", "owner.firstname", "owner.lastname")
     }
 }

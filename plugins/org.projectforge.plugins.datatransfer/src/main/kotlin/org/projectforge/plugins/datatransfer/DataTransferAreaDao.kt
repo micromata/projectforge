@@ -26,6 +26,7 @@ package org.projectforge.plugins.datatransfer
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
+import org.projectforge.business.Cache
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.common.DataSizeConfig
@@ -371,7 +372,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
 
         internal fun getTranslatedUserString(user: PFUserDO?, externalUser: String?, locale: Locale? = null): String {
             if (user != null) {
-                return user.getFullname()
+                return Cache.instance.getUserIfNotInitialized(user)?.getFullname() ?: "???"
             }
             if (externalUser != null) {
                 if (externalUser.startsWith(EXTERNAL_USER_PREFIX)) {

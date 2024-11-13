@@ -1,4 +1,4 @@
-/////////////////////////////////////////////////////////////////////////////
+/// //////////////////////////////////////////////////////////////////////////
 //
 // Project ProjectForge Community Edition
 //         www.projectforge.org
@@ -26,6 +26,7 @@ package org.projectforge.business.fibu;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.text.StringEscapeUtils;
+import org.projectforge.business.Cache;
 import org.projectforge.business.common.OutputType;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost2DO;
@@ -56,429 +57,430 @@ import java.util.*;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class MonthlyEmployeeReport implements Serializable {
-  private static final long serialVersionUID = -4636357379552246075L;
+    private static final long serialVersionUID = -4636357379552246075L;
 
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MonthlyEmployeeReport.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MonthlyEmployeeReport.class);
 
-  /**
-   * ID of pseudo task, see below.
-   */
-  static final long MAGIC_PSEUDO_TASK_ID = -42L;
+    /**
+     * ID of pseudo task, see below.
+     */
+    static final long MAGIC_PSEUDO_TASK_ID = -42L;
 
-  /**
-   * Checks if the given taskId is the Pseudo task, see below.
-   * @return true, if the given task id matches the magic pseudo task id.
-   */
-  public static boolean isPseudoTask(Long taskId) {
-    return taskId == MAGIC_PSEUDO_TASK_ID;
-  }
-
-  /**
-   * Pseudo task are used for team leaders for showing time sheet hours of foreign users without detailed information,
-   * if the team leader has no select access.
-   * @return Pseudo task with magic task id (-42) and title '******'.
-   */
-  public static TaskDO createPseudoTask() {
-    TaskDO pseudoTask = new TaskDO();
-    pseudoTask.setId(MAGIC_PSEUDO_TASK_ID);
-    pseudoTask.setTitle("******");
-    return pseudoTask;
-  }
-
-
-  public static class Kost2Row implements Serializable {
-    private static final long serialVersionUID = -5379735557333691194L;
-
-    public Kost2Row(final Kost2DO kost2) {
-      this.kost2 = kost2;
+    /**
+     * Checks if the given taskId is the Pseudo task, see below.
+     * @return true, if the given task id matches the magic pseudo task id.
+     */
+    public static boolean isPseudoTask(Long taskId) {
+        return taskId == MAGIC_PSEUDO_TASK_ID;
     }
 
     /**
-     * XML-escaped or null if not exists.
+     * Pseudo task are used for team leaders for showing time sheet hours of foreign users without detailed information,
+     * if the team leader has no select access.
+     * @return Pseudo task with magic task id (-42) and title '******'.
      */
-    public String getProjektname() {
-      if (kost2 == null || kost2.getProjekt() == null) {
-        return null;
-      }
-      return StringEscapeUtils.escapeXml11(kost2.getProjekt().getName());
+    public static TaskDO createPseudoTask() {
+        TaskDO pseudoTask = new TaskDO();
+        pseudoTask.setId(MAGIC_PSEUDO_TASK_ID);
+        pseudoTask.setTitle("******");
+        return pseudoTask;
     }
 
-    /**
-     * XML-escaped or null if not exists.
-     */
-    public String getKundename() {
-      if (kost2 == null || kost2.getProjekt() == null || kost2.getProjekt().getKunde() == null) {
-        return null;
-      }
-      return StringEscapeUtils.escapeXml11(kost2.getProjekt().getKunde().getName());
-    }
 
-    /**
-     * XML-escaped or null if not exists.
-     */
-    public String getKost2ArtName() {
-      if (kost2 == null || kost2.getKost2Art() == null) {
-        return null;
-      }
-      return StringEscapeUtils.escapeXml11(kost2.getKost2Art().getName());
-    }
+    public static class Kost2Row implements Serializable {
+        private static final long serialVersionUID = -5379735557333691194L;
 
-    /**
-     * XML-escaped or null if not exists.
-     */
-    public String getKost2Description() {
-      if (kost2 == null) {
-        return null;
-      }
-      return StringEscapeUtils.escapeXml11(kost2.getDescription());
-    }
-
-    public Kost2DO getKost2() {
-      return kost2;
-    }
-
-    private final Kost2DO kost2;
-  }
-
-  private PFDateTime fromDate;
-
-  private PFDateTime toDate;
-
-  private BigDecimal numberOfWorkingDays;
-
-  /**
-   * Employee can be null, if not found. As fall back, store user.
-   */
-  private PFUserDO user;
-
-  private EmployeeDO employee;
-
-  private long totalGrossDuration = 0, totalNetDuration = 0;
-
-  private BigDecimal vacationCount = BigDecimal.ZERO;
-
-  private BigDecimal vacationPlannedCount = BigDecimal.ZERO;
-
-  private Long kost1Id;
-
-  private List<MonthlyEmployeeReportWeek> weeks;
-
-  /**
-   * Days with time sheets.
-   */
-  private final Set<Integer> bookedDays = new HashSet<>();
-
-  private final List<Integer> unbookedDays = new ArrayList<>();
-
-  /**
-   * Key is kost2.id.
-   */
-  private Map<Long, MonthlyEmployeeReportEntry> kost2Durations;
-
-  /**
-   * Key is task.id.
-   */
-  private Map<Long, MonthlyEmployeeReportEntry> taskDurations;
-
-  /**
-   * String is formatted Kost2-String for sorting.
-   */
-  private Map<String, Kost2Row> kost2Rows;
-
-  /**
-   * String is formatted Task path string for sorting.
-   */
-  private Map<String, TaskDO> taskEntries;
-
-  public static String getFormattedDuration(final long duration) {
-    if (duration == 0) {
-      return "";
-    }
-    final BigDecimal hours = new BigDecimal(duration).divide(new BigDecimal(1000 * 60 * 60), 2,
-            RoundingMode.HALF_UP);
-    return NumberHelper.formatFraction2(hours);
-  }
-
-  /**
-   * Dont't forget to initialize: setFormatter and setUser or setEmployee.
-   *
-   * @param year
-   * @param month 1-based: 1 - January, ..., 12 - December
-   */
-  public MonthlyEmployeeReport(final PFUserDO user, final int year, final Integer month) {
-    this.fromDate = PFDateTime.withDate(year, month, 1);
-    this.toDate = this.fromDate.getEndOfMonth();
-    this.user = user;
-    setEmployee(WicketSupport.get(EmployeeService.class).findByUserId(user.getId()));
-  }
-
-  /**
-   * Use only as fallback, if employee is not available.
-   *
-   * @param user
-   */
-  public void setUser(final PFUserDO user) {
-    this.user = user;
-  }
-
-  /**
-   * User will be set automatically from given employee.
-   *
-   * @param employee
-   */
-  public void setEmployee(final EmployeeDO employee) {
-    this.employee = employee;
-    if (employee != null) {
-      this.user = employee.getUser();
-      Kost1DO kost1 = employee.getKost1();
-      if (kost1 != null) {
-        this.kost1Id = kost1.getId();
-      }
-    }
-  }
-
-  public void init() {
-    if (this.user != null) {
-      this.employee = WicketSupport.get(EmployeeService.class).findByUserId(this.user.getId());
-    }
-    // Create the weeks:
-    this.weeks = new ArrayList<>();
-
-    int paranoiaCounter = 0;
-    PFDateTime date = fromDate;
-    do {
-      final MonthlyEmployeeReportWeek week = new MonthlyEmployeeReportWeek(date);
-      weeks.add(week);
-      date = date.plusWeeks(1).getBeginOfWeek();
-      if (paranoiaCounter++ > 10) {
-        throw new RuntimeException("Endless loop protection: Please contact developer!");
-      }
-    } while (date.isBefore(toDate));
-  }
-
-  public void addTimesheet(final TimesheetDO sheet, final boolean hasSelectAccess) {
-    final PFDateTime day = PFDateTime.from(sheet.getStartTime()); // not null
-    bookedDays.add(day.getDayOfMonth());
-    for (final MonthlyEmployeeReportWeek week : weeks) {
-      if (week.matchWeek(sheet)) {
-        week.addEntry(sheet, hasSelectAccess);
-        return;
-      }
-    }
-    log.info("Ignoring time sheet which isn't inside current month: "
-            + getYear()
-            + "-"
-            + StringHelper.format2DigitNumber(getMonth())
-            + ": "
-            + sheet);
-
-  }
-
-  public void calculate() {
-    Validate.notEmpty(weeks);
-    kost2Rows = new TreeMap<>();
-    taskEntries = new TreeMap<>();
-    kost2Durations = new HashMap<>();
-    taskDurations = new HashMap<>();
-    for (final MonthlyEmployeeReportWeek week : weeks) {
-      if (MapUtils.isNotEmpty(week.getKost2Entries())) {
-        for (final MonthlyEmployeeReportEntry entry : week.getKost2Entries().values()) {
-          Objects.requireNonNull(entry.getKost2());
-          kost2Rows.put(entry.getKost2().getDisplayName(), new Kost2Row(entry.getKost2()));
-          MonthlyEmployeeReportEntry kost2Total = kost2Durations.get(entry.getKost2().getId());
-          if (kost2Total == null) {
-            kost2Total = new MonthlyEmployeeReportEntry(entry.getKost2());
-            kost2Total.addMillis(entry.getWorkFractionMillis());
-            kost2Durations.put(entry.getKost2().getId(), kost2Total);
-          } else {
-            kost2Total.addMillis(entry.getWorkFractionMillis());
-          }
-          // Travelling times etc. (see cost 2 type factor):
-          totalGrossDuration += entry.getMillis();
-          totalNetDuration += entry.getWorkFractionMillis();
+        public Kost2Row(final Kost2DO kost2) {
+            this.kost2 = kost2;
         }
-      }
-      if (MapUtils.isNotEmpty(week.getTaskEntries())) {
-        for (final MonthlyEmployeeReportEntry entry : week.getTaskEntries().values()) {
-          Objects.requireNonNull(entry.getTask());
-          long taskId = entry.getTask().getId();
-          if (isPseudoTask(taskId)) {
-            // Pseudo task (see MonthlyEmployeeReportWeek for timesheet the current user has no select access.
-            TaskDO pseudoTask = createPseudoTask();
-            taskEntries.put(pseudoTask.getTitle(), pseudoTask);
-          } else {
-            taskEntries.put(TaskFormatter.getTaskPath(taskId, true,
-                    OutputType.XML),
-                    entry.getTask());
-          }
-          MonthlyEmployeeReportEntry taskTotal = taskDurations.get(entry.getTask().getId());
-          if (taskTotal == null) {
-            taskTotal = new MonthlyEmployeeReportEntry(entry.getTask());
-            taskTotal.addMillis(entry.getMillis());
-            taskDurations.put(entry.getTask().getId(), taskTotal);
-          } else {
-            taskTotal.addMillis(entry.getMillis());
-          }
-          totalGrossDuration += entry.getMillis();
-          totalNetDuration += entry.getMillis();
+
+        /**
+         * XML-escaped or null if not exists.
+         */
+        public String getProjektname() {
+            if (kost2 == null || kost2.getProjekt() == null) {
+                return null;
+            }
+            return StringEscapeUtils.escapeXml11(kost2.getProjekt().getName());
         }
-      }
-    }
-    final MonthHolder monthHolder = new MonthHolder(this.fromDate);
-    this.numberOfWorkingDays = monthHolder.getNumberOfWorkingDays();
-    final Holidays holidays = Holidays.getInstance();
-    for (final WeekHolder week : monthHolder.getWeeks()) {
 
-      for (final PFDay day : week.getDays()) {
-        if (day.getMonth() == this.fromDate.getMonth() && holidays.isWorkingDay(day)
-                && !bookedDays.contains(day.getDayOfMonth())) {
-          unbookedDays.add(day.getDayOfMonth());
+        /**
+         * XML-escaped or null if not exists.
+         */
+        public String getKundename() {
+            if (kost2 == null || kost2.getProjekt() == null || kost2.getProjekt().getKunde() == null) {
+                return null;
+            }
+            return StringEscapeUtils.escapeXml11(kost2.getProjekt().getKunde().getName());
         }
-      }
+
+        /**
+         * XML-escaped or null if not exists.
+         */
+        public String getKost2ArtName() {
+            if (kost2 == null || kost2.getKost2Art() == null) {
+                return null;
+            }
+            return StringEscapeUtils.escapeXml11(kost2.getKost2Art().getName());
+        }
+
+        /**
+         * XML-escaped or null if not exists.
+         */
+        public String getKost2Description() {
+            if (kost2 == null) {
+                return null;
+            }
+            return StringEscapeUtils.escapeXml11(kost2.getDescription());
+        }
+
+        public Kost2DO getKost2() {
+            return kost2;
+        }
+
+        private final Kost2DO kost2;
     }
-    final VacationService vacationService = WicketSupport.get(VacationService.class);
-    if (vacationService != null && this.employee != null && this.employee.getUser() != null) {
-      if (vacationService.hasAccessToVacationService(this.employee.getUser(), false)) {
-        VacationStats stats = vacationService.getVacationStats(employee);
-        this.vacationCount = stats.getVacationDaysLeftInYear(); // was vacationService.getAvailableVacationDaysForYearAtDate(this.employee, this.toDate.getLocalDate());
-        this.vacationPlannedCount = stats.getVacationDaysInProgress(); // was vacationService.getPlandVacationDaysForYearAtDate(this.employee, this.toDate.getLocalDate());
-      }
+
+    private PFDateTime fromDate;
+
+    private PFDateTime toDate;
+
+    private BigDecimal numberOfWorkingDays;
+
+    /**
+     * Employee can be null, if not found. As fall back, store user.
+     */
+    private PFUserDO user;
+
+    private EmployeeDO employee;
+
+    private long totalGrossDuration = 0, totalNetDuration = 0;
+
+    private BigDecimal vacationCount = BigDecimal.ZERO;
+
+    private BigDecimal vacationPlannedCount = BigDecimal.ZERO;
+
+    private Long kost1Id;
+
+    private List<MonthlyEmployeeReportWeek> weeks;
+
+    /**
+     * Days with time sheets.
+     */
+    private final Set<Integer> bookedDays = new HashSet<>();
+
+    private final List<Integer> unbookedDays = new ArrayList<>();
+
+    /**
+     * Key is kost2.id.
+     */
+    private Map<Long, MonthlyEmployeeReportEntry> kost2Durations;
+
+    /**
+     * Key is task.id.
+     */
+    private Map<Long, MonthlyEmployeeReportEntry> taskDurations;
+
+    /**
+     * String is formatted Kost2-String for sorting.
+     */
+    private Map<String, Kost2Row> kost2Rows;
+
+    /**
+     * String is formatted Task path string for sorting.
+     */
+    private Map<String, TaskDO> taskEntries;
+
+    public static String getFormattedDuration(final long duration) {
+        if (duration == 0) {
+            return "";
+        }
+        final BigDecimal hours = new BigDecimal(duration).divide(new BigDecimal(1000 * 60 * 60), 2,
+                RoundingMode.HALF_UP);
+        return NumberHelper.formatFraction2(hours);
     }
-  }
 
-  /**
-   * Gets the list of unbooked working days. These are working days without time sheets of the actual user.
-   */
-  public List<Integer> getUnbookedDays() {
-    return unbookedDays;
-  }
-
-  /**
-   * @return Days of month without time sheets: 03.11., 08.11., ... or null if no entries exists.
-   */
-  public String getFormattedUnbookedDays() {
-    final StringBuilder buf = new StringBuilder();
-    boolean first = true;
-    for (final Integer dayOfMonth : unbookedDays) {
-      if (first) {
-        first = false;
-      } else {
-        buf.append(", ");
-      }
-      buf.append(StringHelper.format2DigitNumber(dayOfMonth)).append(".")
-              .append(StringHelper.format2DigitNumber(getMonth())).append(".");
+    /**
+     * Dont't forget to initialize: setFormatter and setUser or setEmployee.
+     *
+     * @param year
+     * @param month 1-based: 1 - January, ..., 12 - December
+     */
+    public MonthlyEmployeeReport(final PFUserDO user, final int year, final Integer month) {
+        this.fromDate = PFDateTime.withDate(year, month, 1);
+        this.toDate = this.fromDate.getEndOfMonth();
+        this.user = user;
+        setEmployee(WicketSupport.get(EmployeeCache.class).getEmployeeByUserId(user.getId()));
     }
-    if (first) {
-      return null;
+
+    /**
+     * Use only as fallback, if employee is not available.
+     *
+     * @param user
+     */
+    public void setUser(final PFUserDO user) {
+        this.user = user;
     }
-    return buf.toString();
 
-  }
+    /**
+     * User will be set automatically from given employee.
+     *
+     * @param employee
+     */
+    public void setEmployee(final EmployeeDO employee) {
+        this.employee = employee;
+        if (employee != null) {
+            this.user = employee.getUser();
+            Kost1DO kost1 = employee.getKost1();
+            if (kost1 != null) {
+                this.kost1Id = kost1.getId();
+            }
+        }
+    }
 
-  /**
-   * Key is the displayName of Kost2DO. The Map is a TreeMap sorted by the keys.
-   */
-  public Map<String, Kost2Row> getKost2Rows() {
-    return kost2Rows;
-  }
+    public void init() {
+        if (this.user != null) {
+            this.employee = WicketSupport.get(EmployeeCache.class).getEmployeeByUserId(this.user.getId());
+        }
+        // Create the weeks:
+        this.weeks = new ArrayList<>();
 
-  /**
-   * Key is the kost2 id.
-   */
-  public Map<Long, MonthlyEmployeeReportEntry> getKost2Durations() {
-    return kost2Durations;
-  }
+        int paranoiaCounter = 0;
+        PFDateTime date = fromDate;
+        do {
+            final MonthlyEmployeeReportWeek week = new MonthlyEmployeeReportWeek(date);
+            weeks.add(week);
+            date = date.plusWeeks(1).getBeginOfWeek();
+            if (paranoiaCounter++ > 10) {
+                throw new RuntimeException("Endless loop protection: Please contact developer!");
+            }
+        } while (date.isBefore(toDate));
+    }
 
-  /**
-   * Key is the task path string of TaskDO. The Map is a TreeMap sorted by the keys.
-   */
-  public Map<String, TaskDO> getTaskEntries() {
-    return taskEntries;
-  }
+    public void addTimesheet(final TimesheetDO sheet, final boolean hasSelectAccess) {
+        final PFDateTime day = PFDateTime.from(sheet.getStartTime()); // not null
+        bookedDays.add(day.getDayOfMonth());
+        for (final MonthlyEmployeeReportWeek week : weeks) {
+            if (week.matchWeek(sheet)) {
+                week.addEntry(sheet, hasSelectAccess);
+                return;
+            }
+        }
+        log.info("Ignoring time sheet which isn't inside current month: "
+                + getYear()
+                + "-"
+                + StringHelper.format2DigitNumber(getMonth())
+                + ": "
+                + sheet);
 
-  /**
-   * Key is the task id.
-   */
-  public Map<Long, MonthlyEmployeeReportEntry> getTaskDurations() {
-    return taskDurations;
-  }
+    }
 
-  public int getYear() {
-    return fromDate.getYear();
-  }
+    public void calculate() {
+        Validate.notEmpty(weeks);
+        kost2Rows = new TreeMap<>();
+        taskEntries = new TreeMap<>();
+        kost2Durations = new HashMap<>();
+        taskDurations = new HashMap<>();
+        for (final MonthlyEmployeeReportWeek week : weeks) {
+            if (MapUtils.isNotEmpty(week.getKost2Entries())) {
+                for (final MonthlyEmployeeReportEntry entry : week.getKost2Entries().values()) {
+                    Kost2DO kost2 = Cache.getInstance().getKost2IfNotInitialized(entry.getKost2());
+                    Objects.requireNonNull(kost2);
+                    kost2Rows.put(kost2.getDisplayName(), new Kost2Row(kost2));
+                    MonthlyEmployeeReportEntry kost2Total = kost2Durations.get(entry.getKost2().getId());
+                    if (kost2Total == null) {
+                        kost2Total = new MonthlyEmployeeReportEntry(entry.getKost2());
+                        kost2Total.addMillis(entry.getWorkFractionMillis());
+                        kost2Durations.put(entry.getKost2().getId(), kost2Total);
+                    } else {
+                        kost2Total.addMillis(entry.getWorkFractionMillis());
+                    }
+                    // Travelling times etc. (see cost 2 type factor):
+                    totalGrossDuration += entry.getMillis();
+                    totalNetDuration += entry.getWorkFractionMillis();
+                }
+            }
+            if (MapUtils.isNotEmpty(week.getTaskEntries())) {
+                for (final MonthlyEmployeeReportEntry entry : week.getTaskEntries().values()) {
+                    Objects.requireNonNull(entry.getTask());
+                    long taskId = entry.getTask().getId();
+                    if (isPseudoTask(taskId)) {
+                        // Pseudo task (see MonthlyEmployeeReportWeek for timesheet the current user has no select access.
+                        TaskDO pseudoTask = createPseudoTask();
+                        taskEntries.put(pseudoTask.getTitle(), pseudoTask);
+                    } else {
+                        taskEntries.put(TaskFormatter.getTaskPath(taskId, true,
+                                        OutputType.XML),
+                                entry.getTask());
+                    }
+                    MonthlyEmployeeReportEntry taskTotal = taskDurations.get(entry.getTask().getId());
+                    if (taskTotal == null) {
+                        taskTotal = new MonthlyEmployeeReportEntry(entry.getTask());
+                        taskTotal.addMillis(entry.getMillis());
+                        taskDurations.put(entry.getTask().getId(), taskTotal);
+                    } else {
+                        taskTotal.addMillis(entry.getMillis());
+                    }
+                    totalGrossDuration += entry.getMillis();
+                    totalNetDuration += entry.getMillis();
+                }
+            }
+        }
+        final MonthHolder monthHolder = new MonthHolder(this.fromDate);
+        this.numberOfWorkingDays = monthHolder.getNumberOfWorkingDays();
+        final Holidays holidays = Holidays.getInstance();
+        for (final WeekHolder week : monthHolder.getWeeks()) {
 
-  /**
-   * @return 1-January, ..., 12-December.
-   */
-  public Integer getMonth() {
-    return fromDate.getMonthValue();
-  }
+            for (final PFDay day : week.getDays()) {
+                if (day.getMonth() == this.fromDate.getMonth() && holidays.isWorkingDay(day)
+                        && !bookedDays.contains(day.getDayOfMonth())) {
+                    unbookedDays.add(day.getDayOfMonth());
+                }
+            }
+        }
+        final VacationService vacationService = WicketSupport.get(VacationService.class);
+        if (vacationService != null && this.employee != null && this.employee.getUser() != null) {
+            if (vacationService.hasAccessToVacationService(this.employee.getUser(), false)) {
+                VacationStats stats = vacationService.getVacationStats(employee);
+                this.vacationCount = stats.getVacationDaysLeftInYear(); // was vacationService.getAvailableVacationDaysForYearAtDate(this.employee, this.toDate.getLocalDate());
+                this.vacationPlannedCount = stats.getVacationDaysInProgress(); // was vacationService.getPlandVacationDaysForYearAtDate(this.employee, this.toDate.getLocalDate());
+            }
+        }
+    }
 
-  public List<MonthlyEmployeeReportWeek> getWeeks() {
-    return weeks;
-  }
+    /**
+     * Gets the list of unbooked working days. These are working days without time sheets of the actual user.
+     */
+    public List<Integer> getUnbookedDays() {
+        return unbookedDays;
+    }
 
-  public String getFormmattedMonth() {
-    return StringHelper.format2DigitNumber(getMonth());
-  }
+    /**
+     * @return Days of month without time sheets: 03.11., 08.11., ... or null if no entries exists.
+     */
+    public String getFormattedUnbookedDays() {
+        final StringBuilder buf = new StringBuilder();
+        boolean first = true;
+        for (final Integer dayOfMonth : unbookedDays) {
+            if (first) {
+                first = false;
+            } else {
+                buf.append(", ");
+            }
+            buf.append(StringHelper.format2DigitNumber(dayOfMonth)).append(".")
+                    .append(StringHelper.format2DigitNumber(getMonth())).append(".");
+        }
+        if (first) {
+            return null;
+        }
+        return buf.toString();
 
-  public Date getFromDate() {
-    return fromDate.getUtilDate();
-  }
+    }
 
-  public Date getToDate() {
-    return toDate.getUtilDate();
-  }
+    /**
+     * Key is the displayName of Kost2DO. The Map is a TreeMap sorted by the keys.
+     */
+    public Map<String, Kost2Row> getKost2Rows() {
+        return kost2Rows;
+    }
 
-  /**
-   * Can be null, if not set (not available).
-   */
-  public EmployeeDO getEmployee() {
-    return employee;
-  }
+    /**
+     * Key is the kost2 id.
+     */
+    public Map<Long, MonthlyEmployeeReportEntry> getKost2Durations() {
+        return kost2Durations;
+    }
 
-  public PFUserDO getUser() {
-    return user;
-  }
+    /**
+     * Key is the task path string of TaskDO. The Map is a TreeMap sorted by the keys.
+     */
+    public Map<String, TaskDO> getTaskEntries() {
+        return taskEntries;
+    }
 
-  /**
-   * @return Total duration in ms.
-   */
-  public long getTotalGrossDuration() {
-    return totalGrossDuration;
-  }
+    /**
+     * Key is the task id.
+     */
+    public Map<Long, MonthlyEmployeeReportEntry> getTaskDurations() {
+        return taskDurations;
+    }
 
-  /**
-   * The net duration may differ from total duration (e. g. for travelling times if a fraction is defined for used cost
-   * 2 types).
-   *
-   * @return the netDuration in ms.
-   */
-  public long getTotalNetDuration() {
-    return totalNetDuration;
-  }
+    public int getYear() {
+        return fromDate.getYear();
+    }
 
-  public String getFormattedTotalGrossDuration() {
-    return MonthlyEmployeeReport.getFormattedDuration(totalGrossDuration);
-  }
+    /**
+     * @return 1-January, ..., 12-December.
+     */
+    public Integer getMonth() {
+        return fromDate.getMonthValue();
+    }
 
-  public String getFormattedVacationCount() {
-    return vacationCount + " " + I18nHelper.getLocalizedMessage("day");
-  }
+    public List<MonthlyEmployeeReportWeek> getWeeks() {
+        return weeks;
+    }
 
-  public String getFormattedVacationPlandCount() {
-    return vacationPlannedCount + " " + I18nHelper.getLocalizedMessage("day");
-  }
+    public String getFormmattedMonth() {
+        return StringHelper.format2DigitNumber(getMonth());
+    }
 
-  public String getFormattedTotalNetDuration() {
-    return MonthlyEmployeeReport.getFormattedDuration(totalNetDuration);
-  }
+    public Date getFromDate() {
+        return fromDate.getUtilDate();
+    }
 
-  public Long getKost1Id() {
-    return kost1Id;
-  }
+    public Date getToDate() {
+        return toDate.getUtilDate();
+    }
 
-  public BigDecimal getNumberOfWorkingDays() {
-    return numberOfWorkingDays;
-  }
+    /**
+     * Can be null, if not set (not available).
+     */
+    public EmployeeDO getEmployee() {
+        return employee;
+    }
+
+    public PFUserDO getUser() {
+        return user;
+    }
+
+    /**
+     * @return Total duration in ms.
+     */
+    public long getTotalGrossDuration() {
+        return totalGrossDuration;
+    }
+
+    /**
+     * The net duration may differ from total duration (e. g. for travelling times if a fraction is defined for used cost
+     * 2 types).
+     *
+     * @return the netDuration in ms.
+     */
+    public long getTotalNetDuration() {
+        return totalNetDuration;
+    }
+
+    public String getFormattedTotalGrossDuration() {
+        return MonthlyEmployeeReport.getFormattedDuration(totalGrossDuration);
+    }
+
+    public String getFormattedVacationCount() {
+        return vacationCount + " " + I18nHelper.getLocalizedMessage("day");
+    }
+
+    public String getFormattedVacationPlandCount() {
+        return vacationPlannedCount + " " + I18nHelper.getLocalizedMessage("day");
+    }
+
+    public String getFormattedTotalNetDuration() {
+        return MonthlyEmployeeReport.getFormattedDuration(totalNetDuration);
+    }
+
+    public Long getKost1Id() {
+        return kost1Id;
+    }
+
+    public BigDecimal getNumberOfWorkingDays() {
+        return numberOfWorkingDays;
+    }
 }
