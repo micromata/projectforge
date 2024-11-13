@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.api
 
+import jakarta.annotation.PostConstruct
 import jakarta.persistence.criteria.Root
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
@@ -36,7 +37,7 @@ import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.api.impl.DBQuery
-import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta.getClassInfo
+import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta
 import org.projectforge.framework.persistence.database.DatabaseDao
 import org.projectforge.framework.persistence.database.DatabaseDao.Companion.createReindexSettings
 import org.projectforge.framework.persistence.history.*
@@ -111,9 +112,9 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
         /**
          * Get all declared hibernate search fields. These fields are defined over annotations in the database object class.
          * The names are the property names or, if defined the name declared in the annotation of a field. <br></br>
-         * The user can search in these fields explicit by typing e. g. authors:beck (<field>:<searchString>)
+         * The user can search in these fields explicit by typing e.g. authors:beck (<field>:<searchString>)
         </searchString></field> */
-        get() = getClassInfo(this).allFieldNames
+        get() = HibernateSearchMeta.getClassInfo(this.doClass).allFieldNames
 
     @JvmField
     protected var userRightId: IUserRightId? = null
@@ -153,6 +154,11 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
 
     @Autowired
     protected lateinit var historyService: HistoryService
+
+    @PostConstruct
+    private fun postConstruct() {
+        HibernateSearchMeta.ensureClassInfo(this)
+    }
 
     open val additionalSearchFields: Array<String>?
         /**

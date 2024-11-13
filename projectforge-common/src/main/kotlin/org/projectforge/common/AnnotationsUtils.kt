@@ -85,7 +85,7 @@ object AnnotationsUtils {
         return annotations
     }
 
-    fun <T: Annotation>getAnnotation(clazz: Class<*>, propertyName: String, annotationClass: Class<T>): T? {
+    fun <T : Annotation> getAnnotation(clazz: Class<*>, propertyName: String, annotationClass: Class<T>): T? {
         return getAnnotations(clazz, propertyName).find { it.annotationClass == annotationClass } as? T
     }
 
@@ -128,68 +128,68 @@ object AnnotationsUtils {
         return set
     }
 
-   /* private fun addAnnotations(clazz: Class<*>, propertyName: String, annotations: MutableSet<Annotation>) {
-        clazz.declaredFields.find { it.name == propertyName }?.let { field ->
-            annotations.addAll(field.annotations)
-        }
-        clazz.declaredMethods.find { it.name == "get${propertyName.capitalize()}" }
-            ?.let { method ->
-                annotations.addAll(method.annotations)
-            }
-        clazz.declaredMethods.find { it.name == "set${propertyName.capitalize()}" }
-            ?.let { method ->
-                annotations.addAll(method.annotations)
-            }
-        clazz.superclass?.let { superclass ->
-            addAnnotations(superclass, propertyName, annotations)
-        }
-    }*/
+    /* private fun addAnnotations(clazz: Class<*>, propertyName: String, annotations: MutableSet<Annotation>) {
+         clazz.declaredFields.find { it.name == propertyName }?.let { field ->
+             annotations.addAll(field.annotations)
+         }
+         clazz.declaredMethods.find { it.name == "get${propertyName.capitalize()}" }
+             ?.let { method ->
+                 annotations.addAll(method.annotations)
+             }
+         clazz.declaredMethods.find { it.name == "set${propertyName.capitalize()}" }
+             ?.let { method ->
+                 annotations.addAll(method.annotations)
+             }
+         clazz.superclass?.let { superclass ->
+             addAnnotations(superclass, propertyName, annotations)
+         }
+     }*/
 
-    fun addAnnotations(clazz: Class<*>, propertyName: String, annotations: MutableSet<Annotation>) {
-        // Teile den propertyName an jedem Punkt, um die verschachtelten Ebenen zu erkennen
+    private fun addAnnotations(clazz: Class<*>, propertyName: String, annotations: MutableSet<Annotation>) {
+        // Split the propertyName at each point to detect the nested levels
         val propertyParts = propertyName.split(".")
 
         var currentClass: Class<*> = clazz
 
-        // Schleife über alle Teile des Property-Namens, außer dem letzten, da dies die tiefste Ebene ist
+        // Loop over all parts of the property name except the last one, as this is the deepest level
         for (i in 0 until propertyParts.size - 1) {
             val part = propertyParts[i]
 
-            // Suche nach dem Feld für die aktuelle Eigenschaftsebene
+            // Find the field for the current property level
             val field = currentClass.declaredFields.find { it.name == part }
             if (field != null) {
                 currentClass = field.type
             } else {
-                // Falls das Feld nicht gefunden wurde, versuchen wir die Getter-Methode zu finden
+                // If the field is not found, we try to find the getter method
                 val getterMethod = currentClass.declaredMethods.find { it.name == "get${part.capitalize()}" }
                 if (getterMethod != null) {
                     currentClass = getterMethod.returnType
                 } else {
-                    // Falls weder Feld noch Methode gefunden wurde, kann die Eigenschaft nicht weiterverfolgt werden
+                    // If neither field nor method is found, the property cannot be traced further
                     return
                 }
             }
         }
 
-        // Verarbeite die finale Eigenschaftsebene
+        // Process the final property level
         val finalProperty = propertyParts.last()
 
-        // Füge Annotationen des Feldes hinzu, falls es existiert
+        // Add annotations of the field if it exists
         currentClass.declaredFields.find { it.name == finalProperty }?.let { field ->
             annotations.addAll(field.annotations)
         }
 
-        // Füge Annotationen der Getter-Methode hinzu, falls sie existiert
+        // Add annotations to the getter method if it exists
         currentClass.declaredMethods.find { it.name == "get${finalProperty.capitalize()}" }?.let { method ->
             annotations.addAll(method.annotations)
         }
 
-        // Füge Annotationen der Setter-Methode hinzu, falls sie existiert
+        // Add annotations to the setter method if it exists
         currentClass.declaredMethods.find { it.name == "set${finalProperty.capitalize()}" }?.let { method ->
             annotations.addAll(method.annotations)
         }
 
-        // Falls die Oberklasse existiert, rekursiv auf die Oberklasse anwenden
+        // If the superclass exists, apply recursively to the superclass
         currentClass.superclass?.let { superclass ->
             addAnnotations(superclass, finalProperty, annotations)
         }

@@ -23,20 +23,14 @@
 
 package org.projectforge.business.vacation.model
 
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
+import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
 import java.time.LocalDate
-import jakarta.persistence.*
-import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
-import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
-import org.projectforge.business.common.YearValueBridge
 
 /**
  * You may add manual correction entries to the leave account for an employee, e. g. for special leave days or for adding
@@ -51,10 +45,16 @@ import org.projectforge.business.common.YearValueBridge
  */
 @Entity
 @Indexed
-@Table(name = "t_employee_leave_account_entry",
-        indexes = [jakarta.persistence.Index(name = "idx_fk_t_leave_account_employee_id", columnList = "employee_id")])
-@NamedQueries(NamedQuery(name = LeaveAccountEntryDO.FIND_BY_EMPLOYEE_ID_AND_DATEPERIOD,
-        query = "from LeaveAccountEntryDO where employee.id=:employeeId and date>=:fromDate and date<=:toDate and deleted=false order by date desc"))
+@Table(
+    name = "t_employee_leave_account_entry",
+    indexes = [jakarta.persistence.Index(name = "idx_fk_t_leave_account_employee_id", columnList = "employee_id")]
+)
+@NamedQueries(
+    NamedQuery(
+        name = LeaveAccountEntryDO.FIND_BY_EMPLOYEE_ID_AND_DATEPERIOD,
+        query = "from LeaveAccountEntryDO where employee.id=:employeeId and date>=:fromDate and date<=:toDate and deleted=false order by date desc"
+    )
+)
 open class LeaveAccountEntryDO : DefaultBaseDO() {
     /**
      * The employee.
@@ -68,8 +68,15 @@ open class LeaveAccountEntryDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "date", required = true)
     @get:Column(name = "date", nullable = false)
-    @GenericField(valueBridge = ValueBridgeRef(type = YearValueBridge::class))
+    @GenericField
     open var date: LocalDate? = null
+
+    @get:PropertyInfo(i18nKey = "calendar.year")
+    @get:Transient
+    @get:GenericField
+    @get:IndexingDependency(derivedFrom = [ObjectPath(PropertyValue(propertyName = "date"))])
+    open val year: Int
+        get() = date?.year ?: 0
 
     @PropertyInfo(i18nKey = "vacation.leaveAccountEntry.amount", required = true)
     @get:Column(nullable = true)

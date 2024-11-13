@@ -514,7 +514,7 @@ abstract class DBPredicate(
                     searchPredicateFactory,
                     boolCollector,
                     number,
-                    searchClassInfo.numericFieldNames,
+                    searchClassInfo.numericFields,
                     searchClassInfo.stringFieldNames
                 )
             } else if (searchFields.isNullOrEmpty()) {
@@ -584,10 +584,10 @@ abstract class DBPredicate(
 
     fun getValue(value: Number, type: Class<*>): Any {
         return when (type) {
-            Int::class.java -> value.toInt()
-            Long::class.java -> value.toLong()
-            Float::class.java -> value.toFloat()
-            Double::class.java -> value.toDouble()
+            Int::class.java, Integer::class.java -> value.toInt()
+            Long::class.java, java.lang.Long::class.java -> value.toLong()
+            Float::class.java, java.lang.Float::class.java -> value.toFloat()
+            Double::class.java, java.lang.Double::class.java -> value.toDouble()
             BigDecimal::class.java -> BigDecimal(value.toString())
             BigInteger::class.java -> BigInteger(value.toString())
             else -> value

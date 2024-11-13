@@ -30,6 +30,7 @@ import org.projectforge.business.fibu.AuftragDao
 import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.business.fibu.kost.BuchungssatzDao
 import org.projectforge.business.task.TaskDao
+import org.projectforge.business.vacation.repository.LeaveAccountEntryDao
 
 class HibernateSearchClassInfoTest {
     @Test
@@ -71,8 +72,16 @@ class HibernateSearchClassInfoTest {
     fun auftragTest() {
         val info = HibernateSearchClassInfo(AuftragDao())
         Assertions.assertTrue(info.containsField("nummer"))
-        Assertions.assertFalse(info.get("nummer")!!.numberBridge == true)
         Assertions.assertTrue(info.containsField("positionen.titel"))
         Assertions.assertTrue(info.containsField("positionen.position"))
+    }
+
+    @Test
+    fun testLeaveAccountEntryDO() {
+        val info = HibernateSearchClassInfo(LeaveAccountEntryDao())
+        Assertions.assertTrue(info.containsField("year"))
+        info.get("year")?.let {
+            Assertions.assertTrue(it.isNumericSearchSupported())
+        }
     }
 }
