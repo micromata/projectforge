@@ -31,6 +31,7 @@ import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.projectforge.business.Cache;
 import org.projectforge.business.excel.ContentProvider;
 import org.projectforge.business.excel.ExcelExporter;
 import org.projectforge.business.excel.ExportColumn;
@@ -66,6 +67,16 @@ public class EmployeeSalaryListPage
   public EmployeeSalaryListPage(final ISelectCallerPage caller, final String selectProperty)
   {
     super(caller, selectProperty, "fibu.employeeSalary");
+  }
+
+  @Override
+  protected List<EmployeeSalaryDO> buildList() {
+    List<EmployeeSalaryDO> ret = super.buildList();
+    for (EmployeeSalaryDO employeeSalary : ret) {
+      // Prevent lazy loading.
+      employeeSalary.setEmployee(Cache.getInstance().getEmployeeIfNotInitialized(employeeSalary.getEmployee()));
+    }
+    return ret;
   }
 
   @SuppressWarnings("serial")

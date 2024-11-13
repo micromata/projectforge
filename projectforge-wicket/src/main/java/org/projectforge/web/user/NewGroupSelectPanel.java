@@ -29,6 +29,7 @@ import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.convert.IConverter;
+import org.projectforge.business.Cache;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.service.UserXmlPreferencesService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
@@ -116,7 +117,8 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
         if (group == null) {
           return "";
         }
-        return group.getName();
+        GroupDO g = Cache.getInstance().getGroup(group.getId());
+        return g != null ? g.getName() : "???";
       }
 
       @Override

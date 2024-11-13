@@ -30,8 +30,6 @@ import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Addressbook
-import org.projectforge.rest.dto.Group
-import org.projectforge.rest.dto.User
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -44,14 +42,7 @@ class AddressBookPagesRest : AbstractDTOPagesRest<AddressbookDO, Addressbook, Ad
 ) {
     // Needed to use as dto.
     override fun transformFromDB(obj: AddressbookDO, editMode: Boolean): Addressbook {
-        val addressbook = Addressbook()
-        addressbook.copyFrom(obj)
-        // Group names needed by React client (for ReactSelect):
-        Group.restoreDisplayNames(addressbook.fullAccessGroups)
-        Group.restoreDisplayNames(addressbook.readonlyAccessGroups)
-        // Usernames needed by React client (for ReactSelect):
-        User.restoreDisplayNames(addressbook.fullAccessUsers)
-        User.restoreDisplayNames(addressbook.readonlyAccessUsers)
+        val addressbook = Addressbook.transformFromDB(obj)
         return addressbook
     }
 
@@ -73,10 +64,20 @@ class AddressBookPagesRest : AbstractDTOPagesRest<AddressbookDO, Addressbook, Ad
     ) {
         layout.add(
             UITable.createUIResultSetTable()
-                .add(lc, "title", "description", "owner", "accessright", "last_update")
+                .add(
+                    lc,
+                    "title",
+                    "description",
+                    "owner",
+                    "lastUpdate",
+                )
+                .add(UITableColumn("fullAccessUsersAsString", "addressbook.fullAccess", sortable = false))
+                .add(UITableColumn("readonlyAccessUsersAsString", "addressbook.readonlyAccess", sortable = false))
+                .add(UITableColumn("fullAccessGroupsAsString", "addressbook.fullAccess", sortable = false))
+                .add(UITableColumn("readonlyAccessGroupsAsString", "addressbook.readonlyAccess", sortable = false))
         )
         layout.getTableColumnById("owner").formatter = UITableColumn.Formatter.USER
-        layout.getTableColumnById("last_update").formatter = UITableColumn.Formatter.TIMESTAMP_MINUTES
+        layout.getTableColumnById("lastUpdate").formatter = UITableColumn.Formatter.TIMESTAMP_MINUTES
     }
 
     /**

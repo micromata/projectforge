@@ -52,7 +52,7 @@ open class AddressbookDO : BaseUserGroupRightsDO(), DisplayNameCapable {
         @Transient
         get() = "$title"
 
-    @PropertyInfo(i18nKey = "addressbook.title")
+    @PropertyInfo(i18nKey = "addressbook.title", required = true)
     @FullTextField
     @get:Column(length = Constants.LENGTH_TITLE)
     open var title: String? = null

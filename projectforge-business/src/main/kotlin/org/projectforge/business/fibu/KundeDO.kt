@@ -23,10 +23,10 @@
 
 package org.projectforge.business.fibu
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
@@ -109,10 +109,15 @@ open class KundeDO : AbstractHistorizableBaseDO<Long>(), DisplayNameCapable {
     open var konto: KontoDO? = null
 
     /**
-     * @return "5.###" ("5.<kunde id>")</kunde> */
+     * @return "5.###" ("5.<kunde id>")</kunde>
+     * */
     open val kost: String
+        @JsonIgnore
+        @PropertyInfo(i18nKey = "fibu.kunde.nummer")
         @Transient
-        get() = "5." + OldKostFormatter.format3Digits(nummer)
+        @GenericField
+        @IndexingDependency(derivedFrom = [ObjectPath(PropertyValue(propertyName = "nummer"))])
+        get() = KostFormatter.instance.formatKunde(this, KostFormatter.FormatType.FORMATTED_NUMBER)
 
     /**
      * 1. Ziffer des Kostenträgers: Ist für Kunden immer 5.

@@ -101,7 +101,7 @@ class Group(
          */
         fun restoreDisplayNames(groups: List<Group>?) {
             val cache = Cache.instance
-            groups?.forEach { it.displayName = cache.getUser(it.id)?.displayName ?: "???" }
+            groups?.forEach { it.displayName = cache.getGroup(it.id)?.displayName ?: "???" }
         }
 
         /**

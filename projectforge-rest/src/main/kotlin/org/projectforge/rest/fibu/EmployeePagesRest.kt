@@ -24,6 +24,7 @@
 package org.projectforge.rest.fibu
 
 import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.business.Cache
 import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.user.UserGroupCache
@@ -51,6 +52,9 @@ class EmployeePagesRest :
     AbstractDTOPagesRest<EmployeeDO, Employee, EmployeeDao>(EmployeeDao::class.java, "fibu.employee.title") {
 
     @Autowired
+    private lateinit var cache: Cache
+
+    @Autowired
     private lateinit var employeeCache: EmployeeCache
 
     @Autowired
@@ -64,6 +68,7 @@ class EmployeePagesRest :
 
     override fun transformFromDB(obj: EmployeeDO, editMode: Boolean): Employee {
         val employee = Employee()
+        cache.populate(obj)
         employee.copyFrom(obj)
         userGroupCache.getUser(obj.user?.id)?.let { userDO ->
             User(userDO).let { user ->

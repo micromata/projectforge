@@ -25,13 +25,9 @@ package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.Hibernate
 import org.projectforge.business.fibu.OldKostFormatter.format2Digits
 import org.projectforge.business.fibu.OldKostFormatter.format3Digits
-import org.projectforge.business.fibu.kost.Kost1DO
-import org.projectforge.business.fibu.kost.Kost2DO
-import org.projectforge.business.fibu.kost.KostCache
-import org.projectforge.business.fibu.kost.ProjektCache
+import org.projectforge.business.fibu.kost.*
 import org.projectforge.common.extensions.abbreviate
 import org.projectforge.common.extensions.format3Digits
 import org.projectforge.framework.utils.NumberHelper
@@ -52,6 +48,9 @@ class KostFormatter {
 
     @Autowired
     private lateinit var kostCache: KostCache
+
+    @Autowired
+    private lateinit var kundeCache: KundeCache
 
     @Autowired
     private lateinit var projektCache: ProjektCache
@@ -75,7 +74,16 @@ class KostFormatter {
         formatType: FormatType = FormatType.FORMATTED_NUMBER,
         abbreviationLength: Int = ABBREVIATION_LENGTH,
     ): String {
-        return formatKunde(kunde?.nummer, formatType = formatType, abbreviationLength = abbreviationLength)
+        val kundeNummer = kunde?.nummer ?: return "5.???"
+        if (formatType == FormatType.FORMATTED_NUMBER || formatType == FormatType.NUMBER) {
+            return "5.${kundeNummer.format3Digits()}"
+        }
+        val useKunde = kundeCache.getKundeIfNotInitialized(kunde) ?: return "5.${kundeNummer.format3Digits()}"
+        return abbreviateIfRequired(
+            "5. ${format3Digits(kundeNummer)}: ${useKunde.name}",
+            formatType,
+            abbreviationLength
+        )
     }
 
     /**
@@ -92,11 +100,7 @@ class KostFormatter {
         formatType: FormatType = FormatType.FORMATTED_NUMBER,
         abbreviationLength: Int = ABBREVIATION_LENGTH,
     ): String {
-        if (formatType == FormatType.FORMATTED_NUMBER || formatType == FormatType.NUMBER) {
-            return kundeId.format3Digits()
-        }
-        val kunde = kostCache.getCustomer(kundeId) ?: return format3Digits(kundeId)
-        return abbreviateIfRequired("${format3Digits(kundeId)}: ${kunde.name}", formatType, abbreviationLength)
+        return formatKunde(kundeCache.getKunde(kundeId), formatType, abbreviationLength)
     }
 
 
@@ -114,20 +118,14 @@ class KostFormatter {
         formatType: FormatType = FormatType.FORMATTED_NUMBER,
         abbreviationLength: Int = ABBREVIATION_LENGTH,
     ): String {
-        var useProjekt = projekt
-        if (projekt?.id != null && !Hibernate.isInitialized(projekt)) {
-            useProjekt = projektCache.getProjekt(projekt.id)
-        }
+        var useProjekt = projektCache.getProjektIfNotInitialized(projekt)
         useProjekt ?: return if (formatType == FormatType.NUMBER) "??????" else "?.???.??"
         val delimiter = if ((formatType == FormatType.NUMBER)) "" else "."
         val sb = StringBuilder()
         sb.append(useProjekt.nummernkreis).append(delimiter)
-        var kunde = useProjekt.kunde
-        if (kunde?.nummer != null && !Hibernate.isInitialized(kunde)) {
-            kunde = kostCache.getCustomer(kunde.nummer)
-        }
+        var kunde = kundeCache.getKundeIfNotInitialized(useProjekt.kunde)
         if (kunde != null) {
-            sb.append(formatKunde(kunde))
+            sb.append(format3Digits(kunde.nummer))
         } else {
             sb.append(format3Digits(useProjekt.bereich))
         }
@@ -150,11 +148,8 @@ class KostFormatter {
         formatType: FormatType = FormatType.FORMATTED_NUMBER,
         abbreviationLength: Int = ABBREVIATION_LENGTH,
     ): String {
-        var useKost2 = kost2
-        if (useKost2?.id != null && !Hibernate.isInitialized(useKost2)) {
-            useKost2 = kostCache.getKost2(useKost2.id)
-        }
-        useKost2 ?: return if (formatType == FormatType.NUMBER) "????????" else "?.???.??.??"
+        var useKost2 = kostCache.getKost2IfNotInitialized(kost2)
+            ?: return if (formatType == FormatType.NUMBER) "????????" else "?.???.??.??"
         val delimiter = if ((formatType == FormatType.NUMBER)) "" else "."
         val sb = StringBuilder()
         sb.append(useKost2.nummernkreis).append(delimiter)
@@ -165,10 +160,7 @@ class KostFormatter {
         } else {
             sb.append("--")
         }
-        var useProjekt = useKost2.projekt
-        if (useProjekt?.id != null && !Hibernate.isInitialized(useProjekt)) {
-            useProjekt = projektCache.getProjekt(useProjekt.id)
-        }
+        var useProjekt = projektCache.getProjektIfNotInitialized(useKost2.projekt)
         if (formatType == FormatType.LONG || formatType == FormatType.TEXT) {
             sb.append(": ")
             useProjekt.let { projekt ->
@@ -199,15 +191,16 @@ class KostFormatter {
         formatType: FormatType = FormatType.FORMATTED_NUMBER,
         abbreviationLength: Int = ABBREVIATION_LENGTH,
     ): String {
-        kost1 ?: return if (formatType == FormatType.NUMBER) "????????" else "?.???.??.??"
+        val useKost = kostCache.getKost1IfNotInitialized(kost1)
+            ?: return if (formatType == FormatType.NUMBER) "????????" else "?.???.??.??"
         val delimiter = if ((formatType == FormatType.NUMBER)) "" else "."
         val sb = StringBuilder()
-        sb.append(kost1.nummernkreis).append(delimiter)
-            .append(format3Digits(kost1.bereich)).append(delimiter)
-            .append(format2Digits(kost1.teilbereich)).append(delimiter)
-            .append(format2Digits(kost1.endziffer))
+        sb.append(useKost.nummernkreis).append(delimiter)
+            .append(format3Digits(useKost.bereich)).append(delimiter)
+            .append(format2Digits(useKost.teilbereich)).append(delimiter)
+            .append(format2Digits(useKost.endziffer))
         if (formatType == FormatType.LONG || formatType == FormatType.TEXT) {
-            sb.append(": ").append(kost1.description)
+            sb.append(": ").append(useKost.description)
         }
         return abbreviateIfRequired(sb.toString(), formatType, abbreviationLength)
     }

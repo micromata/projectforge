@@ -27,7 +27,6 @@ import jakarta.annotation.PostConstruct
 import jakarta.persistence.LockModeType
 import mu.KotlinLogging
 import org.hibernate.Hibernate
-import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.kost.KostHelper.parseKostString
@@ -56,18 +55,17 @@ class KostCache : AbstractCache() {
     @Autowired
     private lateinit var kundeDao: KundeDao
 
-    @Autowired
-    private lateinit var kundeCache: KundeCache
+    /**
+     * The key is the kost2-id. Must be synchronized because it isn't readonly (see updateKost1)
+     */
+    private lateinit var kost1Map: MutableMap<Long, Kost1DO>
 
     /**
      * The key is the kost2-id. Must be synchronized because it isn't readonly (see updateKost2).
      */
     private lateinit var kost2Map: MutableMap<Long, Kost2DO>
 
-    /**
-     * The key is the kost2-id. Must be synchronized because it isn't readonly (see updateKost1)
-     */
-    private lateinit var kost1Map: MutableMap<Long, Kost1DO>
+    private lateinit var kost2ArtMap: Map<Long, Kost2ArtDO>
 
     /**
      * Mustn't be synchronized because it is only read.
@@ -109,7 +107,6 @@ class KostCache : AbstractCache() {
         return getKost2(id)
     }
 
-
     /**
      * @param kostString Format ######## or #.###.##.## is supported.
      * @see .getKost2
@@ -136,10 +133,6 @@ class KostCache : AbstractCache() {
                         && (kost2.kostentraegerStatus == KostentraegerStatus.ACTIVE || kost2.kostentraegerStatus == null)
             }
         }
-    }
-
-    fun getCustomer(customerId: Long?): KundeDO? {
-        return kundeCache.getKunde(customerId)
     }
 
     fun getKost1(kost1Id: Long?): Kost1DO? {
@@ -178,6 +171,28 @@ class KostCache : AbstractCache() {
             }
         }
     }
+
+    fun getKost2Art(kost2ArtId: Long?): Kost2ArtDO? {
+        kost2ArtId ?: return null
+        if (!greaterZero(kost2ArtId)) {
+            return null
+        }
+        checkRefresh()
+        return kost2ArtMap[kost2ArtId]
+    }
+
+    /**
+     * Returns the Kost2ArtDO if it is initialized (Hibernate). Otherwise, it will be loaded from the database.
+     * Prevents lazy loadings.
+     */
+    fun getKost2ArtIfNotInitialized(kost2Art: Kost2ArtDO?): Kost2ArtDO? {
+        val id = kost2Art?.id ?: return null
+        if (Hibernate.isInitialized(kost2Art)) {
+            return kost2Art
+        }
+        return getKost2Art(id)
+    }
+
 
     /**
      * Gibt die für das Projekt definierten, nicht gelöschten Kostenarten zurück.
@@ -257,10 +272,12 @@ class KostCache : AbstractCache() {
 
     fun updateKost2Arts() {
         // This method must not be synchronized because it works with a new copy of list.
-        this.allKost2Arts = persistenceService.executeQuery(
+        val kost2Arts = persistenceService.executeQuery(
             "from Kost2ArtDO t where t.deleted = false order by t.id",
             Kost2ArtDO::class.java, lockModeType = LockModeType.NONE
-        ).map { Kost2ArtImpl(it) }
+        )
+        this.allKost2Arts = kost2Arts.map { Kost2ArtImpl(it) }
+        kost2ArtMap = kost2Arts.associateBy { it.id!! }
     }
 
     /**

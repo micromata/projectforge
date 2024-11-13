@@ -9,7 +9,7 @@ Aktuell:
   - AddressKampagnen: ebd. (massenhaft SQLs)
 - Suche nach Kontonummer in KontoDO
 
-- Lazy-Breakpoint: AbstractLazyInitializer.initialize (#134)
+- Lazy-Breakpoint: AbstractLazyInitializer.initialize (#170)
 org.hibernate.persister.entity.AbstractEntityPersister#generateSelectLazy:
 
 postrgesql.conf:
@@ -17,9 +17,10 @@ postrgesql.conf:
  deadlock_timeout = '500ms'
  log_min_duration_statement = 1000  # Optional: loggt Abfragen, die länger als 1 Sekunde dauern
 
+History
+- Positionen etc. vernünftig anzeigen.
 
 - Suche:
-  - Suche in Urlaubskorrekturen
   - Suche in History
   - Suche nach K+S (aktuell noch Provisorium)
 - HistoryConvertContext: Am Ende alle displayProperties übernehmen.

@@ -25,6 +25,7 @@ package org.projectforge.business.vacation.service
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.projectforge.business.Cache
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.vacation.model.LeaveAccountEntryDO
 import org.projectforge.framework.ToStringUtil
@@ -55,7 +56,7 @@ class VacationStats(
     /**
      * Only for logging purposes.
      */
-    var employeeName: String? = employee.user?.getFullname()
+    var employeeName: String? = Cache.instance.getUserIfNotInitialized(employee.user)?.getFullname()
 
     /**
      * The number of vacation days left from the previous year.

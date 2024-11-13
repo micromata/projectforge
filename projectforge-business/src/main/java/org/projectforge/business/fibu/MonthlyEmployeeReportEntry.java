@@ -23,9 +23,11 @@
 
 package org.projectforge.business.fibu;
 
+import org.projectforge.business.Cache;
 import org.projectforge.business.fibu.kost.Kost2ArtDO;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.task.TaskDO;
+import org.projectforge.reporting.Kost2;
 
 import java.io.Serializable;
 
@@ -80,11 +82,12 @@ public class MonthlyEmployeeReportEntry implements Serializable
    */
   public long getWorkFractionMillis()
   {
-    if (kost2 != null) {
-      if (kost2.getWorkFraction() != null) {
-        return (long) (kost2.getWorkFraction().doubleValue() * millis);
+    Kost2DO useKost2 = Cache.getInstance().getKost2IfNotInitialized(kost2);
+    if (useKost2 != null) {
+      if (useKost2.getWorkFraction() != null) {
+        return (long) (useKost2.getWorkFraction().doubleValue() * millis);
       }
-      final Kost2ArtDO kost2Art = kost2.getKost2Art();
+      final Kost2ArtDO kost2Art = Cache.getInstance().getKost2ArtIfNotInitialized(useKost2.getKost2Art());
       if (kost2Art.getWorkFraction() != null) {
         return (long) (kost2Art.getWorkFraction().doubleValue() * millis);
       }

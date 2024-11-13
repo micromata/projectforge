@@ -103,9 +103,11 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
             log.info { "Position without status: $position shouldn't occur. Assuming POTENZIAL." }
         }*/
         if (position.deleted) {
-            throw IllegalArgumentException("Position is deleted: $position")
+            log.debug {"Position is deleted: $position"}
+            // Nothing to calculate.
+        } else {
+            recalculate(order)
         }
-        recalculate(order)
     }
 
     /**

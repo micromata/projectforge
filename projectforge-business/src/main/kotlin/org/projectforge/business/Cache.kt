@@ -26,15 +26,8 @@ package org.projectforge.business
 import jakarta.annotation.PostConstruct
 import org.projectforge.business.address.AddressbookCache
 import org.projectforge.business.address.AddressbookDO
-import org.projectforge.business.fibu.EmployeeCache
-import org.projectforge.business.fibu.EmployeeDO
-import org.projectforge.business.fibu.KundeDO
-import org.projectforge.business.fibu.ProjektDO
-import org.projectforge.business.fibu.kost.Kost1DO
-import org.projectforge.business.fibu.kost.Kost2DO
-import org.projectforge.business.fibu.kost.KostCache
-import org.projectforge.business.fibu.kost.KundeCache
-import org.projectforge.business.fibu.kost.ProjektCache
+import org.projectforge.business.fibu.*
+import org.projectforge.business.fibu.kost.*
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.teamcal.admin.TeamCalCache
@@ -53,6 +46,9 @@ import org.springframework.stereotype.Service
  */
 @Service
 class Cache {
+    @Autowired
+    private lateinit var kontoCache: KontoCache
+
     @Autowired
     private lateinit var addressbookCache: AddressbookCache
 
@@ -83,19 +79,18 @@ class Cache {
     }
 
     /**
-     * Fills the user, kost2, project and customer of the given timesheet.
-     * @param timesheet The timesheet to fill.
-     * @return The filled timesheet for chaining.
+     * Fills the user and kost1 of the given employee.
+     * @param employee The employee to fill.
+     * @return The filled employee for chaining.
      */
-    fun populate(timesheet: TimesheetDO): TimesheetDO {
-        timesheet.user = getUser(timesheet.userId)
-        timesheet.task = getTask(timesheet.taskId)
-        timesheet.kost2 = getKost2(timesheet.kost2Id)?.also { populate(it) }
-        return timesheet
+    fun populate(employee: EmployeeDO): EmployeeDO {
+        employee.user = getUserIfNotInitialized(employee.user)
+        employee.kost1 = getKost1IfNotInitialized(employee.kost1)
+        return employee
     }
 
     /**
-     * Fills the user, kost2, project and customer of the given timesheets.
+     * Fills the user, kost2, project and customer of the given kost2.
      * @param kost2 The kost2 to fill.
      * @return The filled kost2 for chaining.
      */
@@ -108,6 +103,34 @@ class Cache {
     }
 
     /**
+     * Fills the task, kunde, konto, projectManager, ... of the given project.
+     * @param project The project to fill.
+     * @return The filled project for chaining.
+     */
+    fun populate(project: ProjektDO): ProjektDO {
+        project.headOfBusinessManager = getUserIfNotInitialized(project.headOfBusinessManager)
+        project.konto = getKontoIfNotInitialized(project.konto)
+        project.kunde = getKundeIfNotInitialized(project.kunde)
+        project.projectManager = getUserIfNotInitialized(project.projectManager)
+        project.projektManagerGroup = getGroupIfNotInitialized(project.projektManagerGroup)
+        project.salesManager = getUserIfNotInitialized(project.salesManager)
+        project.task = getTaskIfNotInitialized(project.task)
+        return project
+    }
+
+    /**
+     * Fills the user, kost2, project and customer of the given timesheet.
+     * @param timesheet The timesheet to fill.
+     * @return The filled timesheet for chaining.
+     */
+    fun populate(timesheet: TimesheetDO): TimesheetDO {
+        timesheet.user = getUser(timesheet.userId)
+        timesheet.task = getTask(timesheet.taskId)
+        timesheet.kost2 = getKost2(timesheet.kost2Id)?.also { populate(it) }
+        return timesheet
+    }
+
+    /**
      * Fills the employee, manager, replacement and other replacements of the given vacation.
      * @param vacation The vacation to fill.
      * @return The filled kost2 for chaining.
@@ -116,7 +139,8 @@ class Cache {
         vacation.employee = getEmployeeIfNotInitialized(vacation.employee)
         vacation.manager = getEmployeeIfNotInitialized(vacation.manager)
         vacation.replacement = getEmployeeIfNotInitialized(vacation.replacement)
-        vacation.otherReplacements = vacation.otherReplacements?.mapNotNull { getEmployeeIfNotInitialized(it) }?.toMutableSet()
+        vacation.otherReplacements =
+            vacation.otherReplacements?.mapNotNull { getEmployeeIfNotInitialized(it) }?.toMutableSet()
         return vacation
     }
 
@@ -158,6 +182,14 @@ class Cache {
         return userGroupCache.getGroupIfNotInitialized(groupDO)
     }
 
+    fun getKonto(konto: Long?): KontoDO? {
+        return kontoCache.getKonto(konto)
+    }
+
+    fun getKontoIfNotInitialized(konto: KontoDO?): KontoDO? {
+        return kontoCache.getKontoIfNotInitialized(konto)
+    }
+
     fun getKost1(kost1Id: Long?): Kost1DO? {
         return kostCache.getKost1(kost1Id)
     }
@@ -172,6 +204,14 @@ class Cache {
 
     fun getKost2IfNotInitialized(kost2DO: Kost2DO?): Kost2DO? {
         return kostCache.getKost2IfNotInitialized(kost2DO)
+    }
+
+    fun getKost2Art(kost2ArtId: Long?): Kost2ArtDO? {
+        return kostCache.getKost2Art(kost2ArtId)
+    }
+
+    fun getKost2ArtIfNotInitialized(kost2ArtDO: Kost2ArtDO?): Kost2ArtDO? {
+        return kostCache.getKost2ArtIfNotInitialized(kost2ArtDO)
     }
 
     fun getKunde(kundeId: Long?): KundeDO? {

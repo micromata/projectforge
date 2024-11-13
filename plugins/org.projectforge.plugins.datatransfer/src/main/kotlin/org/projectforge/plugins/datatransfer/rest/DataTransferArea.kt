@@ -51,7 +51,6 @@ class DataTransferArea(
     var userWantsToObserve: Boolean? = null,
     var accessGroups: List<Group>? = null,
     var accessGroupsAsString: String? = null,
-    var accessGroupsUsesAsString: String? = null,
     var accessUsers: List<User>? = null,
     var accessUsersAsString: String? = null,
     override var externalDownloadEnabled: Boolean? = null,

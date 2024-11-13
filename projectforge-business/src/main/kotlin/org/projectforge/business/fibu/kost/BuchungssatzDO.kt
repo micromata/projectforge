@@ -23,7 +23,10 @@
 
 package org.projectforge.business.fibu.kost
 
+import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.business.fibu.KontoDO
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
@@ -33,9 +36,6 @@ import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
-import jakarta.persistence.*
-import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 
 /**
  * Repräsentiert einen importierten Datev-Buchungssatz. Die Buchungssätze bilden die Grundlage für
@@ -43,11 +43,27 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
  */
 @Entity
 @Indexed
-@Table(name = "t_fibu_buchungssatz", uniqueConstraints = [UniqueConstraint(columnNames = ["year", "month", "satznr"])], indexes = [jakarta.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_gegenkonto_id", columnList = "gegenkonto_id"), jakarta.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_konto_id", columnList = "konto_id"), jakarta.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_kost1_id", columnList = "kost1_id"), jakarta.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_kost2_id", columnList = "kost2_id")])
+@Table(
+    name = "t_fibu_buchungssatz",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["year", "month", "satznr"])],
+    indexes = [jakarta.persistence.Index(
+        name = "idx_fk_t_fibu_buchungssatz_gegenkonto_id",
+        columnList = "gegenkonto_id"
+    ), jakarta.persistence.Index(
+        name = "idx_fk_t_fibu_buchungssatz_konto_id",
+        columnList = "konto_id"
+    ), jakarta.persistence.Index(
+        name = "idx_fk_t_fibu_buchungssatz_kost1_id",
+        columnList = "kost1_id"
+    ), jakarta.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_kost2_id", columnList = "kost2_id")]
+)
 // @WithHistory
 @NamedQueries(
-        NamedQuery(name = BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR,
-                query = "from BuchungssatzDO where year=:year and month=:month and satznr=:satznr"))
+    NamedQuery(
+        name = BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR,
+        query = "from BuchungssatzDO where year=:year and month=:month and satznr=:satznr"
+    )
+)
 open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     /**
      * Jahr zu der die Buchung gehört.
@@ -165,9 +181,22 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
         @Transient
         get() = if (this.kost1 != null) this.kost1!!.id else null
 
+    val kost1FormattedNumber: String?
+        @GenericField
+        @IndexingDependency(derivedFrom = [ObjectPath(PropertyValue(propertyName = "kost1"))])
+        @Transient
+        get() = kost1?.formattedNumber
+
     val kost2Id: Long?
         @Transient
         get() = if (this.kost2 != null) this.kost2!!.id else null
+
+    val kost2FormattedNumber: String?
+        @GenericField
+        @IndexingDependency(derivedFrom = [ObjectPath(PropertyValue(propertyName = "kost2"))])
+        @Transient
+        get() = kost2?.formattedNumber
+
 
     fun formatSatzNr(): String? {
         return if (satznr == null) {
@@ -184,7 +213,8 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
         if (konto == null || kost2 == null) {
             if (!suppressWarning)
                 log.warn(
-                        "Can't calculate Buchungssatz, because konto or kost2 is not given (for import it will be detected, OK): $this")
+                    "Can't calculate Buchungssatz, because konto or kost2 is not given (for import it will be detected, OK): $this"
+                )
             return
         }
         val kto = konto!!.nummer!!

@@ -25,6 +25,7 @@ package org.projectforge.business.fibu.kost;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.projectforge.business.Cache;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.OldKostFormatter;
 import org.projectforge.business.utils.CurrencyFormatter;
@@ -155,7 +156,8 @@ public class BusinessAssessment implements Serializable {
   }
 
   private boolean doesMatch(final BusinessAssessmentRow row, final KontoDO account) {
-    return account != null && account.getNummer() != null && row.doesMatch(account.getNummer());
+    KontoDO useAccount = Cache.getInstance().getKonto(account.getId());
+    return useAccount != null && useAccount.getNummer() != null && row.doesMatch(useAccount.getNummer());
   }
 
   public void recalculate() {

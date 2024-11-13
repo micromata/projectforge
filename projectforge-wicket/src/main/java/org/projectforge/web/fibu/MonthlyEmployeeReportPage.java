@@ -38,10 +38,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.common.OutputType;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.MonthlyEmployeeReport.Kost2Row;
-import org.projectforge.business.fibu.kost.Kost1DO;
-import org.projectforge.business.fibu.kost.Kost1Dao;
-import org.projectforge.business.fibu.kost.Kost2ArtDO;
-import org.projectforge.business.fibu.kost.Kost2DO;
+import org.projectforge.business.fibu.kost.*;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.business.user.UserGroupCache;
@@ -141,7 +138,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
                     if (report == null) {
                         return "";
                     }
-                    final Kost1DO kost1 = WicketSupport.get(Kost1Dao.class).find(report.getKost1Id(), false);
+                    final Kost1DO kost1 = WicketSupport.get(KostCache.class).getKost1(report.getKost1Id());
                     return kost1 != null ? OldKostFormatter.format(kost1) : "";
                 }
             }));
@@ -176,7 +173,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
             fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
                 @Override
                 public String getObject() {
-                    final EmployeeDO employee = WicketSupport.get(EmployeeService.class).findByUserId(form.filter.getUserId());
+                    final EmployeeDO employee = WicketSupport.get(EmployeeCache.class).getEmployeeByUserId(form.filter.getUserId());
                     PFDay startOfWorkContract = PFDay.now().getBeginOfMonth();
                     if (employee != null && employee.getEintrittsDatum() != null) {
                         startOfWorkContract = PFDay.from(employee.getEintrittsDatum());
