@@ -32,7 +32,11 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
+import org.projectforge.business.common.YearValueBridge
 
 /**
  * You may add manual correction entries to the leave account for an employee, e. g. for special leave days or for adding
@@ -56,7 +60,7 @@ open class LeaveAccountEntryDO : DefaultBaseDO() {
      * The employee.
      */
     @PropertyInfo(i18nKey = "fibu.employee", required = true)
-    @IndexedEmbedded(includePaths = ["user.firstname", "user.lastname"])
+    @IndexedEmbedded(includeDepth = 2, includePaths = ["user.firstname", "user.lastname"])
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "employee_id", nullable = false)
@@ -64,6 +68,7 @@ open class LeaveAccountEntryDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "date", required = true)
     @get:Column(name = "date", nullable = false)
+    @GenericField(valueBridge = ValueBridgeRef(type = YearValueBridge::class))
     open var date: LocalDate? = null
 
     @PropertyInfo(i18nKey = "vacation.leaveAccountEntry.amount", required = true)
@@ -72,6 +77,7 @@ open class LeaveAccountEntryDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "description")
     @get:Column(nullable = true)
+    @FullTextField
     open var description: String? = null
 
     companion object {

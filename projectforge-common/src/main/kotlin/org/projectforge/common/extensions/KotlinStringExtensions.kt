@@ -56,6 +56,18 @@ fun String.capitalize(trimValues: Boolean = false): String {
 }
 
 /**
+ * Uncapitalizes the first character of a string.
+ * If the first character is an upper case letter, it is replaced by the corresponding lower case letter.
+ * If the first character is not a upper case letter, the string is returned unchanged.<br>
+ * Example: "Hello, World!".uncapitalize() returns "hello, World!".<br>
+ * @return The uncapitalized string.
+ */
+fun String.uncapitalize(trimValues: Boolean = false): String {
+    val str = if (trimValues) this.trim() else this
+    return str.replaceFirstChar { if (it.isUpperCase()) it.lowercase(Locale.getDefault()) else it.toString() }
+}
+
+/**
  * Compares two strings for equality.
  * If both strings are null, they are considered equal.
  * If one string is null and the other is not, they are considered not equal.
