@@ -67,7 +67,7 @@ open class KundeDO : AbstractHistorizableBaseDO<Long>(), DisplayNameCapable {
         }
 
     @PropertyInfo(i18nKey = "fibu.kunde.name")
-    @FullTextField
+    @FullTextField(analyzer = "customAnalyzer")
     @get:Column(length = 255, nullable = false)
     open var name: String? = null
 

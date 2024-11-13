@@ -24,6 +24,7 @@
 package org.projectforge.framework.persistence.jpa
 
 import org.hibernate.cfg.AvailableSettings
+import org.projectforge.framework.persistence.search.MyAnalysisConfigurer
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -84,6 +85,7 @@ open class JpaConfig {
         properties["hibernate.javax.cache.provider"] = org.ehcache.jsr107.EhcacheCachingProvider::class.qualifiedName
         */
 
+        properties["hibernate.search.backend.analysis.configurer"] = MyAnalysisConfigurer::class.qualifiedName
         properties["hibernate.search.backend.directory.root"] = hibernateSearchDirectoryRoot
         factoryBean.setJpaProperties(properties)
 

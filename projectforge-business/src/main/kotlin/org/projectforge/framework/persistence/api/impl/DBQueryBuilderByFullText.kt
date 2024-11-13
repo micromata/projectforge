@@ -45,7 +45,6 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Long>>(
 ) {
 
     private val sortOrders = mutableListOf<SortProperty>()
-    private val multiFieldQuery = mutableListOf<String>()
     internal val searchClassInfo: HibernateSearchClassInfo
 
     init {

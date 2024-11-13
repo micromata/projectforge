@@ -36,6 +36,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordFie
 import org.projectforge.common.BeanHelper
 import org.projectforge.common.ClassUtils
 import org.projectforge.common.extensions.capitalize
+import org.projectforge.common.extensions.uncapitalize
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.api.BaseDao
@@ -206,9 +207,9 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
     private fun isGetter(method: Method): FieldInfo? {
         if (Modifier.isPublic(method.modifiers) && method.parameterTypes.isEmpty()) {
             if (method.name.matches("^get[A-Z].*".toRegex()) && method.returnType != Void.TYPE)
-                return FieldInfo(method.name.substring(3).capitalize(), method.returnType)
+                return FieldInfo(method.name.substring(3).uncapitalize(), method.returnType)
             if (method.name.matches("^is[A-Z].*".toRegex()) && method.returnType == Boolean::class.javaPrimitiveType)
-                return FieldInfo(method.name.substring(2).capitalize(), method.returnType)
+                return FieldInfo(method.name.substring(2).uncapitalize(), method.returnType)
         }
         return null
     }

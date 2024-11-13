@@ -1,6 +1,6 @@
 Aktuell:
+- Die Standardsuchfelder werden nicht als Searchfields erkannt (GenericField etc): ValueBrideType wird z. B. nicht als NumberBridge erkannt: HibernateSearchFieldInfo.valueBridgeType = null
 - Fehlerhinweis, wenn halber Tag für Urlaubsanfang/ende gewählt wird, es aber kein Arbeitstag ist.
-- 2024-11-09T16:18:19.834Z user:kai  WARN 23413 --- [projectforge-application] [0.1-8080-exec-2] o.p.business.user.AbstractUserPrefCache  : Can't deserialize user preferences: null, userId=2, area=null, key='TeamCalendarPage.userPrefs' (may-be ok after a new ProjectForge release). string=!rO0AB...vnj7nRSToOXX1PrEWobDsFAAA=
 
 - remove all BaseDO.xxxId (lazy fetch) and replace callee by baseDO?.id
 - Entitygraphen nutzen: ConflictVacationCache, AuftragCache etc.
@@ -21,6 +21,7 @@ postrgesql.conf:
 - Suche:
   - Suche in Urlaubskorrekturen
   - Suche in History
+  - Suche nach K+S (aktuell noch Provisorium)
 - HistoryConvertContext: Am Ende alle displayProperties übernehmen.
 
 - ProjektEdit: History enthält keine neuen Kost2DOs/Arten (Einträge sind aber da).
