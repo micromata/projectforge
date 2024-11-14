@@ -11,15 +11,6 @@ ALTER TABLE t_pf_history_attr ALTER COLUMN updatecounter DROP NOT NULL;
 ALTER TABLE t_pf_history_attr ALTER COLUMN type DROP NOT NULL;
 ALTER TABLE t_pf_history_attr ALTER COLUMN withdata DROP NOT NULL;
 
-DROP VIEW IF EXISTS v_t_pf_user; -- Very old view, not used anymore.
-DROP TABLE IF EXISTS t_address_attrdata; -- Unused empty table.
-DROP TABLE IF EXISTS t_address_attr; -- Unused empty table.
-DROP TABLE IF EXISTS t_personal_contact; -- Unused empty table.
-DROP TABLE IF EXISTS t_contactentry; -- Unused empty table.
-DROP TABLE IF EXISTS t_contact; -- Unused empty table.
-
-DROP TABLE IF EXISTS t_employee_vacation_calendar; -- Unused table (entries not younger than 2020-01-07).
-
 ALTER TABLE t_configuration ALTER COLUMN intvalue TYPE bigint;
 ALTER TABLE t_configuration RENAME COLUMN intvalue TO longvalue;
 
