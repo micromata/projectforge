@@ -297,7 +297,7 @@ class VacationAccountPageRest {
       true,
       true
     )
-    val list = dbList.map { Vacation(caches.populate(it)) }
+    val list = dbList.map { Vacation(caches.initialize(it)) }
     list.forEach {
       if (conflictingVacationsCache.hasConflict(it.id)) {
         it.conflict = true
