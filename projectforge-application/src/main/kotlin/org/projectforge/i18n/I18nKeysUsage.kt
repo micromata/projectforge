@@ -44,7 +44,6 @@ fun main() {
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Service
 class I18nKeysUsage(runmode: RUN_MODE? = null, useTmpFile: Boolean = false) : I18nKeysUsageInterface {
   internal val i18nKeyMap: Map<String, I18nKeyUsageEntry>
   enum class RUN_MODE { CREATE, FILESYSTEM }

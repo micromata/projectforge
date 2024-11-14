@@ -223,6 +223,7 @@ object SourcesUtils {
                 path = path.parent
             }
         }
-        throw IllegalStateException("Cannot find 'projectforge-application' directory in path '${path.toAbsolutePath()}'.")
+        log.error { "Cannot find 'projectforge-application' directory in path '${path.toAbsolutePath()}'." }
+        return path
     }
 }
