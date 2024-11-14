@@ -47,6 +47,7 @@ History
 
 Später
 - Hibernate-Search: K+S etc.
+- Milton
 - Besuchsbuch und EmployeeValidSinceAttr: DisplayEntries von Besuchtagen mit Datum des Besuchs versehen.
 - Suche-Seite hat veraltete Bereiche, AddressListPage läuft auf Fehler.
 - OrderExport: paymentSchedules werden gefetcht.
@@ -77,7 +78,16 @@ employeeannualleave
 
 Rollback:
 update t_configuration set configurationtype='INTEGER' where configurationtype='LONG';
-ALTER TABLE t_configuration ALTER COLUMN longvalue RENAME TO intvalue;
+ALTER TABLE t_configuration RENAME COLUMN longvalue TO intvalue;
+
+Folgendes muss nur gemacht werden, bevor die Version 8.0 erneut installiert wird (die alte Version 7.5.1 läuft auch ohne diese Änderungen):
+DELETE FROM t_flyway_schema_version WHERE installed_rank >= 43;
+ALTER TABLE t_pf_history_attr DROP COLUMN old_value;
+ALTER TABLE t_pf_history_attr DROP COLUMN optype;
+DROP TABLE t_orga_visitorbook_entry;
+DROP TABLE t_fibu_employee_valid_since_attr;
+
+
 
 
 Scripts:
