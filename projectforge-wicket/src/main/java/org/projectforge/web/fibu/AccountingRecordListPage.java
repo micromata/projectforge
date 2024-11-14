@@ -33,7 +33,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.projectforge.business.Cache;
+import org.projectforge.business.PfCaches;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.OldKostFormatter;
 import org.projectforge.business.fibu.kost.*;
@@ -153,7 +153,7 @@ public class AccountingRecordListPage
                     @Override
                     public void populateItem(Item<ICellPopulator<BuchungssatzDO>> item, String componentId, IModel<BuchungssatzDO> rowModel) {
                         final BuchungssatzDO satz = rowModel.getObject();
-                        final Kost1DO kost1 = WicketSupport.get(Cache.class).getKost1IfNotInitialized(satz.getKost1());
+                        final Kost1DO kost1 = WicketSupport.get(PfCaches.class).getKost1IfNotInitialized(satz.getKost1());
                         item.add(new Label(componentId, kost1.getDisplayName()));
                         cellItemListener.populateItem(item, componentId, rowModel);
                     }
@@ -174,7 +174,7 @@ public class AccountingRecordListPage
                     @Override
                     public void populateItem(Item<ICellPopulator<BuchungssatzDO>> item, String componentId, IModel<BuchungssatzDO> rowModel) {
                         final BuchungssatzDO satz = rowModel.getObject();
-                        final Kost2DO kost2 = WicketSupport.get(Cache.class).getKost2IfNotInitialized(satz.getKost2());
+                        final Kost2DO kost2 = WicketSupport.get(PfCaches.class).getKost2IfNotInitialized(satz.getKost2());
                         item.add(new Label(componentId, kost2.getDisplayName()));
                         cellItemListener.populateItem(item, componentId, rowModel);
                     }
@@ -196,7 +196,7 @@ public class AccountingRecordListPage
             @Override
             public void populateItem(Item<ICellPopulator<BuchungssatzDO>> item, String componentId, IModel<BuchungssatzDO> rowModel) {
                 final BuchungssatzDO satz = rowModel.getObject();
-                final KontoDO konto = WicketSupport.get(Cache.class).getKontoIfNotInitialized(satz.getKonto());
+                final KontoDO konto = WicketSupport.get(PfCaches.class).getKontoIfNotInitialized(satz.getKonto());
                 item.add(new Label(componentId, konto.getDisplayName()));
                 cellItemListener.populateItem(item, componentId, rowModel);
             }
@@ -217,7 +217,7 @@ public class AccountingRecordListPage
                     @Override
                     public void populateItem(Item<ICellPopulator<BuchungssatzDO>> item, String componentId, IModel<BuchungssatzDO> rowModel) {
                         final BuchungssatzDO satz = rowModel.getObject();
-                        final KontoDO konto = WicketSupport.get(Cache.class).getKontoIfNotInitialized(satz.getGegenKonto());
+                        final KontoDO konto = WicketSupport.get(PfCaches.class).getKontoIfNotInitialized(satz.getGegenKonto());
                         item.add(new Label(componentId, konto.getDisplayName()));
                         cellItemListener.populateItem(item, componentId, rowModel);
 

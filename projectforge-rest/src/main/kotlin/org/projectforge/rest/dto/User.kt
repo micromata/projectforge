@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.dto
 
-import org.projectforge.business.Cache
+import org.projectforge.business.PfCaches
 import org.projectforge.business.ldap.PFUserDOConverter
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
@@ -237,13 +237,13 @@ class User(
          * @see UserService.getUser
          */
         fun restoreDisplayNames(users: List<User>?) {
-            val cache = Cache.instance
-            users?.forEach { it.displayName = cache.getUser(it.id)?.displayName ?: "???" }
+            val caches = PfCaches.instance
+            users?.forEach { it.displayName = caches.getUser(it.id)?.displayName ?: "???" }
         }
 
         fun restoreEmails(users: List<User>?) {
-            val cache = Cache.instance
-            users?.forEach { it.email = cache.getUser(it.id)?.email }
+            val caches = PfCaches.instance
+            users?.forEach { it.email = caches.getUser(it.id)?.email }
         }
 
         /**

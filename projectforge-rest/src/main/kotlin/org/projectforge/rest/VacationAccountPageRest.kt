@@ -24,7 +24,7 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
-import org.projectforge.business.Cache
+import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.user.service.UserPrefService
@@ -72,7 +72,7 @@ class VacationAccountPageRest {
   )
 
   @Autowired
-  private lateinit var cache: Cache
+  private lateinit var caches: PfCaches
 
   @Autowired
   private lateinit var conflictingVacationsCache: ConflictingVacationsCache
@@ -297,7 +297,7 @@ class VacationAccountPageRest {
       true,
       true
     )
-    val list = dbList.map { Vacation(cache.populate(it)) }
+    val list = dbList.map { Vacation(caches.populate(it)) }
     list.forEach {
       if (conflictingVacationsCache.hasConflict(it.id)) {
         it.conflict = true

@@ -39,7 +39,7 @@ import mu.KotlinLogging
 import org.apache.commons.lang3.builder.EqualsBuilder
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.proxy.AbstractLazyInitializer
-import org.projectforge.business.Cache
+import org.projectforge.business.PfCaches
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.KundeDO
@@ -234,21 +234,21 @@ class ToStringUtil {
 
     class UserSerializer : EmbeddedDOSerializer<PFUserDO>(PFUserDO::class.java) {
         override fun writeFields(jgen: JsonGenerator, value: PFUserDO) {
-            val user = Cache.instance.getUserIfNotInitialized(value)
+            val user = PfCaches.instance.getUserIfNotInitialized(value)
             writeFields(jgen, value.id, "username", user?.username ?: "???")
         }
     }
 
     class CalendarSerializer : EmbeddedDOSerializer<TeamCalDO>(TeamCalDO::class.java) {
         override fun writeFields(jgen: JsonGenerator, value: TeamCalDO) {
-            val cal = Cache.instance.getTeamCalIfNotInitialized(value)
+            val cal = PfCaches.instance.getTeamCalIfNotInitialized(value)
             writeFields(jgen, value.id, "title", cal?.title ?: "???")
         }
     }
 
     class GroupSerializer : EmbeddedDOSerializer<GroupDO>(GroupDO::class.java) {
         override fun writeFields(jgen: JsonGenerator, value: GroupDO) {
-            val group = Cache.instance.getGroupIfNotInitialized(value)
+            val group = PfCaches.instance.getGroupIfNotInitialized(value)
             writeFields(jgen, value.id, "name", group?.name ?: "???")
         }
     }
@@ -261,42 +261,42 @@ class ToStringUtil {
 
     class Kost1Serializer : EmbeddedDOSerializer<Kost1DO>(Kost1DO::class.java) {
         override fun writeFields(jgen: JsonGenerator, value: Kost1DO) {
-            val kost1 = Cache.instance.getKost1IfNotInitialized(value)
+            val kost1 = PfCaches.instance.getKost1IfNotInitialized(value)
             writeFields(jgen, value.id, "number", kost1?.formattedNumber ?: "???")
         }
     }
 
     class Kost2Serializer : EmbeddedDOSerializer<Kost2DO>(Kost2DO::class.java) {
         override fun writeFields(jgen: JsonGenerator, value: Kost2DO) {
-            val kost2 = Cache.instance.getKost2IfNotInitialized(value)
+            val kost2 = PfCaches.instance.getKost2IfNotInitialized(value)
             writeFields(jgen, value.id, "number", kost2?.formattedNumber ?: "???")
         }
     }
 
     class EmployeeSerializer : EmbeddedDOSerializer<EmployeeDO>(EmployeeDO::class.java) {
         override fun writeFields(jgen: JsonGenerator, value: EmployeeDO) {
-            val user = Cache.instance.getUserIfNotInitialized(value.user)
+            val user = PfCaches.instance.getUserIfNotInitialized(value.user)
             writeFields(jgen, value.id, "name", user?.getFullname() ?: "???")
         }
     }
 
     class ProjektSerializer : EmbeddedDOSerializer<ProjektDO>(ProjektDO::class.java) {
         override fun writeFields(jgen: JsonGenerator, value: ProjektDO) {
-            val projekt = Cache.instance.getProjektIfNotInitialized(value)
+            val projekt = PfCaches.instance.getProjektIfNotInitialized(value)
             writeFields(jgen, value.id, "name", projekt?.name ?: "???")
         }
     }
 
     class KundeSerializer : EmbeddedDOSerializer<KundeDO>(KundeDO::class.java) {
         override fun writeFields(jgen: JsonGenerator, value: KundeDO) {
-            val kunde = Cache.instance.getKundeIfNotInitialized(value)
+            val kunde = PfCaches.instance.getKundeIfNotInitialized(value)
             writeFields(jgen, value.nummer, "name", kunde?.name ?: "???")
         }
     }
 
     class AddressbookSerializer : EmbeddedDOSerializer<AddressbookDO>(AddressbookDO::class.java) {
         override fun writeFields(jgen: JsonGenerator, value: AddressbookDO) {
-            val ab = Cache.instance.getAddressbookIfNotInitialized(value)
+            val ab = PfCaches.instance.getAddressbookIfNotInitialized(value)
             writeFields(jgen, value.id, "title", ab?.title ?: "???")
         }
     }

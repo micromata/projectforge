@@ -23,10 +23,9 @@
 
 package org.projectforge.business.vacation.repository
 
-import com.itextpdf.text.pdf.PdfName.ca
 import jakarta.annotation.PostConstruct
 import org.apache.commons.lang3.StringUtils
-import org.projectforge.business.Cache
+import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.user.UserRightId
@@ -70,7 +69,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
     private lateinit var employeeDao: EmployeeDao
 
     @Autowired
-    private lateinit var cache: Cache
+    private lateinit var caches: PfCaches
 
     @Autowired
     private lateinit var vacationSendMailService: VacationSendMailService
@@ -304,7 +303,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
 
     private fun isUserEqualsEmployee(loggedInUser: PFUserDO, employee: EmployeeDO?): Boolean {
         employee ?: return false
-        val empl = cache.getEmployeeIfNotInitialized(employee)
+        val empl = caches.getEmployeeIfNotInitialized(employee)
         return empl?.user?.id == loggedInUser.id
 
     }

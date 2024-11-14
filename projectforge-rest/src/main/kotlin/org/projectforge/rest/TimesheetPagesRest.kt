@@ -25,7 +25,7 @@ package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.Constants
-import org.projectforge.business.Cache
+import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.business.fibu.kost.ProjektCache
@@ -75,7 +75,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     private val dateTimeFormatter = DateTimeFormatter.instance()
 
     @Autowired
-    private lateinit var cache: Cache
+    private lateinit var caches: PfCaches
 
     @Autowired
     private lateinit var userService: UserService
@@ -132,7 +132,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
 
     override fun transformFromDB(obj: TimesheetDO, editMode: Boolean): Timesheet {
         val timesheet = Timesheet()
-        cache.populate(obj)
+        caches.populate(obj)
         timesheet.copyFrom(obj)
         // PFDay.fromOrNull(timesheet.startTime)
         return timesheet
@@ -403,7 +403,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                 ts.user!!.copyFromMinimal(user)
             }
             if (it.kost2Id != null) {
-                val kost2DO = cache.getAndPopulateKost2(it.kost2Id)
+                val kost2DO = caches.getAndPopulateKost2(it.kost2Id)
                 if (kost2DO != null) {
                     val kost2 = Kost2()
                     ts.kost2 = kost2

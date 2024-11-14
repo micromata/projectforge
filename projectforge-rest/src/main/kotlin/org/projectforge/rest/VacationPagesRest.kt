@@ -24,7 +24,7 @@
 package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
-import org.projectforge.business.Cache
+import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.EmployeeService
@@ -66,7 +66,7 @@ class VacationPagesRest :
     AbstractDTOPagesRest<VacationDO, Vacation, VacationDao>(VacationDao::class.java, "vacation.title") {
 
     @Autowired
-    private lateinit var cache: Cache
+    private lateinit var caches: PfCaches
 
     @Autowired
     private lateinit var conflictingVacationsCache: ConflictingVacationsCache
@@ -94,7 +94,7 @@ class VacationPagesRest :
 
     override fun transformFromDB(obj: VacationDO, editMode: Boolean): Vacation {
         val vacation = Vacation()
-        cache.populate(obj)
+        caches.populate(obj)
         vacation.copyFrom(obj)
         if (conflictingVacationsCache.hasConflict(obj.id)) {
             vacation.conflict = true

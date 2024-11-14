@@ -29,7 +29,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
-import org.projectforge.business.Cache
+import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
@@ -176,9 +176,9 @@ open class VacationDO : DefaultBaseDO() {
     @Transient
     fun getVacationmode(): VacationMode {
         val currentUserId = ThreadLocalUserContext.requiredLoggedInUserId
-        val employeeDO = Cache.instance.getEmployeeIfNotInitialized(employee)
+        val employeeDO = PfCaches.instance.getEmployeeIfNotInitialized(employee)
         val employeeUserId = employeeDO?.user?.id
-        val managerUserDO = Cache.instance.getEmployeeIfNotInitialized(manager)
+        val managerUserDO = PfCaches.instance.getEmployeeIfNotInitialized(manager)
         val managerUserId = managerUserDO?.user?.id
         if (currentUserId == employeeUserId) {
             return VacationMode.OWN
@@ -193,7 +193,7 @@ open class VacationDO : DefaultBaseDO() {
 
     @Transient
     fun isReplacement(userId: Long?): Boolean {
-        val replacementDO = Cache.instance.getEmployeeIfNotInitialized(replacement)
+        val replacementDO = PfCaches.instance.getEmployeeIfNotInitialized(replacement)
         return userId != null && replacementDO?.user?.id == userId
     }
 
