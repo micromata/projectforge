@@ -84,11 +84,11 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     registerShortCutValues(
       My2FAShortCut.HR_WRITE,
       "WRITE:employee;WRITE:leaveAccountEntry;WRITE:employee;",
-      "/wa/wicket/bookmarkable/org.projectforge.plugins.eed;/wa/hrPlanningEdit"
+      "/wa/hrPlanningEdit"
     )
     registerShortCutValues(
       My2FAShortCut.HR,
-      "WRITE:employee;/wa/wicket/bookmarkable/org.projectforge.plugins.eed;/wa/hr"
+      "WRITE:employee;/wa/hr"
     )
     registerShortCutClasses(
       My2FAShortCut.HR,

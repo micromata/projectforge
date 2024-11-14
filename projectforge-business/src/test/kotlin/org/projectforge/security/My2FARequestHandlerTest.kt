@@ -130,7 +130,7 @@ class My2FARequestHandlerTest {
         "/rs/user",
         "/wa/license;/wa/access;/react/logViewer/-1;/react/system;/react/configuration;/wa/wicket/bookmarkable/org.projectforge.web.admin"
       )
-      handler.registerShortCutValues(My2FAShortCut.HR, "WRITE:employee;/wa/employee;/wa/wicket/bookmarkable/org.projectforge.plugins.eed")
+      handler.registerShortCutValues(My2FAShortCut.HR, "WRITE:employee;/wa/employee;")
       handler.registerShortCutValues(
         My2FAShortCut.FINANCE,
         "WRITE:incomingInvoice;WRITE:outgoingInvoice;/wa/report;/wa/accounting;/wa/datev;/wa/liquidity;/react/account;/react/cost1;/react/cost2;/wa/incomingInvoice;/wa/outgoingInvoice"
