@@ -45,7 +45,7 @@ import org.springframework.stereotype.Service
  * Ideal for usage by scripts.
  */
 @Service
-class Cache {
+class PfCaches {
     @Autowired
     private lateinit var kontoCache: KontoCache
 
@@ -270,12 +270,12 @@ class Cache {
 
     companion object {
         @JvmStatic
-        lateinit var instance: Cache
+        lateinit var instance: PfCaches
             private set
 
         @JvmStatic
         fun internalSetupForTestCases() {
-            instance = Cache()
+            instance = PfCaches()
             instance.addressbookCache = AddressbookCache()
             instance.employeeCache = EmployeeCache()
             instance.kontoCache = KontoCache()

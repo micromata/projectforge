@@ -27,7 +27,7 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
-import org.projectforge.business.Cache
+import org.projectforge.business.PfCaches
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.KundeDO
@@ -47,7 +47,7 @@ class PFUserDOSerializer : StdSerializer<PFUserDO>(PFUserDO::class.java) {
 
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: PFUserDO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        val userDO = Cache.instance.getUserIfNotInitialized(value)
+        val userDO = PfCaches.instance.getUserIfNotInitialized(value)
         if (userDO == null) {
             jgen.writeNull()
             return
@@ -63,7 +63,7 @@ class PFUserDOSerializer : StdSerializer<PFUserDO>(PFUserDO::class.java) {
 class GroupDOSerializer : StdSerializer<GroupDO>(GroupDO::class.java) {
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: GroupDO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        val groupDO = Cache.instance.getGroupIfNotInitialized(value)
+        val groupDO = PfCaches.instance.getGroupIfNotInitialized(value)
         if (groupDO == null) {
             jgen.writeNull()
             return
@@ -79,7 +79,7 @@ class GroupDOSerializer : StdSerializer<GroupDO>(GroupDO::class.java) {
 class TaskDOSerializer : StdSerializer<TaskDO>(TaskDO::class.java) {
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: TaskDO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        val taskDO = Cache.instance.getTaskIfNotInitialized(value)
+        val taskDO = PfCaches.instance.getTaskIfNotInitialized(value)
         if (taskDO == null) {
             jgen.writeNull()
             return
@@ -99,16 +99,16 @@ class Kost2DOSerializer : StdSerializer<Kost2DO>(Kost2DO::class.java) {
 
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: Kost2DO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        val kost2DO = Cache.instance.getKost2IfNotInitialized(value)
+        val kost2DO = PfCaches.instance.getKost2IfNotInitialized(value)
         if (kost2DO == null) {
             jgen.writeNull()
             return
         }
         val kost2 = Kost2(kost2DO.id, displayName = kost2DO.displayName, description = kost2DO.description)
-        val projektDO = Cache.instance.getProjektIfNotInitialized(kost2DO.projekt)
+        val projektDO = PfCaches.instance.getProjektIfNotInitialized(kost2DO.projekt)
         if (projektDO != null) {
             val projekt = Project(projektDO.id, displayName = projektDO.displayName)
-            val kundeDO = Cache.instance.getKundeIfNotInitialized(projektDO.kunde)
+            val kundeDO = PfCaches.instance.getKundeIfNotInitialized(projektDO.kunde)
             if (kundeDO != null) {
                 val kunde = Customer(kundeDO.nummer!!, displayName = kundeDO.displayName, name = kundeDO.name)
                 projekt.customer = kunde
@@ -125,7 +125,7 @@ class Kost2DOSerializer : StdSerializer<Kost2DO>(Kost2DO::class.java) {
 class Kost1DOSerializer : StdSerializer<Kost1DO>(Kost1DO::class.java) {
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: Kost1DO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        val kost1DO = Cache.instance.getKost1IfNotInitialized(value)
+        val kost1DO = PfCaches.instance.getKost1IfNotInitialized(value)
         if (kost1DO == null) {
             jgen.writeNull()
             return
@@ -149,7 +149,7 @@ class KundeDOSerializer : StdSerializer<KundeDO>(KundeDO::class.java) {
 
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: KundeDO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        val kundeDO = Cache.instance.getKundeIfNotInitialized(value)
+        val kundeDO = PfCaches.instance.getKundeIfNotInitialized(value)
         if (kundeDO == null) {
             jgen.writeNull()
             return
@@ -166,7 +166,7 @@ class AddressbookDOSerializer : StdSerializer<AddressbookDO>(AddressbookDO::clas
 
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: AddressbookDO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        val ab = Cache.instance.getAddressbookIfNotInitialized(value)
+        val ab = PfCaches.instance.getAddressbookIfNotInitialized(value)
         if (ab == null) {
             jgen.writeNull()
             return
@@ -183,7 +183,7 @@ class EmployeeDOSerializer : StdSerializer<EmployeeDO>(EmployeeDO::class.java) {
 
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: EmployeeDO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        val employeeDO = Cache.instance.getEmployeeIfNotInitialized(value)
+        val employeeDO = PfCaches.instance.getEmployeeIfNotInitialized(value)
         if (employeeDO == null) {
             jgen.writeNull()
             return

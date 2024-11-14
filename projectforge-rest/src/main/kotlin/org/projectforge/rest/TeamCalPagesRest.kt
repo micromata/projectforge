@@ -24,7 +24,7 @@
 package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
-import org.projectforge.business.Cache
+import org.projectforge.business.PfCaches
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.teamcal.admin.right.TeamCalRight
@@ -53,14 +53,14 @@ class TeamCalPagesRest :
     AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(TeamCalDao::class.java, "plugins.teamcal.title") {
 
     @Autowired
-    private lateinit var cache: Cache
+    private lateinit var caches: PfCaches
 
     @Autowired
     private lateinit var calendarFeedService: CalendarFeedService
 
     override fun transformFromDB(obj: TeamCalDO, editMode: Boolean): TeamCal {
         val teamCal = TeamCal()
-        obj.owner = cache.getUser(obj.ownerId)
+        obj.owner = caches.getUser(obj.ownerId)
         teamCal.copyFrom(obj)
         var anonymize = true
         if (editMode) {

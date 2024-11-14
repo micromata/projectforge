@@ -26,7 +26,7 @@ package org.projectforge.business.fibu;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.text.StringEscapeUtils;
-import org.projectforge.business.Cache;
+import org.projectforge.business.PfCaches;
 import org.projectforge.business.common.OutputType;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost2DO;
@@ -284,7 +284,7 @@ public class MonthlyEmployeeReport implements Serializable {
         for (final MonthlyEmployeeReportWeek week : weeks) {
             if (MapUtils.isNotEmpty(week.getKost2Entries())) {
                 for (final MonthlyEmployeeReportEntry entry : week.getKost2Entries().values()) {
-                    Kost2DO kost2 = Cache.getInstance().getKost2IfNotInitialized(entry.getKost2());
+                    Kost2DO kost2 = PfCaches.getInstance().getKost2IfNotInitialized(entry.getKost2());
                     Objects.requireNonNull(kost2);
                     kost2Rows.put(kost2.getDisplayName(), new Kost2Row(kost2));
                     MonthlyEmployeeReportEntry kost2Total = kost2Durations.get(entry.getKost2().getId());

@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.dto
 
-import org.projectforge.business.Cache
+import org.projectforge.business.PfCaches
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -100,8 +100,8 @@ class Group(
          * Set display names of any existing group in the given list.
          */
         fun restoreDisplayNames(groups: List<Group>?) {
-            val cache = Cache.instance
-            groups?.forEach { it.displayName = cache.getGroup(it.id)?.displayName ?: "???" }
+            val caches = PfCaches.instance
+            groups?.forEach { it.displayName = caches.getGroup(it.id)?.displayName ?: "???" }
         }
 
         /**

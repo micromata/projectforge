@@ -24,7 +24,7 @@
 package org.projectforge.rest.fibu
 
 import jakarta.servlet.http.HttpServletRequest
-import org.projectforge.business.Cache
+import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -45,7 +45,7 @@ class ProjectPagesRest
     "fibu.projekt.title"
 ) {
     @Autowired
-    private lateinit var cache: Cache
+    private lateinit var caches: PfCaches
 
     override val addNewEntryUrl = "wa/projectEdit"
 
@@ -55,7 +55,7 @@ class ProjectPagesRest
 
     override fun transformFromDB(obj: ProjektDO, editMode: Boolean): Project {
         val projekt = Project()
-        cache.populate(obj)
+        caches.populate(obj)
         projekt.copyFrom(obj)
         return projekt
     }
