@@ -75,11 +75,11 @@ open class AddressbookCache : AbstractCache() {
      * Prevents lazy loadings.
      */
     fun getAddressbookIfNotInitialized(ab: AddressbookDO?): AddressbookDO? {
-        val id = ab?.id ?: return null
+        ab ?: return null
         if (Hibernate.isInitialized(ab)) {
             return ab
         }
-        return getAddressbook(id)
+        return getAddressbook(ab.id)
     }
 
 

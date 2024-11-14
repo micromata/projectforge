@@ -78,11 +78,11 @@ class ProjektCache : AbstractCache() {
      * Prevents lazy loadings.
      */
     fun getProjektIfNotInitialized(projekt: ProjektDO?): ProjektDO? {
-        val projektId = projekt?.id ?: return null
+        projekt ?: return null
         if (Hibernate.isInitialized(projekt)) {
             return projekt
         }
-        return getProjekt(projektId)
+        return getProjekt(projekt.id)
     }
 
     /**

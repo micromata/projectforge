@@ -100,11 +100,11 @@ class KostCache : AbstractCache() {
      * Prevents lazy loadings.
      */
     fun getKost2IfNotInitialized(kost2: Kost2DO?): Kost2DO? {
-        val id = kost2?.id ?: return null
+        kost2 ?: return null
         if (Hibernate.isInitialized(kost2)) {
             return kost2
         }
-        return getKost2(id)
+        return getKost2(kost2.id)
     }
 
     /**
@@ -151,11 +151,11 @@ class KostCache : AbstractCache() {
      * Prevents lazy loadings.
      */
     fun getKost1IfNotInitialized(kost1: Kost1DO?): Kost1DO? {
-        val id = kost1?.id ?: return null
+        kost1?: return null
         if (Hibernate.isInitialized(kost1)) {
             return kost1
         }
-        return getKost1(id)
+        return getKost1(kost1.id)
     }
 
     /**
@@ -186,11 +186,11 @@ class KostCache : AbstractCache() {
      * Prevents lazy loadings.
      */
     fun getKost2ArtIfNotInitialized(kost2Art: Kost2ArtDO?): Kost2ArtDO? {
-        val id = kost2Art?.id ?: return null
+        kost2Art ?: return null
         if (Hibernate.isInitialized(kost2Art)) {
             return kost2Art
         }
-        return getKost2Art(id)
+        return getKost2Art(kost2Art.id)
     }
 
 

@@ -69,11 +69,11 @@ open class EmployeeCache : AbstractCache() {
      * Prevents lazy loadings.
      */
     fun getEmployeeIfNotInitialized(employee: EmployeeDO?): EmployeeDO? {
-        val id = employee?.id ?: return null
+        employee ?: return null
         if (Hibernate.isInitialized(employee)) {
             return employee
         }
-        return getEmployee(id)
+        return getEmployee(employee.id)
     }
 
 
