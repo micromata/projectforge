@@ -124,7 +124,8 @@ class User(
     }
 
     override fun copyFrom(src: PFUserDO) {
-        super.copyFrom(src)
+        val user = PfCaches.instance.getUserIfNotInitialized(src)!!
+        super.copyFrom(user)
         lastLogin?.let { date ->
             lastLoginTimeAgo = TimeAgo.getMessage(date)
             lastLoginFormatted = TimeAgo.getDateAndMessage(date)
@@ -135,11 +136,11 @@ class User(
         lastWlanPasswordChange?.let { date ->
             lastWlanPasswordChangeFormatted = TimeAgo.getDateAndMessage(date)
         }
-        timeZone = src.timeZoneString
+        timeZone = user.timeZoneString
         if (accessChecker.isLoggedInUserMemberOfAdminGroup) {
             // Rights
             val sb = StringBuilder()
-            userDao.getUserRights(src.id)?.forEachIndexed { index, rightDO ->
+            userDao.getUserRights(user.id)?.forEachIndexed { index, rightDO ->
                 if (index > 0) {
                     sb.append(", ")
                 }
@@ -155,7 +156,7 @@ class User(
             }
             rightsAsString = sb.toString()
             val newAssignedGroups = mutableSetOf<Group>()
-            userGroupCache.getUserGroups(src)?.forEach { groupId ->
+            userGroupCache.getUserGroups(user)?.forEach { groupId ->
                 userGroupCache.getGroup(groupId)?.let { groupDO ->
                     val group = Group()
                     group.copyFromMinimal(groupDO)
@@ -165,7 +166,7 @@ class User(
                 }
             }
             assignedGroups = newAssignedGroups.sortedBy { it.displayName?.lowercase() }.toMutableList()
-            PFUserDOConverter.readLdapUserValues(src.ldapValues)?.let { srcValues ->
+            PFUserDOConverter.readLdapUserValues(user.ldapValues)?.let { srcValues ->
                 ldapValues = UserLdapValues.create(srcValues)
             }
         }

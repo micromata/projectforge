@@ -55,7 +55,7 @@ class ProjectPagesRest
 
     override fun transformFromDB(obj: ProjektDO, editMode: Boolean): Project {
         val projekt = Project()
-        caches.populate(obj)
+        caches.initialize(obj)
         projekt.copyFrom(obj)
         return projekt
     }

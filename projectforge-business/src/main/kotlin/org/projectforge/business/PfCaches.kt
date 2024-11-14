@@ -83,7 +83,7 @@ class PfCaches {
      * @param employee The employee to fill.
      * @return The filled employee for chaining.
      */
-    fun populate(employee: EmployeeDO): EmployeeDO {
+    fun initialize(employee: EmployeeDO): EmployeeDO {
         employee.user = getUserIfNotInitialized(employee.user)
         employee.kost1 = getKost1IfNotInitialized(employee.kost1)
         return employee
@@ -94,7 +94,7 @@ class PfCaches {
      * @param kost2 The kost2 to fill.
      * @return The filled kost2 for chaining.
      */
-    fun populate(kost2: Kost2DO): Kost2DO {
+    fun initialize(kost2: Kost2DO): Kost2DO {
         val projekt = getProjektByKost2(kost2.id)
         val kunde = getKunde(projekt?.kunde?.nummer)
         projekt?.let { it.kunde = kunde }
@@ -107,7 +107,7 @@ class PfCaches {
      * @param project The project to fill.
      * @return The filled project for chaining.
      */
-    fun populate(project: ProjektDO): ProjektDO {
+    fun initialize(project: ProjektDO): ProjektDO {
         project.headOfBusinessManager = getUserIfNotInitialized(project.headOfBusinessManager)
         project.konto = getKontoIfNotInitialized(project.konto)
         project.kunde = getKundeIfNotInitialized(project.kunde)
@@ -123,10 +123,10 @@ class PfCaches {
      * @param timesheet The timesheet to fill.
      * @return The filled timesheet for chaining.
      */
-    fun populate(timesheet: TimesheetDO): TimesheetDO {
+    fun initialize(timesheet: TimesheetDO): TimesheetDO {
         timesheet.user = getUser(timesheet.userId)
         timesheet.task = getTask(timesheet.taskId)
-        timesheet.kost2 = getKost2(timesheet.kost2Id)?.also { populate(it) }
+        timesheet.kost2 = getKost2(timesheet.kost2Id)?.also { initialize(it) }
         return timesheet
     }
 
@@ -135,7 +135,7 @@ class PfCaches {
      * @param vacation The vacation to fill.
      * @return The filled kost2 for chaining.
      */
-    fun populate(vacation: VacationDO): VacationDO {
+    fun initialize(vacation: VacationDO): VacationDO {
         vacation.employee = getEmployeeIfNotInitialized(vacation.employee)
         vacation.manager = getEmployeeIfNotInitialized(vacation.manager)
         vacation.replacement = getEmployeeIfNotInitialized(vacation.replacement)
@@ -149,7 +149,7 @@ class PfCaches {
      * @param kost2Id The kost2Id to fill.
      */
     fun getAndPopulateKost2(kost2Id: Long?): Kost2DO? {
-        return getKost2(kost2Id)?.also { populate(it) }
+        return getKost2(kost2Id)?.also { initialize(it) }
     }
 
     fun getAddressbook(addressbookId: Long?): AddressbookDO? {
@@ -272,6 +272,51 @@ class PfCaches {
         @JvmStatic
         lateinit var instance: PfCaches
             private set
+
+        /**
+         * Fills the user and kost1 of the given employee.
+         * @param employee The employee to fill.
+         * @return The filled employee for chaining.
+         */
+        fun initialize(employee: EmployeeDO): EmployeeDO {
+            return instance.initialize(employee)
+        }
+
+        /**
+         * Fills the user, kost2, project and customer of the given kost2.
+         * @param kost2 The kost2 to fill.
+         * @return The filled kost2 for chaining.
+         */
+        fun initialize(kost2: Kost2DO): Kost2DO {
+            return instance.initialize(kost2)
+        }
+
+        /**
+         * Fills the task, kunde, konto, projectManager, ... of the given project.
+         * @param project The project to fill.
+         * @return The filled project for chaining.
+         */
+        fun initialize(project: ProjektDO): ProjektDO {
+            return instance.initialize(project)
+        }
+
+        /**
+         * Fills the user, kost2, project and customer of the given timesheet.
+         * @param timesheet The timesheet to fill.
+         * @return The filled timesheet for chaining.
+         */
+        fun initialize(timesheet: TimesheetDO): TimesheetDO {
+            return instance.initialize(timesheet)
+        }
+
+        /**
+         * Fills the employee, manager, replacement and other replacements of the given vacation.
+         * @param vacation The vacation to fill.
+         * @return The filled kost2 for chaining.
+         */
+        fun initialize(vacation: VacationDO): VacationDO {
+            return initialize(vacation)
+        }
 
         @JvmStatic
         fun internalSetupForTestCases() {

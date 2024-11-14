@@ -315,7 +315,7 @@ abstract class ScriptExecutor(
             "import org.projectforge.framework.utils.NumberHelper",
             "import org.projectforge.framework.utils.RoundUtils",
             "import org.projectforge.framework.utils.RoundUnit",
-            "import org.projectforge.business.Cache",
+            "import org.projectforge.business.PfCaches",
         )
 
         fun setIncludingScripts(script: ScriptDO, scriptDao: AbstractScriptDao) {

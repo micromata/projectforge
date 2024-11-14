@@ -132,7 +132,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
 
     override fun transformFromDB(obj: TimesheetDO, editMode: Boolean): Timesheet {
         val timesheet = Timesheet()
-        caches.populate(obj)
+        caches.initialize(obj)
         timesheet.copyFrom(obj)
         // PFDay.fromOrNull(timesheet.startTime)
         return timesheet

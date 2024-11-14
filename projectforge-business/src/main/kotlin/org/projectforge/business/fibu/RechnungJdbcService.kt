@@ -81,6 +81,9 @@ class RechnungJdbcService {
                         RechnungsPositionDO().also {
                             rechnung.positionen = rechnung.positionen ?: mutableListOf()
                             rechnung.positionen!!.add(it)
+                            getLong(rs, "auftrags_position_fk")?.let { posId ->
+                                it.auftragsPosition = AuftragsPositionDO().also { it.id = posId }
+                            }
                         }
                     } else {
                         rechnung as EingangsrechnungDO
@@ -152,7 +155,7 @@ class RechnungJdbcService {
 
         private val SELECT_RECHNUNG_WITH_KOST = """
             SELECT r.pk as rechnung_id,r.deleted,r.status,r.nummer,r.bezahl_datum,r.zahl_betrag,r.faelligkeit,r.discountmaturity,r.discountpercent,
-                   p.pk as pos_id,p.number,p.menge,p.einzel_netto,p.vat,p.s_text,
+                   p.pk as pos_id,p.number,p.menge,p.einzel_netto,p.vat,p.s_text,p.auftrags_position_fk,
                    k.pk as kost_id,k.netto,k.index,k.kost1_fk,k.kost2_fk
             FROM t_fibu_rechnung r
             LEFT JOIN t_fibu_rechnung_position p ON p.rechnung_fk = r.pk

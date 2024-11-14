@@ -94,7 +94,7 @@ class VacationPagesRest :
 
     override fun transformFromDB(obj: VacationDO, editMode: Boolean): Vacation {
         val vacation = Vacation()
-        caches.populate(obj)
+        caches.initialize(obj)
         vacation.copyFrom(obj)
         if (conflictingVacationsCache.hasConflict(obj.id)) {
             vacation.conflict = true

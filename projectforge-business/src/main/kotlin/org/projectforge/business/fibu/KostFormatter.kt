@@ -80,7 +80,7 @@ class KostFormatter {
         }
         val useKunde = kundeCache.getKundeIfNotInitialized(kunde) ?: return "5.${kundeNummer.format3Digits()}"
         return abbreviateIfRequired(
-            "5. ${format3Digits(kundeNummer)}: ${useKunde.name}",
+            "5.${format3Digits(kundeNummer)}: ${useKunde.name}",
             formatType,
             abbreviationLength
         )

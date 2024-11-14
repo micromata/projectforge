@@ -1,6 +1,6 @@
 Aktuell:
-- Die Standardsuchfelder werden nicht als Searchfields erkannt (GenericField etc): ValueBrideType wird z. B. nicht als NumberBridge erkannt: HibernateSearchFieldInfo.valueBridgeType = null
 - Fehlerhinweis, wenn halber Tag für Urlaubsanfang/ende gewählt wird, es aber kein Arbeitstag ist.
+- Scripts
 
 - remove all BaseDO.xxxId (lazy fetch) and replace callee by baseDO?.id
 - Entitygraphen nutzen: ConflictVacationCache, AuftragCache etc.
@@ -31,7 +31,6 @@ History
 - Reindizierung der letzten n einträge nicht migriert (sinnvoll?).
 - history-entries bei EmployeeValidityAttrDO nichtssagend.
 - HistoryEntry: EmployeeValidityAttrDO.insert muss sinnvoll für Anzeige formatiert werden.
-- Scripte nach Renamings testen
 - Cascade aller Entitäten prüfen (z. B. war GroupTaskAccessDO.task auf Merged!!!!) Abgleich mit autoUpdateCollectionEntries (evtl. kann auf autoUpdateCollectionEntries verzichtet werden, zumindest aber Sanity-Check in CandH.)
 - PFHistoryMasterDO: Indexe setzen, wenn Einträge wieder gehen.
 - XML-Import für Testsystem
