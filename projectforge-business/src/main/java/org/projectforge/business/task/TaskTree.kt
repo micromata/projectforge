@@ -270,11 +270,11 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
      * Prevents lazy loadings.
      */
     fun getTaskIfNotInitialized(task: TaskDO?): TaskDO? {
-        val id = task?.id ?: return null
+        task ?: return null
         if (Hibernate.isInitialized(task)) {
             return task
         }
-        return getTaskById(id)
+        return getTaskById(task.id)
     }
 
     /**

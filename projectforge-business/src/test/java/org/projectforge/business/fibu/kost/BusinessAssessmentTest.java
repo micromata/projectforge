@@ -23,8 +23,10 @@
 
 package org.projectforge.business.fibu.kost;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.KontoDO;
+import org.projectforge.test.TestSetup;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -34,6 +36,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class BusinessAssessmentTest
 {
+  @BeforeAll
+  static void beforeAll() {
+    TestSetup.init();
+  }
+
   @Test
   public void testCalculations()
   {

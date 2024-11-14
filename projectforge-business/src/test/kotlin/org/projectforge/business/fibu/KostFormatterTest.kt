@@ -44,15 +44,15 @@ class KostFormatterTest : AbstractTestBase() {
         kunde.nummer = 204
         kunde.name = "ACME very long name of the company with a lot of text to test the formatter"
         kundeDao.insert(kunde, checkAccess = false)
-        Assertions.assertEquals("204", kostFormatter.formatKunde(kunde))
-        Assertions.assertEquals("204", kostFormatter.formatKunde(kunde, KostFormatter.FormatType.NUMBER))
-        Assertions.assertEquals("204", kostFormatter.formatKunde(kunde, KostFormatter.FormatType.FORMATTED_NUMBER))
+        Assertions.assertEquals("5.204", kostFormatter.formatKunde(kunde))
+        Assertions.assertEquals("5.204", kostFormatter.formatKunde(kunde, KostFormatter.FormatType.NUMBER))
+        Assertions.assertEquals("5.204", kostFormatter.formatKunde(kunde, KostFormatter.FormatType.FORMATTED_NUMBER))
         Assertions.assertEquals(
-            "204: ACME very long name of...",
+            "5.204: ACME very long name ...",
             kostFormatter.formatKunde(kunde, KostFormatter.FormatType.TEXT, 30)
         )
         Assertions.assertEquals(
-            "204: ACME very long name of the company with a lot of text to test the formatter",
+            "5.204: ACME very long name of the company with a lot of text to test the formatter",
             kostFormatter.formatKunde(kunde, KostFormatter.FormatType.LONG)
         )
 

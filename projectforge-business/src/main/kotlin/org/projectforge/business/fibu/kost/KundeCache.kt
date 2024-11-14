@@ -83,11 +83,11 @@ class KundeCache : AbstractCache() {
      * Prevents lazy loadings.
      */
     fun getKundeIfNotInitialized(kunde: KundeDO?): KundeDO? {
-        val kundeId = kunde?.nummer ?: return null
+        kunde ?: return null
         if (Hibernate.isInitialized(kunde)) {
             return kunde
         }
-        return getKunde(kundeId)
+        return getKunde(kunde.nummer)
     }
 
     /**

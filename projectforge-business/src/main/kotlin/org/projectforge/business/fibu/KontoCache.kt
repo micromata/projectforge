@@ -100,11 +100,11 @@ open class KontoCache : AbstractCache() {
      * Prevents lazy loadings.
      */
     fun getKontoIfNotInitialized(konto: KontoDO?): KontoDO? {
-        val id = konto?.id ?: return null
+        konto ?: return null
         if (Hibernate.isInitialized(konto)) {
             return konto
         }
-        return getKonto(id)
+        return getKonto(konto.id)
     }
 
     /**

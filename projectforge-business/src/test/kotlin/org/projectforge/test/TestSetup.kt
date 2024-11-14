@@ -26,6 +26,7 @@ package org.projectforge.test
 import mu.KotlinLogging
 import org.mockito.Mockito
 import org.projectforge.Constants
+import org.projectforge.business.Cache
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.configuration.ConfigurationServiceAccessor
 import org.projectforge.framework.configuration.ConfigXmlTest
@@ -67,6 +68,7 @@ object TestSetup {
         val configList = mutableListOf<ConfigurationDO>()
         Mockito.`when`(configurationService.daoInternalLoadAll()).thenReturn(configList)
         Configuration.initializeForTestOnly(configurationService)*/
+        Cache.internalSetupForTestCases()
         return user
     }
 

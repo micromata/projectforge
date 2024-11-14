@@ -272,5 +272,19 @@ class Cache {
         @JvmStatic
         lateinit var instance: Cache
             private set
+
+        @JvmStatic
+        fun internalSetupForTestCases() {
+            instance = Cache()
+            instance.addressbookCache = AddressbookCache()
+            instance.employeeCache = EmployeeCache()
+            instance.kontoCache = KontoCache()
+            instance.kostCache = KostCache()
+            instance.kundeCache = KundeCache()
+            instance.projektCache = ProjektCache()
+            instance.taskTree = TaskTree()
+            instance.teamCalCache = TeamCalCache()
+            instance.userGroupCache = UserGroupCache()
+        }
     }
 }

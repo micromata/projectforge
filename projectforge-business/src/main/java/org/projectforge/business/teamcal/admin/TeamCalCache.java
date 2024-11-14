@@ -75,14 +75,13 @@ public class TeamCalCache extends AbstractCache {
      * Prevents lazy loadings.
      */
     public TeamCalDO getCalendarIfNotInitialized(TeamCalDO teamCalDO) {
-        Long id = teamCalDO.getId();
-        if (id == null) {
+        if (teamCalDO == null) {
             return teamCalDO;
         }
         if (Hibernate.isInitialized(teamCalDO)) {
             return teamCalDO;
         }
-        return getCalendar(id);
+        return getCalendar(teamCalDO.getId());
     }
 
     /**

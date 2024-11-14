@@ -115,11 +115,11 @@ open class UserGroupCache : AbstractCache() {
      * Prevents lazy loadings.
      */
     fun getGroupIfNotInitialized(group: GroupDO?): GroupDO? {
-        val id = group?.id ?: return null
+        group ?: return null
         if (Hibernate.isInitialized(group)) {
             return group
         }
-        return getGroup(id)
+        return getGroup(group.id)
     }
 
     fun getGroup(groupId: Long?): GroupDO? {
@@ -160,11 +160,11 @@ open class UserGroupCache : AbstractCache() {
      * Prevents lazy loadings.
      */
     fun getUserIfNotInitialized(user: PFUserDO?): PFUserDO? {
-        val userId = user?.id ?: return null
+        user ?: return null
         if (Hibernate.isInitialized(user)) {
             return user
         }
-        return getUser(userId)
+        return getUser(user.id)
     }
 
 
