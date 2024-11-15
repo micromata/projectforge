@@ -28,7 +28,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.AccountingConfig;
@@ -38,6 +37,7 @@ import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.reporting.Kost2Art;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.task.TaskSelectPanel;
 import org.projectforge.web.user.NewGroupSelectPanel;
 import org.projectforge.web.user.UserSelectPanel;
@@ -67,15 +67,6 @@ public class ProjektEditForm extends AbstractEditForm<ProjektDO, ProjektEditPage
   protected NewCustomerSelectPanel kundeSelectPanel;
 
   protected NewGroupSelectPanel groupSelectPanel;
-
-  @SpringBean
-  KontoCache kontoCache;
-
-  @SpringBean
-  KostCache kostCache;
-
-  @SpringBean
-  private ProjectServiceImpl projectService;
 
   // Components for form validation.
   private final FormComponent<?>[] dependentFormComponents = new FormComponent[2];
@@ -139,7 +130,7 @@ public class ProjektEditForm extends AbstractEditForm<ProjektDO, ProjektEditPage
       fs.add(field);
       fs.add(new DivTextPanel(fs.newChildId(), ".##.##"));
     }
-    if (kontoCache.isEmpty() == false) {
+    if (WicketSupport.get(KontoCache.class).isEmpty() == false) {
       // Show this field only if DATEV accounts does exist.
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto"));
       final KontoSelectPanel kontoSelectPanel = new KontoSelectPanel(fs.newChildId(),
@@ -225,9 +216,9 @@ public class ProjektEditForm extends AbstractEditForm<ProjektDO, ProjektEditPage
       fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<String>(data, "description")));
     }
     if (isNew() == true) {
-      kost2Arts = kostCache.getAllKostArts();
+      kost2Arts = WicketSupport.get(KostCache.class).getCloneOfAllKost2Arts();
     } else {
-      kost2Arts = kostCache.getAllKost2Arts(getData().getId());
+      kost2Arts = WicketSupport.get(KostCache.class).getAllKost2Arts(getData().getId());
     }
     {
       // cost 2 types
@@ -253,7 +244,7 @@ public class ProjektEditForm extends AbstractEditForm<ProjektDO, ProjektEditPage
         Integer numberValue = number != null ? number.getConvertedInput() : null;
         KundeDO customerValue = customer != null ? customer.getConvertedInput() : null;
         if (numberValue != null && customerValue != null && numberValue.equals(new Integer(data.getNummer())) == false) {
-          if (projectService.isNumberFreeForCustomer(numberValue, customerValue) == false) {
+          if (WicketSupport.get(ProjectServiceImpl.class).isNumberFreeForCustomer(numberValue, customerValue) == false) {
             form.error(I18nHelper.getLocalizedMessage("fibu.projekt.validation.numbernotfreeforcustomer"));
           }
         }

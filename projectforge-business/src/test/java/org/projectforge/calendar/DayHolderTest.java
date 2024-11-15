@@ -69,15 +69,13 @@ public class DayHolderTest {
     assertBigDecimal(1, DayHolder.getNumberOfWorkingDays(fromDay, toDay));
   }
 
-  //Test fertigstellen für Weihnachten/Silvester (config.xml)
   @Test
-  @Disabled
   public void testGetNumberOfWorkingDaysChristmas() {
     final DayHolder fromDay = new DayHolder();
     fromDay.setDate(2009, Month.DECEMBER, 24);
     final DayHolder toDay = new DayHolder();
     toDay.setDate(2009, Month.DECEMBER, 24);
-    assertBigDecimal(1.5, DayHolder.getNumberOfWorkingDays(fromDay, toDay));
+    assertBigDecimal(0.5, DayHolder.getNumberOfWorkingDays(fromDay, toDay));
   }
 
   @Test

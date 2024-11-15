@@ -103,8 +103,8 @@ class Script(
     super.copyTo(dest)
     val list = listOf(parameter1, parameter2, parameter3, parameter4, parameter5, parameter6)
     dest.setParameterList(list.map { it?.asScriptParameter() })
-    dest.executableByGroupIds = Group.toIntList(executableByGroups)
-    dest.executableByUserIds = User.toIntList(executableByUsers)
+    dest.executableByGroupIds = Group.toLongList(executableByGroups)
+    dest.executableByUserIds = User.toLongList(executableByUsers)
   }
 
   fun updateParameter(index: Int, parameter: ScriptParameter) {
@@ -144,7 +144,10 @@ class Script(
     var name: String? = null,
     var type: ScriptParameterType? = null,
     var stringValue: String? = null,
-    var intValue: Int? = null,
+    /**
+     * Is of type long (was Integer before migration)
+     */
+    var intValue: Long? = null,
     var decimalValue: BigDecimal? = null,
     var booleanValue: Boolean? = null,
     var dateValue: LocalDate? = null,
@@ -218,7 +221,7 @@ class Script(
             }
             ScriptParameterType.USER ->
               parameter.intValue?.let { userId ->
-                Registry.getInstance().getDao(UserDao::class.java).internalGetById(userId)?.let { userDO ->
+                Registry.getInstance().getDao(UserDao::class.java).find(userId, checkAccess = false)?.let { userDO ->
                   val user = User()
                   user.copyFromMinimal(userDO)
                   result.userValue = user

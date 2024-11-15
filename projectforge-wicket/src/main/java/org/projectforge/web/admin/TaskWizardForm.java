@@ -45,8 +45,6 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
 {
   private static final long serialVersionUID = -2450673501083584299L;
 
-  private transient TaskTree taskTree;
-
   protected TaskDO task;
 
   protected GroupDO managerGroup, team;
@@ -167,7 +165,7 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
       {
         parentPage.managerGroupCreated = "managerGroup".equals(key);
         final PageParameters params = new PageParameters();
-        final StringBuffer buf = new StringBuffer();
+        final StringBuilder buf = new StringBuilder();
         if (task != null) {
           buf.append(task.getTitle());
         }

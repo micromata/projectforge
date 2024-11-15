@@ -34,7 +34,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateParameter
@@ -47,8 +46,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.io.Serializable
-import javax.annotation.PostConstruct
-import javax.servlet.http.HttpServletRequest
+import jakarta.annotation.PostConstruct
+import jakarta.servlet.http.HttpServletRequest
 
 /**
  * Mass update after selection.
@@ -85,7 +84,7 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
   ) {
     val lc = LayoutContext(RechnungDO::class.java)
     val stats = RechnungsStatistik()
-    rechnungDao.getListByIds(selectedIds)?.forEach { invoice ->
+    rechnungDao.select(selectedIds)?.forEach { invoice ->
       stats.add(invoice)
     }
     layout.add(UIAlert("'${stats.asMarkdown}", color = UIColor.LIGHT, markdown = true))
@@ -105,7 +104,7 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
     selectedIds: Collection<Serializable>,
     massUpdateContext: MassUpdateContext<RechnungDO>,
   ): ResponseEntity<*>? {
-    val invoices = rechnungDao.getListByIds(selectedIds)
+    val invoices = rechnungDao.select(selectedIds)
     if (invoices.isNullOrEmpty()) {
       return null
     }
@@ -116,7 +115,7 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
       params["bezahlDatum"]?.let { param ->
         param.localDateValue?.let { localDate ->
           invoice.bezahlDatum = localDate
-          invoice.zahlBetrag = invoice.grossSum
+          invoice.zahlBetrag = invoice.info.grossSum
           invoice.status = RechnungStatus.BEZAHLT
         }
         if (param.delete == true) {
@@ -143,7 +142,7 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
   }
 
   override fun ensureUserLogSubscription(): LogSubscription {
-    val username = ThreadLocalUserContext.user!!.username ?: throw InternalError("User not given")
+    val username = ThreadLocalUserContext.loggedInUser!!.username ?: throw InternalError("User not given")
     val displayTitle = translate("fibu.rechnung.multiselected.title")
     return LogSubscription.ensureSubscription(
       title = "Debitor invoices",

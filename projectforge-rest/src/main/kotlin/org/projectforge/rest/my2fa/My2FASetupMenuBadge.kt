@@ -30,7 +30,7 @@ import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.security.My2FAService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 /**
  * Menu badge is 1 or empty, depends on whether the user has setup all 2FAs or not.
@@ -47,7 +47,7 @@ class My2FASetupMenuBadge : AbstractCache(TICKS_PER_HOUR) {
   /**
    * State by userId. True: setup finished, false: badge counter is 1.
    */
-  private val stateMap = mutableMapOf<Int, Boolean>()
+  private val stateMap = mutableMapOf<Long, Boolean>()
 
   @PostConstruct
   private fun postConstruct() {
@@ -59,12 +59,12 @@ class My2FASetupMenuBadge : AbstractCache(TICKS_PER_HOUR) {
    */
   val badgeCounter: Int?
     get() {
-      ThreadLocalUserContext.user?.let { user ->
+      ThreadLocalUserContext.loggedInUser?.let { user ->
         synchronized(stateMap) {
           var state = stateMap[user.id]
           if (state == null) {
             state = my2FAService.userConfigured2FA
-            stateMap[user.id] = state
+            stateMap[user.id!!] = state
           }
           return if (state) {
             null // State is OK (everything is configured)
@@ -81,7 +81,7 @@ class My2FASetupMenuBadge : AbstractCache(TICKS_PER_HOUR) {
    * after any modifications.
    */
   fun refreshUserBadgeCounter() {
-    ThreadLocalUserContext.userId?.let {
+    ThreadLocalUserContext.loggedInUserId?.let {
       synchronized(stateMap) {
         stateMap.remove(it)
       }

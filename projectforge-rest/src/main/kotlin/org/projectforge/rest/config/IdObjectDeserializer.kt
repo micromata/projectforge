@@ -54,13 +54,13 @@ constructor(private val defaultDeserialize: JsonDeserializer<*>, private var bea
 
     /**
      * Creation of instance works if:
-     * * [beanCls] provides a constructor with exactly one int parameter, or
-     * * [beanCls] provides a default constructor and has a setter method 'id' of type [Int].
+     * * [beanCls] provides a constructor with exactly one Long parameter, or
+     * * [beanCls] provides a default constructor and has a setter method 'id' of type [Long].
      */
-    fun create(id: Int): T {
+    fun create(id: Long): T {
         beanCls?.let { cls ->
             cls.declaredConstructors.forEach { constructor ->
-                if (constructor.parameterCount == 1 && constructor.parameterTypes == Int::class.java) {
+                if (constructor.parameterCount == 1 && constructor.parameterTypes == Long::class.java) {
                     @Suppress("UNCHECKED_CAST")
                     return constructor.newInstance(id) as T
                 }
@@ -75,7 +75,7 @@ constructor(private val defaultDeserialize: JsonDeserializer<*>, private var bea
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): T? {
         return if (p.hasToken(JsonToken.VALUE_NUMBER_INT)) {
             val node: JsonNode = p.codec.readTree(p)
-            create(node.asInt())
+            create(node.asLong())
         } else {
             @Suppress("UNCHECKED_CAST")
             defaultDeserialize.deserialize(p, ctxt) as? T

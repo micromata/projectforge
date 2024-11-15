@@ -173,7 +173,7 @@ public class ReportObjectivesPanel extends Panel
       rowRepeater.add(rowContainer);
       rowContainer.add(AttributeModifier.replace("class", (row++ % 2 == 0) ? "even" : "odd"));
       rowContainer.add(new Label("zeileNo", firstBusinessAssessmentRow.getNo()));
-      StringBuffer buf = new StringBuffer();
+      StringBuilder buf = new StringBuilder();
       for (int i = 0; i < firstBusinessAssessmentRow.getIndent(); i++) {
         buf.append("&nbsp;&nbsp;");
       }
@@ -189,7 +189,7 @@ public class ReportObjectivesPanel extends Panel
         final BusinessAssessmentRow businessAssessmentRow = businessAssessment.getRow(firstBusinessAssessmentRow.getId());
         final WebMarkupContainer item = new WebMarkupContainer(cellRepeater.newChildId());
         cellRepeater.add(item);
-        buf = new StringBuffer();
+        buf = new StringBuilder();
         buf.append("text-align: right; white-space: nowrap;");
         if (col++ == 0) {
           buf.append(" font-weight: bold;");

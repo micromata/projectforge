@@ -23,6 +23,7 @@
 
 package org.projectforge.web;
 
+import jakarta.annotation.PostConstruct;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.Model;
@@ -34,78 +35,98 @@ import org.projectforge.menu.builder.MenuCreatorContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.*;
+
 /**
  * Build of the user's personal menu (depending on the access rights of the user).
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service
-public class WicketMenuBuilder {
-  @Autowired
-  private FavoritesMenuCreator favoritesMenuCreator;
+public class WicketMenuBuilder implements Serializable {
+    private static WicketMenuBuilder instance;
 
-  @Autowired
-  private MenuItemRegistry menuItemRegistry;
+    @Autowired
+    private transient FavoritesMenuCreator favoritesMenuCreator;
 
-  public WicketMenu getFavoriteMenu() {
-    Menu menu = favoritesMenuCreator.getFavoriteMenu();
-    return buildMenuTree(menu);
-  }
+    @Autowired
+    private transient MenuItemRegistry menuItemRegistry;
 
-  public WicketMenu getMenu(final PFUserDO user) {
-    return buildMenuTree(user);
-  }
-
-  private WicketMenu buildMenuTree(final PFUserDO user) {
-    if (user == null) {
-      return null;
+    @PostConstruct
+    private void init() {
+        instance = this;
     }
-    Menu menu = WicketSupport.getMenuCreator().build(new MenuCreatorContext(user, false));
-    return buildMenuTree(menu);
-  }
 
-  private WicketMenu buildMenuTree(Menu menu) {
-    WicketMenu wicketMenu = new WicketMenu();
-    if (menu.getBadge() != null)
-      wicketMenu.setTotalBadgeCounter(menu.getBadge().getCounter());
-    else
-      wicketMenu.setTotalBadgeCounter(0);
-    for (MenuItem item : menu.getMenuItems()) {
-      WicketMenuEntry entry = createMenuEntry(item, menu);
-      wicketMenu.addMenuEntry(entry);
-      if (CollectionUtils.isNotEmpty(item.getSubMenu())) {
-        buildMenuTree(entry, item, menu);
-      }
+    public WicketMenu getFavoriteMenu() {
+        Menu menu = favoritesMenuCreator.getFavoriteMenu();
+        return buildMenuTree(menu);
     }
-    return wicketMenu;
-  }
 
-  private void buildMenuTree(WicketMenuEntry parent, MenuItem parentItem, Menu menu) {
-    for (MenuItem item : parentItem.getSubMenu()) {
-      WicketMenuEntry entry = createMenuEntry(item, menu);
-      parent.addMenuEntry(entry);
+    public WicketMenu getMenu(final PFUserDO user) {
+        return buildMenuTree(user);
     }
-  }
 
-  private WicketMenuEntry createMenuEntry(MenuItem item, Menu menu) {
-    WicketMenuEntry entry = new WicketMenuEntry();
-    entry.id = item.getKey();
-    if (item.getI18nKey() != null)
-      entry.i18nKey = item.getI18nKey();
-    else if (StringUtils.isNotBlank(item.getTitle()))
-      entry.name = item.getTitle();
-    else
-      entry.name = "???";
-    entry.pageClass = menuItemRegistry.getPageClass(item.getId());
-    entry.url = item.getUrl();
-    if (item.getBadge() != null) {
-      entry.setBadgeCounter(new Model<Integer>() {
-        @Override
-        public Integer getObject() {
-          return item.getBadge().getCounter();
+    private WicketMenu buildMenuTree(final PFUserDO user) {
+        if (user == null) {
+            return null;
         }
-      });
+        Menu menu = WicketSupport.getMenuCreator().build(new MenuCreatorContext(user, false));
+        return buildMenuTree(menu);
     }
-    return entry;
-  }
+
+    private WicketMenu buildMenuTree(Menu menu) {
+        WicketMenu wicketMenu = new WicketMenu();
+        if (menu.getBadge() != null)
+            wicketMenu.setTotalBadgeCounter(menu.getBadge().getCounter());
+        else
+            wicketMenu.setTotalBadgeCounter(0);
+        for (MenuItem item : menu.getMenuItems()) {
+            WicketMenuEntry entry = createMenuEntry(item, menu);
+            wicketMenu.addMenuEntry(entry);
+            if (CollectionUtils.isNotEmpty(item.getSubMenu())) {
+                buildMenuTree(entry, item, menu);
+            }
+        }
+        return wicketMenu;
+    }
+
+    private void buildMenuTree(WicketMenuEntry parent, MenuItem parentItem, Menu menu) {
+        for (MenuItem item : parentItem.getSubMenu()) {
+            WicketMenuEntry entry = createMenuEntry(item, menu);
+            parent.addMenuEntry(entry);
+        }
+    }
+
+    private WicketMenuEntry createMenuEntry(MenuItem item, Menu menu) {
+        WicketMenuEntry entry = new WicketMenuEntry();
+        entry.id = item.getKey();
+        if (item.getI18nKey() != null)
+            entry.i18nKey = item.getI18nKey();
+        else if (StringUtils.isNotBlank(item.getTitle()))
+            entry.name = item.getTitle();
+        else
+            entry.name = "???";
+        entry.pageClass = menuItemRegistry.getPageClass(item.getId());
+        entry.url = item.getUrl();
+        if (item.getBadge() != null) {
+            entry.setBadgeCounter(new Model<Integer>() {
+                @Override
+                public Integer getObject() {
+                    return item.getBadge().getCounter();
+                }
+            });
+        }
+        return entry;
+    }
+
+    @Serial
+    private void readObject(ObjectInputStream aInputStream) throws ClassNotFoundException, IOException {
+        this.favoritesMenuCreator = instance.favoritesMenuCreator;
+        this.menuItemRegistry = instance.menuItemRegistry;
+    }
+
+    @Serial
+    private void writeObject(ObjectOutputStream aOutputStream) throws IOException {
+        // Do nothing.
+    }
 }

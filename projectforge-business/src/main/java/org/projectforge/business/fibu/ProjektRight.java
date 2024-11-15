@@ -24,10 +24,10 @@
 package org.projectforge.business.fibu;
 
 import org.projectforge.business.user.*;
-import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 
 /**
  * @author Kai Reinhard (k.reinhard@me.de)
@@ -36,9 +36,9 @@ public class ProjektRight extends UserRightAccessCheck<ProjektDO>
 {
   private static final long serialVersionUID = -3712738266564403670L;
 
-  public ProjektRight(AccessChecker accessChecker)
+  public ProjektRight()
   {
-    super(accessChecker, UserRightId.PM_PROJECT, UserRightCategory.PM,
+    super(UserRightId.PM_PROJECT, UserRightCategory.PM,
         UserRightServiceImpl.FALSE_READONLY_READWRITE);
     initializeUserGroupsRight(UserRightServiceImpl.FALSE_READONLY_READWRITE, UserRightServiceImpl.FIBU_ORGA_PM_GROUPS)
         // All project managers have read only access:
@@ -58,7 +58,7 @@ public class ProjektRight extends UserRightAccessCheck<ProjektDO>
   @Override
   public boolean hasSelectAccess(final PFUserDO user)
   {
-    return accessChecker.isAvailable(user, UserRightId.PM_PROJECT);
+    return WicketSupport.getAccessChecker().isAvailable(user, UserRightId.PM_PROJECT);
   }
 
   @Override
@@ -67,25 +67,26 @@ public class ProjektRight extends UserRightAccessCheck<ProjektDO>
     if (obj == null) {
       return true;
     }
+    var accessChecker = WicketSupport.getAccessChecker();
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.CONTROLLING_GROUP)) {
       return true;
     }
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.PROJECT_MANAGER,
         ProjectForgeGroup.PROJECT_ASSISTANT)) {
-      Integer userId = user.getId();
-      Integer headOfBusinessManagerId = obj.getHeadOfBusinessManager() != null ? obj.getHeadOfBusinessManager().getId() : null;
-      Integer projectManagerId = obj.getProjectManager() != null ? obj.getProjectManager().getId() : null;
-      Integer salesManageId = obj.getSalesManager() != null ? obj.getSalesManager().getId() : null;
+      Long userId = user.getId();
+      Long headOfBusinessManagerId = obj.getHeadOfBusinessManager() != null ? obj.getHeadOfBusinessManager().getId() : null;
+      Long projectManagerId = obj.getProjectManager() != null ? obj.getProjectManager().getId() : null;
+      Long salesManageId = obj.getSalesManager() != null ? obj.getSalesManager().getId() : null;
       if (userId != null && (userId.equals(headOfBusinessManagerId) || userId.equals(projectManagerId) || userId.equals(salesManageId))) {
         return true;
       }
 
       final UserGroupCache userGroupCache = UserGroupCache.getInstance();
       if (obj.getProjektManagerGroup() != null
-          && userGroupCache.isUserMemberOfGroup(ThreadLocalUserContext.getUserId(),
+          && userGroupCache.isUserMemberOfGroup(ThreadLocalUserContext.getLoggedInUserId(),
           obj.getProjektManagerGroupId())) {
         if ((obj.getStatus() == null || !obj.getStatus().isIn(ProjektStatus.ENDED))
-            && !obj.isDeleted()) {
+            && !obj.getDeleted()) {
           // Ein Projektleiter sieht keine nicht aktiven oder gelöschten Projekte.
           return true;
         }
@@ -104,7 +105,7 @@ public class ProjektRight extends UserRightAccessCheck<ProjektDO>
   public boolean hasAccess(final PFUserDO user, final ProjektDO obj, final ProjektDO oldObj,
       final OperationType operationType)
   {
-    return accessChecker.hasRight(user, getId(), UserRightValue.READWRITE);
+    return WicketSupport.getAccessChecker().hasRight(user, getId(), UserRightValue.READWRITE);
   }
 
   /**
@@ -115,6 +116,7 @@ public class ProjektRight extends UserRightAccessCheck<ProjektDO>
   @Override
   public boolean hasHistoryAccess(final PFUserDO user, final ProjektDO obj)
   {
+    var accessChecker = WicketSupport.getAccessChecker();
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.CONTROLLING_GROUP)) {
       return true;
     }

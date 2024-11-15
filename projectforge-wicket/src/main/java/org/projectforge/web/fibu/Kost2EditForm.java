@@ -26,7 +26,6 @@ package org.projectforge.web.fibu;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
@@ -34,10 +33,12 @@ import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.kost.Kost2ArtDao;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.KostentraegerStatus;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.converter.IntegerConverter;
+import org.projectforge.web.wicket.converter.LongConverter;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
@@ -52,16 +53,13 @@ public class Kost2EditForm extends AbstractEditForm<Kost2DO, Kost2EditPage>
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Kost2EditForm.class);
 
-  @SpringBean
-  private Kost2ArtDao kost2ArtDao;
-
   protected TextField<Integer> nummernkreisField;
 
   protected TextField<Integer> bereichField;
 
   protected TextField<Integer> teilbereichField;
 
-  protected TextField<Integer> kost2ArtField;
+  protected TextField<Long> kost2ArtField;
 
   protected NewProjektSelectPanel projektSelectPanel;
 
@@ -120,19 +118,19 @@ public class Kost2EditForm extends AbstractEditForm<Kost2DO, Kost2EditPage>
       WicketUtils.setSize(teilbereichField, 2);
       fs.add(teilbereichField);
       fs.add(new DivTextPanel(fs.newChildId(), "."));
-      kost2ArtField = new RequiredMinMaxNumberField<Integer>(InputPanel.WICKET_ID, new PropertyModel<Integer>(data, "kost2Art.id"), 0, 99)
+      kost2ArtField = new RequiredMinMaxNumberField<Long>(InputPanel.WICKET_ID, new PropertyModel<Long>(data, "kost2Art.id"), 0L, 99L)
       {
         @SuppressWarnings({ "unchecked", "rawtypes" })
         @Override
         public IConverter getConverter(final Class type)
         {
-          return new IntegerConverter(2);
+          return new LongConverter(2);
         }
       };
       kost2ArtField.setRequired(true);
-      kost2ArtField.add((IValidator<Integer>) validatable -> {
-        final Integer value = validatable.getValue();
-        if (kost2ArtDao.getById(value) == null) { // Kost2 available but not selected.
+      kost2ArtField.add((IValidator<Long>) validatable -> {
+        final Long value = validatable.getValue();
+        if (WicketSupport.get(Kost2ArtDao.class).find(value) == null) { // Kost2 available but not selected.
           error(new ValidationError().addKey("fibu.kost2art.error.notFound"));
         }
       });

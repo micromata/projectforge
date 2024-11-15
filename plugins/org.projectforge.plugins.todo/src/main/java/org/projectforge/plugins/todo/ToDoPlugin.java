@@ -30,61 +30,58 @@ import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.registry.RegistryEntry;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class ToDoPlugin extends AbstractPlugin {
-  public static final String ID = "toDo";
+    public static final String ID = "toDo";
 
-  public static final String ADDRESS = "address";
+    public static final String ADDRESS = "address";
 
-  public static final String RESOURCE_BUNDLE_NAME = "ToDoI18nResources";
+    public static final String RESOURCE_BUNDLE_NAME = "ToDoI18nResources";
 
-  static UserPrefArea USER_PREF_AREA;
+    static UserPrefArea USER_PREF_AREA;
 
-  // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
-  // each test).
-  // The entities are inserted in ascending order and deleted in descending order.
-  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[]{ToDoDO.class};
+    // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
+    // each test).
+    // The entities are inserted in ascending order and deleted in descending order.
+    private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[]{ToDoDO.class};
 
-  @Autowired
-  private ToDoDao toDoDao;
+    public ToDoPlugin() {
+        super(PluginAdminService.PLUGIN_TODO_ID, "To-do", "To-do's may shared by users, groups etc. with notification per e-mail on changes.");
+    }
 
-  @Autowired
-  private PluginWicketRegistrationService pluginWicketRegistrationService;
+    /**
+     * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
+     */
+    @Override
+    protected void initialize() {
+        ToDoDao toDoDao = WicketSupport.get(ToDoDao.class);
+        PluginWicketRegistrationService pluginWicketRegistrationService = WicketSupport.get(PluginWicketRegistrationService.class);
 
-  public ToDoPlugin() {
-    super(PluginAdminService.PLUGIN_TODO_ID, "To-do", "To-do's may shared by users, groups etc. with notification per e-mail on changes.");
-  }
+        // DatabaseUpdateDao is needed by the updater:
+        final RegistryEntry entry = new RegistryEntry(ID, ToDoDao.class, toDoDao, "plugins.todo");
+        // The ToDoDao is automatically available by the scripting engine!
+        register(entry); // Insert at second position after Address entry (for SearchPage).
 
-  /**
-   * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
-   */
-  @Override
-  protected void initialize() {
-    // DatabaseUpdateDao is needed by the updater:
-    final RegistryEntry entry = new RegistryEntry(ID, ToDoDao.class, toDoDao, "plugins.todo");
-    // The ToDoDao is automatically available by the scripting engine!
-    register(entry); // Insert at second position after Address entry (for SearchPage).
+        // Register the web part:
+        pluginWicketRegistrationService.registerWeb(ID, ToDoListPage.class, ToDoEditPage.class, ADDRESS, false); // Insert at second position after Address entry (for SearchPage).
 
-    // Register the web part:
-    pluginWicketRegistrationService.registerWeb(ID, ToDoListPage.class, ToDoEditPage.class, ADDRESS, false); // Insert at second position after Address entry (for SearchPage).
+        // Register the menu entry as sub menu entry of the misc menu:
+        MenuItemDef todomenu = MenuItemDef.create(ID, "plugins.todo.menu");
+        todomenu.setBadgeCounter(() -> toDoDao.getOpenToDoEntries(null));
+        pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, todomenu, ToDoListPage.class);
 
-    // Register the menu entry as sub menu entry of the misc menu:
-    MenuItemDef todomenu = MenuItemDef.create(ID, "plugins.todo.menu");
-    todomenu.setBadgeCounter(() -> toDoDao.getOpenToDoEntries(null));
-    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, todomenu, ToDoListPage.class);
+        // Define the access management:
+        registerRight(new ToDoRight());
 
-    // Define the access management:
-    registerRight(new ToDoRight(accessChecker));
+        // All the i18n stuff:
+        addResourceBundle(RESOURCE_BUNDLE_NAME);
 
-    // All the i18n stuff:
-    addResourceBundle(RESOURCE_BUNDLE_NAME);
-
-    USER_PREF_AREA = new UserPrefArea("TODO_FAVORITE", ToDoDO.class, "todo.favorite");
-    UserPrefAreaRegistry.instance().register(USER_PREF_AREA);
-  }
+        USER_PREF_AREA = new UserPrefArea("TODO_FAVORITE", ToDoDO.class, "todo.favorite");
+        UserPrefAreaRegistry.instance().register(USER_PREF_AREA);
+    }
 }

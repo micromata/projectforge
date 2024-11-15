@@ -23,8 +23,6 @@
 
 package org.projectforge.business.teamcal.event.model
 
-import de.micromata.genome.db.jpa.history.api.NoHistory
-import de.micromata.genome.db.jpa.history.api.WithHistory
 import mu.KotlinLogging
 import net.fortuna.ical4j.model.DateTime
 import net.fortuna.ical4j.model.Month
@@ -32,7 +30,6 @@ import net.fortuna.ical4j.model.Recur
 import net.fortuna.ical4j.model.WeekDay
 import net.fortuna.ical4j.model.property.RRule
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.search.annotations.*
 import org.projectforge.Constants
 import org.projectforge.business.calendar.event.model.ICalendarEvent
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
@@ -41,7 +38,7 @@ import org.projectforge.business.teamcal.event.TeamEventRecurrenceData
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.calendar.ICal4JUtils
 import org.projectforge.framework.persistence.api.AUserRightId
-import org.projectforge.framework.persistence.api.PFPersistancyBehavior
+import org.projectforge.framework.persistence.history.PersistenceBehavior
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateFormats
@@ -50,7 +47,10 @@ import org.projectforge.framework.time.RecurrenceFrequency
 import org.projectforge.framework.time.TimePeriod
 import java.text.SimpleDateFormat
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
+import org.projectforge.framework.persistence.history.NoHistory
 
 private val log = KotlinLogging.logger {}
 
@@ -82,18 +82,18 @@ private val log = KotlinLogging.logger {}
     name = "unique_t_plugin_calendar_event_uid_calendar_fk",
     columnNames = ["uid", "calendar_fk"]
   )],
-  indexes = [javax.persistence.Index(
+  indexes = [jakarta.persistence.Index(
     name = "idx_fk_t_plugin_calendar_event_calendar_fk",
     columnList = "calendar_fk"
-  ), javax.persistence.Index(
+  ), jakarta.persistence.Index(
     name = "idx_plugin_team_cal_end_date",
     columnList = "calendar_fk, end_date"
-  ), javax.persistence.Index(
+  ), jakarta.persistence.Index(
     name = "idx_plugin_team_cal_start_date",
     columnList = "calendar_fk, start_date"
-  ), javax.persistence.Index(name = "idx_plugin_team_cal_time", columnList = "calendar_fk, start_date, end_date")]
+  ), jakarta.persistence.Index(name = "idx_plugin_team_cal_time", columnList = "calendar_fk, start_date, end_date")]
 )
-@WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [TeamEventAttendeeDO::class])
+//@WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [TeamEventAttendeeDO::class])
 @AUserRightId(value = "PLUGIN_CALENDAR_EVENT")
 @NamedQueries(
   NamedQuery(
@@ -103,12 +103,12 @@ private val log = KotlinLogging.logger {}
 )
 open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
   @PropertyInfo(i18nKey = "plugins.teamcal.event.subject")
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_SUBJECT)
   override var subject: String? = null
 
   @PropertyInfo(i18nKey = "plugins.teamcal.event.location")
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_SUBJECT)
   override var location: String? = null
 
@@ -117,20 +117,20 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
   override var allDay: Boolean = false
 
   @PropertyInfo(i18nKey = "plugins.teamcal.event.beginDate")
-  @Field(analyze = Analyze.NO)
-  @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
+  @GenericField // was: @FullTextField(analyze = Analyze.NO)
+  //@DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
   @get:Column(name = "start_date")
   override var startDate: Date? = null
 
   @PropertyInfo(i18nKey = "plugins.teamcal.event.endDate")
-  @Field(analyze = Analyze.NO)
-  @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
+  @GenericField // was: @FullTextField(analyze = Analyze.NO)
+  //@DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
   @get:Column(name = "end_date")
   override var endDate: Date? = null
 
-  @Field(analyze = Analyze.NO)
-  @DateBridge(resolution = Resolution.SECOND, encoding = EncodingType.STRING)
-  @field:NoHistory
+  @GenericField // was: @FullTextField(analyze = Analyze.NO)
+  //@DateBridge(resolution = Resolution.SECOND, encoding = EncodingType.STRING)
+  @NoHistory
   @get:Column(name = "last_email")
   open var lastEmail: Date? = null
 
@@ -138,7 +138,8 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
   open var dtStamp: Date? = null
 
   @PropertyInfo(i18nKey = "plugins.teamcal.calendar")
-  @IndexedEmbedded(depth = 1)
+  @IndexedEmbedded(includeDepth = 1)
+  @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "calendar_fk", nullable = false)
   open var calendar: TeamCalDO? = null
@@ -193,19 +194,14 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
   open var recurrenceUntil: Date? = null
 
   @PropertyInfo(i18nKey = "plugins.teamcal.event.note")
-  @Field
+  @FullTextField
   @get:Column(length = 4000)
   override var note: String? = null
 
+  // @get:OneToMany(fetch = FetchType.LAZY)
+  // @get:JoinColumn(name = "team_event_fk")
+  @get:Transient
   open var attendees: MutableSet<TeamEventAttendeeDO>? = null
-    @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "team_event_fk")
-    get() {
-      if (field == null) {
-        field = HashSet()
-      }
-      return field
-    }
 
   @get:Column
   open var ownership: Boolean? = null
@@ -238,28 +234,23 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
   @get:Column(name = "reminder_action_type")
   open var reminderActionType: ReminderActionType? = null
 
-  @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
-  @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
-  @get:JoinColumn(name = "team_event_fk2")
+  //@PersistenceBehavior(autoUpdateCollectionEntries = true)
+  //@get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
+  //@get:JoinColumn(name = "team_event_fk2")
+  @get:Transient
   open var attachments: MutableSet<TeamEventAttachmentDO>? = null
-    get() {
-      if (field == null) {
-        field = TreeSet()
-      }
-      return field
-    }
 
   open var creator: PFUserDO? = null
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_event_fk_creator")
     get() {
-      if (this.pk != null && field == null) {
+      if (this.id != null && field == null) {
         this.creator = this.calendar!!.owner
       }
       return field
     }
 
-  val calendarId: Int?
+  val calendarId: Long?
     @Transient
     get() = calendar?.id
 
@@ -676,7 +667,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
    * @param recurrenceReferenceId the recurrenceReferenceId to set
    * @return this for chaining.
    */
-  fun setRecurrenceReferenceId(recurrenceReferenceId: Int?): TeamEventDO {
+  fun setRecurrenceReferenceId(recurrenceReferenceId: Long?): TeamEventDO {
     this.recurrenceReferenceId = recurrenceReferenceId?.toString()
     return this
   }

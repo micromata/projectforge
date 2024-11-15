@@ -37,9 +37,6 @@ class RechnungsPosition(
 
     var kostZuweisungen: MutableList<KostZuweisung>? = null
 
-    override val netSum: BigDecimal
-        get() = RechnungCalculator.calculateNetSum(this)
-
     /**
      * @see copyFrom
      */

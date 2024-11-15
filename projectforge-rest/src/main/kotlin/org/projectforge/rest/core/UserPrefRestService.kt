@@ -30,8 +30,8 @@ import org.projectforge.framework.utils.CloneHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.io.Serializable
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpSession
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpSession
 
 /**
  * Uses [UserPrefService].
@@ -54,7 +54,7 @@ class UserPrefRestService {
      * @param persistent If true, the object will be persisted in the database.
      */
     fun putEntry(session: HttpSession, area: String, name: String, value: Any?, persistent: Boolean) {
-        val user = ThreadLocalUserContext.user
+        val user = ThreadLocalUserContext.loggedInUser
         if (user == null || value == null) {
             // Should only occur, if user is not logged in.
             return
@@ -86,7 +86,7 @@ class UserPrefRestService {
      * existing, otherwise null;
      */
     fun getEntry(session: HttpSession, area: String, name: String): Any? {
-        val user = ThreadLocalUserContext.user
+        val user = ThreadLocalUserContext.loggedInUser
                 ?: // Should only occur, if user is not logged in.
                 return null
         if (AccessChecker.isDemoUser(user)) {
@@ -150,7 +150,7 @@ class UserPrefRestService {
      * @return The removed entry if found.
      */
     fun removeEntry(session: HttpSession, area: String, name: String) {
-        val user = ThreadLocalUserContext.user
+        val user = ThreadLocalUserContext.loggedInUser
                 ?: // Should only occur, if user is not logged in.
                 return
         if (AccessChecker.isDemoUser(user)) {

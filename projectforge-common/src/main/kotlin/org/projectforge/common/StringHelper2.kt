@@ -27,32 +27,54 @@ package org.projectforge.common
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 object StringHelper2 {
-  @JvmStatic
-  @JvmOverloads
-  fun getWildCard(stringArray: Array<String?>?, wildCard: String = ""): String {
-    if (stringArray.isNullOrEmpty()) {
-      return wildCard
-    }
-    if (stringArray.any { it.isNullOrEmpty() }) {
-      return wildCard
-    }
-    val first = stringArray[0]!!
-    if (stringArray.size == 1) {
-      return first
-    }
-    for (n in first.length downTo 0) {
-      val str = first.take(n)
-      var misMatchFound = false
-      for (i in 1 until stringArray.size) {
-        if (!stringArray[i]!!.startsWith(str)) {
-          misMatchFound = true
-          continue
+    @JvmStatic
+    @JvmOverloads
+    fun getWildCard(stringArray: Array<String?>?, wildCard: String = ""): String {
+        if (stringArray.isNullOrEmpty()) {
+            return wildCard
         }
-      }
-      if (!misMatchFound) {
-        return "$str$wildCard"
-      }
+        if (stringArray.any { it.isNullOrEmpty() }) {
+            return wildCard
+        }
+        val first = stringArray[0]!!
+        if (stringArray.size == 1) {
+            return first
+        }
+        for (n in first.length downTo 0) {
+            val str = first.take(n)
+            var misMatchFound = false
+            for (i in 1 until stringArray.size) {
+                if (!stringArray[i]!!.startsWith(str)) {
+                    misMatchFound = true
+                    continue
+                }
+            }
+            if (!misMatchFound) {
+                return "$str$wildCard"
+            }
+        }
+        return wildCard
     }
-    return wildCard
-  }
+
+    fun splitToLongArray(str: String?, vararg delimiters: String): LongArray {
+        return splitToListOfLongValues(str, delimiters = delimiters).toLongArray()
+    }
+
+    /**
+     * @param addNullValues If true, not parseable values or empty values are added as null. Default is false.
+     */
+    fun splitToListOfLongValues(str: String?, vararg delimiters: String): List<Long> {
+        if (str.isNullOrEmpty()) {
+            return emptyList()
+        }
+        val useDelimiters = if (delimiters.isNotEmpty()) delimiters else arrayOf(",")
+        val result = mutableListOf<Long>()
+        str.split(delimiters = useDelimiters).forEach {
+            val value = it.trim().toLongOrNull()
+            if (value != null) {
+                result.add(value)
+            }
+        }
+        return result
+    }
 }

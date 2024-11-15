@@ -72,9 +72,9 @@ public class TeamCalsProvider extends ChoiceProvider<TeamCalDO>
     this.additionalCalendarList = additionalCalendarList;
   }
 
-  public static List<Integer> getCalIdList(final Collection<TeamCalDO> teamCals)
+  public static List<Long> getCalIdList(final Collection<TeamCalDO> teamCals)
   {
-    final List<Integer> list = new ArrayList<>();
+    final List<Long> list = new ArrayList<>();
     if (teamCals != null) {
       for (final TeamCalDO cal : teamCals) {
         list.add(cal.getId());
@@ -83,11 +83,11 @@ public class TeamCalsProvider extends ChoiceProvider<TeamCalDO>
     return list;
   }
 
-  public static List<TeamCalDO> getCalList(TeamCalCache teamCalCache, final Collection<Integer> teamCalIds)
+  public static List<TeamCalDO> getCalList(TeamCalCache teamCalCache, final Collection<Long> teamCalIds)
   {
     final List<TeamCalDO> list = new ArrayList<>();
     if (teamCalIds != null) {
-      for (final Integer calId : teamCalIds) {
+      for (final Long calId : teamCalIds) {
         final TeamCalDO cal = teamCalCache.getCalendar(calId);
         if (cal != null) {
           list.add(cal);
@@ -108,9 +108,9 @@ public class TeamCalsProvider extends ChoiceProvider<TeamCalDO>
     if (StringUtils.isEmpty(calIds) == true) {
       return null;
     }
-    final int[] ids = StringHelper.splitToInts(calIds, ",", false);
+    final long[] ids = StringHelper.splitToLongs(calIds, ",", false);
     final List<String> list = new ArrayList<String>();
-    for (final int id : ids) {
+    for (final long id : ids) {
       final TeamCalDO cal = teamCalCache.getCalendar(id);
       if (cal != null) {
         list.add(cal.getTitle());
@@ -131,8 +131,8 @@ public class TeamCalsProvider extends ChoiceProvider<TeamCalDO>
       return null;
     }
     sortedCals = new TreeSet<TeamCalDO>(calsComparator);
-    final int[] ids = StringHelper.splitToInts(calIds, ",", false);
-    for (final int id : ids) {
+    final long[] ids = StringHelper.splitToLongs(calIds, ",", false);
+    for (final long id : ids) {
       final TeamCalDO cal = teamCalCache.getCalendar(id);
       if (cal != null) {
         sortedCals.add(cal);
@@ -145,7 +145,7 @@ public class TeamCalsProvider extends ChoiceProvider<TeamCalDO>
 
   public String getCalendarIds(final Collection<TeamCalDO> calendars)
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean first = true;
     for (final TeamCalDO calendar : calendars) {
       if (calendar.getId() != null) {
@@ -161,7 +161,7 @@ public class TeamCalsProvider extends ChoiceProvider<TeamCalDO>
       final Collection<TeamCalDO> allCalendars = getCalendarList();
       sortedCals = new TreeSet<TeamCalDO>(calsComparator);
       for (final TeamCalDO cal : allCalendars) {
-        if (cal.isDeleted() == false) {
+        if (cal.getDeleted() == false) {
           sortedCals.add(cal);
         }
       }
@@ -241,7 +241,7 @@ public class TeamCalsProvider extends ChoiceProvider<TeamCalDO>
       return list;
     }
     for (final String str : ids) {
-      final Integer calId = NumberHelper.parseInteger(str);
+      final Long calId = NumberHelper.parseLong(str);
       if (calId == null) {
         continue;
       }

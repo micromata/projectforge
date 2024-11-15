@@ -23,8 +23,8 @@
 
 package org.projectforge.security
 
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 /**
  * My2FAPageRest is registered as My2FAPage for handling 2FA and doing the redirect after

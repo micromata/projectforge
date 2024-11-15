@@ -28,7 +28,8 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.projectforge.security.LoggingFilter
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.commons.test.TestUtils
 
 class LoggingFilterTest {
 
@@ -46,9 +47,11 @@ class LoggingFilterTest {
     val unknownUris = arrayOf("/wa/../ini.php", "cmd.exe", "/secure/Logo.png")
     counter = 0
     Mockito.`when`(request.requestURI).thenAnswer { unknownUris[counter] }
-    unknownUris.forEach {
-      assertTrue(LoggingFilter.logSuspiciousURI(request, null), "uri '$it' shouldn't be accepted.")
-      ++counter
+    TestUtils.suppressErrorLogs {
+      unknownUris.forEach {
+        assertTrue(LoggingFilter.logSuspiciousURI(request, null), "uri '$it' shouldn't be accepted.")
+        ++counter
+      }
     }
   }
 }

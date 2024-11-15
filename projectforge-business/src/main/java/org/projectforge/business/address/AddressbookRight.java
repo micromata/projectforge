@@ -27,6 +27,7 @@ import org.projectforge.business.common.BaseUserGroupRight;
 import org.projectforge.business.user.*;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 
 /**
  * @author Florian Blumenstein
@@ -34,8 +35,8 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 public class AddressbookRight extends BaseUserGroupRight<AddressbookDO> {
   private static final long serialVersionUID = -2928342166476350773L;
 
-  public AddressbookRight(AccessChecker accessChecker) {
-    super(accessChecker, UserRightId.MISC_ADDRESSBOOK, UserRightCategory.MISC,
+  public AddressbookRight() {
+    super(UserRightId.MISC_ADDRESSBOOK, UserRightCategory.MISC,
             UserRightValue.TRUE);
   }
 
@@ -51,6 +52,6 @@ public class AddressbookRight extends BaseUserGroupRight<AddressbookDO> {
   public boolean hasSelectAccess(final PFUserDO user, final AddressbookDO obj) {
     return super.hasSelectAccess(user, obj)
             || checkGlobal(obj)
-            || accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.ORGA_TEAM);
+            || WicketSupport.getAccessChecker().isUserMemberOfGroup(user, ProjectForgeGroup.ORGA_TEAM);
   }
 }

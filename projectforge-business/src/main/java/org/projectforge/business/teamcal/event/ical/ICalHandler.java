@@ -256,12 +256,12 @@ public class ICalHandler
 
     if (eventInDB != null) {
       // event exists, update metadata
-      event.setId(eventInDB.getPk());
+      event.setId(eventInDB.getId());
       event.setCreated(eventInDB.getCreated());
       event.setLastUpdate();
       event.setCreator(eventInDB.getCreator());
 
-      final boolean isDeleted = eventInDB.isDeleted();
+      final boolean isDeleted = eventInDB.getDeleted();
       if (isDeleted) {
         // event is deleted, restore
         eventService.undelete(eventInDB);

@@ -27,7 +27,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.dto.BaseDTO
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 /**
  * This is the base class for all fronted functionality regarding query, editing etc. It also serves layout
@@ -38,7 +38,7 @@ import javax.servlet.http.HttpServletRequest
  * by these rest services.
  */
 abstract class AbstractDTOPagesRest<
-    O : ExtendedBaseDO<Int>,
+    O : ExtendedBaseDO<Long>,
     DTO : BaseDTO<O>,
     B : BaseDao<O>>(
   baseDaoClazz: Class<B>,
@@ -47,9 +47,9 @@ abstract class AbstractDTOPagesRest<
 ) : AbstractPagesRest<O, DTO, B>(baseDaoClazz, i18nKeyPrefix, cloneSupport) {
 
   /**
-   * @return New result set of dto's, transformed from data base objects.
+   * @return New result set of dto's, transformed from database objects.
    */
-  override fun processResultSetBeforeExport(
+  override fun postProcessResultSet(
     resultSet: ResultSet<O>,
     request: HttpServletRequest,
     magicFilter: MagicFilter,
@@ -75,7 +75,7 @@ abstract class AbstractDTOPagesRest<
   /**
    * @param dto Expected as DTO
    */
-  override fun getId(dto: Any): Int? {
+  override fun getId(dto: Any): Long? {
     @Suppress("UNCHECKED_CAST")
     return (dto as DTO).id
   }

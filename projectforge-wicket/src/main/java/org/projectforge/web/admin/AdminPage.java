@@ -23,18 +23,14 @@
 
 package org.projectforge.web.admin;
 
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlDumpService;
-import de.micromata.genome.util.runtime.RuntimeIOException;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.SystemAlertMessage;
 import org.projectforge.SystemStatus;
 import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookDao;
 import org.projectforge.business.book.BookStatus;
 import org.projectforge.business.systeminfo.SystemService;
-import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.user.UserXmlPreferencesMigrationDao;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
@@ -44,12 +40,10 @@ import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.i18n.I18nKeysUsageInterface;
 import org.projectforge.framework.persistence.api.ReindexSettings;
 import org.projectforge.framework.persistence.database.DatabaseService;
-import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+import org.projectforge.framework.persistence.search.HibernateSearchReindexer;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.jcr.JCRCheckSanityJob;
-import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
@@ -58,12 +52,10 @@ import org.projectforge.web.wicket.MessagePage;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.zip.GZIPOutputStream;
 
 public class AdminPage extends AbstractStandardFormPage implements ISelectCallerPage {
   private static final long serialVersionUID = 8345068133036236305L;
@@ -71,39 +63,6 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminPage.class);
 
   static final int NUMBER_OF_TEST_OBJECTS_TO_CREATE = 100;
-
-  @SpringBean
-  private BookDao bookDao;
-
-  @SpringBean
-  private JpaXmlDumpService jpaXmlDumpService;
-
-  @SpringBean
-  private SystemService systemService;
-
-  @SpringBean
-  private DatabaseService databaseService;
-
-  @SpringBean
-  private JCRCheckSanityJob jcrCheckSanityJob;
-
-  @SpringBean
-  private HibernateSearchReindexer hibernateSearchReindexer;
-
-  @SpringBean
-  private UserXmlPreferencesCache userXmlPreferencesCache;
-
-  @SpringBean
-  private UserXmlPreferencesMigrationDao userXmlPreferencesMigrationDao;
-
-  @SpringBean
-  private PfEmgrFactory emf;
-
-  @SpringBean
-  private TaskTree taskTree;
-
-  @SpringBean
-  PluginAdminService pluginAdminService;
 
   private final AdminForm form;
 
@@ -339,7 +298,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void checkSystemIntegrity() {
     log.info("Administration: check integrity of tasks.");
     checkAccess();
-    final String result = systemService.checkSystemIntegrity();
+    final String result = WicketSupport.get(SystemService.class).checkSystemIntegrity();
     final String filename = "projectforge_check_report" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
     DownloadUtils.setDownloadTarget(result.getBytes(), filename);
   }
@@ -347,7 +306,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void checkJCRSanity() {
     log.info("Administration: JCR sanity check.");
     checkAccess();
-    JCRCheckSanityJob.CheckResult result = jcrCheckSanityJob.execute();
+    JCRCheckSanityJob.CheckResult result = WicketSupport.get(JCRCheckSanityJob.class).execute();
     final String filename = "projectforge_jcr-sanity-check" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
     DownloadUtils.setDownloadTarget(result.toText().getBytes(StandardCharsets.UTF_8), filename);
   }
@@ -356,8 +315,8 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void refreshCaches() {
     log.info("Administration: refresh of caches.");
     checkAccess();
-    String refreshedCaches = systemService.refreshCaches();
-    userXmlPreferencesCache.forceReload();
+    String refreshedCaches = WicketSupport.get(SystemService.class).refreshCaches();
+    WicketSupport.get(UserXmlPreferencesCache.class).forceReload();
     refreshedCaches += ", UserXmlPreferencesCache";
     setResponsePage(new MessagePage("administration.refreshCachesDone", refreshedCaches));
   }
@@ -405,30 +364,21 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void dump() {
     log.info("Administration: Database dump.");
     checkAccess();
-    String ts = DateHelper.getTimestampAsFilenameSuffix(new Date());
-    String filename = "projectforgedump_" + ts + ".xml.gz";
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    try (GZIPOutputStream gzout = new GZIPOutputStream(out)) {
-      jpaXmlDumpService.dumpToXml(emf, gzout);
-    } catch (IOException ex) {
-      throw new RuntimeIOException(ex);
-    }
-
-    DownloadUtils.setDownloadTarget(out.toByteArray(), filename);
+    throw new UnsupportedOperationException("Not yet migrated.");
   }
 
   protected void reindex() {
     log.info("Administration: re-index.");
     checkAccess();
     final ReindexSettings settings = new ReindexSettings(form.reindexFromDate, form.reindexNewestNEntries);
-    final String tables = hibernateSearchReindexer.rebuildDatabaseSearchIndices(settings);
+    final String tables = WicketSupport.get(HibernateSearchReindexer.class).rebuildDatabaseSearchIndices(settings);
     setResponsePage(new MessagePage("administration.databaseSearchIndicesRebuild", tables));
   }
 
   protected void schemaExport() {
     log.info("Administration: schema export.");
     checkAccess();
-    final String result = systemService.exportSchema();
+    final String result = WicketSupport.get(SystemService.class).exportSchema();
     final String filename = "projectforge_schema" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".sql";
     DownloadUtils.setDownloadTarget(result.getBytes(), filename);
   }
@@ -466,7 +416,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
       return;
     }
     int indent = 0;
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     for (int i = 0; i < form.logEntries.length(); i++) {
       final char c = form.logEntries.charAt(i);
       buf.append(c);
@@ -505,7 +455,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void updateUserPrefs() {
     checkAccess();
     log.info("Administration: updateUserPrefs");
-    final String output = userXmlPreferencesMigrationDao.migrateAllUserPrefs();
+    final String output = WicketSupport.get(UserXmlPreferencesMigrationDao.class).migrateAllUserPrefs();
     final byte[] content = output.getBytes();
     final String ts = DateHelper.getTimestampAsFilenameSuffix(new Date());
     final String filename = "projectforge_updateUserPrefs_" + ts + ".txt";
@@ -514,22 +464,22 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
 
   protected void createMissingDatabaseIndices() {
     log.info("Administration: create missing data base indices.");
-    accessChecker.checkRestrictedOrDemoUser();
-    final int counter = databaseService.createMissingIndices();
+    getAccessChecker().checkRestrictedOrDemoUser();
+    final int counter = WicketSupport.get(DatabaseService.class).createMissingIndices();
     setResponsePage(new MessagePage("administration.missingDatabaseIndicesCreated", String.valueOf(counter)));
   }
 
   private void checkAccess() {
-    accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
-    accessChecker.checkRestrictedOrDemoUser();
+    getAccessChecker().checkIsLoggedInUserMemberOfAdminGroup();
+    getAccessChecker().checkRestrictedOrDemoUser();
   }
 
   public void createTestBooks() {
-    accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
-    accessChecker.checkRestrictedOrDemoUser();
+    getAccessChecker().checkIsLoggedInUserMemberOfAdminGroup();
+    getAccessChecker().checkRestrictedOrDemoUser();
     final List<BookDO> list = new ArrayList<BookDO>();
     int number = 1;
-    while (databaseService
+    while (WicketSupport.get(DatabaseService.class)
         .queryForInt("select count(*) from t_book where title like 'title." + number + ".%'") > 0) {
       number++;
     }
@@ -548,7 +498,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
       book.setYearOfPublishing("2001");
       list.add(book);
     }
-    bookDao.save(list);
+    WicketSupport.get(BookDao.class).insert(list);
     setResponsePage(
         new MessagePage("system.admin.development.testObjectsCreated", String.valueOf(NUMBER_OF_TEST_OBJECTS_TO_CREATE),
             "BookDO"));

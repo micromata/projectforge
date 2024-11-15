@@ -52,7 +52,7 @@ import java.time.Duration
 import java.time.ZonedDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 
 private val log = KotlinLogging.logger {}
@@ -87,7 +87,7 @@ class SipgateClient {
 
   internal lateinit var webClient: WebClient
 
-  class HttpException(val httpStatus: HttpStatus, message: String) : RuntimeException(message)
+  class HttpException(val httpStatus: Any, message: String) : RuntimeException(message)
 
   @PostConstruct
   private fun postConstruct() {

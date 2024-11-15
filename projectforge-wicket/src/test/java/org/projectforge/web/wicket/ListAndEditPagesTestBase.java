@@ -128,7 +128,7 @@ public abstract class ListAndEditPagesTestBase extends WicketPageTestBase {
     tester.startPage(editPage);
     FormTester form = tester.newFormTester(PATH_EDITPAGE_FORM);
     form.submit(findComponentByLabel(form, KEY_EDITPAGE_BUTTON_CREATE));
-    final Integer id = (Integer) editPage.getData().getId();
+    final Long id = (Long) editPage.getData().getId();
 
     // Now check list page
     tester.assertRenderedPage(getListPageClass());

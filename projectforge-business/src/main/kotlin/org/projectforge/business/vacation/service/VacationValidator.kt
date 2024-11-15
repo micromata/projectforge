@@ -118,7 +118,7 @@ object VacationValidator {
 
     val status = vacation.status
       ?: throw IllegalStateException("Status of vacation data is required for validation, but not given.")
-    if (vacation.isDeleted || !CHECK_VACATION_STATUS_LIST.contains(status)) {
+    if (vacation.deleted || !CHECK_VACATION_STATUS_LIST.contains(status)) {
       // No further validations for deleted or REJECTED vacations required.
       return null
     }

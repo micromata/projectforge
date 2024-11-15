@@ -30,49 +30,30 @@ import org.projectforge.framework.configuration.ApplicationContextProvider;
  * Use {@link UserPrefService} instead.
  */
 @Deprecated
-public class UserPreferencesHelper
-{
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserPreferencesHelper.class);
+public class UserPreferencesHelper {
+    /**
+     * Stores the given value for the current user.
+     *
+     * @param key
+     * @param value
+     * @param persistent If true, the object will be persisted in the database.
+     */
+    public static void putEntry(final String key, final Object value, final boolean persistent) {
+        getUserPreferencesService().putEntry(key, value, persistent);
+    }
 
-  /**
-   * Stores the given value for the current user.
-   *
-   * @param key
-   * @param value
-   * @param persistent If true, the object will be persisted in the database.
-   * @see org.projectforge.business.user.UserXmlPreferencesCache#putEntry(Integer, String, Object, boolean)
-   */
-  public static void putEntry(final String key, final Object value, final boolean persistent)
-  {
-    getUserPreferencesService().putEntry(key,value, persistent);
-  }
+    /**
+     * Gets the stored user preference entry.
+     *
+     * @param key
+     * @return Return a persistent object with this key, if existing, or if not a volatile object with this key, if
+     * existing, otherwise null;
+     */
+    public static Object getEntry(final String key) {
+        return getUserPreferencesService().getEntry(key);
+    }
 
-  /**
-   * Gets the stored user preference entry.
-   *
-   * @param key
-   * @return Return a persistent object with this key, if existing, or if not a volatile object with this key, if
-   *         existing, otherwise null;
-   * @see org.projectforge.business.user.UserXmlPreferencesCache#getEntry(Integer, String)
-   */
-  public static Object getEntry(final String key)
-  {
-    return getUserPreferencesService().getEntry(key);
-  }
-
-  /**
-   * Removes the entry under the given key.
-   *
-   * @param key
-   * @return The removed entry if found.
-   */
-  public static Object removeEntry(final String key)
-  {
-    return getUserPreferencesService().removeEntry(key);
-  }
-
-  private static UserXmlPreferencesService getUserPreferencesService()
-  {
-    return ApplicationContextProvider.getApplicationContext().getBean(UserXmlPreferencesService.class);
-  }
+    private static UserXmlPreferencesService getUserPreferencesService() {
+        return ApplicationContextProvider.getApplicationContext().getBean(UserXmlPreferencesService.class);
+    }
 }

@@ -45,8 +45,8 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.nio.ByteBuffer
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 
@@ -181,7 +181,7 @@ class WebAuthnServicesRest {
 
   private val loggedInUser: WebAuthnUser
     get() {
-      val user = ThreadLocalUserContext.user
+      val user = ThreadLocalUserContext.loggedInUser
       requireNotNull(user)
       val userId = user.id
       requireNotNull(userId)
@@ -189,7 +189,7 @@ class WebAuthnServicesRest {
       require(!username.isNullOrBlank())
       val userDisplayName = user.userDisplayName
       require(!userDisplayName.isNullOrBlank())
-      val userIdByteArray = ByteBuffer.allocate(Integer.BYTES).putInt(user.id).array()
+      val userIdByteArray = ByteBuffer.allocate(Integer.BYTES).putLong(user.id!!).array()
       return WebAuthnUser(userIdByteArray, username, userDisplayName)
     }
 

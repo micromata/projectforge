@@ -31,7 +31,7 @@ import org.projectforge.business.fibu.EingangsrechnungsPositionDO
 import org.projectforge.business.fibu.PaymentType
 import org.projectforge.business.orga.ContractDO
 import org.projectforge.business.orga.ContractDao
-import org.projectforge.framework.persistence.api.ModificationStatus
+import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
@@ -51,15 +51,15 @@ class BaseDOTest : AbstractTestBase() {
     contractA.title = "Test contract"
     val contractB = ContractDO()
     contractB.title = "Test contract"
-    Assertions.assertEquals(ModificationStatus.NONE, contractA.copyValuesFrom(contractB))
+    Assertions.assertEquals(EntityCopyStatus.NONE, contractA.copyValuesFrom(contractB))
     contractB.title = "Changed title"
-    Assertions.assertEquals(ModificationStatus.MAJOR, contractA.copyValuesFrom(contractB))
+    Assertions.assertEquals(EntityCopyStatus.MAJOR, contractA.copyValuesFrom(contractB))
 
     logon(TEST_FINANCE_USER)
-    contractDao.save(contractA)
-    Assertions.assertEquals(ModificationStatus.NONE, contractDao.update(contractA))
+    contractDao.insert(contractA)
+    Assertions.assertEquals(EntityCopyStatus.NONE, contractDao.update(contractA))
     contractA.title = "Something new"
-    Assertions.assertEquals(ModificationStatus.MAJOR, contractDao.update(contractA))
+    Assertions.assertEquals(EntityCopyStatus.MAJOR, contractDao.update(contractA))
 
     val invoice = EingangsrechnungDO()
     invoice.datum = LocalDate.of(2022, Month.FEBRUARY, 17)
@@ -86,7 +86,7 @@ class BaseDOTest : AbstractTestBase() {
     pos.eingangsrechnung = invoice
     invoice.ensureAndGetPositionen()
     invoice.positionen!!.add(pos)
-    eingangsrechnungDao.save(invoice)
+    eingangsrechnungDao.insert(invoice)
     // Doesn't work due to zahlungsZiel: Assertions.assertEquals(ModificationStatus.NONE, eingangsrechnungDao.update(invoice))
   }
 }

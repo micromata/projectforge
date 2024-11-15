@@ -86,5 +86,4 @@ public class ProjectForgeStartupListener implements ApplicationListener<Applicat
       log.error("Oups, can't find " + resourcePath + " in class path. React-Frontend not available?");
     }
   }
-
 }

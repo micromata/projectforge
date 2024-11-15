@@ -51,11 +51,12 @@ object JsonUtils {
   private val objectMapperIgnoreUnknownProps: ObjectMapper = ObjectMapper()
 
   init {
-    objectMapper.registerModule(KotlinModule())
-    objectMapperIgnoreNullableProps.registerModule(KotlinModule())
+    objectMapper.registerModule(KotlinModule.Builder().build())
+    objectMapperIgnoreNullableProps.registerModule(KotlinModule.Builder().build())
     val module = SimpleModule()
     initializeMapper(module)
     objectMapper.registerModule(module)
+    objectMapperIgnoreNullableProps.registerModule(module)
     objectMapperIgnoreNullableProps.setSerializationInclusion(JsonInclude.Include.NON_NULL)
     objectMapperIgnoreUnknownProps.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
   }

@@ -86,7 +86,7 @@ public class LdapPosixGroupsUtils
    * @return Returns true if any group (also deleted group) other than the given group has the given gidNumber,
    *         otherwise false.
    */
-  public boolean isGivenNumberFree(final int currentGroupId, final int gidNumber)
+  public boolean isGivenNumberFree(final long currentGroupId, final int gidNumber)
   {
     final Collection<GroupDO> allGroups = userGroupCache.getAllGroups();
     for (final GroupDO group : allGroups) {

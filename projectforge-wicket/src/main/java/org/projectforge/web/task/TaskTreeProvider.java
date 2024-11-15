@@ -31,9 +31,9 @@ import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskFilter;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 
 import java.io.Serializable;
 import java.util.*;
@@ -46,10 +46,6 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
 {
   private static final long serialVersionUID = 1416146119319068085L;
 
-  private transient TaskTree taskTree;
-
-  private transient TaskDao taskDao;
-
   private final TaskFilter taskFilter;
 
   private boolean showRootNode;
@@ -57,10 +53,9 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
   /**
    * Construct.
    */
-  public TaskTreeProvider(TaskDao taskDao, final TaskFilter taskFilter)
+  public TaskTreeProvider(final TaskFilter taskFilter)
   {
     this.taskFilter = taskFilter;
-    this.taskDao = taskDao;
     taskFilter.resetMatch();
   }
 
@@ -75,8 +70,7 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
   @Override
   public Iterator<TaskNode> getRoots()
   {
-    ensureTaskTree();
-    return iterator(taskTree.getRootTaskNode().getChildren(), showRootNode);
+    return iterator(TaskTree.getInstance().getRootTaskNode().getChildren(), showRootNode);
   }
 
   @Override
@@ -99,9 +93,6 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
     return iterator(taskNode.getChildren());
   }
 
-  /**
-   * Creates a {@link FooModel}.
-   */
   @Override
   public IModel<TaskNode> model(final TaskNode taskNode)
   {
@@ -115,7 +106,6 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
 
   private Iterator<TaskNode> iterator(final List<TaskNode> nodes, final boolean appendRootNode)
   {
-    ensureTaskTree();
     final SortedSet<TaskNode> list = new TreeSet<TaskNode>(new Comparator<TaskNode>()
     {
       /**
@@ -139,6 +129,8 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
         return title1.compareTo(title2);
       }
     });
+    TaskTree taskTree = TaskTree.getInstance();
+    TaskDao taskDao = WicketSupport.getTaskDao();
     if (appendRootNode == true) {
       if (taskFilter.match(taskTree.getRootTaskNode(), null, null) == true) {
         list.add(taskTree.getRootTaskNode());
@@ -147,7 +139,7 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
     if (nodes == null || nodes.isEmpty() == true) {
       return list.iterator();
     }
-    final PFUserDO user = ThreadLocalUserContext.getUser();
+    final PFUserDO user = ThreadLocalUserContext.getLoggedInUser();
     for (final TaskNode node : nodes) {
       if (taskFilter.match(node, taskDao, user) == true
           && taskDao.hasUserSelectAccess(user, node.getTask(), false) == true) {
@@ -158,9 +150,9 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
   }
 
   /**
-   * A {@link Model} which uses an id to load its {@link Foo}.
+   * A {@link Model} which uses an id to load its.
    *
-   * If {@link Foo}s were {@link Serializable} you could just use a standard {@link Model}.
+   * If s were {@link Serializable} you could just use a standard {@link Model}.
    *
    * @see #equals(Object)
    * @see #hashCode()
@@ -169,9 +161,7 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
   {
     private static final long serialVersionUID = 1L;
 
-    private final Integer id;
-
-    private transient TaskTree taskTree;
+    private final Long id;
 
     public TaskNodeModel(final TaskNode taskNode)
     {
@@ -182,10 +172,7 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
     @Override
     protected TaskNode load()
     {
-      if (taskTree == null) {
-        taskTree = TaskTreeHelper.getTaskTree();
-      }
-      return taskTree.getTaskNodeById(id);
+      return TaskTree.getInstance().getTaskNodeById(id);
     }
 
     /**
@@ -218,12 +205,5 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
   {
     this.showRootNode = showRootNode;
     return this;
-  }
-
-  private void ensureTaskTree()
-  {
-    if (this.taskTree == null) {
-      this.taskTree = TaskTreeHelper.getTaskTree();
-    }
   }
 }

@@ -23,13 +23,13 @@
 
 package org.projectforge.business.poll
 
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.context.annotation.DependsOn
-import javax.persistence.*
+import jakarta.persistence.*
 
 @Entity
 @Indexed

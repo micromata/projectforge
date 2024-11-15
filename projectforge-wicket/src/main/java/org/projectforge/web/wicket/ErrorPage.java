@@ -29,7 +29,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.protocol.http.PageExpiredException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.configuration.DomainService;
 import org.projectforge.common.ProjectForgeException;
@@ -44,7 +43,9 @@ import org.projectforge.mail.SendMail;
 import org.projectforge.web.SendFeedback;
 import org.projectforge.web.SendFeedbackData;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
+import org.projectforge.web.WicketSupport;
+
 import java.net.ConnectException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -65,18 +66,6 @@ public class ErrorPage extends AbstractSecuredPage {
   private String title;
 
   String errorMessage, messageNumber;
-
-  @SpringBean
-  private SendFeedback sendFeedback;
-
-  @SpringBean
-  private ConfigurationService configService;
-
-  @SpringBean
-  private SendMail sendMail;
-
-  @SpringBean
-  private DomainService domainService;
 
   private final ErrorForm form;
 
@@ -163,7 +152,7 @@ public class ErrorPage extends AbstractSecuredPage {
     form.data.setMessageNumber(messageNumber);
     form.data.setMessage(throwable != null ? throwable.getMessage() : "");
     form.data.setStackTrace(throwable != null ? ExceptionHelper.printStackTrace(throwable) : "");
-    form.data.setSender(ThreadLocalUserContext.getUser().getFullname());
+    form.data.setSender(ThreadLocalUserContext.getLoggedInUser().getFullname());
     final String subject = "ProjectForge-Error #" + form.data.getMessageNumber() + " from " + form.data.getSender();
     form.data.setSubject(subject);
     if (rootCause != null) {
@@ -204,6 +193,7 @@ public class ErrorPage extends AbstractSecuredPage {
   }
 
   private void sendProactiveMessageToSupportTeam() {
+    ConfigurationService configService = WicketSupport.get(ConfigurationService.class);
     if (StringUtils.isBlank(configService.getPfSupportMailAddress()) == Boolean.FALSE
         && configService.isSendMailConfigured()) {
       log.info("Sending proactive mail to support.");
@@ -212,15 +202,15 @@ public class ErrorPage extends AbstractSecuredPage {
       SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm");
       String dateString = formatter.format(date);
       SendFeedbackData errorData = new SendFeedbackData();
-      errorData.setSender(sendMail.getMailFromStandardEmailSender());
+      errorData.setSender(WicketSupport.get(SendMail.class).getMailFromStandardEmailSender());
       errorData.setReceiver(configService.getPfSupportMailAddress());
-      errorData.setSubject("Error occured: #" + form.data.getMessageNumber() + " on " + domainService.getDomain());
+      errorData.setSubject("Error occured: #" + form.data.getMessageNumber() + " on " + WicketSupport.get(DomainService.class).getDomain());
       errorData.setDescription("Error occured at: " + dateString + "(" + cal.getTimeZone().getID()
           + ") with number: #" + form.data.getMessageNumber()
           + " from user: " + form.data.getSender() + " \n "
           + "Exception stack trace: \n" +
           form.data.getRootCauseStackTrace() + "\n");
-      sendFeedback.send(errorData);
+      WicketSupport.get(SendFeedback.class).send(errorData);
     } else {
       log.info("No messaging for proactive support configured.");
     }
@@ -234,7 +224,7 @@ public class ErrorPage extends AbstractSecuredPage {
     log.info("Send feedback.");
     boolean result = false;
     try {
-      result = sendFeedback.send(form.data);
+      result = WicketSupport.get(SendFeedback.class).send(form.data);
     } catch (final Throwable ex) {
       log.error(ex.getMessage(), ex);
       result = false;

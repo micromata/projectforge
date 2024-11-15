@@ -23,7 +23,7 @@
 
 package org.projectforge.reporting.impl;
 
-import org.projectforge.business.fibu.KostFormatter;
+import org.projectforge.business.fibu.OldKostFormatter;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.KostentraegerStatus;
 import org.projectforge.reporting.Kost1;
@@ -42,8 +42,8 @@ public class Kost1Impl implements Kost1
   {
     this.kost1 = kost1;
   }
-  
-  public Integer getId()
+
+  public Long getId()
   {
     return kost1.getId();
   }
@@ -77,9 +77,9 @@ public class Kost1Impl implements Kost1
   {
     return kost1.getTeilbereich();
   }
-  
+
   public String getFormattedString()
   {
-    return KostFormatter.format(kost1);
+    return OldKostFormatter.format(kost1);
   }
 }

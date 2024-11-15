@@ -120,19 +120,19 @@ public class LdapUtils
       // organizationalUnit is already in the form ou=...,ou=.... Nothing to be done.
       return organizationalUnits[0];
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buildOu(buf, null, organizationalUnits);
     return buf.toString();
   }
 
   public static String getOu(final String ou, final String[] organizationalUnits)
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buildOu(buf, ou, organizationalUnits);
     return buf.toString();
   }
 
-  public static void buildOu(final StringBuffer buf, final String ou, final String[] organizationalUnits)
+  public static void buildOu(final StringBuilder buf, final String ou, final String[] organizationalUnits)
   {
     if (ou == null && organizationalUnits == null) {
       return;
@@ -161,12 +161,12 @@ public class LdapUtils
     }
   }
 
-  public static void buildOu(final StringBuffer buf, final String... organizationalUnits)
+  public static void buildOu(final StringBuilder buf, final String... organizationalUnits)
   {
     buildOu(buf, null, organizationalUnits);
   }
 
-  public static void appendOu(final StringBuffer buf, final String... organizationalUnits)
+  public static void appendOu(final StringBuilder buf, final String... organizationalUnits)
   {
     if (organizationalUnits == null) {
       return;

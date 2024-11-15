@@ -55,8 +55,8 @@ public class GroupTest extends AbstractTestBase {
     final Set<PFUserDO> assignedUsers = new HashSet<>();
     group.setAssignedUsers(assignedUsers);
     assignedUsers.add(getUser(AbstractTestBase.TEST_USER));
-    final Serializable id = groupDao.save(group);
-    group = groupDao.getById(id);
+    final Serializable id = groupDao.insert(group);
+    group = groupDao.find(id);
     assertEquals("testgroup", group.getName());
     assertEquals(1, group.getAssignedUsers().size());
     assertTrue(group.getAssignedUsers().contains(getUser(AbstractTestBase.TEST_USER)));
@@ -64,7 +64,7 @@ public class GroupTest extends AbstractTestBase {
     assertNotNull(user);
     group.getAssignedUsers().add(user);
     groupDao.update(group);
-    group = groupDao.getById(id);
+    group = groupDao.find(id);
     assertEquals(2, group.getAssignedUsers().size());
     assertTrue(group.getAssignedUsers().contains(getUser(AbstractTestBase.TEST_USER)));
     assertTrue(group.getAssignedUsers().contains(user));
@@ -126,10 +126,10 @@ public class GroupTest extends AbstractTestBase {
   @Test
   public void test3CheckUnmodifiableGroupNames() {
     GroupDO adminGroup = getGroup(ProjectForgeGroup.ADMIN_GROUP.getName());
-    final Integer id = adminGroup.getId();
+    final Long id = adminGroup.getId();
     adminGroup.setName("Changed admin group");
-    groupDao.internalUpdate(adminGroup);
-    adminGroup = groupDao.internalGetById(id);
+    groupDao.update(adminGroup, false);
+    adminGroup = groupDao.find(id, false);
     assertEquals(ProjectForgeGroup.ADMIN_GROUP.getName(), adminGroup.getName(), "Group's name shouldn't be allowed to change.");
   }
 }

@@ -35,10 +35,11 @@ import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import mu.KotlinLogging
 import org.apache.commons.lang3.builder.EqualsBuilder
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.hibernate.Hibernate
 import org.hibernate.proxy.AbstractLazyInitializer
+import org.projectforge.business.PfCaches
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.KundeDO
@@ -48,11 +49,10 @@ import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
-import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.json.*
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.slf4j.LoggerFactory
+import org.projectforge.framework.time.PFDateTime
 import java.io.IOException
 import java.sql.Timestamp
 import java.time.LocalDate
@@ -71,8 +71,11 @@ fun toJsonString(obj: Any, vararg ignoreEmbeddedSerializers: Class<out Any>): St
     return ToStringUtil.toJsonString(obj, ignoreEmbeddedSerializers, null)
 }
 
+private val log = KotlinLogging.logger {}
+
 class ToStringUtil {
     class Serializer<T>(val clazz: Class<T>, val serializer: JsonSerializer<T>)
+
     /**
      * Helper class for having data classes with to json functionality (e. g. for logging).
      */
@@ -81,10 +84,17 @@ class ToStringUtil {
             return toJsonString(this)
         }
     }
-    companion object {
-        private val log = LoggerFactory.getLogger(ToStringUtil::class.java)
 
-        private val embeddedSerializerClasses = listOf(GroupDO::class.java, Kost1DO::class.java, Kost2DO::class.java, KundeDO::class.java, PFUserDO::class.java, ProjektDO::class.java, TaskDO::class.java)
+    companion object {
+        private val embeddedSerializerClasses = listOf(
+            GroupDO::class.java,
+            Kost1DO::class.java,
+            Kost2DO::class.java,
+            KundeDO::class.java,
+            PFUserDO::class.java,
+            ProjektDO::class.java,
+            TaskDO::class.java
+        )
 
         private val mapperMap = mutableMapOf<ObjectMapperKey, ObjectMapper>()
 
@@ -110,19 +120,30 @@ class ToStringUtil {
             return toJsonString(obj, null, additionalSerializers = additionalSerializers)
         }
 
-        internal fun toJsonString(obj: Any, ignoreEmbeddedSerializers: Array<out Class<out Any>>?,
-                                  additionalSerializers: Array<out Serializer<Any>>?): String {
+        internal fun toJsonString(
+            obj: Any, ignoreEmbeddedSerializers: Array<out Class<out Any>>?,
+            additionalSerializers: Array<out Serializer<Any>>?
+        ): String {
             try {
                 val mapper = getObjectMapper(obj::class.java, ignoreEmbeddedSerializers, additionalSerializers)
                 return mapper.writeValueAsString(obj)
-            } catch(ex: Exception) {
+            } catch (ex: Exception) {
                 val id = System.currentTimeMillis()
-                log.error("Exception while serializing object of type '${obj::class.java.simpleName}' #$id: ${ex.message}", ex)
+                log.error(
+                    "Exception while serializing object of type '${obj::class.java.simpleName}' #$id: ${ex.message}",
+                    ex
+                )
                 return "[*** Exception while serializing object of type '${obj::class.java.simpleName}', see log files #$id for more details.]"
             }
         }
 
-        private fun <T> register(module: SimpleModule, clazz: Class<T>, serializer: EmbeddedDOSerializer<T>, objClass: Class<*>, ignoreEmbeddedSerializers: Array<out Class<out Any>>?) {
+        private fun <T> register(
+            module: SimpleModule,
+            clazz: Class<T>,
+            serializer: EmbeddedDOSerializer<T>,
+            objClass: Class<*>,
+            ignoreEmbeddedSerializers: Array<out Class<out Any>>?
+        ) {
             if (objClass.equals(clazz)) {
                 return // Don't use embedded serializer for current object itself.
             }
@@ -135,7 +156,7 @@ class ToStringUtil {
         }
 
 
-        internal fun writeFields(jgen: JsonGenerator, id: Int?, fieldName: String, value: String?) {
+        internal fun writeFields(jgen: JsonGenerator, id: Long?, fieldName: String, value: String?) {
             if (id == null) {
                 jgen.writeNullField("id")
             } else {
@@ -146,8 +167,10 @@ class ToStringUtil {
             }
         }
 
-        private fun getObjectMapper(objClass: Class<*>?, ignoreEmbeddedSerializers: Array<out Class<out Any>>?,
-                                    additionalSerializers: Array<out Serializer<Any>>?): ObjectMapper {
+        private fun getObjectMapper(
+            objClass: Class<*>?, ignoreEmbeddedSerializers: Array<out Class<out Any>>?,
+            additionalSerializers: Array<out Serializer<Any>>?
+        ): ObjectMapper {
             val key = if (objClass != null && embeddedSerializerClasses.any { it.isAssignableFrom(objClass) }) {
                 ObjectMapperKey(objClass, ignoreEmbeddedSerializers, additionalSerializers)
             } else {
@@ -169,6 +192,8 @@ class ToStringUtil {
             module.addSerializer(java.sql.Date::class.java, SqlDateSerializer())
             module.addSerializer(LocalDate::class.java, LocalDateSerializer())
             module.addSerializer(LocalTime::class.java, LocalTimeSerializer())
+            module.addSerializer(PFDateTime::class.java, PFDateTimeSerializer())
+            module.addDeserializer(PFDateTime::class.java, PFDateTimeDeserializer())
             module.addSerializer(AddressbookDO::class.java, AddressbookSerializer())
             module.addSerializer(AbstractLazyInitializer::class.java, HibernateProxySerializer())
 
@@ -186,7 +211,7 @@ class ToStringUtil {
                 register(module, TaskDO::class.java, TaskSerializer(), objClass, ignoreEmbeddedSerializers)
             }
             mapper.registerModule(module)
-            mapper.registerModule(KotlinModule())
+            mapper.registerModule(KotlinModule.Builder().build())
             mapperMap[key] = mapper
             return mapper
         }
@@ -200,71 +225,79 @@ class ToStringUtil {
                 return
             }
             jgen.writeStartObject();
-            writeFields(jgen, value, Hibernate.isInitialized(value))
+            writeFields(jgen, value)
             jgen.writeEndObject()
         }
 
-        abstract fun writeFields(jgen: JsonGenerator, value: T, initialized: Boolean)
+        abstract fun writeFields(jgen: JsonGenerator, value: T)
     }
 
     class UserSerializer : EmbeddedDOSerializer<PFUserDO>(PFUserDO::class.java) {
-        override fun writeFields(jgen: JsonGenerator, value: PFUserDO, initialized: Boolean) {
-            val username = if (initialized) value.username else UserGroupCache.getInstance().getUsername(value.id)
-            writeFields(jgen, value.id, "username", username)
+        override fun writeFields(jgen: JsonGenerator, value: PFUserDO) {
+            val user = PfCaches.instance.getUserIfNotInitialized(value)
+            writeFields(jgen, value.id, "username", user?.username ?: "???")
         }
     }
 
     class CalendarSerializer : EmbeddedDOSerializer<TeamCalDO>(TeamCalDO::class.java) {
-        override fun writeFields(jgen: JsonGenerator, value: TeamCalDO, initialized: Boolean) {
-            writeFields(jgen, value.id, "title", value.title)
+        override fun writeFields(jgen: JsonGenerator, value: TeamCalDO) {
+            val cal = PfCaches.instance.getTeamCalIfNotInitialized(value)
+            writeFields(jgen, value.id, "title", cal?.title ?: "???")
         }
     }
 
     class GroupSerializer : EmbeddedDOSerializer<GroupDO>(GroupDO::class.java) {
-        override fun writeFields(jgen: JsonGenerator, value: GroupDO, initialized: Boolean) {
-            writeFields(jgen, value.id, "name", value.name)
+        override fun writeFields(jgen: JsonGenerator, value: GroupDO) {
+            val group = PfCaches.instance.getGroupIfNotInitialized(value)
+            writeFields(jgen, value.id, "name", group?.name ?: "???")
         }
     }
 
     class TaskSerializer : EmbeddedDOSerializer<TaskDO>(TaskDO::class.java) {
-        override fun writeFields(jgen: JsonGenerator, value: TaskDO, initialized: Boolean) {
-            writeFields(jgen, value.id, "path", TaskTree.getInstance().getTaskNodeById(value.id)?.pathAsString)
+        override fun writeFields(jgen: JsonGenerator, value: TaskDO) {
+            writeFields(jgen, value.id, "path", TaskTree.instance.getTaskNodeById(value.id)?.pathAsString)
         }
     }
 
     class Kost1Serializer : EmbeddedDOSerializer<Kost1DO>(Kost1DO::class.java) {
-        override fun writeFields(jgen: JsonGenerator, value: Kost1DO, initialized: Boolean) {
-            writeFields(jgen, value.id, "number", if (initialized) value.formattedNumber else null)
+        override fun writeFields(jgen: JsonGenerator, value: Kost1DO) {
+            val kost1 = PfCaches.instance.getKost1IfNotInitialized(value)
+            writeFields(jgen, value.id, "number", kost1?.formattedNumber ?: "???")
         }
     }
 
     class Kost2Serializer : EmbeddedDOSerializer<Kost2DO>(Kost2DO::class.java) {
-        override fun writeFields(jgen: JsonGenerator, value: Kost2DO, initialized: Boolean) {
-            writeFields(jgen, value.id, "number", if (initialized) value.formattedNumber else null)
+        override fun writeFields(jgen: JsonGenerator, value: Kost2DO) {
+            val kost2 = PfCaches.instance.getKost2IfNotInitialized(value)
+            writeFields(jgen, value.id, "number", kost2?.formattedNumber ?: "???")
         }
     }
 
     class EmployeeSerializer : EmbeddedDOSerializer<EmployeeDO>(EmployeeDO::class.java) {
-        override fun writeFields(jgen: JsonGenerator, value: EmployeeDO, initialized: Boolean) {
-            writeFields(jgen, value.id, "name", if (initialized) value.user?.getFullname() else null)
+        override fun writeFields(jgen: JsonGenerator, value: EmployeeDO) {
+            val user = PfCaches.instance.getUserIfNotInitialized(value.user)
+            writeFields(jgen, value.id, "name", user?.getFullname() ?: "???")
         }
     }
 
     class ProjektSerializer : EmbeddedDOSerializer<ProjektDO>(ProjektDO::class.java) {
-        override fun writeFields(jgen: JsonGenerator, value: ProjektDO, initialized: Boolean) {
-            writeFields(jgen, value.id, "name", if (initialized) value.name else null)
+        override fun writeFields(jgen: JsonGenerator, value: ProjektDO) {
+            val projekt = PfCaches.instance.getProjektIfNotInitialized(value)
+            writeFields(jgen, value.id, "name", projekt?.name ?: "???")
         }
     }
 
     class KundeSerializer : EmbeddedDOSerializer<KundeDO>(KundeDO::class.java) {
-        override fun writeFields(jgen: JsonGenerator, value: KundeDO, initialized: Boolean) {
-            writeFields(jgen, value.nummer, "name", if (initialized) value.name else null)
+        override fun writeFields(jgen: JsonGenerator, value: KundeDO) {
+            val kunde = PfCaches.instance.getKundeIfNotInitialized(value)
+            writeFields(jgen, value.nummer, "name", kunde?.name ?: "???")
         }
     }
 
     class AddressbookSerializer : EmbeddedDOSerializer<AddressbookDO>(AddressbookDO::class.java) {
-        override fun writeFields(jgen: JsonGenerator, value: AddressbookDO, initialized: Boolean) {
-            writeFields(jgen, value.id, "title", if (initialized) value.title else null)
+        override fun writeFields(jgen: JsonGenerator, value: AddressbookDO) {
+            val ab = PfCaches.instance.getAddressbookIfNotInitialized(value)
+            writeFields(jgen, value.id, "title", ab?.title ?: "???")
         }
     }
 
@@ -281,24 +314,26 @@ class ToStringUtil {
         private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneOffset.UTC)
     }
 
-    private class ObjectMapperKey(var objClass: Class<*>?,
-                                  var ignoreEmbeddedSerializers: Array<out Class<out Any>>?,
-                                  var additionalSerializers: Array<out Serializer<Any>>?) {
+    private class ObjectMapperKey(
+        var objClass: Class<*>?,
+        var ignoreEmbeddedSerializers: Array<out Class<out Any>>?,
+        var additionalSerializers: Array<out Serializer<Any>>?
+    ) {
         override fun equals(other: Any?): Boolean {
             other as ObjectMapperKey
             return EqualsBuilder()
-                    .append(this.objClass, other.objClass)
-                    .append(this.ignoreEmbeddedSerializers, other.ignoreEmbeddedSerializers)
-                    .append(this.additionalSerializers, other.additionalSerializers)
-                    .isEquals
+                .append(this.objClass, other.objClass)
+                .append(this.ignoreEmbeddedSerializers, other.ignoreEmbeddedSerializers)
+                .append(this.additionalSerializers, other.additionalSerializers)
+                .isEquals
         }
 
         override fun hashCode(): Int {
             return HashCodeBuilder()
-                    .append(objClass)
-                    .append(ignoreEmbeddedSerializers)
-                    .append(additionalSerializers)
-                    .toHashCode()
+                .append(objClass)
+                .append(ignoreEmbeddedSerializers)
+                .append(additionalSerializers)
+                .toHashCode()
         }
     }
 }

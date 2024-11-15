@@ -35,11 +35,11 @@ import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.ValidationError
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
-fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
+fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     getList(
   request: HttpServletRequest,
   pagesRest: AbstractPagesRest<O, DTO, B>,
@@ -59,7 +59,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
   return resultSet
 }
 
-fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
+fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     getObjectList(
   pagesRest: AbstractPagesRest<O, DTO, B>,
   baseDao: BaseDao<O>,
@@ -67,15 +67,15 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
 )
     : MutableList<O> {
   magicFilter.sortAndLimitMaxRowsWhileSelect = true
-  val queryFilter = QueryFilter()
+  val queryFilter = baseDao.createQueryFilter()
   val customResultFilters = pagesRest.preProcessMagicFilter(queryFilter, magicFilter)
   magicFilter.sortProperties = magicFilter.sortProperties.distinctBy { it.property }.toMutableList()
   MagicFilterProcessor.doIt(baseDao.doClass, magicFilter, queryFilter)
   pagesRest.postProcessMagicFilter(queryFilter, magicFilter)
-  return baseDao.getList(queryFilter, customResultFilters)
+  return baseDao.select(queryFilter, customResultFilters).toMutableList()
 }
 
-fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
+fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     saveOrUpdate(
   request: HttpServletRequest,
   baseDao: BaseDao<O>,
@@ -105,7 +105,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
       postData,
       if (obj.id != null) OperationType.UPDATE else OperationType.INSERT
     )
-    baseDao.saveOrUpdate(obj) ?: obj.id
+    baseDao.insertOrUpdate(obj) ?: obj.id
     pagesRest.onAfterSaveOrUpdate(request, obj, postData)
     if (isNew) {
       return ResponseEntity(pagesRest.onAfterSave(obj, postData), HttpStatus.OK)
@@ -117,7 +117,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
   }
 }
 
-fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
+fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     undelete(
   request: HttpServletRequest,
   baseDao: BaseDao<O>,
@@ -141,7 +141,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
   }
 }
 
-fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
+fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     markAsDeleted(
   request: HttpServletRequest,
   baseDao: BaseDao<O>,
@@ -165,7 +165,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
   }
 }
 
-fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
+fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     forceDelete(
   request: HttpServletRequest,
   baseDao: BaseDao<O>,
@@ -184,7 +184,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
   }
 }
 
-fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
+fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     delete(
   request: HttpServletRequest,
   baseDao: BaseDao<O>,

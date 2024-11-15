@@ -27,17 +27,15 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
+import org.projectforge.business.PfCaches
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.KundeDO
-import org.projectforge.business.fibu.KundeDao
-import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.registry.Registry
 import org.projectforge.rest.dto.*
 import java.io.IOException
 
@@ -49,11 +47,12 @@ class PFUserDOSerializer : StdSerializer<PFUserDO>(PFUserDO::class.java) {
 
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: PFUserDO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        if (value == null) {
+        val userDO = PfCaches.instance.getUserIfNotInitialized(value)
+        if (userDO == null) {
             jgen.writeNull()
             return
         }
-        val user = User(value.id, displayName = value.displayName, username = value.username)
+        val user = User(userDO.id, displayName = userDO.displayName, username = userDO.username)
         jgen.writeObject(user)
     }
 }
@@ -64,11 +63,12 @@ class PFUserDOSerializer : StdSerializer<PFUserDO>(PFUserDO::class.java) {
 class GroupDOSerializer : StdSerializer<GroupDO>(GroupDO::class.java) {
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: GroupDO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        if (value == null) {
+        val groupDO = PfCaches.instance.getGroupIfNotInitialized(value)
+        if (groupDO == null) {
             jgen.writeNull()
             return
         }
-        val group = Group(value.id, displayName = value.displayName, name = value.name)
+        val group = Group(groupDO.id, displayName = groupDO.displayName, name = groupDO.name)
         jgen.writeObject(group)
     }
 }
@@ -79,11 +79,12 @@ class GroupDOSerializer : StdSerializer<GroupDO>(GroupDO::class.java) {
 class TaskDOSerializer : StdSerializer<TaskDO>(TaskDO::class.java) {
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: TaskDO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        if (value == null) {
+        val taskDO = PfCaches.instance.getTaskIfNotInitialized(value)
+        if (taskDO == null) {
             jgen.writeNull()
             return
         }
-        val task = Task(value.id, displayName = value.displayName, title = value.title)
+        val task = Task(taskDO.id, displayName = taskDO.displayName, title = taskDO.title)
         jgen.writeObject(task)
     }
 }
@@ -98,26 +99,21 @@ class Kost2DOSerializer : StdSerializer<Kost2DO>(Kost2DO::class.java) {
 
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: Kost2DO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        if (value == null) {
+        val kost2DO = PfCaches.instance.getKost2IfNotInitialized(value)
+        if (kost2DO == null) {
             jgen.writeNull()
             return
         }
-        val kost2 = Kost2(value.id, displayName = value.displayName, description = value.description)
-        if (value.projekt != null) {
-            val projektDao = Registry.instance.getEntry(ProjektDao::class.java)?.dao as ProjektDao
-            val projektDO = projektDao.internalGetById(value.projektId)
-            if (projektDO != null) {
-                val projekt = Project(projektDO.id, displayName = projektDO.displayName)
-                if (projektDO.kunde != null) {
-                    val kundeDao = Registry.instance.getEntry(KundeDao::class.java)?.dao as KundeDao
-                    val kundeDO = kundeDao.internalGetById(projektDO.kundeId)
-                    if (kundeDO != null) {
-                        val kunde = Customer(kundeDO.id!!, displayName = kundeDO.displayName, name = kundeDO.name)
-                        projekt.customer = kunde
-                    }
-                }
-                kost2.project = projekt
+        val kost2 = Kost2(kost2DO.id, displayName = kost2DO.displayName, description = kost2DO.description)
+        val projektDO = PfCaches.instance.getProjektIfNotInitialized(kost2DO.projekt)
+        if (projektDO != null) {
+            val projekt = Project(projektDO.id, displayName = projektDO.displayName)
+            val kundeDO = PfCaches.instance.getKundeIfNotInitialized(projektDO.kunde)
+            if (kundeDO != null) {
+                val kunde = Customer(kundeDO.nummer!!, displayName = kundeDO.displayName, name = kundeDO.name)
+                projekt.customer = kunde
             }
+            kost2.project = projekt
         }
         jgen.writeObject(kost2)
     }
@@ -129,12 +125,19 @@ class Kost2DOSerializer : StdSerializer<Kost2DO>(Kost2DO::class.java) {
 class Kost1DOSerializer : StdSerializer<Kost1DO>(Kost1DO::class.java) {
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: Kost1DO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        if (value == null) {
+        val kost1DO = PfCaches.instance.getKost1IfNotInitialized(value)
+        if (kost1DO == null) {
             jgen.writeNull()
             return
         }
-        val kost1 = Kost1(value.id, nummernkreis = value.nummernkreis, bereich = value.bereich, teilbereich = value.teilbereich, endziffer = value.endziffer,
-                description = value.description, formattedNumber = value.formattedNumber)
+        val kost1 = Kost1(
+            kost1DO.id,
+            nummernkreis = kost1DO.nummernkreis,
+            bereich = kost1DO.bereich,
+            teilbereich = kost1DO.teilbereich,
+            endziffer = kost1DO.endziffer,
+            description = kost1DO.description
+        )
         jgen.writeObject(kost1)
     }
 }
@@ -146,11 +149,12 @@ class KundeDOSerializer : StdSerializer<KundeDO>(KundeDO::class.java) {
 
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: KundeDO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        if (value == null) {
+        val kundeDO = PfCaches.instance.getKundeIfNotInitialized(value)
+        if (kundeDO == null) {
             jgen.writeNull()
             return
         }
-        val kunde = Customer(value.id, displayName = value.displayName)
+        val kunde = Customer(kundeDO.nummer, displayName = kundeDO.displayName)
         jgen.writeObject(kunde)
     }
 }
@@ -162,11 +166,12 @@ class AddressbookDOSerializer : StdSerializer<AddressbookDO>(AddressbookDO::clas
 
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: AddressbookDO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        if (value == null) {
+        val ab = PfCaches.instance.getAddressbookIfNotInitialized(value)
+        if (ab == null) {
             jgen.writeNull()
             return
         }
-        val addressbook = Addressbook(value.id, displayName = value.displayName)
+        val addressbook = Addressbook(ab.id, displayName = ab.displayName)
         jgen.writeObject(addressbook)
     }
 }
@@ -178,11 +183,12 @@ class EmployeeDOSerializer : StdSerializer<EmployeeDO>(EmployeeDO::class.java) {
 
     @Throws(IOException::class, JsonProcessingException::class)
     override fun serialize(value: EmployeeDO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        if (value == null) {
+        val employeeDO = PfCaches.instance.getEmployeeIfNotInitialized(value)
+        if (employeeDO == null) {
             jgen.writeNull()
             return
         }
-        val employee = Employee(value.id, displayName = value.displayName)
+        val employee = Employee(employeeDO.id, displayName = employeeDO.displayName)
         jgen.writeObject(employee)
     }
 }

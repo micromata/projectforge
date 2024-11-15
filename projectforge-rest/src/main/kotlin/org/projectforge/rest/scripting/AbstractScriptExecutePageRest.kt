@@ -44,7 +44,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
 private val log = KotlinLogging.logger {}
@@ -121,8 +121,8 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
       layout.add(UIAlert(executionResults, title = "scripting.script.result", markdown = true, color = UIColor.INFO))
     }
 
-    scriptExecution.getDownloadFile(request)?.let { download ->
-      val download = DownloadFileSupport.Download(download)
+    scriptExecution.getDownloadFile(request)?.let { downloadFile ->
+      val download = DownloadFileSupport.Download(downloadFile)
       script.download = download
       layout.add(
         UIRow().add(
@@ -154,7 +154,7 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
 
     val parameters = script.parameters
     parameters.forEach { scriptParameter ->
-      if (scriptParameter.type === ScriptParameterType.TASK) {
+      if (scriptParameter.type == ScriptParameterType.TASK) {
         scriptParameter.intValue?.let { taskId ->
           TaskServicesRest.createTask(taskId)?.let { task ->
             // Task must be added to variables for displaying it:
@@ -165,7 +165,7 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
     }
     if (!accessCheckOnExecute) {
       // If no accessCheckOnExecute, then at least check the select access of the actual script:
-      scriptDao.getById(script.id) // Throws exception if user is not financial or controlling staff member.
+      scriptDao.find(script.id) // Throws exception if user is not financial or controlling staff member.
     }
     val result = scriptExecution.execute(request, script, parameters, scriptDao, pagesRest)
     val output = StringBuilder()
@@ -196,7 +196,7 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
       }
     }
     val executionResults = output.toString()
-    val scriptDO = scriptDao.getById(script.id) // null, if script.id is null.
+    val scriptDO = scriptDao.find(script.id) // null, if script.id is null.
     return ResponseEntity.ok(
       ResponseAction(targetType = TargetType.UPDATE, merge = true)
         .addVariable("data", script)

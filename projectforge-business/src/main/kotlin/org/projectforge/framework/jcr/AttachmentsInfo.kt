@@ -25,7 +25,7 @@ package org.projectforge.framework.jcr
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.framework.utils.NumberHelper
-import javax.persistence.Transient
+import jakarta.persistence.Transient
 
 /**
  * Used by [AttachmentsService] for adding filenames of attachments to search index.

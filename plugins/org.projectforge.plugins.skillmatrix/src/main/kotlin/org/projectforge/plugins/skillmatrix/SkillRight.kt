@@ -35,7 +35,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
  *
  * @author Kai Reinhard (k.reinhard@me.de)
  */
-class SkillRight(accessChecker: AccessChecker?) : UserRightAccessCheck<SkillEntryDO>(accessChecker, SkillRightId.PLUGIN_SKILL_MATRIX, UserRightCategory.PLUGINS, UserRightValue.TRUE) {
+class SkillRight() : UserRightAccessCheck<SkillEntryDO>(SkillRightId.PLUGIN_SKILL_MATRIX, UserRightCategory.PLUGINS, UserRightValue.TRUE) {
     /**
      * @return true if the owner is equals to the logged-in user, otherwise false.
      */

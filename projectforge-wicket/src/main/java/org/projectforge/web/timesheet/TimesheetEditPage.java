@@ -28,10 +28,8 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.kost.Kost2DO;
-import org.projectforge.business.fibu.kost.KostCache;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.task.TaskTreeHelper;
@@ -43,6 +41,7 @@ import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.teamcal.integration.TeamcalTimesheetPluginComponentHook;
@@ -111,17 +110,6 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
 
   private static final long serialVersionUID = -8192471994161712577L;
 
-  private transient TaskTree taskTree;
-
-  @SpringBean
-  private TimesheetDao timesheetDao;
-
-  @SpringBean
-  private TimesheetRecentService timesheetRecentService;
-
-  @SpringBean
-  KostCache kostCache;
-
   private static final TeamcalTimesheetPluginComponentHook[] HOOK_ARRAY = {new TeamcalTimesheetPluginComponentHook()};
 
   public TimesheetEditPage(final TimesheetDO timesheet) {
@@ -137,7 +125,7 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
   void preInit() {
     if (isNew() == true) {
       final PageParameters parameters = getPageParameters();
-      final Integer taskId = WicketUtils.getAsInteger(parameters, PARAMETER_KEY_TASK_ID);
+      final Long taskId = WicketUtils.getAsLong(parameters, PARAMETER_KEY_TASK_ID);
       if (taskId != null) {
         getBaseDao().setTask(getData(), taskId);
       }
@@ -159,9 +147,9 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
       if (description != null) {
         getData().setDescription(description);
       }
-      final int userId = WicketUtils.getAsInt(parameters, PARAMETER_KEY_USER, -1);
+      final long userId = WicketUtils.getAsLong(parameters, PARAMETER_KEY_USER, -1L);
       if (userId != -1) {
-        timesheetDao.setUser(getData(), userId);
+        WicketSupport.get(TimesheetDao.class).setUser(getData(), userId);
       }
     } else {
       final Long newStartTimeInMillis = WicketUtils.getAsLong(getPageParameters(), PARAMETER_KEY_NEW_START_DATE);
@@ -175,7 +163,7 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
     }
 
     if (isNew() == true) {
-      final TimesheetRecentEntry recent = timesheetRecentService.getRecentTimesheet();
+      final TimesheetRecentEntry recent = WicketSupport.get(TimesheetRecentService.class).getRecentTimesheet();
       if (recent != null) {
         if (getData().getTaskId() == null) {
           getBaseDao().setTask(getData(), recent.getTaskId());
@@ -198,7 +186,7 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
 
   @Override
   protected TimesheetDao getBaseDao() {
-    return timesheetDao;
+    return WicketSupport.get(TimesheetDao.class);
   }
 
   @Override
@@ -221,7 +209,7 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
    * @return
    */
   protected List<TimesheetDO> getRecentTimesheets() {
-    final List<TimesheetRecentEntry> recentEntries = timesheetRecentService.getRecentTimesheets();
+    final List<TimesheetRecentEntry> recentEntries = WicketSupport.get(TimesheetRecentService.class).getRecentTimesheets();
     final List<TimesheetDO> list = new ArrayList<TimesheetDO>();
     if (CollectionUtils.isNotEmpty(recentEntries)) {
       for (final TimesheetRecentEntry entry : recentEntries) {
@@ -263,14 +251,14 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
    * Gets the recent locations.
    */
   public List<String> getRecentLocations() {
-    return timesheetRecentService.getRecentLocations();
+    return WicketSupport.get(TimesheetRecentService.class).getRecentLocations();
   }
 
   private TimesheetDO getRecentSheet(final TimesheetRecentEntry entry) {
     final TimesheetDO sheet = new TimesheetDO();
     final TaskDO task = getTaskTree().getTaskById(entry.getTaskId());
     sheet.setTask(task);
-    final Kost2DO kost2 = kostCache.getKost2(entry.getKost2Id());
+    final Kost2DO kost2 = WicketSupport.getKostCache().getKost2(entry.getKost2Id());
     sheet.setKost2(kost2);
     sheet.setDescription(entry.getDescription());
     sheet.setLocation(entry.getLocation());
@@ -300,28 +288,28 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
   @Override
   public void select(final String property, final Object selectedValue) {
     if ("taskId".equals(property) == true) {
-      final Integer id;
+      final Long id;
       if (selectedValue instanceof String) {
-        id = NumberHelper.parseInteger((String) selectedValue);
+        id = NumberHelper.parseLong((String) selectedValue);
       } else {
-        id = (Integer) selectedValue;
+        id = (Long) selectedValue;
       }
       getBaseDao().setTask(getData(), id);
       form.refresh();
     } else if ("userId".equals(property) == true) {
-      final Integer id;
+      final Long id;
       if (selectedValue instanceof String) {
-        id = NumberHelper.parseInteger((String) selectedValue);
+        id = NumberHelper.parseLong((String) selectedValue);
       } else {
-        id = (Integer) selectedValue;
+        id = (Long) selectedValue;
       }
       getBaseDao().setUser(getData(), id);
     } else if ("kost2Id".equals(property) == true) {
-      final Integer id;
+      final Long id;
       if (selectedValue instanceof String) {
-        id = NumberHelper.parseInteger((String) selectedValue);
+        id = NumberHelper.parseLong((String) selectedValue);
       } else {
-        id = (Integer) selectedValue;
+        id = (Long) selectedValue;
       }
       getBaseDao().setKost2(getData(), id);
     } else {
@@ -364,7 +352,7 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
     }
     // Save time sheet as recent time sheet
     final TimesheetDO timesheet = getData();
-    timesheetRecentService.addRecentTimesheet(timesheet);
+    WicketSupport.get(TimesheetRecentService.class).addRecentTimesheet(timesheet);
     // Does the user want to store this time sheet as template?
     if (BooleanUtils.isTrue(form.saveAsTemplate) == true) {
       final UserPrefEditPage userPrefEditPage = new UserPrefEditPage(UserPrefArea.TIMESHEET_TEMPLATE, getData());
@@ -393,9 +381,6 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
   }
 
   private TaskTree getTaskTree() {
-    if (taskTree == null) {
-      taskTree = TaskTreeHelper.getTaskTree();
-    }
-    return taskTree;
+    return TaskTreeHelper.getTaskTree();
   }
 }

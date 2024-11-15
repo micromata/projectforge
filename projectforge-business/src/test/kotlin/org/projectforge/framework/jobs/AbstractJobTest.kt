@@ -128,7 +128,7 @@ class AbstractJobTest {
   private fun createJob(
     title: String,
     area: String? = null,
-    userId: Int? = null,
+    userId: Long? = null,
     queueStrategy: AbstractJob.QueueStrategy = AbstractJob.QueueStrategy.NONE,
   ): AbstractJob {
     return object : AbstractJob(title, area = area, ownerId = userId, queueStrategy = queueStrategy) {

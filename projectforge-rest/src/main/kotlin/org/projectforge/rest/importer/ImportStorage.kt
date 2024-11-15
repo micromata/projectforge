@@ -23,7 +23,6 @@
 
 package org.projectforge.rest.importer
 
-import kotlinx.collections.immutable.toImmutableList
 import org.projectforge.framework.i18n.translate
 
 abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
@@ -79,7 +78,7 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
   val errorList: List<String>
     get() {
       synchronized(errors) {
-        return errors.toImmutableList()
+        return errors.toList()
       }
     }
 

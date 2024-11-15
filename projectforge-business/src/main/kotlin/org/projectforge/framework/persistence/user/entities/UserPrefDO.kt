@@ -25,16 +25,21 @@
 
 package org.projectforge.framework.persistence.user.entities
 
-import com.fasterxml.jackson.annotation.JsonIgnore
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
+import jakarta.persistence.*
+import mu.KotlinLogging
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
+import org.projectforge.business.user.IUserPref
 import org.projectforge.business.user.UserPrefAreaRegistry
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.persistence.api.BaseDO
-import org.projectforge.framework.persistence.api.ModificationStatus
+import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
+import org.projectforge.framework.persistence.history.NoHistory
+import org.projectforge.framework.persistence.history.PersistenceBehavior
 import org.projectforge.framework.persistence.user.api.UserPrefArea
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_AND_AREA_AND_ID
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_AND_AREA_AND_NAME
@@ -46,7 +51,8 @@ import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_OTHER_BY_USER_AND_AREA_AND_NAME
 import java.io.Serializable
 import java.util.*
-import javax.persistence.*
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Stores preferences of the user for any objects such as list filters or templates for adding new objects (time sheets
@@ -54,33 +60,60 @@ import javax.persistence.*
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
+@NoHistory
 @Entity
 @Indexed
-@Table(name = "T_USER_PREF",
-        uniqueConstraints = [UniqueConstraint(columnNames = ["user_fk", "area", "name"])],
-        indexes = [Index(name = "idx_fk_t_user_pref_user_fk", columnList = "user_fk")])
-@JpaXmlPersist(beforePersistListener = [UserPrefXmlBeforePersistListener::class])
+@Table(
+    name = "T_USER_PREF",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["user_fk", "area", "name"])],
+    indexes = [Index(name = "idx_fk_t_user_pref_user_fk", columnList = "user_fk")]
+)
+//@JpaXmlPersist(beforePersistListener = [UserPrefXmlBeforePersistListener::class])
 @NamedQueries(
-        NamedQuery(name = FIND_BY_USER_ID_AND_AREA, query = "from UserPrefDO where user.id=:userId and area=:area"),
-        NamedQuery(name = FIND_BY_USER_ID, query = "from UserPrefDO where user.id=:userId"),
-        NamedQuery(name = FIND_BY_USER_AND_AREA_AND_NAME, query = "from UserPrefDO where user.id=:userId and area=:area and name=:name"),
-        NamedQuery(name = FIND_BY_USER_AND_AREA_AND_ID, query = "from UserPrefDO where user.id=:userId and area=:area and id=:id"),
-        NamedQuery(name = FIND_BY_USER_ID_AND_AREA_AND_NULLNAME, query = "from UserPrefDO where user.id=:userId and area=:area and name is null"),
-        NamedQuery(name = FIND_NAMES_BY_USER_AND_AREA, query = "select name from UserPrefDO where user.id=:userId and area=:area order by name"),
-        NamedQuery(name = FIND_IDS_AND_NAMES_BY_USER_AND_AREA, query = "select id, name from UserPrefDO where user.id=:userId and area=:area order by name"),
-        NamedQuery(name = FIND_OTHER_BY_USER_AND_AREA_AND_NAME, query = "from UserPrefDO where id<>:id and user.id=:userId and area=:area and name=:name"))
-class UserPrefDO : AbstractBaseDO<Int>() {
-    @JsonIgnore
-    private val log = org.slf4j.LoggerFactory.getLogger(UserPrefDO::class.java)
-
-    @IndexedEmbedded(depth = 1)
+    NamedQuery(name = FIND_BY_USER_ID_AND_AREA, query = "from UserPrefDO where user.id=:userId and area=:area"),
+    NamedQuery(name = FIND_BY_USER_ID, query = "from UserPrefDO where user.id=:userId"),
+    NamedQuery(
+        name = FIND_BY_USER_AND_AREA_AND_NAME,
+        query = "from UserPrefDO where user.id=:userId and area=:area and name=:name"
+    ),
+    NamedQuery(
+        name = FIND_BY_USER_AND_AREA_AND_ID,
+        query = "from UserPrefDO where user.id=:userId and area=:area and id=:id"
+    ),
+    NamedQuery(
+        name = FIND_BY_USER_ID_AND_AREA_AND_NULLNAME,
+        query = "from UserPrefDO where user.id=:userId and area=:area and name is null"
+    ),
+    NamedQuery(
+        name = FIND_NAMES_BY_USER_AND_AREA,
+        query = "select name from UserPrefDO where user.id=:userId and area=:area order by name"
+    ),
+    NamedQuery(
+        name = FIND_IDS_AND_NAMES_BY_USER_AND_AREA,
+        query = "select id, name from UserPrefDO where user.id=:userId and area=:area order by name"
+    ),
+    NamedQuery(
+        name = FIND_OTHER_BY_USER_AND_AREA_AND_NAME,
+        query = "from UserPrefDO where id<>:id and user.id=:userId and area=:area and name=:name"
+    )
+)
+class UserPrefDO : AbstractBaseDO<Long>(), IUserPref {
+    @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_fk", nullable = false)
-    var user: PFUserDO? = null
+    override var user: PFUserDO? = null
 
-    @Field
+    @FullTextField
     @get:Column(length = 255, nullable = false)
     var name: String? = null
+
+    @get:Transient
+    override var identifier: String?
+        get() = name
+        set(value) {
+            name = value
+        }
 
     @get:Transient
     var areaObject: UserPrefArea? = null // 20;
@@ -95,19 +128,23 @@ class UserPrefDO : AbstractBaseDO<Int>() {
             this.area = area?.id
         }
 
+    @PersistenceBehavior(autoUpdateCollectionEntries = true)
     @get:Deprecated("Use value with json serialization instead.")
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+    @get:OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
     @get:JoinColumn(name = "user_pref_fk")
     @set:Deprecated("Use value with json serialization instead.")
     var userPrefEntries: MutableSet<UserPrefEntryDO>? = null
 
-    private var id: Int? = null
+    @get:Id
+    @get:GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
+    @get:Column(name = "pk")
+    override var id: Long? = null
 
     /**
      * The value as string representation (e. g. json).
      */
     @get:Column(name = "value_string", length = 100000) // 100.000, should be space enough.
-    var valueString: String? = null
+    override var serializedValue: String? = null
 
     /**
      * The type of the value (class name). It's not of type class because types are may-be refactored or removed.
@@ -139,39 +176,39 @@ class UserPrefDO : AbstractBaseDO<Int>() {
 
     @get:Transient
     val getIntValue: Int?
-        get() = valueString?.toInt()
+        get() = serializedValue?.toInt()
 
     /**
-     * User pref's ar
+     * User pref's area
      */
     @get:Column(length = UserPrefArea.MAX_ID_LENGTH, nullable = false)
-    var area: String? = null
+    override var area: String? = null
 
     val sortedUserPrefEntries: Set<UserPrefEntryDO>
         @Transient
         get() {
-            val result = TreeSet(Comparator<UserPrefEntryDO> { o1, o2 -> StringHelper.compareTo(o1.orderString, o2.orderString) })
+            val result = TreeSet(Comparator<UserPrefEntryDO> { o1, o2 ->
+                StringHelper.compareTo(
+                    o1.orderString,
+                    o2.orderString
+                )
+            })
             result.addAll(this.userPrefEntries!!)
             return result
         }
 
-    @Id
-    @GeneratedValue
-    @Column(name = "pk")
-    override fun getId(): Int? {
-        return id
-    }
-
-    override fun setId(id: Int?) {
-        this.id = id
-    }
-
+    /**
+     * Adds the given userPrefEntry, if not exist. If an entry with the same parameter already exists, it will be updated.
+     */
     @Deprecated("Use value with json serialization instead.")
-    fun addUserPrefEntry(userPrefEntry: UserPrefEntryDO) {
-        if (this.userPrefEntries == null) {
-            this.userPrefEntries = HashSet()
+    fun addOrUpdateUserPrefEntry(userPrefEntry: UserPrefEntryDO) {
+        userPrefEntries = userPrefEntries ?: mutableSetOf()
+        userPrefEntries!!.let { entries ->
+            synchronized(entries) {
+                val existingEntry = entries.firstOrNull { it.parameter == userPrefEntry.parameter }
+                existingEntry?.copyValuesFrom(userPrefEntry) ?: entries.add(userPrefEntry)
+            }
         }
-        this.userPrefEntries!!.add(userPrefEntry)
     }
 
     /**
@@ -179,20 +216,24 @@ class UserPrefDO : AbstractBaseDO<Int>() {
      * excluded.
      */
     @Deprecated("Use value with json serialization instead.")
-    override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): ModificationStatus {
+    override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
         var modificationStatus = super.copyValuesFrom(source, *ignoreFields)
         val src = source as UserPrefDO
-        if (src.userPrefEntries != null) {
-            for (srcEntry in src.userPrefEntries!!) {
-                val destEntry = ensureAndGetAccessEntry(srcEntry.parameter)
-                val st = destEntry.copyValuesFrom(srcEntry)
-                modificationStatus = getModificationStatus(modificationStatus, st)
+        src.userPrefEntries?.let { srcUserPrefEntries ->
+            for (srcEntry in srcUserPrefEntries) {
+                srcEntry.parameter?.let { param ->
+                    val destEntry = ensureAndGetAccessEntry(param)
+                    val st = destEntry.copyValuesFrom(srcEntry)
+                    modificationStatus = getModificationStatus(modificationStatus, st)
+                }
             }
             val iterator = userPrefEntries!!.iterator()
             while (iterator.hasNext()) {
                 val destEntry = iterator.next()
-                if (src.getUserPrefEntry(destEntry.parameter) == null) {
-                    iterator.remove()
+                destEntry.parameter?.let { param ->
+                    if (src.getUserPrefEntry(param) == null) {
+                        iterator.remove()
+                    }
                 }
             }
         }
@@ -208,7 +249,7 @@ class UserPrefDO : AbstractBaseDO<Int>() {
         if (entry == null) {
             entry = UserPrefEntryDO()
             entry.parameter = parameter
-            this.addUserPrefEntry(entry)
+            this.addOrUpdateUserPrefEntry(entry)
         }
         return entry
     }
@@ -250,6 +291,14 @@ class UserPrefDO : AbstractBaseDO<Int>() {
             }
         }
         return list
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return IUserPref.equals(this, other)
+    }
+
+    override fun hashCode(): Int {
+        return IUserPref.hashCode()
     }
 
     companion object {

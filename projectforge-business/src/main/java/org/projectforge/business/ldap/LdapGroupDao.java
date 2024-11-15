@@ -26,7 +26,7 @@ package org.projectforge.business.ldap;
 import org.apache.commons.collections4.CollectionUtils;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 public class LdapGroupDao extends LdapDao<String, LdapGroup>
 {
   private static final String[] ADDITIONAL_OBJECT_CLASSES = { "top" };

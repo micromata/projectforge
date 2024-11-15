@@ -41,7 +41,7 @@ public class AddressListPhoneNumberPanel extends Panel {
   private static final long serialVersionUID = 2546695290892989291L;
 
   @SuppressWarnings("serial")
-  public AddressListPhoneNumberPanel(final String id, final AddressListPage parentPage, final Integer addressId,
+  public AddressListPhoneNumberPanel(final String id, final AddressListPage parentPage, final Long addressId,
                                      final PhoneType phoneType,
                                      final String phoneNumber, final boolean sendSms, final IconType icon,
                                      final boolean first) {

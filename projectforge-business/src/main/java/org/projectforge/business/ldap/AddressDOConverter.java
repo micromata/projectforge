@@ -40,7 +40,7 @@ public class AddressDOConverter
     final String uid = person.getUid();
     if (uid != null && uid.startsWith(UID_PREFIX) && uid.length() > UID_PREFIX.length()) {
       final String id = uid.substring(UID_PREFIX.length());
-      address.setId(NumberHelper.parseInteger(id));
+      address.setId(NumberHelper.parseLong(id));
     }
     address.setOrganization(person.getOrganization());
     address.setComment(person.getDescription());

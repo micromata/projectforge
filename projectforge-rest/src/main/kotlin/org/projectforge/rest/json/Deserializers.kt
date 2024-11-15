@@ -27,25 +27,44 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
-import com.fasterxml.jackson.databind.node.IntNode
+import com.fasterxml.jackson.databind.node.LongNode
+import com.fasterxml.jackson.databind.node.NumericNode
+import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.math.BigDecimal
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Deserialization for Integers.
  */
 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
-class IntDeserializer : StdDeserializer<Integer>(Integer::class.java) {
+class IntDeserializer : StdDeserializer<java.lang.Integer>(java.lang.Integer::class.java) {
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext): Integer? {
         val str = p.text
         if (StringUtils.isBlank(str)) {
             return null
         }
         try {
-            return Integer(str)
+            return Integer.valueOf(str) as Integer
         } catch (ex: NumberFormatException) {
             throw ctxt.weirdStringException(str, Integer::class.java, "Can't parse integer.")
+        }
+    }
+}
+
+@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+class LongDeserializer : StdDeserializer<java.lang.Long>(java.lang.Long::class.java) {
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext): java.lang.Long? {
+        val str = p.text
+        if (StringUtils.isBlank(str)) {
+            return null
+        }
+        try {
+            return java.lang.Long.valueOf(str) as java.lang.Long
+        } catch (ex: NumberFormatException) {
+            throw ctxt.weirdStringException(str, Long::class.java, "Can't parse Long.")
         }
     }
 }
@@ -96,9 +115,14 @@ class TextDeserializer : StdDeserializer<String>(String::class.java) {
 class PFUserDODeserializer : StdDeserializer<PFUserDO>(PFUserDO::class.java) {
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): PFUserDO? {
         val node: JsonNode = p.codec.readTree(p)
-        val id = (node.get("id") as IntNode).numberValue() as Int
-        val user = PFUserDO()
-        user.id = id
-        return user
+        try {
+            val id = (node.get("id") as NumericNode).numberValue().toLong()
+            val user = PFUserDO()
+            user.id = id
+            return user
+        } catch (ex: Exception) {
+            log.warn("Can't deserialize PFUserDO: $node. Id not readable: ${node.get("id")}")
+            return null
+        }
     }
 }

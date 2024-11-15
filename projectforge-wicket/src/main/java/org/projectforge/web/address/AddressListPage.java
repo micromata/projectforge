@@ -47,11 +47,13 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.*;
 import org.projectforge.business.sipgate.SipgateConfiguration;
+import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.rest.AddressViewPageRest;
 import org.projectforge.sms.SmsSenderConfig;
 import org.projectforge.web.WebConfiguration;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.components.ExternalLinkPanel;
@@ -88,22 +90,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
           "f.personaIngrata",
           "f.departed"});
 
-  @SpringBean
-  private AddressDao addressDao;
-
-  @SpringBean(name = "addressExport")
-  private AddressExport addressExport;
-
-  @SpringBean
-  private PersonalAddressDao personalAddressDao;
-
-  @SpringBean
-  private SipgateConfiguration sipgateConfiguration;
-
-  @SpringBean
-  private SmsSenderConfig smsSenderConfig;
-
-  Map<Integer, PersonalAddressDO> personalAddressMap;
+  Map<Long, PersonalAddressDO> personalAddressMap;
 
   boolean messagingSupported;
 
@@ -123,8 +110,8 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
   protected void setup() {
     super.setup();
     this.recentSearchTermsUserPrefKey = "addressSearchTerms";
-    messagingSupported = smsSenderConfig.isSmsConfigured() == true;
-    phoneCallSupported = sipgateConfiguration.isConfigured();
+    messagingSupported = WicketSupport.get(SmsSenderConfig.class).isSmsConfigured() == true;
+    phoneCallSupported = WicketSupport.get(SipgateConfiguration.class).isConfigured();
   }
 
   @Override
@@ -137,8 +124,8 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
                                final IModel<AddressDO> rowModel) {
         final AddressDO address = rowModel.getObject();
         final PersonalAddressDO personalAddress = personalAddressMap.get(address.getId());
-        appendCssClasses(item, address.getId(), address.isDeleted());
-        if (address.isDeleted() == true) {
+        appendCssClasses(item, address.getId(), address.getDeleted());
+        if (address.getDeleted() == true) {
           // Do nothing further
         } else if (personalAddress != null && personalAddress.isFavoriteCard() == true) {
           appendCssClasses(item, RowCssClass.FAVORITE_ENTRY);
@@ -230,7 +217,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
             final PersonalAddressDO personalAddress = personalAddressMap.get(address.getId());
             final RepeatingView view = new RepeatingView(componentId);
             item.add(view);
-            final Integer id = address.getId();
+            final Long id = address.getId();
             boolean first = addPhoneNumber(view, id, PhoneType.BUSINESS, address.getBusinessPhone(), false, IconType.BUILDING, true);
             first = addPhoneNumber(view, id, PhoneType.MOBILE, address.getMobilePhone(), true, IconType.TABLET, first);
             first = addPhoneNumber(view, id, PhoneType.PRIVATE, address.getPrivatePhone(), false, IconType.HOME, first);
@@ -271,7 +258,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
   @SuppressWarnings("serial")
   @Override
   protected void init() {
-    personalAddressMap = personalAddressDao.getPersonalAddressByAddressId();
+    personalAddressMap = WicketSupport.get(PersonalAddressDao.class).getPersonalAddressByAddressId();
     final List<IColumn<AddressDO, String>> columns = createColumns(this, true);
     dataTable = createDataTable(columns, "name", SortOrder.ASCENDING);
     form.add(dataTable);
@@ -304,7 +291,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
         @Override
         public void onSubmit() {
           log.info("Exporting personal address book.");
-          final List<PersonalAddressDO> list = addressDao.getFavoriteVCards();
+          final List<PersonalAddressDO> list = WicketSupport.get(AddressDao.class).getFavoriteVCards();
           if (CollectionUtils.isEmpty(list) == true) {
             form.addError("address.book.hasNoVCards");
             return;
@@ -312,7 +299,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
           final String filename = "ProjectForge-PersonalAddressBook_" + DateHelper.getDateAsFilenameSuffix(new Date())
               + ".vcf";
           final StringWriter writer = new StringWriter();
-          addressDao.exportFavoriteVCards(writer, list);
+          WicketSupport.get(AddressDao.class).exportFavoriteVCards(writer, list);
           DownloadUtils.setUTF8CharacterEncoding(getResponse());
           DownloadUtils.setDownloadTarget(writer.toString().getBytes(), filename);
         }
@@ -330,7 +317,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
         public void onSubmit() {
           log.info("Exporting address list.");
           final List<AddressDO> list = getList();
-          final byte[] xls = addressExport.export(list, personalAddressMap);
+          final byte[] xls = WicketSupport.get(AddressExport.class).export(list, personalAddressMap);
           if (xls == null || xls.length == 0) {
             form.addError("address.book.hasNoVCards");
             return;
@@ -377,7 +364,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
     }
   }
 
-  private boolean addPhoneNumber(final RepeatingView view, final Integer addressId, final PhoneType phoneType,
+  private boolean addPhoneNumber(final RepeatingView view, final Long addressId, final PhoneType phoneType,
                                  final String phoneNumber,
                                  final boolean sendSms, final IconType icon, final boolean first) {
     if (StringUtils.isBlank(phoneNumber) == true) {
@@ -417,10 +404,6 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
 
   @Override
   public AddressDao getBaseDao() {
-    return addressDao;
-  }
-
-  protected AddressDao getAddressDao() {
-    return addressDao;
+    return WicketSupport.get(AddressDao.class);
   }
 }

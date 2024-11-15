@@ -32,7 +32,6 @@ import org.springframework.context.annotation.Configuration
  * For configuration of required 2FA. Uri's for which 2FA is required may be defined as coma separated regex's. Some sets of
  * uri expressions may be used by name, see org.projectforge.rest.config.ProjectForge2FAInitialization:
  * - ADMIN: WRITE:{user};/wa/userEdit;/wa/groupEdit;/wa/admin;/react/change.*Password;/wa/license;/wa/access;/react/system;/react/configuration;/wa/wicket/bookmarkable/org.projectforge.web.admin
- * - HR: /wa/employee;/wa/wicket/bookmarkable/org.projectforge.plugins.eed
  * - FINANCE: /wa/report;/wa/accounting;/wa/datev;/wa/liquidity;/react/account;/react/cost1;/react/cost2;/wa/incomingInvoice;/wa/outgoingInvoice
  * - ORGA: /wa/incomingMail;/react/outgoingMail;/wa/outgoingMail;/react/incomingMail;/wa/contractMail;/react/contract
  * - SCRIPTING: /wa/script

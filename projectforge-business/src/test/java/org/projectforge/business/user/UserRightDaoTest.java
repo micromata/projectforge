@@ -24,7 +24,6 @@
 package org.projectforge.business.user;
 
 import org.junit.jupiter.api.Test;
-import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,9 +45,10 @@ public class UserRightDaoTest extends AbstractTestBase {
   public void testUpdateUserRights() {
     logon(AbstractTestBase.ADMIN);
     final PFUserDO user = initTestDB.addUser("testUserRightDaoTest");
-    final Set<GroupDO> groupsToAssign = new HashSet<>();
-    groupsToAssign.add(getGroup(AbstractTestBase.FINANCE_GROUP));
-    groupDao.assignGroups(user, groupsToAssign, null);
+    final Set<Long> groupsToAssign = new HashSet<>();
+    groupsToAssign.add(getGroup(AbstractTestBase.FINANCE_GROUP).getId());
+    groupDao.assignGroupByIds(user, groupsToAssign, null);
+
     List<UserRightVO> list = userRightDao.getUserRights(user);
     UserRightVO right1 = null;
     UserRightVO right2 = null;

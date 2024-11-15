@@ -28,10 +28,10 @@ import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.handler.resource.ResourceStreamRequestHandler;
 import org.apache.wicket.request.resource.ContentDisposition;
 import org.apache.wicket.util.resource.IResourceStream;
-import org.apache.wicket.util.time.Duration;
 import org.projectforge.common.MimeType;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
+import java.time.Duration;
 
 public class DownloadUtils {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DownloadUtils.class);
@@ -82,7 +82,7 @@ public class DownloadUtils {
     }
     final ResourceStreamRequestHandler handler = new ResourceStreamRequestHandler(byteArrayResourceStream);
     handler.setFileName(filename).setContentDisposition(ContentDisposition.ATTACHMENT);
-    handler.setCacheDuration(Duration.ONE_SECOND);
+    handler.setCacheDuration(Duration.ofSeconds(1));
     RequestCycle.get().scheduleRequestHandlerAfterCurrent(handler);
     log.info("Starting download for file. filename:" + filename + ", content-type:" + byteArrayResourceStream.getContentType());
   }

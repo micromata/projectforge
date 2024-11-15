@@ -23,17 +23,16 @@
 
 package org.projectforge.framework.configuration.entities
 
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist
-import mu.KotlinLogging
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationType
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.projectforge.framework.persistence.candh.CandHIgnore
 
 /**
  * For configuration entries persisted in the data base. Please access the configuration parameters via
@@ -44,7 +43,7 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_CONFIGURATION", uniqueConstraints = [UniqueConstraint(columnNames = ["parameter"])])
-@JpaXmlPersist(beforePersistListener = [ConfigurationXmlBeforePersistListener::class])
+//@JpaXmlPersist(beforePersistListener = [ConfigurationXmlBeforePersistListener::class])
 @AUserRightId("ADMIN_CORE")
 @NamedQueries(
         NamedQuery(name = ConfigurationDO.FIND_BY_PARAMETER, query = "from ConfigurationDO where parameter = :parameter"))
@@ -53,15 +52,15 @@ open class ConfigurationDO : DefaultBaseDO {
     /**
      * Key under which the configuration value is stored in the database.
      */
-    @Field
+    @FullTextField
     @get:Column(length = 255, nullable = false)
     open var parameter: String? = null
 
     /**
      * If entry is not from type STRING then a RuntimeException will be thrown.
      */
-    @Field
-    @get:Column(length = PARAM_LENGTH)
+    @FullTextField
+    @get:Column(length = PARAM_LENGTH, name = "stringvalue")
     open var stringValue: String? = null
         get() {
             if (field != null) {
@@ -76,22 +75,22 @@ open class ConfigurationDO : DefaultBaseDO {
             field = stringValue
         }
 
-    @get:Column
-    open var intValue: Int? = null
+    @get:Column(name = "longvalue")
+    open var longValue: Long? = null
         get() {
             if (field != null) {
-                checkType(ConfigurationType.INTEGER)
+                checkType(ConfigurationType.LONG)
             }
             return field
         }
         set(stringValue) {
             if (field != null) {
-                checkType(ConfigurationType.INTEGER)
+                checkType(ConfigurationType.LONG)
             }
             field = stringValue
         }
 
-    @get:Column(scale = 5, precision = 18)
+    @get:Column(scale = 5, precision = 18, name = "floatvalue")
     open var floatValue: BigDecimal? = null
         get() {
             if (field != null) {
@@ -107,7 +106,7 @@ open class ConfigurationDO : DefaultBaseDO {
         }
 
     @get:Enumerated(EnumType.STRING)
-    @get:Column(length = 20, nullable = false)
+    @get:Column(length = 20, nullable = false, name = "configurationtype")
     open var configurationType: ConfigurationType? = null
         set(type) {
             if (field == null) {
@@ -117,7 +116,7 @@ open class ConfigurationDO : DefaultBaseDO {
             } else if (type == ConfigurationType.STRING && field!!.isIn(ConfigurationType.TEXT, ConfigurationType.BOOLEAN,
                             ConfigurationType.TIME_ZONE)) {
                 // Do nothing.
-            } else if (type == ConfigurationType.INTEGER && field == ConfigurationType.CALENDAR) {
+            } else if (type == ConfigurationType.LONG && field == ConfigurationType.CALENDAR) {
                 // Do nothing.
             } else if (type == ConfigurationType.FLOAT && field == ConfigurationType.PERCENT) {
                 // Do nothing.
@@ -179,19 +178,19 @@ open class ConfigurationDO : DefaultBaseDO {
             this.stringValue = timeZone.id
         }
 
-    open var calendarId: Int?
+    open var calendarId: Long?
         @Transient
         get() {
-            if (intValue != null) {
-                checkType(ConfigurationType.CALENDAR)
+            if (longValue != null) {
+                checkType(ConfigurationType.LONG)
             }
-            return intValue
+            return longValue
         }
         set(calendarId) {
             if (calendarId != null) {
-                checkType(ConfigurationType.CALENDAR)
+                checkType(ConfigurationType.LONG)
             }
-            intValue = calendarId
+            longValue = calendarId
         }
 
     open var booleanValue: Boolean?
@@ -205,13 +204,14 @@ open class ConfigurationDO : DefaultBaseDO {
             this.stringValue = booleanValue?.toString() ?: java.lang.Boolean.FALSE.toString()
         }
 
+    @CandHIgnore
     open var value: Any?
         @Transient
         get() = if (this.configurationType!!.isIn(ConfigurationType.STRING, ConfigurationType.TEXT, ConfigurationType.TIME_ZONE)) {
             this.stringValue
-        } else if (this.configurationType == ConfigurationType.INTEGER
+        } else if (this.configurationType == ConfigurationType.LONG
                 || this.configurationType == ConfigurationType.CALENDAR) {
-            this.intValue
+            this.longValue
         } else if (this.configurationType == ConfigurationType.FLOAT || this.configurationType == ConfigurationType.PERCENT) {
             this.floatValue
         } else if (this.configurationType == ConfigurationType.BOOLEAN) {
@@ -222,7 +222,7 @@ open class ConfigurationDO : DefaultBaseDO {
         set(value) {
             if (value == null) {
                 stringValue = null
-                intValue = null
+                longValue = null
                 floatValue = null
                 return
             }
@@ -245,20 +245,20 @@ open class ConfigurationDO : DefaultBaseDO {
      * @param lastUpdate
      * @param configurationType
      * @param floatValue
-     * @param intValue
+     * @param longValue
      * @param parameter
      * @param stringValue
      */
-    constructor(id: Int?, created: Date, deleted: Boolean, lastUpdate: Date,
-                configurationType: ConfigurationType, floatValue: BigDecimal, intValue: Int?, parameter: String,
+    constructor(id: Long?, created: Date, deleted: Boolean, lastUpdate: Date,
+                configurationType: ConfigurationType, floatValue: BigDecimal, longValue: Long?, parameter: String,
                 stringValue: String) {
         this.id = id
         this.created = created
-        this.isDeleted = deleted
+        this.deleted = deleted
         this.lastUpdate = lastUpdate
         this.configurationType = configurationType
         this.floatValue = floatValue
-        this.intValue = intValue
+        this.longValue = longValue
         this.parameter = parameter
         this.stringValue = stringValue
     }
@@ -268,16 +268,16 @@ open class ConfigurationDO : DefaultBaseDO {
         when {
             this.configurationType!!.isIn(ConfigurationType.STRING, ConfigurationType.BOOLEAN, ConfigurationType.TEXT,
                     ConfigurationType.TIME_ZONE) -> {
-                this.intValue = null
+                this.longValue = null
                 this.floatValue = null
             }
-            this.configurationType!!.isIn(ConfigurationType.INTEGER, ConfigurationType.CALENDAR) -> {
+            this.configurationType!!.isIn(ConfigurationType.LONG, ConfigurationType.CALENDAR) -> {
                 this.stringValue = null
                 this.floatValue = null
             }
             this.configurationType!!.isIn(ConfigurationType.FLOAT, ConfigurationType.PERCENT) -> {
                 this.stringValue = null
-                this.intValue = null
+                this.longValue = null
             }
             else -> throw UnsupportedOperationException("Unkown type: $type")
         }
@@ -290,7 +290,7 @@ open class ConfigurationDO : DefaultBaseDO {
             } else if (type == ConfigurationType.STRING && this.configurationType!!.isIn(ConfigurationType.TEXT, ConfigurationType.BOOLEAN,
                             ConfigurationType.TIME_ZONE)) {
                 return
-            } else if (type == ConfigurationType.INTEGER && this.configurationType == ConfigurationType.CALENDAR) {
+            } else if (type == ConfigurationType.LONG && this.configurationType == ConfigurationType.CALENDAR) {
                 return
             } else if (type == ConfigurationType.FLOAT && this.configurationType == ConfigurationType.PERCENT) {
                 return
@@ -314,7 +314,7 @@ open class ConfigurationDO : DefaultBaseDO {
         } else if (type == ConfigurationType.STRING && this.configurationType!!.isIn(ConfigurationType.TEXT, ConfigurationType.BOOLEAN,
                         ConfigurationType.TIME_ZONE)) {
             // Do nothing.
-        } else if (type == ConfigurationType.INTEGER && this.configurationType == ConfigurationType.CALENDAR) {
+        } else if (type == ConfigurationType.LONG && this.configurationType == ConfigurationType.CALENDAR) {
             // Do nothing.
         } else if (type == ConfigurationType.FLOAT && this.configurationType == ConfigurationType.PERCENT) {
             // Do nothing.

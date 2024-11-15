@@ -24,115 +24,220 @@
 package org.projectforge.business.scripting
 
 import mu.KotlinLogging
-import javax.script.ScriptEngineManager
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import java.util.concurrent.Executors
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+import kotlin.script.experimental.api.*
+import kotlin.script.experimental.host.toScriptSource
+import kotlin.script.experimental.jvm.dependenciesFromCurrentContext
+import kotlin.script.experimental.jvm.jvm
+import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 
 private val log = KotlinLogging.logger {}
 
 class KotlinScriptExecutor : ScriptExecutor() {
-
-  companion object {
-    private val bindingsClassReplacements = mapOf(
-      "java.lang.String" to "String",
-      "java.lang.Integer" to "Int",
-      "java.lang.Boolean" to "Boolean",
-      "java.util.HashMap" to "MutableMap<*, *>",
-    )
-
-    private val kotlinImports = listOf(
-      "import org.projectforge.framework.i18n.translate",
-      "import org.projectforge.framework.i18n.translateMsg",
-      "import org.projectforge.framework.utils.NumberFormatter.format",  // ambigous for Groovy!?
-      "import org.projectforge.framework.utils.NumberFormatter.formatCurrency",  // ambigous for Groovy!?
-    )
-  }
-
-  /**
-   * @param script Common imports will be prepended.
-   * @param variables Variables to bind. Variables are usable via binding["key"] or directly, if #autobind# is part of script.
-   * @see GroovyExecutor.executeTemplate
-   */
-  override fun execute(): ScriptExecutionResult {
-    val engine = MyKotlinScriptEngineFactory().scriptEngine
-    val bindings = engine.createBindings()
-    variables.forEach {
-      bindings[it.key] = it.value
-    }
-    scriptParameterList?.forEach {
-      bindings[createValidIdentifier(it.parameterName)] = it.value
-    }
-    try {
-      scriptExecutionResult.result = engine.eval(effectiveScript, bindings)
-    } catch (ex: Exception) {
-      log.info("Exception on Kotlin script execution: ${ex.message}", ex)
-      scriptExecutionResult.exception = ex
-    }
-    return scriptExecutionResult
-  }
-
-  override fun standardImports(): List<String> {
-    return STANDARD_IMPORTS.map{ it.replace("import static", "import") } + kotlinImports
-  }
-
-  override fun appendBlockAfterImports(sb: StringBuilder) {
-    sb.appendLine("// Auto generated bindings:")
-    // Prepend bindings now before proceeding
-    val bindingsEntries = mutableListOf<String>()
-    val script = resolvedScript ?: source
-    variables.forEach { (name, value) ->
-      if (!(resolvedScript ?: source).contains("bindings[\"$name\"]")) { // Don't add binding twice
-        addBinding(bindingsEntries, name, value)
-      }
-    }
-    scriptParameterList?.forEach { param ->
-      if (!script.contains("bindings[\"${param.parameterName}\"]")) { // Don't add binding twice
-        // OK, null value wasn't added to variables. So we had to add them here:
-        addBinding(bindingsEntries, param.parameterName, param)
-      }
-    }
-    bindingsEntries.sortedBy { it.lowercase() }.forEach {
-      sb.appendLine(it)
-    }
-    sb.appendLine()
-    sb.appendLine()
-  }
-
-  private fun addBinding(bindingsEntries: MutableList<String>, name: String, value: Any?) {
-    if (name.isBlank()) {
-      return // Don't add blank variables (shouldn't occur).
-    }
-    var nullable = ""
-    val clazz = if (value != null) {
-      if (value is ScriptParameter) {
-        if (value.type != ScriptParameterType.BOOLEAN) {
-          nullable = "?" // Script parameter not found as variable -> is null!
+    class MyScriptingHost : BasicJvmScriptingHost() {
+        val loggedInUser = ThreadLocalUserContext.loggedInUser
+        override fun <T> runInCoroutineContext(block: suspend () -> T): T {
+            try {
+                ThreadLocalUserContext.setUser(loggedInUser)
+                return super.runInCoroutineContext(block)
+            } finally {
+                ThreadLocalUserContext.clear()
+            }
         }
-        value.valueClass
-      } else {
-        value::class.java
-      }
-    } else {
-      Any::class.java
     }
-    val clsName = if (bindingsClassReplacements.containsKey(clazz.name)) {
-      bindingsClassReplacements[clazz.name]
-    } else if (value is ScriptingDao<*>) {
-      "ScriptingDao<${value.doClass.name}>"
-    } else {
-      clazz.name
+
+    companion object {
+        private val bindingsClassReplacements = mapOf(
+            "java.lang.String" to "String",
+            "java.lang.Integer" to "Int",
+            "java.lang.Boolean" to "Boolean",
+            "java.util.HashMap" to "MutableMap<*, *>",
+        )
+
+        private val kotlinImports = listOf(
+            "import org.projectforge.framework.i18n.translate",
+            "import org.projectforge.framework.i18n.translateMsg",
+            "import org.projectforge.business.PfCaches.Companion.initialize"
+        )
     }
-    val identifier = createValidIdentifier(name)
-    bindingsEntries.add("val $identifier = bindings[\"$identifier\"] as $clsName$nullable")
-  }
 
+    /**
+     * @param script Common imports will be prepended.
+     * @param variables Variables to bind. Variables are usable via binding["key"] or directly, if #autobind# is part of script.
+     * @see GroovyExecutor.executeTemplate
+     */
+    override fun execute(): ScriptExecutionResult {
+        val scriptingHost = MyScriptingHost()
 
-}
+        val compilationConfiguration = ScriptCompilationConfiguration {
+            jvm {
+                dependenciesFromCurrentContext(wholeClasspath = true)
+            }
+            providedProperties("context" to KotlinScriptContext::class)
+            compilerOptions.append("-nowarn")
+        }
+        val context = KotlinScriptContext()
+        variables.forEach {
+            context.setProperty(it.key, it.value)
+        }
+        scriptParameterList?.forEach {
+            context.setProperty(createValidIdentifier(it.parameterName), it.value)
+        }
+        val evaluationConfiguration = ScriptEvaluationConfiguration {
+            providedProperties("context" to context)
+        }
+        val scriptSource = effectiveScript.trimIndent().toScriptSource()
+        val result = execute(scriptingHost, scriptSource, compilationConfiguration, evaluationConfiguration)
+        result?.let { useResult ->
+            handleResult(scriptExecutionResult, result)
+            if (useResult is ResultWithDiagnostics.Success) {
+                val returnValue = useResult.value.returnValue
+                if (returnValue is ResultValue.Value) {
+                    val output = returnValue.value
+                    scriptExecutionResult.result = output
+                }
+            }
+        }
+        return scriptExecutionResult
+    }
 
-fun main() {
-  val engineManager = ScriptEngineManager()
-  for (factory in engineManager.engineFactories) {
-    println(factory.engineName)
-    println("\t" + factory.languageName)
-  }
-  val engine = engineManager.getEngineByExtension("kts")
-  engine.eval("import org.projectforge.*\nprintln(\"\${ProjectForgeVersion.APP_ID} \${ProjectForgeVersion.VERSION_STRING}\")")
+    private fun execute(
+        scriptingHost: BasicJvmScriptingHost,
+        scriptSource: SourceCode,
+        compilationConfiguration: ScriptCompilationConfiguration,
+        evaluationConfiguration: ScriptEvaluationConfiguration,
+    ): ResultWithDiagnostics<EvaluationResult>? {
+        val executor = Executors.newSingleThreadExecutor()
+        var future: Future<ResultWithDiagnostics<EvaluationResult>>? = null
+        try {
+            future = executor.submit<ResultWithDiagnostics<EvaluationResult>> {
+                scriptingHost.eval(scriptSource, compilationConfiguration, evaluationConfiguration)
+            }
+            return future.get(300, TimeUnit.SECONDS)  // Timeout
+        } catch (ex: TimeoutException) {
+            log.info("Script execution was cancelled due to timeout.")
+            future?.cancel(true)  // Attempt to cancel
+            scriptExecutionResult.exception = ex
+            scriptExecutionResult.scriptLogger.error(translate("scripting.error.timeout"))
+        } catch (ex: Exception) {
+            log.info("Exception on Kotlin script execution: ${ex.message}", ex)
+            scriptExecutionResult.exception = ex
+            scriptExecutionResult.scriptLogger.error("Exception on Kotlin script execution: ${ex.message}")
+        } finally {
+            executor.shutdownNow()
+        }
+        return null
+    }
+
+    override fun standardImports(): List<String> {
+        val kotlinImports = STANDARD_IMPORTS.map { it.replace("import static", "import") } + kotlinImports
+        return kotlinImports.filter { !it.startsWith("import java.io") }
+    }
+
+    override fun appendBlockAfterImports(sb: StringBuilder) {
+        sb.appendLine("// Auto generated bindings:")
+        // Prepend bindings now before proceeding
+        val bindingsEntries = mutableListOf<String>()
+        val script = resolvedScript ?: source
+        variables.forEach { (name, value) ->
+            if (!(resolvedScript ?: source).contains(createContextGet(name))) { // Don't add binding twice
+                addBinding(bindingsEntries, name, value)
+            }
+        }
+        scriptParameterList?.forEach { param ->
+            if (!script.contains(createContextGet(param.parameterName))) { // Don't add binding twice
+                // OK, null value wasn't added to variables. So we had to add them here:
+                addBinding(bindingsEntries, param.parameterName, param)
+            }
+        }
+        bindingsEntries.sortedBy { it.lowercase() }.forEach {
+            sb.appendLine(it)
+        }
+        sb.appendLine()
+        sb.appendLine()
+    }
+
+    private fun createContextGet(name: String): String {
+        return "context.getProperty(\"$name\")"
+    }
+
+    private fun addBinding(bindingsEntries: MutableList<String>, name: String, value: Any?) {
+        if (name.isBlank()) {
+            return // Don't add blank variables (shouldn't occur).
+        }
+        var nullable = ""
+        val clazz = if (value != null) {
+            if (value is ScriptParameter) {
+                if (value.type != ScriptParameterType.BOOLEAN) {
+                    nullable = "?" // Script parameter not found as variable -> is null!
+                }
+                value.valueClass
+            } else {
+                value::class.java
+            }
+        } else {
+            Any::class.java
+        }
+        val clsName = if (bindingsClassReplacements.containsKey(clazz.name)) {
+            bindingsClassReplacements[clazz.name]
+        } else if (value is ScriptingDao<*>) {
+            "ScriptingDao<${value.dOClass.name}>"
+        } else {
+            clazz.name
+        }
+        val identifier = createValidIdentifier(name)
+        bindingsEntries.add("val $identifier = ${createContextGet(identifier)} as $clsName$nullable")
+    }
+
+    private fun handleResult(
+        scriptExecutionResult: ScriptExecutionResult,
+        result: ResultWithDiagnostics<EvaluationResult>?,
+        logSeverity: ScriptDiagnostic.Severity = ScriptDiagnostic.Severity.ERROR
+    ) {
+        if (result == null) {
+            scriptExecutionResult.result = translate("scripting.error.timeout")
+            return
+        }
+        val scriptLines = effectiveScript.lines()
+        val logger = scriptExecutionResult.scriptLogger
+        result.reports.forEach { report ->
+            val severity = report.severity
+            if (severity < logSeverity) {
+                return@forEach
+            }
+            val message = report.message
+            val location = report.location
+            var line1 = "[$severity] $message"
+            var line2: String? = null
+            location?.let {
+                // line1 = "[$severity] $message: ${it.start.line}:${it.start.col} to ${it.end?.line}:${it.end?.col}"
+                line1 = "[$severity] $message: line ${it.start.line} to ${it.end?.line}"
+                val lineIndex = it.start.line - 1 // Zeilenindex anpassen
+                if (lineIndex in scriptLines.indices) {
+                    val line = scriptLines[lineIndex]
+                    val startCol = it.start.col - 1
+                    val endCol = (it.end?.col ?: line.length) - 1
+
+                    // Teile die Zeile auf und füge die Marker ein
+                    val markedLine = buildString {
+                        append(">")
+                        append(line.substring(0, startCol))
+                        append(">>>")  // Markierung für Startposition
+                        append(line.substring(startCol, endCol))
+                        append("<<<")  // Markierung für Endposition
+                        append(line.substring(endCol))
+                    }
+                    line2 = markedLine
+                }
+            }
+            logger.add(line1, severity)
+            line2?.let { logger.add(it, severity) }
+        }
+        scriptExecutionResult.result = result.valueOrNull()
+    }
 }

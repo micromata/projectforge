@@ -13,16 +13,14 @@ const formatterFormat = (
 ) => {
     let result = value;
     switch (dataType) {
-        case 'COST1':
-            return value.formattedNumber;
-        case 'COST2':
-            return value.longDisplayName || value.formattedNumber;
         case 'CURRENCY':
             return Intl.NumberFormat(locale, {
                 style: 'currency',
                 currency,
             }).format(value);
         case 'SHOW_DISPLAYNAME':
+        case 'COST1':
+        case 'COST2':
         case 'CUSTOMER':
         case 'KONTO':
         case 'PROJECT':

@@ -34,6 +34,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KontoDao;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.*;
 
 import java.util.ArrayList;
@@ -44,9 +45,6 @@ public class KontoListPage extends AbstractListPage<KontoListForm, KontoDao, Kon
     implements IListPageColumnsCreator<KontoDO>
 {
   private static final long serialVersionUID = -8406452960003792763L;
-
-  @SpringBean
-  private KontoDao kontoDao;
 
   public KontoListPage(final PageParameters parameters)
   {
@@ -69,7 +67,7 @@ public class KontoListPage extends AbstractListPage<KontoListForm, KontoDao, Kon
           final IModel<KontoDO> rowModel)
       {
         final KontoDO konto = rowModel.getObject();
-        appendCssClasses(item, konto.getId(), konto.isDeleted());
+        appendCssClasses(item, konto.getId(), konto.getDeleted());
       }
     };
     columns.add(new CellItemListenerPropertyColumn<KontoDO>(new Model<String>(getString("fibu.konto.nummer")),
@@ -126,11 +124,6 @@ public class KontoListPage extends AbstractListPage<KontoListForm, KontoDao, Kon
   @Override
   public KontoDao getBaseDao()
   {
-    return kontoDao;
-  }
-
-  protected KontoDao getKontoDao()
-  {
-    return kontoDao;
+    return WicketSupport.get(KontoDao.class);
   }
 }

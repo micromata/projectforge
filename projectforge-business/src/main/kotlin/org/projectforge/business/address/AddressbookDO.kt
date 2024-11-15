@@ -23,26 +23,28 @@
 
 package org.projectforge.business.address
 
+import jakarta.persistence.*
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.hibernate.search.annotations.ClassBridge
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
+import org.projectforge.Constants
 import org.projectforge.business.common.BaseUserGroupRightsDO
-import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsBridge
+import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsTypeBinder
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
-import org.projectforge.Constants
+import org.projectforge.framework.persistence.search.ClassBridge
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
-import javax.persistence.*
 
 /**
  * @author Florian Blumenstein
  */
 @Entity
 @Indexed
-@ClassBridge(name = "usersgroups", impl = HibernateSearchUsersGroupsBridge::class)
+@TypeBinding(binder = TypeBinderRef(type = HibernateSearchUsersGroupsTypeBinder::class))
+@ClassBridge(name = "usersgroups") // usersgroups should be used in HibernateSearchUsersGroupsBridge as field name.
+//ClassBridge(name = "usersgroups", impl = ::class)
 @Table(name = "T_ADDRESSBOOK")
 open class AddressbookDO : BaseUserGroupRightsDO(), DisplayNameCapable {
 
@@ -50,20 +52,21 @@ open class AddressbookDO : BaseUserGroupRightsDO(), DisplayNameCapable {
         @Transient
         get() = "$title"
 
-    @PropertyInfo(i18nKey = "addressbook.title")
-    @Field
+    @PropertyInfo(i18nKey = "addressbook.title", required = true)
+    @FullTextField
     @get:Column(length = Constants.LENGTH_TITLE)
     open var title: String? = null
 
     @PropertyInfo(i18nKey = "addressbook.owner")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "owner_fk")
     override var owner: PFUserDO? = null
 
 
     @PropertyInfo(i18nKey = "addressbook.description")
-    @Field
+    @FullTextField
     @get:Column(length = Constants.LENGTH_TEXT)
     open var description: String? = null
 

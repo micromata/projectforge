@@ -23,15 +23,14 @@
 
 package org.projectforge.plugins.skillmatrix
 
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import javax.persistence.*
+import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -40,7 +39,7 @@ import javax.persistence.*
 @Indexed
 @Table(
   name = "T_PLUGIN_SKILLMATRIX_ENTRY",
-  indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_skillmatrix_entry_owner_fk", columnList = "owner_fk")]
+  indexes = [jakarta.persistence.Index(name = "idx_fk_t_plugin_skillmatrix_entry_owner_fk", columnList = "owner_fk")]
 )
 @NamedQueries(
   NamedQuery(
@@ -52,13 +51,16 @@ import javax.persistence.*
     query = "delete from SkillEntryDO where owner.id=:userId"
   ),
 )
-open class SkillEntryDO : AbstractBaseDO<Int>() {
+open class SkillEntryDO : AbstractBaseDO<Long>() {
 
+  @get:Column(name = "pk")
+  @get:GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @get:Id
   @PropertyInfo(i18nKey = "id")
-  private var id: Int? = null
+  override var id: Long? = null
 
   @PropertyInfo(i18nKey = "plugins.skillmatrix.skill")
-  @Field
+  @FullTextField
   @get:Column(length = 255, nullable = false)
   open var skill: String? = null
 
@@ -71,7 +73,8 @@ open class SkillEntryDO : AbstractBaseDO<Int>() {
    * search field.
    */
   @PropertyInfo(i18nKey = "plugins.skillmatrix.owner")
-  @IndexedEmbedded(depth = 1)
+  @IndexedEmbedded(includeDepth = 1)
+  @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "owner_fk")
   open var owner: PFUserDO? = null
@@ -80,7 +83,7 @@ open class SkillEntryDO : AbstractBaseDO<Int>() {
    * 1 - basic knowledge, 2 - established knowledge, 3 - expert knowledge
    */
   @PropertyInfo(i18nKey = "plugins.skillmatrix.rating")
-  @Field
+  @GenericField
   @get:Column
   open var rating: Int? = null
 
@@ -88,29 +91,18 @@ open class SkillEntryDO : AbstractBaseDO<Int>() {
    * 1 - interested, 2 - vested interest, 3 - going crazy
    */
   @PropertyInfo(i18nKey = "plugins.skillmatrix.interest")
-  @Field
+  @GenericField
   @get:Column
   open var interest: Int? = null
 
   @PropertyInfo(i18nKey = "comment")
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_COMMENT)
   open var comment: String? = null
 
-  val ownerId: Int?
+  val ownerId: Long?
     @Transient
     get() = owner?.id
-
-  @Id
-  @GeneratedValue
-  @Column(name = "pk")
-  override fun getId(): Int? {
-    return id
-  }
-
-  override fun setId(id: Int?) {
-    this.id = id
-  }
 
   companion object {
     const val FIND_OF_OWNER = "SkillEntryDO_FindSkillsOfOwner"

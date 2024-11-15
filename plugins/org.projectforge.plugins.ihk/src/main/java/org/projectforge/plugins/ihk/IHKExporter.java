@@ -45,7 +45,7 @@ import java.util.Objects;
 import java.util.TimeZone;
 
 import static java.time.temporal.ChronoUnit.*;
-import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUser;
+import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getLoggedInUser;
 
 /**
  * Created by mnuhn on 05.12.2019
@@ -228,7 +228,7 @@ class IHKExporter
 
   private String getCurrentAzubiName()
   {
-    return Objects.requireNonNull(getUser()).getFullname();
+    return Objects.requireNonNull(getLoggedInUser()).getFullname();
   }
 
   // KR: Hier als Parameter besser PFDateTime nehmen. Bei der Konvertierung in Util-Date landet man schon wieder bei UTC.

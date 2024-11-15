@@ -53,7 +53,7 @@ import org.projectforge.web.wicket.WicketUtils;
 
 public class WicketHtmlHelper
 {
-  public static void appendImageTag(final RequestCycle requestCycle, final StringBuffer buf, final String src, final String tooltip)
+  public static void appendImageTag(final RequestCycle requestCycle, final StringBuilder buf, final String src, final String tooltip)
   {
     appendImageTag(requestCycle, buf, src, null, null, tooltip, null);
   }
@@ -68,7 +68,7 @@ public class WicketHtmlHelper
    * @param tooltip If null, than this attribute will be ignored.
    * @param align   If null, than this attribute will be ignored.
    */
-  public static void appendImageTag(final RequestCycle requestCycle, final StringBuffer buf, final String src, final String width, final String height,
+  public static void appendImageTag(final RequestCycle requestCycle, final StringBuilder buf, final String src, final String width, final String height,
       final String tooltip, final HtmlAlignment align)
   {
 

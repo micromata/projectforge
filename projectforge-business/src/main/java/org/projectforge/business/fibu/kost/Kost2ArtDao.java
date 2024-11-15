@@ -24,59 +24,43 @@
 package org.projectforge.business.fibu.kost;
 
 import org.projectforge.business.user.UserRightId;
+import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Repository
-public class Kost2ArtDao extends BaseDao<Kost2ArtDO>
-{
-  public static final UserRightId USER_RIGHT_ID = UserRightId.FIBU_COST_UNIT;
+@Service
+public class Kost2ArtDao extends BaseDao<Kost2ArtDO> {
+    public static final UserRightId USER_RIGHT_ID = UserRightId.FIBU_COST_UNIT;
 
-  @Autowired
-  private KostCache kostCache;
+    @Autowired
+    private KostCache kostCache;
 
-  public Kost2ArtDao()
-  {
-    super(Kost2ArtDO.class);
-    avoidNullIdCheckBeforeSave = true;
-    userRightId = USER_RIGHT_ID;
-  }
+    public Kost2ArtDao() {
+        super(Kost2ArtDO.class);
+        avoidNullIdCheckBeforeSave = true;
+        userRightId = USER_RIGHT_ID;
+    }
 
-  @Override
-  protected void afterSaveOrModify(final Kost2ArtDO obj)
-  {
-    super.afterSaveOrModify(obj);
-    kostCache.updateKost2Arts();
-  }
+    @Override
+    public void afterInsertOrModify(final Kost2ArtDO obj, final OperationType operationType) {
+        kostCache.updateKost2Arts();
+    }
 
-  @Override
-  public List<Kost2ArtDO> getList(final BaseSearchFilter filter)
-  {
-    final QueryFilter queryFilter = new QueryFilter(filter);
-    queryFilter.addOrder(SortProperty.asc("id"));
-    return getList(queryFilter);
-  }
+    @Override
+    public List<Kost2ArtDO> select(final BaseSearchFilter filter) {
+        final QueryFilter queryFilter = new QueryFilter(filter);
+        queryFilter.addOrder(SortProperty.asc("id"));
+        return select(queryFilter);
+    }
 
-  /**
-   * id != null && id &gt;= null;
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#isIdValid(java.lang.Integer)
-   */
-  @Override
-  protected boolean isIdValid(final Integer id)
-  {
-    return (id != null && id >= 0);
-  }
-
-  @Override
-  public Kost2ArtDO newInstance()
-  {
-    return new Kost2ArtDO();
-  }
+    @Override
+    public Kost2ArtDO newInstance() {
+        return new Kost2ArtDO();
+    }
 }

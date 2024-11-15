@@ -35,7 +35,7 @@ public interface Kunde
   /**
    * @return Kundennummer (Ziffer 2-4 von KOST2: 000-999).
    */
-  public Integer getId();
+  public Long getId();
 
   public String getName();
 

@@ -46,7 +46,7 @@ class CalendarSubscriptionInfo(var headline: String? = null,
 
     var url: String? = null
 
-    fun initUrls(calendarFeedService: CalendarFeedService, teamCalId: Int?) {
+    fun initUrls(calendarFeedService: CalendarFeedService, teamCalId: Long?) {
         teamCalId ?: return
         url = calendarFeedService.getFullUrl(teamCalId, true)
         urlWithoutExportedReminders = calendarFeedService.getFullUrl(teamCalId, false)

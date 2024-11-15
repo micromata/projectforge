@@ -27,7 +27,7 @@ import org.projectforge.business.configuration.ConfigurationServiceAccessor
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 /**
  * Helper method for getting the best fitting user locale.
@@ -54,9 +54,9 @@ object UserLocale {
   @JvmStatic
   @JvmOverloads
   fun determineUserLocale(
-    user: PFUserDO? = ThreadLocalUserContext.user,
-    defaultLocale: Locale? = null,
-    request: HttpServletRequest? = null
+      user: PFUserDO? = ThreadLocalUserContext.loggedInUser,
+      defaultLocale: Locale? = null,
+      request: HttpServletRequest? = null
   ): Locale {
     if (user != null) {
       // 1. For a given user return the user locale, if configured: [PFUserDO.locale]
@@ -103,9 +103,9 @@ object UserLocale {
   @JvmStatic
   @JvmOverloads
   fun determineUserLocaleAsIdentifier(
-    user: PFUserDO? = ThreadLocalUserContext.user,
-    defaultLocale: Locale? = null,
-    request: HttpServletRequest? = null
+      user: PFUserDO? = ThreadLocalUserContext.loggedInUser,
+      defaultLocale: Locale? = null,
+      request: HttpServletRequest? = null
   ): String {
     val locale = determineUserLocale(user, defaultLocale, request)
     return if (Locale(locale.language) == Locale.GERMAN) {

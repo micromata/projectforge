@@ -28,7 +28,7 @@ import org.projectforge.common.StringHelper
 import java.math.BigDecimal
 
 class Kost2Art(
-        id: Int? = null,
+        id: Long? = null,
         displayName: String? = null,
         var name: String? = null,
         var fakturiert: Boolean = false,

@@ -36,7 +36,7 @@ public class DOConverter
   public static void copyFields(final AbstractBaseObject dest, final DefaultBaseDO src)
   {
     dest.setId(src.getId());
-    dest.setDeleted(src.isDeleted());
+    dest.setDeleted(src.getDeleted());
     dest.setCreated(src.getCreated());
     dest.setLastUpdate(src.getLastUpdate());
   }

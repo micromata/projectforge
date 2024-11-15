@@ -30,7 +30,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.projectforge.business.fibu.AbstractRechnungsPositionDO;
-import org.projectforge.business.fibu.KostFormatter;
+import org.projectforge.business.fibu.OldKostFormatter;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.framework.utils.NumberFormatter;
@@ -44,7 +44,7 @@ import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class RechnungCostTablePanel extends Panel
 {
@@ -77,20 +77,20 @@ public class RechnungCostTablePanel extends Panel
         final KostZuweisungDO zuweisung = item.getModelObject();
         // row.add(new Kost1FormComponent("kost1", new PropertyModel<Kost1DO>(zuweisung, "kost1"), true)
         // .setVisible(isShowEditableKostZuweisungen()));
-        final Component kost1 = new Label("kost1", KostFormatter.format(zuweisung.getKost1()));
-        WicketUtils.addTooltip(kost1, KostFormatter.formatToolTip(zuweisung.getKost1()));
+        final Component kost1 = new Label("kost1", OldKostFormatter.format(zuweisung.getKost1()));
+        WicketUtils.addTooltip(kost1, OldKostFormatter.formatToolTip(zuweisung.getKost1()));
         item.add(kost1);
         // subItem.add(new Kost2FormComponent("kost2", new PropertyModel<Kost2DO>(zuweisung, "kost2"), true)
         // .setVisible(isShowEditableKostZuweisungen()));
-        final Component kost2 = new Label("kost2", KostFormatter.format(zuweisung.getKost2()));
-        WicketUtils.addTooltip(kost2, KostFormatter.formatToolTip(zuweisung.getKost2()));
+        final Component kost2 = new Label("kost2", OldKostFormatter.format(zuweisung.getKost2()));
+        WicketUtils.addTooltip(kost2, OldKostFormatter.formatToolTip(zuweisung.getKost2()));
         item.add(kost2);
         item.add(new Label("netto", CurrencyFormatter.format(zuweisung.getNetto())));
         final BigDecimal percentage;
-        if (NumberHelper.isZeroOrNull(position.getNetSum()) == true || NumberHelper.isZeroOrNull(zuweisung.getNetto()) == true) {
+        if (NumberHelper.isZeroOrNull(position.getInfo().getNetSum()) == true || NumberHelper.isZeroOrNull(zuweisung.getNetto()) == true) {
           percentage = BigDecimal.ZERO;
         } else {
-          percentage = zuweisung.getNetto().divide(position.getNetSum(), RoundingMode.HALF_UP);
+          percentage = zuweisung.getNetto().divide(position.getInfo().getNetSum(), RoundingMode.HALF_UP);
         }
         final boolean percentageVisible = NumberHelper.isNotZero(percentage);
         item.add(new Label("percentage", NumberFormatter.formatPercent(percentage)).setVisible(percentageVisible));

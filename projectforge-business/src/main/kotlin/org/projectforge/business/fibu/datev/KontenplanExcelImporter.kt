@@ -56,7 +56,7 @@ class KontenplanExcelImporter {
         sheet.registerColumn(Cols.BEZEICHNUNG,ExcelColumnValidator().setRequired()).setTargetProperty("bezeichnung")
         sheet.analyze(true)
         if (sheet.headRow == null) {
-            storage.logger.info("Ignoring sheet '$NAME_OF_EXCEL_SHEET' for importing Buchungssätze, no valid head row found.")
+            storage.logger.info("Ignoring sheet '$NAME_OF_EXCEL_SHEET' for importing Konten, no valid head row found.")
             return
         }
         val importedSheet = ImportedSheet(storage, sheet, ImportLogger.Level.WARN, "'${sheet.excelWorkbook.filename}':", log)
@@ -67,7 +67,7 @@ class KontenplanExcelImporter {
         while (it.hasNext()) {
             val row = it.next()
             val element = MyImportedElement(importedSheet, row.rowNum, KontoDO::class.java,
-                    *DatevImportDao.KONTO_DIFF_PROPERTIES)
+                    *DatevImportService.KONTO_DIFF_PROPERTIES)
             val konto = KontoDO()
             element.value = konto
             ImportHelper.fillBean(konto, sheet, row.rowNum)

@@ -25,15 +25,18 @@ package org.projectforge.framework.persistence.user.entities
 
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.Hibernate
-import org.hibernate.annotations.ManyToAny
-import org.hibernate.search.annotations.*
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -52,7 +55,7 @@ open class GroupDO : DefaultBaseDO(), DisplayNameCapable {
         get() = "$name"
 
     @PropertyInfo(i18nKey = "name")
-    @Field
+    @FullTextField
     @get:Column(length = 100)
     open var name: String? = null
 
@@ -105,36 +108,37 @@ open class GroupDO : DefaultBaseDO(), DisplayNameCapable {
     // }
 
     @PropertyInfo(i18nKey = "organization")
-    @Field
+    @FullTextField
     @get:Column(length = 100)
     open var organization: String? = null
 
     @PropertyInfo(i18nKey = "description")
-    @Field
+    @FullTextField
     @get:Column(length = 1000)
     open var description: String? = null
 
     private var usernames: String? = null
 
     @PropertyInfo(i18nKey = "ldap")
-    @Field
+    @FullTextField
     @get:Column(name = "ldap_values", length = 4000)
     open var ldapValues: String? = null
 
     // TODO: Type Set not yet supported
     @PropertyInfo(i18nKey = "group.assignedUsers")
-    @ContainedIn
-    @IndexedEmbedded(depth = 1)
-    @get:ManyToMany(targetEntity = PFUserDO::class, fetch = FetchType.EAGER)
-    @get:JoinTable(name = "T_GROUP_USER", joinColumns = [JoinColumn(name = "GROUP_ID")], inverseJoinColumns = [JoinColumn(name = "USER_ID")], indexes = [javax.persistence.Index(name = "idx_fk_t_group_user_group_id", columnList = "group_id"), javax.persistence.Index(name = "idx_fk_t_group_user_user_id", columnList = "user_id")])
+    // @ContainedIn
+    @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
+    @get:ManyToMany(targetEntity = PFUserDO::class, fetch = FetchType.LAZY)
+    @get:JoinTable(name = "T_GROUP_USER", joinColumns = [JoinColumn(name = "GROUP_ID")], inverseJoinColumns = [JoinColumn(name = "USER_ID")], indexes = [jakarta.persistence.Index(name = "idx_fk_t_group_user_group_id", columnList = "group_id"), jakarta.persistence.Index(name = "idx_fk_t_group_user_user_id", columnList = "user_id")])
     open var assignedUsers: MutableSet<PFUserDO>? = null
 
     @PropertyInfo(i18nKey = "group.owner")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "group_owner_fk")
     open var groupOwner: PFUserDO? = null
-
 
     /**
      * Returns the collection of assigned users only if initialized. Avoids a LazyInitializationException.
@@ -188,10 +192,10 @@ open class GroupDO : DefaultBaseDO(), DisplayNameCapable {
 
     companion object {
         /**
-         * Converts group list to comma separated int values.
+         * Converts group list to comma separated long values.
          * @return String with csv or null, if list of group's is null.
          */
-        fun toIntList(users: List<GroupDO>?): String? {
+        fun toLongList(users: List<GroupDO>?): String? {
             return users?.filter { it.id != null }?.joinToString { "${it.id}" }
         }
 

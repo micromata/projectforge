@@ -25,22 +25,25 @@ package org.projectforge.framework.access
 
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.apache.commons.lang3.builder.ToStringBuilder
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.framework.persistence.api.BaseDO
-import org.projectforge.framework.persistence.api.ModificationStatus
+import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import java.io.Serializable
-import javax.persistence.*
+import jakarta.persistence.*
+import org.projectforge.framework.persistence.history.NoHistory
 
 /**
  * Represents a single generic access entry for the four main SQL functionalities.
+ *
+ * History is handled by the parent object [GroupTaskAccessDO].
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
 @Indexed
-@Table(name = "T_GROUP_TASK_ACCESS_ENTRY", uniqueConstraints = [UniqueConstraint(columnNames = ["group_task_access_fk", "access_type"])], indexes = [javax.persistence.Index(name = "idx_fk_t_group_task_access_entry_group_task_access_fk", columnList = "group_task_access_fk")])
-class AccessEntryDO : Comparable<AccessEntryDO>, Serializable, BaseDO<Int> {
+@Table(name = "T_GROUP_TASK_ACCESS_ENTRY", uniqueConstraints = [UniqueConstraint(columnNames = ["group_task_access_fk", "access_type"])], indexes = [jakarta.persistence.Index(name = "idx_fk_t_group_task_access_entry_group_task_access_fk", columnList = "group_task_access_fk")])
+class AccessEntryDO : Comparable<AccessEntryDO>, Serializable, BaseDO<Long> {
 
     // private static final Logger log = Logger.getLogger(AccessEntryDO.class);
 
@@ -64,36 +67,19 @@ class AccessEntryDO : Comparable<AccessEntryDO>, Serializable, BaseDO<Int> {
     @get:Column(name = "access_delete")
     var accessDelete = false
 
-    private var id: Int? = null
-
-    @Id
-    @GeneratedValue
-    @Column(name = "pk")
-    override fun getId(): Int? {
-        return id
-    }
-
-    override fun setId(id: Int?) {
-        this.id = id
-    }
+    @get:Id
+    @get:GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
+    @get:Column(name = "pk")
+    override var id: Long? = null
 
     /**
      * @return Always false.
      * @see org.projectforge.framework.persistence.api.BaseDO.isMinorChange
      */
-    @Transient
-    override fun isMinorChange(): Boolean {
-        return false
-    }
-
-    /**
-     * Throws UnsupportedOperationException.
-     *
-     * @see org.projectforge.framework.persistence.api.BaseDO.setMinorChange
-     */
-    override fun setMinorChange(value: Boolean) {
-        throw UnsupportedOperationException()
-    }
+    @get:Transient
+    override var isMinorChange: Boolean
+        get() = false
+        set(value) { throw UnsupportedOperationException() }
 
     constructor()
 
@@ -137,7 +123,7 @@ class AccessEntryDO : Comparable<AccessEntryDO>, Serializable, BaseDO<Int> {
             val o = other as AccessEntryDO?
             if (this.accessType != o!!.accessType)
                 return false
-            return this.getId() == o.getId()
+            return this.id == o.id
         }
         return false
     }
@@ -146,13 +132,13 @@ class AccessEntryDO : Comparable<AccessEntryDO>, Serializable, BaseDO<Int> {
         val hcb = HashCodeBuilder()
         if (accessType != null)
             hcb.append(accessType!!.ordinal)
-        hcb.append(getId())
+        hcb.append(id)
         return hcb.toHashCode()
     }
 
     override fun toString(): String {
         val sb = ToStringBuilder(this)
-        sb.append("id", getId())
+        sb.append("id", id)
         sb.append("type", this.accessType)
         sb.append("select", this.accessSelect)
         sb.append("insert", this.accessInsert)
@@ -167,7 +153,7 @@ class AccessEntryDO : Comparable<AccessEntryDO>, Serializable, BaseDO<Int> {
      *
      * @param src
      */
-    override fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): ModificationStatus {
+    override fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
         return AbstractBaseDO.copyValues(src, this, *ignoreFields)
     }
 
@@ -175,11 +161,11 @@ class AccessEntryDO : Comparable<AccessEntryDO>, Serializable, BaseDO<Int> {
         throw UnsupportedOperationException()
     }
 
-    override fun removeTransientAttribute(key: String?): Any {
+    override fun removeTransientAttribute(key: String): Any {
         throw UnsupportedOperationException()
     }
 
-    override fun setTransientAttribute(key: String, value: Any) {
+    override fun setTransientAttribute(key: String, value: Any?) {
         throw UnsupportedOperationException()
     }
 }

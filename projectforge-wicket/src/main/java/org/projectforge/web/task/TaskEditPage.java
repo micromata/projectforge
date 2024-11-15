@@ -26,7 +26,6 @@ package org.projectforge.web.task;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
 import org.projectforge.business.task.TaskDO;
@@ -34,6 +33,7 @@ import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskHelper;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.gantt.GanttChartEditPage;
@@ -54,30 +54,21 @@ public class TaskEditPage extends AbstractEditPage<TaskDO, TaskEditForm, TaskDao
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TaskEditPage.class);
 
-  @SpringBean
-  private TaskDao taskDao;
-
-  @SpringBean
-  private TaskTree taskTree;
-
-  @SpringBean
-  private Kost2Dao kost2Dao;
-
   public TaskEditPage(final PageParameters parameters)
   {
     super(parameters, "task");
     init();
     addTopMenuPanel();
-    final Integer parentTaskId = WicketUtils.getAsInteger(parameters, PARAM_PARENT_TASK_ID);
+    final Long parentTaskId = WicketUtils.getAsLong(parameters, PARAM_PARENT_TASK_ID);
     if (NumberHelper.greaterZero(parentTaskId) == true) {
-      taskDao.setParentTask(getData(), parentTaskId);
+      getBaseDao().setParentTask(getData(), parentTaskId);
     }
   }
 
   @Override
   protected TaskDao getBaseDao()
   {
-    return taskDao;
+    return WicketSupport.getTaskDao();
   }
 
   @Override
@@ -86,23 +77,20 @@ public class TaskEditPage extends AbstractEditPage<TaskDO, TaskEditForm, TaskDao
     return new TaskEditForm(this, data);
   }
 
-  /**
-   * @see org.projectforge.web.fibu.ISelectCallerPage#select(java.lang.String, java.lang.Integer)
-   */
   public void select(final String property, final Object selectedValue)
   {
     if ("parentTaskId".equals(property) == true) {
-      taskDao.setParentTask(getData(), (Integer) selectedValue);
+      getBaseDao().setParentTask(getData(), (Long) selectedValue);
     } else if ("ganttPredecessorId".equals(property) == true) {
-      taskDao.setGanttPredecessor(getData(), (Integer) selectedValue);
+      getBaseDao().setGanttPredecessor(getData(), (Long) selectedValue);
     } else if ("responsibleUserId".equals(property) == true) {
-      taskDao.setResponsibleUser(getData(), (Integer) selectedValue);
+      getBaseDao().setResponsibleUser(getData(), (Long) selectedValue);
     } else if ("kost2Id".equals(property) == true) {
-      final Integer kost2Id = (Integer) selectedValue;
+      final Long kost2Id = (Long) selectedValue;
       if (kost2Id != null) {
-        final Kost2DO kost2 = kost2Dao.getById(kost2Id);
+        final Kost2DO kost2 = WicketSupport.get(Kost2Dao.class).find(kost2Id);
         if (kost2 != null) {
-          final String newKost2String = TaskHelper.addKost2(taskTree, getData(), kost2);
+          final String newKost2String = TaskHelper.addKost2(TaskTree.getInstance(), getData(), kost2);
           getData().setKost2BlackWhiteList(newKost2String);
           form.kost2BlackWhiteTextField.modelChanged();
         }
@@ -140,7 +128,7 @@ public class TaskEditPage extends AbstractEditPage<TaskDO, TaskEditForm, TaskDao
   private void addTopMenuPanel()
   {
     if (isNew() == false) {
-      final Integer id = form.getData().getId();
+      final Long id = form.getData().getId();
       ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(),
           new Link<Void>(ContentMenuEntryPanel.LINK_ID)
           {

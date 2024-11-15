@@ -24,15 +24,15 @@
 package org.projectforge.plugins.marketing
 
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.Table
-import javax.persistence.Transient
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Table
+import jakarta.persistence.Transient
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 
 /**
  * A marketing campaign for addresses (eg. mailings).
@@ -45,17 +45,17 @@ import javax.persistence.Transient
 open class AddressCampaignDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "title")
-    @Field
+    @FullTextField
     @get:Column(length = Constants.LENGTH_TITLE)
     open var title: String? = null
 
     @PropertyInfo(i18nKey = "values")
-    @Field
+    @FullTextField
     @get:Column(length = 1000, name = "s_values")
     open var values: String? = null
 
     @PropertyInfo(i18nKey = "comment")
-    @Field
+    @FullTextField
     @get:Column(length = Constants.LENGTH_COMMENT)
     open var comment: String? = null
 

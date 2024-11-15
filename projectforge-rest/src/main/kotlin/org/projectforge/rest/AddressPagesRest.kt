@@ -36,7 +36,6 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.userId
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -58,7 +57,8 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.*
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUserId
 
 private val log = KotlinLogging.logger {}
 
@@ -76,7 +76,7 @@ class AddressPagesRest
    */
   private class ListAddress(
     val address: Address,
-    val id: Int, // Needed for history Service
+    val id: Long, // Needed for history Service
     val deleted: Boolean,
     var imageUrl: String? = null,
     var previewImageUrl: String? = null
@@ -138,8 +138,7 @@ class AddressPagesRest
     val address = super.newBaseDO(request)
     address.addressStatus = AddressStatus.UPTODATE
     address.contactStatus = ContactStatus.ACTIVE
-    address.addressbookList = mutableSetOf()
-    address.addressbookList?.add(addressbookDao.globalAddressbook)
+    address.add(addressbookDao.globalAddressbook)
     return address
   }
 
@@ -207,18 +206,18 @@ class AddressPagesRest
 
   override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: AddressDO, postData: PostData<Address>) {
     val dto = postData.data
-    val address = baseDao.getOrLoad(obj.id)
+    val address = baseDao.findOrLoad(obj.id!!)
     val personalAddress = PersonalAddressDO()
     personalAddress.address = address
     personalAddress.isFavoriteCard = dto.isFavoriteCard
-    personalAddressDao.setOwner(personalAddress, userId) // Set current logged in user as owner.
+    personalAddressDao.setOwner(personalAddress, requiredLoggedInUserId) // Set current logged in user as owner.
     personalAddressDao.saveOrUpdate(personalAddress)
 
     val session = request.getSession(false)
     val bytes = ExpiringSessionAttributes.getAttribute(session, SESSION_IMAGE_ATTR)
     if (bytes != null && bytes is ByteArray) {
       // The user uploaded an image, so
-      addressImageDao.saveOrUpdate(obj.id, bytes)
+      addressImageDao.saveOrUpdate(obj.id!!, bytes)
       ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
     }
   }
@@ -362,7 +361,7 @@ class AddressPagesRest
                       .add(
                         createFavoriteRow(
                           "isFavoriteCard",
-                          UISelect<Int>(
+                          UISelect<Long>(
                             "addressbookList", lc,
                             multi = true,
                             autoCompletion = AutoCompletion<Int>(
@@ -545,7 +544,7 @@ class AddressPagesRest
   /**
    * @return New result set of dto's, transformed from data base objects.
    */
-  override fun processResultSetBeforeExport(
+  override fun postProcessResultSet(
     resultSet: ResultSet<AddressDO>,
     request: HttpServletRequest,
     magicFilter: MagicFilter,
@@ -553,8 +552,8 @@ class AddressPagesRest
     val newList = resultSet.resultSet.map {
       ListAddress(
         transformFromDB(it),
-        id = it.id,
-        deleted = it.isDeleted,
+        id = it.id!!,
+        deleted = it.deleted,
         imageUrl = if (it.image == true) "address/image/${it.id}" else null,
         previewImageUrl = if (it.image == true) "address/imagePreview/${it.id}" else null
       )

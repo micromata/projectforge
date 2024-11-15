@@ -23,8 +23,8 @@
 
 package org.projectforge.mail;
 
-import javax.mail.*;
-import javax.mail.search.FlagTerm;
+import jakarta.mail.*;
+import jakarta.mail.search.FlagTerm;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -156,7 +156,7 @@ public class MailAccount
   //      store = null;
   //      try {
   //        store = session.getStore(mailAcccountConfig.getProtocol());
-  //      } catch (javax.mail.NoSuchProviderException ex) {
+  //      } catch (jakarta.mail.NoSuchProviderException ex) {
   //        log.error(ex.getMessage(), ex);
   //        // serverData.setErrorMessageKey("mail.error.noSuchProviderException");
   //        return false;
@@ -196,7 +196,7 @@ public class MailAccount
   //      } else {
   //        folder.open(Folder.READ_ONLY);
   //      }
-  //    } catch (javax.mail.MessagingException ex) {
+  //    } catch (jakarta.mail.MessagingException ex) {
   //      // serverData.setErrorMessageKey("mail.error.messagingException");
   //      // serverData.setOriginalErrorMessage(ex.getMessage());
   //      log.info(ex.getMessage(), ex);
@@ -233,7 +233,7 @@ public class MailAccount
   //    return success;
   //  }
 
-  protected void setEnvelope(final Mail mail, final Message message) throws javax.mail.MessagingException
+  protected void setEnvelope(final Mail mail, final Message message) throws jakarta.mail.MessagingException
   {
     mail.setMessage(message);
     Address[] addr;
@@ -241,7 +241,7 @@ public class MailAccount
     mail.setMessageNumber(message.getMessageNumber());
 
     // FROM
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     addr = message.getFrom();
     if (addr != null) {
       for (int j = 0; j < addr.length; j++) {
@@ -255,7 +255,7 @@ public class MailAccount
 
     // TO
     addr = message.getRecipients(Message.RecipientType.TO);
-    buf = new StringBuffer();
+    buf = new StringBuilder();
     if (addr != null) {
       for (int j = 0; j < addr.length; j++) {
         if (j > 0) {
@@ -300,12 +300,12 @@ public class MailAccount
 
   private String getContent(final Part msg) throws MessagingException, IOException
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     getContent(msg, buf);
     return buf.toString();
   }
 
-  private void getContent(final Part msg, final StringBuffer buf) throws MessagingException, IOException
+  private void getContent(final Part msg, final StringBuilder buf) throws MessagingException, IOException
   {
     if (log.isDebugEnabled()) {
       log.debug("CONTENT-TYPE: " + msg.getContentType());

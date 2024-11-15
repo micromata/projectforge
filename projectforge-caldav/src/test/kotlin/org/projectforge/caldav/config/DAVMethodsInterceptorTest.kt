@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.projectforge.caldav.config.DAVMethodsInterceptor
 import org.projectforge.caldav.config.PFMiltonInit
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 class DAVMethodsInterceptorTest {
     @Test

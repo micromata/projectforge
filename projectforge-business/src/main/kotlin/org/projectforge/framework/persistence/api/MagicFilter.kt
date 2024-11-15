@@ -53,16 +53,12 @@ class MagicFilter(
    */
   var extended: MutableMap<String, Any> = mutableMapOf(),
   name: String? = null,
-  id: Int? = null,
+  id: Long? = null,
   /**
    * If multi selection is chosen, the magic filter is not shown (only the entities of the last result list will be displayed for (de)selecting.
    */
   var multiSelection: Boolean? = null,
 ) : AbstractFavorite(name, id) {
-
-  @Transient
-  internal val log = org.slf4j.LoggerFactory.getLogger(MagicFilter::class.java)
-
   var sortProperties = mutableListOf<SortProperty>()
 
   /**
@@ -78,7 +74,7 @@ class MagicFilter(
         }
         // client may use label or displayName:
         entry.value.displayName =
-          UserGroupCache.getInstance().getUser(entry.value.id ?: entry.value.value?.toInt())?.getFullname()
+          UserGroupCache.getInstance().getUser(entry.value.id ?: entry.value.value?.toLong())?.getFullname()
         entry.value.label = entry.value.displayName
       }
     }

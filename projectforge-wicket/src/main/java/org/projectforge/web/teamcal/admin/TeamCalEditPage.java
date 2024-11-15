@@ -26,9 +26,11 @@ package org.projectforge.web.teamcal.admin;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.common.BaseUserGroupRightService;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.teamcal.event.TeamEventListPage;
 import org.projectforge.web.teamcal.event.importics.TeamCalImportPage;
@@ -40,7 +42,7 @@ import org.slf4j.Logger;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * 
+ *
  */
 @EditPage(defaultReturnPage = TeamCalListPage.class)
 public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm, TeamCalDao>
@@ -50,12 +52,8 @@ public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm
 
   private static final long serialVersionUID = -3352981782657771662L;
 
-  @SpringBean
-  private TeamCalDao teamCalDao;
-
   /**
    * @param parameters
-   * @param i18nPrefix
    */
   public TeamCalEditPage(final PageParameters parameters)
   {
@@ -68,7 +66,7 @@ public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm
   private void addTopMenuPanel()
   {
     if (isNew() == false) {
-      final Integer id = form.getData().getId();
+      final Long id = form.getData().getId();
       ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(),
           new Link<Void>(ContentMenuEntryPanel.LINK_ID)
           {
@@ -82,7 +80,7 @@ public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm
             };
           }, getString("plugins.teamcal.events"));
       addContentMenuEntry(menu);
-      final TeamCalRight right = new TeamCalRight(accessChecker);
+      final TeamCalRight right = new TeamCalRight();
       if (isNew() == true
           || right.hasFullAccess(getData(), getUserId()) && !getData().getExternalSubscription()) {
         menu = new ContentMenuEntryPanel(getNewContentMenuChildId(), new Link<Void>(ContentMenuEntryPanel.LINK_ID)
@@ -105,12 +103,14 @@ public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm
   @Override
   public AbstractSecuredBasePage onSaveOrUpdate()
   {
-    teamCalDao.setFullAccessUsers(getData(), form.fullAccessUsersListHelper.getAssignedItems());
-    teamCalDao.setReadonlyAccessUsers(getData(), form.readonlyAccessUsersListHelper.getAssignedItems());
-    teamCalDao.setMinimalAccessUsers(getData(), form.minimalAccessUsersListHelper.getAssignedItems());
-    teamCalDao.setFullAccessGroups(getData(), form.fullAccessGroupsListHelper.getAssignedItems());
-    teamCalDao.setReadonlyAccessGroups(getData(), form.readonlyAccessGroupsListHelper.getAssignedItems());
-    teamCalDao.setMinimalAccessGroups(getData(), form.minimalAccessGroupsListHelper.getAssignedItems());
+    var teamCalDao = WicketSupport.get(TeamCalDao.class);
+    var svc = BaseUserGroupRightService.getInstance();
+    svc.setFullAccessUsers(getData(), form.fullAccessUsersListHelper.getAssignedItems());
+    svc.setReadonlyAccessUsers(getData(), form.readonlyAccessUsersListHelper.getAssignedItems());
+    svc.setMinimalAccessUsers(getData(), form.minimalAccessUsersListHelper.getAssignedItems());
+    svc.setFullAccessGroups(getData(), form.fullAccessGroupsListHelper.getAssignedItems());
+    svc.setReadonlyAccessGroups(getData(), form.readonlyAccessGroupsListHelper.getAssignedItems());
+    svc.setMinimalAccessGroups(getData(), form.minimalAccessGroupsListHelper.getAssignedItems());
     TeamCalDO data = form.getData();
     if (!data.getExternalSubscription()) {
       data.setExternalSubscriptionUrl("");
@@ -119,9 +119,6 @@ public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm
     return super.onSaveOrUpdate();
   }
 
-  /**
-   * @see org.projectforge.web.fibu.ISelectCallerPage#select(java.lang.String, java.lang.Integer)
-   */
   public void select(final String property, final Object selectedValue)
   {
     log.error("Property '" + property + "' not supported for selection.");
@@ -149,7 +146,7 @@ public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm
   @Override
   protected TeamCalDao getBaseDao()
   {
-    return teamCalDao;
+    return WicketSupport.get(TeamCalDao.class);
   }
 
   /**
@@ -161,10 +158,6 @@ public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm
     return log;
   }
 
-  /**
-   * @see org.projectforge.web.wicket.AbstractEditPage#newEditForm(org.projectforge.web.wicket.AbstractEditPage,
-   *      org.projectforge.core.AbstractBaseDO)
-   */
   @Override
   protected TeamCalEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final TeamCalDO data)
   {

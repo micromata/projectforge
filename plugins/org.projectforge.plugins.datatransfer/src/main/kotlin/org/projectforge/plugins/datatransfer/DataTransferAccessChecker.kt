@@ -59,12 +59,12 @@ open class DataTransferAccessChecker(
    */
   override fun checkDownloadAccess(user: PFUserDO?, path: String, id: Any, file: FileObject, subPath: String?) {
     val dbo = getDataTransferArea(user, id)
-    if (dbo.isPersonalBox()) {
+    if (dbo!!.isPersonalBox()) {
       if (user!!.id == dbo.getPersonalBoxUserId()) {
         // User has full access to his own personal box.
         return
       }
-      val userId = file.createdByUser?.toIntOrNull()
+      val userId = file.createdByUser?.toLongOrNull()
       if (userId != user.id!!) {
         throw AccessException("plugins.datatransfer.external.noAccess")
       }
@@ -83,9 +83,9 @@ open class DataTransferAccessChecker(
     dataTransferAreaDao.hasAccess(user, dbo, dbo, OperationType.SELECT, throwException = true)
   }
 
-  private fun getDataTransferArea(user: PFUserDO?, id: Any): DataTransferAreaDO {
+  private fun getDataTransferArea(user: PFUserDO?, id: Any): DataTransferAreaDO? {
     user!!
-    return dataTransferAreaDao.internalGetById(id as Int)
+    return dataTransferAreaDao.find(id as Long, checkAccess = false)
   }
 
   /**
@@ -93,7 +93,7 @@ open class DataTransferAccessChecker(
    */
   override fun checkUpdateAccess(user: PFUserDO?, path: String, id: Any, fileId: String, subPath: String?) {
     /*user!!
-    val dbo = dataTransferAreaDao.internalGetById(id as Int)
+    val dbo = dataTransferAreaDao.internalGetById(id as Long)
     if (dataTransferAreaDao.hasAccess(user, dbo, dbo, OperationType.UPDATE, throwException = false)) {
       // User has update access.
       return
@@ -119,8 +119,8 @@ open class DataTransferAccessChecker(
     operationType: OperationType,
     attachment: Attachment
   ): Boolean {
-    val dbo = dataTransferAreaDao.internalGetById(id as Int)
-    if (!dbo.isPersonalBox()) {
+    val dbo = dataTransferAreaDao.find(id as Long, false)
+    if (!dbo!!.isPersonalBox()) {
       return true
     }
     user ?: return false // User must be given.

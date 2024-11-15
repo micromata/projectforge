@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class StringHelperTest {
   @Test
   public void append() {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean first = StringHelper.append(buf, true, null, ",");
     first = StringHelper.append(buf, first, "", ",");
     first = StringHelper.append(buf, first, "1", ",");

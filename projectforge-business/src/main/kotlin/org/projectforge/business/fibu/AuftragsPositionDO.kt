@@ -28,7 +28,6 @@ import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
-import org.hibernate.search.annotations.*
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.UserException
@@ -36,7 +35,14 @@ import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
 import java.time.LocalDate
-import javax.persistence.*
+import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
+import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsTypeBinder
+import org.projectforge.framework.persistence.search.ClassBridge
 
 /**
  * Repräsentiert eine Position innerhalb eines Auftrags oder eines Angebots.
@@ -45,16 +51,18 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@ClassBridge(name = "position", analyze = Analyze.NO, impl = HibernateSearchAuftragsPositionBridge::class)
-@Cache(region = "orders", usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-//@Cacheable
+@TypeBinding(binder = TypeBinderRef(type = HibernateSearchAuftragsPositionTypeBinder::class))
+@ClassBridge(name = "position") // position should be used in HibernateSearchAuftragsPositionBridge as field name.
+//@ClassBridge(name = "position", analyze = Analyze.NO, impl = HibernateSearchAuftragsPositionBridge::class)
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Cacheable
 @Table(
   name = "t_fibu_auftrag_position",
   uniqueConstraints = [UniqueConstraint(columnNames = ["auftrag_fk", "number"])],
-  indexes = [javax.persistence.Index(
+  indexes = [jakarta.persistence.Index(
     name = "idx_fk_t_fibu_auftrag_position_auftrag_fk",
     columnList = "auftrag_fk"
-  ), javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_task_fk", columnList = "task_fk")],
+  ), jakarta.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_task_fk", columnList = "task_fk")],
 )
 @NamedQueries(
   NamedQuery(name = AuftragsPositionDO.FIND_BY_ID, query = "from AuftragsPositionDO where id=:id")
@@ -70,7 +78,7 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
 
   // @JsonIgnore needed due to circular references.
   @JsonIgnore
-  @ContainedIn
+  // @ContainedIn
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "auftrag_fk", nullable = false)
   open var auftrag: AuftragDO? = null
@@ -80,7 +88,7 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   open var task: TaskDO? = null
 
   @PropertyInfo(i18nKey = "fibu.auftrag.position.art")
-  @Field
+  @FullTextField
   @get:Enumerated(EnumType.STRING)
   @get:Column(name = "art", length = 30)
   open var art: AuftragsPositionsArt? = null
@@ -91,23 +99,23 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   open var paymentType: AuftragsPositionsPaymentType? = null
 
   @PropertyInfo(i18nKey = "fibu.auftrag.position.status")
-  @Field
+  @FullTextField
   @get:Enumerated(EnumType.STRING)
   @get:Column(name = "status", length = 30)
-  open var status: AuftragsPositionsStatus? = null
+  open var status: AuftragsStatus? = null
 
   @PropertyInfo(i18nKey = "fibu.auftrag.titel")
-  @Field
+  @FullTextField
   @get:Column(name = "titel", length = 255)
   open var titel: String? = null
 
   @PropertyInfo(i18nKey = "comment")
-  @Field
+  @FullTextField
   @get:Column(length = 4000)
   open var bemerkung: String? = null
 
   @PropertyInfo(i18nKey = "fibu.auftrag.nettoSumme")
-  @Field
+  @GenericField
   @get:Column(name = "netto_summe", scale = 2, precision = 12)
   open var nettoSumme: BigDecimal? = null
 
@@ -118,14 +126,6 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   @PropertyInfo(i18nKey = "projectmanagement.personDays")
   @get:Column(name = "person_days", scale = 2, precision = 12)
   open var personDays: BigDecimal? = null
-
-  /**
-   * Must be set in all positions before usage. The value is not calculated automatically!
-   *
-   * @see AuftragDao.calculateInvoicedSum
-   */
-  @get:Transient
-  open var invoicedSum: BigDecimal? = null
 
   /**
    * Dieses Flag wird manuell von der FiBu gesetzt und kann nur für abgeschlossene Aufträge gesetzt werden.
@@ -146,25 +146,6 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   @get:Enumerated(EnumType.STRING)
   @get:Column(name = "mode_of_payment_type", length = 13)
   open var modeOfPaymentType: ModeOfPaymentType? = null
-
-  val toBeInvoiced: Boolean
-    @Transient
-    get() {
-      if (status != null && status!!.isIn(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT)) {
-        return false
-      }
-      return if (auftrag!!.auftragsStatus != AuftragsStatus.ABGESCHLOSSEN && status != AuftragsPositionsStatus.ABGESCHLOSSEN) {
-        false
-      } else vollstaendigFakturiert != true
-    }
-
-  val auftragId: Int?
-    @Transient
-    get() = auftrag?.id
-
-  val taskId: Int?
-    @Transient
-    get() = task?.id
 
   val isEmpty: Boolean
     @Transient
@@ -188,7 +169,7 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
    * Throws UserException if vollstaendigFakturiert is true and status is not ABGESCHLOSSEN.
    */
   fun checkVollstaendigFakturiert() {
-    if (vollstaendigFakturiert == true && (status == null || !status!!.isIn(AuftragsPositionsStatus.ABGESCHLOSSEN))) {
+    if (vollstaendigFakturiert == true && (status?.isIn(AuftragsStatus.ABGESCHLOSSEN) != true)) {
       throw UserException(
         "fibu.auftrag.error.nurAbgeschlosseneAuftragsPositionenKoennenVollstaendigFakturiertSein"
       )
@@ -198,7 +179,7 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   override fun equals(other: Any?): Boolean {
     if (other is AuftragsPositionDO) {
       val o = other as AuftragsPositionDO?
-      return this.number == o!!.number && this.auftragId == o.auftragId
+      return this.number == o!!.number && this.auftrag?.id == o.auftrag?.id
     }
     return false
   }

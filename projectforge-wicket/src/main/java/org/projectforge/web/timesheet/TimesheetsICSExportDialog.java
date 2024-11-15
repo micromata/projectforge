@@ -24,7 +24,9 @@
 package org.projectforge.web.timesheet;
 
 import org.apache.wicket.model.IModel;
+import org.projectforge.business.teamcal.service.CalendarFeedService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.calendar.AbstractICSExportDialog;
 
 /**
@@ -34,7 +36,7 @@ public class TimesheetsICSExportDialog extends AbstractICSExportDialog
 {
   private static final long serialVersionUID = 8054215266883084988L;
 
-  private Integer timesheetUserId;
+  private Long timesheetUserId;
 
   /**
    * @param id
@@ -46,7 +48,7 @@ public class TimesheetsICSExportDialog extends AbstractICSExportDialog
     super(id, titleModel);
   }
 
-  public void init(final Integer timesheetUserId)
+  public void init(final Long timesheetUserId)
   {
     super.init();
     this.timesheetUserId = timesheetUserId;
@@ -58,8 +60,8 @@ public class TimesheetsICSExportDialog extends AbstractICSExportDialog
   @Override
   protected String getUrl()
   {
-    return calendarFeedService
-        .getUrl4Timesheets(timesheetUserId != null ? timesheetUserId : ThreadLocalUserContext.getUserId());
+    return WicketSupport.get(CalendarFeedService.class)
+        .getUrl4Timesheets(timesheetUserId != null ? timesheetUserId : ThreadLocalUserContext.getLoggedInUserId());
   }
 
 }

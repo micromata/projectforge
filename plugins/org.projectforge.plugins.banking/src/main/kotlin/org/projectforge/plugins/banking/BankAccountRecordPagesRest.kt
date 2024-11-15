@@ -43,7 +43,7 @@ import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
@@ -66,7 +66,7 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
   override fun transformForDB(dto: BankAccountRecord): BankAccountRecordDO {
     val bankAccountRecordDO = BankAccountRecordDO()
     dto.id?.let { id ->
-      val dbObj = baseDao.getById(id)
+      val dbObj = baseDao.find(id)
       if (dbObj != null) {
         bankAccountRecordDO.checksum = dbObj.checksum
       }
@@ -148,7 +148,7 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
       )
     )
     val values = mutableListOf<UISelectValue<String>>()
-    bankAccountDao.getList(BaseSearchFilter())?.forEach { account ->
+    bankAccountDao.select(BaseSearchFilter()).forEach { account ->
       values.add(UISelectValue("${account.id}", StringUtils.abbreviate(account.name, 20)))
     }
     accountsFilter.values = values
@@ -193,7 +193,7 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
     val magicFilter = getCurrentFilter()
     val bankAccountId = request.getParameter("bankAccount")?.toIntOrNull()
     if (bankAccountId != null) {
-      bankAccountDao.getById(bankAccountId)?.let {
+      bankAccountDao.find(bankAccountId)?.let {
         // Show only records of given bank account.
         var filterEntry = magicFilter.entries.find { it.field == "accounts" }
         if (filterEntry == null) {
@@ -206,7 +206,7 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
     return getInitialList(request, magicFilter)
   }
 
-  override fun processResultSetBeforeExport(
+  override fun postProcessResultSet(
     resultSet: ResultSet<BankAccountRecordDO>,
     request: HttpServletRequest,
     magicFilter: MagicFilter
@@ -226,12 +226,12 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
       stats.add(record.amount)
     }
     resultSet.addResultInfo(stats.asMarkdown)
-    return super.processResultSetBeforeExport(resultSet, request, magicFilter)
+    return super.postProcessResultSet(resultSet, request, magicFilter)
   }
 
 
   private fun isDoublet(list: List<BankAccountRecordDO>, element: BankAccountRecordDO): Boolean {
-    if (element.isDeleted) {
+    if (element.deleted) {
       return false
     }
     return list.any { it.id != element.id && it.buildCheckSum() == element.buildCheckSum() }

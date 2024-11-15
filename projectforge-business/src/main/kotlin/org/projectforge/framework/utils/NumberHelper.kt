@@ -184,8 +184,9 @@ object NumberHelper {
   /**
    * Catches any NumberFormatException and returns 0, otherwise the long value represented by the given value is returned.
    */
+  @JvmOverloads
   @JvmStatic
-  fun parseLong(value: String?): Long? {
+  fun parseLong(value: String?, logMessage: Boolean = true): Long? {
     var v = value ?: return null
     v = v.trim { it <= ' ' }
     if (v.isEmpty()) {
@@ -195,7 +196,9 @@ object NumberHelper {
     try {
       result = java.lang.Long.valueOf(v)
     } catch (ex: NumberFormatException) {
-      log.debug(ex.message, ex)
+      if (logMessage == true) {
+        log.warn("Can't parse integer: '$v'.")
+      }
     }
     return result
   }
@@ -435,6 +438,24 @@ object NumberHelper {
   }
 
   /**
+   * Compares two given Longs using compareTo method.
+   *
+   * @param value1
+   * @param value
+   * @return
+   * @see Long.compareTo
+   */
+  @JvmStatic
+  fun isEqual(value1: Long?, value: Long?): Boolean {
+    if (value1 == null) {
+      return value == null
+    }
+    return if (value == null) {
+      false
+    } else value1.compareTo(value) == 0
+  }
+
+  /**
    * Splits string representation of the given number into digits. Examples:<br></br>
    * NumberHelper.splitToInts(11110511, 1, 3, 2, 2) = {1, 111, 5, 11}<br></br>
    * NumberHelper.splitToInts(10000511, 1, 3, 2, 2) = { 1, 0, 5, 11}<br></br>
@@ -456,6 +477,33 @@ object NumberHelper {
     var i = 0
     for (n in split) {
       result[i++] = parseInteger(str.substring(pos, pos + n))!!
+      pos += n
+    }
+    return result
+  }
+
+  /**
+   * Splits string representation of the given number into digits. Examples:<br></br>
+   * NumberHelper.splitToInts(11110511, 1, 3, 2, 2) = {1, 111, 5, 11}<br></br>
+   * NumberHelper.splitToInts(10000511, 1, 3, 2, 2) = { 1, 0, 5, 11}<br></br>
+   * NumberHelper.splitToInts(511, 1, 3, 2, 2) = { 0, 0, 5, 11}
+   *
+   * @param value
+   * @param split
+   * @return
+   */
+  @JvmStatic
+  fun splitToLongs(value: Number, vararg split: Int): LongArray {
+    var numberOfDigits = 0
+    for (n in split) {
+      numberOfDigits += n
+    }
+    val str = StringUtils.leftPad(value.toInt().toString(), numberOfDigits, '0')
+    val result = LongArray(split.size)
+    var pos = 0
+    var i = 0
+    for (n in split) {
+      result[i++] = parseLong(str.substring(pos, pos + n))!!
       pos += n
     }
     return result

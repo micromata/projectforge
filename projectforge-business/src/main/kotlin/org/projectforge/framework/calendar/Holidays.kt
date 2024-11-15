@@ -29,7 +29,7 @@ import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.time.IPFDate
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.time.PFDay.Companion.withDate
-import org.projectforge.framework.time.PFDayUtils.Companion.getMonth
+import org.projectforge.framework.time.PFDayUtils.getMonth
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.time.DayOfWeek

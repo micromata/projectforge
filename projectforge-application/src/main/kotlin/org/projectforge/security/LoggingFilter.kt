@@ -34,8 +34,8 @@ import org.projectforge.web.WebUtils
 import org.projectforge.web.rest.RestAuthenticationUtils
 import org.slf4j.MDC
 import java.io.IOException
-import javax.servlet.*
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.*
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 

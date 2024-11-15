@@ -32,12 +32,11 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.Constants;
 import org.projectforge.SystemAlertMessage;
-import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.configuration.DomainService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.core.MenuBarPanel;
 import org.projectforge.web.core.NavTopPanel;
 import org.projectforge.web.dialog.ModalDialog;
@@ -49,12 +48,6 @@ import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
  */
 public abstract class AbstractSecuredPage extends AbstractSecuredBasePage {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractSecuredPage.class);
-
-  @SpringBean
-  private ConfigurationService configurationService;
-
-  @SpringBean
-  private DomainService domainService;
 
   private static final long serialVersionUID = -8721451198050398835L;
 
@@ -77,7 +70,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage {
   @SuppressWarnings("serial")
   public AbstractSecuredPage(final PageParameters parameters) {
     super(parameters);
-    if (ThreadLocalUserContext.getUser() == null) {
+    if (ThreadLocalUserContext.getLoggedInUser() == null) {
       log.warn("AbstractSecuredPage called without logged-in user: " + this.getPageAsLink(parameters));
       // Shouldn't occur, but safe is safe:
       throw new RedirectToUrlException("/");
@@ -206,7 +199,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage {
       relativeUrl = relativeUrl.replace("../", "");
     }
 
-    String baseUrl = domainService.getDomainWithContextPath() + "/" + Constants.WICKET_APPLICATION_PATH;
+    String baseUrl = WicketSupport.get(DomainService.class).getDomainWithContextPath() + "/" + Constants.WICKET_APPLICATION_PATH;
 
     return WicketUtils.toAbsolutePath(baseUrl, relativeUrl);
   }
@@ -215,7 +208,6 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage {
    * Evaluates the page parameters and sets the properties, if parameters are given.
    *
    * @param parameters
-   * @see WicketUtils#evaluatePageParameters(Object, PageParameters, String, String[])
    */
   protected void evaluateInitialPageParameters(final PageParameters parameters) {
     if (getBookmarkableInitialProperties() != null) {
@@ -228,7 +220,6 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage {
    * Adds additional page parameter. Used by NavTopPanel to show direct page links including the page parameters
    * returned by {@link #getBookmarkableInitialProperties()}.
    *
-   * @see org.projectforge.web.wicket.AbstractUnsecurePage#getBookmarkableInitialParameters()
    */
   public PageParameters getBookmarkableInitialParameters() {
     final PageParameters pageParameters = new PageParameters();

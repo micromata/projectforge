@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.business.common.BaseUserGroupRightService
 import org.projectforge.business.teamcal.CalendarAccessStatus
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
@@ -33,30 +34,31 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
-class TeamCal(var title: String? = null,
-              var owner: PFUserDO? = null,
-              var description: String? = null,
-              var accessStatus: CalendarAccessStatus? = null,
-              var accessStatusString: String? = null,
-              var fullAccessGroups: List<Group>? = null,
-              var fullAccessUsers: List<User>? = null,
-              var readonlyAccessGroups: List<Group>? = null,
-              var readonlyAccessUsers: List<User>? = null,
-              var minimalAccessGroups: List<Group>? = null,
-              var minimalAccessUsers: List<User>? = null,
-              var includeLeaveDaysForUsers: List<User>? = null,
-              var includeLeaveDaysForGroups: List<Group>? = null,
-              var externalSubscription: Boolean = false,
-              var externalSubscriptionUrl: String? = null,
-              /**
-               * In seconds.
-               */
-              var externalSubscriptionUpdateInterval: Int? = null,
-              var externalSubscriptionUrlAnonymized: String? = null,
-              var vacation4Groups: List<Int>? = null,
-              var vacation4Users: List<Int>? = null
+class TeamCal(
+    var title: String? = null,
+    var owner: PFUserDO? = null,
+    var description: String? = null,
+    var accessStatus: CalendarAccessStatus? = null,
+    var accessStatusString: String? = null,
+    var fullAccessGroups: List<Group>? = null,
+    var fullAccessUsers: List<User>? = null,
+    var readonlyAccessGroups: List<Group>? = null,
+    var readonlyAccessUsers: List<User>? = null,
+    var minimalAccessGroups: List<Group>? = null,
+    var minimalAccessUsers: List<User>? = null,
+    var includeLeaveDaysForUsers: List<User>? = null,
+    var includeLeaveDaysForGroups: List<Group>? = null,
+    var externalSubscription: Boolean = false,
+    var externalSubscriptionUrl: String? = null,
+    /**
+     * In seconds.
+     */
+    var externalSubscriptionUpdateInterval: Int? = null,
+    var externalSubscriptionUrlAnonymized: String? = null,
+    var vacation4Groups: List<Long>? = null,
+    var vacation4Users: List<Long>? = null
 ) : BaseDTO<TeamCalDO>() {
-    // The user and group ids are stored as csv list of integers in the data base.
+    // The user and group ids are stored as csv list of longs in the database.
     override fun copyFrom(src: TeamCalDO) {
         super.copyFrom(src)
         fullAccessGroups = Group.toGroupList(src.fullAccessGroupIds)
@@ -72,7 +74,7 @@ class TeamCal(var title: String? = null,
         val teamCalDao = ApplicationContextProvider.getApplicationContext().getBean(TeamCalDao::class.java)
         val accessChecker = ApplicationContextProvider.getApplicationContext().getBean(AccessChecker::class.java)
         val right = teamCalDao.userRight as TeamCalRight
-        val loggedInUserId = ThreadLocalUserContext.userId
+        val loggedInUserId = ThreadLocalUserContext.loggedInUserId
         accessStatus = when {
             right.isOwner(loggedInUserId, src) -> CalendarAccessStatus.OWNER
             right.hasFullAccess(src, loggedInUserId) -> CalendarAccessStatus.FULL_ACCESS
@@ -84,17 +86,18 @@ class TeamCal(var title: String? = null,
         accessStatus?.let { accessStatusString = translate(it.i18nKey) }
     }
 
-    // The user and group ids are stored as csv list of integers in the data base.
+    // The user and group ids are stored as csv list of longs in the database.
     override fun copyTo(dest: TeamCalDO) {
         super.copyTo(dest)
-        dest.fullAccessGroupIds = Group.toIntList(fullAccessGroups)
-        dest.fullAccessUserIds = User.toIntList(fullAccessUsers)
-        dest.readonlyAccessGroupIds = Group.toIntList(readonlyAccessGroups)
-        dest.readonlyAccessUserIds = User.toIntList(readonlyAccessUsers)
-        dest.minimalAccessGroupIds = Group.toIntList(minimalAccessGroups)
-        dest.minimalAccessUserIds = User.toIntList(minimalAccessUsers)
+        val svc = BaseUserGroupRightService.instance
+        svc.setFullAccessGroups(dest, fullAccessGroups)
+        svc.setFullAccessUsers(dest, fullAccessUsers)
+        svc.setReadonlyAccessGroups(dest, readonlyAccessGroups)
+        svc.setReadonlyAccessUsers(dest, readonlyAccessUsers)
+        svc.setMinimalAccessGroups(dest, minimalAccessGroups)
+        svc.setMinimalAccessUsers(dest, minimalAccessUsers)
 
-        dest.includeLeaveDaysForGroups = Group.toIntList(includeLeaveDaysForGroups)
-        dest.includeLeaveDaysForUsers = User.toIntList(includeLeaveDaysForUsers)
+        dest.includeLeaveDaysForGroups = Group.toLongList(includeLeaveDaysForGroups)
+        dest.includeLeaveDaysForUsers = User.toLongList(includeLeaveDaysForUsers)
     }
 }

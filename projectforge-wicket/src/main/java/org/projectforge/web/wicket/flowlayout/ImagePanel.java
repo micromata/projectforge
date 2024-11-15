@@ -34,13 +34,11 @@ import org.projectforge.web.wicket.components.TooltipImage;
 /**
  * Represents a field set panel. A form or page can contain multiple field sets.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class ImagePanel extends Panel
 {
   private static final long serialVersionUID = -2323278625643532689L;
-
-  private WebComponent image;
 
   /**
    * Wicket id.
@@ -82,7 +80,7 @@ public class ImagePanel extends Panel
    */
   public ImagePanel addImage(final WebComponent image)
   {
-    add(this.image = image);
+    add(image);
     return this;
   }
 
@@ -90,23 +88,12 @@ public class ImagePanel extends Panel
    * @param image
    * @return this for chaining.
    */
-  public ImagePanel removeImage()
+  public ImagePanel addImageIfNotPresent(final WebComponent image)
   {
-    if (image != null) {
-      remove(image);
-      this.image = null;
+    if (get(IMAGE_ID) != null) {
+      return this;
     }
-    return this;
-  }
-
-  /**
-   * @param image
-   * @return this for chaining.
-   */
-  public ImagePanel replaceImage(final WebComponent image)
-  {
-    removeImage();
-    add(this.image = image);
+    add(image);
     return this;
   }
 }

@@ -26,8 +26,9 @@ package org.projectforge.business.fibu
 import java.math.BigDecimal
 
 interface IRechnungsPosition {
-    var menge: BigDecimal?
-    var einzelNetto: BigDecimal?
-    var vat: BigDecimal?
-    val netSum: BigDecimal
+    val id: Long?
+    val deleted: Boolean
+    val menge: BigDecimal?
+    val einzelNetto: BigDecimal?
+    val vat: BigDecimal?
 }

@@ -27,13 +27,13 @@ import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 
 /**
  * For non financial and controlling users.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 open class MyScriptDao : AbstractScriptDao() {
   /**
    * User must be member of group controlling or finance.
@@ -54,17 +54,17 @@ open class MyScriptDao : AbstractScriptDao() {
     if (obj == null) {
       return true
     }
-    if (!obj.isDeleted) {
-      val userId = ThreadLocalUserContext.userId!!
+    if (!obj.deleted) {
+      val userId = ThreadLocalUserContext.requiredLoggedInUserId
       val userIdString = "$userId"
-      obj.executableByUserIds?.split(",")?.forEach { userId ->
-        if (userId.trim() == userIdString) {
+      obj.executableByUserIds?.split(",")?.forEach { executableByUserId ->
+        if (executableByUserId.trim() == userIdString) {
           // Logged-in user is listed in executableByUserIds
           return true
         }
       }
       obj.executableByGroupIds?.split(",")?.forEach { groupId ->
-        groupId.toIntOrNull()?.let { gid ->
+        groupId.toLongOrNull()?.let { gid ->
           if (userGroupCache.isUserMemberOfGroup(userId, gid)) {
             // Logged-in user is member of this group listed in executableByGroupIds
             return true

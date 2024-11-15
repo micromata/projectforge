@@ -23,17 +23,15 @@
 
 package org.projectforge.business.fibu
 
-import org.hibernate.search.annotations.Analyze
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
+import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.Constants
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.time.PFDayUtils
 import java.math.BigDecimal
-import javax.persistence.*
 
 /**
  * Das monatliche Gehalt eines festangestellten Mitarbeiters.
@@ -42,11 +40,21 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_FIBU_EMPLOYEE_SALARY",
-        uniqueConstraints = [UniqueConstraint(columnNames = ["employee_id", "year", "month"])],
-        indexes = [Index(name = "idx_fk_t_fibu_employee_salary_employee_id", columnList = "employee_id")])
+@Table(
+    name = "T_FIBU_EMPLOYEE_SALARY",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["employee_id", "year", "month"])],
+    indexes = [Index(name = "idx_fk_t_fibu_employee_salary_employee_id", columnList = "employee_id")]
+)
 @NamedQueries(
-        NamedQuery(name = EmployeeSalaryDO.SELECT_MIN_MAX_YEAR, query = "select min(year), max(year) from EmployeeSalaryDO"))
+    NamedQuery(
+        name = EmployeeSalaryDO.SELECT_MIN_MAX_YEAR,
+        query = "select min(year), max(year) from EmployeeSalaryDO",
+    ),
+    NamedQuery(
+        name = EmployeeSalaryDO.SELECT_SALARIES_BY_MONTH,
+        query = "from EmployeeSalaryDO where year = :year and month = :month",
+    )
+)
 open class EmployeeSalaryDO : DefaultBaseDO() {
 
     /**
@@ -54,8 +62,9 @@ open class EmployeeSalaryDO : DefaultBaseDO() {
      */
     // TODO: Support this type on the edit page
     @PropertyInfo(i18nKey = "fibu.employee")
-    @IndexedEmbedded(depth = 2)
+    @IndexedEmbedded(includeDepth = 2)
     @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "employee_id", nullable = false)
     open var employee: EmployeeDO? = null
 
@@ -63,7 +72,7 @@ open class EmployeeSalaryDO : DefaultBaseDO() {
      * @return Abrechnungsjahr.
      */
     @PropertyInfo(i18nKey = "calendar.year")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column
     open var year: Int? = null
 
@@ -72,7 +81,7 @@ open class EmployeeSalaryDO : DefaultBaseDO() {
      * @return Abrechnungsmonat.
      */
     @PropertyInfo(i18nKey = "calendar.month")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column
     open var month: Int? = null
         set(value) {
@@ -87,7 +96,7 @@ open class EmployeeSalaryDO : DefaultBaseDO() {
     open var bruttoMitAgAnteil: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "comment")
-    @Field
+    @FullTextField
     @get:Column(length = Constants.COMMENT_LENGTH)
     open var comment: String? = null
 
@@ -96,7 +105,7 @@ open class EmployeeSalaryDO : DefaultBaseDO() {
     @get:Column(length = 20)
     open var type: EmployeeSalaryType? = null
 
-    val employeeId: Int?
+    val employeeId: Long?
         @Transient
         get() = if (this.employee == null) null else employee!!.id
 
@@ -110,5 +119,6 @@ open class EmployeeSalaryDO : DefaultBaseDO() {
 
     companion object {
         internal const val SELECT_MIN_MAX_YEAR = "EmployeeSalaryDO_SelectMinMaxYear"
+        internal const val SELECT_SALARIES_BY_MONTH = "EmployeeSalaryDO_SelectByMonth"
     }
 }

@@ -23,15 +23,16 @@
 
 package org.projectforge.plugins.skillmatrix
 
-import org.hibernate.search.annotations.ClassBridge
-import org.hibernate.search.annotations.Indexed
-import org.projectforge.business.user.HibernateSearchUserRightIdBridge
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
+import org.projectforge.business.user.HibernateSearchUserRightIdTypeBinder
 import org.projectforge.framework.persistence.api.IUserRightId
 
 @Indexed
-@ClassBridge(impl = HibernateSearchUserRightIdBridge::class)
-enum class SkillRightId(override val id: String, override val orderString: String?, override val i18nKey: String?)
-    : IUserRightId {
+@TypeBinding(binder = TypeBinderRef(type = HibernateSearchUserRightIdTypeBinder::class))
+enum class SkillRightId(override val id: String, override val orderString: String?, override val i18nKey: String?) :
+    IUserRightId {
     // orderString and i18nKey may be null, because this right is not configurable for an user.
     PLUGIN_SKILL_MATRIX("PLUGIN_SKILL_MATRIX", null, null);
 }

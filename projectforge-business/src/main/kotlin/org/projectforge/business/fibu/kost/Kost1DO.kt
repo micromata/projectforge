@@ -23,36 +23,41 @@
 
 package org.projectforge.business.fibu.kost
 
-import de.micromata.genome.db.jpa.history.api.WithHistory
+import jakarta.persistence.*
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.hibernate.search.annotations.Analyze
-import org.hibernate.search.annotations.ClassBridge
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import javax.persistence.*
 
 @Entity
 @Indexed
-@ClassBridge(name = "nummer", impl = HibernateSearchKost1Bridge::class)
-@Table(name = "T_FIBU_KOST1", uniqueConstraints = [UniqueConstraint(columnNames = ["nummernkreis", "bereich", "teilbereich", "endziffer"])])
-@WithHistory
+@Table(
+    name = "T_FIBU_KOST1",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["nummernkreis", "bereich", "teilbereich", "endziffer"])]
+)
+//@WithHistory
 @NamedQueries(
-        NamedQuery(name = Kost1DO.FIND_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER,
-                query = "from Kost1DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and endziffer=:endziffer"),
-        NamedQuery(name = Kost1DO.FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER,
-                query = "from Kost1DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and endziffer=:endziffer and id!=:id"))
+    NamedQuery(
+        name = Kost1DO.FIND_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER,
+        query = "from Kost1DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and endziffer=:endziffer"
+    ),
+    NamedQuery(
+        name = Kost1DO.FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER,
+        query = "from Kost1DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and endziffer=:endziffer and id!=:id"
+    )
+)
 open class Kost1DO : DefaultBaseDO(), DisplayNameCapable {
 
-    override val displayName: String
+    override var displayName: String? = null
         @Transient
-        get() = KostFormatter.format(this)
+        get() {
+            return field ?: KostFormatter.instance.formatKost1(this, KostFormatter.FormatType.FORMATTED_NUMBER)
+        }
 
     @PropertyInfo(i18nKey = "status")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 30)
     open var kostentraegerStatus: KostentraegerStatus? = null
@@ -90,23 +95,26 @@ open class Kost1DO : DefaultBaseDO(), DisplayNameCapable {
      * @return
      */
     @PropertyInfo(i18nKey = "description")
-    @Field
+    @FullTextField
     @get:Column(length = 4000)
     open var description: String? = null
 
     /**
      * Format: #.###.##.##
      *
-     * @see KostFormatter.format
+     * @see KostFormatter.formatKost1
      */
+    @get:PropertyInfo(i18nKey = "fibu.kost1")
+    @get:Transient
+    @get:GenericField
+    @get:IndexingDependency(derivedFrom = [ObjectPath(PropertyValue(propertyName = "id"))])
     val formattedNumber: String
-        @Transient
-        get() = KostFormatter.format(this)
+        get() = KostFormatter.instance.formatKost1(this, KostFormatter.FormatType.FORMATTED_NUMBER)
 
     /**
      * @see KostFormatter.getKostAsInt
      */
-    val nummer: Int?
+    val nummer: Int
         @Transient
         get() = KostFormatter.getKostAsInt(nummernkreis, bereich, teilbereich, endziffer)
 

@@ -24,14 +24,11 @@
 package org.projectforge.business.fibu
 
 import java.math.BigDecimal
-import java.time.LocalDate
 
 /**
  * Needed by [RechnungCalculator].
  */
 interface IRechnung {
     val zahlBetrag: BigDecimal?
-    val netSum: BigDecimal
-    val vatAmountSum: BigDecimal
     val positionen: List<IRechnungsPosition>?
 }

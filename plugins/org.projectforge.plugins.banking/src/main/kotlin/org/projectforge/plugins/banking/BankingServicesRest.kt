@@ -37,7 +37,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
@@ -68,7 +68,7 @@ class BankingServicesRest {
       log.warn("Upload file size to big: ${file.size} > 100MB")
       throw IllegalArgumentException("Upload file size to big: ${file.size} > 100MB")
     }
-    val bankAccountDO = bankAccountDao.getById(id)
+    val bankAccountDO = bankAccountDao.find(id)
     if (bankAccountDO == null) {
       log.warn("Bank account with id #$id not found.")
       throw IllegalArgumentException()

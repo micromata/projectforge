@@ -24,17 +24,15 @@
 package org.projectforge.business.orga
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import de.micromata.genome.db.jpa.history.api.NoHistory
-import org.hibernate.search.annotations.Analyze
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.FieldBridge
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.bridge.builtin.IntegerBridge
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.time.LocalDate
-import javax.persistence.*
+import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
+import org.projectforge.framework.persistence.history.NoHistory
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -48,120 +46,120 @@ import javax.persistence.*
 open class ContractDO : DefaultBaseDO(), AttachmentsInfo {
 
     @PropertyInfo(i18nKey = "'C-", additionalI18nKey = "legalAffaires.contract.number", tooltip = "fibu.tooltip.nummerWirdAutomatischVergeben")
-    @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
+    @GenericField // was: @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @get:Column(name = "number")
     open var number: Int? = null
 
     @PropertyInfo(i18nKey = "date")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(name = "c_date")
     open var date: LocalDate? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.validity.from")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(name = "valid_from")
     open var validFrom: LocalDate? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.validity.until")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(name = "valid_until")
     open var validUntil: LocalDate? = null
 
     @PropertyInfo(i18nKey = "title", required = true)
-    @Field
+    @FullTextField
     @get:Column(length = 1000)
     open var title: String? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.coContractorA")
-    @Field
+    @FullTextField
     @get:Column(length = 1000, name = "co_contractor_a")
     open var coContractorA: String? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.contractPersonA")
-    @Field
+    @FullTextField
     @get:Column(length = 1000, name = "contract_person_a")
     open var contractPersonA: String? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.signerA")
-    @Field
+    @FullTextField
     @get:Column(length = 1000, name = "signer_a")
     open var signerA: String? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.coContractorB")
-    @Field
+    @FullTextField
     @get:Column(length = 1000, name = "co_contractor_b")
     open var coContractorB: String? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.contractPersonB")
-    @Field
+    @FullTextField
     @get:Column(length = 1000, name = "contract_person_b")
     open var contractPersonB: String? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.signerB")
-    @Field
+    @FullTextField
     @get:Column(length = 1000, name = "signer_b")
     open var signerB: String? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.signing")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(name = "signing_date")
     open var signingDate: LocalDate? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.type")
-    @Field
+    @FullTextField
     @get:Column(length = 100)
     open var type: String? = null
 
     @PropertyInfo(i18nKey = "status")
-    @Field
+    @FullTextField
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 100)
     open var status: ContractStatus? = null
 
     @PropertyInfo(i18nKey = "text")
-    @Field
+    @FullTextField
     @get:Column(length = 4000)
     open var text: String? = null
 
     @PropertyInfo(i18nKey = "fibu.common.reference")
-    @Field
+    @FullTextField
     @get:Column
     open var reference: String? = null
 
     @PropertyInfo(i18nKey = "filing")
-    @Field
+    @FullTextField
     @get:Column(length = 1000)
     open var filing: String? = null
 
     @PropertyInfo(i18nKey = "resubmissionOnDate")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(name = "resubmission_on_date")
     open var resubmissionOnDate: LocalDate? = null
 
     @PropertyInfo(i18nKey = "dueDate")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(name = "due_date")
     open var dueDate: LocalDate? = null
 
     @JsonIgnore
-    @Field
-    @field:NoHistory
+    @FullTextField
+    @NoHistory
     @get:Column(length = 10000, name = "attachments_names")
     override var attachmentsNames: String? = null
 
     @JsonIgnore
-    @Field
-    @field:NoHistory
+    @FullTextField
+    @NoHistory
     @get:Column(length = 10000, name = "attachments_ids")
     override var attachmentsIds: String? = null
 
     @JsonIgnore
-    @field:NoHistory
+    @NoHistory
     @get:Column(length = 10000, name = "attachments_counter")
     override var attachmentsCounter: Int? = null
 
     @JsonIgnore
-    @field:NoHistory
+    @NoHistory
     @get:Column(length = 10000, name = "attachments_size")
     override var attachmentsSize: Long? = null
 

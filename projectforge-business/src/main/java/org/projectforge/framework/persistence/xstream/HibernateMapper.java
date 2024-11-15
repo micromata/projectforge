@@ -25,78 +25,71 @@ package org.projectforge.framework.persistence.xstream;
 
 import com.thoughtworks.xstream.mapper.Mapper;
 import com.thoughtworks.xstream.mapper.MapperWrapper;
-import org.hibernate.collection.internal.*;
+import org.hibernate.collection.spi.*;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.util.*;
 
 /**
  * Replaces Hibernate 3 specific collections with java.util implementations.
- * 
+ *
  * <strong>NOTE</strong> This mapper takes care only of the writing to the XML (deflating) not the other way around
  * (inflating) because there is no need.
- * 
+ *
  * @author Costin Leau
- * 
  */
 
-public class HibernateMapper extends MapperWrapper
-{
+public class HibernateMapper extends MapperWrapper {
 
-  private Map<Class<?>, Class<?>> collectionMap = new HashMap<>();
+    private Map<Class<?>, Class<?>> collectionMap = new HashMap<>();
 
-  public HibernateMapper(MapperWrapper arg0)
-  {
-    super(arg0);
-    init();
-  }
-
-  public void init()
-  {
-    collectionMap.put(PersistentBag.class, ArrayList.class);
-    collectionMap.put(PersistentList.class, ArrayList.class);
-    collectionMap.put(PersistentMap.class, HashMap.class);
-    collectionMap.put(PersistentSet.class, HashSet.class);
-    collectionMap.put(PersistentSortedMap.class, TreeMap.class);
-    collectionMap.put(PersistentSortedSet.class, TreeSet.class);
-  }
-
-  public HibernateMapper(Mapper arg0)
-  {
-    super(arg0);
-    init();
-  }
-
-  @SuppressWarnings("unchecked")
-  @Override
-  public Class defaultImplementationOf(Class clazz)
-  {
-    // System.err.println("checking class:" + clazz);
-    if (collectionMap.containsKey(clazz)) {
-      // System.err.println("** substituting " + clazz + " with " + collectionMap.get(clazz));
-      return collectionMap.get(clazz);
+    public HibernateMapper(MapperWrapper arg0) {
+        super(arg0);
+        init();
     }
 
-    return super.defaultImplementationOf(clazz);
-  }
-
-  @SuppressWarnings("unchecked")
-  @Override
-  public String serializedClass(Class clazz)
-  {
-    // check whether we are hibernate proxy and substitute real name
-    for (int i = 0; i < clazz.getInterfaces().length; i++) {
-      if (HibernateProxy.class.equals(clazz.getInterfaces()[i])) {
-        // System.err.println("resolving to class name:" + clazz.getSuperclass().getName());
-        return clazz.getSuperclass().getName();
-      }
-    }
-    if (collectionMap.containsKey(clazz)) {
-      // System.err.println("** substituting " + clazz + " with " + collectionMap.get(clazz));
-      return ((Class) collectionMap.get(clazz)).getName();
+    public void init() {
+        collectionMap.put(PersistentBag.class, ArrayList.class);
+        collectionMap.put(PersistentList.class, ArrayList.class);
+        collectionMap.put(PersistentMap.class, HashMap.class);
+        collectionMap.put(PersistentSet.class, HashSet.class);
+        collectionMap.put(PersistentSortedMap.class, TreeMap.class);
+        collectionMap.put(PersistentSortedSet.class, TreeSet.class);
     }
 
-    return super.serializedClass(clazz);
-  }
+    public HibernateMapper(Mapper arg0) {
+        super(arg0);
+        init();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Class defaultImplementationOf(Class clazz) {
+        // System.err.println("checking class:" + clazz);
+        if (collectionMap.containsKey(clazz)) {
+            // System.err.println("** substituting " + clazz + " with " + collectionMap.get(clazz));
+            return collectionMap.get(clazz);
+        }
+
+        return super.defaultImplementationOf(clazz);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public String serializedClass(Class clazz) {
+        // check whether we are hibernate proxy and substitute real name
+        for (int i = 0; i < clazz.getInterfaces().length; i++) {
+            if (HibernateProxy.class.equals(clazz.getInterfaces()[i])) {
+                // System.err.println("resolving to class name:" + clazz.getSuperclass().getName());
+                return clazz.getSuperclass().getName();
+            }
+        }
+        if (collectionMap.containsKey(clazz)) {
+            // System.err.println("** substituting " + clazz + " with " + collectionMap.get(clazz));
+            return ((Class) collectionMap.get(clazz)).getName();
+        }
+
+        return super.serializedClass(clazz);
+    }
 
 }

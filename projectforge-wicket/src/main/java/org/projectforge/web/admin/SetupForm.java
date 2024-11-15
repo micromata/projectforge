@@ -41,6 +41,7 @@ import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractForm;
 import org.projectforge.web.wicket.CsrfTokenHandler;
 import org.projectforge.web.wicket.WicketUtils;
@@ -56,12 +57,6 @@ import java.util.TimeZone;
 
 public class SetupForm extends AbstractForm<SetupForm, SetupPage> {
   private static final long serialVersionUID = -277853572580468505L;
-
-  @SpringBean
-  private UserService userService;
-
-  @SpringBean
-  private PasswordQualityService passwordQualityService;
 
   private SetupTarget setupTarget = SetupTarget.TEST_DATA;
 
@@ -152,7 +147,7 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage> {
           passwordRepeatField.error(getString("user.error.passwordAndRepeatDoesNotMatch"));
           return;
         }
-        final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput.toCharArray());
+        final List<I18nKeyAndParams> errorMsgKeys = WicketSupport.get(PasswordQualityService.class).checkPasswordQuality(passwordInput.toCharArray());
         if (errorMsgKeys.isEmpty() == false) {
           for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
             passwordField.error(I18nHelper.getLocalizedMessage(errorMsgKey));

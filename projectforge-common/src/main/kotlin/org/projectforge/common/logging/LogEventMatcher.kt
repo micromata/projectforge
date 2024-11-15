@@ -52,8 +52,8 @@ class LogEventLoggerNameMatcher(vararg loggerNameBeginnings: String) : LogEventM
     return this
   }
 
-  override fun matches(eventData: LoggingEventData): Boolean {
-    return matches(eventData, loggerNameBeginningsArray) && !matches(eventData, blockedLoggerNameBeginningsArray)
+  override fun matches(event: LoggingEventData): Boolean {
+    return matches(event, loggerNameBeginningsArray) && !matches(event, blockedLoggerNameBeginningsArray)
   }
 
   private fun matches(eventData: LoggingEventData, array: Array<out String>?): Boolean {

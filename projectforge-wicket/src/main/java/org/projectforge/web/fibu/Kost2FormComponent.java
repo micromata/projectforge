@@ -25,14 +25,14 @@ package org.projectforge.web.fibu;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.ValidationError;
-import org.projectforge.business.fibu.KostFormatter;
+import org.projectforge.business.fibu.OldKostFormatter;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
 import org.projectforge.business.fibu.kost.KostFilter;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 
 import java.util.Collections;
@@ -44,9 +44,6 @@ public class Kost2FormComponent extends PFAutoCompleteTextField<Kost2DO>
 {
   private static final long serialVersionUID = 8411456751099783863L;
 
-  @SpringBean
-  private Kost2Dao kost2Dao;
-
   class Kost2Converter implements IConverter
   {
     private static final long serialVersionUID = 5770334618044073827L;
@@ -55,7 +52,7 @@ public class Kost2FormComponent extends PFAutoCompleteTextField<Kost2DO>
     public Kost2DO convertToObject(String value, final Locale locale)
     {
       value = StringUtils.trimToEmpty(value);
-      return kost2Dao.getKost2(value);
+      return WicketSupport.get(Kost2Dao.class).getKost2(value);
     }
 
     @Override
@@ -97,7 +94,7 @@ public class Kost2FormComponent extends PFAutoCompleteTextField<Kost2DO>
     if (kost2 == null) {
       return "";
     }
-    return KostFormatter.format(kost2) + " - " + KostFormatter.formatToolTip(kost2);
+    return OldKostFormatter.format(kost2) + " - " + OldKostFormatter.formatToolTip(kost2);
   }
 
   @Override
@@ -110,13 +107,13 @@ public class Kost2FormComponent extends PFAutoCompleteTextField<Kost2DO>
       filter.setSearchString(input + "*");
     }
     filter.setListType(KostFilter.FILTER_NOT_ENDED);
-    final List<Kost2DO> list = kost2Dao.getList(filter);
+    final List<Kost2DO> list = WicketSupport.get(Kost2Dao.class).select(filter);
     Collections.sort(list, new Comparator<Kost2DO>()
     {
       @Override
       public int compare(final Kost2DO o1, final Kost2DO o2)
       {
-        return (o1.getNummer().compareTo(o2.getNummer()));
+        return (Integer.valueOf(o1.getNummer()).compareTo(o2.getNummer()));
       }
     });
     return list;
@@ -137,7 +134,7 @@ public class Kost2FormComponent extends PFAutoCompleteTextField<Kost2DO>
     if (value == null) {
       return "";
     }
-    return KostFormatter.format(value) + " - " + KostFormatter.formatToolTip(value);
+    return OldKostFormatter.format(value) + " - " + OldKostFormatter.formatToolTip(value);
   }
 
   @Override

@@ -55,7 +55,6 @@ class FavoritesMenuReaderWriter {
 
         fun storeAsUserPref(menu: Menu?) {
             if (menu == null || menu.menuItems.isNullOrEmpty()) {
-                val userPrefService = UserPrefService()
                 UserPreferencesHelper.putEntry(FavoritesMenuCreator.USER_PREF_FAVORITES_MENU_ENTRIES_KEY, "", true)
                 return
             }

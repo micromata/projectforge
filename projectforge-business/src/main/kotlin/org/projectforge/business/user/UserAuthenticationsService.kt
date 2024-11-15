@@ -32,7 +32,7 @@ import org.projectforge.framework.utils.Crypt
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
@@ -58,7 +58,7 @@ open class UserAuthenticationsService {
    * @param request Is needed to register [UserAccessLogEntries] if token is used and valid.
    * @see UserAuthenticationsDao.getUserByToken
    */
-  open fun getUserByToken(request: HttpServletRequest, userId: Int, type: UserTokenType, token: String?): PFUserDO? {
+  open fun getUserByToken(request: HttpServletRequest, userId: Long, type: UserTokenType, token: String?): PFUserDO? {
     val user = userAuthenticationsDao.getUserByToken(userId, type, token) ?: return null
     registerLogAccess(request, type, userId)
     return user
@@ -84,21 +84,21 @@ open class UserAuthenticationsService {
    * Without check access.
    * @see UserAuthenticationsDao.internalGetToken
    */
-  open fun internalGetToken(userId: Int, type: UserTokenType): String? {
+  open fun internalGetToken(userId: Long, type: UserTokenType): String? {
     return userAuthenticationsDao.internalGetToken(userId, type)
   }
 
   /**
    * @see UserAuthenticationsDao.getToken
    */
-  open fun getToken(userId: Int, type: UserTokenType): String? {
+  open fun getToken(userId: Long, type: UserTokenType): String? {
     return userAuthenticationsDao.getToken(userId, type)
   }
 
   /**
    * @see UserAuthenticationsDao.getTokenData
    */
-  open fun getTokenData(userId: Int, type: UserTokenType): UserTokenData? {
+  open fun getTokenData(userId: Long, type: UserTokenType): UserTokenData? {
     return userAuthenticationsDao.getTokenData(userId, type)
   }
 
@@ -118,7 +118,7 @@ open class UserAuthenticationsService {
     return userAuthenticationsDao.internalGetAuthenticatorTokenCreationDate()
   }
 
-  open fun isAuthenticatorAppConfigured(userId: Int): Boolean {
+  open fun isAuthenticatorAppConfigured(userId: Long): Boolean {
     return userAuthenticationsDao.internalHasAuthenticatorToken(userId)
   }
 
@@ -133,7 +133,7 @@ open class UserAuthenticationsService {
    * @see UserAuthenticationsDao.renewToken
    * @see UserAccessLogEntries.clear
    */
-  open fun renewToken(userId: Int, tokenType: UserTokenType) {
+  open fun renewToken(userId: Long, tokenType: UserTokenType) {
     userAuthenticationsDao.renewToken(userId, tokenType)
     getUserAccessLogEntries(tokenType, userId)?.clear()
   }
@@ -154,8 +154,8 @@ open class UserAuthenticationsService {
    * @param userId Get the token for the given user, or for the context user if id is null.
    */
   @JvmOverloads
-  open fun getUserAccessLogEntries(tokenType: UserTokenType, userId: Int? = null): UserAccessLogEntries? {
-    val uid = userId ?: ThreadLocalUserContext.userId ?: return null
+  open fun getUserAccessLogEntries(tokenType: UserTokenType, userId: Long? = null): UserAccessLogEntries? {
+    val uid = userId ?: ThreadLocalUserContext.loggedInUserId ?: return null
     return userPrefService.ensureEntry(
       USER_PREF_AREA_ACCESS_LOG_ENTRIES,
       tokenType.name,
@@ -168,7 +168,8 @@ open class UserAuthenticationsService {
   /**
    * @param userId If null, ThreadLocalUserContext.getUserId() is used.
    */
-  private fun registerLogAccess(request: HttpServletRequest, tokenType: UserTokenType, userId: Int) {
+  private fun registerLogAccess(request: HttpServletRequest, tokenType: UserTokenType, userId: Long?) {
+    userId ?: return
     val accessEntries = getUserAccessLogEntries(tokenType, userId) ?: return
     accessEntries.update(request)
   }
@@ -182,7 +183,7 @@ open class UserAuthenticationsService {
    * @return The decrypted string.
    * @see Crypt.decrypt
    */
-  open fun decrypt(userId: Int, type: UserTokenType, encryptedString: String): String? {
+  open fun decrypt(userId: Long, type: UserTokenType, encryptedString: String): String? {
     val storedAuthenticationToken: String? = internalGetToken(userId, type)
     if (storedAuthenticationToken == null) {
       log.warn("Can't get authentication token for user $userId. So can't decrypt encrypted string.")
@@ -201,7 +202,7 @@ open class UserAuthenticationsService {
    * @return The base64 encoded result (url safe).
    * @see Crypt.encrypt
    */
-  open fun encrypt(userId: Int, type: UserTokenType, data: String): String? {
+  open fun encrypt(userId: Long, type: UserTokenType, data: String): String? {
     val storedAuthenticationToken: String? = getToken(userId, type)
     if (storedAuthenticationToken == null) {
       log.warn("Can't get authentication token for user $userId. So can't encrypt string.")
@@ -219,6 +220,6 @@ open class UserAuthenticationsService {
    * @return
    */
   open fun encrypt(type: UserTokenType, data: String): String? {
-    return encrypt(ThreadLocalUserContext.userId!!, type, data)
+    return encrypt(ThreadLocalUserContext.loggedInUserId!!, type, data)
   }
 }

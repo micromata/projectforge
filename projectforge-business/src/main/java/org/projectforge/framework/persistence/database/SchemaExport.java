@@ -23,9 +23,7 @@
 
 package org.projectforge.framework.persistence.database;
 
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-
-import javax.persistence.Persistence;
+import jakarta.persistence.Persistence;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,16 +40,14 @@ public class SchemaExport
    * Generates the database schema for the current configured database.
    *
    * @param filename Write the schema to the given file. No file output, if null.
-   * @param script Print the DDL to the console.
-   * @param export If true, the script will be executed (export the script to the database).
    */
   public void exportSchema(String filename)
   {
     Map<String, String> props = new HashMap<>();
 
-    props.put("javax.persistence.schema-generation.scripts.action", "create");
-    props.put("javax.persistence.schema-generation.scripts.create-target", filename);
-    Persistence.generateSchema(PfEmgrFactory.get().getUnitName(), props);
+    props.put("jakarta.persistence.schema-generation.scripts.action", "create");
+    props.put("jakarta.persistence.schema-generation.scripts.create-target", filename);
+    Persistence.generateSchema("org.projectforge.webapp", props);
 
   }
 }

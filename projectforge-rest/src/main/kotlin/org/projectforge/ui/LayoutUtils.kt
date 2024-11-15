@@ -81,7 +81,7 @@ object LayoutUtils {
   @JvmStatic
   fun processListPage(
     layout: UILayout,
-    pagesRest: AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>
+    pagesRest: AbstractPagesRest<out ExtendedBaseDO<Long>, *, out BaseDao<*>>
   ): UILayout {
     layout.layout.find { it is UIAgGrid }?.let { agGrid ->
       pagesRest.agGridSupport.restoreColumnsFromUserPref(pagesRest.category, agGrid as UIAgGrid)
@@ -115,10 +115,10 @@ object LayoutUtils {
    * @see LayoutUtils.process
    */
   @JvmStatic
-  fun <O : ExtendedBaseDO<Int>> processEditPage(
+  fun <O : ExtendedBaseDO<Long>> processEditPage(
     layout: UILayout,
     dto: Any,
-    pagesRest: AbstractPagesRest<O, *, out BaseDao<O>>
+    pagesRest: AbstractPagesRest<O, *, out BaseDao<O>>,
   )
       : UILayout {
     val userAccess = layout.userAccess
@@ -211,7 +211,7 @@ object LayoutUtils {
    * Will only be added, if user has delete access as well as the baseDao.isForceDeletionSupport == true.
    */
   private fun addForceDeleteButton(
-    pagesRest: AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>,
+    pagesRest: AbstractPagesRest<out ExtendedBaseDO<Long>, *, out BaseDao<*>>,
     layout: UILayout,
     userAccess: UILayout.UserAccess,
   ) {

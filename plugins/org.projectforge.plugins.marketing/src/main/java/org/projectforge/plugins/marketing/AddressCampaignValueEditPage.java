@@ -24,11 +24,11 @@
 package org.projectforge.plugins.marketing;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.StringValue;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.common.i18n.UserException;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
 import org.slf4j.Logger;
@@ -44,128 +44,110 @@ import java.util.Iterator;
  */
 @EditPage(defaultReturnPage = AddressCampaignValueListPage.class)
 public class AddressCampaignValueEditPage extends
-    AbstractEditPage<AddressCampaignValueDO, AddressCampaignValueEditForm, AddressCampaignValueDao>
-{
-  public static final String PARAMETER_ADDRESS_ID = "addressId";
+        AbstractEditPage<AddressCampaignValueDO, AddressCampaignValueEditForm, AddressCampaignValueDao> {
+    public static final String PARAMETER_ADDRESS_ID = "addressId";
 
-  public static final String PARAMETER_ADDRESS_CAMPAIGN_ID = "campaignId";
+    public static final String PARAMETER_ADDRESS_CAMPAIGN_ID = "campaignId";
 
-  private static final long serialVersionUID = -5058143025817192156L;
+    private static final long serialVersionUID = -5058143025817192156L;
 
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressCampaignValueEditPage.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressCampaignValueEditPage.class);
 
-  @SpringBean
-  private AddressCampaignValueDao addressCampaignValueDao;
-
-  @SpringBean
-  private AddressCampaignDao addressCampaignDao;
-
-  @SpringBean
-  private AddressDao addressDao;
-
-  public AddressCampaignValueEditPage(final PageParameters parameters)
-  {
-    super(parameters, "plugins.marketing.addressCampaign");
-    StringValue sval = parameters.get(AbstractEditPage.PARAMETER_KEY_ID);
-    final Integer id = sval.isEmpty() ? null : sval.toInteger();
-    if (id == null) {
-      // Create new entry.
-      sval = parameters.get(PARAMETER_ADDRESS_ID);
-      final Integer addressId = sval.isEmpty() ? null : sval.toInteger();
-      sval = parameters.get(PARAMETER_ADDRESS_CAMPAIGN_ID);
-      final Integer addressCampaignId = sval.isEmpty() || "null".equals(sval.toString()) ? null : sval.toInteger();
-      if (addressId == null || addressCampaignId == null) {
-        throw new UserException("plugins.marketing.addressCampaignValue.error.addressOrCampaignNotGiven");
-      }
-      final AddressDO address = addressDao.getById(addressId);
-      final AddressCampaignDO addressCampaign = addressCampaignDao.getById(addressCampaignId);
-      if (address == null || addressCampaign == null) {
-        throw new UserException("plugins.marketing.addressCampaignValue.error.addressOrCampaignNotGiven");
-      }
-      AddressCampaignValueDO data = addressCampaignValueDao.get(addressId, addressCampaignId);
-      if (data == null) {
-        data = new AddressCampaignValueDO();
-        data.setAddress(address);
-        data.setAddressCampaign(addressCampaign);
-      }
-      init(data);
-    } else {
-      init();
-    }
-  }
-
-  @Override
-  public boolean isUpdateAndNextSupported()
-  {
-    return true;
-  }
-
-  @Override
-  protected void updateAndNext()
-  {
-    if (getData().getId() == null) {
-      if (log.isDebugEnabled()) {
-        log.debug("update in " + this.editPageSupport.getClass() + ": " + getData());
-      }
-      create();
-      this.editPageSupport.setUpdateAndNext(true);
-      setResponsePage();
-    } else {
-      super.updateAndNext();
-    }
-  }
-
-  @Override
-  public void setResponsePage()
-  {
-    if (this.editPageSupport.isUpdateAndNext()) {
-      this.editPageSupport.setUpdateAndNext(false);
-      final AddressCampaignValueListPage listPage = (AddressCampaignValueListPage) this.returnToPage;
-      final Iterator<AddressDO> it = listPage.getList().iterator();
-      while (it.hasNext()) {
-        if (it.next().getId().equals(getHighlightedRowId()) && it.hasNext()) {
-          // Found current entry and next entry available.
-          final AddressDO address = it.next();
-          final PageParameters parameters = new PageParameters();
-          parameters.add(AddressCampaignValueEditPage.PARAMETER_ADDRESS_ID, String.valueOf(address.getId()));
-          parameters.add(AddressCampaignValueEditPage.PARAMETER_ADDRESS_CAMPAIGN_ID,
-              String.valueOf(getData().getAddressCampaignId()));
-          final AddressCampaignValueEditPage editPage = new AddressCampaignValueEditPage(parameters);
-          editPage.setReturnToPage(this.returnToPage);
-          setResponsePage(editPage);
-          return;
+    public AddressCampaignValueEditPage(final PageParameters parameters) {
+        super(parameters, "plugins.marketing.addressCampaign");
+        StringValue sval = parameters.get(AbstractEditPage.PARAMETER_KEY_ID);
+        final Integer id = sval.isEmpty() ? null : sval.toInteger();
+        if (id == null) {
+            // Create new entry.
+            sval = parameters.get(PARAMETER_ADDRESS_ID);
+            final Long addressId = sval.isEmpty() ? null : sval.toLong();
+            sval = parameters.get(PARAMETER_ADDRESS_CAMPAIGN_ID);
+            final Long addressCampaignId = sval.isEmpty() || "null".equals(sval.toString()) ? null : sval.toLong();
+            if (addressId == null || addressCampaignId == null) {
+                throw new UserException("plugins.marketing.addressCampaignValue.error.addressOrCampaignNotGiven");
+            }
+            final AddressDO address = WicketSupport.get(AddressDao.class).find(addressId);
+            final AddressCampaignDO addressCampaign = WicketSupport.get(AddressCampaignDao.class).find(addressCampaignId);
+            if (address == null || addressCampaign == null) {
+                throw new UserException("plugins.marketing.addressCampaignValue.error.addressOrCampaignNotGiven");
+            }
+            AddressCampaignValueDO data = WicketSupport.get(AddressCampaignValueDao.class).get(addressId, addressCampaignId);
+            if (data == null) {
+                data = new AddressCampaignValueDO();
+                data.setAddress(address);
+                data.setAddressCampaign(addressCampaign);
+            }
+            init(data);
+        } else {
+            init();
         }
-      }
     }
-    super.setResponsePage();
-  }
 
-  /**
-   * @return Address id instead of address campaign value id.
-   * @see org.projectforge.web.wicket.AbstractEditPage#getHighlightedRowId()
-   */
-  @Override
-  protected Serializable getHighlightedRowId()
-  {
-    return getData().getAddressId();
-  }
+    @Override
+    public boolean isUpdateAndNextSupported() {
+        return true;
+    }
 
-  @Override
-  protected AddressCampaignValueDao getBaseDao()
-  {
-    return addressCampaignValueDao;
-  }
+    @Override
+    protected void updateAndNext() {
+        if (getData().getId() == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("update in " + getEditPageSupport().getClass() + ": " + getData());
+            }
+            create();
+            getEditPageSupport().setUpdateAndNext(true);
+            setResponsePage();
+        } else {
+            super.updateAndNext();
+        }
+    }
 
-  @Override
-  protected AddressCampaignValueEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage,
-      final AddressCampaignValueDO data)
-  {
-    return new AddressCampaignValueEditForm(this, data);
-  }
+    @Override
+    public void setResponsePage() {
+        if (getEditPageSupport().isUpdateAndNext()) {
+            getEditPageSupport().setUpdateAndNext(false);
+            final AddressCampaignValueListPage listPage = (AddressCampaignValueListPage) this.returnToPage;
+            final Iterator<AddressDO> it = listPage.getList().iterator();
+            while (it.hasNext()) {
+                if (it.next().getId().equals(getHighlightedRowId()) && it.hasNext()) {
+                    // Found current entry and next entry available.
+                    final AddressDO address = it.next();
+                    final PageParameters parameters = new PageParameters();
+                    parameters.add(AddressCampaignValueEditPage.PARAMETER_ADDRESS_ID, String.valueOf(address.getId()));
+                    parameters.add(AddressCampaignValueEditPage.PARAMETER_ADDRESS_CAMPAIGN_ID,
+                            String.valueOf(getData().getAddressCampaignId()));
+                    final AddressCampaignValueEditPage editPage = new AddressCampaignValueEditPage(parameters);
+                    editPage.setReturnToPage(this.returnToPage);
+                    setResponsePage(editPage);
+                    return;
+                }
+            }
+        }
+        super.setResponsePage();
+    }
 
-  @Override
-  protected Logger getLogger()
-  {
-    return log;
-  }
+    /**
+     * @return Address id instead of address campaign value id.
+     * @see org.projectforge.web.wicket.AbstractEditPage#getHighlightedRowId()
+     */
+    @Override
+    protected Serializable getHighlightedRowId() {
+        return getData().getAddressId();
+    }
+
+    @Override
+    protected AddressCampaignValueDao getBaseDao() {
+        return WicketSupport.get(AddressCampaignValueDao.class);
+    }
+
+    @Override
+    protected AddressCampaignValueEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage,
+                                                       final AddressCampaignValueDO data) {
+        return new AddressCampaignValueEditForm(this, data);
+    }
+
+    @Override
+    protected Logger getLogger() {
+        return log;
+    }
 }

@@ -24,7 +24,7 @@
 package org.projectforge.plugins.marketing.rest
 
 import org.projectforge.business.address.AddressDao
-import org.projectforge.framework.persistence.api.ModificationStatus
+import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.plugins.marketing.AddressCampaignValueDO
 import org.projectforge.plugins.marketing.AddressCampaignValueDao
 import org.projectforge.plugins.marketing.MarketingPlugin
@@ -39,8 +39,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.io.Serializable
-import javax.annotation.PostConstruct
-import javax.servlet.http.HttpServletRequest
+import jakarta.annotation.PostConstruct
+import jakarta.servlet.http.HttpServletRequest
 
 
 /**
@@ -61,7 +61,7 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
 
   override val layoutContext: LayoutContext = LayoutContext(AddressCampaignValueDO::class.java)
 
-  override fun getId(obj: AddressCampaignValue): Int {
+  override fun getId(obj: AddressCampaignValue): Long {
     return obj.id ?: obj.address?.id ?: -1
   }
 
@@ -132,11 +132,11 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
         ValidationError("plugins.marketing.addressCampaignValue.error.addressOrCampaignNotGiven")
       )
     }
-    addressDao.getListByIds(selectedIds).forEach { address ->
+    addressDao.select(selectedIds)?.forEach { address ->
       var addressCampaignValueDO = addressCampaignValueDao.get(address.id, addressCampaignDO.id)
       if (addressCampaignValueDO == null) {
         addressCampaignValueDO = AddressCampaignValueDO()
-        addressCampaignValueDao.setAddress(addressCampaignValueDO, address.id)
+        addressCampaignValueDao.setAddress(addressCampaignValueDO, address.id!!)
         addressCampaignValueDO.addressCampaign = addressCampaignDO
       }
       val addressCampaignValue = AddressCampaignValue()
@@ -160,11 +160,11 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
         addressCampaignValue,
         update = {
           if (addressCampaignValueDO.id != null) {
-            addressCampaignValueDO.isDeleted = false
+            addressCampaignValueDO.deleted = false
             addressCampaignValueDao.update(addressCampaignValueDO)
           } else {
-            addressCampaignValueDao.save(addressCampaignValueDO)
-            ModificationStatus.MAJOR
+            addressCampaignValueDao.insert(addressCampaignValueDO)
+            EntityCopyStatus.MAJOR
           }
         },
       )

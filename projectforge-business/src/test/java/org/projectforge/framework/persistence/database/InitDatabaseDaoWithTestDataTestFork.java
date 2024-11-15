@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.database;
 
-import de.micromata.genome.jpa.ConstraintPersistenceException;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
@@ -39,7 +38,7 @@ import org.projectforge.business.user.UserTokenType;
 import org.projectforge.framework.access.AccessDao;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.GroupTaskAccessDO;
-import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
+import org.projectforge.framework.persistence.history.HistoryEntryDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,9 +55,6 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
 
   @Autowired
   private DatabaseService databaseService;
-
-  @Autowired
-  private PfJpaXmlDumpService pfJpaXmlDumpService;
 
   @Autowired
   private AccessDao accessDao;
@@ -94,40 +90,40 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
     PFUserDO admin = new PFUserDO();
     admin.setUsername("myadmin");
     userService.encryptAndSavePassword(admin, testPassword);
-    pfJpaXmlDumpService.createTestDatabase();
+    //pfJpaXmlDumpService.createTestDatabase();
     admin = databaseService.updateAdminUser(admin, null);
     databaseService.afterCreatedTestDb(true);
     final PFUserDO initialAdminUser = userService.authenticateUser("myadmin", testPassword);
     assertNotNull(initialAdminUser);
     assertEquals("myadmin", initialAdminUser.getUsername());
-    final Collection<Integer> col = userGroupCache.getUserGroups(initialAdminUser);
+    final Collection<Long> col = userGroupCache.getUserGroups(initialAdminUser);
     assertEquals(6, col.size());
     assertTrue(userGroupCache.isUserMemberOfAdminGroup(initialAdminUser.getId()));
     assertTrue(userGroupCache.isUserMemberOfFinanceGroup(initialAdminUser.getId()));
 
-    final List<PFUserDO> userList = userService.internalLoadAll();
+    final List<PFUserDO> userList = userService.selectAll(false);
     assertTrue(userList.size() > 0);
     for (final PFUserDO user : userList) {
       assertNull("For security reasons the stay-logged-in-key should be null.", userAuthenticationsService.getToken(user.getId(), UserTokenType.STAY_LOGGED_IN_KEY));
     }
 
-    final List<GroupTaskAccessDO> accessList = accessDao.internalLoadAll();
+    final List<GroupTaskAccessDO> accessList = accessDao.selectAll(false);
     assertTrue(accessList.size() > 0);
     for (final GroupTaskAccessDO access : accessList) {
       assertNotNull(access.getAccessEntries(), "Access entries should be serialized.");
       assertTrue(access.getAccessEntries().size() > 0, "Access entries should be serialized.");
     }
 
-    final List<AddressDO> addressList = addressDao.internalLoadAll();
+    final List<AddressDO> addressList = addressDao.selectAll(false);
     assertTrue(addressList.size() > 0);
 
-    final List<BookDO> bookList = bookDao.internalLoadAll();
+    final List<BookDO> bookList = bookDao.selectAll(false);
     assertTrue(bookList.size() > 2);
 
-    final List<TaskDO> taskList = taskDao.internalLoadAll();
+    final List<TaskDO> taskList = taskDao.selectAll(false);
     assertTrue(taskList.size() > 10);
 
-    final List<AuftragDO> orderList = auftragDao.internalLoadAll();
+    final List<AuftragDO> orderList = auftragDao.selectAll(false);
     AuftragDO order = null;
     for (final AuftragDO ord : orderList) {
       if (ord.getNummer() == 1) {
@@ -138,20 +134,19 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
     assertNotNull(order, "Order #1 not found.");
     assertEquals(3, order.getPositionenIncludingDeleted().size(), "Order #1 must have 3 order positions.");
 
-    final List<PfHistoryMasterDO> list = em.createQuery(
-            "select t from " + PfHistoryMasterDO.class.getName() + " t where t.id = :id", PfHistoryMasterDO.class)
-            .getResultList();
+    final List<HistoryEntryDO> list = persistenceService.executeQuery(
+            "select t from " + HistoryEntryDO.class.getName() + " t where t.id = :id", HistoryEntryDO.class);
     // assertTrue("At least 10 history entries expected: " + list.size(), list.size() >= 10);
 
     log.error("****> Next exception and error message are OK (part of the test).");
     boolean exception = false;
     admin.setUsername(DatabaseService.DEFAULT_ADMIN_USER);
     try {
-      pfJpaXmlDumpService.createTestDatabase();
+      //pfJpaXmlDumpService.createTestDatabase();
       databaseService.updateAdminUser(admin, null);
       databaseService.afterCreatedTestDb(false);
       fail("AccessException expected.");
-    } catch (final AccessException | ConstraintPersistenceException ex) {
+    } catch (final AccessException ex) {//|| ConstraintPersistenceException ex) {
       exception = true;
       // Everything fine.
     }
@@ -161,11 +156,11 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
     log.error("****> Next exception and error message are OK (part of the test).");
     exception = false;
     try {
-      pfJpaXmlDumpService.createTestDatabase();
+      //pfJpaXmlDumpService.createTestDatabase();
       databaseService.updateAdminUser(admin, null);
       databaseService.afterCreatedTestDb(true);
       fail("AccessException expected.");
-    } catch (AccessException | ConstraintPersistenceException ex) {
+    } catch (AccessException ex) {//|| ConstraintPersistenceException ex) {
       exception = true;
       // Everything fine.
     }

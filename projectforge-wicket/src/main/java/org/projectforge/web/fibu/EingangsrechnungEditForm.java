@@ -28,11 +28,11 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.IValidator;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.common.IbanValidator;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
@@ -52,12 +52,6 @@ public class EingangsrechnungEditForm extends
   private static final long serialVersionUID = 5286417118638335693L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EingangsrechnungEditForm.class);
-
-  @SpringBean
-  private transient KontoCache kontoCache;
-
-  @SpringBean
-  private transient EingangsrechnungDao eingangsrechnungDao;
 
   private MaxLengthTextField recieverField;
   private MaxLengthTextField ibanField;
@@ -115,7 +109,7 @@ public class EingangsrechnungEditForm extends
       final FieldsetPanel fs = gridBuilder.newFieldset(EingangsrechnungDO.class, "referenz");
       fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "referenz")));
     }
-    if (kontoCache.isEmpty() == false) {
+    if (WicketSupport.get(KontoCache.class).isEmpty() == false) {
       // Account
       final FieldsetPanel fs = gridBuilder.newFieldset(EingangsrechnungDO.class, "konto");
       final KontoSelectPanel kontoSelectPanel = new KontoSelectPanel(fs.newChildId(),
@@ -133,7 +127,7 @@ public class EingangsrechnungEditForm extends
       return;
     }
 
-    final EingangsrechnungDO newestRechnung = eingangsrechnungDao.findNewestByKreditor(kreditor);
+    final EingangsrechnungDO newestRechnung = WicketSupport.get(EingangsrechnungDao.class).findNewestByKreditor(kreditor);
     if (newestRechnung == null) {
       return;
     }
@@ -170,7 +164,7 @@ public class EingangsrechnungEditForm extends
       paymentTypeChoice.add((IValidator<PaymentType>) validatable -> {
         PaymentType pt = validatable.getValue();
         if (PaymentType.BANK_TRANSFER.equals(pt)) {
-          if (data.getGrossSum() != null && data.getGrossSum().compareTo(BigDecimal.ZERO) < 0) {
+          if (data.getInfo().getGrossSum() != null && data.getInfo().getGrossSum().compareTo(BigDecimal.ZERO) < 0) {
             error(I18nHelper.getLocalizedMessage("fibu.rechnung.error.negativAmount"));
           }
         }

@@ -93,7 +93,7 @@ class MassUpdateParameterTest {
     delete: Boolean? = null,
     append: Boolean? = null,
     change: Boolean? = null,
-    id: Int? = null,
+    id: Long? = null,
     error: String? = null,
     msg: String? = null,
   ) {
@@ -106,7 +106,7 @@ class MassUpdateParameterTest {
     param.change = change
     param.booleanValue = booleanValue
     param.decimalValue = decimalValue
-    param.intValue = intValue
+    param.longValue = intValue
     param.timeValue = timeValue
     param.timestampValue = timestampValue
     param.id = id

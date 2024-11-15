@@ -25,8 +25,8 @@ package org.projectforge.web.rest
 
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.http.HttpStatus
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 class RestAuthenticationInfo(var request: HttpServletRequest,
                              var response: HttpServletResponse) {

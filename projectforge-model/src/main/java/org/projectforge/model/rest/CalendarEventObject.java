@@ -28,7 +28,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.lang.reflect.Field;
 import java.util.Date;
 
@@ -40,7 +40,7 @@ import java.util.Date;
 @XmlRootElement
 public class CalendarEventObject extends AbstractBaseObject
 {
-  private Integer calendarId;
+  private Long calendarId;
 
   @JsonSerialize(using = CustomerDateAndTimeSerialize.class)
   @JsonDeserialize(using = CustomerDateAndTimeDeserialize.class)
@@ -74,12 +74,12 @@ public class CalendarEventObject extends AbstractBaseObject
 
   private String icsData;
 
-  public Integer getCalendarId()
+  public Long getCalendarId()
   {
     return calendarId;
   }
 
-  public CalendarEventObject setCalendarId(final Integer calendarId)
+  public CalendarEventObject setCalendarId(final Long calendarId)
   {
     this.calendarId = calendarId;
     return this;

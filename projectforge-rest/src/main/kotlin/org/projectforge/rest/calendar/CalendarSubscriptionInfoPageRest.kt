@@ -53,7 +53,7 @@ class CalendarSubscriptionInfoPageRest {
             subscriptionInfo.url = calendarFeedService.fullUrl4WeekOfYears
             subscriptionInfo.headline = translate("weekOfYear")
         } else {
-            val timesheetUserId = ThreadLocalUserContext.userId
+            val timesheetUserId = ThreadLocalUserContext.loggedInUserId
             subscriptionInfo.url = calendarFeedService.getFullUrl4Timesheets(timesheetUserId)
             subscriptionInfo.headline = translate("timesheet.timesheets")
         }

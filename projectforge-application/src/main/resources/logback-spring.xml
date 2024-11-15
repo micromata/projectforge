@@ -40,7 +40,7 @@
         </rollingPolicy>
     </appender>
 
-    <appender name="MEMORY" class="org.projectforge.common.logging.LoggerMemoryAppender" />
+    <appender name="MEMORY" class="org.projectforge.common.logging.LoggerMemoryAppender"/>
 
     <logger name="de.micromata.projectforge.accessLog" level="INFO" additivity="false">
         <!-- additivity="false": do the access log only here, not in the root logger. -->
@@ -58,11 +58,28 @@
         <appender-ref ref="MEMORY"/>
     </root>
 
-    <!-- custom logging levels -->
-    <logger name="de.micromata.genome.jpa.impl.JpaWithExtLibrariesScanner" level="WARN" />
-    <!--logger name="org.projectforge.framework.persistence.jpa" level="DEBUG" /-->
-    <logger name="org.apache.wicket.Localizer" level="ERROR" />
-    <!--logger name="org.projectforge.framework.persistence.api.impl" level="DEBUG" /-->
-    <!--logger name="org.hibernate.cache" level="DEBUG" /-->
-    <!--logger name="de.micromata.merlin.excel" level="DEBUG" /-->
+    <!-- custom logging levels: -->
+    <logger name="org.apache.wicket.Localizer" level="ERROR"/>
+
+    <logger name="org.hibernate.engine.internal.StatisticalLoggingSessionEventListener" level="ERROR"/>
+    <!-- For debugging Persistence calls, add to your projectforge.properties file: -->
+    <!--
+         # Logs all persistance calls (without lazy loadings by hibernate, but gives you a good overview):
+         logging.level.org.projectforge.framework.persistence.jpa.PfPersistenceContext=DEBUG
+
+          # Extensive logging of Hibernate SQL statements:
+          hibernate.show_sql=true
+          Format the shown execute sql in formatted form
+          hibernate.format_sql=true
+          hibernate.hibernateHighlightSql=false
+          hibernate.hibernateUseSqlComments=false
+          # Log all Hibernate's SQL statements:
+          logging.level.org.hibernate.SQL=DEBUG
+          # Log SQL Bind Parameters:
+          logging.level.org.hibernate.orm.jdbc.bind=TRACE
+          # Optional: Log DDL operations:
+          logging.level.org.hibernate.orm.tool.schema.internal=DEBUG
+          # Flyway logging
+          logging.level.org.flywaydb=DEBUG
+    -->
 </configuration>

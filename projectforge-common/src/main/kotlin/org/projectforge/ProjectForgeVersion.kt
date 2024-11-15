@@ -27,6 +27,11 @@ import java.util.*
 
 /**
  * Version information of ProjectForge containing build date, version number as well as scm information.
+ *
+ * Create a new version in all pom.xml files by executing following commands in ProjectForge's main directory:
+ *   export PF_NEW_VERSION=7.6-SNAPSHOT
+ *   find . -name pom.xml | xargs perl -pi -e 's|<version>.*</version><!-- projectforge.version -->|<version>$ENV{PF_NEW_VERSION}</version><!-- projectforge.version -->|g'
+ *
  */
 object ProjectForgeVersion {
     const val APP_ID = "ProjectForge"

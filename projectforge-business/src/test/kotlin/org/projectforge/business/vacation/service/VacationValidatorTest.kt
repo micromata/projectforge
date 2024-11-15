@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
-import org.projectforge.business.fibu.api.EmployeeService
+import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
@@ -57,7 +57,17 @@ class VacationValidatorTest : AbstractTestBase() {
         logon(TEST_EMPLOYEE_USER)
         val employee = createEmployee("2019-joiner-for-validation", LocalDate.of(2019, Month.MAY, 1))
         val manager = createEmployee("VacationValidatorTest-manager", LocalDate.of(2019, Month.MAY, 1))
-        val vacation = createVacation(employee, manager, 2020, Month.JANUARY, 1, Month.JANUARY, 10, true, VacationStatus.IN_PROGRESS)
+        val vacation = createVacation(
+            employee,
+            manager,
+            2020,
+            Month.JANUARY,
+            1,
+            Month.JANUARY,
+            10,
+            true,
+            VacationStatus.IN_PROGRESS
+        )
         vacation.startDate = null
         Assertions.assertEquals(VacationValidator.Error.DATE_NOT_SET, vacationService.validate(vacation))
 
@@ -88,19 +98,43 @@ class VacationValidatorTest : AbstractTestBase() {
      * If endMonth is before startMonth, the next year will be used as endYear.
      * @return Number of vacation days (equals to working days between startDate and endDate)
      */
-    private fun createVacation(employee: EmployeeDO, manager: EmployeeDO, startYear: Int, startMonth: Month, startDay: Int, endMonth: Month, endDay: Int, special: Boolean, status: VacationStatus): VacationDO {
+    private fun createVacation(
+        employee: EmployeeDO,
+        manager: EmployeeDO,
+        startYear: Int,
+        startMonth: Month,
+        startDay: Int,
+        endMonth: Month,
+        endDay: Int,
+        special: Boolean,
+        status: VacationStatus
+    ): VacationDO {
         val endYear = if (startMonth > endMonth)
             startYear + 1 // Vacations over years.
         else
             startYear
-        return createVacation(employee, manager, LocalDate.of(startYear, startMonth, startDay), LocalDate.of(endYear, endMonth, endDay), special, status)
+        return createVacation(
+            employee,
+            manager,
+            LocalDate.of(startYear, startMonth, startDay),
+            LocalDate.of(endYear, endMonth, endDay),
+            special,
+            status
+        )
     }
 
     /**
      * Ensures vacation days only after join date of this employee.
      * @return Number of vacation days (equals to working days between startDate and endDate)
      */
-    private fun createVacation(employee: EmployeeDO, manager: EmployeeDO, startDate: LocalDate, endDate: LocalDate, special: Boolean = false, status: VacationStatus): VacationDO {
+    private fun createVacation(
+        employee: EmployeeDO,
+        manager: EmployeeDO,
+        startDate: LocalDate,
+        endDate: LocalDate,
+        special: Boolean = false,
+        status: VacationStatus
+    ): VacationDO {
         val vacation = VacationDO()
         vacation.employee = employee
         vacation.startDate = if (startDate.isBefore(employee.eintrittsDatum)) employee.eintrittsDatum else startDate
@@ -118,13 +152,15 @@ class VacationValidatorTest : AbstractTestBase() {
         user.firstname = name
         user.lastname = name
         user.username = "$name.$name"
-        userDao.internalSave(user)
+        userDao.insert(user, checkAccess = false)
         val employee = EmployeeDO()
         employee.user = user
         employee.eintrittsDatum = joinDate
         employee.austrittsDatum = leaveDate
-        employeeService.addNewAnnualLeaveDays(employee, joinDate, BigDecimal(30))
-        employeeDao.internalSave(employee)
+        employeeDao.insert(employee, checkAccess = false)
+        joinDate?.let { joinDate ->
+            employeeService.insertAnnualLeaveDays(employee, joinDate, BigDecimal(30), checkAccess = false)
+        }
         return employee
     }
 }

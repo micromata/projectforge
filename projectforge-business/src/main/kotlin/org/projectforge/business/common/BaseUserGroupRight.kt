@@ -29,6 +29,7 @@ import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.web.WicketSupport
 
 /**
  * Base class for objects supporting user and group specific rights. You may define single group and user ids for the
@@ -37,11 +38,10 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
  * @author Kai Reinhard (k.reinhard@me.de)
  */
 abstract class BaseUserGroupRight<T : BaseUserGroupRightsDO?> protected constructor(
-  accessChecker: AccessChecker?,
   id: IUserRightId?,
   category: UserRightCategory?,
   vararg rightValues: UserRightValue?
-) : UserRightAccessCheck<T>(accessChecker, id, category, *rightValues) {
+) : UserRightAccessCheck<T>(id, category, *rightValues) {
   /**
    * General select access.
    *
@@ -57,7 +57,7 @@ abstract class BaseUserGroupRight<T : BaseUserGroupRightsDO?> protected construc
    */
   override fun hasSelectAccess(user: PFUserDO?, obj: T): Boolean {
     user ?: return false
-    if (isOwner(user, obj) || accessChecker.isUserMemberOfAdminGroup(user)) { // User has full access to his own object.
+    if (isOwner(user, obj) || WicketSupport.getAccessChecker().isUserMemberOfAdminGroup(user)) { // User has full access to his own object.
       return true
     }
     val userId = user.id
@@ -80,7 +80,7 @@ abstract class BaseUserGroupRight<T : BaseUserGroupRightsDO?> protected construc
    * @see UserRightAccessCheck.hasInsertAccess
    */
   override fun hasInsertAccess(user: PFUserDO, obj: T): Boolean {
-    return isOwner(user, obj) || accessChecker.isUserMemberOfAdminGroup(user)
+    return isOwner(user, obj) || WicketSupport.getAccessChecker().isUserMemberOfAdminGroup(user)
   }
 
   /**
@@ -113,15 +113,15 @@ abstract class BaseUserGroupRight<T : BaseUserGroupRightsDO?> protected construc
     return BaseUserGroupRightUtils.isOwner(user, obj)
   }
 
-  fun isOwner(userId: Int?, obj: T?): Boolean {
+  fun isOwner(userId: Long?, obj: T?): Boolean {
     return BaseUserGroupRightUtils.isOwner(userId, obj)
   }
 
-  fun hasReadAccess(obj: T?, userId: Int?, throwException: Boolean = false): Boolean {
+  fun hasReadAccess(obj: T?, userId: Long?, throwException: Boolean = false): Boolean {
     return BaseUserGroupRightUtils.hasReadAccess(obj, userId, throwException)
   }
 
-  fun hasWriteAccess(obj: T?, userId: Int?, throwException: Boolean = false): Boolean {
+  fun hasWriteAccess(obj: T?, userId: Long?, throwException: Boolean = false): Boolean {
     return BaseUserGroupRightUtils.hasWriteAccess(obj, userId, throwException)
   }
 
@@ -129,19 +129,19 @@ abstract class BaseUserGroupRight<T : BaseUserGroupRightsDO?> protected construc
    * @return [DataobjectAccessType.NONE], [DataobjectAccessType.MINIMAL], [DataobjectAccessType.READONLY] or
    * [DataobjectAccessType.FULL]. null will never be returned!
    */
-  fun getAccessType(obj: T?, userId: Int?): DataobjectAccessType {
+  fun getAccessType(obj: T?, userId: Long?): DataobjectAccessType {
     return BaseUserGroupRightUtils.getAccessType(obj, userId)
   }
 
-  fun hasFullAccess(obj: T, userId: Int?): Boolean {
+  fun hasFullAccess(obj: T, userId: Long?): Boolean {
     return getAccessType(obj, userId).hasFullAccess()
   }
 
-  fun hasReadonlyAccess(obj: T, userId: Int?): Boolean {
+  fun hasReadonlyAccess(obj: T, userId: Long?): Boolean {
     return getAccessType(obj, userId) == DataobjectAccessType.READONLY
   }
 
-  fun hasMinimalAccess(obj: T, userId: Int?): Boolean {
+  fun hasMinimalAccess(obj: T, userId: Long?): Boolean {
     return getAccessType(obj, userId) == DataobjectAccessType.MINIMAL
   }
 }

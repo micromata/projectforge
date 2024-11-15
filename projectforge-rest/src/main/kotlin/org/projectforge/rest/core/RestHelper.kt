@@ -30,7 +30,7 @@ import org.projectforge.rest.converter.DateTimeFormat
 import java.net.URI
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 

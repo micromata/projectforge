@@ -50,7 +50,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.TimeUnit
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
 
@@ -85,7 +85,7 @@ class DvelopClient {
 
   internal lateinit var webClient: WebClient
 
-  class HttpException(val httpStatus: HttpStatus, message: String) : RuntimeException(message)
+  class HttpException(val httpStatus: Any, message: String) : RuntimeException(message)
 
   class Session(val authSessionId: String, val expires: Date?)
 

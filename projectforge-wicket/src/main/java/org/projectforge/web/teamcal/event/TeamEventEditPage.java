@@ -28,7 +28,6 @@ import org.apache.commons.lang3.Validate;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventService;
@@ -41,6 +40,7 @@ import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.teamcal.integration.TeamCalCalendarPage;
 import org.projectforge.web.timesheet.TimesheetEditPage;
@@ -65,12 +65,6 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   private static final long serialVersionUID = 1221484611148024273L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamEventEditPage.class);
-
-  @SpringBean
-  private TimesheetDao timesheetDao;
-
-  @SpringBean
-  private TeamEventService teamEventService;
 
   private RecurrencyChangeType recurrencyChangeType;
 
@@ -113,6 +107,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
                            final Timestamp newEndDate, final RecurrencyChangeType recurrencyChangeType)
   {
     super(parameters, "plugins.teamcal.event");
+    var teamEventService = WicketSupport.get(TeamEventService.class);
     Validate.notNull(event);
     Validate.notNull(recurrencyChangeType);
     // event contains the new start and/or stop date if modified.
@@ -129,7 +124,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     }
     this.eventOfCaller = event;
     this.recurrencyChangeType = recurrencyChangeType;
-    Integer id;
+    Long id;
     if (event instanceof TeamEventDO) {
       id = ((TeamEventDO) event).getId();
     } else {
@@ -181,14 +176,14 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
               timesheet.setStartDate(getData().getStartDate());
               timesheet.setStopTime(getData().getEndDate()) ;
               timesheet.setLocation(getData().getLocation());
-              final StringBuffer buf = new StringBuffer();
+              final StringBuilder buf = new StringBuilder();
               buf.append(getData().getSubject());
               final String note = getData().getNote();
               if (StringUtils.isNotBlank(note)) {
                 buf.append("\n").append(note);
               }
               timesheet.setDescription(buf.toString());
-              timesheetDao.setUser(timesheet, getUserId());
+              WicketSupport.get(TimesheetDao.class).setUser(timesheet, getUserId());
               final TimesheetEditPage timesheetEditPage = new TimesheetEditPage(timesheet);
               timesheetEditPage.setReturnToPage(getReturnToPage());
               setResponsePage(timesheetEditPage);
@@ -277,7 +272,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   public AbstractSecuredBasePage afterUndelete()
   {
     super.afterUndelete();
-    teamEventService.checkAndSendMail(getData(), TeamEventDiffType.RESTORED);
+    WicketSupport.get(TeamEventService.class).checkAndSendMail(getData(), TeamEventDiffType.RESTORED);
 
     return null;
   }
@@ -295,11 +290,12 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   public AbstractSecuredBasePage onDelete()
   {
     super.onDelete();
+    var teamEventService = WicketSupport.get(TeamEventService.class);
     teamEventService.checkAndSendMail(this.getData(), TeamEventDiffType.DELETED);
     if (recurrencyChangeType == null || recurrencyChangeType == RecurrencyChangeType.ALL) {
       return null;
     }
-    final Integer masterId = getData().getId(); // Store the id of the master entry.
+    final Long masterId = getData().getId(); // Store the id of the master entry.
     final TeamEventDO masterEvent = teamEventService.getById(masterId);
     if (recurrencyChangeType == RecurrencyChangeType.ALL_FUTURE) {
       final Date recurrenceUntil = this.getUntilDate(eventOfCaller.getStartDate());
@@ -320,13 +316,14 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   public AbstractSecuredBasePage onSaveOrUpdate()
   {
     super.onSaveOrUpdate();
+    var teamEventService = WicketSupport.get(TeamEventService.class);
     if (getData().getCreator() == null) {
-      getData().setCreator(ThreadLocalUserContext.getUser());
+      getData().setCreator(ThreadLocalUserContext.getLoggedInUser());
     }
 
     if (getData() != null && getData().getId() != null) {
       //Clone Object to evaluate the sendMail()
-      this.teamEventBeforeSaveOrUpdate = teamEventService.getById(getData().getPk()).clone();
+      this.teamEventBeforeSaveOrUpdate = teamEventService.getById(getData().getId()).clone();
       this.isNew = false;
     } else {
       this.isNew = true;
@@ -336,7 +333,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     if (recurrencyChangeType == null || recurrencyChangeType == RecurrencyChangeType.ALL) {
       return null;
     }
-    final Integer masterId = getData().getId(); // Store the id of the master entry.
+    final Long masterId = getData().getId(); // Store the id of the master entry.
     getData().setId(null); // Clone object.
     final TeamEventDO oldDataObject = getData();
     final TeamEventDO masterEvent = teamEventService.getById(masterId);
@@ -385,6 +382,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   public AbstractSecuredBasePage afterSaveOrUpdate()
   {
     super.afterSaveOrUpdate();
+    var teamEventService = WicketSupport.get(TeamEventService.class);
 
     if (newEvent != null) {
       // changed one element of an recurring event
@@ -398,7 +396,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
       teamEventService.assignAttendees(newEvent, toAssign, null);
       teamEventService.checkAndSendMail(newEvent, TeamEventDiffType.NEW);
     } else {
-      TeamEventDO teamEventAfterSaveOrUpdate = teamEventService.getById(getData().getPk());
+      TeamEventDO teamEventAfterSaveOrUpdate = teamEventService.getById(getData().getId());
       teamEventService.assignAttendees(teamEventAfterSaveOrUpdate, form.assignAttendeesListHelper.getItemsToAssign(),
           form.assignAttendeesListHelper.getItemsToUnassign());
       teamEventService.checkAndSendMail(teamEventAfterSaveOrUpdate, this.teamEventBeforeSaveOrUpdate);
@@ -427,7 +425,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
       if (attendee.getAddress() != null) {
         this.form.attendeeWicketProvider.initSortedAttendees();
         this.form.attendeeWicketProvider.getSortedAttendees().forEach(sortedAttendee -> {
-          if (sortedAttendee.getAddress() != null && sortedAttendee.getAddress().getPk().equals(attendee.getAddress().getPk())) {
+          if (sortedAttendee.getAddress() != null && sortedAttendee.getAddress().getId().equals(attendee.getAddress().getId())) {
             sortedAttendee.setId(this.form.attendeeWicketProvider.getAndDecreaseInternalNewAttendeeSequence());
             this.form.assignAttendeesListHelper.assignItem(sortedAttendee);
           }
@@ -446,7 +444,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   @Override
   protected TeamEventDao getBaseDao()
   {
-    return teamEventService.getTeamEventDao();
+    return WicketSupport.get(TeamEventService.class).getTeamEventDao();
   }
 
   /**

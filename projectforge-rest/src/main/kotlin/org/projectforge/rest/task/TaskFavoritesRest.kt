@@ -52,7 +52,7 @@ class TaskFavoritesRest {
      * @return new list of favorites.
      */
     @GetMapping("create")
-    fun new(@RequestParam("taskId", required = true) taskId: Int, @RequestParam("name", required = true) name: String): List<TaskFavorite> {
+    fun new(@RequestParam("taskId", required = true) taskId: Long, @RequestParam("name", required = true) name: String): List<TaskFavorite> {
         return taskFavorites.createFavorite(name, taskId)
     }
 
@@ -61,7 +61,7 @@ class TaskFavoritesRest {
      * @return taskId referenced by given favorite.
      */
     @GetMapping("select")
-    fun select(@RequestParam("id", required = true) id: Int): Int? {
+    fun select(@RequestParam("id", required = true) id: Long): Long? {
         return taskFavorites.selectTaskId(id)
     }
 
@@ -70,7 +70,7 @@ class TaskFavoritesRest {
      * @return taskId referenced by given favorite.
      */
     @GetMapping("delete")
-    fun delete(@RequestParam("id", required = true) id: Int):  List<TaskFavorite> {
+    fun delete(@RequestParam("id", required = true) id: Long):  List<TaskFavorite> {
         return taskFavorites.deleteFavorite(id)
     }
 
@@ -79,7 +79,7 @@ class TaskFavoritesRest {
      * @return taskId referenced by given favorite.
      */
     @GetMapping("rename")
-    fun rename(@RequestParam("id", required = true) id: Int, @RequestParam("newName", required = true) newName: String):  List<TaskFavorite> {
+    fun rename(@RequestParam("id", required = true) id: Long, @RequestParam("newName", required = true) newName: String):  List<TaskFavorite> {
         return taskFavorites.renameFavorite(id, newName)
     }
 }

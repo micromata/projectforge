@@ -54,7 +54,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.time.PFDay.Companion.now
-import org.projectforge.framework.utils.NumberHelper.parseInteger
+import org.projectforge.framework.utils.NumberHelper.parseLong
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.dto.Group
@@ -68,7 +68,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
@@ -100,7 +100,7 @@ class CalendarSubscriptionServiceRest {
   fun exportCalendar(request: HttpServletRequest): ResponseEntity<*> {
     var logMessage: String? = null
     try {
-      val userId = ThreadLocalUserContext.userId ?: run {
+      val userId = ThreadLocalUserContext.loggedInUserId ?: run {
         log.error("Internal errror: shouldn't occur: can't get context user! Should be denied by filter!!!")
         return ResponseEntity<Any>(HttpStatus.BAD_REQUEST)
       }
@@ -156,10 +156,10 @@ class CalendarSubscriptionServiceRest {
     }
   }
 
-  private fun getTimesheetUser(userId: Int, timesheetUserParam: String): PFUserDO? {
+  private fun getTimesheetUser(userId: Long, timesheetUserParam: String): PFUserDO? {
     var timesheetUser: PFUserDO? = null
     if (StringUtils.isNotBlank(timesheetUserParam)) {
-      val timesheetUserId = parseInteger(timesheetUserParam)
+      val timesheetUserId = parseLong(timesheetUserParam)
       if (timesheetUserId != null) {
         if (timesheetUserId != userId) {
           log.error("Not yet allowed: all users are only allowed to download their own time-sheets.")
@@ -189,12 +189,12 @@ class CalendarSubscriptionServiceRest {
     val eventFilter = TeamEventFilter()
     val eventDateFromLimit = now().minusYears(1)
     val eventDateUntilLimit = now().plusYears(2)
-    eventFilter.isDeleted = false
+    eventFilter.deleted = false
     eventFilter.startDate = eventDateFromLimit.utilDate
-    val vacationEvents = mutableSetOf<Int>() // For avoiding multiple entries of vacation days. Ids of vacation event.
+    val vacationEvents = mutableSetOf<Long>() // For avoiding multiple entries of vacation days. Ids of vacation event.
     val processedTeamCals = mutableListOf<TeamCalDO>()
     for (teamCalIdString in teamCalIds) {
-      val calId = Integer.valueOf(teamCalIdString)
+      val calId = teamCalIdString.toLong()
       eventFilter.teamCalId = calId
       val teamEvents = teamEventService.getEventList(eventFilter, false)
       teamEvents?.forEach { teamEventObject ->
@@ -205,11 +205,11 @@ class CalendarSubscriptionServiceRest {
         }
       }
 
-      teamCalDao.internalGetById(calId)?.let { cal ->
+      teamCalDao.find(calId, checkAccess = false)?.let { cal ->
         processedTeamCals.add(cal)
         if (!cal.includeLeaveDaysForGroups.isNullOrBlank() || !cal.includeLeaveDaysForUsers.isNullOrBlank()) {
-          val userIds = User.toIntArray(cal.includeLeaveDaysForUsers)?.toSet()
-          val groupIds = Group.toIntArray(cal.includeLeaveDaysForGroups)?.toSet()
+          val userIds = User.toLongArray(cal.includeLeaveDaysForUsers)?.toSet()
+          val groupIds = Group.toLongArray(cal.includeLeaveDaysForGroups)?.toSet()
 
           val vacations = vacationCache.getVacationForPeriodAndUsers(
             eventDateFromLimit.localDate,
@@ -220,7 +220,7 @@ class CalendarSubscriptionServiceRest {
           vacations.forEach { vacation ->
             val title = "${translate("vacation")}: ${vacation.employee?.user?.getFullname()}"
             if (!vacationEvents.contains(vacation.id) && vacation.startDate != null && vacation.endDate != null) {
-              vacationEvents.add(vacation.id)
+              vacationEvents.add(vacation.id!!)
               // Event doesn't yet exist:
               generator.addEvent(
                 PFDay.from(vacation.startDate!!).utilDate,
@@ -248,12 +248,12 @@ class CalendarSubscriptionServiceRest {
     // initializes timesheet filter
     val filter = TimesheetFilter()
     filter.userId = timesheetUser.id
-    filter.isDeleted = false
+    filter.deleted = false
     val stopTime = dt.plusMonths(CalendarFeedConst.PERIOD_IN_MONTHS.toLong())
     filter.stopTime = stopTime.utilDate
     val startTime = dt.minusMonths(2 * CalendarFeedConst.PERIOD_IN_MONTHS.toLong())
     filter.startTime = startTime.utilDate
-    val timesheetList = timesheetDao.getList(filter) ?: return
+    val timesheetList = timesheetDao.select(filter)
     // iterate over all timesheets and adds each event to the calendar
     for (timesheet in timesheetList) {
       val uid = TeamCalConfig.get().createTimesheetUid(timesheet.id)
@@ -333,7 +333,7 @@ class CalendarSubscriptionServiceRest {
 
     fun decryptRequestParams(
       request: HttpServletRequest,
-      userId: Int,
+      userId: Long,
       userAuthenticationsService: UserAuthenticationsService
     )
         : Map<String, String>? {

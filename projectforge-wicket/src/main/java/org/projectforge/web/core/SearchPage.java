@@ -83,7 +83,7 @@ public class SearchPage extends AbstractStandardFormPage implements ISelectCalle
   public void select(final String property, final Object selectedValue)
   {
     if ("userId".equals(property) == true) {
-      final PFUserDO user = UserGroupCache.getInstance().getUser((Integer) selectedValue);
+      final PFUserDO user = UserGroupCache.getInstance().getUser((Long) selectedValue);
       form.filter.setModifiedByUser(user);
     } else {
       log.error("Property '" + property + "' not supported for selection.");

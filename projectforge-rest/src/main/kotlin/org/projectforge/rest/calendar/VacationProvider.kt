@@ -23,9 +23,8 @@
 
 package org.projectforge.rest.calendar
 
-import mu.KotlinLogging
 import org.projectforge.business.calendar.CalendarStyle
-import org.projectforge.business.user.UserGroupCache
+import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.vacation.VacationCache
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.service.VacationService
@@ -36,76 +35,79 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 
-private val log = KotlinLogging.logger {}
+// private val log = KotlinLogging.logger {}
 
 /**
  * Provides the vacation days of the employees. You may filter the vacation by ProjectForge groups.
  */
 @Component
 open class VacationProvider {
-  @Autowired
-  private lateinit var userGroupCache: UserGroupCache
+    @Autowired
+    private lateinit var employeeCache: EmployeeCache
 
-  @Autowired
-  private lateinit var vacationCache: VacationCache
+    @Autowired
+    private lateinit var vacationCache: VacationCache
 
-  /**
-   * @param groupIds Null items should only occur on (de)serialization issues.
-   * @param userIds Null items should only occur on (de)serialization issues.
-   */
-  open fun addEvents(
-    start: PFDateTime,
-    end: PFDateTime,
-    events: MutableList<FullCalendarEvent>,
+    @Autowired
+    private lateinit var vacationService: VacationService
+
     /**
-     * Vacation days will only be displayed for employees (users) who are member of at least one of the following groups:
+     * @param groupIds Null items should only occur on (de)serialization issues.
+     * @param userIds Null items should only occur on (de)serialization issues.
      */
-    groupIds: Set<Int?>?,
-    userIds: Set<Int?>?,
-    settings: CalendarSettings,
-    style: CalendarStyle? = null,
-  ) {
-    if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
-      return // Nothing to do
-    }
-    val useStyle = style ?: CalendarStyle(settings.vacationsColorOrDefault)
-    val vacations =
-      vacationCache.getVacationForPeriodAndUsers(start.beginOfDay.localDate, end.localDate, groupIds, userIds)
-    vacations.forEach { vacation ->
-      val employeeUser = userGroupCache.getUser(vacation.employee)
-      val title = "${translate("vacation")}: ${employeeUser?.getFullname()}"
-      if (!events.any {
-          it.title == title && FullCalendarEvent.samePeriod(it, vacation.startDate, vacation.endDate) &&
-              vacation.status != VacationStatus.REJECTED
-        }) {
-        val duration = VacationService.getVacationDays(vacation)
-        val unit = if (duration == BigDecimal.ONE) "fibu.common.workingDay" else "fibu.common.workingDays"
-        // Event doesn't yet exist:
-        val event = FullCalendarEvent.createAllDayEvent(
-          id = vacation.id,
-          category = FullCalendarEvent.Category.VACATION,
-          title = title,
-          start = vacation.startDate!!,
-          end = vacation.endDate!!,
-          style = useStyle,
-          dbId = vacation.id,
-          classNames = "vacation-event",
-          formattedDuration = "$duration ${translate(unit)}",
-          calendarSettings = settings,
-        )
-        val startDate = PFDay.fromOrNull(vacation.startDate)?.format() ?: ""
-        val endDate = PFDay.fromOrNull(vacation.endDate)?.format() ?: ""
-        val tb = TooltipBuilder()
-          .addPropRow(translate("timePeriod"), "$startDate - $endDate")
-          .addPropRow(
-            translate("vacation.replacement"),
-            vacation.allReplacements.joinToString { userGroupCache.getUser(it)?.displayName ?: "???" })
-        if (!vacation.comment.isNullOrBlank()) {
-          tb.addPropRow(translate("comment"), vacation.comment, abbreviate = true)
+    open fun addEvents(
+        start: PFDateTime,
+        end: PFDateTime,
+        events: MutableList<FullCalendarEvent>,
+        /**
+         * Vacation days will only be displayed for employees (users) who are member of at least one of the following groups:
+         */
+        groupIds: Set<Long?>?,
+        userIds: Set<Long?>?,
+        settings: CalendarSettings,
+        style: CalendarStyle? = null,
+    ) {
+        if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
+            return // Nothing to do
         }
-        event.setTooltip(title, tb)
-        events.add(event)
-      }
+        val useStyle = style ?: CalendarStyle(settings.vacationsColorOrDefault)
+        val vacations =
+            vacationCache.getVacationForPeriodAndUsers(start.beginOfDay.localDate, end.localDate, groupIds, userIds)
+        vacations.forEach { vacation ->
+            val employeeUser = employeeCache.getUser(vacation.employee)
+            val title = "${translate("vacation")}: ${employeeUser?.getFullname()}"
+            if (!events.any {
+                    it.title == title && FullCalendarEvent.samePeriod(it, vacation.startDate, vacation.endDate) &&
+                            vacation.status != VacationStatus.REJECTED
+                }) {
+                val duration = VacationService.getVacationDays(vacation)
+                val unit = if (duration == BigDecimal.ONE) "fibu.common.workingDay" else "fibu.common.workingDays"
+                // Event doesn't yet exist:
+                val event = FullCalendarEvent.createAllDayEvent(
+                    id = vacation.id,
+                    category = FullCalendarEvent.Category.VACATION,
+                    title = title,
+                    start = vacation.startDate!!,
+                    end = vacation.endDate!!,
+                    style = useStyle,
+                    dbId = vacation.id,
+                    classNames = "vacation-event",
+                    formattedDuration = "$duration ${translate(unit)}",
+                    calendarSettings = settings,
+                )
+                val startDate = PFDay.fromOrNull(vacation.startDate)?.format() ?: ""
+                val endDate = PFDay.fromOrNull(vacation.endDate)?.format() ?: ""
+                val tb = TooltipBuilder()
+                    .addPropRow(translate("timePeriod"), "$startDate - $endDate")
+                    .addPropRow(
+                        translate("vacation.replacement"),
+                        vacationService.collectAllReplacements(vacation).joinToString { employeeCache.getUser(it)?.displayName ?: "???" })
+                if (!vacation.comment.isNullOrBlank()) {
+                    tb.addPropRow(translate("comment"), vacation.comment, abbreviate = true)
+                }
+                event.setTooltip(title, tb)
+                events.add(event)
+            }
+        }
     }
-  }
 }

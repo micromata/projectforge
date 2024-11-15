@@ -27,32 +27,31 @@ import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
- class PFUserDOTest extends AbstractTestBase
-{
-  @Test
-  void testDisplayName() {
-    PFUserDO user = new PFUserDO();
-    user.setUsername("kai");
-    assertEquals("kai", user.getUserDisplayName());
-    user.setFirstname("Kai");
-    assertEquals("Kai (kai)", user.getUserDisplayName());
-    user.setLastname("Reinhard");
-    assertEquals("Kai Reinhard (kai)", user.getUserDisplayName());
-    user.setFirstname(null);
-    assertEquals("Reinhard (kai)", user.getUserDisplayName());
-  }
+class PFUserDOTest extends AbstractTestBase {
+    @Test
+    void testDisplayName() {
+        PFUserDO user = new PFUserDO();
+        user.setUsername("kai");
+        assertEquals("kai", user.getUserDisplayName());
+        user.setFirstname("Kai");
+        assertEquals("Kai (kai)", user.getUserDisplayName());
+        user.setLastname("Reinhard");
+        assertEquals("Kai Reinhard (kai)", user.getUserDisplayName());
+        user.setFirstname(null);
+        assertEquals("Reinhard (kai)", user.getUserDisplayName());
+    }
 
-  @Test
-  void testFullName() {
-    PFUserDO user = new PFUserDO();
-    assertEquals("", user.getFullname());
-    user.setFirstname("Kai");
-    assertEquals("Kai", user.getFullname());
-    user.setLastname("Reinhard");
-    assertEquals("Kai Reinhard", user.getFullname());
-    user.setFirstname(null);
-    assertEquals("Reinhard", user.getFullname());
-  }
+    @Test
+    void testFullName() {
+        PFUserDO user = new PFUserDO();
+        assertEquals("", user.getFullname());
+        user.setFirstname("Kai");
+        assertEquals("Kai", user.getFullname());
+        user.setLastname("Reinhard");
+        assertEquals("Kai Reinhard", user.getFullname());
+        user.setFirstname(null);
+        assertEquals("Reinhard", user.getFullname());
+    }
 }

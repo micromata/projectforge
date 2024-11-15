@@ -36,6 +36,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.*;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.user.UserPrefListPage;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
@@ -48,12 +49,6 @@ public class CustomerListPage extends AbstractListPage<CustomerListForm, KundeDa
     implements IListPageColumnsCreator<KundeDO>
 {
   private static final long serialVersionUID = -8406452960003792763L;
-
-  @SpringBean
-  private KundeDao kundeDao;
-
-  @SpringBean
-  KontoCache kontoCache;
 
   /**
    * @see org.projectforge.web.wicket.IListPageColumnsCreator#createColumns(org.apache.wicket.markup.html.WebPage,
@@ -75,8 +70,8 @@ public class CustomerListPage extends AbstractListPage<CustomerListForm, KundeDa
           // Should not occur:
           return;
         }
-        appendCssClasses(item, kunde.getId(),
-            kunde.isDeleted() == true || kunde.getStatus().isIn(KundeStatus.ENDED) == true);
+        appendCssClasses(item, kunde.getNummer(),
+            kunde.getDeleted() == true || kunde.getStatus().isIn(KundeStatus.ENDED) == true);
       }
     };
     columns.add(
@@ -93,11 +88,11 @@ public class CustomerListPage extends AbstractListPage<CustomerListForm, KundeDa
           {
             final KundeDO kunde = rowModel.getObject();
             if (isSelectMode() == false) {
-              item.add(new ListSelectActionPanel(componentId, rowModel, CustomerEditPage.class, kunde.getId(),
+              item.add(new ListSelectActionPanel(componentId, rowModel, CustomerEditPage.class, kunde.getNummer(),
                   returnToPage, String
                       .valueOf(kunde.getKost())));
             } else {
-              item.add(new ListSelectActionPanel(componentId, rowModel, caller, selectProperty, kunde.getId(),
+              item.add(new ListSelectActionPanel(componentId, rowModel, caller, selectProperty, kunde.getNummer(),
                   String.valueOf(kunde.getKost())));
             }
             cellItemListener.populateItem(item, componentId, rowModel);
@@ -125,7 +120,7 @@ public class CustomerListPage extends AbstractListPage<CustomerListForm, KundeDa
           final IModel<KundeDO> rowModel)
       {
         final KundeDO kunde = rowModel.getObject();
-        final KontoDO konto = kontoCache.getKonto(kunde.getKontoId());
+        final KontoDO konto = WicketSupport.get(KontoCache.class).getKontoIfNotInitialized(kunde.getKonto());
         item.add(new Label(componentId, konto != null ? konto.formatKonto() : ""));
         cellItemListener.populateItem(item, componentId, rowModel);
       }
@@ -170,11 +165,6 @@ public class CustomerListPage extends AbstractListPage<CustomerListForm, KundeDa
   @Override
   public KundeDao getBaseDao()
   {
-    return kundeDao;
-  }
-
-  protected KundeDao getKundeDao()
-  {
-    return kundeDao;
+    return WicketSupport.get(KundeDao.class);
   }
 }

@@ -54,10 +54,10 @@ class CalendarService {
     private lateinit var teamEventService: TeamEventService
 
     fun getCalendarList(user: User): List<Calendar> {
-        if (user.id != ThreadLocalUserContext.userId!!.toLong()) {
+        if (user.id != ThreadLocalUserContext.loggedInUserId!!.toLong()) {
             throw AccessException("Logged-in user differs from the user requested.")
         }
-        val calendars = teamCalDao.getList(BaseSearchFilter())
+        val calendars = teamCalDao.select(BaseSearchFilter())
         val result = calendars.map { cal ->
             Calendar(user, cal.id, cal.title ?: "untitled")
         }
@@ -107,7 +107,7 @@ class CalendarService {
     private fun convertRestRequest(meeting: Meeting): TeamEventDO {
         val event = TeamEventDO()
         event.uid = meeting.uniqueId
-        teamEventDao.setCalendar(event, meeting.calendar.id)
+        teamEventDao.setCalendar(event, meeting.calendar.id!!)
         //event.icsData = Base64.encodeBase64String(meeting.icalData)
         event.created = meeting.createDate
         event.lastUpdate = meeting.modifiedDate

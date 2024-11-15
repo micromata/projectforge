@@ -55,9 +55,9 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
-import javax.annotation.PostConstruct
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.annotation.PostConstruct
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 
@@ -82,7 +82,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
 
   class AttachmentData(
     var category: String,
-    var id: Int,
+    var id: Long,
     var fileId: String,
     var listId: String? = null,
     /**
@@ -95,7 +95,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
 
   class FileListData(
     var category: String? = null,
-    var id: Int? = null,
+    var id: Long? = null,
     var fileIds: Array<String>? = null,
     var listId: String? = null,
   )
@@ -314,7 +314,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
   @PostMapping("upload/{category}/{id}/{listId}")
   fun uploadAttachment(
     @PathVariable("category", required = true) category: String,
-    @PathVariable("id", required = true) id: Int,
+    @PathVariable("id", required = true) id: Long,
     @PathVariable("listId") listId: String?,
     @RequestParam("file") file: MultipartFile
   )
@@ -353,7 +353,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
   @GetMapping("download/{category}/{id}")
   fun download(
     @PathVariable("category", required = true) category: String,
-    @PathVariable("id", required = true) id: Int,
+    @PathVariable("id", required = true) id: Long,
     @RequestParam("fileId", required = true) fileId: String,
     @RequestParam("listId") listId: String?
   )
@@ -393,7 +393,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
   fun multiDownload(
     response: HttpServletResponse,
     @PathVariable("category", required = true) category: String,
-    @PathVariable("id", required = true) id: Int,
+    @PathVariable("id", required = true) id: Long,
     @RequestParam("fileIds", required = true) fileIds: String,
     @RequestParam("listId") listId: String?
   ) {
@@ -464,7 +464,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
   internal fun getPagesRest(
     category: String,
     listId: String?
-  ): AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>> {
+  ): AbstractPagesRest<out ExtendedBaseDO<Long>, *, out BaseDao<*>> {
     val pagesRest = PagesResolver.getPagesRest(category)
       ?: throw UnsupportedOperationException("PagesRest class for category '$category' not known (registered).")
     pagesRest.attachmentsAccessChecker.let {
@@ -500,8 +500,8 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     return getAttachment(pagesRest.jcrPath!!, pagesRest.attachmentsAccessChecker, data)
   }
 
-  internal fun getDataObject(pagesRest: AbstractPagesRest<*, *, *>, id: Int): ExtendedBaseDO<Int> {
-    return pagesRest.baseDao.getById(id)
+  internal fun getDataObject(pagesRest: AbstractPagesRest<*, *, *>, id: Long): ExtendedBaseDO<Long> {
+    return pagesRest.baseDao.find(id)
       ?: throw TechnicalException(
         "Entity with id $id not accessible for category '$pagesRest.category' or doesn't exist.",
         "User without access or id unknown."
@@ -522,8 +522,8 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     val inputStream: InputStream? = null,
     val fileObject: FileObject? = null,
     val attachment: Attachment? = null,
-    val obj: ExtendedBaseDO<Int>? = null,
-    val pagesRest: AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>? = null,
+    val obj: ExtendedBaseDO<Long>? = null,
+    val pagesRest: AbstractPagesRest<out ExtendedBaseDO<Long>, *, out BaseDao<*>>? = null,
   )
 
   companion object {

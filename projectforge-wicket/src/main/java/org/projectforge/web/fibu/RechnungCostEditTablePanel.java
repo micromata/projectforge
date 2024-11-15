@@ -42,6 +42,7 @@ import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.Constants;
 import org.projectforge.framework.utils.NumberFormatter;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.CsrfTokenHandler;
 import org.projectforge.web.wicket.WicketAjaxUtils;
 import org.projectforge.web.wicket.WicketUtils;
@@ -69,9 +70,6 @@ public class RechnungCostEditTablePanel extends Panel
   private final Form<AbstractRechnungsPositionDO> form;
 
   private final FeedbackPanel feedbackPanel;
-
-  @SpringBean
-  private Kost2Dao kost2Dao;
 
   private AbstractRechnungsPositionDO position;
 
@@ -142,7 +140,7 @@ public class RechnungCostEditTablePanel extends Panel
       @Override
       public String getObject()
       {
-        return CurrencyFormatter.format(position.getKostZuweisungNetFehlbetrag());
+        return CurrencyFormatter.format(position.getInfo().getKostZuweisungNetFehlbetrag());
       }
     });
     form.add(restLabel);
@@ -214,7 +212,8 @@ public class RechnungCostEditTablePanel extends Panel
       @Override
       public IConverter getConverter(final Class type)
       {
-        return new CurrencyConverter(position.getNetSum());
+        RechnungCache.getInstance().ensureRechnungPosInfo(position);
+        return new CurrencyConverter(position.getInfo().getNetSum());
       }
     };
     netto.setLabel(new Model<String>(getString("fibu.common.netto")));
@@ -230,10 +229,10 @@ public class RechnungCostEditTablePanel extends Panel
       public String getObject()
       {
         final BigDecimal percentage;
-        if (NumberHelper.isZeroOrNull(position.getNetSum()) == true || NumberHelper.isZeroOrNull(zuweisung.getNetto()) == true) {
+        if (NumberHelper.isZeroOrNull(position.getInfo().getNetSum()) == true || NumberHelper.isZeroOrNull(zuweisung.getNetto()) == true) {
           percentage = BigDecimal.ZERO;
         } else {
-          percentage = zuweisung.getNetto().divide(position.getNetSum(), RoundingMode.HALF_UP);
+          percentage = zuweisung.getNetto().divide(position.getInfo().getNetSum(), RoundingMode.HALF_UP);
         }
         final boolean percentageVisible = NumberHelper.isNotZero(percentage);
         if (percentageVisible == true) {
@@ -253,7 +252,7 @@ public class RechnungCostEditTablePanel extends Panel
         protected void onSubmit(final AjaxRequestTarget target)
         {
           position.deleteKostZuweisung(zuweisung.getIndex());
-          final StringBuffer prependJavascriptBuf = new StringBuffer();
+          final StringBuilder prependJavascriptBuf = new StringBuilder();
           prependJavascriptBuf.append(WicketAjaxUtils.removeChild("costAssignmentBody", row.getMarkupId()));
           ajaxComponents.remove(row);
           rows.remove(row);
@@ -293,14 +292,14 @@ public class RechnungCostEditTablePanel extends Panel
       if (rechnung != null) {
         final ProjektDO project = rechnung.getProjekt();
         if (project != null) {
-          final List<Kost2DO> kost2List = kost2Dao.getActiveKost2(project);
+          final List<Kost2DO> kost2List = WicketSupport.get(Kost2Dao.class).getActiveKost2(project);
           if (CollectionUtils.isNotEmpty(kost2List) == true) {
             kostZuweisung.setKost2(kost2List.get(0));
           }
         }
       }
     }
-    kostZuweisung.setNetto(position.getKostZuweisungNetFehlbetrag().negate());
+    kostZuweisung.setNetto(position.getInfo().getKostZuweisungNetFehlbetrag().negate());
     return kostZuweisung;
   }
 

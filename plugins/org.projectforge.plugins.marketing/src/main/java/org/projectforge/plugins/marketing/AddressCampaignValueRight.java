@@ -30,6 +30,7 @@ import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 
 /**
  * @author Kai Reinhard (k.reinhard@me.de)
@@ -38,14 +39,11 @@ public class AddressCampaignValueRight extends UserRightAccessCheck<AddressCampa
 {
   private static final long serialVersionUID = 4021610615575404717L;
 
-  AddressDao addressDao;
-
-  public AddressCampaignValueRight(AccessChecker accessChecker, AddressDao addressDao)
+  public AddressCampaignValueRight()
   {
-    super(accessChecker, MarketingPluginUserRightId.PLUGIN_MARKETING_ADDRESS_CAMPAIGN_VALUE,
+    super(MarketingPluginUserRightId.PLUGIN_MARKETING_ADDRESS_CAMPAIGN_VALUE,
         UserRightCategory.PLUGINS,
         UserRightValue.TRUE);
-    this.addressDao = addressDao;
   }
 
   /**
@@ -56,6 +54,7 @@ public class AddressCampaignValueRight extends UserRightAccessCheck<AddressCampa
       final AddressCampaignValueDO oldObj,
       final OperationType operationType)
   {
+    var addressDao = WicketSupport.get(AddressDao.class);
     if (operationType.isIn(OperationType.SELECT, OperationType.INSERT) && obj == null) {
       return addressDao.hasInsertAccess(user);
     }

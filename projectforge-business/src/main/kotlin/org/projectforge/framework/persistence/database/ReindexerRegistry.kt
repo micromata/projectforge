@@ -23,9 +23,8 @@
 
 package org.projectforge.framework.persistence.database
 
-import de.micromata.genome.jpa.StdRecord
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
-import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO
+import org.projectforge.framework.persistence.history.HistoryEntryDO
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -33,11 +32,12 @@ import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO
 object ReindexerRegistry {
     private val registryMap = mutableMapOf<Class<*>, ReindexerStrategy>()
     private val standardAbstractBaseDOStrategy = ReindexerStrategy("", "id", "lastUpdate")
-    private val standardStandardRecordStrategy = ReindexerStrategy("", "id", "modifiedAt")
+
+    //private val standardStandardRecordStrategy = ReindexerStrategy("", "id", "modifiedAt")
     private val standardUnknownStrategy = ReindexerStrategy("", "id", null)
 
     init {
-        add(PfHistoryMasterDO::class.java, ReindexerStrategy("left join fetch t.attributes", "pk", "modifiedAt"))
+        add(HistoryEntryDO::class.java, ReindexerStrategy("left join fetch t.attributes", "pk", "modifiedAt"))
     }
 
     fun add(clazz: Class<*>, strategy: ReindexerStrategy) {
@@ -47,7 +47,7 @@ object ReindexerRegistry {
     internal fun get(clazz: Class<*>): ReindexerStrategy {
         return registryMap[clazz] ?: when {
             AbstractBaseDO::class.java.isAssignableFrom(clazz) -> standardAbstractBaseDOStrategy
-            StdRecord::class.java.isAssignableFrom(clazz) -> standardStandardRecordStrategy
+            //StdRecord::class.java.isAssignableFrom(clazz) -> standardStandardRecordStrategy
             else -> standardUnknownStrategy
         }
     }

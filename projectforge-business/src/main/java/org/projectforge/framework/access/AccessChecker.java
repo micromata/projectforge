@@ -44,7 +44,7 @@ public interface AccessChecker
   void checkIsLoggedInUserMemberOfAdminGroup();
 
   /**
-   * @see org.projectforge.business.user.UserGroupCache#isUserMemberOfAdminGroup(java.lang.Integer)
+   * @see org.projectforge.business.user.UserGroupCache#isUserMemberOfAdminGroup(java.lang.Long)
    */
   boolean isUserMemberOfAdminGroup(PFUserDO user);
 
@@ -54,7 +54,7 @@ public interface AccessChecker
 
   boolean isRestrictedUser();
 
-  boolean isRestrictedUser(final Integer userId);
+  boolean isRestrictedUser(final Long userId);
 
   /**
    * Throws an exception if the current logged-in user is a demo user.
@@ -70,7 +70,7 @@ public interface AccessChecker
 
   boolean isDemoUser();
 
-  boolean isDemoUser(final Integer userId);
+  boolean isDemoUser(final Long userId);
 
   static boolean isDemoUser(final PFUserDO user)
   {
@@ -177,7 +177,7 @@ public interface AccessChecker
    *
    * @return true, if the user owns the required permission, otherwise false.
    */
-  boolean hasPermission(final PFUserDO user, final Integer taskId, final AccessType accessType,
+  boolean hasPermission(final PFUserDO user, final Long taskId, final AccessType accessType,
       final OperationType operationType,
       final boolean throwException);
 

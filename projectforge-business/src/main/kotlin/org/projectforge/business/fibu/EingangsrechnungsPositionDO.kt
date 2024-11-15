@@ -27,10 +27,10 @@ import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
-import org.hibernate.search.annotations.Indexed
+import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.business.fibu.kost.KostZuweisungDO
-import org.projectforge.framework.persistence.api.PFPersistancyBehavior
-import javax.persistence.*
+import org.projectforge.framework.persistence.history.PersistenceBehavior
 
 /**
  * Repräsentiert eine Position innerhalb einer Eingangsrechnung.
@@ -38,9 +38,14 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "t_fibu_eingangsrechnung_position",
-        uniqueConstraints = [UniqueConstraint(columnNames = ["eingangsrechnung_fk", "number"])],
-        indexes = [Index(name = "idx_fk_t_fibu_eingangsrechnung_position_eingangsrechnung_fk", columnList = "eingangsrechnung_fk")])
+@Table(
+    name = "t_fibu_eingangsrechnung_position",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["eingangsrechnung_fk", "number"])],
+    indexes = [Index(
+        name = "idx_fk_t_fibu_eingangsrechnung_position_eingangsrechnung_fk",
+        columnList = "eingangsrechnung_fk"
+    )]
+)
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class EingangsrechnungsPositionDO : AbstractRechnungsPositionDO() {
 
@@ -49,12 +54,16 @@ open class EingangsrechnungsPositionDO : AbstractRechnungsPositionDO() {
     @get:JoinColumn(name = "eingangsrechnung_fk", nullable = false)
     open var eingangsrechnung: EingangsrechnungDO? = null
 
-    override val rechnungId: Int?
+    override val rechnungId: Long?
         @Transient
         get() = eingangsrechnung?.id
 
-    @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
+    @PersistenceBehavior(autoUpdateCollectionEntries = true)
+    @get:OneToMany(
+        cascade = [CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH],
+        orphanRemoval = false,
+        fetch = FetchType.LAZY,
+    )
     @get:JoinColumn(name = "eingangsrechnungs_pos_fk")
     @get:OrderColumn(name = "index")
     @JsonManagedReference

@@ -45,7 +45,7 @@ import java.io.IOException
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.util.*
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 /**
  * For uploading address immages.
@@ -117,7 +117,7 @@ class AddressServicesRest {
     val list = addressDao.favoriteVCards.map { it.address!! }
     val magicFilter = MagicFilter(maxRows = QueryFilter.QUERY_FILTER_MAX_ROWS)
     val resultSet = ResultSet(list, null, list.size, magicFilter = magicFilter)
-    addressRest.processResultSetBeforeExport(resultSet, request, magicFilter)
+    addressRest.postProcessResultSet(resultSet, request, magicFilter)
 
     val personalAddressMap = personalAddressDao.personalAddressByAddressId
 
@@ -160,8 +160,8 @@ class AddressServicesRest {
   }
 
   @GetMapping("exportVCard/{id}")
-  fun exportVCard(@PathVariable("id") id: Int?): ResponseEntity<*> {
-    val address = addressDao.getById(id) ?: return ResponseEntity<Any>(HttpStatus.NOT_FOUND)
+  fun exportVCard(@PathVariable("id") id: Long?): ResponseEntity<*> {
+    val address = addressDao.find(id) ?: return ResponseEntity<Any>(HttpStatus.NOT_FOUND)
     val filename = ("ProjectForge-" + ReplaceUtils.encodeFilename(address.fullName, true) + "_"
         + DateHelper.getDateAsFilenameSuffix(Date()) + ".vcf")
     val writer = StringWriter()

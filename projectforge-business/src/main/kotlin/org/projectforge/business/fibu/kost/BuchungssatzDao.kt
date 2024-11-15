@@ -23,9 +23,10 @@
 
 package org.projectforge.business.fibu.kost
 
+import jakarta.persistence.Tuple
 import org.projectforge.business.user.ProjectForgeGroup
-import org.projectforge.framework.access.OperationType
 import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -39,45 +40,35 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
-import org.projectforge.framework.time.PFDateTime.Companion.now
-import org.springframework.stereotype.Repository
+import org.projectforge.framework.persistence.utils.SQLHelper
+import org.springframework.stereotype.Service
 
-@Repository
+@Service
 open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java) {
-    override fun getAdditionalSearchFields(): Array<String> {
-        return ADDITIONAL_SEARCH_FIELDS
-    }
+
+    override val additionalSearchFields: Array<String>
+        get() = ADDITIONAL_SEARCH_FIELDS
 
     /**
      * List of all years witch BuchungssatzDO entries: select min(year), max(year) from t_fibu_buchungssatz.
      */
     open val years: IntArray
         get() {
-            @Suppress("UNCHECKED_CAST")
-            val list = em.createQuery("select min(year), max(year) from BuchungssatzDO t").resultList as MutableList<Array<*>?>
-            if (list.size == 0 || list[0] == null || list[0]!![0] == null) {
-                return intArrayOf(now().year)
-            }
-            val minYear = list[0]!![0] as Int
-            val maxYear = list[0]!![1] as Int
-            if (minYear > maxYear || maxYear - minYear > 30) {
-                throw UnsupportedOperationException("Paranoia Exception")
-            }
-            val res = IntArray(maxYear - minYear + 1)
-            var i = 0
-            for (year in maxYear downTo minYear) {
-                res[i++] = year
-            }
-            return res
+            val list = persistenceService.selectSingleResult(
+                "select min(year), max(year) from BuchungssatzDO t",
+                Tuple::class.java,
+            )
+            return SQLHelper.getYearsByTupleOfYears(list)
         }
 
     open fun getBuchungssatz(year: Int, month: Int, satznr: Int): BuchungssatzDO? {
-        return ensureUniqueResult(
-                em.createNamedQuery(BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR, BuchungssatzDO::class.java)
-                        .setParameter("year", year)
-                        .setParameter("month", month)
-                        .setParameter("satznr", satznr))
+        return persistenceService.selectNamedSingleResult(
+            BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR,
+            BuchungssatzDO::class.java,
+            Pair("year", year),
+            Pair("month", month),
+            Pair("satznr", satznr),
+        )
     }
 
     private fun validateTimeperiod(myFilter: BuchungssatzFilter): Boolean {
@@ -98,9 +89,11 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
         // No year or one year is given.
     }
 
-    open override fun getList(filter: BaseSearchFilter): List<BuchungssatzDO> {
-        accessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
-                ProjectForgeGroup.CONTROLLING_GROUP)
+    override fun select(filter: BaseSearchFilter): List<BuchungssatzDO> {
+        accessChecker.checkIsLoggedInUserMemberOfGroup(
+            ProjectForgeGroup.FINANCE_GROUP,
+            ProjectForgeGroup.CONTROLLING_GROUP
+        )
         val myFilter: BuchungssatzFilter
         myFilter = if (filter is BuchungssatzFilter) {
             filter
@@ -120,7 +113,7 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
         if (fromYear != null && toYear != null) {
             // Both years are given
             if (fromMonth != null || toMonth != null) {
-                val or = DBPredicate.Or();
+                val or = DBPredicate.Or()
                 queryFilter.add(or)
                 // At least one month is given, check same year:
                 if (fromMonth != null) {
@@ -134,92 +127,123 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
                             and.add(le("month", toMonth))
                         } else {
                             // toYear is another year:
-                            or.add(DBPredicate.And()
+                            or.add(
+                                DBPredicate.And()
                                     .add(eq("year", toYear))
-                                    .add(le("month", toMonth)))
+                                    .add(le("month", toMonth))
+                            )
                         }
-                        or.add(and(gt("year", fromYear),
-                                lt("year", toYear)))
+                        or.add(
+                            and(
+                                gt("year", fromYear),
+                                lt("year", toYear)
+                            )
+                        )
 
                     } else {
                         // fromMonth given but toMonth not:
-                        or.add(and(gt("year", fromYear),
-                                le("year", toYear)))
+                        or.add(
+                            and(
+                                gt("year", fromYear),
+                                le("year", toYear)
+                            )
+                        )
                     }
                 } else if (toMonth != null) {
                     // fromMonth isn't given:
-                    or.add(DBPredicate.And(
+                    or.add(
+                        DBPredicate.And(
                             eq("year", toYear),
-                            le("month", toMonth)))
+                            le("month", toMonth)
+                        )
+                    )
                     // fromMonth not given but toMonth is:
-                    or.add(and(ge("year", fromYear),
-                            lt("year", toYear)))
+                    or.add(
+                        and(
+                            ge("year", fromYear),
+                            lt("year", toYear)
+                        )
+                    )
                 }
             } else {
                 // No month given:
-                queryFilter.add(and(
+                queryFilter.add(
+                    and(
                         ge("year", fromYear),
-                        le("year", toYear)));
+                        le("year", toYear)
+                    )
+                )
 
             }
         } else if (fromYear != null) {
             // Only from Year given:
             if (fromMonth != null) {
-                queryFilter.add(or(
+                queryFilter.add(
+                    or(
                         and(eq("year", fromYear), ge("month", fromMonth)),
                         gt("year", fromYear)
-                ))
+                    )
+                )
             } else {
                 queryFilter.add(ge("year", fromYear))
             }
         } else if (toYear != null) {
             // Only to Year given:
             if (toMonth != null) {
-                queryFilter.add(or(
+                queryFilter.add(
+                    or(
                         and(eq("year", toYear), le("month", toMonth)),
                         lt("year", toYear)
-                ))
+                    )
+                )
             } else {
                 queryFilter.add(le("year", toYear))
             }
         } // else: nothing given: no time period range.
         queryFilter.addOrder(asc("year")).addOrder(asc("month")).addOrder(asc("satznr"))
-        return getList(queryFilter)
+        return select(queryFilter)
     }
 
     /**
      * User must member of group finance or controlling.
      */
-    open override fun hasUserSelectAccess(user: PFUserDO, throwException: Boolean): Boolean {
-        return accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.FINANCE_GROUP,
-                ProjectForgeGroup.CONTROLLING_GROUP)
+    override fun hasUserSelectAccess(user: PFUserDO, throwException: Boolean): Boolean {
+        return accessChecker.isUserMemberOfGroup(
+            user, throwException, ProjectForgeGroup.FINANCE_GROUP,
+            ProjectForgeGroup.CONTROLLING_GROUP
+        )
     }
 
     /**
      * @see .hasUserSelectAccess
      */
-    open override fun hasUserSelectAccess(user: PFUserDO, obj: BuchungssatzDO, throwException: Boolean): Boolean {
+    override fun hasUserSelectAccess(user: PFUserDO, obj: BuchungssatzDO, throwException: Boolean): Boolean {
         return hasUserSelectAccess(user, throwException)
     }
 
     /**
      * User must member of group finance.
      */
-    open override fun hasAccess(user: PFUserDO, obj: BuchungssatzDO, oldObj: BuchungssatzDO,
-                                operationType: OperationType, throwException: Boolean): Boolean {
+    override fun hasAccess(
+        user: PFUserDO, obj: BuchungssatzDO?, oldObj: BuchungssatzDO?,
+        operationType: OperationType, throwException: Boolean
+    ): Boolean {
         return accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.FINANCE_GROUP)
     }
 
-    open override fun newInstance(): BuchungssatzDO {
+    override fun newInstance(): BuchungssatzDO {
         return BuchungssatzDO()
     }
 
     companion object {
         @JvmStatic
-        private val ADDITIONAL_SEARCH_FIELDS = arrayOf("kost1.nummer", "kost1.description",
-                "kost2.nummer",
-                "kost2.description", "kost2.comment", "kost2.projekt.name", "kost2.projekt.kunde.name", "konto.nummer",
-                "gegenKonto.nummer")
+        private val ADDITIONAL_SEARCH_FIELDS = arrayOf(
+            "kost1.nummer", "kost1.description",
+            "kost2.nummer",
+            "kost2.description", "kost2.comment", "kost2.projekt.name", "kost2.projekt.kunde.name", "konto.nummer",
+            "gegenKonto.nummer"
+        )
+
         /**
          * Need more results:
          */

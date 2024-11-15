@@ -33,9 +33,9 @@ import java.io.Serializable;
 
 /**
  * For registering a dao object and its scripting dao (optional).
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class RegistryEntry implements Serializable
 {
@@ -94,7 +94,7 @@ public class RegistryEntry implements Serializable
 
   /**
    * Register an own ScriptingDao. If this method isn't call than the generic ScriptingDao is used.
-   * 
+   *
    * @param scriptingDao
    * @return this for chaining.
    */
@@ -119,7 +119,7 @@ public class RegistryEntry implements Serializable
   /**
    * If set to true then no scripting dao is used (e. g. for using in the scripting engine). At default a scripting dao
    * is automatically available.
-   * 
+   *
    * @param supressScriptingDao
    * @return this for chaining.
    */
@@ -164,12 +164,12 @@ public class RegistryEntry implements Serializable
 
   public Class<? extends BaseDO<?>> getDOClass()
   {
-    return dao.getDOClass();
+    return dao.getDoClass();
   }
 
   /**
    * The nested do classes are used e. g. by the full text search engine for re-indexing.
-   * 
+   *
    * @return Nested (dependent do classes with no own registry entry) if given, otherwise null.
    */
   public Class<? extends BaseDO<?>>[] getNestedDOClasses()
@@ -194,7 +194,7 @@ public class RegistryEntry implements Serializable
 
   /**
    * Is used e. g. by {@link org.projectforge.web.core.SearchForm}: &lt;i18nPrefix&gt;.title.heading.
-   * 
+   *
    * @return The prefix of the i18n keys to prepend, e. g. "fibu.kost1". If not given, than the id will be used as
    *         prefix.
    */
@@ -211,7 +211,7 @@ public class RegistryEntry implements Serializable
   /**
    * If true (default) then the search in the web search page is supported for this area. Otherwise this area will not
    * be included in the search.
-   * 
+   *
    * @return the searchable
    */
   public boolean isSearchable()

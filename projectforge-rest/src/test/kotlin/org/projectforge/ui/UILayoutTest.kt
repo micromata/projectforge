@@ -36,7 +36,7 @@ import org.projectforge.rest.dto.Address
 import org.projectforge.rest.dto.Book
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 class UILayoutTest : AbstractTestBase() {
     @Autowired

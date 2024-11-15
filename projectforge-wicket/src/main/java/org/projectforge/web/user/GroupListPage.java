@@ -32,11 +32,11 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.ldap.LdapUserDao;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.*;
 
@@ -48,12 +48,6 @@ public class GroupListPage extends AbstractListPage<GroupListForm, GroupDao, Gro
     implements IListPageColumnsCreator<GroupDO>
 {
   private static final long serialVersionUID = 3124148202828889250L;
-
-  @SpringBean
-  private GroupDao groupDao;
-
-  @SpringBean
-  LdapUserDao ldapUserDao;
 
   public GroupListPage(final PageParameters parameters)
   {
@@ -76,7 +70,7 @@ public class GroupListPage extends AbstractListPage<GroupListForm, GroupDao, Gro
           final IModel<GroupDO> rowModel)
       {
         final GroupDO group = rowModel.getObject();
-        appendCssClasses(item, group.getId(), group.isDeleted());
+        appendCssClasses(item, group.getId(), group.getDeleted());
       }
     };
     columns.add(new CellItemListenerPropertyColumn<GroupDO>(new Model<String>(getString("name")),
@@ -91,7 +85,7 @@ public class GroupListPage extends AbstractListPage<GroupListForm, GroupDao, Gro
       public void populateItem(final Item<ICellPopulator<GroupDO>> item, final String componentId,
           final IModel<GroupDO> rowModel)
       {
-        final boolean updateAccess = groupDao.hasLoggedInUserAccess(null, null, OperationType.UPDATE, false);
+        final boolean updateAccess = WicketSupport.get(GroupDao.class).hasLoggedInUserAccess(null, null, OperationType.UPDATE, false);
         final GroupDO group = rowModel.getObject();
         if (isSelectMode() == true) {
           item.add(
@@ -119,7 +113,7 @@ public class GroupListPage extends AbstractListPage<GroupListForm, GroupDao, Gro
         getSortable("usernames",
             sortable),
         "usernames", cellItemListener));
-    if (ldapUserDao.isPosixAccountsConfigured() == true) {
+    if (WicketSupport.get(LdapUserDao.class).isPosixAccountsConfigured() == true) {
       columns
           .add(new CellItemListenerPropertyColumn<GroupDO>(getString("group.ldapValues"), "ldapValues", "ldapValues",
               cellItemListener));
@@ -143,11 +137,6 @@ public class GroupListPage extends AbstractListPage<GroupListForm, GroupDao, Gro
   @Override
   public GroupDao getBaseDao()
   {
-    return groupDao;
-  }
-
-  protected GroupDao getGroupDao()
-  {
-    return groupDao;
+    return WicketSupport.get(GroupDao.class);
   }
 }

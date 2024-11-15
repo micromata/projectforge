@@ -29,13 +29,13 @@ import com.webauthn4j.data.*
 import com.webauthn4j.data.client.Origin
 import com.webauthn4j.data.client.challenge.Challenge
 import com.webauthn4j.server.ServerProperty
-import com.webauthn4j.validator.exception.ValidationException
+import com.webauthn4j.springframework.security.exception.ValidationException
 import mu.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.configuration.DomainService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
 
@@ -182,7 +182,9 @@ class WebAuthnSupport {
       log.error("Error while parsing validating request: ${ex.message}", ex)
       return Result("webauthn.error.validate")
     }
-    webAuthnStorage.updateCounter(authenticationData.credentialId, authenticationData.authenticatorData!!.signCount)
+    authenticationData.credentialId?.let { credentialId ->
+      webAuthnStorage.updateCounter(credentialId, authenticationData.authenticatorData!!.signCount)
+    }
     return Result()
   }
 
@@ -192,7 +194,7 @@ class WebAuthnSupport {
   val availableForLoggedInUser: Boolean
     get() = webAuthnStorage.loadAll().isNotEmpty()
 
-  fun isAvailableForUser(ownerId: Int?): Boolean {
+  fun isAvailableForUser(ownerId: Long?): Boolean {
     return webAuthnStorage.loadAll(ownerId).isNotEmpty()
   }
 

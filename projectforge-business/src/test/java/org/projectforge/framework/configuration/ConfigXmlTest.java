@@ -81,7 +81,6 @@ public class ConfigXmlTest {
       + "    <holiday id='NEW_YEARS_EVE' workingDay='true' workFraction='0.5'/>\n"
       + "  </holidays>\n"
       + "  <databaseDirectory>database</databaseDirectory>\n"
-      + "  <ehcacheDirectory>ehcache</ehcacheDirectory>\n"
       + "  <loggingDirectory>logs</loggingDirectory>\n"
       + "  <jcrDirectory>jcr</jcrDirectory>\n"
       + "  <workingDirectory>work</workingDirectory>\n"

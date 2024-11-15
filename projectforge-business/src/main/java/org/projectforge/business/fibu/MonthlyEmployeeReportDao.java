@@ -24,58 +24,50 @@
 package org.projectforge.business.fibu;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;
-import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 public class MonthlyEmployeeReportDao {
-  @Autowired
-  private TimesheetDao timesheetDao;
+    @Autowired
+    private TimesheetDao timesheetDao;
 
-  @Autowired
-  private EmployeeService employeeService;
-
-  @Autowired
-  private VacationService vacationService;
-
-  /**
-   * @param year
-   * @param month 1-based: 1 - January, ..., 12 - December
-   * @param user
-   * @return
-   */
-  public MonthlyEmployeeReport getReport(Integer year, Integer month, PFUserDO user) {
-    if (user == null || year == null || month == null) {
-      return null;
+    /**
+     * @param year
+     * @param month 1-based: 1 - January, ..., 12 - December
+     * @param user
+     * @return
+     */
+    public MonthlyEmployeeReport getReport(Integer year, Integer month, PFUserDO user) {
+        if (user == null || year == null || month == null) {
+            return null;
+        }
+        MonthlyEmployeeReport report = new MonthlyEmployeeReport(user, year, month);
+        report.init();
+        TimesheetFilter filter = new TimesheetFilter();
+        filter.setDeleted(false);
+        filter.setStartTime(report.getFromDate());
+        filter.setStopTime(report.getToDate());
+        filter.setUserId(user.getId());
+        List<TimesheetDO> list = timesheetDao.internalGetList(filter, false); // Attention: No access checking!!!!
+        PFUserDO loggedInUser = ThreadLocalUserContext.getLoggedInUser();
+        if (CollectionUtils.isNotEmpty(list)) {
+            for (TimesheetDO sheet : list) {
+                report.addTimesheet(sheet, timesheetDao.hasUserSelectAccess(loggedInUser, sheet, false));
+            }
+        }
+        report.calculate();
+        return report;
     }
-    MonthlyEmployeeReport report = new MonthlyEmployeeReport(employeeService, vacationService, user, year, month);
-    report.init();
-    TimesheetFilter filter = new TimesheetFilter();
-    filter.setDeleted(false);
-    filter.setStartTime(report.getFromDate());
-    filter.setStopTime(report.getToDate());
-    filter.setUserId(user.getId());
-    List<TimesheetDO> list = timesheetDao.internalGetList(filter, false); // Attention: No access checking!!!!
-    PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
-    if (CollectionUtils.isNotEmpty(list)) {
-      for (TimesheetDO sheet : list) {
-        report.addTimesheet(sheet, timesheetDao.hasUserSelectAccess(loggedInUser, sheet, false));
-      }
-    }
-    report.calculate();
-    return report;
-  }
 
 }

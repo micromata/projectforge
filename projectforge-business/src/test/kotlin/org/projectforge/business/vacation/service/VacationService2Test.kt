@@ -59,7 +59,7 @@ class VacationService2Test {
     return vacation
   }
 
-  private fun createEmployee(id: Int): EmployeeDO {
+  private fun createEmployee(id: Long): EmployeeDO {
     val employee = EmployeeDO()
     employee.id = id
     return employee

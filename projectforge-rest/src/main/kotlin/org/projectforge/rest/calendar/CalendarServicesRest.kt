@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.calendar
 
+import jakarta.ws.rs.BadRequestException
 import org.projectforge.Constants
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.calendar.CalendarView
@@ -52,7 +53,6 @@ import org.springframework.web.bind.annotation.*
 import java.net.URLEncoder
 import java.time.LocalDate
 import java.util.*
-import javax.ws.rs.BadRequestException
 
 // private val log = KotlinLogging.logger {}
 
@@ -135,7 +135,7 @@ class CalendarServicesRest {
   @GetMapping("refresh")
   fun refresh(): ResponseEntity<Any> {
     val filter = calendarFilterServicesRest.getCurrentFilter()
-    val visibleCalendarIds = mutableListOf<Int>()
+    val visibleCalendarIds = mutableListOf<Long>()
     filter.calendarIds.forEach {
       if (it != null && !filter.invisibleCalendars.contains(it)) {
         visibleCalendarIds.add(it)
@@ -213,13 +213,13 @@ class CalendarServicesRest {
       url = if (defaultCalendarId != null && defaultCalendarId > 0) {
         "$url&calendar=$defaultCalendarId"
       } else {
-        "$url&userId=${currentFilter.timesheetUserId ?: ThreadLocalUserContext.userId}&firstHour=$firstHour"
+        "$url&userId=${currentFilter.timesheetUserId ?: ThreadLocalUserContext.loggedInUserId}&firstHour=$firstHour"
       }
     } else if (action == "resize" || action == "dragAndDrop") {
       val origStartDate =
         if (startDate != null) RestHelper.parseJSDateTime(origStartDateParam)?.javaScriptString else null
       val origEndDate = if (endDate != null) RestHelper.parseJSDateTime(origEndDateParam)?.javaScriptString else null
-      val dbId = NumberHelper.parseInteger(dbIdParam)
+      val dbId = NumberHelper.parseLong(dbIdParam)
       val dbIdString = if (dbId != null && dbId >= 0) "$dbId" else ""
       val uidString = if (uidParam.isNullOrBlank()) "" else URLEncoder.encode(uidParam, "UTF-8")
       url = "/$category/edit/$dbIdString$uidString?startDate=$startDate&endDate=$endDate"
@@ -280,7 +280,7 @@ class CalendarServicesRest {
     if (filter.useVisibilityState == true && !visibleCalendarIds.isNullOrEmpty()) {
       val currentFilter = getCurrentFilter(userPrefService)
       if (currentFilter != null) {
-        val set = mutableSetOf<Int?>()
+        val set = mutableSetOf<Long?>()
         visibleCalendarIds.forEach {
           if (it != null && !currentFilter.isInvisible(it))
             set.add(it) // Add only visible calendars.

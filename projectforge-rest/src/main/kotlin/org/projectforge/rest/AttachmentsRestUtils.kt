@@ -31,7 +31,7 @@ import org.projectforge.framework.time.PFDay
 import org.projectforge.rest.config.RestUtils
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponse
 
 object AttachmentsRestUtils {
   /**
@@ -43,7 +43,7 @@ object AttachmentsRestUtils {
     attachmentsAccessChecker: AttachmentsAccessChecker,
     filebasename: String?,
     jcrPath: String,
-    id: Int,
+    id: Long,
     attachments: List<Attachment>? = null,
   ) {
     response.status = HttpServletResponse.SC_OK

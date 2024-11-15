@@ -23,13 +23,14 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.fibu.kost.KostentraegerStatus
 import org.projectforge.framework.configuration.ApplicationContextProvider
 
 class Kost2(
-  id: Int? = null,
+  id: Long? = null,
   displayName: String? = null,
   var nummernkreis: Int = 0,
   var bereich: Int = 0,
@@ -37,10 +38,8 @@ class Kost2(
   var endziffer: Int = 0,
   var kostentraegerStatus: KostentraegerStatus? = null,
   var description: String? = null,
-  var formattedNumber: String? = null,
   var project: Project? = null,
   var kost2Art: Kost2Art? = null,
-  var longDisplayName: String? = null,
 ) : BaseDTODisplayObject<Kost2DO>(id, displayName = displayName) {
 
   /**
@@ -55,29 +54,20 @@ class Kost2(
     nummernkreis = src.nummernkreis
     bereich = src.bereich
     teilbereich = src.teilbereich
-    endziffer = src.kost2Art?.id ?: 0
+    endziffer = src.kost2Art?.id?.toInt() ?: 0
     description = src.description
-    formattedNumber = src.formattedNumber
     this.project = src.projekt?.let {
       val project = Project()
       project.copyFromMinimal(it)
-      val kunde = it.kunde?.name
-      longDisplayName = if (kunde.isNullOrBlank()) {
-        "$formattedNumber: ${it.name}"
-      } else {
-        "$formattedNumber: $kunde - ${it.name}"
-      }
       project
     }
-    if (longDisplayName == null) {
-      longDisplayName = "$formattedNumber: ${src.description}"
-    }
+    displayName = KostFormatter.instance.formatKost2(src, KostFormatter.FormatType.TEXT)
   }
 
   override fun copyFrom(src: Kost2DO) {
     super.copyFrom(src)
-    endziffer = src.kost2Art?.id ?: 0
-    formattedNumber = src.formattedNumber
+    endziffer = src.kost2Art?.id?.toInt() ?: 0
+    displayName = KostFormatter.instance.formatKost2(src, KostFormatter.FormatType.TEXT)
     this.project = src.projekt?.let {
       val project = Project()
       project.copyFromMinimal(it)
@@ -88,9 +78,9 @@ class Kost2(
   companion object {
     private val kost2Dao = ApplicationContextProvider.getApplicationContext().getBean(Kost2Dao::class.java)
 
-    fun getkost2(kost2Id: Int?, minimal: Boolean = true): Kost2? {
+    fun getkost2(kost2Id: Long?, minimal: Boolean = true): Kost2? {
       kost2Id ?: return null
-      val kost2DO = kost2Dao.getOrLoad(kost2Id) ?: return null
+      val kost2DO = kost2Dao.findOrLoad(kost2Id) ?: return null
       val kost2 = Kost2()
       if (minimal) {
         kost2.copyFromMinimal(kost2DO)

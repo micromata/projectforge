@@ -36,44 +36,42 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class UserGroupCacheTest extends AbstractTestBase
-{
-  @Autowired
-  private GroupDao groupDao;
+public class UserGroupCacheTest extends AbstractTestBase {
+    @Autowired
+    private GroupDao groupDao;
 
-  @Autowired
-  private UserGroupCache userGroupCache;
+    @Autowired
+    private UserGroupCache userGroupCache;
 
-  @Test
-  public void testUserMemberOfAtLeastOneGroup()
-  {
-    logon(AbstractTestBase.TEST_ADMIN_USER);
-    GroupDO group1 = new GroupDO();
-    group1.setName("testusergroupcache1");
-    Set<PFUserDO> assignedUsers = new HashSet<>();
-    group1.setAssignedUsers(assignedUsers);
-    assignedUsers.add(getUser(AbstractTestBase.TEST_USER));
-    Serializable id = groupDao.save(group1);
-    group1 = groupDao.getById(id);
+    @Test
+    public void testUserMemberOfAtLeastOneGroup() {
+        logon(AbstractTestBase.TEST_ADMIN_USER);
+        GroupDO group1 = new GroupDO();
+        group1.setName("testusergroupcache1");
+        Set<PFUserDO> assignedUsers = new HashSet<>();
+        group1.setAssignedUsers(assignedUsers);
+        assignedUsers.add(getUser(AbstractTestBase.TEST_USER));
+        Serializable id = groupDao.insert(group1);
+        group1 = groupDao.find(id);
 
-    GroupDO group2 = new GroupDO();
-    group2.setName("testusergroupcache2");
-    assignedUsers = new HashSet<>();
-    group2.setAssignedUsers(assignedUsers);
-    assignedUsers.add(getUser(AbstractTestBase.TEST_ADMIN_USER));
-    id = groupDao.save(group2);
-    group2 = groupDao.getById(id);
+        GroupDO group2 = new GroupDO();
+        group2.setName("testusergroupcache2");
+        assignedUsers = new HashSet<>();
+        group2.setAssignedUsers(assignedUsers);
+        assignedUsers.add(getUser(AbstractTestBase.TEST_ADMIN_USER));
+        id = groupDao.insert(group2);
+        group2 = groupDao.find(id);
 
-    assertFalse(userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId()));
-    assertFalse(userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId(), group1.getId()));
-    assertTrue(userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId(), group2.getId()));
-    assertTrue(
-        userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId(), group1.getId(), group2.getId()));
-    assertTrue(userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId(), null, group1.getId(),
-        group2.getId()));
-    assertTrue(userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId(), null, group1.getId(),
-        null, group2.getId(), null));
-    assertTrue(
-        userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId(), group2.getId(), group1.getId()));
-  }
+        assertFalse(userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId()));
+        assertFalse(userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId(), group1.getId()));
+        assertTrue(userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId(), group2.getId()));
+        assertTrue(
+                userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId(), group1.getId(), group2.getId()));
+        assertTrue(userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId(), null, group1.getId(),
+                group2.getId()));
+        assertTrue(userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId(), null, group1.getId(),
+                null, group2.getId(), null));
+        assertTrue(
+                userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId(), group2.getId(), group1.getId()));
+    }
 }

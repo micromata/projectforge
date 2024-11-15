@@ -23,13 +23,13 @@
 
 package org.projectforge.plugins.memo
 
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import javax.persistence.*
+import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 
 /**
  * This data object is the Java representation of a data-base entry of a memo.<br></br>
@@ -42,14 +42,17 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_MEMO", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_memo_owner_fk", columnList = "owner_fk")])
-open class MemoDO : AbstractBaseDO<Int>() {
+@Table(name = "T_PLUGIN_MEMO", indexes = [Index(name = "idx_fk_t_plugin_memo_owner_fk", columnList = "owner_fk")])
+open class MemoDO : AbstractBaseDO<Long>() {
 
+    @get:Column(name = "pk")
+    @get:GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
+    @get:Id
     @PropertyInfo(i18nKey = "id")
-    private var id: Int? = null
+    override var id: Long? = null
 
     @PropertyInfo(i18nKey = "plugins.memo.subject")
-    @Field
+    @FullTextField
     @get:Column(length = Constants.LENGTH_TITLE)
     open var subject: String? = null
 
@@ -59,22 +62,11 @@ open class MemoDO : AbstractBaseDO<Int>() {
     open var owner: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "plugins.memo.memo")
-    @Field
+    @FullTextField
     @get:Column(length = Constants.LENGTH_TEXT)
     open var memo: String? = null
 
-    val ownerId: Int?
+    val ownerId: Long?
         @Transient
         get() = owner?.id
-
-    @Id
-    @GeneratedValue
-    @Column(name = "pk")
-    override fun getId(): Int? {
-        return id
-    }
-
-    override fun setId(id: Int?) {
-        this.id = id
-    }
 }

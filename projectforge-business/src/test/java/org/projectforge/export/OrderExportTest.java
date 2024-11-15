@@ -56,13 +56,13 @@ public class OrderExportTest extends AbstractTestBase
     I18nHelper.addBundleName(Constants.RESOURCE_BUNDLE_NAME);
 
     AuftragDO a = new AuftragDO();
-    a.setId(1);
+    a.setId(1L);
     a.setAngebotsDatum(LocalDate.now());
     a.setTitel("Titel_TEST");
     KundeDO kunde = new KundeDO();
     kunde.setName("Kundenname");
     a.setKunde(kunde);
-    a.setAuftragsStatus(AuftragsStatus.ESKALATION);
+    a.setStatus(AuftragsStatus.ESKALATION);
     a.setStatusBeschreibung("TESTBESCHREIBUNG");
     a.setPeriodOfPerformanceBegin(LocalDate.of(2020, Month.OCTOBER, 2));
     a.setPeriodOfPerformanceEnd(LocalDate.of(2030, Month.OCTOBER, 2));
@@ -100,13 +100,13 @@ public class OrderExportTest extends AbstractTestBase
     I18nHelper.addBundleName(Constants.RESOURCE_BUNDLE_NAME);
 
     AuftragDO a = new AuftragDO();
-    a.setId(2);
+    a.setId(2L);
     a.setAngebotsDatum(LocalDate.now());
     a.setTitel("Titel_TEST");
     KundeDO kunde = new KundeDO();
     kunde.setName("Kundenname");
     a.setKunde(kunde);
-    a.setAuftragsStatus(AuftragsStatus.ESKALATION);
+    a.setStatus(AuftragsStatus.ESKALATION);
     a.setStatusBeschreibung("TESTBESCHREIBUNG");
     a.setPeriodOfPerformanceBegin(LocalDate.of(2020, Month.OCTOBER, 2));
     a.setPeriodOfPerformanceEnd(LocalDate.of(2030, Month.OCTOBER, 2));

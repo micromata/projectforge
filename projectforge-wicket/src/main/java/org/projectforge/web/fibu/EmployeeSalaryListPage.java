@@ -31,7 +31,7 @@ import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.PfCaches;
 import org.projectforge.business.excel.ContentProvider;
 import org.projectforge.business.excel.ExcelExporter;
 import org.projectforge.business.excel.ExportColumn;
@@ -42,6 +42,7 @@ import org.projectforge.business.fibu.datev.EmployeeSalaryExportDao;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
@@ -58,12 +59,6 @@ public class EmployeeSalaryListPage
 
   private static final long serialVersionUID = -8406452960003792763L;
 
-  @SpringBean
-  private EmployeeSalaryDao employeeSalaryDao;
-
-  @SpringBean
-  private EmployeeSalaryExportDao employeeSalaryExportDao;
-
   public EmployeeSalaryListPage(final PageParameters parameters)
   {
     super(parameters, "fibu.employee.salary");
@@ -72,6 +67,16 @@ public class EmployeeSalaryListPage
   public EmployeeSalaryListPage(final ISelectCallerPage caller, final String selectProperty)
   {
     super(caller, selectProperty, "fibu.employeeSalary");
+  }
+
+  @Override
+  protected List<EmployeeSalaryDO> buildList() {
+    List<EmployeeSalaryDO> ret = super.buildList();
+    for (EmployeeSalaryDO employeeSalary : ret) {
+      // Prevent lazy loading.
+      employeeSalary.setEmployee(PfCaches.getInstance().getEmployeeIfNotInitialized(employeeSalary.getEmployee()));
+    }
+    return ret;
   }
 
   @SuppressWarnings("serial")
@@ -86,7 +91,7 @@ public class EmployeeSalaryListPage
           final IModel<EmployeeSalaryDO> rowModel)
       {
         final EmployeeSalaryDO employeeSalary = rowModel.getObject();
-        appendCssClasses(item, employeeSalary.getId(), employeeSalary.isDeleted());
+        appendCssClasses(item, employeeSalary.getId(), employeeSalary.getDeleted());
       }
     };
     columns.add(new CellItemListenerPropertyColumn<EmployeeSalaryDO>(getString("calendar.month"),
@@ -156,7 +161,7 @@ public class EmployeeSalaryListPage
         + "_"
         + DateHelper.getDateAsFilenameSuffix(new Date())
         + ".xls";
-    final byte[] xls = employeeSalaryExportDao.export(list);
+    final byte[] xls = WicketSupport.get(EmployeeSalaryExportDao.class).export(list);
     DownloadUtils.setDownloadTarget(xls, filename);
   }
 
@@ -243,11 +248,6 @@ public class EmployeeSalaryListPage
   @Override
   public EmployeeSalaryDao getBaseDao()
   {
-    return employeeSalaryDao;
-  }
-
-  protected EmployeeSalaryDao getEmployeeSalaryDao()
-  {
-    return employeeSalaryDao;
+    return WicketSupport.get(EmployeeSalaryDao.class);
   }
 }

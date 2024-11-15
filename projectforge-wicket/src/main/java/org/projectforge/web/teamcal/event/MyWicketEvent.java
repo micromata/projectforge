@@ -85,7 +85,7 @@ public class MyWicketEvent extends Event
   public MyWicketEvent setTooltip(final String title, final String[][] labelValues)
   {
     this.tooltipTitle = title;
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean first = true;
     for (final String[] lv : labelValues) {
       if (lv == null || lv.length < 1 || lv.length > 2) {

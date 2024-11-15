@@ -27,6 +27,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.KundeDao;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
 import org.slf4j.Logger;
@@ -38,9 +39,6 @@ public class CustomerEditPage extends AbstractEditPage<KundeDO, CustomerEditForm
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CustomerEditPage.class);
 
-  @SpringBean
-  private KundeDao kundeDao;
-
   public CustomerEditPage(final PageParameters parameters)
   {
     super(parameters, "fibu.kunde");
@@ -50,7 +48,7 @@ public class CustomerEditPage extends AbstractEditPage<KundeDO, CustomerEditForm
   @Override
   protected KundeDao getBaseDao()
   {
-    return kundeDao;
+    return WicketSupport.get(KundeDao.class);
   }
 
   @Override

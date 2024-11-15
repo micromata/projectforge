@@ -44,7 +44,7 @@ object PagesResolver {
   @JvmStatic
   fun getEditPageUrl(
     pagesRestClass: Class<out AbstractPagesRest<*, *, *>>,
-    id: Int? = null,
+    id: Long? = null,
     params: Map<String, Any?>? = null,
     absolute: Boolean = false,
     returnToCaller: String? = null,
@@ -138,7 +138,7 @@ object PagesResolver {
     pagesRegistry[category] = pagesRest
   }
 
-  fun getPagesRest(category: String): AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>? {
+  fun getPagesRest(category: String): AbstractPagesRest<out ExtendedBaseDO<Long>, *, out BaseDao<*>>? {
     return pagesRegistry[category]
   }
 

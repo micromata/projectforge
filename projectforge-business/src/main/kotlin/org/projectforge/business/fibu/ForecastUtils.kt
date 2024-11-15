@@ -23,7 +23,6 @@
 
 package org.projectforge.business.fibu
 
-import org.projectforge.business.excel.PropertyMapping
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
 import java.math.BigDecimal
@@ -39,43 +38,45 @@ object ForecastUtils { // open needed by Wicket.
 
     @JvmStatic
     val auftragsPositionsStatusToShow = listOf(
-            //AuftragsPositionsStatus.ABGELEHNT,
-            //AuftragsPositionsStatus.ABGESCHLOSSEN,
-            AuftragsPositionsStatus.BEAUFTRAGT,
-            //AuftragsPositionsStatus.ERSETZT,
-            //AuftragsPositionsStatus.ESKALATION,
-            AuftragsPositionsStatus.GELEGT,
-            AuftragsPositionsStatus.IN_ERSTELLUNG,
-            AuftragsPositionsStatus.LOI,
-            //AuftragsPositionsStatus.OPTIONAL,
-            AuftragsPositionsStatus.POTENZIAL)
+        //AuftragsStatus.ABGELEHNT,
+        //AuftragsStatus.ABGESCHLOSSEN,
+        AuftragsStatus.BEAUFTRAGT,
+        //AuftragsStatus.ERSETZT,
+        //AuftragsStatus.ESKALATION,
+        AuftragsStatus.GELEGT,
+        AuftragsStatus.IN_ERSTELLUNG,
+        AuftragsStatus.LOI,
+        //AuftragsStatus.OPTIONAL,
+        AuftragsStatus.POTENZIAL
+    )
 
     @JvmStatic
     val auftragsStatusToShow = listOf(
-            // AuftragsStatus.ABGELEHNT,
-            AuftragsStatus.ABGESCHLOSSEN,
-            AuftragsStatus.BEAUFTRAGT,
-            // AuftragsStatus.ERSETZT,
-            AuftragsStatus.ESKALATION,
-            AuftragsStatus.GELEGT,
-            AuftragsStatus.IN_ERSTELLUNG,
-            AuftragsStatus.LOI,
-            AuftragsStatus.POTENZIAL)
+        // AuftragsStatus.ABGELEHNT,
+        AuftragsStatus.ABGESCHLOSSEN,
+        AuftragsStatus.BEAUFTRAGT,
+        // AuftragsStatus.ERSETZT,
+        AuftragsStatus.ESKALATION,
+        AuftragsStatus.GELEGT,
+        AuftragsStatus.IN_ERSTELLUNG,
+        AuftragsStatus.LOI,
+        AuftragsStatus.POTENZIAL
+    )
 
     @JvmStatic
-    fun getPaymentSchedule(order: AuftragDO, pos: AuftragsPositionDO): List<PaymentScheduleDO> {
-        val schedules = order.paymentSchedules ?: return emptyList()
+    fun getPaymentSchedule(order: OrderInfo, pos: OrderPositionInfo): List<OrderInfo.PaymentScheduleInfo> {
+        val schedules = order.paymentScheduleEntries ?: return emptyList()
         return schedules
-                .filter { it.positionNumber != null && it.scheduleDate != null && it.amount != null }
-                .filter { it.positionNumber!!.toInt() == pos.number.toInt() }
+            .filter { it.positionNumber != null && it.scheduleDate != null && it.amount != null }
+            .filter { it.positionNumber!!.toInt() == pos.number.toInt() }
     }
 
     /**
      * Multiplies the probability with the net sum.
      */
     @JvmStatic
-    fun computeProbabilityNetSum(order: AuftragDO, pos: AuftragsPositionDO): BigDecimal {
-        val netSum = if (pos.nettoSumme != null) pos.nettoSumme!! else BigDecimal.ZERO
+    fun computeProbabilityNetSum(order: OrderInfo, pos: OrderPositionInfo): BigDecimal {
+        val netSum = if (pos.netSum != null) pos.netSum else BigDecimal.ZERO
         val probability = getProbabilityOfAccurence(order, pos)
         return netSum.multiply(probability)
     }
@@ -84,42 +85,58 @@ object ForecastUtils { // open needed by Wicket.
      * See doc/misc/ForecastExportProbabilities.xlsx
      */
     @JvmStatic
-    fun getProbabilityOfAccurence(order: AuftragDO, pos: AuftragsPositionDO): BigDecimal {
+    fun getProbabilityOfAccurence(order: OrderInfo, pos: OrderPositionInfo): BigDecimal {
         // See ForecastExportProbabilities.xlsx
         // Excel rows: Order 1-4
-        if (order.auftragsStatus?.isIn(AuftragsStatus.ABGELEHNT, AuftragsStatus.ERSETZT) == true
-                || pos.status?.isIn(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT) == true) {
+        if (order.status?.isIn(AuftragsStatus.ABGELEHNT, AuftragsStatus.ERSETZT) == true
+            || pos.status?.isIn(AuftragsStatus.ABGELEHNT, AuftragsStatus.ERSETZT) == true
+        ) {
             return BigDecimal.ZERO
         }
         // Excel rows: Order 5-6
-        if (pos.status?.isIn(AuftragsPositionsStatus.POTENZIAL, AuftragsPositionsStatus.OPTIONAL) == true) {
+        if (pos.status?.isIn(AuftragsStatus.POTENZIAL, AuftragsStatus.OPTIONAL) == true) {
             return getGivenProbability(order, BigDecimal.ZERO)
         }
         // Excel rows: Order 7
-        if (pos.status == AuftragsPositionsStatus.BEAUFTRAGT) {
+        if (pos.status == AuftragsStatus.BEAUFTRAGT) {
             return BigDecimal.ONE
         }
         // Excel rows: Order 8
-        if (order.auftragsStatus == AuftragsStatus.POTENZIAL) {
+        if (order.status == AuftragsStatus.POTENZIAL) {
             return getGivenProbability(order, BigDecimal.ZERO)
         }
         // Excel rows: Order 9-10
-        if (order.auftragsStatus?.isIn(AuftragsStatus.ABGESCHLOSSEN, AuftragsStatus.BEAUFTRAGT) == true) {
+        if (order.status?.isIn(AuftragsStatus.ABGESCHLOSSEN, AuftragsStatus.BEAUFTRAGT) == true) {
             return BigDecimal.ONE
         }
         // Excel rows: Order 11-12
-        if (order.auftragsStatus?.isIn(AuftragsStatus.ESKALATION, AuftragsStatus.GELEGT, AuftragsStatus.IN_ERSTELLUNG) == true) {
-            if (pos.status?.isIn(AuftragsPositionsStatus.ESKALATION, AuftragsPositionsStatus.GELEGT, AuftragsPositionsStatus.IN_ERSTELLUNG) == true) {
+        if (order.status?.isIn(
+                AuftragsStatus.ESKALATION,
+                AuftragsStatus.GELEGT,
+                AuftragsStatus.IN_ERSTELLUNG
+            ) == true
+        ) {
+            if (pos.status?.isIn(
+                    AuftragsStatus.ESKALATION,
+                    AuftragsStatus.GELEGT,
+                    AuftragsStatus.IN_ERSTELLUNG
+                ) == true
+            ) {
                 // Excel rows: Order 11
                 return getGivenProbability(order, POINT_FIVE)
-            } else if (pos.status == AuftragsPositionsStatus.LOI) {
+            } else if (pos.status == AuftragsStatus.LOI) {
                 // Excel rows: Order 12
                 return getGivenProbability(order, POINT_NINE)
             }
         }
         // Excel rows: Order 13
-        if (order.auftragsStatus == AuftragsStatus.LOI
-                && pos.status?.isIn(AuftragsPositionsStatus.ESKALATION, AuftragsPositionsStatus.GELEGT, AuftragsPositionsStatus.IN_ERSTELLUNG) == true) {
+        if (order.status == AuftragsStatus.LOI
+            && pos.status?.isIn(
+                AuftragsStatus.ESKALATION,
+                AuftragsStatus.GELEGT,
+                AuftragsStatus.IN_ERSTELLUNG
+            ) == true
+        ) {
             return getGivenProbability(order, POINT_NINE)
         }
         // Excel rows: Order 14
@@ -127,22 +144,26 @@ object ForecastUtils { // open needed by Wicket.
     }
 
     @JvmStatic
-    fun getGivenProbability(order: AuftragDO, defaultValue: BigDecimal): BigDecimal {
+    fun getGivenProbability(order: OrderInfo, defaultValue: BigDecimal): BigDecimal {
         val propability = order.probabilityOfOccurrence ?: return defaultValue
         return BigDecimal(propability).divide(NumberHelper.HUNDRED, 2, RoundingMode.HALF_UP)
     }
 
     @JvmStatic
-    fun getStartLeistungszeitraum(order: AuftragDO, pos: AuftragsPositionDO): PFDay {
+    fun getStartLeistungszeitraum(order: OrderInfo, pos: OrderPositionInfo): PFDay {
         return getLeistungszeitraumDate(pos, order.periodOfPerformanceBegin, pos.periodOfPerformanceBegin)
     }
 
     @JvmStatic
-    fun getEndLeistungszeitraum(order: AuftragDO, pos: AuftragsPositionDO): PFDay {
+    fun getEndLeistungszeitraum(order: OrderInfo, pos: OrderPositionInfo): PFDay {
         return getLeistungszeitraumDate(pos, order.periodOfPerformanceEnd, pos.periodOfPerformanceEnd)
     }
 
-    private fun getLeistungszeitraumDate(pos: AuftragsPositionDO, orderDate: LocalDate?, posDate: LocalDate?): PFDay {
+    private fun getLeistungszeitraumDate(
+        pos: OrderPositionInfo,
+        orderDate: LocalDate?,
+        posDate: LocalDate?
+    ): PFDay {
         var result = PFDay.now()
         if (PeriodOfPerformanceType.OWN == pos.periodOfPerformanceType) {
             if (posDate != null) {
@@ -157,14 +178,16 @@ object ForecastUtils { // open needed by Wicket.
     }
 
     @JvmStatic
-    fun getMonthCountForOrderPosition(order: AuftragDO?, pos: AuftragsPositionDO): BigDecimal? {
+    fun getMonthCountForOrderPosition(order: OrderInfo?, pos: OrderPositionInfo): BigDecimal? {
         if (PeriodOfPerformanceType.OWN == pos.periodOfPerformanceType) {
             if (pos.periodOfPerformanceEnd != null && pos.periodOfPerformanceBegin != null) {
-                return getMonthCount(pos.periodOfPerformanceBegin!!, pos.periodOfPerformanceEnd!!)
+                return getMonthCount(pos.periodOfPerformanceBegin, pos.periodOfPerformanceEnd)
             }
         } else {
-            if (order!!.periodOfPerformanceEnd != null && order.periodOfPerformanceBegin != null) {
-                return getMonthCount(order.periodOfPerformanceBegin!!, order.periodOfPerformanceEnd!!)
+            val periodOfPerformanceBegin = order?.periodOfPerformanceBegin
+            val periodOfPerformanceEnd = order?.periodOfPerformanceEnd
+            if (periodOfPerformanceEnd != null && periodOfPerformanceBegin != null) {
+                return getMonthCount(periodOfPerformanceBegin, periodOfPerformanceEnd)
             }
         }
         return null
@@ -180,27 +203,21 @@ object ForecastUtils { // open needed by Wicket.
     }
 
     @JvmStatic
-    fun addCurrency(mapping: PropertyMapping, col: Enum<*>, value: BigDecimal?) {
-        if (NumberHelper.isNotZero(value)) {
-            mapping.add(col, value)
-        } else {
-            mapping.add(col, "")
+    fun getInvoices(invoicePositions: Set<RechnungPosInfo>?): String {
+        return invoicePositions?.joinToString(", ") { it.rechnungInfo?.nummer?.toString() ?: "" } ?: ""
+    }
+
+    @JvmStatic
+    fun ensureErfassungsDatum(order: OrderInfo): LocalDate {
+        order.erfassungsDatum?.let {
+            return it
         }
-    }
-
-    @JvmStatic
-    fun getInvoices(invoicePositions: Set<RechnungsPositionVO>?): String {
-        return invoicePositions?.joinToString(", ") { it.rechnungNummer?.toString() ?: "" } ?: ""
-    }
-
-    @JvmStatic
-    fun ensureErfassungsDatum(order: AuftragDO): LocalDate? {
-        if (order.erfassungsDatum != null)
-            return order.erfassungsDatum
-        if (order.created != null)
-            return PFDay.from(order.created).localDate
-        if (order.angebotsDatum != null)
-            return order.angebotsDatum
+        order.created?.let { created ->
+            return PFDay.from(created).localDate
+        }
+        order.angebotsDatum?.let {
+            return it
+        }
         return PFDay.now().localDate
     }
 

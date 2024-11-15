@@ -48,7 +48,7 @@ class UserRightsHandler {
 
   fun getUserRights(user: User, userDO: PFUserDO): List<UserRightDto> {
     val list = mutableListOf<UserRightDto>()
-    val dbList = userRightDao.getList(userDO)
+    val dbList = userRightDao.select(userDO)
     val userGroups = User.getAssignedGroupDOs(user)
     for (right in userRightService.orderedRights) {
       if (!right.isAvailable(userDO, userGroups)) {

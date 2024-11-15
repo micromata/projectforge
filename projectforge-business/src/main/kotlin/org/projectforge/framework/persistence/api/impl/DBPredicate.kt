@@ -23,35 +23,70 @@
 
 package org.projectforge.framework.persistence.api.impl
 
+import jakarta.persistence.criteria.Predicate
+import mu.KotlinLogging
+import org.apache.commons.lang3.math.NumberUtils
+import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateOptionsCollector
+import org.hibernate.search.engine.search.predicate.dsl.SearchPredicateFactory
 import org.projectforge.common.BeanHelper
+import org.projectforge.common.logging.LogUtils.logDebugFunCall
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils
-import org.slf4j.LoggerFactory
+import java.math.BigDecimal
+import java.math.BigInteger
 import java.util.*
-import javax.persistence.criteria.Predicate
+
+private val log = KotlinLogging.logger {}
 
 /**
  * After querying, every result entry is matched against matchers (for fields not supported by the full text query).
  */
 abstract class DBPredicate(
-        val field: String?,
-        /**
-         * True if this predicate may be attached to a full text query for indexed fields.
-         */
-        open val fullTextSupport: Boolean = false,
-        /**
-         * True if this predicate may be attached to a criteria search (as predicate).
-         */
-        val criteriaSupport: Boolean = true,
-        /**
-         * True if this predicate may be checked while iterating the result set.
-         */
-        val resultSetSupport: Boolean = true) {
+    val field: String?,
+    /**
+     * True if this predicate may be attached to a full text query for indexed fields.
+     */
+    open val fullTextSupport: Boolean = false,
+    /**
+     * True if this predicate may be attached to a criteria search (as predicate).
+     */
+    val criteriaSupport: Boolean = true,
+    /**
+     * True if this predicate may be checked while iterating the result set.
+     */
+    val resultSetSupport: Boolean = true
+) {
 
     abstract fun match(obj: Any): Boolean
-    internal abstract fun asPredicate(ctx: DBCriteriaContext<*>): Predicate
-    internal open fun addTo(qb: DBQueryBuilderByFullText<*>) {
+
+    /**
+     * @return created JPA criteria predicate for this predicate, or null, if no predicate is needed.
+     */
+    internal abstract fun asPredicate(ctx: DBCriteriaContext<*>): Predicate?
+    internal open fun handle(
+        searchPredicateFactory: SearchPredicateFactory,
+        boolCollector: BooleanPredicateOptionsCollector<*>,
+        searchClassInfo: HibernateSearchClassInfo,
+    ) {
         throw UnsupportedOperationException("Operation '${this.javaClass}' not supported by full text query.")
+    }
+
+    internal open fun supportedByFullTextQuery(searchClassInfo: HibernateSearchClassInfo): Boolean {
+        if (!fullTextSupport || field == null) {
+            return false
+        }
+        val luceneField = searchClassInfo.get(field)?.luceneField
+        return if (luceneField == null) {
+            logDebugFunCall(log) {
+                it.mtd("${this.javaClass.simpleName}:handledByFullTextQuery").msg("Field '$field' not indexed.")
+            }
+            false
+        } else {
+            logDebugFunCall(log) {
+                it.mtd("${this.javaClass.simpleName}:handledByFullTextQuery").msg("Field '$field' indexed.")
+            }
+            true
+        }
     }
 
     /**
@@ -62,24 +97,40 @@ abstract class DBPredicate(
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(DBPredicate::class.java)
         /**
          * Replaces trailing and leading '*' by '%' or vica versa. Appends '%' (or '*') to alphanumeric strings doesn't start or end with '%' or '*'.
          */
-        internal fun modifySearchString(str: String, oldChar: Char, newChar: Char, autoWildcardSearch: Boolean = false): String {
+        internal fun modifySearchString(
+            str: String,
+            oldChar: Char,
+            newChar: Char,
+            autoWildcardSearch: Boolean = false
+        ): String {
+            logDebugFunCall(log) {
+                it.mtd("modifySearchString(...)").params(
+                    "str" to str,
+                    "oldChar" to oldChar,
+                    "newChar" to newChar,
+                    "autoWildcardSearch" to autoWildcardSearch
+                )
+            }
             var queryString = str.trim()
             if (queryString.endsWith(oldChar))
                 queryString = "${queryString.substring(0, queryString.length - 1)}$newChar"
             if (queryString.startsWith(oldChar))
                 queryString = "$newChar${queryString.substring(1)}"
             else if (autoWildcardSearch)
-                queryString = HibernateSearchFilterUtils.modifySearchString(queryString, "$newChar", false) // Always look for keyword* (\p{L} means all letters in all languages.
+                queryString = HibernateSearchFilterUtils.modifySearchString(
+                    queryString,
+                    "$newChar",
+                    false
+                ) // Always look for keyword* (\p{L} means all letters in all languages.
+            logDebugFunCall(log) { it.mtd("modifySearchString(...)").msg("Modified search string: $queryString") }
             return queryString
         }
     }
 
-    class Equal(field: String, val value: Any)
-        : DBPredicate(field, true) {
+    class Equal(field: String, val value: Any) : DBPredicate(field, true) {
         override fun match(obj: Any): Boolean {
             return fieldValueMatch(obj, field!!) { isEquals(value, it) }
         }
@@ -88,17 +139,25 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [equal] cb.equal('$field'), '$value')")
+            logDebugFunCall(log) {
+                it.mtd("Equal.asPredicate(ctx)").msg("entity=${ctx.entityName},field=$field,value=$value")
+            }
             return ctx.cb.equal(ctx.getField<Any>(field!!), value)
         }
 
-        override fun addTo(qb: DBQueryBuilderByFullText<*>) {
-            qb.equal(field!!, value)
+        override fun handle(
+            searchPredicateFactory: SearchPredicateFactory,
+            boolCollector: BooleanPredicateOptionsCollector<*>,
+            searchClassInfo: HibernateSearchClassInfo
+        ) {
+            logDebugFunCall(log) {
+                it.mtd("Equal.handle(...)").msg("bool.must(f.match().field(\"$field\").matching($value))")
+            }
+            boolCollector.must(searchPredicateFactory.match().field(field).matching(value))
         }
     }
 
-    class NotEqual(field: String, val value: Any)
-        : DBPredicate(field, true) {
+    class NotEqual(field: String, val value: Any) : DBPredicate(field, true) {
         override fun match(obj: Any): Boolean {
             return fieldValueMatch(obj, field!!) { !isEquals(value, it) }
         }
@@ -107,17 +166,25 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [notEqual] cb.notEqual('$field'), '$value')")
+            logDebugFunCall(log) {
+                it.mtd("NotEqual.asPredicate(ctx)").msg("entity=${ctx.entityName},field=$field,value=$value")
+            }
             return ctx.cb.notEqual(ctx.getField<Any>(field!!), value)
         }
 
-        override fun addTo(qb: DBQueryBuilderByFullText<*>) {
-            qb.notEqual(field!!, value)
+        override fun handle(
+            searchPredicateFactory: SearchPredicateFactory,
+            boolCollector: BooleanPredicateOptionsCollector<*>,
+            searchClassInfo: HibernateSearchClassInfo
+        ) {
+            logDebugFunCall(log) {
+                it.mtd("NotEqual.handle(...)").msg("bool.mustNot(f.match().field(\"$field\").matching($value))")
+            }
+            boolCollector.mustNot(searchPredicateFactory.match().field(field).matching(value))
         }
     }
 
-    class IsIn<T>(field: String, vararg val values: T)
-        : DBPredicate(field, false) {
+    class IsIn<T>(field: String, val values: Collection<T>) : DBPredicate(field, false) {
         override fun match(obj: Any): Boolean {
             return fieldValueMatch(obj, field!!) { innerMatch(it) }
         }
@@ -133,18 +200,28 @@ abstract class DBPredicate(
         }
 
         /**
-         * Convert this predicate to JPA criteria for where clause in select. If only value is given, an equal predicate will
+         * Convert this predicate to JPA criteria for where clause in select. If only one value is given, an equal predicate will
          * be returned.
          */
-        override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [in] cb.in($field.in[${values.joinToString(", ", "'", "'")}])")
-            if (values.isNullOrEmpty()) {
-                if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [in] cb.isNull('$field'), '${values[0]}') (uses equal, because no value is given).")
-                return ctx.cb.isNull(ctx.getField<Any>(field!!))
+        override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate? {
+            logDebugFunCall(log) {
+                it.mtd("IsIn.asPredicate(ctx)").msg(
+                    "entity=${ctx.entityName},field=$field,value=${
+                        values.joinToString(
+                            ", ",
+                            "'",
+                            "'"
+                        )
+                    }"
+                )
+            }
+            if (values.isEmpty()) {
+                log.debug { "Ignoring criteria search (${ctx.entityName}): [in] cb.in('$field'), because no value is given." }
+                return null
             }
             if (values.size == 1) {
-                if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [in] cb.equal('$field'), '${values[0]}') (uses equal, because only one value is given).")
-                return ctx.cb.equal(ctx.getField<Any>(field!!), values[0])
+                log.debug { "Adding criteria search (${ctx.entityName}): [in] cb.equal('$field'), '${values.first()}') (uses equal, because only one value is given)." }
+                return ctx.cb.equal(ctx.getField<Any>(field!!), values.first())
             }
             val inClause = ctx.cb.`in`(ctx.getField<Any>(field!!))
             for (value in values) {
@@ -154,8 +231,7 @@ abstract class DBPredicate(
         }
     }
 
-    class Between<T : Comparable<T>>(field: String, val from: T, val to: T)
-        : DBPredicate(field, true) {
+    class Between<T : Comparable<T>>(field: String, val from: T, val to: T) : DBPredicate(field, true) {
         override fun match(obj: Any): Boolean {
             return fieldValueMatch(obj, field!!) { innerMatch(it) }
         }
@@ -174,17 +250,23 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [between] cb.between($field, $from, $to)")
+            log.debug { "Adding criteria search (${ctx.entityName}): [between] cb.between($field, $from, $to)" }
             return ctx.cb.between(ctx.getField<T>(field!!), from, to)
         }
 
-        override fun addTo(qb: DBQueryBuilderByFullText<*>) {
-            qb.between(field!!, from, to)
+        override fun handle(
+            searchPredicateFactory: SearchPredicateFactory,
+            boolCollector: BooleanPredicateOptionsCollector<*>,
+            searchClassInfo: HibernateSearchClassInfo
+        ) {
+            logDebugFunCall(log) {
+                it.mtd("Between.handle(...)").msg("bool.must(f.range().field(\"$field\").between($from, $to))")
+            }
+            boolCollector.must(searchPredicateFactory.range().field(field).between(from, to))
         }
     }
 
-    class Greater<O : Comparable<O>>(field: String, val from: O)
-        : DBPredicate(field, true) {
+    class Greater<O : Comparable<O>>(field: String, val from: O) : DBPredicate(field, true) {
         override fun match(obj: Any): Boolean {
             return fieldValueMatch(obj, field!!) { innerMatch(it) }
         }
@@ -195,7 +277,7 @@ abstract class DBPredicate(
                 @Suppress("UNCHECKED_CAST")
                 return from < value as O
             }
-            log.warn("GreaterEqual operator fails, because value isn't of type ${from::class.java}: $value")
+            log.warn { "Greater operator fails, because value isn't of type ${from::class.java}: $value" }
             return false
         }
 
@@ -203,17 +285,23 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [greater] cb.greaterThan($field, $from)")
+            log.debug { "Adding criteria search (${ctx.entityName}): [greater] cb.greaterThan($field, $from)" }
             return ctx.cb.greaterThan(ctx.getField<O>(field!!), from)
         }
 
-        override fun addTo(qb: DBQueryBuilderByFullText<*>) {
-            qb.greater(field!!, from)
+        override fun handle(
+            searchPredicateFactory: SearchPredicateFactory,
+            boolCollector: BooleanPredicateOptionsCollector<*>,
+            searchClassInfo: HibernateSearchClassInfo
+        ) {
+            logDebugFunCall(log) {
+                it.mtd("Greater.handle(...)").msg("bool.must(f.range().field(\"$field\").greaterThan($from))")
+            }
+            boolCollector.must(searchPredicateFactory.range().field(field).greaterThan(from))
         }
     }
 
-    class GreaterEqual<O : Comparable<O>>(field: String, val from: O)
-        : DBPredicate(field, true) {
+    class GreaterEqual<O : Comparable<O>>(field: String, val from: O) : DBPredicate(field, true) {
         override fun match(obj: Any): Boolean {
             return fieldValueMatch(obj, field!!) { innerMatch(it) }
         }
@@ -232,17 +320,23 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [greaterEqual] cb.greaterThanOrEqualTo($field, $from)")
+            log.debug { "Adding criteria search (${ctx.entityName}): [greaterEqual] cb.greaterThanOrEqualTo($field, $from)" }
             return ctx.cb.greaterThanOrEqualTo(ctx.getField<O>(field!!), from)
         }
 
-        override fun addTo(qb: DBQueryBuilderByFullText<*>) {
-            qb.greaterEqual(field!!, from)
+        override fun handle(
+            searchPredicateFactory: SearchPredicateFactory,
+            boolCollector: BooleanPredicateOptionsCollector<*>,
+            searchClassInfo: HibernateSearchClassInfo
+        ) {
+            logDebugFunCall(log) {
+                it.mtd("GreaterEqual.handle(...)").msg("bool.must(f.range().field(\"$field\").atLeast($from))")
+            }
+            boolCollector.must(searchPredicateFactory.range().field(field).atLeast(from))
         }
     }
 
-    class Less<O : Comparable<O>>(field: String, val to: O)
-        : DBPredicate(field, true) {
+    class Less<O : Comparable<O>>(field: String, val to: O) : DBPredicate(field, true) {
         override fun match(obj: Any): Boolean {
             return fieldValueMatch(obj, field!!) { innerMatch(it) }
         }
@@ -261,17 +355,23 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [less] cb.lessThan($field, $to)")
+            log.debug { "Adding criteria search (${ctx.entityName}): [less] cb.lessThan($field, $to)" }
             return ctx.cb.lessThan(ctx.getField<O>(field!!), to)
         }
 
-        override fun addTo(qb: DBQueryBuilderByFullText<*>) {
-            qb.less(field!!, to)
+        override fun handle(
+            searchPredicateFactory: SearchPredicateFactory,
+            boolCollector: BooleanPredicateOptionsCollector<*>,
+            searchClassInfo: HibernateSearchClassInfo
+        ) {
+            logDebugFunCall(log) {
+                it.mtd("Less.handle(...)").msg("bool.must(f.range().field(\"$field\").lessThan($to))")
+            }
+            boolCollector.must(searchPredicateFactory.range().field(field).lessThan(to))
         }
     }
 
-    class LessEqual<O : Comparable<O>>(field: String, val to: O)
-        : DBPredicate(field, true) {
+    class LessEqual<O : Comparable<O>>(field: String, val to: O) : DBPredicate(field, true) {
         override fun match(obj: Any): Boolean {
             return fieldValueMatch(obj, field!!) { innerMatch(it) }
         }
@@ -290,17 +390,28 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [lessEqual] cb.lessThanOrEqualTo($field, $to)")
+            log.debug { "Adding criteria search (${ctx.entityName}): [lessEqual] cb.lessThanOrEqualTo($field, $to)" }
             return ctx.cb.lessThanOrEqualTo(ctx.getField<O>(field!!), to)
         }
 
-        override fun addTo(qb: DBQueryBuilderByFullText<*>) {
-            qb.lessEqual(field!!, to)
+        override fun handle(
+            searchPredicateFactory: SearchPredicateFactory,
+            boolCollector: BooleanPredicateOptionsCollector<*>,
+            searchClassInfo: HibernateSearchClassInfo
+        ) {
+            logDebugFunCall(log) {
+                it.mtd("LessEqual.handle(...)").msg("bool.must(f.range().field(\"$field\").atMost($to))")
+            }
+            boolCollector.must(searchPredicateFactory.range().field(field).atMost(to))
         }
     }
 
-    class Like(field: String, val expectedValue: String, private val ignoreCase: Boolean = true, autoWildcardSearch: Boolean = false)
-        : DBPredicate(field, true) {
+    class Like(
+        field: String,
+        val expectedValue: String,
+        private val ignoreCase: Boolean = true,
+        autoWildcardSearch: Boolean = false
+    ) : DBPredicate(field, true) {
         internal var plainString: String
         internal val matchType: MatchType
         internal var queryString: String
@@ -329,6 +440,7 @@ abstract class DBPredicate(
         }
 
         private fun innerMatch(value: String?): Boolean {
+            logDebugFunCall(log) { it.mtd("Like.innerMatch").params("value" to value) }
             if (value == null) return false
             return when (matchType) {
                 MatchType.CONTAINS -> value.contains(plainString, ignoreCase)
@@ -342,20 +454,36 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [like] cb.like(cb.lower($field, ${queryString.lowercase()}))")
+            log.debug { "Adding criteria search (${ctx.entityName}): [like] cb.like(cb.lower($field, ${queryString.lowercase()}))" }
             return ctx.cb.like(ctx.cb.lower(ctx.getField<String>(field!!)), queryString.lowercase())
         }
 
-        override fun addTo(qb: DBQueryBuilderByFullText<*>) {
-            qb.ilike(field!!, expectedValue)
+        override fun handle(
+            searchPredicateFactory: SearchPredicateFactory,
+            boolCollector: BooleanPredicateOptionsCollector<*>,
+            searchClassInfo: HibernateSearchClassInfo
+        ) {
+            val term = queryString.replace('%', '*')
+            logDebugFunCall(log) {
+                it.mtd("Like.handle(...)").msg("bool.must(f.match().field(\"$field\").matching(\"$term\"))")
+            }
+            boolCollector.must(
+                searchPredicateFactory.match().field(field)
+                    .matching(term)
+            )
         }
     }
 
-    class FullSearch(private val expectedValue: String, autoWildcardSearch: Boolean = false)
-        : DBPredicate(null, true, false, false) {
+    class FullSearch(
+        expectedValue: String,
+        private val searchFields: Array<String>?,
+        autoWildcardSearch: Boolean = false
+    ) :
+        DBPredicate(null, true, false, false) {
         private var queryString: String
 
         init {
+            logDebugFunCall(log) { it.mtd("FullSearch.init") }
             queryString = modifySearchString(expectedValue, '%', '*', autoWildcardSearch)
         }
 
@@ -370,17 +498,99 @@ abstract class DBPredicate(
             throw UnsupportedOperationException("Full text search without field not available as criteria predicate!")
         }
 
-        override fun addTo(qb: DBQueryBuilderByFullText<*>) {
-            qb.fulltextSearch(queryString)
+        override fun supportedByFullTextQuery(searchClassInfo: HibernateSearchClassInfo): Boolean {
+            return true
         }
 
-        fun multiFieldFulltextQueryRequired(): Boolean {
-            if (queryString.contains('*')
-                    || expectedValue.matches("""[A-Za-z][A-Za-z0-9_\.]*:.+""".toRegex()) // If a field is specified, e. g. street:max-planck ) {
-                    || expectedValue.split(' ', '\t', '\n').size > 1) { // Multi tokens require multiField query.
-                return true // Hibernate Search doesn't support wildcard() on multiple fields :-(
+        override fun handle(
+            searchPredicateFactory: SearchPredicateFactory,
+            boolCollector: BooleanPredicateOptionsCollector<*>,
+            searchClassInfo: HibernateSearchClassInfo,
+        ) {
+            logDebugFunCall(log) { it.mtd("FullSearch.handledByFullTextQuery(...)") }
+            if (NumberUtils.isCreatable(queryString)) {
+                val number = NumberUtils.createNumber(queryString)
+                search(
+                    searchPredicateFactory,
+                    boolCollector,
+                    number,
+                    searchClassInfo.numericFields,
+                    searchClassInfo.stringFieldNames
+                )
+            } else if (searchFields.isNullOrEmpty()) {
+                search(searchPredicateFactory, boolCollector, queryString, searchClassInfo.stringFieldNames)
+            } else {
+                search(searchPredicateFactory, boolCollector, queryString, searchFields)
             }
-            return false
+        }
+
+        private fun search(
+            searchPredicateFactory: SearchPredicateFactory,
+            boolCollector: BooleanPredicateOptionsCollector<*>,
+            value: String,
+            fields: Array<String>,
+        ) {
+            if (value.isBlank()) {
+                return
+            }
+            logDebugFunCall(log) {
+                it.mtd("search(value, fields)")
+                    .msg("bool.must(f.simpleQueryString().fields(${fields.joinToString()}).matching(\"$value\").defaultOperator(BooleanOperator.AND))")
+            }
+            boolCollector.must(
+                searchPredicateFactory.queryString()
+                    .fields(*fields)
+                    .matching(value)
+                //.defaultOperator(BooleanOperator.AND)
+            )
+        }
+
+        private fun search(
+            searchPredicateFactory: SearchPredicateFactory,
+            boolCollector: BooleanPredicateOptionsCollector<*>,
+            value: Number,
+            numericFields: Array<Pair<String, Class<*>>>,
+            stringFields: Array<String>,
+        ) {
+            val predicates = numericFields.map {
+                searchPredicateFactory
+                    .range()
+                    .field(it.first)
+                    .between(getValue(value, it.second), getValue(value, it.second))
+            }.toTypedArray()
+            logDebugFunCall(log) {
+                it.mtd("search(value, fields)")
+                    .msg("bool.must(or(f.id().matching(${value}), f.range()[${numericFields.joinToString { "${it.first}:${it.second}" }}], f.queryString().fields(${stringFields.joinToString()}).matching(\"$value\")))")
+            }
+            boolCollector.must(
+                searchPredicateFactory.or(
+                    searchPredicateFactory
+                        .id()
+                        .matching(value.toLong()),
+                    searchPredicateFactory.queryString()
+                        .fields(*stringFields)
+                        .matching(value.toString()),
+                    *predicates
+                )
+            )
+        }
+
+
+        /*override fun addTo(qb: DBQueryBuilderByFullText<*>) {
+            logDebugFunCall(log) { it.mtd("FullSearch.addTo(qb)").msg("queryString=$queryString") }
+            qb.fulltextSearch(queryString)
+        }*/
+    }
+
+    fun getValue(value: Number, type: Class<*>): Any {
+        return when (type) {
+            Int::class.java, Integer::class.java -> value.toInt()
+            Long::class.java, java.lang.Long::class.java -> value.toLong()
+            Float::class.java, java.lang.Float::class.java -> value.toFloat()
+            Double::class.java, java.lang.Double::class.java -> value.toDouble()
+            BigDecimal::class.java -> BigDecimal(value.toString())
+            BigInteger::class.java -> BigInteger(value.toString())
+            else -> value
         }
     }
 
@@ -390,7 +600,7 @@ abstract class DBPredicate(
         }
 
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [isNull] cb.isNull($field)")
+            log.debug { "Adding criteria search (${ctx.entityName}): [isNull] cb.isNull($field)" }
             return ctx.cb.isNull(ctx.getField<Any>(field!!))
         }
     }
@@ -401,7 +611,7 @@ abstract class DBPredicate(
         }
 
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [isNotNull] cb.isNotNull($field)")
+            log.debug { "Adding criteria search (${ctx.entityName}): [isNotNull] cb.isNotNull($field)" }
             return ctx.cb.isNotNull(ctx.getField<Any>(field!!))
         }
     }
@@ -412,9 +622,9 @@ abstract class DBPredicate(
         }
 
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [not] cb.not(...) started.")
+            log.debug { "Adding criteria search (${ctx.entityName}): [not] cb.not(...) started." }
             val result = ctx.cb.not(predicate.asPredicate(ctx))
-            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [not] cb.not(...) ended.")
+            log.debug { "Adding criteria search (${ctx.entityName}): [not] cb.not(...) ended." }
             return result
         }
     }
@@ -445,7 +655,7 @@ abstract class DBPredicate(
             }
 
         override fun match(obj: Any): Boolean {
-            if (predicates.isNullOrEmpty()) {
+            if (predicates.isEmpty()) {
                 return false
             }
             for (matcher in predicates) {
@@ -457,14 +667,10 @@ abstract class DBPredicate(
         }
 
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [and] cb.and(...) started.")
+            log.debug { "Adding criteria search (${ctx.entityName}): [and] cb.and(...) started." }
             val result = ctx.cb.and(*predicates.map { it.asPredicate(ctx) }.toTypedArray())
-            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [and] cb.and(...) ended.")
+            log.debug { "Adding criteria search (${ctx.entityName}): [and] cb.and(...) ended." }
             return result
-        }
-
-        override fun addTo(qb: DBQueryBuilderByFullText<*>) {
-            qb.and(*predicates.toTypedArray())
         }
     }
 
@@ -484,7 +690,7 @@ abstract class DBPredicate(
         }
 
         override fun match(obj: Any): Boolean {
-            if (predicates.isNullOrEmpty()) {
+            if (predicates.isEmpty()) {
                 return false
             }
             for (matcher in predicates) {
@@ -496,9 +702,9 @@ abstract class DBPredicate(
         }
 
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [or] cb.or(...) started.")
+            log.debug { "Adding criteria search (${ctx.entityName}): [or] cb.or(...) started." }
             val result = ctx.cb.or(*predicates.map { it.asPredicate(ctx) }.toTypedArray())
-            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [or] cb.or(...) ended.")
+            log.debug { "Adding criteria search (${ctx.entityName}): [or] cb.or(...) ended." }
             return result
         }
     }
@@ -529,21 +735,23 @@ abstract class DBPredicate(
             is Iterable<*> -> {
                 for (it in nestedObj) {
                     val result =
-                            if (hasNext(path, idx))
-                                fieldValueMatch(it, path, idx + 1, match)
-                            else match(it)
+                        if (hasNext(path, idx))
+                            fieldValueMatch(it, path, idx + 1, match)
+                        else match(it)
                     if (result) return true
                 }
             }
+
             is Array<*> -> {
                 for (it in nestedObj) {
                     val result =
-                            if (hasNext(path, idx))
-                                fieldValueMatch(it, path, idx + 1, match)
-                            else match(it)
+                        if (hasNext(path, idx))
+                            fieldValueMatch(it, path, idx + 1, match)
+                        else match(it)
                     if (result) return true
                 }
             }
+
             else -> {
                 if (hasNext(path, idx))
                     return fieldValueMatch(nestedObj, path, idx + 1, match)

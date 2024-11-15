@@ -273,7 +273,7 @@ public class DateTimeFormatter extends AbstractFormatter {
    */
   public String getFormattedDuration(final long millis, final int hoursOfDay, final int minHours4DaySeparation) {
     final int[] fields = TimePeriod.getDurationFields(millis, hoursOfDay, minHours4DaySeparation);
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     if (fields[0] > 0) { // days
       buf.append(fields[0]).append(getI18nMessage("calendar.unit.day")).append(" ");
     }
@@ -283,7 +283,7 @@ public class DateTimeFormatter extends AbstractFormatter {
     return buf.toString();
   }
 
-  private void formatNumber(final StringBuffer buf, final long number) {
+  private void formatNumber(final StringBuilder buf, final long number) {
     if (number < 10) {
       buf.append("0");
     }

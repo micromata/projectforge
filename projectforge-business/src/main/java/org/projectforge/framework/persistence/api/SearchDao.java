@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.api;
 
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de) TODO RK check if needed and may replace
  */
-@Repository
+@Service
 public class SearchDao {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SearchDao.class);
 
@@ -52,7 +52,7 @@ public class SearchDao {
     } else {
       filter.setUseModificationFilter(false);
     }
-    final List<ExtendedBaseDO> list = baseDao.getListForSearchDao(filter);
+    final List<ExtendedBaseDO> list = baseDao.selectForSearchDao(filter);
     if (list == null) {
       // An error occured.
       return null;

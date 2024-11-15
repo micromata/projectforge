@@ -33,13 +33,13 @@ public class GanttTaskImplTest
   public void getNextId()
   {
     GanttTaskImpl root = new GanttTaskImpl();
-    root.addChild(new GanttTaskImpl(5));
+    root.addChild(new GanttTaskImpl(5L));
     assertEquals(-1, root.getNextId());
-    root.addChild(new GanttTaskImpl(-1));
+    root.addChild(new GanttTaskImpl(-1L));
     assertEquals(-2, root.getNextId());
-    root.addChild(new GanttTaskImpl(-5));
+    root.addChild(new GanttTaskImpl(-5L));
     assertEquals(-6, root.getNextId());
-    root.addChild(new GanttTaskImpl(-6));
+    root.addChild(new GanttTaskImpl(-6L));
     assertEquals(-7, root.getNextId());
   }
 }

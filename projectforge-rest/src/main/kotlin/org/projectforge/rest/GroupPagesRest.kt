@@ -51,7 +51,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
 private val log = KotlinLogging.logger {}
@@ -248,7 +248,7 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
     }
     val mails = mutableSetOf<String>()
     dto.assignedUsers?.forEach { user ->
-      userService.getById(user.id)?.email?.let { email ->
+      userService.find(user.id, false)?.email?.let { email ->
         mails.add(email)
       }
     }

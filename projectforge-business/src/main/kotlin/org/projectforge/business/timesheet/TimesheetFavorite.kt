@@ -30,14 +30,14 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 class TimesheetFavorite(
   name: String? = null,
-  id: Int = 0,
-  var taskId: Int? = null,
-  var userId: Int? = null,
+  id: Long = 0,
+  var taskId: Long? = null,
+  var userId: Long? = null,
   var location: String? = null,
   var tag: String? = null,
   var reference: String? = null,
   var description: String? = null,
-  var cost2Id: Int? = null
+  var cost2Id: Long? = null
 ) : AbstractFavorite(name, id) {
 
   fun fillFromTimesheet(timesheet: TimesheetDO) {

@@ -39,7 +39,7 @@ object BaseUserGroupRightUtils {
     return isOwner(user?.id, obj)
   }
 
-  fun isOwner(userId: Int?, obj: BaseUserGroupRightsDO?): Boolean {
+  fun isOwner(userId: Long?, obj: BaseUserGroupRightsDO?): Boolean {
     return obj != null && userId != null && userId == obj.ownerId
   }
 
@@ -47,31 +47,31 @@ object BaseUserGroupRightUtils {
    * @return [DataobjectAccessType.NONE], [DataobjectAccessType.MINIMAL], [DataobjectAccessType.READONLY] or
    * [DataobjectAccessType.FULL]. null will never be returned!
    */
-  fun getAccessType(obj: BaseUserGroupRightsDO?, userId: Int?): DataobjectAccessType {
+  fun getAccessType(obj: BaseUserGroupRightsDO?, userId: Long?): DataobjectAccessType {
     if (obj == null || userId == null) {
       return DataobjectAccessType.NONE
     }
     if (userId == obj.ownerId) {
       return DataobjectAccessType.OWNER
     }
-    var groupIds = StringHelper.splitToIntegers(obj.fullAccessGroupIds, ",")
-    var userIds = StringHelper.splitToIntegers(obj.fullAccessUserIds, ",")
+    var groupIds = StringHelper.splitToLongObjects(obj.fullAccessGroupIds, ",")
+    var userIds = StringHelper.splitToLongObjects(obj.fullAccessUserIds, ",")
     if (isMemberOfAny(groupIds, userIds, userId)) {
       return DataobjectAccessType.FULL
     }
-    groupIds = StringHelper.splitToIntegers(obj.readonlyAccessGroupIds, ",")
-    userIds = StringHelper.splitToIntegers(obj.readonlyAccessUserIds, ",")
+    groupIds = StringHelper.splitToLongObjects(obj.readonlyAccessGroupIds, ",")
+    userIds = StringHelper.splitToLongObjects(obj.readonlyAccessUserIds, ",")
     if (isMemberOfAny(groupIds, userIds, userId)) {
       return DataobjectAccessType.READONLY
     }
-    groupIds = StringHelper.splitToIntegers(obj.minimalAccessGroupIds, ",")
-    userIds = StringHelper.splitToIntegers(obj.minimalAccessUserIds, ",")
+    groupIds = StringHelper.splitToLongObjects(obj.minimalAccessGroupIds, ",")
+    userIds = StringHelper.splitToLongObjects(obj.minimalAccessUserIds, ",")
     return if (isMemberOfAny(groupIds, userIds, userId)) {
       DataobjectAccessType.MINIMAL
     } else DataobjectAccessType.NONE
   }
 
-  fun hasReadAccess(obj: BaseUserGroupRightsDO?, userId: Int?, throwException: Boolean = false): Boolean {
+  fun hasReadAccess(obj: BaseUserGroupRightsDO?, userId: Long?, throwException: Boolean = false): Boolean {
     return if (getAccessType(obj, userId).isIn(
         DataobjectAccessType.READONLY,
         DataobjectAccessType.FULL,
@@ -88,7 +88,7 @@ object BaseUserGroupRightUtils {
     }
   }
 
-  fun hasWriteAccess(obj: BaseUserGroupRightsDO?, userId: Int?, throwException: Boolean = false): Boolean {
+  fun hasWriteAccess(obj: BaseUserGroupRightsDO?, userId: Long?, throwException: Boolean = false): Boolean {
     return if (getAccessType(obj, userId).isIn(DataobjectAccessType.FULL, DataobjectAccessType.OWNER)) {
       true
     } else {
@@ -102,7 +102,7 @@ object BaseUserGroupRightUtils {
 
   fun hasAccess(
     obj: BaseUserGroupRightsDO?,
-    userId: Int?,
+    userId: Long?,
     operationType: OperationType?,
     throwException: Boolean = false,
   ): Boolean {
@@ -112,7 +112,7 @@ object BaseUserGroupRightUtils {
   fun hasAccess(
     obj: BaseUserGroupRightsDO?,
     oldObj: BaseUserGroupRightsDO?,
-    userId: Int?,
+    userId: Long?,
     operationType: OperationType?,
     throwException: Boolean = false,
   ): Boolean {
@@ -127,7 +127,7 @@ object BaseUserGroupRightUtils {
     return hasReadAccess(oldObj ?: obj, userId, throwException)
   }
 
-  private fun isMemberOfAny(groupIds: Array<Int>?, userIds: Array<Int?>?, userId: Int): Boolean {
+  private fun isMemberOfAny(groupIds: Array<Long>?, userIds: Array<Long?>?, userId: Long): Boolean {
     if (!groupIds.isNullOrEmpty() && UserGroupCache.getInstance().isUserMemberOfAtLeastOneGroup(userId, *groupIds)) {
       return true
     }

@@ -27,7 +27,7 @@ import org.projectforge.business.user.UserTokenType
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * Users may have serveral authentication tokens, e. g. for CardDAV/CalDAV-Clients or other clients. ProjectForge shows the usage of this tokens and such tokens
@@ -38,7 +38,7 @@ import javax.persistence.*
 @Table(
   name = "T_PF_USER_AUTHENTICATIONS",
   uniqueConstraints = [UniqueConstraint(columnNames = ["user_id"])],
-  indexes = [Index(name = "idx_fk_t_pf_user_id", columnList = "user_id")]
+  indexes = [Index(name = "idx_fk_t_pf_user_authentication_user_id", columnList = "user_id")]
 )
 @NamedQueries(
   NamedQuery(
@@ -100,7 +100,7 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
   @get:JoinColumn(name = "user_id")
   open var user: PFUserDO? = null
 
-  val userId: Int?
+  val userId: Long?
     @Transient
     get() = user?.id
 

@@ -80,7 +80,7 @@ public class PdfRenderer {
   }
 
   public byte[] render(final String stylesheet, final String groovyXml, final Map<String, Object> data) {
-    final PFUserDO user = ThreadLocalUserContext.getUser();
+    final PFUserDO user = ThreadLocalUserContext.getLoggedInUser();
     data.put("createdLabel", ThreadLocalUserContext.getLocalizedString("created"));
     data.put("loggedInUser", user);
     data.put("baseDir", configurationService.getResourceDirName());

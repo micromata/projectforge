@@ -40,30 +40,30 @@ class TaskFavoritesService {
         return userPrefs.map { TaskFavorite(it.name!!, it.id!!) }
     }
 
-    fun selectTaskId(id: Int): Int? {
+    fun selectTaskId(id: Long): Long? {
         @Suppress("DEPRECATION")
-        val taskIdString = userPrefDao.getUserPref(AREA_ID, id)?.getUserPrefEntryAsString(PARAMETER)
+        val taskIdString = userPrefDao.selectUserPref(AREA_ID, id)?.getUserPrefEntryAsString(PARAMETER)
         try {
-            return taskIdString?.toInt()
+            return taskIdString?.toLong()
         } catch (ex: NumberFormatException) {
             log.info("Oups, can't parse task id '$taskIdString' of user's favorite with pk=${id}")
             return null
         }
     }
 
-    fun createFavorite(name: String, taskId: Int): List<TaskFavorite> {
+    fun createFavorite(name: String, taskId: Long): List<TaskFavorite> {
         val favorites = Favorites(getList())
         val newFavorite = TaskFavorite(name)
         favorites.createUserPrefLegacyEntry(userPrefDao, AREA_ID, newFavorite, PARAMETER, taskId.toString())
         return getList()
     }
 
-    fun deleteFavorite(id: Int): List<TaskFavorite> {
+    fun deleteFavorite(id: Long): List<TaskFavorite> {
         Favorites.deleteUserPref(userPrefDao, AREA_ID, id)
         return getList()
     }
 
-    fun renameFavorite(id: Int, newName: String): List<TaskFavorite> {
+    fun renameFavorite(id: Long, newName: String): List<TaskFavorite> {
         Favorites.renameUserPref(userPrefDao, AREA_ID, id, newName)
         return getList()
     }

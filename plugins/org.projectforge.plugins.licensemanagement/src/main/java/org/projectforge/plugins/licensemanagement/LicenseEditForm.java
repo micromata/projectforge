@@ -29,6 +29,7 @@ import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UsersComparator;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.common.MultiChoiceListHelper;
 import org.projectforge.web.user.UsersProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
@@ -42,7 +43,6 @@ import org.wicketstuff.select2.Select2MultiChoice;
 
 import java.time.LocalDate;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -59,12 +59,6 @@ public class LicenseEditForm extends AbstractEditForm<LicenseDO, LicenseEditPage
   MultiChoiceListHelper<PFUserDO> assignOwnersListHelper;
 
   protected FileUploadPanel fileUploadPanel1, fileUploadPanel2;
-
-  @SpringBean
-  UserDao userDao;
-
-  @SpringBean
-  UserRightService userRights;
 
   public LicenseEditForm(final LicenseEditPage parentPage, final LicenseDO data)
   {
@@ -146,7 +140,7 @@ public class LicenseEditForm extends AbstractEditForm<LicenseDO, LicenseEditPage
       // Owners
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.licensemanagement.owner"))
           .setLabelSide(false);
-      final UsersProvider usersProvider = new UsersProvider(userDao);
+      final UsersProvider usersProvider = new UsersProvider(WicketSupport.getUserDao());
       assignOwnersListHelper = new MultiChoiceListHelper<PFUserDO>().setComparator(new UsersComparator()).setFullList(
           usersProvider.getSortedUsers());
       final Collection<PFUserDO> owners = ((LicenseDao) getBaseDao()).getSortedOwners(data);
@@ -181,7 +175,7 @@ public class LicenseEditForm extends AbstractEditForm<LicenseDO, LicenseEditPage
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.licensemanagement.licenseHolder"));
       fs.add(new MaxLengthTextField(fs.getTextFieldId(), new PropertyModel<>(data, "licenseHolder")));
     }
-    final LicenseManagementRight right = (LicenseManagementRight) userRights
+    final LicenseManagementRight right = (LicenseManagementRight) WicketSupport.get(UserRightService.class)
         .getRight(LicensemanagementPluginUserRightsId.PLUGIN_LICENSE_MANAGEMENT);
     {
       // Text key

@@ -26,7 +26,7 @@ package org.projectforge.plugins.merlin.rest
 import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.word.templating.VariableType
 import mu.KotlinLogging
-import org.projectforge.business.fibu.api.EmployeeService
+import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.user.service.UserService
@@ -51,9 +51,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
-import javax.servlet.http.HttpServletRequest
-import javax.validation.Valid
-
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
 
 private val log = KotlinLogging.logger {}
 
@@ -117,7 +116,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
 
   @PostMapping("serialExecution/{id}")
   fun serialExecution(
-    @PathVariable("id", required = true) id: Int,
+    @PathVariable("id", required = true) id: Long,
     @RequestParam("file") file: MultipartFile
   ): ResponseEntity<*> {
     MerlinPlugin.ensureUserLogSubscription()
@@ -152,7 +151,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
 
   @GetMapping("downloadSerialExecutionTemplate/{id}")
   fun downloadSerialExecutionTemplate(
-    @PathVariable("id", required = true) id: Int,
+    @PathVariable("id", required = true) id: Long,
     @RequestParam("fill") fill: String? = null
   )
       : ResponseEntity<*> {
@@ -172,8 +171,8 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
     val logViewerMenuItem = MerlinPlugin.createUserLogSubscriptionMenuItem()
-    val id = NumberHelper.parseInteger(idString) ?: throw IllegalAccessException("Parameter id not an int.")
-    val dbObj = merlinTemplateDao.getById(id)
+    val id = NumberHelper.parseLong(idString) ?: throw IllegalAccessException("Parameter id not an int.")
+    val dbObj = merlinTemplateDao.find(id)!!
     val dto = merlinPagesRest.transformFromDB(dbObj)
     val stats = merlinHandler.analyze(dto).statistics
     val col1 = UICol(md = 6)
@@ -249,8 +248,8 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
       title = translate("plugins.merlin.serial.template.download"),
     )
     serialExceutionMenu.add(createSerialExcelDownloadMenu(id, "base"))
-    if (UserGroupCache.getInstance().isUserMemberOfAdminGroup(ThreadLocalUserContext.userId)
-      || UserGroupCache.getInstance().isUserMemberOfHRGroup(ThreadLocalUserContext.userId)
+    if (UserGroupCache.getInstance().isUserMemberOfAdminGroup(ThreadLocalUserContext.loggedInUserId)
+      || UserGroupCache.getInstance().isUserMemberOfHRGroup(ThreadLocalUserContext.loggedInUserId)
     ) {
       serialExceutionMenu.add(createSerialExcelDownloadMenu(id, "employees"))
       serialExceutionMenu.add(createSerialExcelDownloadMenu(id, "users"))
@@ -285,7 +284,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     return FormLayoutData(executionData, layout, createServerData(request))
   }
 
-  private fun createSerialExcelDownloadMenu(id: Int, type: String): MenuItem {
+  private fun createSerialExcelDownloadMenu(id: Long, type: String): MenuItem {
     val fill = if (type == "base") {
       ""
     } else {
@@ -332,7 +331,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     return merlinTemplateDao.hasLoggedInUserUpdateAccess(dbObj, dbObj, false)
   }
 
-  private fun getUserPref(id: Int): MerlinExecutionData {
+  private fun getUserPref(id: Long): MerlinExecutionData {
     return userPrefService.ensureEntry("merlin-template", "$id", MerlinExecutionData(id, ""))
   }
 
@@ -341,12 +340,12 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
   }
 
   private fun addUsers(sheet: ExcelSheet, employees: Boolean = false) {
-    val access = UserGroupCache.getInstance().isUserMemberOfAdminGroup(ThreadLocalUserContext.userId)
-        || UserGroupCache.getInstance().isUserMemberOfHRGroup(ThreadLocalUserContext.userId)
+    val access = UserGroupCache.getInstance().isUserMemberOfAdminGroup(ThreadLocalUserContext.loggedInUserId)
+        || UserGroupCache.getInstance().isUserMemberOfHRGroup(ThreadLocalUserContext.loggedInUserId)
     if (!access) {
       return
     }
-    val hrAccess = UserGroupCache.getInstance().isUserMemberOfHRGroup(ThreadLocalUserContext.userId)
+    val hrAccess = UserGroupCache.getInstance().isUserMemberOfHRGroup(ThreadLocalUserContext.loggedInUserId)
     if (employees && hrAccess) {
       registerColumn(sheet, "staffNumber", "fibu.employee.staffNumber")
     }
@@ -366,7 +365,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     sheet.reset()
     if (employees) {
       // Add employees
-      employeeService.findAllActive(false).filter { it.user?.hasSystemAccess() == true }.forEach { employee ->
+      employeeService.selectAllActive(false).filter { it.user?.hasSystemAccess() == true }.forEach { employee ->
         val row = sheet.createRow()
         sheet.reset()
         employee.user?.let { user ->
@@ -377,10 +376,6 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
         }
         if (hrAccess) {
           row.getCell("staffNumber")?.setCellValue(employee.staffNumber)
-          row.getCell("street")?.setCellValue(employee.street)
-          row.getCell("zipCode")?.setCellValue(employee.zipCode)
-          row.getCell("city")?.setCellValue(employee.city)
-          row.getCell("country")?.setCellValue(employee.country)
         }
       }
     } else {

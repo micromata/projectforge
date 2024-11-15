@@ -23,8 +23,10 @@
 
 package org.projectforge.rest
 
+import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
 import org.projectforge.business.admin.SystemStatistics
+import org.projectforge.common.extensions.capitalize
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.dto.FormLayoutData
@@ -33,41 +35,40 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/systemStatistics")
 class SystemStatisticPageRest : AbstractDynamicPageRest() {
-  @Autowired
-  private lateinit var systemStatistics: SystemStatistics
+    @Autowired
+    private lateinit var systemStatistics: SystemStatistics
 
-  @GetMapping("dynamic")
-  fun getForm(request: HttpServletRequest): FormLayoutData {
-    val statsData = systemStatistics.getSystemStatistics()
-    val layout = UILayout("system.statistics.title")
+    @GetMapping("dynamic")
+    fun getForm(request: HttpServletRequest): FormLayoutData {
+        val statsData = systemStatistics.getSystemStatistics()
+        val layout = UILayout("system.statistics.title")
 
-    statsData.groups.forEach { group ->
-      val fieldset = UIFieldset(title = "'${group.capitalize()}")
-      statsData.filterEntries(group).forEach {
-        fieldset.add(createRow(it.title, it.valueAsString()))
-      }
-      layout.add(fieldset)
+        statsData.groups.forEach { group ->
+            val fieldset = UIFieldset(title = "'${group.capitalize()}")
+            statsData.filterEntries(group).forEach {
+                fieldset.add(createRow(it.title, it.valueAsString()))
+            }
+            layout.add(fieldset)
+        }
+        LayoutUtils.process(layout)
+        return FormLayoutData(statsData, layout, createServerData(request))
     }
-    LayoutUtils.process(layout)
-    return FormLayoutData(statsData, layout, createServerData(request))
-  }
 
-  private fun createRow(label: String, value: String): UIRow {
-    return UIRow()
-      .add(
-        UICol(UILength(12, 6, 6, 4, 3))
-          .add(UILabel(label))
-      )
-      .add(
-        UICol(UILength(12, 6, 6, 8, 9))
-          .add(UILabel("'$value"))
-      )
-  }
+    private fun createRow(label: String, value: String): UIRow {
+        return UIRow()
+            .add(
+                UICol(UILength(12, 6, 6, 4, 3))
+                    .add(UILabel(label))
+            )
+            .add(
+                UICol(UILength(12, 6, 6, 8, 9))
+                    .add(UILabel("'$value"))
+            )
+    }
 }

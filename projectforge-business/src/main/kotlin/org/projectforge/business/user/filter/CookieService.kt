@@ -36,9 +36,9 @@ import org.projectforge.security.SecurityLogging.logSecurityWarn
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.web.ServerProperties
 import org.springframework.stereotype.Service
-import javax.servlet.http.Cookie
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.Cookie
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 
@@ -138,7 +138,7 @@ class CookieService {
     return getCookie(request, COOKIE_NAME_FOR_LAST_2FA)
   }
 
-  fun getLast2FA(request: HttpServletRequest, userId: Int): Long? {
+  fun getLast2FA(request: HttpServletRequest, userId: Long): Long? {
     val cookie = getLast2FACookie(request) ?: return null
     try {
       val lastSuccessful2FA = userService.decrypt(cookie.value, userId) ?: return null

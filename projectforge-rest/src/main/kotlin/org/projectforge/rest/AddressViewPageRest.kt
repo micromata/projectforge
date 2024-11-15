@@ -45,7 +45,7 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
 private val log = KotlinLogging.logger {}
@@ -68,7 +68,7 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
   enum class PhoneType { BUSINESS, MOBILE, PRIVATE, PRIVATE_MOBILE }
 
   class PhoneNumber(
-    var addressId: Int,
+    var addressId: Long,
     var number: String?,
     var phoneCallEnabled: Boolean,
     var phoneType: PhoneType,
@@ -84,8 +84,8 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
     @RequestParam("id") idString: String?,
     @RequestParam("returnToCaller") returnToCaller: String?,
   ): FormLayoutData {
-    val id = NumberHelper.parseInteger(idString) ?: throw IllegalArgumentException("id not given.")
-    val addressDO = addressDao.getById(id) ?: AddressDO()
+    val id = NumberHelper.parseLong(idString) ?: throw IllegalArgumentException("id not given.")
+    val addressDO = addressDao.find(id) ?: AddressDO()
     val address = Address()
     address.copyFrom(addressDO)
     address.isFavoriteCard = personalAddressDao.getByAddressId(id)?.isFavoriteCard ?: false
@@ -243,8 +243,8 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
   fun watchFields(@Valid @RequestBody postData: PostData<Address>): ResponseEntity<ResponseAction> {
     val id = postData.data.id ?: throw IllegalAccessException("Parameter id not given.")
     val favorite = postData.data.isFavoriteCard
-    val address = addressDao.getById(id) ?: throw IllegalAccessException("Address not found.")
-    val owner = ThreadLocalUserContext.user!!
+    val address = addressDao.find(id) ?: throw IllegalAccessException("Address not found.")
+    val owner = ThreadLocalUserContext.loggedInUser!!
     val personalAddress = personalAddressDao.getByAddressId(id, owner) ?: PersonalAddressDO()
     if (personalAddress.id == null) {
       if (!favorite) {
@@ -252,7 +252,7 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
         return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
       }
       personalAddress.address = address
-      personalAddressDao.setOwner(personalAddress, owner.id) // Set current logged in user as owner.
+      personalAddressDao.setOwner(personalAddress, owner.id!!) // Set current logged in user as owner.
       personalAddress.isFavoriteCard = true
       personalAddressDao.saveOrUpdate(personalAddress)
     } else if (favorite != personalAddress.isFavorite) {
@@ -326,8 +326,7 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
   companion object {
     @JvmStatic
     @JvmOverloads
-    fun getPageUrl(id: Int?, returnToCaller: String? = null, absolute: Boolean = true): String {
-      returnToCaller
+    fun getPageUrl(id: Long?, returnToCaller: String? = null, absolute: Boolean = true): String {
       return PagesResolver.getDynamicPageUrl(
         AddressViewPageRest::class.java,
         id = id,

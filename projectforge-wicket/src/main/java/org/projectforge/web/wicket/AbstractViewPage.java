@@ -25,19 +25,16 @@ package org.projectforge.web.wicket;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.business.fibu.EmployeeService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 
 public abstract class AbstractViewPage extends AbstractSecuredPage
 {
   private static final long serialVersionUID = 6317381238021216284L;
-
-  @SpringBean
-  protected EmployeeService employeeService;
 
   protected GridBuilder gridBuilder;
 
@@ -56,8 +53,8 @@ public abstract class AbstractViewPage extends AbstractSecuredPage
   protected void onInitialize()
   {
     super.onInitialize();
-    currentUser = ThreadLocalUserContext.getUser();
-    currentEmployee = employeeService.getEmployeeByUserId(currentUser.getPk());
+    currentUser = ThreadLocalUserContext.getLoggedInUser();
+    currentEmployee = WicketSupport.get(EmployeeService.class).findByUserId(currentUser.getId());
   }
 
   @Override

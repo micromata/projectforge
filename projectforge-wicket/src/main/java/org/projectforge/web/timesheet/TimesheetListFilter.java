@@ -38,7 +38,7 @@ public class TimesheetListFilter extends TimesheetFilter
   public TimesheetListFilter reset()
   {
     super.reset();
-    setUserId(ThreadLocalUserContext.getUserId());
+    setUserId(ThreadLocalUserContext.getLoggedInUserId());
     final DateHolder date = new DateHolder(DatePrecision.DAY);
     date.setBeginOfWeek();
     setStartTime(date.getUtilDate());

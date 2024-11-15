@@ -33,7 +33,7 @@ class AuftragsPositionsArtFilter(val values: List<AuftragsPositionsArt>) : Custo
         if (values.isEmpty()) {
             return true
         }
-        element.positionenExcludingDeleted.forEach {pos ->
+        element.positionenExcludingDeleted.forEach { pos ->
             if (values.contains(pos.art)) {
                 return true
             }
@@ -42,12 +42,12 @@ class AuftragsPositionsArtFilter(val values: List<AuftragsPositionsArt>) : Custo
     }
 
     companion object {
-         fun create(valuesAsStrings: Array<String>): AuftragsPositionsArtFilter {
+        fun create(valuesAsStrings: Array<String>): AuftragsPositionsArtFilter {
             val values = valuesAsStrings.mapNotNull {
                 try {
                     AuftragsPositionsArt.valueOf(it)
                 } catch (ex: Exception) {
-                    log.error{"Ignore unknown value '$it' of type ${AuftragsPositionsArt::class.java.name}."}
+                    log.error { "Ignore unknown value '$it' of type ${AuftragsPositionsArt::class.java.name}." }
                     null
                 }
             }

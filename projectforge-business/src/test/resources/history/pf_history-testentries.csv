@@ -1,0 +1,116 @@
+    pk    |       modifiedat        | modifiedby | entity_id |                entity_name                | entity_optype
+----------+-------------------------+------------+-----------+-------------------------------------------+---------------
+-- select pk,modifiedat,modifiedby,entity_id,entity_name,entity_optype from t_pf_history where entity_id=40770225;
+ 40770229 | 2023-11-01 10:40:20.059 | 176        |  40770225 | org.projectforge.business.fibu.RechnungDO | Insert
+ 41391150 | 2024-01-02 12:36:29.019 | 102        |  40770225 | org.projectforge.business.fibu.RechnungDO | Update
+
+-- select pk,modifiedat,modifiedby,entity_id,entity_name,entity_optype from t_pf_history where entity_id=36901223;
+ 36901229 | 2022-10-28 09:06:49.077 | 147        |  36901223 | org.projectforge.business.fibu.AuftragDO | Insert
+ 36901410 | 2022-10-28 09:08:48.981 | 147        |  36901223 | org.projectforge.business.fibu.AuftragDO | Update
+ 36901457 | 2022-10-28 09:09:57.654 | 147        |  36901223 | org.projectforge.business.fibu.AuftragDO | Update
+ 38118558 | 2023-02-20 05:07:56.604 | 147        |  36901223 | org.projectforge.business.fibu.AuftragDO | Update
+ 38118562 | 2023-02-20 05:26:55.223 | 147        |  36901223 | org.projectforge.business.fibu.AuftragDO | Update
+ 38147991 | 2023-02-22 13:25:45.966 | 147        |  36901223 | org.projectforge.business.fibu.AuftragDO | Update
+ 38507984 | 2023-03-28 06:34:54.4   | 347        |  36901223 | org.projectforge.business.fibu.AuftragDO | Update
+ 38508173 | 2023-03-28 06:40:55.248 | 347        |  36901223 | org.projectforge.business.fibu.AuftragDO | Update
+ 41195493 | 2023-12-05 07:32:15.703 | 147        |  36901223 | org.projectforge.business.fibu.AuftragDO | Update
+
+-- select pk,modifiedat,modifiedby,entity_id,entity_name,entity_optype from t_pf_history where entity_id in (36901224,36901225,36901226,36901227,36901228);
+ 38118578 | 2023-02-20 05:26:55.231 | 147       |  36901224 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 38385654 | 2023-03-13 06:40:17.283 | 147       |  36901224 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 38512218 | 2023-03-28 10:45:57.212 | 347       |  36901224 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 38118574 | 2023-02-20 05:26:55.23  | 147       |  36901225 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 39310527 | 2023-06-12 05:25:48.566 | 147       |  36901225 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 39427996 | 2023-06-26 11:20:34.263 | 347       |  36901225 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 38118570 | 2023-02-20 05:26:55.228 | 147       |  36901226 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 40325359 | 2023-09-18 05:34:09.882 | 147       |  36901226 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 40372455 | 2023-09-22 09:58:55.086 | 100       |  36901226 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 38118566 | 2023-02-20 05:26:55.226 | 147       |  36901227 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 41195497 | 2023-12-05 07:32:15.703 | 147       |  36901227 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 41214090 | 2023-12-06 12:08:39.368 | 347       |  36901227 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 38118582 | 2023-02-20 05:26:55.232 | 147       |  36901228 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 39552414 | 2023-07-03 09:21:13.677 | 147       |  36901228 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 39552418 | 2023-07-03 09:23:03.764 | 147       |  36901228 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 41195501 | 2023-12-05 07:32:15.704 | 147       |  36901228 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 41214094 | 2023-12-06 12:08:39.369 | 347       |  36901228 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+
+-- select pk,modifiedat,modifiedby,entity_id,entity_name,entity_optype from t_pf_history where entity_id=190664;
+ 2658215 | 2009-01-20 22:54:24.272 | 254        |    190664 | org.projectforge.framework.access.GroupTaskAccessDO | Insert
+ 2658991 | 2009-01-21 09:42:30.275 | 254        |    190664 | org.projectforge.framework.access.GroupTaskAccessDO | Update
+
+-- select pk,modifiedat,modifiedby,entity_id,entity_name,entity_optype from t_pf_history where entity_id=34961222;
+ 34961223 | 2022-09-08 07:13:48.026 | 329       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Insert
+ 34961266 | 2022-09-08 07:13:48.742 | 329       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 34961278 | 2022-09-08 07:13:49.346 | 329       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 34961320 | 2022-09-08 07:13:49.386 | 329       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 34961324 | 2022-09-08 07:13:50.034 | 329       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 34962400 | 2022-09-08 07:59:42.861 | 329       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 36511605 | 2022-09-19 08:43:50.884 | 329       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 36516954 | 2022-09-19 12:05:04.831 | 329       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 36543747 | 2022-09-22 07:34:43.203 | 329       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 36634908 | 2022-10-04 09:55:19.329 | 329       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 36634926 | 2022-10-04 09:55:19.357 | 329       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 36781542 | 2022-10-14 08:15:18.946 | 223       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 36804073 | 2022-10-18 09:08:33.185 | 282       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 36815550 | 2022-10-19 08:50:36.946 | 329       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 37229748 | 2022-11-28 09:08:31.35  | 342       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 37257895 | 2022-11-30 10:07:27.75  | 329       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 38057999 | 2023-02-10 13:34:25.23  | 342       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 38064542 | 2023-02-13 09:21:37.577 | 70        |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 38440550 | 2023-03-20 07:18:45.675 | 128       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 38567639 | 2023-04-03 12:41:27.435 | 282       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 38764389 | 2023-04-21 13:24:53.041 | 282       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 38821044 | 2023-04-28 05:21:06.774 | 318       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 40790124 | 2023-11-02 11:47:01.648 | 282       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 40965676 | 2023-11-15 11:57:16.598 | 282       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 41070156 | 2023-11-28 10:40:52.394 | 282       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 41819958 | 2024-02-13 07:55:56.71  | 318       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 42902117 | 2024-06-03 13:20:27.852 | 318       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+
+----------------------------------------------------------------------------------------------
+-- Invoice (RechnungDO) 351958 (embeds RechnungsPositionDO which embeds KostZuweisungDO)
+--   Position 351959
+--     KostZuweisung 382507, 382508, 382509
+--   Position 351960
+--     KostZuweisung 382506
+-- select pk,modifiedat,modifiedby,entity_id,entity_name,entity_optype from t_pf_history where entity_id in (351958,351959,351960,382506,382507,382508,382509) order by entity_name, pk;
+--   pk  |       modifiedat        | modifiedby | entity_id |                     entity_name                     | entity_optype
+---------+-------------------------+------------+-----------+-----------------------------------------------------+---------------
+ 3024276 | 2010-02-08 10:33:30.826 | 116        |    382509 | org.projectforge.business.fibu.kost.KostZuweisungDO | Update
+ 3024280 | 2010-02-08 10:33:30.826 | 116        |    382506 | org.projectforge.business.fibu.kost.KostZuweisungDO | Update
+ 3024284 | 2010-02-08 10:33:30.826 | 116        |    382508 | org.projectforge.business.fibu.kost.KostZuweisungDO | Update
+ 3024288 | 2010-02-08 10:33:30.827 | 116        |    382507 | org.projectforge.business.fibu.kost.KostZuweisungDO | Update
+ 3026605 | 2010-02-08 10:24:55.03  | 116        |    382509 | org.projectforge.business.fibu.kost.KostZuweisungDO | Insert
+ 3026609 | 2010-02-08 10:24:55.03  | 116        |    382506 | org.projectforge.business.fibu.kost.KostZuweisungDO | Insert
+ 3026613 | 2010-02-08 10:24:55.031 | 116        |    382507 | org.projectforge.business.fibu.kost.KostZuweisungDO | Insert
+ 3026617 | 2010-02-08 10:24:55.031 | 116        |    382508 | org.projectforge.business.fibu.kost.KostZuweisungDO | Insert
+ 2972182 | 2010-01-26 07:31:56.03  | 123        |    351958 | org.projectforge.business.fibu.RechnungDO           | Insert
+ 3042917 | 2010-02-22 07:55:30.248 | 123        |    351958 | org.projectforge.business.fibu.RechnungDO           | Update
+ 3062919 | 2010-03-08 12:26:57.06  | 116        |    351958 | org.projectforge.business.fibu.RechnungDO           | Update
+ 6191673 | 2015-04-20 15:19:27.996 | 357        |    351958 | org.projectforge.business.fibu.RechnungDO           | Update
+ 2972178 | 2010-01-26 07:31:56.029 | 123        |    351959 | org.projectforge.business.fibu.RechnungsPositionDO  | Insert
+ 2972186 | 2010-01-26 07:31:56.031 | 123        |    351960 | org.projectforge.business.fibu.RechnungsPositionDO  | Insert
+ 2985201 | 2010-02-02 15:16:41.847 | 245        |    351959 | org.projectforge.business.fibu.RechnungsPositionDO  | Update
+ 2988849 | 2010-02-02 15:16:42.22  | 245        |    351960 | org.projectforge.business.fibu.RechnungsPositionDO  | Update
+ 3026621 | 2010-02-08 10:24:55.037 | 116        |    351960 | org.projectforge.business.fibu.RechnungsPositionDO  | Update
+ 3026625 | 2010-02-08 10:24:55.037 | 116        |    351959 | org.projectforge.business.fibu.RechnungsPositionDO  | Update
+ 3062915 | 2010-03-08 12:26:57.06  | 116        |    351960 | org.projectforge.business.fibu.RechnungsPositionDO  | Update
+ 3062923 | 2010-03-08 12:26:57.061 | 116        |    351959 | org.projectforge.business.fibu.RechnungsPositionDO  | Update
+
+-- select pk,modifiedat,modifiedby,entity_id,entity_name,entity_optype from t_pf_history where entity_id=40312219;
+--  pk    |       modifiedat        | modifiedby | entity_id |                 entity_name                  | entity_optype
+----------+-------------------------+------------+-----------+----------------------------------------------+---------------
+ 40312223 | 2023-09-14 14:04:45.252 | 31994523   |  40312219 | org.projectforge.business.orga.VisitorbookDO | Insert
+ 40312245 | 2023-09-14 14:05:04.091 | 31994523   |  40312219 | org.projectforge.business.orga.VisitorbookDO | Update
+ 40312255 | 2023-09-14 14:05:17.443 | 31994523   |  40312219 | org.projectforge.business.orga.VisitorbookDO | Update
+ 40312269 | 2023-09-14 14:05:31.785 | 31994523   |  40312219 | org.projectforge.business.orga.VisitorbookDO | Update
+
+-- select pk,modifiedat,modifiedby,entity_id,entity_name,entity_optype from t_pf_history where entity_id=21339579;
+--   pk   |       modifiedat        | modifiedby | entity_id |                entity_name                | entity_optype
+----------+-------------------------+------------+-----------+-------------------------------------------+---------------
+ 21339582 | 2019-03-29 11:43:06.689 | 12982038   |  21339579 | org.projectforge.business.fibu.EmployeeDO | Insert
+ 28816752 | 2020-12-01 11:33:18.742 | 2          |  21339579 | org.projectforge.business.fibu.EmployeeDO | Update
+ 31130252 | 2021-08-06 10:00:50.607 | 28673310   |  21339579 | org.projectforge.business.fibu.EmployeeDO | Update
+ -- manual added:
+ 26289333 | 2020-02-13 09:15:03.798 | 821998     |  21339579 | org.projectforge.business.fibu.EmployeeDO | Update
+ 25952703 | 2020-02-13 09:15:03.798 | 821998     |  21339579 | org.projectforge.business.fibu.EmployeeDO | Update

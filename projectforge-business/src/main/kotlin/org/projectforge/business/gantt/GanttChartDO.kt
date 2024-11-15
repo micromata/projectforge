@@ -23,14 +23,16 @@
 
 package org.projectforge.business.gantt
 
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import javax.persistence.*
+import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -38,20 +40,24 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_GANTT_CHART", indexes = [Index(name = "idx_fk_t_gantt_chart_owner_fk", columnList = "owner_fk"), Index(name = "idx_fk_t_gantt_chart_task_fk", columnList = "task_fk")])
-class GanttChartDO : AbstractBaseDO<Int>() {
+class GanttChartDO : AbstractBaseDO<Long>() {
 
-    private var id: Int? = null
+    @get:Id
+    @get:GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
+    @get:Column(name = "pk")
+    override var id: Long? = null
 
     /**
      * Free usable name.
      */
     @PropertyInfo(i18nKey = "gantt.name")
-    @Field
+    @FullTextField
     @get:Column(length = 1000)
     var name: String? = null
 
     @PropertyInfo(i18nKey = "task")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "task_fk", nullable = false)
     var task: TaskDO? = null
@@ -95,27 +101,17 @@ class GanttChartDO : AbstractBaseDO<Int>() {
     var writeAccess: GanttAccess? = null
 
     @PropertyInfo(i18nKey = "gantt.owner")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "owner_fk")
     var owner: PFUserDO? = null
 
-    val taskId: Int?
+    val taskId: Long?
         @Transient
         get() = if (this.task == null) null else task!!.id
 
-    val ownerId: Int?
+    val ownerId: Long?
         @Transient
         get() = if (this.owner == null) null else owner!!.id
-
-    @Id
-    @GeneratedValue
-    @Column(name = "pk")
-    override fun getId(): Int? {
-        return id
-    }
-
-    override fun setId(id: Int?) {
-        this.id = id
-    }
 }

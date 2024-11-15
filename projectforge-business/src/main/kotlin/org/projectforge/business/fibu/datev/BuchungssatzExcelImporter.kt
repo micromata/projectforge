@@ -29,21 +29,27 @@ import de.micromata.merlin.excel.importer.ImportLogger
 import de.micromata.merlin.excel.importer.ImportStorage
 import de.micromata.merlin.excel.importer.ImportedSheet
 import org.projectforge.business.fibu.KontoDao
-import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.business.fibu.OldKostFormatter
 import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.fibu.kost.Kost1Dao
 import org.projectforge.business.fibu.kost.Kost2Dao
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.utils.MyImportedElement
 import org.projectforge.framework.time.PFDay
 import org.slf4j.LoggerFactory
 import java.math.RoundingMode
 import java.time.LocalDate
 
-class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzDO>, private val kontoDao: KontoDao, private val kost1Dao: Kost1Dao,
-                                private val kost2Dao: Kost2Dao) {
-    private val dateValidator = ExcelColumnDateValidator(ExcelColumnDateValidator.GERMAN_FORMATS,
-            minimum = LocalDate.of(1990, 1, 1),
-            maximum = LocalDate.of(2100, 12, 31))
+class BuchungssatzExcelImporter(
+    private val storage: ImportStorage<BuchungssatzDO>, private val kontoDao: KontoDao, private val kost1Dao: Kost1Dao,
+    private val kost2Dao: Kost2Dao,
+    private val persistenceService: PfPersistenceService,
+) {
+    private val dateValidator = ExcelColumnDateValidator(
+        ExcelColumnDateValidator.GERMAN_FORMATS,
+        minimum = LocalDate.of(1990, 1, 1),
+        maximum = LocalDate.of(2100, 12, 31)
+    )
 
     private enum class Cols(override val head: String, override vararg val aliases: String) : ExcelColumnName {
         SATZNR("SatzNr.", "Satz-Nr."),
@@ -85,7 +91,8 @@ class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzD
         }
         storage.logger.info("Reading sheet '$name'.")
         sheet.registerColumn(Cols.DATUM, dateValidator).setTargetProperty("datum")
-        sheet.registerColumn(Cols.SATZNR, ExcelColumnNumberValidator(1.0).setRequired().setUnique()).setTargetProperty("satznr")
+        sheet.registerColumn(Cols.SATZNR, ExcelColumnNumberValidator(1.0).setRequired().setUnique())
+            .setTargetProperty("satznr")
         sheet.registerColumn(Cols.BETRAG, ExcelColumnNumberValidator().setRequired()).setTargetProperty("betrag")
         sheet.registerColumn(Cols.SH, ExcelColumnOptionsValidator("S", "H").setRequired()).setTargetProperty("sh")
         //sheet.registerColumn("SH", "S/H"); // Second column not needed.
@@ -101,7 +108,15 @@ class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzD
             storage.logger.info("Ignoring sheet '$name' for importing AccountingRecords (Buchungssätze), no valid head row found.")
             return null
         }
-        sheet.setColumnsForRowEmptyCheck(Cols.DATUM, Cols.SATZNR, Cols.BETRAG, Cols.KONTO, Cols.GEGENKONTO, Cols.KOST1, Cols.KOST2)
+        sheet.setColumnsForRowEmptyCheck(
+            Cols.DATUM,
+            Cols.SATZNR,
+            Cols.BETRAG,
+            Cols.KONTO,
+            Cols.GEGENKONTO,
+            Cols.KOST1,
+            Cols.KOST2
+        )
         val now = System.currentTimeMillis()
         sheet.analyze(true)
         log.info("Analyzing sheet '${sheet.sheetName}' takes ${System.currentTimeMillis() - now}ms.")
@@ -115,15 +130,18 @@ class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzD
         val now = System.currentTimeMillis()
         //val ctx = ExcelWriterContext(CoreI18n.setDefault(ThreadLocalUserContext.getLocale()), excelSheet.excelWorkbook).setAddErrorColumn(true)
         //excelSheet.markErrors(ctx)
-        val importedSheet = ImportedSheet(storage, excelSheet, ImportLogger.Level.WARN, "'${excelSheet.excelWorkbook.filename}':", log)
+        val importedSheet =
+            ImportedSheet(storage, excelSheet, ImportLogger.Level.WARN, "'${excelSheet.excelWorkbook.filename}':", log)
         importedSheet.origName = excelSheet.sheetName
         importedSheet.logger.addValidationErrors(excelSheet)
         val it = excelSheet.dataRowIterator
         var year = 0
         while (it.hasNext()) {
             val row = it.next()
-            val element = MyImportedElement(importedSheet, row.rowNum, BuchungssatzDO::class.java,
-                    *DatevImportDao.BUCHUNGSSATZ_DIFF_PROPERTIES)
+            val element = MyImportedElement(
+                importedSheet, row.rowNum, BuchungssatzDO::class.java,
+                *DatevImportService.BUCHUNGSSATZ_DIFF_PROPERTIES
+            )
             val satz = BuchungssatzDO()
             element.value = satz
             ImportHelper.fillBean(satz, excelSheet, row.rowNum)
@@ -138,11 +156,17 @@ class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzD
                     element.putErrorProperty("datum", "Buchungssatz liegt außerhalb des Buchungsmonats.")
                 }
                 if (day.monthValue > month) {
-                    val msg = "Buchungssätze können nicht in die Zukunft für den aktuellen Monat '${KostFormatter.formatBuchungsmonat(year, day.monthValue)}'' gebucht werden!"
+                    val msg = "Buchungssätze können nicht in die Zukunft für den aktuellen Monat '${
+                        OldKostFormatter.formatBuchungsmonat(
+                            year,
+                            day.monthValue
+                        )
+                    }'' gebucht werden!"
                     importedSheet.logger.error(msg, row, Cols.DATUM)
                     element.putErrorProperty("datum", msg)
                 } else if (day.monthValue < month) {
-                    val msg = "Buchungssatz liegt vor Monat '${KostFormatter.formatBuchungsmonat(year, month)}' (OK)."
+                    val msg =
+                        "Buchungssatz liegt vor Monat '${OldKostFormatter.formatBuchungsmonat(year, month)}' (OK)."
                     importedSheet.logger.info(msg, row, Cols.DATUM)
                 }
                 satz.year = year
@@ -182,7 +206,7 @@ class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzD
             importedSheet.addElement(element)
             //log.debug(satz.toString())
         }
-        importedSheet.name = KostFormatter.formatBuchungsmonat(year, month)
+        importedSheet.name = OldKostFormatter.formatBuchungsmonat(year, month)
         importedSheet.setProperty("year", year)
         importedSheet.setProperty("month", month)
         log.info("Importing sheet '${importedSheet.name}' takes ${System.currentTimeMillis() - now}ms.")

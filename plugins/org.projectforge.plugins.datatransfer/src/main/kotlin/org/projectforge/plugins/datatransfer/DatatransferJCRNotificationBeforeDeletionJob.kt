@@ -75,12 +75,12 @@ class DatatransferJCRNotificationBeforeDeletionJob {
     }
     // key is the user id of the observer and the value is the list of observed attachments (including data transfer
     // area which will being deleted by the system.
-    val notificationInfoByObserver = mutableMapOf<Int, MutableList<DataTransferNotificationMailService.AttachmentNotificationInfo>>()
+    val notificationInfoByObserver = mutableMapOf<Long, MutableList<DataTransferNotificationMailService.AttachmentNotificationInfo>>()
     log.info("Data transfer notification job started.")
     val startTimeInMillis = System.currentTimeMillis()
 
     // First of all, try to check all attachments of active areas:
-    dataTransferAreaDao.internalLoadAll().forEach { dbo ->
+    dataTransferAreaDao.selectAll(checkAccess = false).forEach { dbo ->
       dbo.id?.let { id ->
         val expiryDays = dbo.expiryDays ?: 30
         val notifyDaysBeforeDeletion = getNotificationDaysBeforeDeletion(expiryDays)
@@ -89,8 +89,8 @@ class DatatransferJCRNotificationBeforeDeletionJob {
           dataTransferAreaPagesRest.jcrPath!!,
           id
         )
-        val observers = StringHelper.splitToInts(dbo.observerIds, ",", true)
-        attachments?.forEach { attachment ->
+        val observers = StringHelper.splitToLongs(dbo.observerIds, ",")
+        attachments.forEach { attachment ->
           val time = attachment.lastUpdate?.time ?: attachment.created?.time
           if (time != null && startTimeInMillis - time + notifyDaysBeforeDeletion > expiryMillis) {
             val expiresInMillis = time + expiryMillis - startTimeInMillis

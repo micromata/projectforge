@@ -36,8 +36,8 @@ import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import javax.annotation.PostConstruct
-import javax.servlet.http.HttpServletRequest
+import jakarta.annotation.PostConstruct
+import jakarta.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/order")
@@ -102,7 +102,7 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
           )
           .add(UITableColumn("formattedFakturiertSum", title = "fibu.fakturiert"))
           .add(UITableColumn("formattedZuFakturierenSum", title = "fibu.tobeinvoiced"))
-          .add(lc, "periodOfPerformanceBegin", "periodOfPerformanceEnd", "probabilityOfOccurrence", "auftragsStatus")
+          .add(lc, "periodOfPerformanceBegin", "periodOfPerformanceEnd", "probabilityOfOccurrence", "status")
       )
     layout.getTableColumnById("erfassungsDatum").formatter = UITableColumn.Formatter.DATE
     layout.getTableColumnById("entscheidungsDatum").formatter = UITableColumn.Formatter.DATE
@@ -117,7 +117,7 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
     )
     elements.add(
       UIFilterListElement("positionsStatus", label = translate("fibu.auftrag.positions"), defaultFilter = true)
-        .buildValues(AuftragsPositionsStatus::class.java)
+        .buildValues(AuftragsStatus::class.java)
     )
     elements.add(
       UIFilterListElement(
@@ -131,7 +131,7 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
       UIFilterListElement("fakturiert", label = translate("fibu.auftrag.status.fakturiert"), defaultFilter = true)
         .buildValues(AuftragFakturiertFilterStatus::class.java)
     )
-    val statusFilter = elements.find { it is UIFilterElement && it.id == "auftragsStatus" } as UIFilterElement
+    val statusFilter = elements.find { it is UIFilterElement && it.id == "status" } as UIFilterElement
     statusFilter.defaultFilter = true
   }
 
@@ -244,7 +244,7 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
           )
           .add(
             UICol()
-              .add(lc, "auftragsStatus")
+              .add(lc, "status")
           )
       )
       .add(

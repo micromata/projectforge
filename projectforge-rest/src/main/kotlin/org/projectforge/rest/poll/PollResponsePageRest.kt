@@ -51,7 +51,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.time.format.DateTimeFormatter
 import java.util.*
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
 
@@ -71,8 +71,8 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
     @Autowired
     private lateinit var userService: UserService
 
-    private var pollId: Int? = null
-    private var questionOwnerId: Int? = null
+    private var pollId: Long? = null
+    private var questionOwnerId: Long? = null
 
     @GetMapping("dynamic")
     fun getForm(
@@ -81,18 +81,18 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
         @RequestParam("questionOwner") delUser: String?,
         @RequestParam("returnToCaller") returnToCaller: String?,
     ): FormLayoutData {
-        if (pollId === null || pollStringId != null) {
-            pollId = NumberHelper.parseInteger(pollStringId) ?: throw IllegalArgumentException("id not given.")
+        if (pollId == null || pollStringId != null) {
+            pollId = NumberHelper.parseLong(pollStringId) ?: throw IllegalArgumentException("id not given.")
         }
         // used to load answers, is an attendee chosen by a fullAccessUser in order to answer for them or the ThreadLocal User
-        val pollData = pollDao.internalGetById(pollId) ?: PollDO()
+        val pollData = pollDao.find(pollId, checkAccess = false) ?: PollDO()
 
         val answerTitle: String
-        if (delUser != null && pollDao.hasFullAccess(pollData) && pollDao.isAttendee(pollData, delUser.toInt())) {
-            questionOwnerId = delUser.toInt()
+        if (delUser != null && pollDao.hasFullAccess(pollData) && pollDao.isAttendee(pollData, delUser.toLong())) {
+            questionOwnerId = delUser.toLong()
             answerTitle = translateMsg("poll.delegationAnswers") + userService.getUser(questionOwnerId).displayName
         } else {
-            questionOwnerId = ThreadLocalUserContext.userId
+            questionOwnerId = ThreadLocalUserContext.loggedInUserId
             answerTitle = translateMsg("poll.yourAnswers")
         }
 
@@ -127,10 +127,8 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
             .add(UIReadOnlyField(value = pollDto.owner?.displayName, label = translateMsg("poll.owner")))
             .add(UIReadOnlyField(value = pollDto.deadline.toString(), label = translateMsg("poll.deadline")))
 
-
-
       /*  Aktuell nicht benutzbar auskommentiert bis es behoben wird
-        if (pollDto.isFinished() && ThreadLocalUserContext.userId === questionOwnerId && pollDao.hasFullAccess(pollData)) {
+        if (pollDto.isFinished() && ThreadLocalUserContext.userId == questionOwnerId && pollDao.hasFullAccess(pollData)) {
             val fieldSetDelegationUser = UIFieldset(title = "poll.userDelegation")
             fieldSetDelegationUser.add(
                 UIInput(
@@ -161,7 +159,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
         val pollResponse = PollResponse()
         pollResponse.poll = pollData
 
-        pollResponseDao.internalLoadAll().firstOrNull { response ->
+        pollResponseDao.selectAll(checkAccess = false).firstOrNull { response ->
             response.owner?.id == questionOwnerId
                     && response.poll?.id == pollData.id
         }?.let {
@@ -192,7 +190,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
                 )
             }
 
-            if (field.type == BaseType.PollMultiResponseQuestion || field.type === BaseType.PollSingleResponseQuestion) {
+            if (field.type == BaseType.PollMultiResponseQuestion || field.type == BaseType.PollSingleResponseQuestion) {
                 field.answers?.forEachIndexed { index2, _ ->
                     if (pollResponse.responses?.get(index)?.answers?.getOrNull(index2) == null) {
                         pollResponse.responses?.get(index)?.answers?.add(index2, false)
@@ -266,14 +264,13 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
 
     @PostMapping("addResponse")
     fun addResponse(
-        request: HttpServletRequest,
-        @RequestBody postData: PostData<PollResponse>, @RequestParam("questionOwner") questionOwner: Int?
+        @RequestBody postData: PostData<PollResponse>, @RequestParam("questionOwner") questionOwner: Long?
     ): ResponseEntity<ResponseAction>? {
         val pollResponseDO = PollResponseDO()
         postData.data.copyTo(pollResponseDO)
 
         pollResponseDO.owner = userService.getUser(questionOwner)
-        pollResponseDao.internalLoadAll().firstOrNull { pollResponse ->
+        pollResponseDao.selectAll(checkAccess = false).firstOrNull { pollResponse ->
             pollResponse.owner?.id == questionOwner
                     && pollResponse.poll?.id == postData.data.poll?.id
         }?.let {
@@ -287,10 +284,10 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
             )
         }
 
-        pollResponseDao.saveOrUpdate(pollResponseDO)
+        pollResponseDao.insertOrUpdate(pollResponseDO)
 
-        if (ThreadLocalUserContext.user != pollResponseDO.owner) {
-            sendMailResponseToOwner(pollResponseDO, ThreadLocalUserContext.user!!)
+        if (ThreadLocalUserContext.loggedInUser != pollResponseDO.owner) {
+            sendMailResponseToOwner(pollResponseDO, ThreadLocalUserContext.loggedInUser!!)
         }
 
         return ResponseEntity.ok(
@@ -318,21 +315,20 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
     }
 
     @GetMapping("showDelegatedUser")
-    fun showDelegatedUser(
-        request: HttpServletRequest
-    ): ResponseEntity<ResponseAction>? {
+    fun showDelegatedUser(): ResponseEntity<ResponseAction>? {
+        val poll = pollDao.find(pollId, checkAccess = false)
         val attendees = listOfNotNull(
-            pollDao.internalGetById(pollId).attendeeIds,
-            pollDao.internalGetById(pollId).fullAccessUserIds,
-            pollDao.internalGetById(pollId).owner?.id
+            poll!!.attendeeIds,
+            poll.fullAccessUserIds,
+            poll.owner?.id
         )
         val joinedAttendeeIds = attendees.joinToString(", ")
-        if (questionOwnerId == ThreadLocalUserContext.userId) {
+        if (questionOwnerId == ThreadLocalUserContext.loggedInUserId) {
             return ResponseEntity.ok(
                 ResponseAction()
             )
         }
-        if (joinedAttendeeIds.split(", ").any { it.toInt() == questionOwnerId }) {
+        if (joinedAttendeeIds.split(", ").any { it.toLong() == questionOwnerId }) {
             return ResponseEntity.ok(
                 ResponseAction(
                     url = "/react/response/dynamic?pollId=${pollId}&questionOwner=${questionOwnerId}",

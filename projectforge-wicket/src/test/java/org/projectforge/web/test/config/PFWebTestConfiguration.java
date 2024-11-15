@@ -23,10 +23,6 @@
 
 package org.projectforge.web.test.config;
 
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
-import de.micromata.genome.db.jpa.tabattr.impl.TimeableServiceImpl;
-import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
-import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaServiceImpl;
 import org.projectforge.renderer.custom.Formatter;
 import org.projectforge.renderer.custom.FormatterFactory;
 import org.projectforge.renderer.custom.MicromataFormatter;
@@ -49,20 +45,6 @@ public class PFWebTestConfiguration
 
   @Autowired
   private ApplicationContext applicationContext;
-
-  @Bean
-  public GuiAttrSchemaService guiAttrSchemaService()
-  {
-    GuiAttrSchemaServiceImpl ret = new GuiAttrSchemaServiceImpl();
-    ret.setApplicationDir(applicationDir);
-    return ret;
-  }
-
-  @Bean
-  public TimeableService timeableService()
-  {
-    return new TimeableServiceImpl();
-  }
 
   @Bean
   public FormatterFactory formatterFactory()

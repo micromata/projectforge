@@ -24,45 +24,37 @@
 package org.projectforge.web.fibu;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KontoDao;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
 import org.slf4j.Logger;
 
 
 @EditPage(defaultReturnPage = KontoListPage.class)
-public class KontoEditPage extends AbstractEditPage<KontoDO, KontoEditForm, KontoDao>
-{
-  private static final long serialVersionUID = 8763884579951937296L;
+public class KontoEditPage extends AbstractEditPage<KontoDO, KontoEditForm, KontoDao> {
+    private static final long serialVersionUID = 8763884579951937296L;
 
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KontoEditPage.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KontoEditPage.class);
 
-  @SpringBean
-  private KontoDao kontoDao;
+    public KontoEditPage(final PageParameters parameters) {
+        super(parameters, "fibu.konto");
+        init();
+    }
 
-  public KontoEditPage(final PageParameters parameters)
-  {
-    super(parameters, "fibu.konto");
-    init();
-  }
+    @Override
+    protected KontoDao getBaseDao() {
+        return WicketSupport.get(KontoDao.class);
+    }
 
-  @Override
-  protected KontoDao getBaseDao()
-  {
-    return kontoDao;
-  }
+    @Override
+    protected KontoEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final KontoDO data) {
+        return new KontoEditForm(this, data);
+    }
 
-  @Override
-  protected KontoEditForm newEditForm(final AbstractEditPage< ? , ? , ? > parentPage, final KontoDO data)
-  {
-    return new KontoEditForm(this, data);
-  }
-
-  @Override
-  protected Logger getLogger()
-  {
-    return log;
-  }
+    @Override
+    protected Logger getLogger() {
+        return log;
+    }
 }

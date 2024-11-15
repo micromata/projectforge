@@ -28,25 +28,24 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory
+import org.projectforge.framework.persistence.jpa.PersistenceCallsRecorder
+import org.projectforge.framework.persistence.jpa.PersistenceCallsStatsBuilder
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
-import javax.persistence.EntityManager
 
 private val log = KotlinLogging.logger {}
 
 @Service
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 open class DBQuery {
 
     @Autowired
-    private lateinit var emgrFactory: PfEmgrFactory
+    private lateinit var accessChecker: AccessChecker
 
     @Autowired
-    private lateinit var accessChecker: AccessChecker
+    private lateinit var persistenceService: PfPersistenceService
 
     /**
      * Gets the list filtered by the given filter.
@@ -55,10 +54,12 @@ open class DBQuery {
      * @return
      */
     @JvmOverloads
-    open fun <O : ExtendedBaseDO<Int>> getList(baseDao: BaseDao<O>,
-                                               filter: QueryFilter,
-                                               customResultFilters: List<CustomResultFilter<O>>?,
-                                               checkAccess: Boolean = true)
+    open fun <O : ExtendedBaseDO<Long>> select(
+        baseDao: BaseDao<O>,
+        filter: QueryFilter,
+        customResultFilters: List<CustomResultFilter<O>>?,
+        checkAccess: Boolean = true,
+    )
             : List<O> {
         if (checkAccess) {
             baseDao.checkLoggedInUserSelectAccess()
@@ -67,58 +68,81 @@ open class DBQuery {
             return listOf()
         }
         if (filter.sortProperties.isNullOrEmpty()) {
-            baseDao.defaultSortProperties?.forEach {
-                filter.addOrder(it)
+            baseDao.defaultSortProperties?.forEach { sortProperty ->
+                filter.addOrder(sortProperty)
             }
         }
 
         try {
-            val begin = System.currentTimeMillis()
-            val dbFilter = filter.createDBFilter()
-            return emgrFactory.runRoTrans { emgr ->
-                val em = emgr.entityManager
-                val queryBuilder = DBQueryBuilder(baseDao, em, filter, dbFilter)
-                        // Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
-
-                val dbResultIterator: DBResultIterator<O>
-                dbResultIterator = queryBuilder.result()
-                val historSearchParams = DBHistorySearchParams(filter.modifiedByUserId, filter.modifiedFrom, filter.modifiedTo, filter.searchHistory)
-                var list = createList(baseDao, em, dbResultIterator, customResultFilters, queryBuilder.resultPredicates, dbFilter, historSearchParams, checkAccess)
+            return persistenceService.runReadOnly { context ->
+                val begin = System.currentTimeMillis()
+                val dbFilter = filter.createDBFilter()
+                val queryBuilder = DBQueryBuilder(baseDao, context.em, filter, dbFilter)
+                // Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
+                context.logAndAdd(
+                    PersistenceCallsRecorder.CallType.QUERY,
+                    baseDao.doClass.simpleName,
+                    PersistenceCallsStatsBuilder()
+                        .param("filter", filter)
+                        .param("dbFilter", dbFilter)
+                        .param("customFilters", customResultFilters?.joinToString { it.javaClass.simpleName })
+                )
+                val dbResultIterator = queryBuilder.result()
+                val historSearchParams = DBHistorySearchParams(
+                    filter.modifiedByUserId,
+                    filter.modifiedFrom,
+                    filter.modifiedTo,
+                    filter.searchHistory
+                )
+                var list = privateCreateList(
+                    baseDao,
+                    dbResultIterator,
+                    customResultFilters,
+                    queryBuilder.resultPredicates,
+                    dbFilter,
+                    historSearchParams,
+                    checkAccess,
+                    context,
+                )
                 list = dbResultIterator.sort(list)
 
                 val end = System.currentTimeMillis()
                 if (end - begin > 2000) {
                     // Show only slow requests.
                     log.info(
-                            "BaseDao.getList for entity class: " + baseDao.entityClass.simpleName + " took: " + (end - begin) + " ms (>2s).")
+                        "BaseDao.select for entity class: ${baseDao.doClass.simpleName} took: ${end - begin} ms (>2s)."
+                    )
                 }
                 list
             }
         } catch (ex: Exception) {
-            log.error("Error while querying: ${ex.message}. Magicfilter: ${filter}.")
+            log.error(ex, { "Error while querying: ${ex.message}. Magicfilter: ${filter}." })
             return emptyList()
         }
     }
 
-    private fun <O : ExtendedBaseDO<Int>> createList(baseDao: BaseDao<O>,
-                                                     em: EntityManager,
-                                                     dbResultIterator: DBResultIterator<O>,
-                                                     customResultFilters: List<CustomResultFilter<O>>?,
-                                                     resultPredicates: List<DBPredicate>,
-                                                     filter: DBFilter,
-                                                     historSearchParams: DBHistorySearchParams,
-                                                     checkAccess: Boolean)
+    private fun <O : ExtendedBaseDO<Long>> privateCreateList(
+        baseDao: BaseDao<O>,
+        dbResultIterator: DBResultIterator<O>,
+        customResultFilters: List<CustomResultFilter<O>>?,
+        resultPredicates: List<DBPredicate>,
+        filter: DBFilter,
+        historSearchParams: DBHistorySearchParams,
+        checkAccess: Boolean,
+        context: PfPersistenceContext,
+    )
             : List<O> {
-        val loggedInUser = ThreadLocalUserContext.user
-
+        val loggedInUser = ThreadLocalUserContext.loggedInUser
+        val em = context.em
         val list = mutableListOf<O>()
         var next: O? = dbResultIterator.next() ?: return list
-        val ensureUniqueSet = mutableSetOf<Int>()
+        val ensureUniqueSet = mutableSetOf<Long>()
         var resultCounter = 0
         if (historSearchParams.modifiedByUserId != null
-                || historSearchParams.modifiedFrom != null
-                || historSearchParams.modifiedTo != null
-                || !historSearchParams.searchHistory.isNullOrBlank()) {
+            || historSearchParams.modifiedFrom != null
+            || historSearchParams.modifiedTo != null
+            || !historSearchParams.searchHistory.isNullOrBlank()
+        ) {
             // Search now all history entries which were modified by the given user and/or in the given time period.
             val idSet = if (historSearchParams.searchHistory.isNullOrBlank()) {
                 DBHistoryQuery.searchHistoryEntryByCriteria(em, baseDao.doClass, historSearchParams)
@@ -128,12 +152,14 @@ open class DBQuery {
                 //baseDao.getHistoryEntriesFullTextSearch(baseDao.entityManager, baseSearchFilter)
             }
             while (next != null) {
-                if (!ensureUniqueSet.contains(next.id)) {
+                val id = next.id
+                if (id != null && !ensureUniqueSet.contains(id)) {
                     // Current result object wasn't yet proceeded.
-                    ensureUniqueSet.add(next.id) // Mark current object as already proceeded (ensure uniqueness)
-                    if ((!checkAccess || baseDao.hasSelectAccess(next, loggedInUser))
-                            && baseDao.containsLong(idSet, next)
-                            && match(list, customResultFilters, resultPredicates, next)) {
+                    ensureUniqueSet.add(id) // Mark current object as already proceeded (ensure uniqueness)
+                    if ((!checkAccess || baseDao.hasSelectAccess(next, loggedInUser!!))
+                        && baseDao.contains(idSet, next)
+                        && match(list, customResultFilters, resultPredicates, next)
+                    ) {
                         // Current result object fits the modified query:
                         baseDao.afterLoad(next)
                         list.add(next)
@@ -147,11 +173,17 @@ open class DBQuery {
         } else {
             // No modified query
             while (next != null) {
-                if (!ensureUniqueSet.contains(next.id)) {
+                val id = next.id
+                if (id != null && !ensureUniqueSet.contains(next.id)) {
                     // Current result object wasn't yet proceeded.
-                    ensureUniqueSet.add(next.id) // Mark current object as already proceeded (ensure uniqueness)
-                    if (!checkAccess || baseDao.hasSelectAccess(next, loggedInUser) && match(list, customResultFilters, resultPredicates, next)) {
-                        baseDao.afterLoad(next)
+                    ensureUniqueSet.add(id) // Mark current object as already proceeded (ensure uniqueness)
+                    if (!checkAccess || baseDao.hasSelectAccess(next, loggedInUser!!) && match(
+                            list,
+                            customResultFilters,
+                            resultPredicates,
+                            next
+                        )
+                    ) {
                         list.add(next)
                         if (++resultCounter >= filter.maxRows) {
                             break
@@ -168,7 +200,12 @@ open class DBQuery {
      * If predicates are defined (not used for data base query), they're checked with the given result object.
      * @return true, if no predicates are given or if all predicate matches, otherwise false.
      */
-    private fun <O : ExtendedBaseDO<Int>> match(list: MutableList<O>, customResultFilters: List<CustomResultFilter<O>>?, predicates: List<DBPredicate>, next: O): Boolean {
+    private fun <O : ExtendedBaseDO<Long>> match(
+        list: MutableList<O>,
+        customResultFilters: List<CustomResultFilter<O>>?,
+        predicates: List<DBPredicate>,
+        next: O
+    ): Boolean {
         if (!customResultFilters.isNullOrEmpty()) {
             for (filter in customResultFilters) {
                 if (!filter.match(list, next)) {

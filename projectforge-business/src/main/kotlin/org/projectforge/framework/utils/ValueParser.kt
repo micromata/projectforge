@@ -37,7 +37,7 @@ object ValueParser {
    * Doesn't throw an exception, returns null instead.
    * @param patterns Optional number formats to test before "".toInt() is tried.
    */
-  fun parseInt(number: String?, patterns: Iterable<String>): Int? {
+  fun parseLong(number: String?, patterns: Iterable<String>): Long? {
     if (number.isNullOrBlank()) {
       return null
     }
@@ -46,14 +46,14 @@ object ValueParser {
       try {
         val decimalFormat = getIntFormat(pattern)
         synchronized(decimalFormat) {
-          return decimalFormat.parse(value) as Int
+          return decimalFormat.parse(value) as Long
         }
       } catch (ex: Exception) {
         // Might occur.
       }
     }
     return try {
-      value.toIntOrNull()
+      value.toLongOrNull()
     } catch (ex: Exception) {
       // Might occur.
       null

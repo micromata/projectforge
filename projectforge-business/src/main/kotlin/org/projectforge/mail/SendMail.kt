@@ -39,16 +39,16 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.util.*
 import java.util.concurrent.CompletableFuture
-import javax.activation.DataHandler
-import javax.activation.DataSource
-import javax.activation.MimetypesFileTypeMap
-import javax.annotation.PostConstruct
-import javax.mail.*
-import javax.mail.internet.InternetAddress
-import javax.mail.internet.MimeBodyPart
-import javax.mail.internet.MimeMessage
-import javax.mail.internet.MimeMultipart
-import javax.mail.util.ByteArrayDataSource
+import jakarta.activation.DataHandler
+import jakarta.activation.DataSource
+import jakarta.activation.MimetypesFileTypeMap
+import jakarta.annotation.PostConstruct
+import jakarta.mail.*
+import jakarta.mail.internet.InternetAddress
+import jakarta.mail.internet.MimeBodyPart
+import jakarta.mail.internet.MimeMessage
+import jakarta.mail.internet.MimeMultipart
+import jakarta.mail.util.ByteArrayDataSource
 
 private val log = KotlinLogging.logger {}
 
@@ -287,7 +287,7 @@ open class SendMail {
       // create an Array of message parts for Attachments
       val mbp = arrayOfNulls<MimeBodyPart>(attachments.size)
       // remember you can extend this functionality with META-INF/mime.types
-      // See http://docs.oracle.com/javaee/5/api/javax/activation/MimetypesFileTypeMap.html
+      // See http://docs.oracle.com/javaee/5/api/jakarta.activationl/MimetypesFileTypeMap.html
       val mimeTypesMap = MimetypesFileTypeMap()
       var i = 0
       for (attachment in attachments) {
@@ -361,7 +361,7 @@ open class SendMail {
     title: String,
     recipient: PFUserDO?
   ) {
-    val user = ThreadLocalUserContext.user
+    val user = ThreadLocalUserContext.loggedInUser
     data["createdLabel"] = getLocalizedMessage(user, "created")
     user?.let {
       data["loggedInUser"] = it

@@ -31,21 +31,21 @@ import com.webauthn4j.converter.util.ObjectConverter
 import com.webauthn4j.data.attestation.authenticator.AttestedCredentialData
 import com.webauthn4j.data.attestation.statement.AttestationStatement
 import com.webauthn4j.util.Base64UrlUtil
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
 
 @Entity
 @Indexed
 @Table(
   name = "T_USER_WEBAUTHN",
   uniqueConstraints = [UniqueConstraint(columnNames = ["owner_fk", "credential_id"])],
-  indexes = [javax.persistence.Index(
+  indexes = [jakarta.persistence.Index(
     name = "idx_fk_t_user_webauthn_user",
     columnList = "owner_fk"
-  ), javax.persistence.Index(name = "t_user_webauthn_pkey", columnList = "pk")]
+  ), jakarta.persistence.Index(name = "t_user_webauthn_pkey", columnList = "pk")]
 )
 @NamedQueries(
   NamedQuery(
@@ -63,9 +63,9 @@ import javax.persistence.*
 )
 open class WebAuthnEntryDO {
   @get:Id
-  @get:GeneratedValue
+  @get:GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
   @get:Column(name = "pk")
-  open var id: Int? = null
+  open var id: Long? = null
 
   @PropertyInfo(i18nKey = "created")
   @get:Basic
@@ -112,7 +112,7 @@ open class WebAuthnEntryDO {
     get() {
       serializedAttestationStatement ?: return null
       val envelope = cborConverter.readValue(
-        asByteArray(serializedAttestationStatement),
+        asByteArray(serializedAttestationStatement)!!,
         WebAuthnStorage.AttestationStatementEnvelope::class.java
       )
       return envelope?.attestationStatement
@@ -133,7 +133,7 @@ open class WebAuthnEntryDO {
       return attestedCredentialDataConverter.convert(
         asByteArray(
           serializedAttestedCredentialData
-        )
+        )!!
       )
     }
 

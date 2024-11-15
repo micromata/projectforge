@@ -29,8 +29,11 @@ import org.projectforge.business.fibu.RechnungListFilter;
 import org.projectforge.business.fibu.RechnungsStatistik;
 import org.slf4j.Logger;
 
+import java.io.Serial;
+
 public class RechnungListForm extends AbstractRechnungListForm<RechnungListFilter, RechnungListPage>
 {
+  @Serial
   private static final long serialVersionUID = 1657084619520768905L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RechnungListForm.class);

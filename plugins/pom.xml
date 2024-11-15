@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>7.5.1-SNAPSHOT</version><!-- projectforge.version -->
+    <version>8.0.0-SNAPSHOT</version><!-- projectforge.version -->
   </parent>
   <artifactId>org.projectforge.plugins</artifactId>
   <packaging>pom</packaging>
@@ -19,7 +19,6 @@
     <module>org.projectforge.plugins.liquidityplanning</module>
     <module>org.projectforge.plugins.licensemanagement</module>
     <module>org.projectforge.plugins.ihk</module>
-    <module>org.projectforge.plugins.extendemployeedata</module>
   </modules>
   <build>
     <plugins>

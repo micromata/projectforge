@@ -32,6 +32,7 @@ import org.projectforge.security.SecurityShutdown;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.boot.web.embedded.tomcat.ConnectorStartFailedException;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -41,10 +42,7 @@ import java.util.Arrays;
 import java.util.TimeZone;
 
 @SpringBootApplication(
-        scanBasePackages = {"org.projectforge", "de.micromata.mgc.jpa.spring"},
-        // Needed for Spring 5.5, exception was:
-        // java.lang.ClassCastException: org.springframework.orm.jpa.EntityManagerHolder cannot be cast to org.springframework.orm.hibernate5.SessionHolder
-        exclude = HibernateJpaAutoConfiguration.class
+        scanBasePackages = {"org.projectforge" }
 )
 @ServletComponentScan({"org.projectforge.web", "org.projectforge.business.teamcal.servlet"})
 public class ProjectForgeApplication {

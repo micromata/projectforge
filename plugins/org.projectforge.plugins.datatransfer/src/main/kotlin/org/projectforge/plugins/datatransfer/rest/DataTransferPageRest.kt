@@ -49,10 +49,10 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import javax.annotation.PostConstruct
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
-import javax.validation.Valid
+import jakarta.annotation.PostConstruct
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
+import jakarta.validation.Valid
 
 /**
  * Page of data transfer area with attachments list (including upload/download and editing).
@@ -75,20 +75,17 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var groupService: GroupService
 
-  @Autowired
-  private lateinit var userService: UserService
-
   @PostConstruct
   private fun postConstruct() {
     attachmentsServicesRest.register(
       dataTransferAreaPagesRest.category,
-      DataTransferAttachmentsActionListener(attachmentsService, dataTransferAreaDao, groupService, userService)
+      DataTransferAttachmentsActionListener(attachmentsService, dataTransferAreaDao)
     )
   }
 
   @GetMapping("downloadAll/{id}")
   fun downloadAll(
-    @PathVariable("id", required = true) id: Int,
+    @PathVariable("id", required = true) id: Long,
     response: HttpServletResponse
   ) {
     val pair = convertData(id)
@@ -103,16 +100,16 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
       jcrPath = dataTransferAreaPagesRest.jcrPath!!,
       id,
       dto.attachments,
-      byUser = ThreadLocalUserContext.user
+      byUser = ThreadLocalUserContext.loggedInUser
     )
   }
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
-    var id = NumberHelper.parseInteger(idString)
-    if (id == -1) {
+    var id = NumberHelper.parseLong(idString)
+    if (id == -1L) {
       // personal box of logged-in user is requested:
-      id = dataTransferAreaDao.ensurePersonalBox(ThreadLocalUserContext.userId!!)?.id
+      id = dataTransferAreaDao.ensurePersonalBox(ThreadLocalUserContext.loggedInUserId!!)?.id
     }
     id ?: throw IllegalAccessException("Parameter id not an int or no personal box found.")
     val pair = convertData(id)
@@ -303,7 +300,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     val userWantsToOserveArea =
       postData.data.userWantsToObserve ?: return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
 
-    val loggedInUser = ThreadLocalUserContext.user!!
+    val loggedInUser = ThreadLocalUserContext.loggedInUser!!
     val result = convertData(id)
     // OK, user has read access, so he/she is able to observe this area.
     val dbDto = result.second
@@ -312,7 +309,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
       return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
     }
     val dbObj =
-      dataTransferAreaDao.internalGetById(id) // Get entry including external access settings (see DataTransferDao#hasAccess).
+      dataTransferAreaDao.find(id, checkAccess = false)!! // Get entry including external access settings (see DataTransferDao#hasAccess).
     val newObservers = dbDto.observers?.toMutableList() ?: mutableListOf()
     if (postData.data.userWantsToObserve == true) {
       val user = User()
@@ -321,16 +318,16 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     } else {
       newObservers.removeIf { it.id == loggedInUser.id }
     }
-    dbObj.observerIds = User.toIntList(newObservers)
+    dbObj.observerIds = User.toLongList(newObservers)
     // InternalSave, because user must not be admin to observe this area. Read access is given, because data transfer
     // area was already gotten by user in [DataTransferPageRest#convertData]
-    dataTransferAreaDao.internalUpdate(dbObj)
+    dataTransferAreaDao.update(dbObj, checkAccess = false)
     return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE).addVariable("data", convertData(id).second))
   }
 
   private fun isLoggedInUserObserver(
     dto: DataTransferArea,
-    user: PFUserDO = ThreadLocalUserContext.user!!
+    user: PFUserDO = ThreadLocalUserContext.loggedInUser!!
   ): Boolean {
     return dto.observers?.any { it.id == user.id } ?: false
   }
@@ -342,9 +339,9 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     return dto.personalBox != true && dataTransferAreaDao.hasLoggedInUserUpdateAccess(dbObj, dbObj, false)
   }
 
-  private fun convertData(id: Int): Pair<DataTransferAreaDO, DataTransferArea> {
-    val dbObj = dataTransferAreaDao.getById(id)
-    val dto = DataTransferArea.transformFromDB(dbObj, dataTransferAreaDao, groupService, userService)
+  private fun convertData(id: Long): Pair<DataTransferAreaDO, DataTransferArea> {
+    val dbObj = dataTransferAreaDao.find(id)!!
+    val dto = DataTransferArea.transformFromDB(dbObj, dataTransferAreaDao)
     if (hasEditAccess(dto, dbObj)) {
       dto.externalPassword = dbObj.externalPassword
     }
@@ -360,7 +357,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     if (!dbObj.accessGroupIds.isNullOrBlank()) {
       // Add all users assigned to the access groups:
       val accessGroupUsers =
-        groupService.getGroupUsers(User.toIntArray(dbObj.accessGroupIds)).joinToString { it.displayName }
+        groupService.getGroupUsers(User.toLongArray(dbObj.accessGroupIds)).joinToString { it.displayName }
       dto.accessGroupsAsString += ": $accessGroupUsers"
     }
     dto.userWantsToObserve = isLoggedInUserObserver(dto)

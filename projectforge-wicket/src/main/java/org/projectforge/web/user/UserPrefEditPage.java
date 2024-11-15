@@ -24,7 +24,6 @@
 package org.projectforge.web.user;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.user.UserPrefAreaRegistry;
 import org.projectforge.business.user.UserPrefDao;
@@ -32,6 +31,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.fibu.Kost2DropDownChoice;
 import org.projectforge.web.wicket.AbstractEditPage;
@@ -49,9 +49,6 @@ public class UserPrefEditPage extends AbstractEditPage<UserPrefDO, UserPrefEditF
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserPrefEditPage.class);
 
   public static final String PARAMETER_AREA = "area";
-
-  @SpringBean
-  UserPrefDao userPrefDao;
 
   /**
    * Creates a template of the given object for the given area.
@@ -85,8 +82,9 @@ public class UserPrefEditPage extends AbstractEditPage<UserPrefDO, UserPrefEditF
 
   private UserPrefDO initUserPref(final UserPrefDO userPref, final UserPrefArea area, final Object object)
   {
+    var userPrefDao = WicketSupport.get(UserPrefDao.class);
     userPref.setAreaObject(area);
-    userPref.setUser(ThreadLocalUserContext.getUser());
+    userPref.setUser(ThreadLocalUserContext.getLoggedInUser());
     if (object != null) {
       userPrefDao.addUserPrefParameters(userPref, object);
     } else {
@@ -104,9 +102,6 @@ public class UserPrefEditPage extends AbstractEditPage<UserPrefDO, UserPrefEditF
     }
   }
 
-  /**
-   * @see org.projectforge.web.fibu.ISelectCallerPage#select(java.lang.String, java.lang.Integer)
-   */
   public void select(final String property, final Object selectedValue)
   {
     final UserPrefEntryDO param = getData().getUserPrefEntry(property);
@@ -132,13 +127,13 @@ public class UserPrefEditPage extends AbstractEditPage<UserPrefDO, UserPrefEditF
 
   private void setValue(final UserPrefEntryDO param, final Object value)
   {
-    userPrefDao.setValueObject(param, value);
+    WicketSupport.get(UserPrefDao.class).setValueObject(param, value);
     final List<UserPrefEntryDO> dependents = getData().getDependentUserPrefEntries(param.getParameter());
     if (dependents != null) {
       for (final UserPrefEntryDO entry : dependents) {
         if (Kost2DO.class.isAssignableFrom(entry.getType()) == true) {
           final Kost2DropDownChoice choice = (Kost2DropDownChoice) form.dependentsMap.get(entry.getParameter());
-          choice.setTaskId((Integer) value);
+          choice.setTaskId((Long) value);
         }
       }
     }
@@ -155,7 +150,7 @@ public class UserPrefEditPage extends AbstractEditPage<UserPrefDO, UserPrefEditF
   @Override
   protected UserPrefDao getBaseDao()
   {
-    return userPrefDao;
+    return WicketSupport.get(UserPrefDao.class);
   }
 
   @Override

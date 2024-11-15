@@ -23,8 +23,11 @@
 
 package org.projectforge.framework.persistence.api
 
+import java.io.Serializable
 
-class SortProperty @JvmOverloads constructor(property: String? = null, var sortOrder: SortOrder = SortOrder.ASCENDING) {
+
+class SortProperty @JvmOverloads constructor(property: String? = null, var sortOrder: SortOrder = SortOrder.ASCENDING)
+    : Serializable{
     lateinit var property: String
 
     init {

@@ -25,9 +25,9 @@ package org.projectforge.common;
 
 /**
  * Some useful methods for handling integer values.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class IntegerHelper
 {
@@ -35,7 +35,7 @@ public class IntegerHelper
 
   /**
    * Parses the given string as integer value.
-   * 
+   *
    * @param value The string representation of the integer value to parse.
    * @return Integer value or null if an empty string was given or a syntax error occurs.
    */
@@ -45,12 +45,12 @@ public class IntegerHelper
       return null;
     }
     value = value.trim();
-    if (value.length() == 0) {
+    if (value.isEmpty()) {
       return null;
     }
     Integer result = null;
     try {
-      result = new Integer(value);
+      result = Integer.valueOf(value);
     } catch (final NumberFormatException ex) {
       log.warn("Can't parse integer: '" + value + "'.");
     }

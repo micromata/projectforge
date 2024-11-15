@@ -123,7 +123,7 @@ class LoginProtection private constructor() {
      * @param clientIpAddress May-be null.
      */
     @JvmOverloads
-    fun clearLoginTimeOffset(username: String?, userId: Int?, clientIpAddress: String?, authenticationType: String? = null) {
+    fun clearLoginTimeOffset(username: String?, userId: Long?, clientIpAddress: String?, authenticationType: String? = null) {
         if (username != null) {
             val userString = getUserString(username, authenticationType)
             if (mapByUserString.exists(userString)) {

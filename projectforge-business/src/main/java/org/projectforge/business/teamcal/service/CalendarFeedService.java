@@ -52,7 +52,7 @@ public class CalendarFeedService {
    * @return The url for downloading timesheets (including context), e. g.
    * /ProjectForge/export/ProjectForge.ics?user=....
    */
-  public String getUrl4Timesheets(final Integer timesheetUserId) {
+  public String getUrl4Timesheets(final Long timesheetUserId) {
     return getUrl("&" + CalendarFeedConst.PARAM_NAME_TIMESHEET_USER + "=" + timesheetUserId);
   }
 
@@ -60,7 +60,7 @@ public class CalendarFeedService {
    * @return The url for downloading timesheets (including context), e. g.
    * /ProjectForge/export/ProjectForge.ics?user=....
    */
-  public String getFullUrl4Timesheets(final Integer timesheetUserId) {
+  public String getFullUrl4Timesheets(final Long timesheetUserId) {
     return getFullUrl("&" + CalendarFeedConst.PARAM_NAME_TIMESHEET_USER + "=" + timesheetUserId);
   }
 
@@ -101,7 +101,7 @@ public class CalendarFeedService {
    * @return The url for downloading calendars (without context), e. g. /export/ProjectForge.ics?user=...
    */
   public String getUrl(final String additionalParams) {
-    final PFUserDO user = ThreadLocalUserContext.getUser();
+    final PFUserDO user = ThreadLocalUserContext.getLoggedInUser();
     final String authenticationKey = userAuthenticationsService.getToken(user.getId(), UserTokenType.CALENDAR_REST);
     final StringBuilder buf = new StringBuilder();
     buf.append("token=").append(authenticationKey);
@@ -119,7 +119,7 @@ public class CalendarFeedService {
     return pfBaseUrl + url;
   }
 
-  public String getFullUrl(Integer teamCalId, boolean exportReminders) {
+  public String getFullUrl(Long teamCalId, boolean exportReminders) {
     return getFullUrl("&" + PARAM_CALENDAR + "=" + teamCalId + "&" + PARAM_EXPORT_REMINDER + "=" + exportReminders);
   }
 }

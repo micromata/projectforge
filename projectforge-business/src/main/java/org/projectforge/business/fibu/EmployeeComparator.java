@@ -36,6 +36,6 @@ public class EmployeeComparator implements Comparator<EmployeeDO>, Serializable
   @Override
   public int compare(final EmployeeDO g1, final EmployeeDO g2)
   {
-    return g1.getPk().compareTo(g2.getPk());
+    return g1.getId().compareTo(g2.getId());
   }
 }

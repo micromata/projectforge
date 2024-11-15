@@ -24,16 +24,22 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.address.AddressbookDO
+import org.projectforge.business.common.BaseUserGroupRightService
 
-class Addressbook(id: Int? = null,
-                  displayName: String? = null,
-                  var title: String? = null,
-                  var owner: User? = null,
-                  var description: String? = null,
-                  var fullAccessGroups: List<Group>? = null,
-                  var fullAccessUsers: List<User>? = null,
-                  var readonlyAccessGroups: List<Group>? = null,
-                  var readonlyAccessUsers: List<User>? = null
+class Addressbook(
+    id: Long? = null,
+    displayName: String? = null,
+    var title: String? = null,
+    var owner: User? = null,
+    var description: String? = null,
+    var fullAccessGroups: List<Group>? = null,
+    var fullAccessUsers: List<User>? = null,
+    var readonlyAccessGroups: List<Group>? = null,
+    var readonlyAccessUsers: List<User>? = null,
+    var fullAccessGroupsAsString: String? = null,
+    var fullAccessUsersAsString: String? = null,
+    var readonlyAccessGroupsAsString: String? = null,
+    var readonlyAccessUsersAsString: String? = null,
 ) : BaseDTODisplayObject<AddressbookDO>(id, displayName = displayName) {
 
     // The user and group ids are stored as csv list of integers in the data base.
@@ -48,9 +54,30 @@ class Addressbook(id: Int? = null,
     // The user and group ids are stored as csv list of integers in the data base.
     override fun copyTo(dest: AddressbookDO) {
         super.copyTo(dest)
-        dest.fullAccessGroupIds = Group.toIntList(fullAccessGroups)
-        dest.fullAccessUserIds = User.toIntList(fullAccessUsers)
-        dest.readonlyAccessGroupIds = Group.toIntList(readonlyAccessGroups)
-        dest.readonlyAccessUserIds = User.toIntList(readonlyAccessUsers)
+        val svc = BaseUserGroupRightService.instance
+        svc.setFullAccessGroups(dest, fullAccessGroups)
+        svc.setFullAccessUsers(dest, fullAccessUsers)
+        svc.setReadonlyAccessGroups(dest, readonlyAccessGroups)
+        svc.setReadonlyAccessUsers(dest, readonlyAccessUsers)
+    }
+
+    companion object {
+        fun transformFromDB(
+            obj: AddressbookDO,
+        ): Addressbook {
+            val dto = Addressbook()
+            dto.copyFrom(obj)
+            Group.restoreDisplayNames(dto.fullAccessGroups)
+            Group.restoreDisplayNames(dto.readonlyAccessGroups)
+
+            User.restoreDisplayNames(dto.fullAccessUsers)
+            User.restoreDisplayNames(dto.readonlyAccessUsers)
+
+            dto.fullAccessUsersAsString = dto.fullAccessUsers?.joinToString { it.displayName ?: "???" } ?: ""
+            dto.readonlyAccessUsersAsString = dto.readonlyAccessUsers?.joinToString { it.displayName ?: "???" } ?: ""
+            dto.fullAccessGroupsAsString = dto.fullAccessGroups?.joinToString { it.displayName ?: "???" } ?: ""
+            dto.readonlyAccessUsersAsString = dto.readonlyAccessUsers?.joinToString { it.displayName ?: "???" } ?: ""
+            return dto
+        }
     }
 }

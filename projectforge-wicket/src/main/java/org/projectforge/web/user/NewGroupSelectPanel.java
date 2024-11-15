@@ -28,13 +28,14 @@ import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
+import org.projectforge.business.PfCaches;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.service.UserXmlPreferencesService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.utils.RecentQueue;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WebConstants;
@@ -57,13 +58,9 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
 
   private static final String USER_PREF_KEY_RECENT_GROUPS = "GroupSelectPanel:recentGroups";
 
+  private static final String[] SEARCH_FIELDS = { "id", "name" };
+
   private boolean defaultFormProcessing = false;
-
-  @SpringBean
-  private GroupDao groupDao;
-
-  @SpringBean
-  private UserXmlPreferencesService userPreferencesService;
 
   private RecentQueue<String> recentGroups;
 
@@ -102,9 +99,9 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
       protected List<GroupDO> getChoices(final String input)
       {
         final BaseSearchFilter filter = new BaseSearchFilter();
-        filter.setSearchFields("id", "name");
+        filter.setSearchFields(SEARCH_FIELDS);
         filter.setSearchString(input);
-        final List<GroupDO> list = groupDao.getList(filter);
+        final List<GroupDO> list = WicketSupport.get(GroupDao.class).select(filter);
         return list;
       }
 
@@ -120,7 +117,8 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
         if (group == null) {
           return "";
         }
-        return group.getName();
+        GroupDO g = PfCaches.getInstance().getGroup(group.getId());
+        return g != null ? g.getName() : "???";
       }
 
       @Override
@@ -161,7 +159,7 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
               return null;
             }
             // ### FORMAT ###
-            final GroupDO group = groupDao.getByName(value);
+            final GroupDO group = WicketSupport.get(GroupDao.class).getByName(value);
             if (group == null) {
               error(getString("panel.error.groupNotFound"));
             }
@@ -255,11 +253,11 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
   private RecentQueue<String> getRecentCustomers()
   {
     if (this.recentGroups == null) {
-      this.recentGroups = (RecentQueue<String>) userPreferencesService.getEntry(USER_PREF_KEY_RECENT_GROUPS);
+      this.recentGroups = (RecentQueue<String>) WicketSupport.get(UserXmlPreferencesService.class).getEntry(USER_PREF_KEY_RECENT_GROUPS);
     }
     if (this.recentGroups == null) {
       this.recentGroups = new RecentQueue<String>();
-      userPreferencesService.putEntry(USER_PREF_KEY_RECENT_GROUPS, this.recentGroups, true);
+      WicketSupport.get(UserXmlPreferencesService.class).putEntry(USER_PREF_KEY_RECENT_GROUPS, this.recentGroups, true);
     }
     return this.recentGroups;
   }

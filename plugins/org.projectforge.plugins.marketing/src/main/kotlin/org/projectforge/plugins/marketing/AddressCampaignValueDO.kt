@@ -23,13 +23,15 @@
 
 package org.projectforge.plugins.marketing
 
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.business.address.AddressDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import javax.persistence.*
+import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
 
 /**
  * A marketing campaign.
@@ -62,12 +64,14 @@ import javax.persistence.*
 )
 open class AddressCampaignValueDO : DefaultBaseDO() {
 
-  @IndexedEmbedded(depth = 1)
+  @IndexedEmbedded(includeDepth = 1)
+  @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "address_campaign_fk", nullable = false)
   open var addressCampaign: AddressCampaignDO? = null
 
-  @IndexedEmbedded(depth = 1)
+  @IndexedEmbedded(includeDepth = 1)
+  @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "address_fk", nullable = false)
   open var address: AddressDO? = null
@@ -80,11 +84,11 @@ open class AddressCampaignValueDO : DefaultBaseDO() {
   @get:Column(length = Constants.LENGTH_COMMENT)
   open var comment: String? = null
 
-  val addressCampaignId: Int?
+  val addressCampaignId: Long?
     @Transient
     get() = if (addressCampaign != null) addressCampaign!!.id else null
 
-  val addressId: Int?
+  val addressId: Long?
     @Transient
     get() = if (this.address != null) this.address!!.id else null
 

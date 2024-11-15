@@ -23,14 +23,13 @@
 
 package org.projectforge.flyway.dbmigration
 
-import de.micromata.genome.util.strings.converter.ConvertedStringTypes
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
-import org.projectforge.framework.persistence.attr.impl.InternalAttrSchemaConstants
 import org.slf4j.LoggerFactory
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Month
 import java.time.ZoneOffset
@@ -75,7 +74,7 @@ class V7_0_0_11__MigrateEmployeeAnnualLeaveDays : BaseJavaMigration() {
                 parameters["start_time"] = date1900
             }
             parameters["employee_id"] = employeeId
-            parameters["group_name"] = InternalAttrSchemaConstants.EMPLOYEE_ANNUAL_LEAVEDAYS_GROUP_NAME
+            parameters["group_name"] = "employeeannualleave"
             simpleJdbcInsert.execute(parameters)
 
             simpleJdbcInsert = SimpleJdbcInsert(ds).withTableName("t_fibu_employee_timedattr")
@@ -88,8 +87,8 @@ class V7_0_0_11__MigrateEmployeeAnnualLeaveDays : BaseJavaMigration() {
             parameters["modifiedby"] = "anon"
             parameters["updatecounter"] = 0
             parameters["value"] = annualLeaveDays
-            parameters["propertyname"] = InternalAttrSchemaConstants.EMPLOYEE_ANNUAL_LEAVEDAYS_PROP_NAME
-            parameters["type"] = ConvertedStringTypes.BIGDECIMAL.shortType
+            parameters["propertyname"] = "employeeannualleavedays"
+            parameters["type"] = 'K' // ConvertedStringTypes.BIGDECIMAL.shortType
             parameters["parent"] = counter
             simpleJdbcInsert.execute(parameters)
         }
@@ -101,4 +100,9 @@ class V7_0_0_11__MigrateEmployeeAnnualLeaveDays : BaseJavaMigration() {
     }
 
     private val log = LoggerFactory.getLogger(V7_0_0_11__MigrateEmployeeAnnualLeaveDays::class.java)
+
+        /**
+         * The bigdecimal.
+         */
+        // de.micromata.genome.util.strings.converter.ConvertedStringTypes.BIGDECIMAL.shortType BIGDECIMAL('K', BigDecimal::class.java),
 }

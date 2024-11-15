@@ -59,7 +59,7 @@ open class My2FASetupData : My2FAData() {
       setupData.webAuthnEntries = webAuthnSupport.allLoggedInUserCredentials.map {
         WebAuthnEntry.create(it)
       }.toMutableList()
-      userDao.internalGetById(ThreadLocalUserContext.userId)?.let { user ->
+      userDao.find(ThreadLocalUserContext.loggedInUserId, checkAccess = false)?.let { user ->
         setupData.mobilePhone = user.mobilePhone
       }
 

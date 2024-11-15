@@ -23,67 +23,78 @@
 
 package org.projectforge.framework.persistence.database
 
-import org.hibernate.search.batchindexing.impl.SimpleIndexingProgressMonitor
-import org.projectforge.framework.utils.NumberHelper
-import org.slf4j.LoggerFactory
-import java.math.BigDecimal
-import java.math.RoundingMode
-import java.text.NumberFormat
-import java.util.*
+import mu.KotlinLogging
+import org.hibernate.search.mapper.pojo.massindexing.MassIndexingMonitor
+import org.projectforge.common.extensions.format
+import org.projectforge.common.extensions.formatMillis
+import org.projectforge.framework.utils.NumberFormatter
 
-/**
- * @author Kai Reinhard (k.reinhard@micromata.de)
- */
-class IndexProgressMonitor(private val logPrefix: String, private val totalNumber: Long, private val synchronizedMode: Boolean = false) : SimpleIndexingProgressMonitor() {
-    @Volatile
-    private var done: Long = 0
-    private var blockCounter: Long = 0
-    private var progressSteps: Long = 0
-    private var lastTime = System.currentTimeMillis()
+private val log = KotlinLogging.logger {}
 
-    override fun documentsAdded(increment: Long) {
-        if (synchronizedMode) {
-            synchronized(this) {
-                internalAdded(increment)
-            }
-        } else {
-            internalAdded(increment)
-        }
-    }
-
-    private fun internalAdded(increment: Long) {
-        blockCounter += increment
-        done += increment
-        if (blockCounter > progressSteps) {
-            printStatusMessage(totalNumber, done, blockCounter)
-            blockCounter -= progressSteps
-        }
-    }
-
-    override fun printStatusMessage(totalTodoCount: Long, doneCount: Long, blockCounter: Long) {
-        val format = NumberFormat.getInstance(Locale.US)
-        val percentage = BigDecimal(doneCount).multiply(NumberHelper.HUNDRED).divide(BigDecimal(totalTodoCount), 0, RoundingMode.HALF_UP)
-        val time = System.currentTimeMillis()
-        val speed = blockCounter * 1000 / (time - lastTime)
-        log.info("$logPrefix: Progress: ${percentage}% (${format.format(doneCount)}/${format.format(totalTodoCount)}): ${format.format(speed)}/s")
-        lastTime = time
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(IndexProgressMonitor::class.java)
-    }
+class IndexProgressMonitor(val entityClass: Class<*>) : MassIndexingMonitor {
+    private var totalEntities: Long = 0
+    private var indexedEntities: Long = 0
+    private var lastReportedProgress = 0
+    private var step = 50 // 50% steps at default
+    private var started = System.currentTimeMillis()
 
     init {
-        progressSteps = if (totalNumber > 5000000) // 1.000.000
-            totalNumber / 100 // Log message every 1%
-        else if (totalNumber > 2000000) // 1.000.000
-            totalNumber / 20 // Log message every 5%
-        else if (totalNumber > 1000000) // 1.000.000
-            totalNumber / 10 // Log message every 10%
-        else if (totalNumber > 100000) // 100.000
-            totalNumber / 5 // Log message every 20%
-        else if (totalNumber > 10000) // 10.000
-            totalNumber / 2 // Log message every 50%
-        else 2 * totalNumber // Do not log.
+        log.info { "${entityClass.simpleName}: Starting indexing..." }
+    }
+
+    override fun documentsAdded(increment: Long) {
+        synchronized(this) {
+            indexedEntities += increment
+        }
+        printProgress()
+    }
+
+    override fun entitiesLoaded(increment: Long) {
+        // Diese Methode wird aufgerufen, wenn Entitäten aus der Datenbank geladen werden
+    }
+
+    override fun addToTotalCount(count: Long) {
+        synchronized(this) {
+            totalEntities += count
+        }
+        step = when { // 2.500 Entities per seconde:
+            totalEntities > 5_000_000 -> 1    // 1% steps
+            totalEntities > 2_000_000 -> 2    // 2% steps
+            totalEntities > 1_000_000 -> 5    // 5% steps
+            totalEntities > 500_000 -> 10     // 10% steps
+            totalEntities > 250_000 -> 20     // 20% steps
+            totalEntities > 200_000 -> 25     // 25% steps
+            totalEntities > 100_000 -> 50     // 50% steps
+            else -> 100                       // 100% steps
+        }
+    }
+
+    override fun indexingCompleted() {
+        val duration = System.currentTimeMillis() - started
+        val speed = totalEntities * 1000L / duration
+        log.info { "${entityClass.simpleName}: Indexing completed (${duration.formatMillis()}, ${speed.format()}/s)." }
+    }
+
+    override fun documentsBuilt(increment: Long) {
+        // Diese Methode wird aufgerufen, wenn Dokumente für die Indizierung erstellt werden
+    }
+
+    private fun printProgress() {
+        if (totalEntities > 0) {
+            // Berechne den aktuellen Fortschritt als ganzzahligen Wert
+            val progress = (indexedEntities * 100 / totalEntities / step).toInt() // Fortschritt in step-%-Schritten
+
+            // Logge nur, wenn sich der Fortschritt geändert hat
+            if (progress > lastReportedProgress) {
+                lastReportedProgress = progress
+                log.info(
+                    "${entityClass.simpleName}: Indexing ${progress * step}% (${
+                        NumberFormatter.format(
+                            indexedEntities
+                        )
+                    }/${NumberFormatter.format(totalEntities)})..."
+                )
+            }
+        }
     }
 }

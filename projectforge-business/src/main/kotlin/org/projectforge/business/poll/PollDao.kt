@@ -29,9 +29,9 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 
-@Repository
+@Service
 open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
 
     @Autowired
@@ -42,10 +42,10 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
     }
 
     override fun hasAccess(
-        user: PFUserDO?,
+        user: PFUserDO,
         obj: PollDO?,
         oldObj: PollDO?,
-        operationType: OperationType?,
+        operationType: OperationType,
         throwException: Boolean
     ): Boolean {
 
@@ -53,7 +53,7 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
             return true
         };
         if (obj != null && operationType == OperationType.SELECT) {
-            if (hasFullAccess(obj) || isAttendee(obj, ThreadLocalUserContext.user?.id!!))
+            if (hasFullAccess(obj) || isAttendee(obj, ThreadLocalUserContext.loggedInUser?.id!!))
                 return true
         }
         if (obj != null) {
@@ -64,9 +64,9 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
 
     // returns true if current user has full access, otherwise returns false
     fun hasFullAccess(obj: PollDO): Boolean {
-        val loggedInUserId = ThreadLocalUserContext.userId!!
+        val loggedInUserId = ThreadLocalUserContext.loggedInUserId!!
         if (!obj.fullAccessUserIds.isNullOrBlank()) {
-            val userIdArray = PollDO.toIntArray(obj.fullAccessUserIds)
+            val userIdArray = PollDO.toLongArray(obj.fullAccessUserIds)
             if (userIdArray?.contains(loggedInUserId) == true) {
                 return true
             }
@@ -75,7 +75,7 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
             return true
         }
         if (!obj.fullAccessGroupIds.isNullOrBlank()) {
-            val groupIdArray = PollDO.toIntArray(obj.fullAccessGroupIds)
+            val groupIdArray = PollDO.toLongArray(obj.fullAccessGroupIds)
             val groupUsers = groupService.getGroupUsers(groupIdArray)
             groupUsers.map { it.id }.forEach { id ->
                 if (id == loggedInUserId) {
@@ -86,7 +86,7 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
         return false
     }
 
-    fun isAttendee(obj: PollDO, user: Int): Boolean {
-        return PollDO.toIntArray(obj.attendeeIds)?.contains(user) == true
+    fun isAttendee(obj: PollDO, user: Long): Boolean {
+        return PollDO.toLongArray(obj.attendeeIds)?.contains(user) == true
     }
 }

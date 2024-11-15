@@ -31,7 +31,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 class DataTransferNotificationTest {
   @Test
   fun registerRecipientsTest() {
-    val observerIds = intArrayOf(1, 2, 3)
+    val observerIds = longArrayOf(1, 2, 3)
     testAudit(
       uploadUserId = 1,
       byUserId = 1,
@@ -75,11 +75,11 @@ class DataTransferNotificationTest {
   }
 
   private fun testAudit(
-    uploadUserId: Int,
-    byUserId: Int,
+    uploadUserId: Long,
+    byUserId: Long,
     eventType: AttachmentsEventType,
-    observerIds: IntArray,
-    expected: Set<Int>,
+    observerIds: LongArray,
+    expected: Set<Long>,
     msg: String,
   ) {
     val audit = DataTransferAuditDO()
@@ -92,13 +92,13 @@ class DataTransferNotificationTest {
       it.id = uploadUserId
       audit.uploadByUser = it
     }
-    val recipients = mutableSetOf<Int>()
+    val recipients = mutableSetOf<Long>()
     DataTransferNotificationMailService.registerRecipients(audit, observerIds, recipients)
     assertSet(expected, recipients, msg)
   }
 
 
-  private fun assertSet(expected: Set<Int>, actual: Set<Int>, msg: String) {
+  private fun assertSet(expected: Set<Long>, actual: Set<Long>, msg: String) {
     val message = "$msg expected=${expected.joinToString()}, actual=${actual.joinToString()}"
     Assertions.assertEquals(expected.size, actual.size, message)
     expected.forEach {

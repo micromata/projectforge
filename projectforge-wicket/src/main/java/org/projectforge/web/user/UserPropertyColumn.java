@@ -23,7 +23,6 @@
 
 package org.projectforge.web.user;
 
-import org.apache.commons.lang3.Validate;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
@@ -33,104 +32,76 @@ import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.CellItemListener;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
 
-public class UserPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
-{
-  private static final long serialVersionUID = -26352961662061891L;
+public class UserPropertyColumn<T> extends CellItemListenerPropertyColumn<T> {
+    private static final long serialVersionUID = -26352961662061891L;
 
-  private UserFormatter userFormatter;
-
-  private transient UserGroupCache userGroupCache;
-
-  /**
-   * @param clazz
-   * @param sortProperty
-   * @param propertyExpression
-   * @param cellItemListener
-   */
-  public UserPropertyColumn(UserGroupCache userGroupCache, final Class<?> clazz, final String sortProperty,
-      final String propertyExpression,
-      final CellItemListener<T> cellItemListener)
-  {
-    super(clazz, sortProperty, propertyExpression, cellItemListener);
-    this.userGroupCache = userGroupCache;
-  }
-
-  /**
-   * @param userFormatter
-   * @param label
-   * @param sortProperty
-   * @param property Should be from type PFUserDO or Integer for user id.
-   * @param cellItemListener
-   */
-  public UserPropertyColumn(UserGroupCache userGroupCache, final String label, final String sortProperty,
-      final String property,
-      final CellItemListener<T> cellItemListener)
-  {
-    super(new Model<String>(label), sortProperty, property, cellItemListener);
-    this.userGroupCache = userGroupCache;
-  }
-
-  /**
-   * @param userFormatter
-   * @param label
-   * @param sortProperty
-   * @param property Should be from type PFUserDO or Integer for user id.
-   */
-  public UserPropertyColumn(UserGroupCache userGroupCache, final String label, final String sortProperty,
-      final String property)
-  {
-    this(userGroupCache, label, sortProperty, property, null);
-  }
-
-  @Override
-  public void populateItem(final Item<ICellPopulator<T>> item, final String componentId, final IModel<T> rowModel)
-  {
-    final Label label = new Label(componentId, new Model<String>(getLabelString(rowModel)));
-    item.add(label);
-    if (cellItemListener != null)
-      cellItemListener.populateItem(item, componentId, rowModel);
-  }
-
-  protected String getLabelString(final IModel<T> rowModel)
-  {
-    final Object obj = BeanHelper.getNestedProperty(rowModel.getObject(), getPropertyExpression());
-    PFUserDO user = null;
-    if (obj != null) {
-      if (obj instanceof PFUserDO) {
-        user = (PFUserDO) obj;
-      } else if (obj instanceof Integer) {
-        final Integer userId = (Integer) obj;
-        user = getUserGroupCache().getUser(userId);
-      } else {
-        throw new IllegalStateException("Unsupported column type: " + obj);
-      }
+    /**
+     * @param clazz
+     * @param sortProperty
+     * @param propertyExpression
+     * @param cellItemListener
+     */
+    public UserPropertyColumn(UserGroupCache userGroupCache, final Class<?> clazz, final String sortProperty,
+                              final String propertyExpression,
+                              final CellItemListener<T> cellItemListener) {
+        super(clazz, sortProperty, propertyExpression, cellItemListener);
     }
-    String result;
-    if (user != null) {
-      Validate.notNull(userFormatter);
-      result = userFormatter.formatUser(user);
-    } else {
-      result = "";
+
+    /**
+     * @param userFormatter
+     * @param label
+     * @param sortProperty
+     * @param property         Should be from type PFUserDO or Integer for user id.
+     * @param cellItemListener
+     */
+    public UserPropertyColumn(UserGroupCache userGroupCache, final String label, final String sortProperty,
+                              final String property,
+                              final CellItemListener<T> cellItemListener) {
+        super(new Model<String>(label), sortProperty, property, cellItemListener);
     }
-    return result;
-  }
 
-  /**
-   * Fluent pattern
-   * 
-   * @param userFormatter
-   */
-  public UserPropertyColumn<T> withUserFormatter(final UserFormatter userFormatter)
-  {
-    this.userFormatter = userFormatter;
-    return this;
-  }
+    /**
+     * @param userFormatter
+     * @param label
+     * @param sortProperty
+     * @param property      Should be from type PFUserDO or Integer for user id.
+     */
+    public UserPropertyColumn(UserGroupCache userGroupCache, final String label, final String sortProperty,
+                              final String property) {
+        this(userGroupCache, label, sortProperty, property, null);
+    }
 
-  private UserGroupCache getUserGroupCache()
-  {
-    return userGroupCache;
-  }
+    @Override
+    public void populateItem(final Item<ICellPopulator<T>> item, final String componentId, final IModel<T> rowModel) {
+        final Label label = new Label(componentId, new Model<String>(getLabelString(rowModel)));
+        item.add(label);
+        if (cellItemListener != null)
+            cellItemListener.populateItem(item, componentId, rowModel);
+    }
+
+    protected String getLabelString(final IModel<T> rowModel) {
+        final Object obj = BeanHelper.getNestedProperty(rowModel.getObject(), getPropertyExpression());
+        PFUserDO user = null;
+        if (obj != null) {
+            if (obj instanceof PFUserDO) {
+                user = (PFUserDO) obj;
+            } else if (obj instanceof Long) {
+                final Long userId = (Long) obj;
+                user = WicketSupport.getUserGroupCache().getUser(userId);
+            } else {
+                throw new IllegalStateException("Unsupported column type: " + obj);
+            }
+        }
+        String result;
+        if (user != null) {
+            result = WicketSupport.get(UserFormatter.class).formatUser(user);
+        } else {
+            result = "";
+        }
+        return result;
+    }
 }

@@ -24,60 +24,50 @@
 package org.projectforge.web.fibu;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.BuchungssatzDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
 import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = AccountingRecordListPage.class)
 public class AccountingRecordEditPage
-    extends AbstractEditPage<BuchungssatzDO, AccountingRecordEditForm, BuchungssatzDao>
-{
-  private static final long serialVersionUID = -3899191243765232906L;
+        extends AbstractEditPage<BuchungssatzDO, AccountingRecordEditForm, BuchungssatzDao> {
+    private static final long serialVersionUID = -3899191243765232906L;
 
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccountingRecordEditPage.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccountingRecordEditPage.class);
 
-  @SpringBean
-  private BuchungssatzDao buchungssatzDao;
+    public AccountingRecordEditPage(final PageParameters parameters) {
+        super(parameters, "fibu.buchungssatz");
+        checkAccess();
+        init();
+    }
 
-  public AccountingRecordEditPage(final PageParameters parameters)
-  {
-    super(parameters, "fibu.buchungssatz");
-    checkAccess();
-    init();
-  }
+    private void checkAccess() {
+        getAccessChecker().checkLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE);
+        getAccessChecker().checkRestrictedOrDemoUser();
+    }
 
-  private void checkAccess()
-  {
-    accessChecker.checkLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE);
-    accessChecker.checkRestrictedOrDemoUser();
-  }
+    @Override
+    protected void onPreEdit() {
+        super.onPreEdit();
+    }
 
-  @Override
-  protected void onPreEdit()
-  {
-    super.onPreEdit();
-  }
+    @Override
+    protected BuchungssatzDao getBaseDao() {
+        return WicketSupport.get(BuchungssatzDao.class);
+    }
 
-  @Override
-  protected BuchungssatzDao getBaseDao()
-  {
-    return buchungssatzDao;
-  }
+    @Override
+    protected AccountingRecordEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final BuchungssatzDO data) {
+        return new AccountingRecordEditForm(this, data);
+    }
 
-  @Override
-  protected AccountingRecordEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final BuchungssatzDO data)
-  {
-    return new AccountingRecordEditForm(this, data);
-  }
-
-  @Override
-  protected Logger getLogger()
-  {
-    return log;
-  }
+    @Override
+    protected Logger getLogger() {
+        return log;
+    }
 }

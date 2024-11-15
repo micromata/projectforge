@@ -51,7 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
 private val log = KotlinLogging.logger {}
@@ -75,9 +75,6 @@ class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventD
 
   @Autowired
   private lateinit var timesheetRest: TimesheetPagesRest
-
-  @Autowired
-  private lateinit var CalendarEventExternalSubscriptionCache: TeamEventExternalSubscriptionCache
 
   override fun transformForDB(dto: CalEvent): CalEventDO {
     val calendarEventDO = CalEventDO()
@@ -153,9 +150,9 @@ class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventD
         )
       }
     } else {
-      val calendarId = NumberHelper.parseInteger(request.getParameter("calendar"))
+      val calendarId = NumberHelper.parseLong(request.getParameter("calendar"))
       if (calendarId != null && calendarId > 0) {
-        dto.calendar = teamCalDao.getById(calendarId)
+        dto.calendar = teamCalDao.find(calendarId)
       }
     }
     if (startDate != null) dto.startDate = startDate.sqlTimestamp
@@ -171,7 +168,7 @@ class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventD
     if (obj.calendar?.id != null) {
       // Calendar from client has only id and title. Get the calendar object from the data base (e. g. owner
       // is needed by the access checker.
-      obj.calendar = teamCalDao.getById(obj.calendar.id)
+      obj.calendar = teamCalDao.find(obj.calendar?.id)
     }
   }
 
@@ -190,11 +187,11 @@ class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventD
         return CalEvent()
       }
       try {
-        val calId = vals[0].toInt()
+        val calId = vals[0].toLong()
         val uid = vals[1]
         val eventDO = teamEventExternalSubscriptionCache.getEvent(calId, uid)
         if (eventDO == null) {
-          val cal = teamCalDao.getById(calId)
+          val cal = teamCalDao.find(calId)
           if (cal == null) {
             log.error("Can't get calendar with id #$calId.")
           } else if (!cal.externalSubscription) {
@@ -276,21 +273,21 @@ class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventD
    * LAYOUT Edit page
    */
   override fun createEditLayout(dto: CalEvent, userAccess: UILayout.UserAccess): UILayout {
-    val calendars = teamCalDao.getAllCalendarsWithFullAccess()
+    val calendars = teamCalDao.allCalendarsWithFullAccess.toMutableList()
     calendars.removeIf { it.externalSubscription } // Remove full access calendars, but subscribed.
     if (dto.calendar != null && calendars.find { it.id == dto.calendar?.id } == null) {
       // Calendar of event is not in the list of editable calendars. Add this non-editable calendar to show
       // the calendar of the event.
-      calendars.add(0, dto.calendar)
+      calendars.add(0, dto.calendar!!)
     }
     val calendarSelectValues = calendars.map {
-      UISelectValue<Int>(it.id, it.title!!)
+      UISelectValue<Long>(it.id!!, it.title!!)
     }
     val subject = UIInput("subject", lc)
     subject.focus = true
     val layout = super.createEditLayout(dto, userAccess)
     if (dto.hasRecurrence && !userAccess.onlySelectAccess()) {
-      val masterEvent = baseDao.getById(dto.id)
+      val masterEvent = baseDao.find(dto.id)
       val radioButtonGroup = UIGroup()
       if (masterEvent?.startDate?.before(dto.selectedSeriesEvent?.startDate) != false) {
         radioButtonGroup.add(
@@ -328,7 +325,7 @@ class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventD
             .add(
               UICol(6)
                 .add(
-                  UISelect<Int>(
+                  UISelect<Long>(
                     "calendar",
                     values = calendarSelectValues.toMutableList(),
                     label = "plugins.teamcal.event.teamCal",

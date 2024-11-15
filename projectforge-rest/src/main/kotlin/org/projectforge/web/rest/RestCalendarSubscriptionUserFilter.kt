@@ -37,7 +37,7 @@ private val log = KotlinLogging.logger {}
 class RestCalendarSubscriptionUserFilter : AbstractRestUserFilter(UserTokenType.CALENDAR_REST) {
     override fun authenticate(authInfo: RestAuthenticationInfo) {
         val userString = restAuthenticationUtils.getUserString(authInfo, arrayOf("user"), UserTokenType.CALENDAR_REST, true)
-        val userId = NumberHelper.parseInteger(userString)
+        val userId = NumberHelper.parseLong(userString)
                 ?: run {
                     if (authInfo.resultCode == null) {
                         // error not yet handled.

@@ -33,7 +33,7 @@ import org.projectforge.rest.dto.User
 import java.util.*
 
 class MerlinTemplate(
-  id: Int? = null,
+  id: Long? = null,
   var name: String? = null,
   var description: String? = null,
   var admins: List<User>? = null,
@@ -93,9 +93,9 @@ class MerlinTemplate(
   // The user and group ids are stored as csv list of integers in the data base.
   override fun copyTo(dest: MerlinTemplateDO) {
     super.copyTo(dest)
-    dest.adminIds = User.toIntList(admins)
-    dest.accessGroupIds = Group.toIntList(accessGroups)
-    dest.accessUserIds = User.toIntList(accessUsers)
+    dest.adminIds = User.toLongList(admins)
+    dest.accessGroupIds = Group.toLongList(accessGroups)
+    dest.accessUserIds = User.toLongList(accessUsers)
     dest.variables = variablesToJson(variables)
     dest.dependentVariables = variablesToJson(dependentVariables)
   }

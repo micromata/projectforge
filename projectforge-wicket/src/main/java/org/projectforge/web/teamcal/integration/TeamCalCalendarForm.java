@@ -30,8 +30,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.ical.ICalParser;
@@ -41,8 +39,8 @@ import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter;
 import org.projectforge.business.teamcal.filter.TemplateEntry;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.calendar.CalendarForm;
 import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.calendar.CalendarPageSupport;
@@ -73,18 +71,6 @@ public class TeamCalCalendarForm extends CalendarForm
 
   private ModalMessageDialog errorDialog;
 
-  @SpringBean
-  private transient TeamEventDao teamEventDao;
-
-  @SpringBean
-  private transient TeamEventService teamEventService;
-
-  @SpringBean
-  transient TeamCalCache teamCalCache;
-
-  @SpringBean
-  transient AccessChecker accessChecker;
-
   @SuppressWarnings("unused")
   private TemplateEntry activeTemplate;
 
@@ -104,12 +90,9 @@ public class TeamCalCalendarForm extends CalendarForm
   @Override
   protected CalendarPageSupport createCalendarPageSupport()
   {
-    return new CalendarPageSupport(parentPage, accessChecker).setShowOptions(false).setShowTimsheetsSelectors(false);
+    return new CalendarPageSupport(parentPage).setShowOptions(false).setShowTimsheetsSelectors(false);
   }
 
-  /**
-   * @see org.projectforge.web.calendar.CalendarForm#init()
-   */
   @SuppressWarnings("serial")
   @Override
   protected void init()
@@ -143,7 +126,7 @@ public class TeamCalCalendarForm extends CalendarForm
         @Override
         protected void onSubmit()
         {
-          final Set<Integer> visibleCalsSet = ((TeamCalCalendarFilter) filter).getActiveVisibleCalendarIds();
+          final Set<Long> visibleCalsSet = ((TeamCalCalendarFilter) filter).getActiveVisibleCalendarIds();
           final String calendars = StringHelper.objectColToString(visibleCalsSet, ",");
           final TeamEventListPage teamEventListPage = new TeamEventListPage(
               new PageParameters().add(TeamEventListPage.PARAM_CALENDARS,
@@ -258,14 +241,14 @@ public class TeamCalCalendarForm extends CalendarForm
         // check id/external id. If not yet given, create new entry and ask for calendar to add: Redirect to TeamEventEditPage.
 
         if (event.getUid() != null && activeTemplateEntry != null) {
-          final TeamEventDO dbEvent = teamEventDao.getByUid(activeTemplateEntry.getDefaultCalendarId(), event.getUid(), false);
+          final TeamEventDO dbEvent = WicketSupport.get(TeamEventDao.class).getByUid(activeTemplateEntry.getDefaultCalendarId(), event.getUid(), false);
 
           if (dbEvent != null) {
-            if (ThreadLocalUserContext.getUserId().equals(dbEvent.getCreator().getPk()) || dbEvent.isDeleted()) {
-              event.setId(dbEvent.getPk());
+            if (ThreadLocalUserContext.getLoggedInUserId().equals(dbEvent.getCreator().getId()) || dbEvent.getDeleted()) {
+              event.setId(dbEvent.getId());
               event.setCreated(dbEvent.getCreated());
               event.setCreator(dbEvent.getCreator());
-              event.setDeleted(dbEvent.isDeleted());
+              event.setDeleted(dbEvent.getDeleted());
             } else {
               // Can't import event with existing uid in selected calendar, redirect to import page:
               redirectToImportPage(parser.getVEvents(), activeModel.getObject());
@@ -276,15 +259,15 @@ public class TeamCalCalendarForm extends CalendarForm
 
         // set calendar
         if (activeTemplateEntry != null && activeTemplateEntry.getDefaultCalendarId() != null) {
-          teamEventDao.setCalendar(event, activeTemplateEntry.getDefaultCalendarId());
+          WicketSupport.get(TeamEventDao.class).setCalendar(event, activeTemplateEntry.getDefaultCalendarId());
         }
 
         // fix attendees
-        teamEventService.fixAttendees(event);
+        WicketSupport.get(TeamEventService.class).fixAttendees(event);
 
         final Set<TeamEventAttendeeDO> originAssignedAttendees = new HashSet<>();
         event.getAttendees().forEach(attendee -> {
-          attendee.setPk(null);
+          attendee.setId(null);
           originAssignedAttendees.add(attendee);
         });
         event.setAttendees(new HashSet<>());
@@ -294,7 +277,7 @@ public class TeamCalCalendarForm extends CalendarForm
           if (attendee.getAddress() != null) {
             form.getAttendeeWicketProvider().initSortedAttendees();
             form.getAttendeeWicketProvider().getSortedAttendees().forEach(sortedAttendee -> {
-              if (sortedAttendee.getAddress() != null && sortedAttendee.getAddress().getPk().equals(attendee.getAddress().getPk())) {
+              if (sortedAttendee.getAddress() != null && sortedAttendee.getAddress().getId().equals(attendee.getAddress().getId())) {
                 sortedAttendee.setId(form.getAttendeeWicketProvider().getAndDecreaseInternalNewAttendeeSequence());
                 form.getAssignAttendeesListHelper().assignItem(sortedAttendee);
               }
@@ -359,7 +342,7 @@ public class TeamCalCalendarForm extends CalendarForm
   /**
    * @return the selectedCalendars
    */
-  public Set<Integer> getSelectedCalendars()
+  public Set<Long> getSelectedCalendars()
   {
     return ((TeamCalCalendarFilter) filter).getActiveVisibleCalendarIds();
   }

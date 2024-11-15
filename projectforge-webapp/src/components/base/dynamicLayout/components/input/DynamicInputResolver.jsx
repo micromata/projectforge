@@ -45,11 +45,20 @@ function DynamicInputResolver(
         case 'USER':
         case 'GROUP':
         case 'EMPLOYEE':
+        case 'COST1':
+            Tag = DynamicObjectSelect;
+            additionalProps.type = dataType;
+            break;
+        case 'COST2':
+            Tag = DynamicObjectSelect;
+            additionalProps.type = dataType;
+            break;
         case 'KONTO':
             Tag = DynamicObjectSelect;
             additionalProps.type = dataType;
             break;
         case 'INT':
+        case 'LONG':
         case 'DECIMAL':
         case 'NUMBER':
             Tag = DynamicInput;
@@ -77,10 +86,13 @@ DynamicInputResolver.propTypes = {
         'STRING',
         'DATE',
         'EMPLOYEE',
+        'COST1',
+        'COST2',
         'TIMESTAMP',
         'TASK',
         'USER',
         'INT',
+        'LONG',
         'KONTO',
         'DECIMAL',
         'NUMBER',

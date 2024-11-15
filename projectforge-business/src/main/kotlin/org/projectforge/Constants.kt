@@ -86,7 +86,7 @@ object Constants {
    */
   const val EVENT_CLASS_NAME = "timesheet"
   const val BREAK_EVENT_CLASS_NAME = "ts-break"
-  const val TIMESHEET_CALENDAR_ID = -1
+  const val TIMESHEET_CALENDAR_ID = -1L
   const val MINYEAR = 1900
   const val MAXYEAR = 2100
 
@@ -143,7 +143,7 @@ object Constants {
   val CURRENCY_SYMBOL = ConfigurationServiceAccessor.get()?.currencySymbol ?: "€"
 
   @JvmStatic
-  fun isTimesheetCalendarId(id: Int?): Boolean {
+  fun isTimesheetCalendarId(id: Long?): Boolean {
     return id == TIMESHEET_CALENDAR_ID
   }
 }

@@ -28,6 +28,7 @@ import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.AddressbookDao;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.address.AddressListForm;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
@@ -50,13 +51,7 @@ public class AddressCampaignValueListForm
 
   static final String ADDRESS_CAMPAIGN_VALUE_UNDEFINED = "-(null)-";
 
-  @SpringBean
-  private AddressCampaignDao addressCampaignDao;
-
-  @SpringBean
-  private AddressbookDao addressbookDao;
-
-  private Integer addressCampaignId;
+  private Long addressCampaignId;
 
   @SuppressWarnings("unused")
   private String addressCampaignValue;
@@ -95,21 +90,21 @@ public class AddressCampaignValueListForm
       addressCampaignValueDropDownChoice.setNullValid(true);
       fs.add(addressCampaignValueDropDownChoice);
     }
-    AddressListForm.addFilter(parentPage, this, gridBuilder, getSearchFilter(), addressbookDao);
+    AddressListForm.addFilter(parentPage, this, gridBuilder, getSearchFilter());
   }
 
   @Override
   protected void onBeforeSearchFilter() {
-    final List<AddressCampaignDO> addressCampaignList = addressCampaignDao.getList(new AddressCampaignValueFilter());
+    final List<AddressCampaignDO> addressCampaignList =  WicketSupport.get(AddressCampaignDao.class).select(new AddressCampaignValueFilter());
     gridBuilder.newSplitPanel(GridSize.COL66);
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.marketing.addressCampaign"));
-      final LabelValueChoiceRenderer<Integer> addressCampaignRenderer = new LabelValueChoiceRenderer<>();
+      final LabelValueChoiceRenderer<Long> addressCampaignRenderer = new LabelValueChoiceRenderer<>();
       for (final AddressCampaignDO addressCampaign : addressCampaignList) {
         addressCampaignRenderer.addValue(addressCampaign.getId(), addressCampaign.getTitle());
       }
-      final DropDownChoice<Integer> addressCampaignChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(),
-          new PropertyModel<Integer>(this, "addressCampaignId"), addressCampaignRenderer.getValues(),
+      final DropDownChoice<Long> addressCampaignChoice = new DropDownChoice<Long>(fs.getDropDownChoiceId(),
+          new PropertyModel<Long>(this, "addressCampaignId"), addressCampaignRenderer.getValues(),
           addressCampaignRenderer);
       addressCampaignChoice.add(new FormComponentUpdatingBehavior()
 /*=======

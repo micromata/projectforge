@@ -24,6 +24,7 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.fibu.AuftragDO
+import org.projectforge.business.fibu.AuftragsCache
 import org.projectforge.business.fibu.AuftragsPositionDO
 import org.projectforge.business.fibu.AuftragsStatus
 import org.projectforge.framework.jcr.Attachment
@@ -32,27 +33,27 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 class Auftrag(
-        var nummer: Int? = null,
-        var customer: Customer? = Customer(),
-        var project: Project? = Project(),
-        var titel: String? = null,
-        var positionen: MutableList<AuftragsPositionDO>? = null,
-        var personDays: BigDecimal? = null,
-        var referenz: String? = null,
-        var assignedPersons: String? = null,
-        var erfassungsDatum: LocalDate? = null,
-        var entscheidungsDatum: LocalDate? = null,
-        var nettoSumme: BigDecimal? = null,
-        var beauftragtNettoSumme: BigDecimal? = null,
-        var fakturiertSum: BigDecimal? = null,
-        var zuFakturierenSum: BigDecimal? = null,
-        var periodOfPerformanceBegin: LocalDate? = null,
-        var periodOfPerformanceEnd: LocalDate? = null,
-        var probabilityOfOccurrence: Int? = null,
-        var auftragsStatus: AuftragsStatus? = null,
-        override var attachmentsCounter: Int? = null,
-        override var attachmentsSize: Long? = null,
-        override var attachments: List<Attachment>? = null,
+    var nummer: Int? = null,
+    var customer: Customer? = Customer(),
+    var project: Project? = Project(),
+    var titel: String? = null,
+    var positionen: MutableList<AuftragsPositionDO>? = null,
+    var personDays: BigDecimal? = null,
+    var referenz: String? = null,
+    var assignedPersons: String? = null,
+    var erfassungsDatum: LocalDate? = null,
+    var entscheidungsDatum: LocalDate? = null,
+    var nettoSumme: BigDecimal? = null,
+    var beauftragtNettoSumme: BigDecimal? = null,
+    var fakturiertSum: BigDecimal? = null,
+    var zuFakturierenSum: BigDecimal? = null,
+    var periodOfPerformanceBegin: LocalDate? = null,
+    var periodOfPerformanceEnd: LocalDate? = null,
+    var probabilityOfOccurrence: Int? = null,
+    var status: AuftragsStatus? = null,
+    override var attachmentsCounter: Int? = null,
+    override var attachmentsSize: Long? = null,
+    override var attachments: List<Attachment>? = null,
 ) : BaseDTO<AuftragDO>(), AttachmentsSupport {
     var pos: String? = null
 
@@ -70,14 +71,14 @@ class Auftrag(
         this.project = src.projekt?.let {
             Project(it)
         }
-
+    val orderInfo = AuftragsCache.instance.getOrderInfo(src)
         positionen = src.positionen
-        personDays = src.personDays
+        personDays = orderInfo.personDays
         assignedPersons = src.assignedPersons
-        formattedNettoSumme = NumberFormatter.formatCurrency(src.nettoSumme)
-        formattedBeauftragtNettoSumme = NumberFormatter.formatCurrency(src.beauftragtNettoSumme)
-        formattedFakturiertSum = NumberFormatter.formatCurrency(src.invoicedSum)
-        formattedZuFakturierenSum = NumberFormatter.formatCurrency(src.notYetInvoicedSum)
+        formattedNettoSumme = NumberFormatter.formatCurrency(orderInfo.netSum)
+        formattedBeauftragtNettoSumme = NumberFormatter.formatCurrency(orderInfo.orderedNetSum)
+        formattedFakturiertSum = NumberFormatter.formatCurrency(orderInfo.invoicedSum)
+        formattedZuFakturierenSum = NumberFormatter.formatCurrency(orderInfo.notYetInvoicedSum)
         pos = "#" + positionen?.size
     }
 }

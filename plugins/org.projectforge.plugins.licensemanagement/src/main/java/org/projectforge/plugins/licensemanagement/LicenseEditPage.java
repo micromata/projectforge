@@ -24,7 +24,7 @@
 package org.projectforge.plugins.licensemanagement;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
@@ -37,46 +37,37 @@ import org.slf4j.Logger;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @EditPage(defaultReturnPage = LicenseListPage.class)
-public class LicenseEditPage extends AbstractEditPage<LicenseDO, LicenseEditForm, LicenseDao>
-{
-  private static final long serialVersionUID = -5058143025817192156L;
+public class LicenseEditPage extends AbstractEditPage<LicenseDO, LicenseEditForm, LicenseDao> {
+    private static final long serialVersionUID = -5058143025817192156L;
 
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LicenseEditPage.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LicenseEditPage.class);
 
-  @SpringBean
-  private LicenseDao licenseDao;
-
-  public LicenseEditPage(final PageParameters parameters)
-  {
-    super(parameters, "plugins.licensemanagement");
-    init();
-    if (isNew()) {
-      getData().setNumberOfLicenses(1);
+    public LicenseEditPage(final PageParameters parameters) {
+        super(parameters, "plugins.licensemanagement");
+        init();
+        if (isNew()) {
+            getData().setNumberOfLicenses(1);
+        }
     }
-  }
 
-  @Override
-  protected LicenseDao getBaseDao()
-  {
-    return licenseDao;
-  }
+    @Override
+    protected LicenseDao getBaseDao() {
+        return WicketSupport.get(LicenseDao.class);
+    }
 
-  @Override
-  public AbstractSecuredBasePage onSaveOrUpdate()
-  {
-    licenseDao.setOwners(getData(), form.assignOwnersListHelper.getAssignedItems());
-    return super.onSaveOrUpdate();
-  }
+    @Override
+    public AbstractSecuredBasePage onSaveOrUpdate() {
+        getBaseDao().setOwners(getData(), form.assignOwnersListHelper.getAssignedItems());
+        return super.onSaveOrUpdate();
+    }
 
-  @Override
-  protected LicenseEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final LicenseDO data)
-  {
-    return new LicenseEditForm(this, data);
-  }
+    @Override
+    protected LicenseEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final LicenseDO data) {
+        return new LicenseEditForm(this, data);
+    }
 
-  @Override
-  protected Logger getLogger()
-  {
-    return log;
-  }
+    @Override
+    protected Logger getLogger() {
+        return log;
+    }
 }

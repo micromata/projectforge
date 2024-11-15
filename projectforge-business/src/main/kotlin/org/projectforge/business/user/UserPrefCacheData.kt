@@ -23,104 +23,140 @@
 
 package org.projectforge.business.user
 
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.entities.UserPrefDO
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.thoughtworks.xstream.annotations.XStreamAlias
+import com.thoughtworks.xstream.annotations.XStreamOmitField
+import mu.KotlinLogging
+
+private val log = KotlinLogging.logger {}
 
 /**
- * User preferences contains a Map used by UserPrefCache for storing user data application wide.
+ * User preferences contains a Map used by [UserPrefCache] and [UserXmlPreferencesCache] for storing user data application wide.
+ * Also, persistent user preferences in the database are supported.<br>
+ * The values are stored by area and identifier.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-internal class UserPrefCacheData {
-    class CacheEntry(
-            var userPrefDO: UserPrefDO,
-            var persistant: Boolean = true,
-            var modified: Boolean = false)
+@XStreamAlias("userPreferences")
+class UserPrefCacheData {
+    @JvmField
+    @XStreamOmitField
+    @JsonIgnore
+    var userId: Long? = null
 
-    var userId: Int? = null
+    private val persistentData = mutableMapOf<UserPrefCacheDataKey, Any>()
 
-    private var entries = mutableListOf<CacheEntry>()
-
-    internal fun putEntry(userPref: UserPrefDO) {
-        entries.add(CacheEntry(userPref))
+    internal fun persistentDataForeach(action: (key: UserPrefCacheDataKey, value: Any) -> Unit) {
+        synchronized(persistentData) {
+            persistentData.forEach { (identifier, value) ->
+                action(identifier, value)
+            }
+        }
     }
 
+    @XStreamOmitField
+    @Transient
+    @JsonIgnore
+    private var volatileData = mutableMapOf<UserPrefCacheDataKey, Any>()
+
+
     /**
-     * @param persistent If true, the object will be persisted in the database.
+     * For detecting modifications. Value is the hashCode of original xml/json stored in the database.
      */
-    internal fun putEntry(area: String, name: String, value: Any?, persistent: Boolean = true) {
-        synchronized(entries) {
-            var cacheEntry = findEntry(area, name)
-            if (cacheEntry != null) {
-                cacheEntry.modified = true
-                cacheEntry.persistant = persistent
-            } else {
-                val userPref = UserPrefDO()
-                userPref.area = area
-                userPref.name = name
-                userPref.user = ThreadLocalUserContext.user
-                cacheEntry = CacheEntry(userPref, persistent, true)
-                entries.add(cacheEntry)
-            }
-            cacheEntry.userPrefDO.valueObject = value
+    @XStreamOmitField
+    @Transient
+    @JsonIgnore
+    private var originalPersistentDataHashCode = mutableMapOf<UserPrefCacheDataKey, Int>()
+
+
+    fun containsPersistentEntry(key: UserPrefCacheDataKey): Boolean {
+        return synchronized(persistentData) {
+            persistentData.containsKey(key)
+        }
+    }
+
+    fun containsVolatileEntry(key: UserPrefCacheDataKey): Boolean {
+        return synchronized(volatileData) {
+            volatileData.containsKey(key)
         }
     }
 
     /**
-     * Gets the stored user preference entry for the given area
-     *
-     * @return Return a persistent objects, if existing, or if not a volatile objects, if
-     * existing, otherwise emtpy list;
+     * @param key The key of the cached data.
+     * @param value
+     * @param persistent If true, the object will be marked as modified and persisted in the database.
+     * @param originalSerializedHashCode The original value as xml (uncompressed)/json for storing as original value.
      */
-    internal fun getEntries(area: String): List<CacheEntry> {
-        val cacheEntries = findEntries(area)
-        // Assuming modification after use-age:
-        cacheEntries.forEach { it.modified = true }
-        return cacheEntries
+    fun putEntry(key: UserPrefCacheDataKey, value: Any?, persistent: Boolean, originalSerializedHashCode: Int? = null) {
+        value ?: return
+        log.debug { "Put entry: user=$userId, area=${key.area}, identifier=${key.identifier}, value=$value, persistent=$persistent, hashCodeOfOriginalSerialized=$originalSerializedHashCode" }
+        if (persistent) {
+            synchronized(persistentData) {
+                persistentData[key] = value
+            }
+            originalSerializedHashCode?.let {
+                synchronized(originalPersistentDataHashCode) {
+                    originalPersistentDataHashCode[key] = it
+                }
+            }
+        } else {
+            synchronized(volatileData) {
+                volatileData[key] = value
+            }
+        }
     }
 
     /**
      * Gets the stored user preference entry.
      *
-     * @return Return a persistent object with this key, if existing, or if not a volatile object with this key, if
+     * @param key The key of the cached data.
+     * @return Return a persistent object with this identifier, if existing, or if not a volatile object with this identifier, if
      * existing, otherwise null;
      */
-    internal fun getEntry(area: String, name: String): CacheEntry? {
-        val cacheEntry = findEntry(area, name) ?: return null
-        // Assuming modification after use-age:
-        cacheEntry.modified = true
-        return cacheEntry
-    }
-
-    /**
-     * Removes the entry from persistent and volatile storage if exist. Does not remove the entry from the data base!
-     *
-     * @return the removed value if found.
-     */
-    internal fun removeEntry(area: String, name: String) {
-        synchronized(entries) {
-            entries.removeIf { it.userPrefDO.name == name && it.userPrefDO.area == area }
+    fun getEntry(key: UserPrefCacheDataKey): Any? {
+        return synchronized(persistentData) {
+            persistentData[key]
+        } ?: synchronized(volatileData) {
+            volatileData[key]
         }
     }
 
-    internal fun getModifiedPersistentEntries(): List<CacheEntry> {
-        return entries.filter { it.persistant && it.modified }
+    fun getEntry(area: String?, identifier: String?): Any? {
+        return getEntry(UserPrefCacheDataKey(area, identifier))
+    }
+
+    /**
+     * Gets the hashCode of the original entry from persistent storage (database).
+     * Used for detecting modifications.
+     */
+    internal fun getOriginalDataHashCode(key: UserPrefCacheDataKey): Int? {
+        return synchronized(originalPersistentDataHashCode) {
+            originalPersistentDataHashCode[key]
+        }
+    }
+
+    /**
+     * Removes the entry from persistent and volatile storage if exist. Does not remove the entry from the database!
+     *
+     * @param key The key of the cached data.
+     * @return the removed value if found.
+     */
+    fun removeEntry(key: UserPrefCacheDataKey): Any? {
+        val value = synchronized(persistentData) {
+            persistentData.remove(key)
+        }
+        val volatileValue = synchronized(volatileData) {
+            volatileData.remove(key)
+        }
+        return value ?: volatileValue
     }
 
     /**
      * Clear all volatile data (after logout). Forces refreshing of volatile data after re-login.
      */
     fun clear() {
-        synchronized(entries) {
-            entries.clear()
+        synchronized(volatileData) {
+            volatileData.clear()
         }
-    }
-
-    private fun findEntry(area: String, name: String): CacheEntry? {
-        return entries.find { it.userPrefDO.name == name && it.userPrefDO.area == area }
-    }
-
-    private fun findEntries(area: String): List<CacheEntry> {
-        return entries.filter { it.userPrefDO.area == area }
     }
 }

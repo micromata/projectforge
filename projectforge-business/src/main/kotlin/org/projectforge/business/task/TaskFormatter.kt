@@ -42,7 +42,7 @@ open class TaskFormatter : AbstractFormatter() {
     @JvmStatic
     @JvmOverloads
     fun getTaskPath(
-      taskId: Int?,
+      taskId: Long?,
       showCurrentTask: Boolean,
       outputType: OutputType,
       abreviationLength: Int? = null
@@ -63,21 +63,21 @@ open class TaskFormatter : AbstractFormatter() {
     @JvmStatic
     @JvmOverloads
     fun getTaskPath(
-      taskId: Int?, ancestorTaskId: Int?, showCurrentTask: Boolean,
+      taskId: Long?, ancestorTaskId: Long?, showCurrentTask: Boolean,
       outputType: OutputType,
       abreviationLength: Int? = null,
     ): String? {
-      var taskId = taskId ?: return null
-      val taskTree = TaskTree.getInstance()
-      var n: TaskNode? = taskTree.getTaskNodeById(taskId) ?: return null
+      var currentTaskId = taskId ?: return null
+      val taskTree = TaskTree.instance
+      var n: TaskNode? = taskTree.getTaskNodeById(currentTaskId) ?: return null
       if (!showCurrentTask) {
         n = n?.parent
         if (n == null) {
           return null
         }
-        taskId = n.taskId
+        currentTaskId = n.taskId
       }
-      val list = taskTree.getPath(taskId, ancestorTaskId)
+      val list = taskTree.getPath(currentTaskId, ancestorTaskId)
       if (CollectionUtils.isEmpty(list)) {
         return ""
       }
@@ -105,7 +105,7 @@ open class TaskFormatter : AbstractFormatter() {
         // Show 'not opened' as blank field:
         return ""
       }
-      val buf = StringBuffer()
+      val buf = StringBuilder()
       buf.append("<span")
       HtmlHelper.attribute(buf, "class", "taskStatus_" + status.key)
       buf.append(">")

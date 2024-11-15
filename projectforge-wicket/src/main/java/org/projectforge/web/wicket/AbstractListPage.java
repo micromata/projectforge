@@ -221,8 +221,8 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     if (rowDataId == null) {
       return;
     }
-    if (rowDataId instanceof Integer == false) {
-      log.warn("Error in calling getCssStyle: Integer expected instead of " + rowDataId.getClass());
+    if (rowDataId instanceof Long == false) {
+      log.warn("Error in calling getCssStyle: Long expected instead of " + rowDataId.getClass());
     }
     if (highlightedRowId != null && rowDataId != null && Objects.equals(highlightedRowId, rowDataId) == true) {
       appendCssClasses(item, RowCssClass.HIGHLIGHTED);
@@ -304,7 +304,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     body.add(form);
     form.init();
     if (isSelectMode() == false
-        && (accessChecker.isDemoUser() == true || getBaseDao().hasInsertAccess(getUser()) == true)) {
+        && (getAccessChecker().isDemoUser() == true || getBaseDao().hasInsertAccess(getUser()) == true)) {
       newItemMenuEntry = new ContentMenuEntryPanel(contentMenuBarPanel.newChildId(), new Link<Object>("link") {
         @Override
         public void onClick() {
@@ -452,8 +452,8 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
       putUserPrefEntry(userPrefKey, duration, true);
     } catch (Exception ex) {
       // Just for case any exception occurred, avoid to reload page on next page view.
-      // Otherwise an filter producing db errors can't be reset by user, if db query will be done instantly on page view.
-      removeUserPrefEntryIfNotExists(userPrefKey);
+      // Otherwise, a filter producing db errors can't be reset by user, if db query will be done instantly on page view.
+      removeUserPrefEntry(userPrefKey);
     }
     this.refreshResultList = false;
     return this.resultList;
@@ -486,11 +486,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   @SuppressWarnings("unchecked")
   protected List<O> buildList() {
-    List<O> list = (List<O>) getBaseDao().getList(form.getSearchFilter());
-    int size = 0;
-    if (list != null) {
-      size = list.size();
-    }
+    List<O> list = (List<O>) getBaseDao().select(form.getSearchFilter());
     int maxRows = form.getSearchFilter().getMaxRows();
     if (maxRows <= 0) {
       maxRows = QueryFilter.QUERY_FILTER_MAX_ROWS;
@@ -540,16 +536,16 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   protected void addTopRightMenu() {
     if (isSelectMode() == false
         && ((getBaseDao() instanceof BaseDao<?>) || providesOwnRebuildDatabaseIndex() == true || true)) {
-      new AbstractReindexTopRightMenu(this.contentMenuBarPanel, accessChecker.isLoggedInUserMemberOfAdminGroup()) {
+      new AbstractReindexTopRightMenu(this.contentMenuBarPanel, getAccessChecker().isLoggedInUserMemberOfAdminGroup()) {
         @Override
         protected void rebuildDatabaseIndex(final boolean onlyNewest) {
           if (providesOwnRebuildDatabaseIndex() == true) {
             ownRebuildDatabaseIndex(onlyNewest);
           } else {
             if (onlyNewest == true) {
-              ((IPersistenceService<?>) getBaseDao()).rebuildDatabaseIndex4NewestEntries();
+              ((BaseDao<?>) getBaseDao()).rebuildDatabaseIndex4NewestEntries();
             } else {
-              ((IPersistenceService<?>) getBaseDao()).rebuildDatabaseIndex();
+              ((BaseDao<?>) getBaseDao()).rebuildDatabaseIndex();
             }
           }
         }
@@ -592,7 +588,6 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    *
    * @param columns
    * @param sortProperty
-   * @param ascending
    * @return
    */
   protected DataTable<O, String> createDataTable(final List<IColumn<O, String>> columns, final String sortProperty,
@@ -611,8 +606,6 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * At default a new SortableDOProvider is returned. Overload this method e. g. for avoiding
    * LazyInitializationExceptions due to sorting.
    *
-   * @param sortProperty
-   * @param ascending
    */
   protected ISortableDataProvider<O, String> createSortableDataProvider(final SortParam<String> sortParam) {
     return createSortableDataProvider(sortParam, null);
@@ -622,8 +615,6 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * At default a new SortableDOProvider is returned. Overload this method e. g. for avoiding
    * LazyInitializationExceptions due to sorting.
    *
-   * @param sortProperty
-   * @param ascending
    */
   protected ISortableDataProvider<O, String> createSortableDataProvider(final SortParam<String> sortParam,
                                                                         final SortParam<String> secondSortParam) {
@@ -779,7 +770,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   @Override
   public void select(final String property, final Object selectedValue) {
     if ("modifiedByUserId".equals(property) == true) {
-      form.getSearchFilter().setModifiedByUserId((Integer) selectedValue);
+      form.getSearchFilter().setModifiedByUserId((Long) selectedValue);
       form.getSearchFilter().setUseModificationFilter(true);
       refresh();
     } else {
@@ -821,7 +812,6 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * Adds the search string to the recent list, if filter is from type BaseSearchFilter and the search string is not
    * blank and not from type id:4711.
    *
-   * @param Filter The search filter.
    */
   protected void addRecentSearchTerm() {
     if (StringUtils.isNotBlank(form.searchFilter.getSearchString()) == true) {

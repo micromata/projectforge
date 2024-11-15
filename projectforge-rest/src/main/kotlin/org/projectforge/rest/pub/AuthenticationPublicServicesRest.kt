@@ -50,9 +50,9 @@ private val log = KotlinLogging.logger {}
 @RestController
 @RequestMapping(Rest.PUBLIC_URL)
 open class AuthenticationPublicServicesRest {
-    class Credentials(val username: String, val uid: Int, val authenticationToken: String, val url: String)
+    class Credentials(val username: String, val uid: Long, val authenticationToken: String, val url: String)
 
-    internal class TemporaryToken(val uid: Int, val systemTimeInMillis: Long, val token: String)
+    internal class TemporaryToken(val uid: Long, val systemTimeInMillis: Long, val token: String)
 
     @Autowired
     private lateinit var domainService: DomainService
@@ -88,7 +88,7 @@ open class AuthenticationPublicServicesRest {
             SecurityLogging.logSecurityWarn(this::class.java, "REST AUTHENTICATION FAILED", msg)
             throw IllegalArgumentException("Invalid call.")
         }
-        val user = userDao.internalGetById(uid)
+        val user = userDao.find(uid, checkAccess = false)
         if (user == null) {
             val msg = "Oups, no user with id $uid found."
             log.error(msg)
@@ -110,14 +110,14 @@ open class AuthenticationPublicServicesRest {
      * Internal usage for test cases.
      */
     internal open fun createTemporaryToken(): String {
-        val uid = ThreadLocalUserContext.userId!!
+        val uid = ThreadLocalUserContext.loggedInUserId!!
         return createTemporaryToken(uid, System.currentTimeMillis())
     }
 
     /**
      * Internal usage for test cases.
      */
-    internal open fun createTemporaryToken(uid: Int, currentTimeInMillis: Long): String {
+    internal open fun createTemporaryToken(uid: Long, currentTimeInMillis: Long): String {
         cleanTemporaryToken()
         val token = NumberHelper.getSecureRandomAlphanumeric(TEMPORARY_TOKEN_LENGTH)
         synchronized(temporaryTokenList) {

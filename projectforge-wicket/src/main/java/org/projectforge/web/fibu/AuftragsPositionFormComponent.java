@@ -27,7 +27,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.ConversionException;
 import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.validation.INullAcceptingValidator;
@@ -36,6 +35,7 @@ import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragDao;
 import org.projectforge.business.fibu.AuftragFilter;
 import org.projectforge.business.fibu.AuftragsPositionDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 
 import java.util.*;
@@ -49,9 +49,6 @@ public class AuftragsPositionFormComponent extends PFAutoCompleteTextField<Auftr
 {
   private static final long serialVersionUID = -4741993589740783229L;
 
-  @SpringBean
-  private AuftragDao auftragDao;
-
   @SuppressWarnings("rawtypes")
   class AuftragsPositionConverter implements IConverter
   {
@@ -64,7 +61,7 @@ public class AuftragsPositionFormComponent extends PFAutoCompleteTextField<Auftr
       if (StringUtils.isEmpty(value) == true) {
         return null;
       }
-      final AuftragsPositionDO auftragsPosition = auftragDao.getAuftragsPosition(value);
+      final AuftragsPositionDO auftragsPosition = WicketSupport.get(AuftragDao.class).getAuftragsPosition(value);
       if (auftragsPosition == null) {
         throw new ConversionException("Parse error").setResourceKey("fibu.auftrag.position.error.notFound");
       }
@@ -118,7 +115,7 @@ public class AuftragsPositionFormComponent extends PFAutoCompleteTextField<Auftr
     } else {
       filter.setSearchString(input + "*");
     }
-    final List<AuftragDO> list = auftragDao.getList(filter);
+    final List<AuftragDO> list = WicketSupport.get(AuftragDao.class).select(filter);
     Collections.sort(list, new Comparator<AuftragDO>()
     {
       @Override
@@ -159,7 +156,7 @@ public class AuftragsPositionFormComponent extends PFAutoCompleteTextField<Auftr
   private static String getTooltip(final AuftragsPositionDO pos)
   {
     final AuftragDO auftrag = pos.getAuftrag();
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(auftrag.getNummer()).append(".").append(pos.getNumber()).append(": ");
     if (auftrag.getKunde() != null) {
       buf.append(auftrag.getKundeAsString());

@@ -28,9 +28,9 @@ import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
-@Repository
+@Service
 public class KostZuweisungDao extends BaseDao<KostZuweisungDO>
 {
   @Autowired
@@ -83,22 +83,21 @@ public class KostZuweisungDao extends BaseDao<KostZuweisungDO>
   /**
    * @param kostZuweisung
    * @param kost1Id If null, then kost1 will be set to null;
-   * @see BaseDao#getOrLoad(Integer)
+   * @see BaseDao#findOrLoad(Long)
    */
-  public void setKost1(final KostZuweisungDO kostZuweisung, Integer kost1Id)
+  public void setKost1(final KostZuweisungDO kostZuweisung, Long kost1Id)
   {
-    Kost1DO kost1 = kost1Dao.getOrLoad(kost1Id);
+    Kost1DO kost1 = kost1Dao.findOrLoad(kost1Id);
     kostZuweisung.setKost1(kost1);
   }
 
   /**
    * @param kostZuweisung
-   * @param kost1Id If null, then kost2 will be set to null;
-   * @see BaseDao#getOrLoad(Integer)
+   * @see BaseDao#findOrLoad(Long)
    */
-  public void setKost2(final KostZuweisungDO kostZuweisung, Integer kost2Id)
+  public void setKost2(final KostZuweisungDO kostZuweisung, Long kost2Id)
   {
-    Kost2DO kost2 = kost2Dao.getOrLoad(kost2Id);
+    Kost2DO kost2 = kost2Dao.findOrLoad(kost2Id);
     kostZuweisung.setKost2(kost2);
   }
 

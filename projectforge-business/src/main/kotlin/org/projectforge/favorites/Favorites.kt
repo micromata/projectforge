@@ -49,12 +49,12 @@ open class Favorites<T : AbstractFavorite>() {
   /**
    * For exports etc.
    */
-  class FavoriteIdTitle(val id: Int, val name: String)
+  class FavoriteIdTitle(val id: Long, val name: String)
 
   @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "type")
   private val set: MutableSet<T> = mutableSetOf()
 
-  fun get(id: Int?): T? {
+  fun get(id: Long?): T? {
     if (id == null) return null
     fixNamesAndIds()
     return set.find { it.id == id }
@@ -76,12 +76,12 @@ open class Favorites<T : AbstractFavorite>() {
     set.removeIf { it.name == name }
   }
 
-  fun remove(id: Int) {
+  fun remove(id: Long) {
     fixNamesAndIds()
     set.removeIf { it.id == id }
   }
 
-  fun rename(id: Int, newName: String) {
+  fun rename(id: Long, newName: String) {
     val entry = get(id)
     if (entry != null) {
       entry.name = newName
@@ -102,25 +102,25 @@ open class Favorites<T : AbstractFavorite>() {
     add(newFavorite) // If name is already given, a new name is set.
     val userPref = UserPrefDO()
     userPref.area = area
-    userPref.user = ThreadLocalUserContext.user
+    userPref.user = ThreadLocalUserContext.loggedInUser
     userPref.name = newFavorite.name
     val userPrefEntry = UserPrefEntryDO()
     userPrefEntry.parameter = parameter
     userPrefEntry.value = value
     @Suppress("DEPRECATION")
-    userPref.addUserPrefEntry(userPrefEntry)
-    userPrefDao.save(userPref)
+    userPref.addOrUpdateUserPrefEntry(userPrefEntry)
+    userPrefDao.insert(userPref)
   }
 
   fun createUserPref(userPrefDao: UserPrefDao, area: String, newFavorite: T) {
     add(newFavorite) // If name is already given, a new name is set.
     val userPref = UserPrefDO()
     userPref.area = area
-    userPref.user = ThreadLocalUserContext.user
+    userPref.user = ThreadLocalUserContext.loggedInUser
     userPref.name = newFavorite.name
     userPref.id = newFavorite.id
     userPref.valueObject = newFavorite
-    userPrefDao.save(userPref)
+    userPrefDao.insert(userPref)
   }
 
   /**
@@ -128,8 +128,8 @@ open class Favorites<T : AbstractFavorite>() {
    */
   private fun fixNamesAndIds() {
     val namesSet = mutableSetOf<String>()
-    val idSet = mutableSetOf<Int>()
-    var maxId: Int = set.maxByOrNull { it.id ?: 0 }?.id ?: 0
+    val idSet = mutableSetOf<Long>()
+    var maxId: Long = set.maxByOrNull { it.id ?: 0 }?.id ?: 0
     set.forEach {
       var id = it.id
       if (id == null || idSet.contains(id)) {
@@ -221,8 +221,8 @@ open class Favorites<T : AbstractFavorite>() {
       )
     }
 
-    fun deleteUserPref(userPrefDao: UserPrefDao, area: String, id: Int) {
-      val userPref = userPrefDao.getUserPref(area, id)
+    fun deleteUserPref(userPrefDao: UserPrefDao, area: String, id: Long) {
+      val userPref = userPrefDao.selectUserPref(area, id)
       if (userPref != null) {
         userPrefDao.delete(userPref)
       } else {
@@ -233,15 +233,15 @@ open class Favorites<T : AbstractFavorite>() {
     /**
      * Rename the user pref itself, not the name of the favorite. This is only used for backwardcompability (e. g. used by TaskFavorites).
      */
-    fun renameUserPref(userPrefDao: UserPrefDao, area: String, id: Int, newName: String) {
-      val userPref = userPrefDao.getUserPref(area, id)
+    fun renameUserPref(userPrefDao: UserPrefDao, area: String, id: Long, newName: String) {
+      val userPref = userPrefDao.selectUserPref(area, id)
       if (userPref != null) {
         if (userPref.name == newName) {
           // Nothing to-do: name isn't really changed.
           log.info("User tried to rename user pref with id #$id with name '${userPref.name}', but the new name doesn't differ.")
           return
         }
-        if (userPrefDao.doesParameterNameAlreadyExist(id, ThreadLocalUserContext.userId, area, newName)) {
+        if (userPrefDao.doesParameterNameAlreadyExist(id, ThreadLocalUserContext.loggedInUserId, area, newName)) {
           log.warn("User tried to rename user pref with id #$id from '${userPref.name}' into '$newName', but another entry with this name already exist.")
         } else {
           userPref.name = newName

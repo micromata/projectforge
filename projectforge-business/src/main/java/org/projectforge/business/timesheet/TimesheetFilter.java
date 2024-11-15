@@ -40,9 +40,9 @@ public class TimesheetFilter extends BaseSearchFilter implements Serializable, T
 
   private TimePeriod timePeriod;
 
-  private Integer userId;
+  private Long userId;
 
-  private Integer taskId;
+  private Long taskId;
 
   private boolean marked;
 
@@ -78,23 +78,23 @@ public class TimesheetFilter extends BaseSearchFilter implements Serializable, T
   }
 
   @Override
-  public Integer getTaskId()
+  public Long getTaskId()
   {
     return taskId;
   }
 
   @Override
-  public void setTaskId(final Integer taskId)
+  public void setTaskId(final Long taskId)
   {
     this.taskId = taskId;
   }
 
-  public Integer getUserId()
+  public Long getUserId()
   {
     return userId;
   }
 
-  public void setUserId(final Integer userId)
+  public void setUserId(final Long userId)
   {
     this.userId = userId;
   }

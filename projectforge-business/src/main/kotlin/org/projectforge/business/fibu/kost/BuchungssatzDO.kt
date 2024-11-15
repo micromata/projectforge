@@ -23,9 +23,10 @@
 
 package org.projectforge.business.fibu.kost
 
-import de.micromata.genome.db.jpa.history.api.WithHistory
+import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.search.annotations.*
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.business.fibu.KontoDO
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
@@ -35,7 +36,6 @@ import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
-import javax.persistence.*
 
 /**
  * Repräsentiert einen importierten Datev-Buchungssatz. Die Buchungssätze bilden die Grundlage für
@@ -43,18 +43,34 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "t_fibu_buchungssatz", uniqueConstraints = [UniqueConstraint(columnNames = ["year", "month", "satznr"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_gegenkonto_id", columnList = "gegenkonto_id"), javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_konto_id", columnList = "konto_id"), javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_kost1_id", columnList = "kost1_id"), javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_kost2_id", columnList = "kost2_id")])
-@WithHistory
+@Table(
+    name = "t_fibu_buchungssatz",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["year", "month", "satznr"])],
+    indexes = [jakarta.persistence.Index(
+        name = "idx_fk_t_fibu_buchungssatz_gegenkonto_id",
+        columnList = "gegenkonto_id"
+    ), jakarta.persistence.Index(
+        name = "idx_fk_t_fibu_buchungssatz_konto_id",
+        columnList = "konto_id"
+    ), jakarta.persistence.Index(
+        name = "idx_fk_t_fibu_buchungssatz_kost1_id",
+        columnList = "kost1_id"
+    ), jakarta.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_kost2_id", columnList = "kost2_id")]
+)
+// @WithHistory
 @NamedQueries(
-        NamedQuery(name = BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR,
-                query = "from BuchungssatzDO where year=:year and month=:month and satznr=:satznr"))
+    NamedQuery(
+        name = BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR,
+        query = "from BuchungssatzDO where year=:year and month=:month and satznr=:satznr"
+    )
+)
 open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     /**
      * Jahr zu der die Buchung gehört.
      *
      * @return
      */
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(nullable = false)
     open var year: Int? = null
 
@@ -64,7 +80,7 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
      *
      * @return
      */
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(nullable = false)
     open var month: Int? = null
         set(value) {
@@ -72,7 +88,7 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
         }
 
     @PropertyInfo(i18nKey = "fibu.buchungssatz.satznr")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(nullable = false)
     open var satznr: Int? = null
 
@@ -84,7 +100,7 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
         }
 
     @PropertyInfo(i18nKey = "finance.accountingRecord.dc")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 7, nullable = false)
     open var sh: SHType? = null
@@ -93,52 +109,56 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     open var isIgnore = false
 
     @PropertyInfo(i18nKey = "fibu.buchungssatz.konto")
-    @IndexedEmbedded(depth = 1)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "konto_id", nullable = false)
     open var konto: KontoDO? = null
 
     @PropertyInfo(i18nKey = "fibu.buchungssatz.gegenKonto")
-    @IndexedEmbedded(depth = 1)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "gegenkonto_id", nullable = false)
     open var gegenKonto: KontoDO? = null
 
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(nullable = false)
     open var datum: LocalDate? = null
 
     /** Je nach Buchungssatz: Belegnummer / Referenznummer / Rechnungsnummer.  */
     @PropertyInfo(i18nKey = "fibu.buchungssatz.beleg")
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var beleg: String? = null
 
     /** Der Buchungstext.  */
     @PropertyInfo(i18nKey = "fibu.buchungssatz.text")
-    @Field
+    @FullTextField
     @get:Column(length = 255, name = "buchungstext")
     open var text: String? = null
 
     @PropertyInfo(i18nKey = "fibu.buchungssatz.menge")
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var menge: String? = null
 
     @PropertyInfo(i18nKey = "fibu.kost1")
-    @IndexedEmbedded(depth = 1)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "kost1_id", nullable = false)
     open var kost1: Kost1DO? = null
 
     @PropertyInfo(i18nKey = "fibu.kost2")
-    @IndexedEmbedded(depth = 3)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @IndexedEmbedded(includeDepth = 3)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "kost2_id", nullable = false)
     open var kost2: Kost2DO? = null
 
     @PropertyInfo(i18nKey = "comment")
-    @Field
+    @FullTextField
     @get:Column(length = 4000)
     open var comment: String? = null
 
@@ -149,21 +169,34 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
         @Transient
         get() = year.toString() + '-'.toString() + StringHelper.format2DigitNumber(month!!) + '-'.toString() + formatSatzNr()
 
-    val kontoId: Int?
+    val kontoId: Long?
         @Transient
         get() = if (this.konto != null) this.konto!!.id else null
 
-    val gegenKontoId: Int?
+    val gegenKontoId: Long?
         @Transient
         get() = if (this.gegenKonto != null) this.gegenKonto!!.id else null
 
-    val kost1Id: Int?
+    val kost1Id: Long?
         @Transient
         get() = if (this.kost1 != null) this.kost1!!.id else null
 
-    val kost2Id: Int?
+    val kost1FormattedNumber: String?
+        @GenericField
+        @IndexingDependency(derivedFrom = [ObjectPath(PropertyValue(propertyName = "kost1"))])
+        @Transient
+        get() = kost1?.formattedNumber
+
+    val kost2Id: Long?
         @Transient
         get() = if (this.kost2 != null) this.kost2!!.id else null
+
+    val kost2FormattedNumber: String?
+        @GenericField
+        @IndexingDependency(derivedFrom = [ObjectPath(PropertyValue(propertyName = "kost2"))])
+        @Transient
+        get() = kost2?.formattedNumber
+
 
     fun formatSatzNr(): String? {
         return if (satznr == null) {
@@ -180,7 +213,8 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
         if (konto == null || kost2 == null) {
             if (!suppressWarning)
                 log.warn(
-                        "Can't calculate Buchungssatz, because konto or kost2 is not given (for import it will be detected, OK): $this")
+                    "Can't calculate Buchungssatz, because konto or kost2 is not given (for import it will be detected, OK): $this"
+                )
             return
         }
         val kto = konto!!.nummer!!

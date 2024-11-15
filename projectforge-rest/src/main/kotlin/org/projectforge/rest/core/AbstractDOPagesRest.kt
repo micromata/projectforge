@@ -27,7 +27,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 /**
  * This is the base class for all fronted functionality regarding query, editing etc. It also serves layout
@@ -38,7 +38,7 @@ import javax.servlet.http.HttpServletRequest
  * by these rest services.
  */
 abstract class AbstractDOPagesRest<
-    O : ExtendedBaseDO<Int>,
+    O : ExtendedBaseDO<Long>,
     B : BaseDao<O>>
 @JvmOverloads
 constructor(
@@ -61,7 +61,7 @@ constructor(
     }
   }
 
-  override fun processResultSetBeforeExport(
+  override fun postProcessResultSet(
     resultSet: ResultSet<O>,
     request: HttpServletRequest,
     magicFilter: MagicFilter,
@@ -87,7 +87,7 @@ constructor(
   /**
    * @param dto Expected as O
    */
-  override fun getId(dto: Any): Int? {
+  override fun getId(dto: Any): Long? {
     @Suppress("UNCHECKED_CAST")
     return (dto as O).id
   }
@@ -97,7 +97,7 @@ constructor(
    */
   override fun isDeleted(dto: Any): Boolean {
     @Suppress("UNCHECKED_CAST")
-    return (dto as O).isDeleted
+    return (dto as O).deleted
   }
 
   /**

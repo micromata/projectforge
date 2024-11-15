@@ -25,13 +25,13 @@ package org.projectforge.web.fibu;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KontoDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 
 import java.util.Collections;
@@ -42,9 +42,6 @@ import java.util.Locale;
 public class KontoFormComponent extends PFAutoCompleteTextField<KontoDO>
 {
   private static final long serialVersionUID = -9086404806066376969L;
-
-  @SpringBean
-  private KontoDao kontoDao;
 
   class KontoConverter implements IConverter
   {
@@ -62,7 +59,7 @@ public class KontoFormComponent extends PFAutoCompleteTextField<KontoDO>
       } catch (final NumberFormatException ex) {
         return null;
       }
-      return kontoDao.getKonto(number);
+      return WicketSupport.get(KontoDao.class).getKonto(number);
     }
 
     @Override
@@ -107,7 +104,7 @@ public class KontoFormComponent extends PFAutoCompleteTextField<KontoDO>
   {
     final BaseSearchFilter filter = new BaseSearchFilter();
     filter.setSearchString(input);
-    final List<KontoDO> list = kontoDao.getList(filter);
+    final List<KontoDO> list = WicketSupport.get(KontoDao.class).select(filter);
     Collections.sort(list, new Comparator<KontoDO>()
     {
       @Override

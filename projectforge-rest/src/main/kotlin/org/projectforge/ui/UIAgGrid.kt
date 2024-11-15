@@ -34,7 +34,7 @@ import org.projectforge.rest.core.aggrid.SortModelEntry
 import org.projectforge.rest.multiselect.MultiSelectionSupport
 import java.io.Serializable
 import java.text.DecimalFormatSymbols
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 import kotlin.reflect.KProperty
 
 /**
@@ -66,6 +66,11 @@ open class UIAgGrid(
    * Redirect to given url with row-id as id parameter.
    */
   var rowClickRedirectUrl: String? = null
+
+  /**
+   * If true, a modal dialog should be opened after row click.
+   */
+  var rowClickOpenModal: Boolean? = null
 
   /**
    * Call this url (GET) for getting url to redirect to.
@@ -302,8 +307,9 @@ open class UIAgGrid(
     return this
   }
 
-  fun withRowClickRedirectUrl(rowClickRedirectUrl: String): UIAgGrid {
+  fun withRowClickRedirectUrl(rowClickRedirectUrl: String, openModal: Boolean = false): UIAgGrid {
     this.rowClickRedirectUrl = rowClickRedirectUrl
+    this.rowClickOpenModal = openModal
     return this
   }
 }

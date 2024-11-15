@@ -30,6 +30,7 @@ import org.projectforge.business.fibu.*;
 import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDay;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.DownloadUtils;
 import org.projectforge.web.wicket.EditPage;
@@ -47,12 +48,6 @@ public class EingangsrechnungEditPage
   private static final long serialVersionUID = 6847624027377867591L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EingangsrechnungEditPage.class);
-
-  @SpringBean
-  private EingangsrechnungDao eingangsrechnungDao;
-
-  @SpringBean
-  private SEPATransferGenerator SEPATransferGenerator;
 
   public EingangsrechnungEditPage(final PageParameters parameters) {
     super(parameters, "fibu.eingangsrechnung");
@@ -80,9 +75,9 @@ public class EingangsrechnungEditPage
     this.form.getFeedbackMessages().clear();
     final EingangsrechnungDO invoice = this.getData();
 
-    final String filename = String.format("transfer-%s-%s.xml", invoice.getPk(), DateHelper.getTimestampAsFilenameSuffix(new Date()));
+    final String filename = String.format("transfer-%s-%s.xml", invoice.getId(), DateHelper.getTimestampAsFilenameSuffix(new Date()));
     try {
-      SEPATransferResult result = this.SEPATransferGenerator.format(this.getData());
+      SEPATransferResult result = WicketSupport.get(SEPATransferGenerator.class).format(this.getData());
 
       if (!result.isSuccessful()) {
         if (result.getErrors().isEmpty()) {
@@ -106,7 +101,7 @@ public class EingangsrechnungEditPage
 
   @Override
   protected EingangsrechnungDao getBaseDao() {
-    return eingangsrechnungDao;
+    return WicketSupport.get(EingangsrechnungDao.class);
   }
 
   @Override

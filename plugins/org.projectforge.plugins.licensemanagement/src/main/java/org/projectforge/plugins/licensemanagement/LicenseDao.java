@@ -30,7 +30,7 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.user.UsersProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 
@@ -39,7 +39,7 @@ import java.util.Collection;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  *
  */
-@Repository
+@Service
 public class LicenseDao extends BaseDao<LicenseDO>
 {
   private final UsersProvider usersProvider;
@@ -77,7 +77,7 @@ public class LicenseDao extends BaseDao<LicenseDO>
     if (CollectionUtils.isEmpty(sortedOwners)) {
       return "";
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean first = true;
     for (final PFUserDO owner : sortedOwners) {
       first = StringHelper.append(buf, first, owner.getFullname(), ", ");

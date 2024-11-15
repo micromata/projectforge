@@ -34,8 +34,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.context.support.WebApplicationContextUtils
 import java.io.IOException
-import javax.servlet.*
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.*
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
@@ -67,7 +67,7 @@ abstract class AbstractRestUserFilter(val userTokenType: UserTokenType) : Filter
   abstract fun authenticate(authInfo: RestAuthenticationInfo)
 
   /**
-   * @see javax.servlet.Filter.doFilter
+   * @see jakarta.servlet.Filter.doFilter
    */
   @Throws(IOException::class, ServletException::class)
   override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {

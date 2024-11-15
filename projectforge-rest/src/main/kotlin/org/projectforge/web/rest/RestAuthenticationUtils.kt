@@ -49,10 +49,10 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import java.io.IOException
-import javax.servlet.ServletRequest
-import javax.servlet.ServletResponse
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.ServletRequest
+import jakarta.servlet.ServletResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 
@@ -167,7 +167,7 @@ open class RestAuthenticationUtils {
     }
     val authenticationToken = getAttribute(authInfo.request, *REQUEST_PARAMS_TOKEN)
     getUserString(authInfo, REQUEST_PARAMS_USER, userTokenType, required)
-    val userId = authInfo.userString?.toIntOrNull()
+    val userId = authInfo.userString?.toLongOrNull()
     val username = if (userId == null) authInfo.userString else null
     tokenAuthentication(
       authInfo, userTokenType, authenticationToken, required,
@@ -190,7 +190,7 @@ open class RestAuthenticationUtils {
     required: Boolean,
     userParams: Array<String>,
     tokenParams: Array<String>,
-    userId: Int? = null,
+    userId: Long? = null,
     username: String? = null
   ) {
     if (checkLoginProtection(authInfo, userTokenType)) {
@@ -309,7 +309,7 @@ open class RestAuthenticationUtils {
   }
 
   @JvmOverloads
-  open fun getUserAccessLogEntries(tokenType: UserTokenType, userId: Int? = null): UserAccessLogEntries? {
+  open fun getUserAccessLogEntries(tokenType: UserTokenType, userId: Long? = null): UserAccessLogEntries? {
     return userAuthenticationsService.getUserAccessLogEntries(tokenType, userId)
   }
 

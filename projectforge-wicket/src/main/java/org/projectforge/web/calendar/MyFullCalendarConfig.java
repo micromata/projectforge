@@ -81,7 +81,7 @@ public class MyFullCalendarConfig extends Config
     getButtonText().setMonth(getString("calendar.month"));
     getButtonText().setDay(getString("calendar.day"));
     setAllDayText(getString("calendar.allday"));
-    I18nCore.setFullCalendarDateFormats(ThreadLocalUserContext.getUser(), this);
+    I18nCore.setFullCalendarDateFormats(ThreadLocalUserContext.getLoggedInUser(), this);
     final DateFormatSymbols dateFormatSymbols = new DateFormatSymbols(parent.getLocale());
     setDayNames(convert(dateFormatSymbols.getWeekdays()));
     setDayNamesShort(convert(dateFormatSymbols.getShortWeekdays()));

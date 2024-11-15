@@ -154,7 +154,7 @@ public abstract class MyAbstractDateConverter extends DateConverter
    */
   protected String preProcessInput(final String dateString, final Locale locale)
   {
-    final StringBuffer buf = new StringBuffer(dateString.length());
+    final StringBuilder buf = new StringBuilder(dateString.length());
     boolean whitespace = true; // Ignore leading white spaces.
     final int size = dateString.length();
     final char separatorChar;

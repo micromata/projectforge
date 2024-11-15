@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.nio.charset.StandardCharsets
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 
 /**
@@ -71,7 +71,7 @@ class PhoneLookupRest {
             return ResponseEntity(HttpStatus.BAD_REQUEST)
         }
 
-        val result = addressDao.internalPhoneLookUp(number)
+        val result = addressDao.internalPhoneLookUp(number!!)
         if (result != null) {
             return ResponseEntity.ok()
                     .contentType(MediaType("text", "plain", StandardCharsets.UTF_8))

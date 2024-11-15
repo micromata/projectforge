@@ -48,7 +48,7 @@ public class TimesheetUtilsTest extends AbstractTestBase {
   @Test
   void testRounding() {
     final PFUserDO user = new PFUserDO();
-    user.setId(42);
+    user.setId(42L);
     TimesheetStats stats = new TimesheetStats(null, null);
     stats.add(createTimesheet(user, "2013-07-20 12:10", "2013-07-20 13:00"));
     assertEquals(new BigDecimal("0.75"), stats.getTotal(RoundUnit.QUARTER));
@@ -60,9 +60,9 @@ public class TimesheetUtilsTest extends AbstractTestBase {
   @Test
   void testBeginOfTimesheets() {
     final PFUserDO user1 = new PFUserDO();
-    user1.setId(1);
+    user1.setId(1L);
     final PFUserDO user2 = new PFUserDO();
-    user2.setId(2);
+    user2.setId(2L);
     final List<TimesheetDO> list = new LinkedList<>();
     add(list, user1, "2013-07-20 12:15", "2013-07-20 13:00");
     add(list, user2, "2013-07-20 10:00", "2013-07-20 16:00");

@@ -29,9 +29,9 @@ import org.projectforge.web.rest.BasicAuthenticationData
 import org.projectforge.web.rest.RestAuthenticationUtils
 import java.security.Principal
 import java.util.*
-import javax.servlet.http.Cookie
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.Part
+import jakarta.servlet.http.Cookie
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.Part
 
 /**
  * Helper class for debugging requests. Converts a given request to json.

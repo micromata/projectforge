@@ -36,11 +36,11 @@ import java.util.Set;
 
 public interface TeamEventService
 {
-  List<Integer> getAssignedAttendeeIds(TeamEventDO data);
+  List<Long> getAssignedAttendeeIds(TeamEventDO data);
 
   List<TeamEventAttendeeDO> getAddressesAndUserAsAttendee();
 
-  TeamEventAttendeeDO getAttendee(Integer attendeeId);
+  TeamEventAttendeeDO getAttendee(Long attendeeId);
 
   void assignAttendees(TeamEventDO data, Set<TeamEventAttendeeDO> itemsToAssign,
       Set<TeamEventAttendeeDO> itemsToUnassign);
@@ -51,11 +51,11 @@ public interface TeamEventService
 
   boolean checkAndSendMail(final TeamEventDO eventNew, final TeamEventDO eventOld);
 
-  TeamEventDO findByUid(Integer calendarId, String reqEventUid, boolean excludeDeleted);
+  TeamEventDO findByUid(Long calendarId, String reqEventUid, boolean excludeDeleted);
 
-  TeamEventAttendeeDO findByAttendeeId(Integer attendeeId, boolean checkAccess);
+  TeamEventAttendeeDO findByAttendeeId(Long attendeeId, boolean checkAccess);
 
-  TeamEventAttendeeDO findByAttendeeId(Integer attendeeId);
+  TeamEventAttendeeDO findByAttendeeId(Long attendeeId);
 
   void update(TeamEventDO event);
 
@@ -65,7 +65,7 @@ public interface TeamEventService
 
   List<TeamEventDO> getTeamEventDOList(TeamEventFilter filter);
 
-  TeamEventDO getById(Integer teamEventId);
+  TeamEventDO getById(Long teamEventId);
 
   void saveOrUpdate(TeamEventDO teamEvent);
 
@@ -79,7 +79,7 @@ public interface TeamEventService
 
   void updateAttendee(TeamEventAttendeeDO attendee, boolean accessCheck);
 
-  List<Integer> getCalIdList(Collection<TeamCalDO> teamCals);
+  List<Long> getCalIdList(Collection<TeamCalDO> teamCals);
 
   ICalHandler getEventHandler(final TeamCalDO defaultCalendar);
 

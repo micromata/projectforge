@@ -29,7 +29,6 @@ import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.task.TaskTreeHelper;
@@ -39,6 +38,7 @@ import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.TimePeriod;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.task.TaskSelectPanel;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractListForm;
@@ -53,198 +53,190 @@ import org.slf4j.Logger;
 import java.util.Date;
 
 public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, TimesheetListPage> {
-  private static final long serialVersionUID = 3167681159669386691L;
+    private static final long serialVersionUID = 3167681159669386691L;
 
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TimesheetListForm.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TimesheetListForm.class);
 
-  private transient TaskTree taskTree;
+    private String exportFormat;
 
-  @SpringBean
-  private DateTimeFormatter dateTimeFormatter;
+    @SuppressWarnings("serial")
+    @Override
+    protected void init() {
+        super.init(false);
 
-  private String exportFormat;
+        // Task
+        {
+            gridBuilder.newSplitPanel(GridSize.COL66);
+            final FieldsetPanel fs = gridBuilder.newFieldset(getString("task")).suppressLabelForWarning();
+            final TaskSelectPanel taskSelectPanel = new TaskSelectPanel(fs, new Model<TaskDO>() {
+                @Override
+                public TaskDO getObject() {
+                    return getTaskTree().getTaskById(getSearchFilter().getTaskId());
+                }
 
-  @SuppressWarnings("serial")
-  @Override
-  protected void init() {
-    super.init(false);
-
-    // Task
-    {
-      gridBuilder.newSplitPanel(GridSize.COL66);
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("task")).suppressLabelForWarning();
-      final TaskSelectPanel taskSelectPanel = new TaskSelectPanel(fs, new Model<TaskDO>() {
-        @Override
-        public TaskDO getObject() {
-          return getTaskTree().getTaskById(getSearchFilter().getTaskId());
+                @Override
+                public void setObject(final TaskDO task) {
+                    if (task != null) {
+                        getSearchFilter().setTaskId(task.getId());
+                    } else {
+                        getSearchFilter().setTaskId(null);
+                    }
+                }
+            }, parentPage, "taskId");
+            fs.add(taskSelectPanel);
+            taskSelectPanel.init();
+            taskSelectPanel.setRequired(false);
         }
 
-        @Override
-        public void setObject(final TaskDO task) {
-          if (task != null) {
-            getSearchFilter().setTaskId(task.getId());
-          } else {
-            getSearchFilter().setTaskId(null);
-          }
+        // Assignee
+        final TimesheetFilter filter = getSearchFilter();
+        {
+            gridBuilder.newSplitPanel(GridSize.COL33);
+            final FieldsetPanel fs = gridBuilder.newFieldset(getString("user"));
+            final UserSelectPanel assigneeSelectPanel = new UserSelectPanel(fs.newChildId(), new Model<PFUserDO>() {
+                @Override
+                public PFUserDO getObject() {
+                    return UserGroupCache.getInstance().getUser(filter.getUserId());
+                }
+
+                @Override
+                public void setObject(final PFUserDO object) {
+                    if (object == null) {
+                        filter.setUserId(null);
+                    } else {
+                        filter.setUserId(object.getId());
+                    }
+                }
+            }, parentPage, "userId");
+            fs.add(assigneeSelectPanel);
+            assigneeSelectPanel.setDefaultFormProcessing(false);
+            assigneeSelectPanel.init();
         }
-      }, parentPage, "taskId");
-      fs.add(taskSelectPanel);
-      taskSelectPanel.init();
-      taskSelectPanel.setRequired(false);
+
+        // time period
+        gridBuilder.newSplitPanel(GridSize.COL66);
+        final FieldsetPanel tpfs = gridBuilder.newFieldset(getString("timePeriod"));
+        final TimePeriodPanel timePeriodPanel = new TimePeriodPanel(
+                tpfs.newChildId(),
+                LambdaModel.of(filter.getTimePeriod()::getFromDay, filter.getTimePeriod()::setFromDay),
+                LambdaModel.of(filter.getTimePeriod()::getToDay, filter.getTimePeriod()::setToDay),
+                parentPage
+        );
+        tpfs.add(timePeriodPanel);
+        tpfs.setLabelFor(timePeriodPanel);
+
+        // Duration
+        {
+            gridBuilder.newSplitPanel(GridSize.COL33);
+            final FieldsetPanel fs = gridBuilder.newFieldset(getString("timesheet.totalDuration")).suppressLabelForWarning();
+            fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
+                @Override
+                public String getObject() {
+                    long duration = 0;
+                    if (parentPage.getList() != null) {
+                        for (final TimesheetDO sheet : parentPage.getList()) {
+                            duration += sheet.getDuration();
+                        }
+                    }
+                    return WicketSupport.get(DateTimeFormatter.class).getPrettyFormattedDuration(duration);
+                }
+            }));
+
+            add(new IFormValidator() {
+                final FormComponent<?>[] dependentFormComponents = new FormComponent<?>[]{timePeriodPanel};
+
+                @Override
+                public FormComponent<?>[] getDependentFormComponents() {
+                    return dependentFormComponents;
+                }
+
+                @Override
+                public void validate(final Form<?> form) {
+                    final TimesheetFilter filter = getSearchFilter();
+                    final TimePeriod timePeriod = timePeriodPanel.getConvertedInput();
+                    final Date from = timePeriod.getFromDate();
+                    final Date to = timePeriod.getToDate();
+                    if (from == null && to == null && filter.getTaskId() == null) {
+                        error(getString("timesheet.error.filter.needMore"));
+                    }
+                }
+            });
+
+        }
     }
 
-    // Assignee
-    final TimesheetFilter filter = getSearchFilter();
-    {
-      gridBuilder.newSplitPanel(GridSize.COL33);
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("user"));
-      final UserSelectPanel assigneeSelectPanel = new UserSelectPanel(fs.newChildId(), new Model<PFUserDO>() {
-        @Override
-        public PFUserDO getObject() {
-          return UserGroupCache.getInstance().getUser(filter.getUserId());
-        }
+    /**
+     * @see org.projectforge.web.wicket.AbstractListForm#onOptionsPanelCreate(org.projectforge.web.wicket.flowlayout.FieldsetPanel,
+     * org.projectforge.web.wicket.flowlayout.DivPanel)
+     */
+    @Override
+    protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel) {
+        optionsCheckBoxesPanel.add(new CheckBoxButton(
+                optionsCheckBoxesPanel.newChildId(),
+                new PropertyModel<>(getSearchFilter(), "longFormat"),
+                getString("longFormat")
+        ));
 
-        @Override
-        public void setObject(final PFUserDO object) {
-          if (object == null) {
-            filter.setUserId(null);
-          } else {
-            filter.setUserId(object.getId());
-          }
-        }
-      }, parentPage, "userId");
-      fs.add(assigneeSelectPanel);
-      assigneeSelectPanel.setDefaultFormProcessing(false);
-      assigneeSelectPanel.init();
+        optionsCheckBoxesPanel.add(new CheckBoxButton(
+                optionsCheckBoxesPanel.newChildId(),
+                new PropertyModel<>(getSearchFilter(), "recursive"),
+                getString("task.recursive")
+        ));
+
+        optionsCheckBoxesPanel.add(new CheckBoxButton(
+                optionsCheckBoxesPanel.newChildId(),
+                new PropertyModel<>(getSearchFilter(), "onlyBillable"),
+                getString("task.onlyBillable")
+        ));
+
+        final CheckBoxButton markedButton = new CheckBoxButton(
+                optionsCheckBoxesPanel.newChildId(),
+                new PropertyModel<>(getSearchFilter(), "marked"),
+                getString("timesheet.filter.withTimeperiodCollision")
+        );
+        markedButton.setWarning();
+        markedButton.setTooltip(getString("timesheet.filter.withTimeperiodCollision.tooltip"));
+        optionsCheckBoxesPanel.add(markedButton);
     }
 
-    // time period
-    gridBuilder.newSplitPanel(GridSize.COL66);
-    final FieldsetPanel tpfs = gridBuilder.newFieldset(getString("timePeriod"));
-    final TimePeriodPanel timePeriodPanel = new TimePeriodPanel(
-        tpfs.newChildId(),
-        LambdaModel.of(filter.getTimePeriod()::getFromDay, filter.getTimePeriod()::setFromDay),
-        LambdaModel.of(filter.getTimePeriod()::getToDay, filter.getTimePeriod()::setToDay),
-        parentPage
-    );
-    tpfs.add(timePeriodPanel);
-    tpfs.setLabelFor(timePeriodPanel);
+    /**
+     * @return the exportFormat
+     */
+    public String getExportFormat() {
 
-    // Duration
-    {
-      gridBuilder.newSplitPanel(GridSize.COL33);
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("timesheet.totalDuration")).suppressLabelForWarning();
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
-        @Override
-        public String getObject() {
-          long duration = 0;
-          if (parentPage.getList() != null) {
-            for (final TimesheetDO sheet : parentPage.getList()) {
-              duration += sheet.getDuration();
-            }
-          }
-          return dateTimeFormatter.getPrettyFormattedDuration(duration);
+        if (exportFormat == null) {
+            exportFormat = (String) parentPage.getUserPrefEntry(this.getClass().getName() + ":exportFormat");
         }
-      }));
-
-      add(new IFormValidator() {
-        final FormComponent<?>[] dependentFormComponents = new FormComponent<?>[]{timePeriodPanel};
-
-        @Override
-        public FormComponent<?>[] getDependentFormComponents() {
-          return dependentFormComponents;
+        if (exportFormat == null) {
+            exportFormat = "Micromata";
         }
 
-        @Override
-        public void validate(final Form<?> form) {
-          final TimesheetFilter filter = getSearchFilter();
-          final TimePeriod timePeriod = timePeriodPanel.getConvertedInput();
-          final Date from = timePeriod.getFromDate();
-          final Date to = timePeriod.getToDate();
-          if (from == null && to == null && filter.getTaskId() == null) {
-            error(getString("timesheet.error.filter.needMore"));
-          }
-        }
-      });
-
-    }
-  }
-
-  /**
-   * @see org.projectforge.web.wicket.AbstractListForm#onOptionsPanelCreate(org.projectforge.web.wicket.flowlayout.FieldsetPanel,
-   * org.projectforge.web.wicket.flowlayout.DivPanel)
-   */
-  @Override
-  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel) {
-    optionsCheckBoxesPanel.add(new CheckBoxButton(
-        optionsCheckBoxesPanel.newChildId(),
-        new PropertyModel<>(getSearchFilter(), "longFormat"),
-        getString("longFormat")
-    ));
-
-    optionsCheckBoxesPanel.add(new CheckBoxButton(
-        optionsCheckBoxesPanel.newChildId(),
-        new PropertyModel<>(getSearchFilter(), "recursive"),
-        getString("task.recursive")
-    ));
-
-    optionsCheckBoxesPanel.add(new CheckBoxButton(
-        optionsCheckBoxesPanel.newChildId(),
-        new PropertyModel<>(getSearchFilter(), "onlyBillable"),
-        getString("task.onlyBillable")
-    ));
-
-    final CheckBoxButton markedButton = new CheckBoxButton(
-        optionsCheckBoxesPanel.newChildId(),
-        new PropertyModel<>(getSearchFilter(), "marked"),
-        getString("timesheet.filter.withTimeperiodCollision")
-    );
-    markedButton.setWarning();
-    markedButton.setTooltip(getString("timesheet.filter.withTimeperiodCollision.tooltip"));
-    optionsCheckBoxesPanel.add(markedButton);
-  }
-
-  /**
-   * @return the exportFormat
-   */
-  public String getExportFormat() {
-
-    if (exportFormat == null) {
-      exportFormat = (String) parentPage.getUserPrefEntry(this.getClass().getName() + ":exportFormat");
-    }
-    if (exportFormat == null) {
-      exportFormat = "Micromata";
+        return exportFormat;
     }
 
-    return exportFormat;
-  }
-
-  /**
-   * @param exportFormat the exportFormat to set
-   */
-  public void setExportFormat(final String exportFormat) {
-    this.exportFormat = exportFormat;
-    parentPage.putUserPrefEntry(this.getClass().getName() + ":exportFormat", this.exportFormat, true);
-  }
-
-  public TimesheetListForm(final TimesheetListPage parentPage) {
-    super(parentPage);
-  }
-
-  @Override
-  protected TimesheetListFilter newSearchFilterInstance() {
-    return new TimesheetListFilter();
-  }
-
-  @Override
-  protected Logger getLogger() {
-    return log;
-  }
-
-  private TaskTree getTaskTree() {
-    if (taskTree == null) {
-      taskTree = TaskTreeHelper.getTaskTree();
+    /**
+     * @param exportFormat the exportFormat to set
+     */
+    public void setExportFormat(final String exportFormat) {
+        this.exportFormat = exportFormat;
+        parentPage.putUserPrefEntry(this.getClass().getName() + ":exportFormat", this.exportFormat, true);
     }
-    return taskTree;
-  }
+
+    public TimesheetListForm(final TimesheetListPage parentPage) {
+        super(parentPage);
+    }
+
+    @Override
+    protected TimesheetListFilter newSearchFilterInstance() {
+        return new TimesheetListFilter();
+    }
+
+    @Override
+    protected Logger getLogger() {
+        return log;
+    }
+
+    private TaskTree getTaskTree() {
+        return TaskTreeHelper.getTaskTree();
+    }
 }

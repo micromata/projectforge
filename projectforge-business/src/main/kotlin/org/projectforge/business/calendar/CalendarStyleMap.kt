@@ -36,7 +36,7 @@ class CalendarStyleMap {
     /**
      * Colors for the calendarIds by calendar id.
      */
-    private val styles = mutableMapOf<Int, CalendarStyle>()
+    private val styles = mutableMapOf<Long, CalendarStyle>()
 
     val birthdaysFavoritesStyle: CalendarStyle
         get() = get(BIRTHDAYS_FAVS_CAL_ID)!!
@@ -44,15 +44,15 @@ class CalendarStyleMap {
     val birthdaysAllStyle: CalendarStyle
         get() = get(BIRTHDAYS_ALL_CAL_ID)!!
 
-    fun contains(calendarId: Int): Boolean {
+    fun contains(calendarId: Long): Boolean {
         return styles.containsKey(calendarId)
     }
 
-    fun add(calendarId: Int, style: CalendarStyle) {
+    fun add(calendarId: Long, style: CalendarStyle) {
         styles.put(calendarId, style)
     }
 
-    fun get(calendarId: Int?): CalendarStyle? {
+    fun get(calendarId: Long?): CalendarStyle? {
         if (calendarId == null) return null
         var style = styles[calendarId]
         if (style == null) {

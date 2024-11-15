@@ -25,7 +25,7 @@ package org.projectforge.renderer.custom;
 
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.common.OutputType;
-import org.projectforge.business.fibu.KostFormatter;
+import org.projectforge.business.fibu.OldKostFormatter;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.KostCache;
 import org.projectforge.business.scripting.NullObject;
@@ -41,8 +41,8 @@ import org.projectforge.framework.renderer.RowHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.*;
 
 /**
@@ -62,7 +62,7 @@ public class MicromataFormatter extends Formatter
   private KostCache kostCache;
 
   @Override
-  public Map<String, Object> getData(final List<TimesheetDO> timeSheets, final Integer taskId,
+  public Map<String, Object> getData(final List<TimesheetDO> timeSheets, final Long taskId,
       final HttpServletRequest request,
       final HttpServletResponse response, final TimesheetFilter actionFilter)
   {
@@ -81,7 +81,7 @@ public class MicromataFormatter extends Formatter
       if (actionFilter.getUserId() != null) {
         final Kost2DO kost2 = kostCache.getKost2(timesheet.getKost2Id());
         if (kost2 != null) {
-          row.addCell(new CellHolder(KostFormatter.format(kost2)));
+          row.addCell(new CellHolder(OldKostFormatter.format(kost2)));
         } else {
           row.addCell(new CellHolder(""));
         }
@@ -148,7 +148,7 @@ public class MicromataFormatter extends Formatter
     data.put("optionsLabel", getLocalizedString("label.options"));
     data.put("deletedLabel", getLocalizedString("deleted"));
 
-    data.put("deleted", actionFilter.isDeleted());
+    data.put("deleted", actionFilter.getDeleted());
 
     data.put("durationLabel", getLocalizedString("timesheet.duration"));
     data.put("descriptionLabel", getLocalizedString("description"));

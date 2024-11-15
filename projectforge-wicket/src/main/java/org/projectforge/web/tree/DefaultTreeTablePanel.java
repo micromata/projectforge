@@ -297,7 +297,7 @@ public abstract class DefaultTreeTablePanel<T extends TreeTableNode> extends Pan
     final Component currentRow = getTreeRow(node.getHashId());
     final AbstractLink link = (AbstractLink) currentRow.get("c1:icons:folder");
     if (event == TreeTableEvent.OPEN || event == TreeTableEvent.EXPLORE) {
-      final StringBuffer prependJavascriptBuf = new StringBuffer();
+      final StringBuilder prependJavascriptBuf = new StringBuilder();
       {
         // Add all children
         final Component row = getTreeRowAfter(node.getHashId());
@@ -324,7 +324,7 @@ public abstract class DefaultTreeTablePanel<T extends TreeTableNode> extends Pan
       target.appendJavaScript("updateEvenOdd();");
     } else {
       // Remove all children
-      final StringBuffer prependJavascriptBuf = new StringBuffer();
+      final StringBuilder prependJavascriptBuf = new StringBuilder();
       final Iterator<Component> it = rowRepeater.iterator();
       final List<Component> toRemove = new ArrayList<Component>();
       while (it.hasNext() == true) {
@@ -351,7 +351,7 @@ public abstract class DefaultTreeTablePanel<T extends TreeTableNode> extends Pan
   }
 
   private void replaceFolderImage(final AjaxRequestTarget target, final AbstractLink link, final TreeTableNode node,
-      final StringBuffer prependJavascriptBuf)
+      final StringBuilder prependJavascriptBuf)
   {
     ContextImage oldImage = (ContextImage) link.get("folderImage");
     if (oldImage == null || oldImage.isVisible() == false) {

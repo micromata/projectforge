@@ -23,12 +23,11 @@
 
 package org.projectforge.business.user
 
+import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.web.rest.UserAccessLogEntry
-import org.slf4j.LoggerFactory
 import java.util.*
-import javax.servlet.http.HttpServletRequest
 
 private const val MAX_SIZE = 20
 
@@ -39,62 +38,62 @@ private val log = KotlinLogging.logger {}
  * checking unauthorized access.
  */
 class UserAccessLogEntries(val tokenType: UserTokenType) {
-    private var entries = mutableSetOf<UserAccessLogEntry>()
-    var logAccessName: String
-        private set
+  private var entries = mutableSetOf<UserAccessLogEntry>()
+  var logAccessName: String
+    private set
 
-    init {
-        this.logAccessName = tokenType.name
-    }
+  init {
+    this.logAccessName = tokenType.name
+  }
 
-    fun update(request: HttpServletRequest) {
-        val ip = request.remoteAddr
-        val userAgent = request.getHeader("User-Agent")
-        update(userAgent = userAgent, ip = ip)
-    }
+  fun update(request: HttpServletRequest) {
+    val ip = request.remoteAddr
+    val userAgent = request.getHeader("User-Agent")
+    update(userAgent = userAgent, ip = ip)
+  }
 
-    /**
-     * Clears all access entries (writes current state to log file before clearing). Should be called after renewing a token.
-     */
-    fun clear() {
-        log.info("Clearing entries '$logAccessName'. State was: $this")
-        entries.clear()
-    }
+  /**
+   * Clears all access entries (writes current state to log file before clearing). Should be called after renewing a token.
+   */
+  fun clear() {
+    log.info("Clearing entries '$logAccessName'. State was: $this")
+    entries.clear()
+  }
 
-    fun update(userAgent: String?, ip: String?) {
-        entries.find { it.ip == ip && it.userAgent == userAgent }?.let {
-            it.lastAccess = Date()
-            it.counter++
-        } ?: run {
-            entries.add(UserAccessLogEntry(userAgent = userAgent, ip = ip))
-        }
-        if (entries.size > 20) {
-            val numberOfItemsToDrop = entries.size - MAX_SIZE
-            entries = sortedList().dropLast(numberOfItemsToDrop).toMutableSet()
-        }
+  fun update(userAgent: String?, ip: String?) {
+    entries.find { it.ip == ip && it.userAgent == userAgent }?.let {
+      it.lastAccess = Date()
+      it.counter++
+    } ?: run {
+      entries.add(UserAccessLogEntry(userAgent = userAgent, ip = ip))
     }
+    if (entries.size > 20) {
+      val numberOfItemsToDrop = entries.size - MAX_SIZE
+      entries = sortedList().dropLast(numberOfItemsToDrop).toMutableSet()
+    }
+  }
 
-    /**
-     * @return All entries sorted by timeStamp of last access in descending order.
-     */
-    fun sortedList(): List<UserAccessLogEntry> {
-        return entries.sortedByDescending { it.lastAccess }
-    }
+  /**
+   * @return All entries sorted by timeStamp of last access in descending order.
+   */
+  fun sortedList(): List<UserAccessLogEntry> {
+    return entries.sortedByDescending { it.lastAccess }
+  }
 
-    fun size(): Int {
-        return entries.size
-    }
+  fun size(): Int {
+    return entries.size
+  }
 
-    /**
-     * @param escapeHtml If true, the user-agent string will be html escaped. Default is false. The separator string
-     * itself will not be escaped.
-     */
-    @JvmOverloads
-    fun asText(separator: String, escapeHtml: Boolean = false): String {
-        return sortedList().joinToString(separator) { it.asText(escapeHtml) }
-    }
+  /**
+   * @param escapeHtml If true, the user-agent string will be html escaped. Default is false. The separator string
+   * itself will not be escaped.
+   */
+  @JvmOverloads
+  fun asText(separator: String, escapeHtml: Boolean = false): String {
+    return sortedList().joinToString(separator) { it.asText(escapeHtml) }
+  }
 
-    override fun toString(): String {
-        return ToStringUtil.toJsonString(this)
-    }
+  override fun toString(): String {
+    return ToStringUtil.toJsonString(this)
+  }
 }

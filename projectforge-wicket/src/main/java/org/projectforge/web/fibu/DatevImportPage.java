@@ -29,8 +29,7 @@ import org.apache.commons.lang3.Validate;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.fibu.datev.DatevImportDao;
+import org.projectforge.business.fibu.datev.DatevImportService;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.BusinessAssessment;
@@ -41,6 +40,7 @@ import org.projectforge.common.logging.LogSubscription;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.rest.admin.LogViewerPageRest;
 import org.projectforge.rest.core.PagesResolver;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.core.importstorage.AbstractImportPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
@@ -53,12 +53,9 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm> {
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DatevImportPage.class);
 
-  @SpringBean
-  private DatevImportDao datevImportDao;
-
   public DatevImportPage(final PageParameters parameters) {
     super(parameters);
-    final String username = ThreadLocalUserContext.getUser().getUsername();
+    final String username = ThreadLocalUserContext.getLoggedInUser().getUsername();
     final LogSubscription logSubscription = LogSubscription.ensureSubscription("Datev-Import", username,
         (title, user) -> new LogSubscription(title, user, new LogEventLoggerNameMatcher("org.projectforge.business.fibu.datev", "de.micromata.merlin")));
 
@@ -76,7 +73,7 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm> {
       doImportWithExcelExceptionHandling(() -> {
         final InputStream is = fileUpload.getInputStream();
         final String clientFileName = fileUpload.getClientFileName();
-        setStorage(datevImportDao.importKontenplan(is, clientFileName));
+        setStorage(WicketSupport.get(DatevImportService.class).importKontenplan(is, clientFileName));
         return null;
       });
     }
@@ -89,7 +86,7 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm> {
       doImportWithExcelExceptionHandling(() -> {
         final InputStream is = fileUpload.getInputStream();
         final String clientFileName = fileUpload.getClientFileName();
-        setStorage(datevImportDao.importBuchungsdaten(is, clientFileName));
+        setStorage(WicketSupport.get(DatevImportService.class).importBuchungsdaten(is, clientFileName));
         return null;
       });
     }
@@ -99,7 +96,7 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm> {
   protected ImportedSheet<?> reconcile(final String sheetName) {
     checkAccess();
     final ImportedSheet<?> sheet = super.reconcile(sheetName);
-    datevImportDao.reconcile(getStorage(), sheetName);
+    WicketSupport.get(DatevImportService.class).reconcile(getStorage(), sheetName);
     return sheet;
   }
 
@@ -107,7 +104,7 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm> {
   protected ImportedSheet<?> commit(final String sheetName) {
     checkAccess();
     final ImportedSheet<?> sheet = super.commit(sheetName);
-    datevImportDao.commit(getStorage(), sheetName);
+    WicketSupport.get(DatevImportService.class).commit(getStorage(), sheetName);
     return sheet;
   }
 
@@ -145,8 +142,8 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm> {
   }
 
   private void checkAccess() {
-    accessChecker.checkLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE);
-    accessChecker.checkRestrictedOrDemoUser();
+    getAccessChecker().checkLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE);
+    getAccessChecker().checkRestrictedOrDemoUser();
   }
 
   @Override

@@ -58,24 +58,22 @@ public class ConfigurationDOTest extends AbstractTestBase {
     config.setParameter("unknown");
     config.setValue("Hurzel");
     assertNotNull(config);
-    configurationDao.internalSave(config);
-    List<ConfigurationDO> list = em.createQuery(
-            "select t from " + ConfigurationDO.class.getName() + " t where t.parameter = 'unknown'", ConfigurationDO.class)
-            .getResultList();
+    configurationDao.insert(config, false);
+    List<ConfigurationDO> list = persistenceService.executeQuery(
+            "select t from " + ConfigurationDO.class.getName() + " t where t.parameter = 'unknown'", ConfigurationDO.class);
     config = list.get(0);
     assertEquals("Hurzel", config.getStringValue());
     configurationDao.checkAndUpdateDatabaseEntries();
-    list = em.createQuery(
-            "select t from " + ConfigurationDO.class.getName() + " t where t.parameter = 'unknown'", ConfigurationDO.class)
-            .getResultList();
+    list = persistenceService.executeQuery(
+            "select t from " + ConfigurationDO.class.getName() + " t where t.parameter = 'unknown'", ConfigurationDO.class);
     config = list.get(0);
-    assertEquals(true, config.isDeleted(), "Entry should be deleted.");
+    assertEquals(true, config.getDeleted(), "Entry should be deleted.");
 
     config = configurationDao.getEntry(ConfigurationParam.MESSAGE_OF_THE_DAY);
-    configurationDao.internalMarkAsDeleted(config);
+    configurationDao.markAsDeleted(config, false);
     configurationDao.checkAndUpdateDatabaseEntries();
     config = configurationDao.getEntry(ConfigurationParam.MESSAGE_OF_THE_DAY);
-    assertEquals(false, config.isDeleted(), "Object should be restored.");
+    assertEquals(false, config.getDeleted(), "Object should be restored.");
   }
 
   @Test
@@ -84,7 +82,7 @@ public class ConfigurationDOTest extends AbstractTestBase {
     config.setStringValue("Hurzel");
     config.setType(ConfigurationType.STRING);
     try {
-      config.setType(ConfigurationType.INTEGER);
+      config.setType(ConfigurationType.LONG);
       fail("Exception should be thrown.");
     } catch (final RuntimeException ex) {
 

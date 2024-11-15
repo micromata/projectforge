@@ -26,7 +26,6 @@ package org.projectforge.web.address;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.configuration.ConfigurationService;
@@ -40,6 +39,7 @@ import org.projectforge.rest.AddressPagesRest;
 import org.projectforge.rest.AddressViewPageRest;
 import org.projectforge.rest.core.PagesResolver;
 import org.projectforge.rest.sipgate.SipgateDirectCallService;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 
 import java.util.Date;
@@ -62,18 +62,6 @@ public class PhoneCallPage extends AbstractStandardFormPage {
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PhoneCallPage.class);
 
-  @SpringBean
-  private AddressDao addressDao;
-
-  @SpringBean
-  private ConfigurationService configurationService;
-
-  @SpringBean
-  private SipgateConfiguration sipgateConfiguration;
-
-  @SpringBean
-  private SipgateDirectCallService sipgateDirectCallService;
-
   private final PhoneCallForm form;
 
   String result;
@@ -86,13 +74,13 @@ public class PhoneCallPage extends AbstractStandardFormPage {
     form.init();
   }
 
-  public Integer getAddressId() {
+  public Long getAddressId() {
     return form.address != null ? form.address.getId() : null;
   }
 
   public void setAddressId(final Integer addressId) {
     if (addressId != null) {
-      final AddressDO address = addressDao.getById(addressId);
+      final AddressDO address = WicketSupport.get(AddressDao.class).find(addressId);
       form.address = address;
     }
   }
@@ -142,13 +130,14 @@ public class PhoneCallPage extends AbstractStandardFormPage {
    * @return true, if the phone number was successfully processed.
    */
   private boolean processPhoneNumber() {
+    AddressDao addressDao = WicketSupport.get(AddressDao.class);
     final String phoneNumber = form.getPhoneNumber();
     if (StringUtils.isNotEmpty(phoneNumber) == true) {
       if (phoneNumber.startsWith("id:") == true && phoneNumber.length() > 3) {
         final Integer id = NumberHelper.parseInteger(phoneNumber.substring(3));
         if (id != null) {
           form.setPhoneNumber("");
-          final AddressDO address = addressDao.getById(id);
+          final AddressDO address = addressDao.find(id);
           if (address != null) {
             form.setAddress(address);
             final String no = getFirstPhoneNumber();
@@ -166,7 +155,7 @@ public class PhoneCallPage extends AbstractStandardFormPage {
         if (numberPos > 0) {
           final Integer id = NumberHelper.parseInteger(rest.substring(numberPos + 1));
           if (id != null) {
-            final AddressDO address = addressDao.getById(id);
+            final AddressDO address = addressDao.find(id);
             if (address != null) {
               form.setAddress(address);
             }
@@ -190,6 +179,7 @@ public class PhoneCallPage extends AbstractStandardFormPage {
   }
 
   String extractPhonenumber(final String number) {
+    ConfigurationService configurationService = WicketSupport.get(ConfigurationService.class);
     final String result = NumberHelper.extractPhonenumber(number,
         Configuration.getInstance().getStringValue(ConfigurationParam.DEFAULT_COUNTRY_PHONE_PREFIX));
     if (StringUtils.isNotEmpty(result) == true
@@ -235,6 +225,8 @@ public class PhoneCallPage extends AbstractStandardFormPage {
   }
 
   private void callNow() {
+    SipgateConfiguration sipgateConfiguration = WicketSupport.get(SipgateConfiguration.class);
+    SipgateDirectCallService sipgateDirectCallService = WicketSupport.get(SipgateDirectCallService.class);
     if (!sipgateConfiguration.isConfigured()) {
       log.error("Sipgate isn't configured. Phone calls not supported.");
       return;
@@ -246,7 +238,7 @@ public class PhoneCallPage extends AbstractStandardFormPage {
         + "' to destination number: "
         + StringHelper.hideStringEnding(form.getPhoneNumber(), 'x', 3));
     result = null;
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(form.getPhoneNumber()).append(SEPARATOR);
     final AddressDO address = form.getAddress();
     if (address != null

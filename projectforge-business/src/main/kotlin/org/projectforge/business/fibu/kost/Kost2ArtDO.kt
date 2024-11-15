@@ -23,19 +23,16 @@
 
 package org.projectforge.business.fibu.kost
 
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.apache.lucene.analysis.standard.ClassicAnalyzer
-import org.hibernate.search.annotations.Analyzer
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.api.IManualIndex
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import java.math.BigDecimal
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.Id
-import javax.persistence.Table
 
 /**
  * Die letzten beiden Ziffern (Endziffern) eines Kostenträgers repräsentieren die Kostenart. Anhand der Endziffer kann
@@ -46,22 +43,23 @@ import javax.persistence.Table
 @Entity
 @Indexed
 @Table(name = "T_FIBU_KOST2ART")
-@Analyzer(impl = ClassicAnalyzer::class)
-class Kost2ArtDO : AbstractHistorizableBaseDO<Int>(), Comparable<Kost2ArtDO>, IManualIndex {
+class Kost2ArtDO : AbstractHistorizableBaseDO<Long>(), Comparable<Kost2ArtDO> {
 
     /**
      * Zweistellige Endziffer von KOST2
      */
     @PropertyInfo(i18nKey = "fibu.kost2art.nummer")
-    private var id: Int? = null
+    @get:Id
+    @get:Column(name = "pk")
+    override var id: Long? = null
 
     @PropertyInfo(i18nKey = "name")
-    @Field
+    @FullTextField
     @get:Column(length = 255, nullable = false)
     var name: String? = null
 
     @PropertyInfo(i18nKey = "description")
-    @Field
+    @FullTextField
     @get:Column(length = 5000)
     var description: String? = null
 
@@ -84,26 +82,8 @@ class Kost2ArtDO : AbstractHistorizableBaseDO<Int>(), Comparable<Kost2ArtDO>, IM
     @get:Column(name = "projekt_standard")
     var projektStandard: Boolean = false
 
-    /**
-     * Zweistellige Endziffer von KOST2
-     */
-    @Id
-    @Column(name = "pk")
-    override fun getId(): Int? {
-        return id
-    }
-
-    /**
-     * Muss größer als 0 und kleiner als 100 sein, sonst wird ein Validierungsfehler geworfen.
-     *
-     * @param id
-     */
-    override fun setId(id: Int?) {
+    fun withId(id: Long?): Kost2ArtDO {
         this.id = id
-    }
-
-    fun withId(id: Int?): Kost2ArtDO {
-        setId(id)
         return this
     }
 

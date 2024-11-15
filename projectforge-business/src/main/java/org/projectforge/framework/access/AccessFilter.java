@@ -28,15 +28,15 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import java.io.Serializable;
 
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class AccessFilter extends BaseSearchFilter implements Serializable
 {
   private static final long serialVersionUID = -1358813343070331969L;
 
-  private Integer taskId, groupId, userId;
+  private Long taskId, groupId, userId;
 
   private boolean includeAncestorTasks, includeDescendentTasks, inherit;
 
@@ -49,7 +49,7 @@ public class AccessFilter extends BaseSearchFilter implements Serializable
     super(filter);
   }
 
-  public Integer getTaskId()
+  public Long getTaskId()
   {
     return taskId;
   }
@@ -58,7 +58,7 @@ public class AccessFilter extends BaseSearchFilter implements Serializable
    * @param taskId
    * @return this for chaining.
    */
-  public AccessFilter setTaskId(final Integer taskId)
+  public AccessFilter setTaskId(final Long taskId)
   {
     this.taskId = taskId;
     return this;
@@ -112,7 +112,7 @@ public class AccessFilter extends BaseSearchFilter implements Serializable
     return this;
   }
 
-  public Integer getGroupId()
+  public Long getGroupId()
   {
     return groupId;
   }
@@ -121,7 +121,7 @@ public class AccessFilter extends BaseSearchFilter implements Serializable
    * @param groupId
    * @return this for chaining.
    */
-  public AccessFilter setGroupId(final Integer groupId)
+  public AccessFilter setGroupId(final Long groupId)
   {
     this.groupId = groupId;
     return this;
@@ -130,7 +130,7 @@ public class AccessFilter extends BaseSearchFilter implements Serializable
   /**
    * For checking the access rights for an user.
    */
-  public Integer getUserId()
+  public Long getUserId()
   {
     return userId;
   }
@@ -139,7 +139,7 @@ public class AccessFilter extends BaseSearchFilter implements Serializable
    * @param userId
    * @return this for chaining.
    */
-  public AccessFilter setUserId(final Integer userId)
+  public AccessFilter setUserId(final Long userId)
   {
     this.userId = userId;
     return this;

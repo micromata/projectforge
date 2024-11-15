@@ -45,7 +45,7 @@ class Consumption(
    * barPercentage = if (percentage > 100) 100 / percentage else percentage
    */
   val barPercentage: Int?,
-  val id: Int?,
+  val id: Long?,
 ) {
 
   enum class Status {
@@ -72,7 +72,7 @@ class Consumption(
     fun create(node: TaskNode): Consumption? {
       val maxHours = node.task.maxHours
       val finished = node.isFinished
-      val taskTree = TaskTree.getInstance()
+      val taskTree = TaskTree.instance
       val maxDays = if (maxHours != null && maxHours.toInt() == 0) {
         null
       } else {

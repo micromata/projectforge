@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/account")
@@ -79,9 +79,9 @@ class KontoPagesRest
 
     private fun getAccounts(search: String?, accountRanges: IntRanges? = null): List<Konto> {
         val filter = BaseSearchFilter()
-        filter.setSearchFields("nummer", "bezeichnung", "description")
+        filter.searchFields = arrayOf("nummer", "bezeichnung", "description")
         filter.searchString = search
-        val list: List<KontoDO> = baseDao.getList(filter)
+        val list: List<KontoDO> = baseDao.select(filter)
         if (accountRanges == null) {
             return list.map { Konto(it) }
         }

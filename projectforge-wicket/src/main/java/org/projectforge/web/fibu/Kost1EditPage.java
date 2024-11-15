@@ -27,6 +27,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost1Dao;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
 import org.slf4j.Logger;
@@ -38,9 +39,6 @@ public class Kost1EditPage extends AbstractEditPage<Kost1DO, Kost1EditForm, Kost
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Kost1EditPage.class);
 
-  @SpringBean
-  private Kost1Dao kost1Dao;
-
   public Kost1EditPage(final PageParameters parameters)
   {
     super(parameters, "fibu.kost1");
@@ -50,7 +48,7 @@ public class Kost1EditPage extends AbstractEditPage<Kost1DO, Kost1EditForm, Kost
   @Override
   protected Kost1Dao getBaseDao()
   {
-    return kost1Dao;
+    return WicketSupport.get(Kost1Dao.class);
   }
 
   @Override

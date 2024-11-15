@@ -27,7 +27,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.validation.INullAcceptingValidator;
-import org.projectforge.business.fibu.KostFormatter;
+import org.projectforge.business.fibu.OldKostFormatter;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.task.TaskTreeHelper;
@@ -39,33 +39,31 @@ import java.util.List;
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public abstract class Kost2DropDownChoice extends DropDownChoice<Integer>
+public abstract class Kost2DropDownChoice extends DropDownChoice<Long>
 {
   private static final long serialVersionUID = 7812878062066655023L;
 
-  private transient TaskTree taskTree;
-
   private Kost2DO kost2;
 
-  private Integer taskId;
+  private Long taskId;
 
   private List<Kost2DO> kost2List;
 
   @SuppressWarnings("serial")
   public Kost2DropDownChoice(final String componentId, final Kost2DO kost2,
-      final Integer taskId)
+      final Long taskId)
   {
     super(componentId);
-    setModel(new Model<Integer>()
+    setModel(new Model<Long>()
     {
       @Override
-      public Integer getObject()
+      public Long getObject()
       {
         return getKost2Id();
       }
 
       @Override
-      public void setObject(final Integer kost2Id)
+      public void setObject(final Long kost2Id)
       {
         setKost2Id(kost2Id);
       }
@@ -74,8 +72,8 @@ public abstract class Kost2DropDownChoice extends DropDownChoice<Integer>
     this.taskId = taskId;
     refreshChoiceRenderer();
     setNullValid(true);
-    add((INullAcceptingValidator<Integer>) validatable -> {
-      final Integer value = validatable.getValue();
+    add((INullAcceptingValidator<Long>) validatable -> {
+      final Long value = validatable.getValue();
       if (value != null && value >= 0) {
         return;
       }
@@ -91,9 +89,9 @@ public abstract class Kost2DropDownChoice extends DropDownChoice<Integer>
     return CollectionUtils.isNotEmpty(kost2List);
   }
 
-  protected abstract void setKost2Id(final Integer kost2Id);
+  protected abstract void setKost2Id(final Long kost2Id);
 
-  public void setTaskId(final Integer taskId)
+  public void setTaskId(final Long taskId)
   {
     if (NumberHelper.isEqual(this.taskId, taskId) == true) {
       // Nothing to do.
@@ -108,7 +106,7 @@ public abstract class Kost2DropDownChoice extends DropDownChoice<Integer>
     return kost2;
   }
 
-  public Integer getKost2Id()
+  public Long getKost2Id()
   {
     if (kost2 == null) {
       return null;
@@ -118,11 +116,11 @@ public abstract class Kost2DropDownChoice extends DropDownChoice<Integer>
 
   private void refreshChoiceRenderer()
   {
-    final LabelValueChoiceRenderer<Integer> kost2ChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
+    final LabelValueChoiceRenderer<Long> kost2ChoiceRenderer = new LabelValueChoiceRenderer<Long>();
     kost2List = getTaskTree().getKost2List(taskId);
     if (kost2List != null && kost2List.size() == 1) {
       // Es ist genau ein Eintrag. Deshalb selektieren wir diesen auch:
-      final Integer kost2Id = kost2List.get(0).getId();
+      final Long kost2Id = kost2List.get(0).getId();
       setKost2Id(kost2Id);
       this.modelChanged();
     }
@@ -130,7 +128,7 @@ public abstract class Kost2DropDownChoice extends DropDownChoice<Integer>
       setKost2Id(null); // No kost2 list given, therefore set also kost2 to null.
     } else {
       for (final Kost2DO kost2 : kost2List) {
-        kost2ChoiceRenderer.addValue(kost2.getId(), KostFormatter.formatForSelection(kost2));
+        kost2ChoiceRenderer.addValue(kost2.getId(), OldKostFormatter.formatForSelection(kost2));
       }
     }
     setChoiceRenderer(kost2ChoiceRenderer);
@@ -139,9 +137,6 @@ public abstract class Kost2DropDownChoice extends DropDownChoice<Integer>
 
   private TaskTree getTaskTree()
   {
-    if (taskTree == null) {
-      taskTree = TaskTreeHelper.getTaskTree();
-    }
-    return taskTree;
+    return TaskTreeHelper.getTaskTree();
   }
 }

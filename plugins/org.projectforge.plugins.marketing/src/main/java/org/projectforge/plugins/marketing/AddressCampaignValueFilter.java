@@ -57,7 +57,7 @@ public class AddressCampaignValueFilter extends AddressFilter
     return addressCampaign;
   }
 
-  public Integer getAddressCampaignId()
+  public Long getAddressCampaignId()
   {
     return addressCampaign != null ? addressCampaign.getId() : null;
   }

@@ -27,8 +27,10 @@ import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.stereotype.Service;
 
+import java.io.Serializable;
+
 @Service
-public class UserFormatter
+public class UserFormatter implements Serializable
 {
 
   /**
@@ -53,7 +55,7 @@ public class UserFormatter
    * @return User's full name.
    * @see PFUserDO#getFullname()
    */
-  public String formatUser(final Integer userId)
+  public String formatUser(final Long userId)
   {
     final PFUserDO u = UserGroupCache.getInstance().getUser(userId);
     return u != null ? u.getFullname() : "";
@@ -70,7 +72,7 @@ public class UserFormatter
     return HtmlHelper.escapeXml(user.getFullname());
   }
 
-  public String getFormattedUser(final Integer userId)
+  public String getFormattedUser(final Long userId)
   {
     if (userId == null) {
       return "";
@@ -79,13 +81,13 @@ public class UserFormatter
     return getFormattedUser(user);
   }
 
-  public void appendFormattedUser(final StringBuffer buf, final Integer userId)
+  public void appendFormattedUser(final StringBuilder buf, final Long userId)
   {
     final PFUserDO user = UserGroupCache.getInstance().getUser(userId);
     appendFormattedUser(buf, user);
   }
 
-  public void appendFormattedUser(final StringBuffer buf, final PFUserDO user)
+  public void appendFormattedUser(final StringBuilder buf, final PFUserDO user)
   {
     buf.append(getFormattedUser(user));
   }

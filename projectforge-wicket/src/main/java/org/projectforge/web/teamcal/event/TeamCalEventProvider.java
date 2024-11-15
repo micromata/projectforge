@@ -44,13 +44,13 @@ import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.event.right.TeamEventRight;
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter;
 import org.projectforge.business.teamcal.filter.TemplateEntry;
-import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.RecurrenceFrequency;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.calendar.MyFullCalendarEventsProvider;
 
 import java.util.*;
@@ -63,8 +63,6 @@ import java.util.*;
 public class TeamCalEventProvider extends MyFullCalendarEventsProvider
 {
   private static final long serialVersionUID = -5609599079385073490L;
-
-  private final TeamEventDao teamEventDao;
 
   private int days;
 
@@ -79,15 +77,10 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
 
   private final TeamEventRight eventRight;
 
-  private AccessChecker accessChecker;
-
-  public TeamCalEventProvider(AccessChecker accessChecker, final TeamEventDao teamEventDao,
-      final TeamCalCalendarFilter filter)
+  public TeamCalEventProvider(final TeamCalCalendarFilter filter)
   {
-    this.accessChecker = accessChecker;
     this.filter = filter;
-    this.teamEventDao = teamEventDao;
-    this.eventRight = new TeamEventRight(accessChecker);
+    this.eventRight = new TeamEventRight();
   }
 
   /**
@@ -113,7 +106,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
       // Nothing to build.
       return;
     }
-    final Set<Integer> visibleCalendars = activeTemplateEntry.getVisibleCalendarIds();
+    final Set<Long> visibleCalendars = activeTemplateEntry.getVisibleCalendarIds();
     if (CollectionUtils.isEmpty(visibleCalendars) == true) {
       // Nothing to build.
       return;
@@ -122,15 +115,15 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
     eventFilter.setTeamCals(visibleCalendars);
     eventFilter.setStartDate(start.toDate());
     eventFilter.setEndDate(end.toDate());
-    eventFilter.setUser(ThreadLocalUserContext.getUser());
-    final List<ICalendarEvent> teamEvents = teamEventDao.getEventList(eventFilter, true);
+    eventFilter.setUser(ThreadLocalUserContext.getLoggedInUser());
+    final List<ICalendarEvent> teamEvents = WicketSupport.get(TeamEventDao.class).getEventList(eventFilter, true);
 
     days = Days.daysBetween(start, end).getDays();
     // Week or day view:
     final boolean longFormat = days < 10;
 
-    final TeamCalRight right = new TeamCalRight(accessChecker);
-    final PFUserDO user = ThreadLocalUserContext.getUser();
+    final TeamCalRight right = new TeamCalRight();
+    final PFUserDO user = ThreadLocalUserContext.getLoggedInUser();
     final TimeZone timeZone = ThreadLocalUserContext.getTimeZone();
     if (CollectionUtils.isNotEmpty(teamEvents) == true) {
       for (final ICalendarEvent teamEvent : teamEvents) {
@@ -154,7 +147,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
         event.setId("" + id);
         event.setColor(activeTemplateEntry.getColorCode(eventDO.getCalendarId()));
 
-        if (eventRight.hasUpdateAccess(ThreadLocalUserContext.getUser(), eventDO, null)) {
+        if (eventRight.hasUpdateAccess(ThreadLocalUserContext.getLoggedInUser(), eventDO, null)) {
           event.setEditable(true);
         } else {
           event.setEditable(false);
@@ -190,7 +183,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
             durationString = "\n" + ThreadLocalUserContext.getLocalizedString("plugins.teamcal.event.duration") + ": "
                 + hour + ":" + minute;
           }
-          final StringBuffer buf = new StringBuffer();
+          final StringBuilder buf = new StringBuilder();
           buf.append(teamEvent.getSubject());
           if (StringUtils.isNotBlank(teamEvent.getNote()) == true) {
             buf.append("\n").append(ThreadLocalUserContext.getLocalizedString("plugins.teamcal.event.note"))

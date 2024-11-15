@@ -546,7 +546,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
    */
   protected String buildDn(final String ouBase, final T obj)
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(buildDnIdentifier(obj));
     if (obj.getOrganizationalUnit() != null) {
       buf.append(',');

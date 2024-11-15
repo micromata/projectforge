@@ -33,14 +33,14 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.excel.*;
-import org.projectforge.business.fibu.KostFormatter;
+import org.projectforge.business.fibu.OldKostFormatter;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
@@ -55,9 +55,6 @@ public class Kost2ListPage extends AbstractListPage<Kost2ListForm, Kost2Dao, Kos
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Kost2ListPage.class);
 
   private static final long serialVersionUID = -8406452960003792763L;
-
-  @SpringBean
-  private Kost2Dao kost2Dao;
 
   public Kost2ListPage(final PageParameters parameters)
   {
@@ -86,7 +83,7 @@ public class Kost2ListPage extends AbstractListPage<Kost2ListForm, Kost2Dao, Kos
           final IModel<Kost2DO> rowModel)
       {
         final Kost2DO kost2 = rowModel.getObject();
-        appendCssClasses(item, kost2.getId(), kost2.isDeleted());
+        appendCssClasses(item, kost2.getId(), kost2.getDeleted());
       }
     };
     columns.add(new CellItemListenerPropertyColumn<Kost2DO>(new Model<String>(getString("fibu.kost2")),
@@ -220,7 +217,7 @@ public class Kost2ListPage extends AbstractListPage<Kost2ListForm, Kost2Dao, Kos
       mapping.add(Col.KOST, kost.getFormattedNumber());
       mapping.add(Col.ART, kost.getKost2Art().getName());
       mapping.add(Col.FAKTURIERT, kost.getKost2Art().getFakturiert() ? "X" : "");
-      mapping.add(Col.PROJEKT, KostFormatter.formatProjekt(kost.getProjekt()));
+      mapping.add(Col.PROJEKT, OldKostFormatter.formatProjekt(kost.getProjekt()));
       mapping.add(Col.STATUS, kost.getKostentraegerStatus());
       mapping.add(Col.DESCRIPTION, kost.getDescription());
       mapping.add(Col.COMMENT, kost.getComment());
@@ -239,11 +236,6 @@ public class Kost2ListPage extends AbstractListPage<Kost2ListForm, Kost2Dao, Kos
   @Override
   public Kost2Dao getBaseDao()
   {
-    return kost2Dao;
-  }
-
-  protected Kost2Dao getKost2Dao()
-  {
-    return kost2Dao;
+    return WicketSupport.get(Kost2Dao.class);
   }
 }
