@@ -104,11 +104,11 @@
             <type>test-jar</type>
         </dependency>
 
-        <dependency>
+        <!--dependency> used?
             <groupId>org.jboss.logging</groupId>
             <artifactId>jboss-logging</artifactId>
             <version>${jboss-logging.version}</version>
-        </dependency>
+        </dependency-->
 
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -117,11 +117,11 @@
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.glassfish.jersey.media/jersey-media-multipart -->
-        <dependency>
+        <!--dependency> used?
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-multipart</artifactId>
             <version>${jersey.version}</version>
-        </dependency>
+        </dependency-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
@@ -139,7 +139,7 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
+        <dependency> <!-- Used by BarcodeService -->
             <groupId>com.google.zxing</groupId>
             <artifactId>core</artifactId>
             <version>${com.google.zxing.version}</version>
