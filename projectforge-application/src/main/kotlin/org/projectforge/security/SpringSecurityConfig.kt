@@ -23,12 +23,18 @@
 
 package org.projectforge.security
 
+import org.projectforge.framework.utils.NumberHelper
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.core.userdetails.User
+import org.springframework.security.core.userdetails.UserDetailsService
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.security.provisioning.InMemoryUserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
+import java.security.SecureRandom
 
 
 @Configuration
@@ -45,5 +51,27 @@ open class SpringSecurityConfig {
             .csrf({ csrf -> csrf.disable() }) // CSRF ist done by PF.
 
         return http.build()
+    }
+
+    @Bean
+    @Override
+    open fun userDetailsService(): UserDetailsService {
+        /**
+         * The password is generated randomly and is not stored in the database.
+         * Users aren't supported, random password is better than default password, just in case.
+         */
+        val manager = InMemoryUserDetailsManager();
+        manager.createUser(
+            User.withUsername("user")
+                .password(passwordEncoder().encode(NumberHelper.getSecureRandomAlphanumeric(20)))
+                .roles("USER")
+                .build()
+        );
+        return manager;
+    }
+
+    @Bean
+    open fun passwordEncoder(): PasswordEncoder {
+        return BCryptPasswordEncoder();
     }
 }
