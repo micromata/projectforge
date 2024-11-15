@@ -42,8 +42,6 @@ public class TaskPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
 {
   private static final long serialVersionUID = -26352961662061891L;
 
-  private transient TaskTree taskTree;
-
   /**
    * @param clazz
    * @param sortProperty
@@ -58,10 +56,9 @@ public class TaskPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
   }
 
   /**
-   * @param taskFormatter
    * @param label
    * @param sortProperty
-   * @param property         Should be from type TaskDO or Integer for task id.
+   * @param property         Should be from type TaskDO or Long for task id.
    * @param cellItemListener
    */
   public TaskPropertyColumn(final String label, final String sortProperty,
@@ -74,7 +71,7 @@ public class TaskPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
   /**
    * @param label
    * @param sortProperty
-   * @param property     Should be from type TaskDO or Integer for task id.
+   * @param property     Should be from type TaskDO or Long for task id.
    */
   public TaskPropertyColumn(final String label, final String sortProperty,
       final String property)
@@ -110,8 +107,8 @@ public class TaskPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
         if (Hibernate.isInitialized(task) == false) {
           task = getTaskTree().getTaskById(task.getId());
         }
-      } else if (obj instanceof Integer) {
-        final Integer taskId = (Integer) obj;
+      } else if (obj instanceof Long) {
+        final Long taskId = (Long) obj;
         task = getTaskTree().getTaskById(taskId);
       } else {
         throw new IllegalStateException("Unsupported column type: " + obj);
@@ -120,22 +117,8 @@ public class TaskPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
     return task;
   }
 
-  /**
-   * Fluent pattern
-   *
-   * @param taskTree
-   */
-  public TaskPropertyColumn<T> withTaskTree(final TaskTree taskTree)
-  {
-    this.taskTree = taskTree;
-    return this;
-  }
-
   private TaskTree getTaskTree()
   {
-    if (taskTree == null) {
-      taskTree = TaskTree.getInstance();
-    }
-    return taskTree;
+    return TaskTree.getInstance();
   }
 }

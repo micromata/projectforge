@@ -26,7 +26,7 @@ package org.projectforge.rest
 import org.projectforge.business.login.LoginHandler
 
 class ChangePasswordData(
-  var userId: Int? = null,
+  var userId: Long? = null,
   var userDisplayName: String? = null,
   var loginPassword: CharArray? = null,
   var newPassword: CharArray? = null,

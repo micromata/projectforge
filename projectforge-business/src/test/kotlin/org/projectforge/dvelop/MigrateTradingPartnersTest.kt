@@ -30,7 +30,7 @@ import org.projectforge.business.dvelop.TradingPartner
 import org.projectforge.business.fibu.*
 
 class MigrateTradingPartnersTest {
-  private var pk = 1
+  private var pk = 1L
   private var incomingInvoices = mutableListOf<EingangsrechnungDO>()
   private var invoices = mutableListOf<RechnungDO>()
 
@@ -201,7 +201,7 @@ class MigrateTradingPartnersTest {
     } else {
       ", shortName=${partner.shortName}"
     }
-    println("${partner.type?.value}: ${partner.number} ${partner.company}: ${partner.remarks ?: "ohne Konto"}$shortName$importCode")
+    // println("${partner.type?.value}: ${partner.number} ${partner.company}: ${partner.remarks ?: "ohne Konto"}$shortName$importCode")
   }
 
   private fun createIncomingInvoice(kreditor: String, konto: KontoDO): EingangsrechnungDO {
@@ -235,9 +235,9 @@ class MigrateTradingPartnersTest {
     return konto
   }
 
-  private fun createKunde(number: Int, name: String, identifier: String? = null, konto: KontoDO? = null): KundeDO {
+  private fun createKunde(number: Long, name: String, identifier: String? = null, konto: KontoDO? = null): KundeDO {
     val kunde = KundeDO()
-    kunde.nummer = number
+    kunde.id = number
     kunde.name = name
     kunde.identifier = identifier
     kunde.konto = konto

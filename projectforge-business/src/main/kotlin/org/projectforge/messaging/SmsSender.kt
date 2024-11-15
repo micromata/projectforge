@@ -162,7 +162,7 @@ class SmsSender(private var config: SmsSenderConfig) {
    * @return
    */
   protected fun createHttpMethod(url: String?, phoneNumber: String?, message: String): HttpUriRequestBase {
-    if (config.httpMethodType === SmsSenderConfig.HttpMethodType.GET) {
+    if (config.httpMethodType == SmsSenderConfig.HttpMethodType.GET) {
       return try {
         val uriBuilder = URIBuilder(url)
         if (MapUtils.isNotEmpty(config.httpParams)) {

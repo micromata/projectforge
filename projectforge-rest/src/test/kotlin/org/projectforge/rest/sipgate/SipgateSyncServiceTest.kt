@@ -67,7 +67,7 @@ class SipgateSyncServiceTest {
     address1.contactStatus = ContactStatus.DEPARTED
     address1.addressStatus = AddressStatus.LEAVED
     Assertions.assertEquals(2, SipgateContactSyncService.matchScore(contact, address1))
-    address1.isDeleted = true
+    address1.deleted = true
     Assertions.assertEquals(1, SipgateContactSyncService.matchScore(contact, address1))
     val address2 = createAddress(
       name = "Reinhard",
@@ -126,7 +126,7 @@ class SipgateSyncServiceTest {
   private fun assertScore(
     matchScores: List<SipgateContactSyncService.MatchScore>,
     contactId: String,
-    addressId: Int,
+    addressId: Long,
     expectedScore: Int,
     msg: String,
   ) {
@@ -261,7 +261,7 @@ class SipgateSyncServiceTest {
       mobilePhone: String? = null,
       fax: String? = null,
       organization: String? = null,
-      id: Int? = null,
+      id: Long? = null,
     ): AddressDO {
       val address = AddressDO()
       address.name = name
@@ -300,7 +300,7 @@ class SipgateSyncServiceTest {
 
     internal fun createSyncDO(
       contactId: String,
-      addressId: Int,
+      addressId: Long,
     ): SipgateContactSyncDO {
       val syncDO = SipgateContactSyncDO()
       syncDO.sipgateContactId = contactId

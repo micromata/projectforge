@@ -23,8 +23,9 @@
 
 package org.projectforge.plugins.datatransfer.rest
 
-import org.projectforge.business.group.service.GroupService
-import org.projectforge.business.user.service.UserService
+import jakarta.annotation.PostConstruct
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.configuration.ConfigurationChecker
 import org.projectforge.framework.i18n.translate
@@ -50,372 +51,375 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import javax.annotation.PostConstruct
-import javax.servlet.http.HttpServletRequest
-import javax.validation.Valid
 
 @RestController
 @RequestMapping("${Rest.URL}/datatransfer")
 class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataTransferArea, DataTransferAreaDao>(
-  DataTransferAreaDao::class.java,
-  "plugins.datatransfer.title"
+    DataTransferAreaDao::class.java,
+    "plugins.datatransfer.title"
 ) {
 
-  @Autowired
-  private lateinit var configurationChecker: ConfigurationChecker
+    @Autowired
+    private lateinit var configurationChecker: ConfigurationChecker
 
-  @Autowired
-  private lateinit var groupService: GroupService
-
-  @Autowired
-  private lateinit var userService: UserService
-
-  @PostConstruct
-  private fun postConstruct() {
-    enableJcr(
-      attachmentsAccessChecker = DataTransferAccessChecker(baseDao)
-    )
-  }
-
-  override fun transformForDB(dto: DataTransferArea): DataTransferAreaDO {
-    val obj = DataTransferAreaDO()
-    dto.copyTo(obj)
-    return obj
-  }
-
-  override fun transformFromDB(obj: DataTransferAreaDO, editMode: Boolean): DataTransferArea {
-    val dto = DataTransferArea.transformFromDB(obj, baseDao, groupService, userService)
-    if (editMode == true) {
-      dto.externalPassword = obj.externalPassword
+    @PostConstruct
+    private fun postConstruct() {
+        enableJcr(
+            attachmentsAccessChecker = DataTransferAccessChecker(baseDao)
+        )
     }
-    return dto
-  }
 
-  /**
-   * @return the data transfer view page.
-   */
-  override fun getStandardEditPage(): String {
-    return "${PagesResolver.getDynamicPageUrl(DataTransferPageRest::class.java)}:id"
-  }
-
-  /**
-   * Initializes new DataTransferFiles for adding.
-   */
-  override fun newBaseDO(request: HttpServletRequest?): DataTransferAreaDO {
-    return baseDao.createInitializedFile()
-  }
-
-  @PostMapping("renewAccessToken")
-  fun renewAccessToken(@Valid @RequestBody postData: PostData<DataTransferArea>): ResponseAction {
-    val file = postData.data
-    file.externalAccessToken = DataTransferAreaDao.generateExternalAccessToken()
-    return ResponseAction(targetType = TargetType.UPDATE)
-      .addVariable("data", file)
-  }
-
-  @PostMapping("renewPassword")
-  fun renewPassword(@Valid @RequestBody postData: PostData<DataTransferArea>): ResponseAction {
-    val file = postData.data
-    file.externalPassword = DataTransferAreaDao.generateExternalPassword()
-    return ResponseAction(targetType = TargetType.UPDATE)
-      .addVariable("data", file)
-  }
-
-  /**
-   * LAYOUT List page
-   */
-  override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
-    layout.add(UITable.createUIResultSetTable()
-          .add(lc, "created")
-          .add(UITableColumn("lastUpdateTimeAgo", "lastUpdate"))
-          .add(lc, "areaName", "description")
-          .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP, sortable = false))
-          .add(UITableColumn("capacity.maxUploadSizeFormatted", "plugins.datatransfer.maxUploadSize", sortable = false))
-          .add(
-            UITableColumn(
-              "externalDownloadEnabled",
-              "plugins.datatransfer.external.download.enabled.title",
-              sortable = false,
-            ).setStandardBoolean()
-          )
-          .add(
-            UITableColumn(
-              "externalUploadEnabled",
-              "plugins.datatransfer.external.upload.enabled.title",
-              sortable = false,
-            ).setStandardBoolean()
-          )
-          .add(lc, "expiryDays")
-          .add(UITableColumn("adminsAsString", "plugins.datatransfer.admins", sortable = false))
-          .add(UITableColumn("observersAsString", "plugins.datatransfer.observers", sortable = false))
-          .add(UITableColumn("accessUsersAsString", "plugins.datatransfer.accessUsers", sortable = false))
-          .add(UITableColumn("accessGroupsAsString", "plugins.datatransfer.accessGroups", sortable = false))
-      )
-    layout.add(
-      MenuItem(
-        "HIGHLIGHT",
-        i18nKey = "plugins.datatransfer.personalBox",
-        tooltip = "plugins.datatransfer.personalBox.info",
-        url = PagesResolver.getDynamicPageUrl(DataTransferPersonalBoxPageRest::class.java)
-      )
-    )
-  }
-
-  override fun preProcessMagicFilter(
-    target: QueryFilter,
-    source: MagicFilter
-  ): List<CustomResultFilter<DataTransferAreaDO>>? {
-    source.sortProperties.find { it.property == "lastUpdateTimeAgo" }?.property = "lastUpdate"
-    return super.preProcessMagicFilter(target, source)
-  }
-
-  override fun afterOperationRedirectTo(
-    obj: DataTransferAreaDO,
-    postData: PostData<DataTransferArea>,
-    event: RestButtonEvent
-  ): String? {
-    return if (event == RestButtonEvent.SAVE) PagesResolver.getDynamicPageUrl(
-      DataTransferPageRest::class.java,
-      id = obj.id,
-      absolute = true
-    ) else null
-  }
-
-  override fun validate(validationErrors: MutableList<ValidationError>, dto: DataTransferArea) {
-    if (dto.externalAccessEnabled) {
-      if (!NumberHelper.checkSecureRandomAlphanumeric(
-          dto.externalAccessToken,
-          DataTransferAreaDao.ACCESS_TOKEN_LENGTH
-        )
-      ) {
-        validationErrors.add(
-          ValidationError(translate("plugins.datatransfer.validation.error.token"))
-        )
-      }
-      if (dto.externalPassword?.trim()?.length ?: 0 < 6) {
-        validationErrors.add(
-          ValidationError(
-            translate("plugins.datatransfer.validation.error.password"), fieldId = "externalPassword"
-          )
-        )
-      }
+    override fun transformForDB(dto: DataTransferArea): DataTransferAreaDO {
+        val obj = DataTransferAreaDO()
+        dto.copyTo(obj)
+        return obj
     }
-    if (!DataTransferAreaDao.EXPIRY_DAYS_VALUES.containsKey(dto.expiryDays)) {
-      validationErrors.add(
-        ValidationError(
-          translate("plugins.datatransfer.validation.error.expiryDays"), fieldId = "expiryDays"
-        )
-      )
+
+    override fun transformFromDB(obj: DataTransferAreaDO, editMode: Boolean): DataTransferArea {
+        val dto = DataTransferArea.transformFromDB(obj, baseDao)
+        if (editMode == true) {
+            dto.externalPassword = obj.externalPassword
+        }
+        return dto
     }
-    if (!DataTransferAreaDao.MAX_UPLOAD_SIZE_VALUES.contains(dto.maxUploadSizeKB)) {
-      validationErrors.add(
-        ValidationError(
-          translate("plugins.datatransfer.validation.error.maxUploadSizeKB"), fieldId = "maxUploadSizeKB"
-        )
-      )
+
+    /**
+     * @return the data transfer view page.
+     */
+    override fun getStandardEditPage(): String {
+        return "${PagesResolver.getDynamicPageUrl(DataTransferPageRest::class.java)}:id"
     }
-    dto.maxUploadSizeKB?.let {
-      val springServletMultipartMaxFileSize = configurationChecker.springServletMultipartMaxFileSize.toBytes()
-      if (1024L * it > springServletMultipartMaxFileSize) {
-        validationErrors.add(
-          ValidationError(
-            translateMsg(
-              "plugins.datatransfer.validation.error.maxUploadSizeKB.exceededGlobalMaxUploadSize",
-              FormatterUtils.formatBytes(springServletMultipartMaxFileSize)
-            ), fieldId = "maxUploadSizeKB"
-          )
-        )
-      }
+
+    /**
+     * Initializes new DataTransferFiles for adding.
+     */
+    override fun newBaseDO(request: HttpServletRequest?): DataTransferAreaDO {
+        return baseDao.createInitializedFile()
     }
-  }
 
+    @PostMapping("renewAccessToken")
+    fun renewAccessToken(@Valid @RequestBody postData: PostData<DataTransferArea>): ResponseAction {
+        val file = postData.data
+        file.externalAccessToken = DataTransferAreaDao.generateExternalAccessToken()
+        return ResponseAction(targetType = TargetType.UPDATE)
+            .addVariable("data", file)
+    }
 
-  /**
-   * LAYOUT Edit page
-   */
-  override fun createEditLayout(dto: DataTransferArea, userAccess: UILayout.UserAccess): UILayout {
-    val adminsSelect = UISelect.createUserSelect(
-      lc,
-      "admins",
-      true,
-      "plugins.datatransfer.admins",
-      tooltip = "plugins.datatransfer.admins.info"
-    )
-    val observersSelect = UISelect.createUserSelect(
-      lc,
-      "observers",
-      true,
-      "plugins.datatransfer.observers",
-      tooltip = "plugins.datatransfer.observers.info"
-    )
-    val accessUsers = UISelect.createUserSelect(
-      lc,
-      "accessUsers",
-      true,
-      "plugins.datatransfer.accessUsers",
-      tooltip = "plugins.datatransfer.accessUsers.info"
-    )
-    val accessGroups = UISelect.createGroupSelect(
-      lc,
-      "accessGroups",
-      true,
-      "plugins.datatransfer.accessGroups",
-      tooltip = "plugins.datatransfer.accessGroups.info"
-    )
-    val resetExternalPassword = UIButton.createDangerButton(
-      "accessPassword-renew",
-      responseAction = ResponseAction(
-        RestResolver.getRestUrl(this::class.java, "renewPassword"),
-        targetType = TargetType.POST
-      ),
-      title = "plugins.datatransfer.external.password.renew",
-      tooltip = "plugins.datatransfer.external.password.renew.info",
-    )
-    val externalLink = UIReadOnlyField(
-      "externalLink",
-      lc,
-      label = "plugins.datatransfer.external.link",
-      canCopy = true
-    )
-    val renewExternalLink = UIButton.createDangerButton(
-      "accessToken-renew",
-      title = "plugins.datatransfer.external.link.renew",
-      tooltip = "plugins.datatransfer.external.link.renew.info",
-      responseAction = ResponseAction(
-        RestResolver.getRestUrl(this::class.java, "renewAccessToken"),
-        targetType = TargetType.POST
-      )
-    )
-    val externalAccessFieldset =
-      UIFieldset(UILength(md = 12, lg = 12), title = "plugins.datatransfer.external.access.title")
+    @PostMapping("renewPassword")
+    fun renewPassword(@Valid @RequestBody postData: PostData<DataTransferArea>): ResponseAction {
+        val file = postData.data
+        file.externalPassword = DataTransferAreaDao.generateExternalPassword()
+        return ResponseAction(targetType = TargetType.UPDATE)
+            .addVariable("data", file)
+    }
 
-    val expiryDaysSelectValues =
-      DataTransferAreaDao.EXPIRY_DAYS_VALUES.map { UISelectValue(it.key, translateMsg(it.value, it.key)) }
-
-    val maxUploadSizeKBValues =
-      DataTransferAreaDao.MAX_UPLOAD_SIZE_VALUES.map { UISelectValue(it, FormatterUtils.formatBytes(1024L * it)) }
-
-    val layout = super.createEditLayout(dto, userAccess)
-      .add(
-        UIFieldset(UILength(md = 12, lg = 12))
-          .add(
-            UIRow().add(
-              UICol(UILength(md = 8))
-                .add(lc, "areaName")
-            )
-              .add(
-                UICol(UILength(md = 4))
-                  .add(
-                    UISelect(
-                      "expiryDays",
-                      values = expiryDaysSelectValues,
-                      label = "plugins.datatransfer.expiryDays",
-                      tooltip = "plugins.datatransfer.expiryDays.info"
+    /**
+     * LAYOUT List page
+     */
+    override fun createListLayout(
+        request: HttpServletRequest,
+        layout: UILayout,
+        magicFilter: MagicFilter,
+        userAccess: UILayout.UserAccess
+    ) {
+        layout.add(
+            UITable.createUIResultSetTable()
+                .add(lc, "created")
+                .add(UITableColumn("lastUpdateTimeAgo", "lastUpdate"))
+                .add(lc, "areaName", "description")
+                .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP, sortable = false))
+                .add(
+                    UITableColumn(
+                        "capacity.maxUploadSizeFormatted",
+                        "plugins.datatransfer.maxUploadSize",
+                        sortable = false
                     )
-                  )
-              )
-          )
-          .add(
-            UIRow().add(
-              UICol(UILength(md = 8))
-                .add(observersSelect)
+                )
+                .add(
+                    UITableColumn(
+                        "externalDownloadEnabled",
+                        "plugins.datatransfer.external.download.enabled.title",
+                        sortable = false,
+                    ).setStandardBoolean()
+                )
+                .add(
+                    UITableColumn(
+                        "externalUploadEnabled",
+                        "plugins.datatransfer.external.upload.enabled.title",
+                        sortable = false,
+                    ).setStandardBoolean()
+                )
+                .add(lc, "expiryDays")
+                .add(UITableColumn("adminsAsString", "plugins.datatransfer.admins", sortable = false))
+                .add(UITableColumn("observersAsString", "plugins.datatransfer.observers", sortable = false))
+                .add(UITableColumn("accessUsersAsString", "plugins.datatransfer.accessUsers", sortable = false))
+                .add(UITableColumn("accessGroupsAsString", "plugins.datatransfer.accessGroups", sortable = false))
+        )
+        layout.add(
+            MenuItem(
+                "HIGHLIGHT",
+                i18nKey = "plugins.datatransfer.personalBox",
+                tooltip = "plugins.datatransfer.personalBox.info",
+                url = PagesResolver.getDynamicPageUrl(DataTransferPersonalBoxPageRest::class.java)
             )
-              .add(
-                UICol(UILength(md = 4))
-                  .add(
-                    UISelect(
-                      "maxUploadSizeKB",
-                      values = maxUploadSizeKBValues,
-                      label = "plugins.datatransfer.maxUploadSize",
-                      tooltip = "plugins.datatransfer.maxUploadSize.info"
+        )
+    }
+
+    override fun preProcessMagicFilter(
+        target: QueryFilter,
+        source: MagicFilter
+    ): List<CustomResultFilter<DataTransferAreaDO>>? {
+        source.sortProperties.find { it.property == "lastUpdateTimeAgo" }?.property = "lastUpdate"
+        return super.preProcessMagicFilter(target, source)
+    }
+
+    override fun afterOperationRedirectTo(
+        obj: DataTransferAreaDO,
+        postData: PostData<DataTransferArea>,
+        event: RestButtonEvent
+    ): String? {
+        return if (event == RestButtonEvent.SAVE) PagesResolver.getDynamicPageUrl(
+            DataTransferPageRest::class.java,
+            id = obj.id,
+            absolute = true
+        ) else null
+    }
+
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: DataTransferArea) {
+        if (dto.externalAccessEnabled) {
+            if (!NumberHelper.checkSecureRandomAlphanumeric(
+                    dto.externalAccessToken,
+                    DataTransferAreaDao.ACCESS_TOKEN_LENGTH
+                )
+            ) {
+                validationErrors.add(
+                    ValidationError(translate("plugins.datatransfer.validation.error.token"))
+                )
+            }
+            if (dto.externalPassword?.trim()?.length ?: 0 < 6) {
+                validationErrors.add(
+                    ValidationError(
+                        translate("plugins.datatransfer.validation.error.password"), fieldId = "externalPassword"
                     )
-                  )
-              )
-          )
-          .add(lc, "description")
-      )
-      .add(
-        UIFieldset(UILength(md = 12, lg = 12), title = "access.title.heading")
-          .add(
-            UIRow()
-              .add(
-                UICol(UILength(md = 4))
-                  .add(adminsSelect)
-              )
-              .add(
-                UICol(UILength(md = 4))
-                  .add(accessUsers)
-              )
-              .add(
-                UICol(UILength(md = 4))
-                  .add(accessGroups)
-              )
-          )
-      )
-      .add(
-        externalAccessFieldset
-          .add(
-            UIRow()
-              .add(
-                UICol(UILength(md = 6))
-                  .add(lc, "externalDownloadEnabled")
-              )
-              .add(
-                UICol(UILength(md = 6))
-                  .add(lc, "externalUploadEnabled")
-              )
-          )
-      )
-    if (dto.externalDownloadEnabled == true || dto.externalUploadEnabled == true) {
-      externalAccessFieldset.add(
-        UIRow()
-          .add(
-            UICol(UILength(md = 6))
-              .add(
+                )
+            }
+        }
+        if (!DataTransferAreaDao.EXPIRY_DAYS_VALUES.containsKey(dto.expiryDays)) {
+            validationErrors.add(
+                ValidationError(
+                    translate("plugins.datatransfer.validation.error.expiryDays"), fieldId = "expiryDays"
+                )
+            )
+        }
+        if (!DataTransferAreaDao.MAX_UPLOAD_SIZE_VALUES.contains(dto.maxUploadSizeKB)) {
+            validationErrors.add(
+                ValidationError(
+                    translate("plugins.datatransfer.validation.error.maxUploadSizeKB"), fieldId = "maxUploadSizeKB"
+                )
+            )
+        }
+        dto.maxUploadSizeKB?.let {
+            val springServletMultipartMaxFileSize = configurationChecker.springServletMultipartMaxFileSize.toBytes()
+            if (1024L * it > springServletMultipartMaxFileSize) {
+                validationErrors.add(
+                    ValidationError(
+                        translateMsg(
+                            "plugins.datatransfer.validation.error.maxUploadSizeKB.exceededGlobalMaxUploadSize",
+                            FormatterUtils.formatBytes(springServletMultipartMaxFileSize)
+                        ), fieldId = "maxUploadSizeKB"
+                    )
+                )
+            }
+        }
+    }
+
+
+    /**
+     * LAYOUT Edit page
+     */
+    override fun createEditLayout(dto: DataTransferArea, userAccess: UILayout.UserAccess): UILayout {
+        val adminsSelect = UISelect.createUserSelect(
+            lc,
+            "admins",
+            true,
+            "plugins.datatransfer.admins",
+            tooltip = "plugins.datatransfer.admins.info"
+        )
+        val observersSelect = UISelect.createUserSelect(
+            lc,
+            "observers",
+            true,
+            "plugins.datatransfer.observers",
+            tooltip = "plugins.datatransfer.observers.info"
+        )
+        val accessUsers = UISelect.createUserSelect(
+            lc,
+            "accessUsers",
+            true,
+            "plugins.datatransfer.accessUsers",
+            tooltip = "plugins.datatransfer.accessUsers.info"
+        )
+        val accessGroups = UISelect.createGroupSelect(
+            lc,
+            "accessGroups",
+            true,
+            "plugins.datatransfer.accessGroups",
+            tooltip = "plugins.datatransfer.accessGroups.info"
+        )
+        val resetExternalPassword = UIButton.createDangerButton(
+            "accessPassword-renew",
+            responseAction = ResponseAction(
+                RestResolver.getRestUrl(this::class.java, "renewPassword"),
+                targetType = TargetType.POST
+            ),
+            title = "plugins.datatransfer.external.password.renew",
+            tooltip = "plugins.datatransfer.external.password.renew.info",
+        )
+        val externalLink = UIReadOnlyField(
+            "externalLink",
+            lc,
+            label = "plugins.datatransfer.external.link",
+            canCopy = true
+        )
+        val renewExternalLink = UIButton.createDangerButton(
+            "accessToken-renew",
+            title = "plugins.datatransfer.external.link.renew",
+            tooltip = "plugins.datatransfer.external.link.renew.info",
+            responseAction = ResponseAction(
+                RestResolver.getRestUrl(this::class.java, "renewAccessToken"),
+                targetType = TargetType.POST
+            )
+        )
+        val externalAccessFieldset =
+            UIFieldset(UILength(md = 12, lg = 12), title = "plugins.datatransfer.external.access.title")
+
+        val expiryDaysSelectValues =
+            DataTransferAreaDao.EXPIRY_DAYS_VALUES.map { UISelectValue(it.key, translateMsg(it.value, it.key)) }
+
+        val maxUploadSizeKBValues =
+            DataTransferAreaDao.MAX_UPLOAD_SIZE_VALUES.map { UISelectValue(it, FormatterUtils.formatBytes(1024L * it)) }
+
+        val layout = super.createEditLayout(dto, userAccess)
+            .add(
+                UIFieldset(UILength(md = 12, lg = 12))
+                    .add(
+                        UIRow().add(
+                            UICol(UILength(md = 8))
+                                .add(lc, "areaName")
+                        )
+                            .add(
+                                UICol(UILength(md = 4))
+                                    .add(
+                                        UISelect(
+                                            "expiryDays",
+                                            values = expiryDaysSelectValues,
+                                            label = "plugins.datatransfer.expiryDays",
+                                            tooltip = "plugins.datatransfer.expiryDays.info"
+                                        )
+                                    )
+                            )
+                    )
+                    .add(
+                        UIRow().add(
+                            UICol(UILength(md = 8))
+                                .add(observersSelect)
+                        )
+                            .add(
+                                UICol(UILength(md = 4))
+                                    .add(
+                                        UISelect(
+                                            "maxUploadSizeKB",
+                                            values = maxUploadSizeKBValues,
+                                            label = "plugins.datatransfer.maxUploadSize",
+                                            tooltip = "plugins.datatransfer.maxUploadSize.info"
+                                        )
+                                    )
+                            )
+                    )
+                    .add(lc, "description")
+            )
+            .add(
+                UIFieldset(UILength(md = 12, lg = 12), title = "access.title.heading")
+                    .add(
+                        UIRow()
+                            .add(
+                                UICol(UILength(md = 4))
+                                    .add(adminsSelect)
+                            )
+                            .add(
+                                UICol(UILength(md = 4))
+                                    .add(accessUsers)
+                            )
+                            .add(
+                                UICol(UILength(md = 4))
+                                    .add(accessGroups)
+                            )
+                    )
+            )
+            .add(
+                externalAccessFieldset
+                    .add(
+                        UIRow()
+                            .add(
+                                UICol(UILength(md = 6))
+                                    .add(lc, "externalDownloadEnabled")
+                            )
+                            .add(
+                                UICol(UILength(md = 6))
+                                    .add(lc, "externalUploadEnabled")
+                            )
+                    )
+            )
+        if (dto.externalDownloadEnabled == true || dto.externalUploadEnabled == true) {
+            externalAccessFieldset.add(
                 UIRow()
-                  .add(
-                    UICol(8)
-                      .add(lc, "externalPassword")
-                  )
-                  .add(
-                    UICol(4)
-                      .add(resetExternalPassword)
-                  )
-              )
-          )
-      )
-        .add(
-          UIRow()
-            .add(
-              UICol(10)
-                .add(externalLink)
+                    .add(
+                        UICol(UILength(md = 6))
+                            .add(
+                                UIRow()
+                                    .add(
+                                        UICol(8)
+                                            .add(lc, "externalPassword")
+                                    )
+                                    .add(
+                                        UICol(4)
+                                            .add(resetExternalPassword)
+                                    )
+                            )
+                    )
             )
-            .add(
-              UICol(2)
-                .add(renewExternalLink)
-            )
-        )
+                .add(
+                    UIRow()
+                        .add(
+                            UICol(10)
+                                .add(externalLink)
+                        )
+                        .add(
+                            UICol(2)
+                                .add(renewExternalLink)
+                        )
+                )
 
+        }
+        layout.getInputById("areaName").focus = true
+        layout.watchFields.addAll(arrayOf("externalDownloadEnabled", "externalUploadEnabled"))
+
+        return LayoutUtils.processEditPage(layout, dto, this)
     }
-    layout.getInputById("areaName").focus = true
-    layout.watchFields.addAll(arrayOf("externalDownloadEnabled", "externalUploadEnabled"))
-
-    return LayoutUtils.processEditPage(layout, dto, this)
-  }
 
 
-  override fun onWatchFieldsUpdate(
-    request: HttpServletRequest,
-    dto: DataTransferArea,
-    watchFieldsTriggered: Array<String>?
-  ): ResponseEntity<ResponseAction> {
-    val layout =
-      createEditLayout(dto, UILayout.UserAccess(history = false, insert = true, update = true, delete = true))
-    DataTransferAreaDao.ensureSecureExternalAccess(dto)
-    return ResponseEntity.ok(
-      ResponseAction(targetType = TargetType.UPDATE)
-        .addVariable("ui", layout)
-        .addVariable("data", dto)
-    )
-  }
+    override fun onWatchFieldsUpdate(
+        request: HttpServletRequest,
+        dto: DataTransferArea,
+        watchFieldsTriggered: Array<String>?
+    ): ResponseEntity<ResponseAction> {
+        val layout =
+            createEditLayout(dto, UILayout.UserAccess(history = false, insert = true, update = true, delete = true))
+        DataTransferAreaDao.ensureSecureExternalAccess(dto)
+        return ResponseEntity.ok(
+            ResponseAction(targetType = TargetType.UPDATE)
+                .addVariable("ui", layout)
+                .addVariable("data", dto)
+        )
+    }
 }

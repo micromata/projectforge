@@ -29,7 +29,7 @@ import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.ui.*
 import java.time.temporal.ChronoUnit
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 /**
  * For temporarily downloads of files, stored in [ExpiringSessionAttributes].

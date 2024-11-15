@@ -31,7 +31,7 @@ import org.projectforge.jcr.FileObject
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.DataTransferFileSizeChecker
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 /**
  * Checks access to attachments by external anonymous users.
@@ -48,7 +48,7 @@ open class DataTransferPublicAccessChecker(
   internal fun filterAttachments(
     request: HttpServletRequest,
     externalDownloadEnabled: Boolean?,
-    areaId: Int,
+    areaId: Long,
     attachments: List<Attachment>?
   ): List<Attachment>? {
     attachments ?: return null

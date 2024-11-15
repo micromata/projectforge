@@ -43,6 +43,7 @@ import org.projectforge.business.user.UserPrefDao;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.task.TaskSelectPanel;
 import org.projectforge.web.user.NewGroupSelectPanel;
@@ -61,12 +62,6 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
   private static final long serialVersionUID = -6208809585214296635L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ToDoEditForm.class);
-
-  @SpringBean
-  private UserPrefDao userPrefDao;
-
-  @SpringBean
-  private ConfigurationService configurationService;
 
   protected boolean saveAsTemplate, sendNotification = true, sendShortMessage;
 
@@ -90,6 +85,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
   {
     super.init();
     gridBuilder.newGridPanel();
+    UserPrefDao userPrefDao = WicketSupport.get(UserPrefDao.class);
     if (isNew()) {
       // Favorites
       final String[] templateNames = userPrefDao.getPrefNames(ToDoPlugin.USER_PREF_AREA);
@@ -122,7 +118,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
             final String newSelection = (String) this.getFormComponent().getModelObject();
             if (StringUtils.isNotEmpty(newSelection)) {
               // Fill fields with selected template values:
-              final UserPrefDO userPref = userPrefDao.getUserPref(ToDoPlugin.USER_PREF_AREA, newSelection);
+              final UserPrefDO userPref = userPrefDao.selectUserPref(ToDoPlugin.USER_PREF_AREA, newSelection);
               if (userPref != null) {
                 userPrefDao.fillFromUserPrefParameters(userPref, data);
               }
@@ -271,14 +267,14 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
       // Options
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("label.options")).suppressLabelForWarning();
       final DivPanel checkBoxButton = fs.addNewCheckBoxButtonDiv();
-      if (configurationService.isSendMailConfigured()) {
+      if (WicketSupport.get(ConfigurationService.class).isSendMailConfigured()) {
         checkBoxButton.add(new CheckBoxButton(checkBoxButton.newChildId(), new PropertyModel<Boolean>(this, "sendNotification"),
             getString("label.sendEMailNotification")).setTooltip(getString("plugins.todo.notification.tooltip")));
       }
       checkBoxButton.add(new CheckBoxButton(checkBoxButton.newChildId(), new PropertyModel<Boolean>(this, "saveAsTemplate"),
           getString("userPref.saveAsTemplate")));
     }
-    if (!isNew() && getData().getStatus() != ToDoStatus.CLOSED && !getData().isDeleted()
+    if (!isNew() && getData().getStatus() != ToDoStatus.CLOSED && !getData().getDeleted()
 /*=======
       if (configurationService.isSendMailConfigured()) {
         checkBoxButton

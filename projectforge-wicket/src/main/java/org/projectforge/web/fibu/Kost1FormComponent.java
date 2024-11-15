@@ -25,14 +25,14 @@ package org.projectforge.web.fibu;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.ValidationError;
-import org.projectforge.business.fibu.KostFormatter;
+import org.projectforge.business.fibu.OldKostFormatter;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost1Dao;
 import org.projectforge.business.fibu.kost.KostFilter;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 
 import java.util.Collections;
@@ -44,9 +44,6 @@ public class Kost1FormComponent extends PFAutoCompleteTextField<Kost1DO>
 {
   private static final long serialVersionUID = -5900055958356749220L;
 
-  @SpringBean
-  private Kost1Dao kost1Dao;
-
   class Kost1Converter implements IConverter<Kost1DO>
   {
     private static final long serialVersionUID = 5770334618044073827L;
@@ -55,7 +52,7 @@ public class Kost1FormComponent extends PFAutoCompleteTextField<Kost1DO>
     public Kost1DO convertToObject(String value, final Locale locale)
     {
       value = StringUtils.trimToEmpty(value);
-      return kost1Dao.getKost1(value);
+      return WicketSupport.get(Kost1Dao.class).getKost1(value);
     }
 
     @Override
@@ -97,7 +94,7 @@ public class Kost1FormComponent extends PFAutoCompleteTextField<Kost1DO>
     if (kost1 == null) {
       return "";
     }
-    return KostFormatter.format(kost1) + " - " + KostFormatter.formatToolTip(kost1);
+    return OldKostFormatter.format(kost1) + " - " + OldKostFormatter.formatToolTip(kost1);
   }
 
   @Override
@@ -110,13 +107,13 @@ public class Kost1FormComponent extends PFAutoCompleteTextField<Kost1DO>
       filter.setSearchString(input + "*");
     }
     filter.setListType(KostFilter.FILTER_NOT_ENDED);
-    final List<Kost1DO> list = kost1Dao.getList(filter);
+    final List<Kost1DO> list = WicketSupport.get(Kost1Dao.class).select(filter);
     Collections.sort(list, new Comparator<Kost1DO>()
     {
       @Override
       public int compare(final Kost1DO o1, final Kost1DO o2)
       {
-        return (o1.getNummer().compareTo(o2.getNummer()));
+        return Integer.compare(o1.getNummer(), o2.getNummer());
       }
     });
     return list;

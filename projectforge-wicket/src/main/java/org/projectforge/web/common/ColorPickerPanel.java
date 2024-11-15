@@ -30,9 +30,11 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.util.collections.MicroMap;
 import org.apache.wicket.util.template.JavaScriptTemplate;
 import org.apache.wicket.util.template.PackageTextTemplate;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Johannes Unterstein (j.unterstein@micromata.de)
@@ -52,7 +54,7 @@ public class ColorPickerPanel extends Panel
   }
 
   /**
-   * @param string
+   * @param id
    * @param color
    */
   public ColorPickerPanel(final String id, final String color)
@@ -89,7 +91,9 @@ public class ColorPickerPanel extends Panel
     // colorpicker js
     final JavaScriptTemplate jsTemplate = new JavaScriptTemplate(
         new PackageTextTemplate(ColorPickerPanel.class, "ColorPicker.js.template"));
-    final String javaScript = jsTemplate.asString(new MicroMap<String, String>("markupId", colorField.getMarkupId()));
+    Map<String, String>microMap = new HashMap<>();
+    microMap.put("markupId", colorField.getMarkupId());
+    final String javaScript = jsTemplate.asString(microMap);
     add(new Label("template", javaScript).setEscapeModelStrings(false));
   }
 

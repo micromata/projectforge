@@ -24,14 +24,14 @@
 package org.projectforge.plugins.datatransfer
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.Constants
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -69,9 +69,9 @@ open class DataTransferAuditDO {
   enum class Action { DELETE, DOWNLOAD, MODIFIED, UPLOAD }
 
   @get:Id
-  @get:GeneratedValue
+  @get:GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
   @get:Column(name = "pk")
-  open var id: Int? = null
+  open var id: Long? = null
 
   @get:Column
   open var timestamp: Date? = null
@@ -80,7 +80,7 @@ open class DataTransferAuditDO {
    * No constraint (area might be deleted in the mean time).
    */
   @get:Column(name = "area_fk", nullable = false)
-  open var areaId: Int? = null
+  open var areaId: Long? = null
 
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "by_user_fk")

@@ -27,7 +27,7 @@ package org.projectforge.business.scripting.support
  * Wird für die Aggregation der Buchungssätze nach Monaten und Projekten benötigt.
  */
 data class AccountingRecordMonthKey(
-  val projectId: Int,
+  val projectId: Long,
   val year: Int,
   val month: Int,
 )

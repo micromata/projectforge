@@ -47,8 +47,8 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import javax.annotation.PostConstruct
-import javax.servlet.http.HttpServletRequest
+import jakarta.annotation.PostConstruct
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
@@ -77,17 +77,17 @@ class ScriptExecutePageRest : AbstractScriptExecutePageRest() {
   ): FormLayoutData {
     var scriptDO: ScriptDO? = null
     val script = Script()
-    var id: Int? = null
+    var id: Long? = null
     var exampleIdx: Int? = null // fix, because idString is like ?example=#
     if (example != null) {
       exampleIdx = example
     } else if (idString?.startsWith("?example=") == true) {
       exampleIdx = idString.removePrefix("?example=").toIntOrNull()
     } else {
-      id = NumberHelper.parseInteger(idString)
+      id = NumberHelper.parseLong(idString)
     }
     if (id != null) {
-      scriptDO = scriptDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
+      scriptDO = scriptDao.find(id) ?: throw IllegalArgumentException("Script not found.")
       script.copyFrom(scriptDO)
     } else {
       script.availableVariables =
@@ -127,7 +127,7 @@ class ScriptExecutePageRest : AbstractScriptExecutePageRest() {
     script.executableByGroups?.let { groups ->
       groups.mapNotNull { it.id }.let {
         if (it.isNotEmpty()) {
-          groupService.getGroupUsers(it.toIntArray())?.forEach { user ->
+          groupService.getGroupUsers(it.toLongArray())?.forEach { user ->
             user.email?.let { email ->
               if (email.isNotBlank()) {
                 executableByMails.add(email)
@@ -169,7 +169,7 @@ class ScriptExecutePageRest : AbstractScriptExecutePageRest() {
   }
 
   private fun ensureUserLogSubscription(): LogSubscription {
-    val username = ThreadLocalUserContext.user!!.username ?: throw InternalError("User not given")
+    val username = ThreadLocalUserContext.loggedInUser!!.username ?: throw InternalError("User not given")
     return LogSubscription.ensureSubscription(
       title = "Scripting",
       user = username,

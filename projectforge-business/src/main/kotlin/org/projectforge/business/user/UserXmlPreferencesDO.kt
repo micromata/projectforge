@@ -23,12 +23,10 @@
 
 package org.projectforge.business.user
 
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist
-import de.micromata.genome.jpa.DbRecord
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import java.io.Serializable
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
+import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_ID_AND_AREA
 
 /**
  * For persistency of UserPreferencesData (stores them serialized).
@@ -38,26 +36,41 @@ import javax.persistence.*
  */
 @Entity
 @Table(name = "T_USER_XML_PREFS", uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "key"])], indexes = [Index(name = "idx_fk_t_user_xml_prefs_user_id", columnList = "user_id")])
-@JpaXmlPersist(beforePersistListener = [UserXmlPreferenceXmlBeforePersistListener::class])
-class UserXmlPreferencesDO : Serializable, DbRecord<Int> {
+@NamedQueries(
+    NamedQuery(name = UserXmlPreferencesDO.FIND_BY_USER_ID_AND_KEY, query = "from UserXmlPreferencesDO where user.id=:userId and key=:key"),
+)
+class UserXmlPreferencesDO : IUserPref {
 
     @get:Id
-    @get:GeneratedValue
+    @get:GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
     @get:Column(name = "pk")
-    var id: Int? = null
+    override var id: Long? = null
 
     /**
      * The owner of this preference.
      */
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_id", nullable = false)
-    var user: PFUserDO? = null
+    override var user: PFUserDO? = null
 
     /**
      * Contains the serialized settings, stored in the database.
      */
-    @get:Column(length = MAX_SERIALIZED_LENGTH)
-    var serializedSettings: String? = null
+    @get:Column(name = "serializedsettings", length = MAX_SERIALIZED_LENGTH)
+    override var serializedValue: String? = null
+
+    /**
+     * Not in use. area is global for entries per user.
+     */
+    @get:Transient
+    override var area: String? = null
+
+    @get:Transient
+    override var identifier: String?
+        get() = key
+        set(value) {
+            key = value
+        }
 
     /**
      * Optional if the user preference should be stored in its own data base entry.
@@ -84,12 +97,6 @@ class UserXmlPreferencesDO : Serializable, DbRecord<Int> {
     @get:Column
     var version: Int = 0
 
-    val userId: Int?
-        @Transient
-        get() = if (this.user == null) {
-            null
-        } else user!!.id
-
     fun setCreated() {
         this.created = Date()
     }
@@ -111,17 +118,18 @@ class UserXmlPreferencesDO : Serializable, DbRecord<Int> {
         return this
     }
 
-    @Transient
-    override fun getPk(): Int? {
-        return this.id
+    override fun equals(other: Any?): Boolean {
+        return IUserPref.equals(this, other)
     }
 
-    override fun setPk(pk: Int?) {
-        this.id = pk
+    override fun hashCode(): Int {
+        return IUserPref.hashCode()
     }
 
     companion object {
         const val MAX_SERIALIZED_LENGTH = 10000
+
+        internal const val FIND_BY_USER_ID_AND_KEY = "UserXmlPreferencesDO_FindByUserIdAndName"
 
         /**
          * Don't forget to increase, if any changes in the object stored in user data are made. If not, the user preferences

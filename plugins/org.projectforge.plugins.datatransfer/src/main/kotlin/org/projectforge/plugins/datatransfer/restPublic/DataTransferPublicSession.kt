@@ -34,7 +34,7 @@ import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.rest.config.RestUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
@@ -44,7 +44,7 @@ private val log = KotlinLogging.logger {}
 @Service
 class DataTransferPublicSession {
   internal class TransferAreaData(
-    var id: Int,
+    var id: Long,
     var accessToken: String,
     @JsonIgnore var password: String?,
     var userInfo: String?,
@@ -67,7 +67,7 @@ class DataTransferPublicSession {
    */
   internal fun checkLogin(
     request: HttpServletRequest,
-    areaId: Int? = null,
+    areaId: Long? = null,
     accessToken: String? = null
   ): Pair<DataTransferAreaDO, TransferAreaData>? {
     check(areaId != null || !accessToken.isNullOrBlank())
@@ -154,7 +154,7 @@ class DataTransferPublicSession {
   private fun checkDataBaseEntry(
     request: HttpServletRequest,
     dbo: DataTransferAreaDO,
-    areaId: Int,
+    areaId: Long,
     accessToken: String?,
     password: String?,
     userInfo: String?
@@ -203,7 +203,7 @@ class DataTransferPublicSession {
     }
   }
 
-  private fun unregister(request: HttpServletRequest, areaId: Int) {
+  private fun unregister(request: HttpServletRequest, areaId: Long) {
     getSessionMap(request)?.remove(areaId)
   }
 
@@ -218,7 +218,7 @@ class DataTransferPublicSession {
   /**
    * Checks if the user has uploaded the given file inside his session. If so, the user is the owner and has write access (update and delete).
    */
-  internal fun isOwnerOfFile(request: HttpServletRequest, areaId: Int?, fileId: String?): Boolean {
+  internal fun isOwnerOfFile(request: HttpServletRequest, areaId: Long?, fileId: String?): Boolean {
     areaId ?: return false
     fileId ?: return false
     val data = getSessionMap(request)?.get(areaId) ?: return false
@@ -237,7 +237,7 @@ class DataTransferPublicSession {
    */
   internal fun registerFileAsOwner(
     request: HttpServletRequest,
-    areaId: Int?,
+    areaId: Long?,
     fileId: String?,
     fileName: String?
   ) {
@@ -268,10 +268,10 @@ class DataTransferPublicSession {
     }
   }
 
-  private fun getSessionMap(request: HttpServletRequest): MutableMap<Int, TransferAreaData>? {
+  private fun getSessionMap(request: HttpServletRequest): MutableMap<Long, TransferAreaData>? {
     @Suppress("UNCHECKED_CAST")
-    val map: MutableMap<Int, TransferAreaData>? =
-      request.getSession(false)?.getAttribute(SESSION_ATTRIBUTE) as? MutableMap<Int, TransferAreaData>
+    val map: MutableMap<Long, TransferAreaData>? =
+      request.getSession(false)?.getAttribute(SESSION_ATTRIBUTE) as? MutableMap<Long, TransferAreaData>
     return map
   }
 

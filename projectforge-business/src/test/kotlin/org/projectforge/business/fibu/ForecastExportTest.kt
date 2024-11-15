@@ -50,13 +50,13 @@ class ForecastExportTest : AbstractTestBase() {
         logon(TEST_FINANCE_USER)
         val today = PFDay.now()
         val baseDate = today.plusMonths(-4)
-        val order1 = createTimeAndMaterials(AuftragsStatus.BEAUFTRAGT, AuftragsPositionsStatus.BEAUFTRAGT,
+        val order1 = createTimeAndMaterials(AuftragsStatus.BEAUFTRAGT, AuftragsStatus.BEAUFTRAGT,
                 1000.0, baseDate,
                 baseDate.plusMonths(1), baseDate.plusMonths(4),
                 baseDate.plusMonths(2), baseDate.plusMonths(3), baseDate.plusMonths(4))
         //order1.addPaymentSchedule()
 
-        createTimeAndMaterials(AuftragsStatus.BEAUFTRAGT, AuftragsPositionsStatus.BEAUFTRAGT,
+        createTimeAndMaterials(AuftragsStatus.BEAUFTRAGT, AuftragsStatus.BEAUFTRAGT,
                 1000.0, baseDate,
                 baseDate.plusMonths(1), baseDate.plusMonths(4),
                 baseDate.plusMonths(2), baseDate.plusMonths(3))
@@ -64,8 +64,8 @@ class ForecastExportTest : AbstractTestBase() {
         val order3 = createOrder(today, AuftragsStatus.IN_ERSTELLUNG,
                 today.plusMonths(1), today.plusMonths(5))
         //order1.addPaymentSchedule()
-        addPosition(order3, 1, AuftragsPositionsStatus.IN_ERSTELLUNG, 4000.00, AuftragsPositionsPaymentType.FESTPREISPAKET)
-        auftragDao.save(order3)
+        addPosition(order3, 1, AuftragsStatus.IN_ERSTELLUNG, 4000.00, AuftragsPositionsPaymentType.FESTPREISPAKET)
+        auftragDao.insert(order3)
 
         val filter = AuftragFilter()
         filter.periodOfPerformanceStartDate = baseDate.localDate
@@ -89,19 +89,19 @@ class ForecastExportTest : AbstractTestBase() {
         }
     }
 
-    private fun createTimeAndMaterials(orderStatus: AuftragsStatus, posStatus: AuftragsPositionsStatus,
+    private fun createTimeAndMaterials(orderStatus: AuftragsStatus, posStatus: AuftragsStatus,
                                        monthlyAmount: Double, date: PFDay, periodStart: PFDay, periodEnd: PFDay, vararg invoiceMonth: PFDay)
             : AuftragDO {
         var order = createOrder(date, orderStatus, periodStart, periodEnd)
         //order1.addPaymentSchedule()
         addPosition(order, 1, posStatus, monthlyAmount * (1 + periodStart.monthsBetween(periodEnd)), AuftragsPositionsPaymentType.TIME_AND_MATERIALS)
-        val id = auftragDao.save(order)
-        order = auftragDao.getById(id)
+        val id = auftragDao.insert(order)
+        order = auftragDao.find(id)!!
         val pos1_1 = order.getPosition(1)!!
         invoiceMonth.forEach {
             val invoice1 = createInvoice(it)
             addPosition(invoice1, monthlyAmount, pos1_1)
-            rechnungDao.save(invoice1)
+            rechnungDao.insert(invoice1)
         }
         return order
     }
@@ -113,7 +113,7 @@ class ForecastExportTest : AbstractTestBase() {
                             probability: Int? = null): AuftragDO {
         val order = AuftragDO()
         order.nummer = auftragDao.nextNumber
-        order.auftragsStatus = status
+        order.status = status
         order.angebotsDatum = date.localDate
         order.periodOfPerformanceBegin = periodOfPerformanceBegin?.localDate
         order.periodOfPerformanceEnd = periodOfPerformanceEnd?.localDate
@@ -123,7 +123,7 @@ class ForecastExportTest : AbstractTestBase() {
 
     private fun addPosition(order: AuftragDO,
                             number: Short,
-                            status: AuftragsPositionsStatus,
+                            status: AuftragsStatus,
                             netSum: Double,
                             paymentType: AuftragsPositionsPaymentType,
                             periodOfPerformanceBegin: PFDay? = null,

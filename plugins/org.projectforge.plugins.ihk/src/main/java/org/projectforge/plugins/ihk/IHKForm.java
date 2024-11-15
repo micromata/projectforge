@@ -39,6 +39,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.time.TimePeriod;
 import org.projectforge.web.CSSColor;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.calendar.QuickSelectWeekPanel;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.WicketUtils;
@@ -76,20 +77,17 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage> {
         super(parentPage);
     }
 
-    @SpringBean
-    private AddressDao addressDao;
-
     @Override
     protected void init() {
         super.init();
 
         String userComment = "";
-        List<AddressDO> addressDos = addressDao.getList(new BaseSearchFilter());
+        List<AddressDO> addressDos = WicketSupport.get(AddressDao.class).select(new BaseSearchFilter());
         boolean foundUser = false;
 
         for (AddressDO addressDo : addressDos) {
-            if (addressDo.getName().equals(ThreadLocalUserContext.getUser().getLastname())) {
-                if (addressDo.getFirstName().equals(ThreadLocalUserContext.getUser().getFirstname())) {
+            if (addressDo.getName().equals(ThreadLocalUserContext.getLoggedInUser().getLastname())) {
+                if (addressDo.getFirstName().equals(ThreadLocalUserContext.getLoggedInUser().getFirstname())) {
                     userComment = addressDo.getComment();
                     foundUser = true;
                     break;
@@ -106,13 +104,13 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage> {
                 teamname = ihkCommentObject.getTeamname();
                 ausbildungsbeginn = LocalDate.parse(ihkCommentObject.getAusbildungStartDatum());
             } catch (Exception e) {
-                log.warn("IHK-Plugin: wasnt able to parse json from AddressDo.getComment():" + e.getMessage());
+                log.warn("IHK-Plugin: wasn't able to parse json from AddressDo.getComment():" + e.getMessage());
                 throw new UserException("plugins.ihk.jsonError.parsing", e.getMessage());
             }
         } else {
             if (foundUser) {
                 log.info("IHK-Plugin: userComment not set. Value was null or empty.");
-                throw new UserException("plugins.ihk.jsonError.emtpy");
+                throw new UserException("plugins.ihk.jsonError.empty");
             } else {
                 log.info("IHK-Plugin: userComment not set. Value was null or empty.");
                 throw new UserException("plugins.ihk.userError.notFound");

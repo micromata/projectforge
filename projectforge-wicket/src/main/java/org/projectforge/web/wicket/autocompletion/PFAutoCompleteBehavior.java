@@ -80,7 +80,7 @@ public abstract class PFAutoCompleteBehavior<T> extends AbstractDefaultAjaxBehav
     } else {
       indicatorId = "'" + indicatorId + "'";
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append("var favorite" + id + " = ");
     final List<T> favorites = getFavorites();
     final MyJsonBuilder builder = new MyJsonBuilder();

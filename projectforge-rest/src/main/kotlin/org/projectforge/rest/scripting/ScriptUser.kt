@@ -35,7 +35,7 @@ import org.projectforge.rest.dto.User
  */
 @Suppress("unused")
 class ScriptUser internal constructor() {
-  private val loggedInUser = ThreadLocalUserContext.user!!
+  private val loggedInUser = ThreadLocalUserContext.loggedInUser!!
   private val userGroupCache = UserGroupCache.getInstance()
 
   val user = User()
@@ -106,6 +106,6 @@ class ScriptUser internal constructor() {
   }
 
   init {
-    user.copyFrom(ThreadLocalUserContext.user!!)
+    user.copyFrom(ThreadLocalUserContext.loggedInUser!!)
   }
 }

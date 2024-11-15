@@ -39,8 +39,7 @@ class EingangsrechnungsPosition(
 ) : BaseDTO<EingangsrechnungsPositionDO>(), IRechnungsPosition {
     var kostZuweisungen: MutableList<KostZuweisung>? = null
 
-    override val netSum: BigDecimal
-        get() = RechnungCalculator.calculateNetSum(this)
+    var netSum = BigDecimal.ZERO
 
     override fun copyFrom(src: EingangsrechnungsPositionDO) {
         super.copyFrom(src)
@@ -50,6 +49,7 @@ class EingangsrechnungsPosition(
             pos.copyFrom(it)
             list.add(pos)
         }
+        netSum = src.info.netSum
         kostZuweisungen = list
     }
 

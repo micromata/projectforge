@@ -30,7 +30,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.Attachment
 import java.time.LocalDate
 
-class Contract(id: Int? = null,
+class Contract(id: Long? = null,
                var number: Int? = null,
                var date: LocalDate? = null,
                var validFrom: LocalDate? = null,

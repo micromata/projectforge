@@ -23,22 +23,24 @@
 
 package org.projectforge.framework.access
 
-import de.micromata.genome.db.jpa.history.api.NoHistory
+import jakarta.persistence.*
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.apache.commons.lang3.builder.ToStringBuilder
 import org.hibernate.Hibernate
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.BaseDO
-import org.projectforge.framework.persistence.api.ModificationStatus
+import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.history.PersistenceBehavior
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import java.io.Serializable
 import java.util.*
-import javax.persistence.*
 
 /**
  * Represents an access entry with the permissions of one group to one task. The persistent data object of
@@ -48,39 +50,54 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_GROUP_TASK_ACCESS", uniqueConstraints = [UniqueConstraint(columnNames = ["group_id", "task_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_group_task_access_group_id", columnList = "group_id"), javax.persistence.Index(name = "idx_fk_t_group_task_access_task_id", columnList = "task_id")])
+@Table(
+    name = "T_GROUP_TASK_ACCESS",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["group_id", "task_id"])],
+    indexes = [jakarta.persistence.Index(
+        name = "idx_fk_t_group_task_access_group_id",
+        columnList = "group_id"
+    ), jakarta.persistence.Index(name = "idx_fk_t_group_task_access_task_id", columnList = "task_id")]
+)
 @NamedQueries(
-        NamedQuery(name = GroupTaskAccessDO.FIND_BY_TASK_AND_GROUP,
-                query = "from GroupTaskAccessDO a where a.task.id=:taskId and a.group.id=:groupId"))
+    NamedQuery(
+        name = GroupTaskAccessDO.FIND_BY_TASK_AND_GROUP,
+        query = "from GroupTaskAccessDO a where a.task.id=:taskId and a.group.id=:groupId"
+    )
+)
 open class GroupTaskAccessDO : DefaultBaseDO() {
 
-    @IndexedEmbedded(depth = 1)
-    @get:ManyToOne(cascade = [CascadeType.MERGE])
+    @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
+    @get:ManyToOne
     @get:JoinColumn(name = "group_id")
     open var group: GroupDO? = null
 
     @PropertyInfo(i18nKey = "task")
-    @IndexedEmbedded(depth = 1)
-    @get:ManyToOne(cascade = [CascadeType.MERGE], targetEntity = TaskDO::class)
+    @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
+    @get:ManyToOne
     @get:JoinColumn(name = "task_id")
     open var task: TaskDO? = null
 
     /**
-     * If true then the group rights are also valid for all sub tasks. If false, then each sub task needs its own
+     * If true then the group rights are also valid for all subtasks. If false, then each subtask needs its own
      * definition.
      */
     @PropertyInfo(i18nKey = "recursive")
     @get:Column
-    open var isRecursive = true
+    open var recursive = true
 
     @PropertyInfo(i18nKey = "description")
-    @Field
+    @FullTextField
     @get:Column(name = "description", length = 4000)
     open var description: String? = null
 
+    @PersistenceBehavior(autoUpdateCollectionEntries = true)
     @PropertyInfo(i18nKey = "access.type")
-    @field:NoHistory
-    @get:OneToMany(cascade = [CascadeType.MERGE, CascadeType.REMOVE], fetch = FetchType.EAGER, orphanRemoval = true)
+    @get:OneToMany(
+        cascade = [CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH],
+        orphanRemoval = false,
+    )
     @get:JoinColumn(name = "group_task_access_fk", insertable = true, updatable = true)
     open var accessEntries: MutableSet<AccessEntryDO>? = null
 
@@ -107,13 +124,13 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
             return list
         }
 
-    val groupId: Int?
+    val groupId: Long?
         @Transient
         get() = if (this.group == null) {
             null
         } else this.group!!.id
 
-    val taskId: Int?
+    val taskId: Long?
         @Transient
         get() = if (this.task == null) {
             null
@@ -188,7 +205,7 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
      *
      * @param source
      */
-    override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): ModificationStatus {
+    override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
         var modificationStatus = super.copyValuesFrom(source, *ignoreFields)
         val src = source as GroupTaskAccessDO
         if (src.accessEntries != null) {

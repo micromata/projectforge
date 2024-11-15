@@ -31,7 +31,7 @@ import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.xmlstream.XStreamHelper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.util.List;
@@ -39,7 +39,7 @@ import java.util.List;
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 public class ReportDao {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ReportDao.class);
 
@@ -104,7 +104,7 @@ public class ReportDao {
     filter.setFromMonth(report.getFromMonth());
     filter.setToYear(report.getToYear());
     filter.setToMonth(report.getToMonth());
-    final List<BuchungssatzDO> list = buchungssatzDao.getList(filter);
+    final List<BuchungssatzDO> list = buchungssatzDao.select(filter);
     report.select(list);
   }
 

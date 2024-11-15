@@ -28,8 +28,8 @@ import kotlin.Throws
 import java.io.IOException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.login.LoginService
-import javax.servlet.*
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.*
+import jakarta.servlet.http.HttpServletRequest
 
 /**
  * Sets locale to ThreadLocale (used by public services such as login and data transfer).

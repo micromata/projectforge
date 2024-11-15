@@ -39,8 +39,8 @@ import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import javax.validation.Valid
 
 private val log = KotlinLogging.logger {}
@@ -64,7 +64,7 @@ open class LogViewerPageRest : AbstractDynamicPageRest() {
    * @param id Number of a [LogSubscription] is used by id, for -1 all log entries of the queues are used (for admins only).
    */
   @GetMapping("dynamic")
-  fun getForm(request: HttpServletRequest, response: HttpServletResponse, @RequestParam("id") id: Int): FormLayoutData {
+  fun getForm(request: HttpServletRequest,  @RequestParam("id") id: Int): FormLayoutData {
     if (adminLogViewer) {
       accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
     } else {
@@ -204,7 +204,7 @@ open class LogViewerPageRest : AbstractDynamicPageRest() {
     }
     // Log subscription:
     val logSubscription = LogSubscription.getSubscription(logSubscriptionId) ?: return emptyList()
-    if (logSubscription.user != ThreadLocalUserContext.user!!.username) {
+    if (logSubscription.user != ThreadLocalUserContext.loggedInUser!!.username) {
       log.warn { "log subscription requested by user is a subscription of another user '${logSubscription.user}'. Access denied." }
       return emptyList()
     }

@@ -27,59 +27,58 @@ import mu.KotlinLogging
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.BaseDaoSupport
+import org.projectforge.framework.persistence.api.BaseDOPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Repository
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.stereotype.Service
 
 private val log = KotlinLogging.logger {}
 
-@Repository
-open class BankAccountBalanceDao : BaseDao<BankAccountBalanceDO>(BankAccountBalanceDO::class.java) {
-  @Autowired
-  private lateinit var bankAccountDao: BankAccountDao
+@Service
+class BankAccountBalanceDao : BaseDao<BankAccountBalanceDO>(BankAccountBalanceDO::class.java) {
+    @Autowired
+    private lateinit var bankAccountDao: BankAccountDao
 
-  override fun hasAccess(
-    user: PFUserDO,
-    obj: BankAccountBalanceDO?,
-    oldObj: BankAccountBalanceDO?,
-    operationType: OperationType,
-    throwException: Boolean
-  ): Boolean {
-    val bankAccount = obj?.bankAccount
-    if (obj != null && bankAccount == null) {
-      return BaseDaoSupport.returnFalseOrThrowException(
-        throwException,
-        user,
-        operationType,
-        msg = "Bank account not given.",
-      )
+    override fun hasAccess(
+        user: PFUserDO,
+        obj: BankAccountBalanceDO?,
+        oldObj: BankAccountBalanceDO?,
+        operationType: OperationType,
+        throwException: Boolean
+    ): Boolean {
+        val bankAccount = obj?.bankAccount
+        if (obj != null && bankAccount == null) {
+            return BaseDOPersistenceService.returnFalseOrThrowException(
+                throwException,
+                user,
+                operationType,
+                msg = "Bank account not given.",
+            )
+        }
+        if (!accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP)) {
+            // Double check, user isn't member of financial staff.
+            return BaseDOPersistenceService.returnFalseOrThrowException(
+                throwException,
+                user,
+                operationType,
+                msg = "User not member of financial staff.",
+            )
+        }
+        val oldBankAccount = oldObj?.bankAccount
+        return bankAccountDao.hasAccess(user, bankAccount, oldBankAccount, operationType, throwException)
     }
-    if (!accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP)) {
-      // Double check, user isn't member of financial staff.
-      return BaseDaoSupport.returnFalseOrThrowException(
-        throwException,
-        user,
-        operationType,
-        msg = "User not member of financial staff.",
-      )
+
+    override fun newInstance(): BankAccountBalanceDO {
+        return BankAccountBalanceDO()
     }
-    val oldBankAccount = oldObj?.bankAccount
-    return bankAccountDao.hasAccess(user, bankAccount, oldBankAccount, operationType, throwException)
-  }
 
-  override fun newInstance(): BankAccountBalanceDO {
-    return BankAccountBalanceDO()
-  }
-
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  open fun getByTimePeriod(accountId: Int): List<BankAccountBalanceDO> {
-    val account = bankAccountDao.getById(accountId) // For access checking
-    log.info("Getting Balances of account '${account.name}', IBAN=${account.iban}")
-    return em.createNamedQuery(BankAccountBalanceDO.FIND_BY_BANK_ACCOUNT, BankAccountBalanceDO::class.java)
-      .setParameter("bankAccountId", accountId)
-      .resultList
-  }
+    fun getByTimePeriod(accountId: Int): List<BankAccountBalanceDO> {
+        val account = bankAccountDao.find(accountId)!! // For access checking
+        log.info("Getting Balances of account '${account.name}', IBAN=${account.iban}")
+        return persistenceService.executeNamedQuery(
+            BankAccountBalanceDO.FIND_BY_BANK_ACCOUNT,
+            BankAccountBalanceDO::class.java,
+            Pair("bankAccountId", accountId),
+        )
+    }
 }

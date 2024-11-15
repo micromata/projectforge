@@ -28,26 +28,26 @@ import de.micromata.wicket.request.mapper.PageParameterAwareMountedMapper;
 import org.apache.wicket.*;
 import org.apache.wicket.core.request.handler.PageProvider;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
-import org.apache.wicket.core.request.mapper.StalePageException;
 import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.pageStore.IDataStore;
 import org.apache.wicket.pageStore.IPageStore;
-import org.apache.wicket.protocol.http.PageExpiredException;
+import org.apache.wicket.pageStore.InMemoryPageStore;
+import org.apache.wicket.pageStore.RequestPageStore;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
-import org.apache.wicket.request.cycle.AbstractRequestCycleListener;
+import org.apache.wicket.request.cycle.IRequestCycleListener;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.resource.loader.BundleStringResourceLoader;
+import org.apache.wicket.settings.RequestCycleSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.apache.wicket.util.lang.Bytes;
-import org.apache.wicket.util.time.Duration;
 import org.projectforge.Constants;
 import org.projectforge.ProjectForgeApp;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.configuration.DomainService;
+import org.projectforge.common.NumberOfBytes;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -55,7 +55,9 @@ import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.utils.ExceptionHelper;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
+import org.projectforge.rest.sipgate.SipgateDirectCallService;
 import org.projectforge.web.WebConfiguration;
+import org.projectforge.web.WicketMenuBuilder;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.registry.WebRegistry;
@@ -69,6 +71,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
 
 import java.sql.SQLException;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -77,8 +80,6 @@ import java.util.Map;
 /**
  * Application object for your web application. If you want to run this application without deploying, run the Start
  * class.
- *
- * @see org.projectforge.start.AbstractStartHelper.demo.Start#main(String[])
  */
 @Controller
 public class WicketApplication extends WebApplication implements WicketApplicationInterface/* , SmartLifecycle */ {
@@ -104,9 +105,6 @@ public class WicketApplication extends WebApplication implements WicketApplicati
   private ApplicationContext applicationContext;
 
   @Autowired
-  private DatabaseService databaseService;
-
-  @Autowired
   private PluginAdminService pluginAdminService;
 
   @Autowired
@@ -117,6 +115,9 @@ public class WicketApplication extends WebApplication implements WicketApplicati
 
   @Autowired
   private ProjectForgeApp projectForgeApp; // Needed to be constructed first.
+
+  @Autowired
+  private WicketMenuBuilder wicketMenuBuilder; // Needed to be constructed first.
 
   @Value("${projectforge.base.dir}")
   private String baseDir;
@@ -195,9 +196,9 @@ public class WicketApplication extends WebApplication implements WicketApplicati
    */
   @Override
   public RuntimeConfigurationType getConfigurationType() {
-    if (isDevelopmentSystem() == true) {
-      return RuntimeConfigurationType.DEVELOPMENT;
-    }
+    //if (isDevelopmentSystem() == true) {
+    //  return RuntimeConfigurationType.DEVELOPMENT;
+    //}
     return RuntimeConfigurationType.DEPLOYMENT;
   }
 
@@ -217,6 +218,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
   @Override
   protected void init() {
     super.init();
+    getCspSettings().blocking().disabled(); // Configuring new Content Security Policy (CSP) settings.
     getComponentInstantiationListeners().add(
         new SpringComponentInjector(this, applicationContext));
     // Wicket workaround for not be able to proxy Kotlin base SpringBeans:
@@ -228,44 +230,32 @@ public class WicketApplication extends WebApplication implements WicketApplicati
     addPluginResources();
     getResourceSettings().getStringResourceLoaders().add(new ExternalResourceLoader());
     // Own error page for deployment mode and UserException and AccessException.
-    getRequestCycleListeners().add(new AbstractRequestCycleListener() {
-      /**
-       * Log only non ProjectForge exceptions.
-       *
-       * @see org.apache.wicket.request.cycle.AbstractRequestCycleListener#onException(org.apache.wicket.request.cycle.RequestCycle,
-       *      java.lang.Exception)
-       */
+    getRequestCycleListeners().add(new IRequestCycleListener() {
+
       @Override
-      public IRequestHandler onException(final RequestCycle cycle, final Exception ex) {
-        // in case of expired session, please redirect to home page
-        if (ex instanceof PageExpiredException) {
-          return super.onException(cycle, ex);
-        }
-
-        // log StalePageException but do not redirect to error page
-        if (ex instanceof StalePageException) {
-          log.warn(ex.toString());
-          return super.onException(cycle, ex);
-        }
-
-        final Throwable rootCause = ExceptionHelper.getRootCause(ex);
+      public IRequestHandler onException(RequestCycle cycle, Exception ex) {
+        Throwable rootCause = ExceptionHelper.getRootCause(ex);
         // log.error(rootCause.getMessage(), ex);
         // if (rootCause instanceof ProjectForgeException == false) {
         // return super.onException(cycle, ex);
         // }
         // return null;
-        log.error(ex.getMessage(), ex);
-        if (isDevelopmentSystem() == true) {
 
+        // Logging
+        log.error(ex.getMessage(), ex);
+
+        if (isDevelopmentSystem()) {
           if (rootCause instanceof SQLException) {
-            SQLException next = (SQLException) rootCause;
-            while ((next = next.getNextException()) != null) {
-              log.error(next.getMessage(), next);
+            SQLException sqlException = (SQLException) rootCause;
+            while (sqlException != null) {
+              log.error("SQL Exception: ", sqlException);
+              sqlException = sqlException.getNextException();
             }
           }
-          return super.onException(cycle, ex);
+          // In Development Mode, let Wicket handle the exception
+          return null;
         } else {
-          // Show always this error page in production mode:
+          // In Production Mode, redirect to an error page
           return new RenderPageRequestHandler(new PageProvider(new ErrorPage(ex)));
         }
       }
@@ -285,7 +275,8 @@ public class WicketApplication extends WebApplication implements WicketApplicati
     // getSessionSettings().setMaxPageMaps(20); // Map up to 20 pages per session (default is 5).
     getComponentInstantiationListeners().add(new SpringComponentInjector(this));
     getApplicationSettings().setInternalErrorPage(ErrorPage.class);
-    getRequestCycleSettings().setTimeout(Duration.minutes(Constants.WICKET_REQUEST_TIMEOUT_MINUTES));
+    getRequestCycleSettings().setTimeout(Duration.ofMinutes(Constants.WICKET_REQUEST_TIMEOUT_MINUTES));
+    // getRequestCycleSettings().setRenderStrategy(RequestCycleSettings.RenderStrategy.ONE_PASS_RENDER);
 
     // getRequestCycleSettings().setGatherExtendedBrowserInfo(true); // For getting browser width and height.
 
@@ -325,6 +316,8 @@ public class WicketApplication extends WebApplication implements WicketApplicati
         Application.get().getMarkupSettings().setStripWicketTags(true);
       }
       getDebugSettings().setOutputMarkupContainerClassName(true);
+
+      // For getting more information of deserialization issues: use jvm parameter --add-opens java.base/java.io=ALL-UNNAMED
     }
     try {
       final UserContext internalSystemAdminUserContext = UserContext
@@ -343,24 +336,22 @@ public class WicketApplication extends WebApplication implements WicketApplicati
       log.error("Unable to instantiate wicket less compiler: " + e.getMessage(), e);
     }
 
-    getPageSettings().setRecreateBookmarkablePagesAfterExpiry(false);
-    initPageStore();
-  }
+    getPageSettings().setRecreateBookmarkablePagesAfterExpiry(true);
+    getPageSettings().setVersionPagesByDefault(true);
+    /*setPageManagerProvider(() -> {
+      IPageStore pageStore = new InMemoryPageStore(getName(), 20); // max. 10 Seiten pro Session
+      return new PageStoreManager(this, new RequestPageStore(dataStore));
+      // Alternatively, for storing pages on disk with a limit:
+      // String storeFolder = getStoreFolder();
+      // IDataStore diskDataStore = new DiskPageStore(storeFolder, 20); // Limit pages on disk
+      // return new PageStoreManager(this, new RequestPageStore(diskDataStore));
+    });*/
+    getStoreSettings().setMaxSizePerSession(Bytes.kilobytes(100));
+    log.info("Using file storage directory for page store: " + WebApplication.get().getServletContext()
+        .getAttribute("jakarta.servlet.context.tempdir"));
 
-  /**
-   * Initializes the page store.
-   */
-  private void initPageStore() {
-    //pf.configuration.web.cachedPagesPerSession", 10);
-    getStoreSettings().setInmemoryCacheSize(10);
+    WicketSupport.register(SipgateDirectCallService.class, applicationContext.getBean(SipgateDirectCallService.class));
 
-    // Set custom page store
-    setPageManagerProvider(new DefaultPageManagerProvider(this) {
-      @Override
-      protected IPageStore newPageStore(IDataStore dataStore) {
-        return new InMemoryPageStore();
-      }
-    });
   }
 
   private void mountPageWithPageParameterAwareness(final String path, final Class<? extends WebPage> pageClass) {
@@ -404,8 +395,6 @@ public class WicketApplication extends WebApplication implements WicketApplicati
    * From http://www.danwalmsley.com/2009/04/08/apache-wicket-on-google-app-engine-for-java/<br/>
    * Override the newSessionStore() method to return HttpSessionStore, because the default second level session store
    * uses java.io.File, which is sometimes not allowed.
-   *
-   * @see org.apache.wicket.Application#newSessionStore()
    */
   /*
    * @Override protected ISessionStore newSessionStore() { return new

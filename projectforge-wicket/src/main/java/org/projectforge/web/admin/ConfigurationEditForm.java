@@ -26,7 +26,6 @@ package org.projectforge.web.admin;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
@@ -38,6 +37,7 @@ import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.ConfigurationType;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.teamcal.admin.TeamCalsProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
@@ -68,14 +68,12 @@ public class ConfigurationEditForm extends AbstractEditForm<ConfigurationDO, Con
 
   private TeamCalDO calendar;
 
-  @SpringBean
-  private TeamCalCache teamCalCache;
-
   @Override
   @SuppressWarnings("serial")
   protected void init()
   {
     super.init();
+    var teamCalCache = WicketSupport.get(TeamCalCache.class);
     gridBuilder.newGridPanel();
     {
       // Parameter name
@@ -87,7 +85,7 @@ public class ConfigurationEditForm extends AbstractEditForm<ConfigurationDO, Con
     {
       // Parameter value
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("administration.configuration.value"));
-      if (data.getConfigurationType() == ConfigurationType.INTEGER) {
+      if (data.getConfigurationType() == ConfigurationType.LONG) {
         final TextField<Integer> textField = new TextField<Integer>(InputPanel.WICKET_ID,
             new PropertyModel<Integer>(data, "intValue"));
         fs.add(textField);
@@ -179,10 +177,10 @@ public class ConfigurationEditForm extends AbstractEditForm<ConfigurationDO, Con
     }
   }
 
-  public void setCalendar(final Integer calendarId)
+  public void setCalendar(final Long calendarId)
   {
     if (calendarId != null) {
-      setCalendar(teamCalCache.getCalendar(calendarId));
+      setCalendar(WicketSupport.get(TeamCalCache.class).getCalendar(calendarId));
     } else {
       setCalendar((TeamCalDO) null);
     }

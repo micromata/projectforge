@@ -31,6 +31,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.common.BeanHelper;
+import org.projectforge.common.PropertyUtils;
 import org.projectforge.web.wicket.components.PlainLabel;
 
 import java.math.BigDecimal;
@@ -63,7 +64,7 @@ public class CurrencyPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
   @Override
   public void populateItem(final Item<ICellPopulator<T>> item, final String componentId, final IModel<T> rowModel)
   {
-    final BigDecimal value = (BigDecimal) BeanHelper.getProperty(rowModel.getObject(), getPropertyExpression());
+    final BigDecimal value = (BigDecimal) PropertyUtils.getProperty(rowModel.getObject(), getPropertyExpression());
     final Label label;
     if (this.suppressZeroValues == true && value != null && value.compareTo(BigDecimal.ZERO) == 0) {
       label = new PlainLabel(componentId, "");

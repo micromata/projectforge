@@ -46,7 +46,7 @@ public class DatePickerUtils
     if (datePickerLocalizationFile != null) {
       response.render(JavaScriptHeaderItem.forUrl(datePickerLocalizationFile));
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     final String loc = I18nCore.getDatePickerLocale(locale);
     buf.append("$(function() {\n");
     if (loc != null) {
@@ -70,7 +70,7 @@ public class DatePickerUtils
 
   public static String getDatePickerInitJavaScript(final String id, final boolean autosubmit)
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append("$(function() { $('#").append(id).append("')");
     String dateFormat = DateFormats.getFormatString(DateFormatType.DATE);
     if (StringUtils.isNotBlank(dateFormat) == true) {

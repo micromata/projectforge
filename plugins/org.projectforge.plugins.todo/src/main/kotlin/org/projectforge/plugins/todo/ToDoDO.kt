@@ -23,8 +23,6 @@
 
 package org.projectforge.plugins.todo
 
-import de.micromata.genome.db.jpa.history.api.NoHistory
-import org.hibernate.search.annotations.*
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.Priority
@@ -34,25 +32,29 @@ import org.projectforge.framework.persistence.user.api.UserPrefParameter
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.time.LocalDate
-import javax.persistence.*
+import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
+import org.projectforge.framework.persistence.history.NoHistory
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_TODO", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_todo_assignee_fk", columnList = "assignee_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_group_id", columnList = "group_id"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_reporter_fk", columnList = "reporter_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_task_id", columnList = "task_id")])
+@Table(name = "T_PLUGIN_TODO", indexes = [jakarta.persistence.Index(name = "idx_fk_t_plugin_todo_assignee_fk", columnList = "assignee_fk"), jakarta.persistence.Index(name = "idx_fk_t_plugin_todo_group_id", columnList = "group_id"), jakarta.persistence.Index(name = "idx_fk_t_plugin_todo_reporter_fk", columnList = "reporter_fk"), jakarta.persistence.Index(name = "idx_fk_t_plugin_todo_task_id", columnList = "task_id")])
 open class ToDoDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "plugins.todo.subject")
     @UserPrefParameter(i18nKey = "plugins.todo.subject")
-    @Field
+    @FullTextField
     @get:Column(length = Constants.LENGTH_TITLE)
     open var subject: String? = null
 
     @PropertyInfo(i18nKey = "plugins.todo.reporter")
     @UserPrefParameter(i18nKey = "plugins.todo.reporter")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "reporter_fk")
     open var reporter: PFUserDO? = null
@@ -63,14 +65,16 @@ open class ToDoDO : DefaultBaseDO() {
      */
     @PropertyInfo(i18nKey = "plugins.todo.assignee")
     @UserPrefParameter(i18nKey = "plugins.todo.assignee")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "assignee_fk")
     open var assignee: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "task")
     @UserPrefParameter(i18nKey = "task")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "task_id", nullable = true)
     open var task: TaskDO? = null
@@ -80,33 +84,34 @@ open class ToDoDO : DefaultBaseDO() {
      */
     @PropertyInfo(i18nKey = "group")
     @UserPrefParameter(i18nKey = "group")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "group_id", nullable = true)
     open var group: GroupDO? = null
 
     @PropertyInfo(i18nKey = "description")
     @UserPrefParameter(i18nKey = "description", multiline = true)
-    @Field
+    @FullTextField
     @get:Column(length = Constants.LENGTH_TEXT)
     open var description: String? = null
 
     @PropertyInfo(i18nKey = "comment")
     @UserPrefParameter(i18nKey = "comment", multiline = true)
-    @Field
+    @FullTextField
     @get:Column(length = Constants.LENGTH_TEXT)
     open var comment: String? = null
 
     @PropertyInfo(i18nKey = "plugins.todo.type")
     @UserPrefParameter(i18nKey = "plugins.todo.type")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
     open var type: ToDoType? = null
 
     @PropertyInfo(i18nKey = "plugins.todo.status")
     @UserPrefParameter(i18nKey = "plugins.todo.status")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
     open var status: ToDoStatus? = null
@@ -118,40 +123,40 @@ open class ToDoDO : DefaultBaseDO() {
      *
      * @return true if any modification isn't seen by the assignee.
      */
-    @field:NoHistory
+    @NoHistory
     @get:Column
     open var recent: Boolean = false
 
     @PropertyInfo(i18nKey = "priority")
     @UserPrefParameter(i18nKey = "priority")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
     open var priority: Priority? = null
 
     @PropertyInfo(i18nKey = "dueDate")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(name = "due_date")
     open var dueDate: LocalDate? = null
 
     @PropertyInfo(i18nKey = "resubmissionOnDate")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column
     open var resubmission: LocalDate? = null
 
-    val reporterId: Int?
+    val reporterId: Long?
         @Transient
         get() = if (reporter != null) reporter!!.id else null
 
-    val assigneeId: Int?
+    val assigneeId: Long?
         @Transient
         get() = if (assignee != null) assignee!!.id else null
 
-    val taskId: Int?
+    val taskId: Long?
         @Transient
         get() = if (this.task != null) task!!.id else null
 
-    val groupId: Int?
+    val groupId: Long?
         @Transient
         get() = if (this.group != null) group!!.id else null
 }

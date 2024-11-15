@@ -23,8 +23,6 @@
 
 package org.projectforge.web.configuration;
 
-import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
-import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaServiceImpl;
 import org.projectforge.renderer.custom.Formatter;
 import org.projectforge.renderer.custom.FormatterFactory;
 import org.projectforge.renderer.custom.MicromataFormatter;
@@ -45,14 +43,6 @@ public class PFWebConfiguration
 
   @Autowired
   private ApplicationContext applicationContext;
-
-  @Bean
-  public GuiAttrSchemaService guiAttrSchemaService()
-  {
-    GuiAttrSchemaServiceImpl ret = new GuiAttrSchemaServiceImpl();
-    ret.setApplicationDir(applicationDir);
-    return ret;
-  }
 
   @Bean
   public FormatterFactory formatterFactory()

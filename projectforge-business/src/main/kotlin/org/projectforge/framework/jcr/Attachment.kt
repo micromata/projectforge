@@ -88,7 +88,7 @@ class Attachment() {
   /**
    * Id of internal user or null, if no internal user.
    */
-  var createdByUserId: Int? = null
+  var createdByUserId: Long? = null
 
   var lastUpdate: Date? = null
 

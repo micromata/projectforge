@@ -49,8 +49,8 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.io.Serializable
-import javax.annotation.PostConstruct
-import javax.servlet.http.HttpServletRequest
+import jakarta.annotation.PostConstruct
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
@@ -91,7 +91,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
   ) {
     val lc = LayoutContext(EingangsrechnungDO::class.java)
     val stats = EingangsrechnungsStatistik()
-    eingangsrechnungDao.getListByIds(selectedIds)?.forEach { invoice ->
+    eingangsrechnungDao.select(selectedIds)?.forEach { invoice ->
       stats.add(invoice)
     }
     layout.add(UIAlert("'${stats.asMarkdown}", color = UIColor.LIGHT, markdown = true))
@@ -134,7 +134,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
     selectedIds: Collection<Serializable>,
     massUpdateContext: MassUpdateContext<EingangsrechnungDO>,
   ): ResponseEntity<*>? {
-    val invoices = eingangsrechnungDao.getListByIds(selectedIds)
+    val invoices = eingangsrechnungDao.select(selectedIds)
     if (invoices.isNullOrEmpty()) {
       return null
     }
@@ -151,12 +151,12 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
         param.localDateValue?.let {
           if (!massUpdateData.containsKey("zahlBetrag")) {
             // Add parameter for excel export:
-            val param = MassUpdateParameter()
-            massUpdateData["zahlBetrag"] = param
+            val massParam = MassUpdateParameter()
+            massUpdateData["zahlBetrag"] = massParam
           }
           invoice.bezahlDatum = param.localDateValue
-          invoice.zahlBetrag = invoice.grossSumWithDiscount
-          if (invoice.discountPercent != null && invoice.grossSumWithDiscount.compareTo(invoice.grossSum) != 0) {
+          invoice.zahlBetrag = invoice.info.grossSumWithDiscount
+          if (invoice.discountPercent != null && invoice.info.grossSumWithDiscount.compareTo(invoice.info.grossSum) != 0) {
             // Append hint about discount.
             val appendText =
               "${translate("fibu.eingangsrechnung.skonto")}: ${NumberFormatter.format(invoice.discountPercent)}%"
@@ -167,8 +167,8 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
         if (param.delete == true) {
           if (!massUpdateData.containsKey("zahlBetrag")) {
             // Add parameter for excel export:
-            val param = MassUpdateParameter()
-            massUpdateData["zahlBetrag"] = param
+            val massParam = MassUpdateParameter()
+            massUpdateData["zahlBetrag"] = massParam
           }
           invoice.bezahlDatum = null
           invoice.zahlBetrag = null
@@ -198,7 +198,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
   @GetMapping("exportTransfers")
   fun exportTransfers(request: HttpServletRequest): ResponseEntity<*> {
     val invoices =
-      eingangsrechnungDao.getListByIds(MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRest::class.java))
+      eingangsrechnungDao.select(MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRest::class.java))
     if (invoices.isNullOrEmpty()) {
       return RestUtils.downloadFile("error.txt", translate("massUpdate.error.noEntriesSelected"))
     }
@@ -227,7 +227,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
   }
 
   override fun ensureUserLogSubscription(): LogSubscription {
-    val username = ThreadLocalUserContext.user!!.username ?: throw InternalError("User not given")
+    val username = ThreadLocalUserContext.loggedInUser!!.username ?: throw InternalError("User not given")
     val displayTitle = translate("fibu.eingangsrechnung.multiselected.title")
     return LogSubscription.ensureSubscription(
       title = "Creditor invoices",

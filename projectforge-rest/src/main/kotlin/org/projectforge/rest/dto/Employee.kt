@@ -23,49 +23,51 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.fibu.EmployeeDO
-import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.EmployeeStatus
-import org.projectforge.business.fibu.IsoGender
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import java.math.BigDecimal
 import java.time.LocalDate
 
 class Employee(
-  id: Int? = null,
-  displayName: String? = null,
-  var user: User? = null,
-  var kost1: Kost1? = null,
-  var status: EmployeeStatus? = null,
-  var position: String? = null,
-  var eintrittsDatum: LocalDate? = null,
-  var austrittsDatum: LocalDate? = null,
-  var abteilung: String? = null,
-  var staffNumber: String? = null,
-  var urlaubstage: Int? = null,
-  var weeklyWorkingHours: BigDecimal? = null,
-  var birthday: LocalDate? = null,
-  var accountHolder: String? = null,
-  var iban: String? = null,
-  var bic: String? = null,
-  var gender: IsoGender? = null,
-  var street: String? = null,
-  var zipCode: String? = null,
-  var city: String? = null,
-  var country: String? = null,
-  var state: String? = null,
-  var comment: String? = null,
+    id: Long? = null,
+    displayName: String? = null,
+    var user: User? = null,
+    var kost1: Kost1? = null,
+    var position: String? = null,
+    var eintrittsDatum: LocalDate? = null,
+    var austrittsDatum: LocalDate? = null,
+    var abteilung: String? = null,
+    var staffNumber: String? = null,
+    var urlaubstage: Int? = null,
+    var weeklyWorkingHours: BigDecimal? = null,
+    var comment: String? = null,
 ) : BaseDTODisplayObject<EmployeeDO>(id, displayName = displayName) {
-  companion object {
-    private val employeeDao = ApplicationContextProvider.getApplicationContext().getBean(EmployeeDao::class.java)
+    /**
+     * Read-only field.
+     */
+    var annualLeave: BigDecimal? = null
 
     /**
-     * Set display names of any existing user in the given list.
-     * @see UserService.getUser
+     * Read-only field.
      */
-    fun restoreDisplayNames(employees: List<Employee>?) {
-      employees?.forEach { it.displayName = employeeDao.internalGetById(it.id)?.displayName }
+    var status: EmployeeStatus? = null
+
+    var annualLeaveEntries: List<EmployeeValidSinceAttr>? = null
+    var statusEntries: List<EmployeeValidSinceAttr>? = null
+
+    companion object {
+        private val employeeCache =
+            ApplicationContextProvider.getApplicationContext().getBean(EmployeeCache::class.java)
+
+        /**
+         * Set display names of any existing user in the given list.
+         * @see UserService.getUser
+         */
+        fun restoreDisplayNames(employees: List<Employee>?) {
+            employees?.forEach { it.displayName = employeeCache.getEmployee(it.id)?.displayName }
+        }
     }
-  }
 }

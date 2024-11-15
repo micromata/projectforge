@@ -46,85 +46,86 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 class PasswordResetService {
-  @Autowired
-  private lateinit var sendMail: SendMail
+    @Autowired
+    private lateinit var sendMail: SendMail
 
-  @Autowired
-  private lateinit var userService: UserService
+    @Autowired
+    private lateinit var userService: UserService
 
-  /**
-   * @param Checks the existence of the given token.
-   * @return The user assigned to the token or null, if no such user is found.
-   */
-  fun checkToken(token: String): PFUserDO? {
-    val userId = PasswordResetTokenStore.checkToken(token) ?: return null
-    return userService.internalGetById(userId)
-  }
-
-  /**
-   * @param Deletes the given token, if exists.
-   * @see PasswordResetTokenStore.deleteToken
-   */
-  fun deleteToken(token: String) {
-    PasswordResetTokenStore.deleteToken(token)
-  }
-
-  /**
-   * @param Link in e-mail for password reset. "<token>" will be reset by the generated token.
-   *        E. g. projectforge.acme.com/react/public/passwordReset/dynamic/?token=IBMwcF3b1f80OvH6bcbOcqWCaUtFr4
-   */
-  fun sendMail(usernameEmail: String, link: String) {
     /**
-     * Start the following procedure as thread to prevent, that an attacker
-     * will get any information of the user existence regarding the duration of the request
+     * @param Checks the existence of the given token.
+     * @return The user assigned to the token or null, if no such user is found.
      */
-    thread(start = true) {
-      if (usernameEmail.contains("@")) {
-        userService.findUserByMail(usernameEmail)?.filter { it.hasSystemAccess() }?.let { users ->
-          val size = users.size
-          if (size > 1) {
-            log.warn { "Can't reset user password by e-mail, because the mail address '$usernameEmail' is used by ${size} users." }
-          } else if (size == 1) {
-            sendPasswordReset(usernameEmail, users[0], link)
-            return@thread
-          }
-        }
-      }
-      // User may contain '@'-char, so do not use else branch here:
-      val user = userService.getInternalByUsername(usernameEmail)
-      if (user == null) {
-        SecurityLogging.logSecurityWarn(
-          PasswordResetService::class.java,
-          "User with e-mail '$usernameEmail' not found for password reset."
-        )
-      } else {
-        sendPasswordReset(usernameEmail, user, link)
-      }
+    fun checkToken(token: String): PFUserDO? {
+        val userId = PasswordResetTokenStore.checkToken(token) ?: return null
+        return userService.find(userId, false)
     }
-  }
 
-  private fun sendPasswordReset(usernameEmail: String, user: PFUserDO, link: String) {
-    // User found by mail
-    log.info { "Password reset requested by '$usernameEmail' for user ${user.username}." }
-    if (!user.hasSystemAccess()) {
-      log.warn { "A user without system access required a password reset by '$usernameEmail': ${user}." }
-      return
+    /**
+     * @param Deletes the given token, if exists.
+     * @see PasswordResetTokenStore.deleteToken
+     */
+    fun deleteToken(token: String) {
+        PasswordResetTokenStore.deleteToken(token)
     }
-    val mail = Mail()
-    val locale = UserLocale.determineUserLocale(user)
-    mail.subject = translate(locale, "password.forgotten.mail.subject")
-    mail.setTo(user)
-    mail.contentType = Mail.CONTENTTYPE_HTML
-    val token = PasswordResetTokenStore.createToken(user.id)
-    val resolvedLink = link.replace("TOKEN", token)
-    val data = mutableMapOf<String, Any?>("link" to resolvedLink)
-    mail.content = sendMail.renderGroovyTemplate(
-      mail, "mail/passwordResetMail.html", data,
-      mail.subject, user
-    )
-    if (SystemStatus.isDevelopmentMode()) {
-      log.info { "Development mode: Mail with password reset will be sent to '${mail.to}'. Link is '$resolvedLink'." }
+
+    /**
+     * @param Link in e-mail for password reset. "<token>" will be reset by the generated token.
+     *        E. g. projectforge.acme.com/react/public/passwordReset/dynamic/?token=IBMwcF3b1f80OvH6bcbOcqWCaUtFr4
+     */
+    fun sendMail(usernameEmail: String, link: String) {
+        /**
+         * Start the following procedure as thread to prevent, that an attacker
+         * will get any information of the user existence regarding the duration of the request
+         */
+        thread(start = true) {
+            if (usernameEmail.contains("@")) {
+                userService.findUserByMail(usernameEmail)?.filter { it.hasSystemAccess() }?.let { users ->
+                    val size = users.size
+                    if (size > 1) {
+                        log.warn { "Can't reset user password by e-mail, because the mail address '$usernameEmail' is used by ${size} users." }
+                    } else if (size == 1) {
+                        sendPasswordReset(usernameEmail, users[0], link)
+                        return@thread
+                    }
+                }
+            }
+            // User may contain '@'-char, so do not use else branch here:
+            val user = userService.getInternalByUsername(usernameEmail)
+            if (user == null) {
+                SecurityLogging.logSecurityWarn(
+                    PasswordResetService::class.java,
+                    "User with e-mail '$usernameEmail' not found for password reset."
+                )
+            } else {
+                sendPasswordReset(usernameEmail, user, link)
+            }
+        }
     }
-    sendMail.send(mail)
-  }
+
+    private fun sendPasswordReset(usernameEmail: String, user: PFUserDO, link: String) {
+        // User found by mail
+        log.info { "Password reset requested by '$usernameEmail' for user ${user.username}." }
+        val userId = user.id
+        if (!user.hasSystemAccess() || userId == null) {
+            log.warn { "A user without system access required a password reset by '$usernameEmail': ${user}." }
+            return
+        }
+        val mail = Mail()
+        val locale = UserLocale.determineUserLocale(user)
+        mail.subject = translate(locale, "password.forgotten.mail.subject")
+        mail.setTo(user)
+        mail.contentType = Mail.CONTENTTYPE_HTML
+        val token = PasswordResetTokenStore.createToken(userId)
+        val resolvedLink = link.replace("TOKEN", token)
+        val data = mutableMapOf<String, Any?>("link" to resolvedLink)
+        mail.content = sendMail.renderGroovyTemplate(
+            mail, "mail/passwordResetMail.html", data,
+            mail.subject, user
+        )
+        if (SystemStatus.isDevelopmentMode()) {
+            log.info { "Development mode: Mail with password reset will be sent to '${mail.to}'. Link is '$resolvedLink'." }
+        }
+        sendMail.send(mail)
+    }
 }

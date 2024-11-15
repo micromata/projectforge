@@ -64,7 +64,7 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
 
   private String listType = FILTER_FILTER;
 
-  private Collection<Integer> addressbookIds;
+  private Collection<Long> addressbookIds;
 
   public AddressFilter()
   {
@@ -271,8 +271,8 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
   {
     Collection<AddressbookDO> result = new ArrayList<>();
     if (addressbookIds != null) {
-      for (Integer id : addressbookIds) {
-        result.add(getAddressbookDao().internalGetById(id));
+      for (Long id : addressbookIds) {
+        result.add(getAddressbookDao().find(id, false));
       }
     }
     return result;
@@ -281,14 +281,14 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
   public void setAddressbooks(Collection<AddressbookDO> addressbooks)
   {
     if (addressbooks != null) {
-      this.addressbookIds = addressbooks.stream().mapToInt(AddressbookDO::getId).boxed().collect(Collectors.toList());
+      this.addressbookIds = addressbooks.stream().mapToLong(AddressbookDO::getId).boxed().collect(Collectors.toList());
     }
   }
 
   /**
    * @return the addressbookIds
    */
-  public Collection<Integer> getAddressbookIds()
+  public Collection<Long> getAddressbookIds()
   {
     return addressbookIds;
   }
@@ -297,7 +297,7 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
    * @param addressbookIds the addressbookIds to set
    * @return this for chaining.
    */
-  public AddressFilter setAddressbookIds(final Collection<Integer> addressbookIds)
+  public AddressFilter setAddressbookIds(final Collection<Long> addressbookIds)
   {
     this.addressbookIds = addressbookIds;
     return this;

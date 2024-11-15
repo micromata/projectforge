@@ -24,15 +24,15 @@
 package org.projectforge.plugins.merlin
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import de.micromata.genome.db.jpa.history.api.NoHistory
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.projectforge.framework.persistence.history.NoHistory
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -40,16 +40,19 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "t_plugin_merlin_template")
-open class MerlinTemplateDO : AbstractBaseDO<Int>(), AttachmentsInfo {
+open class MerlinTemplateDO : AbstractBaseDO<Long>(), AttachmentsInfo {
+  @get:Id
+  @get:GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @get:Column(name = "pk")
   @PropertyInfo(i18nKey = "id")
-  private var id: Int? = null
+  override var id: Long? = null
 
   @PropertyInfo(i18nKey = "plugins.merlin.name")
   @get:Column(length = 100, nullable = false)
   open var name: String? = null
 
   @PropertyInfo(i18nKey = "description")
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_TEXT)
   open var description: String? = null
 
@@ -113,24 +116,24 @@ open class MerlinTemplateDO : AbstractBaseDO<Int>(), AttachmentsInfo {
    * Names of attachments for displaying purposes only.
    */
   @JsonIgnore
-  @Field
-  @field:NoHistory
+  @FullTextField
+  @NoHistory
   @get:Column(length = 10000, name = "attachments_names")
   override var attachmentsNames: String? = null
 
   @JsonIgnore
-  @Field
-  @field:NoHistory
+  @FullTextField
+  @NoHistory
   @get:Column(length = 10000, name = "attachments_ids")
   override var attachmentsIds: String? = null
 
   @JsonIgnore
-  @field:NoHistory
+  @NoHistory
   @get:Column(length = 10000, name = "attachments_counter")
   override var attachmentsCounter: Int? = null
 
   @JsonIgnore
-  @field:NoHistory
+  @NoHistory
   @get:Column(length = 10000, name = "attachments_size")
   override var attachmentsSize: Long? = null
 
@@ -138,15 +141,4 @@ open class MerlinTemplateDO : AbstractBaseDO<Int>(), AttachmentsInfo {
   @JsonIgnore
   @get:Column(length = 10000, name = "attachments_last_user_action")
   override var attachmentsLastUserAction: String? = null
-
-  @Id
-  @GeneratedValue
-  @Column(name = "pk")
-  override fun getId(): Int? {
-    return id
-  }
-
-  override fun setId(id: Int?) {
-    this.id = id
-  }
 }

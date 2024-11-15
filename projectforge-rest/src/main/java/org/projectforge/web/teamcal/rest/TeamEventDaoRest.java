@@ -46,9 +46,9 @@ import org.projectforge.model.rest.RestPaths;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.time.temporal.ChronoUnit;
@@ -91,7 +91,7 @@ public class TeamEventDaoRest
       end = PFDateTime.now().plusDays(daysInFuture);
     }
 
-    final Collection<Integer> cals = getCalendarIds(calendarIds);
+    final Collection<Long> cals = getCalendarIds(calendarIds);
     final List<CalendarEventObject> result = new LinkedList<>();
     if (cals.size() > 0) {
       final TeamEventFilter filter = new TeamEventFilter().setTeamCals(cals);
@@ -133,7 +133,7 @@ public class TeamEventDaoRest
       days = 90;
     }
     day = day.plusDays(days);
-    final Collection<Integer> cals = getCalendarIds(calendarIds);
+    final Collection<Long> cals = getCalendarIds(calendarIds);
     final List<CalendarEventObject> result = new LinkedList<>();
     if (cals.size() > 0) {
       final Date now = new Date();
@@ -310,9 +310,9 @@ public class TeamEventDaoRest
     }
   }
 
-  private Collection<Integer> getCalendarIds(String calendarIds)
+  private Collection<Long> getCalendarIds(String calendarIds)
   {
-    final Collection<Integer> cals = new LinkedList<>();
+    final Collection<Long> cals = new LinkedList<>();
     if (StringUtils.isBlank(calendarIds)) {
       final Collection<TeamCalDO> ownCals = teamCalCache.getAllOwnCalendars();
       if (ownCals != null && ownCals.size() > 0) {
@@ -321,9 +321,9 @@ public class TeamEventDaoRest
         }
       }
     } else {
-      final Integer[] ids = StringHelper.splitToIntegers(calendarIds, ",;:");
+      final long[] ids = StringHelper.splitToLongs(calendarIds, ",;:");
       if (ids != null && ids.length > 0) {
-        for (final Integer id : ids) {
+        for (final Long id : ids) {
           if (id != null) {
             cals.add(id);
           }

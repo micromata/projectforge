@@ -31,39 +31,43 @@ import org.projectforge.business.vacation.model.RemainingLeaveDO
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.utils.SQLHelper
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.Year
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class.java) {
 
     /**
      * Mark entry for given employee as deleted (for recalculation), if exist. Otherwise nop.
      * Forces recalculation of remaining leave (carry from previous year).
      */
-    open fun internalMarkAsDeleted(employeeId: Int, year: Int) {
-        val entry = internalGet(employeeId, year, false) ?: return
-        internalMarkAsDeleted(entry)
+    open fun markAsDeleted(employeeId: Long, year: Int, checkAccess: Boolean = true) {
+        val entry = get(employeeId, year, false) ?: return
+        markAsDeleted(entry, checkAccess)
     }
 
-    open fun internalSaveOrUpdate(employee: EmployeeDO, year: Int, remainingLeaveFromPreviousYear: BigDecimal?) {
+    open fun saveOrUpdate(
+        employee: EmployeeDO,
+        year: Int,
+        remainingLeaveFromPreviousYear: BigDecimal?,
+        checkAccess: Boolean = true,
+    ) {
         if (year > Year.now().value) {
             throw IllegalArgumentException("Can't determine remaining vacation days for future year $year.")
         }
-        val entry = internalGet(employee.id, year, false) ?: RemainingLeaveDO()
+        val entry = get(employee.id, year, false) ?: RemainingLeaveDO()
         entry.employee = employee
         entry.year = year
         entry.remainingFromPreviousYear = remainingLeaveFromPreviousYear
-        entry.isDeleted = false
+        entry.deleted = false
         if (entry.id == null) {
-            internalSave(entry)
+            insert(entry, checkAccess = checkAccess)
         } else {
-            internalUpdate(entry)
+            update(entry, checkAccess = checkAccess)
         }
     }
 
@@ -72,29 +76,51 @@ open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class
      * will be returned if exists.
      * @see [LeaveAccountEntryDao.getRemainingLeaveFromPreviousYear]
      */
-    open fun getRemainingLeaveFromPreviousYear(employeeId: Int, year: Int): BigDecimal? {
+    open fun getRemainingLeaveFromPreviousYear(employeeId: Long?, year: Int): BigDecimal? {
+        employeeId ?: return BigDecimal.ZERO
         if (year > Year.now().value) {
             return BigDecimal.ZERO // Can't determine remaining vacation days for future years, assuming 0.
         }
-        return internalGet(employeeId, year)?.remainingFromPreviousYear
+        return get(employeeId, year)?.remainingFromPreviousYear
     }
 
     @JvmOverloads
-    open fun internalGet(employeeId: Int, year: Int, ignoreDeleted: Boolean = true): RemainingLeaveDO? {
-        val result = SQLHelper.ensureUniqueResult(em.createNamedQuery(RemainingLeaveDO.FIND_BY_EMPLOYEE_ID_AND_YEAR, RemainingLeaveDO::class.java)
-                .setParameter("employeeId", employeeId)
-                .setParameter("year", year)) ?: return null
-        return if (!ignoreDeleted || !result.isDeleted)
+    open fun get(employeeId: Long?, year: Int, ignoreDeleted: Boolean = true): RemainingLeaveDO? {
+        employeeId ?: return null
+        val result = persistenceService.selectNamedSingleResult(
+            RemainingLeaveDO.FIND_BY_EMPLOYEE_ID_AND_YEAR,
+            RemainingLeaveDO::class.java,
+            Pair("employeeId", employeeId),
+            Pair("year", year),
+        ) ?: return null
+        return if (!ignoreDeleted || !result.deleted)
             result
         else
             null
     }
 
-    override fun hasAccess(user: PFUserDO?, obj: RemainingLeaveDO?, oldObj: RemainingLeaveDO?, operationType: OperationType?, throwException: Boolean): Boolean {
+    override fun hasAccess(
+        user: PFUserDO,
+        obj: RemainingLeaveDO?,
+        oldObj: RemainingLeaveDO?,
+        operationType: OperationType,
+        throwException: Boolean
+    ): Boolean {
         if (operationType == OperationType.SELECT) {
-            return accessChecker.isLoggedInUserMemberOfGroup(throwException, ProjectForgeGroup.CONTROLLING_GROUP, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.HR_GROUP, ProjectForgeGroup.ORGA_TEAM)
+            return accessChecker.isLoggedInUserMemberOfGroup(
+                throwException,
+                ProjectForgeGroup.CONTROLLING_GROUP,
+                ProjectForgeGroup.FINANCE_GROUP,
+                ProjectForgeGroup.HR_GROUP,
+                ProjectForgeGroup.ORGA_TEAM
+            )
         } else {
-            return accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, throwException, UserRightValue.READONLY, UserRightValue.READWRITE)
+            return accessChecker.hasLoggedInUserRight(
+                UserRightId.HR_VACATION,
+                throwException,
+                UserRightValue.READONLY,
+                UserRightValue.READWRITE
+            )
         }
     }
 

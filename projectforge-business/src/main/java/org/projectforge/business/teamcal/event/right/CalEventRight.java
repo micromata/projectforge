@@ -32,6 +32,7 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 
 import java.util.Objects;
 
@@ -39,11 +40,11 @@ public class CalEventRight  extends UserRightAccessCheck<CalEventDO>
 {
   private final TeamCalRight teamCalRight;
 
-  public CalEventRight(AccessChecker accessChecker)
+  public CalEventRight()
   {
-    super(accessChecker, UserRightId.CALENDAR_EVENT, UserRightCategory.PLUGINS,
+    super( UserRightId.CALENDAR_EVENT, UserRightCategory.PLUGINS,
       UserRightValue.TRUE);
-    teamCalRight = new TeamCalRight(accessChecker);
+    teamCalRight = new TeamCalRight();
   }
 
   /**
@@ -74,7 +75,7 @@ public class CalEventRight  extends UserRightAccessCheck<CalEventDO>
       // User has full access to it's own calendars.
       return true;
     }
-    final Integer userId = user.getId();
+    final Long userId = user.getId();
     if (teamCalRight.hasFullAccess(calendar, userId)
       || teamCalRight.hasReadonlyAccess(calendar, userId)) {
       return true;
@@ -149,8 +150,8 @@ public class CalEventRight  extends UserRightAccessCheck<CalEventDO>
       // User has full access to it's own calendars.
       return true;
     }
-    final Integer userId = user.getId();
-    if (teamCalRight.hasFullAccess(calendar, userId) || accessChecker.isDemoUser()) {
+    final Long userId = user.getId();
+    if (teamCalRight.hasFullAccess(calendar, userId) || WicketSupport.getAccessChecker().isDemoUser()) {
       return true;
     }
     return false;
@@ -177,7 +178,7 @@ public class CalEventRight  extends UserRightAccessCheck<CalEventDO>
       // User has full access to it's own calendars.
       return true;
     }
-    final Integer userId = user.getId();
+    final Long userId = user.getId();
     if (teamCalRight.hasFullAccess(calendar, userId)
       || teamCalRight.hasReadonlyAccess(calendar, userId)) {
       return true;
@@ -185,7 +186,7 @@ public class CalEventRight  extends UserRightAccessCheck<CalEventDO>
     return false;
   }
 
-  public boolean hasMinimalAccess(final CalEventDO event, final Integer userId)
+  public boolean hasMinimalAccess(final CalEventDO event, final Long userId)
   {
     if (event.getCalendar() == null) {
       return true;

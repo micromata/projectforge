@@ -36,12 +36,12 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
  */
 class CalendarFilter(
   name: String? = null,
-  id: Int? = null,
+  id: Long? = null,
   /**
    * New items created in the calendar will be assumed as entries of this calendar. If null, then the creation
    * page for new time sheets is instantiated.
    */
-  var defaultCalendarId: Int? = null,
+  var defaultCalendarId: Long? = null,
 
   /**
    * Grid size of the calendar to display in minutes (60 should be dividable by step).
@@ -57,7 +57,7 @@ class CalendarFilter(
   /**
    * Display the time sheets of the user with this id. If null, no time sheets are displayed.
    */
-  var timesheetUserId: Int? = null,
+  var timesheetUserId: Long? = null,
 
   /**
    * Check box for enabling and disabling vacation entries.
@@ -69,13 +69,13 @@ class CalendarFilter(
    * vacationGroups (group ids) will be displayed.
    * Null items should only occur on (de)serialization issues.
    */
-  var vacationGroupIds: Set<Int?>? = null,
+  var vacationGroupIds: Set<Long?>? = null,
 
   /**
    * All vacations of the given employees (by id) will be displayed.
    * Null items should only occur on (de)serialization issues.
    */
-  var vacationUserIds: Set<Int?>? = null,
+  var vacationUserIds: Set<Long?>? = null,
 
   /**
    * If true, breaks between time sheets of a day will be displayed. If the user clicks on a break, a time sheet
@@ -92,12 +92,12 @@ class CalendarFilter(
   /**
    * All calendars of this filter (visible and invisible ones).
    */
-  var calendarIds = mutableSetOf<Int?>()
+  var calendarIds = mutableSetOf<Long?>()
 
   /**
    * Some calendarIds aren't visible (if they are listed here).
    */
-  var invisibleCalendars = mutableSetOf<Int?>()
+  var invisibleCalendars = mutableSetOf<Long?>()
 
   /**
    * Makes a deep copy of all values.
@@ -122,12 +122,12 @@ class CalendarFilter(
     return this
   }
 
-  fun addCalendarId(calendarId: Int) {
+  fun addCalendarId(calendarId: Long) {
     calendarIds.add(calendarId)
     invisibleCalendars.remove(calendarId) // New added calendars should be visible.
   }
 
-  fun removeCalendarId(calendarId: Int) {
+  fun removeCalendarId(calendarId: Long) {
     calendarIds.remove(calendarId)
     invisibleCalendars.remove(calendarId)
   }
@@ -135,7 +135,7 @@ class CalendarFilter(
   /**
    * @param calendarId Null should only occur on (de)serialization issues.
    */
-  fun setVisibility(calendarId: Int?, visible: Boolean) {
+  fun setVisibility(calendarId: Long?, visible: Boolean) {
     calendarId ?: return // May occur during (de-)serialization
     if (visible) {
       invisibleCalendars.remove(calendarId)
@@ -148,7 +148,7 @@ class CalendarFilter(
   /**
    * @param calendarId Null should only occur on (de)serialization issues.
    */
-  fun isInvisible(calendarId: Int?): Boolean {
+  fun isInvisible(calendarId: Long?): Boolean {
     return calendarId == null || invisibleCalendars.contains(calendarId)
   }
 
@@ -167,7 +167,7 @@ class CalendarFilter(
    */
   @Suppress("SENSELESS_COMPARISON")
   fun afterDeserialization() {
-    val nullValue: Int? = null
+    val nullValue: Long? = null
     if (calendarIds == null) {
       calendarIds = mutableSetOf() // Might be null after deserialization.
     } else {
@@ -197,16 +197,16 @@ class CalendarFilter(
         isModified(this.invisibleCalendars, other.invisibleCalendars)
   }
 
-  private fun copySet(srcSet: Set<Int?>?): Set<Int>? {
+  private fun copySet(srcSet: Set<Long?>?): Set<Long>? {
     if (srcSet == null) {
       return null
     }
-    val list = mutableSetOf<Int>()
+    val list = mutableSetOf<Long>()
     list.addAll(srcSet.filterNotNull())
     return list
   }
 
-  private fun isModified(col1: Collection<Int?>?, col2: Collection<Int?>?): Boolean {
+  private fun isModified(col1: Collection<Long?>?, col2: Collection<Long?>?): Boolean {
     if (col1 == null || col2 == null) {
       return col1 != col2
     }
@@ -238,7 +238,7 @@ class CalendarFilter(
         filter.showPlanning = templateEntry.isShowPlanning
         filter.timesheetUserId = templateEntry.timesheetUserId
         if (templateEntry.isShowTimesheets)
-          filter.timesheetUserId = ThreadLocalUserContext.userId
+          filter.timesheetUserId = ThreadLocalUserContext.loggedInUserId
         templateEntry.calendarProperties?.forEach {
           filter.addCalendarId(it.calId)
         }

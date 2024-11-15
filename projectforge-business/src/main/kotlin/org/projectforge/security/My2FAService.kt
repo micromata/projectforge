@@ -37,7 +37,7 @@ import org.projectforge.sms.SmsSenderConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
 
@@ -67,7 +67,7 @@ open class My2FAService {
   val smsConfigured
     get() = smsSenderConfig.isSmsConfigured() || SystemStatus.isDevelopmentMode()
 
-  private var mail2FADisabledGroupIds: MutableList<Int>? = null
+  private var mail2FADisabledGroupIds: MutableList<Long>? = null
 
   enum class Unit { MINUTES, HOURS, DAYS }
 
@@ -82,7 +82,7 @@ open class My2FAService {
    */
   val userConfigured2FA: Boolean
     get() {
-      ThreadLocalUserContext.user?.let { user ->
+      ThreadLocalUserContext.loggedInUser?.let { user ->
         if (!authenticationsService.getAuthenticatorToken().isNullOrBlank()) {
           return true
         }
@@ -102,7 +102,7 @@ open class My2FAService {
       return
     }
     val foundGroupNames = mutableListOf<String>()
-    val list = mutableListOf<Int>()
+    val list = mutableListOf<Long>()
     groupNames.split(";,:").forEach { groupName ->
       if (groupName.isNotBlank()) {
         val allGroups = groupService.allGroups
@@ -110,7 +110,7 @@ open class My2FAService {
         if (group == null) {
           log.error { "Group with name '$groupName' not foud in data base. Will be ignored for parameter projectforge.2fa.disableMail2FAForGroups=${my2FARequestConfiguration.disableEmail2FAForGroups}" }
         } else {
-          list.add(group.id)
+          list.add(group.id!!)
           foundGroupNames.add(group.name ?: "???")
         }
       }
@@ -180,7 +180,7 @@ open class My2FAService {
     val authenticatorToken = userAuthenticationsService.getAuthenticatorToken()
     if (authenticatorToken == null) {
       if (!suppressNoTokenWarnings) {
-        log.warn { "Can't check OTP for user '${ThreadLocalUserContext.user?.username}', no authenticator token configured." }
+        log.warn { "Can't check OTP for user '${ThreadLocalUserContext.loggedInUser?.username}', no authenticator token configured." }
       }
       return OTPCheckResult.NOT_CONFIGURED
     }
@@ -235,7 +235,7 @@ open class My2FAService {
     if (disabledGroupIds.isNullOrEmpty()) {
       return false
     }
-    val user = userContext?.user ?: ThreadLocalUserContext.user
+    val user = userContext?.user ?: ThreadLocalUserContext.loggedInUser
     requireNotNull(user)
     val userGroups =
       UserGroupCache.getInstance().getUserGroups(user) ?: return false // User without groups shouldn't occur.

@@ -29,14 +29,14 @@ import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.Model;
 import org.projectforge.common.i18n.UserException;
-import org.projectforge.framework.persistence.api.IPersistenceService;
+import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.MyComponentsRepeater;
 import org.slf4j.Logger;
 
-public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P extends AbstractEditPage<?, ?, ?>> extends
+public abstract class AbstractEditForm<O extends AbstractBaseDO<Long>, P extends AbstractEditPage<?, ?, ?>> extends
     AbstractSecuredForm<O, P>
 {
   public static final String UPDATE_AND_STAY_BUTTON_MARKUP_ID = "updateAndStay";
@@ -315,9 +315,9 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
   }
 
   @SuppressWarnings("unchecked")
-  protected IPersistenceService<O> getBaseDao()
+  protected BaseDao<O> getBaseDao()
   {
-    return (IPersistenceService<O>) parentPage.getBaseDao();
+    return (BaseDao<O>) parentPage.getBaseDao();
   }
 
   /**
@@ -327,7 +327,7 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
   protected void updateButtonVisibility()
   {
     try {
-      final IPersistenceService<O> baseDao = getBaseDao();
+      final BaseDao<O> baseDao = getBaseDao();
       if (isNew() == true) {
         updateButtonPanel.setVisible(false);
         updateAndNextButtonPanel.setVisible(false);
@@ -342,10 +342,10 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
         }
       } else {
         if (origData == null) {
-          origData = getBaseDao().getById(getData().getId());
+          origData = getBaseDao().find(getData().getId());
         }
         createButtonPanel.setVisible(false);
-        if (getData().isDeleted() == true) {
+        if (getData().getDeleted() == true) {
           undeleteButtonPanel.setVisible(baseDao.hasLoggedInUserUpdateAccess(origData, origData, false));
           if (undeleteButtonPanel.isVisible() == true) {
             setDefaultButton(undeleteButton);

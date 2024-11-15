@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/taskWizard")
@@ -46,7 +46,7 @@ class TaskWizardPageRest : AbstractDynamicPageRest() {
   )
 
   @GetMapping("dynamic")
-  fun getForm(request: HttpServletRequest, @RequestParam("taskId") taskId: Int?): FormLayoutData {
+  fun getForm(request: HttpServletRequest, @RequestParam("taskId") taskId: Long?): FormLayoutData {
     val layout = UILayout("task.wizard.pageTitle")
     layout.add(UIAlert("To-do: watchfields, create new entities, show no action", color = UIColor.DANGER))
     layout.add(UIAlert("task.wizard.intro", title = "wizard", color = UIColor.INFO))

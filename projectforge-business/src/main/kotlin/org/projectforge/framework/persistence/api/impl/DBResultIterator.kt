@@ -23,17 +23,20 @@
 
 package org.projectforge.framework.persistence.api.impl
 
+import jakarta.persistence.EntityManager
+import jakarta.persistence.criteria.CriteriaQuery
+import mu.KotlinLogging
 import org.hibernate.ScrollMode
 import org.hibernate.ScrollableResults
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import javax.persistence.EntityManager
-import javax.persistence.criteria.CriteriaQuery
+import org.projectforge.framework.persistence.api.QueryFilter
 
+private val log = KotlinLogging.logger {}
 
 /**
  * Generic interface for iterating over database search results (after criteria search as well as after full text query).
  */
-interface DBResultIterator<O : ExtendedBaseDO<Int>> {
+interface DBResultIterator<O : ExtendedBaseDO<Long>> {
     fun next(): O?
     fun sort(list: List<O>): List<O>
 }
@@ -41,7 +44,7 @@ interface DBResultIterator<O : ExtendedBaseDO<Int>> {
 /**
  * Usable for empty queries without any result.
  */
-internal class DBEmptyResultIterator<O : ExtendedBaseDO<Int>>
+internal class DBEmptyResultIterator<O : ExtendedBaseDO<Long>>
     : DBResultIterator<O> {
     override fun next(): O? {
         return null
@@ -55,25 +58,41 @@ internal class DBEmptyResultIterator<O : ExtendedBaseDO<Int>>
     }
 }
 
-internal class DBCriteriaResultIterator<O : ExtendedBaseDO<Int>>(
-        entityManager: EntityManager,
-        criteria: CriteriaQuery<O>,
-        val resultPredicates: List<DBPredicate>)
-    : DBResultIterator<O> {
-    private val scrollableResults: ScrollableResults
+internal class DBCriteriaResultIterator<O : ExtendedBaseDO<Long>>(
+    val entityManager: EntityManager,
+    criteria: CriteriaQuery<O>,
+    val resultPredicates: List<DBPredicate>,
+    val queryFilter: QueryFilter,
+) : DBResultIterator<O> {
+    private val scrollableResults: ScrollableResults<O>
+    private var counter = 0
 
     init {
         val query = entityManager.createQuery(criteria)
+
+        queryFilter.entityGraphName?.let { entityGraphName ->
+            val entityGraph = entityManager.getEntityGraph(entityGraphName)
+            query.setHint("jakarta.persistence.loadgraph", entityGraph);
+        }
+
         val hquery = query.unwrap(org.hibernate.query.Query::class.java)
-        scrollableResults = hquery.scroll(ScrollMode.FORWARD_ONLY)
+        @Suppress("UNCHECKED_CAST")
+        scrollableResults = hquery.scroll(ScrollMode.FORWARD_ONLY) as ScrollableResults<O>
     }
 
     override fun next(): O? {
-        if (!scrollableResults.next()) {
+        try {
+            if (++counter % 100 == 0) {
+                entityManager.clear()  // Flushing and clearing session
+            }
+            if (!scrollableResults.next()) {
+                return null
+            }
+            return scrollableResults.get()
+        } catch (ex: Exception) {
+            log.error(ex) { "Error in DBCriteriaResultIterator.next(), counter=$counter: " }
             return null
         }
-        @Suppress("UNCHECKED_CAST")
-        return scrollableResults.get(0) as O
     }
 
     override fun sort(list: List<O>): List<O> {

@@ -38,7 +38,7 @@ abstract class MassUpdateObject<T>(
     var newValue: Any? = null
   }
 
-  abstract fun getId(): Int
+  abstract fun getId(): Long
 
   // key is field name.
   val fieldModifications = mutableMapOf<String, FieldModification>()

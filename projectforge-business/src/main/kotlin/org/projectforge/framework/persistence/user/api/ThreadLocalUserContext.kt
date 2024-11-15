@@ -60,17 +60,24 @@ object ThreadLocalUserContext {
    * @return The user of ThreadLocal if exists.
    */
   @JvmStatic
-  val user: PFUserDO?
+  val loggedInUser: PFUserDO?
     get() {
       val userContext = userContext ?: return null
       return userContext.user
     }
 
+  /**
+   * The logged-in user. If no logged-in user exists, an exception is thrown.
+   */
+  @JvmStatic
+  val requiredLoggedInUser: PFUserDO
+    get() = userContext!!.user!!
+
   @JvmStatic
   var userContext: UserContext?
     get() = threadLocalUserContext.get()
     set(userContext) {
-      val oldUser = user
+      val oldUser = loggedInUser
       var newUser = userContext?.user
       if (log.isDebugEnabled) {
         log.debug(
@@ -80,7 +87,7 @@ object ThreadLocalUserContext {
       threadLocalUserContext.set(userContext)
       threadLocalLocale.set(null)
       if (log.isDebugEnabled) {
-        newUser = user
+        newUser = loggedInUser
         log.debug(if (newUser != null) newUser.userDisplayName else "null")
       }
     }
@@ -113,11 +120,17 @@ object ThreadLocalUserContext {
    * @see .getUser
    */
   @JvmStatic
-  val userId: Int?
-    get() {
-      val user = user
-      return user?.id
-    }
+  val loggedInUserId: Long?
+    get() = loggedInUser?.id
+
+  /**
+   * @return The user id of the ThreadLocal user if exists.
+   * @see .getUser
+   */
+  @JvmStatic
+  val requiredLoggedInUserId: Long
+    get() = requiredLoggedInUser.id!!
+
 
   /**
    * For non logged-in users and public pages, the locale could be set.
@@ -137,10 +150,10 @@ object ThreadLocalUserContext {
    * @param locale
    */
   @JvmStatic
-  var locale: Locale?
+  var locale: Locale
     get() = getLocale(null)
     set(locale) {
-      check(user == null) { "Can't register locale if an user is already registered. setLocale(Locale) should only used for public/anonymous services." }
+      check(loggedInUser == null) { "Can't register locale if an user is already registered. setLocale(Locale) should only used for public/anonymous services." }
       threadLocalLocale.set(locale)
     }
 
@@ -164,7 +177,7 @@ object ThreadLocalUserContext {
    */
   @JvmStatic
   fun getLocale(defaultLocale: Locale?): Locale {
-    val user = user
+    val user = loggedInUser
     return UserLocale.determineUserLocale(user, defaultLocale)
   }
 
@@ -202,7 +215,7 @@ object ThreadLocalUserContext {
   @JvmStatic
   val firstDayOfWeek: DayOfWeek?
     get() {
-      val user = user
+      val user = loggedInUser
       if (user != null) {
         val firstDayOfWeek = user.firstDayOfWeek
         if (firstDayOfWeek != null) {
@@ -221,12 +234,12 @@ object ThreadLocalUserContext {
 
   @JvmStatic
   fun getLocalizedMessage(messageKey: String?, vararg params: Any?): String {
-    return I18nHelper.getLocalizedMessage(user, messageKey, *params)
+    return I18nHelper.getLocalizedMessage(loggedInUser, messageKey, *params)
   }
 
   @JvmStatic
   fun getLocalizedString(key: String?): String {
-    return I18nHelper.getLocalizedMessage(user, key)
+    return I18nHelper.getLocalizedMessage(loggedInUser, key)
   }
 
   /**

@@ -25,17 +25,21 @@ package org.projectforge.business.teamcal.admin.model
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
-import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.annotations.Type
-import org.hibernate.search.annotations.*
-import org.hibernate.search.annotations.Index
 import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import javax.persistence.*
+import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
+import org.hibernate.type.SqlTypes
+import org.projectforge.framework.persistence.history.NoHistory
+import org.projectforge.framework.persistence.search.ClassBridge
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -43,14 +47,16 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@ClassBridge(name = "usersgroups", index = Index.YES, store = Store.NO, impl = HibernateSearchUsersGroupsBridge::class)
-@Table(name = "T_CALENDAR", indexes = [javax.persistence.Index(name = "idx_fk_t_calendar_owner_fk", columnList = "owner_fk")])
-open class TeamCalDO() : BaseUserGroupRightsDO() {
+@TypeBinding(binder = TypeBinderRef(type = HibernateSearchUsersGroupsTypeBinder::class))
+@ClassBridge(name = "usersgroups") // usersgroups should be used in HibernateSearchUsersGroupsBridge as field name.
+//@ClassBridge(name = "usersgroups", index = Index.YES, store = Store.NO, impl = HibernateSearchUsersGroupsBridge::class)
+@Table(name = "T_CALENDAR", indexes = [jakarta.persistence.Index(name = "idx_fk_t_calendar_owner_fk", columnList = "owner_fk")])
+open class TeamCalDO : BaseUserGroupRightsDO() {
 
     companion object {
         @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
         @JvmStatic
-        fun createFrom(value: Int): TeamCalDO {
+        fun createFrom(value: Long): TeamCalDO {
             val cal = TeamCalDO()
             cal.id = value
             return cal
@@ -60,18 +66,19 @@ open class TeamCalDO() : BaseUserGroupRightsDO() {
     }
 
     @PropertyInfo(i18nKey = "plugins.teamcal.title")
-    @Field
+    @FullTextField
     @get:Column(length = Constants.LENGTH_TITLE)
     open var title: String? = null
 
     @PropertyInfo(i18nKey = "plugins.teamcal.owner")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "owner_fk")
     override var owner: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "plugins.teamcal.description")
-    @Field
+    @FullTextField
     @get:Column(length = Constants.LENGTH_TEXT)
     open var description: String? = null
 
@@ -97,7 +104,7 @@ open class TeamCalDO() : BaseUserGroupRightsDO() {
      * This hash value is used for detecting changes of an subscribed calendar.
      */
     @JsonIgnore
-    @field:NoHistory
+    @NoHistory
     @get:Column(length = 255, name = "ext_subscription_hash")
     open var externalSubscriptionHash: String? = null
 
@@ -126,10 +133,10 @@ open class TeamCalDO() : BaseUserGroupRightsDO() {
      * any client because it may contain private data.
      */
     @JsonIgnore
-    @field:NoHistory
+    @NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "ext_subscription_calendar_binary")
-    @get:Type(type = "binary")
+    @JdbcTypeCode(SqlTypes.BLOB)
     open var externalSubscriptionCalendarBinary: ByteArray? = null
 
     /**
@@ -147,7 +154,7 @@ open class TeamCalDO() : BaseUserGroupRightsDO() {
             if (this.externalSubscriptionUrl == null) {
                 return ""
             }
-            val buf = StringBuffer()
+            val buf = StringBuilder()
             var dotRead = false
             for (i in 0 until externalSubscriptionUrl!!.length) {
                 val ch = externalSubscriptionUrl!![i]

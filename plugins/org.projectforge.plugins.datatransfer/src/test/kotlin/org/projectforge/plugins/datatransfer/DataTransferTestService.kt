@@ -42,11 +42,11 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.*
 import java.util.zip.ZipInputStream
-import javax.annotation.PostConstruct
-import javax.servlet.ServletOutputStream
-import javax.servlet.WriteListener
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpSession
+import jakarta.annotation.PostConstruct
+import jakarta.servlet.ServletOutputStream
+import jakarta.servlet.WriteListener
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpSession
 
 
 @Service
@@ -76,7 +76,7 @@ class DataTransferTestService {
   }
 
   internal fun createPersonalBox(user: PFUserDO): DataTransferAreaDO {
-    return dataTransferAreaDao.ensurePersonalBox(user.id)!!
+    return dataTransferAreaDao.ensurePersonalBox(user.id!!)!!
   }
 
   internal fun createArea(
@@ -88,12 +88,12 @@ class DataTransferTestService {
   ): DataTransferAreaDO {
     val dbo = DataTransferAreaDO()
     dbo.areaName = areaName
-    dbo.adminIds = "${ThreadLocalUserContext.userId}"
-    dbo.accessUserIds = PFUserDO.toIntList(accessUsers)
-    dbo.accessGroupIds = GroupDO.toIntList(accessGroups)
+    dbo.adminIds = "${ThreadLocalUserContext.loggedInUserId}"
+    dbo.accessUserIds = PFUserDO.toLongList(accessUsers)
+    dbo.accessGroupIds = GroupDO.toLongList(accessGroups)
     dbo.externalDownloadEnabled = externalDownloadEnabled
     dbo.externalUploadEnabled = externalUploadEnabled
-    dataTransferAreaDao.internalSave(dbo)
+    dataTransferAreaDao.insert(dbo, checkAccess = false)
     return dbo
   }
 
@@ -144,7 +144,7 @@ class DataTransferTestService {
       // Not found or no access
       return null
     }
-    response.body.inputStream.use {
+    response.body?.inputStream.use {
       return IOUtils.toByteArray(it)
     }
   }

@@ -68,7 +68,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
 import java.util.*
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 import javax.validation.Valid
 import kotlin.reflect.KProperty
 
@@ -382,7 +382,7 @@ class UserPagesRest
     val uidNumber = ldapValues.uidNumber
     if (uidNumber == null) {
       validationErrors.add(ValidationError.createFieldRequired("ldapValues.uidNumber", translate("ldap.uidNumber")))
-    } else if (!ldapPosixAccountsUtils.isGivenNumberFree(dto.id ?: -1, uidNumber)) {
+    } else if (!ldapPosixAccountsUtils.isGivenNumberFree(dto.id ?: -1L, uidNumber)) {
       validationErrors.add(
         ValidationError(
           translateMsg("ldap.uidNumber.alreadyInUse", ldapPosixAccountsUtils.nextFreeUidNumber),
@@ -744,7 +744,7 @@ class UserPagesRest
     col: UICol,
     property: KProperty<*>,
     i18nKey: String,
-    userId: Int,
+    userId: Long,
     tokenType: UserTokenType,
     position: Int? = null,
   ) {
@@ -819,7 +819,7 @@ class UserPagesRest
 
   @PostMapping("resetToken")
   fun resetToken(
-    @RequestParam("userId", required = true) userId: Int,
+    @RequestParam("userId", required = true) userId: Long,
     @RequestParam("type", required = true) type: UserTokenType,
     @RequestBody postData: PostData<User>
   ): ResponseEntity<*> {

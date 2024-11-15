@@ -28,6 +28,7 @@ import org.projectforge.framework.time.DayHolder
 import org.projectforge.framework.time.PFDay.Companion.from
 import org.projectforge.framework.time.PFDay.Companion.fromOrNull
 import org.projectforge.statistics.IntAggregatedValues
+import org.projectforge.web.WicketSupport
 import java.io.Serializable
 import java.time.LocalDate
 import java.util.*
@@ -35,7 +36,7 @@ import java.util.*
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class LiquidityForecast(val accountCache: KontoCache) : Serializable {
+class LiquidityForecast() : Serializable {
     private val entries = mutableListOf<LiquidityEntry>()
     private var liquiEntries = mutableListOf<LiquidityEntry>()
 
@@ -159,17 +160,17 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
                 continue
             }
             val timeForPayment = date.daysBetween(dateOfPayment).toInt()
-            val amount: Int = invoice.grossSum.toInt()
+            val amount: Int = invoice.info.grossSum.toInt()
             // Store values for different groups:
-            val projectId = invoice.projektId
+            val projectId = invoice.projekt?.id
             if (projectId != null) {
                 ensureAndAddDebitorPaymentValue("project#$projectId", timeForPayment, amount)
             }
-            val customerId = invoice.kundeId
+            val customerId = invoice.kunde?.nummer
             if (customerId != null) {
                 ensureAndAddDebitorPaymentValue("customer#$customerId", timeForPayment, amount)
             }
-            val account = accountCache.getKonto(invoice)
+            val account = WicketSupport.get(KontoCache::class.java).getKonto(invoice)
             val accountId = account?.id
             if (accountId != null) {
                 ensureAndAddDebitorPaymentValue("account#$accountId", timeForPayment, amount)
@@ -195,16 +196,16 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
         val project = invoice.projekt
         if (project != null
                 && setExpectedDateOfPayment(entry, dateOfInvoice, "project#" + project.id,
-                        ProjektFormatter.formatProjektKundeAsString(project, null, null))) {
+                        ProjektFormatter.formatProjektKundeAsString(project))) {
             return
         }
         val customer = invoice.kunde
         if (customer != null
-                && setExpectedDateOfPayment(entry, dateOfInvoice, "customer#" + customer.id,
+                && setExpectedDateOfPayment(entry, dateOfInvoice, "customer#" + customer.nummer,
                         KundeFormatter.formatKundeAsString(customer, null))) {
             return
         }
-        val account = accountCache.getKonto(invoice)
+        val account = WicketSupport.get(KontoCache::class.java).getKonto(invoice)
         if (account != null
                 && setExpectedDateOfPayment(entry, dateOfInvoice, "account#" + account.id,
                         "" + account.nummer + " - " + account.bezeichnung)) {
@@ -270,7 +271,7 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
                 continue
             }
             val timeForPayment = date.daysBetween(dateOfPayment).toInt()
-            val amount: Int = invoice.grossSum.toInt()
+            val amount: Int = invoice.info.grossSum.toInt()
             val account = invoice.konto
             val accountId = account?.id
             if (accountId != null) {
@@ -294,7 +295,7 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
         if (dateOfInvoice == null) {
             dateOfInvoice = DayHolder().localDate
         }
-        val account = invoice.konto
+        val account = WicketSupport.get(KontoCache::class.java).getKontoIfNotInitialized(invoice.konto)
         if (account != null
                 && setExpectedDateOfCreditorPayment(entry, dateOfInvoice, "account#" + account.id,
                         "" + account.nummer + " - " + account.bezeichnung)) {
@@ -370,11 +371,11 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
             } else {
                 entry.dateOfPayment = invoice.faelligkeit
             }
-            entry.amount = invoice.grossSum
+            entry.amount = invoice.info.grossSum
             if (ignorePaidStatus) {
                 entry.isPaid = invoice.faelligkeit!!.isBefore(baseDate)
             } else {
-                entry.isPaid = invoice.isBezahlt
+                entry.isPaid = invoice.info.isBezahlt
             }
             entry.subject = "#" + invoice.nummer + ": " + invoice.kundeAsString + ": " + invoice.betreff
             entry.type = LiquidityEntryType.DEBITOR
@@ -398,11 +399,11 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
             } else {
                 entry.dateOfPayment = invoice.faelligkeit
             }
-            entry.amount = invoice.grossSum.negate()
+            entry.amount = invoice.info.grossSum.negate()
             if (ignorePaidStatus) {
                 entry.isPaid = invoice.faelligkeit!!.isBefore(baseDate)
             } else {
-                entry.isPaid = invoice.isBezahlt
+                entry.isPaid = invoice.info.isBezahlt
             }
             entry.subject = invoice.kreditor + ": " + invoice.betreff
             entry.type = LiquidityEntryType.CREDITOR

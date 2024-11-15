@@ -25,12 +25,14 @@ package org.projectforge.business.humanresources
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
-import de.micromata.genome.db.jpa.history.api.WithHistory
-import org.hibernate.search.annotations.*
+import jakarta.persistence.*
+import mu.KotlinLogging
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.history.PersistenceBehavior
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.DateTimeFormatter
@@ -39,7 +41,8 @@ import org.projectforge.framework.time.PFDay
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.*
-import javax.persistence.*
+
+private val log = KotlinLogging.logger {}
 
 /**
  *
@@ -47,11 +50,22 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_HR_PLANNING", uniqueConstraints = [UniqueConstraint(columnNames = ["user_fk", "week"])], indexes = [javax.persistence.Index(name = "idx_fk_t_hr_planning_user_fk", columnList = "user_fk")])
-@WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [HRPlanningEntryDO::class])
+@Table(
+    name = "T_HR_PLANNING",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["user_fk", "week"])],
+    indexes = [jakarta.persistence.Index(name = "idx_fk_t_hr_planning_user_fk", columnList = "user_fk")]
+)
+//@WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [HRPlanningEntryDO::class])
 @NamedQueries(
-        NamedQuery(name = HRPlanningDO.FIND_BY_USER_AND_WEEK, query = "from HRPlanningDO where user.id=:userId and week=:week"),
-        NamedQuery(name = HRPlanningDO.FIND_OTHER_BY_USER_AND_WEEK, query = "from HRPlanningDO where user.id=:userId and week=:week and id!=:id"))
+    NamedQuery(
+        name = HRPlanningDO.FIND_BY_USER_AND_WEEK,
+        query = "from HRPlanningDO where user.id=:userId and week=:week"
+    ),
+    NamedQuery(
+        name = HRPlanningDO.FIND_OTHER_BY_USER_AND_WEEK,
+        query = "from HRPlanningDO where user.id=:userId and week=:week and id!=:id"
+    )
+)
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class HRPlanningDO : DefaultBaseDO() {
 
@@ -59,7 +73,8 @@ open class HRPlanningDO : DefaultBaseDO() {
      * The employee assigned to this planned week.
      */
     @PropertyInfo(i18nKey = "timesheet.user")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_fk", nullable = false)
     open var user: PFUserDO? = null
@@ -68,23 +83,27 @@ open class HRPlanningDO : DefaultBaseDO() {
      * @return The first day of the week.
      */
     @PropertyInfo(i18nKey = "calendar.year")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(name = "week", nullable = false)
     open var week: LocalDate? = null
 
     /**
      * Get the entries for this planned week.
      */
-    @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
-    @get:ContainedIn
-    @get:OneToMany(cascade = [CascadeType.ALL], mappedBy = "planning", fetch = FetchType.EAGER, orphanRemoval = true, targetEntity = HRPlanningEntryDO::class)
+    @PersistenceBehavior(autoUpdateCollectionEntries = true)
+    // @get:ContainedIn
+    @get:OneToMany(
+        cascade = [CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH],
+        orphanRemoval = false,
+        mappedBy = "planning", fetch = FetchType.LAZY, targetEntity = HRPlanningEntryDO::class,
+    )
     open var entries: MutableList<HRPlanningEntryDO>? = null
 
     val formattedWeekOfYear: String
         @Transient
         get() = DateTimeFormatter.formatWeekOfYear(week)
 
-    val userId: Int?
+    val userId: Long?
         @Transient
         get() = if (this.user == null) {
             null
@@ -102,7 +121,7 @@ open class HRPlanningDO : DefaultBaseDO() {
                 return duration
             }
             for (entry in entries!!) {
-                if (!entry.isDeleted) {
+                if (!entry.deleted) {
                     duration = duration.add(entry.totalHours)
                 }
             }
@@ -121,7 +140,7 @@ open class HRPlanningDO : DefaultBaseDO() {
                 return duration
             }
             for (entry in entries!!) {
-                if (!entry.isDeleted) {
+                if (!entry.deleted) {
                     duration = add(duration, entry.unassignedHours)
                 }
             }
@@ -140,7 +159,7 @@ open class HRPlanningDO : DefaultBaseDO() {
                 return duration
             }
             for (entry in entries!!) {
-                if (!entry.isDeleted) {
+                if (!entry.deleted) {
                     duration = add(duration, entry.mondayHours)
                 }
             }
@@ -159,7 +178,7 @@ open class HRPlanningDO : DefaultBaseDO() {
                 return duration
             }
             for (entry in entries!!) {
-                if (!entry.isDeleted) {
+                if (!entry.deleted) {
                     duration = add(duration, entry.tuesdayHours)
                 }
             }
@@ -178,7 +197,7 @@ open class HRPlanningDO : DefaultBaseDO() {
                 return duration
             }
             for (entry in entries!!) {
-                if (!entry.isDeleted) {
+                if (!entry.deleted) {
                     duration = add(duration, entry.wednesdayHours)
                 }
             }
@@ -197,7 +216,7 @@ open class HRPlanningDO : DefaultBaseDO() {
                 return duration
             }
             for (entry in entries!!) {
-                if (!entry.isDeleted) {
+                if (!entry.deleted) {
                     duration = add(duration, entry.thursdayHours)
                 }
             }
@@ -216,7 +235,7 @@ open class HRPlanningDO : DefaultBaseDO() {
                 return duration
             }
             for (entry in entries!!) {
-                if (!entry.isDeleted) {
+                if (!entry.deleted) {
                     duration = add(duration, entry.fridayHours)
                 }
             }
@@ -235,7 +254,7 @@ open class HRPlanningDO : DefaultBaseDO() {
                 return duration
             }
             for (entry in entries!!) {
-                if (!entry.isDeleted) {
+                if (!entry.deleted) {
                     duration = add(duration, entry.weekendHours)
                 }
             }
@@ -272,7 +291,7 @@ open class HRPlanningDO : DefaultBaseDO() {
                 log.error("Can't remove entry because the list of entries does not contain such an entry: $entry")
             }
         } else {
-            entry.isDeleted = true
+            entry.deleted = true
         }
     }
 
@@ -333,7 +352,7 @@ open class HRPlanningDO : DefaultBaseDO() {
             return false
         }
         for (entry in this.entries!!) {
-            if (entry.isDeleted) {
+            if (entry.deleted) {
                 return true
             }
         }
@@ -341,8 +360,6 @@ open class HRPlanningDO : DefaultBaseDO() {
     }
 
     companion object {
-        private val log = org.slf4j.LoggerFactory.getLogger(HRPlanningDO::class.java)
-
         internal const val FIND_BY_USER_AND_WEEK = "HrPlanningDO_FindByUserAndWeek"
 
         internal const val FIND_OTHER_BY_USER_AND_WEEK = "HrPlanningDO_FindOtherByUserAndWeek"

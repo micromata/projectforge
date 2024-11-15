@@ -40,9 +40,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.Constants;
-import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.right.TeamEventRight;
@@ -50,10 +48,10 @@ import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter;
 import org.projectforge.business.teamcal.filter.TemplateEntry;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRightId;
-import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.calendar.CalendarPageSupport;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.fibu.ISelectCallerPage;
@@ -91,7 +89,7 @@ public class TeamCalFilterDialog extends ModalDialog
 
   private TeamCalFilterDialogCalendarColorPanel calendarColorPanel;
 
-  private Select<Integer> defaultCalendarSelect;
+  private Select<Long> defaultCalendarSelect;
 
   private Select2MultiChoice<TeamCalDO> teamCalsChoice;
 
@@ -103,25 +101,12 @@ public class TeamCalFilterDialog extends ModalDialog
 
   private FieldsetPanel timesheetUserFieldset;
 
-  @SpringBean
-  private transient TeamCalDao teamCalDao;
-
-  @SpringBean
-  transient TeamCalCache teamCalCache;
-
-  @SpringBean
-  transient UserRightService userRights;
-
-  @SpringBean
-  transient AccessChecker accessChecker;
-
   private final transient TeamEventRight teamEventRight;
 
   private CalendarPageSupport calendarPageSupport;
 
   /**
    * @param id
-   * @param titleModel
    * @param filter
    */
   public TeamCalFilterDialog(final String id, final TeamCalCalendarFilter filter)
@@ -131,12 +116,9 @@ public class TeamCalFilterDialog extends ModalDialog
     setTitle(new ResourceModel("plugins.teamcal.calendar.filterDialog.title"));
     setBigWindow().setShowCancelButton().wantsNotificationOnClose().setEscapeKeyEnabled(false);
     selectedCalendars = new LinkedList<TeamCalDO>();
-    teamEventRight = (TeamEventRight) userRights.getRight(UserRightId.PLUGIN_CALENDAR_EVENT);
+    teamEventRight = (TeamEventRight) WicketSupport.get(UserRightService.class).getRight(UserRightId.PLUGIN_CALENDAR_EVENT);
   }
 
-  /**
-   * @see org.apache.wicket.Component#renderHead(org.apache.wicket.markup.html.IHeaderResponse)
-   */
   @Override
   public void renderHead(final IHeaderResponse response)
   {
@@ -181,15 +163,12 @@ public class TeamCalFilterDialog extends ModalDialog
   {
   }
 
-  /**
-   * @see org.projectforge.web.dialog.ModalDialog#init()
-   */
   @SuppressWarnings("serial")
   @Override
   public void init()
   {
     init(new Form<String>(getFormId()));
-    calendarPageSupport = new CalendarPageSupport((ISelectCallerPage) getPage(), accessChecker);
+    calendarPageSupport = new CalendarPageSupport((ISelectCallerPage) getPage());
     timesheetsCalendar.setTitle(getString("plugins.teamcal.timeSheetCalendar"));
     timesheetsCalendar.setId(Constants.TIMESHEET_CALENDAR_ID);
     // confirm
@@ -363,8 +342,8 @@ public class TeamCalFilterDialog extends ModalDialog
       protected void onUpdate(final AjaxRequestTarget target)
       {
         final TemplateEntry activeTemplateEntry = filter.getActiveTemplateEntry();
-        final Set<Integer> oldCalIds = activeTemplateEntry.getCalendarIds();
-        final List<Integer> newIds = new LinkedList<Integer>();
+        final Set<Long> oldCalIds = activeTemplateEntry.getCalendarIds();
+        final List<Long> newIds = new LinkedList<Long>();
         // add new keys
         for (final TeamCalDO calendar : selectedCalendars) {
           if (oldCalIds.contains(calendar.getId()) == false) {
@@ -373,7 +352,7 @@ public class TeamCalFilterDialog extends ModalDialog
           newIds.add(calendar.getId());
         }
         // delete removed keys
-        for (final Integer key : oldCalIds) {
+        for (final Long key : oldCalIds) {
           if (newIds.contains(key) == false) {
             activeTemplateEntry.removeCalendarProperties(key);
           }
@@ -389,27 +368,27 @@ public class TeamCalFilterDialog extends ModalDialog
   {
     final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.teamcal.defaultCalendar"));
     fs.addHelpIcon(getString("plugins.teamcal.defaultCalendar.tooltip"));
-    final IOptionRenderer<Integer> renderer = new IOptionRenderer<Integer>()
+    final IOptionRenderer<Long> renderer = new IOptionRenderer<Long>()
     {
 
       @Override
-      public String getDisplayValue(final Integer object)
+      public String getDisplayValue(final Long object)
       {
         if (Constants.isTimesheetCalendarId(object)) {
           return timesheetsCalendar.getTitle();
         }
-        return teamCalDao.getById(object).getTitle();
+        return WicketSupport.get(TeamCalDao.class).find(object).getTitle();
       }
 
       @Override
-      public IModel<Integer> getModel(final Integer value)
+      public IModel<Long> getModel(final Long value)
       {
         return Model.of(value);
       }
     };
 
     // TEAMCAL SELECT
-    defaultCalendarSelect = new Select<Integer>(fs.getSelectId(), new PropertyModel<Integer>(filter,
+    defaultCalendarSelect = new Select<Long>(fs.getSelectId(), new PropertyModel<Long>(filter,
         "activeTemplateEntry.defaultCalendarId"))
     {
 
@@ -424,13 +403,13 @@ public class TeamCalFilterDialog extends ModalDialog
         final List<TeamCalDO> result = new ArrayList<TeamCalDO>();
         if (activeTemplateEntry != null) {
           for (final TeamCalDO cal : activeTemplateEntry.getCalendars()) {
-            if (teamEventRight.hasUpdateAccess(ThreadLocalUserContext.getUser(), cal) == true) {
+            if (teamEventRight.hasUpdateAccess(ThreadLocalUserContext.getLoggedInUser(), cal) == true) {
               // User is allowed to insert events to this calendar:
               result.add(cal);
             }
           }
         }
-        final List<Integer> filteredList = new ArrayList<Integer>();
+        final List<Long> filteredList = new ArrayList<Long>();
         filteredList.add(Constants.TIMESHEET_CALENDAR_ID);
         if (result != null) {
           final Iterator<TeamCalDO> it = result.iterator();
@@ -439,7 +418,7 @@ public class TeamCalFilterDialog extends ModalDialog
             filteredList.add(teamCal.getId());
           }
         }
-        final SelectOptions<Integer> options = new SelectOptions<Integer>(SelectPanel.OPTIONS_WICKET_ID, filteredList,
+        final SelectOptions<Long> options = new SelectOptions<Long>(SelectPanel.OPTIONS_WICKET_ID, filteredList,
             renderer);
         this.addOrReplace(options);
       }
@@ -451,7 +430,7 @@ public class TeamCalFilterDialog extends ModalDialog
       @Override
       protected void onUpdate(final AjaxRequestTarget target)
       {
-        final Integer value = defaultCalendarSelect.getModelObject();
+        final Long value = defaultCalendarSelect.getModelObject();
         filter.getActiveTemplateEntry().setDefaultCalendarId(value);
       }
     });
@@ -479,7 +458,7 @@ public class TeamCalFilterDialog extends ModalDialog
     if (activeTemplateEntry == null) {
       return null;
     }
-    final Integer userId = activeTemplateEntry.getTimesheetUserId();
+    final Long userId = activeTemplateEntry.getTimesheetUserId();
     return userId != null ? UserGroupCache.getInstance().getUser(userId) : null;
   }
 

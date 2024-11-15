@@ -59,7 +59,7 @@ public class ListSelectActionPanel extends Panel
    * @param label          The label string to show (additional to the row_pointer.png).
    */
   public ListSelectActionPanel(final String id, final IModel<?> model, final ISelectCallerPage caller, final String selectProperty,
-      final Integer objectId, final String label)
+      final Long objectId, final String label)
   {
     this(id, model, caller, selectProperty, objectId, new PlainLabel(LABEL_ID, label));
   }
@@ -75,7 +75,7 @@ public class ListSelectActionPanel extends Panel
    * @param label          The label to show (additional to the row_pointer.png). The id of the label should be LABEL_ID.
    */
   public ListSelectActionPanel(final String id, final IModel<?> model, final ISelectCallerPage caller, final String selectProperty,
-      final Integer objectId, final Label label)
+      final Long objectId, final Label label)
   {
     super(id, model);
     setRenderBodyOnly(true);
@@ -103,7 +103,7 @@ public class ListSelectActionPanel extends Panel
    * @param params    Pairs of params (key, value).
    * @see WicketUtils#getPageParameters(String[])
    */
-  public ListSelectActionPanel(final String id, final IModel<?> model, final Class<? extends WebPage> editClass, final Integer objectId,
+  public ListSelectActionPanel(final String id, final IModel<?> model, final Class<? extends WebPage> editClass, final Long objectId,
       final WebPage returnToPage, final String label, final String... params)
   {
     this(id, model, editClass, objectId, returnToPage, new PlainLabel(LABEL_ID, label), params);
@@ -121,7 +121,7 @@ public class ListSelectActionPanel extends Panel
    * @see WicketUtils#getPageParameters(String[])
    */
   public ListSelectActionPanel(final String id, final IModel<?> model, final Class<? extends WebPage> editPageClass,
-      final Integer objectId, final WebPage returnToPage, final Label label, final String... params)
+      final Long objectId, final WebPage returnToPage, final Label label, final String... params)
   {
     super(id, model);
     setRenderBodyOnly(true);
@@ -159,7 +159,7 @@ public class ListSelectActionPanel extends Panel
    * @see WicketUtils#getPageParameters(String[])
    */
   public ListSelectActionPanel(final String id, final IModel<?> model, final Class<? extends WebPage> editPageClass,
-                               final Integer objectId, final Class<? extends IRequestablePage> returnToPage, final String label, final String... params)
+                               final Long objectId, final Class<? extends IRequestablePage> returnToPage, final String label, final String... params)
   {
     super(id, model);
     setRenderBodyOnly(true);

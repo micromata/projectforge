@@ -23,109 +23,117 @@
 
 package org.projectforge.framework.persistence.history
 
-import de.micromata.genome.db.jpa.history.api.HistoryEntry
-import de.micromata.genome.db.jpa.history.entities.EntityOpType
-import de.micromata.genome.db.jpa.history.entities.PropertyOpType
+import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.BaseDO
+import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
-import java.util.*
-import javax.annotation.PostConstruct
-import javax.persistence.EntityManager
-import javax.persistence.PersistenceContext
 
 private val log = KotlinLogging.logger {}
 
 /**
- * History entries will be transformed into human readable formats.
+ * History entries will be transformed from [HistoryEntry] and [HistoryEntryAttr] into human-readable
+ * formats [DisplayHistoryEntry] and [DisplayHistoryEntryAttr].
  */
 @Component
 class HistoryFormatService {
-  @PersistenceContext
-  private lateinit var em: EntityManager
+    @Autowired
+    private lateinit var applicationContext: ApplicationContext
 
-  @Autowired
-  internal lateinit var applicationContext: ApplicationContext
+    @Autowired
+    private lateinit var historyValueService: HistoryValueService
 
-  private val historyServiceAdapters =
-    mutableMapOf<Class<out ExtendedBaseDO<Int>>, HistoryFormatAdapter>()
+    /**
+     * Adapter for specific entities. Key is the entityName of HistoryEntryDO built via [HistoryEntryDO.asEntityName] or,
+     * the full qualified class name.
+     */
+    private val historyServiceAdapters =
+        mutableMapOf<String, HistoryFormatAdapter>()
 
-  private lateinit var stdHistoryFormatAdapter: HistoryFormatAdapter
+    private lateinit var stdHistoryFormatAdapter: HistoryFormatAdapter
 
-  data class DisplayHistoryEntryDTO(
-    var modifiedAt: Date? = null,
-    var timeAgo: String? = null,
-    var modifiedByUserId: String? = null,
-    var modifiedByUser: String? = null,
-    var operationType: EntityOpType? = null,
-    var operation: String? = null,
-    var diffEntries: MutableList<DisplayHistoryDiffEntryDTO> = mutableListOf()
-  )
-
-  data class DisplayHistoryDiffEntryDTO(
-    var operationType: PropertyOpType? = null,
-    var operation: String? = null,
-    var property: String? = null,
-    var oldValue: String? = null,
-    var newValue: String? = null
-  )
-
-  @PostConstruct
-  private fun postConstruct() {
-    stdHistoryFormatAdapter = HistoryFormatAdapter(em, this)
-    register(PFUserDO::class.java, HistoryFormatUserAdapter(em, this))
-  }
-
-  fun <O : ExtendedBaseDO<Int>> register(clazz: Class<out O>, historyServiceAdapter: HistoryFormatAdapter) {
-    if (historyServiceAdapters[clazz] != null) {
-      log.warn { "Can't register HistoryServiceAdapter ${historyServiceAdapter::class.java.name} twice. Ignoring." }
-      return
-    }
-    this.historyServiceAdapters[clazz] = historyServiceAdapter
-  }
-
-  /**
-   * Creates a list of formatted history entries (get the user names etc.)
-   */
-  fun <O : ExtendedBaseDO<Int>> format(item: O, orig: Array<HistoryEntry<*>>): List<DisplayHistoryEntryDTO> {
-    val entries = mutableListOf<DisplayHistoryEntryDTO>()
-    orig.forEach { historyEntry ->
-      entries.add(convert(item, historyEntry))
-    }
-    val adapter = historyServiceAdapters[item::class.java]
-    adapter?.convertEntries(item, entries)
-    return entries.sortedByDescending { it.modifiedAt }
-  }
-
-  fun <O : ExtendedBaseDO<Int>> convert(item: O, historyEntry: HistoryEntry<*>): DisplayHistoryEntryDTO {
-    val adapter = historyServiceAdapters[item::class.java]
-    return adapter?.convert(item, historyEntry) ?: stdHistoryFormatAdapter.convert(item, historyEntry)
-  }
-
-  companion object {
-    fun translate(opType: EntityOpType?): String {
-      return when (opType) {
-        EntityOpType.Insert -> translate("operation.inserted")
-        EntityOpType.Update -> translate("operation.updated")
-        EntityOpType.Deleted -> translate("operation.deleted")
-        EntityOpType.MarkDeleted -> translate("operation.markAsDeleted")
-        EntityOpType.UmarkDeleted -> translate("operation.undeleted")
-        else -> ""
-      }
+    @PostConstruct
+    private fun postConstruct() {
+        stdHistoryFormatAdapter = HistoryFormatAdapter()
+        register(UserRightDO::class.java, HistoryFormatUserRightAdapter(applicationContext))
     }
 
-    fun translate(opType: PropertyOpType?): String {
-      return when (opType) {
-        PropertyOpType.Insert -> translate("operation.inserted")
-        PropertyOpType.Update -> translate("operation.updated")
-        PropertyOpType.Delete -> translate("operation.deleted")
-        PropertyOpType.Undefined -> translate("operation.undefined")
-        else -> ""
-      }
+    fun <O : ExtendedBaseDO<Long>> register(clazz: Class<out O>, historyServiceAdapter: HistoryFormatAdapter) {
+        if (historyServiceAdapters[clazz.name] != null) {
+            log.warn { "Can't register HistoryServiceAdapter ${historyServiceAdapter::class.java.name} twice. Ignoring." }
+            return
+        }
+        this.historyServiceAdapters[clazz.name] = historyServiceAdapter
     }
-  }
+
+    fun <O : ExtendedBaseDO<Long>> selectAsDisplayEntries(
+        baseDao: BaseDao<O>,
+        item: O,
+        loadContext: HistoryLoadContext = HistoryLoadContext(baseDao),
+        checkAccess: Boolean = true,
+    ): List<DisplayHistoryEntry> {
+        val loadContext = baseDao.loadHistory(item, checkAccess = checkAccess, loadContext = loadContext)
+        val entries = mutableListOf<DisplayHistoryEntry>()
+        loadContext.originUnsortedEntries.forEach { historyEntry ->
+            entries.add(convert(item, historyEntry, loadContext))
+        }
+        val adapter = historyServiceAdapters[item::class.java.name]
+        adapter?.convertEntries(item, entries, loadContext)
+        return entries.sortedByDescending { it.modifiedAt }
+    }
+
+    fun <O : BaseDO<*>> convert(
+        item: O,
+        historyEntry: HistoryEntryDO,
+        context: HistoryLoadContext,
+    ): DisplayHistoryEntry {
+        context.setCurrent(historyEntry)
+        val adapter = historyServiceAdapters[historyEntry.entityName]
+        context.setCurrent(historyEntry)
+        val displayHistoryEntry = adapter?.convertHistoryEntry(item, context)
+            ?: stdHistoryFormatAdapter.convertHistoryEntry(item, context)
+        context.setCurrent(displayHistoryEntry)
+        historyEntry.attributes?.forEach { attr ->
+            context.setCurrent(attr)
+            val displayAttr = adapter?.convertHistoryEntryAttr(item, context)
+                ?: stdHistoryFormatAdapter.convertHistoryEntryAttr(item, context)
+            displayHistoryEntry.attributes.add(displayAttr)
+            context.setCurrent(displayAttr)
+            context.baseDao?.customizeHistoryEntryAttr(context)
+            context.clearCurrentDisplayHistoryEntryAttr()
+        }
+        adapter?.customizeDisplayHistoryEntry(item, context)
+            ?: stdHistoryFormatAdapter.customizeDisplayHistoryEntry(item, context)
+        context.baseDao?.customizeDisplayHistoryEntry(context)
+        context.clearCurrents()
+        return displayHistoryEntry
+    }
+
+    companion object {
+        fun translate(opType: EntityOpType?): String {
+            return when (opType) {
+                EntityOpType.Insert -> translate("operation.inserted")
+                EntityOpType.Update -> translate("operation.updated")
+                EntityOpType.Delete -> translate("operation.deleted")
+                EntityOpType.MarkAsDeleted -> translate("operation.markAsDeleted")
+                EntityOpType.Undelete -> translate("operation.undeleted")
+                else -> ""
+            }
+        }
+
+        fun translate(opType: PropertyOpType?): String {
+            return when (opType) {
+                PropertyOpType.Insert -> translate("operation.inserted")
+                PropertyOpType.Update -> translate("operation.updated")
+                PropertyOpType.Delete -> translate("operation.deleted")
+                PropertyOpType.Undefined -> translate("operation.undefined")
+                else -> ""
+            }
+        }
+    }
 }

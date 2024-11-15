@@ -23,13 +23,18 @@
 
 package org.projectforge.business.address
 
+import jakarta.annotation.PostConstruct
+import jakarta.persistence.Tuple
 import mu.KotlinLogging
+import org.hibernate.Hibernate
+import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
-import org.projectforge.framework.persistence.api.BaseDOChangedListener
+import org.projectforge.framework.persistence.api.BaseDOModifiedListener
+import org.projectforge.framework.persistence.database.TupleUtils.getLong
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import javax.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
 
@@ -39,18 +44,44 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-open class AddressbookCache : AbstractCache(), BaseDOChangedListener<AddressbookDO> {
+open class AddressbookCache : AbstractCache() {
+    // Will be set by AddressDao (cycle dependency).
+    private lateinit var addressDao: AddressDao
+
     @Autowired
     private lateinit var addressbookDao: AddressbookDao
 
-    private lateinit var addressBookList: List<AddressbookDO>
+    @Autowired
+    private lateinit var persistenceService: PfPersistenceService
 
-    open fun getAddressbook(id: Int): AddressbookDO? {
+    private var addressBookList = listOf<AddressbookDO>() // Mustn't be synchronized, it's only read.
+
+    // key is the addres.id, value is a set of addressbook's assigned to the address.
+    private var addressBookByAddressMap = mapOf<Long, List<AddressbookDO>>() // Mustn't be synchronized, it's only read.
+
+    fun getAll(): List<AddressbookDO> {
         checkRefresh()
-        synchronized(addressBookList) {
-            return addressBookList.find { it.id == id }
-        }
+        return addressBookList
     }
+
+    open fun getAddressbook(id: Long?): AddressbookDO? {
+        id ?: return null
+        checkRefresh()
+        return addressBookList.find { it.id == id }
+    }
+
+    /**
+     * Returns the AddressbookDO if it is initialized (Hibernate). Otherwise, it will be loaded from the database.
+     * Prevents lazy loadings.
+     */
+    fun getAddressbookIfNotInitialized(ab: AddressbookDO?): AddressbookDO? {
+        ab ?: return null
+        if (Hibernate.isInitialized(ab)) {
+            return ab
+        }
+        return getAddressbook(ab.id)
+    }
+
 
     /**
      * @param ab Address book to search for (only id must be given).
@@ -58,22 +89,43 @@ open class AddressbookCache : AbstractCache(), BaseDOChangedListener<Addressbook
      */
     open fun getAddressbook(ab: AddressbookDO): AddressbookDO? {
         checkRefresh()
-        synchronized(addressBookList) {
-            return addressBookList.find { it.id == ab.id }
-        }
+        return addressBookList.find { it.id == ab.id }
     }
 
     /**
-     * After modification of any address (insert, update, delete, undelete) this address should be removed from
-     * this cache.
+     * Gets all address books for the given address.
+     * @param addressId Address id.
      */
-    override fun afterSaveOrModify(changedObject: AddressbookDO, operationType: OperationType) {
-        setExpired()
+    open fun getAddressbooksForAddress(addressId: Long?): List<AddressbookDO>? {
+        addressId ?: return null
+        checkRefresh()
+        return addressBookByAddressMap[addressId]
+    }
+
+    /**
+     * Gets all address books for the given address.
+     */
+    open fun getAddressbooksForAddress(address: AddressDO?): List<AddressbookDO>? {
+        return getAddressbooksForAddress(address?.id)
+    }
+
+    internal fun setAddressDao(addressDao: AddressDao) {
+        this.addressDao = addressDao
+        addressDao.register(object : BaseDOModifiedListener<AddressDO> {
+            override fun afterInsertOrModify(obj: AddressDO, operationType: OperationType) {
+                setExpired()
+            }
+        })
     }
 
     @PostConstruct
     private fun postConstruct() {
-        addressbookDao.register(this)
+        instance = this
+        addressbookDao.register(object : BaseDOModifiedListener<AddressbookDO> {
+            override fun afterInsertOrModify(obj: AddressbookDO, operationType: OperationType) {
+                setExpired()
+            }
+        })
     }
 
     /**
@@ -81,15 +133,36 @@ open class AddressbookCache : AbstractCache(), BaseDOChangedListener<Addressbook
      */
     override fun refresh() {
         log.info("Initializing AddressbookCache ...")
-        // This method must not be synchronized because it works with a new copy of maps.
-        val newList = mutableListOf<AddressbookDO>()
-        val list = addressbookDao.internalLoadAll()
-        list.forEach {
-            if (!it.isDeleted) {
-                newList.add(it)
+        persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
+            // This method must not be synchronized because it works with a new copy of maps.
+            val newList = mutableListOf<AddressbookDO>()
+            addressbookDao.selectAll(checkAccess = false).forEach {
+                if (it.deleted != true) {
+                    newList.add(it)
+                }
             }
+            val em = context.em
+            val newMap = em.createQuery(SELECT_ADDRESS_ID_WITH_ADDRESSBOOK_IDS, Tuple::class.java).resultList
+                .groupBy(
+                    { getLong(it, "addressId")!! },
+                    { tuple -> newList.find { it.id == getLong(tuple, "addressbookId") }!! }
+                )
+            addressBookList = newList
+            addressBookByAddressMap = newMap
+            log.info { "Initializing of AddressbookCache done. ${context.formatStats(true)}" }
         }
-        addressBookList = newList
-        log.info("Initializing of AddressbookCache done.")
+    }
+
+    companion object {
+        lateinit var instance: AddressbookCache
+            private set
+
+        private val SELECT_ADDRESS_ID_WITH_ADDRESSBOOK_IDS = """
+            SELECT a.id as addressId,b.id as addressbookId
+            FROM ${AddressDO::class.simpleName} a
+            JOIN a.addressbookList b
+            WHERE a.deleted = false
+        """.trimIndent()
+
     }
 }

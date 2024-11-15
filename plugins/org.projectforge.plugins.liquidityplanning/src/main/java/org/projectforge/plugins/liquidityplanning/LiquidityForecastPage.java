@@ -24,11 +24,11 @@
 package org.projectforge.plugins.liquidityplanning;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.jfree.chart.JFreeChart;
-import org.projectforge.business.fibu.EingangsrechnungDao;
-import org.projectforge.business.fibu.RechnungDao;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 import org.projectforge.web.wicket.JFreeChartImage;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
@@ -36,101 +36,92 @@ import org.projectforge.web.wicket.flowlayout.ImagePanel;
 
 import java.util.Objects;
 
-public class LiquidityForecastPage extends AbstractStandardFormPage
-{
-  private static final long serialVersionUID = 6510134821712582764L;
+public class LiquidityForecastPage extends AbstractStandardFormPage {
+    private static final long serialVersionUID = 6510134821712582764L;
 
-  private static final int IMAGE_WIDTH = 800;
+    private static final int IMAGE_WIDTH = 800;
 
-  private static final int IMAGE_HEIGHT = 400;
+    private static final int IMAGE_HEIGHT = 400;
 
-  @SpringBean
-  private LiquidityEntryDao liquidityEntryDao;
+    private LiquidityForecast forecast;
 
-  @SpringBean
-  private LiquidityForecastBuilder liquidityForecastBuilder;
+    private final GridBuilder gridBuilder;
 
-  @SpringBean
-  private RechnungDao rechnungDao;
+    private ImagePanel xyPlotImage, barChartImage;
 
-  @SpringBean
-  private EingangsrechnungDao eingangsrechnungDao;
+    private final LiquidityForecastForm form;
 
-  private LiquidityForecast forecast;
-
-  private final GridBuilder gridBuilder;
-
-  private ImagePanel xyPlotImage, barChartImage;
-
-  private final LiquidityForecastForm form;
-
-  public LiquidityForecastPage(final PageParameters parameters)
-  {
-    super(parameters);
-    form = new LiquidityForecastForm(this);
-    body.add(form);
-    form.init();
-    gridBuilder = new GridBuilder(body, "flowgrid");
-  }
-
-  /**
-   * @see org.projectforge.web.wicket.AbstractSecuredPage#onInitialize()
-   */
-  @Override
-  protected void onInitialize()
-  {
-    super.onInitialize();
-    xyPlotImage = new ImagePanel(gridBuilder.getPanel().newChildId());
-    gridBuilder.getPanel().add(xyPlotImage);
-    gridBuilder.newGridPanel();
-    barChartImage = new ImagePanel(gridBuilder.getPanel().newChildId());
-    gridBuilder.getPanel().add(barChartImage);
-  }
-
-  /**
-   * @see org.projectforge.web.wicket.AbstractUnsecureBasePage#onBeforeRender()
-   */
-  @Override
-  protected void onBeforeRender()
-  {
-    //    if (forecast == null) {
-    //      forecast = LiquidityEntryListPage.getForecast();
-    //    }
-    super.onBeforeRender();
-    if (forecast == null || !Objects.equals(form.getSettings().getBaseDate(), forecast.getBaseDate())) {
-      forecast = liquidityForecastBuilder.build(form.getSettings().getBaseDate());
+    public LiquidityForecastPage(final PageParameters parameters) {
+        super(parameters);
+        form = new LiquidityForecastForm(this);
+        body.add(form);
+        form.init();
+        gridBuilder = new GridBuilder(body, "flowgrid");
     }
-    final LiquidityChartBuilder chartBuilder = new LiquidityChartBuilder();
-    {
-      final JFreeChart chart = chartBuilder.createXYPlot(forecast, form.getSettings());
-      final JFreeChartImage image = new JFreeChartImage(ImagePanel.IMAGE_ID, chart, IMAGE_WIDTH, IMAGE_HEIGHT);
-      image.add(AttributeModifier.replace("width", String.valueOf(IMAGE_WIDTH)));
-      image.add(AttributeModifier.replace("height", String.valueOf(IMAGE_HEIGHT)));
-      xyPlotImage.replaceImage(image);
-    }
-    {
-      final JFreeChart chart = chartBuilder.createBarChart(forecast, form.getSettings());
-      final JFreeChartImage image = new JFreeChartImage(ImagePanel.IMAGE_ID, chart, IMAGE_WIDTH, IMAGE_HEIGHT);
-      image.add(AttributeModifier.replace("width", String.valueOf(IMAGE_WIDTH)));
-      image.add(AttributeModifier.replace("height", String.valueOf(IMAGE_HEIGHT)));
-      barChartImage.replaceImage(image);
-    }
-  }
 
-  /**
-   * @param forecast the forecast to set
-   * @return this for chaining.
-   */
-  public LiquidityForecastPage setForecast(final LiquidityForecast forecast)
-  {
-    this.forecast = forecast;
-    form.getSettings().setBaseDate(forecast.getBaseDate());
-    return this;
-  }
+    /**
+     * @see org.projectforge.web.wicket.AbstractSecuredPage#onInitialize()
+     */
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        xyPlotImage = new ImagePanel(gridBuilder.getPanel().newChildId());
+        gridBuilder.getPanel().add(xyPlotImage);
+        gridBuilder.newGridPanel();
+        barChartImage = new ImagePanel(gridBuilder.getPanel().newChildId());
+        gridBuilder.getPanel().add(barChartImage);
+    }
 
-  @Override
-  protected String getTitle()
-  {
-    return getString("plugins.liquidityplanning.forecast");
-  }
+    /**
+     * @see org.projectforge.web.wicket.AbstractUnsecureBasePage#onBeforeRender()
+     */
+    @Override
+    protected void onBeforeRender() {
+        //    if (forecast == null) {
+        //      forecast = LiquidityEntryListPage.getForecast();
+        //    }
+        super.onBeforeRender();
+        if (forecast == null || !Objects.equals(form.getSettings().getBaseDate(), forecast.getBaseDate())) {
+            forecast = WicketSupport.get(LiquidityForecastBuilder.class).build(form.getSettings().getBaseDate());
+        }
+        {
+            IModel<JFreeChart> chartModel = new LoadableDetachableModel<>() {
+                @Override
+                protected JFreeChart load() {
+                    return new LiquidityChartBuilder().createXYPlot(forecast, form.getSettings()); // Methode zum Erstellen des Diagramms
+                }
+            };
+            final JFreeChartImage image = new JFreeChartImage(ImagePanel.IMAGE_ID, chartModel, IMAGE_WIDTH, IMAGE_HEIGHT);
+            image.add(AttributeModifier.replace("width", String.valueOf(IMAGE_WIDTH)));
+            image.add(AttributeModifier.replace("height", String.valueOf(IMAGE_HEIGHT)));
+            xyPlotImage.addImageIfNotPresent(image);
+        }
+        {
+            IModel<JFreeChart> chartModel = new LoadableDetachableModel<>() {
+                @Override
+                protected JFreeChart load() {
+                    return new LiquidityChartBuilder().createBarChart(forecast, form.getSettings()); // Methode zum Erstellen des Diagramms
+                }
+            };
+            final JFreeChartImage image = new JFreeChartImage(ImagePanel.IMAGE_ID, chartModel, IMAGE_WIDTH, IMAGE_HEIGHT);
+            image.add(AttributeModifier.replace("width", String.valueOf(IMAGE_WIDTH)));
+            image.add(AttributeModifier.replace("height", String.valueOf(IMAGE_HEIGHT)));
+            barChartImage.addImageIfNotPresent(image);
+        }
+    }
+
+    /**
+     * @param forecast the forecast to set
+     * @return this for chaining.
+     */
+    public LiquidityForecastPage setForecast(final LiquidityForecast forecast) {
+        this.forecast = forecast;
+        form.getSettings().setBaseDate(forecast.getBaseDate());
+        return this;
+    }
+
+    @Override
+    protected String getTitle() {
+        return getString("plugins.liquidityplanning.forecast");
+    }
 }

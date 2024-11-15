@@ -30,7 +30,7 @@ import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
 import org.projectforge.plugins.core.PluginAdminService
-import org.springframework.beans.factory.annotation.Autowired
+import org.projectforge.web.WicketSupport
 
 private val log = KotlinLogging.logger {}
 
@@ -38,22 +38,25 @@ private val log = KotlinLogging.logger {}
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class SkillMatrixPlugin : AbstractPlugin(PluginAdminService.PLUGIN_SKILL_MATRIX_ID, "Skill matrix", "The users skills managed by the users themselve.") {
-
-    @Autowired
-    private lateinit var skillEntryDao: SkillEntryDao
-
-    @Autowired
-    private lateinit var menuCreator: MenuCreator
+class SkillMatrixPlugin : AbstractPlugin(
+    PluginAdminService.PLUGIN_SKILL_MATRIX_ID,
+    "Skill matrix",
+    "The users skills managed by the users themselve."
+) {
 
     override fun initialize() {
+        val skillEntryDao = WicketSupport.get(SkillEntryDao::class.java)
+        val menuCreator = WicketSupport.get(MenuCreator::class.java)
         // Register it:
         register(id, SkillEntryDao::class.java, skillEntryDao, "plugins.skillmatrix")
 
         // Define the access management:
-        registerRight(SkillRight(accessChecker))
+        registerRight(SkillRight())
 
-        menuCreator.register(MenuItemDefId.PROJECT_MANAGEMENT, MenuItemDef(info.id, "plugins.skillmatrix.menu", "${Constants.REACT_APP_PATH}skillentry"));
+        menuCreator.register(
+            MenuItemDefId.PROJECT_MANAGEMENT,
+            MenuItemDef(info.id, "plugins.skillmatrix.menu", "${Constants.REACT_APP_PATH}skillentry")
+        );
 
         // All the i18n stuff:
         addResourceBundle(RESOURCE_BUNDLE_NAME)

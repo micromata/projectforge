@@ -24,34 +24,33 @@
 package org.projectforge.framework.persistence.api.impl
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import org.hibernate.search.annotations.*
-import org.hibernate.search.bridge.builtin.NumberBridge
-import kotlin.reflect.full.isSubclassOf
+import mu.KotlinLogging
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
+import org.projectforge.common.KClassUtils
+import org.projectforge.framework.persistence.search.ClassBridge
+import kotlin.reflect.jvm.javaType
+
+private val log = KotlinLogging.logger {}
 
 class HibernateSearchFieldInfo(val javaProp: String, val type: Class<*>) {
     @JsonIgnore
     private var annotations: MutableList<Annotation>? = null
     var idProperty: Boolean = false
         internal set
-    @JsonIgnore
-    var dateBridgeAnn: DateBridge? = null
-        internal set
-    @JsonIgnore
-    var fieldBridgeAnn: FieldBridge? = null
-        internal set(value) {
-            field = value
-            if (value?.impl?.isSubclassOf(NumberBridge::class) == true) {
-                numberBridge = true
-            }
-        }
-    var numberBridge: Boolean = false
-        internal set
+
+    /**
+     * The type of the value bridge.
+     * For example:@GenericField(valueBridge = ValueBridgeRef(type = YearValueBridge::class))
+     * The valueBridgeType is Int, because YearValueBridge.toIndexedValue returns an Int.
+     */
+    /*@JsonIgnore
+    var valueBridgeType: Class<*>? = null*/
+
+    var persistentField = false
+
     var luceneField: String = javaProp
         internal set
-
-    fun getDateBridgeEncodingType(): EncodingType? {
-        return dateBridgeAnn?.encoding
-    }
 
     fun add(annotation: Annotation?) {
         if (annotation == null) {
@@ -61,8 +60,17 @@ class HibernateSearchFieldInfo(val javaProp: String, val type: Class<*>) {
             annotations = mutableListOf()
         }
         annotations!!.add(annotation)
-        if (annotation is Field && annotation.name.isNotBlank()) {
+        if (annotation is FullTextField && annotation.name.isNotBlank()) {
             luceneField = annotation.name
+        }
+        if (annotation is GenericField) {
+            if (annotation.name.isNotBlank()) {
+                luceneField = annotation.name
+            }
+            /*
+            val valueBridgeRef = annotation.valueBridge
+            val type = valueBridgeRef.type
+            valueBridgeType = KClassUtils.getReturnTypeOfMethod(type, "toIndexedValue")?.javaType as? Class<*>*/
         }
     }
 
@@ -82,13 +90,24 @@ class HibernateSearchFieldInfo(val javaProp: String, val type: Class<*>) {
      * @return true if field is an Int/Integer field or idProperty and has no FieldBridge with NumberBridge impl.
      */
     fun isNumericSearchSupported(): Boolean {
-        return !numberBridge &&
-                (Integer::class.java.isAssignableFrom(type)
-                        || Int::class.java.isAssignableFrom(type)
-                        || idProperty)
+        /*if (valueBridgeType != null) {
+            return numberTypes.any { it.isAssignableFrom(valueBridgeType) }
+        }*/
+        return numberTypes.any { it.isAssignableFrom(type) }
     }
 
     fun isClassBridge(): Boolean {
         return ClassBridge::class.java.isAssignableFrom(type)
+    }
+
+    companion object {
+        private val numberTypes = listOf(
+            java.lang.Integer::class.java,
+            Int::class.java,
+            Long::class.java,
+            java.lang.Long::class.java,
+            Short::class.java,
+            java.lang.Short::class.java,
+        )
     }
 }

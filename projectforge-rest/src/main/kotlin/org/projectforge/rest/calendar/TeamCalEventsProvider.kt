@@ -63,7 +63,7 @@ open class TeamCalEventsProvider() {
     start: PFDateTime,
     end: PFDateTime,
     events: MutableList<FullCalendarEvent>,
-    teamCalendarIds: List<Int?>?,
+    teamCalendarIds: List<Long?>?,
     styleMap: CalendarStyleMap,
     settings: CalendarSettings,
   ) {
@@ -73,25 +73,25 @@ open class TeamCalEventsProvider() {
     eventFilter.teamCals = teamCalendarIds
     eventFilter.startDate = start.utilDate
     eventFilter.endDate = end.utilDate
-    eventFilter.user = ThreadLocalUserContext.user
-    val teamEvents = teamEventDao.getEventList(eventFilter, true) ?: return
+    eventFilter.user = ThreadLocalUserContext.loggedInUser
+    val teamEvents = teamEventDao.getEventList(eventFilter, true)
     teamEvents.forEach {
       val eventDO: TeamEventDO
-      val recurrentEvent: Boolean
+      //val recurrentEvent: Boolean
       if (it is TeamEventDO) {
         eventDO = it
-        recurrentEvent = false
+        //recurrentEvent = false
       } else {
         eventDO = (it as TeamRecurrenceEvent).master
-        recurrentEvent = true
+        //recurrentEvent = true
       }
       //val recurrentDate = if (recurrentEvent) "?recurrentDate=${it.startDate!!.time / 1000}" else ""
       //val link = "teamEvent/edit/${eventDO.id}$recurrentDate"
       val allDay = eventDO.allDay
       val style = styleMap.get(eventDO.calendarId)
-      val dbId: Int?
+      val dbId: Long?
       val uid: String?
-      if (eventDO.id > 0) {
+      if (eventDO.id!! > 0) {
         dbId = eventDO.id
         uid = null
       } else {
@@ -100,15 +100,15 @@ open class TeamCalEventsProvider() {
       }
       val duration = it.endDate!!.time - it.startDate!!.time
       val event = if (allDay) {
-        val start = PFDay.fromOrNow(it.startDate).localDate
-        val end = PFDay.fromOrNow(it.endDate).localDate
+        val useStart = PFDay.fromOrNow(it.startDate).localDate
+        val useEnd = PFDay.fromOrNow(it.endDate).localDate
         FullCalendarEvent.createAllDayEvent(
           id = dbId ?: uid,
           category = FullCalendarEvent.Category.TEAM_CAL_EVENT,
           title = it.subject,
           calendarSettings = settings,
-          start = start,
-          end = end,
+          start = useStart,
+          end = useEnd,
         )
       } else {
         FullCalendarEvent.createEvent(
@@ -203,12 +203,12 @@ open class TeamCalEventsProvider() {
       events.add(event)
     }
     for (calId in teamCalendarIds) {
-      val cal = teamCalDao.internalGetById(calId) ?: continue
+      val cal = teamCalDao.find(calId, checkAccess = false) ?: continue
       if (cal.includeLeaveDaysForGroups.isNullOrBlank() && cal.includeLeaveDaysForUsers.isNullOrBlank()) {
         continue
       }
-      val userIds = User.toIntArray(cal.includeLeaveDaysForUsers)?.toSet()
-      val groupIds = Group.toIntArray(cal.includeLeaveDaysForGroups)?.toSet()
+      val userIds = User.toLongArray(cal.includeLeaveDaysForUsers)?.toSet()
+      val groupIds = Group.toLongArray(cal.includeLeaveDaysForGroups)?.toSet()
       val style = styleMap.get(calId)
       vacationProvider.addEvents(start, end, events, groupIds, userIds, settings, style)
     }

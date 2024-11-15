@@ -31,9 +31,7 @@ import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.service.UserXmlPreferencesService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
@@ -41,6 +39,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.RecentQueue;
 import org.projectforge.web.CSSColor;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WicketUtils;
@@ -66,12 +65,6 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
 
   private boolean defaultFormProcessing = false;
 
-  @SpringBean
-  private UserDao userDao;
-
-  @SpringBean
-  private UserXmlPreferencesService userPreferencesService;
-
   private RecentQueue<String> recentUsers;
 
   private final PFAutoCompleteTextField<PFUserDO> userTextField;
@@ -80,6 +73,8 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
   private PFUserDO currentUser;
 
   private boolean showSelectMeButton = true;
+
+  private static final String[] SEARCH_FIELDS = {"username", "firstname", "lastname", "email"};
 
   /**
    * @param id
@@ -98,9 +93,9 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
       protected List<PFUserDO> getChoices(final String input)
       {
         final BaseSearchFilter filter = new BaseSearchFilter();
-        filter.setSearchFields("username", "firstname", "lastname", "email");
+        filter.setSearchFields(SEARCH_FIELDS);
         filter.setSearchString(input);
-        final List<PFUserDO> list = userDao.getList(filter);
+        final List<PFUserDO> list = WicketSupport.getUserDao().select(filter);
         return list;
       }
 
@@ -131,7 +126,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
       @Override
       protected String getTooltip()
       {
-        final PFUserDO user = getModel().getObject();
+        final PFUserDO user = WicketSupport.getUserGroupCache().getUserIfNotInitialized(getModel().getObject());
         if (user == null) {
           return null;
         }
@@ -182,8 +177,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
             if (value == null) {
               return "";
             }
-            final PFUserDO user = (PFUserDO) value;
-            return user.getUsername();
+            return WicketSupport.getUserGroupCache().getUser(((PFUserDO) value).getId()).getUsername();
           }
 
         };
@@ -241,7 +235,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
         @Override
         public void onSubmit()
         {
-          caller.select(selectProperty, ThreadLocalUserContext.getUserId());
+          caller.select(selectProperty, ThreadLocalUserContext.getLoggedInUserId());
           markTextFieldModelAsChanged();
         }
 
@@ -251,7 +245,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
           // Is visible if no user is given or the given user is not the current logged in user.
           final PFUserDO user = UserSelectPanel.this.getModelObject();
           return showSelectMeButton == true
-              && (user == null || user.getId().equals(ThreadLocalUserContext.getUser().getId()) == false);
+              && (user == null || user.getId().equals(ThreadLocalUserContext.getLoggedInUser().getId()) == false);
         }
       };
       ((SubmitLink) selectMeLink).setDefaultFormProcessing(defaultFormProcessing);
@@ -261,7 +255,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
         @Override
         public void onClick(final AjaxRequestTarget target)
         {
-          UserSelectPanel.this.setModelObject(ThreadLocalUserContext.getUser());
+          UserSelectPanel.this.setModelObject(ThreadLocalUserContext.getLoggedInUser());
           markTextFieldModelAsChanged();
           target.add(this, userTextField); // For hiding entry.
         }
@@ -275,7 +269,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
           // Is visible if no user is given or the given user is not the current logged in user.
           final PFUserDO user = UserSelectPanel.this.getModelObject();
           return showSelectMeButton
-              && (user == null || !Objects.equals(user.getId(), ThreadLocalUserContext.getUserId()));
+              && (user == null || !Objects.equals(user.getId(), ThreadLocalUserContext.getLoggedInUserId()));
         }
       };
       selectMeLink.setOutputMarkupId(true);
@@ -316,6 +310,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
   @SuppressWarnings("unchecked")
   private RecentQueue<String> getRecentUsers()
   {
+    var userPreferencesService = WicketSupport.get(UserXmlPreferencesService.class);
     if (this.recentUsers == null) {
       this.recentUsers = (RecentQueue<String>) userPreferencesService.getEntry(USER_PREF_KEY_RECENT_USERS);
     }

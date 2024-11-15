@@ -23,15 +23,9 @@
 
 package org.projectforge.framework.configuration;
 
-import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
-import de.micromata.genome.db.jpa.history.entities.HistoryMasterBaseDO;
-import de.micromata.genome.db.jpa.history.impl.HistoryServiceImpl;
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
-import de.micromata.genome.db.jpa.tabattr.impl.TimeableServiceImpl;
-import de.micromata.mgc.jpa.spring.SpringEmgrFilterBean;
-import org.projectforge.framework.persistence.attr.impl.AttrSchemaServiceSpringBeanImpl;
-import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityManagerFactory;
+import org.projectforge.common.EmphasizedLogSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -39,7 +33,6 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.context.annotation.Primary;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.vendor.HibernateJpaDialect;
@@ -48,9 +41,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.PostConstruct;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 /**
@@ -64,92 +54,62 @@ import javax.sql.DataSource;
 //Needed, because not only interfaces are used as injection points
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 @EntityScan("org.projectforge.business") // For detecting named queries.
-public class PFSpringConfiguration
-{
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PFSpringConfiguration.class);
+public class PFSpringConfiguration {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PFSpringConfiguration.class);
 
-  @Value("${projectforge.base.dir}")
-  private String applicationDir;
+    private static PFSpringConfiguration instance;
 
-  @Autowired
-  private DataSource dataSource;
+    @Value("${projectforge.base.dir}")
+    private String applicationDir;
 
-  @Autowired
-  private SpringEmgrFilterBean springEmgrFilterBean;
+    @Value("${projectforge.web.development.enableCORSFilter}")
+    private Boolean corsFilterEnabled;
 
-  @Value("${hibernate.search.default.indexBase}")
-  private String hibernateIndexDir;
+    public Boolean getCorsFilterEnabled() {
+        return corsFilterEnabled;
+    }
 
-  @Bean
-  public RestTemplate restTemplate(RestTemplateBuilder builder)
-  {
-    return builder.build();
-  }
+    @Autowired
+    private DataSource dataSource;
 
-  @Autowired
-  private PfEmgrFactory pfEmgrFactory;
+    @PostConstruct
+    private void postConstruct() {
+        instance = this;
+    }
 
-  /**
-   * has to be defined, otherwise spring creates a LocalContainerEntityManagerFactoryBean, which has no correct
-   * sessionFactory.getCurrentSession();.
-   *
-   * @return
-   */
-  @Primary
-  @Bean
-  public EntityManagerFactory entityManagerFactory()
-  {
-    return pfEmgrFactory.getEntityManagerFactory();
-  }
+    @Bean
+    public RestTemplate restTemplate(RestTemplateBuilder builder) {
+        return builder.build();
+    }
 
-  @Bean
-  public EntityManager entityManager()
-  {
-    return entityManagerFactory().createEntityManager();
-  }
+    @Bean
+    public PlatformTransactionManager transactionManager(EntityManagerFactory emf) {
+        JpaTransactionManager transactionManager = new JpaTransactionManager();
+        transactionManager.setEntityManagerFactory(emf);
+        transactionManager.setDataSource(dataSource);
+        transactionManager.setJpaDialect(new HibernateJpaDialect());
+        return transactionManager;
+    }
 
-  @Bean
-  public PlatformTransactionManager transactionManager(EntityManagerFactory emf) {
-    JpaTransactionManager transactionManager = new JpaTransactionManager();
-    transactionManager.setEntityManagerFactory(emf);
-    transactionManager.setDataSource(dataSource);
-    transactionManager.setJpaDialect(new HibernateJpaDialect());
-    return transactionManager;
-  }
+    @Bean
+    public PersistenceExceptionTranslationPostProcessor exceptionTranslation() {
+        return new PersistenceExceptionTranslationPostProcessor();
+    }
 
-  @Bean
-  public PersistenceExceptionTranslationPostProcessor exceptionTranslation(){
-    return new PersistenceExceptionTranslationPostProcessor();
-  }
+    public static PFSpringConfiguration getInstance() {
+        return instance;
+    }
 
-  @Bean(name = "attrSchemaService")
-  public AttrSchemaServiceSpringBeanImpl attrSchemaService()
-  {
-    AttrSchemaServiceSpringBeanImpl ret = AttrSchemaServiceSpringBeanImpl.get();
-    ret.setApplicationDir(applicationDir);
-    return ret;
-  }
-
-  @Bean
-  public TimeableService timeableService()
-  {
-    return new TimeableServiceImpl();
-  }
-
-  @PostConstruct
-  public void initEmgrFactory()
-  {
-    springEmgrFilterBean.registerEmgrFilter(pfEmgrFactory);
-    HistoryServiceManager.get().setHistoryService(new HistoryServiceImpl()
-    {
-
-      @Override
-      public Class<? extends HistoryMasterBaseDO<?, ?>> getHistoryMasterClass()
-      {
-        return PfHistoryMasterDO.class;
-      }
-
-    });
-  }
-
+    public static void logCorsFilterWarning(org.slf4j.Logger log) {
+        if (instance.getCorsFilterEnabled()) {
+            new EmphasizedLogSupport(log)
+                    .log("ATTENTION!")
+                    .log("")
+                    .log("Running in dev mode!")
+                    .log("")
+                    .log("Don't deliver this app in dev mode due to security reasons!")
+                    .log("(cross origin allowed)")
+                    .logEnd();
+        }
+    }
 }

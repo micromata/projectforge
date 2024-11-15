@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.commons.test.TestUtils
 
 class JobsHandlerTest {
   @Test
@@ -77,26 +78,28 @@ class JobsHandlerTest {
     ThreadLocalUserContext.setUser(PFUserDO())
     val jobHandler = JobHandler()
     var onAfterException = false
-    val job = jobHandler.addJob(object : AbstractJob("Sleep job 1.000ms") {
-      override suspend fun run() {
-        throw Exception("job failed.")
-      }
+    TestUtils.suppressErrorLogs {
+      val job = jobHandler.addJob(object : AbstractJob("Sleep job 1.000ms") {
+        override suspend fun run() {
+          throw Exception("job failed.")
+        }
 
-      override fun writeAccess(user: PFUserDO?): Boolean {
-        return true
-      }
+        override fun writeAccess(user: PFUserDO?): Boolean {
+          return true
+        }
 
-      override fun onAfterException(ex: Exception) {
-        Assertions.assertEquals(Status.FAILED, status)
-        Assertions.assertEquals("job failed.", ex.message)
-        onAfterException = true
-      }
-    })
-    runBlocking {
-      for (i in 0..20) {
-        delay(100)
-        if (job.status == AbstractJob.Status.FAILED) {
-          break
+        override fun onAfterException(ex: Exception) {
+          Assertions.assertEquals(Status.FAILED, status)
+          Assertions.assertEquals("job failed.", ex.message)
+          onAfterException = true
+        }
+      })
+      runBlocking {
+        for (i in 0..20) {
+          delay(100)
+          if (job.status == AbstractJob.Status.FAILED) {
+            break
+          }
         }
       }
     }

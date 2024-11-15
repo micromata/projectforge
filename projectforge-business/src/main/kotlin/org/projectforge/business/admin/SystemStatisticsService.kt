@@ -27,7 +27,7 @@ import mu.KotlinLogging
 import org.projectforge.framework.ToStringUtil
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
 

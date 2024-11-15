@@ -35,7 +35,7 @@ import org.projectforge.test.AbstractTestBase;
 import org.projectforge.web.rest.TaskDaoRest;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import java.time.LocalDate;
 import java.util.Locale;
 
@@ -88,7 +88,7 @@ public class RestServicesTest extends AbstractTestBase {
     addressDO.setPrivateZipCode("1337");
     addressDO.setPrivateMobilePhone("007");
     addressDO.setPrivatePhone("I forgot my number");
-    addressDao.save(addressDO);
+    addressDao.insert(addressDO);
 
     addressImageDao.saveOrUpdate(addressDO.getId(),new byte[]{0, 1, 3});
 

@@ -23,10 +23,6 @@
 
 package org.projectforge.rest.fibu
 
-import org.projectforge.business.fibu.EingangsrechnungDO
-import org.projectforge.business.fibu.EingangsrechnungDao
-import org.projectforge.business.fibu.EingangsrechnungsPositionDO
-import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
@@ -40,7 +36,8 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.business.fibu.*
 
 @RestController
 @RequestMapping("${Rest.URL}/incomingInvoice")
@@ -171,12 +168,12 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
     if (editMode) {
       eingangsrechnung.copyPositionenFrom(obj)
     }
-    val kost1Sorted = obj.sortedKost1
-    eingangsrechnung.kost1List = kost1Sorted.joinToString { it.formattedNumber }
-    eingangsrechnung.kost1Info = kost1Sorted.joinToString(separator = " | ") { it.description ?: it.formattedNumber }
-    val kost2Sorted = obj.sortedKost2
-    eingangsrechnung.kost2List = kost2Sorted.joinToString { it.formattedNumber }
-    eingangsrechnung.kost2Info = kost2Sorted.joinToString(separator = " | ") { KostFormatter.format(it, 60) }
+    val kost1Sorted = obj.info.sortedKost1
+    eingangsrechnung.kost1List = RechnungInfo.numbersAsString(kost1Sorted)
+    eingangsrechnung.kost1Info = RechnungInfo.detailsAsString(kost1Sorted)
+    val kost2Sorted = obj.info.sortedKost2
+    eingangsrechnung.kost2List = RechnungInfo.numbersAsString(kost2Sorted)
+    eingangsrechnung.kost2Info = RechnungInfo.detailsAsString(kost2Sorted)
     return eingangsrechnung
   }
 }

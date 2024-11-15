@@ -23,7 +23,6 @@
 
 package org.projectforge.rest.fibu.kost
 
-import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost1Dao
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -33,15 +32,21 @@ import org.projectforge.rest.dto.Kost1
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.springframework.beans.factory.annotation.Autowired
 
 @RestController
 @RequestMapping("${Rest.URL}/cost1")
 class Kost1PagesRest : AbstractDTOPagesRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::class.java, "fibu.kost1.title") {
+    @Autowired
+    private lateinit var kostFormatter: KostFormatter
+
     override fun transformFromDB(obj: Kost1DO, editMode: Boolean): Kost1 {
-        val kost1 = Kost1()
-        kost1.copyFrom(obj)
-        kost1.formattedNumber = KostFormatter.format(obj)
+        val kost1 = Kost1(obj)
         return kost1
     }
 
@@ -74,4 +79,12 @@ class Kost1PagesRest : AbstractDTOPagesRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::
                                 .add(lc, "description", "kostentraegerStatus")))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
+
+    override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<Kost1DO> {
+        val list = super.queryAutocompleteObjects(request, filter)
+        list.forEach { it.displayName = kostFormatter.formatKost1(it, KostFormatter.FormatType.TEXT) }
+        return list
+    }
+
+    override val autoCompleteSearchFields = arrayOf("description", "nummer")
 }

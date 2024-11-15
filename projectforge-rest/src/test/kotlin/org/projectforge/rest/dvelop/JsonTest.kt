@@ -53,7 +53,7 @@ class JsonTest {
     list.add(partner)
     assertList(list)
     val json = JsonUtils.toJson(list)
-    println(json)
+    // println(json)
     val deserialized = JsonUtils.fromJson(json, object : TypeReference<List<TradingPartner?>?>() {}, false)
     assertList(deserialized)
   }

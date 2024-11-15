@@ -24,13 +24,12 @@
 package org.projectforge.plugins.skillmatrix
 
 import org.projectforge.common.i18n.UserException
-import org.projectforge.framework.persistence.api.*
+import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
-import org.springframework.stereotype.Repository
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.stereotype.Service
 
 /**
  * This is the base data access object class. Most functionality such as access checking, select, insert, update, save,
@@ -38,8 +37,8 @@ import org.springframework.transaction.annotation.Transactional
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
-open class SkillEntryDao : BaseDao<SkillEntryDO>(SkillEntryDO::class.java) {
+@Service
+class SkillEntryDao : BaseDao<SkillEntryDO>(SkillEntryDO::class.java) {
 
     init {
         userRightId = SkillRightId.PLUGIN_SKILL_MATRIX
@@ -47,40 +46,40 @@ open class SkillEntryDao : BaseDao<SkillEntryDO>(SkillEntryDO::class.java) {
 
     private val ENABLED_AUTOCOMPLETION_PROPERTIES = arrayOf("skill")
 
-    override fun isAutocompletionPropertyEnabled(property: String): Boolean {
+    override fun isAutocompletionPropertyEnabled(property: String?): Boolean {
         return ENABLED_AUTOCOMPLETION_PROPERTIES.contains(property)
     }
 
-    override fun getAdditionalSearchFields(): Array<String> {
-        return SkillEntryDao.ADDITIONAL_SEARCH_FIELDS
-    }
+    override val additionalSearchFields: Array<String>
+        get() = ADDITIONAL_SEARCH_FIELDS
 
-    override fun onSaveOrModify(obj: SkillEntryDO) {
-        super.onSaveOrModify(obj)
+    override fun onInsertOrModify(obj: SkillEntryDO, operationType: OperationType) {
         if (obj.owner == null) {
-            obj.owner = ThreadLocalUserContext.user // Set always the logged-in user as owner.
+            obj.owner = ThreadLocalUserContext.loggedInUser // Set always the logged-in user as owner.
         }
         obj.rating = NumberHelper.ensureRange(SkillEntryDO.MIN_VAL_RATING, SkillEntryDO.MAX_VAL_RATING, obj.rating)
-        obj.interest = NumberHelper.ensureRange(SkillEntryDO.MIN_VAL_INTEREST, SkillEntryDO.MAX_VAL_INTEREST, obj.interest)
+        obj.interest =
+            NumberHelper.ensureRange(SkillEntryDO.MIN_VAL_INTEREST, SkillEntryDO.MAX_VAL_INTEREST, obj.interest)
 
         val skillText = obj.normalizedSkill
         getSkills(obj.owner!!)
-                .forEach {
-                    if (obj.id != it.id && skillText == it.normalizedSkill) {
-                        throw UserException("plugins.skillmatrix.error.doublet", it.skill)
-                    }
+            .forEach {
+                if (obj.id != it.id && skillText == it.normalizedSkill) {
+                    throw UserException("plugins.skillmatrix.error.doublet", it.skill)
                 }
+            }
     }
 
     override fun newInstance(): SkillEntryDO {
         return SkillEntryDO()
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    open fun getSkills(owner: PFUserDO): List<SkillEntryDO> {
-        return em.createNamedQuery(SkillEntryDO.FIND_OF_OWNER, SkillEntryDO::class.java)
-                .setParameter("ownerId", owner.id)
-                .resultList
+    fun getSkills(owner: PFUserDO): List<SkillEntryDO> {
+        return persistenceService.executeNamedQuery(
+            SkillEntryDO.FIND_OF_OWNER,
+            SkillEntryDO::class.java,
+            Pair("ownerId", owner.id),
+        )
     }
 
     companion object {

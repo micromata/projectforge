@@ -31,62 +31,57 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
 
-public abstract class MyListDataProvider<T extends Serializable> implements IDataProvider<T>
-{
-  private static final long serialVersionUID = 756862441195280278L;
+public abstract class MyListDataProvider<T extends Serializable> implements IDataProvider<T> {
+    private static final long serialVersionUID = 756862441195280278L;
 
-  /** reference to the list used as dataprovider for the dataview */
-  protected List<T> list;
+    /**
+     * reference to the list used as dataprovider for the dataview
+     */
+    protected List<T> list;
 
-  @Override
-  public Iterator<? extends T> iterator(long first, long count)
-  {
-    int toIndex = Math.toIntExact(first + count);
-    if (toIndex > getList().size()) {
-      toIndex = list.size();
+    @Override
+    public Iterator<? extends T> iterator(long first, long count) {
+        int toIndex = Math.toIntExact(first + count);
+        if (toIndex > getList().size()) {
+            toIndex = list.size();
+        }
+        return list.subList(Math.toIntExact(first), toIndex).listIterator();
     }
-    return list.subList(Math.toIntExact(first), toIndex).listIterator();
-  }
 
-  /**
-   * @see IDataProvider#iterator(int, int)
-   */
-  public Iterator<? extends T> iterator(final int first, final int count)
-  {
-    return iterator(new Long(first), new Long(count));
-  }
-
-  /**
-   * @see IDataProvider#size()
-   */
-  public long size()
-  {
-    return getList().size();
-  }
-
-  /**
-   * @see IDataProvider#model(Object)
-   */
-  public IModel<T> model(final T object)
-  {
-    return new Model<T>(object);
-  }
-
-  /**
-   * @see org.apache.wicket.model.IDetachable#detach()
-   */
-  public void detach()
-  {
-    this.list = null;
-  }
-
-  protected abstract List<T> loadList();
-
-  protected List<T> getList()
-  {
-    if (list == null) {
-      list = loadList();
+    /**
+     * @see IDataProvider#iterator(int, int)
+     */
+    public Iterator<? extends T> iterator(final int first, final int count) {
+        return iterator(first, (long) count);
     }
-    return list;
-  }
+
+    /**
+     * @see IDataProvider#size()
+     */
+    public long size() {
+        return getList().size();
+    }
+
+    /**
+     * @see IDataProvider#model(Object)
+     */
+    public IModel<T> model(final T object) {
+        return new Model<T>(object);
+    }
+
+    /**
+     * @see org.apache.wicket.model.IDetachable#detach()
+     */
+    public void detach() {
+        this.list = null;
+    }
+
+    protected abstract List<T> loadList();
+
+    protected List<T> getList() {
+        if (list == null) {
+            list = loadList();
+        }
+        return list;
+    }
 }

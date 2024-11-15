@@ -45,7 +45,7 @@ public class DatesAsUTCModel extends Model<String>
   @Override
   public String getObject()
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append("start=[");
     if (getStartTime() != null) {
       buf.append(DateHelper.TECHNICAL_ISO_UTC.get().format(getStartTime()));

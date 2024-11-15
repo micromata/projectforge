@@ -86,6 +86,11 @@ class UILayout(
   val namedContainers: MutableList<UINamedContainer> = mutableListOf()
 
   /**
+   * Elements placed in edit pages below action buttons.
+   */
+  val layoutBelowActions: MutableList<UIElement> = mutableListOf()
+
+  /**
    * The action buttons.
    */
   val actions = mutableListOf<UIElement>()
@@ -203,6 +208,7 @@ class UILayout(
   fun getAllElements(): List<Any> {
     val list = mutableListOf<Any>()
     addAllElements(list, layout)
+    addAllElements(list, layoutBelowActions)
     namedContainers.forEach { addAllElements(list, it.content) }
     addAllElements(list, actions)
     return list

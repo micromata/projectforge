@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.projectforge</groupId>
         <artifactId>projectforge-parent</artifactId>
-        <version>7.5.1-SNAPSHOT</version><!-- projectforge.version -->
+        <version>8.0.0-SNAPSHOT</version><!-- projectforge.version -->
     </parent>
 
     <licenses>
@@ -18,10 +18,6 @@
             <distribution>manual</distribution>
         </license>
     </licenses>
-
-    <properties>
-        <jackrabbit-oak.version>1.44.0</jackrabbit-oak.version>
-    </properties>
 
     <build>
         <finalName>projectforge-jcr</finalName>
@@ -92,6 +88,12 @@
     <dependencies>
         <dependency>
             <groupId>org.projectforge</groupId>
+            <artifactId>projectforge-commons-test</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectforge</groupId>
             <artifactId>projectforge-common</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -106,7 +108,7 @@
         <dependency>
             <groupId>javax.jcr</groupId>
             <artifactId>jcr</artifactId>
-            <version>2.0</version>
+            <version>${javax.jcr.version}</version>
         </dependency>
 
         <!-- Jackrabbit content repository -->
@@ -136,7 +138,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>32.0.0-jre</version>
+            <version>${com.google.guava.version}</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/io.dropwizard.metrics/metrics-core -->
@@ -144,13 +146,13 @@
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-core</artifactId>
-            <version>4.1.19</version>
+            <version>${io.dropwizard.metrics-core.version}</version>
         </dependency>
 
         <dependency>
             <groupId>net.lingala.zip4j</groupId>
             <artifactId>zip4j</artifactId>
-            <version>2.11.3</version>
+            <version>${net.lingala.zip4j.version}</version>
         </dependency>
 
         <dependency>

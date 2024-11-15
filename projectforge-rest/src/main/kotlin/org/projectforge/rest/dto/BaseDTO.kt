@@ -27,6 +27,7 @@ import mu.KotlinLogging
 import org.projectforge.common.BeanHelper
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Field
@@ -35,11 +36,11 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 /**
- * BaseHistorizableDTO is a DTO representation of a AbstractHistorizableBaseDO<Int>. It copies most fields automatically by name and type from
- * DTO to  AbstractHistorizableBaseDO<Int> and vice versa.
+ * BaseHistorizableDTO is a DTO representation of a AbstractHistorizableBaseDO<Long>. It copies most fields automatically by name and type from
+ * DTO to  AbstractHistorizableBaseDO<Long> and vice versa.
  */
-open class BaseDTO<T : ExtendedBaseDO<Int>>(
-  var id: Int? = null,
+open class BaseDTO<T : ExtendedBaseDO<Long>>(
+  override var id: Long? = null,
   var deleted: Boolean = false,
   var created: Date? = null,
   var lastUpdate: Date? = null,
@@ -47,7 +48,7 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(
    * Needed for updating UILayout for watchfields (uid of "old" layout will be restored.
    */
   var layoutUid: String? = null,
-) {
+): IdObject<Long> {
 
   /**
    * Full and deep copy of the object. Should be extended by inherited classes.
@@ -75,7 +76,7 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(
    */
   open fun copyFromMinimal(src: T) {
     id = src.id
-    deleted = src.isDeleted
+    deleted = src.deleted
   }
 
   private fun _copyFromMinimal(src: Any?) {
@@ -140,7 +141,7 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(
                   val srcValue = srcField.get(src)
                   if (srcValue != null) {
                     val instance = destType.getDeclaredConstructor().newInstance()
-                    (instance as BaseDO<*>).id = (srcValue as BaseDTO<*>).id
+                    (instance as BaseDO<Long>).id = (srcValue as BaseDTO<*>).id
                     destField.isAccessible = true
                     destField.set(dest, instance)
                   }

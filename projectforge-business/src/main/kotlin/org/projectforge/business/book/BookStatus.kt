@@ -26,10 +26,11 @@ package org.projectforge.business.book
 import org.projectforge.common.i18n.I18nEnum
 
 enum class BookStatus(
-        /**
-         * The key will be used e. g. for i18n.
-         */
-        val key: String) : I18nEnum {
+    /**
+     * The key will be used e. g. for i18n.
+     */
+    val key: String
+) : I18nEnum {
     /**
      * Book is present at the office ore lend out is known.
      */
@@ -51,4 +52,11 @@ enum class BookStatus(
      */
     override val i18nKey: String
         get() = "book.status.$key"
+
+    companion object {
+        fun safeValueOf(name: String?): BookStatus? {
+            name ?: return null
+            return BookStatus.entries.firstOrNull { it.name == name }
+        }
+    }
 }

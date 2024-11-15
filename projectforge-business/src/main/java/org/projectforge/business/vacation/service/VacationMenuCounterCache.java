@@ -45,7 +45,8 @@ public class VacationMenuCounterCache extends AbstractCache {
   @Autowired
   private VacationService vacationService;
 
-  private Map<Integer, Integer> openMenuCounter = new HashMap<>();
+  // Key is employee id
+  private Map<Long, Integer> openMenuCounter = new HashMap<>();
 
   public Integer getOpenLeaveApplicationsForUser(PFUserDO employeeUser) {
     if (employeeUser == null)
@@ -64,8 +65,7 @@ public class VacationMenuCounterCache extends AbstractCache {
    */
   @Override
   protected void refresh() {
-    log.info("Initializing VacationMenuCounterCache ...");
+    log.info("VacationMenuCounterCache set as expired.");
     openMenuCounter.clear();
-    log.info("Initializing of VacationMenuCounterCache done.");
   }
 }

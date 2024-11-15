@@ -27,9 +27,10 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.*;
+import org.projectforge.business.fibu.kost.ProjektCache;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.DownloadUtils;
@@ -47,15 +48,6 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RechnungEditPage.class);
 
-  @SpringBean
-  private RechnungDao rechnungDao;
-
-  @SpringBean
-  private ProjektDao projektDao;
-
-  @SpringBean
-  private InvoiceService invoiceService;
-
   public RechnungEditPage(final PageParameters parameters) {
     super(parameters, "fibu.rechnung");
     init();
@@ -67,7 +59,7 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
     } else {
       final ContentMenuEntryPanel exportMenu = new ContentMenuEntryPanel(getNewContentMenuChildId(), getString("fibu.rechnung.exportInvoice"));
       addContentMenuEntry(exportMenu);
-      for (String variant : invoiceService.getTemplateVariants()) {
+      for (String variant : WicketSupport.get(InvoiceService.class).getTemplateVariants()) {
         String variantTitle;
         if (StringUtils.isNotBlank(variant)) {
           variantTitle = variant;
@@ -80,9 +72,9 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
           @Override
           public void onSubmit() {
             log.debug("Export invoice.");
-            ByteArrayOutputStream baos = invoiceService.getInvoiceWordDocument(getData(), variant);
+            ByteArrayOutputStream baos = WicketSupport.get(InvoiceService.class).getInvoiceWordDocument(getData(), variant);
             if (baos != null) {
-              String filename = invoiceService.getInvoiceFilename(getData());
+              String filename = WicketSupport.get(InvoiceService.class).getInvoiceFilename(getData());
               DownloadUtils.setDownloadTarget(baos.toByteArray(), filename);
             }
           }
@@ -99,14 +91,14 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
   public AbstractSecuredBasePage onSaveOrUpdate() {
     if (isNew() && getData().getNummer() == null && getData().getTyp() != RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN
             && !RechnungStatus.GEPLANT.equals(getData().getStatus())) {
-      getData().setNummer(rechnungDao.getNextNumber(getData()));
+      getData().setNummer(getBaseDao().getNextNumber(getData()));
     }
     return null;
   }
 
   @Override
   protected RechnungDao getBaseDao() {
-    return rechnungDao;
+    return WicketSupport.get(RechnungDao.class);
   }
 
   @Override
@@ -165,21 +157,21 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
   @Override
   public void select(final String property, final Object selectedValue) {
     if ("projektId".equals(property)) {
-      rechnungDao.setProjekt(getData(), (Integer) selectedValue);
+      getBaseDao().setProjekt(getData(), (Long) selectedValue);
       form.projektSelectPanel.getTextField().modelChanged();
-      if (getData().getProjektId() != null
-              && getData().getProjektId() >= 0
-              && getData().getKundeId() == null
+      if (getData().getProjekt() != null
+              && getData().getProjekt().getId() >= 0
+              && getData().getKunde() == null
               && StringUtils.isBlank(getData().getKundeText())) {
         // User has selected a project and the kunde is not set:
-        final ProjektDO projekt = projektDao.getById(getData().getProjektId());
+        final ProjektDO projekt = WicketSupport.get(ProjektCache.class).getProjektIfNotInitialized(getData().getProjekt());
         if (projekt != null) {
-          rechnungDao.setKunde(getData(), projekt.getKundeId());
+          getBaseDao().setKunde(getData(), projekt.getKunde());
           form.customerSelectPanel.getTextField().modelChanged();
         }
       }
     } else if ("kundeId".equals(property)) {
-      rechnungDao.setKunde(getData(), (Integer) selectedValue);
+      getBaseDao().setKunde(getData(), (Long) selectedValue);
       form.customerSelectPanel.getTextField().modelChanged();
     } else {
       log.error("Property '" + property + "' not supported for selection.");

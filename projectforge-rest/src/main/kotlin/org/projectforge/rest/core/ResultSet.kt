@@ -36,7 +36,7 @@ class ResultSet<O : Any>(
   var resultSet: List<O>,
   origResultSet: ResultSet<*>?,
   var totalSize: Int? = null,
-  var highlightRowId: Int? = null,
+  var highlightRowId: Long? = null,
   var selectedEntityIds: Collection<Serializable>? = null,
   magicFilter: MagicFilter, // only needed to check if the result set was truncated (has size of magicFilter.maxRows).
 ) {

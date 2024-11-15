@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 /**
  * Page of data transfer area with attachments list (including upload/download and editing).
@@ -60,13 +60,13 @@ class DataTransferAuditPageRest : AbstractDynamicPageRest() {
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
-    var id = NumberHelper.parseInteger(idString)
-    if (id == -1) {
+    var id = NumberHelper.parseLong(idString)
+    if (id == -1L) {
       // personal box of logged-in user is requested:
-      id = dataTransferAreaDao.ensurePersonalBox(ThreadLocalUserContext.userId!!)?.id
+      id = dataTransferAreaDao.ensurePersonalBox(ThreadLocalUserContext.loggedInUserId!!)?.id
     }
     id ?: throw IllegalAccessException("Parameter id not an int or no personal box found.")
-    val areaDO = dataTransferAreaDao.getById(id)
+    val areaDO = dataTransferAreaDao.find(id)!!
     val area = DataTransferArea()
     area.copyFrom(areaDO)
     val areaId = area.id

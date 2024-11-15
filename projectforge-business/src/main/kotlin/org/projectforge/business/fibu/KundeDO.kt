@@ -23,17 +23,13 @@
 
 package org.projectforge.business.fibu
 
-import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonIgnore
+import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
-import org.apache.lucene.analysis.standard.ClassicAnalyzer
-import org.hibernate.search.annotations.Analyzer
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
-import org.projectforge.framework.persistence.api.IManualIndex
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
-import javax.persistence.*
 
 /**
  * Jeder Kunde bei Micromata hat eine Kundennummer. Die Kundennummer ist Bestandteil von KOST2 (2.-4. Ziffer). Aufträge
@@ -44,12 +40,11 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_FIBU_KUNDE", indexes = [Index(name = "idx_fk_t_fibu_kunde_konto_id", columnList = "konto_id")])
-@Analyzer(impl = ClassicAnalyzer::class)
-open class KundeDO : AbstractHistorizableBaseDO<Int>(), IManualIndex, DisplayNameCapable {
+open class KundeDO : AbstractHistorizableBaseDO<Long>(), DisplayNameCapable {
 
     override val displayName: String
         @Transient
-        get() = KostFormatter.formatKunde(this)
+        get() = OldKostFormatter.formatKunde(this)
 
     /**
      * Kundennummer.
@@ -59,20 +54,20 @@ open class KundeDO : AbstractHistorizableBaseDO<Int>(), IManualIndex, DisplayNam
     @PropertyInfo(i18nKey = "fibu.kunde.nummer")
     @get:Id
     @get:Column(name = "pk")
-    open var nummer: Int? = null
+    open var nummer: Long? = null
 
-    @Transient
-    override fun getId(): Int? {
-        return nummer
-    }
-
-    override fun setId(value: Int?) {
-        nummer = value
-    }
-
+    /**
+     * Don't use this field directly. Use [nummer] instead. Otherwise, the kunde object will be fetched from the database.
+     */
+    @get:Transient
+    override var id: Long?
+        get() = nummer
+        set(value) {
+            nummer = value
+        }
 
     @PropertyInfo(i18nKey = "fibu.kunde.name")
-    @Field
+    @FullTextField(analyzer = "customAnalyzer")
     @get:Column(length = 255, nullable = false)
     open var name: String? = null
 
@@ -82,23 +77,23 @@ open class KundeDO : AbstractHistorizableBaseDO<Int>(), IManualIndex, DisplayNam
      * @return
      */
     @PropertyInfo(i18nKey = "fibu.kunde.identifier")
-    @Field
+    @FullTextField
     @get:Column(length = 20)
     open var identifier: String? = null
 
     @PropertyInfo(i18nKey = "fibu.kunde.division")
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var division: String? = null
 
     @PropertyInfo(i18nKey = "status")
-    @Field
+    @FullTextField
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 30)
     open var status: KundeStatus? = null
 
     @PropertyInfo(i18nKey = "description")
-    @Field
+    @FullTextField
     @get:Column(length = 4000)
     open var description: String? = null
 
@@ -114,10 +109,15 @@ open class KundeDO : AbstractHistorizableBaseDO<Int>(), IManualIndex, DisplayNam
     open var konto: KontoDO? = null
 
     /**
-     * @return "5.###" ("5.<kunde id>")</kunde> */
+     * @return "5.###" ("5.<kunde id>")</kunde>
+     * */
     open val kost: String
+        @JsonIgnore
+        @PropertyInfo(i18nKey = "fibu.kunde.nummer")
         @Transient
-        get() = "5." + KostFormatter.format3Digits(nummer)
+        @GenericField
+        @IndexingDependency(derivedFrom = [ObjectPath(PropertyValue(propertyName = "nummer"))])
+        get() = KostFormatter.instance.formatKunde(this, KostFormatter.FormatType.FORMATTED_NUMBER)
 
     /**
      * 1. Ziffer des Kostenträgers: Ist für Kunden immer 5.
@@ -137,11 +137,7 @@ open class KundeDO : AbstractHistorizableBaseDO<Int>(), IManualIndex, DisplayNam
             this.identifier
         } else this.name
 
-    val kontoId: Int?
-        @Transient
-        get() = if (konto != null) konto!!.id else null
-
     companion object {
-        const val MAX_ID = 999
+        const val MAX_ID = 999L
     }
 }

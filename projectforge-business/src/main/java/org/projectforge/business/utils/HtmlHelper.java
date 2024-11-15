@@ -86,7 +86,7 @@ public class HtmlHelper
    */
   public static String attribute(final String attribute, final String value)
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     return attribute(buf, attribute, value).toString();
   }
 
@@ -98,7 +98,7 @@ public class HtmlHelper
    * @param value
    * @return
    */
-  public static StringBuffer attribute(final StringBuffer buf, final String attribute, final String value)
+  public static StringBuilder attribute(final StringBuilder buf, final String attribute, final String value)
   {
     return buf.append(" ").append(attribute).append("=\"").append(value).append("\"");
   }

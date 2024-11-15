@@ -27,9 +27,9 @@ import org.projectforge.business.common.BaseUserGroupRightUtils
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.BaseDaoSupport
+import org.projectforge.framework.persistence.api.BaseDOPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 
 /**
  * This is the base data access object class. Most functionality such as access checking, select, insert, update, save,
@@ -37,41 +37,41 @@ import org.springframework.stereotype.Repository
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
-open class BankAccountDao : BaseDao<BankAccountDO>(BankAccountDO::class.java) {
+@Service
+class BankAccountDao : BaseDao<BankAccountDO>(BankAccountDO::class.java) {
 
-  override fun hasAccess(
-    user: PFUserDO?,
-    obj: BankAccountDO?,
-    oldObj: BankAccountDO?,
-    operationType: OperationType?,
-    throwException: Boolean
-  ): Boolean {
-    if (!accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)) {
-      return BaseDaoSupport.returnFalseOrThrowException(throwException, operationType = operationType)
+    override fun hasAccess(
+        user: PFUserDO,
+        obj: BankAccountDO?,
+        oldObj: BankAccountDO?,
+        operationType: OperationType,
+        throwException: Boolean
+    ): Boolean {
+        if (!accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)) {
+            return BaseDOPersistenceService.returnFalseOrThrowException(throwException, operationType = operationType)
+        }
+        if (accessChecker.isUserMemberOfAdminGroup(user)) {
+            // Admins AND Finance staff have always access.
+            return true
+        }
+        if (!accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)) {
+            // Only access for financial staff.
+            return BaseDOPersistenceService.returnFalseOrThrowException(throwException, operationType = operationType)
+        }
+        if (obj == null && oldObj == null) {
+            // Financial staff has general read access.
+            return true
+        }
+        return BaseUserGroupRightUtils.hasAccess(
+            obj = obj,
+            oldObj = oldObj,
+            userId = user.id,
+            operationType = operationType,
+            throwException = throwException,
+        )
     }
-    if (accessChecker.isUserMemberOfAdminGroup(user)) {
-      // Admins AND Finance staff have always access.
-      return true
-    }
-    if (!accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)) {
-      // Only access for financial staff.
-      return BaseDaoSupport.returnFalseOrThrowException(throwException, operationType = operationType)
-    }
-    if (obj == null && oldObj == null) {
-      // Financial staff has general read access.
-      return true
-    }
-    return BaseUserGroupRightUtils.hasAccess(
-      obj = obj,
-      oldObj = oldObj,
-      userId = user?.id,
-      operationType = operationType,
-      throwException = throwException,
-    )
-  }
 
-  override fun newInstance(): BankAccountDO {
-    return BankAccountDO()
-  }
+    override fun newInstance(): BankAccountDO {
+        return BankAccountDO()
+    }
 }

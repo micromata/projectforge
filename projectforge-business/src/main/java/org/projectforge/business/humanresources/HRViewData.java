@@ -37,7 +37,7 @@ import java.util.*;
 /**
  * Is not synchronized.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class HRViewData implements Serializable
 {
@@ -45,11 +45,11 @@ public class HRViewData implements Serializable
 
   HRFilter filter;
 
-  Map<Integer, HRViewUserData> userDatas;
+  Map<Long, HRViewUserData> userDatas;
 
-  private Map<Integer, ProjektDO> projects;
+  private Map<Long, ProjektDO> projects;
 
-  private Map<Integer, KundeDO> customers;
+  private Map<Long, KundeDO> customers;
 
   private List<HRViewUserData> sortedUserDatas;
 
@@ -120,8 +120,8 @@ public class HRViewData implements Serializable
   {
     if (kunde != null) {
       Hibernate.initialize(kunde);
-      if (!customers.containsKey(kunde.getId())) {
-        customers.put(kunde.getId(), kunde);
+      if (!customers.containsKey(kunde.getNummer())) {
+        customers.put(kunde.getNummer(), kunde);
         sortedCustomers = null;
       }
     }

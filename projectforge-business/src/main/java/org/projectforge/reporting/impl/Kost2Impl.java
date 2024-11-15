@@ -23,7 +23,7 @@
 
 package org.projectforge.reporting.impl;
 
-import org.projectforge.business.fibu.KostFormatter;
+import org.projectforge.business.fibu.OldKostFormatter;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.KostentraegerStatus;
 import org.projectforge.reporting.Kost2;
@@ -51,7 +51,7 @@ public class Kost2Impl implements Kost2
     this.projekt = new ProjektImpl(kost2.getProjekt());
   }
 
-  public Integer getId()
+  public Long getId()
   {
     return kost2.getId();
   }
@@ -98,6 +98,6 @@ public class Kost2Impl implements Kost2
 
   public String getFormattedString()
   {
-    return KostFormatter.format(kost2);
+    return OldKostFormatter.format(kost2);
   }
 }

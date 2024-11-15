@@ -55,7 +55,7 @@ public class ProjectUtils {
    * @param userId
    * @return List of all projects of which the given user (by user id) is member of the project manager group.
    */
-  public static Collection<ProjektDO> getProjectsOfManager(final Integer userId) {
+  public static Collection<ProjektDO> getProjectsOfManager(final Long userId) {
     final PFUserDO user = UserGroupCache.getInstance().getUser(userId);
     return getProjectsOfManager(user);
   }
@@ -68,13 +68,13 @@ public class ProjectUtils {
     final Collection<ProjektDO> result = new LinkedList<>();
     final ProjektFilter filter = new ProjektFilter();
     ensureProjectDao();
-    final List<ProjektDO> projects = projektDao.getList(filter);
+    final List<ProjektDO> projects = projektDao.select(filter);
     if (CollectionUtils.isEmpty(projects)) {
       return result;
     }
     final UserGroupCache userGroupCache = UserGroupCache.getInstance();
     for (final ProjektDO project : projects) {
-      final Integer groupId = project.getProjektManagerGroupId();
+      final Long groupId = project.getProjektManagerGroupId();
       if (groupId == null) {
         // No manager group defined.
         continue;
@@ -91,7 +91,7 @@ public class ProjectUtils {
     final BaseSearchFilter filter = new BaseSearchFilter();
     filter.setDeleted(false);
     ensureProjectDao();
-    return projektDao.getList(filter);
+    return projektDao.select(filter);
   }
 
   private static void ensureProjectDao() {

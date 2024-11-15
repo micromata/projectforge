@@ -40,7 +40,7 @@ import java.math.BigDecimal;
 /**
  * Shows a div layer with a colored percentage bar.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class ConsumptionBarPanel extends Panel
 {
@@ -58,7 +58,7 @@ public class ConsumptionBarPanel extends Panel
    * @param unit
    * @param linkEnabled If true then the user can click on this bar for getting all time sheets behind this bar.
    */
-  public ConsumptionBarPanel(final String id, final BigDecimal usage, BigDecimal maxValue, final Integer taskId,
+  public ConsumptionBarPanel(final String id, final BigDecimal usage, BigDecimal maxValue, final Long taskId,
       final boolean taskNodeFinished, final String unit, final boolean linkEnabled)
   {
     super(id);
@@ -106,7 +106,7 @@ public class ConsumptionBarPanel extends Panel
       bar.setVisible(false);
     }
     progressLabel.add(AttributeModifier.replace("style", "width: " + width + "%;"));
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(NumberHelper.getNumberFractionFormat(getLocale(), usage.scale()).format(usage));
     if (unit != null) {
       buf.append(unit);

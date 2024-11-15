@@ -40,8 +40,8 @@ public class KontoImpl implements Konto
   {
     this.konto = konto;
   }
-  
-  public Integer getId()
+
+  public Long getId()
   {
     return konto.getId();
   }

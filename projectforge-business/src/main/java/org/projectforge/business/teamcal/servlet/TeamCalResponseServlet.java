@@ -39,12 +39,12 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -116,7 +116,7 @@ public class TeamCalResponseServlet extends HttpServlet
 
     // Getting calendar
     final String calendarStr = decryptedParameters.get("calendar");
-    final Integer calendarId;
+    final Long calendarId;
     if (StringUtils.isBlank(calendarStr)) {
       calendarId = null;
       // compatibility, disable later
@@ -124,7 +124,7 @@ public class TeamCalResponseServlet extends HttpServlet
       //      resp.sendError(HttpStatus.SC_BAD_REQUEST);
       //      return;
     } else {
-      calendarId = Integer.valueOf(calendarStr);
+      calendarId = Long.valueOf(calendarStr);
       if (calendarId == null) {
         log.warn("Bad request, request parameter 'calendar' not valid: " + calendarStr);
         sendNotValidData(resp);
@@ -153,9 +153,9 @@ public class TeamCalResponseServlet extends HttpServlet
       resp.sendError(HttpStatus.SC_BAD_REQUEST);
       return;
     }
-    Integer attendeeId = null;
+    Long attendeeId = null;
     try {
-      attendeeId = Integer.parseInt(reqEventAttendee);
+      attendeeId = Long.parseLong(reqEventAttendee);
     } catch (NumberFormatException e) {
       log.warn("Bad request, request parameter 'attendee' not valid: " + reqEventAttendee);
       sendNotValidData(resp);

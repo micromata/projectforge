@@ -23,25 +23,23 @@
 
 package org.projectforge.business.address
 
-import de.micromata.genome.db.jpa.history.api.HistoryProperty
-import de.micromata.genome.db.jpa.history.impl.TabAttrHistoryPropertyConverter
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
+import jakarta.persistence.*
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.search.annotations.*
-import org.hibernate.search.annotations.Index
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.projectforge.business.common.HibernateSearchPhoneNumberBridge
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO
-import org.projectforge.framework.persistence.history.HibernateSearchPhoneNumberBridge
+import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.LabelValueBean
 import java.time.LocalDate
 import java.util.*
-import javax.persistence.*
 
 private val log = KotlinLogging.logger {}
 
@@ -50,10 +48,12 @@ private val log = KotlinLogging.logger {}
  */
 @Entity
 @Indexed
-@Table(name = "T_ADDRESS",
+@Table(
+    name = "T_ADDRESS",
     uniqueConstraints = [UniqueConstraint(name = "unique_t_address_uid", columnNames = ["uid"])],
-    indexes = [javax.persistence.Index(name = "idx_fk_t_address_uid", columnList = "uid")])
-open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
+    indexes = [jakarta.persistence.Index(name = "idx_fk_t_address_uid", columnList = "uid")]
+)
+open class AddressDO : DefaultBaseDO(), DisplayNameCapable {
     override val displayName: String
         @Transient
         get() = listOf(name, firstName, organization, city).filter { !it.isNullOrBlank() }.joinToString(", ")
@@ -61,144 +61,141 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
     @PropertyInfo(i18nKey = "address.contactStatus")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "contact_status", length = 20, nullable = false)
-    @Field
+    @FullTextField
     open var contactStatus = ContactStatus.ACTIVE
 
     @PropertyInfo(i18nKey = "address.addressStatus")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "address_status", length = 20, nullable = false)
-    @Field
+    @FullTextField
     open var addressStatus = AddressStatus.UPTODATE
 
     @get:Column(name = "uid")
     open var uid: String? = null
 
     @PropertyInfo(i18nKey = "name", required = true)
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var name: String? = null
 
     @PropertyInfo(i18nKey = "address.birthName")
-    @Field
+    @FullTextField
     @get:Column(length = 255, name = "birth_name")
     open var birthName: String? = null
 
     @PropertyInfo(i18nKey = "firstName")
-    @Field
+    @FullTextField
     @get:Column(name = "first_name", length = 255)
     open var firstName: String? = null
 
     @PropertyInfo(i18nKey = "address.form", required = true)
-    @Field
+    @FullTextField
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "form", length = 10)
     open var form: FormOfAddress? = null
 
     @PropertyInfo(i18nKey = "address.title")
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var title: String? = null
 
     @PropertyInfo(i18nKey = "address.positionText")
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var positionText: String? = null
 
     @PropertyInfo(i18nKey = "organization")
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var organization: String? = null
 
     @PropertyInfo(i18nKey = "address.division")
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var division: String? = null
 
     @PropertyInfo(i18nKey = "address.phone", additionalI18nKey = "address.business")
-    @FieldBridge(impl = HibernateSearchPhoneNumberBridge::class)
-    @Field
+    @GenericField(valueBridge = ValueBridgeRef(type = HibernateSearchPhoneNumberBridge::class))
     @get:Column(name = "business_phone", length = 255)
     open var businessPhone: String? = null
 
     @PropertyInfo(i18nKey = "address.phoneType.mobile", additionalI18nKey = "address.business")
-    @FieldBridge(impl = HibernateSearchPhoneNumberBridge::class)
-    @Field
+    @GenericField(valueBridge = ValueBridgeRef(type = HibernateSearchPhoneNumberBridge::class))
     @get:Column(name = "mobile_phone", length = 255)
     open var mobilePhone: String? = null
 
     @PropertyInfo(i18nKey = "address.phoneType.fax", additionalI18nKey = "address.business")
-    @FieldBridge(impl = HibernateSearchPhoneNumberBridge::class)
-    @Field
+    @GenericField(valueBridge = ValueBridgeRef(type = HibernateSearchPhoneNumberBridge::class))
     @get:Column(length = 255)
     open var fax: String? = null
 
     @PropertyInfo(i18nKey = "address.addressText", additionalI18nKey = "address.business")
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var addressText: String? = null
 
     @PropertyInfo(i18nKey = "address.addressText2", additionalI18nKey = "address.business")
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var addressText2: String? = null
 
     @PropertyInfo(i18nKey = "address.zipCode", additionalI18nKey = "address.business")
-    @Field
+    @FullTextField
     @get:Column(name = "zip_code", length = 255)
     open var zipCode: String? = null
 
     @PropertyInfo(i18nKey = "address.city", additionalI18nKey = "address.business")
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var city: String? = null
 
     @PropertyInfo(i18nKey = "address.country", additionalI18nKey = "address.business")
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var country: String? = null
 
     @PropertyInfo(i18nKey = "address.state", additionalI18nKey = "address.business")
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var state: String? = null
 
     @PropertyInfo(i18nKey = "email", additionalI18nKey = "address.business")
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var email: String? = null
 
     @PropertyInfo(i18nKey = "address.addressText", additionalI18nKey = "address.postal")
-    @Field
+    @FullTextField
     @get:Column(length = 255, name = "postal_addresstext")
     open var postalAddressText: String? = null
 
     @PropertyInfo(i18nKey = "address.addressText2", additionalI18nKey = "address.postal")
-    @Field
+    @FullTextField
     @get:Column(length = 255, name = "postal_addresstext2")
     open var postalAddressText2: String? = null
 
     @PropertyInfo(i18nKey = "address.zipCode", additionalI18nKey = "address.postal")
-    @Field
+    @FullTextField
     @get:Column(name = "postal_zip_code", length = 255)
     open var postalZipCode: String? = null
 
     @PropertyInfo(i18nKey = "address.city", additionalI18nKey = "address.postal")
-    @Field
+    @FullTextField
     @get:Column(length = 255, name = "postal_city")
     open var postalCity: String? = null
 
     @PropertyInfo(i18nKey = "address.country", additionalI18nKey = "address.postal")
-    @Field
+    @FullTextField
     @get:Column(name = "postal_country", length = 255)
     open var postalCountry: String? = null
 
     @PropertyInfo(i18nKey = "address.state", additionalI18nKey = "address.postal")
-    @Field
+    @FullTextField
     @get:Column(name = "postal_state", length = 255)
     open var postalState: String? = null
 
     @PropertyInfo(i18nKey = "address.website")
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var website: String? = null
 
@@ -210,69 +207,68 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
     open var communicationLanguage: Locale? = null
 
     @PropertyInfo(i18nKey = "address.phone", additionalI18nKey = "address.private")
-    @FieldBridge(impl = HibernateSearchPhoneNumberBridge::class)
-    @Field
+    @GenericField(valueBridge = ValueBridgeRef(type = HibernateSearchPhoneNumberBridge::class))
     @get:Column(name = "private_phone", length = 255)
     open var privatePhone: String? = null
 
     @PropertyInfo(i18nKey = "address.phoneType.mobile", additionalI18nKey = "address.private")
-    @FieldBridge(impl = HibernateSearchPhoneNumberBridge::class)
-    @Field
+    @GenericField(valueBridge = ValueBridgeRef(type = HibernateSearchPhoneNumberBridge::class))
     @get:Column(name = "private_mobile_phone", length = 255)
     open var privateMobilePhone: String? = null
 
     @PropertyInfo(i18nKey = "address.addressText", additionalI18nKey = "address.private")
-    @Field
+    @FullTextField
     @get:Column(length = 255, name = "private_addresstext")
     open var privateAddressText: String? = null
 
     @PropertyInfo(i18nKey = "address.addressText2", additionalI18nKey = "address.private")
-    @Field
+    @FullTextField
     @get:Column(length = 255, name = "private_addresstext2")
     open var privateAddressText2: String? = null
 
     @PropertyInfo(i18nKey = "address.zipCode", additionalI18nKey = "address.private")
-    @Field
+    @FullTextField
     @get:Column(name = "private_zip_code", length = 255)
     open var privateZipCode: String? = null
 
     @PropertyInfo(i18nKey = "address.city", additionalI18nKey = "address.private")
-    @Field
+    @FullTextField
     @get:Column(length = 255, name = "private_city")
     open var privateCity: String? = null
 
     @PropertyInfo(i18nKey = "address.country", additionalI18nKey = "address.private")
-    @Field
+    @FullTextField
     @get:Column(name = "private_country", length = 255)
     open var privateCountry: String? = null
 
     @PropertyInfo(i18nKey = "address.state", additionalI18nKey = "address.private")
-    @Field
+    @FullTextField
     @get:Column(name = "private_state", length = 255)
     open var privateState: String? = null
 
     @PropertyInfo(i18nKey = "email", additionalI18nKey = "address.private")
-    @Field
+    @FullTextField
     @get:Column(length = 255, name = "private_email")
     open var privateEmail: String? = null
 
     @PropertyInfo(i18nKey = "address.publicKey")
-    @Field
+    @FullTextField
     @get:Column(name = "public_key", length = 20000)
     open var publicKey: String? = null
 
     @PropertyInfo(i18nKey = "address.fingerprint")
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var fingerprint: String? = null
 
     @PropertyInfo(i18nKey = "comment")
-    @Field
+    @FullTextField
     @get:Column(name = "comment", length = 5000)
     open var comment: String? = null
 
     @PropertyInfo(i18nKey = "address.birthday")
-    @Field(index = Index.YES, analyze = Analyze.NO)
+    //@FullTextField(index = Index.YES, analyze = Analyze.NO)
+    @GenericField
     @get:Column
     open var birthday: LocalDate? = null
 
@@ -286,20 +282,32 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
     @get:Column(name = "image_last_update")
     open var imageLastUpdate: Date? = null
 
-    /**
-     * The substitutions.
-     */
     @PropertyInfo(i18nKey = "address.addressbooks")
     @get:ManyToMany(fetch = FetchType.LAZY)
-    @get:JoinTable(name = "t_addressbook_address",
-            joinColumns = [JoinColumn(name = "address_id", referencedColumnName = "PK")],
-            inverseJoinColumns = [JoinColumn(name = "addressbook_id", referencedColumnName = "PK")],
-            indexes = [javax.persistence.Index(name = "idx_fk_t_addressbook_address_address_id", columnList = "address_id"),
-                javax.persistence.Index(name = "idx_fk_t_addressbook_address_addressbook_id", columnList = "addressbook_id")])
-    open var addressbookList: MutableSet<AddressbookDO>? = HashSet()
+    @get:JoinTable(
+        name = "t_addressbook_address",
+        joinColumns = [JoinColumn(name = "address_id", referencedColumnName = "PK")],
+        inverseJoinColumns = [JoinColumn(name = "addressbook_id", referencedColumnName = "PK")],
+        indexes = [jakarta.persistence.Index(
+            name = "idx_fk_t_addressbook_address_address_id",
+            columnList = "address_id"
+        ),
+            jakarta.persistence.Index(
+                name = "idx_fk_t_addressbook_address_addressbook_id",
+                columnList = "addressbook_id"
+            )]
+    )
+    open var addressbookList: MutableSet<AddressbookDO>? = null
+
+    fun add(addressbook: AddressbookDO) {
+        if (addressbookList == null) {
+            addressbookList = mutableSetOf()
+        }
+        addressbookList!!.add(addressbook)
+    }
 
     // @FieldBridge(impl = HibernateSearchInstantMessagingBridge.class)
-    // @Field(index = Index.YES /*TOKENIZED*/, store = Store.NO)
+    // @FullTextField(index = Index.YES /*TOKENIZED*/, store = Store.NO)
     // TODO: Prepared for hibernate search.
     private var instantMessaging: MutableList<LabelValueBean<InstantMessagingType, String>>? = null
 
@@ -318,7 +326,7 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
     val fullNameWithTitleAndForm: String
         @Transient
         get() {
-            val buf = StringBuffer()
+            val buf = StringBuilder()
             if (form != null) {
                 buf.append(ThreadLocalUserContext.getLocalizedString(form!!.i18nKey)).append(" ")
             }
@@ -476,7 +484,13 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
      */
     @Transient
     fun hasPrivateAddress(): Boolean {
-        return StringHelper.isNotBlank(privateAddressText, privateAddressText2, privateZipCode, privateCity, privateCountry)
+        return StringHelper.isNotBlank(
+            privateAddressText,
+            privateAddressText2,
+            privateZipCode,
+            privateCity,
+            privateCountry
+        )
     }
 
     /**
@@ -510,51 +524,6 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
         this.instantMessaging!!.add(LabelValueBean<InstantMessagingType, String>(type, value))
     }
 
-    /**
-     * @see org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO.getAttrEntityClass
-     */
-    @Transient
-    override fun getAttrEntityClass(): Class<out JpaTabAttrBaseDO<AddressDO, Int>> {
-        return AddressAttrDO::class.java
-    }
-
-    /**
-     * @see org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO.getAttrEntityWithDataClass
-     */
-    @Transient
-    override fun getAttrEntityWithDataClass(): Class<out JpaTabAttrBaseDO<AddressDO, Int>> {
-        return AddressAttrWithDataDO::class.java
-    }
-
-    /**
-     * @see org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO.getAttrDataEntityClass
-     */
-    @Transient
-    override fun getAttrDataEntityClass(): Class<out JpaTabAttrDataBaseDO<out JpaTabAttrBaseDO<AddressDO, Int>, Int>> {
-        return AddressAttrDataDO::class.java
-    }
-
-    /**
-     * @see org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO.createAttrEntity
-     */
-    override fun createAttrEntity(key: String, type: Char, value: String): JpaTabAttrBaseDO<AddressDO, Int> {
-        return AddressAttrDO(this, key, type, value)
-    }
-
-    /**
-     * @see org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO.createAttrEntityWithData
-     */
-    override fun createAttrEntityWithData(key: String, type: Char, value: String): JpaTabAttrBaseDO<AddressDO, Int> {
-        return AddressAttrWithDataDO(this, key, type, value)
-    }
-
-    @OneToMany(cascade = [CascadeType.ALL], mappedBy = "parent", targetEntity = AddressAttrDO::class, orphanRemoval = true, fetch = FetchType.LAZY)
-    @MapKey(name = "propertyName")
-    @HistoryProperty(converter = TabAttrHistoryPropertyConverter::class)
-    override fun getAttrs(): Map<String, JpaTabAttrBaseDO<AddressDO, Int>> {
-        return super.getAttrs()
-    }
-
     companion object {
         /**
          * Used for representation in the data base and for hibernate search (lucene).
@@ -563,7 +532,7 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
             if (list == null || list.isEmpty()) {
                 return null
             }
-            val buf = StringBuffer()
+            val buf = StringBuilder()
             var first = true
             for (lv in list) {
                 if (StringUtils.isBlank(lv.value)) {

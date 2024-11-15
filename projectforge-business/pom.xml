@@ -5,7 +5,10 @@
     <parent>
         <groupId>org.projectforge</groupId>
         <artifactId>projectforge-parent</artifactId>
-        <version>7.5.1-SNAPSHOT</version><!-- projectforge.version -->
+        <version>8.0.0-SNAPSHOT</version><!-- projectforge.version -->
+        <!-- Do not modify the version line above!
+             Please refer: projectforge-common/src/main/kotlin/org/projectforge/ProjectForgeVersion.kt
+        -->
     </parent>
     <licenses>
         <license>
@@ -16,6 +19,12 @@
         </license>
     </licenses>
     <dependencies>
+        <dependency>
+            <groupId>org.projectforge</groupId>
+            <artifactId>projectforge-commons-test</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.projectforge</groupId>
             <artifactId>projectforge-common</artifactId>
@@ -37,62 +46,11 @@
             <artifactId>merlin-core</artifactId>
             <version>${micromata.merlin-core.version}</version>
         </dependency>
-        <dependency>
-            <groupId>de.micromata.mgc</groupId>
-            <artifactId>de.micromata.mgc.jpa.tabattr</artifactId>
-            <version>${mgc.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>de.micromata.mgc</groupId>
-            <artifactId>de.micromata.mgc.jpa.hibernatesearch</artifactId>
-            <version>${mgc.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>de.micromata.mgc</groupId>
-            <artifactId>de.micromata.mgc.jpa.xmldump</artifactId>
-            <version>${mgc.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>de.micromata.mgc</groupId>
-            <artifactId>de.micromata.mgc.jpa.spring</artifactId>
-            <version>${mgc.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-tx</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-orm</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>de.micromata.mgc</groupId>
-            <artifactId>de.micromata.mgc.email</artifactId>
-            <version>${mgc.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
 
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>
             <artifactId>json-simple</artifactId>
-            <version>1.1.1</version>
+            <version>${com.googlecode.json-simple.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>junit</groupId>
@@ -106,45 +64,74 @@
           <version>1.2.0</version>
         </dependency-->
         <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>${jakarta.servlet-api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjtools</artifactId>
             <version>${aspectjtools.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-search-orm</artifactId>
-            <version>${hibernate-search.version}</version>
+            <groupId>org.hibernate.search</groupId>
+            <artifactId>hibernate-search-mapper-orm</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.search</groupId>
+            <artifactId>hibernate-search-backend-lucene</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging</artifactId>
+            <version>${jboss-logging.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <version>${jakarta-persistence.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-compiler-embeddable</artifactId>
+            <version>${kotlin.version}</version>
+        </dependency>
         <!-- Needed for kotlin script engine: -->
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-compiler</artifactId>
+            <artifactId>kotlin-scripting-jsr223</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-scripting-compiler</artifactId>
+            <artifactId>kotlin-scripting-common</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-scripting-jvm</artifactId>
+            <version>${kotlin.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-scripting-jvm-host</artifactId>
+            <version>${kotlin.version}</version>
+        </dependency>
+        <!--dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-script-util</artifactId>
-            <version>${kotlin.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-script-runtime</artifactId>
-            <version>${kotlin.version}</version>
-        </dependency>
+            <version>${kotlin-script-util.version}</version>
+        </dependency-->
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-coroutines-slf4j</artifactId>
-            <version>${kotlin-coroutines-slf4j.version}</version>
+            <version>${kotlinx-coroutines-slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -174,11 +161,6 @@
             <version>${commons-collections4.version}</version>
         </dependency>
         <dependency>
-            <groupId>commons-collections</groupId>
-            <artifactId>commons-collections</artifactId>
-            <version>${commons-collections3.version}</version>
-        </dependency>
-        <dependency>
             <!-- Needed by Merlin: -->
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
@@ -186,7 +168,7 @@
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk15on</artifactId>
+            <artifactId>bcprov-jdk18on</artifactId>
             <version>${bouncy-castle.version}</version>
         </dependency>
         <dependency>
@@ -200,67 +182,24 @@
             <version>${apache-httpcomponents-client5}</version>
         </dependency>
         <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-entitymanager</artifactId>
-            <version>${hibernate.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-jcache</artifactId>
-            <version>${hibernate.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-ehcache</artifactId>
-            <version>${hibernate.version}</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.ehcache/ehcache -->
-        <dependency>
-            <groupId>org.ehcache</groupId>
-            <artifactId>ehcache</artifactId>
-            <version>3.8.1</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-cache</artifactId>
             <version>${spring.boot.version}</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-webflux -->
-        <dependency>
-            <groupId>javax.cache</groupId>
-            <artifactId>cache-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>de.micromata.mgc</groupId>
-            <artifactId>de.micromata.mgc.common</artifactId>
-            <version>${mgc.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.commons</groupId>
-                    <artifactId>commons-dbcp2</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.codehaus.groovy</groupId>
-                    <artifactId>groovy-all</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
 
         <!-- DB -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
+            <version>${flyway.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
             <version>${flyway.version}</version>
         </dependency>
         <dependency>
@@ -275,21 +214,6 @@
         </dependency>
 
 
-        <dependency>
-            <groupId>commons-beanutils</groupId>
-            <artifactId>commons-beanutils</artifactId>
-            <version>${commons-beanutils.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-collections</groupId>
-                    <artifactId>commons-collections</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
         <dependency>
             <groupId>jakarta.mail</groupId>
             <artifactId>jakarta.mail-api</artifactId>
@@ -334,7 +258,7 @@
             <version>${itext.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.codehaus.groovy</groupId>
+            <groupId>org.apache.groovy</groupId>
             <artifactId>groovy-all</artifactId>
             <version>${groovy.version}</version>
             <type>pom</type>
@@ -430,6 +354,12 @@
             <version>${jackson-core.version}</version>
         </dependency>
         <dependency>
+            <!-- Needed for serialization of java.time.ZonedDateTime (e. g. by PfDateTime). -->
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>${jackson-core.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
             <version>${poi.version}</version>
@@ -482,7 +412,7 @@
         <dependency>
             <groupId>se.sawano.java</groupId>
             <artifactId>alphanumeric-comparator</artifactId>
-            <version>1.4.1</version>
+            <version>${se.sawano.alphanumeric-comperator.version}</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.webauthn4j/webauthn4j-core -->
@@ -491,6 +421,13 @@
             <artifactId>webauthn4j-core</artifactId>
             <version>${webauthn4j.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.webauthn4j/webauthn4j-spring-security-core -->
+        <dependency>
+            <groupId>com.webauthn4j</groupId>
+            <artifactId>webauthn4j-spring-security-core</artifactId>
+            <version>${webauthn4j-spring-security-core.version}</version>
+        </dependency>
+
 
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -512,9 +449,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>javax.annotation</groupId>
-            <artifactId>javax.annotation-api</artifactId>
-            <version>1.2</version>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+            <version>3.0.0</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -531,20 +468,22 @@
             </resource>
         </resources>
         <plugins>
-            <!-- Needed for lazy loading, but didn't work for AddressDO.images: -->
-            <!--plugin>
+            <!-- Hibernate Bytecode Enhancement Plugin -->
+            <!-- plugin> Doesn't work with Kotlin. Entities are lazy loaded if detached.
                 <groupId>org.hibernate.orm.tooling</groupId>
                 <artifactId>hibernate-enhance-maven-plugin</artifactId>
                 <version>${hibernate.version}</version>
                 <executions>
                     <execution>
-                        <configuration>
-                            <failOnError>true</failOnError>
-                            <enableLazyInitialization>true</enableLazyInitialization>
-                        </configuration>
                         <goals>
                             <goal>enhance</goal>
                         </goals>
+                        <configuration>
+                            <failOnError>false</failOnError>
+                            <enableLazyInitialization>true</enableLazyInitialization>
+                            <enableDirtyTracking>true</enableDirtyTracking>
+                            <enableAssociationManagement>true</enableAssociationManagement>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin-->
@@ -571,6 +510,12 @@
                             <goal>test-compile</goal>
                         </goals>
                         <configuration>
+                            <!--args> Used for testing enhancers.
+                                <arg>-Xjsr305=strict</arg>
+                            </args>
+                            <compilerPlugins>
+                                <plugin>all-open</plugin>
+                            </compilerPlugins-->
                             <sourceDirs>
                                 <sourceDir>${project.basedir}/src/test/kotlin</sourceDir>
                                 <sourceDir>${project.basedir}/src/test/java</sourceDir>
@@ -578,6 +523,18 @@
                         </configuration>
                     </execution>
                 </executions>
+                <!--dependencies> Checks with enhancers. Not needed for production.
+                    <dependency>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-allopen</artifactId>
+                        <version>${kotlin.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-noarg</artifactId>
+                        <version>${kotlin.version}</version>
+                    </dependency>
+                </dependencies-->
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -634,10 +591,10 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
+            <!--plugin>
                 <groupId>org.jvnet.jaxb2.maven2</groupId>
                 <artifactId>maven-jaxb2-plugin</artifactId>
-                <version>0.14.0</version>
+                <version>0.15.3</version>
                 <executions>
                     <execution>
                         <goals>
@@ -652,6 +609,27 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin-->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>jaxb2-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>xjc</id>
+                        <goals>
+                            <goal>xjc</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <sources>
+                        <source>src/main/resources/misc/pain.001.003.03.xsd</source>
+                    </sources>
+                    <outputDirectory>${basedir}/target/generated-sources/xjc</outputDirectory>
+                    <clearOutputDir>false</clearOutputDir>
+                    <packageName>org.projectforge.generated</packageName>
+                </configuration>
             </plugin>
         </plugins>
         <pluginManagement>

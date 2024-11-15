@@ -41,8 +41,8 @@ import org.springframework.util.unit.DataSize
 import org.springframework.util.unit.DataUnit
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
-import javax.annotation.PostConstruct
-import javax.servlet.http.HttpServletRequest
+import jakarta.annotation.PostConstruct
+import jakarta.servlet.http.HttpServletRequest
 
 
 private val log = KotlinLogging.logger {}
@@ -78,7 +78,7 @@ class AddressImageServicesRest {
    * stored in the user's session and will be used for the next update or save event.
    */
   @PostMapping("uploadImage/{id}")
-  fun uploadFile(@PathVariable("id") id: Int?, @RequestParam("file") file: MultipartFile, request: HttpServletRequest):
+  fun uploadFile(@PathVariable("id") id: Long?, @RequestParam("file") file: MultipartFile, request: HttpServletRequest):
       ResponseEntity<*> {
     val filename = file.originalFilename
     if (filename == null || !filename.endsWith(".png", true)) {
@@ -99,7 +99,7 @@ class AddressImageServicesRest {
    * @param id The id of the address the image is assigned to.
    */
   @GetMapping("image/{id}")
-  fun getImage(@PathVariable("id") id: Int): ResponseEntity<Resource> {
+  fun getImage(@PathVariable("id") id: Long): ResponseEntity<Resource> {
     val image = addressImageDao.getImage(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
     val resource = ByteArrayResource(image)
     return RestUtils.downloadFile("ProjectForge-addressImage_$id.png", resource)
@@ -109,7 +109,7 @@ class AddressImageServicesRest {
    * @param id The id of the address the image is assigned to.
    */
   @GetMapping("imagePreview/{id}")
-  fun getImagePreview(@PathVariable("id") id: Int): ResponseEntity<Resource> {
+  fun getImagePreview(@PathVariable("id") id: Long): ResponseEntity<Resource> {
     val image = addressImageDao.getPreviewImage(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
     val resource = ByteArrayResource(image)
     return RestUtils.downloadFile("ProjectForge-addressImagePreview_$id.png", resource)
@@ -121,7 +121,7 @@ class AddressImageServicesRest {
    * @param id The id of the address the image is assigned to.
    */
   @DeleteMapping("deleteImage/{id}")
-  fun deleteImage(request: HttpServletRequest, @PathVariable("id") id: Int?): ResponseEntity<String> {
+  fun deleteImage(request: HttpServletRequest, @PathVariable("id") id: Long?): ResponseEntity<String> {
     val session = request.getSession(false)
     ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
     if (id != null && id > 0) {

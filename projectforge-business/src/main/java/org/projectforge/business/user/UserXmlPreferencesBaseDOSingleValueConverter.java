@@ -31,7 +31,7 @@ import org.springframework.context.ApplicationContext;
 
 /**
  * Converts BaseDO from and to strings (using the id).
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class UserXmlPreferencesBaseDOSingleValueConverter implements SingleValueConverter
@@ -47,10 +47,10 @@ public class UserXmlPreferencesBaseDOSingleValueConverter implements SingleValue
 
   /**
    * Marshals only the id and unmarshals by loading the instance by id from the dao.
-   * 
+   *
    * @param daoClass Class of the dao.
    * @param doClass Class of the DO which will be converted.
-   * @see BaseDao#getOrLoad(Integer)
+   * @see BaseDao#findOrLoad(Long)
    */
   public UserXmlPreferencesBaseDOSingleValueConverter(ApplicationContext applicationContext,
       final Class<? extends BaseDao<?>> daoClass,
@@ -88,13 +88,13 @@ public class UserXmlPreferencesBaseDOSingleValueConverter implements SingleValue
     if (StringUtils.isBlank(str)) {
       return null;
     }
-    final Integer id = Integer.parseInt(str);
+    final Long id = Long.parseLong(str);
     final BaseDao<?> dao = applicationContext.getBean(daoClass);
     if (dao == null) {
       log.error("Could not get dao '" + daoClass + "'. It's not registerd in the Registry.");
       return null;
     } else {
-      return dao.getOrLoad(id);
+      return dao.findOrLoad(id);
     }
   }
 }

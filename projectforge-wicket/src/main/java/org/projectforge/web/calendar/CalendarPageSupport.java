@@ -30,9 +30,9 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
-import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
@@ -45,8 +45,6 @@ public class CalendarPageSupport implements Serializable
 {
   private static final long serialVersionUID = 8223888624685052575L;
 
-  private AccessChecker accessChecker;
-
   private final PFUserDO user;
 
   private final ISelectCallerPage parentPage;
@@ -55,11 +53,10 @@ public class CalendarPageSupport implements Serializable
 
   private UserSelectPanel userSelectPanel;
 
-  public CalendarPageSupport(final ISelectCallerPage parentPage, AccessChecker accessChecker)
+  public CalendarPageSupport(final ISelectCallerPage parentPage)
   {
     this.parentPage = parentPage;
-    this.user = ThreadLocalUserContext.getUser();
-    this.accessChecker = accessChecker;
+    this.user = ThreadLocalUserContext.getLoggedInUser();
   }
 
   public UserSelectPanel addUserSelectPanel(final FieldsetPanel fieldset, final IModel<PFUserDO> model,
@@ -77,7 +74,7 @@ public class CalendarPageSupport implements Serializable
   public void addOptions(final DivPanel checkBoxDivPanel, final boolean autoSubmit,
       final ICalendarFilter filter)
   {
-    if (accessChecker.isRestrictedUser(user) == true || showOptions == false) {
+    if (WicketSupport.getAccessChecker().isRestrictedUser(user) == true || showOptions == false) {
       return;
     }
     if (isOtherTimesheetsUsersAllowed() == false) {
@@ -122,7 +119,7 @@ public class CalendarPageSupport implements Serializable
    */
   public boolean isOtherTimesheetsUsersAllowed()
   {
-    return accessChecker.hasLoggedInUserAccessToTimesheetsOfOtherUsers();
+    return WicketSupport.getAccessChecker().hasLoggedInUserAccessToTimesheetsOfOtherUsers();
   }
 
   /**

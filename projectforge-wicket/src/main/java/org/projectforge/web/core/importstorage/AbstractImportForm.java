@@ -40,111 +40,97 @@ import org.projectforge.web.wicket.flowlayout.RadioGroupPanel;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class AbstractImportForm<F, P extends AbstractImportPage<?>, S extends AbstractImportStoragePanel<?>> extends AbstractStandardForm<F, P>
-{
-  private static final long serialVersionUID = -334887092842775629L;
+public abstract class AbstractImportForm<F, P extends AbstractImportPage<?>, S extends AbstractImportStoragePanel<?>> extends AbstractStandardForm<F, P> {
+    private static final long serialVersionUID = -334887092842775629L;
 
-  protected FileUploadField fileUploadField;
+    protected FileUploadField fileUploadField;
 
-  protected S storagePanel;
+    protected S storagePanel;
 
-  protected ImportFilter importFilter;
+    protected ImportFilter importFilter;
 
-  public AbstractImportForm(final P parentPage)
-  {
-    super(parentPage);
-    initUpload(Bytes.megabytes(10));
-    importFilter = new ImportFilter();
-  }
-
-  /**
-   * @return this for chaining.
-   */
-  @SuppressWarnings("serial")
-  protected AbstractImportForm<F, P, S> addClearButton(final FieldsetPanel fs)
-  {
-    fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("clearStorage"))
-    {
-      @Override
-      public final void onSubmit()
-      {
-        parentPage.clear();
-      }
-    }, getString("common.import.clearStorage"), SingleButtonPanel.RESET)
-    {
-      /**
-       * @see org.apache.wicket.Component#isVisible()
-       */
-      @Override
-      public boolean isVisible()
-      {
-        return storagePanel.isVisible();
-      }
-    });
-    return this;
-  }
-
-  /**
-   * @return this for chaining.
-   */
-  @SuppressWarnings("serial")
-  protected AbstractImportForm<F, P, S> addImportFilterRadio(final GridBuilder gridBuilder)
-  {
-    final FieldsetPanel fs = new FieldsetPanel(gridBuilder.getPanel(), getString("filter"))
-    {
-      /**
-       * @see org.apache.wicket.Component#isVisible()
-       */
-      @Override
-      public boolean isVisible()
-      {
-        return storagePanel.isVisible();
-      }
-    };
-    final DivPanel radioGroupPanel = fs.addNewRadioBoxButtonDiv();
-    final RadioGroupPanel<String> radioGroup = new RadioGroupPanel<String>(radioGroupPanel.newChildId(), "filterType",
-        new PropertyModel<String>(importFilter, "listType"), new FormComponentUpdatingBehavior());
-    radioGroupPanel.add(radioGroup);
-    fs.setLabelFor(radioGroup.getRadioGroup());
-    radioGroup.add(new Model<String>("all"), getString("filter.all"));
-    radioGroup.add(new Model<String>("modified"), getString("modified"));
-    radioGroup.add(new Model<String>("faulty"), getString("filter.faulty"));
-    return this;
-  }
-
-  @Override
-  public void onBeforeRender()
-  {
-    refresh();
-    super.onBeforeRender();
-  }
-
-  protected ImportStorage<?> getStorage()
-  {
-    return storagePanel.storage;
-  }
-
-  protected void setStorage(final ImportStorage<?> storage)
-  {
-    storagePanel.storage = storage;
-  }
-
-  protected void setErrorProperties(final Map<String, Set<Object>> errorProperties)
-  {
-    storagePanel.errorProperties = errorProperties;
-  }
-
-  protected void refresh()
-  {
-    storagePanel.storage = getStorage();
-    if (storagePanel.storage == null) {
-      storagePanel.storage = (ImportStorage<?>) parentPage.getUserPrefEntry(parentPage.getStorageKey());
+    public AbstractImportForm(final P parentPage) {
+        super(parentPage);
+        initUpload(Bytes.megabytes(10));
+        importFilter = new ImportFilter();
     }
-    if (storagePanel.storage == null) {
-      storagePanel.setVisible(false);
-      return;
+
+    /**
+     * @return this for chaining.
+     */
+    @SuppressWarnings("serial")
+    protected AbstractImportForm<F, P, S> addClearButton(final FieldsetPanel fs) {
+        fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("clearStorage")) {
+            @Override
+            public final void onSubmit() {
+                parentPage.clear();
+            }
+        }, getString("common.import.clearStorage"), SingleButtonPanel.RESET) {
+            /**
+             * @see org.apache.wicket.Component#isVisible()
+             */
+            @Override
+            public boolean isVisible() {
+                return storagePanel.isVisible();
+            }
+        });
+        return this;
     }
-    storagePanel.setVisible(true);
-    storagePanel.refresh();
-  }
+
+    /**
+     * @return this for chaining.
+     */
+    @SuppressWarnings("serial")
+    protected AbstractImportForm<F, P, S> addImportFilterRadio(final GridBuilder gridBuilder) {
+        final FieldsetPanel fs = new FieldsetPanel(gridBuilder.getPanel(), getString("filter")) {
+            /**
+             * @see org.apache.wicket.Component#isVisible()
+             */
+            @Override
+            public boolean isVisible() {
+                return storagePanel.isVisible();
+            }
+        };
+        final DivPanel radioGroupPanel = fs.addNewRadioBoxButtonDiv();
+        final RadioGroupPanel<String> radioGroup = new RadioGroupPanel<String>(radioGroupPanel.newChildId(), "filterType",
+                new PropertyModel<String>(importFilter, "listType"), new FormComponentUpdatingBehavior());
+        radioGroupPanel.add(radioGroup);
+        fs.setLabelFor(radioGroup.getRadioGroup());
+        radioGroup.add(new Model<String>("all"), getString("filter.all"));
+        radioGroup.add(new Model<String>("modified"), getString("modified"));
+        radioGroup.add(new Model<String>("faulty"), getString("filter.faulty"));
+        return this;
+    }
+
+    @Override
+    public void onBeforeRender() {
+        refresh();
+        super.onBeforeRender();
+    }
+
+    protected ImportStorage<?> getStorage() {
+        return storagePanel.getStorage();
+    }
+
+    protected void setStorage(ImportStorage<?> storage) {
+        storagePanel.setStorage(storage);
+    }
+
+    protected void clearStorage() {
+        storagePanel.clearStorage();
+    }
+
+    protected void setErrorProperties(final Map<String, Set<Object>> errorProperties) {
+        storagePanel.errorProperties = errorProperties;
+    }
+
+    protected void refresh() {
+        ImportStorage<?> storage = getStorage();
+        if (storage == null) {
+            storagePanel.setVisible(false);
+            return;
+        }
+        storagePanel.setVisible(true);
+        storagePanel.refresh();
+    }
 }

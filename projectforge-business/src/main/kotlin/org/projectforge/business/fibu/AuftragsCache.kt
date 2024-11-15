@@ -23,149 +23,235 @@
 
 package org.projectforge.business.fibu
 
+import jakarta.annotation.PostConstruct
+import mu.KotlinLogging
+import org.projectforge.common.logging.LogDuration
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
-import org.projectforge.framework.persistence.api.BaseDOChangedListener
+import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
-import javax.annotation.PostConstruct
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Open needed by Wicket's SpringBean.
  */
 @Service
-open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOChangedListener<RechnungDO> {
+class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
+    @Autowired
+    private lateinit var auftragsCacheService: AuftragsCacheService
 
-  class OrderInfo(
-    val netSum: BigDecimal,
-    val akquiseSum: BigDecimal,
-    val invoicedSum: BigDecimal,
-    val toBeInvoicedSum: BigDecimal,
-    val notYetInvoicedSum: BigDecimal,
-    val beauftragtNettoSumme: BigDecimal,
-    val isVollstaendigFakturiert: Boolean,
-    val positionAbgeschlossenUndNichtVollstaendigFakturiert: Boolean,
-    val paymentSchedulesReached: Boolean,
-  ) {
-    val toBeInvoiced: Boolean = toBeInvoicedSum > BigDecimal.ZERO
-  }
+    @Autowired
+    private lateinit var rechnungDao: RechnungDao
 
-  @Autowired
-  private lateinit var rechnungCache: RechnungCache
+    @Autowired
+    private lateinit var auftragDao: AuftragDao
 
-  @Autowired
-  private lateinit var rechnungDao: RechnungDao
+    private var orderInfoMap = mutableMapOf<Long, OrderInfo>()
 
-  private var orderMap = mutableMapOf<Int, OrderInfo>()
+    private var orderPositionIdsMapByOrder = mutableMapOf<Long, MutableList<Long>>()
 
-  @PostConstruct
-  private fun init() {
-    instance = this
-    rechnungDao.register(this)
-  }
+    private var orderPositionMapByPosId = mutableMapOf<Long, OrderPositionInfo>()
 
-  open fun setValues(order: AuftragDO) {
-    val info = getOrderInfo(order)
-    order.invoicedSum = info.invoicedSum
-    order.toBeInvoicedSum = info.toBeInvoicedSum
-    order.notYetInvoicedSum = info.notYetInvoicedSum
-  }
+    private var toBeInvoicedCounter: Int? = null
 
-  open fun getFakturiertSum(order: AuftragDO?): BigDecimal {
-    if (order == null) {
-      return BigDecimal.ZERO
+    @PostConstruct
+    private fun init() {
+        instance = this
+        auftragDao.auftragsCache = this
+        rechnungDao.register(rechnungListener)
+        auftragDao.register(auftragListener)
     }
-    return getOrderInfo(order).invoicedSum
-  }
 
-  open fun isVollstaendigFakturiert(order: AuftragDO): Boolean {
-    return getOrderInfo(order).isVollstaendigFakturiert
-  }
-
-  open fun isPositionAbgeschlossenUndNichtVollstaendigFakturiert(order: AuftragDO): Boolean {
-    return getOrderInfo(order).positionAbgeschlossenUndNichtVollstaendigFakturiert
-  }
-
-  open fun isPaymentSchedulesReached(order: AuftragDO): Boolean {
-    return getOrderInfo(order).paymentSchedulesReached
-  }
-
-  open fun getOrderInfo(order: AuftragDO): OrderInfo {
-    synchronized(orderMap) {
-      orderMap[order.id]?.let {
-        return it
-      }
-    }
-    var invoicedSum = BigDecimal.ZERO
-    var positionAbgeschlossenUndNichtVollstaendigFakturiert = false
-    order.positionenExcludingDeleted.forEach { pos ->
-      rechnungCache.getRechnungsPositionVOSetByAuftragsPositionId(pos.id)?.let { set ->
-        invoicedSum += RechnungDao.getNettoSumme(set)
-      }
-      if (pos.toBeInvoiced) {
-        positionAbgeschlossenUndNichtVollstaendigFakturiert = true
-      }
-    }
-    var paymentSchedulesReached = false
-    order.paymentSchedules?.let { paymentSchedules ->
-      for (schedule in paymentSchedules) {
-        if (!schedule.isDeleted && schedule.reached && !schedule.vollstaendigFakturiert) {
-          paymentSchedulesReached = true
-          break
+    fun getOrderPositionInfosByAuftragId(auftragId: Long?): Collection<OrderPositionInfo>? {
+        auftragId ?: return null
+        checkRefresh()
+        synchronized(orderPositionMapByPosId) {
+            // val list = orderPositionMapByPosId.values.filter { it.auftragId == auftragId }
+            return orderPositionMapByPosId.values.filter { it.auftragId == auftragId }
         }
-      }
     }
-    var akquiseSum = BigDecimal.ZERO
-    val status = order.auftragsStatus ?: AuftragsStatus.IN_ERSTELLUNG
-    if (status.isIn(AuftragsStatus.POTENZIAL, AuftragsStatus.IN_ERSTELLUNG, AuftragsStatus.GELEGT)) {
-      akquiseSum = order.nettoSumme
-    }
-    order.invoicedSum = invoicedSum
-    val info = OrderInfo(
-      netSum = order.nettoSumme,
-      akquiseSum = akquiseSum,
-      invoicedSum = invoicedSum,
-      toBeInvoicedSum = order.toBeInvoicedSum ?: BigDecimal.ZERO,
-      notYetInvoicedSum = order.notYetInvoicedSum ?: BigDecimal.ZERO,
-      beauftragtNettoSumme = order.beauftragtNettoSumme,
-      isVollstaendigFakturiert = order.isVollstaendigFakturiert,
-      positionAbgeschlossenUndNichtVollstaendigFakturiert = positionAbgeschlossenUndNichtVollstaendigFakturiert,
-      paymentSchedulesReached = paymentSchedulesReached,
-    )
-    order.id?.let { id -> // id might be null on test cases.
-      synchronized(orderMap) {
-        orderMap[id] = info
-      }
-    }
-    return info
-  }
 
-  fun setExpired(order: AuftragDO) {
-    synchronized(orderMap) {
-      orderMap.remove(order.id)
+    fun getOrderPositionInfo(auftragsPositionId: Long?): OrderPositionInfo? {
+        auftragsPositionId ?: return null
+        checkRefresh()
+        synchronized(orderPositionMapByPosId) {
+            return orderPositionMapByPosId[auftragsPositionId]
+        }
     }
-  }
 
-  override fun refresh() {
-    synchronized(orderMap) {
-      orderMap.clear()
+    fun getFakturiertSum(order: AuftragDO?): BigDecimal {
+        if (order == null) {
+            return BigDecimal.ZERO
+        }
+        checkRefresh()
+        return getOrderInfo(order).invoicedSum
     }
-  }
 
-  /**
-   * Set order as expired, if any invoice on this order was changed.
-   */
-  override fun afterSaveOrModify(changedObject: RechnungDO, operationType: OperationType) {
-    changedObject.positionen?.forEach { pos ->
-      pos.auftragsPosition?.auftrag?.let {
-        setExpired(it)
-      }
+    fun isVollstaendigFakturiert(order: AuftragDO): Boolean {
+        checkRefresh()
+        return getOrderInfo(order).isVollstaendigFakturiert
     }
-  }
 
-  companion object {
-    lateinit var instance: AuftragsCache
-      private set
-  }
+    fun isPositionAbgeschlossenUndNichtVollstaendigFakturiert(order: AuftragDO): Boolean {
+        checkRefresh()
+        return getOrderInfo(order).positionAbgeschlossenUndNichtVollstaendigFakturiert
+    }
+
+    fun isPaymentSchedulesReached(order: AuftragDO): Boolean {
+        checkRefresh()
+        return getOrderInfo(order).paymentSchedulesReached
+    }
+
+    /**
+     * Number of all orders (finished, signed or escalated) which has to be invoiced.
+     */
+    fun getToBeInvoicedCounter(): Int {
+        if (toBeInvoicedCounter != null) {
+            return toBeInvoicedCounter!!
+        }
+        synchronized(orderInfoMap) {
+            val counter = orderInfoMap.values.count { it.toBeInvoiced }
+            log.debug {
+                "To be invoiced counter=$counter: ${
+                    orderInfoMap.values.filter { it.toBeInvoiced }.joinToString { it.nummer.toString() }
+                }"
+            }
+            toBeInvoicedCounter = counter
+            return counter
+        }
+    }
+
+    fun setOrderInfo(order: AuftragDO, checkRefresh: Boolean = true) {
+        order.info = getOrderInfo(order, checkRefresh = checkRefresh)
+    }
+
+    fun getOrderInfo(orderId: Long?): OrderInfo? {
+        orderId ?: return null
+        checkRefresh()
+        synchronized(orderInfoMap) {
+            return orderInfoMap[orderId]
+        }
+    }
+
+    fun getOrderInfoByPositionId(positionInfoId: Long?): OrderInfo? {
+        positionInfoId ?: return null
+        checkRefresh()
+        synchronized(orderPositionMapByPosId) {
+            return orderPositionMapByPosId[positionInfoId]?.auftrag
+        }
+    }
+
+
+    /**
+     * @param checkRefresh If true, the cache will be checked for refresh (needed for avoiding deadlocks).
+     */
+    @JvmOverloads
+    fun getOrderInfo(order: AuftragDO, checkRefresh: Boolean = true): OrderInfo {
+        if (checkRefresh) {
+            checkRefresh()
+        }
+        synchronized(orderInfoMap) {
+            return orderInfoMap[order.id] ?: OrderInfo()
+        }
+        /*
+        val info = readOrderInfo(order)
+        order.id?.let { id -> // id might be null on test cases.
+            synchronized(orderInfoMap) {
+                orderInfoMap[id] = info
+            }
+        }
+        return info*/
+    }
+
+    fun setExpired(order: AuftragDO) {
+        setExpired()
+        /*val orderId = order.id ?: return
+        synchronized(orderInfoMap) {
+            orderInfoMap[orderId] = readOrderInfo(order)
+        }*/
+        toBeInvoicedCounter = null // Force recalculation.
+    }
+
+    override fun setExpired() {
+        /*synchronized(orderPositionMapByPosId) {
+            orderPositionMapByPosId.clear()
+        }*/
+        super.setExpired()
+        toBeInvoicedCounter = null // Force recalculation.
+    }
+
+    override fun refresh() {
+        log.info("Refreshing AuftragsCache...")
+        val duration = LogDuration()
+        // Don't use fetch.
+        val orderPositions = auftragsCacheService.selectNonDeletedAuftragsPositions().groupBy { it.auftrag?.id }
+        val orders = auftragsCacheService.selectAuftragsList()
+        val paymentSchedules = auftragsCacheService.selectNonDeletedPaymentSchedules().groupBy { it.auftrag?.id }
+        val nOrderInfoMap = mutableMapOf<Long, OrderInfo>()
+        val nOrderPositionMapByPosId = mutableMapOf<Long, OrderPositionInfo>()
+        val nOrderPositionIdsMapByOrder = mutableMapOf<Long, MutableList<Long>>()
+        val nOrderPositionInfosByOrderId = mutableMapOf<Long, MutableList<OrderPositionInfo>>()
+        orders.forEach { order ->
+            nOrderInfoMap[order.id!!] = order.info.also {
+                it.updateFields(order)
+            }
+        }
+        orderPositions.forEach orderPositions@{ (auftragId, positions) ->
+            positions.forEach { pos ->
+                val orderInfo = nOrderInfoMap[auftragId]
+                if (orderInfo == null) {
+                    log.error { "Internal error: Order #$auftragId not found for position $pos" }
+                    return@orderPositions
+                }
+                val posInfo = OrderPositionInfo(pos, orderInfo)
+                nOrderPositionMapByPosId[pos.id!!] = posInfo
+                nOrderPositionIdsMapByOrder.computeIfAbsent(auftragId!!) { mutableListOf() }.add(pos.id!!)
+                nOrderPositionInfosByOrderId.computeIfAbsent(auftragId) { mutableListOf() }.add(posInfo)
+            }
+        }
+        orders.forEach { order ->
+            log.debug { "Cached payment schedules for order ${order.id}: ${paymentSchedules[order.id]?.size}" }
+            order.info.calculateAll(
+                order,
+                nOrderPositionInfosByOrderId[order.id],
+                paymentSchedules[order.id]
+            )
+        }
+        orderInfoMap = nOrderInfoMap
+        orderPositionMapByPosId = nOrderPositionMapByPosId
+        orderPositionIdsMapByOrder = nOrderPositionIdsMapByOrder
+        toBeInvoicedCounter = null // Force recalculation.
+        log.info { "AuftragsCache.refresh done: ${duration.toSeconds()}" }
+    }
+
+    private val rechnungListener = object : BaseDOModifiedListener<RechnungDO> {
+        /**
+         * Set order as expired, if any invoice on this order was changed.
+         */
+        override fun afterInsertOrModify(obj: RechnungDO, operationType: OperationType) {
+            setExpired()
+            /*obj.positionen?.forEach { pos ->
+                pos.auftragsPosition?.auftrag?.let {
+                    setExpired(it)
+                }
+            }*/
+        }
+    }
+
+    private val auftragListener = object : BaseDOModifiedListener<AuftragDO> {
+        /**
+         * Set order as expired, if any invoice on this order was changed.
+         */
+        override fun afterInsertOrModify(obj: AuftragDO, operationType: OperationType) {
+            setExpired()
+        }
+    }
+
+    companion object {
+        lateinit var instance: AuftragsCache
+            private set
+    }
 }

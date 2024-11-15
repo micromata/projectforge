@@ -27,19 +27,20 @@ import org.projectforge.business.user.*;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@me.de)
- * 
+ *
  */
 public class HRPlanningRight extends UserRightAccessCheck<HRPlanningDO>
 {
   private static final long serialVersionUID = 3318798287641861759L;
 
-  public HRPlanningRight(AccessChecker accessChecker)
+  public HRPlanningRight()
   {
-    super(accessChecker, UserRightId.PM_HR_PLANNING, UserRightCategory.PM,
+    super(UserRightId.PM_HR_PLANNING, UserRightCategory.PM,
         UserRightServiceImpl.FALSE_READONLY_READWRITE);
     initializeUserGroupsRight(UserRightServiceImpl.FALSE_READONLY_READWRITE, UserRightServiceImpl.FIBU_ORGA_PM_GROUPS)
         // All project managers have read write access:
@@ -65,6 +66,7 @@ public class HRPlanningRight extends UserRightAccessCheck<HRPlanningDO>
   @Override
   public boolean hasSelectAccess(final PFUserDO user, final HRPlanningDO obj)
   {
+    var accessChecker = WicketSupport.getAccessChecker();
     if (accessChecker.userEquals(user, obj.getUser())) {
       return true;
     }
@@ -75,17 +77,17 @@ public class HRPlanningRight extends UserRightAccessCheck<HRPlanningDO>
   public boolean hasAccess(final PFUserDO user, final HRPlanningDO obj, final HRPlanningDO oldObj,
       final OperationType operationType)
   {
-    return accessChecker.hasRight(user, getId(), UserRightValue.READWRITE);
+    return WicketSupport.getAccessChecker().hasRight(user, getId(), UserRightValue.READWRITE);
   }
 
   /**
    * History access only allowed for users with read and/or write access.
-   * 
+   *
    * @see org.projectforge.business.user.UserRightAccessCheck#hasHistoryAccess(java.lang.Object)
    */
   @Override
   public boolean hasHistoryAccess(final PFUserDO user, final HRPlanningDO obj)
   {
-    return accessChecker.hasRight(user, getId(), UserRightValue.READONLY, UserRightValue.READWRITE);
+    return WicketSupport.getAccessChecker().hasRight(user, getId(), UserRightValue.READONLY, UserRightValue.READWRITE);
   }
 }

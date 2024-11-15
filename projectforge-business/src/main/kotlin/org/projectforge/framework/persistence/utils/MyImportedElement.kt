@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.utils
 
-import de.micromata.genome.util.strings.ShortDisplayable
 import de.micromata.merlin.excel.importer.ImportedElement
 import de.micromata.merlin.excel.importer.ImportedSheet
 import org.projectforge.framework.DisplayNameCapable
@@ -38,7 +37,6 @@ open class MyImportedElement<T>(importedSheet: ImportedSheet<T>,
         if (value == null)
             return null
         return when (value) {
-            is ShortDisplayable -> value.toShortString()
             is DisplayNameCapable -> value.displayName
             else -> value.toString()
         }

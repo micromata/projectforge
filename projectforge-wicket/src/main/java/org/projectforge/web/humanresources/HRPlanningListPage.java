@@ -31,15 +31,14 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.humanresources.HRPlanningDao;
 import org.projectforge.business.humanresources.HRPlanningEntryDO;
 import org.projectforge.business.humanresources.HRPlanningEntryDao;
-import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.jira.JiraUtils;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.core.PriorityFormatter;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.user.UserPropertyColumn;
@@ -61,18 +60,6 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
 
   private static final long serialVersionUID = 8582874051700734977L;
 
-  @SpringBean
-  private HRPlanningDao hrPlanningDao;
-
-  @SpringBean
-  private HRPlanningEntryDao hrPlanningEntryDao;
-
-  @SpringBean
-  private PriorityFormatter priorityFormatter;
-
-  @SpringBean
-  private UserFormatter userFormatter;
-
   private Boolean fullAccess;
 
   public HRPlanningListPage(final PageParameters parameters) {
@@ -88,7 +75,7 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
       public void populateItem(final Item<ICellPopulator<HRPlanningEntryDO>> item, final String componentId,
                                final IModel<HRPlanningEntryDO> rowModel) {
         final HRPlanningEntryDO entry = rowModel.getObject();
-        appendCssClasses(item, entry.getPlanningId(), entry.isDeleted());
+        appendCssClasses(item, entry.getPlanningId(), entry.getDeleted());
       }
     };
     columns
@@ -109,7 +96,7 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
                 }
                 cellItemListener.populateItem(item, componentId, rowModel);
               }
-            }.withUserFormatter(userFormatter));
+            });
     columns.add(new CellItemListenerPropertyColumn<HRPlanningEntryDO>(getString("calendar.year"), "planning.week",
             "planning.week",
             cellItemListener) {
@@ -137,7 +124,7 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
               @Override
               public void populateItem(final Item<ICellPopulator<HRPlanningEntryDO>> item, final String componentId,
                                        final IModel<HRPlanningEntryDO> rowModel) {
-                final String formattedPriority = priorityFormatter.getFormattedPriority(rowModel.getObject().getPriority());
+                final String formattedPriority = WicketSupport.get(PriorityFormatter.class).getFormattedPriority(rowModel.getObject().getPriority());
                 final Label label = new Label(componentId, new Model<String>(formattedPriority));
                 label.setEscapeModelStrings(false);
                 item.add(label);
@@ -220,8 +207,6 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
 
   /**
    * Get the current date (start date) and preset this date for the edit page.
-   *
-   * @see org.projectforge.web.wicket.AbstractListPage#onNewEntryClick(org.apache.wicket.PageParameters)
    */
   @Override
   protected AbstractEditPage<?, ?, ?> redirectToEditPage(PageParameters params) {
@@ -247,13 +232,13 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
    */
   @Override
   protected List<HRPlanningEntryDO> buildList() {
-    final List<HRPlanningEntryDO> list = hrPlanningEntryDao.getList(form.getSearchFilter());
+    final List<HRPlanningEntryDO> list = getBaseDao().select(form.getSearchFilter());
     return list;
   }
 
   @Override
   public HRPlanningEntryDao getBaseDao() {
-    return hrPlanningEntryDao;
+    return WicketSupport.get(HRPlanningEntryDao.class);
   }
 
   @Override
@@ -264,11 +249,11 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
   @Override
   public void select(final String property, final Object selectedValue) {
     if ("projektId".equals(property)) {
-      form.getSearchFilter().setProjektId((Integer) selectedValue);
+      form.getSearchFilter().setProjektId((Long) selectedValue);
       form.projektSelectPanel.getTextField().modelChanged();
       refresh();
     } else if ("userId".equals(property)) {
-      form.getSearchFilter().setUserId((Integer) selectedValue);
+      form.getSearchFilter().setUserId((Long) selectedValue);
       refresh();
     } else if (property.startsWith("quickSelect.")) { // month".equals(property) == true) {
       final LocalDate date = (LocalDate) selectedValue;
@@ -313,7 +298,7 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
 
   protected boolean hasFullAccess() {
     if (fullAccess == null) {
-      fullAccess = hrPlanningDao.hasLoggedInUserInsertAccess(null, false);
+      fullAccess = WicketSupport.get(HRPlanningDao.class).hasLoggedInUserInsertAccess(null, false);
     }
     return fullAccess;
   }

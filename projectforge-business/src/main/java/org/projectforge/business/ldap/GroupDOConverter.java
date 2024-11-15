@@ -59,13 +59,13 @@ public class GroupDOConverter
 
   static final String ID_PREFIX = "pf-id-";
 
-  public Integer getId(final LdapGroup group)
+  public Long getId(final LdapGroup group)
   {
     final String businessCategory = group.getBusinessCategory();
     if (businessCategory != null && businessCategory.startsWith(ID_PREFIX)
         && businessCategory.length() > ID_PREFIX.length()) {
       final String id = businessCategory.substring(ID_PREFIX.length());
-      return NumberHelper.parseInteger(id);
+      return NumberHelper.parseLong(id);
     }
     return null;
   }
@@ -83,7 +83,7 @@ public class GroupDOConverter
     return group;
   }
 
-  public LdapGroup convert(final GroupDO pfGroup, final String baseDN, final Map<Integer, LdapUser> ldapUserMap)
+  public LdapGroup convert(final GroupDO pfGroup, final String baseDN, final Map<Long, LdapUser> ldapUserMap)
   {
     final LdapGroup ldapGroup = new LdapGroup();
     if (pfGroup.getId() != null) {
@@ -94,7 +94,7 @@ public class GroupDOConverter
     ldapGroup.setDescription(pfGroup.getDescription());
     if (pfGroup.getAssignedUsers() != null) {
       for (final PFUserDO user : pfGroup.getAssignedUsers()) {
-        if (user.getDeactivated() || user.isDeleted()) {
+        if (user.getDeactivated() || user.getDeleted()) {
           // Do not add deleted or deactivated users.
           continue;
         }
@@ -103,7 +103,7 @@ public class GroupDOConverter
           ldapGroup.addMember(ldapUser, baseDN);
         } else {
           final PFUserDO cacheUser = userGroupCache.getUser(user.getId());
-          if (cacheUser == null || !cacheUser.isDeleted()) {
+          if (cacheUser == null || !cacheUser.getDeleted()) {
             log.warn("LDAP user with id '"
                 + user.getId()
                 + "' not found in given ldapUserMap. User will be ignored in group '"

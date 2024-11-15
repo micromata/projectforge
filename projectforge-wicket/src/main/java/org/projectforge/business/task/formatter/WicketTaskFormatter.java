@@ -40,9 +40,9 @@ public class WicketTaskFormatter extends TaskFormatter
    * enableLinks = false, lineThroughDeletedTasks = true
    *
    * @param taskId
-   * @see #getTaskPath(Integer, boolean)
+   * @see #getTaskPath(Long, boolean)
    */
-  public static String getTaskPath(final RequestCycle requestCycle, final Integer taskId)
+  public static String getTaskPath(final RequestCycle requestCycle, final Long taskId)
   {
     return getTaskPath(requestCycle, taskId, true);
   }
@@ -53,7 +53,7 @@ public class WicketTaskFormatter extends TaskFormatter
    * @param taskId
    * @param enableLinks If true, every task title is associated with a link to EditTask.
    */
-  public static String getTaskPath(final RequestCycle requestCycle, final Integer taskId,
+  public static String getTaskPath(final RequestCycle requestCycle, final Long taskId,
       final boolean lineThroughDeletedTasks)
   {
     return getTaskPath(requestCycle, taskId, null, lineThroughDeletedTasks);
@@ -67,7 +67,7 @@ public class WicketTaskFormatter extends TaskFormatter
    * @param ancestorTaskId          If not null, the path will shown between taskId and ancestorTaskId. If mainTaskId is not an
    *                                ancestor of taskId, the whole path will be shown.
    */
-  public static String getTaskPath(final RequestCycle requestCycle, final Integer taskId, final Integer ancestorTaskId,
+  public static String getTaskPath(final RequestCycle requestCycle, final Long taskId, final Long ancestorTaskId,
       final boolean lineThroughDeletedTasks)
   {
     final TaskTree taskTree = TaskTreeHelper.getTaskTree();
@@ -76,7 +76,7 @@ public class WicketTaskFormatter extends TaskFormatter
     }
     final List<TaskNode> list = taskTree.getPath(taskId, ancestorTaskId);
     if (list.size() > 0) {
-      final StringBuffer buf = new StringBuffer();
+      final StringBuilder buf = new StringBuilder();
       int i = 0;
       for (final TaskNode node : list) {
         final TaskDO task = node.getTask();
@@ -94,14 +94,14 @@ public class WicketTaskFormatter extends TaskFormatter
   }
 
   /**
-   * Writes the html formatted task to the given StringBuffer.
+   * Writes the html formatted task to the given StringBuilder.
    *
    * @param buf
    * @param task
    * @param enableLink        If true, the task has a link to the EditTask.action.
    * @param showPathAsTooltip If true, an info icon with the whole task path as tooltip will be added.
    */
-  public static void appendFormattedTask(final RequestCycle requestCycle, final StringBuffer buf, TaskDO task,
+  public static void appendFormattedTask(final RequestCycle requestCycle, final StringBuilder buf, TaskDO task,
       final boolean showPathAsTooltip,
       final boolean lineThroughDeletedTask)
   {
@@ -121,7 +121,7 @@ public class WicketTaskFormatter extends TaskFormatter
       final TaskTree taskTree = TaskTreeHelper.getTaskTree();
       task = taskTree.getTaskById(task.getId());
     }
-    if (task.isDeleted() == true) {
+    if (task.getDeleted() == true) {
       if (lineThroughDeletedTask == true) {
         buf.append("<span");
         HtmlHelper.attribute(buf, "style", "text-decoration: line-through;");

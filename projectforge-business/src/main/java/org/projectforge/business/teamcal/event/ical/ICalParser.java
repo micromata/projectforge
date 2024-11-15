@@ -77,7 +77,7 @@ public class ICalParser
     this.parseVEvent = new ArrayList<>();
 
     // set user, timezone, locale
-    this.user = ThreadLocalUserContext.getUser();
+    this.user = ThreadLocalUserContext.getLoggedInUser();
     this.timeZone = ThreadLocalUserContext.getTimeZone();
     this.locale = ThreadLocalUserContext.getLocale();
 

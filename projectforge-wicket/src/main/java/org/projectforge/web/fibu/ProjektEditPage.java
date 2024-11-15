@@ -25,7 +25,6 @@ package org.projectforge.web.fibu;
 
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.ProjektDao;
 import org.projectforge.business.fibu.kost.Kost2DO;
@@ -35,6 +34,7 @@ import org.projectforge.reporting.Kost2Art;
 import org.projectforge.rest.core.AbstractPagesRest;
 import org.projectforge.rest.core.PagesResolver;
 import org.projectforge.rest.fibu.ProjectPagesRest;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.slf4j.Logger;
@@ -45,15 +45,6 @@ public class ProjektEditPage extends AbstractEditPage<ProjektDO, ProjektEditForm
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjektEditPage.class);
 
-  @SpringBean
-  private Kost2Dao kost2Dao;
-
-  @SpringBean
-  private ProjektDao projektDao;
-
-  @SpringBean
-  private UserPrefService userPrefService;
-
   public ProjektEditPage(final PageParameters parameters)
   {
     super(parameters, "fibu.projekt");
@@ -63,7 +54,7 @@ public class ProjektEditPage extends AbstractEditPage<ProjektDO, ProjektEditForm
   @Override
   protected ProjektDao getBaseDao()
   {
-    return projektDao;
+    return WicketSupport.get(ProjektDao.class);
   }
 
   @Override
@@ -75,13 +66,14 @@ public class ProjektEditPage extends AbstractEditPage<ProjektDO, ProjektEditForm
   @Override
   public AbstractSecuredBasePage afterSaveOrUpdate()
   {
+    var kost2Dao = WicketSupport.get(Kost2Dao.class);
     if (getData() != null && getData().getId() != null) {
       for (final Kost2Art art : form.kost2Arts) {
         if (art.isExistsAlready() == false && art.isSelected() == true) {
           final Kost2DO kost2 = new Kost2DO();
           kost2Dao.setProjekt(kost2, getData().getId());
           kost2Dao.setKost2Art(kost2, art.getId());
-          kost2Dao.save(kost2);
+          kost2Dao.insert(kost2);
         }
       }
     }
@@ -100,7 +92,7 @@ public class ProjektEditPage extends AbstractEditPage<ProjektDO, ProjektEditForm
       super.setResponsePage();
       return;
     }
-    userPrefService.putEntry("project", AbstractPagesRest.USER_PREF_PARAM_HIGHLIGHT_ROW, getData().getId(), false);
+    WicketSupport.get(UserPrefService.class).putEntry("project", AbstractPagesRest.USER_PREF_PARAM_HIGHLIGHT_ROW, getData().getId(), false);
     throw new RedirectToUrlException(PagesResolver.getListPageUrl(ProjectPagesRest.class, null, true));
   }
 
@@ -113,13 +105,14 @@ public class ProjektEditPage extends AbstractEditPage<ProjektDO, ProjektEditForm
   @Override
   public void select(final String property, final Object selectedValue)
   {
+    var projektDao = WicketSupport.get(ProjektDao.class);
     if ("kundeId".equals(property) == true) {
-      projektDao.setKunde(getData(), (Integer) selectedValue);
+      projektDao.setKunde(getData(), (Long) selectedValue);
       form.kundeSelectPanel.getTextField().modelChanged();
     } else if ("taskId".equals(property) == true) {
-      projektDao.setTask(getData(), (Integer) selectedValue);
+      projektDao.setTask(getData(), (Long) selectedValue);
     } else if ("projektManagerGroupId".equals(property) == true) {
-      projektDao.setProjektManagerGroup(getData(), (Integer) selectedValue);
+      projektDao.setProjektManagerGroup(getData(), (Long) selectedValue);
       form.groupSelectPanel.getTextField().modelChanged();
     } else {
       log.error("Property '" + property + "' not supported for selection.");

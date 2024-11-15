@@ -23,8 +23,8 @@
 
 package org.projectforge.rest.task
 
+import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.fibu.KostFormatter
-import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.KostHelper
 import org.projectforge.business.task.*
 import org.projectforge.business.user.ProjectForgeGroup
@@ -46,7 +46,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import javax.servlet.http.HttpServletRequest
 
 /**
  * For serving the task tree as tree or table..
@@ -54,374 +53,392 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("${Rest.URL}/task")
 class TaskServicesRest {
-  class Kost2(val id: Int, val title: String)
+    class Kost2(val id: Long, val title: String)
 
-  // class OrderPosition(val number: Int, val personDays: Int?, val title: String, val status: AuftragsPositionsStatus?)
-  class Order(
-    val number: String,
-    val title: String,
-    val text: String,
-    // val orderPositions: MutableList<OrderPosition>? = null
-  ) // Positions
+    // class OrderPosition(val number: Int, val personDays: Int?, val title: String, val status: AuftragsPositionsStatus?)
+    class Order(
+        val number: String,
+        val title: String,
+        val text: String,
+        // val orderPositions: MutableList<OrderPosition>? = null
+    ) // Positions
 
-  enum class TreeStatus { LEAF, OPENED, CLOSED }
-  class Task(
-    val id: Int,
-    /**
-     * Indent is only given for table view.
-     */
-    var indent: Int? = null,
-    /**
-     * All (opened) sub notes for table view or direct child notes for tree view
-     */
-    var children: MutableList<Task>? = null,
-    var treeStatus: TreeStatus? = null,
-    val title: String? = null,
-    val shortDescription: String? = null,
-    val protectTimesheetsUntil: PFDay? = null,
-    val reference: String? = null,
-    val priority: Priority? = null,
-    val status: TaskStatus? = null,
-    val responsibleUser: PFUserDO? = null,
-    /**
-     * References used in time-sheets for this task, or any ancestor or descendant task.
-     */
-    var timesheetReferenceList: List<String>? = null,
-    var kost2List: List<Kost2>? = null,
-    /**
-     * Kost2List as formatted numbers (separated in each line) for displaying in tooltip.
-     */
-    var kost2ListAsLines: String? = null,
-    /**
-     * Wild card form of kost2List, e. g. 5.123.456.*
-     */
-    var kost2WildCard: String? = null,
-    var path: List<Task>? = null,
-    var consumption: Consumption? = null,
-    var orderList: MutableList<Order>? = null
-  ) {
-    val statusAsString: String? = status?.i18nKey?.let {  translate(it) }
-
-    constructor(node: TaskNode) : this(
-      id = node.task.id, title = node.task.title, shortDescription = node.task.shortDescription,
-      protectTimesheetsUntil = PFDay.fromOrNull(node.task.protectTimesheetsUntil), reference = node.task.reference,
-      priority = node.task.priority, status = node.task.status, responsibleUser = node.task.responsibleUser
-    )
-
-    /**
-     * Only for creating a pseudo emty task.
-     */
-    constructor(title: String) : this(
-      id = -1, title = title
-    )
-  }
-
-  class Result(
-    val nodes: MutableList<Task> = mutableListOf(),
-    var initFilter: TaskFilter? = null,
-    var translations: MutableMap<String, String>? = null
-  ) {
-    var columnDefs: MutableList<UIAgGridColumnDef> = mutableListOf()
-  }
-
-  companion object {
-    private const val PREF_ARA = "task"
-
-    fun createTask(id: Int?): Task? {
-      if (id == null)
-        return null
-      val taskTree = TaskTree.getInstance()
-      val taskNode = taskTree.getTaskNodeById(id) ?: return null
-      val task = Task(taskNode)
-      addKost2List(task)
-      addTimesheetReferenceList(task)
-      task.consumption = Consumption.create(taskNode)
-      val pathToRoot = taskTree.getPathToRoot(taskNode.parentId)
-      val pathArray = mutableListOf<Task>()
-      pathToRoot?.forEach {
-        val ancestor = Task(id = it.task.id, title = it.task.title)
-        pathArray.add(ancestor)
-      }
-      task.path = pathArray
-      return task
-    }
-
-    fun addKost2List(task: Task, includeKost2ObjectList: Boolean = true) {
-      val kost2DOList = TaskTree.getInstance().getKost2List(task.id)
-      if (!kost2DOList.isNullOrEmpty()) {
-        if (includeKost2ObjectList) {  // Only if needed in tree, save bandwith...
-           val kost2List: List<Kost2> = kost2DOList.map {
-            Kost2((it as Kost2DO).id, KostFormatter.format(it, 80))
-          }
-          task.kost2List = kost2List
-        }
-        task.kost2WildCard = KostHelper.getWildCardString(kost2DOList, "*")
-        task.kost2ListAsLines = KostHelper.getFormattedNumberLines(kost2DOList)
-      }
-    }
-
-    fun addTimesheetReferenceList(task: Task) {
-      val timesheetReferenceList = listOf("Uni Kassel", "Uni Göttingen")
-      task.timesheetReferenceList =
-        timesheetReferenceList//Registry.getInstance().getDao(TimesheetDao::class.java).getUsedReferences(task.id)
-    }
-  }
-
-  private class BuildContext(
-    val result: Result,
-    val user: PFUserDO,
-    val taskFilter: TaskFilter,
-    val openedNodes: MutableSet<Int>,
-    var highlightedTaskNode: TaskNode? = null,
-  )
-
-  private val log = org.slf4j.LoggerFactory.getLogger(TaskServicesRest::class.java)
-
-  @Autowired
-  private lateinit var accessChecker: AccessChecker
-
-  @Autowired
-  private lateinit var listFilterService: ListFilterService
-
-  @Autowired
-  private lateinit var taskDao: TaskDao
-
-  @Autowired
-  private lateinit var taskTree: TaskTree
-
-  @Autowired
-  private lateinit var userPrefService: UserPrefService
-
-  /**
-   * Gets the user's task tree as tree matching the filter. The open task nodes will be restored from the user's prefs.
-   * @param initial If true, the layout info and translations are also returned. Default is to return only the tree data.
-   * @param open Optional task to open in the tree (if a descendent child of closed tasks, all ancestor tasks will be opened as well).
-   * @param close Optional task to close.
-   * @param table If true, the result will be returned flat with indent counter of each task node, otherwise a tree object is returned.
-   * @param opened Show opened tasks. For initial = true, this value is ignored.
-   * @param notOpened Show un-opened tasks. For initial = true, this value is ignored.
-   * @param closed Show closed tasks. For initial = true, this value is ignored.
-   * @param deleted Show deleted tasks. For initial = true, this value is ignored.
-   * @return json
-   */
-  @GetMapping("tree")
-  fun getTree(
-    request: HttpServletRequest,
-    @RequestParam("initial") initial: Boolean?,
-    @RequestParam("open") open: Int?,
-    @RequestParam("close") close: Int?,
-    @RequestParam("highlightedTaskId") highlightedTaskId: Int?,
-    @RequestParam("table") table: Boolean?,
-    @RequestParam("searchString") searchString: String?,
-    @RequestParam("opened") opened: Boolean?,
-    @RequestParam("notOpened") notOpened: Boolean?,
-    @RequestParam("closed") closed: Boolean?,
-    @RequestParam("deleted") deleted: Boolean?,
-    @RequestParam("showRootForAdmins") showRootForAdmins: Boolean?
-  )
-      : Result {
-    @Suppress("UNCHECKED_CAST")
-    val openNodes = userPrefService.ensureEntry(PREF_ARA, TaskTree.USER_PREFS_KEY_OPEN_TASKS, mutableSetOf<Int>())
-    val filter = listFilterService.getSearchFilter(request.getSession(false), TaskFilter::class.java) as TaskFilter
-
-    if (initial != true) {
-      // User filter settings not on initial call.
-      // On initial calls the stored filter will be used and returned for restoring in the client.
-      if (opened != null) filter.isOpened = opened
-      if (notOpened != null) filter.isNotOpened = notOpened
-      if (closed != null) filter.isClosed = closed
-      if (deleted != null) filter.isDeleted = deleted
-      filter.setSearchString(searchString)
-    }
-    if (!filter.isStatusSet) {
-      // Nothing will be found, so avoid no result by user's mistake:
-      filter.isOpened = true
-      filter.isNotOpened = true
-    }
-    val result = Result()
-    val ctx = BuildContext(result, ThreadLocalUserContext.user!!, filter, openNodes)
-    if (highlightedTaskId != null) {
-      ctx.highlightedTaskNode = taskTree.getTaskNodeById(highlightedTaskId)
-    }
-    openTask(ctx, open)
-    closeTask(ctx, close)
-    if (initial == true) {
-      openTask(ctx, highlightedTaskId) // Only open on initial call.
-    }
-    //UserPreferencesHelper.putEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS, expansion.getIds(), true)
-    filter.resetMatch() // taskFilter caches visibility, reset needed first.
-    val indent = if (table == true) 0 else null
-    val rootNode = taskTree.rootTaskNode
-    val root = Task(rootNode)
-    addKost2List(root)
-    buildTree(ctx, root, rootNode, indent)
-    if (showRootForAdmins == true && table == true && (accessChecker.isLoggedInUserMemberOfAdminGroup() ||
-          accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP))
+    enum class TreeStatus { LEAF, OPENED, CLOSED }
+    class Task(
+        val id: Long,
+        /**
+         * Indent is only given for table view.
+         */
+        var indent: Int? = null,
+        /**
+         * All (opened) sub notes for table view or direct child notes for tree view
+         */
+        var children: MutableList<Task>? = null,
+        var treeStatus: TreeStatus? = null,
+        val title: String? = null,
+        val shortDescription: String? = null,
+        val protectTimesheetsUntil: PFDay? = null,
+        val reference: String? = null,
+        val priority: Priority? = null,
+        val status: TaskStatus? = null,
+        val responsibleUser: PFUserDO? = null,
+        /**
+         * References used in time-sheets for this task, or any ancestor or descendant task.
+         */
+        var timesheetReferenceList: List<String>? = null,
+        var kost2List: List<Kost2>? = null,
+        /**
+         * Kost2List as formatted numbers (separated in each line) for displaying in tooltip.
+         */
+        var kost2ListAsLines: String? = null,
+        /**
+         * Wild card form of kost2List, e. g. 5.123.456.*
+         */
+        var kost2WildCard: String? = null,
+        var path: List<Task>? = null,
+        var consumption: Consumption? = null,
+        var orderList: MutableList<Order>? = null
     ) {
-      // Append root node for admins and financial staff only in table view for displaying purposes.
-      result.nodes.add(0, Task(rootNode))
-    }
-    val kost2Visible = Configuration.instance.isCostConfigured
-    var ordersVisible = false
-    var protectionUntilVisible = false
-    var referenceVisible = false
-    var priorityVisible = false
-    var assignedUserVisible = false
-    root.children?.forEach { task ->
-      if (!ordersVisible && !task.orderList.isNullOrEmpty()) ordersVisible = true
-      if (!protectionUntilVisible && task.protectTimesheetsUntil != null) protectionUntilVisible = true
-      if (!referenceVisible && !task.reference.isNullOrBlank()) referenceVisible = true
-      if (!priorityVisible && task.priority != null) priorityVisible = true
-      if (!assignedUserVisible && task.responsibleUser != null) assignedUserVisible = true
-    }
-    if (initial == true) {
-      val lc = LayoutContext(TaskDO::class.java)
-      result.columnDefs.add(
-        UIAgGridColumnDef.createCol(
-          "title",
-          headerName = translate("task"),
-          valueFormatter = UIAgGridColumnDef.Formatter.TREE_NAVIGATION,
-          sortable = false,
-          width = UIAgGridColumnDef.DESCRIPTION_WIDTH,
-        )
-          .withPinnedLeft()
-      )
-      result.columnDefs.add(
-        UIAgGridColumnDef.createCol(
-          "consumption",
-          headerName = translate("task.consumption"),
-          valueFormatter = UIAgGridColumnDef.Formatter.CONSUMPTION,
-          sortable = false,
-        )
-      )
-      if (kost2Visible) {
-        result.columnDefs.add(
-          UIAgGridColumnDef.createCol(
-            "kost2WildCard",
-            headerName = translate("fibu.kost2"),
-            sortable = false,
-            width = 80,
-          )
-            .withTooltipField("kost2ListAsLines")
-        )
-      }
-      result.columnDefs.add(
-        UIAgGridColumnDef.createCol(lc, "statusAsString", lcField = "status", sortable = false, width = 100)
-      )
-      result.columnDefs.add(
-        UIAgGridColumnDef.createCol(lc, "shortDescription", sortable = false)
-      )
-      result.columnDefs.add(
-        UIAgGridColumnDef.createCol(lc, "responsibleUser", sortable = false)
-      )
-      result.initFilter = filter
-      result.translations = addTranslations(
-        "deleted",
-        "search",
-        "task.selectPanel.info", // Alert box at the end.
-        "task.status.closed",
-        "task.status.notOpened",
-        "task.status.opened",
-      )
-    }
-    return result
-  }
+        val statusAsString: String? = status?.i18nKey?.let { translate(it) }
 
-  /**
-   * Gets the task data including kost2 information if any and its path.
-   * @param id Task id.
-   * @return json
-   */
-  @GetMapping("info/{id}")
-  fun getTaskInfo(@PathVariable("id") id: Int?): ResponseEntity<Task> {
-    val task = createTask(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
-    return ResponseEntity(task, HttpStatus.OK)
-  }
+        constructor(node: TaskNode) : this(
+            id = node.task.id!!,
+            title = node.task.title,
+            shortDescription = node.task.shortDescription,
+            protectTimesheetsUntil = PFDay.fromOrNull(node.task.protectTimesheetsUntil),
+            reference = node.task.reference,
+            priority = node.task.priority,
+            status = node.task.status,
+            responsibleUser = node.task.responsibleUser
+        )
 
-  /**
-   * @param indent null for tree view, int for table view.
-   */
-  private fun buildTree(ctx: BuildContext, task: Task, taskNode: TaskNode, indent: Int? = null) {
-    if (!taskNode.hasChildren()) {
-      task.treeStatus = TreeStatus.LEAF
-      return
+        /**
+         * Only for creating a pseudo emty task.
+         */
+        constructor(title: String) : this(
+            id = -1, title = title
+        )
     }
-    if (taskNode.isRootNode || ctx.openedNodes.contains(taskNode.taskId)) {
-      task.treeStatus = TreeStatus.OPENED
-      val children = taskNode.children.toMutableList()
-      children.sortBy { it.task.title }
-      children.forEach { node ->
-        if (ctx.taskFilter.match(node, taskDao, ctx.user)) {
-          val child = Task(node)
-          addKost2List(child, false)
-          child.consumption = Consumption.create(node)
-          if (indent != null) {
-            var hidden = false
-            val highlightedTaskNode = ctx.highlightedTaskNode
-            if (highlightedTaskNode != null) {
-              // Show only ancestor, the highlighted node itself and descendants. siblings only for leafs.
-              // Following if-else cascade should be written much shorter, but less understandable!
-              if (highlightedTaskNode.isRootNode) {
-                // Show all nodes, because they are descendants of the root node.
-              } else if (highlightedTaskNode.ancestorIds.contains(node.id)) {
-                log.debug("Current node ${node.task.title} is ancestor of highlighted node: ${!hidden}")
-                // Don't show ancestor nodes:
-                hidden = true
-                // But proceed with child nodes:
-                buildTree(ctx, child, node, indent) // Build as table (all children are direct children of root node.
-              } else if (!highlightedTaskNode.hasChildren()) {
-                // Node is a leaf node, so show also all siblings:
-                hidden = !node.ancestorIds.contains(highlightedTaskNode.parent.id)
-                log.debug("Current node ${node.task.title} is sibling of highlighted node: ${!hidden}")
-              } else {
-                hidden = !(highlightedTaskNode.taskId == node.taskId ||      // highlighted node == current?
-                    node.ancestorIds.contains(highlightedTaskNode.id)) // node is descendant of highlighted?
-                log.debug("Current node ${node.task.title} is descendant of highlighted node: ${!hidden}")
-              }
+
+    class Result(
+        val nodes: MutableList<Task> = mutableListOf(),
+        var initFilter: TaskFilter? = null,
+        var translations: MutableMap<String, String>? = null
+    ) {
+        var columnDefs: MutableList<UIAgGridColumnDef> = mutableListOf()
+    }
+
+    companion object {
+        private const val PREF_ARA = "task"
+
+        fun createTask(id: Long?): Task? {
+            if (id == null)
+                return null
+            val taskTree = TaskTree.instance
+            val taskNode = taskTree.getTaskNodeById(id) ?: return null
+            val task = Task(taskNode)
+            addKost2List(task)
+            addTimesheetReferenceList(task)
+            task.consumption = Consumption.create(taskNode)
+            val pathToRoot = taskTree.getPathToRoot(taskNode.parentId)
+            val pathArray = mutableListOf<Task>()
+            pathToRoot.forEach {
+                val ancestor = Task(id = it.task.id!!, title = it.task.title)
+                pathArray.add(ancestor)
             }
-            if (!hidden) {
-              ctx.result.nodes.add(child) // All children are added to root task (table view!)
-              child.indent = indent
-              buildTree(ctx, child, node, indent + 1) // Build as table (all children are direct children of root node.
-            }
-          } else {
-            // TaskNode has children and is opened:
-            if (task.children == null)
-              task.children = mutableListOf()
-            task.children!!.add(child)
-            buildTree(ctx, child, node, null) // Build as tree
-          }
+            task.path = pathArray
+            return task
         }
-      }
-    } else {
-      task.treeStatus = TreeStatus.CLOSED
-    }
-  }
 
-  private fun openTask(ctx: BuildContext, taskId: Int?) {
-    if (taskId == null)
-      return
-    val taskNode = taskTree.getTaskNodeById(taskId)
-    if (taskNode == null) {
-      log.warn("Task with id $taskId not found to open.")
-      return
-    }
-    ctx.openedNodes.add(taskId)
-    var parent = taskNode.parent
-    while (parent != null) {
-      ctx.openedNodes.add(parent.taskId)
-      parent = parent.parent
-    }
-  }
+        fun addKost2List(task: Task, includeKost2ObjectList: Boolean = true) {
+            val kost2DOList = TaskTree.instance.getKost2List(task.id)
+            if (!kost2DOList.isNullOrEmpty()) {
+                if (includeKost2ObjectList) {  // Only if needed in tree, save bandwith...
+                    val kost2List: List<Kost2> = kost2DOList.map {
+                        Kost2(
+                            it.id!!,
+                            KostFormatter.instance.formatKost2(it, formatType = KostFormatter.FormatType.TEXT, 80),
+                        )
+                    }
+                    task.kost2List = kost2List
+                }
+                task.kost2WildCard = KostHelper.getWildCardString(kost2DOList, "*")
+                task.kost2ListAsLines = KostHelper.getFormattedNumberLines(kost2DOList)
+            }
+        }
 
-  private fun closeTask(ctx: BuildContext, taskId: Int?) {
-    if (taskId == null)
-      return
-    val taskNode = taskTree.getTaskNodeById(taskId)
-    if (taskNode == null) {
-      log.warn("Task with id $taskId not found to close.")
-      return
+        fun addTimesheetReferenceList(task: Task) {
+            val timesheetReferenceList = listOf("Uni Kassel", "Uni Göttingen")
+            task.timesheetReferenceList =
+                timesheetReferenceList//Registry.getInstance().getDao(TimesheetDao::class.java).getUsedReferences(task.id)
+        }
     }
-    ctx.openedNodes.remove(taskId)
-  }
+
+    private class BuildContext(
+        val result: Result,
+        val user: PFUserDO,
+        val taskFilter: TaskFilter,
+        val openedNodes: MutableSet<Long>,
+        var highlightedTaskNode: TaskNode? = null,
+    )
+
+    private val log = org.slf4j.LoggerFactory.getLogger(TaskServicesRest::class.java)
+
+    @Autowired
+    private lateinit var accessChecker: AccessChecker
+
+    @Autowired
+    private lateinit var listFilterService: ListFilterService
+
+    @Autowired
+    private lateinit var taskDao: TaskDao
+
+    @Autowired
+    private lateinit var taskTree: TaskTree
+
+    @Autowired
+    private lateinit var userPrefService: UserPrefService
+
+    /**
+     * Gets the user's task tree as tree matching the filter. The open task nodes will be restored from the user's prefs.
+     * @param initial If true, the layout info and translations are also returned. Default is to return only the tree data.
+     * @param open Optional task to open in the tree (if a descendent child of closed tasks, all ancestor tasks will be opened as well).
+     * @param close Optional task to close.
+     * @param table If true, the result will be returned flat with indent counter of each task node, otherwise a tree object is returned.
+     * @param opened Show opened tasks. For initial = true, this value is ignored.
+     * @param notOpened Show un-opened tasks. For initial = true, this value is ignored.
+     * @param closed Show closed tasks. For initial = true, this value is ignored.
+     * @param deleted Show deleted tasks. For initial = true, this value is ignored.
+     * @return json
+     */
+    @GetMapping("tree")
+    fun getTree(
+        request: HttpServletRequest,
+        @RequestParam("initial") initial: Boolean?,
+        @RequestParam("open") open: Long?,
+        @RequestParam("close") close: Long?,
+        @RequestParam("highlightedTaskId") highlightedTaskId: Long?,
+        @RequestParam("table") table: Boolean?,
+        @RequestParam("searchString") searchString: String?,
+        @RequestParam("opened") opened: Boolean?,
+        @RequestParam("notOpened") notOpened: Boolean?,
+        @RequestParam("closed") closed: Boolean?,
+        @RequestParam("deleted") deleted: Boolean?,
+        @RequestParam("showRootForAdmins") showRootForAdmins: Boolean?
+    )
+            : Result {
+        val openNodes = userPrefService.ensureEntry(PREF_ARA, TaskTree.USER_PREFS_KEY_OPEN_TASKS, mutableSetOf<Long>())
+        val filter = listFilterService.getSearchFilter(request.getSession(false), TaskFilter::class.java) as TaskFilter
+
+        if (initial != true) {
+            // User filter settings not on initial call.
+            // On initial calls the stored filter will be used and returned for restoring in the client.
+            if (opened != null) filter.isOpened = opened
+            if (notOpened != null) filter.isNotOpened = notOpened
+            if (closed != null) filter.isClosed = closed
+            if (deleted != null) filter.deleted = deleted
+            filter.searchString = searchString
+        }
+        if (!filter.isStatusSet) {
+            // Nothing will be found, so avoid no result by user's mistake:
+            filter.isOpened = true
+            filter.isNotOpened = true
+        }
+        val result = Result()
+        val ctx = BuildContext(result, ThreadLocalUserContext.loggedInUser!!, filter, openNodes)
+        if (highlightedTaskId != null) {
+            ctx.highlightedTaskNode = taskTree.getTaskNodeById(highlightedTaskId)
+        }
+        openTask(ctx, open)
+        closeTask(ctx, close)
+        if (initial == true) {
+            openTask(ctx, highlightedTaskId) // Only open on initial call.
+        }
+        //UserPreferencesHelper.putEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS, expansion.getIds(), true)
+        filter.resetMatch() // taskFilter caches visibility, reset needed first.
+        val indent = if (table == true) 0 else null
+        val rootNode = taskTree.rootTaskNode
+        val root = Task(rootNode)
+        addKost2List(root)
+        buildTree(ctx, root, rootNode, indent)
+        if (showRootForAdmins == true && table == true && (accessChecker.isLoggedInUserMemberOfAdminGroup() ||
+                    accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP))
+        ) {
+            // Append root node for admins and financial staff only in table view for displaying purposes.
+            result.nodes.add(0, Task(rootNode))
+        }
+        val kost2Visible = Configuration.instance.isCostConfigured
+        var ordersVisible = false
+        var protectionUntilVisible = false
+        var referenceVisible = false
+        var priorityVisible = false
+        var assignedUserVisible = false
+        root.children?.forEach { task ->
+            if (!ordersVisible && !task.orderList.isNullOrEmpty()) ordersVisible = true
+            if (!protectionUntilVisible && task.protectTimesheetsUntil != null) protectionUntilVisible = true
+            if (!referenceVisible && !task.reference.isNullOrBlank()) referenceVisible = true
+            if (!priorityVisible && task.priority != null) priorityVisible = true
+            if (!assignedUserVisible && task.responsibleUser != null) assignedUserVisible = true
+        }
+        if (initial == true) {
+            val lc = LayoutContext(TaskDO::class.java)
+            result.columnDefs.add(
+                UIAgGridColumnDef.createCol(
+                    "title",
+                    headerName = translate("task"),
+                    valueFormatter = UIAgGridColumnDef.Formatter.TREE_NAVIGATION,
+                    sortable = false,
+                    width = UIAgGridColumnDef.DESCRIPTION_WIDTH,
+                )
+                    .withPinnedLeft()
+            )
+            result.columnDefs.add(
+                UIAgGridColumnDef.createCol(
+                    "consumption",
+                    headerName = translate("task.consumption"),
+                    valueFormatter = UIAgGridColumnDef.Formatter.CONSUMPTION,
+                    sortable = false,
+                )
+            )
+            if (kost2Visible) {
+                result.columnDefs.add(
+                    UIAgGridColumnDef.createCol(
+                        "kost2WildCard",
+                        headerName = translate("fibu.kost2"),
+                        sortable = false,
+                        width = 80,
+                    )
+                        .withTooltipField("kost2ListAsLines")
+                )
+            }
+            result.columnDefs.add(
+                UIAgGridColumnDef.createCol(lc, "statusAsString", lcField = "status", sortable = false, width = 100)
+            )
+            result.columnDefs.add(
+                UIAgGridColumnDef.createCol(lc, "shortDescription", sortable = false)
+            )
+            result.columnDefs.add(
+                UIAgGridColumnDef.createCol(lc, "responsibleUser", sortable = false)
+            )
+            result.initFilter = filter
+            result.translations = addTranslations(
+                "deleted",
+                "search",
+                "task.selectPanel.info", // Alert box at the end.
+                "task.status.closed",
+                "task.status.notOpened",
+                "task.status.opened",
+            )
+        }
+        return result
+    }
+
+    /**
+     * Gets the task data including kost2 information if any and its path.
+     * @param id Task id.
+     * @return json
+     */
+    @GetMapping("info/{id}")
+    fun getTaskInfo(@PathVariable("id") id: Long?): ResponseEntity<Task> {
+        val task = createTask(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+        return ResponseEntity(task, HttpStatus.OK)
+    }
+
+    /**
+     * @param indent null for tree view, int for table view.
+     */
+    private fun buildTree(ctx: BuildContext, task: Task, taskNode: TaskNode, indent: Int? = null) {
+        if (!taskNode.hasChildren()) {
+            task.treeStatus = TreeStatus.LEAF
+            return
+        }
+        if (taskNode.isRootNode || ctx.openedNodes.contains(taskNode.taskId)) {
+            task.treeStatus = TreeStatus.OPENED
+            val children = taskNode.children.toMutableList()
+            children.sortBy { it.task.title }
+            children.forEach { node ->
+                if (ctx.taskFilter.match(node, taskDao, ctx.user)) {
+                    val child = Task(node)
+                    addKost2List(child, false)
+                    child.consumption = Consumption.create(node)
+                    if (indent != null) {
+                        var hidden = false
+                        val highlightedTaskNode = ctx.highlightedTaskNode
+                        if (highlightedTaskNode != null) {
+                            // Show only ancestor, the highlighted node itself and descendants. siblings only for leafs.
+                            // Following if-else cascade should be written much shorter, but less understandable!
+                            if (highlightedTaskNode.isRootNode) {
+                                // Show all nodes, because they are descendants of the root node.
+                            } else if (highlightedTaskNode.ancestorIds.contains(node.id)) {
+                                log.debug("Current node ${node.task.title} is ancestor of highlighted node: ${!hidden}")
+                                // Don't show ancestor nodes:
+                                hidden = true
+                                // But proceed with child nodes:
+                                buildTree(
+                                    ctx,
+                                    child,
+                                    node,
+                                    indent
+                                ) // Build as table (all children are direct children of root node.
+                            } else if (!highlightedTaskNode.hasChildren()) {
+                                // Node is a leaf node, so show also all siblings:
+                                hidden = !node.ancestorIds.contains(highlightedTaskNode.parent.id)
+                                log.debug("Current node ${node.task.title} is sibling of highlighted node: ${!hidden}")
+                            } else {
+                                hidden =
+                                    !(highlightedTaskNode.taskId == node.taskId ||      // highlighted node == current?
+                                            node.ancestorIds.contains(highlightedTaskNode.id)) // node is descendant of highlighted?
+                                log.debug("Current node ${node.task.title} is descendant of highlighted node: ${!hidden}")
+                            }
+                        }
+                        if (!hidden) {
+                            ctx.result.nodes.add(child) // All children are added to root task (table view!)
+                            child.indent = indent
+                            buildTree(
+                                ctx,
+                                child,
+                                node,
+                                indent + 1
+                            ) // Build as table (all children are direct children of root node.
+                        }
+                    } else {
+                        // TaskNode has children and is opened:
+                        if (task.children == null)
+                            task.children = mutableListOf()
+                        task.children!!.add(child)
+                        buildTree(ctx, child, node, null) // Build as tree
+                    }
+                }
+            }
+        } else {
+            task.treeStatus = TreeStatus.CLOSED
+        }
+    }
+
+    private fun openTask(ctx: BuildContext, taskId: Long?) {
+        if (taskId == null)
+            return
+        val taskNode = taskTree.getTaskNodeById(taskId)
+        if (taskNode == null) {
+            log.warn("Task with id $taskId not found to open.")
+            return
+        }
+        ctx.openedNodes.add(taskId)
+        var parent = taskNode.parent
+        while (parent != null) {
+            ctx.openedNodes.add(parent.taskId)
+            parent = parent.parent
+        }
+    }
+
+    private fun closeTask(ctx: BuildContext, taskId: Long?) {
+        if (taskId == null)
+            return
+        val taskNode = taskTree.getTaskNodeById(taskId)
+        if (taskNode == null) {
+            log.warn("Task with id $taskId not found to close.")
+            return
+        }
+        ctx.openedNodes.remove(taskId)
+    }
 }

@@ -24,10 +24,8 @@
 package org.projectforge.business.jobs;
 
 import org.projectforge.framework.persistence.api.ReindexSettings;
-import org.projectforge.framework.persistence.database.DatabaseService;
-import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
-import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+import org.projectforge.framework.persistence.search.HibernateSearchReindexer;
+import org.projectforge.framework.persistence.history.HistoryEntryDO;
 import org.projectforge.framework.time.PFDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -43,13 +41,7 @@ public class CronReindexingHourlyJob {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CronReindexingHourlyJob.class);
 
   @Autowired
-  private DatabaseService databaseService;
-
-  @Autowired
   private HibernateSearchReindexer hibernateSearchReindexer;
-
-  @Autowired
-  private PfEmgrFactory emgrFactory;
 
   //@Scheduled(cron = "0 0 * * * *")
   //@Scheduled(cron = "${projectforge.cron.hourly}")
@@ -57,14 +49,14 @@ public class CronReindexingHourlyJob {
   /**
    * In ms.
    */
-  @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 120 * 1000)
+  //@Scheduled(fixedDelay = 3600 * 1000, initialDelay = 120 * 1000)
   public void execute() {
     log.info("Hourly job started.");
     try {
       log.info("Starting (re-)indexing of history entries of the last 24 hours.");
       final PFDateTime dt = PFDateTime.now().minusDays(1);
       final ReindexSettings settings = new ReindexSettings(dt.getUtilDate(), null);
-      hibernateSearchReindexer.rebuildDatabaseSearchIndices(settings, PfHistoryMasterDO.class);
+      hibernateSearchReindexer.rebuildDatabaseSearchIndices(settings, HistoryEntryDO.class);
     } catch (final Throwable ex) {
       log.error("While executing fix job for data base history entries: " + ex.getMessage(), ex);
     }

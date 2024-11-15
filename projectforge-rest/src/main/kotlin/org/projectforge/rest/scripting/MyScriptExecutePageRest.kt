@@ -34,8 +34,8 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import javax.annotation.PostConstruct
-import javax.servlet.http.HttpServletRequest
+import jakarta.annotation.PostConstruct
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
@@ -57,8 +57,8 @@ class MyScriptExecutePageRest : AbstractScriptExecutePageRest() {
   ): FormLayoutData {
     var scriptDO: ScriptDO? = null
     val origScript = Script()
-    val id = idString?.toIntOrNull() ?: throw IllegalArgumentException("Script not found.")
-    scriptDO = scriptDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
+    val id = idString?.toLongOrNull() ?: throw IllegalArgumentException("Script not found.")
+    scriptDO = scriptDao.find(id) ?: throw IllegalArgumentException("Script not found.")
     origScript.copyFrom(scriptDO) // Don't export all fields to the user
     val script = Script()
     script.id = origScript.id

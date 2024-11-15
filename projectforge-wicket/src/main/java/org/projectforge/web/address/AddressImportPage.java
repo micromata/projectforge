@@ -28,25 +28,20 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.PersonalAddressDao;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
 import org.slf4j.Logger;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * 
+ *
  */
 @SuppressWarnings("serial")
 @EditPage(defaultReturnPage = AddressListPage.class)
 public class AddressImportPage extends AbstractEditPage<AddressDO, AddressImportForm, AddressDao>
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressImportPage.class);
-
-  @SpringBean
-  private AddressDao addressDao;
-
-  @SpringBean
-  private PersonalAddressDao personalAddressDao;
 
   /**
    * @param parameters
@@ -79,7 +74,7 @@ public class AddressImportPage extends AbstractEditPage<AddressDO, AddressImport
   @Override
   protected AddressDao getBaseDao()
   {
-    return addressDao;
+    return WicketSupport.get(AddressDao.class);
   }
 
   /**

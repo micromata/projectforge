@@ -30,7 +30,7 @@ import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime.Companion.now
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 import java.io.File
 import java.io.FilenameFilter
 import java.io.IOException
@@ -41,74 +41,77 @@ private val log = KotlinLogging.logger {}
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 open class ScriptDao : AbstractScriptDao() {
-  /**
-   * Copy old script as script backup if modified.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao.onChange
-   */
-  override fun onChange(obj: ScriptDO, dbObj: ScriptDO) {
-    if (!Arrays.equals(dbObj.script, obj.script)) {
-      obj.scriptBackup = dbObj.script
-      val suffix = getScriptSuffix(obj)
-      val filename =
-        encodeFilename("${getBackupBasefilename(dbObj)}_${obj.name}_${now().isoStringSeconds}.$suffix", true)
-      val backupDir = getBackupDir()
-      ConfigXml.ensureDir(backupDir)
-      val file = File(backupDir, filename)
-      try {
-        log.info("Writing backup of script to: " + file.absolutePath)
-        file.writeText(dbObj.scriptAsString ?: "")
-      } catch (ex: IOException) {
-        log.error("Error while trying to save backup file of script '" + file.absolutePath + "': " + ex.message, ex)
-      }
+    /**
+     * Copy old script as script backup if modified.
+     *
+     * @see org.projectforge.framework.persistence.api.BaseDao.onUpdate
+     */
+    override fun onUpdate(obj: ScriptDO, dbObj: ScriptDO) {
+        if (!Arrays.equals(dbObj.script, obj.script)) {
+            obj.scriptBackup = dbObj.script
+            val suffix = getScriptSuffix(obj)
+            val filename =
+                encodeFilename("${getBackupBasefilename(dbObj)}_${obj.name}_${now().isoStringSeconds}.$suffix", true)
+            val backupDir = getBackupDir()
+            ConfigXml.ensureDir(backupDir)
+            val file = File(backupDir, filename)
+            try {
+                log.info("Writing backup of script to: " + file.absolutePath)
+                file.writeText(dbObj.scriptAsString ?: "")
+            } catch (ex: IOException) {
+                log.error(
+                    "Error while trying to save backup file of script '" + file.absolutePath + "': " + ex.message,
+                    ex
+                )
+            }
+        }
     }
-  }
 
-  fun getBackupFiles(obj: ScriptDO): Array<File>? {
-    val baseFilename = getBackupBasefilename(obj)
-    val oldBaseFilename = getOldBackupBasefilename(obj)
-    val backupDir = getBackupDir()
-    if (!backupDir.exists()) {
-      return null
+    fun getBackupFiles(obj: ScriptDO): Array<File>? {
+        val baseFilename = getBackupBasefilename(obj)
+        val oldBaseFilename = getOldBackupBasefilename(obj)
+        val backupDir = getBackupDir()
+        if (!backupDir.exists()) {
+            return null
+        }
+        return backupDir.listFiles(FilenameFilter { _: File, name: String ->
+            name.startsWith(baseFilename) || name.startsWith(
+                oldBaseFilename
+            )
+        })
     }
-    return backupDir.listFiles(FilenameFilter { _: File, name: String ->
-      name.startsWith(baseFilename) || name.startsWith(
-        oldBaseFilename
-      )
-    })
-  }
 
-  private fun getBackupDir(): File {
-    return File(ConfigXml.getInstance().backupDirectory, "scripts")
-  }
+    private fun getBackupDir(): File {
+        return File(ConfigXml.getInstance().backupDirectory, "scripts")
+    }
 
-  private fun getBackupBasefilename(obj: ScriptDO): String {
-    return "script-${obj.id}_"
-  }
+    private fun getBackupBasefilename(obj: ScriptDO): String {
+        return "script-${obj.id}_"
+    }
 
-  private fun getOldBackupBasefilename(obj: ScriptDO): String {
-    return encodeFilename("${obj.name}_", true)
-  }
+    private fun getOldBackupBasefilename(obj: ScriptDO): String {
+        return encodeFilename("${obj.name}_", true)
+    }
 
-  fun getScriptSuffix(obj: ScriptDO): String {
-    return if (ScriptExecutor.getScriptType(obj) == ScriptDO.ScriptType.GROOVY) "groovy" else "kts"
-  }
+    fun getScriptSuffix(obj: ScriptDO): String {
+        return if (ScriptExecutor.getScriptType(obj) == ScriptDO.ScriptType.GROOVY) "groovy" else "kts"
+    }
 
-  /**
-   * User must be member of group controlling or finance.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao.hasDeleteAccess
-   */
-  override fun hasAccess(
-    user: PFUserDO, obj: ScriptDO?, oldObj: ScriptDO?,
-    operationType: OperationType,
-    throwException: Boolean
-  ): Boolean {
-    return accessChecker.isUserMemberOfGroup(
-      user, throwException, ProjectForgeGroup.CONTROLLING_GROUP,
-      ProjectForgeGroup.FINANCE_GROUP
-    )
-  }
+    /**
+     * User must be member of group controlling or finance.
+     *
+     * @see org.projectforge.framework.persistence.api.BaseDao.hasDeleteAccess
+     */
+    override fun hasAccess(
+        user: PFUserDO, obj: ScriptDO?, oldObj: ScriptDO?,
+        operationType: OperationType,
+        throwException: Boolean
+    ): Boolean {
+        return accessChecker.isUserMemberOfGroup(
+            user, throwException, ProjectForgeGroup.CONTROLLING_GROUP,
+            ProjectForgeGroup.FINANCE_GROUP
+        )
+    }
 }

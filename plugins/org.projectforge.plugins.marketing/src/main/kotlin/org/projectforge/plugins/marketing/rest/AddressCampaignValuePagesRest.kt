@@ -41,11 +41,10 @@ import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.LayoutUtils
 import org.projectforge.ui.UILabel
 import org.projectforge.ui.UILayout
-import org.projectforge.ui.UITable
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/addressCampaignValue")
@@ -114,12 +113,12 @@ class AddressCampaignValuePagesRest :
     } ?: emptyList()
   }*/
 
-  override fun processResultSetBeforeExport(
+  override fun postProcessResultSet(
     resultSet: ResultSet<AddressDO>,
     request: HttpServletRequest,
     magicFilter: MagicFilter,
   ): ResultSet<*> {
-    val newResultSet = super.processResultSetBeforeExport(resultSet, request, magicFilter)
+    val newResultSet = super.postProcessResultSet(resultSet, request, magicFilter)
     @Suppress("UNCHECKED_CAST")
     if (!processList(request, newResultSet.resultSet as List<AddressCampaignValue>)) {
       newResultSet.resultSet = emptyList()
@@ -130,23 +129,23 @@ class AddressCampaignValuePagesRest :
   fun processList(request: HttpServletRequest, list: List<AddressCampaignValue>): Boolean {
     val addressCampaign = getAddressCampaign(request) ?: return false
     val addressCampaignValueMap = getAddressCampaignValueMap(addressCampaign.id)
-    val personalAddressMap = personalAddressDao.getPersonalAddressByAddressId()
+    val personalAddressMap = personalAddressDao.personalAddressByAddressId
     list.forEach { entry ->
       fillValues(entry, addressCampaignValueMap, personalAddressMap)
     }
     return true
   }
 
-  private fun getAddressCampaignValueMap(addressCampaignId: Int?): Map<Int, AddressCampaignValueDO> {
-    val addressCampaignValueMap = mutableMapOf<Int, AddressCampaignValueDO>()
+  private fun getAddressCampaignValueMap(addressCampaignId: Long?): Map<Long, AddressCampaignValueDO> {
+    val addressCampaignValueMap = mutableMapOf<Long, AddressCampaignValueDO>()
     addressCampaignValueDao.getAddressCampaignValuesByAddressId(addressCampaignValueMap, addressCampaignId)
     return addressCampaignValueMap
   }
 
   private fun fillValues(
     dest: AddressCampaignValue,
-    addressCampaignValueMap: Map<Int, AddressCampaignValueDO>,
-    personalAddressMap: Map<Int, PersonalAddressDO>,
+    addressCampaignValueMap: Map<Long, AddressCampaignValueDO>,
+    personalAddressMap: Map<Long, PersonalAddressDO>,
     addressDO: AddressDO? = null,
   ) {
     if (addressDO != null) {
@@ -173,8 +172,8 @@ class AddressCampaignValuePagesRest :
 
   internal fun getAddressCampaignDO(request: HttpServletRequest): AddressCampaignDO? {
     val addressCampaignId = MultiSelectionSupport.getRegisteredData(request, AddressCampaignValuePagesRest::class.java)
-    if (addressCampaignId != null && addressCampaignId is Int) {
-      return addressCampaignDao.getById(addressCampaignId)
+    if (addressCampaignId != null && addressCampaignId is Long) {
+      return addressCampaignDao.find(addressCampaignId)
     }
     return null
   }

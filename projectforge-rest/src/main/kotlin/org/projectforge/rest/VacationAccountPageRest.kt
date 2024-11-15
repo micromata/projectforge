@@ -24,6 +24,7 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
+import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.user.service.UserPrefService
@@ -71,6 +72,9 @@ class VacationAccountPageRest {
   )
 
   @Autowired
+  private lateinit var caches: PfCaches
+
+  @Autowired
   private lateinit var conflictingVacationsCache: ConflictingVacationsCache
 
   @Autowired
@@ -89,7 +93,7 @@ class VacationAccountPageRest {
   private lateinit var remainingLeaveDao: RemainingLeaveDao
 
   @GetMapping("dynamic")
-  fun getForm(@RequestParam("id") searchEmployeeId: Int? = null): FormLayoutData {
+  fun getForm(@RequestParam("id") searchEmployeeId: Long? = null): FormLayoutData {
     val layout = UILayout("vacation.leaveaccount.title")
     val lc = LayoutContext(VacationDO::class.java)
     layout.addTranslations(
@@ -130,7 +134,7 @@ class VacationAccountPageRest {
 
     val isHRMember = vacationService.hasLoggedInUserHRVacationAccess()
 
-    val employeeId: Int? = if (isHRMember) {
+    val employeeId: Long? = if (isHRMember) {
       // If, and only if the current logged-in user is a member of HR staff, other employees may be chosen:
       // 1st any given user by request param is used,
       // 2nd the last chosen user from the user's preferences or, if none given:
@@ -140,8 +144,7 @@ class VacationAccountPageRest {
       // For non HR users, only the user himself is assumed.
       ThreadLocalUserContext.userContext!!.employeeId;
     }
-    val employee = employeeDao.internalGetById(employeeId)
-
+    val employee = employeeDao.find(employeeId, checkAccess = false)!!
     val statistics = mutableMapOf<String, Any>()
     val currentStats = vacationService.getVacationStats(employee, Year.now().value)
     val prevStats = vacationService.getVacationStats(employee, Year.now().value - 1)
@@ -244,7 +247,7 @@ class VacationAccountPageRest {
       statistics = statistics,
       vacations = vacations,
       workingHoursStatistics = vacationService.getAverageWorkingTimeStats(
-        employee.user ?: ThreadLocalUserContext.user!!, PFDay.fromOrNull(employee.eintrittsDatum)
+        employee.user ?: ThreadLocalUserContext.loggedInUser!!, PFDay.fromOrNull(employee.eintrittsDatum)
       ).localizedMessage
     )
 
@@ -267,14 +270,14 @@ class VacationAccountPageRest {
       log.warn { "User has now HR vacation access. Recalculating of remaining leaves ignored." }
       return ResponseAction(targetType = TargetType.NOTHING)
     }
-    val employeeId = postData.data.employee!!.id
+    val employeeId = postData.data.employee!!.id!!
 
-    remainingLeaveDao.internalMarkAsDeleted(employeeId, Year.now().value)
+    remainingLeaveDao.markAsDeleted(employeeId, Year.now().value, checkAccess = false)
 
     return buildResponseAction(employeeId)
   }
 
-  private fun buildResponseAction(employeeId: Int): ResponseAction {
+  private fun buildResponseAction(employeeId: Long): ResponseAction {
     val layoutData = getForm(employeeId)
 
     return ResponseAction(
@@ -285,7 +288,7 @@ class VacationAccountPageRest {
       .addVariable("ui", layoutData.ui)
   }
 
-  private fun readVacations(variables: MutableMap<String, Any>, id: String, employeeId: Int, year: Int) {
+  private fun readVacations(variables: MutableMap<String, Any>, id: String, employeeId: Long, year: Int) {
     val yearDate = PFDay.of(year, Month.JANUARY, 1)
     val dbList = vacationService.getVacationsListForPeriod(
       employeeId,
@@ -294,7 +297,7 @@ class VacationAccountPageRest {
       true,
       true
     )
-    val list = dbList.map { Vacation(it) }
+    val list = dbList.map { Vacation(caches.initialize(it)) }
     list.forEach {
       if (conflictingVacationsCache.hasConflict(it.id)) {
         it.conflict = true
@@ -304,7 +307,7 @@ class VacationAccountPageRest {
     variables["year$id"] = year
   }
 
-  class VacationAccountUserPref(var employeeId: Int? = null)
+  class VacationAccountUserPref(var employeeId: Long? = null)
 
   private fun getUserPref(): VacationAccountUserPref {
     return userPrefService.ensureEntry("vacation", "account", VacationAccountUserPref())

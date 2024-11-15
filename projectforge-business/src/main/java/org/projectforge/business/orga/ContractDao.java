@@ -23,123 +23,121 @@
 
 package org.projectforge.business.orga;
 
+import jakarta.persistence.Tuple;
+import kotlin.Pair;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.Validate;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.common.i18n.MessageParam;
 import org.projectforge.common.i18n.MessageParamType;
 import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.access.AccessException;
+import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.utils.SQLHelper;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
-import javax.persistence.Tuple;
 import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 public class ContractDao extends BaseDao<ContractDO> {
-  public static final UserRightId USER_RIGHT_ID = UserRightId.ORGA_CONTRACTS;
-  private final static int START_NUMBER = 1000;
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ContractDao.class);
-  private static final String[] ENABLED_AUTOCOMPLETION_PROPERTIES = {"title", "coContractorA", "coContractorB", "contractPersonA", "contractPersonB", "signerA", "signerB"};
+    public static final UserRightId USER_RIGHT_ID = UserRightId.ORGA_CONTRACTS;
+    private final static int START_NUMBER = 1000;
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ContractDao.class);
+    private static final String[] ENABLED_AUTOCOMPLETION_PROPERTIES = {"title", "coContractorA", "coContractorB", "contractPersonA", "contractPersonB", "signerA", "signerB"};
 
-  public ContractDao() {
-    super(ContractDO.class);
-    userRightId = USER_RIGHT_ID;
-  }
+    public ContractDao() {
+        super(ContractDO.class);
+        userRightId = USER_RIGHT_ID;
+    }
 
-  @Override
-  public boolean isAutocompletionPropertyEnabled(String property) {
-    // All users with select access for contracts have access to all contracts, therefore no special select checking for single entities is needed.
-    return ArrayUtils.contains(ENABLED_AUTOCOMPLETION_PROPERTIES, property);
-  }
+    @Override
+    public boolean isAutocompletionPropertyEnabled(String property) {
+        // All users with select access for contracts have access to all contracts, therefore no special select checking for single entities is needed.
+        return ArrayUtils.contains(ENABLED_AUTOCOMPLETION_PROPERTIES, property);
+    }
 
-  @Override
-  public List<ContractDO> getList(final BaseSearchFilter filter) throws AccessException {
-    final ContractFilter myFilter;
-    if (filter instanceof ContractFilter) {
-      myFilter = (ContractFilter) filter;
-    } else {
-      myFilter = new ContractFilter(filter);
+    @Override
+    public List<ContractDO> select(final BaseSearchFilter filter) throws AccessException {
+        final ContractFilter myFilter;
+        if (filter instanceof ContractFilter) {
+            myFilter = (ContractFilter) filter;
+        } else {
+            myFilter = new ContractFilter(filter);
+        }
+        final QueryFilter queryFilter = new QueryFilter(myFilter);
+        if (myFilter.getStatus() != null) {
+            queryFilter.add(QueryFilter.eq("status", myFilter.getStatus().name()));
+        }
+        if (myFilter.getType() != null) {
+            queryFilter.add(QueryFilter.eq("type", myFilter.getType().getValue()));
+        }
+        queryFilter.setYearAndMonth("date", myFilter.getYear(), -1);
+        if (log.isDebugEnabled()) {
+            log.debug(myFilter.toString());
+        }
+        return select(queryFilter);
     }
-    final QueryFilter queryFilter = new QueryFilter(myFilter);
-    if (myFilter.getStatus() != null) {
-      queryFilter.add(QueryFilter.eq("status", myFilter.getStatus().name()));
-    }
-    if (myFilter.getType() != null) {
-      queryFilter.add(QueryFilter.eq("type", myFilter.getType().getValue()));
-    }
-    queryFilter.setYearAndMonth("date", myFilter.getYear(), -1);
-    if (log.isDebugEnabled()) {
-      log.debug(myFilter.toString());
-    }
-    return getList(queryFilter);
-  }
 
-  /**
-   * List of all years with contracts: select min(date), max(date) from t_contract.
-   */
-  public int[] getYears() {
-    final Tuple minMaxDate =  SQLHelper.ensureUniqueResult(em.createNamedQuery(ContractDO.SELECT_MIN_MAX_DATE, Tuple.class));
-    return SQLHelper.getYears(minMaxDate.get(0), minMaxDate.get(1));
-  }
-
-  /**
-   * A given contract number must be consecutively numbered.
-   */
-  @Override
-  protected void onSaveOrModify(final ContractDO obj) {
-    if (obj.getId() == null) {
-      // New contract
-      final Integer next = getNextNumber(obj);
-      obj.setNumber(next);
-    } else {
-      if (obj.getNumber() == null) {
-        throw new UserException("validation.required.valueNotPresent", new MessageParam("legalAffaires.contract.number",
-                MessageParamType.I18N_KEY)).setCausedByField("number");
-      }
-      ContractDO other =  SQLHelper.ensureUniqueResult(em.createNamedQuery(ContractDO.FIND_OTHER_BY_NUMBER, ContractDO.class)
-              .setParameter("number", obj.getNumber())
-              .setParameter("id", obj.getId()));
-      if (other != null) {
-        throw new UserException("legalAffaires.contract.error.numberAlreadyExists").setCausedByField("number");
-      }
+    /**
+     * List of all years with contracts: select min(date), max(date) from t_contract.
+     */
+    public int[] getYears() {
+        final Tuple minMaxDate = persistenceService.selectNamedSingleResult(
+                ContractDO.SELECT_MIN_MAX_DATE,
+                Tuple.class);
+        return SQLHelper.getYearsByTupleOfLocalDate(minMaxDate);
     }
-  }
 
-  /**
-   * Gets the highest contract number.
-   *
-   * @param contract is needed to check wether the contract does already exist or not. If already exist it will be
-   *                 assured that this contract has an unchanged number.
-   */
-  @SuppressWarnings("unchecked")
-  public Integer getNextNumber(final ContractDO contract) {
-    if (contract.getId() != null) {
-      final ContractDO orig = internalGetById(contract.getId());
-      if (orig.getNumber() != null) {
-        contract.setNumber(orig.getNumber());
-        return orig.getNumber();
-      }
+    /**
+     * A given contract number must be consecutively numbered.
+     */
+    @Override
+    public void onInsertOrModify(final ContractDO obj, final OperationType operationType) {
+        if (obj.getId() == null) {
+            // New contract
+            final Integer next = getNextNumber(obj);
+            obj.setNumber(next);
+        } else {
+            if (obj.getNumber() == null) {
+                throw new UserException("validation.required.valueNotPresent", new MessageParam("legalAffaires.contract.number",
+                        MessageParamType.I18N_KEY)).setCausedByField("number");
+            }
+            ContractDO other = persistenceService.selectNamedSingleResult(
+                    ContractDO.FIND_OTHER_BY_NUMBER,
+                    ContractDO.class,
+                    new Pair<>("number", obj.getNumber()),
+                    new Pair<>("id", obj.getId()));
+            if (other != null) {
+                throw new UserException("legalAffaires.contract.error.numberAlreadyExists").setCausedByField("number");
+            }
+        }
     }
-    final List<Integer> list = em.createQuery("select max(t.number) from ContractDO t").getResultList();
-    Validate.notNull(list);
-    if (list.size() == 0 || list.get(0) == null) {
-      log.info("First entry of ContractDO");
-      return START_NUMBER;
-    }
-    final Integer number = list.get(0);
-    return number + 1;
-  }
 
-  @Override
-  public ContractDO newInstance() {
-    return new ContractDO();
-  }
+    /**
+     * Gets the highest contract number.
+     *
+     * @param contract is needed to check wether the contract does already exist or not. If already exist it will be
+     *                 assured that this contract has an unchanged number.
+     */
+    @SuppressWarnings("unchecked")
+    public Integer getNextNumber(final ContractDO contract) {
+        if (contract.getId() != null) {
+            final ContractDO orig = find(contract.getId(), false);
+            if (orig.getNumber() != null) {
+                contract.setNumber(orig.getNumber());
+                return orig.getNumber();
+            }
+        }
+        return persistenceService.getNextNumber("ContractDO", "number", START_NUMBER);
+    }
+
+    @Override
+    public ContractDO newInstance() {
+        return new ContractDO();
+    }
 }

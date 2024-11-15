@@ -32,7 +32,7 @@ import org.projectforge.framework.jcr.Attachment
 import java.time.LocalDate
 
 class Book(
-  id: Int? = null,
+  id: Long? = null,
   var title: String? = null,
   var keywords: String? = null,
   var lendOutBy: User? = null,

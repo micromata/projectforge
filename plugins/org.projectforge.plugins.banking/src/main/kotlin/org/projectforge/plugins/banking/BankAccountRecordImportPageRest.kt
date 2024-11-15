@@ -41,7 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/importBankAccountRecords")
@@ -90,7 +90,7 @@ class BankAccountRecordImportPageRest : AbstractImportPageRest<BankAccountRecord
       importStorage.addError(translate("plugins.banking.account.record.import.error.noBankAccountGiven"))
       return null
     }
-    val bankAccountDO = bankAccountDao.getById(bankAccount.id)
+    val bankAccountDO = bankAccountDao.find(bankAccount.id)
     if (bankAccountDO == null) {
       importStorage.addError(translate("plugins.banking.account.record.import.error.noBankAccountGiven"))
       return null

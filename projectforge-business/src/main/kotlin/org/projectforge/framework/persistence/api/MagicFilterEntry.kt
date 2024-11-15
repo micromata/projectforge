@@ -68,7 +68,7 @@ class MagicFilterEntry(
             /**
              * Sent by client for history search: changed by user (displayName and id).
              */
-            var id: Int? = null,
+            var id: Long? = null,
     )
 
     var value: Value

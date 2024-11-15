@@ -29,7 +29,7 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.time.PFDay;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 public class LiquidityEntryDao extends BaseDao<LiquidityEntryDO> {
   public LiquidityEntryDao() {
     super(LiquidityEntryDO.class);
@@ -57,7 +57,7 @@ public class LiquidityEntryDao extends BaseDao<LiquidityEntryDO> {
   }
 
   @Override
-  public List<LiquidityEntryDO> getList(final BaseSearchFilter filter) {
+  public List<LiquidityEntryDO> select(final BaseSearchFilter filter) {
     final LiquidityFilter myFilter;
     if (filter instanceof LiquidityFilter) {
       myFilter = (LiquidityFilter) filter;
@@ -65,11 +65,11 @@ public class LiquidityEntryDao extends BaseDao<LiquidityEntryDO> {
       myFilter = new LiquidityFilter(filter);
     }
     final QueryFilter queryFilter = new QueryFilter(myFilter);
-    final List<LiquidityEntryDO> list = getList(queryFilter);
+    final List<LiquidityEntryDO> list = select(queryFilter);
     if (myFilter.getPaymentStatus() == PaymentStatus.ALL
             && myFilter.getAmountType() == AmountType.ALL
             && myFilter.getNextDays() <= 0
-            || myFilter.isDeleted()) {
+            || myFilter.getDeleted()) {
       return list;
     }
     final List<LiquidityEntryDO> result = new ArrayList<>();

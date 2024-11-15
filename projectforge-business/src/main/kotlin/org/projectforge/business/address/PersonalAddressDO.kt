@@ -23,7 +23,7 @@
 
 package org.projectforge.business.address
 
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.business.address.PersonalAddressDO.Companion.DELETE_ALL_BY_ADDRESS_ID
 import org.projectforge.business.address.PersonalAddressDO.Companion.FIND_BY_OWNER
 import org.projectforge.business.address.PersonalAddressDO.Companion.FIND_BY_OWNER_AND_ADDRESS_ID
@@ -32,7 +32,7 @@ import org.projectforge.business.address.PersonalAddressDO.Companion.FIND_FAVORI
 import org.projectforge.business.address.PersonalAddressDO.Companion.FIND_JOINED_BY_OWNER
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * Every user has his own address book (a subset of all addresses). For every address a user can define which phone
@@ -74,9 +74,12 @@ import javax.persistence.*
     query = "from PersonalAddressDO p join fetch p.address where p.owner.id = :ownerId and p.address.deleted=false order by p.address.name, p.address.firstName"
   )
 )
-class PersonalAddressDO : AbstractBaseDO<Int>() {
+class PersonalAddressDO : AbstractBaseDO<Long>() {
 
-  private var id: Int? = null
+  @get:Id
+  @get:GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
+  @get:Column(name = "pk")
+  override var id: Long? = null
 
   /**
    * Not used as object due to performance reasons.
@@ -105,24 +108,13 @@ class PersonalAddressDO : AbstractBaseDO<Int>() {
     @Transient
     get() = isFavoriteCard
 
-  val ownerId: Int?
+  val ownerId: Long?
     @Transient
     get() = if (this.owner == null) null else owner!!.id
 
-  val addressId: Int?
+  val addressId: Long?
     @Transient
     get() = if (this.address == null) null else address!!.id
-
-  @Id
-  @GeneratedValue
-  @Column(name = "pk")
-  override fun getId(): Int? {
-    return id
-  }
-
-  override fun setId(id: Int?) {
-    this.id = id
-  }
 
   companion object {
     internal const val FIND_FAVORITE_ADDRESS_IDS_BY_OWNER = "PersonalAddressDO_FindIDsByOwner"

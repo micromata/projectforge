@@ -45,7 +45,7 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.Month
 import java.util.*
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 import javax.net.ssl.*
 
 private val log = KotlinLogging.logger {}
@@ -64,7 +64,7 @@ open class ConfigurationService {
   private lateinit var sendMail: SendMail
 
   @Value("\${projectforge.base.dir}")
-  open var applicationHomeDir: String? = null
+  open lateinit var applicationHomeDir: String
 
   @Value("\${projectforge.support.mail}")
   open var pfSupportMailAddress: String? = null
@@ -74,7 +74,7 @@ open class ConfigurationService {
    * Resource directory relative to application's home (default 'resources').
    */
   @Value("\${projectforge.resourcesDirectory}")
-  open var resourceDirName: String? = null
+  open lateinit var resourceDirName: String
     protected set
 
   /**
@@ -384,12 +384,12 @@ open class ConfigurationService {
     return true
   }
 
-  open fun getDaoValue(parameter: IConfigurationParam?, configurationDO: ConfigurationDO?): Any? {
+  open fun getDaoValue(parameter: IConfigurationParam, configurationDO: ConfigurationDO?): Any? {
     return configDao.getValue(parameter, configurationDO)
   }
 
   open fun daoInternalLoadAll(): List<ConfigurationDO> {
-    return configDao.internalLoadAll()
+    return configDao.selectAll(checkAccess = false)
   }
 
   open val timezone: TimeZone?
@@ -438,7 +438,7 @@ open class ConfigurationService {
       try {
         val minPwLenEntry = configDao.getEntry(ConfigurationParam.MIN_PASSWORD_LENGTH)
         if (minPwLenEntry != null) {
-          val minPwLenValue = minPwLenEntry.intValue
+          val minPwLenValue = minPwLenEntry.longValue?.toInt()
           if (minPwLenValue != null) {
             return minPwLenValue
           }
@@ -447,7 +447,7 @@ open class ConfigurationService {
         // this could happen if the database is not initialized (during projectforge initial setup)
         log.warn("Exception while getting the min password length configuration.", e)
       }
-      return ConfigurationParam.MIN_PASSWORD_LENGTH.defaultIntValue
+      return ConfigurationParam.MIN_PASSWORD_LENGTH.defaultLongValue.toInt()
     }
 
   // this could happen if the database is not initialized (during projectforge initial setup)

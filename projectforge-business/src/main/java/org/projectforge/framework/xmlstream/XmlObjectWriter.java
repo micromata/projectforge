@@ -56,7 +56,7 @@ public class XmlObjectWriter
 
   private AliasMap aliasMap;
 
-  private int refIdCounter = 0;
+  private long refIdCounter = 0;
 
   private XmlRegistry xmlRegistry = XmlRegistry.baseRegistry();
 
@@ -201,14 +201,14 @@ public class XmlObjectWriter
     }
     if (isRegistered(obj)) {
       final Element el = getRegisteredElement(obj);
-      Integer refId;
+      Long refId;
       final Attribute attr = el.attribute(ATTR_ID);
       if (attr == null) {
         // Id attribute not yet written. So add this attribute:
         refId = refIdCounter++;
         el.addAttribute(ATTR_ID, String.valueOf(refId));
       } else {
-        refId = NumberHelper.parseInteger(attr.getText());
+        refId = NumberHelper.parseLong(attr.getText());
       }
       if (refId == null) {
         log.error("Can't parse ref id: " + attr.getText());

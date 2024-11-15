@@ -41,19 +41,19 @@ import org.projectforge.ui.UIColor
  * @param queueStrategy Should this job be queued if any other job is already running.
  */
 abstract class AbstractImportJob(
-  title: String,
-  area: String? = null,
-  userId: Int? = ThreadLocalUserContext.userId,
-  queueName: String? = null,
-  /**
+    title: String,
+    area: String? = null,
+    userId: Long? = ThreadLocalUserContext.loggedInUserId,
+    queueName: String? = null,
+    /**
    * If true then jobs of same area, same queueName and same user are queued.
    */
   queueStrategy: QueueStrategy = QueueStrategy.NONE,
-  /**
+    /**
    * At default, this job will be cancelled after 120s +.
    */
   timeoutSeconds: Int = 120,
-  importStorage: ImportStorage<*>? = null,
+    importStorage: ImportStorage<*>? = null,
   ) : AbstractJob(
   title = title,
   area = area,

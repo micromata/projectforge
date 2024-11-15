@@ -27,9 +27,8 @@ import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.Constants
 import org.projectforge.business.fibu.AbstractRechnungsPositionDO
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO
@@ -40,7 +39,11 @@ import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.utils.CurrencyHelper
 import java.math.BigDecimal
-import javax.persistence.*
+import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
+import org.projectforge.framework.utils.NumberFormatter
 
 /**
  * Rechnungen (Ein- und Ausgang) sowie Gehaltssonderzahlungen werden auf Kost1 und Kost2 aufgeteilt. Einer Rechnung
@@ -75,7 +78,7 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
 
   override val displayName: String
     @Transient
-    get() = "$index"
+    get() = "$index:${kost1?.displayName}|${kost2?.displayName}:${NumberFormatter.formatCurrency(netto)}"
 
   /**
    * Die Kostzuweisungen sind als Array organisiert. Dies stellt den Index der Kostzuweisung dar. Der Index ist für
@@ -91,19 +94,21 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
   open var netto: BigDecimal? = null
 
   @PropertyInfo(i18nKey = "fibu.kost1")
-  @IndexedEmbedded(depth = 1)
-  @get:ManyToOne(fetch = FetchType.EAGER)
-  @get:JoinColumn(name = "kost1_fk", nullable = false)
+  @IndexedEmbedded(includeDepth = 1)
+  @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
+  @get:ManyToOne(fetch = FetchType.LAZY)
+  @get:JoinColumn(name = "kost1_fk")
   open var kost1: Kost1DO? = null
 
   @PropertyInfo(i18nKey = "fibu.kost2")
-  @IndexedEmbedded(depth = 1)
-  @get:ManyToOne(fetch = FetchType.EAGER)
-  @get:JoinColumn(name = "kost2_fk", nullable = false)
+  @IndexedEmbedded(includeDepth = 1)
+  @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
+  @get:ManyToOne(fetch = FetchType.LAZY)
+  @get:JoinColumn(name = "kost2_fk")
   open var kost2: Kost2DO? = null
 
-  @IndexedEmbedded(depth = 1)
-  @get:ManyToOne(fetch = FetchType.EAGER)
+  @IndexedEmbedded(includeDepth = 1)
+  @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "rechnungs_pos_fk", nullable = true)
   @JsonBackReference
   open var rechnungsPosition: RechnungsPositionDO? = null
@@ -114,8 +119,8 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
       field = rechnungsPosition
     }
 
-  @IndexedEmbedded(depth = 1)
-  @get:ManyToOne(fetch = FetchType.EAGER)
+  @IndexedEmbedded(includeDepth = 1)
+  @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "eingangsrechnungs_pos_fk", nullable = true)
   @JsonBackReference
   open var eingangsrechnungsPosition: EingangsrechnungsPositionDO? = null
@@ -133,8 +138,9 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
       eingangsrechnungsPosition = position as EingangsrechnungsPositionDO
   }
 
-  @IndexedEmbedded(depth = 1)
-  @get:ManyToOne(fetch = FetchType.EAGER)
+  @IndexedEmbedded(includeDepth = 1)
+  @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
+  @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "employee_salary_fk", nullable = true)
   open var employeeSalary: EmployeeSalaryDO? = null
     set(employeeSalary) {
@@ -144,7 +150,7 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
       field = employeeSalary
     }
 
-  @Field
+  @FullTextField
   @get:Column(length = Constants.COMMENT_LENGTH)
   open var comment: String? = null
 
@@ -167,31 +173,31 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
       return CurrencyHelper.getGrossAmount(this.netto, vat)
     }
 
-  val kost1Id: Int?
+  val kost1Id: Long?
     @Transient
     get() = if (this.kost1 == null) {
       null
     } else kost1!!.id
 
-  val kost2Id: Int?
+  val kost2Id: Long?
     @Transient
     get() = if (this.kost2 == null) {
       null
     } else kost2!!.id
 
-  val rechnungsPositionId: Int?
+  val rechnungsPositionId: Long?
     @Transient
     get() = if (this.rechnungsPosition == null) {
       null
     } else rechnungsPosition!!.id
 
-  val eingangsrechnungsPositionId: Int?
+  val eingangsrechnungsPositionId: Long?
     @Transient
     get() = if (this.eingangsrechnungsPosition == null) {
       null
     } else eingangsrechnungsPosition!!.id
 
-  val employeeSalaryId: Int?
+  val employeeSalaryId: Long?
     @Transient
     get() = if (this.employeeSalary == null) {
       null

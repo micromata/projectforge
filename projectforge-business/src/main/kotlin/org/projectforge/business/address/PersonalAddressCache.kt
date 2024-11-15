@@ -28,9 +28,7 @@ import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
-import javax.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
 
@@ -47,10 +45,10 @@ class PersonalAddressCache : AbstractCache() {
     /**
      * Map key is the user id, the entry is a map (key = address id, entry is the PersonalAddressDO).
      */
-    private var ownersMap = mutableMapOf<Int, Map<Int, PersonalAddressDO>>()
+    private var ownersMap = mutableMapOf<Long, Map<Long, PersonalAddressDO>>()
 
     @JvmOverloads
-    fun getByAddressId(addressId: Int, owner: PFUserDO? = ThreadLocalUserContext.user): PersonalAddressDO? {
+    fun getByAddressId(addressId: Long, owner: PFUserDO? = ThreadLocalUserContext.loggedInUser): PersonalAddressDO? {
         owner?.id?.let { ownerId ->
             return getPersonalAddressList(ownerId)[addressId]
         }
@@ -58,11 +56,11 @@ class PersonalAddressCache : AbstractCache() {
     }
 
     @JvmOverloads
-    fun isPersonalAddress(addressId: Int?, owner: PFUserDO? = ThreadLocalUserContext.user): Boolean {
+    fun isPersonalAddress(addressId: Long?, owner: PFUserDO? = ThreadLocalUserContext.loggedInUser): Boolean {
         return addressId != null && getByAddressId(addressId, owner)?.isFavorite == true
     }
 
-    private fun getPersonalAddressList(ownerId: Int): Map<Int, PersonalAddressDO> {
+    private fun getPersonalAddressList(ownerId: Long): Map<Long, PersonalAddressDO> {
         // Try to get map form cache first.
         synchronized(ownersMap) {
             ownersMap[ownerId]?.let {
@@ -71,7 +69,7 @@ class PersonalAddressCache : AbstractCache() {
         }
         // Read list of personal addresses from data base:
         val list = personalAddressDao.list
-        val map = mutableMapOf<Int, PersonalAddressDO>()
+        val map = mutableMapOf<Long, PersonalAddressDO>()
         list.forEach { personalAddress ->
             personalAddress.addressId?.let { addressId ->
                 map.put(addressId, personalAddress)
@@ -83,7 +81,7 @@ class PersonalAddressCache : AbstractCache() {
         return map
     }
 
-    fun setAsExpired(userId: Int) {
+    fun setAsExpired(userId: Long) {
         synchronized(ownersMap) {
             ownersMap.remove(userId)
         }

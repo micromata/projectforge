@@ -23,16 +23,18 @@
 
 package org.projectforge.rest.dto
 
+import org.apache.poi.ss.formula.functions.T
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.IdObject
 import java.util.*
 
 /**
- * BaseHistorizableDTO is a DTO representation of a AbstractHistorizableBaseDO<Int>. It copies most fields automatically by name and type from
- * DTO to  AbstractHistorizableBaseDO<Int> and vice versa.
+ * BaseHistorizableDTO is a DTO representation of a AbstractHistorizableBaseDO<Long>. It copies most fields automatically by name and type from
+ * DTO to  AbstractHistorizableBaseDO<Long> and vice versa.
  */
-open class BaseDTODisplayObject<T : ExtendedBaseDO<Int>>(
-  id: Int? = null,
+open class BaseDTODisplayObject<T : ExtendedBaseDO<Long>>(
+  id: Long? = null,
   /**
    * Only for displaying purposes. Will be ignored on save or update.
    */

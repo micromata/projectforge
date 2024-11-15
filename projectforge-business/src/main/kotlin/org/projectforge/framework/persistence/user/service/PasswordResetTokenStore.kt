@@ -31,13 +31,13 @@ import org.projectforge.framework.utils.NumberHelper
  */
 internal object PasswordResetTokenStore {
   // Key is user-id.
-  private val store = mutableMapOf<Int, ExpiringToken>()
+  private val store = mutableMapOf<Long, ExpiringToken>()
 
   /**
    * @param Token sent to user (created via [createToken].
    * @return The user id assigned to the given token or null, if no token found.
    */
-  fun checkToken(token: String): Int? {
+  fun checkToken(token: String): Long? {
     tidyUp()
     synchronized(store) {
       return store.entries.find { it.value.token == token }?.key
@@ -55,7 +55,7 @@ internal object PasswordResetTokenStore {
     }
   }
 
-  fun createToken(userId: Int): String {
+  fun createToken(userId: Long): String {
     val token = NumberHelper.getSecureRandomAlphanumeric(30)
     tidyUp()
     synchronized(store) {

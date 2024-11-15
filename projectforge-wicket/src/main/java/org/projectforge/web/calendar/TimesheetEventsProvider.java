@@ -29,7 +29,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.projectforge.Constants;
 import org.projectforge.business.common.OutputType;
-import org.projectforge.business.fibu.KostFormatter;
+import org.projectforge.business.fibu.OldKostFormatter;
 import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.business.teamcal.CalendarHelper;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
@@ -105,7 +105,7 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider {
     for (int i = 0; i < durationsPerDayOfYear.length; i++) {
       durationsPerDayOfYear[i] = 0;
     }
-    final Integer userId = calFilter.getTimesheetUserId();
+    final Long userId = calFilter.getTimesheetUserId();
     if (userId == null) {
       return;
     }
@@ -116,7 +116,7 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider {
     filter.setStartTime(startDate.getUtilDate());
     filter.setStopTime(endDate.getUtilDate());
     filter.setOrderType(OrderDirection.ASC);
-    timesheets = timesheetDao.getList(filter);
+    timesheets = timesheetDao.select(filter);
     boolean longFormat = false;
     days = Days.daysBetween(start, end).getDays();
     if (days < 10) {
@@ -190,7 +190,7 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider {
             new String[][]{
                 {title},
                 {timesheet.getLocation(), getString("timesheet.location")},
-                {KostFormatter.formatLong(timesheet.getKost2()), getString("fibu.kost2")},
+                {OldKostFormatter.formatLong(timesheet.getKost2()), getString("fibu.kost2")},
                 {WicketTaskFormatter.getTaskPath(timesheet.getTaskId(), true, OutputType.PLAIN),
                     getString("task")},
                 {timesheet.getDescription(), getString("description")}});

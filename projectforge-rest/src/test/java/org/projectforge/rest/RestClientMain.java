@@ -29,11 +29,11 @@ import org.projectforge.model.rest.RestPaths;
 import org.projectforge.model.rest.ServerInfo;
 import org.projectforge.model.rest.UserObject;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
@@ -94,7 +94,7 @@ public class RestClientMain
     if (user == null) {
       throw new RuntimeException("Can't deserialize user : " + json);
     }
-    final Integer userId = user.getId();
+    final Long userId = user.getId();
     final String authenticationToken = user.getAuthenticationToken();
     log.info("userId = " + userId + ", authenticationToken=" + authenticationToken);
     return user;

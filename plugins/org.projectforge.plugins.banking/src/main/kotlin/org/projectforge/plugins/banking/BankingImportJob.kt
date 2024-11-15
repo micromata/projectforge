@@ -25,7 +25,7 @@ package org.projectforge.plugins.banking
 
 import mu.KotlinLogging
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.persistence.api.ModificationStatus
+import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.importer.AbstractImportJob
 import org.projectforge.rest.importer.ImportEntry
@@ -80,7 +80,7 @@ class BankingImportJob(
         continue
       }
       var dbEntry = if (storedEntryId != null) {
-        bankAccountRecordDao.getById(storedEntryId)
+        bankAccountRecordDao.find(storedEntryId)
       } else {
         null
       }
@@ -90,7 +90,7 @@ class BankingImportJob(
           readEntry.copyTo(dbEntry)
           dbEntry.bankAccount = bankAccountDO
           dbEntry.checksum = dbEntry.buildCheckSum()
-          bankAccountRecordDao.internalSave(dbEntry)
+          bankAccountRecordDao.insert(dbEntry, checkAccess = false)
           result.inserted += 1
         }
       } else {
@@ -100,15 +100,15 @@ class BankingImportJob(
           dbEntry.id = id
           dbEntry.bankAccount = bankAccountDO
           dbEntry.checksum = dbEntry.buildCheckSum()
-          dbEntry.isDeleted = false
+          dbEntry.deleted = false
           val modStatus = bankAccountRecordDao.update(dbEntry)
-          if (modStatus != ModificationStatus.NONE) {
+          if (modStatus != EntityCopyStatus.NONE) {
             result.updated += 1
           } else {
             result.unmodified += 1
           }
         } else {
-          if (!dbEntry.isDeleted) {
+          if (!dbEntry.deleted) {
             bankAccountRecordDao.markAsDeleted(dbEntry)
           }
           result.deleted += 1

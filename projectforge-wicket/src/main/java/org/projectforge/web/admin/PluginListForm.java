@@ -27,6 +27,7 @@ import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.model.Model;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
@@ -42,18 +43,16 @@ public class PluginListForm extends AbstractStandardForm<PluginListForm, PluginL
   private static final long serialVersionUID = 5241668711103233356L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PluginListForm.class);
-  private PluginAdminService pluginAdminService;
 
-  public PluginListForm(PluginListPage parentPage, PluginAdminService pluginAdminService) {
+  public PluginListForm(PluginListPage parentPage) {
     super(parentPage);
-    this.pluginAdminService = pluginAdminService;
   }
 
   @Override
   protected void init() {
     super.init();
-    List<AbstractPlugin> availables = pluginAdminService.getAvailablePlugins();
-    List<String> activatedPlugins = pluginAdminService.getActivatedPluginsFromConfiguration();
+    List<AbstractPlugin> availables = WicketSupport.get(PluginAdminService.class).getAvailablePlugins();
+    List<String> activatedPlugins = WicketSupport.get(PluginAdminService.class).getActivatedPluginsFromConfiguration();
 
     gridBuilder.newFormHeading("Please note: (de)activation of plugins will take effect only after restart!");
 
@@ -82,7 +81,7 @@ public class PluginListForm extends AbstractStandardForm<PluginListForm, PluginL
       final Button button = new Button(SingleButtonPanel.WICKET_ID, new Model<String>()) {
         @Override
         public final void onSubmit() {
-          pluginAdminService.storePluginToBeActivated(plugin.getInfo().getId(), !isActivated(activatedPlugins, plugin));
+          WicketSupport.get(PluginAdminService.class).storePluginToBeActivated(plugin.getInfo().getId(), !isActivated(activatedPlugins, plugin));
           setResponsePage(new PluginListPage(getPage().getPageParameters()));
         }
       };

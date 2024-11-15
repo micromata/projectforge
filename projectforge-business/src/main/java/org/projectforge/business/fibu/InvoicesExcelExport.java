@@ -59,7 +59,7 @@ public class InvoicesExcelExport
       entry.recalculate();
       mapping.add("datum", entry.getDatum());
       mapping.add("faelligkeit", entry.getFaelligkeit());
-      mapping.add("gross", entry.getGrossSum());
+      mapping.add("gross", entry.info.getGrossSum());
       mapping.add("number", entry.getNummer());
       mapping.add("debitor", entry.getKundeAsString());
       mapping.add("subject", entry.getBetreff());
@@ -89,7 +89,7 @@ public class InvoicesExcelExport
         entry.recalculate();
         mapping.add("datum", entry.getDatum());
         mapping.add("faelligkeit", entry.getFaelligkeit());
-        mapping.add("gross", entry.getGrossSum());
+        mapping.add("gross", entry.getInfo().getGrossSum());
         mapping.add("creditor", entry.getKreditor());
         mapping.add("subject", entry.getBetreff());
         sheet.addRow(mapping.getMapping(), 0);

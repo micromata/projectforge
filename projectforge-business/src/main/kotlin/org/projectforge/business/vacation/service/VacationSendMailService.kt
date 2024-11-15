@@ -87,11 +87,11 @@ open class VacationSendMailService {
       }
     }
     val vacationer = vacationInfo.employeeUser!!
-    if (vacationer.id != ThreadLocalUserContext.userId) {
+    if (vacationer.id != ThreadLocalUserContext.loggedInUserId) {
       sendMail(vacationInfo, operationType, VacationMode.OWN, vacationer)
     }
     val manager = vacationInfo.managerUser!!
-    if (manager.id != ThreadLocalUserContext.userId) {
+    if (manager.id != ThreadLocalUserContext.loggedInUserId) {
       sendMail(vacationInfo, operationType, VacationMode.MANAGER, manager)
     }
     val replacements = mutableSetOf<PFUserDO>()
@@ -185,16 +185,16 @@ open class VacationSendMailService {
   @Suppress("HasPlatformType", "MemberVisibilityCanBePrivate", "unused")
   internal class VacationInfo(employeeDao: EmployeeDao, val vacation: VacationDO) {
     val link = getLinkToVacationEntry(vacation.id)
-    val modifiedByUser = ThreadLocalUserContext.user!!
+    val modifiedByUser = ThreadLocalUserContext.loggedInUser!!
     val modifiedByUserFullname = modifiedByUser.getFullname()
     val modifiedByUserMail = modifiedByUser.email
-    val employeeUser = employeeDao.internalGetById(vacation.employee?.id)?.user
+    val employeeUser = employeeDao.find(vacation.employee?.id, checkAccess = false)?.user
     var employeeFullname = employeeUser?.getFullname() ?: "unknown"
     val employeeMail = employeeUser?.email
-    val managerUser = employeeDao.internalGetById(vacation.manager?.id)?.user
+    val managerUser = employeeDao.find(vacation.manager?.id, checkAccess = false)?.user
     var managerFullname = managerUser?.getFullname() ?: "unknown"
     val managerMail = managerUser?.email
-    val replacementUser = employeeDao.internalGetById(vacation.replacement?.id)?.user
+    val replacementUser = employeeDao.find(vacation.replacement?.id, checkAccess = false)?.user
     val otherReplacementUsers = mutableListOf<PFUserDO>()
     var replacementFullname = replacementUser?.getFullname() ?: "unknown"
     var otherReplacementsFullnames: String = ""
@@ -235,7 +235,7 @@ open class VacationSendMailService {
         valid = false
       }
       vacation.otherReplacements?.forEach { employeeDO ->
-        employeeDao.internalGetById(employeeDO.id)?.user?.let { user ->
+        employeeDao.find(employeeDO.id, checkAccess = false)?.user?.let { user ->
           otherReplacementUsers.add(user)
         }
       }
@@ -285,7 +285,8 @@ open class VacationSendMailService {
       return "$linkToVacationEntry$id?returnToCaller=account"
     }
 
-    fun getLinkToVacationEntry(id: Int): String {
+    fun getLinkToVacationEntry(id: Long?): String {
+      id ?: return "???"
       return getLinkToVacationEntry(id.toString())
     }
 

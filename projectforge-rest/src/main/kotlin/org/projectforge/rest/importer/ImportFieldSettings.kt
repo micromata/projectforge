@@ -171,7 +171,11 @@ class ImportFieldSettings(
   }
 
   fun parseInt(str: String?): Int? {
-    return ValueParser.parseInt(str, parseFormatList)
+    return ValueParser.parseLong(str, parseFormatList)?.toInt()
+  }
+
+  fun parseLong(str: String?): Long? {
+    return ValueParser.parseLong(str, parseFormatList)
   }
 
   fun parseBoolean(str: String?): Boolean? {

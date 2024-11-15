@@ -50,7 +50,7 @@ class MerlinAttachmentsActionListener(
   /**
    * Allows only upload of Word and Excel documents.
    */
-  override fun onBeforeUpload(fileInfo: FileInfo, obj: ExtendedBaseDO<Int>): ResponseEntity<*>? {
+  override fun onBeforeUpload(fileInfo: FileInfo, obj: ExtendedBaseDO<Long>): ResponseEntity<*>? {
     return if (fileInfo.fileExtension != "docx" && fileInfo.fileExtension != "xlsx") {
       ResponseEntity.ok().body(
         UIToast.createToast(
@@ -68,12 +68,12 @@ class MerlinAttachmentsActionListener(
    */
   override fun afterUpload(
     attachment: Attachment,
-    obj: ExtendedBaseDO<Int>,
+    obj: ExtendedBaseDO<Long>,
     jcrPath: String,
     attachmentsAccessChecker: AttachmentsAccessChecker,
     listId: String?
   ): ResponseEntity<*> {
-    val list = attachmentsService.getAttachments(jcrPath, obj.id, attachmentsAccessChecker, listId)
+    val list = attachmentsService.getAttachments(jcrPath, obj.id!!, attachmentsAccessChecker, listId)
     list?.forEach { element ->
       // If docx/xlsx is uploaded, backup all previous existing docx/xlsx.
       if (element.fileExtension == attachment.fileExtension && element.fileId != attachment.fileId) {
@@ -97,17 +97,17 @@ class MerlinAttachmentsActionListener(
 
   override fun afterModification(
     attachment: Attachment,
-    obj: ExtendedBaseDO<Int>,
+    obj: ExtendedBaseDO<Long>,
     jcrPath: String,
     attachmentsAccessChecker: AttachmentsAccessChecker,
     listId: String?
   ): ResponseEntity<*> {
-    val list = attachmentsService.getAttachments(jcrPath, obj.id, attachmentsAccessChecker, listId)
+    val list = attachmentsService.getAttachments(jcrPath, obj.id!!, attachmentsAccessChecker, listId)
     return createResponseEntity(obj, list, TargetType.CLOSE_MODAL)
   }
 
   private fun createResponseEntity(
-    obj: ExtendedBaseDO<Int>,
+    obj: ExtendedBaseDO<Long>,
     list: List<Attachment>?,
     targetType: TargetType
   ): ResponseEntity<*> {
@@ -127,7 +127,7 @@ class MerlinAttachmentsActionListener(
   }
 
   override fun createAttachmentLayout(
-    id: Int,
+    id: Long,
     category: String,
     fileId: String,
     listId: String?,

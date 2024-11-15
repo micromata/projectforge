@@ -30,12 +30,13 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
+import org.projectforge.business.fibu.kost.KundeCache;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
@@ -51,10 +52,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RechnungEditForm.class);
 
-  private final PeriodOfPerformanceHelper periodOfPerformanceHelper = new PeriodOfPerformanceHelper();
-
-  @SpringBean
-  private KontoCache kontoCache;
+  private PeriodOfPerformanceHelper periodOfPerformanceHelper = new PeriodOfPerformanceHelper();
 
   NewCustomerSelectPanel customerSelectPanel;
 
@@ -121,7 +119,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
       fs.add(typeChoice);
     }
     gridBuilder.newSubSplitPanel(GridSize.COL50);
-    if (kontoCache.isEmpty() == false) {
+    if (WicketSupport.get(KontoCache.class).isEmpty() == false) {
       // Show this field only if DATEV accounts does exist.
       final FieldsetPanel fs = gridBuilder.newFieldset(RechnungDO.class, "konto");
       final KontoSelectPanel kontoSelectPanel = new KontoSelectPanel(fs.newChildId(),
@@ -143,7 +141,8 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
         {
-          if (getData().getKundeId() == null && StringUtils.isBlank(getData().getKundeText()) == true && projektSelectPanel.getModelObject() != null) {
+          KundeDO kunde = WicketSupport.get(KundeCache.class).getKundeIfNotInitialized(getData().getKunde());
+          if (kunde == null && StringUtils.isBlank(getData().getKundeText()) == true && projektSelectPanel.getModelObject() != null) {
             getData().setKunde(projektSelectPanel.getModelObject().getKunde());
           }
           target.add(customerSelectPanel.getTextField());
@@ -207,8 +206,6 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
    * Highlights the cost2 element if it differs from the cost2 of the given project (if any).
    *
    * @param position
-   * @param cost1
-   * @param cost2
    */
   @Override
   protected void onRenderCostRow(final AbstractRechnungsPositionDO position, final KostZuweisungDO costAssignment,
@@ -223,7 +220,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
     final ProjektDO projekt = invoice.getProjekt();
     int numberRange; // First number of cost.
     int area = -1; // Number 2-4
-    int number; // Number 5-6.
+    long number; // Number 5-6.
     if (projekt != null) {
       numberRange = projekt.getNummernkreis();
       area = projekt.getBereich();

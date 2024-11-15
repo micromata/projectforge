@@ -23,6 +23,7 @@
 
 package org.projectforge.caldav.service
 
+import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
@@ -31,10 +32,9 @@ import org.projectforge.caldav.model.AddressBook
 import org.projectforge.caldav.model.Contact
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
-import org.projectforge.framework.persistence.api.BaseDOChangedListener
+import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import javax.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
 
@@ -42,7 +42,7 @@ private val log = KotlinLogging.logger {}
  * Cache needed, because vcard generation takes lot of cpu power....
  */
 @Service
-open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOChangedListener<AddressDO> {
+open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListener<AddressDO> {
     @Autowired
     private lateinit var addressDao: AddressDao
 
@@ -52,11 +52,11 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOChangedListene
     @Autowired
     private lateinit var vCardService: VCardService
 
-    private var contactMap = mutableMapOf<Int, Contact>()
+    private var contactMap = mutableMapOf<Long, Contact>()
 
-    open fun getContacts(addressBook: AddressBook, ids: List<Int>): List<Contact> {
+    open fun getContacts(addressBook: AddressBook, ids: List<Long>): List<Contact> {
         val result = mutableListOf<Contact>()
-        val missedInCache = mutableListOf<Int>()
+        val missedInCache = mutableListOf<Long>()
         ids.forEach {
             val contact = getCachedAddress(it)
             if (contact != null) {
@@ -68,10 +68,10 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOChangedListene
         }
         log.info("Got ${result.size} addresses from cache and must load ${missedInCache.size} from data base...")
         if (missedInCache.size > 0) {
-            addressDao.internalLoad(missedInCache).forEach {
+            addressDao.select(missedInCache, checkAccess = false)?.forEach {
                 val vcard = vCardService.buildVCardByteArray(it, addressImageDao)
                 val contact = Contact(it.id, it.fullName, it.lastUpdate, vcard)
-                addCachedContact(it.id, contact)
+                addCachedContact(it.id!!, contact)
                 val copy = Contact(contact, addressBook)
                 result.add(copy)
             }
@@ -79,13 +79,13 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOChangedListene
         return result
     }
 
-    private fun getCachedAddress(id: Int): Contact? {
+    private fun getCachedAddress(id: Long): Contact? {
         synchronized(contactMap) {
             return contactMap[id]
         }
     }
 
-    private fun addCachedContact(id: Int, contact: Contact) {
+    private fun addCachedContact(id: Long, contact: Contact) {
         synchronized(contactMap) {
             contactMap[id] = contact
         }
@@ -95,7 +95,7 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOChangedListene
      * After modification of any address (insert, update, delete, undelete) this address should be removed from
      * this cache.
      */
-    override fun afterSaveOrModify(changedObject: AddressDO, operationType: OperationType) {
+    override fun afterInsertOrModify(changedObject: AddressDO, operationType: OperationType) {
         synchronized(contactMap) {
             contactMap.remove(changedObject.id)
         }

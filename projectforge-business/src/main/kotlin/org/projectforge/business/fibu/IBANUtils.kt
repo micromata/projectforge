@@ -49,6 +49,5 @@ object IBANUtils {
       }
       return it.length == 22
     }
-    return true
   }
 }

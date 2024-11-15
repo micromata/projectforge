@@ -81,9 +81,9 @@ public class HRPlanningEventsProvider extends MyFullCalendarEventsProvider
       return;
     }
     final HRPlanningFilter filter = new HRPlanningFilter();
-    Integer timesheetUserId = calendarFilter.getTimesheetUserId();
+    Long timesheetUserId = calendarFilter.getTimesheetUserId();
     if (timesheetUserId == null) {
-      timesheetUserId = ThreadLocalUserContext.getUserId();
+      timesheetUserId = ThreadLocalUserContext.getLoggedInUserId();
     }
     filter.setUserId(timesheetUserId);
 
@@ -92,7 +92,7 @@ public class HRPlanningEventsProvider extends MyFullCalendarEventsProvider
 
     filter.setStartDay(startDay.getLocalDate());
     filter.setStopDay(endDay.getLocalDate());
-    final List<HRPlanningDO> list = hrPlanningDao.getList(filter);
+    final List<HRPlanningDO> list = hrPlanningDao.select(filter);
     if (list == null) {
       return;
     }
@@ -102,7 +102,7 @@ public class HRPlanningEventsProvider extends MyFullCalendarEventsProvider
       }
       final DateTime week = new DateTime(PFDateTime.from(planning.getWeek()).getUtilDate(), ThreadLocalUserContext.getDateTimeZone());
       for (final HRPlanningEntryDO entry : planning.getEntries()) {
-        if (entry.isDeleted() == true) {
+        if (entry.getDeleted() == true) {
           continue;
         }
         putEvent(entry, week, "week", 6, entry.getUnassignedHours());
@@ -135,7 +135,7 @@ public class HRPlanningEventsProvider extends MyFullCalendarEventsProvider
     } else {
       event.setEnd(start);
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(NumberHelper.formatFraction2(hours)).append(getString("calendar.unit.hour")).append(" ")
         .append(entry.getProjektNameOrStatus());
     if (StringUtils.isNotBlank(entry.getDescription()) == true) {

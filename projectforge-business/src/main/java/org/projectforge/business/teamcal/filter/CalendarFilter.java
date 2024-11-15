@@ -48,7 +48,7 @@ public class CalendarFilter extends AbstractCalendarFilter
   @SuppressWarnings("unused")
   @Deprecated
   @XStreamAsAttribute
-  private transient Integer userId;
+  private transient Long userId;
 
   @XStreamAsAttribute
   private String selectedCalendar;
@@ -60,7 +60,7 @@ public class CalendarFilter extends AbstractCalendarFilter
   private Boolean showStatistics;
 
   @XStreamAsAttribute
-  private Integer timesheetUserId;
+  private Long timesheetUserId;
 
   @XStreamAsAttribute
   private Boolean showBreaks = true;
@@ -71,7 +71,7 @@ public class CalendarFilter extends AbstractCalendarFilter
   public CalendarFilter()
   {
     super();
-    timesheetUserId = ThreadLocalUserContext.getUserId();
+    timesheetUserId = ThreadLocalUserContext.getLoggedInUserId();
     selectedCalendar = Constants.EVENT_CLASS_NAME;
   }
 
@@ -122,12 +122,12 @@ public class CalendarFilter extends AbstractCalendarFilter
     return this;
   }
 
-  public Integer getTimesheetUserId()
+  public Long getTimesheetUserId()
   {
     return timesheetUserId;
   }
 
-  public CalendarFilter setTimesheetUserId(final Integer timesheetUserId)
+  public CalendarFilter setTimesheetUserId(final Long timesheetUserId)
   {
     this.timesheetUserId = timesheetUserId;
     return this;
@@ -149,7 +149,7 @@ public class CalendarFilter extends AbstractCalendarFilter
   public CalendarFilter setShowTimesheets(final boolean showTimesheets)
   {
     if (showTimesheets) {
-      this.timesheetUserId = ThreadLocalUserContext.getUserId();
+      this.timesheetUserId = ThreadLocalUserContext.getLoggedInUserId();
     } else {
       this.timesheetUserId = null;
     }

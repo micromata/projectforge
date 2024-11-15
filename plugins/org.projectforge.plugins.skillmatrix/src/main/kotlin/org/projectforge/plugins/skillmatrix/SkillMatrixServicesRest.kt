@@ -90,7 +90,7 @@ class SkillMatrixServicesRest {
         sheet.setColumnWidth(it.ordinal, it.width * 256)
       }
       sheet.setAutoFilter()
-      val ownSkills = skillEntryDao.getSkills(ThreadLocalUserContext.user!!)
+      val ownSkills = skillEntryDao.getSkills(ThreadLocalUserContext.loggedInUser!!)
       skillStatisticsCache.statistics.forEach { stats ->
         val row = sheet.createRow()
         if (ownSkills.any { it.normalizedSkill == SkillEntryDO.getNormalizedSkill(stats.skill) }) {

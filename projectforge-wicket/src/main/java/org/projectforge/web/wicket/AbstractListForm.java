@@ -287,7 +287,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
     gridBuilder.newSplitPanel(GridSize.COL66);
     extendedFilter = gridBuilder.getRowPanel();
     extendedFilter.setMarkupId("extendedFilter");
-    if (searchFilter.isUseModificationFilter() == false) {
+    if (searchFilter.getUseModificationFilter() == false) {
       extendedFilter.add(AttributeModifier.append("style", "display: none;"));
     }
     {

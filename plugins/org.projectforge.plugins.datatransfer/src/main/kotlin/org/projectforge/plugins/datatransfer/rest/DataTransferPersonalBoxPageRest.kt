@@ -25,7 +25,6 @@ package org.projectforge.plugins.datatransfer.rest
 
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.service.UserPrefService
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
@@ -39,8 +38,8 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import javax.servlet.http.HttpServletRequest
-import javax.validation.Valid
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
 
 @RestController
 @RequestMapping("${Rest.URL}/datatransferpersonalfiles")
@@ -56,7 +55,7 @@ class DataTransferPersonalBoxPageRest : AbstractDynamicPageRest() {
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("userId") userIdString: String?): FormLayoutData {
-    val userId = NumberHelper.parseInteger(userIdString) ?: getUserPref().userId
+    val userId = NumberHelper.parseLong(userIdString) ?: getUserPref().userId
     val dto = DataTransferPersonalBox()
     userId?.let {
       dto.user = User.getUser(userId)
@@ -80,7 +79,7 @@ class DataTransferPersonalBoxPageRest : AbstractDynamicPageRest() {
     )
   }
 
-  private fun getLayout(id: Int?, userId: Int?): UILayout {
+  private fun getLayout(id: Long?, userId: Long?): UILayout {
     val layout = UILayout("plugins.datatransfer.title.heading")
     layout.add(
       UIFieldset(title = "plugins.datatransfer.personalBox")
@@ -118,7 +117,7 @@ class DataTransferPersonalBoxPageRest : AbstractDynamicPageRest() {
     return layout
   }
 
-  private fun ensurePersonalBox(dto: DataTransferPersonalBox): Int? {
+  private fun ensurePersonalBox(dto: DataTransferPersonalBox): Long? {
     val userId = dto.user?.id ?: return null
     val pfUser = userGroupCache.getUser(userId) ?: return null
     val dbo = dataTransferAreaDao.ensurePersonalBox(userId)
@@ -129,7 +128,7 @@ class DataTransferPersonalBoxPageRest : AbstractDynamicPageRest() {
     return dbo.id
   }
 
-  class PersonalBoxUserPref(var userId: Int? = null)
+  class PersonalBoxUserPref(var userId: Long? = null)
 
   private fun getUserPref(): PersonalBoxUserPref {
     return userPrefService.ensureEntry("datatransfer", "personalbox", PersonalBoxUserPref())

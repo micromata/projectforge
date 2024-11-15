@@ -24,11 +24,11 @@
 package org.projectforge.web.wicket;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.SendFeedback;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.pacman.PacmanViewPage;
 
 /**
@@ -38,9 +38,6 @@ import org.projectforge.web.pacman.PacmanViewPage;
 public class FeedbackPage extends AbstractStandardFormPage
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(FeedbackPage.class);
-
-  @SpringBean
-  private SendFeedback sendFeedback;
 
   private final FeedbackForm form;
 
@@ -60,7 +57,7 @@ public class FeedbackPage extends AbstractStandardFormPage
     final String receiver = Configuration.getInstance().getStringValue(ConfigurationParam.FEEDBACK_E_MAIL);
     body.add(form);
     form.data.setReceiver(receiver);
-    form.data.setSender(ThreadLocalUserContext.getUser().getFullname());
+    form.data.setSender(ThreadLocalUserContext.getLoggedInUser().getFullname());
     form.data.setSubject("Feedback from " + form.data.getSender());
     form.init();
   }
@@ -75,7 +72,7 @@ public class FeedbackPage extends AbstractStandardFormPage
     log.info("Send feedback.");
     boolean result = false;
     try {
-      result = sendFeedback.send(form.data);
+      result = WicketSupport.get(SendFeedback.class).send(form.data);
     } catch (final Throwable ex) {
       log.error(ex.getMessage(), ex);
       result = false;

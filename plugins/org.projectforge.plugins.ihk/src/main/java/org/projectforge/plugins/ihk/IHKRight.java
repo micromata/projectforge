@@ -38,9 +38,9 @@ import java.util.Objects;
 
 public class IHKRight extends UserRightAccessCheck<TimesheetDO>
 {
-  public IHKRight(AccessChecker accessChecker)
+  public IHKRight()
   {
-    super(accessChecker, IHKPluginUserRightId.IHK, UserRightCategory.PLUGINS, UserRightValue.TRUE);
+    super(IHKPluginUserRightId.IHK, UserRightCategory.PLUGINS, UserRightValue.TRUE);
   }
 
   /**

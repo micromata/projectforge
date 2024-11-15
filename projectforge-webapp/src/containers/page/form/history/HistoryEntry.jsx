@@ -24,7 +24,8 @@ function getTypeSymbol(type) {
 function HistoryEntry(
     {
         entry: {
-            diffEntries,
+            id: masterId,
+            attributes,
             timeAgo,
             modifiedAt,
             modifiedByUser,
@@ -35,7 +36,7 @@ function HistoryEntry(
     const [active, setActive] = React.useState(false);
     const diffSummary = {};
 
-    diffEntries.forEach(({ operation, operationType }) => {
+    attributes.forEach(({ operation, operationType }) => {
         let diff = diffSummary[operationType];
 
         if (!diff) {
@@ -72,7 +73,7 @@ function HistoryEntry(
                             .map((diffType) => (
                                 <span
                                     className={style[diffType]}
-                                    key={`history-diff-at-${modifiedAt}-${diffType}`}
+                                    key={`history-diff-${masterId}`}
                                 >
                                     {`${diffSummary[diffType].amount} ${diffSummary[diffType].operation}`}
                                 </span>
@@ -83,8 +84,8 @@ function HistoryEntry(
                     <span>
                         Felder:
                         {' '}
-                        {diffEntries
-                            .map((diff) => diff.property)
+                        {attributes
+                            .map((diff) => diff.displayPropertyName)
                             .join(', ')}
                     </span>
                 </Col>
@@ -108,10 +109,10 @@ function HistoryEntry(
                             :
                         </strong>
                     </h5>
-                    {diffEntries.map((
+                    {attributes.map((
                         {
                             operationType,
-                            property,
+                            displayPropertyName,
                             oldValue,
                             newValue,
                         },
@@ -139,13 +140,13 @@ function HistoryEntry(
 
                         return (
                             <span
-                                key={`history-diff-at-${modifiedAt}-details-${property}`}
+                                key={`history-diff-${masterId}`}
                                 className={style.detail}
                             >
                                 <span className={style[operationType]}>
                                     {getTypeSymbol(operationType)}
                                     {' '}
-                                    {property}
+                                    {displayPropertyName}
                                     {': '}
                                 </span>
                                 {diff}
@@ -160,16 +161,18 @@ function HistoryEntry(
 
 HistoryEntry.propTypes = {
     entry: PropTypes.shape({
-        diffEntries: PropTypes.arrayOf(PropTypes.shape({
+        attributes: PropTypes.arrayOf(PropTypes.shape({
+            id: PropTypes.number,
             newValue: PropTypes.string,
             oldValue: PropTypes.string,
             operation: PropTypes.string,
             operationType: PropTypes.string,
-            property: PropTypes.string,
+            displayPropertyName: PropTypes.string,
         })),
+        id: PropTypes.number,
         modifiedAt: PropTypes.string,
         modifiedByUser: PropTypes.string,
-        modifiedByUserId: PropTypes.string,
+        modifiedByUserId: PropTypes.number,
         operation: PropTypes.string,
         operationType: PropTypes.string,
         timeAgo: PropTypes.string,

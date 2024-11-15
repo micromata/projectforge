@@ -24,11 +24,11 @@
 package org.projectforge.business.user;
 
 import org.projectforge.business.humanresources.HRPlanningRight;
-import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 
 import java.util.Collection;
 
@@ -42,13 +42,10 @@ public class UserRightAccessCheck<O> extends UserRight {
 
   protected UserGroupsRight userGroupsRight;
 
-  protected AccessChecker accessChecker;
-
-  public UserRightAccessCheck(AccessChecker accessChecker, final IUserRightId id,
+  public UserRightAccessCheck(final IUserRightId id,
                               final UserRightCategory category,
                               final UserRightValue... rightValues) {
     super(id, category, rightValues);
-    this.accessChecker = accessChecker;
   }
 
   protected void setUserGroupsRight(final UserGroupsRight right) {
@@ -69,10 +66,7 @@ public class UserRightAccessCheck<O> extends UserRight {
 
   /**
    * The default implementation calls for {@link OperationType#SELECT}
-   * {@link AccessChecker#hasReadAccess(UserRightId, boolean)} and otherwise
-   * {@link AccessChecker#hasWriteAccess(UserRightId, boolean)}.
    *
-   * @param accessDao
    * @param user          Check the access for the given user instead of the logged-in user.
    * @param obj           null is possible for checking general insert access or general select access.
    * @param oldObj
@@ -82,10 +76,10 @@ public class UserRightAccessCheck<O> extends UserRight {
   public boolean hasAccess(final PFUserDO user, final O obj, final O oldObj,
                            final OperationType operationType) {
     if (operationType == OperationType.SELECT) {
-      return accessChecker.hasRight(user, this.getId(), false, UserRightValue.READONLY,
+      return WicketSupport.getAccessChecker().hasRight(user, this.getId(), false, UserRightValue.READONLY,
           UserRightValue.READWRITE);
     } else {
-      return accessChecker.hasRight(user, this.getId(), false, UserRightValue.READWRITE);
+      return WicketSupport.getAccessChecker().hasRight(user, this.getId(), false, UserRightValue.READWRITE);
     }
   }
 
@@ -113,21 +107,12 @@ public class UserRightAccessCheck<O> extends UserRight {
     return hasAccess(user, obj, oldObj, OperationType.DELETE);
   }
 
-  /**
-   * Calls {@link #hasSelectAccess(Object)} at default.
-   *
-   * @param accessChecker
-   * @param user
-   * @param obj
-   * @return
-   */
   public boolean hasHistoryAccess(final PFUserDO user, final O obj) {
     return hasSelectAccess(user, obj);
   }
 
   /**
    * @return matches of UserGroupsRight if exist, otherwise false.
-   * @see UserGroupsRight#matches(UserGroupCache, PFUserDO, UserRightValue)
    */
   @Override
   public boolean matches(final PFUserDO user, final Collection<GroupDO> userGroups, final UserRightValue value) {

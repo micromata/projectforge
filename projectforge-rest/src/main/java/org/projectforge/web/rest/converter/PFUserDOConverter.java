@@ -49,7 +49,7 @@ public class PFUserDOConverter
       return null;
     }
     if (!Hibernate.isInitialized(userDO)) {
-      final Integer userId = userDO.getId();
+      final Long userId = userDO.getId();
       userDO = UserGroupCache.getInstance().getUser(userDO.getId());
       if (userDO == null) {
         log.error("Oups, user with id '" + userId + "' not found.");

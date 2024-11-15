@@ -27,7 +27,7 @@ import mu.KotlinLogging
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import javax.servlet.http.HttpSession
+import jakarta.servlet.http.HttpSession
 
 private val log = KotlinLogging.logger {}
 

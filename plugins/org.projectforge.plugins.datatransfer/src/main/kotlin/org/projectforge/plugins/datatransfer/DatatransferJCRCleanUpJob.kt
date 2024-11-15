@@ -33,7 +33,6 @@ import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import java.math.BigDecimal
 
 private val log = KotlinLogging.logger {}
 
@@ -67,14 +66,14 @@ class DataTransferJCRCleanUpJob {
         log.info("Data transfer clean-up job started.")
         val startTimeInMillis = System.currentTimeMillis()
 
-        val processedDBOs = mutableListOf<Int>() // For checking orphaned areas.
+        val processedDBOs = mutableListOf<Long>() // For checking orphaned areas.
 
         var deletedCounter = 0
         var deletedSize: Long = 0
         var preservedCounter = 0
         var preservedSize: Long = 0
         // First of all, try to check all attachments of active areas:
-        dataTransferAreaDao.internalLoadAll().forEach { dbo ->
+        dataTransferAreaDao.selectAll(checkAccess = false).forEach { dbo ->
             try {
                 dbo.id?.let { id ->
                     processedDBOs.add(id)
@@ -114,7 +113,7 @@ class DataTransferJCRCleanUpJob {
         val nodeInfo = repoService.getNodeInfo(nodePath, true)
         nodeInfo.children?.let { children ->
             for (child in children) {
-                val dbId = NumberHelper.parseInteger(child.name)
+                val dbId = NumberHelper.parseLong(child.name)
                 if (dbId == null) {
                     log.warn { "Oups, name of node isn't of type int (db id): '${child.name}'. Ignoring node." }
                     continue
@@ -158,8 +157,6 @@ class DataTransferJCRCleanUpJob {
 
     companion object {
         internal const val MILLIS_PER_DAY = 1000L * 60 * 60 * 24
-
-        internal val BD_MILLIS_PER_DAY = BigDecimal(MILLIS_PER_DAY)
 
         internal const val SYSTEM_USER = "ProjectForge system"
     }

@@ -28,15 +28,14 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.PFDayUtils;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.calendar.QuickSelectMonthPanel;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractStandardForm;
@@ -53,12 +52,6 @@ public class MonthlyEmployeeReportForm
     extends AbstractStandardForm<MonthlyEmployeeReportFilter, MonthlyEmployeeReportPage>
 {
   private static final long serialVersionUID = 8746545908106124484L;
-
-  @SpringBean
-  private TimesheetDao timesheetDao;
-
-  @SpringBean
-  AccessChecker accessChecker;
 
   protected MonthlyEmployeeReportFilter filter;
 
@@ -77,7 +70,7 @@ public class MonthlyEmployeeReportForm
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("timesheet.user"));
-      if (accessChecker.hasLoggedInUserAccessToTimesheetsOfOtherUsers()) {
+      if (WicketSupport.getAccessChecker().hasLoggedInUserAccessToTimesheetsOfOtherUsers()) {
         final UserSelectPanel userSelectPanel = new UserSelectPanel(fs.newChildId(),
             new PropertyModel<PFUserDO>(filter, "user"),
             parentPage, "user");
@@ -85,7 +78,7 @@ public class MonthlyEmployeeReportForm
         fs.add(userSelectPanel);
         userSelectPanel.init();
       } else {
-        filter.setUser(ThreadLocalUserContext.getUser());
+        filter.setUser(ThreadLocalUserContext.getLoggedInUser());
         fs.add(new DivTextPanel(fs.newChildId(), filter.getUser().getFullname()));
       }
     }
@@ -172,7 +165,7 @@ public class MonthlyEmployeeReportForm
     if (filter.getUser() == null) {
       years = new int[] { new DateHolder().getYear() };
     } else {
-      years = timesheetDao.getYears(filter.getUser().getId());
+      years = WicketSupport.get(TimesheetDao.class).getYears(filter.getUser().getId());
     }
     final LabelValueChoiceRenderer<Integer> yearChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
     for (final int year : years) {

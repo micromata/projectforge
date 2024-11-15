@@ -9,7 +9,7 @@
     <parent>
         <groupId>org.projectforge</groupId>
         <artifactId>projectforge-parent</artifactId>
-        <version>7.5.1-SNAPSHOT</version><!-- projectforge.version -->
+        <version>8.0.0-SNAPSHOT</version><!-- projectforge.version -->
     </parent>
     <licenses>
         <license>
@@ -23,15 +23,18 @@
         <start-class>org.projectforge.start.ProjectForgeApplication</start-class>
     </properties>
     <dependencies>
-        <!-- UNCOMMENT IF WANT TO BUILD WAR FILE-->
-        <!--
+        <!-- Is needed for Spring Boot web functionality (e.g. load static content)-->
         <dependency>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-starter-tomcat</artifactId>
-          <scope>provided</scope>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-        -->
         <!-- PF -->
+        <dependency>
+            <groupId>org.projectforge</groupId>
+            <artifactId>projectforge-commons-test</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.projectforge</groupId>
             <artifactId>projectforge-wicket</artifactId>
@@ -57,12 +60,6 @@
         <dependency>
             <groupId>org.projectforge</groupId>
             <artifactId>org.projectforge.plugins.datatransfer</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.projectforge</groupId>
-            <artifactId>org.projectforge.plugins.extendemployeedata</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>
@@ -126,7 +123,7 @@
         <dependency>
             <groupId>com.googlecode.lanterna</groupId>
             <artifactId>lanterna</artifactId>
-            <version>3.1.1</version>
+            <version>${com.googlecode.lanterna.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -175,7 +172,15 @@
                         <!-- Needed for running Kotlin scripts from spring-boot fat jar: -->
                         <dependency>
                             <groupId>org.jetbrains.kotlin</groupId>
-                            <artifactId>kotlin-compiler</artifactId>
+                            <artifactId>kotlin-compiler-embaddable</artifactId>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.jetbrains.kotlin</groupId>
+                            <artifactId>kotlin-scripting-jsr223</artifactId>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.jetbrains.kotlin</groupId>
+                            <artifactId>kotlin-stdlib</artifactId>
                         </dependency>
                     </requiresUnpack>
                 </configuration>

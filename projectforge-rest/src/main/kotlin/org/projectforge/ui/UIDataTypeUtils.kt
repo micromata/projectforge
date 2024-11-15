@@ -24,6 +24,8 @@
 package org.projectforge.ui
 
 import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.business.fibu.kost.Kost1DO
+import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -53,7 +55,10 @@ class UIDataTypeUtils {
                 PFUserDO::class.java -> UIDataType.USER
                 GroupDO::class.java -> UIDataType.GROUP
                 EmployeeDO::class.java -> UIDataType.EMPLOYEE
+                Kost1DO::class.java -> UIDataType.COST1
+                Kost2DO::class.java -> UIDataType.COST2
                 Integer::class.java -> UIDataType.INT
+                Long::class.java -> UIDataType.LONG
                 BigDecimal::class.java -> UIDataType.DECIMAL
                 TaskDO::class.java -> UIDataType.TASK
                 Locale::class.java -> UIDataType.LOCALE

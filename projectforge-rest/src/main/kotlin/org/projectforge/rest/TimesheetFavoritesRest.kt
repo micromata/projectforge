@@ -50,7 +50,7 @@ class TimesheetFavoritesRest {
   /**
    * Only for rest call to select a timesheet favorite.
    */
-  class SelectTimesheetFavorite(var id: Int, var timesheet: Timesheet)
+  class SelectTimesheetFavorite(var id: Long, var timesheet: Timesheet)
 
   @Autowired
   private lateinit var timsheetFavoritesService: TimesheetFavoritesService
@@ -103,7 +103,7 @@ class TimesheetFavoritesRest {
     }
     if (timesheet.kost2Id != null) {
       // Load without check access. User needs now select access for using kost2.
-      val kost2 = kost2Dao.internalGetById(timesheet.kost2Id)
+      val kost2 = kost2Dao.find(timesheet.kost2Id, checkAccess = false)
       timesheet.kost2?.description = kost2?.description
     }
     return result
@@ -113,19 +113,19 @@ class TimesheetFavoritesRest {
    * Deletes the given timesheet template/favorite.
    */
   @GetMapping("delete")
-  fun delete(@RequestParam("id", required = true) id: Int): Map<String, Any> {
+  fun delete(@RequestParam("id", required = true) id: Long): Map<String, Any> {
     timsheetFavoritesService.deleteFavorite(id)
-    timsheetFavoritesService.refreshMigrationCache(ThreadLocalUserContext.userId!!)
+    timsheetFavoritesService.refreshMigrationCache(ThreadLocalUserContext.loggedInUserId!!)
     return mapOf("timesheetFavorites" to getList())
   }
 
   @GetMapping("rename")
   fun rename(
-    @RequestParam("id", required = true) id: Int,
+    @RequestParam("id", required = true) id: Long,
     @RequestParam("newName", required = true) newName: String
   ): Map<String, Any> {
     timsheetFavoritesService.renameFavorite(id, newName)
-    timsheetFavoritesService.refreshMigrationCache(ThreadLocalUserContext.userId!!)
+    timsheetFavoritesService.refreshMigrationCache(ThreadLocalUserContext.loggedInUserId!!)
     return mapOf("timesheetFavorites" to getList())
   }
 

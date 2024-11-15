@@ -33,6 +33,7 @@ import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.kost.BusinessAssessment;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.core.importstorage.AbstractImportForm;
 import org.projectforge.web.core.importstorage.ImportFilter;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
@@ -48,9 +49,6 @@ public class DatevImportForm extends AbstractImportForm<ImportFilter, DatevImpor
 
   protected FileUploadField fileUploadField;
 
-  @SpringBean
-  private ConfigurationService configurationService;
-
   public DatevImportForm(final DatevImportPage parentPage)
   {
     super(parentPage);
@@ -63,7 +61,7 @@ public class DatevImportForm extends AbstractImportForm<ImportFilter, DatevImpor
     super.init();
     this.setOutputMarkupId(true);
 
-    Bytes maxSize = Bytes.valueOf(configurationService.getMaxFileSizeDatev());
+    Bytes maxSize = Bytes.valueOf(WicketSupport.get(ConfigurationService.class).getMaxFileSizeDatev());
     this.setMaxSize(maxSize);
 
     gridBuilder.newGridPanel();

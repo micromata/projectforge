@@ -136,7 +136,7 @@ class MerlinTestServicesRest {
   ): ResponseEntity<*> {
     val dto = MerlinTemplate()
     dto.name = translate(titleKey)
-    dto.admins = listOf(User(ThreadLocalUserContext.user!!))
+    dto.admins = listOf(User(ThreadLocalUserContext.loggedInUser!!))
     dto.fileNamePattern = fileNamePattern
     dto.stronglyRestrictedFilenames = true
     if (merlinHandler.dataTransferPluginAvailable()) {
@@ -151,7 +151,7 @@ class MerlinTestServicesRest {
       }
     }
     val dbo = merlinPagesRest.transformForDB(dto)
-    merlinTemplateDao.save(dbo)
+    merlinTemplateDao.insert(dbo)
     dto.id = dbo.id
     applicationContext.getResource("classpath:examples/$filename").inputStream.use { istream ->
       attachmentsService.addAttachment(

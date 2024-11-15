@@ -27,7 +27,6 @@ import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.ProjektDao;
 import org.projectforge.business.humanresources.HRPlanningEntryDO;
@@ -36,6 +35,7 @@ import org.projectforge.business.humanresources.HRPlanningFilter;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.CSSColor;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.calendar.QuickSelectPanel;
 import org.projectforge.web.fibu.NewProjektSelectPanel;
 import org.projectforge.web.user.UserSelectPanel;
@@ -58,12 +58,6 @@ public class HRPlanningListForm extends AbstractListForm<HRPlanningListFilter, H
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRPlanningListForm.class);
 
-  @SpringBean
-  private ProjektDao projektDao;
-
-  @SpringBean
-  private HRPlanningEntryDao hrPlanningEntryDao;
-
   protected LocalDatePanel startDate;
 
   protected LocalDatePanel stopDate;
@@ -75,7 +69,7 @@ public class HRPlanningListForm extends AbstractListForm<HRPlanningListFilter, H
   protected void init() {
     super.init();
     final HRPlanningFilter filter = getSearchFilter();
-    if (hrPlanningEntryDao.hasLoggedInUserSelectAccess(false) == false) {
+    if (WicketSupport.get(HRPlanningEntryDao.class).hasLoggedInUserSelectAccess(false) == false) {
       filter.setUserId(getUser().getId());
     }
     {
@@ -137,7 +131,7 @@ public class HRPlanningListForm extends AbstractListForm<HRPlanningListFilter, H
     }
     boolean showProjectSelectPanel = false;
     final boolean hasFullAccess = parentPage.hasFullAccess();
-    if (projektDao.hasLoggedInUserSelectAccess(false) == true) {
+    if (WicketSupport.get(ProjektDao.class).hasLoggedInUserSelectAccess(false) == true) {
       // Project
       showProjectSelectPanel = true;
       if (hasFullAccess == true) {
@@ -149,7 +143,7 @@ public class HRPlanningListForm extends AbstractListForm<HRPlanningListFilter, H
       projektSelectPanel = new NewProjektSelectPanel(fs.newChildId(), new Model<ProjektDO>() {
         @Override
         public ProjektDO getObject() {
-          return projektDao.getById(filter.getProjektId());
+          return WicketSupport.get(ProjektDao.class).find(filter.getProjektId());
         }
       }, parentPage, "projektId");
       fs.add(projektSelectPanel);

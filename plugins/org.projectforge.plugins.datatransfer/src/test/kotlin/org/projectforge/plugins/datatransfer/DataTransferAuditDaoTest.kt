@@ -47,7 +47,7 @@ class DataTransferAuditDaoTest : AbstractTestBase() {
 
   @Test
   fun removeFromQueueTest() {
-    val areaId = 1
+    val areaId = 1L
     logon(TEST_USER)
     dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minusDays(10).utilDate))
     dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(62, ChronoUnit.MINUTES).utilDate))
@@ -63,7 +63,7 @@ class DataTransferAuditDaoTest : AbstractTestBase() {
   @Test
   fun deleteOldTest() {
     val size = 60
-    val areaId = 2
+    val areaId = 2L
     for (i in 1..size) {
       dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minusMonths(10).utilDate))
     }
@@ -78,7 +78,7 @@ class DataTransferAuditDaoTest : AbstractTestBase() {
 
   @Test
   fun queueTest() {
-    val areaId = 3
+    val areaId = 3L
     dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minusDays(10).utilDate))
     dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(62, ChronoUnit.MINUTES).utilDate))
     Assertions.assertEquals(2, dataTransferAuditDao.internalGetQueuedEntriesByAreaId(areaId)!!.size)
@@ -97,7 +97,7 @@ class DataTransferAuditDaoTest : AbstractTestBase() {
     }
   }
 
-  private fun create(areaId: Int, timestamp: Date? = null, eventType: AttachmentsEventType? = AttachmentsEventType.UPLOAD): DataTransferAuditDO {
+  private fun create(areaId: Long, timestamp: Date? = null, eventType: AttachmentsEventType? = AttachmentsEventType.UPLOAD): DataTransferAuditDO {
     val user = getUser(TEST_USER)
     val obj = DataTransferAuditDO()
     obj.byUser = user

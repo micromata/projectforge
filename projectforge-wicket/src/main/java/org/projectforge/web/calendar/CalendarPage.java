@@ -94,7 +94,7 @@ public class CalendarPage extends AbstractStandardFormPage implements ISelectCal
   }
 
   /**
-   * 
+   *
    * @return
    */
   protected ICalendarFilter initCalendarFilter()
@@ -144,7 +144,7 @@ public class CalendarPage extends AbstractStandardFormPage implements ISelectCal
   public void select(final String property, final Object selectedValue)
   {
     if ("userId".equals(property) == true) {
-      getFilter().setTimesheetUserId((Integer) selectedValue);
+      getFilter().setTimesheetUserId((Long) selectedValue);
     } else {
       log.error("Property '" + property + "' not supported for selection.");
     }

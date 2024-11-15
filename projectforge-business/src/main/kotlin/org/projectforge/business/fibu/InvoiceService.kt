@@ -122,7 +122,7 @@ open class InvoiceService {
                     .map { pos: RechnungsPositionDO -> pos.auftragsPosition!!.auftrag!!.nummer.toString() }
                     .distinct()
                     .collect(Collectors.joining(", ")))
-            variables.put("VORNAME_NACHNAME", ThreadLocalUserContext.user?.getFullname()?.uppercase() ?: "")
+            variables.put("VORNAME_NACHNAME", ThreadLocalUserContext.loggedInUser?.getFullname()?.uppercase() ?: "")
             variables.put("Rechnungsnummer", data.nummer?.toString() ?: "")
             variables.put("Rechnungsdatum", DateTimeFormatter.instance().getFormattedDate(data.datum))
             variables.put("Faelligkeit", DateTimeFormatter.instance().getFormattedDate(data.faelligkeit))
@@ -132,15 +132,15 @@ open class InvoiceService {
                 variables.put("Skonto", formatBigDecimal(data.discountPercent!!.stripTrailingZeros()) + "%")
                 variables.put("Faelligkeit_Skonto", DateTimeFormatter.instance().getFormattedDate(data.discountMaturity))
             }
-            variables.put("Zwischensumme", formatCurrencyAmount(data.netSum))
-            variables.put("MwSt", formatCurrencyAmount(data.vatAmountSum))
+            variables.put("Zwischensumme", formatCurrencyAmount(data.info.netSum))
+            variables.put("MwSt", formatCurrencyAmount(data.info.vatAmount))
             val sharedVat = extractSharedVat(data)
             if (sharedVat != null) {
                 variables.put("MwStSatz", formatBigDecimal(sharedVat.multiply(NumberHelper.HUNDRED)))
             } else {
                 variables.put("MwStSatz", "??????????")
             }
-            variables.put("Gesamtbetrag", formatCurrencyAmount(data.grossSum))
+            variables.put("Gesamtbetrag", formatCurrencyAmount(data.info.grossSum))
             WordDocument(invoiceTemplate!!.inputStream, invoiceTemplate.file.name).use { document ->
                 generatePosTableRows(document.document, data)
                 document.process(variables)
@@ -249,7 +249,7 @@ open class InvoiceService {
             variables.put("Leistungszeitraum", getPeriodOfPerformance(position, invoice))
             variables.put("Menge", formatCurrencyAmount(position.menge))
             variables.put("Einzelpreis", formatCurrencyAmount(position.einzelNetto))
-            variables.put("Betrag", formatCurrencyAmount(position.netSum))
+            variables.put("Betrag", formatCurrencyAmount(position.info.netSum))
             for (cell in newRow.tableCells) {
                 for (cellParagraph in cell.paragraphs) {
                     RunsProcessor(cellParagraph).replace(variables)

@@ -23,15 +23,16 @@
 
 package org.projectforge.business.vacation.service
 
+import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
-import org.projectforge.business.fibu.api.EmployeeService
+import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.cache.AbstractCache
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
-import javax.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
 
@@ -41,112 +42,121 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 class ConflictingVacationsCache() : AbstractCache() {
-  @Autowired
-  private lateinit var employeeService: EmployeeService
+    @Autowired
+    private lateinit var employeeService: EmployeeService
 
-  @Autowired
-  private lateinit var vacationDao: VacationDao
+    @Autowired
+    private lateinit var persistenceService: PfPersistenceService
 
-  private lateinit var vacationService: VacationService
+    @Autowired
+    private lateinit var vacationService: VacationService
 
-  /**
-   * Key is the employee id.
-   */
-  private var conflictingVacationsByEmployee = mutableMapOf<Int, MutableList<VacationDO>>()
+    /**
+     * Key is the employee id.
+     */
+    private var conflictingVacationsByEmployee = mutableMapOf<Long, MutableList<VacationDO>>()
 
-  /**
-   * List of vacation id's with conflicts.
-   */
-  private var allConflictingVacations = mutableSetOf<Int>()
+    /**
+     * List of vacation id's with conflicts.
+     */
+    private var allConflictingVacations = mutableSetOf<Long>()
 
-  @Autowired
-  private lateinit var applicationContext: ApplicationContext
+    @Autowired
+    private lateinit var applicationContext: ApplicationContext
 
-  @PostConstruct
-  private fun postConstruct() {
-    this.vacationService = applicationContext.getBean(VacationService::class.java)
-  }
-
-  fun updateVacation(vacationDO: VacationDO, conflict: Boolean) {
-    checkRefresh()
-    synchronized(allConflictingVacations) {
-      if (!conflict) {
-        allConflictingVacations.remove(vacationDO.id) // If given
-      } else {
-        allConflictingVacations.add(vacationDO.id)
-      }
+    @PostConstruct
+    private fun postConstruct() {
+        this.vacationService = applicationContext.getBean(VacationService::class.java)
     }
-    synchronized(conflictingVacationsByEmployee) {
-      if (!conflict) {
-        conflictingVacationsByEmployee[vacationDO.employeeId]?.let { vacations ->
-          vacations.remove(vacationDO) // If exist
+
+    fun updateVacation(vacationDO: VacationDO, conflict: Boolean) {
+        checkRefresh()
+        synchronized(allConflictingVacations) {
+            vacationDO.id?.let { id ->
+                if (!conflict) {
+                    allConflictingVacations.remove(id) // If given
+                } else {
+                    allConflictingVacations.add(id)
+                }
+            }
         }
-      } else {
-        ensureEmployeeList(conflictingVacationsByEmployee, vacationDO.employeeId).add(vacationDO)
-      }
+        synchronized(conflictingVacationsByEmployee) {
+            if (!conflict) {
+                conflictingVacationsByEmployee[vacationDO.employee?.id]?.remove(vacationDO)
+            } else {
+                ensureEmployeeList(conflictingVacationsByEmployee, vacationDO.employee?.id).add(vacationDO)
+            }
+        }
     }
-  }
 
-  fun hasConflict(vacationDO: VacationDO): Boolean {
-    return hasConflict(vacationDO.id)
-  }
+    fun hasConflict(vacationDO: VacationDO): Boolean {
+        return hasConflict(vacationDO.id)
+    }
 
-  fun hasConflict(vacationId: Int?): Boolean {
-    vacationId ?: return false
-    checkRefresh()
-    synchronized(allConflictingVacations) {
-      return allConflictingVacations.contains(vacationId)
+    fun hasConflict(vacationId: Long?): Boolean {
+        vacationId ?: return false
+        checkRefresh()
+        synchronized(allConflictingVacations) {
+            return allConflictingVacations.contains(vacationId)
+        }
     }
-  }
 
-  fun numberOfConflicts(userId: Int): Int {
-    employeeService.getEmployeeByUserId(userId)?.id?.let { employeeId ->
-      checkRefresh()
-      synchronized(allConflictingVacations) {
-        return conflictingVacationsByEmployee[employeeId]?.size ?: 0
-      }
+    fun numberOfConflicts(userId: Long): Int {
+        employeeService.findByUserId(userId)?.id?.let { employeeId ->
+            checkRefresh()
+            synchronized(allConflictingVacations) {
+                return conflictingVacationsByEmployee[employeeId]?.size ?: 0
+            }
+        }
+        return 0
     }
-    return 0
-  }
 
-  override fun refresh() {
-    log.info("Refreshing cache of conflicting vacations...")
-    val vacationByEmployee = mutableMapOf<Int, MutableList<VacationDO>>()
-    // First, order all vacations by employee:
-    val all = vacationDao.getCurrentAndFutureVacations()
-    all.forEach { vacation ->
-      vacation.employeeId?.let { employeeId ->
-        ensureEmployeeList(vacationByEmployee, employeeId).add(vacation)
-      }
+    override fun refresh() {
+        log.info("Refreshing cache of conflicting vacations...")
+        persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
+            val vacationByEmployee = mutableMapOf<Long, MutableList<VacationDO>>()
+            // First, order all vacations by employee:
+            val all = vacationService.getCurrentAndFutureVacations()
+            all.forEach { vacation ->
+                vacation.employee?.id?.let { employeeId ->
+                    ensureEmployeeList(vacationByEmployee, employeeId).add(vacation)
+                }
+            }
+            val newConflictingVacations = mutableMapOf<Long, MutableList<VacationDO>>()
+            val newAllConflictingVacations = mutableSetOf<Long>()
+            // Now find conflicting entries:
+            all.forEach { vacation ->
+                val vacationsOfReplacements = mutableListOf<VacationDO>()
+                vacationService.collectAllReplacements(vacation).forEach { replacementEmployee ->
+                    vacationsOfReplacements.addAll(all.filter { it.employee?.id == replacementEmployee.id })
+                }
+                if (vacationService.checkConflict(vacation, vacationsOfReplacements)) {
+                    ensureEmployeeList(newConflictingVacations, vacation.employee?.id).add(vacation)
+                    vacation.id?.let {
+                        newAllConflictingVacations.add(it)
+                    }
+                }
+            }
+            conflictingVacationsByEmployee = newConflictingVacations
+            allConflictingVacations = newAllConflictingVacations
+            log.info {
+                "Refreshing cache of conflicting vacations done. Found ${allConflictingVacations.size} conflicts of ${conflictingVacationsByEmployee.size} employees. ${
+                    context.formatStats()
+                }"
+            }
+        }
     }
-    val newConflictingVacations = mutableMapOf<Int, MutableList<VacationDO>>()
-    val newAllConflictingVacations = mutableSetOf<Int>()
-    // Now find conflicting entries:
-    all.forEach { vacation ->
-      val vacationsOfReplacements = mutableListOf<VacationDO>()
-      vacation.allReplacements.forEach { replacementEmployee ->
-        vacationsOfReplacements.addAll(all.filter { it.employeeId == replacementEmployee.id })
-      }
-      if (vacationService.checkConflict(vacation, vacationsOfReplacements)) {
-        ensureEmployeeList(newConflictingVacations, vacation.employeeId).add(vacation)
-        newAllConflictingVacations.add(vacation.id)
-      }
-    }
-    conflictingVacationsByEmployee = newConflictingVacations
-    allConflictingVacations = newAllConflictingVacations
-    log.info("Refreshing cache of conflicting vacations done. Found ${allConflictingVacations.size} conflicts of ${conflictingVacationsByEmployee.size} employees.")
-  }
 
-  private fun ensureEmployeeList(
-    vacationsByEmployee: MutableMap<Int, MutableList<VacationDO>>,
-    employeeId: Int?,
-  ): MutableList<VacationDO> {
-    employeeId ?: return mutableListOf() // Shouldn't occur.
-    var vacations = vacationsByEmployee[employeeId]
-    if (vacations == null) {
-      vacations = mutableListOf()
-      vacationsByEmployee[employeeId] = vacations
+    private fun ensureEmployeeList(
+        vacationsByEmployee: MutableMap<Long, MutableList<VacationDO>>,
+        employeeId: Long?,
+    ): MutableList<VacationDO> {
+        employeeId ?: return mutableListOf() // Shouldn't occur.
+        var vacations = vacationsByEmployee[employeeId]
+        if (vacations == null) {
+            vacations = mutableListOf()
+            vacationsByEmployee[employeeId] = vacations
+        }
+        return vacations
     }
-    return vacations
-  }
 }

@@ -34,7 +34,7 @@ public interface Kost2Art
    * Zweistellig (Endziffer 7-8 von Kost2-Kostenträgern).
    * @return
    */
-  Integer getId();
+  Long getId();
 
   /**
    * Name, der auch in Auswahlboxen etc. angezeigt wird.
@@ -59,7 +59,7 @@ public interface Kost2Art
   String getFormattedId();
 
   boolean isDeleted();
-  
+
   /**
    * Used by ProjektListAction.
    * @return

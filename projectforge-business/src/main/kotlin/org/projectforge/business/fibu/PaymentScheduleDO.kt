@@ -31,7 +31,7 @@ import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
 import java.time.LocalDate
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * @author Werner Feder (werner.feder@t-online.de)
@@ -46,14 +46,14 @@ open class PaymentScheduleDO : DefaultBaseDO(), DisplayNameCapable {
 
   override val displayName: String
     @Transient
-    get() = "$auftragId:$number"
+    get() = "$auftrag?.id:$number"
 
   /**
    * Not used as object due to performance reasons.
    */
   // @JsonIgnore needed due to circular references.
   @JsonIgnore
-  @get:ManyToOne(fetch = FetchType.EAGER)
+  @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "auftrag_id", nullable = false)
   open var auftrag: AuftragDO? = null
 
@@ -89,23 +89,6 @@ open class PaymentScheduleDO : DefaultBaseDO(), DisplayNameCapable {
   @get:Column(name = "vollstaendig_fakturiert", nullable = false)
   open var vollstaendigFakturiert: Boolean = false
 
-  val toBeInvoiced: Boolean
-    @Transient
-    get() = valid && reached && !vollstaendigFakturiert
-
-  /**
-   * Not deleted and amount is given > 0,00.
-   */
-  val valid: Boolean
-    @Transient
-    get() = !isDeleted && (amount ?: BigDecimal.ZERO) > BigDecimal.ZERO
-
-  val auftragId: Int?
-    @Transient
-    get() = if (this.auftrag == null) {
-      null
-    } else auftrag!!.id
-
   val isEmpty: Boolean
     @Transient
     get() {
@@ -123,7 +106,7 @@ open class PaymentScheduleDO : DefaultBaseDO(), DisplayNameCapable {
       if (this.number != o!!.number) {
         return false
       }
-      return this.auftragId == o.auftragId
+      return this.auftrag?.id == o.auftrag?.id
     }
     return false
   }

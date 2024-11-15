@@ -26,9 +26,9 @@ package org.projectforge.caldav.model
 import io.milton.annotations.UniqueId
 import org.slf4j.LoggerFactory
 
-class Calendar(val user: User?, val id: Int?, val name: String?) {
+class Calendar(val user: User?, val id: Long?, val name: String?) {
     @UniqueId
-    fun getUniqueId(c: Calendar): Int? {
+    fun getUniqueId(c: Calendar): Long? {
         return c.id
     }
 

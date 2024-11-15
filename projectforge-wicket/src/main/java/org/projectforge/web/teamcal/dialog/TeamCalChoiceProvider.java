@@ -24,12 +24,12 @@
 package org.projectforge.web.teamcal.dialog;
 
 import org.apache.wicket.injection.Injector;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.TeamCalFilter;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 
@@ -49,9 +49,6 @@ public class TeamCalChoiceProvider extends ChoiceProvider<TeamCalDO>
   private static final long serialVersionUID = -8310756569504320965L;
 
   private static int RESULT_PAGE_SIZE = 20;
-
-  @SpringBean
-  private TeamCalDao teamCalDao;
 
   public TeamCalChoiceProvider()
   {
@@ -74,7 +71,7 @@ public class TeamCalChoiceProvider extends ChoiceProvider<TeamCalDO>
   public void query(String term, final int page, final Response<TeamCalDO> response)
   {
     // add all access groups
-    final List<TeamCalDO> fullAccessTeamCals = getTeamCalDao().getList(new TeamCalFilter());
+    final List<TeamCalDO> fullAccessTeamCals = getTeamCalDao().select(new TeamCalFilter());
     final List<TeamCalDO> result = new ArrayList<TeamCalDO>();
     term = term != null ? term.toLowerCase() : "";
 
@@ -114,7 +111,7 @@ public class TeamCalChoiceProvider extends ChoiceProvider<TeamCalDO>
       }
       TeamCalDO teamCal = null;
       try {
-        teamCal = getTeamCalDao().getById(teamCalId);
+        teamCal = getTeamCalDao().find(teamCalId);
       } catch (final AccessException ex) {
         log.warn("User has no access to the selected calendar '" + id + "'.");
       }
@@ -127,7 +124,7 @@ public class TeamCalChoiceProvider extends ChoiceProvider<TeamCalDO>
 
   private TeamCalDao getTeamCalDao()
   {
-    return teamCalDao;
+    return WicketSupport.get(TeamCalDao.class);
   }
 
 }

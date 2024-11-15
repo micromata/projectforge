@@ -291,8 +291,9 @@ Refer config file for all options: [https://github.com/micromata/projectforge/bl
 |OpenJDK 12 | - | + | ? | ? | Should run since version V7.0
 |OpenJDK 13 | - | + | ? | ? | Should run since version V7.0
 |OpenJDK 14 | - | - | ? | ? | Should run since version V7.1
-|OpenJDK 15 | - | - | + | ? | Should run since version V7.1
-|OpenJDK 16 | - | - | + | ? | Should run since version V7.1
+|OpenJDK 15 | - | - | + | + | Should run since version V7.1
+|OpenJDK 16 | - | - | + | + | Should run since version V7.1
+|OpenJDK 17 | - | - | - | - | Doesn't run. Migration of Wicket, Hibernate and Jakarta stuff is needed and in progress.
 |===
 
 .Legend

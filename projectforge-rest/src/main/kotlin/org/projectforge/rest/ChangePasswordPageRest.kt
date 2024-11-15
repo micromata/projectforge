@@ -43,7 +43,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
@@ -97,7 +97,7 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
       : ResponseEntity<ResponseAction> {
     validateCsrfToken(request, postData)?.let { return it }
     val data = postData.data
-    val userId = data.userId ?: ThreadLocalUserContext.userId!!
+    val userId = data.userId ?: ThreadLocalUserContext.loggedInUserId!!
     val changeOwnPassword = checkChangeOwn(userId)
     if (!Arrays.equals(data.newPassword, data.passwordRepeat)) {
       val validationErrors = listOf(ValidationError.create("user.error.passwordAndRepeatDoesNotMatch"))
@@ -127,7 +127,7 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
     loginPasswordI18nKey: String,
     caller: AbstractDynamicPageRest,
   ): FormLayoutData {
-    val userId = userIdString?.toIntOrNull() ?: ThreadLocalUserContext.userId!!
+    val userId = userIdString?.toLongOrNull() ?: ThreadLocalUserContext.loggedInUserId!!
     val changeOwnPassword = checkChangeOwn(userId)
 
     val data = ChangePasswordData(userId)
@@ -179,8 +179,8 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
     return FormLayoutData(data, layout, createServerData(request))
   }
 
-  private fun checkChangeOwn(userId: Int): Boolean {
-    return if (userId != ThreadLocalUserContext.userId) {
+  private fun checkChangeOwn(userId: Long): Boolean {
+    return if (userId != ThreadLocalUserContext.loggedInUserId) {
       accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
       false
     } else {

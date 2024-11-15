@@ -53,7 +53,7 @@ public class AccessException extends UserException {
 
   protected PFUserDO user = null;
 
-  protected Integer taskId = null;
+  protected Long taskId = null;
 
   protected AccessType accessType = null;
 
@@ -64,7 +64,7 @@ public class AccessException extends UserException {
   protected Class<?> clazz = null;
 
   public AccessException(final String i18nKey, final Object... params) {
-    this(ThreadLocalUserContext.getUser(), i18nKey, params);
+    this(ThreadLocalUserContext.getLoggedInUser(), i18nKey, params);
   }
 
   public AccessException(final PFUserDO user, final String i18nKey, final Object... params) {
@@ -74,7 +74,7 @@ public class AccessException extends UserException {
   }
 
   public AccessException(final AccessType accessType, final OperationType operationType) {
-    this(ThreadLocalUserContext.getUser(), accessType, operationType);
+    this(ThreadLocalUserContext.getLoggedInUser(), accessType, operationType);
   }
 
   public AccessException(final PFUserDO user, final AccessType accessType,
@@ -86,12 +86,12 @@ public class AccessException extends UserException {
     log.info("AccessException: " + this);
   }
 
-  public AccessException(final Integer taskId, final AccessType accessType,
+  public AccessException(final Long taskId, final AccessType accessType,
                          final OperationType operationType) {
-    this(ThreadLocalUserContext.getUser(), taskId, accessType, operationType);
+    this(ThreadLocalUserContext.getLoggedInUser(), taskId, accessType, operationType);
   }
 
-  public AccessException(final PFUserDO user, final Integer taskId, final AccessType accessType,
+  public AccessException(final PFUserDO user, final Long taskId, final AccessType accessType,
                          final OperationType operationType) {
     super(I18N_KEY_STANDARD_WITH_TASK,
         new MessageParam[]{new MessageParam(taskId), new MessageParam(accessType),
@@ -154,7 +154,7 @@ public class AccessException extends UserException {
     return this.user;
   }
 
-  public Integer getTaskId() {
+  public Long getTaskId() {
     return this.taskId;
   }
 

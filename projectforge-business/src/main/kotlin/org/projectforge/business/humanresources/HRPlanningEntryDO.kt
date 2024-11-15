@@ -27,8 +27,6 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.hibernate.search.annotations.*
-import org.hibernate.search.bridge.builtin.IntegerBridge
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektFormatter
 import org.projectforge.common.anots.PropertyInfo
@@ -38,14 +36,16 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.ObjectHelper
 import java.math.BigDecimal
-import javax.persistence.*
+import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 
 /**
  * @author Mario Groß (m.gross@micromata.de)
  */
 @Entity
 @Indexed
-@Table(name = "T_HR_PLANNING_ENTRY", indexes = [javax.persistence.Index(name = "idx_fk_t_hr_planning_entry_planning_fk", columnList = "planning_fk"), javax.persistence.Index(name = "idx_fk_t_hr_planning_entry_projekt_fk", columnList = "projekt_fk")])
+@Table(name = "T_HR_PLANNING_ENTRY", indexes = [jakarta.persistence.Index(name = "idx_fk_t_hr_planning_entry_planning_fk", columnList = "planning_fk"), jakarta.persistence.Index(name = "idx_fk_t_hr_planning_entry_projekt_fk", columnList = "projekt_fk")])
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class HRPlanningEntryDO : DefaultBaseDO(), DisplayNameCapable {
 
@@ -53,30 +53,32 @@ open class HRPlanningEntryDO : DefaultBaseDO(), DisplayNameCapable {
         @Transient
         get() = "${projekt?.name}"
 
-    @IndexedEmbedded(depth = 3)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @IndexedEmbedded(includeDepth = 3)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "planning_fk", nullable = false)
     open var planning: HRPlanningDO? = null
 
     @PropertyInfo(i18nKey = "fibu.projekt")
-    @IndexedEmbedded(depth = 2)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @IndexedEmbedded(includeDepth = 2)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "projekt_fk")
     open var projekt: ProjektDO? = null
 
-    @Field
+    @FullTextField
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "status", length = 20)
     open var status: HRPlanningEntryStatus? = null
 
     @PropertyInfo(i18nKey = "hr.planning.priority")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
     open var priority: Priority? = null
 
     @PropertyInfo(i18nKey = "hr.planning.probability.short")
-    @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
+    @GenericField // was: @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @get:Column
     open var probability: Int? = null
 
@@ -116,11 +118,11 @@ open class HRPlanningEntryDO : DefaultBaseDO(), DisplayNameCapable {
     open var weekendHours: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "hr.planning.description")
-    @Field
+    @FullTextField
     @get:Column(length = 4000)
     open var description: String? = null
 
-    val planningId: Int?
+    val planningId: Long?
         @Transient
         get() = if (this.planning == null) {
             null
@@ -130,7 +132,7 @@ open class HRPlanningEntryDO : DefaultBaseDO(), DisplayNameCapable {
         @Transient
         get() = StringUtils.abbreviate(description, 50)
 
-    val projektId: Int?
+    val projektId: Long?
         @Transient
         get() = if (this.projekt == null) {
             null
@@ -157,7 +159,7 @@ open class HRPlanningEntryDO : DefaultBaseDO(), DisplayNameCapable {
      */
     val projektKundeAsString: String
         @Transient
-        get() = ProjektFormatter.formatProjektKundeAsString(this.projekt, null, null)
+        get() = ProjektFormatter.formatProjektKundeAsString(this.projekt)
 
     /**
      * @return The total duration of all assigned hours (unassigned hours, monday, tuesday...)
@@ -281,7 +283,7 @@ open class HRPlanningEntryDO : DefaultBaseDO(), DisplayNameCapable {
                 return false
             }
         }
-        return this.isDeleted == other.isDeleted
+        return this.deleted == other.deleted
     }
 
     override fun hashCode(): Int {

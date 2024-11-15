@@ -28,13 +28,13 @@ import org.projectforge.business.teamcal.admin.TeamCalCache
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.framework.i18n.translate
 
-open class TeamCalendar(val id: Int?,
+open class TeamCalendar(val id: Long?,
                         val title: String?,
                         var access: ACCESS? = null,
                         var externalSubscription: Boolean = false) {
     enum class ACCESS { OWNER, FULL, READ, MINIMAL, NONE }
 
-    constructor(teamCalDO: TeamCalDO, userId: Int, teamCalCache: TeamCalCache) : this(teamCalDO.id, teamCalDO.title) {
+    constructor(teamCalDO: TeamCalDO, userId: Long, teamCalCache: TeamCalCache) : this(teamCalDO.id, teamCalDO.title) {
         val right = teamCalCache.teamCalRight
         access =
                 when (right.getAccessType(teamCalDO, userId)) {
@@ -51,12 +51,12 @@ open class TeamCalendar(val id: Int?,
         /**
          * Calendar id of pseudo calendar (birthdays of favorite peoples).
          */
-        const val BIRTHDAYS_FAVS_CAL_ID = -2
+        const val BIRTHDAYS_FAVS_CAL_ID = -2L
 
         /**
          * Calendar id of pseudo calendar (birthdays of non-favorite peoples).
          */
-        const val BIRTHDAYS_ALL_CAL_ID = -3
+        const val BIRTHDAYS_ALL_CAL_ID = -3L
 
         fun createFavoritesBirthdaysPseudoCalendar() : TeamCalendar {
             return TeamCalendar(TeamCalendar.BIRTHDAYS_FAVS_CAL_ID,

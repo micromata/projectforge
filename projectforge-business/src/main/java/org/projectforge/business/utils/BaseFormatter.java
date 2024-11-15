@@ -25,20 +25,22 @@ package org.projectforge.business.utils;
 
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
-public class BaseFormatter
+import java.io.Serializable;
+
+public class BaseFormatter implements Serializable
 {
   /**
-   * Appends <not visible> element (italic and gray colored) to the given StringBuffer. This is used by the text for displaying not
+   * Appends <not visible> element (italic and gray colored) to the given StringBuilder. This is used by the text for displaying not
    * accessible fields.
    */
-  public void appendNotVisible(StringBuffer sb)
+  public void appendNotVisible(StringBuilder sb)
   {
     sb.append("<span style=\"font-style:italic; color: gray;\">&lt;").append(getLocalizedString("notVisible")).append("&gt;</span>");
   }
 
   public String getNotVisibleString()
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     appendNotVisible(sb);
     return sb.toString();
   }

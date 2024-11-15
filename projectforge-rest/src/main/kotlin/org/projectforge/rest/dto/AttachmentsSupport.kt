@@ -27,7 +27,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.utils.NumberHelper
-import javax.persistence.Transient
+import jakarta.persistence.Transient
 
 interface AttachmentsSupport {
     var attachments: List<Attachment>?

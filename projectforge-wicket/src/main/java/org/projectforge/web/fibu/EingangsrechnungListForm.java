@@ -23,12 +23,12 @@
 
 package org.projectforge.web.fibu;
 
+import org.apache.wicket.model.LambdaModel;
 import org.projectforge.business.fibu.EingangsrechnungDao;
 import org.projectforge.business.fibu.EingangsrechnungListFilter;
 import org.projectforge.business.fibu.EingangsrechnungsStatistik;
 import org.projectforge.business.fibu.PaymentType;
 import org.projectforge.web.common.I18nEnumChoiceProvider;
-import org.projectforge.web.wicket.LambdaModel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.Select2MultiChoicePanel;
 import org.slf4j.Logger;

@@ -38,12 +38,12 @@ import org.projectforge.web.rest.converter.PFUserDOConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 /**
  * Deprecated!!! Please use authentication token instead.
@@ -91,7 +91,7 @@ public class AuthenticationRest {
     @Path(RestPaths.AUTHENTICATE_GET_TOKEN_METHOD)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getToken() {
-        final PFUserDO user = ThreadLocalUserContext.getUser();
+        final PFUserDO user = ThreadLocalUserContext.getLoggedInUser();
         if (user == null) {
             log.error("No user given for rest call.");
             throw new IllegalArgumentException("No user given for the rest call: authenticate/getToken.");
@@ -114,7 +114,7 @@ public class AuthenticationRest {
     @Produces(MediaType.APPLICATION_JSON)
     @Deprecated
     public Response initialContact(@QueryParam("clientVersion") final String clientVersionString) {
-        final PFUserDO user = ThreadLocalUserContext.getUser();
+        final PFUserDO user = ThreadLocalUserContext.getLoggedInUser();
         if (user == null) {
             log.error("No user given for rest call.");
             throw new IllegalArgumentException("No user given for the rest call: authenticate/getToken.");

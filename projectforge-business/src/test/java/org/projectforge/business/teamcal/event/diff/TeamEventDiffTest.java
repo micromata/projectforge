@@ -359,10 +359,10 @@ public class TeamEventDiffTest
     user1.setUsername("Name 2");
 
     TeamCalDO calendar1 = new TeamCalDO();
-    calendar1.setId(1);
+    calendar1.setId(1L);
     calendar1.setTitle("Title 1");
     TeamCalDO calendar2 = new TeamCalDO();
-    calendar2.setId(2);
+    calendar2.setId(2L);
     calendar1.setTitle("Title 2");
 
     EVENT_1 = new TeamEventDO();

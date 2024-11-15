@@ -40,7 +40,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.login.LoginService;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.TimeZone;
@@ -143,7 +143,7 @@ public class MySession extends WebSession {
   /**
    * @return The id of the logged-in user or null if no user is logged-in.
    */
-  public synchronized Integer getUserId() {
+  public synchronized Long getUserId() {
     final PFUserDO user = getUser();
     return user != null ? user.getId() : null;
   }

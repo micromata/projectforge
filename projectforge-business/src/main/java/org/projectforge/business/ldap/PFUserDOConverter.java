@@ -50,13 +50,13 @@ public class PFUserDOConverter
   @Autowired
   LdapService ldapService;
 
-  public static Integer getId(final LdapUser user)
+  public static Long getId(final LdapUser user)
   {
     final String employeeNumber = user.getEmployeeNumber();
     if (employeeNumber != null && employeeNumber.startsWith(ID_PREFIX)
         && employeeNumber.length() > ID_PREFIX.length()) {
       final String id = employeeNumber.substring(ID_PREFIX.length());
-      return NumberHelper.parseInteger(id);
+      return NumberHelper.parseLong(id);
     }
     return null;
   }
@@ -107,7 +107,7 @@ public class PFUserDOConverter
     ldapUser.setOrganization(user.getOrganization());
     ldapUser.setDescription(user.getDescription());
     ldapUser.setMail(user.getEmail());
-    ldapUser.setDeleted(user.isDeleted());
+    ldapUser.setDeleted(user.getDeleted());
     ldapUser.setDeactivated(user.getDeactivated());
     ldapUser.setMobilePhoneNumber(user.getMobilePhone());
     if (user.getDeactivated()) {
@@ -235,7 +235,6 @@ public class PFUserDOConverter
   /**
    * Exports the LDAP values such as posix account properties of the given ldapUser as xml string.
    *
-   * @param ldapUser
    */
   public static String getLdapValuesAsXml(final LdapUserValues values)
   {
@@ -280,7 +279,7 @@ public class PFUserDOConverter
     boolean modified;
     final List<String> properties = new LinkedList<>();
     ListHelper.addAll(properties, "commonName", "givenName", "surname", "mail", "description", "organization",
-        "deactivated", "restrictedUser", "mobilePhoneNumber");
+        "deactivated", "restrictedUser", "mobilePhoneNumber"); // TODO: if mobilePhoneNumber is null
     if (ldapUserDao.isPosixAccountsConfigured() && !isPosixAccountValuesEmpty(src)) {
       ListHelper.addAll(properties, "uidNumber", "gidNumber", "homeDirectory", "loginShell");
     }

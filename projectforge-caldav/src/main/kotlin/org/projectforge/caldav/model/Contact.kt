@@ -29,7 +29,7 @@ import io.milton.annotations.UniqueId
 import java.util.*
 
 class Contact() {
-    constructor(id: Int?, fullname: String?, modifiedDate: Date?, vcardData: ByteArray?) : this() {
+    constructor(id: Long?, fullname: String?, modifiedDate: Date?, vcardData: ByteArray?) : this() {
         this.id = id?.toLong() ?: -1
         this.name = fullname ?: "untitled"
         this.modifiedDate = modifiedDate

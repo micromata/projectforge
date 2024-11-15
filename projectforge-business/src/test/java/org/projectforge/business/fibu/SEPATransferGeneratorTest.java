@@ -49,7 +49,7 @@ public class SEPATransferGeneratorTest extends AbstractTestBase {
   public void generateTransfer() throws UnsupportedEncodingException {
     ConfigurationDO param = configurationDao.getEntry(ConfigurationParam.ORGANIZATION);
     param.setStringValue("Test debitor");
-    configurationDao.internalUpdate(param);
+    configurationDao.update(param, false);
     // Test error cases
     this.testInvoice("Test debitor", null, "DE12341234123412341234", "abcdefg1234", "Do stuff", new BigDecimal(100.0), false);
     this.testInvoice("Test debitor", "Test creditor", null, "abcdefg1234", "Do stuff", new BigDecimal(100.0), false);
@@ -69,7 +69,7 @@ public class SEPATransferGeneratorTest extends AbstractTestBase {
   public void testIban() {
     ConfigurationDO param = configurationDao.getEntry(ConfigurationParam.ORGANIZATION);
     param.setStringValue("ACME INC.");
-    configurationDao.internalUpdate(param);
+    configurationDao.update(param, false);
     String iban = "DE12 3456 7890 1234 5678 90";
     String bic = null;
     String xml = testIban(iban, null);
@@ -94,7 +94,7 @@ public class SEPATransferGeneratorTest extends AbstractTestBase {
     EingangsrechnungDO invoice = new EingangsrechnungDO();
 
     // set values
-    invoice.setPk(1234);
+    invoice.setId(1234L);
     invoice.setPaymentType(PaymentType.BANK_TRANSFER);
     invoice.setReceiver(creditor);
     invoice.setIban(iban);

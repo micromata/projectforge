@@ -42,8 +42,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.io.Serializable
-import javax.annotation.PostConstruct
-import javax.servlet.http.HttpServletRequest
+import jakarta.annotation.PostConstruct
+import jakarta.servlet.http.HttpServletRequest
 
 /**
  * Mass update after selection.
@@ -105,7 +105,7 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
     selectedIds: Collection<Serializable>,
     massUpdateContext: MassUpdateContext<ProjektDO>,
   ): ResponseEntity<*>? {
-    val projects = projektDao.getListByIds(selectedIds)
+    val projects = projektDao.select(selectedIds)
     if (projects.isNullOrEmpty()) {
       return null
     }
@@ -126,7 +126,7 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
   }
 
   override fun ensureUserLogSubscription(): LogSubscription {
-    val username = ThreadLocalUserContext.user!!.username ?: throw InternalError("User not given")
+    val username = ThreadLocalUserContext.loggedInUser!!.username ?: throw InternalError("User not given")
     val displayTitle = translate("fibu.projekt.multiselected.title")
     return LogSubscription.ensureSubscription(
       title = "Projects",

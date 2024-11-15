@@ -35,7 +35,7 @@ import java.io.Serializable
 /**
  * Checks access to attachments.
  */
-open class AttachmentsDaoAccessChecker<O : ExtendedBaseDO<Int>>(
+open class AttachmentsDaoAccessChecker<O : ExtendedBaseDO<Long>>(
   val baseDao: BaseDao<O>,
   val jcrPath: String?,
   supportedListIds: Array<String>? = null,
@@ -54,7 +54,7 @@ open class AttachmentsDaoAccessChecker<O : ExtendedBaseDO<Int>>(
   override fun checkSelectAccess(user: PFUserDO?, path: String, id: Any, subPath: String?) {
     checkNotNull(user)
     checkJcrActivity(subPath)
-    baseDao.getById(id as Serializable)
+    baseDao.find(id as Serializable)
       ?: throw TechnicalException(
         "No access for ${
           paramsToString(
@@ -74,7 +74,7 @@ open class AttachmentsDaoAccessChecker<O : ExtendedBaseDO<Int>>(
   override fun checkUploadAccess(user: PFUserDO?, path: String, id: Any, subPath: String?) {
     checkNotNull(user)
     checkJcrActivity(subPath)
-    val obj = baseDao.getById(id as Serializable)
+    val obj = baseDao.find(id as Serializable)
       ?: throw IllegalArgumentException(
         "No write access for ${
           paramsToString(

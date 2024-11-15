@@ -25,8 +25,9 @@ package org.projectforge.business.fibu.kost;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.projectforge.business.PfCaches;
 import org.projectforge.business.fibu.KontoDO;
-import org.projectforge.business.fibu.KostFormatter;
+import org.projectforge.business.fibu.OldKostFormatter;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -155,7 +156,8 @@ public class BusinessAssessment implements Serializable {
   }
 
   private boolean doesMatch(final BusinessAssessmentRow row, final KontoDO account) {
-    return account != null && account.getNummer() != null && row.doesMatch(account.getNummer());
+    KontoDO useAccount = PfCaches.getInstance().getKontoIfNotInitialized(account);
+    return useAccount != null && useAccount.getNummer() != null && row.doesMatch(useAccount.getNummer());
   }
 
   public void recalculate() {
@@ -214,7 +216,7 @@ public class BusinessAssessment implements Serializable {
   }
 
   public String asHtml() {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(getHeader(true));
     buf.append("<table class=\"business-assessment\">\n");
     if (rows != null) {
@@ -241,7 +243,7 @@ public class BusinessAssessment implements Serializable {
       buf.append("business assessment (not defined in config.xml, see AdministrationGuide).");
     }
     if (year > 0) {
-      buf.append(": ").append(KostFormatter.formatBuchungsmonat(year, month));
+      buf.append(": ").append(OldKostFormatter.formatBuchungsmonat(year, month));
     }
     if (title != null) {
       buf.append(" \"").append(title).append("\"");
@@ -256,7 +258,7 @@ public class BusinessAssessment implements Serializable {
 
   @Override
   public String toString() {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(getHeader());
     if (rows != null) {
       for (final BusinessAssessmentRow row : rows) {
@@ -266,7 +268,7 @@ public class BusinessAssessment implements Serializable {
     return buf.toString();
   }
 
-  private void asLine(final StringBuffer buf, final String no, final String title, final BigDecimal amount,
+  private void asLine(final StringBuilder buf, final String no, final String title, final BigDecimal amount,
                       final int indent,
                       final int scale, final String unit, final boolean html) {
     if (html) {
@@ -306,7 +308,7 @@ public class BusinessAssessment implements Serializable {
     }
   }
 
-  private void asLine(final StringBuffer buf, final BusinessAssessmentRow row, final boolean html) {
+  private void asLine(final StringBuilder buf, final BusinessAssessmentRow row, final boolean html) {
     asLine(buf, row.getNo(), row.getTitle(), row.getAmount(), row.getIndent(), row.getScale(), row.getUnit(), html);
   }
 

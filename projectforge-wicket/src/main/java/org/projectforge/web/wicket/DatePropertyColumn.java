@@ -32,6 +32,7 @@ import org.projectforge.common.BeanHelper;
 import org.projectforge.common.DateFormatType;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateTimeFormatter;
+import org.projectforge.web.WicketSupport;
 
 import java.util.Date;
 
@@ -44,27 +45,23 @@ public class DatePropertyColumn<T> extends CellItemListenerPropertyColumn<T>
 {
   private static final long serialVersionUID = 4759972917073202845L;
 
-  private DateTimeFormatter dateTimeFormatter;
-
   private String datePattern = DateFormats.getFormatString(DateFormatType.DATE_SHORT);
 
-  public DatePropertyColumn(final DateTimeFormatter dateTimeFormatter, final String label, final String sortProperty, final String property,
+  public DatePropertyColumn(final String label, final String sortProperty, final String property,
       CellItemListener<T> cellItemListener)
   {
     super(new Model<String>(label), sortProperty, property, cellItemListener);
-    this.dateTimeFormatter = dateTimeFormatter;
   }
 
-  public DatePropertyColumn(final DateTimeFormatter dateTimeFormatter, final String label, final String sortProperty, final String property)
+  public DatePropertyColumn(final String label, final String sortProperty, final String property)
   {
-    this(dateTimeFormatter, label, sortProperty, property, null);
+    this(label, sortProperty, property, null);
   }
 
   /**
    * Default is SHORT_DATE_FORMAT.
    *
    * @param datePattern Date pattern to set. Please use DateTimeFormatter constants.
-   * @see DateTimeFormatter#I18N_KEY_SHORT_DATE_FORMAT
    */
   public DatePropertyColumn<T> setDatePattern(final String datePattern)
   {
@@ -76,7 +73,7 @@ public class DatePropertyColumn<T> extends CellItemListenerPropertyColumn<T>
   public void populateItem(final Item<ICellPopulator<T>> item, final String componentId, final IModel<T> rowModel)
   {
     final Date value = (Date) BeanHelper.getNestedProperty(rowModel.getObject(), getPropertyExpression());
-    final Label label = new Label(componentId, dateTimeFormatter.getFormattedDate(value, datePattern));
+    final Label label = new Label(componentId, WicketSupport.get(DateTimeFormatter.class).getFormattedDate(value, datePattern));
     item.add(label);
     if (cellItemListener != null) {
       cellItemListener.populateItem(item, componentId, rowModel);

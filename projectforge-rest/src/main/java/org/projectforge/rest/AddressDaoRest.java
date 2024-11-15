@@ -41,12 +41,12 @@ import org.projectforge.rest.converter.AddressDOConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.util.*;
 
-import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId;
+import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getLoggedInUserId;
 
 /**
  * REST-Schnittstelle für {@link AddressDao}
@@ -109,7 +109,7 @@ public class AddressDaoRest {
       filter.setSearchString(searchTerm);
     }
 
-    final List<AddressDO> list = addressDao.getList(filter);
+    final List<AddressDO> list = addressDao.select(filter);
 
     final List<AddressObject> result = new ArrayList();
     if (modifiedSince == null && accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
@@ -128,13 +128,13 @@ public class AddressDaoRest {
       }
 
       List<PersonalAddressDO> favorites = null;
-      Set<Integer> favoritesSet = null;
+      Set<Long> favoritesSet = null;
       if (!exportAll) {
         favorites = personalAddressDao.getList();
         favoritesSet = new HashSet<>();
         if (favorites != null) {
           for (final PersonalAddressDO personalAddress : favorites) {
-            if (personalAddress.isFavoriteCard() && !personalAddress.isDeleted()) {
+            if (personalAddress.isFavoriteCard() && !personalAddress.getDeleted()) {
               favoritesSet.add(personalAddress.getAddressId());
             }
           }
@@ -157,7 +157,7 @@ public class AddressDaoRest {
         for (final PersonalAddressDO personalAddress : favorites) {
           if (personalAddress.getLastUpdate() != null
                   && !personalAddress.getLastUpdate().before(modifiedSinceDate)) {
-            final AddressDO addressDO = addressDao.getById(personalAddress.getAddressId());
+            final AddressDO addressDO = addressDao.find(personalAddress.getAddressId());
             final AddressObject address = AddressDOConverter.getAddressObject(addressDao, addressImageDao, addressDO,
                     BooleanUtils.isTrue(disableImageData), BooleanUtils.isTrue(disableVCardData));
             if (!personalAddress.isFavorite()) {
@@ -191,7 +191,7 @@ public class AddressDaoRest {
     boolean isNew = false;
     try {
       addressDOOrig = addressDao.findByUid(addressObject.getUid());
-    } catch (javax.persistence.NoResultException e) {
+    } catch (jakarta.persistence.NoResultException e) {
       log.info("No address with given uid found: " + uid);
       log.info("Continoue creating new address.");
     }
@@ -229,7 +229,7 @@ public class AddressDaoRest {
       addressDORequest.setForm(FormOfAddress.UNKNOWN);
     }
 
-    addressDao.saveOrUpdate(addressDORequest);
+    addressDao.insertOrUpdate(addressDORequest);
 
     addressImageDao.saveOrUpdate(addressDORequest.getId(), image);
 
@@ -240,7 +240,7 @@ public class AddressDaoRest {
       personalAddress = new PersonalAddressDO();
       personalAddress.setAddress(dbAddress);
       personalAddress.setFavoriteCard(true);
-      personalAddressDao.setOwner(personalAddress, getUserId());
+      personalAddressDao.setOwner(personalAddress, getLoggedInUserId());
       personalAddressDao.saveOrUpdate(personalAddress);
     }
 
@@ -259,7 +259,7 @@ public class AddressDaoRest {
     AddressDO addressDOOrig = null;
     try {
       addressDOOrig = addressDao.findByUid(addressObject.getUid());
-    } catch (javax.persistence.NoResultException e) {
+    } catch (jakarta.persistence.NoResultException e) {
       log.info("No address with given uid found: " + uid);
       log.info("Serving error response.");
     }

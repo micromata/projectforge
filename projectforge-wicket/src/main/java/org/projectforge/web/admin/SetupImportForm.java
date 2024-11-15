@@ -33,6 +33,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.lang.Bytes;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractForm;
 import org.projectforge.web.wicket.CsrfTokenHandler;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
@@ -49,9 +50,6 @@ public class SetupImportForm extends AbstractForm<SetupImportForm, SetupPage>
   protected FileUploadField fileUploadField;
 
   protected String filename;
-
-  @SpringBean
-  private ConfigurationService configurationService;
 
   /**
    * Cross site request forgery token.
@@ -75,7 +73,7 @@ public class SetupImportForm extends AbstractForm<SetupImportForm, SetupPage>
     this.setOutputMarkupId(true);
 
     // set max size
-    Bytes maxSize = Bytes.valueOf(configurationService.getMaxFileSizeXmlDumpImport());
+    Bytes maxSize = Bytes.valueOf(WicketSupport.get(ConfigurationService.class).getMaxFileSizeXmlDumpImport());
     this.setMaxSize(maxSize);
     this.setMultiPart(true);
 

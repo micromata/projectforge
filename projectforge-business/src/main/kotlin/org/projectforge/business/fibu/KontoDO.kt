@@ -23,23 +23,21 @@
 
 package org.projectforge.business.fibu
 
-import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.hibernate.search.annotations.Analyze
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.FieldBridge
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.bridge.builtin.IntegerBridge
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
+import mu.KotlinLogging
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 
 @Entity
 @Indexed
 @Table(name = "T_FIBU_KONTO", uniqueConstraints = [UniqueConstraint(columnNames = ["nummer"])])
-@WithHistory
+//@WithHistory
 @NamedQueries(
         NamedQuery(name = KontoDO.FIND_BY_NUMMER, query = "from KontoDO where nummer=:nummer"))
 open class KontoDO : DefaultBaseDO(), DisplayNameCapable {
@@ -49,22 +47,22 @@ open class KontoDO : DefaultBaseDO(), DisplayNameCapable {
         get() = "$nummer - $bezeichnung"
 
     @PropertyInfo(i18nKey = "fibu.konto.nummer")
-    @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
+    @GenericField // was: @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @get:Column(name = "nummer", nullable = false)
     open var nummer: Int? = null
 
     @PropertyInfo(i18nKey = "fibu.konto.bezeichnung")
-    @Field
+    @FullTextField
     @get:Column(length = 255, nullable = false)
     open var bezeichnung: String? = null
 
     @PropertyInfo(i18nKey = "description")
-    @Field
+    @FullTextField
     @get:Column(name = "description", length = 4000, nullable = true)
     open var description: String? = null
 
     @PropertyInfo(i18nKey = "status")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 10)
     open var status: KontoStatus? = null

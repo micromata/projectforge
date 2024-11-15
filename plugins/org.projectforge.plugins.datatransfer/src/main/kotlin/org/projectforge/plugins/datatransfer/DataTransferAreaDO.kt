@@ -24,9 +24,7 @@
 package org.projectforge.plugins.datatransfer
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import de.micromata.genome.db.jpa.history.api.NoHistory
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.Constants
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.anots.PropertyInfo
@@ -35,7 +33,9 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.projectforge.framework.persistence.history.NoHistory
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -53,13 +53,16 @@ import javax.persistence.*
     query = "from DataTransferAreaDO where areaName=:areaName and adminIds=:adminIds"
   )
 )
-open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo, IDataTransferArea {
+open class DataTransferAreaDO : AbstractBaseDO<Long>(), AttachmentsInfo, IDataTransferArea {
 
+  @get:Id
+  @get:GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @get:Column(name = "pk")
   @PropertyInfo(i18nKey = "id")
-  private var id: Int? = null
+  override var id: Long? = null
 
   @PropertyInfo(i18nKey = "plugins.datatransfer.areaName")
-  @Field
+  @FullTextField
   @get:Column(length = 100, name = "area_name", nullable = false)
   open var areaName: String? = null
 
@@ -88,7 +91,7 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo, IDataTra
   open var accessUserIds: String? = null
 
   @PropertyInfo(i18nKey = "plugins.datatransfer.description", tooltip = "plugins.datatransfer.description.info")
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_TEXT)
   open var description: String? = null
 
@@ -156,19 +159,19 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo, IDataTra
     get() = (maxUploadSizeKB ?: DataTransferAreaDao.MAX_UPLOAD_SIZE_DEFAULT_VALUE_KB) * 2048L
 
   @JsonIgnore
-  @Field
-  @field:NoHistory
+  @FullTextField
+  @NoHistory
   @get:Column(length = 10000, name = "attachments_names")
   override var attachmentsNames: String? = null
 
   @JsonIgnore
-  @Field
-  @field:NoHistory
+  @FullTextField
+  @NoHistory
   @get:Column(length = 10000, name = "attachments_ids")
   override var attachmentsIds: String? = null
 
   @JsonIgnore
-  @field:NoHistory
+  @NoHistory
   @get:Column(name = "attachments_counter")
   override var attachmentsCounter: Int? = null
 
@@ -176,7 +179,7 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo, IDataTra
    * Size of all attachments in bytes.
    */
   @JsonIgnore
-  @field:NoHistory
+  @NoHistory
   @get:Column(name = "attachments_size")
   override var attachmentsSize: Long? = null
 
@@ -196,17 +199,6 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo, IDataTra
   @get:Transient
   internal var modifyPersonalBox: Boolean? = null
 
-  @Id
-  @GeneratedValue
-  @Column(name = "pk")
-  override fun getId(): Int? {
-    return id
-  }
-
-  override fun setId(id: Int?) {
-    this.id = id
-  }
-
   @JsonIgnore
   @Transient
   fun isPersonalBox(): Boolean {
@@ -215,11 +207,11 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo, IDataTra
 
   @JsonIgnore
   @Transient
-  fun getPersonalBoxUserId(): Int? {
+  fun getPersonalBoxUserId(): Long? {
     if (areaName != PERSONAL_BOX_AREA_NAME) {
       return null
     }
-    return adminIds?.toIntOrNull()
+    return adminIds?.toLongOrNull()
   }
 
   val displayName: String

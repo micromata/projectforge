@@ -23,15 +23,16 @@
 
 package org.projectforge.plugins.skillmatrix
 
+import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
-import org.projectforge.framework.persistence.api.BaseDOChangedListener
+import org.projectforge.framework.persistence.api.BaseDOModifiedListener
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
-import javax.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
 
@@ -41,30 +42,40 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service
-open class SkillStatisticsCache : AbstractCache(), BaseDOChangedListener<SkillEntryDO> {
+open class SkillStatisticsCache : AbstractCache(), BaseDOModifiedListener<SkillEntryDO> {
+    @Autowired
+    private lateinit var persistenceService: PfPersistenceService
+
     @Autowired
     private lateinit var skillEntryDao: SkillEntryDao
 
-    class SkillStatistic(val skill: String, val totalCounter: Int, val ratingMean: BigDecimal, val interestsMean: BigDecimal)
+    class SkillStatistic(
+        val skill: String,
+        val totalCounter: Int,
+        val ratingMean: BigDecimal,
+        val interestsMean: BigDecimal
+    )
 
-    private data class Entry(var skill: String,
-                             var totalCounter: Int = 0,
-                             /**
-                              * Sum of all skill ratings.
-                              */
-                             var ratingSum: Int = 0,
-                             /**
-                              * Counter of ratings (not null) for getting average.
-                              */
-                             var ratingCounter: Int = 0,
-                             /**
-                              * Sum of all interest ratings.
-                              */
-                             var interestSum: Int = 0,
-                             /**
-                              * Counter of ratings (not null) for getting average.
-                              */
-                             var interstCounter: Int = 0) {
+    private data class Entry(
+        var skill: String,
+        var totalCounter: Int = 0,
+        /**
+         * Sum of all skill ratings.
+         */
+        var ratingSum: Int = 0,
+        /**
+         * Counter of ratings (not null) for getting average.
+         */
+        var ratingCounter: Int = 0,
+        /**
+         * Sum of all interest ratings.
+         */
+        var interestSum: Int = 0,
+        /**
+         * Counter of ratings (not null) for getting average.
+         */
+        var interstCounter: Int = 0
+    ) {
         val ratingMean: BigDecimal
             get() {
                 return meanValue(ratingSum, ratingCounter)
@@ -110,15 +121,16 @@ open class SkillStatisticsCache : AbstractCache(), BaseDOChangedListener<SkillEn
         skillEntryDao.register(this)
     }
 
-    override fun afterSaveOrModify(changedObject: SkillEntryDO, operationType: OperationType) {
+    override fun afterInsertOrModify(obj: SkillEntryDO, operationType: OperationType) {
         setExpired()
     }
 
     override fun refresh() {
         log.info("Refreshing SkillMatrixCache ...")
-        val skillStatisticsMap = mutableMapOf<String, Entry>()
-        skillEntryDao.internalLoadAll()
-                .filter { !it.isDeleted } // Ignore deleted skill entries.
+        persistenceService.runIsolatedReadOnly {
+            val skillStatisticsMap = mutableMapOf<String, Entry>()
+            skillEntryDao.selectAll(checkAccess = false)
+                .filter { !it.deleted } // Ignore deleted skill entries.
                 .sortedByDescending { it.lastUpdate } // Use skill syntax of last edited one (older ones will be normalized)
                 .forEach { skillEntry ->
                     val skillName = skillEntry.skill ?: ""
@@ -130,8 +142,10 @@ open class SkillStatisticsCache : AbstractCache(), BaseDOChangedListener<SkillEn
                     }
                     entry.add(skillEntry)
                 }
-        skillStatistics = skillStatisticsMap.values
+            skillStatistics = skillStatisticsMap.values
                 .sortedBy { it.skill.lowercase() }
                 .map { SkillStatistic(it.skill, it.totalCounter, it.ratingMean, it.interestMean) }
+        }
+        log.info("Refreshing SkillMatrixCache done.")
     }
 }

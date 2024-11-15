@@ -36,8 +36,8 @@ import org.projectforge.framework.access.AccessChecker;
 public class TeamCalRight extends BaseUserGroupRight<TeamCalDO> {
   private static final long serialVersionUID = -2928342166476350773L;
 
-  public TeamCalRight(AccessChecker accessChecker) {
-    super(accessChecker, UserRightId.PLUGIN_CALENDAR, UserRightCategory.PLUGINS,
+  public TeamCalRight() {
+    super(UserRightId.PLUGIN_CALENDAR, UserRightCategory.PLUGINS,
             UserRightValue.TRUE);
   }
 }

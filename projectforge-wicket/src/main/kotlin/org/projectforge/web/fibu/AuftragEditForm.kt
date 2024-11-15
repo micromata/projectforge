@@ -35,7 +35,6 @@ import org.apache.wicket.markup.repeater.RepeatingView
 import org.apache.wicket.model.CompoundPropertyModel
 import org.apache.wicket.model.Model
 import org.apache.wicket.model.PropertyModel
-import org.apache.wicket.spring.injection.annot.SpringBean
 import org.apache.wicket.util.convert.IConverter
 import org.projectforge.business.fibu.*
 import org.projectforge.business.task.TaskDO
@@ -50,6 +49,7 @@ import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.fibu.AuftragPagesRest
 import org.projectforge.web.URLHelper
+import org.projectforge.web.WicketSupport
 import org.projectforge.web.task.TaskSelectPanel
 import org.projectforge.web.user.UserSelectPanel
 import org.projectforge.web.wicket.AbstractEditForm
@@ -65,7 +65,7 @@ import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.time.LocalDate
 
-open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
+open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO) :
   AbstractEditForm<AuftragDO?, AuftragEditPage?>(parentPage, data) {
   private val periodOfPerformanceHelper = PeriodOfPerformanceHelper()
   var isSendEMailNotification = true
@@ -81,24 +81,10 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
   private var headOfBusinessManagerSelectPanel: UserSelectPanel? = null
   private var salesManagerSelectPanel: UserSelectPanel? = null
 
-  @SpringBean
-  private lateinit var accessChecker: AccessChecker
-
-  @SpringBean
-  private lateinit var attachmentsService: AttachmentsService
-
-  @SpringBean
-  private lateinit var rechnungCache: RechnungCache
-
-  @SpringBean
-  private lateinit var auftragDao: AuftragDao
-
-  @SpringBean
-  private lateinit var auftragPagesRest: AuftragPagesRest
-
   override fun init() {
     super.init()
-    auftragDao.calculateInvoicedSum(data)
+    WicketSupport.get(AuftragDao::class.java)
+    data!!.info = AuftragsCache.instance.getOrderInfo(data!!)
 
     /* GRID8 - BLOCK */gridBuilder.newSplitPanel(GridSize.COL50)
     run {
@@ -126,22 +112,22 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
       val fs = gridBuilder.newFieldset(getString("fibu.auftrag.nettoSumme")).suppressLabelForWarning()
       val netPanel = DivTextPanel(fs.newChildId(), object : Model<String>() {
         override fun getObject(): String {
-          return CurrencyFormatter.format(data!!.nettoSumme)
+          return CurrencyFormatter.format(data!!.info.netSum)
         }
       }, TextStyle.FORM_TEXT)
       fs.add(netPanel)
       fs.add(DivTextPanel(fs.newChildId(), ", " + getString("fibu.auftrag.commissioned") + ": "))
       val orderedPanel = DivTextPanel(fs.newChildId(), object : Model<String>() {
         override fun getObject(): String {
-          return CurrencyFormatter.format(data!!.beauftragtNettoSumme)
+          return CurrencyFormatter.format(data!!.info.orderedNetSum)
         }
       }, TextStyle.FORM_TEXT)
       fs.add(orderedPanel)
       val orderInvoiceInfo = I18nHelper.getLocalizedMessage(
         "fibu.auftrag.invoice.info", CurrencyFormatter.format(
-          data!!.invoicedSum
+          data!!.info.invoicedSum
         ),
-        CurrencyFormatter.format(data!!.notYetInvoicedSum)
+        CurrencyFormatter.format(data!!.info.notYetInvoicedSum)
       )
       fs.add(DivTextPanel(fs.newChildId(), orderInvoiceInfo))
     }
@@ -175,7 +161,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
       )
       val statusChoice = DropDownChoice(
         fs.dropDownChoiceId,
-        PropertyModel(data, "auftragsStatus"), statusChoiceRenderer.values,
+        PropertyModel(data, "status"), statusChoiceRenderer.values,
         statusChoiceRenderer
       )
       statusChoice.setNullValid(false).isRequired = true
@@ -431,7 +417,8 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
       val fs = gridBuilder.newFieldset(getString("attachments"))
       var attachments = ""
       if ((data?.attachmentsCounter ?: 0) > 0) {
-        attachments = attachmentsService.getAttachments(
+        val auftragPagesRest = WicketSupport.get(AuftragPagesRest::class.java)
+        attachments = WicketSupport.get(AttachmentsService::class.java).getAttachments(
           auftragPagesRest.jcrPath!!,
           data!!.id!!,
           auftragPagesRest.attachmentsAccessChecker
@@ -443,7 +430,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
             "<a href=\"${
               RestResolver.getRestUrl(
                 AttachmentsServicesRest::class.java,
-                AttachmentsServicesRest.getDownloadUrl(it, category = auftragPagesRest.category, id = data!!.id, listId = "attachments")
+                AttachmentsServicesRest.getDownloadUrl(it, category = auftragPagesRest.category, id = data!!.id!!, listId = "attachments")
               )
             }\">${URLHelper.encode(it.name)} (${it.sizeHumanReadable})</a>"
           }
@@ -473,7 +460,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
     if (project == null) {
       return
     }
-    if (getData()!!.kundeId == null && StringUtils.isBlank(getData()!!.kundeText) == true) {
+    if (getData()!!.kunde == null && StringUtils.isBlank(getData()!!.kundeText) == true) {
       getData()!!.kunde = project.kunde
       kundeSelectPanel!!.textField.modelChanged()
       target?.add(kundeSelectPanel!!.textField)
@@ -503,7 +490,8 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
       data!!.addPosition(AuftragsPositionDO())
     }
     for (position in data!!.positionenIncludingDeleted!!) {
-      val abgeschlossenUndNichtFakturiert = position.toBeInvoiced
+      val orderPositionInfo = OrderPositionInfo(position, data!!.info)
+      val abgeschlossenUndNichtFakturiert = orderPositionInfo.toBeInvoiced
       val positionsPanel: ToggleContainerPanel = object : ToggleContainerPanel(positionsRepeater!!.newChildId()) {
         /**
          * @see org.projectforge.web.wicket.flowlayout.ToggleContainerPanel.wantsOnStatusChangedNotification
@@ -592,6 +580,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
         val nettoSumme: TextField<String> =
           object : TextField<String>(InputPanel.WICKET_ID, PropertyModel(position, "nettoSumme")) {
             override fun <C : Any?> getConverter(type: Class<C>?): IConverter<C> {
+              @Suppress("UNCHECKED_CAST")
               return CurrencyConverter() as IConverter<C>
             }
           }
@@ -602,8 +591,8 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
         }
       }
       posGridBuilder.newSplitPanel(GridSize.COL25)
-      val invoicePositionsByOrderPositionId = rechnungCache
-        .getRechnungsPositionVOSetByAuftragsPositionId(position.id)
+      val invoicePositionsByOrderPositionId = WicketSupport.get(RechnungCache::class.java)
+        .getRechnungsPosInfosByAuftragsPositionId(position.id)
       val showInvoices = CollectionUtils.isNotEmpty(invoicePositionsByOrderPositionId)
       run {
 
@@ -632,7 +621,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
         } else {
           fs.add(AbstractUnsecureBasePage.createInvisibleDummyComponent(fs.newChildId()))
         }
-        if (accessChecker.hasRight(user, RechnungDao.USER_RIGHT_ID, UserRightValue.READWRITE) == true) {
+        if (WicketSupport.getAccessChecker().hasRight(user, RechnungDao.USER_RIGHT_ID, UserRightValue.READWRITE) == true) {
           val checkBoxDiv = fs.addNewCheckBoxButtonDiv()
           checkBoxDiv.add(
             CheckBoxButton(
@@ -649,8 +638,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
         // not invoiced
         val fs = posGridBuilder.newFieldset(getString("fibu.title.fakturiert.not")).suppressLabelForWarning()
         if (position.nettoSumme != null) {
-          var invoiced = BigDecimal.ZERO
-          invoiced = if (showInvoices == true) {
+          var invoiced = if (showInvoices == true) {
             val invoicedSumForPosition = RechnungDao.getNettoSumme(invoicePositionsByOrderPositionId)
             val notInvoicedSumForPosition = position.nettoSumme!!.subtract(invoicedSumForPosition)
             notInvoicedSumForPosition
@@ -658,9 +646,9 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
             position.nettoSumme
           }
           if (position.status != null) {
-            if (position.status == AuftragsPositionsStatus.ABGELEHNT || position.status == AuftragsPositionsStatus.ERSETZT || (position
+            if (position.status == AuftragsStatus.ABGELEHNT || position.status == AuftragsStatus.ERSETZT || (position
                 .status
-                  == AuftragsPositionsStatus.OPTIONAL)
+                  == AuftragsStatus.OPTIONAL)
             ) {
               invoiced = BigDecimal.ZERO
             }
@@ -678,8 +666,8 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
 
         // DropDownChoice status
         val fs = posGridBuilder.newFieldset(getString("status"))
-        val statusChoiceRenderer = LabelValueChoiceRenderer<AuftragsPositionsStatus>(
-          fs, AuftragsPositionsStatus.values()
+        val statusChoiceRenderer = LabelValueChoiceRenderer<AuftragsStatus>(
+          fs, AuftragsStatus.values()
         )
         val statusChoice = DropDownChoice(
           fs.dropDownChoiceId,
@@ -705,7 +693,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
         ) {
           override fun selectTask(task: TaskDO) {
             super.selectTask(task)
-            parentPage!!.baseDao.setTask(position, task.id)
+            parentPage!!.baseDao.setTask(position, task.id!!)
           }
         }
         fs.add(taskSelectPanel)
@@ -746,7 +734,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
           val divPanel = removeButtonGridBuilder.panel
           val removePositionButton: Button = object : Button(SingleButtonPanel.WICKET_ID) {
             override fun onSubmit() {
-              position.isDeleted = true
+              position.deleted = true
               refreshPositions()
               paymentSchedulePanel!!.rebuildEntries()
             }
@@ -760,7 +748,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
           divPanel.add(removePositionButtonPanel)
         }
       }
-      if (position.isDeleted) {
+      if (position.deleted) {
         positionsPanel.isVisible = false
       }
     }
@@ -768,7 +756,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
 
   private fun positionInInvoiceExists(position: AuftragsPositionDO): Boolean {
     if (position.id != null) {
-      val invoicePositionList = rechnungCache.getRechnungsPositionVOSetByAuftragsPositionId(position.id)
+      val invoicePositionList = WicketSupport.get(RechnungCache::class.java).getRechnungsPosInfosByAuftragsPositionId(position.id)
       return invoicePositionList != null && invoicePositionList.isEmpty() == false
     }
     return false
@@ -778,7 +766,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
     if (positionsPanel.toggleStatus == ToggleStatus.OPENED) {
       return getString("label.position.short") + " #" + position.number
     }
-    val heading = StringBuffer()
+    val heading = StringBuilder()
     heading.append(escapeHtml(getString("label.position.short"))).append(" #").append(position.number.toInt())
     heading.append(": ").append(CurrencyFormatter.format(position.nettoSumme))
     position.status?.let { status ->
@@ -812,8 +800,8 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
         }
       }
     }
-    val size = paymentSchedules?.count { !it.isDeleted } ?: 0
-    val heading = StringBuffer()
+    val size = paymentSchedules?.count { !it.deleted } ?: 0
+    val heading = StringBuilder()
     heading.append("${escapeHtml(getString("fibu.auftrag.paymentschedule"))} ($size)")
     if (schedulesPanel.toggleStatus == ToggleStatus.OPENED) {
       return heading.toString()

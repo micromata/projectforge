@@ -37,7 +37,7 @@ import java.time.LocalDate;
 public interface Buchungssatz
 {
   /** Synthetischer, eindeutiger Datenbankschlüssel. */
-  Integer getId();
+  Long getId();
 
   /** @return Jahr des Buchungsmonats. */
   Integer getYear();

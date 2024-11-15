@@ -34,7 +34,7 @@ import org.projectforge.ui.UILayout
 import org.projectforge.ui.UITable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/memo")
@@ -44,7 +44,7 @@ class MemoPagesRest() : AbstractDOPagesRest<MemoDO, MemoDao>(MemoDao::class.java
      */
     override fun newBaseDO(request: HttpServletRequest?): MemoDO {
         val memo = super.newBaseDO(request)
-        memo.owner = ThreadLocalUserContext.user
+        memo.owner = ThreadLocalUserContext.loggedInUser
         return memo
     }
 

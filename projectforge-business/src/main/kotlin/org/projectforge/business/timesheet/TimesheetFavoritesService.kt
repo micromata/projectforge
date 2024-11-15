@@ -47,16 +47,16 @@ class TimesheetFavoritesService {
 
   private class MigrationCache(val service: TimesheetFavoritesService) : AbstractCache() {
     // Key is user id, value is flag, if the user has entries to migrate.
-    private var map = mutableMapOf<Int, Boolean>()
+    private var map = mutableMapOf<Long, Boolean>()
 
-    fun refresh(userId: Int?) {
+    fun refresh(userId: Long?) {
       userId ?: return
       synchronized(map) {
         map.remove(userId)
       }
     }
 
-    fun hasLegacyFavoritesToMigrate(userId: Int?): Boolean {
+    fun hasLegacyFavoritesToMigrate(userId: Long?): Boolean {
       userId ?: return false
       synchronized(map) {
         map[userId]?.let { return it }
@@ -80,7 +80,7 @@ class TimesheetFavoritesService {
     return favorites.idTitleList.map { TimesheetFavorite(it.name, it.id) }
   }
 
-  fun selectTimesheet(id: Int): TimesheetFavorite? {
+  fun selectTimesheet(id: Long): TimesheetFavorite? {
     return getFavorites().get(id)
   }
 
@@ -88,11 +88,11 @@ class TimesheetFavoritesService {
     getFavorites().add(newFavorite)
   }
 
-  fun deleteFavorite(id: Int) {
+  fun deleteFavorite(id: Long) {
     getFavorites().remove(id)
   }
 
-  fun renameFavorite(id: Int, newName: String) {
+  fun renameFavorite(id: Long, newName: String) {
     getFavorites().rename(id, newName)
   }
 
@@ -100,7 +100,7 @@ class TimesheetFavoritesService {
    * After modifying the user's favorites, the migration cache should be invalidated for the given user, so
    * it will be checked, if there are any favorites of the old (classical) version to migrate.
    */
-  fun refreshMigrationCache(userId: Int) {
+  fun refreshMigrationCache(userId: Long) {
     migrationCache.refresh(userId)
   }
 
@@ -130,7 +130,7 @@ class TimesheetFavoritesService {
    * Will not overwrite any existing new favorite (with name same).
    */
   fun migrateFromLegacyFavorites(currentFavorites: Favorites<TimesheetFavorite>): Favorites<TimesheetFavorite>? {
-    val list = userPrefDao.getUserPrefs(UserPrefArea.TIMESHEET_TEMPLATE)
+    val list = userPrefDao.selectUserPrefs(UserPrefArea.TIMESHEET_TEMPLATE)
     if (list.isNullOrEmpty())
       return null
     var modified = false
@@ -146,17 +146,17 @@ class TimesheetFavoritesService {
     }
     if (modified) {
       userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_LIST, currentFavorites)
-      migrationCache.refresh(ThreadLocalUserContext.userId)
+      migrationCache.refresh(ThreadLocalUserContext.loggedInUserId)
     }
     return currentFavorites
   }
 
   fun hasLegacyFavoritesToMigrate(): Boolean {
-    return migrationCache.hasLegacyFavoritesToMigrate(ThreadLocalUserContext.userId)
+    return migrationCache.hasLegacyFavoritesToMigrate(ThreadLocalUserContext.loggedInUserId)
   }
 
-  private fun hasLegacyFavoritesToMigrate(userId: Int): Boolean {
-    val list = userPrefDao.getUserPrefs(userId, UserPrefArea.TIMESHEET_TEMPLATE)
+  private fun hasLegacyFavoritesToMigrate(userId: Long): Boolean {
+    val list = userPrefDao.selectUserPrefs(userId, UserPrefArea.TIMESHEET_TEMPLATE)
     if (list.isNullOrEmpty())
       return false
     val favorites = getFavorites()

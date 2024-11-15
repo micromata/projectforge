@@ -28,7 +28,6 @@ import mu.KotlinLogging
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.utils.NumberFormatter
 
 private val log = KotlinLogging.logger {}
@@ -41,7 +40,7 @@ abstract class MassUpdateContext<T>(
 ) {
   class Error(val identifier: String, val message: String)
 
-  abstract fun getId(obj: T): Int
+  abstract fun getId(obj: T): Long
 
   var modifiedCounter: Int = 0
     private set
@@ -63,7 +62,7 @@ abstract class MassUpdateContext<T>(
 
   fun startUpdate(dbObj: T) {
     current = object : MassUpdateObject<T>(dbObj, massUpdateData, ignoreFieldsForModificationCheck) {
-      override fun getId(): Int {
+      override fun getId(): Long {
         return getId(dbObj)
       }
     }

@@ -23,57 +23,64 @@
 
 package org.projectforge.plugins.licensemanagement
 
-import de.micromata.genome.db.jpa.history.api.NoHistory
-import org.hibernate.annotations.Type
-import org.hibernate.search.annotations.*
-import org.projectforge.common.anots.PropertyInfo
+import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
+import org.hibernate.type.SqlTypes
 import org.projectforge.Constants
+import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsTypeBinder
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.persistence.utils.ReflectionToString
 import java.time.LocalDate
-import javax.persistence.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
 @Indexed
-@ClassBridge(name = "owners", impl = HibernateSearchUsersBridge::class)
+// TODO: Migration of ClassBridge to TypeBridge.
+//@TypeBinding(binder = TypeBinderRef(type = HibernateSearchUsersGroupsTypeBinder::class))
+//@ClassBridge(name = "owners", impl = HibernateSearchUsersBridge::class)
 @Table(name = "T_PLUGIN_LM_LICENSE")
 open class LicenseDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "organization")
-    @Field
+    @FullTextField
     @get:Column(length = 1000)
     open var organization: String? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.product")
-    @Field
+    @FullTextField
     @get:Column(length = 1000)
     open var product: String? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.version")
-    @Field
+    @FullTextField
     @get:Column(length = 1000)
     open var version: String? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.updateFromVersion")
-    @Field
+    @FullTextField
     @get:Column(name = "update_from_version", length = 1000)
     open var updateFromVersion: String? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.licenseHolder")
-    @Field
+    @FullTextField
     @get:Column(length = 10000, name = "license_holder")
     open var licenseHolder: String? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.key")
-    @Field
+    @FullTextField
     @get:Column(length = 10000)
     open var key: String? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.numberOfLicenses")
-    @Field
     @get:Column(name = "number_of_licenses")
     open var numberOfLicenses: Int? = null
 
@@ -85,16 +92,16 @@ open class LicenseDO : DefaultBaseDO() {
     open var ownerIds: String? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.device")
-    @Field
+    @FullTextField
     @get:Column(length = 4000)
     open var device: String? = null
 
     @PropertyInfo(i18nKey = "comment")
-    @Field
+    @FullTextField
     @get:Column(length = Constants.LENGTH_TEXT)
     open var comment: String? = null
 
-    @Field(analyze = Analyze.NO)
+    @GenericField
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
     open var status: LicenseStatus? = null
@@ -107,23 +114,23 @@ open class LicenseDO : DefaultBaseDO() {
     @get:Column(name = "valid_until")
     open var validUntil: LocalDate? = null
 
-    @field:NoHistory
+    @NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "file1")
-    @get:Type(type = "binary")
+    @JdbcTypeCode(SqlTypes.BLOB)
     open var file1: ByteArray? = null
 
-    @Field
+    @FullTextField
     @get:Column(name = "file_name1", length = 255)
     open var filename1: String? = null
 
-    @field:NoHistory
+    @NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "file2")
-    @get:Type(type = "binary")
+    @JdbcTypeCode(SqlTypes.BLOB)
     open var file2: ByteArray? = null
 
-    @Field
+    @FullTextField
     @get:Column(name = "file_name2", length = 255)
     open var filename2: String? = null
 

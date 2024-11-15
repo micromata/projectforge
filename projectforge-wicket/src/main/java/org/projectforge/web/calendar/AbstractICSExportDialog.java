@@ -32,6 +32,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.configuration.DomainService;
 import org.projectforge.business.teamcal.service.CalendarFeedService;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
@@ -47,12 +48,6 @@ public abstract class AbstractICSExportDialog extends ModalDialog
   protected TextArea<String> urlTextArea;
 
   protected QRCodeDivAppenderBehavior qrCodeDivAppenderBehavior = new QRCodeDivAppenderBehavior();
-
-  @SpringBean
-  private DomainService domainService;
-
-  @SpringBean
-  protected CalendarFeedService calendarFeedService;
 
   /**
    * @param id
@@ -92,7 +87,7 @@ public abstract class AbstractICSExportDialog extends ModalDialog
 
   private String getFullUrl()
   {
-    final String pfBaseUrl = domainService.getDomainWithContextPath();
+    final String pfBaseUrl = WicketSupport.get(DomainService.class).getDomainWithContextPath();
     final String url = getUrl();
     return pfBaseUrl + url;
   }

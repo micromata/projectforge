@@ -48,6 +48,7 @@ import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.framework.time.RecurrenceFrequency;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.common.MultiChoiceListHelper;
 import org.projectforge.web.user.AttendeeWicketProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
@@ -73,18 +74,6 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
   private static final long serialVersionUID = -8378262684943803495L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamEventEditForm.class);
-
-  @SpringBean
-  private transient TeamCalDao teamCalDao;
-
-  @SpringBean
-  private transient TeamEventDao teamEventDao;
-
-  @SpringBean
-  private transient AccessChecker accessChecker;
-
-  @SpringBean
-  private transient TeamEventService teamEventService;
 
   private DateTimePanel startDateTimePanel;
 
@@ -139,17 +128,14 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
   public TeamEventEditForm(final TeamEventEditPage parentPage, final TeamEventDO data)
   {
     super(parentPage, data);
-    right = new TeamEventRight(accessChecker);
+    right = new TeamEventRight();
   }
 
-  /**
-   * @see org.projectforge.web.wicket.AbstractEditForm#init()
-   */
-  @SuppressWarnings("serial")
   @Override
   protected void init()
   {
     super.init();
+    var teamEventService = WicketSupport.get(TeamEventService.class);
 
     recurrenceData = data.getRecurrenceData(ThreadLocalUserContext.getTimeZone());
 
@@ -199,7 +185,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
         @Override
         protected List<String> getChoices(final String input)
         {
-          return teamEventDao.getLocationAutocompletion(input, calendarsWithFullAccess);
+          return WicketSupport.get(TeamEventDao.class).getLocationAutocompletion(input, calendarsWithFullAccess);
         }
       };
       locationTextField.withMatchContains(true).withMinChars(3);
@@ -745,7 +731,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
               : "");
       fieldSet.add(teamCalTitle);
     } else {
-      final List<TeamCalDO> list = teamCalDao.getAllCalendarsWithFullAccess();
+      final List<TeamCalDO> list = WicketSupport.get(TeamCalDao.class).getAllCalendarsWithFullAccess();
       calendarsWithFullAccess = list.toArray(new TeamCalDO[0]);
       final LabelValueChoiceRenderer<TeamCalDO> calChoiceRenderer = new LabelValueChoiceRenderer<>();
       for (final TeamCalDO cal : list) {

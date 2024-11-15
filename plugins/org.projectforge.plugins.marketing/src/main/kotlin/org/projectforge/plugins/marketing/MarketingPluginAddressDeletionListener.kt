@@ -26,7 +26,6 @@ package org.projectforge.plugins.marketing
 import mu.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDeletionListener
-import org.projectforge.framework.persistence.jpa.PfEmgr
 
 private val log = KotlinLogging.logger {}
 
@@ -34,16 +33,15 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 class MarketingPluginAddressDeletionListener(val addressCampaignDao: AddressCampaignDao) : AddressDeletionListener {
-  override fun onDelete(address: AddressDO) {
-    addressCampaignDao.emgrFactory.runInTrans { emgr: PfEmgr ->
-      val counter = emgr.entityManager
-        .createNamedQuery(AddressCampaignValueDO.DELETE_BY_ADDRESS)
-        .setParameter("addressId", address.getId())
-        .executeUpdate()
-      if (counter > 0) {
-        log.info("Removed #$counter address campaign value entries of deleted address: $address")
-      }
-      true
+    override fun onDelete(address: AddressDO) {
+        val counter = addressCampaignDao.persistenceService.runInTransaction { context ->
+            context.executeNamedUpdate(
+                AddressCampaignValueDO.DELETE_BY_ADDRESS,
+                Pair("addressId", address.id)
+            )
+        }
+        if (counter > 0) {
+            log.info("Removed #$counter address campaign value entries of deleted address: $address")
+        }
     }
-  }
 }

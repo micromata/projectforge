@@ -34,7 +34,7 @@ import java.util.Set;
 /**
  * Memorizes the open state of the tree nodes.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class TableTreeExpansion<I extends Serializable, T extends IdObject<I>> implements Set<T>, Serializable
 {

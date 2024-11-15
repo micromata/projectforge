@@ -82,7 +82,7 @@ ObjectSelect.propTypes = {
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     onSelect: PropTypes.func.isRequired,
-    type: PropTypes.oneOf(['USER', 'EMPLOYEE', 'OTHER', 'KONTO']).isRequired,
+    type: PropTypes.oneOf(['USER', 'EMPLOYEE', 'COST1', 'COST2', 'OTHER', 'KONTO']).isRequired,
     translations: PropTypes.shape({
         'tooltip.selectMe': PropTypes.string,
     }),

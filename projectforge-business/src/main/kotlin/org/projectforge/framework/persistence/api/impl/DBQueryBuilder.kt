@@ -23,55 +23,58 @@
 
 package org.projectforge.framework.persistence.api.impl
 
+import jakarta.persistence.EntityManager
 import mu.KotlinLogging
+import org.projectforge.common.logging.LogUtils.logDebugFunCall
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
-import org.slf4j.LoggerFactory
-import javax.persistence.EntityManager
 
 private val log = KotlinLogging.logger {}
 
-class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
-        private val baseDao: BaseDao<O>,
-        private val entityManager: EntityManager,
-        private val queryFilter: QueryFilter,
-        dbFilter: DBFilter) {
+class DBQueryBuilder<O : ExtendedBaseDO<Long>>(
+    private val baseDao: BaseDao<O>,
+    private val entityManager: EntityManager,
+    private val queryFilter: QueryFilter,
+    dbFilter: DBFilter
+) {
 
     enum class Mode {
         /**
          * Standard full text search by using full text query builder.
          */
         FULLTEXT,
+
         /**
          * At default the query builder of the full text search is used. As an alternative, the query may be
          * defined as a query string, e. g. '+name:sch* +kassel...'.
          */
         MULTI_FIELD_FULLTEXT_QUERY, // Not yet implemented
+
         /**
          * Plain criteria search without full text search.
          */
         CRITERIA
     }
 
-    private var _dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>? = null
-    private val dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>
-        get() {
-            if (_dbQueryBuilderByCriteria == null) _dbQueryBuilderByCriteria = DBQueryBuilderByCriteria(baseDao, entityManager, queryFilter)
-            return _dbQueryBuilderByCriteria!!
-        }
-    private var _dbQueryBuilderByFullText: DBQueryBuilderByFullText<O>? = null
-    private val dbQueryBuilderByFullText: DBQueryBuilderByFullText<O>
-        get() {
-            if (_dbQueryBuilderByFullText == null) _dbQueryBuilderByFullText = DBQueryBuilderByFullText(baseDao, entityManager, queryFilter, useMultiFieldQueryParser = mode == Mode.MULTI_FIELD_FULLTEXT_QUERY)
-            return _dbQueryBuilderByFullText!!
-        }
+    private val dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O> by lazy {
+        DBQueryBuilderByCriteria(baseDao, entityManager, queryFilter)
+    }
+    private val dbQueryBuilderByFullText: DBQueryBuilderByFullText<O> by lazy {
+        DBQueryBuilderByFullText(
+            baseDao,
+            entityManager,
+            useMultiFieldQueryParser = mode == Mode.MULTI_FIELD_FULLTEXT_QUERY
+        )
+    }
     private val mode: Mode
+    private val criteriaPredicates = mutableListOf<DBPredicate>()
+    private val fullTextPredicates = mutableListOf<DBPredicate>()
 
     /**
      * As an alternative to the query builder of the full text search, Hibernate search supports a simple query string,
-     * e. g. '+name:sch* +kassel...'
+     * e.g. '+name:sch* +kassel...'
      */
     //private val multiFieldParserQueryString = mutableListOf<String>()
     /**
@@ -87,17 +90,38 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         get() = mode == Mode.FULLTEXT || mode == Mode.MULTI_FIELD_FULLTEXT_QUERY
 
     init {
-        val stats = dbFilter.createStatistics(baseDao)
-        mode =
-                if (stats.multiFieldFullTextQueryRequired)
-                    Mode.MULTI_FIELD_FULLTEXT_QUERY
-                else if (stats.fullTextRequired)
-                    Mode.FULLTEXT
-                else
-                    Mode.CRITERIA // Criteria search (no full text search entries found).
-
-        dbFilter.predicates.forEach {
-            addMatcher(it)
+        logDebugFunCall(log) { it.mtd("init") }
+        mode = if (dbFilter.allPredicates.any { !it.criteriaSupport && !it.resultSetSupport }) {
+            logDebugFunCall(log) { it.mtd("init").msg("fullTextSearch required") }
+            Mode.FULLTEXT
+        } else {
+            logDebugFunCall(log) { it.mtd("init").msg("criteriaSearchAvailable") }
+            Mode.CRITERIA
+        }
+        if (mode == Mode.FULLTEXT) {
+            dbFilter.allPredicates.forEach { p ->
+                if (p.supportedByFullTextQuery(dbQueryBuilderByFullText.searchClassInfo)) {
+                    fullTextPredicates.add(p)
+                    //} else if (p.criteriaSupport) { // Later add criteria search with result id's of full text search.
+                    //    dbQueryBuilderByCriteria.add(p) // Not yet migrated to use criteriaPredicates.
+                    //    criteriaPredicates.add(p)
+                } else if (!p.resultSetSupport) {
+                    log.error { "*** FullTextSearch: Predicate ${p.javaClass.simpleName} for ${baseDao.doClass.simpleName}.${p.field} neither support fullText search nor resultSet. Ignoring." }
+                } else {
+                    resultPredicates.add(p)
+                }
+            }
+        } else {
+            dbFilter.allPredicates.forEach { p ->
+                if (p.criteriaSupport) {
+                    criteriaPredicates.add(p)
+                    dbQueryBuilderByCriteria.add(p) // Not yet migrated to use criteriaPredicates.
+                } else if (!p.resultSetSupport) {
+                    log.error { "*** CriteriaSearch: Predicate ${p.javaClass.simpleName} for ${baseDao.doClass.simpleName}.${p.field} neither support criteria search nor resultSet. Ignoring." }
+                } else {
+                    resultPredicates.add(p)
+                }
+            }
         }
 
         var maxOrder = 3
@@ -110,37 +134,28 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
 
     }
 
-    /**
-     * Adds predicate to result matchers or, if criteria search is enabled, a new predicates for the criteria is appended.
-     */
-    private fun addMatcher(predicate: DBPredicate) {
-        if (criteriaSearchAvailable) {
-            dbQueryBuilderByCriteria.add(predicate)
-        } else if (predicate.fullTextSupport) {
-            if (!dbQueryBuilderByFullText.add(predicate)) {
-                if (log.isDebugEnabled) log.debug("Adding result predicate: $predicate")
-                resultPredicates.add(predicate)
-            }
-        } else {
-            if (log.isDebugEnabled) log.debug("Adding result predicate: $predicate")
-            resultPredicates.add(predicate)
-        }
-    }
-
     fun result(): DBResultIterator<O> {
-        if (fullTextSearch) {
-            return dbQueryBuilderByFullText.createResultIterator(resultPredicates)
+        if (fullTextSearch && fullTextPredicates.isNotEmpty()) {
+            logDebugFunCall(log) { it.mtd("result()").msg("fullTextSearch") }
+            return dbQueryBuilderByFullText.createResultIterator(fullTextPredicates, resultPredicates)
         }
-        return dbQueryBuilderByCriteria.createResultIterator(resultPredicates)
+        logDebugFunCall(log) { it.mtd("result()").msg("criteriaSearch") }
+        return dbQueryBuilderByCriteria.createResultIterator(resultPredicates, queryFilter)
     }
 
     /**
-     * Sorting for criteria query is done by the data base, for full text search by Kotlin after getting the result list.
+     * Sorting for criteria query is done by the database, for full text search by Kotlin after getting the result list.
      */
     fun addOrder(sortProperty: SortProperty) {
         if (fullTextSearch) {
+            logDebugFunCall(log) {
+                it.mtd("addOrder(sortProperty)").msg("fullTextSearch").params("sortProperty" to sortProperty)
+            }
             dbQueryBuilderByFullText.addOrder(sortProperty)
         } else {
+            logDebugFunCall(log) {
+                it.mtd("addOrder(sortProperty)").msg("criteriaSearch").params("sortProperty" to sortProperty)
+            }
             dbQueryBuilderByCriteria.addOrder(sortProperty)
         }
     }

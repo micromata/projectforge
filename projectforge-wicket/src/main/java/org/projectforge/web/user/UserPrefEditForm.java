@@ -29,7 +29,6 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.projectforge.business.fibu.KundeDO;
@@ -45,6 +44,7 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.Kost2DropDownChoice;
 import org.projectforge.web.fibu.NewCustomerSelectPanel;
 import org.projectforge.web.fibu.NewProjektSelectPanel;
@@ -70,9 +70,6 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
   private static final long serialVersionUID = 6647201995353615498L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserPrefEditForm.class);
-
-  @SpringBean
-  private UserPrefDao userPrefDao;
 
   private boolean parameterCreated;
 
@@ -136,7 +133,7 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
             return;
           }
           final String value = validatable.getValue();
-          if (parentPage.userPrefDao.doesParameterNameAlreadyExist(data.getId(), data.getUser(), data.getAreaObject(),
+          if (WicketSupport.get(UserPrefDao.class).doesParameterNameAlreadyExist(data.getId(), data.getUser(), data.getAreaObject(),
               value)) {
             name.error(getString("userPref.error.nameDoesAlreadyExist"));
           }
@@ -148,7 +145,7 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       // User
-      data.setUser(ThreadLocalUserContext.getUser());
+      data.setUser(ThreadLocalUserContext.getLoggedInUser());
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("user")).suppressLabelForWarning();
       fs.add(new DivTextPanel(fs.newChildId(), data.getUser().getFullname()));
     }
@@ -214,6 +211,7 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
   @SuppressWarnings("serial")
   void createParameterRepeaterChildren()
   {
+    var userPrefDao = WicketSupport.get(UserPrefDao.class);
     if (parameterCreated == true) {
       log.error("Could not add parameters twice. Internal error. Double submit of DropDownChoice?");
       return;
@@ -224,7 +222,7 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
       return;
     }
     if (isNew() == true && data.getUserPrefEntries() == null) {
-      parentPage.userPrefDao.addUserPrefParameters(data, data.getAreaObject());
+      WicketSupport.get(UserPrefDao.class).addUserPrefParameters(data, data.getAreaObject());
     }
     if (data.getUserPrefEntries() != null) {
       for (final UserPrefEntryDO param : data.getSortedUserPrefEntries()) {
@@ -234,7 +232,7 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
         if (StringUtils.isNotEmpty(param.getTooltipI18nKey()) == true) {
           fs.addHelpIcon(getString(param.getTooltipI18nKey()));
         }
-        parentPage.userPrefDao.updateParameterValueObject(param);
+        WicketSupport.get(UserPrefDao.class).updateParameterValueObject(param);
         if (PFUserDO.class.isAssignableFrom(param.getType()) == true) {
           final UserSelectPanel userSelectPanel = new UserSelectPanel(fs.newChildId(),
               new UserPrefPropertyModel<PFUserDO>(userPrefDao,
@@ -264,7 +262,7 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
           groupSelectPanel.init();
         } else if (Kost2DO.class.isAssignableFrom(param.getType()) == true) {
           final UserPrefEntryDO taskParam = data.getUserPrefEntry(param.getDependsOn());
-          Integer taskId = null;
+          Long taskId = null;
           if (taskParam == null) {
             log.error(
                 "Annotation for Kost2DO types should have a valid dependsOn annotation. Task param not found for: "
@@ -279,7 +277,7 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
               (Kost2DO) param.getValueAsObject(), taskId)
           {
             @Override
-            protected void setKost2Id(final Integer kost2Id)
+            protected void setKost2Id(final Long kost2Id)
             {
               param.setValue(String.valueOf(kost2Id));
             }
@@ -315,8 +313,7 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
               new PropertyModel<String>(param, "value"), maxLength)));
         } else if (I18nEnum.class.isAssignableFrom(param.getType()) == true) {
           final LabelValueChoiceRenderer<I18nEnum> choiceRenderer = new LabelValueChoiceRenderer<I18nEnum>(this,
-              (I18nEnum[]) param
-                  .getType().getEnumConstants());
+              (I18nEnum[]) param.getType().getEnumConstants());
           final DropDownChoice<I18nEnum> choice = new DropDownChoice<I18nEnum>(fs.getDropDownChoiceId(),
               new UserPrefPropertyModel<I18nEnum>(userPrefDao, param, "valueAsObject"), choiceRenderer.getValues(),
               choiceRenderer);

@@ -400,14 +400,7 @@ public class BeanHelper {
   }
 
   /**
-   * Invokes getter method of the given bean.
-   *
-   * @param bean
-   * @param property
-   * @return
-   * @throws InvocationTargetException
-   * @throws IllegalAccessException
-   * @throws IllegalArgumentException
+   * @see PropertyUtils#getProperty(Object, String)
    */
   public static Object getProperty(final Object bean, final String property) {
     final Method getter = determineGetter(bean.getClass(), property);

@@ -112,7 +112,7 @@ class ImportPairEntry<O : ImportPairEntry.Modified<O>>(
         if (stored == null) {
           Status.UNKNOWN
         } else {
-          if ((stored is AbstractBaseDO<*> && stored.isDeleted)
+          if ((stored is AbstractBaseDO<*> && stored.deleted)
             || (stored is BaseDTO<*> && stored.deleted)
           ) {
             Status.UNMODIFIED // Object is already deleted.

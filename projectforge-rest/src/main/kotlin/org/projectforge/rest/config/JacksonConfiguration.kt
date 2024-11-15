@@ -189,7 +189,7 @@ open class JacksonConfiguration {
   open fun objectMapper(): ObjectMapper {
     objectMapper?.let { return it }
     val mapper = ObjectMapper()
-    mapper.registerModule(KotlinModule())
+    mapper.registerModule(KotlinModule.Builder().build())
     mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true)
     mapper.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false)
     if (failOnUnknownJsonProperties) {
@@ -246,6 +246,7 @@ open class JacksonConfiguration {
     JsonUtils.initializeMapper(module)
     module.addDeserializer(String::class.java, TextDeserializer())
     module.addDeserializer(java.lang.Integer::class.java, IntDeserializer())
+    module.addDeserializer(java.lang.Long::class.java, LongDeserializer())
     module.addDeserializer(BigDecimal::class.java, BigDecimalDeserializer())
 
     module.addSerializer(Kost1DO::class.java, Kost1DOSerializer())

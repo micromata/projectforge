@@ -23,12 +23,9 @@
 
 package org.projectforge.business.user
 
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.projectforge.business.user.service.UserPrefService
-import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
@@ -60,7 +57,9 @@ class UserPrefServiceTest : AbstractTestBase() {
         userPrefService.putEntry(area, name, "Hurzel2")
         userPrefService.putEntry(area, name2, 88)
         logoff()
-        userPrefCache.flushToDB(getUserId(TEST_USER))
+        suppressErrorLogs {
+            userPrefCache.flushToDB(getUserId(TEST_USER)) // User 'null' is not allowed.
+        }
         userPrefCache.setExpired()
         logon(TEST_USER)
         assertEquals("Hurzel", userPrefService.getEntry(area, name, String::class.java))
@@ -68,23 +67,31 @@ class UserPrefServiceTest : AbstractTestBase() {
         logon(TEST_USER2)
         assertEquals("Hurzel2", userPrefService.getEntry(area, name, String::class.java))
         assertEquals(88, userPrefService.getEntry(area, name2, Int::class.java))
-
+        userPrefCache.flushToDB(getUserId(TEST_USER2))
         val prefNames = userPrefDao.getPrefNames(area)
         assertEquals(2, prefNames.size, "Got prefnames ${prefNames.joinToString { it }}")
         assertTrue(prefNames.contains(name))
         assertTrue(prefNames.contains(name2))
 
         logon(TEST_USER)
-        var prefs = userPrefDao.getUserPrefs(getUserId(TEST_USER))
+        var prefs = userPrefDao.selectUserPrefs(getUserId(TEST_USER))
         //println(ToStringUtil.toJsonString(prefs))
-        assertEquals("^JSON:\"Hurzel\"", prefs.find { it.area == area && it.name == name }!!.valueString)
-        assertEquals("^JSON:42", prefs.find { it.area == area && it.name == name2 }!!.valueString)
+        assertEquals("^JSON:\"Hurzel\"", prefs.find { it.area == area && it.name == name }!!.serializedValue)
+        assertEquals("^JSON:42", prefs.find { it.area == area && it.name == name2 }!!.serializedValue)
 
         logon(TEST_USER2)
         userPrefCache.flushToDB(getUserId(TEST_USER2))
-        prefs = userPrefDao.getUserPrefs(getUserId(TEST_USER2))
-        assertEquals("^JSON:\"Hurzel2\"", prefs.find { it.area == area && it.name == name }!!.valueString)
-        assertEquals("^JSON:88", prefs.find { it.area == area && it.name == name2 }!!.valueString)
+        prefs = userPrefDao.selectUserPrefs(getUserId(TEST_USER2))
+        assertEquals("^JSON:\"Hurzel2\"", prefs.find { it.area == area && it.name == name }!!.serializedValue)
+        assertEquals("^JSON:88", prefs.find { it.area == area && it.name == name2 }!!.serializedValue)
         //println(ToStringUtil.toJsonString(userPrefDao.getUserPrefs(getUserId(TEST_USER2))))
+        val longValue = "a".repeat(1500)
+        userPrefService.putEntry(area, name, longValue)
+        userPrefCache.flushToDB(getUserId(TEST_USER2))
+        userPrefService.putEntry(area, name, longValue)
+        userPrefCache.flushToDB(getUserId(TEST_USER2))
+        prefs = userPrefDao.selectUserPrefs(getUserId(TEST_USER2))
+        val serializedValue = prefs.find { it.area == area && it.name == name }!!.serializedValue!!
+        assertTrue(serializedValue.startsWith("!"), "Serialized value should start with '!': $serializedValue")
     }
 }

@@ -25,12 +25,10 @@ package org.projectforge.business.vacation.service
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.employee.EmployeeTest
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
-import org.projectforge.business.fibu.api.EmployeeService
-import org.projectforge.business.user.UserDao
+import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.utils.HtmlHelper
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationMode
@@ -41,15 +39,11 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.mail.Mail
-import org.projectforge.mail.SendMail
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
 
 class VacationSendMailServiceTest : AbstractTestBase() {
-    @Autowired
-    private lateinit var domainService: DomainService
-
     @Autowired
     private lateinit var employeeDao: EmployeeDao
 
@@ -57,41 +51,59 @@ class VacationSendMailServiceTest : AbstractTestBase() {
     private lateinit var employeeService: EmployeeService
 
     @Autowired
-    private lateinit var sendMail: SendMail
-
-    @Autowired
-    private lateinit var userDao: UserDao
-
-    @Autowired
     private lateinit var vacationSendMailService: VacationSendMailService
 
     @Test
     fun mailTest() {
-        val vacationer = createEmployee("vacationer")
-        val manager = createEmployee("manager")
-        val replacement = createEmployee("replacement")
-        val otherReplacement = createEmployee("otherReplacement")
-        val otherReplacement2 = createEmployee("otherReplacement2")
+        lateinit var vacationer: EmployeeDO
+        lateinit var manager: EmployeeDO
+        lateinit var replacement: EmployeeDO
+        lateinit var otherReplacement: EmployeeDO
+        lateinit var otherReplacement2: EmployeeDO
+        persistenceService.runInTransaction { _ ->
+            vacationer = createEmployee("vacationer")
+            manager = createEmployee("manager")
+            replacement = createEmployee("replacement")
+            otherReplacement = createEmployee("otherReplacement")
+            otherReplacement2 = createEmployee("otherReplacement2")
+        }
         val vacation = createVacation(vacationer, manager, replacement, VacationStatus.APPROVED, otherReplacement)
         vacation.otherReplacements!!.add(otherReplacement2)
         vacation.id = 47114711
         vacation.comment = "This is a really important comment ;-)"
-        logon(vacationer.user)
+        logon(vacationer.user!!)
 
         // Check all combinations (4*4*5=80):
         arrayOf(OperationType.INSERT, OperationType.UPDATE, OperationType.DELETE, OperationType.UNDELETE)
-                .forEach { operationType ->
-                    arrayOf(VacationMode.MANAGER, VacationMode.REPLACEMENT, VacationMode.OWN, VacationMode.OTHER, VacationMode.HR)
-                            .forEach { mode ->
-                                arrayOf(vacationer, manager, replacement, otherReplacement, otherReplacement2).forEach { employee ->
-                                    assertMail(vacation, operationType, mode, employee.user!!)
-                                }
-                            }
-                }
+            .forEach { operationType ->
+                arrayOf(
+                    VacationMode.MANAGER,
+                    VacationMode.REPLACEMENT,
+                    VacationMode.OWN,
+                    VacationMode.OTHER,
+                    VacationMode.HR
+                )
+                    .forEach { mode ->
+                        arrayOf(
+                            vacationer,
+                            manager,
+                            replacement,
+                            otherReplacement,
+                            otherReplacement2
+                        ).forEach { employee ->
+                            assertMail(vacation, operationType, mode, employee.user!!)
+                        }
+                    }
+            }
         // println(assertMail(vacation, OperationType.UPDATE, VacationMode.MANAGER, manager.user!!).content)
     }
 
-    private fun assertMail(vacation: VacationDO, operationType: OperationType, vacationMode: VacationMode, receiver: PFUserDO): Mail {
+    private fun assertMail(
+        vacation: VacationDO,
+        operationType: OperationType,
+        vacationMode: VacationMode,
+        receiver: PFUserDO
+    ): Mail {
         val mail = vacationSendMailService.prepareMail(vacation, operationType, vacationMode, receiver)
         Assertions.assertNotNull(mail)
         mail!!
@@ -101,7 +113,7 @@ class VacationSendMailServiceTest : AbstractTestBase() {
         Assertions.assertNotNull(mail)
         Assertions.assertEquals(1, mail.to.size)
         Assertions.assertEquals(receiver.email, mail.to[0].address)
-        if (receiver.id != ThreadLocalUserContext.userId) {
+        if (receiver.id != ThreadLocalUserContext.loggedInUserId) {
             Assertions.assertEquals(1, mail.cc.size)
             Assertions.assertEquals(vacationer.email, mail.cc[0].address)
         } else {
@@ -109,9 +121,11 @@ class VacationSendMailServiceTest : AbstractTestBase() {
         }
 
         val vacationInfo = VacationSendMailService.VacationInfo(employeeDao, vacation)
-        val i18nArgs = arrayOf(vacationer.getFullname(),
-                vacationInfo.periodText,
-                i18n("vacation.mail.modType.${operationType.name.lowercase()}"))
+        val i18nArgs = arrayOf(
+            vacationer.getFullname(),
+            vacationInfo.periodText,
+            i18n("vacation.mail.modType.${operationType.name.lowercase()}")
+        )
         Assertions.assertEquals(i18n("vacation.mail.action.short", *i18nArgs), mail.subject)
         assertContent(mail, "${vacation.id}")
         assertContent(mail, vacationer.getFullname())
@@ -120,24 +134,47 @@ class VacationSendMailServiceTest : AbstractTestBase() {
         assertContent(mail, vacation.comment)
         assertContent(mail, translate("vacation"))
 
-        Assertions.assertFalse(mail.content.contains("???"), "Unexpected content '???' in mail content: ${mail.content}")
+        Assertions.assertFalse(
+            mail.content.contains("???"),
+            "Unexpected content '???' in mail content: ${mail.content}"
+        )
         arrayOf(0, 1, 2, 3).forEach {
-            Assertions.assertFalse(mail.content.contains("{$it}"), "At least one message param was not replaced in i18n message ('{$it}'): ${mail.content}")
+            Assertions.assertFalse(
+                mail.content.contains("{$it}"),
+                "At least one message param was not replaced in i18n message ('{$it}'): ${mail.content}"
+            )
         }
         return mail
     }
 
     private fun assertContent(mail: Mail, expectedContent: String?) {
         expectedContent!!
-        Assertions.assertTrue(mail.content.contains(expectedContent), "Expected content '$expectedContent' not found in mail content: ${mail.content}")
+        Assertions.assertTrue(
+            mail.content.contains(expectedContent),
+            "Expected content '$expectedContent' not found in mail content: ${mail.content}"
+        )
 
     }
 
-    private fun createVacation(vacationer: EmployeeDO, manager: EmployeeDO, replacement: EmployeeDO, status: VacationStatus, otherReplacement: EmployeeDO? = null): VacationDO {
+    private fun createVacation(
+        vacationer: EmployeeDO,
+        manager: EmployeeDO,
+        replacement: EmployeeDO,
+        status: VacationStatus,
+        otherReplacement: EmployeeDO? = null
+    ): VacationDO {
         val nextPeriod = getNextPeriod()
         val startDate = nextPeriod.first
         val endDate = nextPeriod.second
-        return VacationDaoTest.createVacation(vacationer, manager, replacement, startDate, endDate, status, otherReplacement)
+        return VacationDaoTest.createVacation(
+            vacationer,
+            manager,
+            replacement,
+            startDate,
+            endDate,
+            status,
+            otherReplacement
+        )
     }
 
     private fun createEmployee(name: String): EmployeeDO {

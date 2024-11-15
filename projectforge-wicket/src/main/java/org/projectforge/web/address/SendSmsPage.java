@@ -27,7 +27,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.PhoneType;
@@ -37,6 +36,7 @@ import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.messaging.SmsSender;
 import org.projectforge.sms.SmsSenderConfig;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 
 import java.util.Date;
@@ -54,12 +54,6 @@ public class SendSmsPage extends AbstractStandardFormPage {
           PARAMETER_KEY_PHONE_TYPE + "|phone", PARAMETER_KEY_NUMBER + "|no"};
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SendSmsPage.class);
-
-  @SpringBean
-  private AddressDao addressDao;
-
-  @SpringBean
-  private SmsSenderConfig smsSenderConfig;
 
   private AddressDO address;
 
@@ -104,7 +98,7 @@ public class SendSmsPage extends AbstractStandardFormPage {
 
   public void setAddressId(final Integer addressId) {
     if (addressId != null) {
-      address = addressDao.getById(addressId);
+      address = WicketSupport.get(AddressDao.class).find(addressId);
     }
   }
 
@@ -147,6 +141,7 @@ public class SendSmsPage extends AbstractStandardFormPage {
   }
 
   protected void send() {
+    SmsSenderConfig smsSenderConfig = WicketSupport.get(SmsSenderConfig.class);
     final String number = NumberHelper.extractPhonenumber(getData().getPhoneNumber(),
             Configuration.getInstance().getStringValue(ConfigurationParam.DEFAULT_COUNTRY_PHONE_PREFIX));
     if (!smsSenderConfig.isSmsConfigured()) {

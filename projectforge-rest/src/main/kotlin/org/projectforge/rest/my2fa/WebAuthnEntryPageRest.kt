@@ -38,8 +38,8 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 /**
  * Dialog for registering a new token or modifying/deleting an existing one.
@@ -61,7 +61,7 @@ class WebAuthnEntryPageRest : AbstractDynamicPageRest() {
    */
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
-    val id = idString?.toIntOrNull()
+    val id = idString?.toLongOrNull()
     val data = if (id != null) {
       WebAuthnEntry.create(webAuthnEntryDao.getEntryById(id))
     } else {

@@ -28,17 +28,19 @@ import org.projectforge.common.i18n.Priority;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.jsp.PageContext;
+import jakarta.servlet.jsp.PageContext;
+
+import java.io.Serializable;
 
 @Service
-public class PriorityFormatter
+public class PriorityFormatter implements Serializable
 {
   public String getFormattedPriority(Priority priority)
   {
     if (priority == null) {
       return "";
     }
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     buf.append("<span");
     HtmlHelper.attribute(buf, "class", "priority_" + priority.getKey());
     buf.append(">");

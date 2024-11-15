@@ -23,6 +23,7 @@ function DynamicLayout(
     const {
         actions,
         layout,
+        layoutBelowActions,
         title,
         pageMenu,
         historyBackButton,
@@ -77,6 +78,7 @@ function DynamicLayout(
             {children}
             {!disableLayoutRendering && renderLayout(layout)}
             {actionGroup}
+            {!disableLayoutRendering && renderLayout(layoutBelowActions)}
             {historyBackButton
             && (
                 <Button
@@ -94,6 +96,7 @@ DynamicLayout.propTypes = {
     ui: PropTypes.shape({
         actions: PropTypes.arrayOf(buttonPropType),
         layout: PropTypes.instanceOf(Array),
+        layoutBelowActions: PropTypes.instanceOf(Array),
         title: PropTypes.string,
         pageMenu: PropTypes.arrayOf(menuItemPropType),
         historyBackButton: PropTypes.string,

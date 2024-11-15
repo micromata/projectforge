@@ -37,6 +37,7 @@ import org.projectforge.business.teamcal.admin.TeamCalsComparator;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.TeamEventFilter;
 import org.projectforge.web.CSSColor;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.calendar.QuickSelectPanel;
 import org.projectforge.web.common.MultiChoiceListHelper;
 import org.projectforge.web.teamcal.admin.TeamCalsProvider;
@@ -62,9 +63,6 @@ public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEve
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamEventListForm.class);
 
-  @SpringBean
-  TeamCalCache teamCalCache;
-
   MultiChoiceListHelper<TeamCalDO> calendarsListHelper;
 
   protected LocalDatePanel startDate;
@@ -85,13 +83,11 @@ public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEve
     return new TeamEventFilter();
   }
 
-  /**
-   * @see org.projectforge.web.wicket.AbstractListForm#init()
-   */
   @SuppressWarnings("serial")
   @Override
   protected void init() {
     super.init();
+    var teamCalCache = WicketSupport.get(TeamCalCache.class);
     getParentPage().onFormInit();
     add(new IFormValidator() {
       @Override
@@ -134,6 +130,7 @@ public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEve
   @SuppressWarnings("serial")
   @Override
   protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel) {
+    var teamCalCache = WicketSupport.get(TeamCalCache.class);
     {
       optionsFieldsetPanel.setOutputMarkupId(true);
       startDate = new LocalDatePanel(optionsFieldsetPanel.newChildId(),
@@ -179,9 +176,9 @@ public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEve
       final TeamCalsProvider calendarProvider = new TeamCalsProvider(teamCalCache);
       calendarsListHelper = new MultiChoiceListHelper<TeamCalDO>().setComparator(new TeamCalsComparator()).setFullList(
           calendarProvider.getSortedCalenders());
-      final Collection<Integer> list = getFilter().getTeamCals();
+      final Collection<Long> list = getFilter().getTeamCals();
       if (list != null) {
-        for (final Integer calId : list) {
+        for (final Long calId : list) {
           final TeamCalDO cal = teamCalCache.getCalendar(calId);
           calendarsListHelper.addOriginalAssignedItem(cal).assignItem(cal);
         }

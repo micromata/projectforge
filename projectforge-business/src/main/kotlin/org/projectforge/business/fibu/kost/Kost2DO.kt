@@ -24,54 +24,68 @@
 package org.projectforge.business.fibu.kost
 
 import com.fasterxml.jackson.annotation.JsonCreator
-import de.micromata.genome.db.jpa.history.api.WithHistory
+import jakarta.persistence.*
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.hibernate.search.annotations.ClassBridge
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.business.fibu.OldKostFormatter
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
-import javax.persistence.*
 
 @Entity
 @Indexed
-@ClassBridge(name = "nummer", impl = HibernateSearchKost2Bridge::class)
-@Table(name = "T_FIBU_KOST2", uniqueConstraints = [UniqueConstraint(columnNames = ["nummernkreis", "bereich", "teilbereich", "kost2_art_id"])], indexes = [Index(name = "idx_fk_t_fibu_kost2_kost2_art_id", columnList = "kost2_art_id"), Index(name = "idx_fk_t_fibu_kost2_projekt_id", columnList = "projekt_id")])
-@WithHistory
+@Table(
+    name = "T_FIBU_KOST2",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["nummernkreis", "bereich", "teilbereich", "kost2_art_id"])],
+    indexes = [Index(
+        name = "idx_fk_t_fibu_kost2_kost2_art_id",
+        columnList = "kost2_art_id"
+    ), Index(name = "idx_fk_t_fibu_kost2_projekt_id", columnList = "projekt_id")]
+)
+//@WithHistory
 @NamedQueries(
-        NamedQuery(name = Kost2DO.FIND_BY_NK_BEREICH_TEILBEREICH_KOST2ART,
-                query = "from Kost2DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and kost2Art.id=:kost2ArtId"),
-        NamedQuery(name = Kost2DO.FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_KOST2ART,
-                query = "from Kost2DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and kost2Art.id=:kost2ArtId and id!=:id"),
-        NamedQuery(name = Kost2DO.FIND_ACTIVES_BY_NK_BEREICH_TEILBEREICH,
-                query = "from Kost2DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and (kostentraegerStatus='ACTIVE' or kostentraegerStatus is null) order by kost2Art.id"))
-open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
+    NamedQuery(
+        name = Kost2DO.FIND_BY_NK_BEREICH_TEILBEREICH_KOST2ART,
+        query = "from Kost2DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and kost2Art.id=:kost2ArtId"
+    ),
+    NamedQuery(
+        name = Kost2DO.FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_KOST2ART,
+        query = "from Kost2DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and kost2Art.id=:kost2ArtId and id!=:id"
+    ),
+    NamedQuery(
+        name = Kost2DO.FIND_ACTIVES_BY_NK_BEREICH_TEILBEREICH,
+        query = "from Kost2DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and (kostentraegerStatus='ACTIVE' or kostentraegerStatus is null) order by kost2Art.id"
+    )
+)
+open class Kost2DO : DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
 
     companion object {
         @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
         @JvmStatic
-        fun createFrom(value: Int): Kost2DO {
+        fun createFrom(value: Long): Kost2DO {
             val kost2 = Kost2DO()
             kost2.id = value
             return kost2
         }
 
         internal const val FIND_BY_NK_BEREICH_TEILBEREICH_KOST2ART = "Kost2DO_FindByNKBereichTeilbereichKost2Art"
-        internal const val FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_KOST2ART = "Kost2DO_FindOtherByNKBereichTeilbereichKost2Art"
+        internal const val FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_KOST2ART =
+            "Kost2DO_FindOtherByNKBereichTeilbereichKost2Art"
         internal const val FIND_ACTIVES_BY_NK_BEREICH_TEILBEREICH = "Kost2DO_FindActivesByNKBereichTeilbereich"
     }
 
-    override val displayName: String
+    override var displayName: String? = null
         @Transient
-        get() = KostFormatter.format(this)
+        get() {
+            return field ?: KostFormatter.instance.formatKost2(this, KostFormatter.FormatType.FORMATTED_NUMBER)
+        }
 
     @PropertyInfo(i18nKey = "status")
-    @Field
+    @FullTextField
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 30)
     open var kostentraegerStatus: KostentraegerStatus? = null
@@ -83,7 +97,7 @@ open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
     open var nummernkreis: Int = 0
 
     /**
-     * Bereich entspricht der 2.-4. Ziffer.
+     * Bereich entspricht der 2.-4. Ziffer. Bei 5.### ist ### die Kundennummer
      */
     @get:Column(name = "bereich")
     open var bereich: Int = 0
@@ -95,7 +109,7 @@ open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
     open var teilbereich: Int = 0
 
     @PropertyInfo(i18nKey = "fibu.kost2.art")
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "kost2_art_id", nullable = false)
     open var kost2Art: Kost2ArtDO? = null
 
@@ -104,7 +118,7 @@ open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
     open var workFraction: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "description")
-    @Field
+    @FullTextField
     @get:Column(length = 4000)
     open var description: String? = null
 
@@ -112,7 +126,7 @@ open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
      * Optionale Kommentare zum Kostenträger.
      */
     @PropertyInfo(i18nKey = "comment")
-    @Field
+    @FullTextField
     @get:Column(length = 4000)
     open var comment: String? = null
 
@@ -121,48 +135,40 @@ open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
      * Ziffern identisch mit der Projektnummer.
      */
     @PropertyInfo(i18nKey = "fibu.projekt")
-    @IndexedEmbedded(depth = 2)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @IndexedEmbedded(includeDepth = 2)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "projekt_id")
     open var projekt: ProjektDO? = null
 
     /**
      * @see KostFormatter.getKostAsInt
      */
-    val nummer: Int?
+    val nummer: Int
         @Transient
         get() = KostFormatter.getKostAsInt(nummernkreis, bereich, teilbereich, kost2Art!!.id!!)
 
     /**
      * Format: #.###.##.##
      *
-     * @see KostFormatter.format
+     * @see OldKostFormatter.format
      */
+    @get:PropertyInfo(i18nKey = "fibu.kost2")
+    @get:Transient
+    @get:GenericField
+    @get:IndexingDependency(derivedFrom = [ObjectPath(PropertyValue(propertyName = "id"))])
     val formattedNumber: String
-        @Transient
-        get() = KostFormatter.format(this)
+        get() = KostFormatter.instance.formatKost2(this, KostFormatter.FormatType.FORMATTED_NUMBER)
 
     /**
-     * @see KostFormatter.formatToolTip
+     * @see OldKostFormatter.formatToolTip
      */
     val toolTip: String
         @Transient
-        get() = KostFormatter.formatToolTip(this)
-
-    val kost2ArtId: Int?
-        @Transient
-        get() = if (this.kost2Art == null) {
-            null
-        } else kost2Art!!.id
-
-    val projektId: Int?
-        @Transient
-        get() = if (this.projekt == null) {
-            null
-        } else projekt!!.id
+        get() = OldKostFormatter.formatToolTip(this)
 
     @Transient
-    fun isEqual(nummernkreis: Int, bereich: Int, teilbereich: Int, kost2Art: Int): Boolean {
+    fun isEqual(nummernkreis: Int, bereich: Int, teilbereich: Int, kost2Art: Long): Boolean {
         return (this.nummernkreis == nummernkreis
                 && this.bereich == bereich
                 && this.teilbereich == teilbereich
@@ -178,7 +184,8 @@ open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
         if (other is Kost2DO) {
             val o = other as Kost2DO?
             if (this.nummernkreis == o!!.nummernkreis && this.bereich == o.bereich
-                    && this.teilbereich == o.teilbereich) {
+                && this.teilbereich == o.teilbereich
+            ) {
                 return this.kost2Art == o.kost2Art
             }
         }
@@ -205,6 +212,6 @@ open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
      * @see java.lang.Comparable.compareTo
      */
     override fun compareTo(other: Kost2DO): Int {
-        return this.displayName.compareTo(other.displayName)
+        return this.displayName!!.compareTo(other.displayName!!)
     }
 }

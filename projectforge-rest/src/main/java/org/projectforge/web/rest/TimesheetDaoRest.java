@@ -33,12 +33,12 @@ import org.projectforge.web.rest.converter.TaskDOConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -63,7 +63,7 @@ public class TimesheetDaoRest
   private TaskDOConverter taskDOConverter;
 
   /**
-   * Rest-Call für: {@link TaskDao#getList(BaseSearchFilter)}
+   * Rest-Call für: {@link TaskDao#select(BaseSearchFilter)}
    *
    * @param searchTerm
    */
@@ -89,7 +89,7 @@ public class TimesheetDaoRest
   }
 
   /**
-   * Rest-Call für: {@link TaskDao#getList(BaseSearchFilter)}
+   * Rest-Call für: {@link TaskDao#select(BaseSearchFilter)}
    *
    * @param searchTerm
    */
@@ -127,7 +127,7 @@ public class TimesheetDaoRest
       filter.setNotOpened(notOpened);
     }
     filter.setSearchString(searchTerm);
-    final List<TaskDO> list = taskDao.getList(filter);
+    final List<TaskDO> list = taskDao.select(filter);
     return list;
   }
 
@@ -143,7 +143,7 @@ public class TimesheetDaoRest
     if (tasks == null || tasks.isEmpty()) {
       return topLevelTasks;
     }
-    final Map<Integer, TaskObject> rtaskMap = new HashMap<>();
+    final Map<Long, TaskObject> rtaskMap = new HashMap<>();
     for (final TaskDO task : tasks) {
       final TaskObject rtask = createRTask(task);
       rtaskMap.put(task.getId(), rtask);
@@ -155,12 +155,12 @@ public class TimesheetDaoRest
   }
 
   private TaskObject addTask(final TaskTree taskTree, final List<TaskObject> topLevelTasks, final TaskDO task,
-      final Map<Integer, TaskObject> rtaskMap)
+      final Map<Long, TaskObject> rtaskMap)
   {
     TaskObject rtask = rtaskMap.get(task.getId());
     if (rtask == null) {
       // ancestor task not part of the result list, create it:
-      if (!taskDao.hasUserSelectAccess(ThreadLocalUserContext.getUser(), task, false)) {
+      if (!taskDao.hasUserSelectAccess(ThreadLocalUserContext.getLoggedInUser(), task, false)) {
         // User has no access, ignore this part of the task tree.
         return null;
       }

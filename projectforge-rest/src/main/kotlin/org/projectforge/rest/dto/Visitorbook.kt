@@ -26,6 +26,7 @@ package org.projectforge.rest.dto
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.orga.VisitorType
 import org.projectforge.business.orga.VisitorbookDO
+import java.time.LocalDate
 
 class Visitorbook(var lastname: String? = null,
                   var firstname: String? = null,
@@ -33,9 +34,14 @@ class Visitorbook(var lastname: String? = null,
                   var contactPersons: Set<EmployeeDO>? = null,
                   var visitortype: VisitorType? = null
 ) : BaseDTO<VisitorbookDO>() {
+    var lastDateOfVisit: LocalDate? = null
 
-    var arrive: String? = null
+    var latestArrived: String? = null
 
-    var depart: String? = null
+    var latestDeparted: String? = null
+
+    var numberOfVisits: Int? = 0
+
+    var entries: List<VisitorbookEntry>? = null
 
 }

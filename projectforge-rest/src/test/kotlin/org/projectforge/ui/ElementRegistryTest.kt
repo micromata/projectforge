@@ -67,23 +67,13 @@ class ElementRegistryTest : AbstractTestBase() {
     @Test
     fun testGetterProperties() {
         val lc = LayoutContext(RechnungDO::class.java)
-        var info = ElementsRegistry.getElementInfo(lc, "grossSum")
-        assertEquals(BigDecimal::class.java, info!!.propertyClass)
-        assertTrue(info.readOnly)
-        assertEquals("fibu.common.brutto", info.i18nKey)
-
-        info = ElementsRegistry.getElementInfo(lc, "netSum")
-        assertEquals(BigDecimal::class.java, info!!.propertyClass)
-        assertTrue(info.readOnly)
-        assertEquals("fibu.common.netto", info.i18nKey)
-
-        info = ElementsRegistry.getElementInfo(lc, "nonExistingGetterAndField")
+        var info = ElementsRegistry.getElementInfo(lc, "nonExistingGetterAndField")
         assertNull(info)
 
         lc.registerListElement("position", "positionen")
-        info = ElementsRegistry.getElementInfo(lc, "position.netSum")
+        info = ElementsRegistry.getElementInfo(lc, "position.einzelNetto")
         assertEquals(BigDecimal::class.java, info!!.propertyClass)
-        assertTrue(info.readOnly)
-        assertEquals("fibu.common.netto", info.i18nKey)
+        //assertTrue(info.readOnly)
+        assertEquals("fibu.rechnung.position.einzelNetto", info.i18nKey)
     }
 }

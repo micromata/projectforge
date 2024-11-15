@@ -35,11 +35,11 @@ data class TimesheetRecentEntry
 @JvmOverloads
 constructor(
         @XStreamAsAttribute
-        var taskId: Int? = null,
+        var taskId: Long? = null,
         @XStreamAsAttribute
-        var userId: Int? = null,
+        var userId: Long? = null,
         @XStreamAsAttribute
-        var kost2Id: Int? = null,
+        var kost2Id: Long? = null,
         @XStreamAsAttribute
         var location: String? = null,
         @XStreamAsAttribute

@@ -26,12 +26,12 @@ package org.projectforge.business.task;
 
 /**
  * Marker for filters which are dependent of a task.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public interface TaskDependentFilter
 {
-  public void setTaskId(Integer task);
+  public void setTaskId(Long task);
 
-  public Integer getTaskId();
+  public Long getTaskId();
 }

@@ -84,7 +84,7 @@ public class LdapSambaAccountsUtils {
    * @return Returns true if any user (also deleted user) other than the given user has the given uidNumber, otherwise
    * false.
    */
-  public boolean isGivenNumberFree(final Integer currentUserId, final Integer sambaSIDNumber) {
+  public boolean isGivenNumberFree(final Long currentUserId, final Integer sambaSIDNumber) {
     if (sambaSIDNumber == null) {
       // Nothing to check.
       return true;
@@ -123,7 +123,7 @@ public class LdapSambaAccountsUtils {
    * @param ldapUserValues
    * @param userId
    */
-  public void setDefaultValues(final LdapUserValues ldapUserValues, final Integer userId) {
+  public void setDefaultValues(final LdapUserValues ldapUserValues, final Long userId) {
     final LdapConfig ldapConfig = ldapService.getLdapConfig();
     LdapSambaAccountsConfig ldapSambaAccountsConfig = ldapConfig != null ? ldapConfig.getSambaAccountsConfig() : null;
     if (ldapSambaAccountsConfig == null) {

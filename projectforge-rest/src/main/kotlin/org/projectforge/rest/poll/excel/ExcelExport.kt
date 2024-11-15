@@ -57,12 +57,9 @@ class ExcelExport {
     @Autowired
     private lateinit var groupService: GroupService
 
-    @Autowired
-    private lateinit var userService: UserService
-
 
     fun getExcel(poll: Poll): ByteArray? {
-        val responses = pollResponseDao.internalLoadAll().filter { it.poll?.id == poll.id }
+        val responses = pollResponseDao.selectAll(checkAccess = false).filter { it.poll?.id == poll.id }
         val classPathResource = ClassPathResource("officeTemplates/PollResultTemplate" + ".xlsx")
 
         try {
@@ -87,10 +84,10 @@ class ExcelExport {
                     }
 
                     val fullAccessUser = poll.fullAccessUsers?.toMutableList() ?: mutableListOf()
-                    val accessGroupIds = poll.fullAccessGroups?.filter { it.id != null }?.map { it.id!! }?.toIntArray()
+                    val accessGroupIds = poll.fullAccessGroups?.filter { it.id != null }?.map { it.id!! }?.toLongArray()
                     val accessUserIds = UserService().getUserIds(groupService.getGroupUsers(accessGroupIds))
                     val accessUsers = User.toUserList(accessUserIds)
-                    User.restoreDisplayNames(accessUsers, userService)
+                    User.restoreDisplayNames(accessUsers)
 
                     accessUsers?.forEach { user ->
                         if (fullAccessUser.none { it.id == user.id }) {
@@ -103,7 +100,7 @@ class ExcelExport {
                         fullAccessUser.add(owner)
                     }
 
-                    User.restoreDisplayNames(fullAccessUser, userService)
+                    User.restoreDisplayNames(fullAccessUser)
                     fullAccessUser.forEachIndexed { _, user ->
                         val number = (anzNewRows)
                         if (poll.attendees?.map { it.id }?.contains(user.id) == false) {
@@ -127,7 +124,6 @@ class ExcelExport {
     }
 
 
-
     private fun setFirstRow(excelSheet: ExcelSheet, style: CellStyle, poll: Poll) {
         val excelRow = excelSheet.getRow(0)
         val excelRow1 = excelSheet.getRow(1)
@@ -141,7 +137,7 @@ class ExcelExport {
             if (question.type == BaseType.PollMultiResponseQuestion || question.type == BaseType.PollSingleResponseQuestion) {
                 if (!question.answers!!.contains("Anmerkung")) {
                     val ind = question.answers!!.size
-                    question.answers!!.add(ind,"Anmerkung")
+                    question.answers!!.add(ind, "Anmerkung")
                 }
                 var counter = merge
                 question.answers?.forEach { answer ->

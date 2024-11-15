@@ -24,17 +24,10 @@
 package org.projectforge.business.user
 
 import mu.KotlinLogging
-import org.projectforge.framework.ToStringUtil
-import org.projectforge.framework.access.AccessChecker
-import org.projectforge.framework.cache.AbstractCache
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserPrefDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.DependsOn
 import org.springframework.stereotype.Component
-import javax.annotation.PreDestroy
 
 private val log = KotlinLogging.logger {}
 
@@ -46,220 +39,48 @@ private val log = KotlinLogging.logger {}
  */
 @Component
 @DependsOn("entityManagerFactory")
-class UserPrefCache : AbstractCache() {
-
-    private val allPreferences = HashMap<Int, UserPrefCacheData>()
-
-    @Autowired
-    private lateinit var accessChecker: AccessChecker
-
+class UserPrefCache : AbstractUserPrefCache<UserPrefDO>("UserPrefCache", "area") {
     @Autowired
     private lateinit var userPrefDao: UserPrefDao
 
-    @Autowired
-    private lateinit var emgrFactory: PfEmgrFactory
-
-    /**
-     * Does nothing for demo user.
-     * @param persistent If true (default) this user preference will be stored to the data base, otherwise it will
-     * be volatile stored in memory and will expire.
-     */
-    fun putEntry(area: String, name: String, value: Any?, persistent: Boolean = true, userId: Int?) {
-        val uid = userId ?: ThreadLocalUserContext.userId!!
-        if (accessChecker.isDemoUser(uid)) {
-            // Store user pref for demo user only in user's session.
-            return
-        }
-        val data = ensureAndGetUserPreferencesData(uid)
-        if (log.isDebugEnabled) {
-            log.debug { "Put value for area '$area' and name '$name' (persistent=$persistent): ${ToStringUtil.toJsonString(value ?: "null")}" }
-        }
-        data.putEntry(area, name, value, persistent)
-        checkRefresh() // Should be called at the end of this method for considering changes inside this method.
+    override fun newEntry(): UserPrefDO {
+        return UserPrefDO()
     }
 
-    /**
-     * Gets all user's entry for given area.
-     */
-    fun getEntries(area: String): List<UserPrefDO> {
-        val userId = ThreadLocalUserContext.userId!!
-        val data = ensureAndGetUserPreferencesData(userId)
-        checkRefresh()
-        return data.getEntries(area).map { it.userPrefDO }
+    override fun selectUserPreferencesByUserId(userId: Long): Collection<UserPrefDO> {
+        return userPrefDao.selectUserPrefs(userId)
     }
 
-    /**
-     * Gets the user's entry.
-     */
-    fun getEntry(area: String, name: String): Any? {
-        val userId = ThreadLocalUserContext.userId!!
-        return getEntry(userId, area, name)
+    override fun saveOrUpdate(userId: Long, key: UserPrefCacheDataKey, value: Any, checkAccess: Boolean) {
+        userPrefDao.insertOrUpdate(userId, key, value, checkAccess)
     }
 
-    /**
-     * Gets the user's entry.
-     */
-    @JvmOverloads
-    fun <T> getEntry(area: String, name: String, clazz: Class<T>, userId: Int? = null): T? {
-        return getEntry(userId ?: ThreadLocalUserContext.userId!!, area, name, clazz)
+    override fun remove(userId: Long, key: UserPrefCacheDataKey) {
+        throw UnsupportedOperationException("Not implemented yet.")
     }
 
-    fun removeEntry(area: String, name: String) {
-        val userId = ThreadLocalUserContext.userId!!
-        if (accessChecker.isDemoUser(userId)) {
-            // Store user pref for demo user only in user's session.
-            return
-        }
-        return removeEntry(userId, area, name)
+    override fun deserialize(userPref: UserPrefDO): Any? {
+        return userPrefDao.deserizalizeValueObject(userPref)
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    private fun <T> getEntry(userId: Int, area: String, name: String, clazz: Class<T>): T? {
-        val value = getEntry(userId, area, name)
-        try {
-            @Suppress("UNCHECKED_CAST")
-            return value as T
-        } catch (ex: Exception) {
-            log.error("Can't deserialize user pref (new version of ProjectForge and old prefs? ${ex.message}", ex)
-            return null
-        }
-    }
-
-    private fun getEntry(userId: Int, area: String, name: String): Any? {
-        val data = ensureAndGetUserPreferencesData(userId)
-        checkRefresh()
-        val userPref = data.getEntry(area, name)?.userPrefDO ?: return null
-        return userPref.valueObject ?: userPrefDao.deserizalizeValueObject(userPref)
-    }
-
-    private fun removeEntry(userId: Int, area: String, name: String) {
-        val data = getUserPreferencesData(userId)
-                ?: // Should only occur for the pseudo-first-login-user setting up the system.
-                return
-        val cacheEntry = data.getEntry(area, name)
-        if (cacheEntry == null) {
-            log.info("Oups, user preferences object with area '$area' and name '$name' not cached, can't remove it!")
-            return
-        }
-        if (log.isDebugEnabled) {
-            log.debug { "Remove entry for area '$area' and name '$name'." }
-        }
-        data.removeEntry(area, name)
-        if (cacheEntry.persistant && cacheEntry.userPrefDO.id != null)
-            userPrefDao.delete(cacheEntry.userPrefDO)
-        checkRefresh()
-    }
-
-    /**
-     * Please use UserPreferenceHelper instead for correct handling of demo user's preferences!
-     *
-     * @param userId
-     * @return
-     */
-    @Synchronized
-    private fun ensureAndGetUserPreferencesData(userId: Int): UserPrefCacheData {
-        var data = getUserPreferencesData(userId)
-        if (data == null) {
-            data = UserPrefCacheData()
-            data.userId = userId
-            val userPrefs = userPrefDao.getUserPrefs(userId)
-            userPrefs?.forEach {
-                data.putEntry(it)
-            }
-            if (log.isDebugEnabled) {
-                log.debug { "Created new UserPrefCacheData: ${ToStringUtil.toJsonString(data)}" }
-            }
-            synchronized(allPreferences) {
-                this.allPreferences[userId] = data
-            }
-        }
-        return data
-    }
-
-    internal fun getUserPreferencesData(userId: Int): UserPrefCacheData? {
-        synchronized(allPreferences) {
-            return this.allPreferences[userId]
-        }
-    }
-
-    internal fun setUserPreferencesData(userId: Int, data: UserPrefCacheData) {
-        synchronized(allPreferences) {
-            this.allPreferences[userId] = data
-        }
-    }
-
-    /**
-     * Flushes the user settings to the database (independent from the expire mechanism). Should be used after the user's
-     * logout. If the user data isn't modified, then nothing will be done.
-     */
-    fun flushToDB(userId: Int?) {
-        flushToDB(userId, true)
-    }
-
-    @Synchronized
-    private fun flushToDB(userId: Int?, checkAccess: Boolean) {
-        if (checkAccess) {
-            if (userId != ThreadLocalUserContext.userId) {
-                log.error("User '" + ThreadLocalUserContext.userId
-                        + "' has no access to write user preferences of other user '" + userId + "'.")
-                // No access.
-                return
-            }
-            val user = emgrFactory.runInTrans { emgr -> emgr.selectByPk(PFUserDO::class.java, userId) }
-            if (AccessChecker.isDemoUser(user)) {
-                // Do nothing for demo user.
-                return
-            }
-        }
-        val data = allPreferences[userId]
-        data?.getModifiedPersistentEntries()?.forEach {
-            if (log.isDebugEnabled) {
-                log.debug { "Persisting entry to data base: ${ToStringUtil.toJsonString(it.userPrefDO)}" }
-            }
-            userPrefDao.internalSaveOrUpdate(it.userPrefDO)
-        }
-    }
-
-    /**
-     * Stores the PersistentUserObjects in the database or on start up restores the persistent user objects from the
-     * database.
-     *
-     * @see AbstractCache.refresh
-     */
-    override fun refresh() {
-        log.info("Flushing all user preferences to data-base....")
-        for (userId in allPreferences.keys) {
-            if (log.isDebugEnabled) {
-                log.debug { "Flushing all user preferences for user $userId." }
-            }
-            flushToDB(userId, false)
-        }
-        log.info("Flushing of user preferences to data-base done.")
-    }
-
-    /**
-     * Clear all volatile data (after logout). Forces refreshing of volatile data after re-login.
-     *
-     * @param userId
-     */
-    fun clear(userId: Int?) {
-        synchronized(allPreferences) {
-            val data = allPreferences[userId] ?: return
-            if (log.isDebugEnabled) {
-                log.debug { "Clearing all user preferences in cache for user $userId." }
-            }
-            allPreferences.remove(userId)
-            data.clear()
-        }
+    override fun serialize(value: Any): String {
+        return UserPrefDao.serialize(value, compressBigContent = true)
     }
 
     override fun setExpireTimeInMinutes(expireTime: Long) {
         this.expireTime = 10 * TICKS_PER_MINUTE
     }
 
-    @PreDestroy
-    fun preDestroy() {
-        log.info("Syncing all user preferences to database.")
-        this.forceReload()
+    companion object {
+        /**
+         * If true, the preDestroy will not call sync to database. This is useful for tests, but should never be called
+         * in production mode. Otherwise, user data will be lost.
+         * This is a static variable, because the preDestroy method is called by the Spring container and the test
+         * In test cases the database connections may be closed before [preDestroy] is called.
+         * This is a workaround for this problem.
+         * This variable is also used by [UserXmlPreferencesCache].
+         */
+        @JvmStatic
+        var dontCallPreDestroyInTestMode = false
     }
 }

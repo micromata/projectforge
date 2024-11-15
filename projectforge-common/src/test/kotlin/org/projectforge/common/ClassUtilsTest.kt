@@ -38,6 +38,12 @@ class ClassUtilsTest {
     }
 
     @Test
+    fun isKotlinClassTest() {
+        Assertions.assertTrue(ClassUtils.isKotlinClass(ClassUtilsTest::class.java))
+        Assertions.assertFalse(ClassUtils.isKotlinClass(BeanHelper::class.java))
+    }
+
+    @Test
     fun annotationTest() {
         val ann = ClassUtils.getClassAnnotation(Address::class.java, MyAnnotation::class.java)
         Assertions.assertNotNull(ann)

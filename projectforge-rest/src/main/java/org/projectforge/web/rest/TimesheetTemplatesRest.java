@@ -34,11 +34,11 @@ import org.projectforge.web.rest.converter.TimesheetTemplateConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,7 +62,7 @@ public class TimesheetTemplatesRest
   @Produces(MediaType.APPLICATION_JSON)
   public Response getList()
   {
-    final List<UserPrefDO> list = userPrefDao.getUserPrefs(UserPrefArea.TIMESHEET_TEMPLATE);
+    final List<UserPrefDO> list = userPrefDao.selectUserPrefs(UserPrefArea.TIMESHEET_TEMPLATE);
     final List<TimesheetTemplateObject> result = new ArrayList<>();
     if (list != null) {
       for (final UserPrefDO userPref : list) {

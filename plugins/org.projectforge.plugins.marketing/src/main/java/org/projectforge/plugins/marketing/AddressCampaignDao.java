@@ -24,13 +24,12 @@
 package org.projectforge.plugins.marketing;
 
 import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 public class AddressCampaignDao extends BaseDao<AddressCampaignDO> {
 
   public AddressCampaignDao() {
@@ -41,9 +40,5 @@ public class AddressCampaignDao extends BaseDao<AddressCampaignDO> {
   @Override
   public AddressCampaignDO newInstance() {
     return new AddressCampaignDO();
-  }
-
-  PfEmgrFactory getEmgrFactory() {
-    return emgrFactory;
   }
 }

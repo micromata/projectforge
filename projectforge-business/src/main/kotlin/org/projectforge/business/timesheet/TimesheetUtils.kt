@@ -39,7 +39,7 @@ object TimesheetUtils {
      * @return
      */
     @JvmStatic
-    fun getStats(timesheets: Collection<TimesheetDO>?, day: Date?, userId: Int?): TimesheetStats? {
+    fun getStats(timesheets: Collection<TimesheetDO>?, day: Date?, userId: Long?): TimesheetStats? {
         val dt = from(day!!).beginOfDay
         val startDate = dt.utilDate
         val stopDate = dt.plusDays(1).utilDate
@@ -54,7 +54,7 @@ object TimesheetUtils {
      * @param userId
      * @return
      */
-    fun getStats(timesheets: Collection<TimesheetDO>?, from: Date?, to: Date?, userId: Int?): TimesheetStats? {
+    fun getStats(timesheets: Collection<TimesheetDO>?, from: Date?, to: Date?, userId: Long?): TimesheetStats? {
         if (timesheets == null || timesheets.size == 0) {
             return null
         }

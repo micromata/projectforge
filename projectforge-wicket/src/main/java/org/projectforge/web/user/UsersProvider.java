@@ -65,9 +65,9 @@ public class UsersProvider extends ChoiceProvider<PFUserDO>
     if (sortedUsers == null) {
       sortedUsers = new TreeSet<PFUserDO>(usersComparator);
       final Collection<PFUserDO> allusers = UserGroupCache.getInstance().getAllUsers();
-      final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
+      final PFUserDO loggedInUser = ThreadLocalUserContext.getLoggedInUser();
       for (final PFUserDO user : allusers) {
-        if (user.isDeleted() == false && user.getDeactivated() == false
+        if (user.getDeleted() == false && user.getDeactivated() == false
             && userDao.hasUserSelectAccess(loggedInUser, user, false) == true) {
           sortedUsers.add(user);
         }
@@ -86,8 +86,8 @@ public class UsersProvider extends ChoiceProvider<PFUserDO>
       return null;
     }
     sortedUsers = new TreeSet<PFUserDO>(usersComparator);
-    final int[] ids = StringHelper.splitToInts(userIds, ",", false);
-    for (final int id : ids) {
+    final long[] ids = StringHelper.splitToLongs(userIds, ",");
+    for (final long id : ids) {
       final PFUserDO user = UserGroupCache.getInstance().getUser(id);
       if (user != null) {
         sortedUsers.add(user);
@@ -100,7 +100,7 @@ public class UsersProvider extends ChoiceProvider<PFUserDO>
 
   public String getUserIds(final Collection<PFUserDO> users)
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean first = true;
     for (final PFUserDO user : users) {
       if (user.getId() != null) {
@@ -168,7 +168,7 @@ public class UsersProvider extends ChoiceProvider<PFUserDO>
       return list;
     }
     for (final String str : ids) {
-      final Integer userId = NumberHelper.parseInteger(str);
+      final Long userId = NumberHelper.parseLong(str);
       if (userId == null) {
         continue;
       }

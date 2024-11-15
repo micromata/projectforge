@@ -34,15 +34,14 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.Script
-import org.projectforge.ui.LayoutUtils
 import org.projectforge.ui.UILayout
 import org.projectforge.ui.UITable
 import org.projectforge.ui.UITableColumn
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import javax.annotation.PostConstruct
-import javax.servlet.http.HttpServletRequest
+import jakarta.annotation.PostConstruct
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
@@ -93,7 +92,7 @@ class MyScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, MyScriptDao>(
    * Don't show include scripts, because the user can't do anything with it.
    */
   override fun filterList(resultSet: MutableList<ScriptDO>, filter: MagicFilter): List<ScriptDO> {
-    return resultSet.filter { !it.isDeleted && it.type != ScriptDO.ScriptType.INCLUDE }
+    return resultSet.filter { !it.deleted && it.type != ScriptDO.ScriptType.INCLUDE }
   }
 
   /**
