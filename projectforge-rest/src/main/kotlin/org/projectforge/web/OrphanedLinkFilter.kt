@@ -23,12 +23,12 @@
 
 package org.projectforge.web
 
-import mu.KotlinLogging
-import org.projectforge.business.vacation.service.VacationSendMailService
-import java.io.IOException
 import jakarta.servlet.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import mu.KotlinLogging
+import org.projectforge.business.vacation.service.VacationSendMailService
+import java.io.IOException
 
 private val log = KotlinLogging.logger {}
 
@@ -52,16 +52,26 @@ class OrphanedLinkFilter : Filter {
             chain.doFilter(servletRequest, servletResponse)
             return
         }
-        val uri = servletRequest.requestURI
-        // /wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage?id=26422747
-        if (uri.contains("/wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage")) {
-            servletResponse as HttpServletResponse
-            val redirectUrl = VacationSendMailService.getLinkToVacationEntry(servletRequest.getParameter("id"))
-            log.info("Redirect orphaned link '$uri' to '$redirectUrl'.")
-            servletResponse.sendRedirect(redirectUrl)
-            return
+        val uri = servletRequest.requestURI ?: ""
+        if (uri.contains("/wa/login")) { // Old Wicket login page, bookmarked by some users.
+            redirect(servletResponse, uri, "/")
+        } else if (uri.contains("/wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage")) {
+            // /wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage?id=26422747
+            redirect(
+                servletResponse,
+                uri,
+                VacationSendMailService.getLinkToVacationEntry(servletRequest.getParameter("id")),
+            )
+        } else {
+            chain.doFilter(servletRequest, servletResponse)
         }
-        chain.doFilter(servletRequest, servletResponse)
+    }
+
+    private fun redirect(servletResponse: ServletResponse, uri: String, redirectUrl: String) {
+        servletResponse as HttpServletResponse
+        log.info("Redirect orphaned link '$uri' to '$redirectUrl'.")
+        servletResponse.sendRedirect(redirectUrl)
+        return
     }
 
     /**

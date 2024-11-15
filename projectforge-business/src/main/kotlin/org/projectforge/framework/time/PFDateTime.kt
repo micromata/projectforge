@@ -188,7 +188,7 @@ open class PFDateTime internal constructor(
     }
 
     /**
-     * @return Milli seconds inside second (0..999).
+     * @return Milliseconds inside second (0..999).
      */
     fun getMilliSecond(): Int {
         return this.nano / 1000000
@@ -525,6 +525,42 @@ open class PFDateTime internal constructor(
                 ZonedDateTime.ofInstant(instant, zoneId ?: getUsersZoneId()),
                 locale ?: getUsersLocale(), null
             )
+        }
+
+        /**
+         * @param zonedDateTime Date to convert.
+         * @param locale Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
+         * @return PFDateTime from given date...
+         * @throws java.lang.IllegalStateException if date is null.
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun from(zonedDateTime: ZonedDateTime, locale: Locale? = null): PFDateTime {
+            return PFDateTime(zonedDateTime, locale ?: getUsersLocale(), null)
+        }
+
+        /**
+         * @param zonedDateTime Date to convert.
+         * @param locale Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
+         * @return PFDateTime from given date or now, if given [zonedDateTime] is null...
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun fromOrNow(zonedDateTime: ZonedDateTime?, locale: Locale? = null): PFDateTime {
+            zonedDateTime ?: return now()
+            return from(zonedDateTime, locale)
+        }
+
+        /**
+         * @param zonedDateTime Date to convert.
+         * @param locale Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
+         * @return PFDateTime from given date or null, if given [zonedDateTime] is null...
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun fromOrNull(zonedDateTime: ZonedDateTime?, locale: Locale? = null): PFDateTime? {
+            zonedDateTime ?: return null
+            return from(zonedDateTime, locale)
         }
 
         /**

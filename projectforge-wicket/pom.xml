@@ -102,7 +102,7 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
         </dependency>
-        <dependency>
+        <dependency> <!-- used by LessCompiler -->
             <groupId>org.mozilla</groupId>
             <artifactId>rhino</artifactId>
             <version>${rhino.version}</version>
