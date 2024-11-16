@@ -69,8 +69,7 @@ class CalendarService {
         cal.id ?: return result
         val filter = TeamEventFilter().setTeamCals(listOf(cal.id))
         filter.startDate = now().minusDays(1000.toLong()).utilDate
-        val generator = ICalGenerator.exportAllFields()
-        generator.editableVEvent(true)
+        val generator = ICalGenerator(editable = true)
         teamEventService.getTeamEventDOList(filter).forEach {
             result.add(convert(generator, cal, it))
         }
@@ -100,7 +99,7 @@ class CalendarService {
         result.createDate = event.created
         result.modifiedDate = event.lastUpdate
         result.name = event.uid + ".ics"
-        result.icalData = generator.calendarAsByteStream.toByteArray()
+        result.icalData = generator.asByteArray
         return result
     }
 

@@ -27,6 +27,7 @@ import net.fortuna.ical4j.model.*;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.RRule;
 import net.fortuna.ical4j.model.property.Uid;
+import net.fortuna.ical4j.transform.recurrence.Frequency;
 import net.fortuna.ical4j.util.Dates;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.teamcal.event.RecurrenceFrequencyModeOne;
@@ -39,6 +40,8 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -86,21 +89,13 @@ public class ICal4JUtils {
                                     final boolean allDay,
                                     final TimeZone timezone) {
     VEvent vEvent;
+    PFDateTime startDateTime = PFDateTime.from(startDate);
+    PFDateTime endDateTime = PFDateTime.from(endDate);
     if (allDay) {
-      final Date startUtc = PFDateTimeUtils.getUTCBeginOfDay(startDate);
-      final Date endUtc = PFDateTimeUtils.getUTCBeginOfDay(endDate);
-      final net.fortuna.ical4j.model.Date fortunaStartDate = new net.fortuna.ical4j.model.Date(startUtc);
-      final PFDateTime dateTime = PFDateTime.from(endUtc); // not null
       // requires plus 1 because one day will be omitted by calendar.
-      final net.fortuna.ical4j.model.Date fortunaEndDate = new net.fortuna.ical4j.model.Date(dateTime.plusDays(1).getUtilDate());
-      vEvent = new VEvent(fortunaStartDate, fortunaEndDate, summary);
+      vEvent = new VEvent(startDateTime.getDateTime(), endDateTime.plusDays(1).getDateTime(), summary);
     } else {
-      final net.fortuna.ical4j.model.DateTime fortunaStartDate = new net.fortuna.ical4j.model.DateTime(startDate);
-      fortunaStartDate.setTimeZone(timezone);
-      final net.fortuna.ical4j.model.DateTime fortunaEndDate = new net.fortuna.ical4j.model.DateTime(endDate);
-      fortunaEndDate.setTimeZone(timezone);
-      vEvent = new VEvent(fortunaStartDate, fortunaEndDate, summary);
-      vEvent.getProperties().add(timezone.getVTimeZone().getTimeZoneId());
+      vEvent = new VEvent(startDateTime.getDateTime(), endDateTime.getDateTime(), summary);
     }
     vEvent.getProperties().add(new Uid(uid));
     return vEvent;
@@ -143,7 +138,7 @@ public class ICal4JUtils {
     return weekDays;
   }
 
-  public static RecurrenceFrequencyModeTwo getRecurrenceFrequencyModeTwoForDay(WeekDayList dayList) {
+  public static RecurrenceFrequencyModeTwo getRecurrenceFrequencyModeTwoForDay(List <WeekDay> dayList) {
     if (dayList.size() == 1) {
       for (WeekDay wd : dayList) {
         if (wd.getDay() == WeekDay.MO.getDay()) {
@@ -208,13 +203,13 @@ public class ICal4JUtils {
    * @param rruleString
    * @return null if rruleString is empty, otherwise new RRule object.
    */
-  public static RRule calculateRRule(final String rruleString) {
+  public static RRule<Temporal> calculateRRule(final String rruleString) {
     if (StringUtils.isBlank(rruleString)) {
       return null;
     }
     try {
       return new RRule(rruleString);
-    } catch (final ParseException ex) {
+    } catch (final Exception ex) {
       log.error("Exception encountered while parsing rrule '" + rruleString + "': " + ex.getMessage(), ex);
       return null;
     }
@@ -224,15 +219,15 @@ public class ICal4JUtils {
    * @param interval
    * @return
    */
-  public static Recur.Frequency getCal4JFrequency(final RecurrenceFrequency interval) {
+  public static Frequency getCal4JFrequency(final RecurrenceFrequency interval) {
     if (interval == RecurrenceFrequency.DAILY) {
-      return Recur.Frequency.DAILY;
+      return Frequency.DAILY;
     } else if (interval == RecurrenceFrequency.WEEKLY) {
-      return Recur.Frequency.WEEKLY;
+      return Frequency.WEEKLY;
     } else if (interval == RecurrenceFrequency.MONTHLY) {
-      return Recur.Frequency.MONTHLY;
+      return Frequency.MONTHLY;
     } else if (interval == RecurrenceFrequency.YEARLY) {
-      return Recur.Frequency.YEARLY;
+      return Frequency.YEARLY;
     }
     return null;
   }
@@ -245,14 +240,14 @@ public class ICal4JUtils {
     if (recur == null) {
       return null;
     }
-    final Recur.Frequency freq = recur.getFrequency();
-    if (Recur.Frequency.WEEKLY.equals(freq)) {
+    final Frequency freq = recur.getFrequency();
+    if (Frequency.WEEKLY.equals(freq)) {
       return RecurrenceFrequency.WEEKLY;
-    } else if (Recur.Frequency.MONTHLY.equals(freq)) {
+    } else if (Frequency.MONTHLY.equals(freq)) {
       return RecurrenceFrequency.MONTHLY;
-    } else if (Recur.Frequency.DAILY.equals(freq)) {
+    } else if (Frequency.DAILY.equals(freq)) {
       return RecurrenceFrequency.DAILY;
-    } else if (Recur.Frequency.YEARLY.equals(freq)) {
+    } else if (Frequency.YEARLY.equals(freq)) {
       return RecurrenceFrequency.YEARLY;
     }
     return null;

@@ -43,7 +43,6 @@ import org.projectforge.framework.time.*
 import org.projectforge.framework.utils.MarkdownBuilder
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
-import org.projectforge.rest.calendar.CalEventPagesRest
 import org.projectforge.rest.calendar.CalendarServicesRest
 import org.projectforge.rest.calendar.TeamEventPagesRest
 import org.projectforge.rest.config.Rest
@@ -57,7 +56,6 @@ import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.*
 import java.util.*
 import javax.validation.Valid
@@ -68,10 +66,6 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     TimesheetDao::class.java, "timesheet.title",
     cloneSupport = CloneSupport.AUTOSAVE
 ) {
-
-    @Value("\${calendar.useNewCalendarEvents}")
-    private var useNewCalendarEvents: Boolean = false
-
     private val dateTimeFormatter = DateTimeFormatter.instance()
 
     @Autowired
@@ -91,9 +85,6 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
 
     @Autowired
     private lateinit var teamEventRest: TeamEventPagesRest
-
-    @Autowired
-    private lateinit var calendarEventRest: CalEventPagesRest
 
     @Autowired
     private lateinit var taskTree: TaskTree
@@ -440,8 +431,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     @RequestMapping("switch2CalendarEvent")
     fun switch2CalendarEvent(request: HttpServletRequest, @Valid @RequestBody postData: PostData<Timesheet>)
             : ResponseAction {
-        return if (useNewCalendarEvents) calendarEventRest.cloneFromTimesheet(request, postData.data)
-        else teamEventRest.cloneFromTimesheet(request, postData.data)
+        return teamEventRest.cloneFromTimesheet(request, postData.data)
     }
 
     override fun getRestEditPath(): String {
@@ -450,7 +440,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
 
     @Deprecated("Will be replaced by cloneFromCalendarEvent(request, calendarEvent).")
     fun cloneFromTeamEvent(request: HttpServletRequest, teamEvent: TeamEvent): ResponseAction {
-        val calendarEvent = CalEvent(
+        val calendarEvent = TeamEvent(
             startDate = teamEvent.startDate,
             endDate = teamEvent.endDate,
             location = teamEvent.location,
@@ -459,7 +449,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         return cloneFromCalendarEvent(request, calendarEvent)
     }
 
-    fun cloneFromCalendarEvent(request: HttpServletRequest, calendarEvent: CalEvent): ResponseAction {
+    fun cloneFromCalendarEvent(request: HttpServletRequest, calendarEvent: TeamEvent): ResponseAction {
         val timesheet = newBaseDTO(request)
         timesheet.startTime = calendarEvent.startDate
         timesheet.stopTime = calendarEvent.endDate

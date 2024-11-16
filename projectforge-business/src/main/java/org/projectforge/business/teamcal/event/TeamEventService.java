@@ -36,8 +36,6 @@ import java.util.Set;
 
 public interface TeamEventService
 {
-  List<Long> getAssignedAttendeeIds(TeamEventDO data);
-
   List<TeamEventAttendeeDO> getAddressesAndUserAsAttendee();
 
   TeamEventAttendeeDO getAttendee(Long attendeeId);
@@ -47,15 +45,9 @@ public interface TeamEventService
 
   void updateAttendees(TeamEventDO event, Set<TeamEventAttendeeDO> attendeesOldState);
 
-  boolean checkAndSendMail(final TeamEventDO event, final TeamEventDiffType diffType);
-
-  boolean checkAndSendMail(final TeamEventDO eventNew, final TeamEventDO eventOld);
-
   TeamEventDO findByUid(Long calendarId, String reqEventUid, boolean excludeDeleted);
 
   TeamEventAttendeeDO findByAttendeeId(Long attendeeId, boolean checkAccess);
-
-  TeamEventAttendeeDO findByAttendeeId(Long attendeeId);
 
   void update(TeamEventDO event);
 
@@ -78,8 +70,6 @@ public interface TeamEventService
   TeamEventDao getTeamEventDao();
 
   void updateAttendee(TeamEventAttendeeDO attendee, boolean accessCheck);
-
-  List<Long> getCalIdList(Collection<TeamCalDO> teamCals);
 
   ICalHandler getEventHandler(final TeamCalDO defaultCalendar);
 

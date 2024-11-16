@@ -65,7 +65,7 @@ public class TeamCalConfig implements ConfigurationData
   }
 
   /**
-   * Creates a world wide unique event id for ical events for better synchronization.
+   * Creates a worldwide unique event id for ical events for better synchronization.
    *
    * @param prefix
    * @param id

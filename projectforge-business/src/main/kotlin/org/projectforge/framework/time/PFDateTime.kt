@@ -332,6 +332,14 @@ open class PFDateTime internal constructor(
         return PFDateTime(dateTime.minus(amountToSubtract, temporalUnit), locale, precision)
     }
 
+    fun plusHours(hours: Long): PFDateTime {
+        return PFDateTime(dateTime.plusHours(hours), locale, precision)
+    }
+
+    fun minusHours(hours: Long): PFDateTime {
+        return PFDateTime(dateTime.minusHours(hours), locale, precision)
+    }
+
     override fun plusDays(days: Long): PFDateTime {
         return PFDateTime(dateTime.plusDays(days), locale, precision)
     }

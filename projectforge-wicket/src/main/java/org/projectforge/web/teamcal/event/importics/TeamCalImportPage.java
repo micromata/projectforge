@@ -74,9 +74,7 @@ public class TeamCalImportPage extends AbstractImportPage<TeamCalImportForm>
       try {
         final InputStream is = fileUpload.getInputStream();
         final String clientFilename = fileUpload.getClientFileName();
-        final CalendarBuilder builder = new CalendarBuilder();
-        final Calendar calendar = builder.build(is);
-        final ImportStorage<TeamEventDO> storage = WicketSupport.get(TeamCalImportDao.class).importEvents(calendar, clientFilename);
+        final ImportStorage<TeamEventDO> storage = WicketSupport.get(TeamCalImportDao.class).importEvents(is, clientFilename);
         setStorage(storage);
       } catch (final Exception ex) {
         log.error(ex.getMessage(), ex);
