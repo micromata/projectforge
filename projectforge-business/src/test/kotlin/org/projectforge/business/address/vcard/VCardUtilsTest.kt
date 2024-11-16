@@ -21,32 +21,22 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.teamcal.event.ical.converter;
+package org.projectforge.business.address.vcard
 
-import net.fortuna.ical4j.model.DateTime;
-import net.fortuna.ical4j.model.Property;
-import net.fortuna.ical4j.model.component.VEvent;
-import net.fortuna.ical4j.model.property.Created;
-import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.junit.Test
 
-public class CreatedConverter extends PropertyConverter
-{
-  @Override
-  public Property toVEvent(final TeamEventDO event)
-  {
-    if (event.getCreated() != null) {
-      DateTime created = new DateTime(event.getCreated());
-      created.setUtc(true);
-      return new Created(created);
+class VCardUtilsTest {
+    @Test
+    fun testConvert() {
+        VCardUtils.convert(EXAMPLE_VCF)
     }
 
-    return null;
-  }
-
-  @Override
-  public boolean fromVEvent(final TeamEventDO event, final VEvent vEvent)
-  {
-    // TODO is this read?
-    return false;
-  }
+    private val EXAMPLE_VCF = """BEGIN:VCARD\n" +
+            "VERSION:3.0\n" +
+            "FN:John Doe\n" +
+            "N:Doe;John;;;\n" +
+            "ADR;TYPE=HOME:;;123 Main Street;Anytown;CA;12345;USA\n" +
+            "TEL;TYPE=CELL:+1-123-456-7890\n" +
+            "EMAIL:john.doe@example.com\n" +
+            "END:VCARD""".trimIndent()
 }

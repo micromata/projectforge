@@ -33,6 +33,7 @@ import org.apache.commons.lang3.Validate;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.ical.ICalParser;
+import org.projectforge.business.teamcal.event.ical.VEventUtils;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -40,8 +41,10 @@ import org.projectforge.framework.persistence.utils.MyImportedElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 @Service
@@ -64,22 +67,20 @@ public class TeamCalImportDao {
   @Autowired
   private TeamEventDao teamEventDao;
 
-  public ImportStorage<TeamEventDO> importEvents(final Calendar calendar, final String filename) {
-    ICalParser parser = ICalParser.parseAllFields();
-    parser.parse(calendar);
-    final List<TeamEventDO> events = parser.getExtractedEvents();
+  public ImportStorage<TeamEventDO> importEvents(final InputStream is, final String filename) {
+    ICalParser parser = new ICalParser();
+
+    final List<TeamEventDO> events = parser.parse(is);
     events.forEach(teamEventDO -> eventService.fixAttendees(teamEventDO));
 
     return importEvents(events, filename);
   }
 
   public ImportStorage<TeamEventDO> importEvents(final List<VEvent> vEvents) {
-    final Calendar calendar = new Calendar();
-    vEvents.forEach(event -> calendar.getComponents().add(event));
-
-    ICalParser parser = ICalParser.parseAllFields();
-    parser.parse(calendar);
-    final List<TeamEventDO> events = parser.getExtractedEvents();
+    final List<TeamEventDO> events = new LinkedList<>();
+    for (final VEvent vEvent : vEvents) {
+      events.add(VEventUtils.convertToTeamEventDO(vEvent));
+    }
     events.forEach(teamEventDO -> eventService.fixAttendees(teamEventDO));
 
     return importEvents(events, "none");

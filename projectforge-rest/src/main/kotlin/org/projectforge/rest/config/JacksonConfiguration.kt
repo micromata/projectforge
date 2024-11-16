@@ -167,7 +167,6 @@ open class JacksonConfiguration {
         "formattedNumber"
       )
       registerAllowedUnknownProperties(TeamEvent::class.java, "task") // Switch from time sheet.
-      registerAllowedUnknownProperties(CalEvent::class.java, "task") // Switch from time sheet.
       registerAllowedUnknownProperties(StyledTeamCalendar::class.java, "label", "filterType")
 
       registeredDelegatingDeserializer(

@@ -51,7 +51,7 @@ public class ICalHandler
   public ICalHandler(final TeamEventService eventService, final TeamCalDO defaultCalendar)
   {
     this.eventService = eventService;
-    this.parser = ICalParser.parseAllFields();
+    this.parser = new ICalParser();
     this.defaultCalendar = defaultCalendar;
 
     this.singleEventHandles = new ArrayList<>();
@@ -72,19 +72,20 @@ public class ICalHandler
   public boolean readICal(final Reader iCalReader, final HandleMethod handleMethod)
   {
     // parse iCal
-    boolean result = parser.parse(iCalReader);
+    List<TeamEventDO> parsedEvents = parser.parse(iCalReader);
 
-    if (!result) {
+/*    if (!result) {
       log.warn("ICal file could not be parsed");
       return false;
     }
+    */
+
 
     // check if ical contains vEvents
-    List<TeamEventDO> parsedEvents = parser.getExtractedEvents();
     if (parsedEvents.isEmpty()) {
       return true;
     }
-
+/*
     // handle method
     final HandleMethod method = this.readMethod(handleMethod);
 
@@ -111,7 +112,7 @@ public class ICalHandler
         }
       }
     }
-
+*/
     return true;
   }
 
@@ -271,12 +272,13 @@ public class ICalHandler
       eventService.updateAttendees(event, eventInDB.getAttendees());
       eventService.update(event);
 
+      /*
       // send notification mail
       if (isDeleted) {
         eventService.checkAndSendMail(event, TeamEventDiffType.NEW);
       } else {
         eventService.checkAndSendMail(event, eventInDB);
-      }
+      }*/
     } else {
       // save attendee list, assign after saving the event
       Set<TeamEventAttendeeDO> attendees = new HashSet<>();
@@ -288,7 +290,7 @@ public class ICalHandler
       eventService.assignAttendees(event, attendees, null);
 
       // send notification mail
-      eventService.checkAndSendMail(event, TeamEventDiffType.NEW);
+      //eventService.checkAndSendMail(event, TeamEventDiffType.NEW);
     }
   }
 
@@ -300,7 +302,7 @@ public class ICalHandler
       return;
 
     eventService.markAsDeleted(event);
-    eventService.checkAndSendMail(event, TeamEventDiffType.DELETED);
+    //eventService.checkAndSendMail(event, TeamEventDiffType.DELETED);
   }
 
   private void fixAttendees(final EventHandle eventHandle)
@@ -314,46 +316,6 @@ public class ICalHandler
     //    }
 
     eventService.fixAttendees(eventHandle.getEvent());
-  }
-
-  private HandleMethod readMethod(final HandleMethod expectedMethod)
-  {
-    Method methodIcal = parser.getMethod();
-
-    if (methodIcal == null && expectedMethod == null) {
-      log.warn("No method defined and ICal does not contain a method");
-      return null;
-    }
-
-    final HandleMethod method;
-    if (Method.CANCEL.equals(methodIcal)) {
-      method = HandleMethod.CANCEL;
-    } else if (Method.REQUEST.equals(methodIcal)) {
-      method = HandleMethod.ADD_UPDATE;
-    } else if (Method.REFRESH.equals(methodIcal)) {
-      method = null;
-    } else if (Method.ADD.equals(methodIcal)) {
-      method = HandleMethod.ADD_UPDATE;
-    } else if (Method.COUNTER.equals(methodIcal)) {
-      method = null;
-    } else if (Method.DECLINE_COUNTER.equals(methodIcal)) {
-      method = null;
-    } else if (Method.PUBLISH.equals(methodIcal)) {
-      method = HandleMethod.ADD_UPDATE;
-    } else if (Method.REPLY.equals(methodIcal)) {
-      method = null;
-    } else {
-      if (methodIcal != null) {
-        log.warn(String.format("Unknown method in ICal: '%s'", methodIcal));
-      }
-      method = null;
-    }
-
-    if (expectedMethod != null && method != null && expectedMethod != method) {
-      log.warn(String.format("Expected method '%s' is overridden by method from iCal '%s'", expectedMethod.name(), methodIcal.getValue()));
-    }
-
-    return method == null ? expectedMethod : method;
   }
 
   public TeamEventDO getFirstResult()

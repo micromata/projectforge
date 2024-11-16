@@ -74,6 +74,7 @@ import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.time.PFDateTimeUtils.getUTCBeginOfDayTimestamp
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.time.ZonedDateTime
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -279,7 +280,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
             if (newEvent.hasRecurrence()) {
                 log.warn("User tries to modifiy single event of a series, the given recurrence is ignored.")
             }
-            newEvent.setRecurrence(null as RRule?) // User only wants to modify single event, ignore recurrence.
+            newEvent.setRecurrence(null as? RRule<ZonedDateTime>?) // User only wants to modify single event, ignore recurrence.
             insert(newEvent)
             if (log.isDebugEnabled) {
                 log.debug(
@@ -684,10 +685,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
                 .formatIsoTimestamp(event.startDate, DateHelper.UTC)
         val eventStartDate = event.startDate
         if (log.isDebugEnabled) {
-            log.debug(
-                ("---------- startDate=" + DateHelper.formatIsoTimestamp(eventStartDate, timeZone) + ", timeZone="
-                        + timeZone.id)
-            )
+            log.debug { "---------- startDate=" + DateHelper.formatIsoTimestamp(eventStartDate, timeZone) + ", timeZone=${timeZone.id}" }
         }
         var ical4jTimeZone: TimeZone?
         try {
@@ -697,18 +695,15 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
             ical4jTimeZone = ICal4JUtils.getUserTimeZone()
         }
 
-        val ical4jStartDate = DateTime(startDate)
-        ical4jStartDate.timeZone = ical4jTimeZone
-        val ical4jEndDate = DateTime(endDate)
-        ical4jEndDate.timeZone = ICal4JUtils.getTimeZone(timeZone4Calc)
-        val seedDate = DateTime(eventStartDate)
-        seedDate.timeZone = ICal4JUtils.getTimeZone(timeZone4Calc)
+        val startDateTime = PFDateTime.fromOrNow(startDate, timeZone4Calc)
+        val endDateTime = PFDateTime.fromOrNow(endDate, timeZone4Calc)
+        val seedDate = PFDateTime.fromOrNow(eventStartDate, timeZone4Calc)
 
         // get ex dates of event
         val exDates = ICal4JUtils.parseCSVDatesAsJavaUtilDates(event.recurrenceExDate, DateHelper.UTC)
 
         // get events in time range
-        val dateList = recur.getDates(seedDate, ical4jStartDate, ical4jEndDate, Value.DATE_TIME)
+        val dateList = recur.getDates(seedDate.dateTime, startDateTime.dateTime, endDateTime.dateTime)
 
         // remove ex range values
         val col: MutableCollection<ICalendarEvent> = ArrayList()

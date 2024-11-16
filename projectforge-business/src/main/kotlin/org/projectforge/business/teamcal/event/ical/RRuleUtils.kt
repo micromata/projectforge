@@ -21,33 +21,16 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.teamcal.event.ical.converter;
+package org.projectforge.business.teamcal.event.ical
 
-import net.fortuna.ical4j.model.Property;
-import net.fortuna.ical4j.model.component.VEvent;
-import net.fortuna.ical4j.model.property.Summary;
-import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import net.fortuna.ical4j.model.property.RRule
+import java.time.temporal.Temporal
 
-public class SummaryConverter extends PropertyConverter
-{
-  @Override
-  public Property toVEvent(final TeamEventDO event)
-  {
-    if (event.getSubject() != null) {
-      return new Summary(event.getSubject());
+/**
+ */
+object RRuleUtils {
+    @JvmStatic
+    fun <T : Temporal> getRecurUntil(rRule: RRule<T>): T? {
+        return rRule.getRecur()?.getUntil()
     }
-
-    return null;
-  }
-
-  @Override
-  public boolean fromVEvent(final TeamEventDO event, final VEvent vEvent)
-  {
-    if (vEvent.getSummary() != null) {
-      event.setSubject(vEvent.getSummary().getValue());
-      return true;
-    }
-
-    return false;
-  }
 }

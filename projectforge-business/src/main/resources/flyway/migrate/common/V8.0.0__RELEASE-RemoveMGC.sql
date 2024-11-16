@@ -1,3 +1,5 @@
+ALTER TABLE t_plugin_calendar_event ADD COLUMN original_ics_entry TEXT;
+
 -- Migration to remove MGC.
 
 -- Hibernates-default sequence is used for all tables.

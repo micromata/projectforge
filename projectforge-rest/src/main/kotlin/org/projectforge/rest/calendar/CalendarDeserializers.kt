@@ -29,7 +29,7 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import org.projectforge.business.calendar.event.model.ICalendarEvent
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.time.PFDayUtils
-import org.projectforge.rest.dto.CalEvent
+import org.projectforge.rest.dto.TeamEvent
 
 /**
  * Deserializes [ICalendarEvent] as [CalEvent].
@@ -37,7 +37,7 @@ import org.projectforge.rest.dto.CalEvent
 class ICalendarEventDeserializer : StdDeserializer<ICalendarEvent>(ICalendarEvent::class.java) {
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext): ICalendarEvent? {
-        return ctxt.readValue(p, CalEvent::class.java)
+        return ctxt.readValue(p, TeamEvent::class.java)
     }
 }
 

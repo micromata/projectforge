@@ -25,6 +25,7 @@ package org.projectforge.web.teamcal.event;
 
 import net.fortuna.ical4j.model.Recur;
 import net.fortuna.ical4j.model.property.RRule;
+import net.fortuna.ical4j.transform.recurrence.Frequency;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,8 @@ import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
+import org.projectforge.business.teamcal.event.ical.RRuleUtils;
+import org.projectforge.business.teamcal.event.ical.VEventUtils;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.configuration.Configuration;
@@ -168,9 +171,9 @@ public class TeamEventDaoTest extends AbstractTestBase {
             "2013-01-31", untilInTimeZone);
     RRule rRule = event.getRecurrenceRuleObject();
 
-    final String utcString = DateHelper.formatIsoDate(rRule.getRecur().getUntil(), DateHelper.UTC);
+    final String utcString = VEventUtils.temporalToUtcIsoString(RRuleUtils.getRecurUntil(rRule));
 
-    assertEquals(Recur.Frequency.WEEKLY, rRule.getRecur().getFrequency());
+    assertEquals(Frequency.WEEKLY, rRule.getRecur().getFrequency());
     assertEquals(untilInTimeZone, utcString);
     assertEquals(2, rRule.getRecur().getInterval());
 

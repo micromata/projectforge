@@ -36,7 +36,6 @@ import org.projectforge.business.fibu.kost.KostCache;
 import org.projectforge.business.sipgate.SipgateConfiguration;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.teamcal.event.CalEventDao;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.user.*;
@@ -177,7 +176,6 @@ public class WicketSupport {
         registerBean(applicationContext.getBean(AddressDao.class));
         registerBean(applicationContext.getBean(AuftragDao.class));
         registerBean(applicationContext.getBean(BuchungssatzDao.class));
-        registerBean(applicationContext.getBean(CalEventDao.class));
         registerBean(applicationContext.getBean(ConfigurationDao.class));
         registerBean(applicationContext.getBean(ConfigurationService.class));
         registerBean(applicationContext.getBean(DatabaseDao.class));

@@ -191,11 +191,10 @@ public class TeamEventSubscription implements Serializable {
     try {
       final Date timeInPast = new Date(System.currentTimeMillis() - TIME_IN_THE_PAST);
       Long startId = -1L;
-      ICalParser parser = ICalParser.parseAllFields();
-      parser.parse(new ByteArrayInputStream(bytes));
+      ICalParser parser = new ICalParser();
 
       // the event id must (!) be negative and decrementing (different on each event)
-      for (TeamEventDO event : parser.getExtractedEvents()) {
+      for (TeamEventDO event : parser.parse(bytes)) {
         if (event.getStartDate().getTime() < timeInPast.getTime() && event.getRecurrenceRule() == null) {
           continue;
         }
