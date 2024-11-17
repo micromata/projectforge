@@ -113,19 +113,20 @@ object VEventUtils {
         }
         val vEvent = VEvent(startDate, endDate, event.subject ?: "")
         setUid(vEvent, event.uid)
-        val propList = vEvent.propertyList
         addLocation(vEvent, event.location)
         addDescription(vEvent, event.note)
         if (event is TeamEventDO) {
             event.organizer?.let {
                 if (it.isNotBlank()) {
-                    propList.add(Organizer(it).also { organizer ->
+                    vEvent.withProperty(Organizer(it).also { organizer ->
                         // event.organizerAdditionalParams?.let { organizer.add(Parameter(it)) }
                     })
                 }
             }
             event.recurrenceRule?.let { rrule ->
-                if (rrule.isNotBlank()) propList.add(RRule<Temporal>(rrule))
+                if (rrule.isNotBlank()) {
+                    vEvent.withProperty(RRule<Temporal>(rrule))
+                }
             }
         }
         return vEvent
@@ -156,12 +157,12 @@ object VEventUtils {
 
     fun addDescription(event: VEvent, description: String?) {
         if (description.isNullOrBlank()) return
-        event.propertyList.add(Description(description))
+        event.withProperty(Description(description))
     }
 
     fun addLocation(event: VEvent, location: String?) {
         if (location.isNullOrBlank()) return
-        event.propertyList.add(Location(location))
+        event.withProperty(Location(location))
     }
 
     /**
@@ -186,8 +187,7 @@ object VEventUtils {
     }
 
     fun setUid(event: VEvent, uid: String? = null) {
-        val propList = event.propertyList
-        propList.add(Uid(uid ?: TeamCalConfig.get().createEventUid()))
+        event.withProperty(Uid(uid ?: TeamCalConfig.get().createEventUid()))
     }
 
     /**

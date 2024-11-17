@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.projectforge.business.teamcal.event.model.TeamEventDO
+import org.projectforge.common.extensions.isoString
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.test.TestSetup
 import java.time.Month
@@ -45,7 +46,8 @@ class VEventUtilsTest {
 
     @Test
     fun `test of writing ics`() {
-        val teamEvent = TeamEventDO().apply {
+        // Europe/Berlin
+        var teamEvent = TeamEventDO().apply {
             subject = "Team Meeting"
             note = "Discuss quarterly goals."
             location = "Conference Room"
@@ -53,7 +55,13 @@ class VEventUtilsTest {
             endDate = PFDateTime.withDate(2024, Month.NOVEMBER, 15, 9, 0).utilDate
         }
         val vEvent = VEventUtils.convertToVEvent(teamEvent)
-        println(vEvent)
+        teamEvent = VEventUtils.convertToEventDO(vEvent)
+        Assertions.assertNotNull(teamEvent)
+        Assertions.assertEquals("Team Meeting", teamEvent.subject)
+        Assertions.assertEquals("Conference Room", teamEvent.location)
+        Assertions.assertEquals("Discuss quarterly goals.", teamEvent.note)
+        Assertions.assertEquals("2024-11-14T08:00:00Z", teamEvent.startDate.isoString())
+        Assertions.assertEquals("2024-11-15T08:00:00Z", teamEvent.endDate.isoString())
     }
 
     private val testIcs = """

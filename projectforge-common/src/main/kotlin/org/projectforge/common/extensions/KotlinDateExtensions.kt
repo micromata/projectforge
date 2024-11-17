@@ -26,6 +26,7 @@ package org.projectforge.common.extensions
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.temporal.Temporal
+import java.util.Date
 
 /**
  * Gets the given [Temporal] as an ISO string (with time zone, if given).
@@ -57,4 +58,12 @@ fun Temporal?.isoUTCString(): String {
 
         else -> throw IllegalArgumentException("Unsupported Temporal type: ${this::class}")
     }
+}
+
+/**
+ * Gets the given [Date] as an ISO string in UTC time zone, if time zone is given.
+ */
+fun Date?.isoString(): String {
+    this ?: return ""
+    return this.toInstant().atZone(ZoneOffset.UTC).format(DateTimeFormatter.ISO_ZONED_DATE_TIME)
 }
