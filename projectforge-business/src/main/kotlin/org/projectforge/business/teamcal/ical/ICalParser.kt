@@ -21,12 +21,12 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.teamcal.event.ical
+package org.projectforge.business.teamcal.ical
 
 import net.fortuna.ical4j.data.CalendarBuilder
 import net.fortuna.ical4j.model.Component
 import net.fortuna.ical4j.model.component.VEvent
-import org.projectforge.business.teamcal.event.ical.VEventUtils.convertToTeamEventDO
+import org.projectforge.business.teamcal.ical.VEventUtils.convertToEventDO
 import org.projectforge.business.teamcal.event.model.TeamEventDO
 import java.io.ByteArrayInputStream
 import java.io.InputStream
@@ -72,7 +72,7 @@ class ICalParser {
         val newTeamEvents = mutableListOf<TeamEventDO>()
         // Iterate through components in the calendar
         calendar.getComponents<VEvent>(Component.VEVENT).forEach { component ->
-            newTeamEvents.add(convertToTeamEventDO(component))
+            newTeamEvents.add(convertToEventDO(component))
         }
         teamEvents = newTeamEvents
         vEvents = newVEvents

@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.teamcal.event.ical
+package org.projectforge.business.teamcal.ical
 
 import mu.KotlinLogging
 import net.fortuna.ical4j.data.CalendarOutputter

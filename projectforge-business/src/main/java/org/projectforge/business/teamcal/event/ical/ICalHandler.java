@@ -23,12 +23,11 @@
 
 package org.projectforge.business.teamcal.event.ical;
 
-import net.fortuna.ical4j.model.property.Method;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.TeamEventService;
-import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.business.teamcal.ical.ICalParser;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;

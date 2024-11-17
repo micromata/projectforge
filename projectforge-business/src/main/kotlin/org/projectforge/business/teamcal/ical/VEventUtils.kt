@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.teamcal.event.ical
+package org.projectforge.business.teamcal.ical
 
 import net.fortuna.ical4j.data.CalendarBuilder
 import net.fortuna.ical4j.model.Component
@@ -40,8 +40,7 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.temporal.Temporal
-import java.util.Date
-import javax.swing.plaf.basic.BasicHTML.propertyKey
+import java.util.*
 
 /**
  * Utility functions for working with iCalendar VEvent objects.
@@ -54,7 +53,7 @@ object VEventUtils {
 
     @JvmOverloads
     @JvmStatic
-    fun convertToTeamEventDO(component: VEvent, storeOriginalIcsEntry: Boolean = true): TeamEventDO {
+    fun convertToEventDO(component: VEvent, storeOriginalIcsEntry: Boolean = true): TeamEventDO {
         return TeamEventDO().apply {
             if (storeOriginalIcsEntry) {
                 originalIcsEntry = component.toString()
@@ -64,7 +63,7 @@ object VEventUtils {
             note = component.description?.orElse(null)?.value
             val startTemporal = component.getDateTimeStart<Temporal>()?.orElse(null)?.date
             val endTemporal = component.getDateTimeEnd<Temporal>()?.orElse(null)?.date
-            val dtTemporal = component.getDateTimeStamp()?.orElse(null)?.date
+            val dtTemporal = component.dateTimeStamp?.orElse(null)?.date
             allDay = startTemporal is LocalDate
             startDate = temporalToUTCDate(startTemporal)
             endDate = temporalToUTCDate(endTemporal)
@@ -77,6 +76,19 @@ object VEventUtils {
             sequence = component.sequence?.orElse(null)?.sequenceNo
             uid = component.uid?.orElse(null)?.value
         }
+    }
+
+    fun extractExdates(event: VEvent): List<Temporal> {
+        val exDates = mutableListOf<Temporal>()
+        event.getProperties<ExDate<Temporal>>(Property.EXDATE).forEach { property ->
+            if (property is ExDate<*>) {
+                // Exception Dates aus der EXDATE-Property extrahieren
+                property.dates.forEach { date ->
+                    exDates.add(date)
+                }
+            }
+        }
+        return exDates
     }
 
     fun convertToVEvent(event: ICalendarEvent): VEvent {
@@ -123,7 +135,7 @@ object VEventUtils {
         if (icsString.isNullOrBlank()) {
             return null
         }
-        val stringReader = StringReader(icsString)
+        val stringReader = StringReader(asCalendar(icsString))
         val calendarBuilder = CalendarBuilder()
         val calendar = calendarBuilder.build(stringReader)
         return calendar.getComponents<VEvent>(Component.VEVENT).firstOrNull() as? VEvent
@@ -211,13 +223,12 @@ object VEventUtils {
     }
 
 
-    @JvmStatic
-    fun temporalToUtcIsoString(temporal: Temporal?): String? {
-        return when (temporal) {
-            is ZonedDateTime -> PFDateTime.from(temporal).isoString
-            is LocalDateTime -> temporal.toString()
-            is LocalDate -> temporal.toString()
-            else -> null
-        }
+    internal fun asCalendar(vEvent: String): String {
+        return """BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Your Application//iCal Generator//EN
+${vEvent.trim()}
+END:VCALENDAR
+"""
     }
 }

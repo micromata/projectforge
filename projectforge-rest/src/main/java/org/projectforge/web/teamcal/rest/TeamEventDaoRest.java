@@ -37,7 +37,7 @@ import org.projectforge.business.teamcal.event.TeamEventFilter;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
 import org.projectforge.business.teamcal.event.ical.HandleMethod;
-import org.projectforge.business.teamcal.event.ical.ICalGenerator;
+import org.projectforge.business.teamcal.ical.ICalGenerator;
 import org.projectforge.business.teamcal.event.ical.ICalHandler;
 import org.projectforge.business.teamcal.event.model.ReminderDurationUnit;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;

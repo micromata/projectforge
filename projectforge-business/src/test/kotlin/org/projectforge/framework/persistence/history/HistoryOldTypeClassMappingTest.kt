@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.history
 
-import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.utils.SourcesUtils

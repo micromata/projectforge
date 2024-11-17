@@ -452,7 +452,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
                 recur.until = until?.dateTime
                 this.recurrenceUntil = recurrenceData.until
             } else {
-                this.recurrenceUntil = this.fixUntilInRecur(recur, recurrenceData.until, recurrenceData.timeZone)
+                this.recurrenceUntil = this.fixUntilInRecur(recur, recurrenceData.until!!, recurrenceData.timeZone)
             }
         } else {
             this.recurrenceUntil = null
@@ -466,30 +466,10 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
         return this
     }
 
-    private fun fixUntilInRecur(recur: Recur<Temporal>, until: Date, timezone: TimeZone): Date {
-        // until in RecurrenceData is always in UTC!
-        val calUntil = Calendar.getInstance(DateHelper.UTC)
-        val calStart = Calendar.getInstance(timezone)
-
-        calUntil.time = until
-        //    calStart.setTime(this.startDate);
-
-        // update date of start date to until date
-        calStart.set(Calendar.YEAR, calUntil.get(Calendar.YEAR))
-        calStart.set(Calendar.DAY_OF_YEAR, calUntil.get(Calendar.DAY_OF_YEAR))
-
-        // set until to last limit of day in user time
-        calStart.set(Calendar.HOUR_OF_DAY, 23)
-        calStart.set(Calendar.MINUTE, 59)
-        calStart.set(Calendar.SECOND, 59)
-        calStart.set(Calendar.MILLISECOND, 0)
-
-        // update recur until
-        val until = PFDateTime.fromOrNull(calStart.time)
-        recur.until = until?.dateTime
-
-        // return new until date for DB usage
-        return calStart.time
+    private fun fixUntilInRecur(recur: Recur<Temporal>, until: Date, timezone: TimeZone?): Date {
+        val dateTime = PFDateTime.from(until, timezone).endOfDay
+        recur.until = dateTime.dateTime
+        return dateTime.utilDate
     }
 
     /**
