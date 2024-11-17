@@ -32,8 +32,7 @@ import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
-import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
-import org.projectforge.business.teamcal.event.ical.ICalGenerator;
+import org.projectforge.business.teamcal.ical.ICalGenerator;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.timesheet.TimesheetDO;
@@ -50,7 +49,6 @@ import org.projectforge.web.wicket.DownloadUtils;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.slf4j.Logger;
 
-import java.io.ByteArrayOutputStream;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashSet;

@@ -34,8 +34,8 @@ import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.teamcal.event.TeamEventFilter
 import org.projectforge.business.teamcal.event.TeamEventService
-import org.projectforge.business.teamcal.event.ical.ICalGenerator
-import org.projectforge.business.teamcal.event.ical.VEventUtils
+import org.projectforge.business.teamcal.ical.ICalGenerator
+import org.projectforge.business.teamcal.ical.VEventUtils
 import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.business.teamcal.model.CalendarFeedConst
 import org.projectforge.business.timesheet.TimesheetDao

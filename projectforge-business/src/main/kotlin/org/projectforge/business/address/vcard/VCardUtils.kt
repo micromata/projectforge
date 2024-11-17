@@ -25,10 +25,8 @@ package org.projectforge.business.address.vcard
 
 import net.fortuna.ical4j.util.CompatibilityHints
 import net.fortuna.ical4j.vcard.VCard
-import net.fortuna.ical4j.vcard.VCardBuilder
 import org.projectforge.business.address.AddressDO
 import java.io.InputStream
-import java.io.StringReader
 
 object VCardUtils {
     init {
@@ -37,26 +35,32 @@ object VCardUtils {
 
     @JvmStatic
     fun convert(inputStream: InputStream): List<AddressDO> {
-        val vCardBuilder = VCardBuilder(inputStream)
+        throw RuntimeException("Not implemented yet.")
+        /*val vCardBuilder = VCardBuilder(inputStream)
         val addresses = mutableListOf<AddressDO>()
         while (true) {
             val card: VCard? = vCardBuilder.build()
             if (card == null) break
             addresses.add(convert(card))
         }
-        return addresses
+        return addresses*/
     }
 
     fun convert(content: String): List<AddressDO> {
-        val reader = StringReader(content)
-        val vCardBuilder = VCardBuilder(reader)
-        val addresses = mutableListOf<AddressDO>()
-        while (true) {
-            val card: VCard? = vCardBuilder.build()
-            if (card == null) break
-            addresses.add(convert(card))
-        }
-        return addresses
+        throw RuntimeException("Not implemented yet.")
+        /*        val reader = StringReader(content)
+                val vCardBuilder = VCardBuilder(reader)
+                val addresses = mutableListOf<AddressDO>()
+                var paranoiaCounter = 10000
+                while (true) {
+                    val card: VCard? = vCardBuilder.build()
+                    if (card == null) break
+                    addresses.add(convert(card))
+                    if (--paranoiaCounter <= 0) {
+                        throw RuntimeException("Paranoia counter reached.")
+                    }
+                }
+                return addresses*/
     }
 
     fun convert(card: VCard): AddressDO {

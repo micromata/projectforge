@@ -21,9 +21,10 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.teamcal.event.ical
+package org.projectforge.business.teamcal.ical
 
 import net.fortuna.ical4j.model.property.RRule
+import org.projectforge.framework.time.DateParser
 import java.time.temporal.Temporal
 
 /**
@@ -32,5 +33,26 @@ object RRuleUtils {
     @JvmStatic
     fun <T : Temporal> getRecurUntil(rRule: RRule<T>): T? {
         return rRule.getRecur()?.getUntil()
+    }
+
+    fun parseExcludeDates(datesAsCsv: String?): List<Temporal>? {
+        datesAsCsv ?: return null
+        val dateStrings = datesAsCsv.removePrefix("EXDATE:").split(",", ";", "|")
+        if (dateStrings.isEmpty()) {
+            return null
+        }
+        val exDates = mutableListOf<Temporal>()
+        dateStrings.forEach { dateString ->
+            val date = DateParser.parse(dateString)
+            date?.let { exDates.add(it) }
+        }
+        return exDates;
+    }
+
+    fun isEventExcluded(eventDate: Temporal, exDates: List<Temporal>?): Boolean {
+        exDates ?: return false
+        return exDates.any { exDate ->
+            ICalDateUtils.isSameDay(eventDate, exDate)
+        }
     }
 }

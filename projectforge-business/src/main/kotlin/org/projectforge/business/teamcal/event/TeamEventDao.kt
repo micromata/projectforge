@@ -26,9 +26,6 @@ package org.projectforge.business.teamcal.event
 import jakarta.persistence.NoResultException
 import jakarta.persistence.NonUniqueResultException
 import mu.KotlinLogging
-import net.fortuna.ical4j.model.DateTime
-import net.fortuna.ical4j.model.TimeZone
-import net.fortuna.ical4j.model.parameter.Value
 import net.fortuna.ical4j.model.property.RRule
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
@@ -43,6 +40,8 @@ import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO
 import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache
+import org.projectforge.business.teamcal.ical.ICalDateUtils
+import org.projectforge.business.teamcal.ical.RRuleUtils
 import org.projectforge.business.user.UserRightId
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.OperationType
@@ -67,8 +66,10 @@ import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.timeZone
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDateTime.Companion.fromTemporal
 import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.framework.time.PFDateTime.Companion.fromOrNull
+import org.projectforge.framework.time.PFDateTime.Companion.fromTemporalOrNull
 import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.time.PFDateTimeUtils.getUTCBeginOfDayTimestamp
@@ -262,7 +263,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
         if (mode == SeriesModificationMode.FUTURE) {
             val recurrenceData = masterEvent.getRecurrenceData(timeZone)
             // Set the end date of the master date one day before current date and save this event.
-            recurrenceData.setUntil(getUntilDate(selectedEvent.startDate!!))
+            recurrenceData.until = getUntilDate(selectedEvent.startDate!!)
             event.setRecurrence(recurrenceData)
             insert(newEvent)
             if (log.isDebugEnabled) {
@@ -311,7 +312,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
         if (mode == SeriesModificationMode.FUTURE) {
             val recurrenceData = obj.getRecurrenceData(timeZone)
             val recurrenceUntil = getUntilDate(selectedEvent.startDate!!)
-            recurrenceData.setUntil(recurrenceUntil)
+            recurrenceData.until = recurrenceUntil
             obj.setRecurrence(recurrenceData)
             update(obj)
         } else if (mode == SeriesModificationMode.SINGLE) { // only current date
@@ -673,34 +674,22 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
         if (!event.hasRecurrence()) {
             return null
         }
-        val recur = event.recurrenceObject
-            ?: // Shouldn't happen:
-            return null
+        val recur = event.recurrenceObject ?: return null // Shouldn't happen:
 
-        val timeZone4Calc = timeZone
-        val eventStartDateString = if (event.allDay)
-            DateHelper.formatIsoDate(event.startDate, timeZone)
-        else
-            DateHelper
-                .formatIsoTimestamp(event.startDate, DateHelper.UTC)
         val eventStartDate = event.startDate
-        if (log.isDebugEnabled) {
-            log.debug { "---------- startDate=" + DateHelper.formatIsoTimestamp(eventStartDate, timeZone) + ", timeZone=${timeZone.id}" }
+        log.debug {
+            "---------- startDate=" + DateHelper.formatIsoTimestamp(
+                eventStartDate,
+                timeZone
+            ) + ", timeZone=${timeZone.id}"
         }
-        var ical4jTimeZone: TimeZone?
-        try {
-            ical4jTimeZone = ICal4JUtils.getTimeZone(timeZone4Calc)
-        } catch (e: Exception) {
-            log.error("Error getting timezone from ical4j.")
-            ical4jTimeZone = ICal4JUtils.getUserTimeZone()
-        }
-
-        val startDateTime = PFDateTime.fromOrNow(startDate, timeZone4Calc)
-        val endDateTime = PFDateTime.fromOrNow(endDate, timeZone4Calc)
-        val seedDate = PFDateTime.fromOrNow(eventStartDate, timeZone4Calc)
+        var useTimeZone = ICal4JUtils.getTimeZone(timeZone)
+        val startDateTime = PFDateTime.fromOrNow(startDate, useTimeZone)
+        val endDateTime = PFDateTime.fromOrNow(endDate, useTimeZone)
+        val seedDate = PFDateTime.fromOrNow(eventStartDate, useTimeZone)
 
         // get ex dates of event
-        val exDates = ICal4JUtils.parseCSVDatesAsJavaUtilDates(event.recurrenceExDate, DateHelper.UTC)
+        val exDates = RRuleUtils.parseExcludeDates(event.recurrenceExDate)
 
         // get events in time range
         val dateList = recur.getDates(seedDate.dateTime, startDateTime.dateTime, endDateTime.dateTime)
@@ -708,51 +697,19 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
         // remove ex range values
         val col: MutableCollection<ICalendarEvent> = ArrayList()
         if (dateList != null) {
-            OuterLoop@ for (obj in dateList) {
-                val dateTime = obj as DateTime
-                val isoDateString = if (event.allDay)
-                    DateHelper.formatIsoDate(dateTime, timeZone)
-                else
-                    DateHelper.formatIsoTimestamp(dateTime, DateHelper.UTC)
-                if (exDates != null && exDates.size > 0) {
-                    for (exDate in exDates) {
-                        if (!event.allDay) {
-                            val recurDateJavaUtil = Date(dateTime.time)
-                            if (recurDateJavaUtil == exDate) {
-                                if (log.isDebugEnabled) {
-                                    log.debug("= ex-dates equals: $isoDateString == $exDate")
-                                }
-                                // this date is part of ex dates, so don't use it.
-                                continue@OuterLoop
-                            }
-                        } else {
-                            // Allday event.
-                            val isoExDateString = DateHelper.formatIsoDate(exDate, DateHelper.UTC)
-                            if (isoDateString == isoExDateString) {
-                                if (log.isDebugEnabled) {
-                                    log.debug(
-                                        String.format(
-                                            "= ex-dates equals: %s == %s",
-                                            isoDateString,
-                                            isoExDateString
-                                        )
-                                    )
-                                }
-                                // this date is part of ex dates, so don't use it.
-                                continue@OuterLoop
-                            }
-                        }
-                        if (log.isDebugEnabled) {
-                            log.debug("ex-dates not equals: $isoDateString != $exDate")
-                        }
-                    }
+            for (dateTime in dateList) {
+                val day = ICalDateUtils.extractLocalDate(dateTime)
+                if (RRuleUtils.isEventExcluded(day, exDates)) {
+                    log.debug { "= ${dateTime} included in exdates: ${exDates?.joinToString()}" }
+                    // this date is part of ex dates, so don't use it.
+                    continue
                 }
-                if (isoDateString == eventStartDateString) {
+                if (seedDate.localDate == day) {
                     // Put event itself to the list.
                     col.add(event)
                 } else {
                     // Now we need this event as date with the user's time-zone.
-                    val date = from(dateTime.time, timeZone.toZoneId(), null, PFDateTime.NumberFormat.EPOCH_MILLIS)
+                    val date = fromTemporal(dateTime, timeZone.toZoneId())
                     val recurEvent = TeamRecurrenceEvent(event, date)
                     col.add(recurEvent)
                 }

@@ -32,6 +32,7 @@ import java.io.Serializable
 import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.time.temporal.Temporal
 import java.time.temporal.TemporalUnit
 import java.util.*
 
@@ -654,6 +655,54 @@ open class PFDateTime internal constructor(
         fun fromOrNull(localDate: LocalDate?, zoneId: ZoneId? = null, locale: Locale? = null): PFDateTime? {
             localDate ?: return null
             return from(localDate, zoneId, locale)
+        }
+
+        /**
+         * Please note: param zoneId is ignored for [ZonedDateTime].
+         * @param date Date to convert: ZoneDateTime, LocalDateTime, LocalDate or Instant.
+         * @param zoneId ZoneId to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
+         * @param locale Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
+         * @return PFDateTime from given date...
+         * @throws java.lang.IllegalStateException if date is null.
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun fromTemporal(date: Temporal, zoneId: ZoneId? = null, locale: Locale? = null): PFDateTime {
+            when (date) {
+                is ZonedDateTime -> return from(date, locale)
+                is LocalDateTime -> return from(date, zoneId, locale)
+                is LocalDate -> return from(date, zoneId, locale)
+                is Instant -> return from(date, zoneId, locale)
+                else -> throw IllegalStateException("Unsupported Temporal type: " + date.javaClass)
+            }
+        }
+
+        /**
+         * Please note: param zoneId is ignored for [ZonedDateTime].
+         * @param date Date to convert: ZoneDateTime, LocalDateTime, LocalDate or Instant.
+         * @param zoneId ZoneId to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
+         * @param locale Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
+         * @return PFDateTime from given date or now, if given [date] is null...
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun fromTemporalOrNow(date: Temporal?, zoneId: ZoneId? = null, locale: Locale? = null): PFDateTime {
+            date ?: return now()
+            return fromTemporal(date, zoneId, locale)
+        }
+
+        /**
+         * Please note: param zoneId is ignored for [ZonedDateTime].
+         * @param date Date to convert: ZoneDateTime, LocalDateTime, LocalDate or Instant.
+         * @param zoneId ZoneId to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
+         * @param locale Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
+         * @return PFDateTime from given date or null, if given [date] is null...
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun fromTemporalOrNull(date: LocalDate?, zoneId: ZoneId? = null, locale: Locale? = null): PFDateTime? {
+            date ?: return null
+            return fromTemporal(date, zoneId, locale)
         }
 
         /**

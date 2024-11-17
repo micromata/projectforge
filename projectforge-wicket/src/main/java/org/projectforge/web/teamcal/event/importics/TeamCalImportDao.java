@@ -27,13 +27,12 @@ import de.micromata.merlin.excel.importer.ImportStatus;
 import de.micromata.merlin.excel.importer.ImportStorage;
 import de.micromata.merlin.excel.importer.ImportedElement;
 import de.micromata.merlin.excel.importer.ImportedSheet;
-import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.component.VEvent;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventService;
-import org.projectforge.business.teamcal.event.ical.ICalParser;
-import org.projectforge.business.teamcal.event.ical.VEventUtils;
+import org.projectforge.business.teamcal.ical.ICalParser;
+import org.projectforge.business.teamcal.ical.VEventUtils;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -79,7 +78,7 @@ public class TeamCalImportDao {
   public ImportStorage<TeamEventDO> importEvents(final List<VEvent> vEvents) {
     final List<TeamEventDO> events = new LinkedList<>();
     for (final VEvent vEvent : vEvents) {
-      events.add(VEventUtils.convertToTeamEventDO(vEvent));
+      events.add(VEventUtils.convertToEventDO(vEvent));
     }
     events.forEach(teamEventDO -> eventService.fixAttendees(teamEventDO));
 

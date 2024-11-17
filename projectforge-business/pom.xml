@@ -69,11 +69,11 @@
             <version>${jakarta.servlet-api.version}</version>
             <scope>provided</scope>
         </dependency>
-        <!--dependency> used?
+        <dependency> <!-- Needed by Spring for e.g. Transactional, @Cacheable etc. -->
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjtools</artifactId>
             <version>${aspectjtools.version}</version>
-        </dependency-->
+        </dependency>
         <dependency>
             <groupId>org.hibernate.search</groupId>
             <artifactId>hibernate-search-mapper-orm</artifactId>

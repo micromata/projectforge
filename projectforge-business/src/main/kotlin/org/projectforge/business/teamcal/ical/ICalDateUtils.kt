@@ -21,22 +21,24 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.address.vcard
+package org.projectforge.business.teamcal.ical
 
-import org.junit.Test
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZonedDateTime
+import java.time.temporal.Temporal
 
-class VCardUtilsTest {
-    @Test
-    fun testConvert() {
-        //VCardUtils.convert(EXAMPLE_VCF)
+object ICalDateUtils {
+    fun extractLocalDate(date: Temporal): LocalDate {
+        return when (date) {
+            is ZonedDateTime -> date.toLocalDate()
+            is LocalDateTime -> date.toLocalDate()
+            is LocalDate -> date
+            else -> throw IllegalArgumentException("Unsupported Temporal type: ${date::class}")
+        }
     }
 
-    private val EXAMPLE_VCF = """BEGIN:VCARD
-            VERSION:3.0
-            FN:John Doe
-            N:Doe;John;;;
-            ADR;TYPE=HOME:;;123 Main Street;Anytown;CA;12345;USA
-            TEL;TYPE=CELL:+1-123-456-7890
-            EMAIL:john.doe@example.com
-            END:VCARD""".trimIndent()
+    fun isSameDay(date1: Temporal, date2: Temporal): Boolean {
+        return extractLocalDate(date1) == extractLocalDate(date2)
+    }
 }

@@ -37,14 +37,13 @@ import io.milton.resource.ICalResource
 import io.milton.resource.SchedulingResponseItem
 import net.fortuna.ical4j.data.ParserException
 import net.fortuna.ical4j.model.component.VEvent
-import org.projectforge.business.teamcal.event.ical.VEventUtils
+import org.projectforge.business.teamcal.ical.VEventUtils
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.AbstractMap.SimpleImmutableEntry
-import kotlin.Throws
 
 /**
  * Created by blumenstein on 17.05.17.
