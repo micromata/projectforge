@@ -54,8 +54,8 @@ import org.projectforge.framework.persistence.search.ClassBridge
 @TypeBinding(binder = TypeBinderRef(type = HibernateSearchAuftragsPositionTypeBinder::class))
 @ClassBridge(name = "position") // position should be used in HibernateSearchAuftragsPositionBridge as field name.
 //@ClassBridge(name = "position", analyze = Analyze.NO, impl = HibernateSearchAuftragsPositionBridge::class)
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-@Cacheable
+//@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+//@Cacheable
 @Table(
   name = "t_fibu_auftrag_position",
   uniqueConstraints = [UniqueConstraint(columnNames = ["auftrag_fk", "number"])],

@@ -56,17 +56,17 @@ class PFDateTimeUtilsTest {
 
     @Test
     fun parseDateTest() {
-        // Timezone is ignored, because time zone is given in string to parse:
-        parseAndCheck("2020-01-25 22:12:00.000", ZoneId.of("Z"), "2020-01-25T22:12:00.000Z", PFDateTimeUtils.ZONE_EUROPE_BERLIN)
+        // Timezone UTC is parsed, but the result will be given in Europe/Berlin:
+        parseAndCheck("2020-01-25 22:12:00.000", ZoneId.of("Europe/Berlin"), "2020-01-25T22:12:00.000Z", PFDateTimeUtils.ZONE_EUROPE_BERLIN)
 
-        parseAndCheck("2020-01-25 22:12:00.000", ZoneId.of("+01:00"), "2020-01-25T23:12:00.000+01:00", PFDateTimeUtils.ZONE_EUROPE_BERLIN)
-        parseAndCheck("2020-01-25 22:12:00.000", ZoneId.of("+01:00"), "2020-01-25T23:12:00.000+01:00")
+        parseAndCheck("2020-01-25 22:12:00.000", ZoneId.of("Europe/Berlin"), "2020-01-25T23:12:00.000+01:00", PFDateTimeUtils.ZONE_EUROPE_BERLIN)
+        parseAndCheck("2020-01-25 21:12:00.000", ZoneId.of("Europe/Berlin"), "2020-01-25T23:12:00.000+02:00")
 
-        parseAndCheck("2020-01-25 22:12:00.000", ZoneId.of("-01:00"), "2020-01-25T21:12:00.000-01:00", PFDateTimeUtils.ZONE_EUROPE_BERLIN)
-        parseAndCheck("2020-01-25 22:12:00.000", ZoneId.of("-01:00"), "2020-01-25T21:12:00.000-01:00")
+        parseAndCheck("2020-01-25 22:12:00.000", ZoneId.of("Europe/Berlin"), "2020-01-25T21:12:00.000-01:00", PFDateTimeUtils.ZONE_EUROPE_BERLIN)
+        parseAndCheck("2020-01-25 22:12:00.000", ZoneId.of("Europe/Berlin"), "2020-01-25T21:12:00.000-01:00")
 
-        parseAndCheck("2020-01-25 22:12:00.000", ZoneId.of("+01:00"), "2020-01-25T23:12:00+01:00", PFDateTimeUtils.ZONE_EUROPE_BERLIN)
-        parseAndCheck("2020-01-25 22:12:00.000", ZoneId.of("+01:00"), "2020-01-25 23:12:00+01:00", PFDateTimeUtils.ZONE_EUROPE_BERLIN)
+        parseAndCheck("2020-01-25 22:12:00.000", ZoneId.of("Europe/Berlin"), "2020-01-25T23:12:00+01:00", PFDateTimeUtils.ZONE_EUROPE_BERLIN)
+        parseAndCheck("2020-01-25 22:12:00.000", ZoneId.of("Europe/Berlin"), "2020-01-25 23:12:00+01:00", PFDateTimeUtils.ZONE_EUROPE_BERLIN)
 
         // Timezone should be used:
         parseAndCheck("2020-01-25 21:12:00.000", PFDateTimeUtils.ZONE_EUROPE_BERLIN, "2020-01-25 22:12:00", PFDateTimeUtils.ZONE_EUROPE_BERLIN)

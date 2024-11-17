@@ -30,7 +30,6 @@ import org.projectforge.business.fibu.ProjektRight;
 import org.projectforge.business.gantt.GanttChartRight;
 import org.projectforge.business.humanresources.HRPlanningRight;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
-import org.projectforge.business.teamcal.event.right.CalEventRight;
 import org.projectforge.business.teamcal.event.right.TeamEventRight;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.api.IUserRightId;
@@ -124,7 +123,6 @@ public class UserRightServiceImpl implements UserRightService, Serializable
     addRight(new HRPlanningRight());
     addRight(new TeamCalRight());
     addRight(new TeamEventRight());
-    addRight(new CalEventRight());
     addRight(new AddressbookRight());
 
     addRight(UserRightCategory.ADMIN, UserRightId.ADMIN_CORE, FALSE_READONLY_READWRITE, ProjectForgeGroup.ADMIN_GROUP);

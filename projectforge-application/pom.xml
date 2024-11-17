@@ -27,6 +27,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>jul-to-slf4j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- PF -->
         <dependency>
@@ -165,22 +171,25 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <!-- needed for intern application.properties -->
-                    <layout>ZIP</layout>
-                    <!-- UNCOMMENT IF WANT TO BUILD WAR FILE-->
-                    <!--<layout>WAR</layout>-->
+                    <layout>JAR</layout>
                     <requiresUnpack>
                         <!-- Needed for running Kotlin scripts from spring-boot fat jar: -->
                         <dependency>
                             <groupId>org.jetbrains.kotlin</groupId>
-                            <artifactId>kotlin-compiler-embaddable</artifactId>
+                            <version>${kotlin.version}</version>
+                            <unpack>true</unpack>
                         </dependency>
                         <dependency>
                             <groupId>org.jetbrains.kotlin</groupId>
                             <artifactId>kotlin-scripting-jsr223</artifactId>
+                            <unpack>true</unpack>
+                            <version>${kotlin.version}</version>
                         </dependency>
                         <dependency>
                             <groupId>org.jetbrains.kotlin</groupId>
                             <artifactId>kotlin-stdlib</artifactId>
+                            <unpack>true</unpack>
+                            <version>${kotlin.version}</version>
                         </dependency>
                     </requiresUnpack>
                 </configuration>

@@ -31,6 +31,7 @@ import java.sql.Timestamp
 import java.time.DateTimeException
 import java.time.Instant
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -200,19 +201,6 @@ object PFDateTimeUtils {
             : PFDateTime? {
         if (str.isNullOrBlank())
             return null
-        if (StringUtils.isNumeric(str)) {
-            val instant = if (numberFormat == PFDateTime.NumberFormat.EPOCH_SECONDS) {
-                Instant.ofEpochSecond(str.toLong(), 0)
-            } else {
-                Instant.ofEpochMilli(str.toLong())
-            }
-            val dateTime = PFDateTime(ZonedDateTime.ofInstant(instant, ZONE_UTC), locale, null)
-            return if (defaultZoneId != null) {
-                dateTime.withZoneSameInstant(defaultZoneId)
-            } else {
-                dateTime
-            }
-        }
         var trimmedString = str.trim()
         if (trimmedString.startsWith('"') && trimmedString.endsWith('"')) {
             // String is quoted, remove the quotes first:
@@ -222,28 +210,32 @@ object PFDateTimeUtils {
             // Simply remove milliseconds for this special case:
             trimmedString = trimmedString.substring(0 until trimmedString.length - 4)
         }
-        // [\d]{4}-[\d]{2}-[\d]{2} .*
-        if (trimmedString.matches(isoDateWithTimestampRegex)) {
-            trimmedString = trimmedString.replaceFirst(' ', 'T')
+        val temporal = DateParser.parse(trimmedString, defaultZoneId, parseLocalDateIfNoTimeOfDayGiven = false)
+        if (temporal != null) {
+            val zoneId = defaultZoneId ?: ZoneOffset.UTC
+            return PFDateTime.fromTemporal(temporal, zoneId, locale)
         }
-        if (trimmedString.contains('Z') || trimmedString.matches(withTimeZoneregex)) {
-            // yyyy-MM-dd'T'HH:mm:ss.SSS+01:00'
-            val dateTime = ZonedDateTime.parse(trimmedString, DateTimeFormatter.ISO_DATE_TIME)
-            return PFDateTime(dateTime, locale, null)
-        }
-        // yyyy-MM-dd'T'HH:mm:ss.SSS'
-        val formatter = if (defaultZoneId != null) {
-            DateTimeFormatter.ISO_DATE_TIME.withZone(defaultZoneId)
-        } else {
-            DateTimeFormatter.ISO_DATE_TIME.withZone(ZONE_UTC)
-        }
-        val dateTime = ZonedDateTime.parse(trimmedString, formatter) // Parses with given time zone.
-        return PFDateTime(dateTime, locale = locale, precision = null)
+        return null
     }
 
     @JvmOverloads
     @JvmStatic
     fun formatUTCDate(date: Date, withMillis: Boolean = true): String {
+        return if (date is java.sql.Date) {
+            PFDateTime.isoDateFormatter.format(date.toLocalDate())
+        } else {
+            val ldt = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+            if (withMillis) {
+                PFDateTime.isoDateTimeFormatterMilli.format(ldt)
+            } else {
+                PFDateTime.isoDateTimeFormatterSeconds.format(ldt)
+            }
+        }
+    }
+
+    @JvmOverloads
+    @JvmStatic
+    fun formatIsoUTCDate(date: Date, withMillis: Boolean = true): String {
         return if (date is java.sql.Date) {
             PFDateTime.isoDateFormatter.format(date.toLocalDate())
         } else {

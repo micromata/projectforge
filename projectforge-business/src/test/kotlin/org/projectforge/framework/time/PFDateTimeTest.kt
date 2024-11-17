@@ -24,13 +24,12 @@
 package org.projectforge.framework.time
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.fail
 import org.projectforge.business.configuration.ConfigurationServiceAccessor
 import org.projectforge.test.TestSetup
 import java.text.SimpleDateFormat
-import java.time.DateTimeException
 import java.time.Month
 import java.time.ZonedDateTime
 import java.util.*
@@ -39,7 +38,7 @@ class PFDateTimeTest {
 
     @Test
     fun beginAndEndOfIntervalsTest() {
-        // User's time zone is "Europe/Berlin": "UTC+2". Therefore local date should be 2019-04-01 00:00:00
+        // User's time zone is "Europe/Berlin": "UTC+2". Therefore, local date should be 2019-04-01 00:00:00
         val date = PFDateTimeUtils.parseAndCreateDateTime("2019-03-31 22:00:00")!!
         checkDate(date.dateTime, 2019, Month.APRIL, 1, false)
 
@@ -61,7 +60,7 @@ class PFDateTimeTest {
 
     @Test
     fun convertTest() {
-        // User's time zone is "Europe/Berlin": "UTC+2". Therefore local date should be 2019-04-01 00:00:00
+        // User's time zone is "Europe/Berlin": "UTC+2". Therefore, local date should be 2019-04-01 00:00:00
         var date = PFDateTimeUtils.parseAndCreateDateTime("2019-03-31 22:00:00")!!
 
         var localDate = date.localDate
@@ -85,16 +84,15 @@ class PFDateTimeTest {
 
     @Test
     fun parseTest() {
-        assertEquals("2019-03-31 22:00", PFDateTimeUtils.parseAndCreateDateTime("1554069600")!!.isoString)
+        // User's time zone is "Europe/Berlin": "UTC+2". Therefore, local date should be 2019-04-01 00:00:00
+        assertEquals("2019-03-31 22:00", PFDateTimeUtils.parseAndCreateDateTime("1554069600")!!.isoString, "UTC")
         assertEquals("2019-03-31 22:00", PFDateTimeUtils.parseAndCreateDateTime("2019-03-31 22:00:00")!!.isoString)
         assertEquals("2019-03-31 22:00", PFDateTimeUtils.parseAndCreateDateTime("2019-03-31 22:00")!!.isoString)
-        assertEquals("2019-03-31 22:00", PFDateTimeUtils.parseAndCreateDateTime("2019-03-31T22:00:00.000Z")!!.isoString)
-        try {
-            PFDateTimeUtils.parseAndCreateDateTime("2019-03-31")
-            fail("Exception expected, because 2019-03-31 isn't parseable due to missing time of day.")
-        } catch (ex: DateTimeException) {
-            // OK
-        }
+        assertEquals(
+            "2019-03-31 22:00",
+            PFDateTimeUtils.parseAndCreateDateTime("2019-03-31T22:00:00.000Z")!!.isoString
+        )
+        assertNull(PFDateTimeUtils.parseAndCreateDateTime("2019-03-31"))
     }
 
     @Test
@@ -211,7 +209,13 @@ class PFDateTimeTest {
     }
 
 
-    private fun checkDate(date: ZonedDateTime, year: Int, month: Month, dayOfMonth: Int, checkMidnight: Boolean = true) {
+    private fun checkDate(
+        date: ZonedDateTime,
+        year: Int,
+        month: Month,
+        dayOfMonth: Int,
+        checkMidnight: Boolean = true
+    ) {
         assertEquals(year, date.year, "Year check failed.")
         assertEquals(month, date.month, "Month check failed.")
         assertEquals(dayOfMonth, date.dayOfMonth, "Day check failed.")
