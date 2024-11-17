@@ -69,7 +69,7 @@
             <version>${jakarta.servlet-api.version}</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
+        <dependency> <!-- Needed by Spring for e.g. Transactional, @Cacheable etc. -->
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjtools</artifactId>
             <version>${aspectjtools.version}</version>
@@ -82,11 +82,11 @@
             <groupId>org.hibernate.search</groupId>
             <artifactId>hibernate-search-backend-lucene</artifactId>
         </dependency>
-        <dependency>
+        <!--dependency> used?
             <groupId>org.jboss.logging</groupId>
             <artifactId>jboss-logging</artifactId>
             <version>${jboss-logging.version}</version>
-        </dependency>
+        </dependency-->
         <dependency>
             <groupId>jakarta.persistence</groupId>
             <artifactId>jakarta.persistence-api</artifactId>
@@ -176,21 +176,11 @@
             <artifactId>dom4j</artifactId>
             <version>${dom4j.version}</version>
         </dependency>
-        <dependency>
+        <dependency> <!-- Used by SmsSender -->
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
             <version>${apache-httpcomponents-client5}</version>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-cache</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-cache</artifactId>
-            <version>${spring.boot.version}</version>
-        </dependency>
-
         <!-- DB -->
         <dependency>
             <groupId>org.flywaydb</groupId>
@@ -224,6 +214,10 @@
             <artifactId>ical4j</artifactId>
             <version>${ical4j.version}</version>
             <exclusions>
+                <exclusion>
+                    <groupId>com.sun.mail</groupId>
+                    <artifactId>javax.mail</artifactId>
+                </exclusion>
                 <exclusion>
                     <artifactId>commons-codec</artifactId>
                     <groupId>commons-codec</groupId>
@@ -386,9 +380,9 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
+        <dependency> <!-- Used e.g. by SmsSenderText -->
             <groupId>org.mock-server</groupId>
-            <artifactId>mockserver-netty</artifactId>
+            <artifactId>mockserver-netty-no-dependencies</artifactId>
             <version>${org.mockserver.version}</version>
             <scope>test</scope>
             <exclusions>
@@ -403,13 +397,13 @@
             <artifactId>commons-text</artifactId>
             <version>${commons-text.version}</version>
         </dependency>
-        <dependency>
+        <!--dependency> used?
             <groupId>org.mock-server</groupId>
             <artifactId>mockserver-client-java</artifactId>
             <version>${org.mockserver.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
+        </dependency-->
+        <dependency> <!-- Only needed by MyBeanComparator! -->
             <groupId>se.sawano.java</groupId>
             <artifactId>alphanumeric-comparator</artifactId>
             <version>${se.sawano.alphanumeric-comperator.version}</version>

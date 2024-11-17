@@ -32,8 +32,7 @@ import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
-import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
-import org.projectforge.business.teamcal.event.ical.ICalGenerator;
+import org.projectforge.business.teamcal.ical.ICalGenerator;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.timesheet.TimesheetDO;
@@ -50,7 +49,6 @@ import org.projectforge.web.wicket.DownloadUtils;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.slf4j.Logger;
 
-import java.io.ByteArrayOutputStream;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashSet;
@@ -224,12 +222,12 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
           final TeamEventDO event = getData();
           log.info("Export ics for: " + event.getSubject());
 
-          final ICalGenerator generator = ICalGenerator.exportAllFields();
-          generator.addEvent(event);
-          ByteArrayOutputStream icsFile = generator.getCalendarAsByteStream();
+          final ICalGenerator generator = new ICalGenerator();
+          generator.add(event);
+          byte[] icsFile = generator.getAsByteArray();
 
           if (icsFile != null) {
-            DownloadUtils.setDownloadTarget(icsFile.toByteArray(), event.getSubject().replace(" ", "") + ".ics");
+            DownloadUtils.setDownloadTarget(icsFile, event.getSubject().replace(" ", "") + ".ics");
           }
         }
 
@@ -272,7 +270,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   public AbstractSecuredBasePage afterUndelete()
   {
     super.afterUndelete();
-    WicketSupport.get(TeamEventService.class).checkAndSendMail(getData(), TeamEventDiffType.RESTORED);
+    //WicketSupport.get(TeamEventService.class).checkAndSendMail(getData(), TeamEventDiffType.RESTORED);
 
     return null;
   }
@@ -291,7 +289,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   {
     super.onDelete();
     var teamEventService = WicketSupport.get(TeamEventService.class);
-    teamEventService.checkAndSendMail(this.getData(), TeamEventDiffType.DELETED);
+    //teamEventService.checkAndSendMail(this.getData(), TeamEventDiffType.DELETED);
     if (recurrencyChangeType == null || recurrencyChangeType == RecurrencyChangeType.ALL) {
       return null;
     }
@@ -394,12 +392,12 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
       form.assignAttendeesListHelper.getAssignedItems().stream().forEach(a -> toAssign.add(a.clone()));
 
       teamEventService.assignAttendees(newEvent, toAssign, null);
-      teamEventService.checkAndSendMail(newEvent, TeamEventDiffType.NEW);
+      //teamEventService.checkAndSendMail(newEvent, TeamEventDiffType.NEW);
     } else {
       TeamEventDO teamEventAfterSaveOrUpdate = teamEventService.getById(getData().getId());
       teamEventService.assignAttendees(teamEventAfterSaveOrUpdate, form.assignAttendeesListHelper.getItemsToAssign(),
           form.assignAttendeesListHelper.getItemsToUnassign());
-      teamEventService.checkAndSendMail(teamEventAfterSaveOrUpdate, this.teamEventBeforeSaveOrUpdate);
+      //teamEventService.checkAndSendMail(teamEventAfterSaveOrUpdate, this.teamEventBeforeSaveOrUpdate);
     }
 
     return null;

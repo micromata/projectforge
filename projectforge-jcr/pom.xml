@@ -135,11 +135,11 @@
             </exclusions>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
-        <dependency>
+        <!-- dependency> used?
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>${com.google.guava.version}</version>
-        </dependency>
+        </dependency-->
 
         <!-- https://mvnrepository.com/artifact/io.dropwizard.metrics/metrics-core -->
         <!-- Needed by org.apache.jackrabbit.oak.segment.scheduler.LockBasedScheduler -->
@@ -149,7 +149,7 @@
             <version>${io.dropwizard.metrics-core.version}</version>
         </dependency>
 
-        <dependency>
+        <dependency> <!-- used by ZipUtils -->
             <groupId>net.lingala.zip4j</groupId>
             <artifactId>zip4j</artifactId>
             <version>${net.lingala.zip4j.version}</version>

@@ -32,83 +32,79 @@ import net.fortuna.ical4j.model.property.DtStart;
 import org.projectforge.business.teamcal.event.ical.VEventComponentConverter;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 
-import java.net.URISyntaxException;
+public abstract class PropertyConverter implements VEventComponentConverter {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PropertyConverter.class);
 
-public abstract class PropertyConverter implements VEventComponentConverter
-{
-  public Property toVEvent(final TeamEventDO event)
-  {
-    return null;
-  }
-
-  @Override
-  public boolean toVEvent(TeamEventDO event, VEvent vEvent)
-  {
-    Property property = this.toVEvent(event);
-
-    if (property == null) {
-      return false;
+    public Property toVEvent(final TeamEventDO event) {
+        return null;
     }
 
-    vEvent.getProperties().add(property);
+    @Override
+    public boolean toVEvent(TeamEventDO event, VEvent vEvent) {
+        Property property = this.toVEvent(event);
 
-    return true;
-  }
+        if (property == null) {
+            return false;
+        }
 
-  protected boolean isAllDay(final VEvent vEvent)
-  {
-    final DtStart dtStart = vEvent.getStartDate();
-    return dtStart != null && !(dtStart.getDate() instanceof net.fortuna.ical4j.model.DateTime);
-  }
+        vEvent.getProperties().add(property);
 
-  protected void parseAdditionalParameters(final ParameterList list, final String additonalParams)
-  {
-    if (list == null || additonalParams == null) {
-      return;
+        return true;
     }
-    StringBuilder sb = new StringBuilder();
-    boolean escaped = false;
-    char[] chars = additonalParams.toCharArray();
-    String name = null;
 
-    for (char c : chars) {
-      switch (c) {
-        case ';':
-          if (!escaped && name != null && sb.length() > 0) {
-            try {
-              Parameter parameter = new ParameterBuilder().name(name).value(sb.toString().replaceAll("\"", "")).build();
-              list.add(parameter);
-            } catch (URISyntaxException e) {
-              // TODO
-              e.printStackTrace();
+    protected boolean isAllDay(final VEvent vEvent) {
+        if (vEvent.getDateTimeStart().isEmpty()) {
+            return false;
+        }
+        DtStart<?> dtStart = vEvent.getDateTimeStart().get();
+        return dtStart.toString().contains("VALUE=DATE");
+    }
+
+    protected void parseAdditionalParameters(final ParameterList list, final String additonalParams) {
+        if (list == null || additonalParams == null) {
+            return;
+        }
+        StringBuilder sb = new StringBuilder();
+        boolean escaped = false;
+        char[] chars = additonalParams.toCharArray();
+        String name = null;
+
+        for (char c : chars) {
+            switch (c) {
+                case ';':
+                    if (!escaped && name != null && sb.length() > 0) {
+                        try {
+                            Parameter parameter = new ParameterBuilder().name(name).value(sb.toString().replaceAll("\"", "")).build();
+                            list.add(parameter);
+                        } catch (Exception e) {
+                            log.error("Error while parsing additional parameters: " + e.getMessage(), e);
+                        }
+                        name = null;
+                        sb.setLength(0);
+                    }
+                    break;
+                case '"':
+                    escaped = (!escaped);
+                    break;
+                case '=':
+                    if (!escaped && sb.length() > 0) {
+                        name = sb.toString();
+                        sb.setLength(0);
+                    }
+                    break;
+                default:
+                    sb.append(c);
+                    break;
             }
-            name = null;
-            sb.setLength(0);
-          }
-          break;
-        case '"':
-          escaped = (!escaped);
-          break;
-        case '=':
-          if (!escaped && sb.length() > 0) {
-            name = sb.toString();
-            sb.setLength(0);
-          }
-          break;
-        default:
-          sb.append(c);
-          break;
-      }
-    }
+        }
 
-    if (!escaped && name != null && sb.length() > 0) {
-      try {
-        Parameter parameter = new ParameterBuilder().name(name).value(sb.toString().replaceAll("\"", "")).build();
-        list.add(parameter);
-      } catch (URISyntaxException e) {
-        // TODO
-        e.printStackTrace();
-      }
+        if (!escaped && name != null && sb.length() > 0) {
+            try {
+                Parameter parameter = new ParameterBuilder().name(name).value(sb.toString().replaceAll("\"", "")).build();
+                list.add(parameter);
+            } catch (Exception e) {
+                log.error("Error while parsing additional parameters: " + e.getMessage(), e);
+            }
+        }
     }
-  }
 }

@@ -21,32 +21,24 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.teamcal.event.ical.converter;
+package org.projectforge.business.teamcal.ical
 
-import net.fortuna.ical4j.model.DateTime;
-import net.fortuna.ical4j.model.Property;
-import net.fortuna.ical4j.model.component.VEvent;
-import net.fortuna.ical4j.model.property.Created;
-import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZonedDateTime
+import java.time.temporal.Temporal
 
-public class CreatedConverter extends PropertyConverter
-{
-  @Override
-  public Property toVEvent(final TeamEventDO event)
-  {
-    if (event.getCreated() != null) {
-      DateTime created = new DateTime(event.getCreated());
-      created.setUtc(true);
-      return new Created(created);
+object ICalDateUtils {
+    fun extractLocalDate(date: Temporal): LocalDate {
+        return when (date) {
+            is ZonedDateTime -> date.toLocalDate()
+            is LocalDateTime -> date.toLocalDate()
+            is LocalDate -> date
+            else -> throw IllegalArgumentException("Unsupported Temporal type: ${date::class}")
+        }
     }
 
-    return null;
-  }
-
-  @Override
-  public boolean fromVEvent(final TeamEventDO event, final VEvent vEvent)
-  {
-    // TODO is this read?
-    return false;
-  }
+    fun isSameDay(date1: Temporal, date2: Temporal): Boolean {
+        return extractLocalDate(date1) == extractLocalDate(date2)
+    }
 }

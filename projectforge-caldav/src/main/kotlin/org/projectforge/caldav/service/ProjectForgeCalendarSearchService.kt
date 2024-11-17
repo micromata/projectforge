@@ -35,15 +35,11 @@ import io.milton.resource.CalendarResource
 import io.milton.resource.CollectionResource
 import io.milton.resource.ICalResource
 import io.milton.resource.SchedulingResponseItem
-import net.fortuna.ical4j.data.CalendarBuilder
 import net.fortuna.ical4j.data.ParserException
-import net.fortuna.ical4j.model.Calendar
-import net.fortuna.ical4j.model.Property
 import net.fortuna.ical4j.model.component.VEvent
-import net.fortuna.ical4j.model.property.RRule
+import org.projectforge.business.teamcal.ical.VEventUtils
 import org.slf4j.LoggerFactory
 import java.io.IOException
-import java.io.StringReader
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
@@ -68,11 +64,17 @@ class ProjectForgeCalendarSearchService(builderEnt: HttpManagerBuilderEnt?) : Ca
     }
 
     @Throws(NotAuthorizedException::class, BadRequestException::class)
-    override fun findCalendarResources(calendar: CalendarResource, start: Date, end: Date,
-                                       propFilter: SimpleImmutableEntry<String, String>?): List<ICalResource> {
-        log.info("Find calender resources of '{}'/'{}' within time window from '{}' to '{}'", calendar.name, calendar.uniqueId,
-                LOG_FORMAT.format(start),
-                LOG_FORMAT.format(end))
+    override fun findCalendarResources(
+        calendar: CalendarResource, start: Date, end: Date,
+        propFilter: SimpleImmutableEntry<String, String>?
+    ): List<ICalResource> {
+        log.info(
+            "Find calender resources of '{}'/'{}' within time window from '{}' to '{}'",
+            calendar.name,
+            calendar.uniqueId,
+            LOG_FORMAT.format(start),
+            LOG_FORMAT.format(end)
+        )
         // build a list of all calendar resources
         val list: MutableList<ICalResource> = ArrayList()
         for (r in calendar.children) {
@@ -87,19 +89,10 @@ class ProjectForgeCalendarSearchService(builderEnt: HttpManagerBuilderEnt?) : Ca
             val r = it.next()
             log.debug("Check event '{}'", r.uniqueId)
             // create calender object
-            val sin = StringReader(r.iCalData)
-            val builder = CalendarBuilder()
-            var cal: Calendar? = null
-            try {
-                cal = builder.build(sin)
-            } catch (e: IOException) {
-                log.error("Exception building calendar from ics", e)
-            } catch (e: ParserException) {
-                log.error("Unable to parse ics", e)
-            }
+            val event = VEventUtils.parseVEventFromIcs(r.iCalData)
             // check if event is inside boundaries
             try {
-                if (outsideDates(r, cal, start, end)) {
+                if (outsideDates(r, event, start, end)) {
                     it.remove()
                     continue
                 }
@@ -114,35 +107,40 @@ class ProjectForgeCalendarSearchService(builderEnt: HttpManagerBuilderEnt?) : Ca
             }
             // check if event fulfills properties
             if (propFilter != null) {
-                if (cal != null && cal.getComponent<VEvent>("VEVENT")?.getProperty<Property>(propFilter.key)?.value != propFilter.value) {
+                if (event != null && VEventUtils.getPropertyValue(event, propFilter.key) != propFilter.value) {
                     log.debug("Does not match properties filter: '{}'", r.uniqueId)
                     it.remove()
                 }
             }
         }
-        log.info("Found {} ({} total, {} removed) events for calender resources '{}'/'{}'", list.size, sizeBefore, sizeBefore - list.size, calendar.name,
-                calendar.uniqueId)
+        log.info(
+            "Found {} ({} total, {} removed) events for calender resources '{}'/'{}'",
+            list.size,
+            sizeBefore,
+            sizeBefore - list.size,
+            calendar.name,
+            calendar.uniqueId
+        )
         return list
     }
 
-    private fun extractRRule(calender: Calendar?): Map<String, String>? {
-        if (calender == null) return null
-        val vevent = calender.getComponent<VEvent>("VEVENT") ?: return null
-        val rrule = vevent.getProperty<RRule>("RRULE") ?: return null
-        val value = rrule.value ?: return null
-        val values = value.split(";".toRegex()).toTypedArray()
+    private fun extractRRule(vevent: VEvent?): Map<String, String>? {
+        if (vevent == null) return null
+        val rrule = VEventUtils.getRRuleString(vevent)
+        val values = rrule?.split(";".toRegex())?.toTypedArray()
         val keyValues: MutableMap<String, String> = TreeMap()
-        for (v in values) {
+        values?.forEach { v ->
             val kv = v.split("=".toRegex()).toTypedArray()
-            if (kv.size != 2) continue
-            keyValues[kv[0]] = kv[1]
+            if (kv.size == 2) {
+                keyValues[kv[0]] = kv[1]
+            }
         }
         return keyValues
     }
 
     @Throws(IOException::class, ParserException::class)
-    private fun outsideDates(r: ICalResource, calender: Calendar?, start: Date?, end: Date?): Boolean {
-        val kv = extractRRule(calender)
+    private fun outsideDates(r: ICalResource, event: VEvent?, start: Date?, end: Date?): Boolean {
+        val kv = extractRRule(event)
         log.debug("Check outsideDates for event '{}' ({})", r.uniqueId, if (kv != null) "recurring" else "normal")
         if (kv != null) {
             val until = kv["UNTIL"]
@@ -156,8 +154,12 @@ class ProjectForgeCalendarSearchService(builderEnt: HttpManagerBuilderEnt?) : Ca
                         return true
                     }
                 } catch (e: ParseException) {
-                    log.warn("Until date '{}' from RRULE can't be parsed for event '{}', start/stop date can't be checked!", until,
-                            r.uniqueId, e)
+                    log.warn(
+                        "Until date '{}' from RRULE can't be parsed for event '{}', start/stop date can't be checked!",
+                        until,
+                        r.uniqueId,
+                        e
+                    )
                     // Event is recurring, returning false prevents wrong pick out
                     return false
                 }
@@ -174,17 +176,21 @@ class ProjectForgeCalendarSearchService(builderEnt: HttpManagerBuilderEnt?) : Ca
         }
         if (start != null) {
             if (event.end.before(start)) {
-                log.debug("Event is before start: {} < {}",
-                        if (event.end != null) LOG_FORMAT.format(event.end) else "null",
-                        LOG_FORMAT.format(start))
+                log.debug(
+                    "Event is before start: {} < {}",
+                    if (event.end != null) LOG_FORMAT.format(event.end) else "null",
+                    LOG_FORMAT.format(start)
+                )
                 return true
             }
         }
         if (end != null) {
             if (event.start.after(end)) {
-                log.debug("Event is after end: {} < {}",
-                        if (event.start != null) LOG_FORMAT.format(event.start) else "null",
-                        LOG_FORMAT.format(end))
+                log.debug(
+                    "Event is after end: {} < {}",
+                    if (event.start != null) LOG_FORMAT.format(event.start) else "null",
+                    LOG_FORMAT.format(end)
+                )
                 return true
             }
         }
@@ -336,7 +342,12 @@ class ProjectForgeCalendarSearchService(builderEnt: HttpManagerBuilderEnt?) : Ca
     }
 
     @Throws(NotAuthorizedException::class, BadRequestException::class)
-    private fun buildFreeBusyAttendeeResponse(attendee: CalDavPrincipal, request: FreeBusyRequest, domain: String, attendeeMailto: String): String {
+    private fun buildFreeBusyAttendeeResponse(
+        attendee: CalDavPrincipal,
+        request: FreeBusyRequest,
+        domain: String,
+        attendeeMailto: String
+    ): String {
         val source = request.lines
         val sb = StringBuilder()
         sb.append("BEGIN:VCALENDAR\n")

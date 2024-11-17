@@ -32,11 +32,10 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpStatus;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.teamcal.event.ical.ICalParser;
+import org.projectforge.business.teamcal.ical.ICalParser;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.time.DateHelper;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -191,11 +190,10 @@ public class TeamEventSubscription implements Serializable {
     try {
       final Date timeInPast = new Date(System.currentTimeMillis() - TIME_IN_THE_PAST);
       Long startId = -1L;
-      ICalParser parser = ICalParser.parseAllFields();
-      parser.parse(new ByteArrayInputStream(bytes));
+      ICalParser parser = new ICalParser();
 
       // the event id must (!) be negative and decrementing (different on each event)
-      for (TeamEventDO event : parser.getExtractedEvents()) {
+      for (TeamEventDO event : parser.parse(bytes)) {
         if (event.getStartDate().getTime() < timeInPast.getTime() && event.getRecurrenceRule() == null) {
           continue;
         }

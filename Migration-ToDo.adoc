@@ -1,6 +1,10 @@
 Aktuell:
+- Farbige Balken in ProjectForge, E-Mail-Versand, Yubikey
 - Fehlerhinweis, wenn halber Tag für Urlaubsanfang/ende gewählt wird, es aber kein Arbeitstag ist.
 - Scripts
+- Download/Upload vcf
+- Milton
+- Kalendereinträge und Subscriptions.
 
 - remove all BaseDO.xxxId (lazy fetch) and replace callee by baseDO?.id
 - Entitygraphen nutzen: ConflictVacationCache, AuftragCache etc.

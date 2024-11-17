@@ -32,7 +32,7 @@ import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventService;
-import org.projectforge.business.teamcal.event.ical.ICalParser;
+import org.projectforge.business.teamcal.ical.ICalParser;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
@@ -220,23 +220,23 @@ public class TeamCalCalendarForm extends CalendarForm
       @Override
       protected void onStringImport(final AjaxRequestTarget target, final String fileName, final String content)
       {
-        ICalParser parser = ICalParser.parseAllFields();
+        ICalParser parser = new ICalParser();
 
-        parser.parse(content);
+        List<TeamEventDO> events = parser.parse(content);
 
-        if (parser.getExtractedEvents().isEmpty()) {
+        if (events.isEmpty()) {
           errorDialog.setMessage(getString("plugins.teamcal.import.ics.noEventsGiven")).open(target);
           return;
         }
 
-        if (parser.getExtractedEvents().size() > 1) {
+        if (events.size() > 1) {
           // Can't import multiple entries, redirect to import page:
           redirectToImportPage(parser.getVEvents(), activeModel.getObject());
           return;
         }
 
         // Here we have just one event.
-        final TeamEventDO event = parser.getExtractedEvents().get(0);
+        final TeamEventDO event = parser.getTeamEvents().get(0);
         final TemplateEntry activeTemplateEntry = ((TeamCalCalendarFilter) filter).getActiveTemplateEntry();
         // check id/external id. If not yet given, create new entry and ask for calendar to add: Redirect to TeamEventEditPage.
 

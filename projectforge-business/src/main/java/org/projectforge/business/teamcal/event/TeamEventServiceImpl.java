@@ -23,8 +23,6 @@
 
 package org.projectforge.business.teamcal.event;
 
-import net.fortuna.ical4j.model.property.Method;
-import net.fortuna.ical4j.model.property.RRule;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
@@ -32,35 +30,24 @@ import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.configuration.DomainService;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.teamcal.event.diff.TeamEventDiff;
-import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
 import org.projectforge.business.teamcal.event.diff.TeamEventField;
-import org.projectforge.business.teamcal.event.ical.ICalGenerator;
 import org.projectforge.business.teamcal.event.ical.ICalHandler;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDao;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.service.CryptService;
-import org.projectforge.business.teamcal.servlet.TeamCalResponseServlet;
 import org.projectforge.business.user.service.UserService;
-import org.projectforge.framework.calendar.ICal4JUtils;
-import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.jpa.PfPersistenceService;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.PFDateTime;
-import org.projectforge.mail.Mail;
 import org.projectforge.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -111,17 +98,6 @@ public class TeamEventServiceImpl implements TeamEventService {
             TeamEventField.RECURRENCE_RULE,
             TeamEventField.RECURRENCE_REFERENCE_DATE
     ).collect(Collectors.toCollection(HashSet::new));
-
-    @Override
-    public List<Long> getAssignedAttendeeIds(TeamEventDO data) {
-        List<Long> assignedAttendees = new ArrayList<>();
-        if (data != null && data.getAttendees() != null) {
-            for (TeamEventAttendeeDO attendee : data.getAttendees()) {
-                assignedAttendees.add(attendee.getId());
-            }
-        }
-        return assignedAttendees;
-    }
 
     @Override
     public List<TeamEventAttendeeDO> getAddressesAndUserAsAttendee() {
@@ -281,330 +257,6 @@ public class TeamEventServiceImpl implements TeamEventService {
     }
 
     @Override
-    public boolean checkAndSendMail(final TeamEventDO event, final TeamEventDiffType diffType) {
-        if (!this.preCheckSendMail(event)) {
-            return false;
-        }
-
-        final TeamEventDiff diff = TeamEventDiff.compute(event, diffType);
-        return this.checkAndSendMail(diff);
-    }
-
-    @Override
-    public boolean checkAndSendMail(final TeamEventDO eventNew, final TeamEventDO eventOld) {
-        if (!this.preCheckSendMail(eventNew)) {
-            return false;
-        }
-
-        final TeamEventDiff diff = TeamEventDiff.compute(eventNew, eventOld, TEAM_EVENT_FIELD_FILTER);
-        return this.checkAndSendMail(diff);
-    }
-
-    private boolean checkAndSendMail(final TeamEventDiff diff) {
-        boolean result = true;
-
-        switch (diff.getDiffType()) {
-            case NEW:
-            case RESTORED:
-                result &= this.sendMail(diff.getEventNewState(), diff, diff.getEventNewState().getAttendees(), EventMailType.NEW);
-                break;
-            case DELETED:
-                result &= this.sendMail(diff.getEventNewState(), diff, diff.getEventNewState().getAttendees(), EventMailType.DELETED);
-                break;
-            case UPDATED:
-            case ATTENDEES:
-                result &= this.sendMail(diff.getEventNewState(), diff, diff.getAttendeesNotChanged(), EventMailType.UPDATED);
-                result &= this.sendMail(diff.getEventNewState(), diff, diff.getAttendeesAdded(), EventMailType.NEW);
-                result &= this.sendMail(diff.getEventOldState(), diff, diff.getAttendeesRemoved(), EventMailType.DELETED);
-                break;
-            case NONE:
-                // nothing to do
-                break;
-        }
-
-        return result;
-    }
-
-    private boolean preCheckSendMail(final TeamEventDO event) {
-        // check event ownership
-        if (event.getOwnership() != null && !event.getOwnership()) {
-            return false;
-        }
-
-        // check date, send mails for future events only
-        final Date now = new Date();
-        if (event.getStartDate().after(now)) {
-            return true;
-        }
-
-        // No recurrence so event is in the past
-        if (event.getRecurrenceRule() == null) {
-            return false;
-        }
-
-        // Check rrule to see if an until date exists
-        try {
-            final RRule rRule = new RRule(event.getRecurrenceRule());
-            final net.fortuna.ical4j.model.Date until = rRule.getRecur().getUntil();
-            if (until == null) {
-                return true;
-            }
-
-            final Date untilDate = new Date(until.getTime());
-            return !untilDate.before(now);
-        } catch (ParseException e) {
-            return false;
-        }
-    }
-
-    private boolean sendMail(final TeamEventDO event, final TeamEventDiff diff, final Set<TeamEventAttendeeDO> attendees, final EventMailType mailType) {
-        boolean result = true;
-
-        for (TeamEventAttendeeDO attendee : attendees) {
-            result &= this.sendMail(event, diff, attendee, mailType);
-        }
-
-        return result;
-    }
-
-    private boolean sendMail(final TeamEventDO event, final TeamEventDiff diff, TeamEventAttendeeDO attendee, final EventMailType mailType) {
-        final PFUserDO sender = ThreadLocalUserContext.getLoggedInUser();
-
-        if (sender == null) {
-            return false;
-        }
-
-        final Mail msg = createMail(event, mailType, sender);
-        final Map<String, Object> dataMap = createData(event, diff, sender, attendee, mailType);
-
-        // add attendee as receiver
-        if (StringUtils.isNotBlank(attendee.getEMailAddress())) {
-            msg.addTo(attendee.getEMailAddress());
-        } else if (StringUtils.isNotBlank(attendee.getUrl())) {
-            msg.addTo(attendee.getUrl());
-        }
-
-        if (msg.getTo().isEmpty()) {
-            return false;
-        }
-
-        // set mail content
-        final String content = sendMail.renderGroovyTemplate(msg,
-                "mail/teamEventEmail.html",
-                dataMap,
-                I18nHelper.getLocalizedMessage("plugins.teamcal.event.title.heading"),
-                ThreadLocalUserContext.getLoggedInUser());
-        msg.setContent(content);
-
-        // create iCal
-        Method method = null;
-        switch (mailType) {
-            case NEW:
-            case UPDATED:
-                method = Method.REQUEST;
-                break;
-            case DELETED:
-                method = Method.CANCEL;
-                break;
-        }
-
-        final ICalGenerator generator = ICalGenerator.forMethod(method);
-        generator.addEvent(event);
-        ByteArrayOutputStream icsFile = generator.getCalendarAsByteStream();
-
-        String ics = icsFile.toString(StandardCharsets.UTF_8);
-
-        // send mail & return result
-        return sendMail.send(msg, ics, null);
-    }
-
-    private Mail createMail(final TeamEventDO event, final EventMailType mailType, final PFUserDO sender) {
-        final Mail msg = new Mail();
-        msg.setFrom(sender.getEmail());
-        msg.setFromRealname(sender.getFullname());
-
-        msg.setContentType(Mail.CONTENTTYPE_HTML);
-        final String subject = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.subject." + mailType.name().toLowerCase(),
-                sender.getFullname(), event.getSubject());
-        msg.setProjectForgeSubject(subject);
-        return msg;
-    }
-
-    private Map<String, Object> createData(final TeamEventDO event, final TeamEventDiff diff, final PFUserDO sender,
-                                           TeamEventAttendeeDO attendee, final EventMailType mailType) {
-        // get local and timezone
-        final Locale locale;
-        final TimeZone timezone;
-
-        if (attendee.getUser() != null) {
-            locale = attendee.getUser().getLocale() != null ? attendee.getUser().getLocale() : ThreadLocalUserContext.getLocale();
-            timezone = attendee.getUser().getTimeZone();
-        } else {
-            locale = sender.getLocale() != null ? sender.getLocale() : ThreadLocalUserContext.getLocale();
-            timezone = sender.getTimeZone();
-        }
-
-        // TODO rework!
-        // TODO add diff stuff if updated
-        DateFormat formatter = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
-        formatter.setTimeZone(timezone);
-
-        final Map<String, Object> dataMap = new HashMap<>();
-        PFDateTime startDate = PFDateTime.fromOrNow(event.getStartDate(), timezone);
-        PFDateTime endDate = PFDateTime.fromOrNow(event.getEndDate(), timezone);
-
-        String location = event.getLocation() != null ? event.getLocation() : "";
-        String note = event.getNote() != null ? event.getNote() : "";
-        formatter = new SimpleDateFormat("EEEE", locale);
-        formatter.setTimeZone(timezone);
-        String startDay = formatter.format(startDate.getUtilDate());
-        String endDay = formatter.format(endDate.getUtilDate());
-
-        formatter = new SimpleDateFormat("dd. MMMMM YYYY HH:mm", locale);
-        formatter.setTimeZone(timezone);
-        String beginDateTime = formatter.format(startDate.getUtilDate());
-        String endDateTime = formatter.format(endDate.getUtilDate());
-        String invitationText = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.content." + mailType.name().toLowerCase(),
-                sender.getFullname(), event.getSubject());
-        String beginText = startDay + ", " + beginDateTime + " " + I18nHelper.getLocalizedMessage("oclock") + ".";
-        String endText = endDay + ", " + endDateTime + " " + I18nHelper.getLocalizedMessage("oclock") + ".";
-        String dayOfWeek = startDay;
-
-        String fromToHeader;
-        if (startDate.getDayOfMonth() == endDate.getDayOfMonth()) //Einen Tag
-        {
-            formatter = new SimpleDateFormat("HH:mm", locale);
-            formatter.setTimeZone(timezone);
-            String endTime = formatter.format(endDate.getUtilDate());
-            fromToHeader =
-                    beginDateTime + " - " + endTime + " " + I18nHelper.getLocalizedMessage("oclock") + ".";
-        } else    //Mehrere Tage
-        {
-            fromToHeader = beginDateTime;
-        }
-        if (event.getAllDay()) {
-            formatter = new SimpleDateFormat("dd. MMMMM YYYY", locale);
-            formatter.setTimeZone(timezone);
-            fromToHeader = formatter.format(startDate.getUtilDate());
-            formatter = new SimpleDateFormat("EEEE, dd. MMMMM YYYY", locale);
-            formatter.setTimeZone(timezone);
-            beginText =
-                    I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + formatter.format(startDate.getUtilDate());
-            endText = I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + formatter.format(endDate.getUtilDate());
-        }
-        List<String> attendeeList = new ArrayList<>();
-        for (TeamEventAttendeeDO attendees : event.getAttendees()) {
-            attendeeList.add(attendees.getAddress() != null ? attendees.getAddress().getEmail() : attendees.getUrl());
-        }
-        String repeat = "";
-        RRule rRule = null;
-        ArrayList<String> exDate = new ArrayList<>();
-        if (event.hasRecurrence()) {
-            try {
-                rRule = new RRule(event.getRecurrenceRule());
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-            repeat = getRepeatText(rRule);
-            formatter = new SimpleDateFormat("dd.MM.yyyy", locale);
-            if (event.getRecurrenceExDate() != null && event.getRecurrenceExDate().length() > 7) {
-                String[] exDateSplit = event.getRecurrenceExDate().split(",");
-                for (int i = 0; i < exDateSplit.length - 1; i++) {
-                    Date date = ICal4JUtils.parseICalDateString(exDateSplit[i], timezone);
-                    if (date != null) {
-                        exDate.add(formatter.format(date));
-                    }
-                }
-            }
-        }
-
-        dataMap.put("dayOfWeek", dayOfWeek);
-        dataMap.put("fromToHeader", fromToHeader);
-        dataMap.put("invitationText", invitationText);
-        dataMap.put("beginText", beginText);
-        dataMap.put("endText", endText);
-        dataMap.put("attendeeList", attendeeList);
-        dataMap.put("location", location);
-        dataMap.put("note", note);
-        dataMap.put("acceptLink", getResponseLink(event, attendee, TeamEventAttendeeStatus.ACCEPTED));
-        dataMap.put("declineLink", getResponseLink(event, attendee, TeamEventAttendeeStatus.DECLINED));
-        dataMap.put("deleted", mailType == EventMailType.DELETED ? "true" : "false");
-        dataMap.put("hasRRule", event.hasRecurrence() ? "true" : "false");
-        dataMap.put("repeat", repeat);
-        dataMap.put("exDateList", exDate);
-
-        return dataMap;
-    }
-
-    private String getResponseLink(TeamEventDO event, TeamEventAttendeeDO attendee, TeamEventAttendeeStatus status) {
-        final String messageParamBegin = "calendar=" + event.getCalendarId() + "&uid=" + event.getUid() + "&attendee=" + attendee.getId();
-        final String acceptParams = cryptService.encryptParameterMessage(messageParamBegin + "&status=" + status.name());
-        return domainService.getDomain(TeamCalResponseServlet.PFCALENDAR + "?" + acceptParams);
-    }
-
-    private String getRepeatText(RRule rRule) {
-        String msg = "";
-        StringBuilder stringBuilder = new StringBuilder();
-        switch (rRule.getRecur().getFrequency()) {
-            case DAILY: {
-                //JEDEN
-                if (rRule.getRecur().getInterval() == -1) {
-                    msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyDay");
-                } else //ALLE ...
-                {
-                    msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.allDay", rRule.getRecur().getInterval());
-                }
-            }
-            break;
-            case WEEKLY: {
-                //JEDEN
-                if (rRule.getRecur().getInterval() == -1) {
-                    msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyWeek");
-                } else //ALLE ...
-                {
-                    msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.allWeeks", rRule.getRecur().getInterval());
-                }
-            }
-            break;
-            case MONTHLY: {
-                //JEDEN
-                if (rRule.getRecur().getInterval() == -1) {
-                    msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyMonth");
-                } else //ALLE ...
-                {
-                    msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.allMonth", rRule.getRecur().getInterval());
-                }
-            }
-            break;
-            case YEARLY: {
-                //JEDEN
-                if (rRule.getRecur().getInterval() == -1) {
-                    msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyYear");
-                } else //ALLE ...
-                {
-                    msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.allYear", rRule.getRecur().getInterval());
-                }
-            }
-            break;
-        }
-
-        //BIS ZUM
-        if (rRule.getRecur().getUntil() != null) {
-            SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.YYYY", ThreadLocalUserContext.getLocale());
-            Date date = new Date(rRule.getRecur().getUntil().getTime());
-            msg += stringBuilder.append(" " + I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.endsAt", formatter.format(date))).toString();
-        }//... MALE
-        else if (rRule.getRecur().getCount() != -1) {
-            msg += stringBuilder.append(", " + I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.endsBy", rRule.getRecur().getCount())).toString();
-        }//FÜR IMMER
-        else {
-
-        }
-
-        return msg;
-    }
-
-    @Override
     public TeamEventDO findByUid(Long calendarId, String reqEventUid, boolean excludeDeleted) {
         return teamEventDao.getByUid(calendarId, reqEventUid, excludeDeleted);
     }
@@ -614,11 +266,6 @@ public class TeamEventServiceImpl implements TeamEventService {
         TeamEventAttendeeDO result = null;
         result = teamEventAttendeeDao.find(attendeeId, checkAccess);
         return result;
-    }
-
-    @Override
-    public TeamEventAttendeeDO findByAttendeeId(Long attendeeId) {
-        return findByAttendeeId(attendeeId, true);
     }
 
     @Override
@@ -674,11 +321,6 @@ public class TeamEventServiceImpl implements TeamEventService {
     @Override
     public void updateAttendee(TeamEventAttendeeDO attendee, boolean checkAccess) {
         teamEventAttendeeDao.update(attendee, checkAccess);
-    }
-
-    @Override
-    public List<Long> getCalIdList(Collection<TeamCalDO> teamCals) {
-        return teamEventDao.getCalIdList(teamCals);
     }
 
     @Override
