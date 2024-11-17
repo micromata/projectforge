@@ -223,19 +223,19 @@
                                     <groupId>org.jetbrains.kotlin</groupId>
                                     <artifactId>kotlin-compiler-embeddable</artifactId>
                                     <version>2.0.21</version>
-                                    <outputDirectory>${project.build.outputDirectory}/lib</outputDirectory>
+                                    <outputDirectory>${project.build.outputDirectory}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>org.jetbrains.kotlin</groupId>
                                     <artifactId>kotlin-scripting-jsr223</artifactId>
                                     <version>2.0.21</version>
-                                    <outputDirectory>${project.build.outputDirectory}/lib</outputDirectory>
+                                    <outputDirectory>${project.build.outputDirectory}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>org.jetbrains.kotlin</groupId>
                                     <artifactId>kotlin-stdlib</artifactId>
                                     <version>2.0.21</version>
-                                    <outputDirectory>${project.build.outputDirectory}/lib</outputDirectory>
+                                    <outputDirectory>${project.build.outputDirectory}</outputDirectory>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>

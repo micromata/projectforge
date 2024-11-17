@@ -93,6 +93,9 @@ open class SendMail {
   @Value("\${mail.session.pfmailsession.encryption}")
   private var mailSmtpEncryptionProtocol: String? = null
 
+  @Value("\${mail.session.pfmailsession.smtp.localhost}")
+  private var mailLocalHost: String? = null
+
   @Value("\${mail.session.pfmailsession.smtp.host}")
   private var mailSmtpHost: String? = null
 
@@ -173,6 +176,11 @@ open class SendMail {
       properties["mail.smtp.host"] = this.mailSmtpHost // Replace with your SMTP server
       properties["mail.smtp.port"] = this.mailSmtpPort ?: "25" // Replace with your SMTP server port
       properties["mail.smtp.auth"] = this.mailSmtpAuth // Enable authentication
+      this.mailLocalHost
+        ?.takeIf { it.isNotBlank() }
+        ?.let { properties["mail.smtp.localhost"] = it.trim() } // FQDN setzen
+      // properties["mail.smtp.starttls.enable"] = "true"
+      // properties["mail.smtp.ssl.protocols"] = "TLSv1.2"
 
       this.mailSmtpUser?.let { properties["mail.smtp.user"] = it }
       this.mailSmtpPassword?.let { properties["mail.smtp.password"] = it }
@@ -189,7 +197,9 @@ open class SendMail {
         }
       }
       properties["mail.mime.charset"] = CHARSET
-      mailFromStandardEmailSender?.let { properties["mail.from"] = it }
+      mailFromStandardEmailSender
+        ?.takeIf { it.isNotBlank() }
+        ?.let { properties["mail.from"] = it.trim() }
       // properties.put("mail.debug", java.lang.Boolean.toString(smptDebug))
 
       // Create a mail session
@@ -203,11 +213,17 @@ open class SendMail {
     log.info("Start sending e-mail message: " + StringUtils.join(composedMessage.to, ", "))
     try {
       val session = session
+      /*if (SystemStatus.isDevelopmentMode()) {
+        session!!.setDebug(true)
+      }*/
       val message = MimeMessage(session)
       if (composedMessage.from != null) {
         message.setFrom(InternetAddress(composedMessage.from))
       } else {
-        message.setFrom()
+        mailFromStandardEmailSender
+          ?.takeIf { it.isNotBlank() }
+          ?.let { message.setFrom(InternetAddress(it)) }
+          ?: message.setFrom()
       }
       message.setRecipients(
         Message.RecipientType.TO,
@@ -219,6 +235,8 @@ open class SendMail {
           composedMessage.cc.toTypedArray<Address>()
         )
       }
+      //message.setHeader("Return-Path", "")
+      //message.setHeader("Reply-To", "")
       val subject = composedMessage.subject
       message.setSubject(subject, CHARSET)
       message.sentDate = Date()
@@ -229,6 +247,8 @@ open class SendMail {
         } else {
           message.setText(composedMessage.content, CHARSET)
         }
+        // message.setContent("Dies ist eine einfache Testnachricht.", "text/plain; charset=UTF-8");
+        // message.setText("Einfache Textnachricht")
       } else {
         // create message with attachments
         val mp = createMailAttachmentContent(message, composedMessage, icalContent, attachments, CHARSET)

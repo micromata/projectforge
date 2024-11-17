@@ -58,11 +58,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!--dependency> Java 11
-          <groupId>com.sun.activation</groupId>
-          <artifactId>javax.activation</artifactId>
-          <version>1.2.0</version>
-        </dependency-->
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
@@ -96,7 +91,6 @@
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
             <version>${kotlin.version}</version>
-            <scope>provided</scope> <!-- Provided by projectforge-application as unpacked jar files. -->
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -216,6 +210,11 @@
         <dependency>
             <groupId>jakarta.mail</groupId>
             <artifactId>jakarta.mail-api</artifactId>
+            <version>${jakarta.mail-api}</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.activation</groupId>
+            <artifactId>jakarta.activation-api</artifactId>
             <version>${jakarta.mail-api}</version>
         </dependency>
         <dependency>
