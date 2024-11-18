@@ -28,6 +28,7 @@ import mu.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressImageDao
+import org.projectforge.business.address.vcard.VCardUtils
 import org.projectforge.caldav.model.AddressBook
 import org.projectforge.caldav.model.Contact
 import org.projectforge.framework.access.OperationType
@@ -49,9 +50,6 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
     @Autowired
     private lateinit var addressImageDao: AddressImageDao
 
-    @Autowired
-    private lateinit var vCardService: VCardService
-
     private var contactMap = mutableMapOf<Long, Contact>()
 
     open fun getContacts(addressBook: AddressBook, ids: List<Long>): List<Contact> {
@@ -69,7 +67,7 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
         log.info("Got ${result.size} addresses from cache and must load ${missedInCache.size} from data base...")
         if (missedInCache.size > 0) {
             addressDao.select(missedInCache, checkAccess = false)?.forEach {
-                val vcard = vCardService.buildVCardByteArray(it, addressImageDao)
+                val vcard = VCardUtils.buildVCardByteArray(it, addressImageDao)
                 val contact = Contact(it.id, it.fullName, it.lastUpdate, vcard)
                 addCachedContact(it.id!!, contact)
                 val copy = Contact(contact, addressBook)

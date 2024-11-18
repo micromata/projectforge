@@ -10,7 +10,6 @@
     </parent>
     <properties>
         <milton.version>4.0.5.2400</milton.version>
-        <ez-vcard.version>0.12.1</ez-vcard.version>
     </properties>
     <licenses>
         <license>

@@ -212,6 +212,8 @@ open class ConfigurationDO : DefaultBaseDO {
         } else if (this.configurationType == ConfigurationType.LONG
                 || this.configurationType == ConfigurationType.CALENDAR) {
             this.longValue
+        } else if (this.configurationType == ConfigurationType.INTEGER) {
+            this.longValue?.toInt()
         } else if (this.configurationType == ConfigurationType.FLOAT || this.configurationType == ConfigurationType.PERCENT) {
             this.floatValue
         } else if (this.configurationType == ConfigurationType.BOOLEAN) {

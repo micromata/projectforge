@@ -105,11 +105,11 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
     override var subject: String? = null
 
     /**
-     * True, if this event is read only (e.g. imported from an iCal file).
+     * True, if this event was imported from an iCal file.
      * It's true, if the originalIcsEntry is not empty.
      */
     @get:Transient
-    open val readOnly: Boolean
+    open val hasOriginalIcsEntry: Boolean
         get() = !originalIcsEntry.isNullOrBlank()
 
     @PropertyInfo(i18nKey = "plugins.teamcal.event.location")
@@ -154,7 +154,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
 
     /**
      * The original event as iCal string, if read from an iCal file.
-     * If existing, all other fields such as dtStamp, recurrence etc .are ignored.
+     * It's useful for preserving properties not (yet) supported by ProjectForge, as attendeed etc.
      */
     @get:Column(name = "original_ics_entry")
     open var originalIcsEntry: String? = null

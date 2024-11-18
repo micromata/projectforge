@@ -23,23 +23,17 @@
 
 package org.projectforge.web.address;
 
-import net.fortuna.ical4j.vcard.VCardBuilder;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.model.PropertyModel;
-import org.joda.time.DateTime;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.vcard.VCardUtils;
-import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.FileUploadPanel;
 import org.slf4j.Logger;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -90,10 +84,8 @@ public class AddressImportForm extends AbstractEditForm<AddressDO, AddressImport
                 feedbackPanel.error(getString("address.book.vCardImport.wrongFileType"));
             } else {
                 try {
-                    final File file = upload.writeToTempFile();
-
-                    final FileInputStream fis = new FileInputStream(file);
-                    final List<AddressDO> newAddresses = VCardUtils.convert(fis);
+                    final byte[] bytes = upload.getBytes();
+                    final List<AddressDO> newAddresses = VCardUtils.parseFromByteArray(bytes);
 
                     for (final AddressDO address : newAddresses) {
                         getBaseDao().insert(address);
