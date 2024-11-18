@@ -23,20 +23,41 @@
 
 package org.projectforge.business.address.vcard
 
-import org.junit.Test
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import org.projectforge.business.address.AddressDO
+import org.projectforge.business.address.AddressImageDao
+import java.nio.charset.StandardCharsets
+import java.time.LocalDate
+import java.time.Month
 
 class VCardUtilsTest {
     @Test
-    fun testConvert() {
-        //VCardUtils.convert(EXAMPLE_VCF)
+    fun `test converting of vcards from and to AddressDO`() {
+        AddressDO().also { address ->
+            address.birthday = LocalDate.of(1970, Month.NOVEMBER, 11)
+            address.firstName = "Kai"
+            address.name = "Reinhard"
+            val byteArray = VCardUtils.buildVCardByteArray(address, AddressImageDao())
+            Assertions.assertTrue(byteArray.toString(StandardCharsets.UTF_8).contains("BDAY:1970-11-11"))
+        }
+        val vcard = VCardUtils.parseVCardsFromByteArray(EXAMPLE_VCF.toByteArray(StandardCharsets.UTF_8))
+        Assertions.assertEquals(1, vcard.size)
+        VCardUtils.buildAddressDO(vcard[0]).also { address ->
+            Assertions.assertEquals("John", address.firstName)
+            Assertions.assertEquals("Doe", address.name)
+            Assertions.assertEquals(LocalDate.of(1970, Month.NOVEMBER, 11), address.birthday)
+        }
     }
 
-    private val EXAMPLE_VCF = """BEGIN:VCARD
-            VERSION:3.0
-            FN:John Doe
-            N:Doe;John;;;
-            ADR;TYPE=HOME:;;123 Main Street;Anytown;CA;12345;USA
-            TEL;TYPE=CELL:+1-123-456-7890
-            EMAIL:john.doe@example.com
-            END:VCARD""".trimIndent()
+    private val EXAMPLE_VCF = """
+        BEGIN:VCARD
+        VERSION:3.0
+        FN:John Doe
+        N:Doe;John;;;
+        ADR;TYPE=HOME:;;123 Main Street;Anytown;CA;12345;USA
+        TEL;TYPE=CELL:+1-123-456-7890
+        EMAIL:john.doe@example.com
+        BDAY:1970-11-11
+        END:VCARD""".trimIndent()
 }

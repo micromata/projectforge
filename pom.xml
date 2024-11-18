@@ -232,6 +232,7 @@
         <bouncy-castle.version>1.79</bouncy-castle.version> <!-- Check 11.08.2024: bcprov-jdk18on -->
         <aspectjtools.version>1.9.22.1</aspectjtools.version> <!-- Check 11.08.2024 -->
         <dom4j.version>2.1.4</dom4j.version> <!-- Check 11.08.2024 -->
+        <ez-vcard.version>0.12.1</ez-vcard.version>
         <flyway.version>10.17.0</flyway.version> <!-- Last check: 11.08.2024 Flyway Engine -->
         <fop.version>2.9</fop.version> <!-- Check 15.11.2024 -->
         <glassfish-jaxb.version>4.0.5</glassfish-jaxb.version> <!-- Check 08.11.2024 -->

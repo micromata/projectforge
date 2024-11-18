@@ -25,10 +25,10 @@ package org.projectforge.caldav.service
 
 import mu.KotlinLogging
 import org.projectforge.business.address.PersonalAddressDao
+import org.projectforge.business.address.vcard.VCardUtils
 import org.projectforge.caldav.model.AddressBook
 import org.projectforge.caldav.model.Contact
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -41,9 +41,6 @@ class AddressService {
 
     @Autowired
     private lateinit var personalAddressDao: PersonalAddressDao
-
-    @Autowired
-    private lateinit var vCardService: VCardService
 
     fun getContactList(addressBook: AddressBook): List<Contact> {
         val favorites = personalAddressDao.favoriteAddressIdList
@@ -79,7 +76,14 @@ class AddressService {
 
     fun deleteContact(contact: Contact) {
         try {
-            val vcard = vCardService.getVCardFromByteArray(contact.vcardData) ?: return
+            val list = VCardUtils.parseVCardsFromByteArray(contact.vcardData)
+            if (list.isEmpty()) {
+                return // Nothing to do.
+            }
+            if (list.size > 1) {
+                log.warn { "More than one vcard found in contact. Deleting only the first one." }
+            }
+            val vcard = list[0]
             val personalAddress = personalAddressDao.getByAddressUid(vcard.uid.value)
             if (personalAddress?.isFavorite == true) {
                 personalAddress.isFavoriteCard = false
@@ -89,9 +93,5 @@ class AddressService {
         } catch (e: Exception) {
             log.error("Exception while deleting contact: " + contact.name, e)
         }
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(AddressService::class.java)
     }
 }

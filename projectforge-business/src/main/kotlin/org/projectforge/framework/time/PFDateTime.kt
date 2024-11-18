@@ -463,6 +463,8 @@ open class PFDateTime internal constructor(
     val localTime: LocalTime
         get() = dateTime.toLocalTime()
 
+    val pfDay: PFDay
+        get() = PFDay.from(localDate)
 
     companion object {
         /**
@@ -700,7 +702,7 @@ open class PFDateTime internal constructor(
          */
         @JvmStatic
         @JvmOverloads
-        fun fromTemporalOrNull(date: LocalDate?, zoneId: ZoneId? = null, locale: Locale? = null): PFDateTime? {
+        fun fromTemporalOrNull(date: Temporal?, zoneId: ZoneId? = null, locale: Locale? = null): PFDateTime? {
             date ?: return null
             return fromTemporal(date, zoneId, locale)
         }
