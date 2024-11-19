@@ -26,14 +26,19 @@ package org.projectforge.business.scripting
 import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import java.io.File
+import java.net.URL
+import java.net.URLClassLoader
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.toScriptSource
+import kotlin.script.experimental.jvm.dependenciesFromClassloader
 import kotlin.script.experimental.jvm.dependenciesFromCurrentContext
 import kotlin.script.experimental.jvm.jvm
+import kotlin.script.experimental.jvm.updateClasspath
 import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 
 private val log = KotlinLogging.logger {}
@@ -51,32 +56,23 @@ class KotlinScriptExecutor : ScriptExecutor() {
         }
     }
 
-    companion object {
-        private val bindingsClassReplacements = mapOf(
-            "java.lang.String" to "String",
-            "java.lang.Integer" to "Int",
-            "java.lang.Boolean" to "Boolean",
-            "java.util.HashMap" to "MutableMap<*, *>",
-        )
-
-        private val kotlinImports = listOf(
-            "import org.projectforge.framework.i18n.translate",
-            "import org.projectforge.framework.i18n.translateMsg",
-            "import org.projectforge.business.PfCaches.Companion.initialize"
-        )
-    }
-
-    /**
-     * @param script Common imports will be prepended.
-     * @param variables Variables to bind. Variables are usable via binding["key"] or directly, if #autobind# is part of script.
-     * @see GroovyExecutor.executeTemplate
-     */
     override fun execute(): ScriptExecutionResult {
         val scriptingHost = MyScriptingHost()
+        val combinedClassPath = KotlinScriptJarExtractor.combinedClasspath
 
         val compilationConfiguration = ScriptCompilationConfiguration {
             jvm {
-                dependenciesFromCurrentContext(wholeClasspath = true)
+                if (combinedClassPath != null) {
+                    val urls: Array<URL> = combinedClassPath.map { it.toURI().toURL() }.toTypedArray()
+                    val customClassLoader = URLClassLoader(urls, Thread.currentThread().contextClassLoader)
+                    urls.forEach { println("***** Classpath URL: $it") }
+                    val resource = customClassLoader.getResource("META-INF/extensions/compiler.xml")
+                    println("************************** Compiler.xml found at: $resource")
+                    dependenciesFromClassloader(classLoader = customClassLoader, wholeClasspath = true)
+                } else {
+                    // Not running in jar file (e.g. in IDE)
+                    dependenciesFromCurrentContext(wholeClasspath = true)
+                }
             }
             providedProperties("context" to KotlinScriptContext::class)
             compilerOptions.append("-nowarn")
@@ -239,5 +235,24 @@ class KotlinScriptExecutor : ScriptExecutor() {
             line2?.let { logger.add(it, severity) }
         }
         scriptExecutionResult.result = result.valueOrNull()
+    }
+
+    companion object {
+        private val bindingsClassReplacements = mapOf(
+            "java.lang.String" to "String",
+            "java.lang.Integer" to "Int",
+            "java.lang.Boolean" to "Boolean",
+            "java.util.HashMap" to "MutableMap<*, *>",
+        )
+
+        private val kotlinImports = listOf(
+            "import org.projectforge.framework.i18n.translate",
+            "import org.projectforge.framework.i18n.translateMsg",
+            "import org.projectforge.business.PfCaches.Companion.initialize"
+        )
+        val classpath = listOf(
+            File("BOOT-INF/classes/lib"), // Directory of unpacked classes.
+            // File("path/to/other/jars/specific-library.jar") // Additional dependencies if required.
+        )
     }
 }
