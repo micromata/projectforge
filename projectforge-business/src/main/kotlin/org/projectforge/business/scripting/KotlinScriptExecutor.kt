@@ -24,6 +24,7 @@
 package org.projectforge.business.scripting
 
 import mu.KotlinLogging
+import org.projectforge.business.scripting.KotlinScriptJarExtractor.finalClasspathURLs
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.io.File
@@ -35,51 +36,94 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.toScriptSource
-import kotlin.script.experimental.jvm.dependenciesFromClassloader
-import kotlin.script.experimental.jvm.dependenciesFromCurrentContext
-import kotlin.script.experimental.jvm.jvm
-import kotlin.script.experimental.jvm.updateClasspath
+import kotlin.script.experimental.jvm.*
 import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 
 private val log = KotlinLogging.logger {}
 
 class KotlinScriptExecutor : ScriptExecutor() {
-    class MyScriptingHost : BasicJvmScriptingHost() {
+    class CustomClassLoader(val id: String) :
+        URLClassLoader(finalClasspathURLs, Thread.currentThread().contextClassLoader) {
+
+        override fun findResource(name: String): URL? {
+            val url = super.findResource(name)
+            log.debug { "CustomClassLoader ($id): Looking for resource $name: $url" }
+            return url
+        }
+
+        override fun findClass(name: String?): Class<*>? {
+            log.debug { "CustomClassLoader ($id): findClass $name" }
+            return super.findClass(name)
+        }
+
+        override fun findClass(moduleName: String?, name: String?): Class<*>? {
+            log.debug { "CustomClassLoader ($id): findClass $moduleName: $name" }
+            return super.findClass(moduleName, name)
+        }
+
+        override fun getResource(name: String): URL? {
+            if (name == "META-INF/extensions/compiler.xml") {
+                val url =
+                    KotlinScriptJarExtractor.libDir.resolve("classes/META-INF/extensions/compiler.xml").toURI().toURL()
+                log.debug { "CustomClassLoader ($id): Loading resource $name: $url" }
+                return url
+            }
+            val url = super.getResource(name)
+            log.debug { "CustomClassLoader ($id): Loading resource $name: $url" }
+            return url
+        }
+    }
+
+    class MyScriptingHost : BasicJvmScriptingHost(evaluator = CustomScriptEvaluator(CustomClassLoader("MyScriptingHost"))) {
         val loggedInUser = ThreadLocalUserContext.loggedInUser
         override fun <T> runInCoroutineContext(block: suspend () -> T): T {
             try {
+                log.debug { "MyScriptingHost: Setting user context: $loggedInUser" }
                 ThreadLocalUserContext.setUser(loggedInUser)
+                finalClasspathURLs?.let { classpath ->
+                    Thread.currentThread().contextClassLoader = CustomClassLoader("run on host")
+                }
+                checkResource()
                 return super.runInCoroutineContext(block)
             } finally {
                 ThreadLocalUserContext.clear()
             }
         }
-    }
 
-    class CustomClassLoader(urls: Array<URL>, parent: ClassLoader?) : URLClassLoader(urls, parent) {
-        override fun findResource(name: String): URL? {
-            log.debug{"CustomClassLoader: Looking for resource $name"}
-            return super.findResource(name)
-        }
-
-        override fun getResource(name: String): URL? {
-            log.debug{"CustomClassLoader: Loading resource $name"}
-            return super.getResource(name)
+        fun checkResource() {
+            val resource = Thread.currentThread().contextClassLoader.getResource("META-INF/extensions/compiler.xml")
+            println("**************** Resource found in ScriptingHost: $resource")
         }
     }
+
+    class CustomScriptEvaluator(
+        private val customClassLoader: ClassLoader
+    ) : BasicJvmScriptEvaluator() {
+        override suspend fun invoke(
+            compiledScript: CompiledScript,
+            scriptEvaluationConfiguration: ScriptEvaluationConfiguration
+        ): ResultWithDiagnostics<EvaluationResult> {
+            Thread.currentThread().contextClassLoader = customClassLoader
+            return super.invoke(compiledScript, scriptEvaluationConfiguration)
+        }
+    }
+    val customClassLoader = CustomClassLoader("compile")
+
     override fun execute(): ScriptExecutionResult {
         val scriptingHost = MyScriptingHost()
         val finalClasspath = KotlinScriptJarExtractor.combinedClasspathFiles
         val compilationConfiguration = ScriptCompilationConfiguration {
             jvm {
                 if (finalClasspath != null) {
-                    val classpathUrls = finalClasspath.map { it.toURI().toURL() }.toTypedArray()
-                    val customClassLoader = CustomClassLoader(classpathUrls, Thread.currentThread().contextClassLoader)
-                    log.debug{"Using final classpath: ${finalClasspath.joinToString()}"}
-                    updateClasspath(finalClasspath)
-                    // dependenciesFromClassloader(classLoader = customClassLoader, wholeClasspath = true)
-                    //updateClasspath(finalClasspath)
+                    log.debug { "Using final classpath: ${finalClasspath.joinToString()}" }
+                    //dependenciesFromClassloader(*finalClasspath.map { it.name }.toTypedArray(), wholeClasspath = true)
+                    //CompilerConfiguration.addJvmClasspathRoots(classpathUrls)
                     //dependenciesFromClassloader(classLoader = customClassLoader, wholeClasspath = true)
+                    Thread.currentThread().contextClassLoader = CustomClassLoader("compileConfig")
+                    updateClasspath(finalClasspath)
+                    dependenciesFromCurrentContext(wholeClasspath = true)
+
+                    dependencies(JvmDependencyFromClassLoader { customClassLoader })
                 } else {
                     // Not running in jar file (e.g. in IDE)
                     dependenciesFromCurrentContext(wholeClasspath = true)
@@ -96,10 +140,13 @@ class KotlinScriptExecutor : ScriptExecutor() {
             context.setProperty(createValidIdentifier(it.parameterName), it.value)
         }
         val evaluationConfiguration = ScriptEvaluationConfiguration {
+            jvm {
+                baseClassLoader(CustomClassLoader("evalConfig"))
+            }
             providedProperties("context" to context)
         }
         val scriptSource = effectiveScript.trimIndent().toScriptSource()
-        val result = execute(scriptingHost, scriptSource, compilationConfiguration, evaluationConfiguration)
+        val result = testExecute(scriptingHost, scriptSource, compilationConfiguration, evaluationConfiguration)
         result?.let { useResult ->
             handleResult(scriptExecutionResult, result)
             if (useResult is ResultWithDiagnostics.Success) {
@@ -113,8 +160,61 @@ class KotlinScriptExecutor : ScriptExecutor() {
         return scriptExecutionResult
     }
 
+    fun executeTest(): ScriptExecutionResult {
+        val scriptingHost = MyScriptingHost()
+        val finalClasspath = KotlinScriptJarExtractor.combinedClasspathFiles!!
+        val compilationConfiguration = ScriptCompilationConfiguration {
+            jvm {
+                dependenciesFromCurrentContext(wholeClasspath = true)
+                println("Using final classpath: ${finalClasspath.joinToString { it.absolutePath }}")
+                updateClasspath(finalClasspath)
+            }
+            providedProperties("context" to KotlinScriptContext::class)
+            compilerOptions.append("-nowarn")
+        }
+        val context = KotlinScriptContext()
+        variables.forEach {
+            context.setProperty(it.key, it.value)
+        }
+        scriptParameterList?.forEach {
+            context.setProperty(createValidIdentifier(it.parameterName), it.value)
+        }
+        val evaluationConfiguration = ScriptEvaluationConfiguration {
+            providedProperties("context" to context)
+        }
+        val scriptSource = effectiveScript.trimIndent().toScriptSource()
+        val customClassLoader = URLClassLoader(
+            finalClasspath.map { it.toURI().toURL() }.toTypedArray(),
+            Thread.currentThread().contextClassLoader
+        )
+
+        Thread.currentThread().contextClassLoader = customClassLoader
+        scriptingHost.checkResource()
+        val result = scriptingHost.eval(scriptSource, compilationConfiguration, evaluationConfiguration)
+        /*result.let { useResult ->
+            handleResult(scriptExecutionResult, result)
+            if (useResult is ResultWithDiagnostics.Success) {
+                val returnValue = useResult.value.returnValue
+                if (returnValue is ResultValue.Value) {
+                    val output = returnValue.value
+                    scriptExecutionResult.result = output
+                }
+            }
+        }*/
+        return scriptExecutionResult
+    }
+
+    private fun testExecute(
+        scriptingHost: MyScriptingHost,
+        scriptSource: SourceCode,
+        compilationConfiguration: ScriptCompilationConfiguration,
+        evaluationConfiguration: ScriptEvaluationConfiguration,
+    ): ResultWithDiagnostics<EvaluationResult>? {
+        return scriptingHost.eval(scriptSource, compilationConfiguration, evaluationConfiguration)
+    }
+
     private fun execute(
-        scriptingHost: BasicJvmScriptingHost,
+        scriptingHost: MyScriptingHost,
         scriptSource: SourceCode,
         compilationConfiguration: ScriptCompilationConfiguration,
         evaluationConfiguration: ScriptEvaluationConfiguration,
@@ -123,6 +223,8 @@ class KotlinScriptExecutor : ScriptExecutor() {
         var future: Future<ResultWithDiagnostics<EvaluationResult>>? = null
         try {
             future = executor.submit<ResultWithDiagnostics<EvaluationResult>> {
+                Thread.currentThread().contextClassLoader = CustomClassLoader("future")
+                log.debug { "Classpath of thread: ${KotlinScriptJarExtractor.finalClasspathURLs?.joinToString()}" }
                 scriptingHost.eval(scriptSource, compilationConfiguration, evaluationConfiguration)
             }
             return future.get(300, TimeUnit.SECONDS)  // Timeout

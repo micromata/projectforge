@@ -26,6 +26,9 @@ package org.projectforge.business.scripting
 import mu.KotlinLogging
 import org.projectforge.framework.configuration.ConfigXml
 import java.io.File
+import java.io.InputStream
+import java.net.URL
+import java.nio.file.Files
 import java.util.jar.JarFile
 
 private val log = KotlinLogging.logger {}
@@ -41,20 +44,15 @@ internal object KotlinScriptJarExtractor { // : KotlinJsr223JvmScriptEngineFacto
      */
     var combinedClasspathFiles: MutableList<File>? = null
         private set
-    var combinedClassPath: Array<String>? = null
-    var finalClasspath: List<File>? = null
+    var finalClasspathURLs: Array<URL>? = null
+    private set
+    var finalClasspathFiles: List<File>? = null
         private set
-    private val libDir = File(ConfigXml.getInstance().tempDirectory, "scriptClassPath")
+    val libDir = File(ConfigXml.getInstance().tempDirectory, "scriptClassPath")
     private val extractedFiles = mutableListOf<File>()
     private val extractJars = listOf(
-        //"merlin-core",
-        //"org.projectforge",
-        //"projectforge",
-        //"kotlin-stdlib",
+        //"none-to-extract",
         "kotlin-compiler-embeddable",
-        "kotlin-scripting-",
-        //"kotlin-script-util",
-        //"poi"
     ).map { Regex("""$it-\d+(\.\d+)*\.jar${'$'}""") }
     private val copyJars = listOf(
         //"merlin-core",
@@ -62,7 +60,9 @@ internal object KotlinScriptJarExtractor { // : KotlinJsr223JvmScriptEngineFacto
         //"projectforge",
         //"kotlin-stdlib",
         "kotlin-stdlib",
-        """kotlin-scripting-\*"""
+        "kotlin-compiler-embeddable",
+        "kotlin-scripting-compiler-embeddable",
+        "kotlin-scripting-jsr223",
         //"kotlin-script-util",
         //"poi"
     ).map { Regex("""$it-\d+(\.\d+)*\.jar${'$'}""") } // """kotlin-stdlib-\d+(\.\d+)*\.jar$""",
@@ -130,8 +130,8 @@ internal object KotlinScriptJarExtractor { // : KotlinJsr223JvmScriptEngineFacto
                                     }
                                     // Delete temp jar file
                                     jarFile.delete()
-                                    if (!combinedClasspathFiles!!.contains(libDir)) {
-                                        combinedClasspathFiles!!.add(libDir)
+                                    if (!combinedClasspathFiles!!.contains(classesDir)) {
+                                        combinedClasspathFiles!!.add(classesDir)
                                     }
                                     if (origFile.name.matches(kotlinStdLibMatcher)) {
                                         System.setProperty(kotlinScriptSystemProperty, libDir.absolutePath)
@@ -147,10 +147,40 @@ internal object KotlinScriptJarExtractor { // : KotlinJsr223JvmScriptEngineFacto
                     }
                 }
             }
+            // copyResourceFile("/kotlin-compiler-embeddable-2.0.21.jar", libDir)?.also {
+            //     combinedClasspathFiles!!.add(it)
+            // }
             //combinedClasspath = extractedFiles.filter { it.isDirectory || it.name.endsWith(".jar") } + jarFile
-            val extractedDirs = listOf(libDir)
-            finalClasspath = extractedDirs //+ combinedClasspath!!.filter { it.isDirectory }
-            log.info { "Settings:  kotlin.java.stdlib.jar=${System.getProperty(kotlinScriptSystemProperty)}, classpath=${finalClasspath?.joinToString(":") { it.absolutePath }}" }
+            finalClasspathFiles = combinedClasspathFiles //+ combinedClasspath!!.filter { it.isDirectory }
+            finalClasspathURLs = finalClasspathFiles?.map { it.toURI().toURL() }?.toTypedArray()
+            log.info {
+                "Settings:  kotlin.java.stdlib.jar=${System.getProperty(kotlinScriptSystemProperty)}, classpath=${
+                    finalClasspathFiles?.joinToString(
+                        ":"
+                    ) { it.absolutePath }
+                }"
+            }
+        }
+    }
+
+    /**
+     * @param filename The name of the file in resource to copy (must start with '/').
+     */
+    private fun copyResourceFile(filename: String, destDir: File): File? {
+        val file = File(destDir, filename)
+        if (file.exists()) {
+            log.info { "File already exists: ${file.absolutePath}" }
+            return file
+        }
+        val resourceStream: InputStream? = object {}.javaClass.getResourceAsStream(filename)
+        if (resourceStream == null) {
+            log.error { "Resource file not found: $filename" }
+            return null
+        }
+        resourceStream.use { input ->
+            log.debug { "Copying JAR file: $filename" }
+            Files.copy(input, file.toPath())
+            return File(destDir, filename)
         }
     }
 }
