@@ -39,21 +39,36 @@ internal object KotlinScriptJarExtractor { // : KotlinJsr223JvmScriptEngineFacto
      * It contains the fat jar as well as the extracted jars.
      * It's null if not running from a jar file.
      */
-    var combinedClasspath: List<File>? = null
+    var combinedClasspathFiles: MutableList<File>? = null
+        private set
+    var combinedClassPath: Array<String>? = null
+    var finalClasspath: List<File>? = null
         private set
     private val libDir = File(ConfigXml.getInstance().tempDirectory, "scriptClassPath")
     private val extractedFiles = mutableListOf<File>()
-    private val whiteListJars = listOf(
+    private val extractJars = listOf(
         //"merlin-core",
         //"org.projectforge",
         //"projectforge",
         //"kotlin-stdlib",
         "kotlin-compiler-embeddable",
         "kotlin-scripting-",
-        "kotlin-std"
         //"kotlin-script-util",
         //"poi"
-    )
+    ).map { Regex("""$it-\d+(\.\d+)*\.jar${'$'}""") }
+    private val copyJars = listOf(
+        //"merlin-core",
+        //"org.projectforge",
+        //"projectforge",
+        //"kotlin-stdlib",
+        "kotlin-stdlib",
+        """kotlin-scripting-\*"""
+        //"kotlin-script-util",
+        //"poi"
+    ).map { Regex("""$it-\d+(\.\d+)*\.jar${'$'}""") } // """kotlin-stdlib-\d+(\.\d+)*\.jar$""",
+    private val kotlinStdLibMatcher = Regex("""kotlin-stdlib-\d+(\.\d+)*\.jar$""")
+    private val kotlinScriptSystemProperty = "kotlin.java.stdlib.jar"
+    private val handleJars = extractJars + copyJars
 
     init {
         val classpath = System.getProperty("java.class.path")
@@ -82,37 +97,60 @@ internal object KotlinScriptJarExtractor { // : KotlinJsr223JvmScriptEngineFacto
             log.info { "Detecting jar file: ${jarFile.absolutePath}" }
             log.info { "Creating new tmp dir '$libDir'." }
             libDir.mkdirs()
+            val classesDir = File(libDir, "classes").also { it.mkdirs() }
+            combinedClasspathFiles = mutableListOf()
             JarFile(jarFile).use { zip ->
                 zip.entries().asSequence().forEach { entry ->
                     zip.getInputStream(entry).use { input ->
-                        if (entry.isDirectory) {
-                            // Do nothing (only jars required)
-                            // file.mkdirs()
-                        } else {
+                        if (!entry.isDirectory) {
                             val origFile = File(entry.name)
-                            if (origFile.extension == "jar" && whiteListJars.any { origFile.name.startsWith(it) }) {
-                                val file = File(libDir, origFile.name)
-                                extractedFiles.add(file)
-                                file.outputStream().use { output ->
+                            if (origFile.extension == "jar" && handleJars.any { origFile.name.matches(it) }) {
+                                log.debug { "Processing file: ${origFile.name}: ${origFile.absolutePath}" }
+                                log.debug { "Copying JAR file: ${jarFile.absolutePath}" }
+                                val jarFile = File(libDir, origFile.name)
+                                // Extract JAR file in destination directory
+                                jarFile.outputStream().use { output ->
                                     input.copyTo(output)
+                                }
+                                if (extractJars.any { origFile.name.matches(it) }) {
+                                    log.debug { "Extracting JAR file: ${jarFile.absolutePath}" }
+                                    // Extract inner JAR file
+                                    JarFile(jarFile).use { innerJar ->
+                                        innerJar.entries().asSequence().forEach { innerEntry ->
+                                            innerJar.getInputStream(innerEntry).use { innerInput ->
+                                                if (!innerEntry.isDirectory) {
+                                                    val extractedFile = File(classesDir, innerEntry.name)
+                                                    extractedFile.parentFile.mkdirs() // Create parent directories
+                                                    extractedFile.outputStream().use { output ->
+                                                        innerInput.copyTo(output)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    // Delete temp jar file
+                                    jarFile.delete()
+                                    if (!combinedClasspathFiles!!.contains(libDir)) {
+                                        combinedClasspathFiles!!.add(libDir)
+                                    }
+                                    if (origFile.name.matches(kotlinStdLibMatcher)) {
+                                        System.setProperty(kotlinScriptSystemProperty, libDir.absolutePath)
+                                    }
+                                } else {
+                                    combinedClasspathFiles!!.add(jarFile.absoluteFile)
+                                    if (origFile.name.matches(kotlinStdLibMatcher)) {
+                                        System.setProperty(kotlinScriptSystemProperty, jarFile.absolutePath)
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-            combinedClasspath = extractedFiles.filter { it.isDirectory || it.name.endsWith(".jar") } + jarFile
-            combinedClasspath?.find {
-                it.name.matches(Regex(""".*kotlin-stdlib-\d+(\.\d+)*\.jar""")) // kotlin-stdlib-2.0.21.jar
-            }.let { kotlinStdlibJar ->
-                if (kotlinStdlibJar != null) {
-                    log.info { "Setting system property Kotlin kotlin.java.stdlib.jar=${kotlinStdlibJar.absolutePath}" }
-                    System.setProperty("kotlin.java.stdlib.jar", kotlinStdlibJar.absolutePath)
-                } else {
-                    log.error { "Kotlin stdlib not found in classpath!" }
-                }
-            }
-            log.info { "Setting script classpath: ${combinedClasspath?.joinToString(":") { it.absolutePath }}" }
+            //combinedClasspath = extractedFiles.filter { it.isDirectory || it.name.endsWith(".jar") } + jarFile
+            val extractedDirs = listOf(libDir)
+            finalClasspath = extractedDirs //+ combinedClasspath!!.filter { it.isDirectory }
+            log.info { "Settings:  kotlin.java.stdlib.jar=${System.getProperty(kotlinScriptSystemProperty)}, classpath=${finalClasspath?.joinToString(":") { it.absolutePath }}" }
         }
     }
 }

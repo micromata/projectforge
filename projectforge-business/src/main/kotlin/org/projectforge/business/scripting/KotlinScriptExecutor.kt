@@ -56,19 +56,30 @@ class KotlinScriptExecutor : ScriptExecutor() {
         }
     }
 
+    class CustomClassLoader(urls: Array<URL>, parent: ClassLoader?) : URLClassLoader(urls, parent) {
+        override fun findResource(name: String): URL? {
+            log.debug{"CustomClassLoader: Looking for resource $name"}
+            return super.findResource(name)
+        }
+
+        override fun getResource(name: String): URL? {
+            log.debug{"CustomClassLoader: Loading resource $name"}
+            return super.getResource(name)
+        }
+    }
     override fun execute(): ScriptExecutionResult {
         val scriptingHost = MyScriptingHost()
-        val combinedClassPath = KotlinScriptJarExtractor.combinedClasspath
-
+        val finalClasspath = KotlinScriptJarExtractor.combinedClasspathFiles
         val compilationConfiguration = ScriptCompilationConfiguration {
             jvm {
-                if (combinedClassPath != null) {
-                    val urls: Array<URL> = combinedClassPath.map { it.toURI().toURL() }.toTypedArray()
-                    val customClassLoader = URLClassLoader(urls, Thread.currentThread().contextClassLoader)
-                    urls.forEach { println("***** Classpath URL: $it") }
-                    val resource = customClassLoader.getResource("META-INF/extensions/compiler.xml")
-                    println("************************** Compiler.xml found at: $resource")
-                    dependenciesFromClassloader(classLoader = customClassLoader, wholeClasspath = true)
+                if (finalClasspath != null) {
+                    val classpathUrls = finalClasspath.map { it.toURI().toURL() }.toTypedArray()
+                    val customClassLoader = CustomClassLoader(classpathUrls, Thread.currentThread().contextClassLoader)
+                    log.debug{"Using final classpath: ${finalClasspath.joinToString()}"}
+                    updateClasspath(finalClasspath)
+                    // dependenciesFromClassloader(classLoader = customClassLoader, wholeClasspath = true)
+                    //updateClasspath(finalClasspath)
+                    //dependenciesFromClassloader(classLoader = customClassLoader, wholeClasspath = true)
                 } else {
                     // Not running in jar file (e.g. in IDE)
                     dependenciesFromCurrentContext(wholeClasspath = true)
