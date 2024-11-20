@@ -87,7 +87,6 @@ class KotlinScriptExecutor : ScriptExecutor() {
         log.debug { "ClassLoader of thread: ${Thread.currentThread().getContextClassLoader()}" }
         log.debug { "ClassLoader of BasicJvmScriptingHost: ${BasicJvmScriptingHost::class.java.classLoader}" }
         val scriptingHost = MyScriptingHost()
-        val finalClasspath = KotlinScriptJarExtractor.combinedClasspathFiles
         val compilationConfiguration = ScriptCompilationConfiguration {
             jvm {
                 //dependenciesFromClassloader(*finalClasspath.map { it.name }.toTypedArray(), wholeClasspath = true)

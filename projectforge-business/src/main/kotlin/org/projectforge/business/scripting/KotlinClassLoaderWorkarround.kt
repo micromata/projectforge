@@ -81,8 +81,9 @@ object KotlinClassLoaderWorkarround {
             File(libDir, "kotlin-compiler-embeddable-2.0.21.jar"),
             File(libDir, "kotlin-scripting-compiler-embeddable-2.0.21.jar"),
             File(libDir, "kotlin-scripting-jsr223-2.0.21.jar"),
-            File(libDir, "kotlin-scripting-jvm-2.0.21.jar"),
-            File(libDir, "kotlin-scripting-jvm-host-2.0.21.jar"),
+            // File(libDir, "kotlin-scripting-jvm-2.0.21.jar"),
+            // File(libDir, "kotlin-scripting-jvm-host-2.0.21.jar"),
+            File(libDir, "kotlin-stdlib-2.0.21.jar"),
             File(libDir, "trove4j-1.0.20200330.jar"),
         )
         externalJars.forEach { jarFile ->
@@ -90,6 +91,9 @@ object KotlinClassLoaderWorkarround {
                 log.error { "JAR file doesn't exist (Kotlin scripts will not work): " + jarFile.getAbsolutePath() }
             }
         }
+        val kotlinStdJar = externalJars.first { it.name.contains("kotlin-stdlib") }.absolutePath
+        System.setProperty("kotlin.java.stdlib.jar", kotlinStdJar)
+        log.info { "Setting system property kotlin.java.stdlib.jar=$kotlinStdJar" }
         externalJarUrls = externalJars.map { it.toURI().toURL() }.toTypedArray()
         log.info { "classpath=${externalJarUrls.joinToString(":")}" }
         classLoader = CustomClassLoader(externalJarUrls)
