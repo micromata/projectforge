@@ -5,6 +5,7 @@ Aktuell:
 - Download/Upload vcf
 - Milton
 - Kalendereinträge und Subscriptions.
+- Hikari-Pool-Einstellungen werden wohl nicht übernommen (lt. Logfile)
 
 - remove all BaseDO.xxxId (lazy fetch) and replace callee by baseDO?.id
 - Entitygraphen nutzen: ConflictVacationCache, AuftragCache etc.
