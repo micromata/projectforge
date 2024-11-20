@@ -24,12 +24,10 @@
 package org.projectforge.business.scripting
 
 import mu.KotlinLogging
-import org.projectforge.business.scripting.KotlinScriptJarExtractor.finalClasspathURLs
+import org.projectforge.business.scripting.KotlinClassLoaderWorkarround.classLoader
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.io.File
-import java.net.URL
-import java.net.URLClassLoader
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
@@ -41,48 +39,20 @@ import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 
 private val log = KotlinLogging.logger {}
 
+/**
+ * Kotlin script executor.
+ * -cp ~/ProjectForge/resources/kotlin-scripting/kotlin-compiler-embeddable-2.0.21.jar:~/ProjectForge/resources/kotlin-scripting/
+ */
 class KotlinScriptExecutor : ScriptExecutor() {
-    class CustomClassLoader(val id: String) :
-        URLClassLoader(finalClasspathURLs, Thread.currentThread().contextClassLoader) {
 
-        override fun findResource(name: String): URL? {
-            val url = super.findResource(name)
-            log.debug { "CustomClassLoader ($id): Looking for resource $name: $url" }
-            return url
-        }
-
-        override fun findClass(name: String?): Class<*>? {
-            log.debug { "CustomClassLoader ($id): findClass $name" }
-            return super.findClass(name)
-        }
-
-        override fun findClass(moduleName: String?, name: String?): Class<*>? {
-            log.debug { "CustomClassLoader ($id): findClass $moduleName: $name" }
-            return super.findClass(moduleName, name)
-        }
-
-        override fun getResource(name: String): URL? {
-            if (name == "META-INF/extensions/compiler.xml") {
-                val url =
-                    KotlinScriptJarExtractor.libDir.resolve("classes/META-INF/extensions/compiler.xml").toURI().toURL()
-                log.debug { "CustomClassLoader ($id): Loading resource $name: $url" }
-                return url
-            }
-            val url = super.getResource(name)
-            log.debug { "CustomClassLoader ($id): Loading resource $name: $url" }
-            return url
-        }
-    }
-
-    class MyScriptingHost : BasicJvmScriptingHost(evaluator = CustomScriptEvaluator(CustomClassLoader("MyScriptingHost"))) {
+    class MyScriptingHost :
+        BasicJvmScriptingHost(evaluator = CustomScriptEvaluator()) {
         val loggedInUser = ThreadLocalUserContext.loggedInUser
         override fun <T> runInCoroutineContext(block: suspend () -> T): T {
             try {
                 log.debug { "MyScriptingHost: Setting user context: $loggedInUser" }
                 ThreadLocalUserContext.setUser(loggedInUser)
-                finalClasspathURLs?.let { classpath ->
-                    Thread.currentThread().contextClassLoader = CustomClassLoader("run on host")
-                }
+                Thread.currentThread().contextClassLoader = KotlinClassLoaderWorkarround.classLoader
                 checkResource()
                 return super.runInCoroutineContext(block)
             } finally {
@@ -91,43 +61,42 @@ class KotlinScriptExecutor : ScriptExecutor() {
         }
 
         fun checkResource() {
-            val resource = Thread.currentThread().contextClassLoader.getResource("META-INF/extensions/compiler.xml")
-            println("**************** Resource found in ScriptingHost: $resource")
+            log.debug {
+                "MyScriptingHost: Search for META-INF/extensions/compiler.xml: ${
+                    Thread.currentThread().contextClassLoader.getResource(
+                        "META-INF/extensions/compiler.xml"
+                    )
+                }"
+            }
         }
     }
 
-    class CustomScriptEvaluator(
-        private val customClassLoader: ClassLoader
-    ) : BasicJvmScriptEvaluator() {
+    class CustomScriptEvaluator() : BasicJvmScriptEvaluator() {
         override suspend fun invoke(
             compiledScript: CompiledScript,
             scriptEvaluationConfiguration: ScriptEvaluationConfiguration
         ): ResultWithDiagnostics<EvaluationResult> {
-            Thread.currentThread().contextClassLoader = customClassLoader
+            Thread.currentThread().contextClassLoader = KotlinClassLoaderWorkarround.classLoader
             return super.invoke(compiledScript, scriptEvaluationConfiguration)
         }
     }
-    val customClassLoader = CustomClassLoader("compile")
 
     override fun execute(): ScriptExecutionResult {
+        Thread.currentThread().contextClassLoader = KotlinClassLoaderWorkarround.classLoader
+        log.debug { "Classpath of thread: ${KotlinScriptJarExtractor.finalClasspathURLs.joinToString()}" }
+        log.debug { "ClassLoader of thread: ${Thread.currentThread().getContextClassLoader()}" }
+        log.debug { "ClassLoader of BasicJvmScriptingHost: ${BasicJvmScriptingHost::class.java.classLoader}" }
         val scriptingHost = MyScriptingHost()
         val finalClasspath = KotlinScriptJarExtractor.combinedClasspathFiles
         val compilationConfiguration = ScriptCompilationConfiguration {
             jvm {
-                if (finalClasspath != null) {
-                    log.debug { "Using final classpath: ${finalClasspath.joinToString()}" }
-                    //dependenciesFromClassloader(*finalClasspath.map { it.name }.toTypedArray(), wholeClasspath = true)
-                    //CompilerConfiguration.addJvmClasspathRoots(classpathUrls)
-                    //dependenciesFromClassloader(classLoader = customClassLoader, wholeClasspath = true)
-                    Thread.currentThread().contextClassLoader = CustomClassLoader("compileConfig")
-                    updateClasspath(finalClasspath)
-                    dependenciesFromCurrentContext(wholeClasspath = true)
-
-                    dependencies(JvmDependencyFromClassLoader { customClassLoader })
-                } else {
-                    // Not running in jar file (e.g. in IDE)
-                    dependenciesFromCurrentContext(wholeClasspath = true)
-                }
+                //dependenciesFromClassloader(*finalClasspath.map { it.name }.toTypedArray(), wholeClasspath = true)
+                //CompilerConfiguration.addJvmClasspathRoots(classpathUrls)
+                //dependenciesFromClassloader(classLoader = customClassLoader, wholeClasspath = true)
+                //updateClasspath(finalClasspath)
+                //dependenciesFromCurrentContext(wholeClasspath = true)
+                dependenciesFromClassloader(classLoader = classLoader, wholeClasspath = true)
+                dependencies(JvmDependencyFromClassLoader { classLoader })
             }
             providedProperties("context" to KotlinScriptContext::class)
             compilerOptions.append("-nowarn")
@@ -141,14 +110,14 @@ class KotlinScriptExecutor : ScriptExecutor() {
         }
         val evaluationConfiguration = ScriptEvaluationConfiguration {
             jvm {
-                baseClassLoader(CustomClassLoader("evalConfig"))
+                baseClassLoader(classLoader)
             }
             providedProperties("context" to context)
         }
         val scriptSource = effectiveScript.trimIndent().toScriptSource()
-        val result = testExecute(scriptingHost, scriptSource, compilationConfiguration, evaluationConfiguration)
+        val result = execute(scriptingHost, scriptSource, compilationConfiguration, evaluationConfiguration)
         result?.let { useResult ->
-            handleResult(scriptExecutionResult, result)
+            KotlinScriptUtils.handleResult(scriptExecutionResult, result, effectiveScript)
             if (useResult is ResultWithDiagnostics.Success) {
                 val returnValue = useResult.value.returnValue
                 if (returnValue is ResultValue.Value) {
@@ -158,59 +127,6 @@ class KotlinScriptExecutor : ScriptExecutor() {
             }
         }
         return scriptExecutionResult
-    }
-
-    fun executeTest(): ScriptExecutionResult {
-        val scriptingHost = MyScriptingHost()
-        val finalClasspath = KotlinScriptJarExtractor.combinedClasspathFiles!!
-        val compilationConfiguration = ScriptCompilationConfiguration {
-            jvm {
-                dependenciesFromCurrentContext(wholeClasspath = true)
-                println("Using final classpath: ${finalClasspath.joinToString { it.absolutePath }}")
-                updateClasspath(finalClasspath)
-            }
-            providedProperties("context" to KotlinScriptContext::class)
-            compilerOptions.append("-nowarn")
-        }
-        val context = KotlinScriptContext()
-        variables.forEach {
-            context.setProperty(it.key, it.value)
-        }
-        scriptParameterList?.forEach {
-            context.setProperty(createValidIdentifier(it.parameterName), it.value)
-        }
-        val evaluationConfiguration = ScriptEvaluationConfiguration {
-            providedProperties("context" to context)
-        }
-        val scriptSource = effectiveScript.trimIndent().toScriptSource()
-        val customClassLoader = URLClassLoader(
-            finalClasspath.map { it.toURI().toURL() }.toTypedArray(),
-            Thread.currentThread().contextClassLoader
-        )
-
-        Thread.currentThread().contextClassLoader = customClassLoader
-        scriptingHost.checkResource()
-        val result = scriptingHost.eval(scriptSource, compilationConfiguration, evaluationConfiguration)
-        /*result.let { useResult ->
-            handleResult(scriptExecutionResult, result)
-            if (useResult is ResultWithDiagnostics.Success) {
-                val returnValue = useResult.value.returnValue
-                if (returnValue is ResultValue.Value) {
-                    val output = returnValue.value
-                    scriptExecutionResult.result = output
-                }
-            }
-        }*/
-        return scriptExecutionResult
-    }
-
-    private fun testExecute(
-        scriptingHost: MyScriptingHost,
-        scriptSource: SourceCode,
-        compilationConfiguration: ScriptCompilationConfiguration,
-        evaluationConfiguration: ScriptEvaluationConfiguration,
-    ): ResultWithDiagnostics<EvaluationResult>? {
-        return scriptingHost.eval(scriptSource, compilationConfiguration, evaluationConfiguration)
     }
 
     private fun execute(
@@ -223,8 +139,7 @@ class KotlinScriptExecutor : ScriptExecutor() {
         var future: Future<ResultWithDiagnostics<EvaluationResult>>? = null
         try {
             future = executor.submit<ResultWithDiagnostics<EvaluationResult>> {
-                Thread.currentThread().contextClassLoader = CustomClassLoader("future")
-                log.debug { "Classpath of thread: ${KotlinScriptJarExtractor.finalClasspathURLs?.joinToString()}" }
+                Thread.currentThread().contextClassLoader = classLoader
                 scriptingHost.eval(scriptSource, compilationConfiguration, evaluationConfiguration)
             }
             return future.get(300, TimeUnit.SECONDS)  // Timeout
@@ -249,115 +164,10 @@ class KotlinScriptExecutor : ScriptExecutor() {
     }
 
     override fun appendBlockAfterImports(sb: StringBuilder) {
-        sb.appendLine("// Auto generated bindings:")
-        // Prepend bindings now before proceeding
-        val bindingsEntries = mutableListOf<String>()
-        val script = resolvedScript ?: source
-        variables.forEach { (name, value) ->
-            if (!(resolvedScript ?: source).contains(createContextGet(name))) { // Don't add binding twice
-                addBinding(bindingsEntries, name, value)
-            }
-        }
-        scriptParameterList?.forEach { param ->
-            if (!script.contains(createContextGet(param.parameterName))) { // Don't add binding twice
-                // OK, null value wasn't added to variables. So we had to add them here:
-                addBinding(bindingsEntries, param.parameterName, param)
-            }
-        }
-        bindingsEntries.sortedBy { it.lowercase() }.forEach {
-            sb.appendLine(it)
-        }
-        sb.appendLine()
-        sb.appendLine()
-    }
-
-    private fun createContextGet(name: String): String {
-        return "context.getProperty(\"$name\")"
-    }
-
-    private fun addBinding(bindingsEntries: MutableList<String>, name: String, value: Any?) {
-        if (name.isBlank()) {
-            return // Don't add blank variables (shouldn't occur).
-        }
-        var nullable = ""
-        val clazz = if (value != null) {
-            if (value is ScriptParameter) {
-                if (value.type != ScriptParameterType.BOOLEAN) {
-                    nullable = "?" // Script parameter not found as variable -> is null!
-                }
-                value.valueClass
-            } else {
-                value::class.java
-            }
-        } else {
-            Any::class.java
-        }
-        val clsName = if (bindingsClassReplacements.containsKey(clazz.name)) {
-            bindingsClassReplacements[clazz.name]
-        } else if (value is ScriptingDao<*>) {
-            "ScriptingDao<${value.dOClass.name}>"
-        } else {
-            clazz.name
-        }
-        val identifier = createValidIdentifier(name)
-        bindingsEntries.add("val $identifier = ${createContextGet(identifier)} as $clsName$nullable")
-    }
-
-    private fun handleResult(
-        scriptExecutionResult: ScriptExecutionResult,
-        result: ResultWithDiagnostics<EvaluationResult>?,
-        logSeverity: ScriptDiagnostic.Severity = ScriptDiagnostic.Severity.ERROR
-    ) {
-        if (result == null) {
-            scriptExecutionResult.result = translate("scripting.error.timeout")
-            return
-        }
-        val scriptLines = effectiveScript.lines()
-        val logger = scriptExecutionResult.scriptLogger
-        result.reports.forEach { report ->
-            val severity = report.severity
-            if (severity < logSeverity) {
-                return@forEach
-            }
-            val message = report.message
-            val location = report.location
-            var line1 = "[$severity] $message"
-            var line2: String? = null
-            location?.let {
-                // line1 = "[$severity] $message: ${it.start.line}:${it.start.col} to ${it.end?.line}:${it.end?.col}"
-                line1 = "[$severity] $message: line ${it.start.line} to ${it.end?.line}"
-                val lineIndex = it.start.line - 1 // Zeilenindex anpassen
-                if (lineIndex in scriptLines.indices) {
-                    val line = scriptLines[lineIndex]
-                    val startCol = it.start.col - 1
-                    val endCol = (it.end?.col ?: line.length) - 1
-
-                    // Teile die Zeile auf und füge die Marker ein
-                    val markedLine = buildString {
-                        append(">")
-                        append(line.substring(0, startCol))
-                        append(">>>")  // Markierung für Startposition
-                        append(line.substring(startCol, endCol))
-                        append("<<<")  // Markierung für Endposition
-                        append(line.substring(endCol))
-                    }
-                    line2 = markedLine
-                }
-            }
-            logger.add(line1, severity)
-            line2?.let { logger.add(it, severity) }
-        }
-        scriptExecutionResult.result = result.valueOrNull()
+        KotlinScriptUtils.appendBlockAfterImports(sb, this)
     }
 
     companion object {
-        private val bindingsClassReplacements = mapOf(
-            "java.lang.String" to "String",
-            "java.lang.Integer" to "Int",
-            "java.lang.Boolean" to "Boolean",
-            "java.util.HashMap" to "MutableMap<*, *>",
-        )
-
         private val kotlinImports = listOf(
             "import org.projectforge.framework.i18n.translate",
             "import org.projectforge.framework.i18n.translateMsg",
