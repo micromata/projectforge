@@ -494,6 +494,10 @@ public class ConfigXml {
         return holidays;
     }
 
+    public String getApplicationHomeDir() {
+        return applicationHomeDir;
+    }
+
     /**
      * Here you can add menu entries to be hidden or can build your own menu tree or just modify the existing one. If you
      * don't configure this element, you will receive the standard ProjectForge menu containing all menu entries which are

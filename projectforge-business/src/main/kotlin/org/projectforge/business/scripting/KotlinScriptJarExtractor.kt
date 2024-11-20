@@ -24,6 +24,7 @@
 package org.projectforge.business.scripting
 
 import mu.KotlinLogging
+import org.projectforge.common.FileUtils
 import org.projectforge.framework.configuration.ConfigXml
 import java.io.File
 import java.io.InputStream
@@ -44,11 +45,12 @@ internal object KotlinScriptJarExtractor { // : KotlinJsr223JvmScriptEngineFacto
      */
     var combinedClasspathFiles: MutableList<File>? = null
         private set
-    var finalClasspathURLs: Array<URL>? = null
+    var finalClasspathURLs = emptyArray<URL>()
     private set
     var finalClasspathFiles: List<File>? = null
         private set
-    val libDir = File(ConfigXml.getInstance().tempDirectory, "scriptClassPath")
+    //File(ConfigXml.getInstance().tempDirectory, "scriptClassPath")
+    val libDir = FileUtils.createFile(ConfigXml.getInstance().applicationHomeDir, "resources", "kotlin-scripting")
     private val extractedFiles = mutableListOf<File>()
     private val extractJars = listOf(
         //"none-to-extract",
@@ -71,6 +73,7 @@ internal object KotlinScriptJarExtractor { // : KotlinJsr223JvmScriptEngineFacto
     private val handleJars = extractJars + copyJars
 
     init {
+        /*
         val classpath = System.getProperty("java.class.path")
         if (!classpath.endsWith(".jar") || classpath.contains("projectforge-business")) {
             // We're not running in a jar file.
@@ -82,7 +85,7 @@ internal object KotlinScriptJarExtractor { // : KotlinJsr223JvmScriptEngineFacto
             } else {
                 extract(jarPath)
             }
-        }
+        }*/
     }
 
     private fun extract(jarFile: File) {
@@ -152,7 +155,9 @@ internal object KotlinScriptJarExtractor { // : KotlinJsr223JvmScriptEngineFacto
             // }
             //combinedClasspath = extractedFiles.filter { it.isDirectory || it.name.endsWith(".jar") } + jarFile
             finalClasspathFiles = combinedClasspathFiles //+ combinedClasspath!!.filter { it.isDirectory }
-            finalClasspathURLs = finalClasspathFiles?.map { it.toURI().toURL() }?.toTypedArray()
+            finalClasspathFiles?.map { it.toURI().toURL() }?.toTypedArray()?.also { uRLS ->
+                finalClasspathURLs = uRLS
+            }
             log.info {
                 "Settings:  kotlin.java.stdlib.jar=${System.getProperty(kotlinScriptSystemProperty)}, classpath=${
                     finalClasspathFiles?.joinToString(
