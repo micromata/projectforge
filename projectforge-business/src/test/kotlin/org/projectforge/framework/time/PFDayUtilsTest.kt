@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import org.projectforge.test.TestSetup
+import org.projectforge.business.test.TestSetup
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month

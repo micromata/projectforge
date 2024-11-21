@@ -33,7 +33,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.framework.time.PFDateTime;
-import org.projectforge.test.TestSetup;
+import org.projectforge.business.test.TestSetup;
 import org.projectforge.test.WorkFileHelper;
 
 import java.io.File;

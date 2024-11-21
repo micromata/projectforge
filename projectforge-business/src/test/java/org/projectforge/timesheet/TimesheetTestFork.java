@@ -34,7 +34,7 @@ import org.projectforge.common.task.TaskStatus;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.framework.time.PFDateTime;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.business.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;

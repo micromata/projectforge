@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.common.extensions.isoString
 import org.projectforge.framework.time.PFDateTime
-import org.projectforge.test.TestSetup
+import org.projectforge.business.test.TestSetup
 import java.time.Month
 
 class VEventUtilsTest {

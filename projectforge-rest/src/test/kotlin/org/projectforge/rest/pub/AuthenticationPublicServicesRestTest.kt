@@ -29,7 +29,7 @@ import org.junit.jupiter.api.fail
 import org.projectforge.business.user.UserAuthenticationsDao
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.framework.utils.Crypt
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
 class AuthenticationPublicServicesRestTest : AbstractTestBase() {

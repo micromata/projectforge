@@ -26,7 +26,7 @@ package org.projectforge.framework.persistence.history
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
 class HistoryFormatServiceTest : AbstractTestBase() {

@@ -30,7 +30,7 @@ import org.projectforge.framework.renderer.BatikImageRenderer;
 import org.projectforge.framework.renderer.ImageFormat;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.time.PFDay;
-import org.projectforge.test.TestSetup;
+import org.projectforge.business.test.TestSetup;
 import org.projectforge.test.WorkFileHelper;
 
 import java.io.File;
@@ -39,7 +39,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.Calendar;
-import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

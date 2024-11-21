@@ -31,8 +31,8 @@ import org.projectforge.framework.calendar.WeekHolder;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.PFDay;
-import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.TestSetup;
+import org.projectforge.business.test.AbstractTestBase;
+import org.projectforge.business.test.TestSetup;
 
 import java.time.DayOfWeek;
 import java.time.Month;

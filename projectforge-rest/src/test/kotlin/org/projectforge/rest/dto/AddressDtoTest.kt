@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 
 class AddressDtoTest : AbstractTestBase() {
 

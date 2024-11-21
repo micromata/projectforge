@@ -24,7 +24,7 @@
 package org.projectforge.business.teamcal.service;
 
 import org.junit.jupiter.api.Test;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.business.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;

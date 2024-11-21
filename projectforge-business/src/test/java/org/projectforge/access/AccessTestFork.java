@@ -34,7 +34,7 @@ import org.projectforge.framework.access.AccessEntryDO;
 import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.GroupTaskAccessDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.business.test.AbstractTestBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

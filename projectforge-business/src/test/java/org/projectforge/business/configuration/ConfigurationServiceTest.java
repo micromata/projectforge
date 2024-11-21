@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.business.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

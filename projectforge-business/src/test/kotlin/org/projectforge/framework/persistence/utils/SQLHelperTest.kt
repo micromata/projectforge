@@ -27,7 +27,7 @@ import jakarta.persistence.Tuple
 import jakarta.persistence.TupleElement
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.test.TestSetup
+import org.projectforge.business.test.TestSetup
 import java.time.LocalDate
 import java.time.Year
 import java.util.*

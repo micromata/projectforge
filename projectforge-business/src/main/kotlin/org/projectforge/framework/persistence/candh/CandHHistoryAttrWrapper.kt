@@ -23,8 +23,6 @@
 
 package org.projectforge.framework.persistence.candh
 
-import jline.console.internal.ConsoleRunner.property
-import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.history.HistoryEntryAttrDO
 import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.history.PropertyOpType

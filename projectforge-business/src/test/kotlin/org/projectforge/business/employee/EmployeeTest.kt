@@ -37,8 +37,8 @@ import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
-import org.projectforge.test.AbstractTestBase
-import org.projectforge.test.HistoryTester
+import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.business.test.HistoryTester
 import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
 import java.time.LocalDate

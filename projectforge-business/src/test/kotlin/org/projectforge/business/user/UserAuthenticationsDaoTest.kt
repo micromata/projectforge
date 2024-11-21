@@ -29,7 +29,7 @@ import org.junit.jupiter.api.fail
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
 class UserAuthenticationsDaoTest : AbstractTestBase() {

@@ -30,7 +30,7 @@ import org.projectforge.business.scripting.GroovyEngine;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.business.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;

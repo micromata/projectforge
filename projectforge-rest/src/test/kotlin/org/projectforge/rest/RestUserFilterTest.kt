@@ -35,7 +35,7 @@ import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.rest.config.Rest
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.web.rest.RestUserFilter
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.IOException

@@ -47,3 +47,6 @@ projectforge-jcr/test/out
 plugins/org.projectforge.plugins.datatransfer/test
 .DS_Store
 projectforge-application/src/main/kotlin/local
+.gradle
+build
+.kotlin

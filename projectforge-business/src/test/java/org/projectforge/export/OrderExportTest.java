@@ -32,7 +32,7 @@ import org.projectforge.Constants;
 import org.projectforge.business.excel.ExcelImport;
 import org.projectforge.business.fibu.*;
 import org.projectforge.framework.i18n.I18nHelper;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.business.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayInputStream;

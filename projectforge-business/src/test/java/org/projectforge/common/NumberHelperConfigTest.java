@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.business.test.AbstractTestBase;
 
 import java.math.BigDecimal;
 import java.util.Locale;

@@ -33,7 +33,7 @@ import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDayUtils
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
 import java.time.LocalDate

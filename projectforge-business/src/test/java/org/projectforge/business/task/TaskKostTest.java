@@ -27,11 +27,9 @@ import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.ProjektDao;
 import org.projectforge.business.fibu.kost.Kost2ArtDO;
-import org.projectforge.business.fibu.kost.Kost2ArtDao;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
-import org.projectforge.framework.access.AccessDao;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.business.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;

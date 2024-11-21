@@ -30,7 +30,7 @@ import org.joda.time.DateTimeZone;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.test.TestSetup;
+import org.projectforge.business.test.TestSetup;
 
 import java.util.Calendar;
 import java.util.Locale;

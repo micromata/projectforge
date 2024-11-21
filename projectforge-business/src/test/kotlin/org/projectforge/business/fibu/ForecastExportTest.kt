@@ -28,7 +28,7 @@ import org.apache.commons.io.FileUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.time.PFDay
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.test.WorkFileHelper
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.ByteArrayInputStream

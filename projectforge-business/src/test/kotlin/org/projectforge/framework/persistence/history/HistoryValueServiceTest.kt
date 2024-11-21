@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.book.BookDO
 import org.projectforge.business.book.BookStatus
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
 class HistoryValueServiceTest : AbstractTestBase() {

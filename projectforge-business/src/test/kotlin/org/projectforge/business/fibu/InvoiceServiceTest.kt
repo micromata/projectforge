@@ -26,7 +26,7 @@ package org.projectforge.business.fibu
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.time.PFDay.Companion.today
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
 import java.time.LocalDate

@@ -31,7 +31,7 @@ import org.projectforge.common.BeanHelper;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.xmlstream.converter.ISODateConverter;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.business.test.AbstractTestBase;
 
 import java.lang.reflect.Field;
 import java.time.Month;

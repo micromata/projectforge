@@ -33,7 +33,7 @@ import org.projectforge.business.fibu.EmployeeSalaryDO;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.persistence.database.DatabaseDao;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.business.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.lang.reflect.InvocationTargetException;

@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.book.BookDO
 import org.projectforge.framework.persistence.history.NoHistory
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 
 class HibernateMetaModelTest : AbstractTestBase() {
     @Test

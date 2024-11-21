@@ -34,7 +34,7 @@ import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.sipgate.SipgateContact
 import org.projectforge.business.sipgate.SipgateContactSyncDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 
 private val log = KotlinLogging.logger {}
 

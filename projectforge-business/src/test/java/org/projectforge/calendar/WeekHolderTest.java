@@ -27,7 +27,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.calendar.WeekHolder;
 import org.projectforge.framework.time.PFDay;
-import org.projectforge.test.TestSetup;
+import org.projectforge.business.test.TestSetup;
 
 import java.time.DayOfWeek;
 import java.time.Month;

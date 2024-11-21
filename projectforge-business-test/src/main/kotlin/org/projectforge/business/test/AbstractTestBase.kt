@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.test
+package org.projectforge.business.test
 
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
@@ -47,7 +47,6 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.AccessType
 import org.projectforge.framework.access.OperationType
-import org.projectforge.framework.configuration.ConfigXmlTest
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.I18nHelper.addBundleName
 import org.projectforge.framework.persistence.api.HibernateUtils.databaseDialect
@@ -58,16 +57,14 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.setUser
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.user.entities.PFUserDO.Companion.createCopy
 import org.projectforge.framework.time.DateHelper
-import org.projectforge.framework.time.PFDateTime.Companion.from
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.jcr.RepoService
 import org.projectforge.mail.SendMail.Companion.internalSetTestMode
 import org.projectforge.plugins.core.AbstractPlugin.Companion.internalJunitTestMode
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.core.PluginsRegistry
 import org.projectforge.registry.Registry
-import org.projectforge.test.DatabaseHelper.clearDatabase
 import org.projectforge.web.WicketSupport
 import org.springframework.beans.BeansException
 import org.springframework.beans.factory.annotation.Autowired
@@ -81,8 +78,11 @@ import java.io.File
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
-import java.util.*
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 import javax.sql.DataSource
+import kotlin.jvm.java
 
 /**
  * Every test should finish with a valid database with test cases. If not, the test should call recreateDatabase() on afterAll!
@@ -228,7 +228,7 @@ abstract class AbstractTestBase protected constructor() {
             // ignore
         }
 
-        clearDatabase(persistenceService)
+        DatabaseHelper.clearDatabase(persistenceService)
 
         Configuration(configurationService)
         ConfigXmlTest.createTestConfiguration()
@@ -272,7 +272,7 @@ abstract class AbstractTestBase protected constructor() {
     }
 
     protected fun clearDatabase() {
-        clearDatabase(persistenceService)
+        DatabaseHelper.clearDatabase(persistenceService)
         userGroupCache.setExpired()
         initTestDB.clearUsers()
     }
@@ -282,7 +282,7 @@ abstract class AbstractTestBase protected constructor() {
         if (user == null) {
             Assertions.fail<Any>("User not found: $username")
         }
-        setUser(createCopy(user))
+        setUser(PFUserDO.createCopy(user))
         return user
     }
 
@@ -349,7 +349,7 @@ abstract class AbstractTestBase protected constructor() {
         date: Date, year: Int, month: Month?, day: Int, hour: Int,
         minute: Int, second: Int
     ) {
-        val dateTime = from(date, DateHelper.UTC)
+        val dateTime = PFDateTime.from(date, DateHelper.UTC)
         Assertions.assertEquals(year, dateTime.year)
         Assertions.assertEquals(month, dateTime.month)
         Assertions.assertEquals(day, dateTime.dayOfMonth)

@@ -26,7 +26,7 @@ package org.projectforge.framework.persistence.database.json
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
 class DatabaseDumpTest : AbstractTestBase() {

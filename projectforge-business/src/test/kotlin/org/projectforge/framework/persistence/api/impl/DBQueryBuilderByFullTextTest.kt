@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.api.impl
 
-import org.hibernate.search.engine.search.common.BooleanOperator
 import org.hibernate.search.mapper.orm.Search
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -32,7 +31,7 @@ import org.projectforge.business.task.TaskDao
 import org.projectforge.business.user.UserDao
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
 import java.time.Month

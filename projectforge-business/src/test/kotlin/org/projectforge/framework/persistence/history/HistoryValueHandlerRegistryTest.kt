@@ -24,15 +24,7 @@
 package org.projectforge.framework.persistence.history
 
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import org.projectforge.framework.time.PFDateTime
-import org.projectforge.framework.time.PFDay
-import org.projectforge.test.TestSetup
-import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.Month
-import java.util.*
 
 class HistoryValueHandlerRegistryTest {
     @Test

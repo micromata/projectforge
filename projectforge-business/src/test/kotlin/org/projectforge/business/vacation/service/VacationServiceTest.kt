@@ -37,7 +37,7 @@ import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
 import java.time.LocalDate

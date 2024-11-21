@@ -21,12 +21,17 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.test
+package org.projectforge.business.test
 
 import org.junit.jupiter.api.Assertions
-import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.framework.persistence.history.*
+import org.projectforge.framework.persistence.history.EntityOpType
+import org.projectforge.framework.persistence.history.HistoryEntry
+import org.projectforge.framework.persistence.history.HistoryEntryAttr
+import org.projectforge.framework.persistence.history.HistoryEntryAttrDO
+import org.projectforge.framework.persistence.history.HistoryEntryDO
+import org.projectforge.framework.persistence.history.HistoryService
+import org.projectforge.framework.persistence.history.PropertyOpType
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import kotlin.reflect.KClass
@@ -60,7 +65,7 @@ class HistoryTester(
     /**
      * Loads the history entries for the given id.
      * Please note: Embedded objects are only loaded, if they're part of any history entry attribute of the given object.
-     * Please use [BaseDao.loadHistory] for getting all embedded history entries.
+     * Please use [org.projectforge.framework.persistence.api.BaseDao.loadHistory] for getting all embedded history entries.
      * @param baseDO The baseDO to load the history entries for.
      * @param expectedNumberOfNewHistoryEntries The expected number of new history entries.
      * @param expectedNumberOfNewHistoryAttrEntries The expected number of new history attributes.

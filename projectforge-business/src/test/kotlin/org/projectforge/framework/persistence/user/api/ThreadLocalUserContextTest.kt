@@ -28,7 +28,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateCompatibilityUtils
-import org.projectforge.test.TestSetup
+import org.projectforge.business.test.TestSetup
 import java.time.DayOfWeek
 
 class ThreadLocalUserContextTest {

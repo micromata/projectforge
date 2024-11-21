@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.task.TaskDO
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 
 class HistoryServiceUtilsTest : AbstractTestBase() {
     @Test

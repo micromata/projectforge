@@ -30,8 +30,8 @@ import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.user.entities.Gender
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.TimeNotation
-import org.projectforge.test.AbstractTestBase
-import org.projectforge.test.TestSetup
+import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.business.test.TestSetup
 import java.time.DayOfWeek
 
 class CandHMasterTest: AbstractTestBase() {

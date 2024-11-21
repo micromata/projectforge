@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.test
+package org.projectforge.business.test
 
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 

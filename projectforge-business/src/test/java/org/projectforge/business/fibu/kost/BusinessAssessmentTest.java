@@ -26,7 +26,7 @@ package org.projectforge.business.fibu.kost;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.KontoDO;
-import org.projectforge.test.TestSetup;
+import org.projectforge.business.test.TestSetup;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

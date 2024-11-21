@@ -31,7 +31,7 @@ import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.generated.CreditTransferTransactionInformationSCT;
 import org.projectforge.generated.Document;
 import org.projectforge.generated.PaymentInstructionInformationSCT;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.business.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.UnsupportedEncodingException;

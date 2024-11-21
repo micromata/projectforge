@@ -29,7 +29,7 @@ import org.projectforge.export.SVGHelper;
 import org.projectforge.framework.renderer.BatikImageRenderer;
 import org.projectforge.framework.renderer.ImageFormat;
 import org.projectforge.framework.time.PFDay;
-import org.projectforge.test.TestSetup;
+import org.projectforge.business.test.TestSetup;
 import org.projectforge.test.WorkFileHelper;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

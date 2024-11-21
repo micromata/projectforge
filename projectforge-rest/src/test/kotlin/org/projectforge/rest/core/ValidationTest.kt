@@ -26,7 +26,7 @@ package org.projectforge.rest.core
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
-import org.projectforge.test.TestSetup
+import org.projectforge.business.test.TestSetup
 import org.projectforge.ui.ValidationError
 
 class ValidationTest {

@@ -24,10 +24,8 @@
 package org.projectforge.framework.persistence.database.timeable;
 
 import org.junit.jupiter.api.Test;
-import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.business.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
