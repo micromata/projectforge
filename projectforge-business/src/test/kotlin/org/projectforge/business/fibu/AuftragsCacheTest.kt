@@ -26,7 +26,7 @@ package org.projectforge.business.fibu
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.commons.test.TestUtils.Companion.assertSame
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
 

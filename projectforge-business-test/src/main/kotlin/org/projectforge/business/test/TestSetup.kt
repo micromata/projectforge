@@ -21,25 +21,22 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.test
+package org.projectforge.business.test
 
-import mu.KotlinLogging
 import org.mockito.Mockito
 import org.projectforge.Constants
 import org.projectforge.business.PfCaches
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.configuration.ConfigurationServiceAccessor
-import org.projectforge.framework.configuration.ConfigXmlTest
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.entities.ConfigurationDO
-import org.projectforge.framework.i18n.I18nHelper.addBundleName
+import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.api.UserContext.Companion.createTestInstance
+import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.time.DayOfWeek
-import java.util.*
-
-private val log = KotlinLogging.logger {}
+import java.util.Locale
+import java.util.TimeZone
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -53,7 +50,7 @@ object TestSetup {
      */
     @JvmStatic
     fun init(): PFUserDO {
-        addBundleName(Constants.RESOURCE_BUNDLE_NAME)
+        I18nHelper.addBundleName(Constants.RESOURCE_BUNDLE_NAME)
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
         val user = PFUserDO()
         user.timeZone = TimeZone.getTimeZone("Europe/Berlin")
@@ -61,14 +58,14 @@ object TestSetup {
         user.dateFormat = "dd.MM.yyyy"
         user.locale = Locale("de", "DE")
         user.firstDayOfWeek = DayOfWeek.MONDAY
-        ThreadLocalUserContext.userContext = createTestInstance(user)
+        ThreadLocalUserContext.userContext = UserContext.Companion.createTestInstance(user)
         ConfigXmlTest.createTestConfiguration()
         ConfigurationServiceAccessor.internalInitJunitTestMode()
         /*val configurationService = Mockito.mock(ConfigurationService::class.java)
         val configList = mutableListOf<ConfigurationDO>()
         Mockito.`when`(configurationService.daoInternalLoadAll()).thenReturn(configList)
         Configuration.initializeForTestOnly(configurationService)*/
-        PfCaches.internalSetupForTestCases()
+        PfCaches.Companion.internalSetupForTestCases()
         return user
     }
 
@@ -77,6 +74,6 @@ object TestSetup {
         val configurationService = Mockito.mock(ConfigurationService::class.java)
         val configList = mutableListOf<ConfigurationDO>()
         Mockito.`when`(configurationService.daoInternalLoadAll()).thenReturn(configList)
-        Configuration.initializeForTestOnly(configurationService)
+        Configuration.Companion.initializeForTestOnly(configurationService)
     }
 }

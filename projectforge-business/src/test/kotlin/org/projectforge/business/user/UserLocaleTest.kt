@@ -28,7 +28,6 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.configuration.ConfigurationServiceAccessor
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.test.AbstractTestBase
 import java.util.*
 
 class UserLocaleTest {

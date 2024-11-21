@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.test
+package org.projectforge.business.test
 
 import org.projectforge.framework.persistence.history.HistoryEntryAttrDO
 import org.projectforge.framework.persistence.history.HistoryEntryDO
@@ -51,4 +51,3 @@ class HistoryEntryHolder(val entry: HistoryEntryDO, val entity: Any?) {
     val attributes: Set<HistoryEntryAttrDO>?
         get() = entry.attributes
 }
-

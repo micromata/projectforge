@@ -25,7 +25,7 @@ package org.projectforge.menu.builder
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
 class FavoritesMenuTest : AbstractTestBase() {

@@ -30,7 +30,7 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.importer.ImportFieldSettingsTest.Companion.checkFieldSettings
 import org.projectforge.rest.importer.ImportFieldSettingsTest.Companion.checkValues
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 import java.math.BigDecimal
 import java.nio.charset.StandardCharsets
 import java.time.LocalDate

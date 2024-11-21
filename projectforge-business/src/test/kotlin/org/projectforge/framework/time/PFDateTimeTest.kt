@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.projectforge.business.configuration.ConfigurationServiceAccessor
-import org.projectforge.test.TestSetup
+import org.projectforge.business.test.TestSetup
 import java.text.SimpleDateFormat
 import java.time.Month
 import java.time.ZonedDateTime

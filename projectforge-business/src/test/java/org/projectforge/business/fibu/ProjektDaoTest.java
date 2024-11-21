@@ -26,7 +26,7 @@ package org.projectforge.business.fibu;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.business.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;

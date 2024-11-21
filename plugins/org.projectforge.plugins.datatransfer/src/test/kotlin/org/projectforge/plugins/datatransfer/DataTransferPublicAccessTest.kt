@@ -34,7 +34,7 @@ import org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicPageRe
 import org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicServicesRest
 import org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicSession
 import org.projectforge.rest.core.PagesResolver
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.InputStreamResource
 import org.springframework.web.multipart.MultipartFile

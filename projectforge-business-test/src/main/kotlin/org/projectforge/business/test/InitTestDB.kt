@@ -21,11 +21,14 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.test
+package org.projectforge.business.test
 
-import mu.KotlinLogging
 import org.apache.commons.lang3.Validate
-import org.projectforge.business.fibu.*
+import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.business.fibu.EmployeeDao
+import org.projectforge.business.fibu.KundeDO
+import org.projectforge.business.fibu.ProjektDO
+import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.Kost2ArtDO
 import org.projectforge.business.fibu.kost.Kost2ArtDao
 import org.projectforge.business.fibu.kost.Kost2DO
@@ -35,7 +38,11 @@ import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
-import org.projectforge.business.user.*
+import org.projectforge.business.user.GroupDao
+import org.projectforge.business.user.UserGroupCache
+import org.projectforge.business.user.UserRightDao
+import org.projectforge.business.user.UserRightId
+import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.AccessDao
 import org.projectforge.framework.access.AccessType
@@ -45,17 +52,16 @@ import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.persistence.database.DatabaseService
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.setUser
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.framework.time.DateHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import java.util.*
-
-private val log = KotlinLogging.logger {}
+import java.util.Date
+import java.util.Locale
+import kotlin.collections.get
 
 @Component
 class InitTestDB {
@@ -180,7 +186,7 @@ class InitTestDB {
     }
 
     fun addTask(taskName: String, parentTaskName: String?): TaskDO {
-        Validate.isTrue(taskName.length <= TaskDO.TITLE_LENGTH)
+        Validate.isTrue(taskName.length <= TaskDO.Companion.TITLE_LENGTH)
         return addTask(taskName, parentTaskName, null)
     }
 
@@ -250,14 +256,14 @@ class InitTestDB {
     }
 
     fun initDatabase() {
-        val origUser = loggedInUser
+        val origUser = ThreadLocalUserContext.loggedInUser
         try {
             persistenceService.runInTransaction { _ ->
                 val initUser = PFUserDO()
                 initUser.username = "Init-database-pseudo-user"
                 initUser.id = -1L
                 initUser.addRight(UserRightDO(UserRightId.HR_EMPLOYEE, UserRightValue.READWRITE))
-                setUser(initUser)
+                ThreadLocalUserContext.setUser(initUser)
                 initConfiguration()
                 initUsers()
                 databaseService.insertGlobalAddressbook(AbstractTestBase.ADMIN_USER)
@@ -270,7 +276,7 @@ class InitTestDB {
                 initEmployees()
             }
         } finally {
-            setUser(origUser)
+            ThreadLocalUserContext.setUser(origUser)
         }
     }
 

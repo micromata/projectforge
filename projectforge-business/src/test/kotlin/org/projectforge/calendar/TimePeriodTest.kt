@@ -26,12 +26,11 @@ package org.projectforge.calendar
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTime.Companion.withDate
 import org.projectforge.framework.time.TimePeriod
 import org.projectforge.framework.time.TimePeriod.Companion.getDurationHours
 import org.projectforge.framework.utils.RoundUnit
-import org.projectforge.test.TestSetup.init
+import org.projectforge.business.test.TestSetup.init
 import java.math.RoundingMode
 import java.time.Month
 import java.util.*

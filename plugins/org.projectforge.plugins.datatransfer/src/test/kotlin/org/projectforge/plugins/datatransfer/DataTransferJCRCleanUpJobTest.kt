@@ -29,7 +29,10 @@ import org.junit.jupiter.api.Test
 import org.projectforge.jcr.FileObject
 import org.projectforge.jcr.RepoService
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.plugins.datatransfer.DataTransferAreaDO
+import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.DataTransferJCRCleanUpJob
 import org.springframework.beans.factory.annotation.Autowired
 
 const val MODUL_NAME = "org.projectforge.plugins.datatransfer"

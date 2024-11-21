@@ -24,14 +24,11 @@
 package org.projectforge.framework.persistence.jpa
 
 import jakarta.persistence.EntityManagerFactory
-import net.fortuna.ical4j.model.LocationType.bicycle
-import org.hibernate.Hibernate
-import org.hibernate.LazyInitializationException
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.projectforge.ProjectForgeApp
-import org.projectforge.test.TestConfiguration
+import org.projectforge.business.test.TestConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.test.context.ContextConfiguration

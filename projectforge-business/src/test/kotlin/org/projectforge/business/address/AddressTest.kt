@@ -25,14 +25,13 @@ package org.projectforge.business.address
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.business.address.*
+import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.user.UserRightId
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
-import org.projectforge.test.AbstractTestBase
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired

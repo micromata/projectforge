@@ -32,7 +32,7 @@ import org.projectforge.business.fibu.PaymentType
 import org.projectforge.business.orga.ContractDO
 import org.projectforge.business.orga.ContractDao
 import org.projectforge.framework.persistence.api.EntityCopyStatus
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
 import java.time.LocalDate

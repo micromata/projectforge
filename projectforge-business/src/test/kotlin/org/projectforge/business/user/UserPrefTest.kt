@@ -35,7 +35,7 @@ import org.projectforge.framework.persistence.user.entities.UserPrefDO
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTimeUtils.parseAndCreateDateTime
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.Serializable
 import java.util.*

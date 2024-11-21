@@ -35,8 +35,8 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTimeUtils
-import org.projectforge.test.AbstractTestBase
-import org.projectforge.test.HistoryTester
+import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.business.test.HistoryTester
 import java.io.File
 import java.math.BigDecimal
 import java.net.URI
@@ -146,7 +146,7 @@ class HistoryServiceOldFormatTest : AbstractTestBase() {
                 "2023-02-10 13:34:25:184",
                 "2022-10-04 09:55:19:329",
                 PropertyOpType.Update,
-                java.util.Date::class,
+                Date::class,
             )
         }
         hist.getEntriesByPk(getNewHistoryEntryId(37229748), 1, 2).first().let { entry ->

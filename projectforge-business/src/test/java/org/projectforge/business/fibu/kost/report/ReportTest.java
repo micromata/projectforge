@@ -28,7 +28,7 @@ import org.projectforge.business.fibu.kost.reporting.Report;
 import org.projectforge.business.fibu.kost.reporting.ReportDao;
 import org.projectforge.business.fibu.kost.reporting.ReportObjective;
 import org.projectforge.common.i18n.Priority;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.business.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;

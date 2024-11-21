@@ -35,8 +35,8 @@ import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.test.AbstractTestBase
-import org.projectforge.test.HistoryTester
+import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.business.test.HistoryTester
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
 

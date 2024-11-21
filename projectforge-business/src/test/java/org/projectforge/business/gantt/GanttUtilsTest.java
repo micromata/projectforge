@@ -28,8 +28,8 @@ import org.junit.jupiter.api.Test;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.time.PFDay;
-import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.TestSetup;
+import org.projectforge.business.test.AbstractTestBase;
+import org.projectforge.business.test.TestSetup;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

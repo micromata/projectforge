@@ -26,7 +26,7 @@ package org.projectforge.common;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.FileHelper;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.business.test.AbstractTestBase;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

@@ -30,7 +30,7 @@ import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.xmlstream.converter.*;
-import org.projectforge.test.TestSetup;
+import org.projectforge.business.test.TestSetup;
 
 import java.time.LocalDate;
 import java.time.Month;

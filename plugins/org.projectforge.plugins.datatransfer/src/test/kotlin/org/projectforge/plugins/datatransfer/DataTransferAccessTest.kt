@@ -29,10 +29,11 @@ import org.mockito.Mockito
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.jcr.FileObject
 import org.projectforge.plugins.datatransfer.rest.DataTransferPageRest
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletResponse
+import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 
 
 class DataTransferAccessTest : AbstractTestBase() {

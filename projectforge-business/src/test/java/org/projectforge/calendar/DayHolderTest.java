@@ -24,10 +24,9 @@
 package org.projectforge.calendar;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.time.DayHolder;
-import org.projectforge.test.TestSetup;
+import org.projectforge.business.test.TestSetup;
 
 import java.math.BigDecimal;
 import java.time.Month;

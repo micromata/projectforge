@@ -25,6 +25,7 @@ package org.projectforge.framework.json
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlin.collections.get
 
 class JsonValidator(val json: String) {
     private val map: Map<String, Any?>

@@ -39,10 +39,10 @@ import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.time.TimeNotation
-import org.projectforge.test.AbstractTestBase
-import org.projectforge.test.HistoryTester
-import org.projectforge.test.HistoryTester.Companion.assertHistoryEntry
-import org.projectforge.test.HistoryTester.Companion.filterHistoryEntries
+import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.business.test.HistoryTester
+import org.projectforge.business.test.HistoryTester.Companion.assertHistoryEntry
+import org.projectforge.business.test.HistoryTester.Companion.filterHistoryEntries
 import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -160,7 +160,7 @@ class CandHHistoryTest : AbstractTestBase() {
                     value = "2024-10-05 08:39:12",
                     oldValue = "2021-01-01 12:17:33",
                     opType = PropertyOpType.Update,
-                    propertyTypeClass = java.util.Date::class,
+                    propertyTypeClass = Date::class,
                 )
             }
             assertHistoryEntry(entries[1], PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER)

@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.business.test.AbstractTestBase;
 
 import java.text.DateFormat;
 import java.text.ParseException;

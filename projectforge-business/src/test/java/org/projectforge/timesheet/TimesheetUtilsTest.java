@@ -32,7 +32,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.RoundUnit;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.business.test.AbstractTestBase;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

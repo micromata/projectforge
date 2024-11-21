@@ -47,7 +47,7 @@ import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.framework.time.PFDateTime.Companion.withDate
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateParameter
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.Serializable
 import java.time.Month

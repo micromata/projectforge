@@ -30,7 +30,7 @@ import org.junit.jupiter.api.fail
 import org.projectforge.business.user.UserPrefDao
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.i18n.translate
-import org.projectforge.test.TestSetup
+import org.projectforge.business.test.TestSetup
 
 class CalendarFilterFavoritesTest {
     @Test

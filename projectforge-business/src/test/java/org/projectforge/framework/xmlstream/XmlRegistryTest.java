@@ -27,7 +27,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.xmlstream.converter.ISODateConverter;
-import org.projectforge.test.TestSetup;
+import org.projectforge.business.test.TestSetup;
 
 import java.time.Month;
 import java.time.ZoneId;

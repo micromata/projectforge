@@ -29,7 +29,7 @@ import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.business.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;

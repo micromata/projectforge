@@ -27,8 +27,8 @@ import org.junit.jupiter.api.Assertions
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.sipgate.SipgateContact
+import org.projectforge.business.test.ConfigXmlTest
 import org.projectforge.framework.configuration.ConfigXml
-import org.projectforge.framework.configuration.ConfigXmlTest
 import java.io.File
 import java.util.*
 import kotlin.io.path.Path

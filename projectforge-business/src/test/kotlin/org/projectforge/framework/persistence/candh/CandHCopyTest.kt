@@ -35,7 +35,7 @@ import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.history.PropertyOpType
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 import java.io.Serializable
 import java.math.BigDecimal
 import java.time.LocalDate

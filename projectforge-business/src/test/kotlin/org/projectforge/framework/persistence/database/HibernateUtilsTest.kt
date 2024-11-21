@@ -38,7 +38,7 @@ import org.projectforge.framework.persistence.api.HibernateUtils.exitTestMode
 import org.projectforge.framework.persistence.api.HibernateUtils.getPropertyLength
 import org.projectforge.framework.persistence.metamodel.EntityInfo
 import org.projectforge.framework.persistence.metamodel.HibernateMetaModel
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 
 class HibernateUtilsTest : AbstractTestBase() {
     // Used for migrating database. In this case, the column type of the primary key is changed from Integer to Long.

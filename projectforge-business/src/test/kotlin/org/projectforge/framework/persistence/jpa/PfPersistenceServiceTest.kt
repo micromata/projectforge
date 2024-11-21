@@ -25,7 +25,7 @@ package org.projectforge.framework.persistence.jpa
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 
 class PfPersistenceServiceTest : AbstractTestBase() {
     @Test

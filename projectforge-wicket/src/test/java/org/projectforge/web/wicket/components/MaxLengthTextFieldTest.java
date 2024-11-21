@@ -28,7 +28,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.business.test.AbstractTestBase;
 
 import static org.junit.jupiter.api.Assertions.*;
 

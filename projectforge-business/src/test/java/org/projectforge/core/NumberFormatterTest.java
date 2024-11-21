@@ -26,7 +26,7 @@ package org.projectforge.core;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.utils.NumberFormatter;
-import org.projectforge.test.TestSetup;
+import org.projectforge.business.test.TestSetup;
 
 import java.math.BigDecimal;
 import java.util.Locale;

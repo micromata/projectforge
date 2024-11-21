@@ -35,9 +35,14 @@ import org.projectforge.framework.time.PFDateTime
 import org.projectforge.jcr.FileInfo
 import org.projectforge.plugins.datatransfer.rest.DataTransferPageRest
 import org.projectforge.rest.core.PagesResolver
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.plugins.datatransfer.DataTransferAreaDO
+import org.projectforge.plugins.datatransfer.DataTransferAuditDao
+import org.projectforge.plugins.datatransfer.DataTransferJCRCleanUpJob
+import org.projectforge.plugins.datatransfer.DataTransferNotificationMailService
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.*
+import kotlin.jvm.java
 
 class DataTransferNotificationMailTest : AbstractTestBase() {
     @Autowired

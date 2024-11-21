@@ -31,7 +31,7 @@ import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.AddressImageDao;
 import org.projectforge.business.address.AddressStatus;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.business.test.AbstractTestBase;
 import org.projectforge.web.rest.TaskDaoRest;
 import org.springframework.beans.factory.annotation.Autowired;
 

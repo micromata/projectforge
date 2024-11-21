@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.test.AbstractTestBase
+import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
 class My2FAServiceTest : AbstractTestBase() {
