@@ -23,8 +23,6 @@
 
 package org.projectforge.common.mgc;
 
-import org.apache.log4j.Logger;
-
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,7 +37,7 @@ import java.util.Map;
  */
 public class GenericsUtils
 {
-  private static final Logger LOG = Logger.getLogger(GenericsUtils.class);
+  private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(GenericsUtils.class);
 
   public static Class<?> getClass(Type type)
   {

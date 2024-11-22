@@ -23,23 +23,18 @@
 
 package org.projectforge.framework.persistence.jpa
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.FetchType
-import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
+import jakarta.persistence.*
 
 @Entity
 open class Bicycle {
     @get:Id
-    var id: Long? = null
+    open var id: Long? = null
 
     @get:Column
-    var name: String? = null
+    open var name: String? = null
 
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_id", nullable = false)
-    var owner: BicycleOwner? = null
+    open var owner: BicycleOwner? = null
 }
 

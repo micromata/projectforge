@@ -69,7 +69,7 @@ import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
 import java.util.*
 import jakarta.servlet.http.HttpServletRequest
-import javax.validation.Valid
+import jakarta.validation.Valid
 import kotlin.reflect.KProperty
 
 private val log = KotlinLogging.logger {}

@@ -64,7 +64,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.io.Serializable
-import javax.validation.Valid
+import jakarta.validation.Valid
 
 private val log = KotlinLogging.logger {}
 

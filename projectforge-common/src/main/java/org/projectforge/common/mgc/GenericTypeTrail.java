@@ -23,8 +23,6 @@
 
 package org.projectforge.common.mgc;
 
-import org.apache.log4j.Logger;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -40,7 +38,7 @@ import java.util.Map;
  */
 public class GenericTypeTrail
 {
-  static final Logger LOG = Logger.getLogger(GenericTypeTrail.class);
+  private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(GenericTypeTrail.class);
   /**
    * the link to the derived class.
    */

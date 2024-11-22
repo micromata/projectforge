@@ -53,7 +53,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import jakarta.servlet.http.HttpServletRequest
-import javax.validation.Valid
+import jakarta.validation.Valid
 
 private val log = KotlinLogging.logger {}
 
