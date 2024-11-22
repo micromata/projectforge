@@ -28,33 +28,6 @@ package org.projectforge.model.rest;
  */
 public class RestPaths
 {
-  public static String buildOldPath(final String... pathElements)
-  {
-    if (pathElements == null) {
-      return "";
-    }
-    final StringBuilder sb = new StringBuilder();
-    sb.append("/" + OLD_REST);
-    for (final String pathElement : pathElements) {
-      sb.append("/").append(pathElement);
-    }
-    return sb.toString();
-  }
-
-  public static final String buildOldListPath(final String path)
-  {
-    return "/" + OLD_REST + "/" + path + "/" + LIST;
-  }
-
-  public static final String buildTreePath(final String path)
-  {
-    return "/" + OLD_REST + "/" + path + "/" + TREE;
-  }
-
-  public static final String OLD_REST = "rest";
-
-  public static final String OLD_PUBLIC_REST = "publicRest";
-
   public static final String REST = "rs";
 
   public static final String REST_PUBLIC = "rsPublic";
