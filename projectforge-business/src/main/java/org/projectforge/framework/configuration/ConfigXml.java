@@ -31,7 +31,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.dom4j.Element;
-import org.glassfish.jersey.servlet.WebConfig;
 import org.projectforge.ProjectForgeApp;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.orga.ContractType;

@@ -13,7 +13,7 @@ dependencies {
     api(libs.org.postgresql.postgresql)
     api(libs.org.springframework.spring.webmvc)
     api(libs.io.milton.milton.server.ent)
-    api(libs.com.googlecode.ez.vcard.ez.vcard)
+    api(libs.com.googlecode.ez.vcard)
     api(libs.org.slf4j.jcl.over.slf4j)
 }
 

@@ -18,7 +18,7 @@ dependencies {
     api(project(":projectforge-rest"))
     api(project(":projectforge-webapp"))
     api(project(":projectforge-caldav"))
-    api(libs.com.googlecode.lanterna.lanterna)
+    api(libs.com.googlecode.lanterna)
     api(libs.org.jetbrains.kotlin.kotlin.stdlib)
     api(libs.org.reflections.reflections)
     runtimeOnly(project(":org.projectforge.plugins.datatransfer"))

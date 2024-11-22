@@ -7,13 +7,11 @@ plugins {
 }
 
 dependencies {
+    api(project(":projectforge-business"))
     api(project(":projectforge-rest"))
-    api(libs.org.springframework.boot.starter.webflux)
-    api(libs.org.springframework.spring.orm)
-    api(libs.org.springframework.spring.context)
-    compileOnly(libs.jakarta.annotation.jakarta.annotation.api)
+    api(libs.jakarta.annotation.api)
     testImplementation(project(":projectforge-commons-test"))
-    testImplementation(project(":projectforge-business-test"))
+    testImplementation(testFixtures(project(":projectforge-business")))
 }
 
 description = "org.projectforge.plugins.datatransfer"

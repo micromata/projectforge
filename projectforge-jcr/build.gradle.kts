@@ -14,9 +14,9 @@ dependencies {
     api(libs.org.apache.jackrabbit.oak.segment.tar)
     api(libs.io.dropwizard.metrics.metrics.core)
     api(libs.net.lingala.zip4j.zip4j)
-    api(libs.com.fasterxml.jackson.core.jackson.core)
-    api(libs.com.fasterxml.jackson.core.jackson.databind)
-    api(libs.com.fasterxml.jackson.core.jackson.annotations)
+    api(libs.com.fasterxml.jackson.core)
+    api(libs.com.fasterxml.jackson.core.databind)
+    api(libs.com.fasterxml.jackson.core.annotations)
     testImplementation(project(":projectforge-commons-test"))
 }
 

@@ -13,15 +13,15 @@ dependencies {
     api(libs.org.apache.wicket.wicket.myextensions)
     api(libs.org.apache.wicket.wicket.spring)
     api(libs.org.apache.wicket.wicket.tester)
-    api(libs.jakarta.servlet.jsp.jakarta.servlet.jsp.api)
+    api(libs.jakarta.servlet.jsp.api)
     api(libs.org.jetbrains.kotlin.kotlin.stdlib)
     api(libs.org.wicketstuff.wicketstuff.html5)
     api(libs.org.wicketstuff.wicketstuff.select2)
-    api(libs.com.google.code.gson.gson)
+    api(libs.com.google.code.gson)
     api(libs.org.mozilla.rhino)
     testImplementation(project(":projectforge-commons-test"))
-    testImplementation(project(":projectforge-business-test"))
-    compileOnly(libs.jakarta.servlet.jakarta.servlet.api)
+    testImplementation(testFixtures(project(":projectforge-business")))
+    compileOnly(libs.jakarta.servlet.api)
 }
 
 description = "projectforge-wicket"
