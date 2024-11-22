@@ -24,7 +24,6 @@
 package org.projectforge.rest.core
 
 import mu.KotlinLogging
-import org.apache.catalina.connector.ClientAbortException
 import org.projectforge.common.MaxFileSizeExceeded
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.api.TechnicalException
@@ -40,6 +39,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.multipart.MaxUploadSizeExceededException
 import jakarta.servlet.http.HttpServletRequest
+import java.io.IOException
 
 private val log = KotlinLogging.logger {}
 
@@ -63,7 +63,7 @@ internal class GlobalDefaultExceptionHandler {
       log.error("${translateMsg(userEx)} ${userEx.logHintMessage}")
       return ResponseEntity.badRequest().body(UIToast.createExceptionToast(userEx))
     }
-    if (ex is ClientAbortException) {
+    if (ex is IOException && isClientAbortException(ex)) {
       log.info { ex::class.java.name }
       return ex::class.java.name
     }
@@ -94,5 +94,15 @@ internal class GlobalDefaultExceptionHandler {
     )
     log.error(ex.message, ex)
     return ResponseEntity("Internal error.", HttpStatus.BAD_REQUEST)
+  }
+
+  /**
+   * Checks if the exception is a client abort exception.
+   * @param exception The exception to check.
+   * @return True if the exception is a client abort exception.
+   */
+  private fun isClientAbortException(exception: IOException): Boolean {
+    val message = exception.message?.lowercase()
+    return message?.contains("broken pipe") == true || message?.contains("connection reset by peer") == true
   }
 }

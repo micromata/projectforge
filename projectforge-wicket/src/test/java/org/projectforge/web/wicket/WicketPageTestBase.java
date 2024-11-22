@@ -53,8 +53,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.MissingResourceException;
 
 /**
- * Your wicket tester class must extends this or any derived class from AbstractTestBase for correct initialization of
- * Spring, data-base, resource locator etc. Before your tests a new data-base is initialized and set-up with test data.
+ * Your wicket tester class must extend this or any derived class from AbstractTestBase for correct initialization of
+ * Spring, database, resource locator etc. Before your tests a new data-base is initialized and set-up with test data.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */

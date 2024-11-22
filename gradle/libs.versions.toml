@@ -35,6 +35,7 @@ jakarta-ws-rs-jakarta-ws-rs-api = "4.0.0"
 jakarta-xml-bind-api = "4.0.2"
 javax-jcr-jcr = "2.0"
 javax-validation-validation-api = "2.0.1.Final"
+jboss-logging = "3.6.0.Final"
 joda-time-joda-time = "2.12.7"
 net-lingala-zip4j-zip4j = "2.11.5"
 net-sourceforge-mpxj = "4.3.0"
@@ -94,46 +95,47 @@ org-wicketstuff-wicketstuff-select2 = "10.2.0"
 se-sawano-java-alphanumeric-comparator = "1.4.1"
 
 [libraries]
-com-fasterxml-jackson-core-jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "com-fasterxml-jackson-core-jackson-annotations" }
-com-fasterxml-jackson-core-jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "com-fasterxml-jackson-core-jackson-core" }
-com-fasterxml-jackson-core-jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "com-fasterxml-jackson-core-jackson-databind" }
-com-fasterxml-jackson-datatype-jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "com-fasterxml-jackson-datatype-jackson-datatype-jsr310" }
-com-fasterxml-jackson-module-jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "com-fasterxml-jackson-module-jackson-module-kotlin" }
-com-google-code-gson-gson = { module = "com.google.code.gson:gson", version.ref = "com-google-code-gson-gson" }
+com-fasterxml-jackson-core-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "com-fasterxml-jackson-core-jackson-annotations" }
+com-fasterxml-jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "com-fasterxml-jackson-core-jackson-core" }
+com-fasterxml-jackson-core-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "com-fasterxml-jackson-core-jackson-databind" }
+com-fasterxml-jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "com-fasterxml-jackson-datatype-jackson-datatype-jsr310" }
+com-fasterxml-jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "com-fasterxml-jackson-module-jackson-module-kotlin" }
+com-google-code-gson = { module = "com.google.code.gson:gson", version.ref = "com-google-code-gson-gson" }
 com-google-zxing-core = { module = "com.google.zxing:core", version.ref = "com-google-zxing-core" }
 com-google-zxing-javase = { module = "com.google.zxing:javase", version.ref = "com-google-zxing-javase" }
-com-googlecode-ez-vcard-ez-vcard = { module = "com.googlecode.ez-vcard:ez-vcard", version.ref = "com-googlecode-ez-vcard-ez-vcard" }
-com-googlecode-json-simple-json-simple = { module = "com.googlecode.json-simple:json-simple", version.ref = "com-googlecode-json-simple-json-simple" }
-com-googlecode-lanterna-lanterna = { module = "com.googlecode.lanterna:lanterna", version.ref = "com-googlecode-lanterna-lanterna" }
-com-itextpdf-itextpdf = { module = "com.itextpdf:itextpdf", version.ref = "com-itextpdf-itextpdf" }
+com-googlecode-ez-vcard = { module = "com.googlecode.ez-vcard:ez-vcard", version.ref = "com-googlecode-ez-vcard-ez-vcard" }
+com-googlecode-json-simple = { module = "com.googlecode.json-simple:json-simple", version.ref = "com-googlecode-json-simple-json-simple" }
+com-googlecode-lanterna = { module = "com.googlecode.lanterna:lanterna", version.ref = "com-googlecode-lanterna-lanterna" }
+com-itextpdf = { module = "com.itextpdf:itextpdf", version.ref = "com-itextpdf-itextpdf" }
 com-sun-xml-bind-jaxb-impl = { module = "com.sun.xml.bind:jaxb-impl", version.ref = "com-sun-xml-bind-jaxb" }
 com-sun-xml-bind-jaxb-xjc = { module = "com.sun.xml.bind:jaxb-xjc", version.ref = "com-sun-xml-bind-jaxb" }
-com-thoughtworks-xstream-xstream = { module = "com.thoughtworks.xstream:xstream", version.ref = "com-thoughtworks-xstream-xstream" }
-com-webauthn4j-webauthn4j-core = { module = "com.webauthn4j:webauthn4j-core", version.ref = "com-webauthn4j-webauthn4j-core" }
-com-webauthn4j-webauthn4j-spring-security-core = { module = "com.webauthn4j:webauthn4j-spring-security-core", version.ref = "com-webauthn4j-webauthn4j-spring-security-core" }
+com-thoughtworks-xstream = { module = "com.thoughtworks.xstream:xstream", version.ref = "com-thoughtworks-xstream-xstream" }
+com-webauthn4j-core = { module = "com.webauthn4j:webauthn4j-core", version.ref = "com-webauthn4j-webauthn4j-core" }
+com-webauthn4j-spring-security-core = { module = "com.webauthn4j:webauthn4j-spring-security-core", version.ref = "com-webauthn4j-webauthn4j-spring-security-core" }
 com-zaxxer-hikaricp = { module = "com.zaxxer:HikariCP", version.ref = "com-zaxxer-hikaricp" }
-commons-beanutils-commons-beanutils = { module = "commons-beanutils:commons-beanutils", version.ref = "commons-beanutils-commons-beanutils" }
-commons-io-commons-io = { module = "commons-io:commons-io", version.ref = "commons-io-commons-io" }
-de-micromata-merlin-merlin-core = { module = "de.micromata.merlin:merlin-core", version.ref = "de-micromata-merlin-merlin-core" }
+commons-beanutils = { module = "commons-beanutils:commons-beanutils", version.ref = "commons-beanutils-commons-beanutils" }
+commons-io = { module = "commons-io:commons-io", version.ref = "commons-io-commons-io" }
+de-micromata-merlin-core = { module = "de.micromata.merlin:merlin-core", version.ref = "de-micromata-merlin-merlin-core" }
 fr-opensagres-xdocreport-fr-opensagres-poi-xwpf-converter-pdf = { module = "fr.opensagres.xdocreport:fr.opensagres.poi.xwpf.converter.pdf", version.ref = "fr-opensagres-xdocreport-fr-opensagres-poi-xwpf-converter-pdf" }
 io-dropwizard-metrics-metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "io-dropwizard-metrics-metrics-core" }
 io-milton-milton-server-ent = { module = "io.milton:milton-server-ent", version.ref = "io-milton-milton-server-ent" }
-jakarta-activation-jakarta-activation-api = { module = "jakarta.activation:jakarta.activation-api", version.ref = "jakarta-activation-jakarta-activation-api" }
-jakarta-annotation-jakarta-annotation-api = { module = "jakarta.annotation:jakarta.annotation-api", version.ref = "jakarta-annotation-jakarta-annotation-api" }
+jakarta-activation-api = { module = "jakarta.activation:jakarta.activation-api", version.ref = "jakarta-activation-jakarta-activation-api" }
+jakarta-annotation-api = { module = "jakarta.annotation:jakarta.annotation-api", version.ref = "jakarta-annotation-jakarta-annotation-api" }
 jakarta-mail-jakarta-mail-api = { module = "jakarta.mail:jakarta.mail-api", version.ref = "jakarta-mail-jakarta-mail-api" }
-jakarta-persistence-jakarta-persistence-api = { module = "jakarta.persistence:jakarta.persistence-api", version.ref = "jakarta-persistence-jakarta-persistence-api" }
-jakarta-servlet-jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "jakarta-servlet-jakarta-servlet-api" }
-jakarta-servlet-jsp-jakarta-servlet-jsp-api = { module = "jakarta.servlet.jsp:jakarta.servlet.jsp-api", version.ref = "jakarta-servlet-jsp-jakarta-servlet-jsp-api" }
-jakarta-ws-rs-jakarta-ws-rs-api = { module = "jakarta.ws.rs:jakarta.ws.rs-api", version.ref = "jakarta-ws-rs-jakarta-ws-rs-api" }
+jakarta-persistence-api = { module = "jakarta.persistence:jakarta.persistence-api", version.ref = "jakarta-persistence-jakarta-persistence-api" }
+jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "jakarta-servlet-jakarta-servlet-api" }
+jakarta-servlet-jsp-api = { module = "jakarta.servlet.jsp:jakarta.servlet.jsp-api", version.ref = "jakarta-servlet-jsp-jakarta-servlet-jsp-api" }
+jakarta-ws-rs-api = { module = "jakarta.ws.rs:jakarta.ws.rs-api", version.ref = "jakarta-ws-rs-jakarta-ws-rs-api" }
 jakarta-xml-bind-api = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version.ref = "jakarta-xml-bind-api" }
 javax-jcr-jcr = { module = "javax.jcr:jcr", version.ref = "javax-jcr-jcr" }
 javax-validation-validation-api = { module = "javax.validation:validation-api", version.ref = "javax-validation-validation-api" }
+jboss-logging = { module = "org.jboss.logging:jboss-logging", version.ref = "jboss-logging" }
 joda-time-joda-time = { module = "joda-time:joda-time", version.ref = "joda-time-joda-time" }
 net-lingala-zip4j-zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "net-lingala-zip4j-zip4j" }
 net-sourceforge-mpxj = { module = "net.sourceforge:mpxj", version.ref = "net-sourceforge-mpxj" }
-org-apache-commons-commons-collections4 = { module = "org.apache.commons:commons-collections4", version.ref = "org-apache-commons-commons-collections4" }
-org-apache-commons-commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "org-apache-commons-commons-lang3" }
-org-apache-commons-commons-text = { module = "org.apache.commons:commons-text", version.ref = "org-apache-commons-commons-text" }
+org-apache-commons-collections4 = { module = "org.apache.commons:commons-collections4", version.ref = "org-apache-commons-commons-collections4" }
+org-apache-commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "org-apache-commons-commons-lang3" }
+org-apache-commons-text = { module = "org.apache.commons:commons-text", version.ref = "org-apache-commons-commons-text" }
 org-apache-directory-server-apacheds-server-integ = { module = "org.apache.directory.server:apacheds-server-integ", version.ref = "org-apache-directory-server-apacheds-server-integ" }
 org-apache-groovy-groovy-all = { module = "org.apache.groovy:groovy-all", version.ref = "org-apache-groovy-groovy-all" }
 org-apache-httpcomponents-client5-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "org-apache-httpcomponents-client5-httpclient5" }

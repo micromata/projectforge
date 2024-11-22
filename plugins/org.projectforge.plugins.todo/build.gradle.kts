@@ -9,8 +9,8 @@ plugins {
 dependencies {
     api(project(":projectforge-wicket"))
     api(project(":projectforge-rest"))
-    testImplementation(project(":projectforge-business-test"))
-    testImplementation(libs.jakarta.servlet.jakarta.servlet.api)
+    testImplementation(testFixtures(project(":projectforge-business")))
+    testImplementation(libs.jakarta.servlet.api)
 }
 
 description = "org.projectforge.plugins.todo"
