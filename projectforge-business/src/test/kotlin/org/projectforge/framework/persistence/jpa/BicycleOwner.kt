@@ -33,8 +33,8 @@ import jakarta.persistence.ManyToOne
 @Entity
 open class BicycleOwner {
     @get:Id
-    var id: Long? = null
+    open var id: Long? = null
 
     @get:Column
-    var name: String? = null
+    open var name: String? = null
 }

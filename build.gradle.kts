@@ -8,6 +8,16 @@ allprojects {
     group = "org.projectForge"
     version = "8.0.0"
 
+    configurations.all {
+        exclude(group = "org.slf4j", module = "jul-to-slf4j")
+        exclude(group = "org.slf4j", module = "slf4j-jul")
+        exclude(group = "org.slf4j", module = "slf4j-log4j12")
+        exclude(group = "commons-logging", module = "commons-logging")
+        exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
+        exclude(group = "org.apache.logging.log4j", module = "log4j-api")
+        exclude(group = "org.slf4j", module = "log4j-over-slf4j")
+    }
+
     repositories {
         mavenCentral()
         gradlePluginPortal() // Spring Boot Plugins are here.

@@ -9,7 +9,7 @@ plugins {
 dependencies {
     api(project(":projectforge-common"))
     api(libs.org.jetbrains.kotlin.kotlin.stdlib)
-    api(libs.javax.jcr.jcr)
+    api(libs.javax.jcr)
     api(libs.org.apache.jackrabbit.oak.jcr)
     api(libs.org.apache.jackrabbit.oak.segment.tar)
     api(libs.io.dropwizard.metrics.metrics.core)

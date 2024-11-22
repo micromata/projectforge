@@ -2,9 +2,8 @@ import org.gradle.kotlin.dsl.testImplementation
 
 plugins {
     id("buildlogic.java-conventions")
-    id("org.springframework.boot") version libs.versions.org.springframework.boot.get()
     id("io.spring.dependency-management") version libs.versions.io.spring.dependency.management.get()
-    id("java")
+    id("java-library")
     id("java-test-fixtures")
 }
 
@@ -19,6 +18,8 @@ tasks.register<JavaExec>("xjc") {
     mainClass.set("com.sun.tools.xjc.XJCFacade")
     classpath = configurations.compileClasspath.get()
     val outputDir = layout.buildDirectory.dir("generated-sources/xjc").get().asFile
+    inputs.file("src/main/resources/misc/pain.001.003.03.xsd") // Das XSD-Schema as input
+    outputs.dir(outputDir) // output folder of generated files.
     args = listOf(
         "-d", outputDir.absolutePath, // Output dir
         "-p", "org.projectforge.generated",           // Destination package
@@ -51,14 +52,15 @@ dependencies {
     api(libs.com.sun.xml.bind.jaxb.xjc)
     api(libs.com.googlecode.json.simple)
     api(libs.org.aspectj.aspectjtools)
-    api(libs.org.hibernate.search.hibernate.search.mapper.orm)
-    api(libs.org.hibernate.search.hibernate.search.backend.lucene)
     api(libs.jakarta.activation.api)
     api(libs.jakarta.annotation.api)
     api(libs.jakarta.persistence.api)
     api(libs.jakarta.mail.jakarta.mail.api)
     api(libs.jakarta.xml.bind.api)
-    api(libs.org.springframework.boot.starter)
+    api(libs.joda.time.joda.time)
+    api(libs.org.apache.commons.collections4)
+    api(libs.org.hibernate.search.hibernate.search.mapper.orm)
+    api(libs.org.hibernate.search.hibernate.search.backend.lucene)
     api(libs.org.jetbrains.kotlin.kotlin.stdlib)
     api(libs.org.jetbrains.kotlin.kotlin.compiler.embeddable)
     api(libs.org.jetbrains.kotlin.kotlin.scripting.jsr223)
@@ -67,10 +69,10 @@ dependencies {
     api(libs.org.jetbrains.kotlin.kotlin.scripting.jvm)
     api(libs.org.jetbrains.kotlin.kotlin.scripting.jvm.host)
     api(libs.org.jetbrains.kotlinx.kotlinx.coroutines.slf4j)
+    api(libs.org.springframework.boot.starter)
     api(libs.org.springframework.spring.tx)
     api(libs.org.springframework.spring.context)
     api(libs.org.springframework.spring.orm)
-    api(libs.org.apache.commons.collections4)
     api(libs.commons.io)
     api(libs.org.bouncycastle.bcprov.jdk18on)
     api(libs.org.dom4j.dom4j)

@@ -46,7 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import jakarta.servlet.http.HttpServletRequest
-import javax.validation.Valid
+import jakarta.validation.Valid
 
 private val log = KotlinLogging.logger {}
 

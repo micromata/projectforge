@@ -17,7 +17,6 @@ package org.lesscss;
 // If less.js 1.3.3 is supported again, remove this package and re-activate the pom.xml entry.
 
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.shell.Global;
 
@@ -58,7 +57,7 @@ public class LessCompiler
 
   private static final String COMPILE_STRING = "function doIt(input, compress) { var result; var parser = new less.Parser(); parser.parse(input, function(e, tree) { if (e instanceof Object) { throw e; } ; result = tree.toCSS({compress: compress}); }); return result; }";
 
-  private static final Logger log = Logger.getLogger(LessCompiler.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LessCompiler.class);
 
   private URL envJs = LessCompiler.class.getClassLoader().getResource("lesscss/env.rhino.js");
   private URL lessJs = LessCompiler.class.getClassLoader().getResource("lesscss/less-1.3.3.min.js");

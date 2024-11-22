@@ -16,13 +16,13 @@ tasks.withType<Test> {
 }
 
 dependencies {
+    api(libs.commons.beanutils)
+    api(libs.logback.classic)
     api(libs.org.springframework.boot.starter.logging)
     api(libs.org.jetbrains.kotlin.kotlin.stdlib)
     api(libs.org.jetbrains.kotlin.kotlin.reflect)
     api(libs.org.apache.commons.collections4)
     api(libs.org.apache.commons.lang3)
-    api(libs.commons.beanutils)
-    api(libs.joda.time.joda.time)
     testImplementation(project(":projectforge-commons-test"))
     testApi(libs.org.junit.jupiter.api)
 }

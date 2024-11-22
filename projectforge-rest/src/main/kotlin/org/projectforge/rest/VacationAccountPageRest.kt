@@ -54,7 +54,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import java.time.Month
 import java.time.Year
-import javax.validation.Valid
+import jakarta.validation.Valid
 
 private val log = KotlinLogging.logger {}
 
