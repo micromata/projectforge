@@ -29,6 +29,8 @@ import org.apache.wicket.request.mapper.parameter.PageParameters
 import org.junit.jupiter.api.Test
 import org.projectforge.business.systeminfo.SystemInfoCache
 import org.projectforge.business.systeminfo.SystemInfoCache.Companion.internalInitialize
+import org.projectforge.common.logging.LogSubscription
+import org.projectforge.common.logging.LoggerMemoryAppender
 import org.projectforge.menu.builder.MenuCreator.Companion.testCase
 import org.projectforge.web.address.AddressEditPage
 import org.projectforge.web.address.AddressListPage
@@ -56,12 +58,19 @@ class CallAllPagesTest : WicketPageTestBase() {
         recreateDataBase()
     }
 
+    override fun beforeAll() {
+        if (!LoggerMemoryAppender.isInitialized()) {
+            LoggerMemoryAppender() // Needed by DatevImportPage
+        }
+        super.beforeAll()
+    }
+
     @Test
     fun testAllMountedPages() {
         testCase = true
         _testAllMountedPages()
         suppressErrorLogs {
-            testPage(SetupPage::class.java, CalendarPage::class.java) // Data base isn't empty.
+            testPage(SetupPage::class.java, CalendarPage::class.java) // Database isn't empty.
         }
         // clearDatabase();
         // testPage(SetupPage.class); // Doesn't work (table t_pf_user exists).

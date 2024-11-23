@@ -112,6 +112,10 @@ class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
     fun getInstance(): LoggerMemoryAppender {
       return instance!!
     }
+
+    fun isInitialized(): Boolean {
+      return instance != null
+    }
   }
 
   /**

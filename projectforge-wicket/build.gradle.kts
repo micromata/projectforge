@@ -3,7 +3,7 @@
  */
 
 plugins {
-    id("buildlogic.java-conventions")
+    id("java-library")
 }
 
 dependencies {
@@ -22,6 +22,26 @@ dependencies {
     testImplementation(project(":projectforge-commons-test"))
     testImplementation(testFixtures(project(":projectforge-business")))
     compileOnly(libs.jakarta.servlet.api)
+}
+
+sourceSets {
+    main {
+        java.srcDirs("src/main/java", "src/main/kotlin")
+        resources.srcDirs("src/main/resources", "src/main/java", "src/main/webapp")
+    }
+    test {
+        java.srcDirs("src/test/java", "src/test/kotlin")
+    }
+}
+
+tasks.withType<ProcessResources> {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from("src/main/java") {
+        include("**/*.css", "**/*.html", "**/*.js", "**/*.js.template", "**/*.tpl")
+    }
+    from("src/main/webapp") {
+        into("static")
+    }
 }
 
 description = "projectforge-wicket"
