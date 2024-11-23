@@ -37,76 +37,115 @@ import java.util.*
 
 
 class DataTransferAuditDaoTest : AbstractTestBase() {
-  @Autowired
-  private lateinit var dataTransferAuditDao: DataTransferAuditDao
+    @Autowired
+    private lateinit var dataTransferAuditDao: DataTransferAuditDao
 
-  // Needed to initialize dataTransferAuditDao.dataTransferAreaDao
-  @Autowired
-  private lateinit var dataTransferAreaDao: DataTransferAreaDao
+    // Needed to initialize dataTransferAuditDao.dataTransferAreaDao
+    @Autowired
+    private lateinit var dataTransferAreaDao: DataTransferAreaDao
 
-  init {
-    DataTransferTestService.addPluginEntitiesForTestMode()
-  }
-
-  @Test
-  fun removeFromQueueTest() {
-    val areaId = 1L
-    logon(TEST_USER)
-    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minusDays(10).utilDate))
-    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(62, ChronoUnit.MINUTES).utilDate))
-    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(11, ChronoUnit.MINUTES).utilDate))
-    Assertions.assertEquals(3, dataTransferAuditDao.internalGetEntriesByAreaId(areaId)!!.size)
-    dataTransferAuditDao.internalGetQueuedEntriesByAreaId(areaId).let { entries ->
-      Assertions.assertEquals(3, entries!!.size, "3 entries queued.")
-      dataTransferAuditDao.removeFromQueue(entries)
+    init {
+        DataTransferTestService.addPluginEntitiesForTestMode()
     }
-    Assertions.assertEquals(0, dataTransferAuditDao.internalGetQueuedEntriesByAreaId(areaId)!!.size, "No more queued entries. 3 were processed.")
-  }
 
-  @Test
-  fun deleteOldTest() {
-    val size = 60
-    val areaId = 2L
-    for (i in 1..size) {
-      dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minusMonths(10).utilDate))
+    @Test
+    fun removeFromQueueTest() {
+        val areaId = 1L
+        logon(TEST_USER)
+        dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minusDays(10).utilDate))
+        dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(62, ChronoUnit.MINUTES).utilDate))
+        dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(11, ChronoUnit.MINUTES).utilDate))
+        Assertions.assertEquals(3, dataTransferAuditDao.internalGetEntriesByAreaId(areaId)!!.size)
+        dataTransferAuditDao.internalGetQueuedEntriesByAreaId(areaId).let { entries ->
+            Assertions.assertEquals(3, entries!!.size, "3 entries queued.")
+            dataTransferAuditDao.removeFromQueue(entries)
+        }
+        Assertions.assertEquals(
+            0,
+            dataTransferAuditDao.internalGetQueuedEntriesByAreaId(areaId)!!.size,
+            "No more queued entries. 3 were processed."
+        )
     }
-    dataTransferAuditDao.internalGetEntriesByAreaId(areaId).let { entries ->
-      Assertions.assertEquals(size, entries!!.size)
-    }
-    Assertions.assertEquals(size, dataTransferAuditDao.deleteOldEntries(PFDateTime.now().minusMonths(9)))
-    dataTransferAuditDao.internalGetEntriesByAreaId(areaId).let { entries ->
-      Assertions.assertEquals(0, entries!!.size, "All entries of area 1 should be deleted now")
-    }
-  }
 
-  @Test
-  fun queueTest() {
-    val areaId = 3L
-    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minusDays(10).utilDate))
-    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(62, ChronoUnit.MINUTES).utilDate))
-    Assertions.assertEquals(2, dataTransferAuditDao.internalGetQueuedEntriesByAreaId(areaId)!!.size)
-    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(1, ChronoUnit.MINUTES).utilDate, AttachmentsEventType.DOWNLOAD_ALL))
-    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(2, ChronoUnit.MINUTES).utilDate, AttachmentsEventType.DOWNLOAD))
-    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(3, ChronoUnit.MINUTES).utilDate, AttachmentsEventType.DOWNLOAD_MULTI))
-    Assertions.assertEquals(2, dataTransferAuditDao.internalGetQueuedEntriesByAreaId(areaId)!!.size, "Download events should be ignored.")
-    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(2, ChronoUnit.MINUTES).utilDate, AttachmentsEventType.MODIFICATION))
-    Assertions.assertNull(dataTransferAuditDao.internalGetQueuedEntriesByAreaId(areaId), "An audit entry newer than 5 minutes found. Queue should return nothing.")
-
-    dataTransferAuditDao.internalGetDownloadEntriesByAreaId(areaId).let { result ->
-      Assertions.assertEquals(3, result.size, "2 download events should be there.")
-      Assertions.assertEquals(result[0].eventType, AttachmentsEventType.DOWNLOAD_ALL)
-      Assertions.assertEquals(result[1].eventType, AttachmentsEventType.DOWNLOAD)
-      Assertions.assertEquals(result[2].eventType, AttachmentsEventType.DOWNLOAD_MULTI)
+    @Test
+    fun deleteOldTest() {
+        val size = 60
+        val areaId = 2L
+        for (i in 1..size) {
+            dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minusMonths(10).utilDate))
+        }
+        dataTransferAuditDao.internalGetEntriesByAreaId(areaId).let { entries ->
+            Assertions.assertEquals(size, entries!!.size)
+        }
+        Assertions.assertEquals(size, dataTransferAuditDao.deleteOldEntries(PFDateTime.now().minusMonths(9)))
+        dataTransferAuditDao.internalGetEntriesByAreaId(areaId).let { entries ->
+            Assertions.assertEquals(0, entries!!.size, "All entries of area 1 should be deleted now")
+        }
     }
-  }
 
-  private fun create(areaId: Long, timestamp: Date? = null, eventType: AttachmentsEventType? = AttachmentsEventType.UPLOAD): DataTransferAuditDO {
-    val user = getUser(TEST_USER)
-    val obj = DataTransferAuditDO()
-    obj.byUser = user
-    obj.areaId = areaId
-    obj.timestamp = timestamp
-    obj.eventType = eventType
-    return obj
-  }
+    @Test
+    fun queueTest() {
+        val areaId = 3L
+        dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minusDays(10).utilDate))
+        dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(62, ChronoUnit.MINUTES).utilDate))
+        Assertions.assertEquals(2, dataTransferAuditDao.internalGetQueuedEntriesByAreaId(areaId)!!.size)
+        dataTransferAuditDao.insert(
+            create(
+                areaId,
+                PFDateTime.now().minus(1, ChronoUnit.MINUTES).utilDate,
+                AttachmentsEventType.DOWNLOAD_ALL
+            )
+        )
+        dataTransferAuditDao.insert(
+            create(
+                areaId,
+                PFDateTime.now().minus(2, ChronoUnit.MINUTES).utilDate,
+                AttachmentsEventType.DOWNLOAD
+            )
+        )
+        dataTransferAuditDao.insert(
+            create(
+                areaId,
+                PFDateTime.now().minus(3, ChronoUnit.MINUTES).utilDate,
+                AttachmentsEventType.DOWNLOAD_MULTI
+            )
+        )
+        Assertions.assertEquals(
+            2,
+            dataTransferAuditDao.internalGetQueuedEntriesByAreaId(areaId)!!.size,
+            "Download events should be ignored."
+        )
+        dataTransferAuditDao.insert(
+            create(
+                areaId,
+                PFDateTime.now().minus(2, ChronoUnit.MINUTES).utilDate,
+                AttachmentsEventType.MODIFICATION
+            )
+        )
+        Assertions.assertNull(
+            dataTransferAuditDao.internalGetQueuedEntriesByAreaId(areaId),
+            "An audit entry newer than 5 minutes found. Queue should return nothing."
+        )
+
+        dataTransferAuditDao.internalGetDownloadEntriesByAreaId(areaId).let { result ->
+            Assertions.assertEquals(3, result.size, "2 download events should be there.")
+            Assertions.assertEquals(result[0].eventType, AttachmentsEventType.DOWNLOAD_ALL)
+            Assertions.assertEquals(result[1].eventType, AttachmentsEventType.DOWNLOAD)
+            Assertions.assertEquals(result[2].eventType, AttachmentsEventType.DOWNLOAD_MULTI)
+        }
+    }
+
+    private fun create(
+        areaId: Long,
+        timestamp: Date? = null,
+        eventType: AttachmentsEventType? = AttachmentsEventType.UPLOAD
+    ): DataTransferAuditDO {
+        val user = getUser(TEST_USER)
+        val obj = DataTransferAuditDO()
+        obj.byUser = user
+        obj.areaId = areaId
+        obj.timestamp = timestamp
+        obj.eventType = eventType
+        return obj
+    }
 }

@@ -423,7 +423,7 @@ class HistoryServiceOldFormatTest : AbstractTestBase() {
             )
             Assertions.assertEquals(entity.id, entry.entityId)
             val user = ThreadLocalUserContext.loggedInUser
-            Assertions.assertEquals(user?.id ?: "anon", entry.modifiedBy)
+            Assertions.assertEquals(user?.id?.toString() ?: "anon", entry.modifiedBy)
             val createdAt = entry.modifiedAt!!.time
             Assertions.assertTrue(
                 Math.abs(System.currentTimeMillis() - createdAt) < 10000,
