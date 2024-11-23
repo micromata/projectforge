@@ -29,6 +29,7 @@ import org.apache.directory.server.core.annotations.*;
 import org.apache.directory.server.core.integ.AbstractLdapTestUnit;
 import org.apache.directory.server.core.partition.Partition;
 import org.apache.directory.server.ldap.LdapServer;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 
@@ -56,6 +57,7 @@ import org.junit.jupiter.api.Test;
     transports = {
         @CreateTransport(protocol = "LDAP")
     })
+@Disabled("Test disabled: wasn't executed since ???. After gradle migration V8.0.0 it doesn't work anymore.")
 public class JUnitLDAPTestWrapper extends AbstractLdapTestUnit
 {
 

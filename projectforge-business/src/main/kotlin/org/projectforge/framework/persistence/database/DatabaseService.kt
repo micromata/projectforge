@@ -241,12 +241,12 @@ class DatabaseService {
      * @param user              The admin user with the desired username and the salted password (salt string included).
      * @param adminUserTimezone
      */
-    fun updateAdminUser(user: PFUserDO, adminUserTimezone: TimeZone): PFUserDO {
+    fun updateAdminUser(user: PFUserDO, adminUserTimezone: TimeZone?): PFUserDO {
         //Update test data user with data from setup page
         val adminUser = userDao.getInternalByName(DEFAULT_ADMIN_USER)
         adminUser!!.username = user.username
         adminUser.localUser = true
-        adminUser.timeZone = adminUserTimezone
+        adminUserTimezone?.let { adminUser.timeZone = it }
         userDao.update(adminUser, checkAccess = false)
         setUser(adminUser)
         userGroupCache.forceReload()

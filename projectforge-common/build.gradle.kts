@@ -17,7 +17,10 @@ tasks.withType<Test> {
 
 dependencies {
     api(libs.commons.beanutils)
-    api(libs.logback.classic)
+    implementation(libs.logback.classic) {
+        exclude(group = "org.slf4j", module = "slf4j-jul")
+        exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
+    }
     api(libs.org.springframework.boot.starter.logging)
     api(libs.org.jetbrains.kotlin.kotlin.stdlib)
     api(libs.org.jetbrains.kotlin.kotlin.reflect)

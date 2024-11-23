@@ -29,8 +29,8 @@ import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.business.fibu.RechnungsPositionDO
 import org.projectforge.business.fibu.kost.KostZuweisungDO
-import org.projectforge.framework.persistence.history.HistoryFormatUtils.Companion.translatePropertyName
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.framework.persistence.history.HistoryFormatUtils.Companion.translatePropertyName
 import org.springframework.beans.factory.annotation.Autowired
 
 class BaseDaoHistoryTest : AbstractTestBase() {
@@ -42,7 +42,7 @@ class BaseDaoHistoryTest : AbstractTestBase() {
 
     @Test
     fun testOldInvoiceHistory() {
-        HistoryServiceOldFormatTest.ensureSetup(persistenceService, historyService)
+        HistoryServiceOldFormatTest.ensureSetup(this, persistenceService, historyService)
         persistenceService.runReadOnly { context ->
             val invoice = context.em.find(RechnungDO::class.java, 351958)
             logon(TEST_FINANCE_USER)

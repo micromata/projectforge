@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.database;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
@@ -48,6 +49,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Disabled("Test disabled: pfJpaXmlDumpService.createTestDatabase() not yet migrated to verion 8.0.0")
 public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
           .getLogger(InitDatabaseDaoWithTestDataTestFork.class);

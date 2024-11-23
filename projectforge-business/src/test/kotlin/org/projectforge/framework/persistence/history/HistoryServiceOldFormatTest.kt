@@ -30,13 +30,14 @@ import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungStatus
+import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.business.test.HistoryTester
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTimeUtils
-import org.projectforge.business.test.AbstractTestBase
-import org.projectforge.business.test.HistoryTester
 import java.io.File
 import java.math.BigDecimal
 import java.net.URI
@@ -228,7 +229,7 @@ class HistoryServiceOldFormatTest : AbstractTestBase() {
     }
 
     private fun ensureSetup() {
-        ensureSetup(persistenceService, historyService)
+        ensureSetup(this, persistenceService, historyService)
     }
 
     companion object {
@@ -250,10 +251,11 @@ class HistoryServiceOldFormatTest : AbstractTestBase() {
             return newEntry!!.id!!
         }
 
-        internal fun ensureSetup(persistenceService: PfPersistenceService, historyService: HistoryService) {
+        internal fun ensureSetup(testClass: AbstractTestBase, persistenceService: PfPersistenceService, historyService: HistoryService) {
             if (historyEntryMap.isNotEmpty()) {
                 return // Already done.
             }
+            testClass.recreateDataBase()
             parseFile(getUri("/history/pf_history-testentries.csv")).forEach { map ->
                 // pk, modifiedby, entity_id, entity_name, entity_optype
                 val pk = map["pk"]!!.toLong()
@@ -420,7 +422,8 @@ class HistoryServiceOldFormatTest : AbstractTestBase() {
                 "org.projectforge.framework.persistence.user.entities.PFUserDO", entry.entityName
             )
             Assertions.assertEquals(entity.id, entry.entityId)
-            Assertions.assertEquals("anon", entry.modifiedBy)
+            val user = ThreadLocalUserContext.loggedInUser
+            Assertions.assertEquals(user?.id ?: "anon", entry.modifiedBy)
             val createdAt = entry.modifiedAt!!.time
             Assertions.assertTrue(
                 Math.abs(System.currentTimeMillis() - createdAt) < 10000,
