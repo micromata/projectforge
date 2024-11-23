@@ -1,5 +1,9 @@
 rootProject.name = "projectforge-parent"
 
+gradle.rootProject {
+    gradle.startParameter.isParallelProjectExecutionEnabled = true
+}
+
 include(":projectforge-application")
 include(":projectforge-business")
 include(":projectforge-common")

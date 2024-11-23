@@ -1,7 +1,7 @@
 plugins {
-    id("org.springframework.boot") version libs.versions.org.springframework.boot.get()
-    id("io.spring.dependency-management") version libs.versions.io.spring.dependency.management.get()
-    id("java")
+    //id("org.springframework.boot") version libs.versions.org.springframework.boot.get()
+    //id("io.spring.dependency-management") version libs.versions.io.spring.dependency.management.get()
+    //id("java")
     id("application")
 }
 
