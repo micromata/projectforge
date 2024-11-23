@@ -4,8 +4,8 @@ plugins {
 
 node {
     // Configure the Node.js and npm versions
-    version.set("22.11.0")
-    // version.set("16.15.0") // Used for maven version.
+    // version.set("22.11.0")
+    version.set("16.15.0") // Used for maven version.
     // Version of npm to use
     // If specified, installs it in the npmWorkDir
     // If empty, the plugin will use the npm command bundled with Node.js

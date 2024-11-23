@@ -65,8 +65,8 @@ org-dom4j-dom4j = "2.1.4"
 org-flywaydb-flyway-core = "10.17.0"
 org-flywaydb-flyway-database-postgresql = "10.17.0"
 org-glassfish-jaxb-jaxb-core = "4.0.5"
-org-hibernate-search-hibernate-search-backend-lucene = "7.2.1.Final"
-org-hibernate-search-hibernate-search-mapper-orm = "7.2.1.Final"
+org-hibernate-search = "7.2.1.Final"
+org-hibernate-orm = "6.6.3.Final"
 org-hsqldb-hsqldb = "2.7.3"
 org-jetbrains-kotlin-kotlin-compiler-embeddable = "2.0.21"
 org-jetbrains-kotlin-kotlin-reflect = "2.0.21"
@@ -160,8 +160,9 @@ org-dom4j-dom4j = { module = "org.dom4j:dom4j", version.ref = "org-dom4j-dom4j" 
 org-flywaydb-flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "org-flywaydb-flyway-core" }
 org-flywaydb-flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "org-flywaydb-flyway-database-postgresql" }
 org-glassfish-jaxb-jaxb-core = { module = "org.glassfish.jaxb:jaxb-core", version.ref = "org-glassfish-jaxb-jaxb-core" }
-org-hibernate-search-hibernate-search-backend-lucene = { module = "org.hibernate.search:hibernate-search-backend-lucene", version.ref = "org-hibernate-search-hibernate-search-backend-lucene" }
-org-hibernate-search-hibernate-search-mapper-orm = { module = "org.hibernate.search:hibernate-search-mapper-orm", version.ref = "org-hibernate-search-hibernate-search-mapper-orm" }
+org-hibernate-orm-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "org-hibernate-orm" }
+org-hibernate-search-backend-lucene = { module = "org.hibernate.search:hibernate-search-backend-lucene", version.ref = "org-hibernate-search" }
+org-hibernate-search-mapper-orm = { module = "org.hibernate.search:hibernate-search-mapper-orm", version.ref = "org-hibernate-search" }
 org-hsqldb-hsqldb = { module = "org.hsqldb:hsqldb", version.ref = "org-hsqldb-hsqldb" }
 org-jetbrains-kotlin-kotlin-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "org-jetbrains-kotlin-kotlin-compiler-embeddable" }
 org-jetbrains-kotlin-kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "org-jetbrains-kotlin-kotlin-reflect" }

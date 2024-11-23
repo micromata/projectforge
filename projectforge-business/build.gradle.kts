@@ -1,3 +1,4 @@
+import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.exclude
 import org.gradle.kotlin.dsl.testImplementation
 
 plugins {
@@ -35,17 +36,13 @@ tasks.register<JavaExec>("xjc") {
 sourceSets {
     main {
         java {
-            srcDir("$buildDir/generated-sources/xjc")
+            srcDir(layout.buildDirectory.dir("generated-sources/xjc"))
         }
     }
 }
 
-//    implementation("com.sun.xml.bind:jaxb-impl:3.0.2")
-//    implementation("com.sun.xml.bind:jaxb-xjc:3.0.2")
-
 dependencies {
     api(project(":projectforge-common"))
-    api(project(":projectforge-jcr"))
     api(project(":projectforge-model"))
     api(libs.de.micromata.merlin.core)
     api(libs.com.sun.xml.bind.jaxb.impl)
@@ -59,8 +56,10 @@ dependencies {
     api(libs.jakarta.xml.bind.api)
     api(libs.joda.time.joda.time)
     api(libs.org.apache.commons.collections4)
-    api(libs.org.hibernate.search.hibernate.search.mapper.orm)
-    api(libs.org.hibernate.search.hibernate.search.backend.lucene)
+    api(libs.org.hibernate.orm.core)
+    api(libs.jboss.logging)
+    api(libs.org.hibernate.search.mapper.orm)
+    api(libs.org.hibernate.search.backend.lucene)
     api(libs.org.jetbrains.kotlin.kotlin.stdlib)
     api(libs.org.jetbrains.kotlin.kotlin.compiler.embeddable)
     api(libs.org.jetbrains.kotlin.kotlin.scripting.jsr223)
@@ -71,6 +70,7 @@ dependencies {
     api(libs.org.jetbrains.kotlinx.kotlinx.coroutines.slf4j)
     api(libs.org.springframework.boot.starter) {
         exclude(group = "org.springframework.boot", module = "spring-boot-starter-logging")
+        exclude(group = "org.hibernate.orm", module = "hibernate-core")
     }
     api(libs.logback.classic) {
         exclude(group = "org.slf4j", module = "slf4j-jul")
@@ -134,12 +134,6 @@ dependencies {
     testImplementation(libs.org.mockito.core)
     testImplementation(libs.org.mockito.junit.jupiter)
     testImplementation(libs.org.mockito.kotlin)
-
-    api(libs.jboss.logging) {
-        version {
-            strictly(libs.versions.jboss.logging.get())
-        }
-    }
 }
 
 description = "projectforge-business"
