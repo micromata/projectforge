@@ -2,7 +2,6 @@ import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.
 import org.gradle.kotlin.dsl.testImplementation
 
 plugins {
-    id("buildlogic.java-conventions")
     id("io.spring.dependency-management") version libs.versions.io.spring.dependency.management.get()
     id("java-library")
     id("java-test-fixtures")

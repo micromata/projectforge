@@ -3,7 +3,7 @@
  */
 
 plugins {
-    id("buildlogic.java-conventions")
+    id("java-library")
 }
 
 dependencies {
@@ -19,6 +19,7 @@ dependencies {
     testImplementation(testFixtures(project(":projectforge-business")))
     testImplementation(libs.com.google.code.gson)
     testImplementation(libs.org.junit.jupiter.api)
+    testImplementation(libs.org.mockito.core)
     testRuntimeOnly(libs.org.junit.jupiter.engine)
 }
 

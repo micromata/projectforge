@@ -22,10 +22,11 @@ com-zaxxer-hikaricp = "4.0.3"
 commons-beanutils-commons-beanutils = "1.9.4"
 commons-io-commons-io = "2.16.1"
 de-micromata-merlin-merlin-core = "1.1.16"
-fr-opensagres-xdocreport-fr-opensagres-poi-xwpf-converter-pdf = "2.0.4"
+io-github-microutils-kotlin-logging = "3.0.5"
 io-dropwizard-metrics-metrics-core = "4.2.26"
 io-milton-milton-server-ent = "4.0.5.2400"
 io-spring-dependency-management = "1.1.6" # io.spring.dependency-management.gradle.plugin
+fr-opensagres-xdocreport-fr-opensagres-poi-xwpf-converter-pdf = "2.0.4"
 jakarta-activation-jakarta-activation-api = "2.1.3"
 jakarta-annotation-jakarta-annotation-api = "3.0.0"
 jakarta-mail-jakarta-mail-api = "2.1.3"
@@ -113,6 +114,7 @@ de-micromata-merlin-core = { module = "de.micromata.merlin:merlin-core", version
 fr-opensagres-xdocreport-fr-opensagres-poi-xwpf-converter-pdf = { module = "fr.opensagres.xdocreport:fr.opensagres.poi.xwpf.converter.pdf", version.ref = "fr-opensagres-xdocreport-fr-opensagres-poi-xwpf-converter-pdf" }
 io-dropwizard-metrics-metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "io-dropwizard-metrics-metrics-core" }
 io-milton-milton-server-ent = { module = "io.milton:milton-server-ent", version.ref = "io-milton-milton-server-ent" }
+io-github-microutils-kotlin-logging = { module = "io.github.microutils:kotlin-logging", version.ref = "io-github-microutils-kotlin-logging" }
 jakarta-activation-api = { module = "jakarta.activation:jakarta.activation-api", version.ref = "jakarta-activation-jakarta-activation-api" }
 jakarta-annotation-api = { module = "jakarta.annotation:jakarta.annotation-api", version.ref = "jakarta-annotation-jakarta-annotation-api" }
 jakarta-mail-jakarta-mail-api = { module = "jakarta.mail:jakarta.mail-api", version.ref = "jakarta-mail-jakarta-mail-api" }
