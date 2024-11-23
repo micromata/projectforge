@@ -25,6 +25,7 @@ de-micromata-merlin-merlin-core = "1.1.16"
 fr-opensagres-xdocreport-fr-opensagres-poi-xwpf-converter-pdf = "2.0.4"
 io-dropwizard-metrics-metrics-core = "4.2.26"
 io-milton-milton-server-ent = "4.0.5.2400"
+io-spring-dependency-management = "1.1.6" # io.spring.dependency-management.gradle.plugin
 jakarta-activation-jakarta-activation-api = "2.1.3"
 jakarta-annotation-jakarta-annotation-api = "3.0.0"
 jakarta-mail-jakarta-mail-api = "2.1.3"
@@ -68,14 +69,7 @@ org-glassfish-jaxb-jaxb-core = "4.0.5"
 org-hibernate-search = "7.2.1.Final"
 org-hibernate-orm = "6.6.3.Final"
 org-hsqldb-hsqldb = "2.7.3"
-org-jetbrains-kotlin-kotlin-compiler-embeddable = "2.0.21"
-org-jetbrains-kotlin-kotlin-reflect = "2.0.21"
-org-jetbrains-kotlin-kotlin-scripting-common = "2.0.21"
-org-jetbrains-kotlin-kotlin-scripting-compiler-embeddable = "2.0.21"
-org-jetbrains-kotlin-kotlin-scripting-jsr223 = "2.0.21"
-org-jetbrains-kotlin-kotlin-scripting-jvm = "2.0.21"
-org-jetbrains-kotlin-kotlin-scripting-jvm-host = "2.0.21"
-org-jetbrains-kotlin-kotlin-stdlib = "2.0.21"
+org-jetbrains-kotlin = "2.0.21"
 org-jetbrains-kotlinx-kotlinx-coroutines-slf4j = "1.8.1"
 org-jfree-jfreechart = "1.5.5"
 org-junit-jupiter = "5.10.3"
@@ -88,7 +82,6 @@ org-postgresql-postgresql = "42.7.4"
 org-reflections-reflections = "0.10.2"
 org-slf4j-jcl-over-slf4j = "2.0.16"
 org-springframework-boot = "3.3.5"
-io-spring-dependency-management = "1.1.6"
 org-springframework-spring = "6.1.14"
 org-junit-vintage = "5.11.3"
 org-wicketstuff-wicketstuff-html5 = "10.2.0"
@@ -164,14 +157,14 @@ org-hibernate-orm-core = { module = "org.hibernate.orm:hibernate-core", version.
 org-hibernate-search-backend-lucene = { module = "org.hibernate.search:hibernate-search-backend-lucene", version.ref = "org-hibernate-search" }
 org-hibernate-search-mapper-orm = { module = "org.hibernate.search:hibernate-search-mapper-orm", version.ref = "org-hibernate-search" }
 org-hsqldb-hsqldb = { module = "org.hsqldb:hsqldb", version.ref = "org-hsqldb-hsqldb" }
-org-jetbrains-kotlin-kotlin-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "org-jetbrains-kotlin-kotlin-compiler-embeddable" }
-org-jetbrains-kotlin-kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "org-jetbrains-kotlin-kotlin-reflect" }
-org-jetbrains-kotlin-kotlin-scripting-common = { module = "org.jetbrains.kotlin:kotlin-scripting-common", version.ref = "org-jetbrains-kotlin-kotlin-scripting-common" }
-org-jetbrains-kotlin-kotlin-scripting-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable", version.ref = "org-jetbrains-kotlin-kotlin-scripting-compiler-embeddable" }
-org-jetbrains-kotlin-kotlin-scripting-jsr223 = { module = "org.jetbrains.kotlin:kotlin-scripting-jsr223", version.ref = "org-jetbrains-kotlin-kotlin-scripting-jsr223" }
-org-jetbrains-kotlin-kotlin-scripting-jvm = { module = "org.jetbrains.kotlin:kotlin-scripting-jvm", version.ref = "org-jetbrains-kotlin-kotlin-scripting-jvm" }
-org-jetbrains-kotlin-kotlin-scripting-jvm-host = { module = "org.jetbrains.kotlin:kotlin-scripting-jvm-host", version.ref = "org-jetbrains-kotlin-kotlin-scripting-jvm-host" }
-org-jetbrains-kotlin-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "org-jetbrains-kotlin-kotlin-stdlib" }
+org-jetbrains-kotlin-kotlin-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "org-jetbrains-kotlin" }
+org-jetbrains-kotlin-kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "org-jetbrains-kotlin" }
+org-jetbrains-kotlin-kotlin-scripting-common = { module = "org.jetbrains.kotlin:kotlin-scripting-common", version.ref = "org-jetbrains-kotlin" }
+org-jetbrains-kotlin-kotlin-scripting-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable", version.ref = "org-jetbrains-kotlin" }
+org-jetbrains-kotlin-kotlin-scripting-jsr223 = { module = "org.jetbrains.kotlin:kotlin-scripting-jsr223", version.ref = "org-jetbrains-kotlin" }
+org-jetbrains-kotlin-kotlin-scripting-jvm = { module = "org.jetbrains.kotlin:kotlin-scripting-jvm", version.ref = "org-jetbrains-kotlin" }
+org-jetbrains-kotlin-kotlin-scripting-jvm-host = { module = "org.jetbrains.kotlin:kotlin-scripting-jvm-host", version.ref = "org-jetbrains-kotlin" }
+org-jetbrains-kotlin-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "org-jetbrains-kotlin" }
 org-jetbrains-kotlinx-kotlinx-coroutines-slf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "org-jetbrains-kotlinx-kotlinx-coroutines-slf4j" }
 org-jfree-jfreechart = { module = "org.jfree:jfreechart", version.ref = "org-jfree-jfreechart" }
 org-junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "org-junit-jupiter" }

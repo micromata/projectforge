@@ -1,11 +1,13 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.0.21" apply false
+    id("org.springframework.boot") version libs.versions.org.springframework.boot.get() apply false
+    id("io.spring.dependency-management") version libs.versions.io.spring.dependency.management.get() apply false
+    kotlin("jvm") version libs.versions.org.jetbrains.kotlin.get() apply false
 }
 
 allprojects {
-    group = "org.projectForge"
+    group = "org.projectforge"
     version = "8.0.0"
 
     repositories {
