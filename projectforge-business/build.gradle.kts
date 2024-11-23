@@ -69,7 +69,13 @@ dependencies {
     api(libs.org.jetbrains.kotlin.kotlin.scripting.jvm)
     api(libs.org.jetbrains.kotlin.kotlin.scripting.jvm.host)
     api(libs.org.jetbrains.kotlinx.kotlinx.coroutines.slf4j)
-    api(libs.org.springframework.boot.starter)
+    api(libs.org.springframework.boot.starter) {
+        exclude(group = "org.springframework.boot", module = "spring-boot-starter-logging")
+    }
+    api(libs.logback.classic) {
+        exclude(group = "org.slf4j", module = "slf4j-jul")
+        exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
+    }
     api(libs.org.springframework.spring.tx)
     api(libs.org.springframework.spring.context)
     api(libs.org.springframework.spring.orm)

@@ -1,4 +1,5 @@
 rootProject.name = "projectforge-parent"
+
 include(":projectforge-application")
 include(":projectforge-business")
 include(":projectforge-common")

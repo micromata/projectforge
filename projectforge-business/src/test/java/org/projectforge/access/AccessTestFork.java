@@ -35,6 +35,8 @@ import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.GroupTaskAccessDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.business.test.AbstractTestBase;
+import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.framework.time.PFDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,8 +131,9 @@ public class AccessTestFork extends AbstractTestBase {
             timesheet.setLocation("Office");
             timesheet.setDescription("A lot of stuff done and more.");
             final long current = System.currentTimeMillis();
-            timesheet.setStartTime(new Date(current));
-            timesheet.setStopTime(new Date(current + 2 * 60 * 60 * 1000));
+            PFDateTime startTime = PFDateTime.now().withPrecision(DatePrecision.MINUTE_5);
+            timesheet.setStartTime(startTime.getUtilDate());
+            timesheet.setStopTime(startTime.plusHours(2).getUtilDate());
             final Serializable timesheetId = timesheetDao.insert(timesheet, false);
             logon(user1); // user1 is in group1, but not in group3
             timesheet = timesheetDao.find(timesheetId); // OK, because is selectable for group1
@@ -144,9 +147,9 @@ public class AccessTestFork extends AbstractTestBase {
         // try {
         TimesheetDO timesheet = timesheetDao.find(id); // AccessException, because is not selectable for group1
         // User has no access, but is owner of this timesheet, so the following properties are empty:
-        assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, timesheet.getShortDescription());
-        assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, timesheet.getDescription());
-        assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, timesheet.getLocation());
+        assertEquals(TimesheetDao.HIDDEN_FIELD_MARKER, timesheet.getShortDescription(),"Field should be hidden");
+        assertEquals(TimesheetDao.HIDDEN_FIELD_MARKER, timesheet.getDescription(),"Field should be hidden");
+        assertEquals(TimesheetDao.HIDDEN_FIELD_MARKER, timesheet.getLocation(),"Field should be hidden");
         // fail("Timesheet should not be accessable for user1 (because he is not member of group3)");
         // } catch (AccessException ex) {
         // OK

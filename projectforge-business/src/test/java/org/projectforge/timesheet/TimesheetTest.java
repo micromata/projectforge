@@ -1,4 +1,4 @@
-/////////////////////////////////////////////////////////////////////////////
+/// //////////////////////////////////////////////////////////////////////////
 //
 // Project ProjectForge Community Edition
 //         www.projectforge.org
@@ -23,10 +23,10 @@
 
 package org.projectforge.timesheet;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
+import org.projectforge.business.test.AbstractTestBase;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.common.i18n.UserException;
@@ -34,31 +34,23 @@ import org.projectforge.common.task.TaskStatus;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.framework.time.PFDateTime;
-import org.projectforge.business.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.Month;
 import java.util.Date;
-import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
-public class TimesheetTestFork extends AbstractTestBase {
+public class TimesheetTest extends AbstractTestBase {
     // private static final Logger log = Logger.getLogger(TaskTest.class);
     @Autowired
     TimesheetDao timesheetDao;
 
     @Autowired
     TaskDao taskDao;
-
-    PFDateTime date;
-
-    @BeforeEach
-    public void setUp() {
-        date = PFDateTime.from(new Date(), null, Locale.GERMAN).withPrecision(DatePrecision.MINUTE_15);
-    }
 
     @Test
     public void hasSelectAccess() {
@@ -75,21 +67,20 @@ public class TimesheetTestFork extends AbstractTestBase {
             ts.setUser(getUser("ts-hasSelectAccess-user"));
             ts.setLocation("Office");
             ts.setDescription("A lot of stuff done and more.");
-            ts.setStartTime(new Date(current));
-            ts.setStopTime(new Date(current + 2 * 60 * 60 * 1000));
+            PFDateTime startTime = PFDateTime.now().withPrecision(DatePrecision.MINUTE_15);
+            ts.setStartTime(startTime.getUtilDate());
+            ts.setStopTime(startTime.plusHours(2).getUtilDate());
             id[0] = timesheetDao.insert(ts, false);
-            timesheetDao.insert(ts, false);
 
             logon(getUser("ts-hasSelectAccess-user"));
             ts = timesheetDao.find(id[0]); // Has no access, but is owner of this timesheet
-            assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, ts.getShortDescription());
-            assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, ts.getDescription());
-            assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, ts.getLocation());
-
+            assertEquals(TimesheetDao.HIDDEN_FIELD_MARKER, ts.getShortDescription(), "Field should be hidden");
+            assertEquals(TimesheetDao.HIDDEN_FIELD_MARKER, ts.getDescription(), "Field should be hidden");
+            assertEquals(TimesheetDao.HIDDEN_FIELD_MARKER, ts.getLocation(), "Field should be hidden");
             ts = timesheetDao.find(id[0], false);
-            assertEquals("Field should not be overwritten", "A lot of stuff done and more.", ts.getShortDescription());
-            assertEquals("Field should not be overwritten", "A lot of stuff done and more.", ts.getDescription());
-            assertEquals("Field should not be overwritten", "Office", ts.getLocation());
+            assertEquals("A lot of stuff done and more.", ts.getShortDescription(), "Field should not be overwritten");
+            assertEquals("A lot of stuff done and more.", ts.getDescription(), "Field should not be overwritten");
+            assertEquals("Office", ts.getLocation(), "Field should not be overwritten");
             return null;
         });
 
@@ -124,8 +115,9 @@ public class TimesheetTestFork extends AbstractTestBase {
             } catch (final Exception ex) {
             }
             ts1.setTask(getTask("saveAndModify-task"));
-            ts1.setStartTime(new Date(current));
-            ts1.setStopTime(new Date(current + 2 * 60 * 60 * 1000));
+            PFDateTime startTime = PFDateTime.now().withPrecision(DatePrecision.MINUTE_15);
+            ts1.setStartTime(startTime.getUtilDate());
+            ts1.setStopTime(startTime.plusHours(2).getUtilDate());
             timesheetDao.insert(ts1, false);
             // ToDo: Check onSaveOrUpdate: kost2Id vs. task!
             return null;
@@ -206,7 +198,7 @@ public class TimesheetTestFork extends AbstractTestBase {
             task = initTestDB.addTask("tpt.1", "tpt");
             task = initTestDB.addTask("tpt.1.1", "tpt.1");
             task = initTestDB.addTask("tpt.2", "tpt");
-            date = date.withDate(2008, Month.OCTOBER, 31, 0, 0, 0);
+            PFDateTime date = PFDateTime.withDate(2008, Month.OCTOBER, 31, 0, 0, 0);
             task.setProtectTimesheetsUntil(date.getLocalDate());
             taskDao.update(task, false); // Without check access.
             task = initTestDB.addTask("tpt.2.1", "tpt.2");
@@ -231,8 +223,8 @@ public class TimesheetTestFork extends AbstractTestBase {
             setTimeperiod(sheet, 2008, Month.NOVEMBER, 1, 0, 0, 1, 2, 15); // 11/01 from 00:00 to 02:15
             final Serializable id = timesheetDao.insert(sheet);
             sheet = timesheetDao.find(id);
-            date = date.withDate(2008, Month.OCTOBER, 31, 23, 45, 0);
-            sheet.setStartTime(date.getSqlTimestamp());
+            date = PFDateTime.withDate(2008, Month.OCTOBER, 31, 23, 45, 0);
+            sheet.setStartTime(date.getUtilDate());
             try {
                 timesheetDao.update(sheet);
                 fail("AccessException caused by time sheet violation expected.");
@@ -240,15 +232,14 @@ public class TimesheetTestFork extends AbstractTestBase {
                 // OK
             }
             task = getTask("tpt.2");
-            date.withDate(2008, Month.NOVEMBER, 30, 0, 0, 0); // Change protection date, so time sheet is now protected.
-            task.setProtectTimesheetsUntil(date.getLocalDate());
+            task.setProtectTimesheetsUntil(LocalDate.of(2008, Month.NOVEMBER, 30)); // Change protection date, so time sheet is now protected.
             taskDao.update(task, false); // Without check access.
             sheet = timesheetDao.find(id);
             sheet.setDescription("Hurzel"); // Should work, because start and stop time is not modified.
             timesheetDao.update(sheet);
-            date.withDate(2008, Month.NOVEMBER, 1, 2, 0, 0);
+            date = PFDateTime.withDate(2008, Month.NOVEMBER, 1, 2, 0, 0);
             sheet = timesheetDao.find(id);
-            sheet.setStopTime(date.getSqlTimestamp());
+            sheet.setStopTime(date.getUtilDate());
             try {
                 timesheetDao.update(sheet);
                 fail("AccessException caused by time sheet violation expected.");
@@ -314,9 +305,9 @@ public class TimesheetTestFork extends AbstractTestBase {
     private void setTimeperiod(final TimesheetDO timesheet, final int year, final Month month, final int fromDay,
                                final int fromHour, final int fromMinute, final int toDay, final int toHour,
                                final int toMinute) {
-        date.withDate(year, month, fromDay, fromHour, fromMinute, 0);
-        timesheet.setStartTime(date.getSqlTimestamp());
-        date.withDate(year, month, toDay, toHour, toMinute, 0);
-        timesheet.setStopTime(date.getSqlTimestamp());
+        PFDateTime date = PFDateTime.withDate(year, month, fromDay, fromHour, fromMinute, 0);
+        timesheet.setStartTime(date.getUtilDate());
+        date = PFDateTime.withDate(year, month, toDay, toHour, toMinute, 0);
+        timesheet.setStopTime(date.getUtilDate());
     }
 }
