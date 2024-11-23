@@ -3,10 +3,11 @@
  */
 
 plugins {
-    id("buildlogic.java-conventions")
+    id("java-library")
 }
 
 dependencies {
+    api(project(":projectforge-common"))
     api(libs.org.jetbrains.kotlin.kotlin.stdlib)
     api(libs.org.junit.jupiter.api)
 }

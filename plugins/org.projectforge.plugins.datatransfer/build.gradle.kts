@@ -1,7 +1,5 @@
 plugins {
     id("java-library")
-    id("org.jetbrains.kotlin.jvm")
-    id("buildlogic.java-conventions")
 }
 
 dependencies {
