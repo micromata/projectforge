@@ -44,6 +44,7 @@ sourceSets {
 dependencies {
     api(project(":projectforge-common"))
     api(project(":projectforge-model"))
+    api(project(":projectforge-jcr"))
     api(libs.de.micromata.merlin.core)
     api(libs.com.sun.xml.bind.jaxb.impl)
     api(libs.com.sun.xml.bind.jaxb.xjc)
