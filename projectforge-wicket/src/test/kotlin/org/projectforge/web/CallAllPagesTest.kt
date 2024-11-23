@@ -29,7 +29,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters
 import org.junit.jupiter.api.Test
 import org.projectforge.business.systeminfo.SystemInfoCache
 import org.projectforge.business.systeminfo.SystemInfoCache.Companion.internalInitialize
-import org.projectforge.common.logging.LogSubscription
 import org.projectforge.common.logging.LoggerMemoryAppender
 import org.projectforge.menu.builder.MenuCreator.Companion.testCase
 import org.projectforge.web.address.AddressEditPage
