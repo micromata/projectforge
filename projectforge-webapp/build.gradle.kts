@@ -17,7 +17,7 @@ node {
     workDir.set(layout.projectDirectory.dir(".gradle/nodejs")) // Directory for Node.js installation
     npmWorkDir.set(layout.projectDirectory.dir(".gradle/npm")) // Directory for npm installation
     // Explicitly set the Node.js binary path
-    nodeProjectDir.set(file(layout.projectDirectory.dir("nodejs").asFile.absolutePath))
+    nodeProjectDir.set(file(layout.projectDirectory.dir("src").asFile.absolutePath))
 }
 
 tasks {

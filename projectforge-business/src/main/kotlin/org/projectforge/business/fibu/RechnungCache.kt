@@ -71,7 +71,6 @@ class RechnungCache(rechnungJdbcService: RechnungJdbcService) :
         return auftragsRechnungCache.getRechnungsPosInfoByAuftragId(auftragId)
     }
 
-    @JvmOverloads
     fun getRechnungsPosInfosByAuftragsPositionId(
         auftragsPositionId: Long?,
     ): Set<RechnungPosInfo>? {
