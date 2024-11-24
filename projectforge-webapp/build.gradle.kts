@@ -21,7 +21,10 @@ node {
 }
 
 tasks.named<Delete>("clean") {
-    delete(file("node"), file("node_modules")) // Delete download directory.
+    delete(
+        file("node"),  // Delete download directory of node and npm.
+        // file("node_modules")
+    )
 }
 
 tasks {
@@ -46,6 +49,10 @@ tasks {
         group = "build"
         description = "Copies built React files to the target directory"
         dependsOn("npmBuild") // Depends on the React build process
+        dependsOn("compileJava") // Ensure Java compilation is complete
+        dependsOn("processResources") // Ensure resources are processed
+        dependsOn("processTestResources") // Ensure test resources are processed
+        mustRunAfter("processResources", "processTestResources") // Ensure resources are processed before copying
         from(file("build")) // Directory where React outputs the build
         into(layout.buildDirectory.dir("resources/main/static")) // Target directory in the Gradle project
     }
@@ -53,6 +60,15 @@ tasks {
     // Include the React build in the Gradle build process
     named("build") {
         dependsOn("copyReactBuild") // Makes React build a part of the Gradle build
+    }
+
+    // Add explicit dependencies to fix task ordering issues
+    named<Jar>("jar") {
+        dependsOn("copyReactBuild") // Ensure the jar task waits for copyReactBuild
+    }
+
+    named("build") {
+        dependsOn("copyReactBuild") // Ensure build task includes copyReactBuild
     }
 }
 

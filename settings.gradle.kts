@@ -1,8 +1,7 @@
 rootProject.name = "projectforge-parent"
 
 gradle.rootProject {
-    // Some modules can't run in parallel (e.g. because of the H2 database).
-    gradle.startParameter.isParallelProjectExecutionEnabled = false
+    gradle.startParameter.isParallelProjectExecutionEnabled = true
 }
 
 include(":projectforge-application")

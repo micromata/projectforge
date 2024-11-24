@@ -15,7 +15,6 @@ com-googlecode-ez-vcard-ez-vcard = "0.12.1"
 com-googlecode-json-simple-json-simple = "1.1.1"
 com-googlecode-lanterna-lanterna = "3.1.2"
 com-itextpdf-itextpdf = "5.5.13.4"
-com-sun-xml-bind-jaxb = "4.0.2"
 com-thoughtworks-xstream-xstream = "1.4.21"
 com-webauthn4j-webauthn4j-core = "0.28.0.RELEASE"
 com-webauthn4j-webauthn4j-spring-security-core = "0.10.0.RELEASE"
@@ -67,7 +66,7 @@ org-bouncycastle-bcprov-jdk18on = "1.79"
 org-dom4j-dom4j = "2.1.4"
 org-flywaydb-flyway-core = "10.17.0"
 org-flywaydb-flyway-database-postgresql = "10.17.0"
-org-glassfish-jaxb-jaxb-core = "4.0.5"
+org-glassfish-jaxb = "4.0.5"
 org-hibernate-search = "7.2.1.Final"
 org-hibernate-orm = "6.6.3.Final"
 org-hsqldb-hsqldb = "2.7.3"
@@ -111,8 +110,6 @@ com-googlecode-ez-vcard = { module = "com.googlecode.ez-vcard:ez-vcard", version
 com-googlecode-json-simple = { module = "com.googlecode.json-simple:json-simple", version.ref = "com-googlecode-json-simple-json-simple" }
 com-googlecode-lanterna = { module = "com.googlecode.lanterna:lanterna", version.ref = "com-googlecode-lanterna-lanterna" }
 com-itextpdf = { module = "com.itextpdf:itextpdf", version.ref = "com-itextpdf-itextpdf" }
-com-sun-xml-bind-jaxb-impl = { module = "com.sun.xml.bind:jaxb-impl", version.ref = "com-sun-xml-bind-jaxb" }
-com-sun-xml-bind-jaxb-xjc = { module = "com.sun.xml.bind:jaxb-xjc", version.ref = "com-sun-xml-bind-jaxb" }
 com-thoughtworks-xstream = { module = "com.thoughtworks.xstream:xstream", version.ref = "com-thoughtworks-xstream-xstream" }
 com-webauthn4j-core = { module = "com.webauthn4j:webauthn4j-core", version.ref = "com-webauthn4j-webauthn4j-core" }
 com-webauthn4j-spring-security-core = { module = "com.webauthn4j:webauthn4j-spring-security-core", version.ref = "com-webauthn4j-webauthn4j-spring-security-core" }
@@ -163,7 +160,8 @@ org-bouncycastle-bcprov-jdk18on = { module = "org.bouncycastle:bcprov-jdk18on", 
 org-dom4j-dom4j = { module = "org.dom4j:dom4j", version.ref = "org-dom4j-dom4j" }
 org-flywaydb-flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "org-flywaydb-flyway-core" }
 org-flywaydb-flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "org-flywaydb-flyway-database-postgresql" }
-org-glassfish-jaxb-jaxb-core = { module = "org.glassfish.jaxb:jaxb-core", version.ref = "org-glassfish-jaxb-jaxb-core" }
+org-glassfish-jaxb-runtime = { module = "org.glassfish.jaxb:jaxb-runtime", version.ref = "org-glassfish-jaxb" }
+org-glassfish-jaxb-xjc = { module = "org.glassfish.jaxb:jaxb-xjc", version.ref = "org-glassfish-jaxb" }
 org-hibernate-orm-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "org-hibernate-orm" }
 org-hibernate-search-backend-lucene = { module = "org.hibernate.search:hibernate-search-backend-lucene", version.ref = "org-hibernate-search" }
 org-hibernate-search-mapper-orm = { module = "org.hibernate.search:hibernate-search-mapper-orm", version.ref = "org-hibernate-search" }
