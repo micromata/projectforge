@@ -37,6 +37,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
 
 import javax.sql.DataSource;
+import java.util.UUID;
 
 @Configuration
 @ComponentScan(value = {"org.projectforge"},
@@ -50,7 +51,6 @@ import javax.sql.DataSource;
 //Needed, because not only interfaces are used as injection points
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 public class TestConfiguration {
-
     @Value("${spring.datasource.url}")
     private String datasourceUrl;
 
@@ -87,11 +87,12 @@ public class TestConfiguration {
 
     @Bean
     public DataSource dataSource() {
+        String randomSuffix = UUID.randomUUID().toString();
         return DataSourceBuilder
                 .create()
                 .username(datasourceUsername)
                 .password(datasourcePassword)
-                .url(datasourceUrl)
+                .url(datasourceUrl + "-" + randomSuffix) // To avoid conflicts with other parallel running tests.
                 .driverClassName(datasourceDriver)
                 .build();
     }
