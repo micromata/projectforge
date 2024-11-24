@@ -23,7 +23,6 @@
 
 package org.projectforge.development;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -34,24 +33,17 @@ import java.time.Year;
  * Modifies the file header of each source file containing the license.
  */
 public class SourceFileHeadersTest {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SourceFileHeadersTest.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SourceFileHeadersTest.class);
 
-  private static final int YEAR = Year.now().getValue();
+    private static final int YEAR = Year.now().getValue();
 
-  private static String OSS_HEADER;
+    private static String OSS_HEADER;
 
-  private static String CLOSED_HEADER;
+    private static String CLOSED_HEADER;
 
-  @Test
-  void validateJavaKotlinCopyRightFileHeaders() throws IOException {
-    File baseDir = new File(System.getProperty("user.dir")).getParentFile();
-    new SourceFileHeadersMain(baseDir).validateAndFixAllProjectForgeHeaders(false);
-  }
-
-  @Test
-  void checkMainJavaFile() throws IOException {
-    File baseDir = new File(System.getProperty("user.dir")).getParentFile();
-    File mainJavaFile = new SourceFileHeadersMain(baseDir).getMainJavaFile();
-    Assertions.assertTrue(mainJavaFile.canRead(), "Can't read java main file: " + mainJavaFile.getAbsolutePath());
-  }
+    @Test
+    void validateJavaKotlinCopyRightFileHeaders() throws IOException {
+        File baseDir = new File(System.getProperty("user.dir")).getParentFile();
+        new SourceFileHeadersMain(baseDir).validateAndFixAllProjectForgeHeaders(false);
+    }
 }

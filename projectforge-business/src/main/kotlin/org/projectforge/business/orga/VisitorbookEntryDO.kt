@@ -43,7 +43,7 @@ import java.time.LocalDate
 @Table(
     name = "t_orga_visitorbook_entry",
     indexes = [Index(
-        name = "idx_fk_t_orga_visitorbook_val_per_employee_id", columnList = "visitorbook_id"
+        name = "idx_fk_t_orga_visitorbook_val_per_employee_id", columnList = "visitorbook_fk"
     )]
 )
 @WithHistory

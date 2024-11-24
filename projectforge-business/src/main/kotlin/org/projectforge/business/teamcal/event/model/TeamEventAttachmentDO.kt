@@ -41,7 +41,7 @@ import org.hibernate.type.SqlTypes
 
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_CALENDAR_EVENT_ATTACHMENT", indexes = [jakarta.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attachment_team_event_fk2", columnList = "team_event_fk2")])
+@Table(name = "T_PLUGIN_CALENDAR_EVENT_ATTACHMENT")
 open class TeamEventAttachmentDO : DefaultBaseDO(), Comparable<TeamEventAttachmentDO>, MailAttachment {
 
     private var filename: String? = null

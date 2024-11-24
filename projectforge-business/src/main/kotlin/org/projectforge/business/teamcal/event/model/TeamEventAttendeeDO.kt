@@ -38,9 +38,6 @@ import jakarta.persistence.*
 @Table(
   name = "T_PLUGIN_CALENDAR_EVENT_ATTENDEE",
   indexes = [jakarta.persistence.Index(
-    name = "idx_fk_t_plugin_calendar_event_attendee_team_event_fk",
-    columnList = "team_event_fk"
-  ), jakarta.persistence.Index(
     name = "idx_fk_t_plugin_calendar_event_attendee_address_id",
     columnList = "address_id"
   ), jakarta.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attendee_user_id", columnList = "user_id")]

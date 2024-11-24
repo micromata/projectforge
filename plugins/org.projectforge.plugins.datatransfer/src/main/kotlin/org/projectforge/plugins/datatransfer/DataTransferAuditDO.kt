@@ -163,6 +163,10 @@ open class DataTransferAuditDO {
   open val descriptionAsString
     get() = description ?: ""
 
+  override fun toString(): String {
+    return "DataTransferAuditDO(id=$id, timestamp=$timestamp, areaId=$areaId, byUser=${byUser?.id}, byExternalUser=$byExternalUser, eventType=$eventType, description=$description, descriptionOld=$descriptionOld, uploadByUser=${uploadByUser?.id}, filename=$filename, filenameOld=$filenameOld, notified=$notified)"
+  }
+
   companion object {
     internal const val DELETE_OLD_ENTRIES = "DataTransferAuditDO_DeleteOldEntries"
     internal const val FIND_BY_AREA_ID = "DataTransferAuditDO_FindByAreaId"

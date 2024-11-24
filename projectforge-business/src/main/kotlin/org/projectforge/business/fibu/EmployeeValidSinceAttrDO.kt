@@ -49,7 +49,7 @@ import java.time.LocalDate
     name = "t_fibu_employee_valid_since_attr",
     uniqueConstraints = [UniqueConstraint(columnNames = ["employee_fk", "type", "valid_since"])],
     indexes = [Index(
-        name = "idx_fk_t_fibu_employee_val_per_employee_id", columnList = "employee_id"
+        name = "idx_fk_t_fibu_employee_val_per_employee_id", columnList = "employee_fk"
     )]
 )
 @NamedQueries(

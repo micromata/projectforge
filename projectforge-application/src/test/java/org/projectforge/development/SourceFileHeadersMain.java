@@ -45,8 +45,6 @@ public class SourceFileHeadersMain {
 
   private int modifiedFilesCounter = 0;
 
-  private File mainJavaFile;
-
   private File baseDir;
 
   private List<File> fixedFiles = new ArrayList<>();
@@ -58,18 +56,6 @@ public class SourceFileHeadersMain {
 
   SourceFileHeadersMain(File baseDir) {
     this.baseDir = baseDir;
-    final Collection<File> files = FileUtils.listFiles(baseDir, new String[]{"java"}, true);
-    String filename = this.getClass().getName().replace('.', File.separatorChar) + ".java";
-    for (final File file : files) {
-      if (file.getAbsolutePath().contains("src/test/java")
-              && file.getAbsolutePath().endsWith(filename)) {
-        mainJavaFile = file;
-      }
-    }
-  }
-
-  File getMainJavaFile() {
-    return mainJavaFile;
   }
 
   void validateAndFixAllProjectForgeHeaders(final boolean autoFixFiles) throws IOException {
@@ -131,8 +117,8 @@ public class SourceFileHeadersMain {
         continue;
       }
       if (!autoFixFiles) {
-        Assertions.fail("Source code file '" + file.getPath() + "' without valid copy right header. As a maintainer you should fix it by simply calling Java main: "
-                + mainJavaFile.getAbsolutePath());
+        Assertions.fail("Source code file '" + file.getPath() + "' without valid copy right header. As a maintainer you should fix it by simply calling main of: "
+                + DevelopmentMainForReleaseKt.class.getName());
       }
       System.out.println("****** Source code file without valid copy right header (will be fixed right now automatically): " + file.getAbsolutePath());
       fixedFiles.add(file);

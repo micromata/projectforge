@@ -38,6 +38,7 @@ tasks {
 
     // Task to copy the built React files
     register<Copy>("copyReactBuild") {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         group = "build"
         description = "Copies built React files to the target directory"
         dependsOn("npmBuild") // Depends on the React build process

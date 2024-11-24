@@ -24,14 +24,16 @@
 package org.projectforge.business.excel;
 
 import org.junit.jupiter.api.Test;
+import org.projectforge.business.test.TestSetup;
 
 import java.io.IOException;
 
-public class ExportWorkbookTest
+public class SimpleWorkbookTest
 {
   @Test
   public void exportExcel() throws IOException
   {
+    TestSetup.init();
     SimpleExample.main();
   }
 }

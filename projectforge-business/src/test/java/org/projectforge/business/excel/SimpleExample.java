@@ -23,6 +23,8 @@
 
 package org.projectforge.business.excel;
 
+import org.projectforge.Constants;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -52,7 +54,7 @@ public class SimpleExample
     sheet.addRow().setValues("Type", "result");
     sheet.addRow().setValues("Currency", new Currency("1023.873").getValue());
     sheet.addRow().setValues("Currency", new Currency("-10").getValue());
-    final File file = new File("target/test-excel.xls");
+    final File file = new File(Constants.BUILD_DIR, "test-excel.xls");
     log.info("Writing Excel test sheet to work directory: " + file.getAbsolutePath());
     workbook.write(new FileOutputStream(file));
   }

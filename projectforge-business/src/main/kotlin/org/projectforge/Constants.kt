@@ -82,6 +82,12 @@ object Constants {
   const val WICKET_REQUEST_TIMEOUT_MINUTES = 5
 
   /**
+   * Building directory of used building tool: maven (target) or gradle (build).
+   * Since 8.0.0 gradle is used.
+   */
+  const val BUILD_DIR = "build"
+
+  /**
    * the name of the event class.
    */
   const val EVENT_CLASS_NAME = "timesheet"

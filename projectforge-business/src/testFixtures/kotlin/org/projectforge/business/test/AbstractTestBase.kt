@@ -174,7 +174,7 @@ abstract class AbstractTestBase protected constructor() {
     private var testRepoDir: File? = null
 
     init {
-        System.setProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR, File("target", "ProjectForgeTest").absolutePath)
+        System.setProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR, File(Constants.BUILD_DIR, "ProjectForgeTest").absolutePath)
     }
 
     /**
