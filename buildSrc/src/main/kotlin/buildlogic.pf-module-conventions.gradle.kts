@@ -32,8 +32,19 @@ tasks.withType<Javadoc>() {
     options.encoding = "UTF-8"
 }
 
+configurations.all {
+    resolutionStrategy {
+        preferProjectModules() // Prioritize local modules.
+    }
+}
+
 dependencies {
     api(libs.findLibrary("org-jetbrains-kotlin-kotlin-stdlib").get())
+    api(libs.findLibrary("jboss-logging").get()) {
+        version {
+            strictly(libs.findVersion("jboss-logging").get().requiredVersion)
+        }
+    }
     api(libs.findLibrary("io-github-microutils-kotlin-logging").get())
     api(libs.findLibrary("logback-classic").get()) {
         exclude(group = "org.slf4j", module = "slf4j-jul")

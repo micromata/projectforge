@@ -55,8 +55,12 @@ dependencies {
     api(libs.jakarta.xml.bind.api)
     api(libs.joda.time.joda.time)
     api(libs.org.apache.commons.collections4)
-    api(libs.org.hibernate.orm.core)
-    api(libs.org.hibernate.search.mapper.orm)
+    api(libs.org.hibernate.orm.core) {
+        exclude(group = "org.jboss.logging", module = "jboss-logging")
+    }
+    api(libs.org.hibernate.search.mapper.orm) {
+        exclude(group = "org.hibernate.orm", module = "hibernate-core")
+    }
     api(libs.org.hibernate.search.backend.lucene)
     api(libs.org.jetbrains.kotlin.kotlin.compiler.embeddable)
     api(libs.org.jetbrains.kotlin.kotlin.scripting.jsr223)
@@ -69,7 +73,9 @@ dependencies {
         exclude(group = "org.springframework.boot", module = "spring-boot-starter-logging")
         exclude(group = "org.hibernate.orm", module = "hibernate-core")
     }
-    api(libs.org.springframework.boot.starter.data.jpa)
+    api(libs.org.springframework.boot.starter.data.jpa) {
+        exclude(group = "org.hibernate.orm", module = "hibernate-core")
+    }
     api(libs.org.springframework.spring.tx)
     api(libs.org.springframework.spring.context)
     api(libs.org.springframework.spring.orm)
@@ -104,7 +110,9 @@ dependencies {
     api(libs.org.apache.commons.text)
     api(libs.se.sawano.java.alphanumeric.comparator)
     api(libs.com.webauthn4j.core)
-    api(libs.com.webauthn4j.spring.security.core)
+    api(libs.com.webauthn4j.spring.security.core) {
+        exclude(group = "org.springframework.boot", module = "spring-boot-dependencies")
+    }
 
     testImplementation(libs.org.apache.directory.server.apacheds.server.integ)
     testImplementation(libs.org.mock.server.mockserver.netty.no.dependencies)

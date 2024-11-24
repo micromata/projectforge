@@ -1,12 +1,7 @@
 plugins {
-    //id("org.springframework.boot") version libs.versions.org.springframework.boot.get()
-    //id("io.spring.dependency-management") version libs.versions.io.spring.dependency.management.get()
-    //id("java")
-    id("application")
-}
-
-application {
-    mainClass.set("org.projectforge.start.ProjectForgeApplication")
+    id("org.springframework.boot")
+    id("io.spring.dependency-management")
+    java
 }
 
 /*tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
@@ -16,27 +11,37 @@ application {
 }*/
 
 dependencies {
-    api(project(":projectforge-wicket"))
-    api(project(":projectforge-rest"))
-    api(project(":projectforge-webapp"))
-    api(project(":projectforge-caldav"))
-    api(libs.org.springframework.boot.starter)
-    api(libs.org.springframework.boot.starter.web)
-    api(libs.com.googlecode.lanterna)
-    api(libs.org.jetbrains.kotlin.kotlin.stdlib)
-    api(libs.org.reflections.reflections)
-    runtimeOnly(project(":org.projectforge.plugins.datatransfer"))
-    runtimeOnly(project(":org.projectforge.plugins.ihk"))
-    runtimeOnly(project(":org.projectforge.plugins.licensemanagement"))
-    runtimeOnly(project(":org.projectforge.plugins.liquidityplanning"))
-    runtimeOnly(project(":org.projectforge.plugins.marketing"))
-    runtimeOnly(project(":org.projectforge.plugins.memo"))
-    runtimeOnly(project(":org.projectforge.plugins.merlin"))
-    runtimeOnly(project(":org.projectforge.plugins.banking"))
-    runtimeOnly(project(":org.projectforge.plugins.skillmatrix"))
-    runtimeOnly(project(":org.projectforge.plugins.todo"))
+    implementation(project(":projectforge-wicket"))
+    implementation(project(":projectforge-rest"))
+    implementation(project(":projectforge-webapp"))
+    implementation(project(":projectforge-caldav"))
+    implementation(libs.org.springframework.boot.starter)
+    implementation(libs.org.springframework.boot.starter.web)
+    implementation(libs.com.googlecode.lanterna)
+    implementation(libs.org.reflections.reflections)
+    implementation(project(":org.projectforge.plugins.datatransfer"))
+    implementation(project(":org.projectforge.plugins.ihk"))
+    implementation(project(":org.projectforge.plugins.licensemanagement"))
+    implementation(project(":org.projectforge.plugins.liquidityplanning"))
+    implementation(project(":org.projectforge.plugins.marketing"))
+    implementation(project(":org.projectforge.plugins.memo"))
+    implementation(project(":org.projectforge.plugins.merlin"))
+    implementation(project(":org.projectforge.plugins.banking"))
+    implementation(project(":org.projectforge.plugins.skillmatrix"))
+    implementation(project(":org.projectforge.plugins.todo"))
     testImplementation(project(":projectforge-commons-test"))
     testImplementation(libs.org.mockito.core)
+}
+
+springBoot {
+    mainClass.set("org.projectforge.start.ProjectForgeApplication")
+}
+
+val projectVersion = libs.versions.org.projectforge.get() // Current version.
+
+tasks.bootJar {
+    dependsOn(":projectforge-webapp:copyReactBuild") // Integrate react-build in fat jar.
+    archiveFileName.set("projectforge-application-$projectVersion.jar")
 }
 
 description = "projectforge-application"

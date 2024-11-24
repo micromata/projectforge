@@ -25,6 +25,7 @@ package org.projectforge.i18n
 
 import mu.KotlinLogging
 import org.apache.commons.io.FileUtils
+import org.projectforge.Constants
 import org.projectforge.business.book.BookStatus
 import org.projectforge.business.user.UserRightId
 import org.projectforge.common.anots.PropertyInfo
@@ -387,7 +388,7 @@ internal class I18nKeysSourceAnalyzer {
         )
 
         internal val jsonTmpFile = File(
-            Path(basePath.toString(), "projectforge-application", "target").toFile(),
+            Path(basePath.toString(), "projectforge-application", Constants.BUILD_DIR).toFile(),
             JSON_FILENAME
         )
 
