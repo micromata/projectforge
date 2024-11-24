@@ -6,7 +6,7 @@ Aktuell:
 - Milton
 - Kalendereinträge und Subscriptions.
 - Hikari-Pool-Einstellungen werden wohl nicht übernommen (lt. Logfile)
-- Versionsnummer und Buildnummer für die Webanwendung von Maven -> Gradle.
+- Versionsnummer und Buildnummer für die Webanwendung von Maven -> Gradle. (common/build.gradle.kts)
 - InitDatabaseDaoWithTestDataTestFork implementieren.
 
 - remove all BaseDO.xxxId (lazy fetch) and replace callee by baseDO?.id

@@ -1,10 +1,9 @@
-import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.exclude
 import org.gradle.kotlin.dsl.testImplementation
 
 plugins {
     id("io.spring.dependency-management") version libs.versions.io.spring.dependency.management.get()
-    id("java-library")
     id("java-test-fixtures")
+    id("buildlogic.pf-module-conventions")
 }
 
 tasks.named("compileKotlin") {
@@ -57,10 +56,8 @@ dependencies {
     api(libs.joda.time.joda.time)
     api(libs.org.apache.commons.collections4)
     api(libs.org.hibernate.orm.core)
-    api(libs.jboss.logging)
     api(libs.org.hibernate.search.mapper.orm)
     api(libs.org.hibernate.search.backend.lucene)
-    api(libs.org.jetbrains.kotlin.kotlin.stdlib)
     api(libs.org.jetbrains.kotlin.kotlin.compiler.embeddable)
     api(libs.org.jetbrains.kotlin.kotlin.scripting.jsr223)
     api(libs.org.jetbrains.kotlin.kotlin.scripting.compiler.embeddable)
@@ -72,10 +69,7 @@ dependencies {
         exclude(group = "org.springframework.boot", module = "spring-boot-starter-logging")
         exclude(group = "org.hibernate.orm", module = "hibernate-core")
     }
-    api(libs.logback.classic) {
-        exclude(group = "org.slf4j", module = "slf4j-jul")
-        exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
-    }
+    api(libs.org.springframework.boot.starter.data.jpa)
     api(libs.org.springframework.spring.tx)
     api(libs.org.springframework.spring.context)
     api(libs.org.springframework.spring.orm)
@@ -118,19 +112,15 @@ dependencies {
     testImplementation(libs.org.springframework.boot.starter.test)
 
     compileOnly(libs.jakarta.servlet.api)
-    compileOnly(libs.org.springframework.boot.starter.data.jpa)
     compileOnly(libs.com.zaxxer.hikaricp)
 
     testFixturesImplementation(project(":projectforge-commons-test"))
     testFixturesImplementation(libs.org.springframework.spring.test)
-    testFixturesImplementation(libs.org.junit.jupiter.api)
     testFixturesImplementation(libs.org.mockito.core)
-    testFixturesImplementation(libs.org.mockito.junit.jupiter)
     testFixturesImplementation(libs.org.mockito.kotlin)
 
     testImplementation(project(":projectforge-commons-test"))
     testImplementation(libs.org.springframework.spring.test)
-    testImplementation(libs.org.junit.jupiter.api)
     testImplementation(libs.org.mockito.core)
     testImplementation(libs.org.mockito.junit.jupiter)
     testImplementation(libs.org.mockito.kotlin)

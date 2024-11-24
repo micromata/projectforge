@@ -2,6 +2,7 @@
 # https://docs.gradle.org/current/userguide/platforms.html#sub::toml-dependencies-format
 
 [versions]
+org-projectforge = "8.0.0-SNAPSHOT"
 com-fasterxml-jackson-core-jackson-annotations = "2.17.2"
 com-fasterxml-jackson-core-jackson-core = "2.17.2"
 com-fasterxml-jackson-core-jackson-databind = "2.17.2"
@@ -74,6 +75,7 @@ org-jetbrains-kotlin = "2.0.21"
 org-jetbrains-kotlinx-kotlinx-coroutines-slf4j = "1.8.1"
 org-jfree-jfreechart = "1.5.5"
 org-junit-jupiter = "5.10.3"
+org-junit-platform-launcher = "1.10.3"
 org-mnode-ical4j-ical4j = "4.0.5"
 org-mock-server-mockserver-netty-no-dependencies = "5.15.0"
 org-mockito = "5.12.0"
@@ -90,6 +92,13 @@ org-wicketstuff-wicketstuff-select2 = "10.2.0"
 se-sawano-java-alphanumeric-comparator = "1.4.1"
 
 [libraries]
+# Used by buildlogic.pf_modules.gradle.kts:
+org-junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "org-junit-jupiter" }
+org-junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "org-junit-jupiter" }
+org-junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "org-junit-jupiter" }
+org-junit-vintage-engine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "org-junit-vintage" }
+org-junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "org-junit-platform-launcher" }
+
 com-fasterxml-jackson-core-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "com-fasterxml-jackson-core-jackson-annotations" }
 com-fasterxml-jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "com-fasterxml-jackson-core-jackson-core" }
 com-fasterxml-jackson-core-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "com-fasterxml-jackson-core-jackson-databind" }
@@ -169,10 +178,6 @@ org-jetbrains-kotlin-kotlin-scripting-jvm-host = { module = "org.jetbrains.kotli
 org-jetbrains-kotlin-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "org-jetbrains-kotlin" }
 org-jetbrains-kotlinx-kotlinx-coroutines-slf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "org-jetbrains-kotlinx-kotlinx-coroutines-slf4j" }
 org-jfree-jfreechart = { module = "org.jfree:jfreechart", version.ref = "org-jfree-jfreechart" }
-org-junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "org-junit-jupiter" }
-org-junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "org-junit-jupiter" }
-org-junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "org-junit-jupiter" }
-org-junit-vintage-engine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "org-junit-vintage" }
 org-mnode-ical4j-ical4j = { module = "org.mnode.ical4j:ical4j", version.ref = "org-mnode-ical4j-ical4j" }
 org-mock-server-mockserver-netty-no-dependencies = { module = "org.mock-server:mockserver-netty-no-dependencies", version.ref = "org-mock-server-mockserver-netty-no-dependencies" }
 org-mockito-core = { module = "org.mockito:mockito-core", version.ref = "org-mockito" }

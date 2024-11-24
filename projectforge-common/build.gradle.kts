@@ -1,10 +1,11 @@
-import org.ajoberstar.grgit.Grgit
-import java.time.OffsetDateTime
-import java.time.format.DateTimeFormatter
+//import org.ajoberstar.grgit.Grgit
+//import org.ajoberstar.grgit.Grgit
+//import java.time.OffsetDateTime
+//import java.time.format.DateTimeFormatter
 
 plugins {
-    id("java-library")
-    id("org.ajoberstar.grgit") version "5.3.0"
+    id("buildlogic.pf-module-conventions")
+    //id("org.ajoberstar.grgit") version "5.3.0"
 }
 
 tasks.withType<Test> {
@@ -18,11 +19,6 @@ tasks.withType<Test> {
 
 dependencies {
     api(libs.commons.beanutils)
-    api(libs.logback.classic) {
-        exclude(group = "org.slf4j", module = "slf4j-jul")
-        exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
-    }
-    api(libs.io.github.microutils.kotlin.logging)
     api(libs.org.springframework.boot.starter.logging)
     api(libs.org.jetbrains.kotlin.kotlin.stdlib)
     api(libs.org.jetbrains.kotlin.kotlin.reflect)
@@ -30,10 +26,9 @@ dependencies {
     api(libs.org.apache.commons.lang3)
     testImplementation(project(":projectforge-commons-test"))
     testImplementation(libs.org.mockito.core)
-    testApi(libs.org.junit.jupiter.api)
 }
 
-tasks.register("generateGitProperties") {
+/*tasks.register("generateGitProperties") {
     group = "build"
     description = "Generates a git.properties file with current Git information"
 
@@ -78,5 +73,5 @@ tasks.register("generateGitProperties") {
 tasks.named("processResources") {
     dependsOn("generateGitProperties")
 }
-
+*/
 description = "projectforge-common"

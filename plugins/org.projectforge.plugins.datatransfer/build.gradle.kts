@@ -1,5 +1,5 @@
 plugins {
-    id("java-library")
+    id("buildlogic.pf-module-conventions")
 }
 
 dependencies {
@@ -7,8 +7,10 @@ dependencies {
     api(project(":projectforge-rest"))
     api(libs.jakarta.annotation.api)
     api(libs.jakarta.validation.api)
-    testImplementation(project(":projectforge-commons-test"))
-    testImplementation(testFixtures(project(":projectforge-business")))
+    testApi(project(":projectforge-commons-test"))
+    testApi(testFixtures(project(":projectforge-business")))
+    testApi(libs.org.mockito.core)
+    testApi(libs.org.springframework.boot.starter.test)
 }
 
 description = "org.projectforge.plugins.datatransfer"
