@@ -14,10 +14,14 @@ node {
 
     // Set the directories for Node.js and npm installations using the modern Gradle API
     // Use a persistent directory outside the `build` folder
-    workDir.set(layout.projectDirectory.dir(".gradle/nodejs")) // Directory for Node.js installation
-    npmWorkDir.set(layout.projectDirectory.dir(".gradle/npm")) // Directory for npm installation
+    workDir.set(layout.projectDirectory.dir("node/nodejs")) // Directory for Node.js installation
+    npmWorkDir.set(layout.projectDirectory.dir("node/npm")) // Directory for npm installation
     // Explicitly set the Node.js binary path
-    nodeProjectDir.set(file(layout.projectDirectory.dir("src").asFile.absolutePath))
+    nodeProjectDir.set(file(layout.projectDirectory.dir(".").asFile.absolutePath))
+}
+
+tasks.named<Delete>("clean") {
+    delete(file("node"), file("node_modules")) // Delete download directory.
 }
 
 tasks {

@@ -25,16 +25,12 @@ package org.projectforge.plugins.datatransfer
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.time.PFDateTime
-import org.projectforge.business.test.AbstractTestBase
-import org.projectforge.plugins.datatransfer.DataTransferAreaDao
-import org.projectforge.plugins.datatransfer.DataTransferAuditDO
-import org.projectforge.plugins.datatransfer.DataTransferAuditDao
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.temporal.ChronoUnit
 import java.util.*
-
 
 class DataTransferAuditDaoTest : AbstractTestBase() {
     @Autowired
@@ -46,6 +42,10 @@ class DataTransferAuditDaoTest : AbstractTestBase() {
 
     init {
         DataTransferTestService.addPluginEntitiesForTestMode()
+    }
+
+    override fun beforeAll() {
+        recreateDataBase() // Remove any orders created by other tests before.
     }
 
     @Test

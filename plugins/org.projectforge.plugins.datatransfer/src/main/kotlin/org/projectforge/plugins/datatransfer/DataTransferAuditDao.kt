@@ -108,7 +108,7 @@ class DataTransferAuditDao {
         areaId ?: return null
         val resultList =
             persistenceService.executeNamedQuery(
-                DataTransferAuditDO.FIND_QUEUED_ENTRIES_SENT_BY_AREA_ID,
+                DataTransferAuditDO.FIND_QUEUED_ENTRIES_SENT_BY_AREA_ID_IGNORE_TYPES,
                 DataTransferAuditDO::class.java,
                 Pair("areaId", areaId),
                 Pair("eventTypes", downloadEventTypes),

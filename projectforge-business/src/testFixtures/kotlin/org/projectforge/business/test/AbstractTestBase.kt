@@ -135,7 +135,6 @@ abstract class AbstractTestBase protected constructor() {
     @PostConstruct
     private fun postConstruct() {
         if (DatabaseSupport.getInstance() == null) {
-            baseLog.info("************ Initializing DatabaseSupport with database dialect = " + databaseDialect)
             DatabaseSupport.setInstance(
                 DatabaseSupport(
                     databaseDialect
