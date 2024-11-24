@@ -1,5 +1,5 @@
 plugins {
-    id("java-library")
+    id("buildlogic.pf-module-conventions")
 }
 
 dependencies {
