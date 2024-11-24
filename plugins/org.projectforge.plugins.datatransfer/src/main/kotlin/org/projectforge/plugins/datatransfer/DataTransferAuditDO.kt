@@ -57,7 +57,7 @@ import jakarta.persistence.*
     query = "from DataTransferAuditDO where id=:id"
   ),
   NamedQuery(
-    name = DataTransferAuditDO.FIND_QUEUED_ENTRIES_SENT_BY_AREA_ID,
+    name = DataTransferAuditDO.FIND_QUEUED_ENTRIES_SENT_BY_AREA_ID_IGNORE_TYPES,
     query = "from DataTransferAuditDO where areaId=:areaId and notified=false and eventType not in :eventTypes order by timestamp desc"
   ),
   NamedQuery(
@@ -172,7 +172,7 @@ open class DataTransferAuditDO {
     internal const val FIND_BY_AREA_ID = "DataTransferAuditDO_FindByAreaId"
     internal const val FIND_BY_ID = "DataTransferAuditDO_FindById"
     internal const val FIND_DOWNLOADS_BY_AREA_ID = "DataTransferAuditDO_FindDownloadsByAreaId"
-    internal const val FIND_QUEUED_ENTRIES_SENT_BY_AREA_ID = "DataTransferAuditDO_FindQueuedEntriesByAreaId"
+    internal const val FIND_QUEUED_ENTRIES_SENT_BY_AREA_ID_IGNORE_TYPES = "DataTransferAuditDO_FindQueuedEntriesByAreaId"
     internal const val UPDATE_NOTIFICATION_STATUS = "DataTransferAuditDO_UpdateNotificationStatus"
   }
 }

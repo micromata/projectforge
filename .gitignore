@@ -50,3 +50,4 @@ projectforge-application/src/main/kotlin/local
 .gradle
 build
 .kotlin
+projectforge-webapp/node

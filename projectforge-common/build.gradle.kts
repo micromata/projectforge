@@ -19,7 +19,6 @@ tasks.withType<Test> {
 
 dependencies {
     api(libs.commons.beanutils)
-    api(libs.org.springframework.boot.starter.logging)
     api(libs.org.jetbrains.kotlin.kotlin.stdlib)
     api(libs.org.jetbrains.kotlin.kotlin.reflect)
     api(libs.org.apache.commons.collections4)
