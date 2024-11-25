@@ -8,7 +8,7 @@ dependencies {
     api(libs.com.fasterxml.jackson.core.databind)
     api(libs.com.fasterxml.jackson.core.annotations)
     api(libs.org.springframework.spring.context)
-    api (libs.io.dropwizard.metrics.metrics.core)
+    api (libs.io.dropwizard.metrics.core)
     api(libs.org.apache.jackrabbit.oak.jcr)
     api(libs.jakarta.annotation.api)
     api(libs.net.lingala.zip4j.zip4j)

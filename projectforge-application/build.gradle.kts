@@ -10,15 +10,28 @@ plugins {
     archiveClassifier.set("")
 }*/
 
+springBoot {
+    mainClass.set("org.projectforge.start.ProjectForgeApplication")
+}
+
+val projectVersion = libs.versions.org.projectforge.get() // Current version.
+
+tasks.bootJar {
+    dependsOn(":projectforge-webapp:copyReactBuild") // Integrate react.build in fat jar.
+    archiveFileName.set("projectforge-application.$projectVersion.jar")
+}
+
+/*tasks.register("install") {
+    group = "build" // Optional: set a group for tasks.
+    description = "Alias for bootJar"
+    dependsOn("bootJar")
+}*/
+
 dependencies {
     implementation(project(":projectforge-wicket"))
     implementation(project(":projectforge-rest"))
-    implementation(project(":projectforge-webapp"))
     implementation(project(":projectforge-caldav"))
-    implementation(libs.org.springframework.boot.starter)
-    implementation(libs.org.springframework.boot.starter.web)
-    implementation(libs.com.googlecode.lanterna)
-    implementation(libs.org.reflections.reflections)
+    implementation(project(":projectforge-webapp"))
     implementation(project(":org.projectforge.plugins.datatransfer"))
     implementation(project(":org.projectforge.plugins.ihk"))
     implementation(project(":org.projectforge.plugins.licensemanagement"))
@@ -31,17 +44,103 @@ dependencies {
     implementation(project(":org.projectforge.plugins.todo"))
     testImplementation(project(":projectforge-commons-test"))
     testImplementation(libs.org.mockito.core)
-}
 
-springBoot {
-    mainClass.set("org.projectforge.start.ProjectForgeApplication")
-}
-
-val projectVersion = libs.versions.org.projectforge.get() // Current version.
-
-tasks.bootJar {
-    dependsOn(":projectforge-webapp:copyReactBuild") // Integrate react-build in fat jar.
-    archiveFileName.set("projectforge-application-$projectVersion.jar")
+    // Force the following dependencies to avoid downgrade:
+    implementation(libs.com.fasterxml.jackson.core.annotations)
+    implementation(libs.com.fasterxml.jackson.core)
+    implementation(libs.com.fasterxml.jackson.core.databind)
+    implementation(libs.com.fasterxml.jackson.datatype.jsr310)
+    implementation(libs.com.fasterxml.jackson.module.kotlin)
+    implementation(libs.com.google.code.gson)
+    implementation(libs.com.google.zxing.core)
+    implementation(libs.com.google.zxing.javase)
+    implementation(libs.com.googlecode.ez.vcard)
+    implementation(libs.com.googlecode.json.simple)
+    implementation(libs.com.googlecode.lanterna)
+    implementation(libs.com.itextpdf)
+    implementation(libs.com.thoughtworks.xstream)
+    implementation(libs.com.webauthn4j.core)
+    implementation(libs.com.webauthn4j.spring.security.core)
+    implementation(libs.com.zaxxer.hikaricp)
+    implementation(libs.commons.beanutils)
+    implementation(libs.commons.io)
+    implementation(libs.de.micromata.merlin.core)
+    implementation(libs.fr.opensagres.xdocrepor.poi.xwpf.converter.pdf)
+    implementation(libs.io.dropwizard.metrics.core)
+    implementation(libs.io.milton.server.ent)
+    implementation(libs.io.github.microutils.kotlin.logging)
+    implementation(libs.jakarta.activation.api)
+    implementation(libs.jakarta.annotation.api)
+    implementation(libs.jakarta.mail.jakarta.mail.api)
+    implementation(libs.jakarta.persistence.api)
+    implementation(libs.jakarta.servlet.api)
+    implementation(libs.jakarta.servlet.jsp.api)
+    implementation(libs.jakarta.validation.api)
+    implementation(libs.jakarta.ws.rs.api)
+    implementation(libs.jakarta.xml.bind.api)
+    implementation(libs.javax.jcr)
+    implementation(libs.jboss.logging)
+    implementation(libs.joda.time.joda.time)
+    implementation(libs.logback.classic)
+    implementation(libs.net.lingala.zip4j.zip4j)
+    implementation(libs.net.sourceforge.mpxj)
+    implementation(libs.org.apache.commons.collections4)
+    implementation(libs.org.apache.commons.lang3)
+    implementation(libs.org.apache.commons.text)
+    implementation(libs.org.apache.directory.server.apacheds.server.integ)
+    implementation(libs.org.apache.groovy.all)
+    implementation(libs.org.apache.httpcomponents.client5.httpclient5)
+    implementation(libs.org.apache.jackrabbit.oak.jcr)
+    implementation(libs.org.apache.jackrabbit.oak.segment.tar)
+    implementation(libs.org.apache.poi)
+    implementation(libs.org.apache.poi.ooxml)
+    implementation(libs.org.apache.wicket.myextensions)
+    implementation(libs.org.apache.wicket.spring)
+    implementation(libs.org.apache.xmlgraphics.batik.codec)
+    implementation(libs.org.apache.xmlgraphics.batik.constants)
+    implementation(libs.org.apache.xmlgraphics.batik.dom)
+    implementation(libs.org.apache.xmlgraphics.batik.svg.dom)
+    implementation(libs.org.apache.xmlgraphics.fop)
+    implementation(libs.org.apache.xmlgraphics.commons)
+    implementation(libs.org.aspectj.aspectjtools)
+    implementation(libs.org.bouncycastle.bcprov.jdk18on)
+    implementation(libs.org.dom4j)
+    implementation(libs.org.flywaydb.core)
+    implementation(libs.org.flywaydb.database.postgresql)
+    implementation(libs.org.glassfish.jaxb.runtime)
+    implementation(libs.org.glassfish.jaxb.xjc)
+    implementation(libs.org.hibernate.orm.core)
+    implementation(libs.org.hibernate.search.backend.lucene)
+    implementation(libs.org.hibernate.search.mapper.orm)
+    implementation(libs.org.hsqldb.hsqldb)
+    implementation(libs.org.jetbrains.kotlin.kotlin.compiler.embeddable)
+    implementation(libs.org.jetbrains.kotlin.kotlin.reflect)
+    implementation(libs.org.jetbrains.kotlin.kotlin.scripting.common)
+    implementation(libs.org.jetbrains.kotlin.kotlin.scripting.compiler.embeddable)
+    implementation(libs.org.jetbrains.kotlin.kotlin.scripting.jsr223)
+    implementation(libs.org.jetbrains.kotlin.kotlin.scripting.jvm)
+    implementation(libs.org.jetbrains.kotlin.kotlin.scripting.jvm.host)
+    implementation(libs.org.jetbrains.kotlin.kotlin.stdlib)
+    implementation(libs.org.jetbrains.kotlinx.coroutines.slf4j)
+    implementation(libs.org.jfree.jfreechart)
+    implementation(libs.org.mnode.ical4j.ical4j)
+    implementation(libs.org.mozilla.rhino)
+    implementation(libs.org.postgresql)
+    implementation(libs.org.reflections)
+    implementation(libs.org.slf4j.jcl.over.slf4j)
+    implementation(libs.org.springframework.boot.starter)
+    implementation(libs.org.springframework.boot.starter.data.jpa)
+    implementation(libs.org.springframework.boot.starter.jersey)
+    implementation(libs.org.springframework.boot.starter.logging)
+    implementation(libs.org.springframework.boot.starter.web)
+    implementation(libs.org.springframework.boot.starter.webflux)
+    implementation(libs.org.springframework.spring.context)
+    implementation(libs.org.springframework.spring.orm)
+    implementation(libs.org.springframework.spring.tx)
+    implementation(libs.org.springframework.spring.webmvc)
+    implementation(libs.org.wicketstuff.html5)
+    implementation(libs.org.wicketstuff.select2)
+    implementation(libs.se.sawano.java.alphanumeric.comparator)
 }
 
 description = "projectforge-application"

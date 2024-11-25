@@ -40,29 +40,9 @@ configurations.all {
 
 dependencies {
     api(libs.findLibrary("org-jetbrains-kotlin-kotlin-stdlib").get())
-    api(libs.findLibrary("jboss-logging").get()) {
-        version {
-            strictly(libs.findVersion("jboss-logging").get().requiredVersion)
-        }
-    }
     api(libs.findLibrary("io-github-microutils-kotlin-logging").get())
-    api(libs.findLibrary("logback-classic").get()) {
-        exclude(group = "org.slf4j", module = "slf4j-jul")
-        exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
-    }
+    api(libs.findLibrary("logback-classic").get())
     testImplementation(libs.findLibrary("org-junit-jupiter-api").get())
     testImplementation(libs.findLibrary("org-junit-jupiter-engine").get())
     testImplementation(libs.findLibrary("org-junit-platform-launcher").get())
-
-    /*    testImplementation("org.junit.vintage:junit-vintage-engine:5.10.5")
-    testImplementation("org.mockito:mockito-core:5.12.0")
-    testImplementation("org.mockito:mockito-junit-jupiter:5.12.0")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
-    compileOnly("org.slf4j:log4j-over-slf4j:2.0.16")*/
 }
-/*
-publishing {
-    publications.create<MavenPublication>("maven") {
-        from(components["java"])
-    }
-}*/
