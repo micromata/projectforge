@@ -29,10 +29,6 @@ configurations.all {
     exclude(group = "commons-logging", module = "commons-logging")
     resolutionStrategy {
         preferProjectModules() // Prioritize local modules.
-        force(
-            "org.jboss.logging:jboss-logging:${libs.versions.jboss.logging.get()}",
-            "org.hibernate:hibernate-core:${libs.versions.org.hibernate.orm.get()}"
-        )
     }
 }
 

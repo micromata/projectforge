@@ -3,38 +3,35 @@
 
 [versions]
 org-projectforge = "8.0.0-SNAPSHOT"
-com-fasterxml-jackson-core-jackson-annotations = "2.17.2"
-com-fasterxml-jackson-core-jackson-core = "2.17.2"
-com-fasterxml-jackson-core-jackson-databind = "2.17.2"
-com-fasterxml-jackson-datatype-jackson-datatype-jsr310 = "2.17.2"
-com-fasterxml-jackson-module-jackson-module-kotlin = "2.17.2"
-com-google-code-gson-gson = "2.10.1"
+
+com-fasterxml-jackson = "2.17.2"
+com-google-code-gson = "2.10.1"
 com-google-zxing-core = "3.5.3"
 com-google-zxing-javase = "3.5.3"
-com-googlecode-ez-vcard-ez-vcard = "0.12.1"
-com-googlecode-json-simple-json-simple = "1.1.1"
-com-googlecode-lanterna-lanterna = "3.1.2"
-com-itextpdf-itextpdf = "5.5.13.4"
-com-thoughtworks-xstream-xstream = "1.4.21"
-com-webauthn4j-webauthn4j-core = "0.28.0.RELEASE"
-com-webauthn4j-webauthn4j-spring-security-core = "0.10.0.RELEASE"
+com-googlecode-ez-vcard = "0.12.1"
+com-googlecode-json-simple = "1.1.1"
+com-googlecode-lanterna = "3.1.2"
+com-itextpdf = "5.5.13.4"
+com-thoughtworks-xstream = "1.4.21"
+com-webauthn4j-core = "0.28.0.RELEASE"
+com-webauthn4j-spring-security-core = "0.10.0.RELEASE"
 com-zaxxer-hikaricp = "4.0.3"
-commons-beanutils-commons-beanutils = "1.9.4"
-commons-io-commons-io = "2.16.1"
-de-micromata-merlin-merlin-core = "1.1.16"
+commons-beanutils = "1.9.4"
+commons-io = "2.16.1"
+de-micromata-merlin = "1.1.16"
 io-github-microutils-kotlin-logging = "3.0.5"
-io-dropwizard-metrics-metrics-core = "4.2.26"
-io-milton-milton-server-ent = "4.0.5.2400"
+io-dropwizard-metrics-core = "4.2.26"
+io-milton-server-ent = "4.0.5.2400"
 io-spring-dependency-management = "1.1.6" # io.spring.dependency-management.gradle.plugin
-fr-opensagres-xdocreport-fr-opensagres-poi-xwpf-converter-pdf = "2.0.4"
-jakarta-activation-jakarta-activation-api = "2.1.3"
-jakarta-annotation-jakarta-annotation-api = "3.0.0"
-jakarta-mail-jakarta-mail-api = "2.1.3"
-jakarta-persistence-jakarta-persistence-api = "3.1.0"
-jakarta-servlet-jakarta-servlet-api = "6.1.0"
-jakarta-servlet-jsp-jakarta-servlet-jsp-api = "4.0.0"
+fr-opensagres-xdocreport-poi-xwpf-converter-pdf = "2.0.4"
+jakarta-activation-api = "2.1.3"
+jakarta-annotation-api = "3.0.0"
+jakarta-mail-api = "2.1.3"
+jakarta-persistence-api = "3.1.0"
+jakarta-servlet-api = "6.1.0"
+jakarta-servlet-jsp-api = "4.0.0"
 jakarta-validation = "3.1.0"
-jakarta-ws-rs-jakarta-ws-rs-api = "4.0.0"
+jakarta-ws-rs-api = "4.0.0"
 jakarta-xml-bind-api = "4.0.2"
 javax-jcr = "2.0"
 jboss-logging = "3.6.0.Final"
@@ -42,36 +39,36 @@ joda-time-joda-time = "2.12.7"
 logback-classic = "1.5.12"
 net-lingala-zip4j-zip4j = "2.11.5"
 net-sourceforge-mpxj = "4.3.0"
-org-apache-commons-commons-collections4 = "4.4"
-org-apache-commons-commons-lang3 = "3.16.0"
-org-apache-commons-commons-text = "1.12.0"
+org-apache-commons-collections4 = "4.4"
+org-apache-commons-lang3 = "3.16.0"
+org-apache-commons-text = "1.12.0"
 org-apache-directory-server-apacheds-server-integ = "1.5.7"
-org-apache-groovy-groovy-all = "4.0.22"
+org-apache-groovy-all = "4.0.22"
 org-apache-httpcomponents-client5-httpclient5 = "5.3.1"
 org-apache-jackrabbit-oak-jcr = "1.66.0"
 org-apache-jackrabbit-oak-segment-tar = "1.66.0"
-org-apache-poi-poi = "5.3.0"
-org-apache-poi-poi-ooxml = "5.3.0"
-org-apache-wicket-wicket-myextensions = "10.2.0"
-org-apache-wicket-wicket-spring = "10.2.0"
-org-apache-wicket-wicket-tester = "10.2.0"
+org-apache-poi = "5.3.0"
+org-apache-poi-ooxml = "5.3.0"
+org-apache-wicket-myextensions = "10.2.0"
+org-apache-wicket-spring = "10.2.0"
+org-apache-wicket-tester = "10.2.0"
 org-apache-xmlgraphics-batik-codec = "1.17"
 org-apache-xmlgraphics-batik-constants = "1.17"
 org-apache-xmlgraphics-batik-dom = "1.17"
 org-apache-xmlgraphics-batik-svg-dom = "1.17"
 org-apache-xmlgraphics-fop = "2.9"
-org-apache-xmlgraphics-xmlgraphics-commons = "2.9"
+org-apache-xmlgraphics-commons = "2.9"
 org-aspectj-aspectjtools = "1.9.22.1"
 org-bouncycastle-bcprov-jdk18on = "1.79"
-org-dom4j-dom4j = "2.1.4"
-org-flywaydb-flyway-core = "10.17.0"
-org-flywaydb-flyway-database-postgresql = "10.17.0"
+org-dom4j = "2.1.4"
+org-flywaydb-core = "10.17.0"
+org-flywaydb-database-postgresql = "10.17.0"
 org-glassfish-jaxb = "4.0.5"
 org-hibernate-search = "7.2.1.Final"
 org-hibernate-orm = "6.6.3.Final"
 org-hsqldb-hsqldb = "2.7.3"
 org-jetbrains-kotlin = "2.0.21"
-org-jetbrains-kotlinx-kotlinx-coroutines-slf4j = "1.8.1"
+org-jetbrains-kotlinx-coroutines-slf4j = "1.8.1"
 org-jfree-jfreechart = "1.5.5"
 org-junit-jupiter = "5.10.3"
 org-junit-platform-launcher = "1.10.3"
@@ -80,55 +77,61 @@ org-mock-server-mockserver-netty-no-dependencies = "5.15.0"
 org-mockito = "5.12.0"
 org-mockito-kotlin = "5.4.0"
 org-mozilla-rhino = "1.7.15"
-org-postgresql-postgresql = "42.7.4"
-org-reflections-reflections = "0.10.2"
+org-postgresql = "42.7.4"
+org-reflections = "0.10.2"
 org-slf4j-jcl-over-slf4j = "2.0.16"
 org-springframework-boot = "3.3.5"
 org-springframework-spring = "6.1.14"
-org-junit-vintage = "5.11.3"
-org-wicketstuff-wicketstuff-html5 = "10.2.0"
-org-wicketstuff-wicketstuff-select2 = "10.2.0"
+org-wicketstuff-html5 = "10.2.0"
+org-wicketstuff-select2 = "10.2.0"
 se-sawano-java-alphanumeric-comparator = "1.4.1"
 
 [libraries]
+### test libraries
 # Used by buildlogic.pf_modules.gradle.kts:
 org-junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "org-junit-jupiter" }
-org-junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "org-junit-jupiter" }
 org-junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "org-junit-jupiter" }
-org-junit-vintage-engine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "org-junit-vintage" }
 org-junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "org-junit-platform-launcher" }
+org-mock-server-mockserver-netty-no-dependencies = { module = "org.mock-server:mockserver-netty-no-dependencies", version.ref = "org-mock-server-mockserver-netty-no-dependencies" }
+org-mockito-core = { module = "org.mockito:mockito-core", version.ref = "org-mockito" }
+org-mockito-junit-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "org-mockito" }
+org-mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "org-mockito-kotlin" }
+org-apache-wicket-tester = { module = "org.apache.wicket:wicket-tester", version.ref = "org-apache-wicket-tester" }
+org-springframework-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "org-springframework-boot" }
+org-springframework-spring-test = { module = "org.springframework:spring-test", version.ref = "org-springframework-spring" }
 
-com-fasterxml-jackson-core-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "com-fasterxml-jackson-core-jackson-annotations" }
-com-fasterxml-jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "com-fasterxml-jackson-core-jackson-core" }
-com-fasterxml-jackson-core-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "com-fasterxml-jackson-core-jackson-databind" }
-com-fasterxml-jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "com-fasterxml-jackson-datatype-jackson-datatype-jsr310" }
-com-fasterxml-jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "com-fasterxml-jackson-module-jackson-module-kotlin" }
-com-google-code-gson = { module = "com.google.code.gson:gson", version.ref = "com-google-code-gson-gson" }
+### production libraries (don't forget to add these libs to projectforge-application/build.gradle.kts for forcing version and avoiding downgrades)
+com-fasterxml-jackson-core-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "com-fasterxml-jackson" }
+com-fasterxml-jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "com-fasterxml-jackson" }
+com-fasterxml-jackson-core-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "com-fasterxml-jackson" }
+com-fasterxml-jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "com-fasterxml-jackson" }
+com-fasterxml-jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "com-fasterxml-jackson" }
+com-google-code-gson = { module = "com.google.code.gson:gson", version.ref = "com-google-code-gson" }
 com-google-zxing-core = { module = "com.google.zxing:core", version.ref = "com-google-zxing-core" }
 com-google-zxing-javase = { module = "com.google.zxing:javase", version.ref = "com-google-zxing-javase" }
-com-googlecode-ez-vcard = { module = "com.googlecode.ez-vcard:ez-vcard", version.ref = "com-googlecode-ez-vcard-ez-vcard" }
-com-googlecode-json-simple = { module = "com.googlecode.json-simple:json-simple", version.ref = "com-googlecode-json-simple-json-simple" }
-com-googlecode-lanterna = { module = "com.googlecode.lanterna:lanterna", version.ref = "com-googlecode-lanterna-lanterna" }
-com-itextpdf = { module = "com.itextpdf:itextpdf", version.ref = "com-itextpdf-itextpdf" }
-com-thoughtworks-xstream = { module = "com.thoughtworks.xstream:xstream", version.ref = "com-thoughtworks-xstream-xstream" }
-com-webauthn4j-core = { module = "com.webauthn4j:webauthn4j-core", version.ref = "com-webauthn4j-webauthn4j-core" }
-com-webauthn4j-spring-security-core = { module = "com.webauthn4j:webauthn4j-spring-security-core", version.ref = "com-webauthn4j-webauthn4j-spring-security-core" }
+com-googlecode-ez-vcard = { module = "com.googlecode.ez-vcard:ez-vcard", version.ref = "com-googlecode-ez-vcard" }
+com-googlecode-json-simple = { module = "com.googlecode.json-simple:json-simple", version.ref = "com-googlecode-json-simple" }
+com-googlecode-lanterna = { module = "com.googlecode.lanterna:lanterna", version.ref = "com-googlecode-lanterna" }
+com-itextpdf = { module = "com.itextpdf:itextpdf", version.ref = "com-itextpdf" }
+com-thoughtworks-xstream = { module = "com.thoughtworks.xstream:xstream", version.ref = "com-thoughtworks-xstream" }
+com-webauthn4j-core = { module = "com.webauthn4j:webauthn4j-core", version.ref = "com-webauthn4j-core" }
+com-webauthn4j-spring-security-core = { module = "com.webauthn4j:webauthn4j-spring-security-core", version.ref = "com-webauthn4j-spring-security-core" }
 com-zaxxer-hikaricp = { module = "com.zaxxer:HikariCP", version.ref = "com-zaxxer-hikaricp" }
-commons-beanutils = { module = "commons-beanutils:commons-beanutils", version.ref = "commons-beanutils-commons-beanutils" }
-commons-io = { module = "commons-io:commons-io", version.ref = "commons-io-commons-io" }
-de-micromata-merlin-core = { module = "de.micromata.merlin:merlin-core", version.ref = "de-micromata-merlin-merlin-core" }
-fr-opensagres-xdocreport-fr-opensagres-poi-xwpf-converter-pdf = { module = "fr.opensagres.xdocreport:fr.opensagres.poi.xwpf.converter.pdf", version.ref = "fr-opensagres-xdocreport-fr-opensagres-poi-xwpf-converter-pdf" }
-io-dropwizard-metrics-metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "io-dropwizard-metrics-metrics-core" }
-io-milton-milton-server-ent = { module = "io.milton:milton-server-ent", version.ref = "io-milton-milton-server-ent" }
+commons-beanutils = { module = "commons-beanutils:commons-beanutils", version.ref = "commons-beanutils" }
+commons-io = { module = "commons-io:commons-io", version.ref = "commons-io" }
+de-micromata-merlin-core = { module = "de.micromata.merlin:merlin-core", version.ref = "de-micromata-merlin" }
+fr-opensagres-xdocrepor-poi-xwpf-converter-pdf = { module = "fr.opensagres.xdocreport:fr.opensagres.poi.xwpf.converter.pdf", version.ref = "fr-opensagres-xdocreport-poi-xwpf-converter-pdf" }
+io-dropwizard-metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "io-dropwizard-metrics-core" }
+io-milton-server-ent = { module = "io.milton:milton-server-ent", version.ref = "io-milton-server-ent" }
 io-github-microutils-kotlin-logging = { module = "io.github.microutils:kotlin-logging", version.ref = "io-github-microutils-kotlin-logging" }
-jakarta-activation-api = { module = "jakarta.activation:jakarta.activation-api", version.ref = "jakarta-activation-jakarta-activation-api" }
-jakarta-annotation-api = { module = "jakarta.annotation:jakarta.annotation-api", version.ref = "jakarta-annotation-jakarta-annotation-api" }
-jakarta-mail-jakarta-mail-api = { module = "jakarta.mail:jakarta.mail-api", version.ref = "jakarta-mail-jakarta-mail-api" }
-jakarta-persistence-api = { module = "jakarta.persistence:jakarta.persistence-api", version.ref = "jakarta-persistence-jakarta-persistence-api" }
-jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "jakarta-servlet-jakarta-servlet-api" }
-jakarta-servlet-jsp-api = { module = "jakarta.servlet.jsp:jakarta.servlet.jsp-api", version.ref = "jakarta-servlet-jsp-jakarta-servlet-jsp-api" }
+jakarta-activation-api = { module = "jakarta.activation:jakarta.activation-api", version.ref = "jakarta-activation-api" }
+jakarta-annotation-api = { module = "jakarta.annotation:jakarta.annotation-api", version.ref = "jakarta-annotation-api" }
+jakarta-mail-jakarta-mail-api = { module = "jakarta.mail:jakarta.mail-api", version.ref = "jakarta-mail-api" }
+jakarta-persistence-api = { module = "jakarta.persistence:jakarta.persistence-api", version.ref = "jakarta-persistence-api" }
+jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "jakarta-servlet-api" }
+jakarta-servlet-jsp-api = { module = "jakarta.servlet.jsp:jakarta.servlet.jsp-api", version.ref = "jakarta-servlet-jsp-api" }
 jakarta-validation-api = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta-validation" }
-jakarta-ws-rs-api = { module = "jakarta.ws.rs:jakarta.ws.rs-api", version.ref = "jakarta-ws-rs-jakarta-ws-rs-api" }
+jakarta-ws-rs-api = { module = "jakarta.ws.rs:jakarta.ws.rs-api", version.ref = "jakarta-ws-rs-api" }
 jakarta-xml-bind-api = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version.ref = "jakarta-xml-bind-api" }
 javax-jcr = { module = "javax.jcr:jcr", version.ref = "javax-jcr" }
 jboss-logging = { module = "org.jboss.logging:jboss-logging", version.ref = "jboss-logging" }
@@ -136,30 +139,29 @@ joda-time-joda-time = { module = "joda-time:joda-time", version.ref = "joda-time
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback-classic" }
 net-lingala-zip4j-zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "net-lingala-zip4j-zip4j" }
 net-sourceforge-mpxj = { module = "net.sourceforge:mpxj", version.ref = "net-sourceforge-mpxj" }
-org-apache-commons-collections4 = { module = "org.apache.commons:commons-collections4", version.ref = "org-apache-commons-commons-collections4" }
-org-apache-commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "org-apache-commons-commons-lang3" }
-org-apache-commons-text = { module = "org.apache.commons:commons-text", version.ref = "org-apache-commons-commons-text" }
+org-apache-commons-collections4 = { module = "org.apache.commons:commons-collections4", version.ref = "org-apache-commons-collections4" }
+org-apache-commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "org-apache-commons-lang3" }
+org-apache-commons-text = { module = "org.apache.commons:commons-text", version.ref = "org-apache-commons-text" }
 org-apache-directory-server-apacheds-server-integ = { module = "org.apache.directory.server:apacheds-server-integ", version.ref = "org-apache-directory-server-apacheds-server-integ" }
-org-apache-groovy-groovy-all = { module = "org.apache.groovy:groovy-all", version.ref = "org-apache-groovy-groovy-all" }
+org-apache-groovy-all = { module = "org.apache.groovy:groovy-all", version.ref = "org-apache-groovy-all" }
 org-apache-httpcomponents-client5-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "org-apache-httpcomponents-client5-httpclient5" }
 org-apache-jackrabbit-oak-jcr = { module = "org.apache.jackrabbit:oak-jcr", version.ref = "org-apache-jackrabbit-oak-jcr" }
 org-apache-jackrabbit-oak-segment-tar = { module = "org.apache.jackrabbit:oak-segment-tar", version.ref = "org-apache-jackrabbit-oak-segment-tar" }
-org-apache-poi-poi = { module = "org.apache.poi:poi", version.ref = "org-apache-poi-poi" }
-org-apache-poi-poi-ooxml = { module = "org.apache.poi:poi-ooxml", version.ref = "org-apache-poi-poi-ooxml" }
-org-apache-wicket-wicket-myextensions = { module = "org.apache.wicket:wicket-extensions", version.ref = "org-apache-wicket-wicket-myextensions" }
-org-apache-wicket-wicket-spring = { module = "org.apache.wicket:wicket-spring", version.ref = "org-apache-wicket-wicket-spring" }
-org-apache-wicket-wicket-tester = { module = "org.apache.wicket:wicket-tester", version.ref = "org-apache-wicket-wicket-tester" }
+org-apache-poi = { module = "org.apache.poi:poi", version.ref = "org-apache-poi" }
+org-apache-poi-ooxml = { module = "org.apache.poi:poi-ooxml", version.ref = "org-apache-poi-ooxml" }
+org-apache-wicket-myextensions = { module = "org.apache.wicket:wicket-extensions", version.ref = "org-apache-wicket-myextensions" }
+org-apache-wicket-spring = { module = "org.apache.wicket:wicket-spring", version.ref = "org-apache-wicket-spring" }
 org-apache-xmlgraphics-batik-codec = { module = "org.apache.xmlgraphics:batik-codec", version.ref = "org-apache-xmlgraphics-batik-codec" }
 org-apache-xmlgraphics-batik-constants = { module = "org.apache.xmlgraphics:batik-constants", version.ref = "org-apache-xmlgraphics-batik-constants" }
 org-apache-xmlgraphics-batik-dom = { module = "org.apache.xmlgraphics:batik-dom", version.ref = "org-apache-xmlgraphics-batik-dom" }
 org-apache-xmlgraphics-batik-svg-dom = { module = "org.apache.xmlgraphics:batik-svg-dom", version.ref = "org-apache-xmlgraphics-batik-svg-dom" }
 org-apache-xmlgraphics-fop = { module = "org.apache.xmlgraphics:fop", version.ref = "org-apache-xmlgraphics-fop" }
-org-apache-xmlgraphics-xmlgraphics-commons = { module = "org.apache.xmlgraphics:xmlgraphics-commons", version.ref = "org-apache-xmlgraphics-xmlgraphics-commons" }
+org-apache-xmlgraphics-commons = { module = "org.apache.xmlgraphics:xmlgraphics-commons", version.ref = "org-apache-xmlgraphics-commons" }
 org-aspectj-aspectjtools = { module = "org.aspectj:aspectjtools", version.ref = "org-aspectj-aspectjtools" }
 org-bouncycastle-bcprov-jdk18on = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "org-bouncycastle-bcprov-jdk18on" }
-org-dom4j-dom4j = { module = "org.dom4j:dom4j", version.ref = "org-dom4j-dom4j" }
-org-flywaydb-flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "org-flywaydb-flyway-core" }
-org-flywaydb-flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "org-flywaydb-flyway-database-postgresql" }
+org-dom4j = { module = "org.dom4j:dom4j", version.ref = "org-dom4j" }
+org-flywaydb-core = { module = "org.flywaydb:flyway-core", version.ref = "org-flywaydb-core" }
+org-flywaydb-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "org-flywaydb-database-postgresql" }
 org-glassfish-jaxb-runtime = { module = "org.glassfish.jaxb:jaxb-runtime", version.ref = "org-glassfish-jaxb" }
 org-glassfish-jaxb-xjc = { module = "org.glassfish.jaxb:jaxb-xjc", version.ref = "org-glassfish-jaxb" }
 org-hibernate-orm-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "org-hibernate-orm" }
@@ -174,29 +176,23 @@ org-jetbrains-kotlin-kotlin-scripting-jsr223 = { module = "org.jetbrains.kotlin:
 org-jetbrains-kotlin-kotlin-scripting-jvm = { module = "org.jetbrains.kotlin:kotlin-scripting-jvm", version.ref = "org-jetbrains-kotlin" }
 org-jetbrains-kotlin-kotlin-scripting-jvm-host = { module = "org.jetbrains.kotlin:kotlin-scripting-jvm-host", version.ref = "org-jetbrains-kotlin" }
 org-jetbrains-kotlin-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "org-jetbrains-kotlin" }
-org-jetbrains-kotlinx-kotlinx-coroutines-slf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "org-jetbrains-kotlinx-kotlinx-coroutines-slf4j" }
+org-jetbrains-kotlinx-coroutines-slf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "org-jetbrains-kotlinx-coroutines-slf4j" }
 org-jfree-jfreechart = { module = "org.jfree:jfreechart", version.ref = "org-jfree-jfreechart" }
 org-mnode-ical4j-ical4j = { module = "org.mnode.ical4j:ical4j", version.ref = "org-mnode-ical4j-ical4j" }
-org-mock-server-mockserver-netty-no-dependencies = { module = "org.mock-server:mockserver-netty-no-dependencies", version.ref = "org-mock-server-mockserver-netty-no-dependencies" }
-org-mockito-core = { module = "org.mockito:mockito-core", version.ref = "org-mockito" }
-org-mockito-junit-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "org-mockito" }
-org-mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "org-mockito-kotlin" }
 org-mozilla-rhino = { module = "org.mozilla:rhino", version.ref = "org-mozilla-rhino" }
-org-postgresql-postgresql = { module = "org.postgresql:postgresql", version.ref = "org-postgresql-postgresql" }
-org-reflections-reflections = { module = "org.reflections:reflections", version.ref = "org-reflections-reflections" }
+org-postgresql = { module = "org.postgresql:postgresql", version.ref = "org-postgresql" }
+org-reflections = { module = "org.reflections:reflections", version.ref = "org-reflections" }
 org-slf4j-jcl-over-slf4j = { module = "org.slf4j:jcl-over-slf4j", version.ref = "org-slf4j-jcl-over-slf4j" }
 org-springframework-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter-jersey = { module = "org.springframework.boot:spring-boot-starter-jersey", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter-logging = { module = "org.springframework.boot:spring-boot-starter-logging", version.ref = "org-springframework-boot" }
-org-springframework-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux", version.ref = "org-springframework-boot" }
 org-springframework-spring-context = { module = "org.springframework:spring-context", version.ref = "org-springframework-spring" }
 org-springframework-spring-orm = { module = "org.springframework:spring-orm", version.ref = "org-springframework-spring" }
 org-springframework-spring-tx = { module = "org.springframework:spring-tx", version.ref = "org-springframework-spring" }
-org-springframework-spring-test = { module = "org.springframework:spring-test", version.ref = "org-springframework-spring" }
 org-springframework-spring-webmvc = { module = "org.springframework:spring-webmvc", version.ref = "org-springframework-spring" }
-org-wicketstuff-wicketstuff-html5 = { module = "org.wicketstuff:wicketstuff-html5", version.ref = "org-wicketstuff-wicketstuff-html5" }
-org-wicketstuff-wicketstuff-select2 = { module = "org.wicketstuff:wicketstuff-select2", version.ref = "org-wicketstuff-wicketstuff-select2" }
+org-wicketstuff-html5 = { module = "org.wicketstuff:wicketstuff-html5", version.ref = "org-wicketstuff-html5" }
+org-wicketstuff-select2 = { module = "org.wicketstuff:wicketstuff-select2", version.ref = "org-wicketstuff-select2" }
 se-sawano-java-alphanumeric-comparator = { module = "se.sawano.java:alphanumeric-comparator", version.ref = "se-sawano-java-alphanumeric-comparator" }
