@@ -543,7 +543,7 @@ abstract class AbstractTestBase protected constructor() {
         @JvmStatic
         @AfterAll
         fun _afterAll() {
-            instance!!.afterAll()
+            instance?.afterAll()
             instance = null
             initialized = false
         }
