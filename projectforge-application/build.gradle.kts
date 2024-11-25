@@ -17,6 +17,7 @@ springBoot {
 }
 
 val projectVersion = libs.versions.org.projectforge.get() // Current version.
+val kotlinVersion = libs.versions.org.jetbrains.kotlin.get() // Current version.
 
 tasks.named<BootJar>("bootJar") {
     dependsOn(":projectforge-webapp:copyReactBuild") // Integrate react.build in fat jar.
@@ -30,23 +31,29 @@ tasks.named<BootJar>("bootJar") {
         }
         matches
     }*/
+    exclude(
+        "**/kotlin-compiler-embeddable-*.jar",
+        "**/kotlin-scripting-compiler-embeddable-*.jar",
+        "**/kotlin-scripting-jsr223-*.jar",
+        "**/kotlin-stdlib-$kotlinVersion.jar"
+        )
     archiveFileName.set("projectforge-application.$projectVersion.jar")
 }
 
-//val kotlinCompilerDependency = configurations.create("kotlinCompilerDependency")
+val kotlinCompilerDependency = configurations.create("kotlinCompilerDependency")
 
-/*
 tasks.register<Copy>("unpackKotlinDependencies") {
-    from(zipTree(file("path/to/kotlin-compiler-embeddable-2.0.21.jar")))
+    from(kotlinCompilerDependency.map { zipTree(it) }) // Unpack the Kotlin dependencies.
     into(layout.buildDirectory.dir("unpacked-libs"))
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE // Ignore duplicates.
 }
 
 tasks.named<BootJar>("bootJar") {
     dependsOn("unpackKotlinDependencies")
     from(layout.buildDirectory.dir("unpacked-libs")) {
-        into("BOOT-INF/lib")
+        into(".")
     }
-}*/
+}
 
 /*tasks.register("install") {
     group = "build" // Optional: set a group for tasks.
@@ -72,9 +79,18 @@ dependencies {
     testImplementation(project(":projectforge-commons-test"))
     testImplementation(libs.org.mockito.core)
 
-   /* kotlinCompilerDependency(libs.org.jetbrains.kotlin.compiler.embeddable) {
+    kotlinCompilerDependency(libs.org.jetbrains.kotlin.compiler.embeddable) {
         isTransitive = false // Load only this dependency, not its dependencies.
-    }*/
+    }
+    kotlinCompilerDependency(libs.org.jetbrains.kotlin.stdlib) {
+        isTransitive = false // Load only this dependency, not its dependencies.
+    }
+    kotlinCompilerDependency(libs.org.jetbrains.kotlin.scripting.jsr223) {
+        isTransitive = false // Load only this dependency, not its dependencies.
+    }
+    kotlinCompilerDependency(libs.org.jetbrains.kotlin.scripting.compiler.embeddable) {
+        isTransitive = false // Load only this dependency, not its dependencies.
+    }
 
     // Force the following dependencies to avoid downgrade:
     implementation(libs.com.fasterxml.jackson.core.annotations)
@@ -82,10 +98,10 @@ dependencies {
     implementation(libs.com.fasterxml.jackson.core.databind)
     implementation(libs.com.fasterxml.jackson.datatype.jsr310)
     implementation(libs.com.fasterxml.jackson.module.kotlin)
-    implementation(libs.com.google.code.gson)
     implementation(libs.com.google.zxing.core)
     implementation(libs.com.google.zxing.javase)
     implementation(libs.com.googlecode.ez.vcard)
+    implementation(libs.com.googlecode.gson)
     implementation(libs.com.googlecode.json.simple)
     implementation(libs.com.googlecode.lanterna)
     implementation(libs.com.itextpdf)

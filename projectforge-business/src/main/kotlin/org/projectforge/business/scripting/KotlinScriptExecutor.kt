@@ -52,7 +52,6 @@ class KotlinScriptExecutor : ScriptExecutor() {
             try {
                 log.debug { "MyScriptingHost: Setting user context: $loggedInUser" }
                 ThreadLocalUserContext.setUser(loggedInUser)
-                Thread.currentThread().contextClassLoader = KotlinClassLoaderWorkarround.classLoader
                 checkResource()
                 return super.runInCoroutineContext(block)
             } finally {
@@ -76,13 +75,11 @@ class KotlinScriptExecutor : ScriptExecutor() {
             compiledScript: CompiledScript,
             scriptEvaluationConfiguration: ScriptEvaluationConfiguration
         ): ResultWithDiagnostics<EvaluationResult> {
-            Thread.currentThread().contextClassLoader = KotlinClassLoaderWorkarround.classLoader
             return super.invoke(compiledScript, scriptEvaluationConfiguration)
         }
     }
 
     override fun execute(): ScriptExecutionResult {
-        Thread.currentThread().contextClassLoader = KotlinClassLoaderWorkarround.classLoader
         log.debug { "Classpath of thread: ${KotlinScriptJarExtractor.finalClasspathURLs.joinToString()}" }
         log.debug { "ClassLoader of thread: ${Thread.currentThread().getContextClassLoader()}" }
         log.debug { "ClassLoader of BasicJvmScriptingHost: ${BasicJvmScriptingHost::class.java.classLoader}" }
@@ -138,7 +135,6 @@ class KotlinScriptExecutor : ScriptExecutor() {
         var future: Future<ResultWithDiagnostics<EvaluationResult>>? = null
         try {
             future = executor.submit<ResultWithDiagnostics<EvaluationResult>> {
-                Thread.currentThread().contextClassLoader = classLoader
                 scriptingHost.eval(scriptSource, compilationConfiguration, evaluationConfiguration)
             }
             return future.get(300, TimeUnit.SECONDS)  // Timeout

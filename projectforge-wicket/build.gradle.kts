@@ -13,7 +13,6 @@ dependencies {
     api(libs.org.jetbrains.kotlin.stdlib)
     api(libs.org.wicketstuff.html5)
     api(libs.org.wicketstuff.select2)
-    api(libs.com.google.code.gson)
     api(libs.org.mozilla.rhino)
     testImplementation(project(":projectforge-commons-test"))
     testImplementation(testFixtures(project(":projectforge-business")))

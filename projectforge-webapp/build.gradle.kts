@@ -25,6 +25,7 @@ tasks.named<Delete>("clean") {
         file("node"),  // Delete download directory of node and npm.
         file("node_modules")
     )
+    delete(layout.buildDirectory)
 }
 
 tasks {
@@ -34,10 +35,11 @@ tasks {
         description = "Installs npm dependencies"
         args.set(listOf("install"))
         // Skip task if node_modules exists
-        /*onlyIf {
-            !file("node_modules").exists()
+        val nodeModulesDir = layout.projectDirectory.dir("node_modules")
+        onlyIf {
+            !nodeModulesDir.asFile.exists()
         }
-        outputs.dir("node_modules") // Mark node_modules as output*/
+        outputs.dir(project.layout.projectDirectory.dir("node_modules"))
     }
 
     // Task to build the React project
@@ -61,7 +63,10 @@ tasks {
         dependsOn("processResources") // Ensure resources are processed
         dependsOn("processTestResources") // Ensure test resources are processed
         mustRunAfter("processResources", "processTestResources") // Ensure resources are processed before copying
-        from(file("build")) // Directory where React outputs the build
+        from(file("build")) {
+            // Exclude the target directory to prevent recursion
+            exclude("resources/main/static/**")
+        }
         into(layout.buildDirectory.dir("resources/main/static")) // Target directory in the Gradle project
         // Skip task if target directory is up-to-date
         inputs.dir("build") // React build directory as input
