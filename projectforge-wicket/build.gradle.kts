@@ -10,7 +10,7 @@ dependencies {
     api(libs.org.apache.wicket.spring)
     api(libs.org.apache.wicket.tester)
     api(libs.jakarta.servlet.jsp.api)
-    api(libs.org.jetbrains.kotlin.kotlin.stdlib)
+    api(libs.org.jetbrains.kotlin.stdlib)
     api(libs.org.wicketstuff.html5)
     api(libs.org.wicketstuff.select2)
     api(libs.com.google.code.gson)

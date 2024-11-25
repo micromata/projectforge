@@ -14,7 +14,7 @@ dependencies {
     api(libs.net.lingala.zip4j.zip4j)
     api(libs.org.apache.jackrabbit.oak.jcr)
     api(libs.org.apache.jackrabbit.oak.segment.tar)
-    api(libs.org.jetbrains.kotlin.kotlin.stdlib)
+    api(libs.org.jetbrains.kotlin.stdlib)
     testImplementation(project(":projectforge-commons-test"))
 }
 
