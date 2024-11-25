@@ -88,6 +88,8 @@ public class WebXMLInitializer implements ServletContextInitializer {
         sc.addFilter("locale", new LocaleFilter()).addMappingForUrlPatterns(null, false,
                 "/" + RestPaths.REST_PUBLIC + "/*"); // Needed for login service.
 
+        RestUtils.registerFilter(sc, "restUserFilter", RestUserFilter.class, false,
+                "/" + RestPaths.REST + "/*");
         RestUtils.registerFilter(sc, "calendarSubscriptionFilter", RestCalendarSubscriptionUserFilter.class, false, Rest.CALENDAR_EXPORT_BASE_URI);
 
         final FilterRegistration expire = sc.addFilter("expire", ResponseHeaderFilter.class);

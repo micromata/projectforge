@@ -36,13 +36,13 @@ Or simply use the fastest way: https://projectforge.org/docs/installation/[Insta
 1. Checkout: `git clone git@github.com:micromata/projectforge.git`
 2. For developing try OpenJDK 17 (tested): `java -version`.
 3. Build ProjectForge:
-   `mvn -DskipTests clean install`
+   `./gradlew bootJar -x test` (or `./gradlew.bat bootJar -x test` on Windows)
 4. Run ProjectForge:
-   `java -jar projectforge-application/target/projectforge-application-X.X.X.jar`
+   `java -jar projectforge-application/build/libs/projectforge-application-X.X.X.jar`
 5. Open your browser:
    http://localhost:8080
 
-Remark: If you have any trouble regarding `projectforge-webapp`, try to delete the sub directory `node_modules` and repeat `mvn clean install`.
+Remark: If you have any trouble regarding `projectforge-webapp`, try to delete the sub directory `node_modules` and repeat `./gradlew clean bootJar -x test`.
 
 === Configuration of ProjectForge
 

@@ -5,10 +5,10 @@
 org-projectforge = "8.0.0-SNAPSHOT"
 
 com-fasterxml-jackson = "2.17.2"
-com-google-code-gson = "2.10.1"
 com-google-zxing-core = "3.5.3"
 com-google-zxing-javase = "3.5.3"
 com-googlecode-ez-vcard = "0.12.1"
+com-googlecode-gson = "2.11.0"
 com-googlecode-json-simple = "1.1.1"
 com-googlecode-lanterna = "3.1.2"
 com-itextpdf = "5.5.13.4"
@@ -44,7 +44,7 @@ org-apache-commons-lang3 = "3.16.0"
 org-apache-commons-text = "1.12.0"
 org-apache-directory-server-apacheds-server-integ = "1.5.7"
 org-apache-groovy-all = "4.0.22"
-org-apache-httpcomponents-client5-httpclient5 = "5.3.1"
+org-apache-httpcomponents-client5-httpclient5 = "5.4.1"
 org-apache-jackrabbit-oak-jcr = "1.66.0"
 org-apache-jackrabbit-oak-segment-tar = "1.66.0"
 org-apache-poi = "5.3.0"
@@ -108,7 +108,7 @@ com-fasterxml-jackson-core = { module = "com.fasterxml.jackson.core:jackson-core
 com-fasterxml-jackson-core-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "com-fasterxml-jackson" }
 com-fasterxml-jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "com-fasterxml-jackson" }
 com-fasterxml-jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "com-fasterxml-jackson" }
-com-google-code-gson = { module = "com.google.code.gson:gson", version.ref = "com-google-code-gson" }
+com-googlecode-gson = { module = "com.google.code.gson:gson", version.ref = "com-googlecode-gson" }
 com-google-zxing-core = { module = "com.google.zxing:core", version.ref = "com-google-zxing-core" }
 com-google-zxing-javase = { module = "com.google.zxing:javase", version.ref = "com-google-zxing-javase" }
 com-googlecode-ez-vcard = { module = "com.googlecode.ez-vcard:ez-vcard", version.ref = "com-googlecode-ez-vcard" }

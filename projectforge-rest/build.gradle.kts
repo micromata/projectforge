@@ -12,7 +12,7 @@ dependencies {
     api(libs.com.google.zxing.javase)
     testImplementation(project(":projectforge-commons-test"))
     testImplementation(testFixtures(project(":projectforge-business")))
-    testImplementation(libs.com.google.code.gson)
+    testImplementation(libs.com.googlecode.gson)
     testImplementation(libs.org.mockito.core)
 }
 

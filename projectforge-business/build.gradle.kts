@@ -104,7 +104,6 @@ dependencies {
 
     testImplementation(libs.org.apache.directory.server.apacheds.server.integ)
     testImplementation(libs.org.mock.server.mockserver.netty.no.dependencies)
-    testImplementation(libs.com.google.code.gson)
     testImplementation(libs.org.springframework.boot.starter.test)
 
     compileOnly(libs.jakarta.servlet.api)
