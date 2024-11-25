@@ -19,8 +19,8 @@ tasks.withType<Test> {
 
 dependencies {
     api(libs.commons.beanutils)
-    api(libs.org.jetbrains.kotlin.kotlin.stdlib)
-    api(libs.org.jetbrains.kotlin.kotlin.reflect)
+    api(libs.org.jetbrains.kotlin.stdlib)
+    api(libs.org.jetbrains.kotlin.reflect)
     api(libs.org.apache.commons.collections4)
     api(libs.org.apache.commons.lang3)
     testImplementation(project(":projectforge-commons-test"))

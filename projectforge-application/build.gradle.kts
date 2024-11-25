@@ -1,3 +1,5 @@
+import org.springframework.boot.gradle.tasks.bundling.BootJar
+
 plugins {
     id("org.springframework.boot")
     id("io.spring.dependency-management")
@@ -16,10 +18,35 @@ springBoot {
 
 val projectVersion = libs.versions.org.projectforge.get() // Current version.
 
-tasks.bootJar {
+tasks.named<BootJar>("bootJar") {
     dependsOn(":projectforge-webapp:copyReactBuild") // Integrate react.build in fat jar.
+    // Doesn't work:
+    /*requiresUnpack {
+        val name = it.name
+        val matches = name.startsWith("kotlin-scripting-jsr223") ||
+                name.startsWith("kotlin-compiler-embeddable")
+        if (matches) {
+            println("****** Hurzel: $name: $matches")
+        }
+        matches
+    }*/
     archiveFileName.set("projectforge-application.$projectVersion.jar")
 }
+
+//val kotlinCompilerDependency = configurations.create("kotlinCompilerDependency")
+
+/*
+tasks.register<Copy>("unpackKotlinDependencies") {
+    from(zipTree(file("path/to/kotlin-compiler-embeddable-2.0.21.jar")))
+    into(layout.buildDirectory.dir("unpacked-libs"))
+}
+
+tasks.named<BootJar>("bootJar") {
+    dependsOn("unpackKotlinDependencies")
+    from(layout.buildDirectory.dir("unpacked-libs")) {
+        into("BOOT-INF/lib")
+    }
+}*/
 
 /*tasks.register("install") {
     group = "build" // Optional: set a group for tasks.
@@ -44,6 +71,10 @@ dependencies {
     implementation(project(":org.projectforge.plugins.todo"))
     testImplementation(project(":projectforge-commons-test"))
     testImplementation(libs.org.mockito.core)
+
+   /* kotlinCompilerDependency(libs.org.jetbrains.kotlin.compiler.embeddable) {
+        isTransitive = false // Load only this dependency, not its dependencies.
+    }*/
 
     // Force the following dependencies to avoid downgrade:
     implementation(libs.com.fasterxml.jackson.core.annotations)
@@ -87,7 +118,6 @@ dependencies {
     implementation(libs.org.apache.commons.collections4)
     implementation(libs.org.apache.commons.lang3)
     implementation(libs.org.apache.commons.text)
-    implementation(libs.org.apache.directory.server.apacheds.server.integ)
     implementation(libs.org.apache.groovy.all)
     implementation(libs.org.apache.httpcomponents.client5.httpclient5)
     implementation(libs.org.apache.jackrabbit.oak.jcr)
@@ -113,14 +143,13 @@ dependencies {
     implementation(libs.org.hibernate.search.backend.lucene)
     implementation(libs.org.hibernate.search.mapper.orm)
     implementation(libs.org.hsqldb.hsqldb)
-    implementation(libs.org.jetbrains.kotlin.kotlin.compiler.embeddable)
-    implementation(libs.org.jetbrains.kotlin.kotlin.reflect)
-    implementation(libs.org.jetbrains.kotlin.kotlin.scripting.common)
-    implementation(libs.org.jetbrains.kotlin.kotlin.scripting.compiler.embeddable)
-    implementation(libs.org.jetbrains.kotlin.kotlin.scripting.jsr223)
-    implementation(libs.org.jetbrains.kotlin.kotlin.scripting.jvm)
-    implementation(libs.org.jetbrains.kotlin.kotlin.scripting.jvm.host)
-    implementation(libs.org.jetbrains.kotlin.kotlin.stdlib)
+    implementation(libs.org.jetbrains.kotlin.reflect)
+    implementation(libs.org.jetbrains.kotlin.scripting.common)
+    implementation(libs.org.jetbrains.kotlin.scripting.compiler.embeddable)
+    implementation(libs.org.jetbrains.kotlin.scripting.jsr223)
+    implementation(libs.org.jetbrains.kotlin.scripting.jvm)
+    implementation(libs.org.jetbrains.kotlin.scripting.jvm.host)
+    implementation(libs.org.jetbrains.kotlin.stdlib)
     implementation(libs.org.jetbrains.kotlinx.coroutines.slf4j)
     implementation(libs.org.jfree.jfreechart)
     implementation(libs.org.mnode.ical4j.ical4j)
