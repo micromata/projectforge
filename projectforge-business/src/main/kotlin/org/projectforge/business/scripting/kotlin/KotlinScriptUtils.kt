@@ -21,14 +21,14 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.scripting
+package org.projectforge.business.scripting.kotlin
 
-import org.projectforge.business.scripting.ScriptExecutor.Companion.createValidIdentifier
+import mu.KotlinLogging
+import org.projectforge.business.scripting.*
 import org.projectforge.framework.i18n.translate
-import kotlin.script.experimental.api.EvaluationResult
-import kotlin.script.experimental.api.ResultWithDiagnostics
-import kotlin.script.experimental.api.ScriptDiagnostic
-import kotlin.script.experimental.api.valueOrNull
+import kotlin.script.experimental.api.*
+
+private val log = KotlinLogging.logger {}
 
 internal object KotlinScriptUtils {
     fun handleResult(
@@ -76,7 +76,25 @@ internal object KotlinScriptUtils {
             logger.add(line1, severity)
             line2?.let { logger.add(it, severity) }
         }
+        val returnValue = extractResult(result)
+        if (returnValue is ResultValue.Error) {
+            log.error { "Script result with error: ${returnValue.error}" }
+            scriptExecutionResult.result = returnValue.error
+            return
+        }
         scriptExecutionResult.result = result.valueOrNull()
+        if (result !is ResultWithDiagnostics.Success) {
+            log.error { "Script result: ${result.valueOrNull()}" }
+        }
+    }
+
+    private fun extractResult(result: ResultWithDiagnostics<EvaluationResult>): Any? {
+        val returnValue = result.valueOrNull()?.returnValue
+        return if (returnValue is ResultValue.Value) {
+            returnValue.value
+        } else {
+            returnValue
+        }
     }
 
     fun appendBlockAfterImports(
@@ -135,8 +153,8 @@ internal object KotlinScriptUtils {
         } else {
             clazz.name
         }
-        val identifier = createValidIdentifier(name)
-        bindingsEntries.add("val $identifier = ${createContextGet(identifier)} as $clsName$nullable")
+        val identifier = ScriptExecutor.createValidIdentifier(name)
+        //bindingsEntries.add("val $identifier = ${createContextGet(identifier)} as $clsName$nullable")
     }
 
     private val bindingsClassReplacements = mapOf(

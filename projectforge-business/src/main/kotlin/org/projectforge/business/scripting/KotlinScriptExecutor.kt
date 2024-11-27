@@ -24,10 +24,12 @@
 package org.projectforge.business.scripting
 
 import mu.KotlinLogging
-import org.projectforge.business.scripting.KotlinClassLoaderWorkarround.classLoader
+import org.projectforge.business.scripting.kotlin.CustomScriptingHost
+import org.projectforge.business.scripting.kotlin.JarExtractor
+import org.projectforge.business.scripting.kotlin.KotlinScriptUtils
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.io.File
+import java.net.URLClassLoader
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
@@ -35,64 +37,32 @@ import java.util.concurrent.TimeoutException
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvm.*
-import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 
 private val log = KotlinLogging.logger {}
 
 /**
- * Kotlin script executor.
- * -cp ~/ProjectForge/resources/kotlin-scripting/kotlin-compiler-embeddable-2.0.21.jar:~/ProjectForge/resources/kotlin-scripting/
+ * For checking new algorithm and strategies, refer https://github.com/micromata/SpringBoot-KotlinScripting
  */
 class KotlinScriptExecutor : ScriptExecutor() {
-
-    class MyScriptingHost :
-        BasicJvmScriptingHost(evaluator = CustomScriptEvaluator()) {
-        val loggedInUser = ThreadLocalUserContext.loggedInUser
-        override fun <T> runInCoroutineContext(block: suspend () -> T): T {
-            try {
-                log.debug { "MyScriptingHost: Setting user context: $loggedInUser" }
-                ThreadLocalUserContext.setUser(loggedInUser)
-                checkResource()
-                return super.runInCoroutineContext(block)
-            } finally {
-                ThreadLocalUserContext.clear()
-            }
-        }
-
-        fun checkResource() {
-            log.debug {
-                "MyScriptingHost: Search for META-INF/extensions/compiler.xml: ${
-                    Thread.currentThread().contextClassLoader.getResource(
-                        "META-INF/extensions/compiler.xml"
-                    )
-                }"
-            }
-        }
-    }
-
-    class CustomScriptEvaluator() : BasicJvmScriptEvaluator() {
-        override suspend fun invoke(
-            compiledScript: CompiledScript,
-            scriptEvaluationConfiguration: ScriptEvaluationConfiguration
-        ): ResultWithDiagnostics<EvaluationResult> {
-            return super.invoke(compiledScript, scriptEvaluationConfiguration)
-        }
-    }
-
     override fun execute(): ScriptExecutionResult {
-        log.debug { "Classpath of thread: ${KotlinScriptJarExtractor.finalClasspathURLs.joinToString()}" }
-        log.debug { "ClassLoader of thread: ${Thread.currentThread().getContextClassLoader()}" }
-        log.debug { "ClassLoader of BasicJvmScriptingHost: ${BasicJvmScriptingHost::class.java.classLoader}" }
-        val scriptingHost = MyScriptingHost()
+        log.debug { "Updated classpathFiles: ${JarExtractor.classpathFiles?.joinToString()}" }
+        log.debug { "Updated classpath URLs: ${JarExtractor.classpathUrls?.joinToString()}" }
+        val classLoader = if (JarExtractor.runningInFatJar) {
+            URLClassLoader(JarExtractor.classpathUrls, Thread.currentThread().contextClassLoader).also {
+                Thread.currentThread().contextClassLoader = it
+            }
+        } else {
+            Thread.currentThread().contextClassLoader
+        }
+        val scriptingHost = CustomScriptingHost()
         val compilationConfiguration = ScriptCompilationConfiguration {
             jvm {
-                //dependenciesFromClassloader(*finalClasspath.map { it.name }.toTypedArray(), wholeClasspath = true)
-                //CompilerConfiguration.addJvmClasspathRoots(classpathUrls)
-                //dependenciesFromClassloader(classLoader = customClassLoader, wholeClasspath = true)
-                //updateClasspath(finalClasspath)
-                //dependenciesFromCurrentContext(wholeClasspath = true)
-                dependenciesFromClassloader(classLoader = classLoader, wholeClasspath = true)
-                dependencies(JvmDependencyFromClassLoader { classLoader })
+                if (JarExtractor.classpathFiles != null) {
+                    dependenciesFromClassloader(classLoader = classLoader, wholeClasspath = true)
+                    updateClasspath(JarExtractor.classpathFiles)
+                } else {
+                    dependenciesFromCurrentContext(wholeClasspath = true)
+                }
             }
             providedProperties("context" to KotlinScriptContext::class)
             compilerOptions.append("-nowarn")
@@ -112,21 +82,12 @@ class KotlinScriptExecutor : ScriptExecutor() {
         }
         val scriptSource = effectiveScript.trimIndent().toScriptSource()
         val result = execute(scriptingHost, scriptSource, compilationConfiguration, evaluationConfiguration)
-        result?.let { useResult ->
-            KotlinScriptUtils.handleResult(scriptExecutionResult, result, effectiveScript)
-            if (useResult is ResultWithDiagnostics.Success) {
-                val returnValue = useResult.value.returnValue
-                if (returnValue is ResultValue.Value) {
-                    val output = returnValue.value
-                    scriptExecutionResult.result = output
-                }
-            }
-        }
+        KotlinScriptUtils.handleResult(scriptExecutionResult, result, effectiveScript)
         return scriptExecutionResult
     }
 
     private fun execute(
-        scriptingHost: MyScriptingHost,
+        scriptingHost: CustomScriptingHost,
         scriptSource: SourceCode,
         compilationConfiguration: ScriptCompilationConfiguration,
         evaluationConfiguration: ScriptEvaluationConfiguration,
@@ -167,10 +128,6 @@ class KotlinScriptExecutor : ScriptExecutor() {
             "import org.projectforge.framework.i18n.translate",
             "import org.projectforge.framework.i18n.translateMsg",
             "import org.projectforge.business.PfCaches.Companion.initialize"
-        )
-        val classpath = listOf(
-            File("BOOT-INF/classes/lib"), // Directory of unpacked classes.
-            // File("path/to/other/jars/specific-library.jar") // Additional dependencies if required.
         )
     }
 }

@@ -1,5 +1,3 @@
-import org.gradle.api.artifacts.VersionCatalogsExtension
-
 plugins {
     id("java-library")
     //`maven-publish`
@@ -8,12 +6,9 @@ plugins {
 repositories {
     mavenLocal()
     gradlePluginPortal() // Spring Boot Plugins are here.
-    maven {
-        url = uri("https://oss.sonatype.org/content/repositories/public/")
-    }
-    maven {
-        url = uri("https://repo.maven.apache.org/maven2/")
-    }
+    maven { url = uri("https://oss.sonatype.org/content/repositories/public/") }
+    maven { url = uri("https://repo.maven.apache.org/maven2/") }
+    maven { url = uri("https://raw.githubusercontent.com/gephi/gephi/mvn-thirdparty-repo/") }
 }
 
 val libs = project.extensions.getByType<VersionCatalogsExtension>().named("libs")
@@ -41,7 +36,7 @@ configurations.all {
 dependencies {
     api(libs.findLibrary("org-jetbrains-kotlin-stdlib").get())
     api(libs.findLibrary("io-github-microutils-kotlin-logging").get())
-    api(libs.findLibrary("logback-classic").get())
+    api(libs.findLibrary("ch-qos-logback-classic").get())
     testImplementation(libs.findLibrary("org-junit-jupiter-api").get())
     testImplementation(libs.findLibrary("org-junit-jupiter-engine").get())
     testImplementation(libs.findLibrary("org-junit-platform-launcher").get())

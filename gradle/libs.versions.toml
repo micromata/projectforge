@@ -4,6 +4,7 @@
 [versions]
 org-projectforge = "8.0.0-SNAPSHOT"
 
+ch-qos-logback = "1.5.12"
 com-fasterxml-jackson = "2.17.2"
 com-google-zxing-core = "3.5.3"
 com-google-zxing-javase = "3.5.3"
@@ -36,7 +37,6 @@ jakarta-xml-bind-api = "4.0.2"
 javax-jcr = "2.0"
 jboss-logging = "3.6.0.Final"
 joda-time-joda-time = "2.12.7"
-logback-classic = "1.5.12"
 net-lingala-zip4j-zip4j = "2.11.5"
 net-sourceforge-mpxj = "4.3.0"
 org-apache-commons-collections4 = "4.4"
@@ -52,10 +52,7 @@ org-apache-poi-ooxml = "5.3.0"
 org-apache-wicket-myextensions = "10.2.0"
 org-apache-wicket-spring = "10.2.0"
 org-apache-wicket-tester = "10.2.0"
-org-apache-xmlgraphics-batik-codec = "1.17"
-org-apache-xmlgraphics-batik-constants = "1.17"
-org-apache-xmlgraphics-batik-dom = "1.17"
-org-apache-xmlgraphics-batik-svg-dom = "1.17"
+org-apache-xmlgraphics-batik = "1.17"
 org-apache-xmlgraphics-fop = "2.9"
 org-apache-xmlgraphics-commons = "2.9"
 org-aspectj-aspectjtools = "1.9.22.1"
@@ -68,7 +65,9 @@ org-hibernate-search = "7.2.1.Final"
 org-hibernate-orm = "6.6.3.Final"
 org-hsqldb-hsqldb = "2.7.3"
 org-jetbrains-kotlin = "2.0.21"
+org-jetbrains-kotlinx-coroutines-core = "1.9.0"
 org-jetbrains-kotlinx-coroutines-slf4j = "1.8.1"
+org-jetbrains-intellij-deps-trove4j = "1.0.20200330" # Needed by Kotlin scripting engine. Must match the version of the Kotlin compiler.
 org-jfree-jfreechart = "1.5.5"
 org-junit-jupiter = "5.10.3"
 org-junit-platform-launcher = "1.10.3"
@@ -82,6 +81,7 @@ org-reflections = "0.10.2"
 org-slf4j-jcl-over-slf4j = "2.0.16"
 org-springframework-boot = "3.4.0"
 org-springframework-spring = "6.1.14"
+org-springframework-security = "6.4.1"
 org-wicketstuff-html5 = "10.2.0"
 org-wicketstuff-select2 = "10.2.0"
 se-sawano-java-alphanumeric-comparator = "1.4.1"
@@ -103,9 +103,12 @@ org-springframework-boot-starter-test = { module = "org.springframework.boot:spr
 org-springframework-spring-test = { module = "org.springframework:spring-test", version.ref = "org-springframework-spring" }
 
 ### production libraries (don't forget to add these libs to projectforge-application/build.gradle.kts for forcing version and avoiding downgrades)
+ch-qos-logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "ch-qos-logback" }
+ch-qos-logback-core = { module = "ch.qos.logback:logback-core", version.ref = "ch-qos-logback" }
 com-fasterxml-jackson-core-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "com-fasterxml-jackson" }
 com-fasterxml-jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "com-fasterxml-jackson" }
 com-fasterxml-jackson-core-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "com-fasterxml-jackson" }
+com-fasterxml-jackson-dataformat-cbor = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-cbor", version.ref = "com-fasterxml-jackson" }
 com-fasterxml-jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "com-fasterxml-jackson" }
 com-fasterxml-jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "com-fasterxml-jackson" }
 com-googlecode-gson = { module = "com.google.code.gson:gson", version.ref = "com-googlecode-gson" }
@@ -138,7 +141,6 @@ jakarta-xml-bind-api = { module = "jakarta.xml.bind:jakarta.xml.bind-api", versi
 javax-jcr = { module = "javax.jcr:jcr", version.ref = "javax-jcr" }
 jboss-logging = { module = "org.jboss.logging:jboss-logging", version.ref = "jboss-logging" }
 joda-time-joda-time = { module = "joda-time:joda-time", version.ref = "joda-time-joda-time" }
-logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback-classic" }
 net-lingala-zip4j-zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "net-lingala-zip4j-zip4j" }
 net-sourceforge-mpxj = { module = "net.sourceforge:mpxj", version.ref = "net-sourceforge-mpxj" }
 org-apache-commons-collections4 = { module = "org.apache.commons:commons-collections4", version.ref = "org-apache-commons-collections4" }
@@ -152,10 +154,10 @@ org-apache-poi = { module = "org.apache.poi:poi", version.ref = "org-apache-poi"
 org-apache-poi-ooxml = { module = "org.apache.poi:poi-ooxml", version.ref = "org-apache-poi-ooxml" }
 org-apache-wicket-myextensions = { module = "org.apache.wicket:wicket-extensions", version.ref = "org-apache-wicket-myextensions" }
 org-apache-wicket-spring = { module = "org.apache.wicket:wicket-spring", version.ref = "org-apache-wicket-spring" }
-org-apache-xmlgraphics-batik-codec = { module = "org.apache.xmlgraphics:batik-codec", version.ref = "org-apache-xmlgraphics-batik-codec" }
-org-apache-xmlgraphics-batik-constants = { module = "org.apache.xmlgraphics:batik-constants", version.ref = "org-apache-xmlgraphics-batik-constants" }
-org-apache-xmlgraphics-batik-dom = { module = "org.apache.xmlgraphics:batik-dom", version.ref = "org-apache-xmlgraphics-batik-dom" }
-org-apache-xmlgraphics-batik-svg-dom = { module = "org.apache.xmlgraphics:batik-svg-dom", version.ref = "org-apache-xmlgraphics-batik-svg-dom" }
+org-apache-xmlgraphics-batik-codec = { module = "org.apache.xmlgraphics:batik-codec", version.ref = "org-apache-xmlgraphics-batik" }
+org-apache-xmlgraphics-batik-constants = { module = "org.apache.xmlgraphics:batik-constants", version.ref = "org-apache-xmlgraphics-batik" }
+org-apache-xmlgraphics-batik-dom = { module = "org.apache.xmlgraphics:batik-dom", version.ref = "org-apache-xmlgraphics-batik" }
+org-apache-xmlgraphics-batik-svg-dom = { module = "org.apache.xmlgraphics:batik-svg-dom", version.ref = "org-apache-xmlgraphics-batik" }
 org-apache-xmlgraphics-fop = { module = "org.apache.xmlgraphics:fop", version.ref = "org-apache-xmlgraphics-fop" }
 org-apache-xmlgraphics-commons = { module = "org.apache.xmlgraphics:xmlgraphics-commons", version.ref = "org-apache-xmlgraphics-commons" }
 org-aspectj-aspectjtools = { module = "org.aspectj:aspectjtools", version.ref = "org-aspectj-aspectjtools" }
@@ -169,14 +171,17 @@ org-hibernate-orm-core = { module = "org.hibernate.orm:hibernate-core", version.
 org-hibernate-search-backend-lucene = { module = "org.hibernate.search:hibernate-search-backend-lucene", version.ref = "org-hibernate-search" }
 org-hibernate-search-mapper-orm = { module = "org.hibernate.search:hibernate-search-mapper-orm", version.ref = "org-hibernate-search" }
 org-hsqldb-hsqldb = { module = "org.hsqldb:hsqldb", version.ref = "org-hsqldb-hsqldb" }
+org-jetbrains-intellij-deps-trove4j = { module = "org.jetbrains.intellij.deps:trove4j", version.ref = "org-jetbrains-intellij-deps-trove4j" }
 org-jetbrains-kotlin-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "org-jetbrains-kotlin" }
 org-jetbrains-kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "org-jetbrains-kotlin" }
+org-jetbrains-kotlin-script-runtime = { module = "org.jetbrains.kotlin:kotlin-script-runtime", version.ref = "org-jetbrains-kotlin" }
 org-jetbrains-kotlin-scripting-common = { module = "org.jetbrains.kotlin:kotlin-scripting-common", version.ref = "org-jetbrains-kotlin" }
 org-jetbrains-kotlin-scripting-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable", version.ref = "org-jetbrains-kotlin" }
-org-jetbrains-kotlin-scripting-jsr223 = { module = "org.jetbrains.kotlin:kotlin-scripting-jsr223", version.ref = "org-jetbrains-kotlin" }
+org-jetbrains-kotlin-scripting-compiler-impl-embeddable = { module = "org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable", version.ref = "org-jetbrains-kotlin" }
 org-jetbrains-kotlin-scripting-jvm = { module = "org.jetbrains.kotlin:kotlin-scripting-jvm", version.ref = "org-jetbrains-kotlin" }
 org-jetbrains-kotlin-scripting-jvm-host = { module = "org.jetbrains.kotlin:kotlin-scripting-jvm-host", version.ref = "org-jetbrains-kotlin" }
 org-jetbrains-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "org-jetbrains-kotlin" }
+org-jetbrains-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "org-jetbrains-kotlinx-coroutines-core" }
 org-jetbrains-kotlinx-coroutines-slf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "org-jetbrains-kotlinx-coroutines-slf4j" }
 org-jfree-jfreechart = { module = "org.jfree:jfreechart", version.ref = "org-jfree-jfreechart" }
 org-mnode-ical4j-ical4j = { module = "org.mnode.ical4j:ical4j", version.ref = "org-mnode-ical4j-ical4j" }
@@ -186,13 +191,17 @@ org-reflections = { module = "org.reflections:reflections", version.ref = "org-r
 org-slf4j-jcl-over-slf4j = { module = "org.slf4j:jcl-over-slf4j", version.ref = "org-slf4j-jcl-over-slf4j" }
 org-springframework-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "org-springframework-boot" }
-org-springframework-boot-starter-jersey = { module = "org.springframework.boot:spring-boot-starter-jersey", version.ref = "org-springframework-boot" }
+org-springframework-boot-starter-json = { module = "org.springframework.boot:spring-boot-starter-json", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter-logging = { module = "org.springframework.boot:spring-boot-starter-logging", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux", version.ref = "org-springframework-boot" }
+org-springframework-security-config = { module = "org.springframework.security:spring-security-config", version.ref = "org-springframework-security" }
+org-springframework-security-core = { module = "org.springframework.security:spring-security-core", version.ref = "org-springframework-security" }
+org-springframework-security-web = { module = "org.springframework.security:spring-security-web", version.ref = "org-springframework-security" }
 org-springframework-spring-context = { module = "org.springframework:spring-context", version.ref = "org-springframework-spring" }
 org-springframework-spring-orm = { module = "org.springframework:spring-orm", version.ref = "org-springframework-spring" }
 org-springframework-spring-tx = { module = "org.springframework:spring-tx", version.ref = "org-springframework-spring" }
+org-springframework-spring-web = { module = "org.springframework:spring-web", version.ref = "org-springframework-spring" }
 org-springframework-spring-webmvc = { module = "org.springframework:spring-webmvc", version.ref = "org-springframework-spring" }
 org-wicketstuff-html5 = { module = "org.wicketstuff:wicketstuff-html5", version.ref = "org-wicketstuff-html5" }
 org-wicketstuff-select2 = { module = "org.wicketstuff:wicketstuff-select2", version.ref = "org-wicketstuff-select2" }

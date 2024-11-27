@@ -1,8 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version libs.versions.org.springframework.boot.get() apply false
-    id("io.spring.dependency-management") version libs.versions.io.spring.dependency.management.get() apply false
     kotlin("jvm") version libs.versions.org.jetbrains.kotlin.get() apply false
 }
 
@@ -20,7 +18,10 @@ allprojects {
             url = uri("https://repo.maven.apache.org/maven2/")
         }
     }
+}
 
+dependencyLocking {
+    lockAllConfigurations()
 }
 
 configurations.all {
