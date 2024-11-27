@@ -1,5 +1,3 @@
-import org.gradle.kotlin.dsl.testImplementation
-
 plugins {
     id("io.spring.dependency-management") version libs.versions.io.spring.dependency.management.get()
     id("java-test-fixtures")
@@ -8,6 +6,10 @@ plugins {
 
 tasks.named("compileKotlin") {
     dependsOn("xjc")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 tasks.register<JavaExec>("xjc") {
@@ -59,7 +61,6 @@ dependencies {
     api(libs.org.hibernate.search.mapper.orm)
     api(libs.org.hibernate.search.backend.lucene)
     api(libs.org.jetbrains.kotlin.compiler.embeddable)
-    api(libs.org.jetbrains.kotlin.scripting.jsr223)
     api(libs.org.jetbrains.kotlin.scripting.compiler.embeddable)
     api(libs.org.jetbrains.kotlin.scripting.common)
     api(libs.org.jetbrains.kotlin.scripting.jvm)
@@ -67,9 +68,13 @@ dependencies {
     api(libs.org.jetbrains.kotlinx.coroutines.slf4j)
     api(libs.org.springframework.boot.starter)
     api(libs.org.springframework.boot.starter.data.jpa)
+    api(libs.org.springframework.security.config)
+    api(libs.org.springframework.security.core)
+    api(libs.org.springframework.security.web)
     api(libs.org.springframework.spring.tx)
     api(libs.org.springframework.spring.context)
     api(libs.org.springframework.spring.orm)
+    api(libs.org.springframework.spring.web)
     api(libs.commons.io)
     api(libs.org.bouncycastle.bcprov.jdk18on)
     api(libs.org.dom4j)
@@ -100,7 +105,11 @@ dependencies {
     api(libs.org.apache.commons.text)
     api(libs.se.sawano.java.alphanumeric.comparator)
     api(libs.com.webauthn4j.core)
-    api(libs.com.webauthn4j.spring.security.core)
+    api(libs.com.webauthn4j.spring.security.core) {
+        exclude("org.springframework")
+        exclude("org.springframework.security")
+        exclude("org.springframework.boot")
+    }
 
     testImplementation(libs.org.apache.directory.server.apacheds.server.integ)
     testImplementation(libs.org.mock.server.mockserver.netty.no.dependencies)

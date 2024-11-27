@@ -1,16 +1,10 @@
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
-    id("org.springframework.boot")
-    id("io.spring.dependency-management")
+    id("org.springframework.boot") version "3.1.4"
+    id("io.spring.dependency-management") version "1.1.3"
     java
 }
-
-/*tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
-    archiveBaseName.set("ProjectForge-application")
-    archiveVersion.set("8.0.0")
-    archiveClassifier.set("")
-}*/
 
 springBoot {
     mainClass.set("org.projectforge.start.ProjectForgeApplication")
@@ -18,48 +12,10 @@ springBoot {
 
 val projectVersion = libs.versions.org.projectforge.get() // Current version.
 val kotlinVersion = libs.versions.org.jetbrains.kotlin.get() // Current version.
-
-tasks.named<BootJar>("bootJar") {
-    dependsOn(":projectforge-webapp:copyReactBuild") // Integrate react.build in fat jar.
-    // Doesn't work:
-    /*requiresUnpack {
-        val name = it.name
-        val matches = name.startsWith("kotlin-scripting-jsr223") ||
-                name.startsWith("kotlin-compiler-embeddable")
-        if (matches) {
-            println("****** Hurzel: $name: $matches")
-        }
-        matches
-    }*/
-    exclude(
-        "**/kotlin-compiler-embeddable-*.jar",
-        "**/kotlin-scripting-compiler-embeddable-*.jar",
-        "**/kotlin-scripting-jsr223-*.jar",
-        "**/kotlin-stdlib-$kotlinVersion.jar"
-        )
-    archiveFileName.set("projectforge-application.$projectVersion.jar")
-}
+val kotlinxCoroutinesVersion = libs.versions.org.jetbrains.kotlinx.coroutines.core.get() // Current version.
 
 val kotlinCompilerDependency = configurations.create("kotlinCompilerDependency")
-
-tasks.register<Copy>("unpackKotlinDependencies") {
-    from(kotlinCompilerDependency.map { zipTree(it) }) // Unpack the Kotlin dependencies.
-    into(layout.buildDirectory.dir("unpacked-libs"))
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE // Ignore duplicates.
-}
-
-tasks.named<BootJar>("bootJar") {
-    dependsOn("unpackKotlinDependencies")
-    from(layout.buildDirectory.dir("unpacked-libs")) {
-        into(".")
-    }
-}
-
-/*tasks.register("install") {
-    group = "build" // Optional: set a group for tasks.
-    description = "Alias for bootJar"
-    dependsOn("bootJar")
-}*/
+val kotlinCompilerDependencies = mutableListOf<String>()
 
 dependencies {
     implementation(project(":projectforge-wicket"))
@@ -79,23 +35,29 @@ dependencies {
     testImplementation(project(":projectforge-commons-test"))
     testImplementation(libs.org.mockito.core)
 
-    kotlinCompilerDependency(libs.org.jetbrains.kotlin.compiler.embeddable) {
-        isTransitive = false // Load only this dependency, not its dependencies.
-    }
-    kotlinCompilerDependency(libs.org.jetbrains.kotlin.stdlib) {
-        isTransitive = false // Load only this dependency, not its dependencies.
-    }
-    kotlinCompilerDependency(libs.org.jetbrains.kotlin.scripting.jsr223) {
-        isTransitive = false // Load only this dependency, not its dependencies.
-    }
-    kotlinCompilerDependency(libs.org.jetbrains.kotlin.scripting.compiler.embeddable) {
-        isTransitive = false // Load only this dependency, not its dependencies.
+    // Kotlin jars for scripting, must be extracted in fat jar.
+    kotlinCompilerDependencies.add("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
+    kotlinCompilerDependencies.add("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
+    kotlinCompilerDependencies.add("org.jetbrains.kotlin:kotlin-stdlib-common:$kotlinVersion")
+    kotlinCompilerDependencies.add("org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion")
+    kotlinCompilerDependencies.add("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion")
+    kotlinCompilerDependencies.add("org.jetbrains.kotlin:kotlin-scripting-common:$kotlinVersion")
+    kotlinCompilerDependencies.add("org.jetbrains.kotlin:kotlin-scripting-jvm:$kotlinVersion")
+    kotlinCompilerDependencies.add("org.jetbrains.kotlin:kotlin-scripting-jvm-host:$kotlinVersion")
+    kotlinCompilerDependencies.add("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$kotlinVersion")
+    kotlinCompilerDependencies.add("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:$kotlinxCoroutinesVersion")
+    kotlinCompilerDependencies.forEach {
+        kotlinCompilerDependency(it) // Add this dependency for handling and exclusion in bootJar task.
+        implementation(it)           // Add this dependency for usage in the application.
     }
 
-    // Force the following dependencies to avoid downgrade:
+    // Force the following dependencies to avoid downgrades:
+    implementation(libs.ch.qos.logback.classic)
+    implementation(libs.ch.qos.logback.core)
     implementation(libs.com.fasterxml.jackson.core.annotations)
     implementation(libs.com.fasterxml.jackson.core)
     implementation(libs.com.fasterxml.jackson.core.databind)
+    implementation(libs.com.fasterxml.jackson.dataformat.cbor)
     implementation(libs.com.fasterxml.jackson.datatype.jsr310)
     implementation(libs.com.fasterxml.jackson.module.kotlin)
     implementation(libs.com.google.zxing.core)
@@ -107,7 +69,11 @@ dependencies {
     implementation(libs.com.itextpdf)
     implementation(libs.com.thoughtworks.xstream)
     implementation(libs.com.webauthn4j.core)
-    implementation(libs.com.webauthn4j.spring.security.core)
+    implementation(libs.com.webauthn4j.spring.security.core) {
+        exclude("org.springframework")
+        exclude("org.springframework.security")
+        exclude("org.springframework.boot")
+    }
     implementation(libs.com.zaxxer.hikaricp)
     implementation(libs.commons.beanutils)
     implementation(libs.commons.io)
@@ -128,7 +94,6 @@ dependencies {
     implementation(libs.javax.jcr)
     implementation(libs.jboss.logging)
     implementation(libs.joda.time.joda.time)
-    implementation(libs.logback.classic)
     implementation(libs.net.lingala.zip4j.zip4j)
     implementation(libs.net.sourceforge.mpxj)
     implementation(libs.org.apache.commons.collections4)
@@ -159,13 +124,6 @@ dependencies {
     implementation(libs.org.hibernate.search.backend.lucene)
     implementation(libs.org.hibernate.search.mapper.orm)
     implementation(libs.org.hsqldb.hsqldb)
-    implementation(libs.org.jetbrains.kotlin.reflect)
-    implementation(libs.org.jetbrains.kotlin.scripting.common)
-    implementation(libs.org.jetbrains.kotlin.scripting.compiler.embeddable)
-    implementation(libs.org.jetbrains.kotlin.scripting.jsr223)
-    implementation(libs.org.jetbrains.kotlin.scripting.jvm)
-    implementation(libs.org.jetbrains.kotlin.scripting.jvm.host)
-    implementation(libs.org.jetbrains.kotlin.stdlib)
     implementation(libs.org.jetbrains.kotlinx.coroutines.slf4j)
     implementation(libs.org.jfree.jfreechart)
     implementation(libs.org.mnode.ical4j.ical4j)
@@ -175,7 +133,7 @@ dependencies {
     implementation(libs.org.slf4j.jcl.over.slf4j)
     implementation(libs.org.springframework.boot.starter)
     implementation(libs.org.springframework.boot.starter.data.jpa)
-    implementation(libs.org.springframework.boot.starter.jersey)
+    implementation(libs.org.springframework.boot.starter.json)
     implementation(libs.org.springframework.boot.starter.logging)
     implementation(libs.org.springframework.boot.starter.web)
     implementation(libs.org.springframework.boot.starter.webflux)
@@ -186,6 +144,22 @@ dependencies {
     implementation(libs.org.wicketstuff.html5)
     implementation(libs.org.wicketstuff.select2)
     implementation(libs.se.sawano.java.alphanumeric.comparator)
+}
+
+val kotlinCompilerDependencyFiles = kotlinCompilerDependency.map { it.name }
+tasks.named<BootJar>("bootJar") {
+    // println(kotlinCompilerDependencyFiles.joinToString())
+    exclude(kotlinCompilerDependencyFiles.map { "**/$it" }) // Exclude this jar, it's extracted.
+}
+
+tasks.withType<Jar> {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from({
+        configurations.runtimeClasspath.get().filter {
+            // println("it.name=${it.name}")
+            kotlinCompilerDependencyFiles.any { file -> it.name.contains(file) }
+        }.map { if (it.isDirectory) it else zipTree(it) } // Unpack the jar files.
+    })
 }
 
 description = "projectforge-application"
