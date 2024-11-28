@@ -188,7 +188,7 @@ org-mozilla-rhino = { module = "org.mozilla:rhino", version.ref = "org-mozilla-r
 org-postgresql = { module = "org.postgresql:postgresql", version.ref = "org-postgresql" }
 org-reflections = { module = "org.reflections:reflections", version.ref = "org-reflections" }
 org-slf4j-jcl-over-slf4j = { module = "org.slf4j:jcl-over-slf4j", version.ref = "org-slf4j-jcl-over-slf4j" }
-org-springframework-boot = { module = "org.springframework.boot:spring-boot-", version.ref = "org-springframework-boot" }
+org-springframework-boot = { module = "org.springframework.boot:spring-boot", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter-json = { module = "org.springframework.boot:spring-boot-starter-json", version.ref = "org-springframework-boot" }
