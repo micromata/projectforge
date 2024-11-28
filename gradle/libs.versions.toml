@@ -43,7 +43,7 @@ org-apache-commons-collections4 = "4.4"
 org-apache-commons-lang3 = "3.16.0"
 org-apache-commons-text = "1.12.0"
 org-apache-directory-server-apacheds-server-integ = "1.5.7"
-org-apache-groovy-all = "4.0.22"
+org-apache-groovy = "4.0.22"
 org-apache-httpcomponents-client5-httpclient5 = "5.4.1"
 org-apache-jackrabbit-oak-jcr = "1.66.0"
 org-apache-jackrabbit-oak-segment-tar = "1.66.0"
@@ -80,7 +80,7 @@ org-postgresql = "42.7.4"
 org-reflections = "0.10.2"
 org-slf4j-jcl-over-slf4j = "2.0.16"
 org-springframework-boot = "3.4.0"
-org-springframework-spring = "6.1.14"
+org-springframework-spring = "6.1.15"
 org-springframework-security = "6.4.1"
 org-wicketstuff-html5 = "10.2.0"
 org-wicketstuff-select2 = "10.2.0"
@@ -146,7 +146,7 @@ net-sourceforge-mpxj = { module = "net.sourceforge:mpxj", version.ref = "net-sou
 org-apache-commons-collections4 = { module = "org.apache.commons:commons-collections4", version.ref = "org-apache-commons-collections4" }
 org-apache-commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "org-apache-commons-lang3" }
 org-apache-commons-text = { module = "org.apache.commons:commons-text", version.ref = "org-apache-commons-text" }
-org-apache-groovy-all = { module = "org.apache.groovy:groovy-all", version.ref = "org-apache-groovy-all" }
+org-apache-groovy-all = { module = "org.apache.groovy:groovy-all", version.ref = "org-apache-groovy" }
 org-apache-httpcomponents-client5-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "org-apache-httpcomponents-client5-httpclient5" }
 org-apache-jackrabbit-oak-jcr = { module = "org.apache.jackrabbit:oak-jcr", version.ref = "org-apache-jackrabbit-oak-jcr" }
 org-apache-jackrabbit-oak-segment-tar = { module = "org.apache.jackrabbit:oak-segment-tar", version.ref = "org-apache-jackrabbit-oak-segment-tar" }
@@ -182,13 +182,13 @@ org-jetbrains-kotlin-scripting-jvm = { module = "org.jetbrains.kotlin:kotlin-scr
 org-jetbrains-kotlin-scripting-jvm-host = { module = "org.jetbrains.kotlin:kotlin-scripting-jvm-host", version.ref = "org-jetbrains-kotlin" }
 org-jetbrains-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "org-jetbrains-kotlin" }
 org-jetbrains-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "org-jetbrains-kotlinx-coroutines-core" }
-org-jetbrains-kotlinx-coroutines-slf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "org-jetbrains-kotlinx-coroutines-slf4j" }
 org-jfree-jfreechart = { module = "org.jfree:jfreechart", version.ref = "org-jfree-jfreechart" }
 org-mnode-ical4j-ical4j = { module = "org.mnode.ical4j:ical4j", version.ref = "org-mnode-ical4j-ical4j" }
 org-mozilla-rhino = { module = "org.mozilla:rhino", version.ref = "org-mozilla-rhino" }
 org-postgresql = { module = "org.postgresql:postgresql", version.ref = "org-postgresql" }
 org-reflections = { module = "org.reflections:reflections", version.ref = "org-reflections" }
 org-slf4j-jcl-over-slf4j = { module = "org.slf4j:jcl-over-slf4j", version.ref = "org-slf4j-jcl-over-slf4j" }
+org-springframework-boot = { module = "org.springframework.boot:spring-boot-", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter-json = { module = "org.springframework.boot:spring-boot-starter-json", version.ref = "org-springframework-boot" }

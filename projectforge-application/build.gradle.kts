@@ -14,6 +14,12 @@ val projectVersion = libs.versions.org.projectforge.get() // Current version.
 val kotlinVersion = libs.versions.org.jetbrains.kotlin.get() // Current version.
 val kotlinxCoroutinesVersion = libs.versions.org.jetbrains.kotlinx.coroutines.core.get() // Current version.
 
+val glassfishJaxbVersion = libs.versions.org.glassfish.jaxb.get()
+val jacksonVersion = libs.versions.com.fasterxml.jackson.get()
+val springVersion = libs.versions.org.springframework.spring.get()
+val springBootVersion = libs.versions.org.springframework.boot.get()
+val springSecurityVersion = libs.versions.org.springframework.security.get()
+val apacheGroovyVersion = libs.versions.org.apache.groovy.get()
 val kotlinCompilerDependency = configurations.create("kotlinCompilerDependency")
 val kotlinCompilerDependencies = mutableListOf<String>()
 
@@ -52,6 +58,41 @@ dependencies {
     }
 
     // Force the following dependencies to avoid downgrades:
+    implementation("org.apache.groovy:groovy:$apacheGroovyVersion")
+    implementation("org.apache.groovy:groovy-ant:4.0.22:$apacheGroovyVersion")
+
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-toml:$jacksonVersion")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
+    implementation("com.fasterxml.jackson.module:jackson-module-parameter-names:$jacksonVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:$kotlinxCoroutinesVersion")
+
+    implementation("org.springframework.boot:spring-boot:$springBootVersion")
+    implementation("org.springframework.boot:spring-boot-autoconfigure:$springBootVersion")
+    implementation("org.springframework.boot:spring-boot-starter-jdbc:$springBootVersion")
+    implementation("org.springframework.boot:spring-boot-starter-json:$springBootVersion")
+    implementation("org.springframework.boot:spring-boot-starter-reactor-netty:$springBootVersion")
+    implementation("org.springframework.boot:spring-boot-starter-tomcat:$springBootVersion")
+    implementation("org.springframework.data:spring-data-jpa:$springBootVersion") // springBoot!!!
+    implementation("org.springframework.data:spring-data-commons:$springBootVersion") // springBoot!!!
+
+    implementation("org.yaml:snakeyaml:2.3") // springboot
+    implementation("com.zaxxer:HikariCP:5.0.1") // springboot
+    implementation("org.springframework.security:spring-security-config:$springSecurityVersion")
+    implementation("org.springframework.security:spring-security-core:$springSecurityVersion")
+    implementation("org.springframework.security:spring-security-web:$springSecurityVersion")
+    implementation("org.springframework:spring-aop:$springVersion")
+    implementation("org.springframework:spring-aspects:$springVersion")
+    implementation("org.springframework:spring-beans:$springVersion")
+    implementation("org.springframework:spring-core:$springVersion")
+    implementation("org.springframework:spring-expression:$springVersion")
+    implementation("org.springframework:spring-jcl:$springVersion")
+    implementation("org.springframework:spring-jdbc:$springVersion")
+    implementation("org.springframework:spring-web:$springVersion")
+    implementation("org.springframework:spring-webflux:$springVersion")
+    implementation("org.glassfish.jaxb:jaxb-core:$glassfishJaxbVersion")
+    implementation("org.glassfish.jaxb:xsom:$glassfishJaxbVersion")
+
     implementation(libs.ch.qos.logback.classic)
     implementation(libs.ch.qos.logback.core)
     implementation(libs.com.fasterxml.jackson.core.annotations)
@@ -124,13 +165,13 @@ dependencies {
     implementation(libs.org.hibernate.search.backend.lucene)
     implementation(libs.org.hibernate.search.mapper.orm)
     implementation(libs.org.hsqldb.hsqldb)
-    implementation(libs.org.jetbrains.kotlinx.coroutines.slf4j)
     implementation(libs.org.jfree.jfreechart)
     implementation(libs.org.mnode.ical4j.ical4j)
     implementation(libs.org.mozilla.rhino)
     implementation(libs.org.postgresql)
     implementation(libs.org.reflections)
     implementation(libs.org.slf4j.jcl.over.slf4j)
+    implementation(libs.org.springframework.boot)
     implementation(libs.org.springframework.boot.starter)
     implementation(libs.org.springframework.boot.starter.data.jpa)
     implementation(libs.org.springframework.boot.starter.json)

@@ -20,10 +20,6 @@ allprojects {
     }
 }
 
-dependencyLocking {
-    lockAllConfigurations()
-}
-
 configurations.all {
     exclude(group = "org.slf4j", module = "slf4j-jul")
     exclude(group = "org.slf4j", module = "slf4j-log4j12")
