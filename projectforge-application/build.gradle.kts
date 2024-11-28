@@ -62,6 +62,8 @@ dependencies {
     implementation("org.apache.groovy:groovy:$apacheGroovyVersion")
     implementation("org.apache.groovy:groovy-ant:$apacheGroovyVersion")
     implementation("org.apache.tomcat:tomcat-annotations-api:$apacheTomcatVersion")
+    implementation("org.apache.httpcomponents.core5:httpcore5:${libs.versions.org.apache.httpcomponents.core5.get()}")
+    implementation("org.apache.httpcomponents.core5:httpcore5-h2:${libs.versions.org.apache.httpcomponents.core5.get()}")
 
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-toml:$jacksonVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")

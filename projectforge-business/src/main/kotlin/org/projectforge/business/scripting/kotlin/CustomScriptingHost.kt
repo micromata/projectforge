@@ -28,14 +28,14 @@ import kotlin.script.experimental.api.*
 import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 
 class CustomScriptingHost : BasicJvmScriptingHost() {
+    private val loggedInUser = ThreadLocalUserContext.requiredLoggedInUser
 
     override fun eval(
         script: SourceCode,
         compilationConfiguration: ScriptCompilationConfiguration,
-        evaluationConfiguration: ScriptEvaluationConfiguration?
+        evaluationConfiguration: ScriptEvaluationConfiguration?,
     ): ResultWithDiagnostics<EvaluationResult> {
-        //val originalClassLoader = Thread.currentThread().contextClassLoader
-        ThreadLocalUserContext.setUser(ThreadLocalUserContext.requiredLoggedInUser)
+        ThreadLocalUserContext.setUser(loggedInUser)
         return super.eval(script, compilationConfiguration, evaluationConfiguration)
     }
 }
