@@ -20,6 +20,7 @@ val springVersion = libs.versions.org.springframework.spring.get()
 val springBootVersion = libs.versions.org.springframework.boot.get()
 val springSecurityVersion = libs.versions.org.springframework.security.get()
 val apacheGroovyVersion = libs.versions.org.apache.groovy.get()
+val apacheTomcatVersion = libs.versions.org.apache.tomcat.embed.get()
 val kotlinCompilerDependency = configurations.create("kotlinCompilerDependency")
 val kotlinCompilerDependencies = mutableListOf<String>()
 
@@ -60,6 +61,7 @@ dependencies {
     // Force the following dependencies to avoid downgrades:
     implementation("org.apache.groovy:groovy:$apacheGroovyVersion")
     implementation("org.apache.groovy:groovy-ant:$apacheGroovyVersion")
+    implementation("org.apache.tomcat:tomcat-annotations-api:$apacheTomcatVersion")
 
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-toml:$jacksonVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
@@ -144,6 +146,8 @@ dependencies {
     implementation(libs.org.apache.httpcomponents.client5.httpclient5)
     implementation(libs.org.apache.jackrabbit.oak.jcr)
     implementation(libs.org.apache.jackrabbit.oak.segment.tar)
+    implementation(libs.org.apache.tomcat.embed.core)
+    implementation(libs.org.apache.tomcat.embed.websocket)
     implementation(libs.org.apache.poi)
     implementation(libs.org.apache.poi.ooxml)
     implementation(libs.org.apache.wicket.myextensions)
