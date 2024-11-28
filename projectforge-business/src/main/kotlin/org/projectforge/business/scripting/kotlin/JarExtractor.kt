@@ -54,10 +54,16 @@ internal object JarExtractor {
     var classpathUrls: Array<URL>? = null
         private set
 
+    /**
+     * The jars to be copied to the classpath.
+     * The regex is used to match the jar files.
+     * projectforge-business-8.0.0-SNAPSHOT.jar, projectforge-common-8.0.0.jar
+     */
     private val copyJars = listOf(
         "projectforge-business",
         "projectforge-common",
-    ).map { Regex("""$it-\d+(\.\d+)*\.jar${'$'}""") } // """commons-\d+(\.\d+)*\.jar$""",
+        "merlin-core",
+    ).map { Regex("""$it-\d+(\.\d+)*(-[A-Za-z0-9]+)?\.jar${'$'}""") } // """commons-\d+(\.\d+)*\.jar$""",
 
     init {
         log.info { "Source code location: ${JarExtractor::class.java.protectionDomain.codeSource.location}" }
