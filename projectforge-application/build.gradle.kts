@@ -77,6 +77,7 @@ dependencies {
     implementation("com.zaxxer:HikariCP:5.0.1") // springboot
     implementation("org.springframework.security:spring-security-config:$springSecurityVersion")
     implementation("org.springframework.security:spring-security-core:$springSecurityVersion")
+    implementation("org.springframework.security:spring-security-crypto:$springSecurityVersion")
     implementation("org.springframework.security:spring-security-web:$springSecurityVersion")
     implementation("org.springframework:spring-aop:$springVersion")
     implementation("org.springframework:spring-aspects:$springVersion")
@@ -171,6 +172,7 @@ dependencies {
     implementation(libs.org.reflections)
     implementation(libs.org.slf4j.jcl.over.slf4j)
     implementation(libs.org.springframework.boot)
+    implementation(libs.org.springframework.boot.dependencies)
     implementation(libs.org.springframework.boot.starter)
     implementation(libs.org.springframework.boot.starter.data.jpa)
     implementation(libs.org.springframework.boot.starter.json)
