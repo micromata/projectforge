@@ -59,7 +59,7 @@ dependencies {
 
     // Force the following dependencies to avoid downgrades:
     implementation("org.apache.groovy:groovy:$apacheGroovyVersion")
-    implementation("org.apache.groovy:groovy-ant:4.0.22:$apacheGroovyVersion")
+    implementation("org.apache.groovy:groovy-ant:$apacheGroovyVersion")
 
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-toml:$jacksonVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
@@ -67,7 +67,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:$kotlinxCoroutinesVersion")
 
-    implementation("org.springframework.boot:spring-boot:$springBootVersion")
     implementation("org.springframework.boot:spring-boot-autoconfigure:$springBootVersion")
     implementation("org.springframework.boot:spring-boot-starter-jdbc:$springBootVersion")
     implementation("org.springframework.boot:spring-boot-starter-json:$springBootVersion")
