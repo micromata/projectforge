@@ -65,6 +65,8 @@ dependencies {
     api(libs.org.jetbrains.kotlin.scripting.common)
     api(libs.org.jetbrains.kotlin.scripting.jvm)
     api(libs.org.jetbrains.kotlin.scripting.jvm.host)
+    api(libs.org.jetbrains.kotlinx.coroutines.core)
+    api(libs.org.jetbrains.kotlinx.coroutines.slf4j)
     api(libs.org.springframework.boot.starter)
     api(libs.org.springframework.boot.starter.data.jpa)
     api(libs.org.springframework.security.config)

@@ -64,8 +64,6 @@ dependencies {
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-toml:$jacksonVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
     implementation("com.fasterxml.jackson.module:jackson-module-parameter-names:$jacksonVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:$kotlinxCoroutinesVersion")
 
     implementation("org.springframework.boot:spring-boot-autoconfigure:$springBootVersion")
     implementation("org.springframework.boot:spring-boot-starter-jdbc:$springBootVersion")
@@ -134,6 +132,8 @@ dependencies {
     implementation(libs.javax.jcr)
     implementation(libs.jboss.logging)
     implementation(libs.joda.time.joda.time)
+    implementation(libs.org.jetbrains.kotlinx.coroutines.core)
+    implementation(libs.org.jetbrains.kotlinx.coroutines.slf4j)
     implementation(libs.net.lingala.zip4j.zip4j)
     implementation(libs.net.sourceforge.mpxj)
     implementation(libs.org.apache.commons.collections4)
