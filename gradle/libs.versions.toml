@@ -79,7 +79,7 @@ org-mozilla-rhino = "1.7.15"
 org-postgresql = "42.7.4"
 org-reflections = "0.10.2"
 org-slf4j-jcl-over-slf4j = "2.0.16"
-org-springframework-boot = "3.4.0"
+org-springframework-boot = "3.3.6"
 org-springframework-spring = "6.1.15"
 org-springframework-security = "6.4.1"
 org-wicketstuff-html5 = "10.2.0"
@@ -190,6 +190,7 @@ org-postgresql = { module = "org.postgresql:postgresql", version.ref = "org-post
 org-reflections = { module = "org.reflections:reflections", version.ref = "org-reflections" }
 org-slf4j-jcl-over-slf4j = { module = "org.slf4j:jcl-over-slf4j", version.ref = "org-slf4j-jcl-over-slf4j" }
 org-springframework-boot = { module = "org.springframework.boot:spring-boot", version.ref = "org-springframework-boot" }
+org-springframework-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter-json = { module = "org.springframework.boot:spring-boot-starter-json", version.ref = "org-springframework-boot" }
