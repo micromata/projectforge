@@ -199,7 +199,7 @@ abstract class ScriptExecutor(
                         sb.appendLine("// Auto generated imports:")
                         imports.sorted().forEach { importLine ->
                             if (!src.contains(importLine)) { // Don't add import twice
-                              //  sb.appendLine(importLine)
+                              sb.appendLine(importLine)
                             }
                         }
                         sb.appendLine()

@@ -28,7 +28,6 @@ import org.projectforge.business.scripting.kotlin.CustomScriptingHost
 import org.projectforge.business.scripting.kotlin.JarExtractor
 import org.projectforge.business.scripting.kotlin.KotlinScriptUtils
 import org.projectforge.framework.i18n.translate
-import java.io.File
 import java.net.URLClassLoader
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
