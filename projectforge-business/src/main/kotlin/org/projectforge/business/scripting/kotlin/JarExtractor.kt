@@ -60,9 +60,19 @@ internal object JarExtractor {
      * projectforge-business-8.0.0-SNAPSHOT.jar, projectforge-common-8.0.0.jar
      */
     private val copyJars = listOf(
+        "merlin-core",
+        "org.projectforge.plugins.banking",
+        "org.projectforge.plugins.datatransfer",
+        "org.projectforge.plugins.licensemanagement",
+        "org.projectforge.plugins.liquidityplanning",
+        "org.projectforge.plugins.marketing",
+        "org.projectforge.plugins.merlin",
+        "org.projectforge.plugins.skillmatrix",
+        "poi",
+        "poi-ooxml",
         "projectforge-business",
         "projectforge-common",
-        "merlin-core",
+        "projectforge-rest",
     ).map { Regex("""$it-\d+(\.\d+)*(-[A-Za-z0-9]+)?\.jar${'$'}""") } // """commons-\d+(\.\d+)*\.jar$""",
 
     init {
