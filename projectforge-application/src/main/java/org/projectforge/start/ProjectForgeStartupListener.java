@@ -69,7 +69,7 @@ public class ProjectForgeStartupListener implements ApplicationListener<Applicat
     log.info("Using JVM opts    : " + StringUtils.join(arguments, " "));
     log.info("Using classpath   : " + runtimeMxBean.getClassPath());
 
-    checkResource("static/index.html");
+    // checkResource("static/index.html");
     checkResource("static/react-app.html");
     checkResource("static/favicon.ico");
   }
