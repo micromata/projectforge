@@ -82,7 +82,7 @@ internal object KotlinScriptUtils {
             scriptExecutionResult.result = returnValue.error
             return
         }
-        scriptExecutionResult.result = result.valueOrNull()
+        scriptExecutionResult.result = returnValue
         if (result !is ResultWithDiagnostics.Success) {
             log.error { "Script result: ${result.valueOrNull()}" }
         }
@@ -154,7 +154,7 @@ internal object KotlinScriptUtils {
             clazz.name
         }
         val identifier = ScriptExecutor.createValidIdentifier(name)
-        //bindingsEntries.add("val $identifier = ${createContextGet(identifier)} as $clsName$nullable")
+        bindingsEntries.add("val $identifier = ${createContextGet(identifier)} as $clsName$nullable")
     }
 
     private val bindingsClassReplacements = mapOf(
