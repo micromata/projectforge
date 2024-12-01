@@ -115,8 +115,8 @@ class WebAuthnSupport {
         val registrationParameters =
             RegistrationParameters(serverProperty, null, userVerificationRequired, userPresenceRequired)
         try {
-            webAuthnManager.validate(registrationData, registrationParameters)
-            //webAuthnManager.verify(registrationData, registrationParameters)
+            //webAuthnManager.validate(registrationData, registrationParameters)
+            webAuthnManager.verify(registrationData, registrationParameters)
         } catch (ex: Exception) {
             log.error("Error while validating registration data: ${ex.message}", ex)
             return Result("webauthn.error.validate")
@@ -180,8 +180,8 @@ class WebAuthnSupport {
             return Result("webauthn.error.process")
         }
         try {
-            webAuthnManager.validate(authenticationData, authenticationParameters)
-            // webAuthnManager.verify(authenticationData, authenticationParameters)
+            //webAuthnManager.validate(authenticationData, authenticationParameters)
+            webAuthnManager.verify(authenticationData, authenticationParameters)
         } catch (ex: Exception) {
             log.error("Error while parsing validating request: ${ex.message}", ex)
             return Result("webauthn.error.validate")
