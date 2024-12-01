@@ -96,8 +96,16 @@ dependencies {
     implementation("org.glassfish.jaxb:jaxb-core:$glassfishJaxbVersion")
     implementation("org.glassfish.jaxb:xsom:$glassfishJaxbVersion")
 
+    // Logging:
     implementation(libs.ch.qos.logback.classic)
     implementation(libs.ch.qos.logback.core)
+    implementation(libs.org.slf4j.api)
+    implementation(libs.org.slf4j.jul.to.slf4j)
+    implementation(libs.org.slf4j.jcl.over.slf4j)
+    implementation(libs.org.apache.logging.log4j.api)
+    implementation(libs.org.apache.logging.log4j.to.slf4j)
+    implementation(libs.org.jetbrains.kotlinx.coroutines.slf4j)
+
     implementation(libs.com.fasterxml.jackson.core.annotations)
     implementation(libs.com.fasterxml.jackson.core)
     implementation(libs.com.fasterxml.jackson.core.databind)
@@ -177,7 +185,6 @@ dependencies {
     implementation(libs.org.mozilla.rhino)
     implementation(libs.org.postgresql)
     implementation(libs.org.reflections)
-    implementation(libs.org.slf4j.jcl.over.slf4j)
     implementation(libs.org.springframework.boot)
     implementation(libs.org.springframework.boot.dependencies)
     implementation(libs.org.springframework.boot.starter)

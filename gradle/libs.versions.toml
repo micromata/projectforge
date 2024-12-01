@@ -4,7 +4,6 @@
 [versions]
 org-projectforge = "8.0.0-SNAPSHOT"
 
-ch-qos-logback = "1.5.12"
 com-fasterxml-jackson = "2.17.2"
 com-google-zxing-core = "3.5.3"
 com-google-zxing-javase = "3.5.3"
@@ -20,7 +19,6 @@ com-zaxxer-hikaricp = "4.0.3"
 commons-beanutils = "1.9.4"
 commons-io = "2.16.1"
 de-micromata-merlin = "1.1.16"
-io-github-microutils-kotlin-logging = "3.0.5"
 io-dropwizard-metrics-core = "4.2.26"
 io-milton-server-ent = "4.0.5.2400"
 io-spring-dependency-management = "1.1.6" # io.spring.dependency-management.gradle.plugin
@@ -35,7 +33,6 @@ jakarta-validation = "3.1.0"
 jakarta-ws-rs-api = "4.0.0"
 jakarta-xml-bind-api = "4.0.2"
 javax-jcr = "2.0"
-jboss-logging = "3.6.0.Final"
 joda-time-joda-time = "2.12.7"
 net-lingala-zip4j-zip4j = "2.11.5"
 net-sourceforge-mpxj = "4.3.0"
@@ -79,7 +76,6 @@ org-mockito-kotlin = "5.4.0"
 org-mozilla-rhino = "1.7.15"
 org-postgresql = "42.7.4"
 org-reflections = "0.10.2"
-org-slf4j-jcl-over-slf4j = "2.0.16"
 org-springframework-boot = "3.3.6"
 org-apache-tomcat-embed = "10.1.33" # must match spring-boot
 org-springframework-spring = "6.1.15"
@@ -87,6 +83,13 @@ org-springframework-security = "6.4.1"
 org-wicketstuff-html5 = "10.2.0"
 org-wicketstuff-select2 = "10.2.0"
 se-sawano-java-alphanumeric-comparator = "1.4.1"
+
+# logging
+ch-qos-logback = "1.5.12"
+io-github-microutils-kotlin-logging = "3.0.5"
+jboss-logging = "3.6.0.Final"
+org-apache-logging-log4j = "2.24.2" # Needed by poi.
+org-slf4j = "2.0.16"
 
 [libraries]
 ### test libraries
@@ -152,6 +155,8 @@ org-apache-groovy-all = { module = "org.apache.groovy:groovy-all", version.ref =
 org-apache-httpcomponents-client5-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "org-apache-httpcomponents-client5-httpclient5" }
 org-apache-jackrabbit-oak-jcr = { module = "org.apache.jackrabbit:oak-jcr", version.ref = "org-apache-jackrabbit-oak-jcr" }
 org-apache-jackrabbit-oak-segment-tar = { module = "org.apache.jackrabbit:oak-segment-tar", version.ref = "org-apache-jackrabbit-oak-segment-tar" }
+org-apache-logging-log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "org-apache-logging-log4j" }
+org-apache-logging-log4j-to-slf4j = { module = "org.apache.logging.log4j:log4j-to-slf4j", version.ref = "org-apache-logging-log4j" }
 org-apache-poi = { module = "org.apache.poi:poi", version.ref = "org-apache-poi" }
 org-apache-poi-ooxml = { module = "org.apache.poi:poi-ooxml", version.ref = "org-apache-poi-ooxml" }
 org-apache-tomcat-embed-core = { module = "org.apache.tomcat.embed:tomcat-embed-core", version.ref = "org-apache-tomcat-embed" }
@@ -192,7 +197,9 @@ org-mnode-ical4j-ical4j = { module = "org.mnode.ical4j:ical4j", version.ref = "o
 org-mozilla-rhino = { module = "org.mozilla:rhino", version.ref = "org-mozilla-rhino" }
 org-postgresql = { module = "org.postgresql:postgresql", version.ref = "org-postgresql" }
 org-reflections = { module = "org.reflections:reflections", version.ref = "org-reflections" }
-org-slf4j-jcl-over-slf4j = { module = "org.slf4j:jcl-over-slf4j", version.ref = "org-slf4j-jcl-over-slf4j" }
+org-slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "org-slf4j" }
+org-slf4j-jul-to-slf4j = { module = "org.slf4j:jul-to-slf4j", version.ref = "org-slf4j" }
+org-slf4j-jcl-over-slf4j = { module = "org.slf4j:jcl-over-slf4j", version.ref = "org-slf4j" }
 org-springframework-boot = { module = "org.springframework.boot:spring-boot", version.ref = "org-springframework-boot" }
 org-springframework-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "org-springframework-boot" }
