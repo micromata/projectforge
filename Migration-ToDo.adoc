@@ -1,14 +1,13 @@
 Aktuell:
 - Gradle-Version-Checker: Read lib.versions.toml und Vergleichen mit fatjar.
-- Gradle: GitPropertiesGenerator
-- Farbige Balken in ProjectForge, E-Mail-Versand, Yubikey
+- Check milton (and address favorites)
+- Farbige Balken in ProjectForge, E-Mail-Versand
 - Fehlerhinweis, wenn halber Tag für Urlaubsanfang/ende gewählt wird, es aber kein Arbeitstag ist.
 - Scripts
 - Download/Upload vcf
 - Milton
 - Kalendereinträge und Subscriptions.
 - Hikari-Pool-Einstellungen werden wohl nicht übernommen (lt. Logfile)
-- Versionsnummer und Buildnummer für die Webanwendung von Maven -> Gradle. (common/build.gradle.kts)
 - InitDatabaseDaoWithTestDataTestFork implementieren.
 
 - remove all BaseDO.xxxId (lazy fetch) and replace callee by baseDO?.id

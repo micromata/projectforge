@@ -54,7 +54,7 @@ public class ProjectForgeStartupListener implements ApplicationListener<Applicat
 
   @Override
   public void onApplicationEvent(ApplicationPreparedEvent applicationPreparedEvent) {
-    log.info("Starting " + ProjectForgeVersion.APP_ID + " " + ProjectForgeVersion.VERSION_NUMBER + ": build date="
+    log.info("Starting " + ProjectForgeVersion.APP_ID + " " + ProjectForgeVersion.VERSION_NUMBER + ": build timestamp="
         + ProjectForgeVersion.BUILD_TIMESTAMP + ", " + ProjectForgeVersion.SCM + "=" + ProjectForgeVersion.SCM_ID
         + " (" + ProjectForgeVersion.SCM_ID_FULL + ")");
 

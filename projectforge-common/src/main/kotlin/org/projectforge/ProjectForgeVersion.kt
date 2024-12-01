@@ -36,29 +36,29 @@ import java.util.*
 object ProjectForgeVersion {
     const val APP_ID = "ProjectForge"
     @JvmField
-    val VERSION_STRING = ResourceBundle.getBundle("version").getString("version.number")
+    val VERSION_STRING = getBuildResource("gradle.version")
     @JvmField
     val VERSION = Version(VERSION_STRING)
     @JvmField
     val VERSION_NUMBER = VERSION.toString()
     @JvmField
-    val BUILD_TIMESTAMP = ResourceBundle.getBundle("version").getString("version.buildDate")
+    val BUILD_TIMESTAMP = getBuildResource("gradle.build.timestamp")
     @JvmField
-    val BUILD_DATE = BUILD_TIMESTAMP.split(" ".toRegex()).toTypedArray()[0]
+    val BUILD_DATE = getBuildResource("gradle.build.date")
     @JvmField
     val BUILD_YEAR = BUILD_TIMESTAMP.substring(0, 4)
     const val SCM = "git"
     @JvmField
-    val SCM_BRANCH = getGitResource("git.branch")
+    val SCM_BRANCH = getBuildResource("git.branch")
     @JvmField
-    val SCM_COMMIT_ID = getGitResource("git.commit.id.abbrev")
+    val SCM_COMMIT_ID = getBuildResource("git.commit.id.abbrev")
     @JvmField
-    val SCM_COMMIT_ID_FULL = getGitResource("git.commit.id.full")
+    val SCM_COMMIT_ID_FULL = getBuildResource("git.commit.id.full")
     @JvmField
-    val SCM_COMMIT_TIME = getGitResource("git.commit.time", "2021-?git.commit.time?")
+    val SCM_COMMIT_TIME = getBuildResource("git.commit.time", "2021-?git.commit.time?")
 
     @JvmField
-    val SCM_DIRTY = getGitResource("git.dirty") != "false"
+    val SCM_DIRTY = getBuildResource("git.dirty") != "false"
     private val SCM_DIRTY_STRING = if (SCM_DIRTY) "*" else ""
 
     @JvmField
@@ -77,9 +77,9 @@ object ProjectForgeVersion {
      */
     val COPYRIGHT_YEARS = "2001-$YEAR"
 
-    private fun getGitResource(key: String, defaultString: String = "?$key?"): String {
+    private fun getBuildResource(key: String, defaultString: String = "?$key?"): String {
         try {
-            return ResourceBundle.getBundle("git").getString(key) ?: defaultString
+            return ResourceBundle.getBundle("build").getString(key) ?: defaultString
         } catch (ex: Exception) {
             // Should only be OK in develop mode (maven didn't generate the git.properties file yet).
             return defaultString
