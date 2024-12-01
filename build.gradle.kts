@@ -24,8 +24,6 @@ allprojects {
     configurations.all {
         exclude(group = "org.slf4j", module = "slf4j-jul")
         exclude(group = "org.slf4j", module = "slf4j-log4j12")
-        exclude(group = "org.slf4j", module = "slf4j-log4j12")
-        exclude("org.apache.logging.log4j", "log4j-api")
         exclude("org.apache.logging.log4j", "log4j-core")
         exclude(group = "commons-logging", module = "commons-logging")
         resolutionStrategy {

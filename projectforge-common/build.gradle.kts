@@ -18,6 +18,13 @@ tasks.withType<Test> {
 }
 
 dependencies {
+    // Logging:
+    api(libs.org.slf4j.api)
+    api(libs.org.slf4j.jul.to.slf4j)
+    api(libs.ch.qos.logback.classic)
+    api(libs.org.apache.logging.log4j.api)
+    api(libs.org.apache.logging.log4j.to.slf4j)
+
     api(libs.commons.beanutils)
     api(libs.org.jetbrains.kotlin.stdlib)
     api(libs.org.jetbrains.kotlin.reflect)

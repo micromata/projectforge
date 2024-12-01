@@ -67,7 +67,17 @@ dependencies {
     api(libs.org.jetbrains.kotlin.scripting.jvm)
     api(libs.org.jetbrains.kotlin.scripting.jvm.host)
     api(libs.org.jetbrains.kotlinx.coroutines.core)
+
+    // Logging:
+    api(libs.ch.qos.logback.classic)
+    api(libs.ch.qos.logback.core)
+    api(libs.org.slf4j.api)
+    api(libs.org.slf4j.jcl.over.slf4j)
+    api(libs.org.slf4j.jul.to.slf4j)
+    api(libs.org.apache.logging.log4j.api)
+    api(libs.org.apache.logging.log4j.to.slf4j)
     api(libs.org.jetbrains.kotlinx.coroutines.slf4j)
+
     api(libs.org.springframework.boot.starter)
     api(libs.org.springframework.boot.starter.data.jpa)
     api(libs.org.springframework.security.config)
