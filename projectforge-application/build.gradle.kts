@@ -1,3 +1,4 @@
+import org.projectforge.BuildPropertiesGenerator
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
@@ -208,6 +209,33 @@ tasks.withType<Jar> {
             kotlinCompilerDependencyFiles.any { file -> it.name.contains(file) }
         }.map { if (it.isDirectory) it else zipTree(it) } // Unpack the jar files.
     })
+}
+
+tasks.register("generateGitProperties") {
+    // outputs.upToDateWhen { false } // Force execution on each run.
+    group = "build"
+    description = "Generates a git.properties file with current Git information"
+
+    val propsFile = layout.buildDirectory.file("resources/main/build.properties").get().asFile
+    outputs.file(propsFile)
+
+    // Lokale Kopien aller Projekt-Informationen
+    val rootDirPath = rootDir.absolutePath
+    val projectVersion = version.toString()
+    val outputFilePath = propsFile.absolutePath
+
+    doLast {
+        BuildPropertiesGenerator(
+            rootDirPath = rootDirPath,
+            outputFilePath = outputFilePath,
+            projectVersion = projectVersion
+        ).generate()
+    }
+}
+
+// Ensure that the git.properties file is generated before the resources are processed.
+tasks.named("processResources") {
+    dependsOn("generateGitProperties")
 }
 
 description = "projectforge-application"
