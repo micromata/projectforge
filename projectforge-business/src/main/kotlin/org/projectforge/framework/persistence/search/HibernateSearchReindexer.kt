@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.mapper.orm.Search
 import org.hibernate.search.mapper.orm.entity.SearchIndexedEntity
 import org.projectforge.common.StringHelper
+import org.projectforge.common.extensions.format
 import org.projectforge.framework.configuration.Configuration.Companion.instance
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.persistence.api.ReindexSettings
@@ -128,7 +129,7 @@ class HibernateSearchReindexer {
                 } else {
                     // Re-index of all ProjectForge entities:
                     indexedEntities.forEach { entity ->
-                        reindex(entity.javaClass, settings, sb)
+                        reindex(entity.javaClass(), settings, sb)
                     }
                 }
                 return sb.toString()
@@ -141,12 +142,9 @@ class HibernateSearchReindexer {
     private fun reindex(clazz: Class<*>, settings: ReindexSettings, sb: StringBuilder) {
         try {
             // Try to check, if class is available (entity of ProjectForge's core or of active plugin).
-            persistenceService.selectSingleResult(
-                "select t from " + clazz.name + " t where t.id = :id",
-                clazz,
-                "id" to -1,
-                nullAllowed = false,
-            )
+            persistenceService.selectSingleResult("select count(*) from " + clazz.simpleName + " t", Long::class.java)?.let {
+                log.info { "Re-indexing ${it.format()} entries of class '${clazz.name}'." }
+            }
         } catch (ex: Exception) {
             if (HistoryEntryDO::class.java != clazz) {
                 log.info("Class '$clazz' not available (OK for non-active plugins and HistoryEntryDO).")
