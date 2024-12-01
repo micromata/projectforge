@@ -14,8 +14,8 @@ com-googlecode-json-simple = "1.1.1"
 com-googlecode-lanterna = "3.1.2"
 com-itextpdf = "5.5.13.4"
 com-thoughtworks-xstream = "1.4.21"
-com-webauthn4j-core = "0.28.0.RELEASE"
-com-webauthn4j-spring-security-core = "0.10.0.RELEASE"
+com-webauthn4j-core = "0.20.8.RELEASE"
+#com-webauthn4j-spring-security-core = "0.10.0.RELEASE"
 com-zaxxer-hikaricp = "4.0.3"
 commons-beanutils = "1.9.4"
 commons-io = "2.16.1"
@@ -122,7 +122,7 @@ com-googlecode-lanterna = { module = "com.googlecode.lanterna:lanterna", version
 com-itextpdf = { module = "com.itextpdf:itextpdf", version.ref = "com-itextpdf" }
 com-thoughtworks-xstream = { module = "com.thoughtworks.xstream:xstream", version.ref = "com-thoughtworks-xstream" }
 com-webauthn4j-core = { module = "com.webauthn4j:webauthn4j-core", version.ref = "com-webauthn4j-core" }
-com-webauthn4j-spring-security-core = { module = "com.webauthn4j:webauthn4j-spring-security-core", version.ref = "com-webauthn4j-spring-security-core" }
+#com-webauthn4j-spring-security-core = { module = "com.webauthn4j:webauthn4j-spring-security-core", version.ref = "com-webauthn4j-spring-security-core" }
 com-zaxxer-hikaricp = { module = "com.zaxxer:HikariCP", version.ref = "com-zaxxer-hikaricp" }
 commons-beanutils = { module = "commons-beanutils:commons-beanutils", version.ref = "commons-beanutils" }
 commons-io = { module = "commons-io:commons-io", version.ref = "commons-io" }

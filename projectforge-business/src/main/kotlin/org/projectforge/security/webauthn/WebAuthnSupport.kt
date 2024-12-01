@@ -29,7 +29,6 @@ import com.webauthn4j.data.*
 import com.webauthn4j.data.client.Origin
 import com.webauthn4j.data.client.challenge.Challenge
 import com.webauthn4j.server.ServerProperty
-import com.webauthn4j.verifier.exception.VerificationException
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
 import org.projectforge.Constants
@@ -116,8 +115,9 @@ class WebAuthnSupport {
         val registrationParameters =
             RegistrationParameters(serverProperty, null, userVerificationRequired, userPresenceRequired)
         try {
-            webAuthnManager.verify(registrationData, registrationParameters)
-        } catch (ex: VerificationException) {
+            webAuthnManager.validate(registrationData, registrationParameters)
+            //webAuthnManager.verify(registrationData, registrationParameters)
+        } catch (ex: Exception) {
             log.error("Error while validating registration data: ${ex.message}", ex)
             return Result("webauthn.error.validate")
         }
@@ -180,8 +180,9 @@ class WebAuthnSupport {
             return Result("webauthn.error.process")
         }
         try {
-            webAuthnManager.verify(authenticationData, authenticationParameters)
-        } catch (ex: VerificationException) {
+            webAuthnManager.validate(authenticationData, authenticationParameters)
+            // webAuthnManager.verify(authenticationData, authenticationParameters)
+        } catch (ex: Exception) {
             log.error("Error while parsing validating request: ${ex.message}", ex)
             return Result("webauthn.error.validate")
         }
