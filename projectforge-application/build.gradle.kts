@@ -112,11 +112,11 @@ dependencies {
     implementation(libs.com.itextpdf)
     implementation(libs.com.thoughtworks.xstream)
     implementation(libs.com.webauthn4j.core)
-    implementation(libs.com.webauthn4j.spring.security.core) {
+    /*implementation(libs.com.webauthn4j.spring.security.core) {
         exclude("org.springframework")
         exclude("org.springframework.security")
         exclude("org.springframework.boot")
-    }
+    }*/
     implementation(libs.com.zaxxer.hikaricp)
     implementation(libs.commons.beanutils)
     implementation(libs.commons.io)

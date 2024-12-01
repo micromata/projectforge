@@ -52,8 +52,9 @@ dependencies {
     api(libs.org.aspectj.aspectjtools)
     api(libs.jakarta.activation.api)
     api(libs.jakarta.annotation.api)
-    api(libs.jakarta.persistence.api)
     api(libs.jakarta.mail.jakarta.mail.api)
+    api(libs.jakarta.persistence.api)
+    api(libs.jakarta.servlet.api)
     api(libs.jakarta.xml.bind.api)
     api(libs.joda.time.joda.time)
     api(libs.org.apache.commons.collections4)
@@ -91,6 +92,9 @@ dependencies {
     api(libs.org.apache.groovy.all)
     api(libs.org.jfree.jfreechart)
     api(libs.net.sourceforge.mpxj)
+    api(libs.org.apache.commons.text)
+    api(libs.org.apache.poi)
+    api(libs.org.apache.poi.ooxml)
     api(libs.org.apache.xmlgraphics.fop)
     api(libs.org.apache.xmlgraphics.commons)
     api(libs.org.apache.xmlgraphics.batik.codec)
@@ -101,22 +105,18 @@ dependencies {
     api(libs.com.fasterxml.jackson.core.annotations)
     api(libs.com.fasterxml.jackson.core.databind)
     api(libs.com.fasterxml.jackson.datatype.jsr310)
-    api(libs.org.apache.poi)
-    api(libs.org.apache.poi.ooxml)
-    api(libs.org.apache.commons.text)
     api(libs.se.sawano.java.alphanumeric.comparator)
     api(libs.com.webauthn4j.core)
-    api(libs.com.webauthn4j.spring.security.core) {
+    /*api(libs.com.webauthn4j.spring.security.core) {
         exclude("org.springframework")
         exclude("org.springframework.security")
         exclude("org.springframework.boot")
-    }
+    }*/
 
     testImplementation(libs.org.apache.directory.server.apacheds.server.integ)
     testImplementation(libs.org.mock.server.mockserver.netty.no.dependencies)
     testImplementation(libs.org.springframework.boot.starter.test)
 
-    compileOnly(libs.jakarta.servlet.api)
     compileOnly(libs.com.zaxxer.hikaricp)
 
     testFixturesImplementation(project(":projectforge-commons-test"))

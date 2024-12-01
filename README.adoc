@@ -36,7 +36,7 @@ Or simply use the fastest way: https://projectforge.org/docs/installation/[Insta
 1. Checkout: `git clone git@github.com:micromata/projectforge.git`
 2. For developing try OpenJDK 17 (tested): `java -version`.
 3. Build ProjectForge:
-   `./gradlew bootJar -x test` (or `./gradlew.bat bootJar -x test` on Windows)
+   `./gradlew build -x test` (or `./gradlew.bat build -x test` on Windows)
 4. Run ProjectForge:
    `java -jar projectforge-application/build/libs/projectforge-application-X.X.X.jar`
 5. Open your browser:
