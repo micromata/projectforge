@@ -71,7 +71,7 @@ class V8_0_2__RemoveMGC : BaseJavaMigration() {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
         private val SELECT_EMPLOYEE_TIMED = """
-            SELECT a.pk AS pk1, a.createdat, a.createdby, a.modifiedat, a.modifiedby, a.start_time, a.end_time, a.employee_id AS object_id, a.group_name,
+            SELECT a.pk AS pk1, a.createdat, a.createdby, a.modifiedat, a.modifiedby, a.start_time, a.employee_id AS object_id, a.group_name,
                    b.pk AS pk2, b.value, b.propertyname, b.createdby AS createdby_b, b.createdat AS createdat_b, b.modifiedby AS modifiedby_b, b.modifiedat AS modifiedat_b
             FROM t_fibu_employee_timed a JOIN t_fibu_employee_timedattr b ON a.pk=b.parent
             WHERE a.group_name IN ('employeestatus', 'employeeannualleave') ORDER BY a.pk
@@ -351,7 +351,6 @@ private class TimedAttr(resultSet: ResultSet, type: TYPE) {
     val modifiedatA = getTimestamp(resultSet, "modifiedat")
     val modifiedbyA = getString(resultSet, "modifiedby")
     val startTime = getLocalDate(resultSet, "start_time")
-    val endTime = if (type == TYPE.EMPLOYEE) resultSet.getDate("end_time") else null
 
     /**
      * The employee id or visitor id.
@@ -366,9 +365,6 @@ private class TimedAttr(resultSet: ResultSet, type: TYPE) {
     val modifiedbyB = resultSet.getString("modifiedby_b")
 
     init {
-        if (endTime != null) {
-            throw IllegalStateException("endTime isn't null in entry with pk=$pk1: $endTime")
-        }
         if (type == TYPE.EMPLOYEE && createdbyA != createdbyB) {
             throw IllegalStateException("createdby doesn't match with pk=$pk1: createdbyA: $createdbyA != createdbyB: $createdbyB")
         }
