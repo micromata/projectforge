@@ -94,7 +94,7 @@ class RepoTest {
     unknownFile.parentNodePath = "unknown"
     Assertions.assertFalse(repoService.retrieveFile(unknownFile))
 
-    file.fileName = "pom.xml"
+    file.fileName = "build.gradle.kts"
     file.parentNodePath = "/world/europe"
     file.relPath = "germany"
     Assertions.assertTrue(repoService.retrieveFile(file))

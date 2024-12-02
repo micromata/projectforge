@@ -31,11 +31,11 @@ import java.lang.IllegalArgumentException
 class CryptStreamUtilsTest {
   @Test
   fun encryptionTest() {
-    val result = checkFile("pom.xml")
+    val result = checkFile("build.gradle.kts")
     val encrypted = result.first
     val decrypted = result.second
-    Assertions.assertFalse(String(encrypted).contains("<artifactId>projectforge-common</artifactId>"))
-    Assertions.assertTrue(String(decrypted).contains("<artifactId>projectforge-common</artifactId>"))
+    Assertions.assertFalse(String(encrypted).contains("dependencies"))
+    Assertions.assertTrue(String(decrypted).contains("dependencies"))
 
     checkFile("../doc/misc/ForecastExportProbabilities.xlsx")
 

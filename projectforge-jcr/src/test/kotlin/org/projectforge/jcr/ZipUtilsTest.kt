@@ -40,22 +40,22 @@ class ZipUtilsTest {
 
   @Test
   fun encryptionTest() {
-    checkMethod(ZipMode.ENCRYPTED_STANDARD, "pom.zip")
-    checkMethod(ZipMode.ENCRYPTED_AES128, "pom-AES128.zip")
-    checkMethod(ZipMode.ENCRYPTED_AES256, "pom-AES256.zip")
+    checkMethod(ZipMode.ENCRYPTED_STANDARD, "gradle.zip")
+    checkMethod(ZipMode.ENCRYPTED_AES128, "gradle-AES128.zip")
+    checkMethod(ZipMode.ENCRYPTED_AES256, "gradle-AES256.zip")
   }
 
   private fun checkMethod(mode: ZipMode, zipFilename: String) {
-    val istream = FileInputStream("pom.xml")
+    val istream = FileInputStream("build.gradle.kts")
     val zipFile = File(testDir, zipFilename)
     val outputStream = FileOutputStream(zipFile)
     outputStream.use {
-      ZipUtils.encryptZipFile("pom.xml", "test123", istream, it, mode)
+      ZipUtils.encryptZipFile("build.gradle.kts", "test123", istream, it, mode)
     }
-    val content = File("pom.xml").readBytes()
+    val content = File("build.gradle.kts").readBytes()
     Assertions.assertTrue(ZipUtils.isEncrypted(FileInputStream(zipFile)))
     FileInputStream(zipFile).use {
-      decryptZipFile("test123", it, "pom.xml", content)
+      decryptZipFile("test123", it, "build.gradle.kts", content)
     }
     FileInputStream(zipFile).use {
       Assertions.assertTrue(ZipUtils.testDecryptZipFile("test123", it), "Test of decryption failed with correct password.")
