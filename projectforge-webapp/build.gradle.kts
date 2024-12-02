@@ -67,6 +67,9 @@ tasks {
             // Exclude the target directory to prevent recursion
             exclude("resources/main/static/**")
         }
+        from(file("src")) {
+            include("index.html")
+        }
         into(layout.buildDirectory.dir("resources/main/static")) // Target directory in the Gradle project
         // Skip task if target directory is up-to-date
         inputs.dir("build") // React build directory as input

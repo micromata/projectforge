@@ -38,11 +38,11 @@ Or simply use the fastest way: https://projectforge.org/docs/installation/[Insta
 3. Build ProjectForge:
    `./gradlew build -x test` (or `./gradlew.bat build -x test` on Windows)
 4. Run ProjectForge:
-   `java -jar projectforge-application/build/libs/projectforge-application-X.X.X.jar`
+   `java -jar projectforge-application/build/libs/projectforge-application-X.X.X.jar` As an alternative you may run `./gradlew bootRun`.
 5. Open your browser:
    http://localhost:8080
 
-Remark: If you have any trouble regarding `projectforge-webapp`, try to delete the sub directory `node_modules` and repeat `./gradlew clean bootJar -x test`.
+Remark: If you have any trouble regarding `projectforge-webapp`, try to delete the sub directory `node_modules` and repeat `./gradlew clean build -x test`.
 
 === Configuration of ProjectForge
 
