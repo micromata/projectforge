@@ -64,8 +64,8 @@ Please note, that OpenJdk 17 is currently used in production for developing and 
 === Quickstart with IntelliJ
 
 1. Launch IntelliJ IDEA
-2. Import new project via pom.xml in git root dir
-3. Run maven clean install for pom.xml in projectforge-webapp (to build React stuff)
+2. Import new project as Gradle project
+3. Run ./gradle clean build -x test (to build React stuff in projectforge-webapp)
 4. Start by simply running main (in `projectforge-application/src/main/java`): +
    `org.projectforge.start.ProjectForgeApplication.java`
 
