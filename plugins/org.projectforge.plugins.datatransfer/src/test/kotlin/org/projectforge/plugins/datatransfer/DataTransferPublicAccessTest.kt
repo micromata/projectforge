@@ -83,9 +83,9 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
         externalUploadEnabled = true
       )
     val file1a = testService.createFile(externalDownloadArea, "file1.xml")!!
-    val file1b = testService.createFile(externalDownloadArea, "pom.xml")!!
+    val file1b = testService.createFile(externalDownloadArea, "build.gradle.kts")!!
 
-    val file2 = testService.createFile(externalFullAccessArea, "pom.xml")!!
+    val file2 = testService.createFile(externalFullAccessArea, "build.gradle.kts")!!
 
     val request = DataTransferTestService.mockHttpServletRequest()
     login(request, externalDownloadArea)

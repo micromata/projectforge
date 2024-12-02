@@ -51,7 +51,7 @@ class RepoBackupTest {
     repoService.ensureNode(null, "world/europe")
     repoService.storeProperty("world/europe", "germany", "key", "value")
 
-    var fileObject = createFileObject("/world/europe", "germany", "pom.xml")
+    var fileObject = createFileObject("/world/europe", "germany", "build.gradle.kts")
     repoService.storeFile(fileObject, FileSizeStandardChecker(100000L))
 
     fileObject = createFileObject("/world/europe", "germany", "src", "test", "resources", "logback-test.xml")

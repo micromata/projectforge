@@ -105,8 +105,8 @@ class DataTransferTestService {
   ): FileObject? {
     val path = "/ProjectForge/${dataTransferAreaPagesRest.jcrPath}"
     val file = FileObject()
-    file.fileName = filename ?: "pom-$ageInDays${fileSuffix ?: ""}.xml"
-    file.description = "This is the maven pom file."
+    file.fileName = filename ?: "build.gradle-$ageInDays${fileSuffix ?: ""}.kts"
+    file.description = "This is the gradle build file."
     file.parentNodePath = path
     file.relPath = "${area.id}/attachments"
     file.created = Date(System.currentTimeMillis() - ageInDays * DataTransferJCRCleanUpJob.MILLIS_PER_DAY)
@@ -117,7 +117,7 @@ class DataTransferTestService {
       val attachment = attachmentsService.addAttachment(
         dataTransferAreaPagesRest.jcrPath!!,
         fileInfo = file,
-        content = File("pom.xml").readBytes(),
+        content = File("build.gradle.kts").readBytes(),
         baseDao = dataTransferAreaDao,
         obj = area,
         accessChecker = DataTransferAccessChecker(dataTransferAreaDao)

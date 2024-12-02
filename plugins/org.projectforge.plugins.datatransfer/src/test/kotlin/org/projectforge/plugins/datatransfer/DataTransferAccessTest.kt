@@ -77,7 +77,7 @@ class DataTransferAccessTest : AbstractTestBase() {
                 accessGroups = listOf(getGroup(TEST_GROUP))
             )
         val file1a = testService.createFile(testGroupArea, "file1.xml")!!
-        val file1b = testService.createFile(testGroupArea, "pom.xml")!!
+        val file1b = testService.createFile(testGroupArea, "build.gradle.kts")!!
 
         logon(testUser2)
         val file2 =
