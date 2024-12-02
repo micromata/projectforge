@@ -27,6 +27,7 @@
     "clipboard-copy": "^4.0.1",
     "fetch-mock": "^9.11.0",
     "history": "^5.3.0",
+    "install": "^0.13.0",
     "jquery": "^3.6.0",
     "js-file-download": "^0.4.12",
     "lodash": "^4.17.21",
