@@ -36,11 +36,11 @@ jobs:
       - name: Grant execute permission for Gradle wrapper
         run: chmod +x gradlew
 
-      - name: Build with Gradle
+      - name: Test and build with Gradle
         run: ./gradlew build --info --stacktrace
         env:
-          SPRING_PROFILES_ACTIVE: ci
-          MY_CUSTOM_ENV_VAR: "value"
+          SPRING_PROFILES_ACTIVE: test
+        #  MY_CUSTOM_ENV_VAR: "value"
 
-      - name: Run tests
-        run: ./gradlew test --info --stacktrace
+      #- name: Run tests
+      #  run: ./gradlew test --info --stacktrace
