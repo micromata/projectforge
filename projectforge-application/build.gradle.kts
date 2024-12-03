@@ -173,6 +173,7 @@ dependencies {
     implementation(libs.org.bouncycastle.bcprov.jdk18on)
     implementation(libs.org.dom4j)
     implementation(libs.org.flywaydb.core)
+    implementation(libs.org.flywaydb.database.hsqldb)
     implementation(libs.org.flywaydb.database.postgresql)
     implementation(libs.org.glassfish.jaxb.runtime)
     implementation(libs.org.glassfish.jaxb.xjc)

@@ -23,17 +23,16 @@
 
 package org.projectforge.plugins.ihk;
 
-import com.google.gson.Gson;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.common.i18n.UserException;
+import org.projectforge.framework.json.JsonUtils;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.PFDay;
@@ -98,8 +97,7 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage> {
         if (!(userComment == null || userComment.isEmpty())) {
             try {
                 IHKCommentObject ihkCommentObject;
-                Gson gson = new Gson();
-                ihkCommentObject = gson.fromJson(userComment, IHKCommentObject.class);
+                ihkCommentObject = JsonUtils.fromJson(userComment, IHKCommentObject.class);
                 ausbildungsjahr = ihkCommentObject.getAusbildungsjahr();
                 teamname = ihkCommentObject.getTeamname();
                 ausbildungsbeginn = LocalDate.parse(ihkCommentObject.getAusbildungStartDatum());
