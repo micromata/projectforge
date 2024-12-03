@@ -98,7 +98,7 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
             val root: From<GroupTaskAccessDO, GroupTaskAccessDO> = cr.from(doClass)
             root.fetch<GroupTaskAccessDO, Any>("accessEntries", JoinType.LEFT)
             cr.select(root).where(
-                cb.equal(root.get<Boolean>("deleted"), true)
+                cb.equal(root.get<Boolean>("deleted"), false)
             )
             cr.orderBy(
                 cb.asc(root.get<TaskDO>("task").get<Long>("id")),

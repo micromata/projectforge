@@ -160,8 +160,8 @@ class EmployeeService {
         return getAnnualLeaveDays(employee, LocalDate.now())
     }
 
-    fun getAnnualLeaveDays(employee: EmployeeDO?, validAtDate: LocalDate?): BigDecimal? {
-        return employeeServiceSupport.getAnnualLeaveDays(employee, validAtDate)
+    fun getAnnualLeaveDays(employee: EmployeeDO?, validAtDate: LocalDate?, checkAccess: Boolean = true): BigDecimal? {
+        return employeeServiceSupport.getAnnualLeaveDays(employee, validAtDate, checkAccess = checkAccess)
     }
 
     internal fun findActiveEntry(

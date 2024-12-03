@@ -548,7 +548,7 @@ open class VacationService {
         val joinDate = employee.eintrittsDatum ?: LocalDate.of(1900, Month.JANUARY, 1)
         val leaveDate = employee.austrittsDatum ?: LocalDate.of(2999, Month.DECEMBER, 31)
         val endOfYear = PFDay.of(year, Month.JANUARY, 1).endOfYear.date
-        val annualLeaveDays = employeeService.getAnnualLeaveDays(employee, endOfYear) ?: BigDecimal.ZERO
+        val annualLeaveDays = employeeService.getAnnualLeaveDays(employee, endOfYear, checkAccess = false) ?: BigDecimal.ZERO
         /*if (joinDate == null || joinDate.year < year) {
             return BigDecimal(vacationDaysPerYear)
         }*/
