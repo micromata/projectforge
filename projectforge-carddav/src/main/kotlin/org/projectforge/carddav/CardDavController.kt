@@ -45,6 +45,36 @@ class CardDavController {
     private lateinit var addressService: AddressService
 
     /**
+     * Handles the initial OPTIONS request to indicate supported methods and DAV capabilities.
+     * This is the initial request to determine the allowed methods and DAV capabilities by the client.
+     *
+     * @return ResponseEntity with allowed methods and DAV capabilities in the headers.
+     */
+    @RequestMapping(value = ["/**"], method = [RequestMethod.OPTIONS])
+    fun handleDynamicOptions(request: HttpServletRequest): ResponseEntity<Void> {
+        val requestedPath = request.requestURI
+
+        val headers = HttpHeaders().apply {
+            // Indicate DAV capabilities
+            add("DAV", "1, 2, addressbook")
+
+            // Indicate allowed HTTP methods
+            add("Allow", "OPTIONS, GET, HEAD, POST, PUT, DELETE, PROPFIND, REPORT")
+
+            // Expose additional headers for client visibility
+            add("Access-Control-Expose-Headers", "DAV, Allow")
+
+            // Additional headers for user-specific paths
+            if (requestedPath.contains("/users/")) {
+                // Example: You might add user-specific behavior here
+                add("Content-Type", "application/xml")
+            }
+        }
+
+        return ResponseEntity.ok().headers(headers).build()
+    }
+
+    /**
      * Handle PROPFIND requests. Get the address book metadata for the given user.
      * @param user The user for which the address book is requested.
      * @param request The HTTP request.
@@ -66,15 +96,6 @@ class CardDavController {
         return ResponseEntity.status(HttpStatus.MULTI_STATUS)
             .contentType(MediaType.APPLICATION_XML)
             .body(response.toString())
-    }
-
-    @RequestMapping(value = ["/**"], method = [RequestMethod.OPTIONS])
-    fun handleOptions(): ResponseEntity<Void> {
-        val headers = HttpHeaders().apply {
-            add("DAV", "1, 2")
-            add("Allow", "OPTIONS, PROPFIND, GET")
-        }
-        return ResponseEntity.ok().headers(headers).build()
     }
 
     @GetMapping("/{user}/addressbook/{contactId}")
