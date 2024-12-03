@@ -21,41 +21,39 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web
+package org.projectforge.carddav
 
+import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
-import org.projectforge.carddav.DAVMethodsInterceptor
-import jakarta.servlet.http.HttpServletRequest
 
-class DAVMethodsInterceptorTest {
+class CardDavFilterTest {
     @Test
-    fun handledByMiltonFilterTest() {
-        checkRequest("....", "PROPFIND", true)
-        checkRequest("/users", "PROPFIND", true)
-        checkRequest("/wa/...", "PROPFIND", true)
-
-        checkRequest("....", "GET", false)
-        checkRequest("/users", "GET", false)
-
-        arrayOf("OPTIONS", "PROPPATCH", "REPORT").forEach {
-            checkMethod(it)
-        }
+    fun `test handledByCardDavFilter`() {
+        checkRequest(
+            "/",
+            "PROPFIND",
+            "/path doesn't matter",
+            true,
+            "PROPFIND should be handled by CardDavFilter, independent of the request URI"
+        )
+        checkRequest("/carddav", "OPTIONS", "/carddav/users", true)
+        checkRequest("/", "OPTIONS", "/users", true)
     }
 
-    private fun checkMethod(method: String) {
-        checkRequest("....", method, false)
-        checkRequest("users", method, false)
-        checkRequest("/users", method, true)
-        checkRequest("//users", method, true)
-        checkRequest("///users", method, true)
-    }
-
-    private fun checkRequest(uri: String, method: String, expected: Boolean) {
+    private fun checkRequest(
+        basePath: String,
+        method: String,
+        requestUri: String?,
+        expected: Boolean,
+        msg: String? = null
+    ): HttpServletRequest {
         val request = Mockito.mock(HttpServletRequest::class.java)
+        Mockito.`when`(request.requestURI).thenReturn(requestUri)
         Mockito.`when`(request.method).thenReturn(method)
-        Mockito.`when`(request.requestURI).thenReturn(uri)
-        Assertions.assertEquals(expected, DAVMethodsInterceptor.handledByMiltonFilter(request))
+        CardDavInit.cardDavBasePath = basePath
+        Assertions.assertEquals(expected, CardDavFilter.handledByCardDavFilter(request), msg)
+        return request
     }
 }

@@ -34,13 +34,15 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.InMemoryUserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.firewall.HttpFirewall
+import org.springframework.security.web.firewall.StrictHttpFirewall
 
 
 @Configuration
 open class SpringSecurityConfig {
     @Bean
     @Throws(Exception::class)
-    open fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+    open fun securityFilterChain(http: HttpSecurity, firewall: HttpFirewall): SecurityFilterChain {
         http
             .authorizeHttpRequests(Customizer { authorize ->
                 authorize
@@ -48,8 +50,23 @@ open class SpringSecurityConfig {
             } // Allow all requests without Authentication
             )
             .csrf({ csrf -> csrf.disable() }) // CSRF ist done by PF.
-
+        // Configure the firewall to allow WebDAV methods:
+        http.setSharedObject(HttpFirewall::class.java, firewall)
         return http.build()
+    }
+
+    @Bean
+    open fun allowWebDavMethodsFirewall(): HttpFirewall {
+        val firewall = StrictHttpFirewall()
+        // HTTP-Methoden für WebDAV explizit erlauben
+        firewall.setAllowedHttpMethods(
+            listOf(
+                "GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD",
+                "PROPFIND", //"PROPPATCH", "MKCOL", "COPY", "MOVE",
+                //"LOCK", "UNLOCK", "REPORT"
+            )
+        )
+        return firewall
     }
 
     @Bean

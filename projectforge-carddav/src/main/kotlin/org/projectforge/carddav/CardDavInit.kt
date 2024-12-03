@@ -23,13 +23,27 @@
 
 package org.projectforge.carddav
 
+import jakarta.annotation.PostConstruct
 import jakarta.servlet.ServletContext
 import org.projectforge.rest.config.RestUtils
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 @Component
 open class CardDavInit {
+    @Value("\${projectforge.carddav.basePath:/carddav}")
+    private lateinit var cardDavBasePath: String
+
+    @PostConstruct
+    private fun initCompanion() {
+        CardDavInit.cardDavBasePath = this.cardDavBasePath
+    }
+
     fun init(sc: ServletContext) {
         RestUtils.registerFilter(sc, "CardDavFilter", CardDavFilter::class.java, false, "/*")
+    }
+
+    companion object {
+        internal var cardDavBasePath: String = "/carddav"
     }
 }

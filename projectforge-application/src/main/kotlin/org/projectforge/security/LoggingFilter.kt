@@ -26,7 +26,6 @@ package org.projectforge.security
 import mu.KotlinLogging
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.configuration.ConfigurationServiceAccessor
-import org.projectforge.carddav.DAVMethodsInterceptor
 import org.projectforge.common.logging.*
 import org.projectforge.login.LoginService
 import org.projectforge.rest.utils.RequestLog
@@ -36,6 +35,7 @@ import org.slf4j.MDC
 import java.io.IOException
 import jakarta.servlet.*
 import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.carddav.CardDavFilter
 
 private val log = KotlinLogging.logger {}
 
@@ -107,7 +107,7 @@ class LoggingFilter : Filter {
       if (uri.isNullOrBlank() ||
         KNOWN_PATHES.any { uri.startsWith(it) } ||
         KNOWN_URLS.any { uri == it } ||
-        DAVMethodsInterceptor.handledByMiltonFilter(request)
+        CardDavFilter.handledByCardDavFilter(request)
       ) {
         return false
       }

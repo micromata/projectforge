@@ -23,12 +23,14 @@
 
 package org.projectforge.carddav
 
+import jakarta.annotation.PostConstruct
 import jakarta.servlet.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
+import org.projectforge.carddav.CardDavInit.Companion.cardDavBasePath
 import org.projectforge.carddav.service.DavSessionCache
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.security.SecurityLogging
@@ -36,6 +38,7 @@ import org.projectforge.web.rest.BasicAuthenticationData
 import org.projectforge.web.rest.RestAuthenticationInfo
 import org.projectforge.web.rest.RestAuthenticationUtils
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.context.support.WebApplicationContextUtils
 import java.io.IOException
@@ -43,7 +46,7 @@ import java.io.IOException
 private val log = KotlinLogging.logger {}
 
 /**
- * Ensuring a white url list for using Milton filter. MiltonFilter at default supports only black list.
+ * Ensuring a positive url list for using CardDav services.
  */
 class CardDavFilter : Filter {
     private lateinit var springContext: WebApplicationContext
@@ -133,14 +136,16 @@ class CardDavFilter : Filter {
             if (authHeader != null) {
                 username = BasicAuthenticationData(request, authHeader).username
             }
-            log.debug { "PFMiltonFilter.doFilter: ${
-                RequestLog.asString(
-                    request,
-                    username
-                )
-            }" }
+            log.debug {
+                "CardDavFilter.doFilter: ${
+                    RequestLog.asString(
+                        request,
+                        username
+                    )
+                }"
+            }
         }
-        if (!DAVMethodsInterceptor.handledByMiltonFilter(request)) {
+        if (!handledByCardDavFilter(request)) {
             if (log.isDebugEnabled) {
                 log.debug(
                     "Request is not for us (neither CalDAV nor CardDAV-call), processing normal filter chain (${
@@ -162,19 +167,54 @@ class CardDavFilter : Filter {
                 )
                 return
             }
-            log.info("Request with method=${request.method} for Milton (${
-                RequestLog.asString(
-                    request
-                )
-            })...")
+            log.info(
+                "Request with method=${request.method} for CardDav (${
+                    RequestLog.asString(
+                        request
+                    )
+                })..."
+            )
             log.debug { "Request-Info: ${RequestLog.asJson(request, true)}" }
             restAuthenticationUtils.doFilter(
                 request,
                 response,
                 UserTokenType.DAV_TOKEN,
                 authenticate = { authInfo -> authenticate(authInfo) },
-                doFilter = { -> chain.doFilter(request, response)  }
+                doFilter = { -> chain.doFilter(request, response) }
             )
+        }
+    }
+
+    companion object {
+        private val METHODS = arrayOf("OPTIONS", "PROPPATCH", "REPORT", "PUT")
+
+        /**
+         * @return true if given method is in list "PROPFIND", "PROPPATCH", "OPTIONS" (with /users/...), "REPORT".
+         * Otherwise, false.
+         */
+        fun handledByCardDavFilter(request: HttpServletRequest): Boolean {
+            val method = request.method
+            if (method == "PROPFIND") {
+                val uri = request.requestURI
+                log.info("PROPFIND call detected: $uri")
+                // All PROPFIND's will be handled by CardDav.
+                return true
+            }
+            if (METHODS.contains(method)) {
+                // We may add uri pattern later ("/", "/principals/*", "/users/*").
+                return urlMatches(request)
+            }
+            return false
+        }
+
+        fun urlMatches(request: HttpServletRequest): Boolean {
+            val uri = request.requestURI
+            // We may add uri pattern later ("/", "/principals/*", "/users/*").
+            return if (cardDavBasePath == "/") {
+                uri.matches("/+users.*".toRegex())
+            } else {
+                uri.matches("/*${cardDavBasePath}/users.*".toRegex())
+            }
         }
     }
 }
