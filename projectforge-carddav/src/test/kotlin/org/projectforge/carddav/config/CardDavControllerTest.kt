@@ -26,10 +26,11 @@ package org.projectforge.web
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.carddav.CardDavController
+import java.util.Date
 
 class CardDavControllerTest {
     @Test
-    fun handledByMiltonFilterTest() {
+    fun `test writing xml response of PROPFIND`() {
         StringBuilder().let { sb ->
             CardDavController.writeMultiStatusStart(sb, "www.projectforge.org")
             Assertions.assertEquals(
@@ -42,7 +43,7 @@ class CardDavControllerTest {
             Assertions.assertEquals("</d:multistatus>\n", sb.toString())
         }
         StringBuilder().let { sb ->
-            CardDavController.writeResponse(sb, user = "kai", addressId = 42L, etag = "1234567890", displayName = "Kai")
+            CardDavController.writeResponse(sb, user = "kai", addressId = 42L, etag = Date(1234567890), displayName = "Kai")
             Assertions.assertEquals(response, sb.toString())
         }
     }

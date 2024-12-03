@@ -39,7 +39,7 @@ import java.util.Date
 private val log = KotlinLogging.logger {}
 
 @RestController
-@RequestMapping("/carddav")
+@RequestMapping("\${projectforge.carddav.basePath:/carddav}")
 class CardDavController {
     @Autowired
     private lateinit var addressService: AddressService
