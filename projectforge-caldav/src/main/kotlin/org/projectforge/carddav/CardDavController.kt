@@ -25,17 +25,25 @@ package org.projectforge.carddav
 
 import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
+import org.projectforge.carddav.model.AddressBook
+import org.projectforge.carddav.model.User
+import org.projectforge.carddav.service.AddressService
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.util.Date
 
 private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("/carddav")
 class CardDavController {
+    @Autowired
+    private lateinit var addressService: AddressService
+
     /**
      * Handle PROPFIND requests. Get the address book metadata for the given user.
      * @param user The user for which the address book is requested.
@@ -48,10 +56,16 @@ class CardDavController {
             log.error { "Method not allowed: ${request.method}, PROPFIND expected." }
             return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build()
         }
-        val response = generatePropfindResponse(user)
+        val response = StringBuilder()
+        writeMultiStatusStart(response, request.serverName)
+        val addressBook = AddressBook(User(user))
+        addressService.getContactList(addressBook).forEach { contact ->
+            writeResponse(response, user, contact.id, contact.lastUpdated, contact.displayName)
+        }
+        writeMultiStatusEnd(response)
         return ResponseEntity.status(HttpStatus.MULTI_STATUS)
             .contentType(MediaType.APPLICATION_XML)
-            .body(response)
+            .body(response.toString())
     }
 
     @RequestMapping(value = ["/**"], method = [RequestMethod.OPTIONS])
@@ -65,48 +79,16 @@ class CardDavController {
 
     @GetMapping("/{user}/addressbook/{contactId}")
     fun getContact(@PathVariable user: String, @PathVariable contactId: String): ResponseEntity<String> {
-        val vCard = ""//contactService.getContactAsVCard(user, contactId)
+        val vcard = contactId.toLongOrNull()?.let {
+            addressService.getContact(it)?.vcardData?.toString(Charsets.UTF_8)
+        }
+        if (vcard == null) {
+            log.error { "Invalid contact id: $contactId" }
+            return ResponseEntity.notFound().build()
+        }
         return ResponseEntity.ok()
             .contentType(MediaType.parseMediaType("text/vcard"))
-            .body(vCard)
-    }
-
-    private fun generatePropfindResponse(user: String): String {
-        return """
-            <d:multistatus xmlns:d="DAV:" xmlns:cs="http://calendarserver.org/ns/">
-                <d:response>
-                    <d:href>/carddav/$user/addressbook/contact1.vcf</d:href>
-                    <d:propstat>
-                        <d:prop>
-                            <d:getetag>"12345"</d:getetag>
-                            <d:displayname>John Doe</d:displayname>
-                        </d:prop>
-                        <d:status>HTTP/1.1 200 OK</d:status>
-                    </d:propstat>
-                </d:response>
-                <d:response>
-                    <d:href>/carddav/user/addressbook/contact2.vcf</d:href>
-                    <d:propstat>
-                        <d:prop>
-                            <d:getetag>"67890"</d:getetag>
-                            <d:displayname>Jane Doe</d:displayname>
-                        </d:prop>
-                        <d:status>HTTP/1.1 200 OK</d:status>
-                    </d:propstat>
-                </d:response>
-            </d:multistatus>
-            <d:multistatus xmlns:d="DAV:">
-                <d:response>
-                    <d:href>/carddav/$user/addressbook/</d:href>
-                    <d:propstat>
-                        <d:status>HTTP/1.1 200 OK</d:status>
-                        <d:prop>
-                            <d:displayname>$user's Address Book</d:displayname>
-                        </d:prop>
-                    </d:propstat>
-                </d:response>
-            </d:multistatus>
-        """.trimIndent()
+            .body(vcard)
     }
 
     companion object {
@@ -123,21 +105,21 @@ class CardDavController {
         internal fun writeResponse(
             sb: StringBuilder,
             user: String,
-            addressId: Long,
-            etag: String,
+            addressId: Long?,
+            etag: Date?,
             displayName: String,
         ) {
             sb.appendLine("  <d:response>")
                 .append("    <d:href>/carddav/")
                 .append(user)
                 .append("/addressbook/contact")
-                .append(addressId)
+                .append(addressId ?: -1L)
                 .appendLine(".vcf</d:href>")
                 .appendLine("    <d:propstat>")
                 .appendLine("      <d:prop>")
                 // According to the HTTP/1.1 specification, which is also used by CardDAV, ETags must be enclosed in double quotes.
                 .append("        <d:getetag>\"")
-                .append(etag)
+                .append(etag?.time ?: -1)
                 .appendLine("\"</d:getetag>")
                 .append("        <d:displayname>")
                 .append(displayName)

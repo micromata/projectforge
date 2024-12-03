@@ -52,7 +52,11 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
 
     private var contactMap = mutableMapOf<Long, Contact>()
 
-    open fun getContacts(addressBook: AddressBook, ids: List<Long>): List<Contact> {
+    fun getContact(id: Long): Contact? {
+        return getCachedAddress(id)
+    }
+
+    fun getContacts(addressBook: AddressBook, ids: List<Long>): List<Contact> {
         val result = mutableListOf<Contact>()
         val missedInCache = mutableListOf<Long>()
         ids.forEach {
