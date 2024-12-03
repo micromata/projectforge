@@ -206,8 +206,6 @@ open class ConfigurationService {
   @Value("\${projectforge.max-file-size.xml-dump-import}")
   open var maxFileSizeXmlDumpImport: String? = null
 
-  open var isDAVServicesAvailable = false
-
   @PostConstruct
   private fun init() {
     ConfigurationServiceAccessor.setConfigurationService(this)

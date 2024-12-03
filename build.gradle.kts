@@ -25,7 +25,6 @@ allprojects {
         exclude(group = "org.slf4j", module = "slf4j-jul")
         exclude(group = "org.slf4j", module = "slf4j-log4j12")
         exclude(group = "com.sun.mail", module = "jakarta.mail")
-        exclude(group = "org.eclipse.angus", module="jakarta.mail") // Used by milton. Should be removed in final 8.0.0.
         exclude("org.apache.logging.log4j", "log4j-core")
         exclude(group = "commons-logging", module = "commons-logging")
         resolutionStrategy {
