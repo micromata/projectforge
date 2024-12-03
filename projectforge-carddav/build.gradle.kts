@@ -11,4 +11,4 @@ dependencies {
     testImplementation(libs.org.mockito.core)
 }
 
-description = "projectforge-caldav"
+description = "projectforge-carddav"
