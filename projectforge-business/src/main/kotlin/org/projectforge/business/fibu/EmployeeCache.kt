@@ -70,7 +70,7 @@ open class EmployeeCache : AbstractCache() {
      */
     fun getEmployeeIfNotInitialized(employee: EmployeeDO?): EmployeeDO? {
         employee ?: return null
-        if (Hibernate.isInitialized(employee)) {
+        if (Hibernate.isInitialized(employee) && employee.user != null) {
             return employee
         }
         return getEmployee(employee.id)
