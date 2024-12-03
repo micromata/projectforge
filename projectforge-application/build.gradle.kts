@@ -132,7 +132,6 @@ dependencies {
     implementation(libs.de.micromata.merlin.core)
     implementation(libs.fr.opensagres.xdocrepor.poi.xwpf.converter.pdf)
     implementation(libs.io.dropwizard.metrics.core)
-    implementation(libs.io.milton.server.ent)
     implementation(libs.io.github.microutils.kotlin.logging)
     implementation(libs.jakarta.activation.api)
     implementation(libs.jakarta.annotation.api)

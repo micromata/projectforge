@@ -21,29 +21,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.caldav.model
+package org.projectforge.carddav.model
 
-import io.milton.annotations.ModifiedDate
-import io.milton.annotations.Name
-import io.milton.annotations.UniqueId
-import org.slf4j.LoggerFactory
-import java.util.*
-
-class Meeting(var calendar: Calendar) {
-    var uniqueId: String? = null
-        @UniqueId get() = field
-        set
-
-    // filename for the meeting. Must be unique within the user
-    @get:Name
-    var name: String? = null
-    var createDate: Date? = null
-    @get:ModifiedDate
-    var modifiedDate: Date? = null
-    var icalData: ByteArray? = null
-
-    companion object {
-        private val log = LoggerFactory.getLogger(Meeting::class.java)
-    }
-
+class User {
+    var userName: String? = null
 }

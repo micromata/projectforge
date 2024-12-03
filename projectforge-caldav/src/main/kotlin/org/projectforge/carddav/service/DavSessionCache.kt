@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.caldav.service
+package org.projectforge.carddav.service
 
 import mu.KotlinLogging
 import org.projectforge.framework.persistence.user.entities.PFUserDO

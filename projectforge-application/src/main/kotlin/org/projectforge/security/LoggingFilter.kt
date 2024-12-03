@@ -26,7 +26,7 @@ package org.projectforge.security
 import mu.KotlinLogging
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.configuration.ConfigurationServiceAccessor
-import org.projectforge.caldav.config.DAVMethodsInterceptor
+import org.projectforge.carddav.DAVMethodsInterceptor
 import org.projectforge.common.logging.*
 import org.projectforge.login.LoginService
 import org.projectforge.rest.utils.RequestLog

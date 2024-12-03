@@ -24,11 +24,9 @@
 package org.projectforge.config;
 
 import org.projectforge.Constants;
-import org.projectforge.caldav.config.DAVMethodsInterceptor;
-import org.projectforge.common.EmphasizedLogSupport;
+import org.projectforge.carddav.DAVMethodsInterceptor;
 import org.projectforge.framework.configuration.PFSpringConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;

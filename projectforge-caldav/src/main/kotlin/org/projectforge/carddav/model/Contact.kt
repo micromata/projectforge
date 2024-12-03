@@ -21,9 +21,17 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.caldav.model
+package org.projectforge.carddav.model
 
-class UsersHome {
-    val name: String
-        get() = "users"
+data class Contact(
+    val id: Long? = null,
+    val firstName: String? = null,
+    val lastName: String? = null,
+    val lastUpdated: java.util.Date? = null,
+    var vcardData: ByteArray? = null,
+) {
+
+    override fun toString(): String {
+        return "Contact[id=$id, name=[$lastName, $firstName], lastUpdated=$lastUpdated, vcardData-size=${vcardData?.size}]"
+    }
 }

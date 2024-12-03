@@ -21,20 +21,15 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.caldav.config
+package org.projectforge.carddav
 
-import io.milton.ent.config.HttpManagerBuilderEnt
-import io.milton.servlet.DefaultMiltonConfigurator
-import org.projectforge.caldav.service.ProjectForgeCalendarSearchService
+import jakarta.servlet.ServletContext
+import org.projectforge.rest.config.RestUtils
+import org.springframework.stereotype.Component
 
-/**
- * Created by blumenstein on 17.05.17.
- */
-class ProjectForgeMiltonConfigurator : DefaultMiltonConfigurator() {
-    init {
-        if (builder is HttpManagerBuilderEnt) {
-            val builderEnt = builder as HttpManagerBuilderEnt
-            builderEnt.calendarSearchService = ProjectForgeCalendarSearchService(builderEnt)
-        }
+@Component
+open class CardDavInit {
+    fun init(sc: ServletContext) {
+        RestUtils.registerFilter(sc, "CardDavFilter", CardDavFilter::class.java, false, "/*")
     }
 }
