@@ -30,8 +30,8 @@ data class Contact(
     val lastUpdated: java.util.Date? = null,
     var vcardData: ByteArray? = null,
 ) {
-
+    val displayName = "$lastName, $firstName"
     override fun toString(): String {
-        return "Contact[id=$id, name=[$lastName, $firstName], lastUpdated=$lastUpdated, vcardData-size=${vcardData?.size}]"
+        return "Contact[id=$id, name=[$displayName], lastUpdated=$lastUpdated, vcardData-size=${vcardData?.size}]"
     }
 }

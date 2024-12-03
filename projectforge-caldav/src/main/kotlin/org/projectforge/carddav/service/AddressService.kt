@@ -37,7 +37,7 @@ private val log = KotlinLogging.logger {}
 @Service
 class AddressService {
     @Autowired
-    private lateinit var addressDAVCache: org.projectforge.carddav.service.AddressDAVCache
+    private lateinit var addressDAVCache: AddressDAVCache
 
     @Autowired
     private lateinit var personalAddressDao: PersonalAddressDao
@@ -45,6 +45,15 @@ class AddressService {
     fun getContactList(addressBook: AddressBook): List<Contact> {
         val favorites = personalAddressDao.favoriteAddressIdList
         return addressDAVCache.getContacts(addressBook, favorites)
+    }
+
+    fun getContact(id: Long): Contact? {
+        val favorites = personalAddressDao.favoriteAddressIdList
+        if (!favorites.contains(id)) {
+            log.info { "Contact with id=$id is not in favorites. Don't returning contact." }
+            return null
+        }
+        return addressDAVCache.getContact(id)
     }
 
     @Suppress("UNUSED_PARAMETER")

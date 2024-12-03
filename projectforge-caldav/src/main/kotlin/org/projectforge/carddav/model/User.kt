@@ -23,6 +23,4 @@
 
 package org.projectforge.carddav.model
 
-class User {
-    var userName: String? = null
-}
+class User(val userName: String? = null)
