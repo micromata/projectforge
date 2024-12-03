@@ -49,9 +49,6 @@ public class UserRightServiceImpl implements UserRightService, Serializable
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserRightServiceImpl.class);
 
-  @Autowired
-  AccessChecker accessChecker;
-
   private final Map<IUserRightId, UserRight> rights = new HashMap<>();
 
   private final Map<String, IUserRightId> rightIds = new HashMap<>();

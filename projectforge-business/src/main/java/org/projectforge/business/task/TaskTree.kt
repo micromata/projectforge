@@ -46,6 +46,7 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.utils.NumberHelper.greaterZero
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
 import java.io.IOException
 import java.io.Serializable
@@ -67,6 +68,7 @@ private val log = KotlinLogging.logger {}
 class TaskTree : AbstractCache(TICKS_PER_HOUR),
     Serializable {
     @Autowired
+    @Lazy // Avoid circular dependency.
     private lateinit var accessDao: AccessDao
 
     @Autowired

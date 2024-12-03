@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier
 import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.addDeserializer
 import mu.KotlinLogging
 import org.hibernate.proxy.AbstractLazyInitializer
 import org.projectforge.business.address.AddressbookDO
@@ -58,6 +59,9 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.math.BigDecimal
+import java.time.ZoneOffset
+import java.util.Date
+import java.util.TimeZone
 
 private val log = KotlinLogging.logger {}
 
@@ -247,6 +251,7 @@ open class JacksonConfiguration {
     module.addDeserializer(java.lang.Integer::class.java, IntDeserializer())
     module.addDeserializer(java.lang.Long::class.java, LongDeserializer())
     module.addDeserializer(BigDecimal::class.java, BigDecimalDeserializer())
+    module.addDeserializer(Date::class.java, UtcDateDeserializer())
 
     module.addSerializer(Kost1DO::class.java, Kost1DOSerializer())
     module.addSerializer(Kost2DO::class.java, Kost2DOSerializer())
