@@ -1,4 +1,4 @@
-/////////////////////////////////////////////////////////////////////////////
+/// //////////////////////////////////////////////////////////////////////////
 //
 // Project ProjectForge Community Edition
 //         www.projectforge.org
@@ -31,7 +31,9 @@ import org.apache.wicket.spring.SpringWebApplicationFactory;
 import org.projectforge.business.user.filter.WicketUserFilter;
 import org.projectforge.carddav.CardDavInit;
 import org.projectforge.model.rest.RestPaths;
-import org.projectforge.rest.config.*;
+import org.projectforge.rest.config.LocaleFilter;
+import org.projectforge.rest.config.Rest;
+import org.projectforge.rest.config.RestUtils;
 import org.projectforge.security.LoggingFilter;
 import org.projectforge.security.SecurityHeaderFilter;
 import org.projectforge.web.OrphanedLinkFilter;

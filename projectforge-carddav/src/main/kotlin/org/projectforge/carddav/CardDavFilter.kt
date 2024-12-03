@@ -23,7 +23,6 @@
 
 package org.projectforge.carddav
 
-import jakarta.annotation.PostConstruct
 import jakarta.servlet.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -38,7 +37,6 @@ import org.projectforge.web.rest.BasicAuthenticationData
 import org.projectforge.web.rest.RestAuthenticationInfo
 import org.projectforge.web.rest.RestAuthenticationUtils
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.context.support.WebApplicationContextUtils
 import java.io.IOException
@@ -69,15 +67,11 @@ class CardDavFilter : Filter {
     }
 
     private fun authenticate(authInfo: RestAuthenticationInfo) {
-        if (log.isDebugEnabled) {
-            log.debug("Trying to authenticate user (${RequestLog.asString(authInfo.request)})...")
-        }
+        log.debug { "Trying to authenticate user (${RequestLog.asString(authInfo.request)})..." }
         val davSessionData = davSessionCache.getSessionData(authInfo.request)
         val davSessionUser = davSessionData?.user
         if (davSessionUser != null) {
-            if (log.isDebugEnabled) {
-                log.debug("User found by session id (${RequestLog.asString(authInfo.request)})...")
-            }
+            log.debug { "User found by session id (${RequestLog.asString(authInfo.request)})..." }
             authInfo.user = davSessionUser
         } else {
             log.debug { "No user found by session id (${RequestLog.asString(authInfo.request)})..." }

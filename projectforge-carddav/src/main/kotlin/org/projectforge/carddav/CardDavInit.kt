@@ -40,10 +40,19 @@ open class CardDavInit {
     }
 
     fun init(sc: ServletContext) {
-        RestUtils.registerFilter(sc, "CardDavFilter", CardDavFilter::class.java, false, "/*")
+        RestUtils.registerFilter(sc, "CardDavFilter", CardDavFilter::class.java, false, "${getCardDavBasePath()}/*")
     }
 
     companion object {
         internal var cardDavBasePath: String = "/carddav"
+
+        @JvmStatic
+        fun getCardDavBasePath(): String {
+            return if (cardDavBasePath == "/") {
+                "/users"
+            } else {
+                "$cardDavBasePath/users"
+            }
+        }
     }
 }
