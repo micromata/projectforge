@@ -139,12 +139,12 @@ internal class EmployeeServiceSupport {
         return null
     }
 
-    fun getAnnualLeaveDays(employee: EmployeeDO?, validAtDate: LocalDate?): BigDecimal? {
+    fun getAnnualLeaveDays(employee: EmployeeDO?, validAtDate: LocalDate?, checkAccess: Boolean = true): BigDecimal? {
         if (employee == null || validAtDate == null) { // Should only occur in CallAllPagesTest (Wicket).
             return null
         }
         return getActiveEntry(
-            selectAnnualLeaveDayEntries(employee, deleted = false),
+            selectAnnualLeaveDayEntries(employee, deleted = false, checkAccess = checkAccess),
             validAtDate
         )?.value?.toBigDecimal()
     }

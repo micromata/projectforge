@@ -150,7 +150,7 @@ public class TaskNode implements IdObject<Long>, Serializable {
 
   /**
    * @return The reference of the assigned task, or if not given or blank of the parent task node. If the parent task
-   * node has no reference the grand parent task reference will be assumed and so on.
+   * node has no reference the grandparent task reference will be assumed and so on.
    */
   public String getReference() {
     if (StringUtils.isNotBlank(task.getReference())) {
@@ -411,9 +411,11 @@ public class TaskNode implements IdObject<Long>, Serializable {
    */
   GroupTaskAccessDO getGroupTaskAccess(final Long groupId) {
     Validate.notNull(groupId);
-    for (final GroupTaskAccessDO access : groupTaskAccessList) {
-      if (groupId.equals(access.getGroupId())) {
-        return access;
+    synchronized (groupTaskAccessList) {
+      for (final GroupTaskAccessDO access : groupTaskAccessList) {
+        if (groupId.equals(access.getGroupId())) {
+          return access;
+        }
       }
     }
     return null;

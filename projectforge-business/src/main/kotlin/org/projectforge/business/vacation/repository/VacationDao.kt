@@ -148,7 +148,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
                 isTimePeriodAndEmployeeUnchanged(obj, dbObj) &&
                 getAllowedStatus(user, dbObj).contains(obj.status)
             ) {
-                // Past entries may be modified on non time period values, but on allowed status changes as well as on description.
+                // Past entries may be modified on non-time period values, but on allowed status changes as well as on description.
                 return true
             }
             // User aren't allowed to insert/update old entries.
