@@ -27,12 +27,17 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
-import com.fasterxml.jackson.databind.node.LongNode
 import com.fasterxml.jackson.databind.node.NumericNode
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.math.BigDecimal
+import java.text.ParseException
+import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 private val log = KotlinLogging.logger {}
 
@@ -83,6 +88,28 @@ class BigDecimalDeserializer : StdDeserializer<BigDecimal>(BigDecimal::class.jav
             return BigDecimal(str)
         } catch (ex: NumberFormatException) {
             throw ctxt.weirdStringException(str, BigDecimal::class.java, "Can't parse decimal number.")
+        }
+    }
+}
+
+/**
+ * Deserialization for java.util.Date.
+ */
+class UtcDateDeserializer : StdDeserializer<Date>(Date::class.java) {
+    companion object {
+        private val formatter = DateTimeFormatter.ISO_INSTANT
+    }
+
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext): Date? {
+        val str = p.text
+        if (str.isNullOrBlank()) {
+            return null
+        }
+        try {
+            val instant = Instant.from(formatter.parse(p.text))
+            return Date.from(instant)
+        } catch (ex: Exception) {
+            throw ctxt.weirdStringException(str, Date::class.java, "Can't parse date.")
         }
     }
 }
