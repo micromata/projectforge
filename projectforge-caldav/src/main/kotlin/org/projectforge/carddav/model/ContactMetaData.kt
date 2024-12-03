@@ -21,16 +21,19 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.caldav.model
+package org.projectforge.carddav.model
 
-import org.slf4j.LoggerFactory
-
-class CalendarsHome(val user: User) {
-    val name: String
-        get() = "cals"
-
-    companion object {
-        private val log = LoggerFactory.getLogger(CalendarsHome::class.java)
-    }
-
-}
+data class ContactMetadata(
+    /**
+     * "/carddav/user1/addressbook/1.vcf"
+     */
+    val uri: String,
+    /**
+     * The ETag of the contact for detecting changes. E.g. last modified date.
+     */
+    val eTag: String,
+    /**
+     * Jane Smith
+     */
+    val displayName: String
+)

@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.caldav.service
+package org.projectforge.carddav.service
 
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
@@ -29,8 +29,8 @@ import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressImageDao
 import org.projectforge.business.address.vcard.VCardUtils
-import org.projectforge.caldav.model.AddressBook
-import org.projectforge.caldav.model.Contact
+import org.projectforge.carddav.model.AddressBook
+import org.projectforge.carddav.model.Contact
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
@@ -40,7 +40,7 @@ import org.springframework.stereotype.Service
 private val log = KotlinLogging.logger {}
 
 /**
- * Cache needed, because vcard generation takes lot of cpu power....
+ * Cache needed, because vcard generation takes a lot of cpu power....
  */
 @Service
 open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListener<AddressDO> {
@@ -58,19 +58,25 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
         ids.forEach {
             val contact = getCachedAddress(it)
             if (contact != null) {
-                val copy = Contact(contact, addressBook)
-                result.add(copy)
+                result.add(contact)
             } else {
                 missedInCache.add(it)
             }
         }
-        log.info("Got ${result.size} addresses from cache and must load ${missedInCache.size} from data base...")
+        log.info { "Got ${result.size} addresses from cache and must load ${missedInCache.size} from data base..." }
         if (missedInCache.size > 0) {
             addressDao.select(missedInCache, checkAccess = false)?.forEach {
                 val vcard = VCardUtils.buildVCardByteArray(it, addressImageDao)
-                val contact = Contact(it.id, it.fullName, it.lastUpdate, vcard)
+                val contact =
+                    Contact(
+                        it.id,
+                        firstName = it.firstName,
+                        lastName = it.name,
+                        lastUpdated = it.lastUpdate,
+                        vcardData = vcard,
+                    )
                 addCachedContact(it.id!!, contact)
-                val copy = Contact(contact, addressBook)
+                val copy = contact
                 result.add(copy)
             }
         }
@@ -105,7 +111,7 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
     }
 
     override fun refresh() {
-        log.info("Clearing cache ${this::class.java.simpleName}.")
+        org.projectforge.carddav.service.log.info("Clearing cache ${this::class.java.simpleName}.")
         synchronized(contactMap) {
             contactMap.clear()
         }

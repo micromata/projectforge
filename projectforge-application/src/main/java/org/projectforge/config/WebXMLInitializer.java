@@ -29,8 +29,7 @@ import jakarta.servlet.ServletException;
 import org.apache.wicket.protocol.http.WicketFilter;
 import org.apache.wicket.spring.SpringWebApplicationFactory;
 import org.projectforge.business.user.filter.WicketUserFilter;
-import org.projectforge.caldav.config.PFMiltonInit;
-import org.projectforge.common.EmphasizedLogSupport;
+import org.projectforge.carddav.CardDavInit;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.config.*;
 import org.projectforge.security.LoggingFilter;
@@ -60,7 +59,7 @@ public class WebXMLInitializer implements ServletContextInitializer {
     private static final String PARAM_APP_BEAN = "applicationBean";
 
     @Autowired
-    private PFMiltonInit pfMiltonInit;
+    private CardDavInit cardDavInit;
 
     @Override
     public void onStartup(ServletContext sc) throws ServletException {
@@ -73,7 +72,7 @@ public class WebXMLInitializer implements ServletContextInitializer {
          */
         sc.addFilter("redirectOrphanedLinks", new OrphanedLinkFilter()).addMappingForUrlPatterns(null, false, "/*");
 
-        pfMiltonInit.init(sc);
+        cardDavInit.init(sc);
 
         boolean filterAfterInternal = false;
         RestUtils.registerFilter(sc, "loggingFilter", LoggingFilter.class, false, "/*");

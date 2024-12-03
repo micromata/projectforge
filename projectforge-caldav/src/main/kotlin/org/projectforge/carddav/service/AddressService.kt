@@ -21,13 +21,13 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.caldav.service
+package org.projectforge.carddav.service
 
 import mu.KotlinLogging
 import org.projectforge.business.address.PersonalAddressDao
 import org.projectforge.business.address.vcard.VCardUtils
-import org.projectforge.caldav.model.AddressBook
-import org.projectforge.caldav.model.Contact
+import org.projectforge.carddav.model.AddressBook
+import org.projectforge.carddav.model.Contact
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -37,7 +37,7 @@ private val log = KotlinLogging.logger {}
 @Service
 class AddressService {
     @Autowired
-    private lateinit var addressDAVCache: AddressDAVCache
+    private lateinit var addressDAVCache: org.projectforge.carddav.service.AddressDAVCache
 
     @Autowired
     private lateinit var personalAddressDao: PersonalAddressDao
@@ -91,7 +91,7 @@ class AddressService {
                 log.info("Contact '${vcard.formattedName.value} removed from ${ThreadLocalUserContext.loggedInUser!!.username}'s favorite list.")
             }
         } catch (e: Exception) {
-            log.error("Exception while deleting contact: " + contact.name, e)
+            log.error(e) { "Exception while deleting contact: id=${contact.id}, name=[${contact.lastName}, ${contact.firstName}]" }
         }
     }
 }

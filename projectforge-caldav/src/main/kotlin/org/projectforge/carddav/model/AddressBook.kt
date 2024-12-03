@@ -21,13 +21,9 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.caldav.model
+package org.projectforge.carddav.model
 
-/**
- * Created by blumenstein on 21.11.16.
- */
-class ContactsHome(val user: User) {
+class AddressBook(val user: User) {
     val name: String
-        get() = "addressBooks"
-
+        get() = "default"
 }

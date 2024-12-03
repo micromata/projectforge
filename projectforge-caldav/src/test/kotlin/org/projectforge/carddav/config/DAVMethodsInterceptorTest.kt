@@ -26,14 +26,12 @@ package org.projectforge.web
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
-import org.projectforge.caldav.config.DAVMethodsInterceptor
-import org.projectforge.caldav.config.PFMiltonInit
+import org.projectforge.carddav.DAVMethodsInterceptor
 import jakarta.servlet.http.HttpServletRequest
 
 class DAVMethodsInterceptorTest {
     @Test
     fun handledByMiltonFilterTest() {
-        PFMiltonInit.available = true
         checkRequest("....", "PROPFIND", true)
         checkRequest("/users", "PROPFIND", true)
         checkRequest("/wa/...", "PROPFIND", true)
