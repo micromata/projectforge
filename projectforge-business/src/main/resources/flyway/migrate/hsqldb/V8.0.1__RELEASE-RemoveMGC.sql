@@ -11,6 +11,7 @@ ALTER TABLE t_pf_history_attr ALTER COLUMN modifiedat SET NULL; -- parent.modifi
 ALTER TABLE t_pf_history_attr ALTER COLUMN modifiedby SET NULL; -- parent.modifieby is used instead.
 ALTER TABLE t_pf_history_attr ALTER COLUMN updatecounter SET NULL;
 ALTER TABLE t_pf_history_attr ALTER COLUMN type SET NULL;
+ALTER TABLE t_pf_history_attr ALTER COLUMN withdata SET NULL;
 
 ALTER TABLE t_configuration ALTER COLUMN intvalue bigint;
 ALTER TABLE t_configuration ALTER COLUMN intvalue RENAME TO longvalue;
