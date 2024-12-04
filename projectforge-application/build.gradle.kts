@@ -136,6 +136,7 @@ dependencies {
     implementation(libs.jakarta.activation.api)
     implementation(libs.jakarta.annotation.api)
     implementation(libs.jakarta.mail.jakarta.mail.api)
+    implementation(libs.jakarta.mail.sun.mail)
     implementation(libs.jakarta.persistence.api)
     implementation(libs.jakarta.servlet.api)
     implementation(libs.jakarta.servlet.jsp.api)
