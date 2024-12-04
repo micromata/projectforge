@@ -42,7 +42,7 @@ import org.projectforge.framework.persistence.history.NoHistory
 @Table(name = "t_plugin_merlin_template")
 open class MerlinTemplateDO : AbstractBaseDO<Long>(), AttachmentsInfo {
   @get:Id
-  @get:GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @get:GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
   @get:Column(name = "pk")
   @PropertyInfo(i18nKey = "id")
   override var id: Long? = null
