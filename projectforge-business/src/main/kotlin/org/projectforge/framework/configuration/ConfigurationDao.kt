@@ -82,8 +82,8 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
             ConfigurationDO.FIND_BY_PARAMETER,
             ConfigurationDO::class.java,
             Pair("parameter", param.key),
-            nullAllowed = false,
-        )!!
+            nullAllowed = true,
+        )
     }
 
     fun getValue(parameter: IConfigurationParam): Any? {
