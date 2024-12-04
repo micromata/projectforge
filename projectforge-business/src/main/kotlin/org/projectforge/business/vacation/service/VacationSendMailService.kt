@@ -62,10 +62,10 @@ open class VacationSendMailService {
   private lateinit var sendMail: SendMail
 
   /**
-   * Analyzes the changes of the given vacation. If necessary, e-mails will be send to the involved
+   * Analyzes the changes of the given vacation. If necessary, e-mails will be sent to the involved
    * employees (replacement and management).
    * @param obj The object to save.
-   * @param dbObj The already existing object in the data base (if updated). For new objects dbObj is null.
+   * @param dbObj The already existing object in the database (if updated). For new objects dbObj is null.
    */
   @JvmOverloads
   open fun checkAndSendMail(obj: VacationDO, operationType: OperationType, dbObj: VacationDO? = null) {

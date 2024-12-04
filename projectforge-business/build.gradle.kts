@@ -53,6 +53,7 @@ dependencies {
     api(libs.jakarta.activation.api)
     api(libs.jakarta.annotation.api)
     api(libs.jakarta.mail.jakarta.mail.api)
+    api(libs.jakarta.mail.sun.mail)
     api(libs.jakarta.persistence.api)
     api(libs.jakarta.servlet.api)
     api(libs.jakarta.xml.bind.api)
