@@ -77,7 +77,7 @@ VALUES (129, '2010-04-21 22:09:18.543', FALSE, '2017-11-23 12:56:36.438', 'UPTOD
 INSERT INTO t_pf_user (pk, created, deleted, last_update, authentication_token, date_format, deactivated, description,
                        email, excel_date_format, first_day_of_week, firstname, hr_planning, jira_username, lastlogin,
                        lastname, ldap_values, local_user, locale, loginfailures, organization,
-                       personal_meb_identifiers, personal_phone_identifiers, restricted_user,
+                       personal_phone_identifiers, restricted_user,
                        ssh_public_key, stay_logged_in_key, super_admin, time_notation, time_zone, username)
 VALUES (16, '2013-04-07 15:49:57.114', FALSE, '2013-04-07 15:49:57.114', NULL, NULL, FALSE, 'Project manager',
         'a.ville@my-company.com', NULL, NULL, 'Ann', TRUE,
@@ -85,7 +85,7 @@ VALUES (16, '2013-04-07 15:49:57.114', FALSE, '2013-04-07 15:49:57.114', NULL, N
         'Ville',
         NULL, FALSE,
         NULL, 0,
-        'My Company', NULL, NULL, FALSE, NULL, NULL, FALSE, NULL,
+        'My Company',NULL, FALSE, NULL, NULL, FALSE, NULL,
         'Europe/Berlin', 'ann');
 INSERT INTO t_pf_user_password (pk, user_id, created, last_update, deleted, password_hash, password_salt)
 VALUES(16, 16, '2013-04-07 15:49:57.114', '2013-04-07 15:49:57.114', false, 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL);
@@ -93,7 +93,7 @@ VALUES(16, 16, '2013-04-07 15:49:57.114', '2013-04-07 15:49:57.114', false, 'SHA
 INSERT INTO t_pf_user (pk, created, deleted, last_update, authentication_token, date_format, deactivated, description,
                        email, excel_date_format, first_day_of_week, firstname, hr_planning, jira_username, lastlogin,
                        lastname, ldap_values, local_user, locale, loginfailures, organization,
-                       personal_meb_identifiers, personal_phone_identifiers, restricted_user,
+                       personal_phone_identifiers, restricted_user,
                        ssh_public_key, stay_logged_in_key, super_admin, time_notation, time_zone, username)
 VALUES (17, '2010-04-21 22:02:25.955', FALSE, '2013-04-07 18:04:45.05', '85L2ckM6g6PKtiEYjTCsPUKvCmk', NULL, FALSE,
         NULL, 'devnull@devnull.com', NULL, NULL, 'Kai',
@@ -104,7 +104,7 @@ VALUES (17, '2010-04-21 22:02:25.955', FALSE, '2013-04-07 18:04:45.05', '85L2ckM
         NULL,
         FALSE,
         NULL, 0,
-        'Micromata GmbH', NULL, NULL, FALSE, NULL, NULL, FALSE,
+        'Micromata GmbH',NULL, FALSE, NULL, NULL, FALSE,
         NULL, 'Europe/Berlin', 'kai');
 INSERT INTO t_pf_user_password (pk, user_id, created, last_update, deleted, password_hash, password_salt)
 VALUES(17, 17, '2013-04-07 18:04:45.05', '2013-04-07 18:04:45.05', false, 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL);
@@ -112,7 +112,7 @@ VALUES(17, 17, '2013-04-07 18:04:45.05', '2013-04-07 18:04:45.05', false, 'SHA{4
 INSERT INTO t_pf_user (pk, created, deleted, last_update, authentication_token, date_format, deactivated, description,
                        email, excel_date_format, first_day_of_week, firstname, hr_planning, jira_username, lastlogin,
                        lastname, ldap_values, local_user, locale, loginfailures, organization,
-                       personal_meb_identifiers, personal_phone_identifiers, restricted_user,
+                       personal_phone_identifiers, restricted_user,
                        ssh_public_key, stay_logged_in_key, super_admin, time_notation, time_zone, username)
 VALUES (18, '2010-04-20 22:29:20.926', FALSE, '2013-04-27 15:56:13.735', 'HCOYtodmNK8lv_-bqnBEzHocBhg', NULL, FALSE,
         NULL, 'devnull@devnull.com', NULL, NULL, 'Demo',
@@ -124,7 +124,7 @@ VALUES (18, '2010-04-20 22:29:20.926', FALSE, '2013-04-27 15:56:13.735', 'HCOYto
         FALSE,
         NULL,
         0,
-        NULL, NULL, NULL, FALSE, NULL, NULL, FALSE, NULL,
+        NULL, NULL, FALSE, NULL, NULL, FALSE, NULL,
         'Europe/Berlin', 'demo');
 INSERT INTO t_pf_user_password (pk, user_id, created, last_update, deleted, password_hash, password_salt)
 VALUES(18, 18, '2013-04-27 15:56:13.731', '2013-04-27 15:56:13.731', false, 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL);
@@ -132,14 +132,14 @@ VALUES(18, 18, '2013-04-27 15:56:13.731', '2013-04-27 15:56:13.731', false, 'SHA
 INSERT INTO t_pf_user (pk, created, deleted, last_update, authentication_token, date_format, deactivated, description,
                        email, excel_date_format, first_day_of_week, firstname, hr_planning, jira_username, lastlogin,
                        lastname, ldap_values, local_user, locale, loginfailures, organization,
-                       personal_meb_identifiers, personal_phone_identifiers, restricted_user,
+                       personal_phone_identifiers, restricted_user,
                        ssh_public_key, stay_logged_in_key, super_admin, time_notation, time_zone, username)
 VALUES (20, '2013-04-07 15:49:34.35', FALSE, '2013-04-07 15:49:34.35', NULL, NULL, FALSE, 'Project manager',
         'a.peters@my-company.com', NULL, NULL, 'Alex', TRUE,
         NULL, NULL,
         'Peters', NULL,
         FALSE, NULL, 0,
-        'My Company', NULL, NULL, FALSE, NULL, NULL, FALSE, NULL,
+        'My Company', NULL, FALSE, NULL, NULL, FALSE, NULL,
         'Europe/Berlin', 'alex');
 INSERT INTO t_pf_user_password (pk, user_id, created, last_update, deleted, password_hash, password_salt)
 VALUES(20, 20, '2013-04-07 15:49:34.35', '2013-04-07 15:49:34.35', false, 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL);
@@ -147,13 +147,13 @@ VALUES(20, 20, '2013-04-07 15:49:34.35', '2013-04-07 15:49:34.35', false, 'SHA{4
 INSERT INTO t_pf_user (pk, created, deleted, last_update, authentication_token, date_format, deactivated, description,
                        email, excel_date_format, first_day_of_week, firstname, hr_planning, jira_username, lastlogin,
                        lastname, ldap_values, local_user, locale, loginfailures, organization,
-                       personal_meb_identifiers, personal_phone_identifiers, restricted_user,
+                       personal_phone_identifiers, restricted_user,
                        ssh_public_key, stay_logged_in_key, super_admin, time_notation, time_zone, username)
 VALUES (21, '2013-04-07 15:51:04.237', FALSE, '2013-04-07 15:51:04.237', NULL, NULL, FALSE, 'Developer',
         'j.stone@my-company.com', NULL, NULL, 'Joe', TRUE, NULL,
         NULL, 'Stone',
         NULL, FALSE, NULL, 0,
-        'My company', NULL, NULL, FALSE, NULL, NULL, FALSE, NULL,
+        'My company', NULL, FALSE, NULL, NULL, FALSE, NULL,
         'Europe/Berlin', 'joe');
 INSERT INTO t_pf_user_password (pk, user_id, created, last_update, deleted, password_hash, password_salt)
 VALUES(21, 21, '2013-04-07 15:51:04.237', '2013-04-07 15:51:04.237', false, 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL);
@@ -161,13 +161,13 @@ VALUES(21, 21, '2013-04-07 15:51:04.237', '2013-04-07 15:51:04.237', false, 'SHA
 INSERT INTO t_pf_user (pk, created, deleted, last_update, authentication_token, date_format, deactivated, description,
                        email, excel_date_format, first_day_of_week, firstname, hr_planning, jira_username, lastlogin,
                        lastname, ldap_values, local_user, locale, loginfailures, organization,
-                       personal_meb_identifiers, personal_phone_identifiers, restricted_user,
+                       personal_phone_identifiers, restricted_user,
                        ssh_public_key, stay_logged_in_key, super_admin, time_notation, time_zone, username)
 VALUES (22, '2013-04-07 15:52:12.89', FALSE, '2013-04-07 15:52:12.89', NULL, NULL, FALSE, 'Developer',
         'm.bach@my-company.de', NULL, NULL, 'Max', TRUE, NULL, NULL,
         'Bach', NULL, FALSE,
         NULL, 0, 'My company',
-        NULL, NULL,
+        NULL,
         FALSE, NULL,
         NULL, FALSE,
         NULL,
@@ -178,13 +178,13 @@ VALUES(22, 22, '2013-04-07 15:52:12.89', '2013-04-07 15:52:12.89', false, 'SHA{4
 INSERT INTO t_pf_user (pk, created, deleted, last_update, authentication_token, date_format, deactivated, description,
                        email, excel_date_format, first_day_of_week, firstname, hr_planning, jira_username, lastlogin,
                        lastname, ldap_values, local_user, locale, loginfailures, organization,
-                       personal_meb_identifiers, personal_phone_identifiers, restricted_user,
+                       personal_phone_identifiers, restricted_user,
                        ssh_public_key, stay_logged_in_key, super_admin, time_notation, time_zone, username)
 VALUES (23, '2013-04-07 15:51:41.389', FALSE, '2013-04-07 15:51:41.389', NULL, NULL, FALSE, 'Developer',
         'j.white@my-company.com', NULL, NULL, 'Julia', TRUE, NULL,
         NULL, 'White',
         NULL, FALSE, NULL, 0,
-        'My company', NULL, NULL, FALSE, NULL, NULL, FALSE, NULL,
+        'My company', NULL, FALSE, NULL, NULL, FALSE, NULL,
         'Europe/Berlin', 'julia');
 INSERT INTO t_pf_user_password (pk, user_id, created, last_update, deleted, password_hash, password_salt)
 VALUES(23, 23, '2013-04-07 15:51:41.389', '2013-04-07 15:51:41.389', false, 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL);
@@ -192,13 +192,13 @@ VALUES(23, 23, '2013-04-07 15:51:41.389', '2013-04-07 15:51:41.389', false, 'SHA
 INSERT INTO t_pf_user (pk, created, deleted, last_update, authentication_token, date_format, deactivated, description,
                        email, excel_date_format, first_day_of_week, firstname, hr_planning, jira_username, lastlogin,
                        lastname, ldap_values, local_user, locale, loginfailures, organization,
-                       personal_meb_identifiers, personal_phone_identifiers, restricted_user,
+                       personal_phone_identifiers, restricted_user,
                        ssh_public_key, stay_logged_in_key, super_admin, time_notation, time_zone, username)
 VALUES (24, '2013-04-07 15:52:44.012', FALSE, '2013-04-07 15:52:44.012', NULL, NULL, FALSE, 'Developer',
         'm.evers@my-company.com', NULL, NULL, 'Michael', TRUE, NULL,
         NULL, 'Evers',
         NULL, FALSE, NULL, 0,
-        'My company', NULL, NULL, FALSE, NULL, NULL, FALSE, NULL,
+        'My company', NULL, FALSE, NULL, NULL, FALSE, NULL,
         'Europe/Berlin', 'michael');
 INSERT INTO t_pf_user_password (pk, user_id, created, last_update, deleted, password_hash, password_salt)
 VALUES(24, 24, '2013-04-07 15:52:44.012', '2013-04-07 15:52:44.012', false, 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL);
@@ -206,13 +206,13 @@ VALUES(24, 24, '2013-04-07 15:52:44.012', '2013-04-07 15:52:44.012', false, 'SHA
 INSERT INTO t_pf_user (pk, created, deleted, last_update, authentication_token, date_format, deactivated, description,
                        email, excel_date_format, first_day_of_week, firstname, hr_planning, jira_username, lastlogin,
                        lastname, ldap_values, local_user, locale, loginfailures, organization,
-                        personal_meb_identifiers, personal_phone_identifiers, restricted_user,
+                       personal_phone_identifiers, restricted_user,
                        ssh_public_key, stay_logged_in_key, super_admin, time_notation, time_zone, username)
 VALUES (25, '2013-04-07 15:53:08.909', FALSE, '2013-04-07 15:53:08.909', NULL, NULL, FALSE, 'Developer',
         'm.nike@my-company.com', NULL, NULL, 'Mona', TRUE, NULL,
         NULL, 'Nike',
         NULL, FALSE, NULL, 0,
-        'My company', NULL, NULL, FALSE, NULL, NULL, FALSE, NULL,
+        'My company', NULL, FALSE, NULL, NULL, FALSE, NULL,
         'Europe/Berlin', 'mona');
 INSERT INTO t_pf_user_password (pk, user_id, created, last_update, deleted, password_hash, password_salt)
 VALUES(25, 25, '2013-04-07 15:53:08.909', '2013-04-07 15:53:08.909', false, 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL);
@@ -220,13 +220,13 @@ VALUES(25, 25, '2013-04-07 15:53:08.909', '2013-04-07 15:53:08.909', false, 'SHA
 INSERT INTO t_pf_user (pk, created, deleted, last_update, authentication_token, date_format, deactivated, description,
                        email, excel_date_format, first_day_of_week, firstname, hr_planning, jira_username, lastlogin,
                        lastname, ldap_values, local_user, locale, loginfailures, organization,
-                       personal_meb_identifiers, personal_phone_identifiers, restricted_user,
+                       personal_phone_identifiers, restricted_user,
                        ssh_public_key, stay_logged_in_key, super_admin, time_notation, time_zone, username)
 VALUES (26, '2013-04-07 15:50:32.15', FALSE, '2013-04-07 15:50:32.15', NULL, NULL, FALSE, 'Developer',
         'c.clark@my-company.com', NULL, NULL, 'Chris', TRUE, NULL,
         NULL, 'Clark',
         NULL, FALSE, NULL, 0,
-        'My company', NULL, NULL, FALSE, NULL, NULL, FALSE, NULL,
+        'My company', NULL, FALSE, NULL, NULL, FALSE, NULL,
         'Europe/Berlin', 'chris');
 INSERT INTO t_pf_user_password (pk, user_id, created, last_update, deleted, password_hash, password_salt)
 VALUES(26, 26, '2013-04-07 15:50:32.15', '2013-04-07 15:50:32.15', false, 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL);
@@ -234,14 +234,14 @@ VALUES(26, 26, '2013-04-07 15:50:32.15', '2013-04-07 15:50:32.15', false, 'SHA{4
 INSERT INTO t_pf_user (pk, created, deleted, last_update, authentication_token, date_format, deactivated, description,
                        email, excel_date_format, first_day_of_week, firstname, hr_planning, jira_username, lastlogin,
                        lastname, ldap_values, local_user, locale, loginfailures, organization,
-                       personal_meb_identifiers, personal_phone_identifiers, restricted_user,
+                       personal_phone_identifiers, restricted_user,
                        ssh_public_key, stay_logged_in_key, super_admin, time_notation, time_zone, username)
 VALUES (19, '2008-01-10 08:26:19.742', FALSE, '2014-09-02 12:26:04.944', NULL, NULL, FALSE, 'IT system administrators of ProjectForge. They have only access to finances, order book or the project manager''s view, if the groups are
       assigned.
     ', NULL, NULL, NULL, 'Admin', FALSE, NULL, '2014-09-02 12:34:47.785', 'ProjectForge Administrator', NULL,
         TRUE, 'en', 0, NULL,
         NULL,
-        NULL, FALSE, NULL, NULL,
+        FALSE, NULL, NULL,
         TRUE, NULL, 'UTC', 'admin');
 INSERT INTO t_pf_user_password (pk, user_id, created, last_update, deleted, password_hash, password_salt)
 VALUES(19, 19, '2014-09-02 12:34:47.785', '2014-09-02 12:34:47.785', false, 'SHA{9CE7B48A16130787B61C52C2120193EBD525FFAA}', 'UXKTgc9ZnrtB7w==');
@@ -494,10 +494,6 @@ INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtyp
                              parameter, stringvalue)
 VALUES (7, '2010-04-21 00:12:07.607', FALSE, '2010-04-21 22:07:40.197', 'STRING', NULL, FALSE, NULL,
         'countryPhonePrefix', '+49');
-INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, longvalue,
-                             parameter, stringvalue)
-VALUES (8, '2010-07-13 17:39:34.685', FALSE, '2010-07-13 17:39:34.685', 'STRING', NULL, FALSE, NULL,
-        'mebSMSReceivingPhoneNumber', NULL);
 INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, longvalue,
                              parameter, stringvalue)
 VALUES (10, '2011-03-18 06:18:53.377', FALSE, '2011-03-18 06:18:53.377', 'STRING', NULL, FALSE, NULL, 'dateFormats',
@@ -2414,66 +2410,6 @@ VALUES (103, '2010-05-20 01:42:23.631', FALSE, '2010-05-20 01:42:23.631',
         'Development of famous Hibernate Classes: PF-123, PF-675', 'Head quarter',
         '2010-05-03 13:00:00', '2010-05-03 16:00:00', NULL, 73, 62, 18);
 
-INSERT INTO t_user_pref (pk, created, deleted, last_update, area, name, user_fk)
-VALUES (131, '2010-04-21 22:23:28.951', FALSE, '2010-04-21 22:23:28.951', 'TASK_FAVORITE', 'ACME Webportal R 1.0 Spec',
-        17);
-INSERT INTO t_user_pref (pk, created, deleted, last_update, area, name, user_fk)
-VALUES (133, '2010-04-21 22:23:35.769', FALSE, '2010-04-21 22:23:35.769', 'TIMESHEET_TEMPLATE',
-        'ACME Webportal R 1.0 Spec', 17);
-INSERT INTO t_user_pref (pk, created, deleted, last_update, area, name, user_fk)
-VALUES (139, '2010-04-22 07:56:08.902', FALSE, '2010-04-22 07:56:08.902', 'USER_FAVORITE', 'Demo user', 17);
-INSERT INTO t_user_pref (pk, created, deleted, last_update, area, name, user_fk)
-VALUES (141, '2010-04-22 07:56:30.261', FALSE, '2010-04-22 07:56:30.261', 'TASK_FAVORITE', 'ACME Webportal', 17);
-INSERT INTO t_user_pref (pk, created, deleted, last_update, area, name, user_fk)
-VALUES (143, '2010-04-22 07:56:43.791', FALSE, '2010-04-22 07:56:43.791', 'USER_FAVORITE', 'Administrator', 17);
-INSERT INTO t_user_pref (pk, created, deleted, last_update, area, name, user_fk)
-VALUES (145, '2010-04-22 21:42:05.141', FALSE, '2013-04-27 15:17:10.97', 'TASK_FAVORITE',
-        'Yellow Logistics Webportal Akquise', 18);
-INSERT INTO t_user_pref (pk, created, deleted, last_update, area, name, user_fk)
-VALUES (147, '2010-04-22 21:42:20.454', FALSE, '2013-04-27 15:17:43.705', 'TASK_FAVORITE', 'Yellow Webportal Spec',
-        18);
-INSERT INTO t_user_pref (pk, created, deleted, last_update, area, name, user_fk)
-VALUES (149, '2010-04-22 21:43:57.937', FALSE, '2013-04-27 15:19:21.243', 'TIMESHEET_TEMPLATE',
-        'Yellow Webportal Realization', 18);
-INSERT INTO t_user_pref (pk, created, deleted, last_update, area, name, user_fk)
-VALUES (155, '2010-04-22 21:44:33.477', FALSE, '2013-04-27 15:17:29.215', 'TASK_FAVORITE', 'ProjectForge Dev Java',
-        18);
-
-INSERT INTO t_user_pref_entry (pk, parameter, s_value, user_pref_fk)
-VALUES (132, 'task', '57', 131);
-INSERT INTO t_user_pref_entry (pk, parameter, s_value, user_pref_fk)
-VALUES (134, 'task', '57', 133);
-INSERT INTO t_user_pref_entry (pk, parameter, s_value, user_pref_fk)
-VALUES (135, 'description', NULL, 133);
-INSERT INTO t_user_pref_entry (pk, parameter, s_value, user_pref_fk)
-VALUES (136, 'kost2', '72', 133);
-INSERT INTO t_user_pref_entry (pk, parameter, s_value, user_pref_fk)
-VALUES (137, 'user', '18', 133);
-INSERT INTO t_user_pref_entry (pk, parameter, s_value, user_pref_fk)
-VALUES (138, 'location', 'Micromata', 133);
-INSERT INTO t_user_pref_entry (pk, parameter, s_value, user_pref_fk)
-VALUES (140, 'user', '17', 139);
-INSERT INTO t_user_pref_entry (pk, parameter, s_value, user_pref_fk)
-VALUES (142, 'task', '55', 141);
-INSERT INTO t_user_pref_entry (pk, parameter, s_value, user_pref_fk)
-VALUES (144, 'user', '16', 143);
-INSERT INTO t_user_pref_entry (pk, parameter, s_value, user_pref_fk)
-VALUES (146, 'task', '51', 145);
-INSERT INTO t_user_pref_entry (pk, parameter, s_value, user_pref_fk)
-VALUES (148, 'task', '52', 147);
-INSERT INTO t_user_pref_entry (pk, parameter, s_value, user_pref_fk)
-VALUES (150, 'description', 'Wrote nice Java classes...', 149);
-INSERT INTO t_user_pref_entry (pk, parameter, s_value, user_pref_fk)
-VALUES (151, 'user', '17', 149);
-INSERT INTO t_user_pref_entry (pk, parameter, s_value, user_pref_fk)
-VALUES (152, 'kost2', 'null', 149);
-INSERT INTO t_user_pref_entry (pk, parameter, s_value, user_pref_fk)
-VALUES (153, 'location', 'Micromata', 149);
-INSERT INTO t_user_pref_entry (pk, parameter, s_value, user_pref_fk)
-VALUES (154, 'task', '53', 149);
-INSERT INTO t_user_pref_entry (pk, parameter, s_value, user_pref_fk)
-VALUES (156, 'task', '62', 155);
-
 INSERT INTO t_user_right (pk, created, deleted, last_update, right_id, value, user_fk)
 VALUES (350, '2010-05-20 01:39:20.297', FALSE, '2010-05-20 01:39:20.297', 'FIBU_AUSGANGSRECHNUNGEN', 'READWRITE',
         17);
@@ -2492,8 +2428,6 @@ INSERT INTO t_user_right (pk, created, deleted, last_update, right_id, value, us
 VALUES (356, '2010-07-13 17:38:47.509', FALSE, '2010-07-13 17:38:47.509', 'ORGA_CONTRACTS', 'READONLY', 18);
 INSERT INTO t_user_right (pk, created, deleted, last_update, right_id, value, user_fk)
 VALUES (357, '2010-05-19 23:54:43.09', FALSE, '2010-05-19 23:54:43.09', 'FIBU_DATEV_IMPORT', 'TRUE', 18);
-INSERT INTO t_user_right (pk, created, deleted, last_update, right_id, value, user_fk)
-VALUES (358, '2010-05-19 23:54:43.092', FALSE, '2010-05-19 23:54:43.092', 'MISC_MEB', 'TRUE', 18);
 INSERT INTO t_user_right (pk, created, deleted, last_update, right_id, value, user_fk)
 VALUES (359, '2010-05-19 23:54:43.091', FALSE, '2010-05-19 23:54:43.091', 'ORGA_OUTGOING_MAIL', 'READONLY', 18);
 INSERT INTO t_user_right (pk, created, deleted, last_update, right_id, value, user_fk)
@@ -2536,1065 +2470,3 @@ INSERT INTO t_user_right (pk, created, deleted, last_update, right_id, value, us
 VALUES (377, '2014-09-02 12:26:05.02', FALSE, '2014-09-02 12:26:05.02', 'HR_EMPLOYEE', 'READWRITE', 19);
 INSERT INTO t_user_right (pk, created, deleted, last_update, right_id, value, user_fk)
 VALUES (378, '2011-02-07 21:16:29.996', FALSE, '2011-02-07 21:16:29.996', 'FIBU_DATEV_IMPORT', 'TRUE', 19);
-
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (247, '2010-04-21 00:13:19.651', 'org.projectforge.web.admin.ConfigurationListForm:Filter',
-        '2013-04-07 18:14:25.515', '<org.projectforge.framework.persistence.api.BaseSearchFilter>
-      <searchString></searchString>
-      <deleted>false</deleted>
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>-1</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      </org.projectforge.framework.persistence.api.BaseSearchFilter>
-    ', 1, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (248, '2010-04-21 00:13:19.653', 'CalendarPage.userPrefs', '2013-04-07 18:14:25.506', '<org.projectforge.business.teamcal.filter.TeamCalCalendarFilter>
-  <startDate>2019-06-23</startDate>
-  <firstHour>8</firstHour>
-  <viewType>AGENDA_WEEK</viewType>
-  <templateEntries>
-    <org.projectforge.business.teamcal.filter.TemplateEntry>
-      <calendarProperties class="sorted-set">
-        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-          <calId>157</calId>
-          <colorCode>#008000</colorCode>
-          <visible>true</visible>
-          <millisOfLastChange>1562227222945</millisOfLastChange>
-        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-          <calId>158</calId>
-          <colorCode>#ff0</colorCode>
-          <visible>true</visible>
-          <millisOfLastChange>1562227225273</millisOfLastChange>
-        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-          <calId>159</calId>
-          <colorCode>#FAAF26</colorCode>
-          <visible>true</visible>
-          <millisOfLastChange>1562227214916</millisOfLastChange>
-        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-          <calId>160</calId>
-          <colorCode>#f0f</colorCode>
-          <visible>true</visible>
-          <millisOfLastChange>1562227233067</millisOfLastChange>
-        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-      </calendarProperties>
-      <visibleCalendarIds>
-        <int>160</int>
-        <int>157</int>
-        <int>158</int>
-        <int>159</int>
-      </visibleCalendarIds>
-      <name>Default</name>
-      <defaultCalendarId>-1</defaultCalendarId>
-      <showBirthdays>true</showBirthdays>
-      <showStatistics>true</showStatistics>
-      <timesheetUserId>19</timesheetUserId>
-      <selectedCalendar>timesheet</selectedCalendar>
-      <showBreaks>true</showBreaks>
-      <showPlanning>true</showPlanning>
-    </org.projectforge.business.teamcal.filter.TemplateEntry>
-  </templateEntries>
-  <activeTemplateEntryIndex>0</activeTemplateEntryIndex>
-      </org.projectforge.business.teamcal.filter.TeamCalCalendarFilter>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (249, '2010-04-20 22:24:43.644', 'org.projectforge.web.fibu.KundeListAction:Filter', '2013-04-07 18:14:25.493', '<org.projectforge.framework.persistence.api.BaseSearchFilter>
-      <searchString></searchString>
-      <deleted>false</deleted>
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>-1</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      </org.projectforge.framework.persistence.api.BaseSearchFilter>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (250, '2010-04-20 22:24:43.647', 'org.projectforge.web.task.TaskListForm:Filter', '2013-04-07 18:14:25.502', '<TaskFilter notOpened="true" opened="true" closed="false" deleted="false">
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>-1</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      </TaskFilter>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (251, '2010-04-20 22:24:43.648', 'openTasks', '2013-04-07 18:14:25.521', '<set>
-  <int>49</int>
-  <int>53</int>
-  <int>54</int>
-  <int>55</int>
-  <int>56</int>
-  <int>57</int>
-  <int>58</int>
-  <int>59</int>
-  <int>60</int>
-  <int>61</int>
-</set>', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (252, '2010-04-20 22:24:43.649', 'menu.openedNodes', '2013-04-07 18:14:25.526', '<set>
-      <short>3</short>
-      <short>38</short>
-      <short>20</short>
-      <short>29</short>
-      <short>28</short>
-      </set>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (253, '2010-04-20 22:24:43.651', 'org.projectforge.web.fibu.ProjektListForm:Filter', '2013-04-07 18:14:25.528', '<org.projectforge.web.fibu.ProjektListFilter>
-      <searchString></searchString>
-      <deleted>false</deleted>
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>-1</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      <listType>notEnded</listType>
-      </org.projectforge.web.fibu.ProjektListFilter>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (254, '2010-04-20 22:30:01.107', 'org.projectforge.web.user.UserListAction:Filter', '2013-04-07 18:14:25.503', '<org.projectforge.framework.persistence.api.BaseSearchFilter>
-      <searchString></searchString>
-      <deleted>false</deleted>
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>-1</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      </org.projectforge.framework.persistence.api.BaseSearchFilter>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (264, '2010-04-21 22:11:35.585', 'org.projectforge.web.address.AddressListAction:pageSize',
-        '2017-11-23 12:56:37.393', '<int>50</int>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (261, '2010-04-21 22:11:35.581', 'org.projectforge.web.address.AddressListAction:Filter',
-        '2017-11-23 12:56:37.464', '<null/>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (259, '2010-04-21 22:11:35.577', 'org.projectforge.web.book.BookListAction:pageSize', '2017-11-23 12:56:37.555',
-        '<int>50</int>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (256, '2010-04-21 22:11:35.575', 'org.projectforge.web.fibu.KundeListAction:Filter', '2017-11-23 12:56:37.627', '<org.projectforge.framework.persistence.api.BaseSearchFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-</org.projectforge.framework.persistence.api.BaseSearchFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (258, '2010-04-21 22:11:35.577', 'org.projectforge.web.book.BookListAction:Filter', '2017-11-23 12:56:37.648', '<org.projectforge.web.book.BookListFilter>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-  <present>true</present>
-  <missed>false</missed>
-  <disposed>false</disposed>
-</org.projectforge.web.book.BookListFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (255, '2010-04-21 22:11:35.574', 'org.projectforge.web.fibu.RechnungListForm:Filter', '2017-11-23 12:56:37.67',
-        '<null/>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (257, '2010-04-21 22:11:35.576', 'org.projectforge.web.access.AccessListAction:Filter',
-        '2017-11-23 12:56:37.678', '<org.projectforge.framework.persistence.api.BaseSearchFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-</org.projectforge.framework.persistence.api.BaseSearchFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (260, '2010-04-21 22:11:35.578', 'org.projectforge.web.admin.ConfigurationListForm:Filter',
-        '2017-11-23 12:56:37.779', '<org.projectforge.framework.persistence.api.BaseSearchFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-</org.projectforge.framework.persistence.api.BaseSearchFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (262, '2010-04-21 22:11:35.583', 'org.projectforge.web.timesheet.TimesheetListForm:Filter',
-        '2017-11-23 12:56:37.792', '<org.projectforge.web.timesheet.TimesheetListFilter>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-  <timePeriod>
-    <fromDate>2009-12-31 23:00:00.0 UTC</fromDate>
-    <marker>false</marker>
-  </timePeriod>
-  <marked>false</marked>
-  <longFormat>false</longFormat>
-  <recursive>true</recursive>
-  <orderType>DESC</orderType>
-</org.projectforge.web.timesheet.TimesheetListFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (268, '2010-04-21 22:11:35.591', 'org.projectforge.web.task.TaskTreeAction:Filter', '2017-11-23 12:56:37.347', '<TaskFilter notOpened="true" opened="true" closed="false" deleted="false">
-  <deleted defined-in="org.projectforge.framework.persistence.api.BaseSearchFilter">false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-</TaskFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (279, '2010-04-21 23:11:22.37', 'org.projectforge.web.timesheet.TimesheetEditPage', '2017-11-23 12:56:37.391',
-        '<null/>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (275, '2010-04-21 22:22:26.385', 'org.projectforge.web.fibu.Kost2ArtListForm:Filter', '2017-11-23 12:56:37.406', '<org.projectforge.web.fibu.Kost2ArtListFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-</org.projectforge.web.fibu.Kost2ArtListFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (269, '2010-04-21 22:11:35.593', 'org.projectforge.web.fibu.AuftragListForm:Filter', '2017-11-23 12:56:37.429',
-        '<null/>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (274, '2010-04-21 22:22:26.383', 'org.projectforge.web.user.GroupListForm:Filter', '2017-11-23 12:56:37.442', '<org.projectforge.business.user.GroupFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-</org.projectforge.business.user.GroupFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (280, '2010-04-22 07:58:05.949', 'org.projectforge.web.fibu.EmployeeListAction:Filter',
-        '2017-11-23 12:56:37.456', '<org.projectforge.business.fibu.EmployeeFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-  <showOnlyActiveEntries>false</showOnlyActiveEntries>
-</org.projectforge.business.fibu.EmployeeFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (271, '2010-04-21 22:11:35.595', 'org.projectforge.web.fibu.ProjektListForm:Filter', '2017-11-23 12:56:37.493', '<org.projectforge.web.fibu.ProjektListFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-  <listType>notEnded</listType>
-</org.projectforge.web.fibu.ProjektListFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (267, '2010-04-21 22:11:35.59', 'org.projectforge.web.address.AddressListAction:recentSearchTerms',
-        '2017-11-23 12:56:37.525', '<org.projectforge.framework.utils.RecentQueue>
-  <maxSize>25</maxSize>
-</org.projectforge.framework.utils.RecentQueue>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (276, '2010-04-21 23:11:22.362', 'org.projectforge.web.user.UserListAction:Filter', '2017-11-23 12:56:37.547', '<org.projectforge.framework.persistence.api.BaseSearchFilter>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-</org.projectforge.framework.persistence.api.BaseSearchFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (272, '2010-04-21 22:11:35.596', 'CalendarPage.userPrefs', '2017-11-23 12:56:37.575', '<org.projectforge.business.teamcal.filter.TeamCalCalendarFilter>
-  <startDate>2019-06-23</startDate>
-  <firstHour>8</firstHour>
-  <viewType>AGENDA_WEEK</viewType>
-  <templateEntries>
-    <org.projectforge.business.teamcal.filter.TemplateEntry>
-      <calendarProperties class="sorted-set">
-        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-          <calId>157</calId>
-          <colorCode>#008000</colorCode>
-          <visible>true</visible>
-          <millisOfLastChange>1562227222945</millisOfLastChange>
-        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-          <calId>158</calId>
-          <colorCode>#ff0</colorCode>
-          <visible>true</visible>
-          <millisOfLastChange>1562227225273</millisOfLastChange>
-        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-          <calId>159</calId>
-          <colorCode>#FAAF26</colorCode>
-          <visible>true</visible>
-          <millisOfLastChange>1562227214916</millisOfLastChange>
-        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-          <calId>160</calId>
-          <colorCode>#f0f</colorCode>
-          <visible>true</visible>
-          <millisOfLastChange>1562227233067</millisOfLastChange>
-        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-      </calendarProperties>
-      <visibleCalendarIds>
-        <int>160</int>
-        <int>157</int>
-        <int>158</int>
-        <int>159</int>
-      </visibleCalendarIds>
-      <name>Default</name>
-      <defaultCalendarId>-1</defaultCalendarId>
-      <showBirthdays>true</showBirthdays>
-      <showStatistics>true</showStatistics>
-      <timesheetUserId>19</timesheetUserId>
-      <selectedCalendar>timesheet</selectedCalendar>
-      <showBreaks>true</showBreaks>
-      <showPlanning>true</showPlanning>
-    </org.projectforge.business.teamcal.filter.TemplateEntry>
-  </templateEntries>
-  <activeTemplateEntryIndex>0</activeTemplateEntryIndex>
-</org.projectforge.business.teamcal.filter.TeamCalCalendarFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (277, '2010-04-21 23:11:22.364', 'org.projectforge.web.humanresources.HRListForm:Filter',
-        '2017-11-23 12:56:37.597', '<org.projectforge.business.humanresources.HRFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-  <timePeriod>
-    <fromDate>2010-04-18 22:00:00.0 UTC</fromDate>
-    <toDate>2010-04-24 22:00:00.0 UTC</toDate>
-    <marker>false</marker>
-  </timePeriod>
-  <onlyMyProjects>false</onlyMyProjects>
-  <otherProjectsGroupedByCustomer>false</otherProjectsGroupedByCustomer>
-  <allProjectsGroupedByCustomer>false</allProjectsGroupedByCustomer>
-  <showPlanning>true</showPlanning>
-  <showBookedTimesheets>false</showBookedTimesheets>
-</org.projectforge.business.humanresources.HRFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (273, '2010-04-21 22:22:26.378', 'org.projectforge.web.fibu.KundeListForm:Filter', '2017-11-23 12:56:37.619', '<org.projectforge.framework.persistence.api.BaseSearchFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-</org.projectforge.framework.persistence.api.BaseSearchFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (278, '2010-04-21 23:11:22.366', 'org.projectforge.web.user.UserListForm:Filter', '2017-11-23 12:56:37.7', '<org.projectforge.business.user.PFUserFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-</org.projectforge.business.user.PFUserFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (265, '2010-04-21 22:11:35.586', 'openTasks', '2017-11-23 12:56:37.721', '<set>
-  <int>48</int>
-  <int>49</int>
-  <int>50</int>
-  <int>53</int>
-  <int>54</int>
-  <int>55</int>
-  <int>59</int>
-  <int>63</int>
-  <int>47</int>
-</set>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (281, '2010-04-22 08:01:38.344', 'org.projectforge.web.fibu.Kost1ListAction:Filter', '2017-11-23 12:56:37.743', '<org.projectforge.web.fibu.Kost1ListFilter>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-  <listType>notEnded</listType>
-</org.projectforge.web.fibu.Kost1ListFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (270, '2010-04-21 22:11:35.593', 'menu.openedNodes', '2017-11-23 12:56:37.75', '<set>
-  <short>38</short>
-  <short>6</short>
-  <short>26</short>
-  <short>29</short>
-  <short>15</short>
-</set>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (283, '2010-04-22 21:45:34.786', 'org.projectforge.web.fibu.RechnungListForm:Filter', '2013-04-12 03:48:24.571', '<org.projectforge.business.fibu.RechnungListFilter>
-      <searchString></searchString>
-      <deleted>false</deleted>
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>-1</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      <year>-1</year>
-      <month>-1</month>
-      <listType>all</listType>
-      <showKostZuweisungStatus>false</showKostZuweisungStatus>
-      </org.projectforge.business.fibu.RechnungListFilter>
-    ', 4, 18);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (284, '2010-04-22 21:45:34.788', 'org.projectforge.web.timesheet.TimesheetListForm:Filter',
-        '2013-04-12 03:48:24.587', '<org.projectforge.web.timesheet.TimesheetListFilter>
-      <deleted>false</deleted>
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>-1</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      <timePeriod>
-      <fromDate>2009-12-31 23:00:00.0 UTC</fromDate>
-      <toDate>2010-04-25 21:59:59.999 UTC</toDate>
-      <marker>false</marker>
-      </timePeriod>
-      <marked>false</marked>
-      <longFormat>false</longFormat>
-      <recursive>true</recursive>
-      <orderType>DESC</orderType>
-      </org.projectforge.web.timesheet.TimesheetListFilter>
-    ', 4, 18);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (285, '2010-04-22 21:45:34.789', 'org.projectforge.web.task.TaskListForm:Filter', '2013-04-12 03:48:24.589', '<TaskFilter notOpened="true" opened="true" closed="false" deleted="false">
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>-1</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      </TaskFilter>
-    ', 4, 18);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (286, '2010-04-22 21:45:34.79', 'org.projectforge.web.address.AddressListAction:pageSize',
-        '2013-04-12 03:48:24.591', '<int>50</int>', 4, 18);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (287, '2010-04-22 21:45:34.792', 'org.projectforge.web.book.BookListAction:Filter', '2013-04-12 03:48:24.578', '<org.projectforge.web.book.BookListFilter>
-      <deleted>false</deleted>
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>-1</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      <present>true</present>
-      <missed>false</missed>
-      <disposed>false</disposed>
-      </org.projectforge.web.book.BookListFilter>
-    ', 4, 18);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (288, '2010-04-22 21:45:34.792', 'openTasks', '2013-04-12 03:48:24.592', '<set>
-  <int>48</int>
-  <int>49</int>
-  <int>50</int>
-  <int>53</int>
-  <int>54</int>
-  <int>55</int>
-</set>', 4, 18);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (289, '2010-04-22 21:45:34.793', 'org.projectforge.web.user.UserListForm:Filter', '2013-04-12 03:48:24.58', '<org.projectforge.framework.persistence.api.BaseSearchFilter>
-      <searchString></searchString>
-      <deleted>false</deleted>
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>-1</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      </org.projectforge.framework.persistence.api.BaseSearchFilter>
-    ', 4, 18);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (290, '2010-04-22 21:45:34.794', 'org.projectforge.web.address.AddressListAction:recentSearchTerms',
-        '2013-04-12 03:48:24.594', '<org.projectforge.framework.utils.RecentQueue>
-      <maxSize>25</maxSize>
-      </org.projectforge.framework.utils.RecentQueue>
-    ', 4, 18);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (291, '2010-04-22 21:45:34.796', 'org.projectforge.web.address.AddressListAction:Filter',
-        '2013-04-12 03:48:24.585', '<org.projectforge.web.address.AddressListFilter>
-      <deleted>false</deleted>
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>50</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      <uptodate>true</uptodate>
-      <outdated>false</outdated>
-      <leaved>false</leaved>
-      <active>true</active>
-      <nonActive>false</nonActive>
-      <uninteresting>false</uninteresting>
-      <personaIngrata>false</personaIngrata>
-      <departed>false</departed>
-      <listType>newest</listType>
-      </org.projectforge.web.address.AddressListFilter>
-    ', 4, 18);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (292, '2010-04-22 21:45:34.797', 'menu.openedNodes', '2013-04-12 03:48:24.595', '<set/>', 4, 18);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (293, '2010-04-22 21:45:34.799', 'org.projectforge.web.timesheet.TimesheetEditPage', '2013-04-12 03:48:24.596', '
-      !rO0ABXVyAAJbQqzzF/gGCFTgAgAAeHAAAAGhH4sIAAAAAAAAALWU207CQBCG732KSS+8oqmFUhItJAgoB0mIknhpljK0G9ou7m7x8DI+jC9mawtpmyVC1KudU/b/ZtpZR9IQhY8oZxxXnTMAh6OLkRSpnXgheX2g79hpXjjGzs4ypbrEL900iCR/A0nEerRsa7YGsUCemnUN1kzIemq3NAiYSyRlUVsbIlnCc0y4RK7BEoXL6SZL9XGLAduEiRywFaxIyGIBQ7pAHhGJ0AuIECguYXajm/VGLT3tVlMz/oqtK8FnIVawbjn7/Eh4qYcwJluiT745IvCSKp9TXGB0HINpqiEaRYgpdTkLiSQVjDG97+ojIeJ0At3edPD0OLjWTcuuFb3WkSSWmsQqkkzSNgPQzz15BUMSLmLuVaDmnNBjmz9GMlfJNTOAf5ZUdvmr601FR5UmpsmFNPLghUof+mSLO0XHKOxb2cnseSJ++tLSSHZsx0iPYsg0FTGrEFPi7BFymbu82dOxhOTJFDrFN8Ex8mClJt/NQ+n91hwqUH3mQ7Wqv/CH2nJaObbCmByj/B5/AUD89kmfBQAA
-    ', 4, 18);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (294, '2010-04-22 21:45:34.801', 'CalendarPage.userPrefs', '2013-04-12 03:48:24.601', '<org.projectforge.business.teamcal.filter.TeamCalCalendarFilter>
-  <startDate>2019-06-23</startDate>
-  <firstHour>8</firstHour>
-  <viewType>AGENDA_WEEK</viewType>
-  <templateEntries>
-    <org.projectforge.business.teamcal.filter.TemplateEntry>
-      <calendarProperties class="sorted-set">
-        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-          <calId>157</calId>
-          <colorCode>#008000</colorCode>
-          <visible>true</visible>
-          <millisOfLastChange>1562227222945</millisOfLastChange>
-        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-          <calId>158</calId>
-          <colorCode>#ff0</colorCode>
-          <visible>true</visible>
-          <millisOfLastChange>1562227225273</millisOfLastChange>
-        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-          <calId>159</calId>
-          <colorCode>#FAAF26</colorCode>
-          <visible>true</visible>
-          <millisOfLastChange>1562227214916</millisOfLastChange>
-        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-          <calId>160</calId>
-          <colorCode>#f0f</colorCode>
-          <visible>true</visible>
-          <millisOfLastChange>1562227233067</millisOfLastChange>
-        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
-      </calendarProperties>
-      <visibleCalendarIds>
-        <int>160</int>
-        <int>157</int>
-        <int>158</int>
-        <int>159</int>
-      </visibleCalendarIds>
-      <name>Default</name>
-      <defaultCalendarId>-1</defaultCalendarId>
-      <showBirthdays>true</showBirthdays>
-      <showStatistics>true</showStatistics>
-      <timesheetUserId>19</timesheetUserId>
-      <selectedCalendar>timesheet</selectedCalendar>
-      <showBreaks>true</showBreaks>
-      <showPlanning>true</showPlanning>
-    </org.projectforge.business.teamcal.filter.TemplateEntry>
-  </templateEntries>
-  <activeTemplateEntryIndex>0</activeTemplateEntryIndex>
-      </org.projectforge.business.teamcal.filter.TeamCalCalendarFilter>
-    ', 4, 18);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (296, '2010-04-23 21:13:12.76', 'org.projectforge.web.fibu.Kost2ListForm:Filter', '2017-11-23 12:56:37.368', '<org.projectforge.web.fibu.Kost2ListFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-  <listType>notEnded</listType>
-</org.projectforge.web.fibu.Kost2ListFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (282, '2010-04-22 08:01:38.349', 'org.projectforge.web.fibu.Kost1ListForm:Filter', '2017-11-23 12:56:37.692', '<org.projectforge.web.fibu.Kost1ListFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-  <listType>notEnded</listType>
-</org.projectforge.web.fibu.Kost1ListFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (295, '2010-04-23 21:13:12.756', 'org.projectforge.web.fibu.EingangsrechnungListForm:Filter',
-        '2017-11-23 12:56:37.758', '<null/>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (302, '2010-05-03 22:54:06.283', 'org.projectforge.web.address.AddressListAction:pageSize',
-        '2013-04-07 18:14:25.504', '<int>50</int>', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (303, '2010-05-03 22:54:06.286', 'org.projectforge.web.address.AddressListAction:recentSearchTerms',
-        '2013-04-07 18:14:25.523', '<org.projectforge.framework.utils.RecentQueue>
-      <maxSize>25</maxSize>
-      </org.projectforge.framework.utils.RecentQueue>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (304, '2010-05-03 22:54:06.288', 'org.projectforge.web.address.AddressListAction:Filter',
-        '2013-04-07 18:14:25.501', '<org.projectforge.web.address.AddressListFilter>
-      <deleted>false</deleted>
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>50</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      <uptodate>true</uptodate>
-      <outdated>false</outdated>
-      <leaved>false</leaved>
-      <active>true</active>
-      <nonActive>false</nonActive>
-      <uninteresting>false</uninteresting>
-      <personaIngrata>false</personaIngrata>
-      <departed>false</departed>
-      <listType>newest</listType>
-      </org.projectforge.web.address.AddressListFilter>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (305, '2010-05-03 23:04:47.656', 'org.projectforge.web.scripting.ScriptExecutePage', '2013-04-07 18:14:25.507',
-        '<null/>', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (306, '2010-05-03 23:04:47.657', 'org.projectforge.web.scripting.ScriptListForm:Filter',
-        '2013-04-07 18:14:25.518', '<org.projectforge.framework.persistence.api.BaseSearchFilter>
-      <searchString></searchString>
-      <deleted>false</deleted>
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>-1</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      </org.projectforge.framework.persistence.api.BaseSearchFilter>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (307, '2010-05-03 23:26:30.573', 'org.projectforge.web.fibu.RechnungListForm:Filter', '2013-04-07 18:14:25.491', '<org.projectforge.business.fibu.RechnungListFilter>
-      <searchString></searchString>
-      <deleted>false</deleted>
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>-1</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      <year>-1</year>
-      <month>-1</month>
-      <listType>all</listType>
-      <showKostZuweisungStatus>false</showKostZuweisungStatus>
-      </org.projectforge.business.fibu.RechnungListFilter>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (308, '2010-05-03 23:26:30.579', 'org.projectforge.web.user.UserListForm:Filter', '2013-04-07 18:14:25.514', '<org.projectforge.framework.persistence.api.BaseSearchFilter>
-      <searchString></searchString>
-      <deleted>false</deleted>
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>-1</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      </org.projectforge.framework.persistence.api.BaseSearchFilter>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (309, '2010-05-03 23:26:30.58', 'org.projectforge.web.fibu.EingangsrechnungListForm:Filter',
-        '2013-04-07 18:14:25.499', '<org.projectforge.business.fibu.EingangsrechnungListFilter>
-      <searchString></searchString>
-      <deleted>false</deleted>
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>-1</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      <year>-1</year>
-      <month>-1</month>
-      <listType>all</listType>
-      <showKostZuweisungStatus defined-in="org.projectforge.business.fibu.RechnungFilter">false</showKostZuweisungStatus>
-      <showKostZuweisungStatus>false</showKostZuweisungStatus>
-      </org.projectforge.business.fibu.EingangsrechnungListFilter>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (310, '2010-05-03 23:26:30.587', 'org.projectforge.web.timesheet.TimesheetEditPage', '2013-04-07 18:14:25.527', '<timesheetPref>
-      <recents>
-      <maxSize>50</maxSize>
-      <recents>
-      <timesheetPrefEntry taskId="17" userId="2" kost2Id="10"/>
-      <timesheetPrefEntry taskId="11" userId="2" kost2Id="3" location="Head quarter" description="Requirement-Engineering:
-      ACME_WEB-186, ACME_WEB-1876"/>
-      </recents>
-      </recents>
-      <recentTasks>
-      <maxSize>50</maxSize>
-      <recents>
-      <int>17</int>
-      <int>11</int>
-      </recents>
-      </recentTasks>
-      <recentLocations>
-      <maxSize>50</maxSize>
-      <recents>
-      <string>Head quarter</string>
-      </recents>
-      </recentLocations>
-      </timesheetPref>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (311, '2010-05-20 01:06:08.982', 'org.projectforge.web.access.AccessListAction:Filter',
-        '2013-04-07 18:14:25.513', '<org.projectforge.framework.persistence.api.BaseSearchFilter>
-      <searchString></searchString>
-      <deleted>false</deleted>
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>-1</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      </org.projectforge.framework.persistence.api.BaseSearchFilter>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (312, '2010-05-20 01:43:32.851', 'org.projectforge.web.book.BookListAction:pageSize', '2013-04-12 03:48:24.583',
-        '<int>50</int>', 4, 18);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (313, '2010-07-13 17:37:52.71', 'org.projectforge.web.fibu.EmployeeListAction:Filter', '2013-04-07 18:14:25.509', '<org.projectforge.business.fibu.EmployeeFilter>
-      <searchString></searchString>
-      <deleted>false</deleted>
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>-1</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      <showOnlyActiveEntries>false</showOnlyActiveEntries>
-      </org.projectforge.business.fibu.EmployeeFilter>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (300, '2010-04-24 06:01:19.472', 'org.projectforge.web.fibu.EmployeeSalaryListAction:Filter',
-        '2017-11-23 12:56:37.451', '<org.projectforge.web.fibu.EmployeeSalaryListFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-  <year>-1</year>
-  <month>-1</month>
-</org.projectforge.web.fibu.EmployeeSalaryListFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (298, '2010-04-24 06:01:19.47', 'org.projectforge.web.fibu.KontoListAction:Filter', '2017-11-23 12:56:37.64', '<org.projectforge.framework.persistence.api.BaseSearchFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-</org.projectforge.framework.persistence.api.BaseSearchFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (347, '2013-04-27 15:10:41.173', 'org.projectforge.web.fibu.EmployeeSalaryListForm:Filter',
-        '2017-11-23 12:56:37.708', '<org.projectforge.business.fibu.EmployeeSalaryFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-  <year>0</year>
-  <month>0</month>
-</org.projectforge.business.fibu.EmployeeSalaryFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (314, '2010-07-13 17:37:52.72', 'org.projectforge.web.timesheet.TimesheetListForm:Filter',
-        '2013-04-07 18:14:25.519', '<org.projectforge.web.timesheet.TimesheetListFilter>
-      <deleted>false</deleted>
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>-1</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      <timePeriod>
-      <fromDate>2008-12-31 23:00:00.0 UTC</fromDate>
-      <marker>false</marker>
-      </timePeriod>
-      <marked>false</marked>
-      <longFormat>false</longFormat>
-      <recursive>true</recursive>
-      <orderType>DESC</orderType>
-      </org.projectforge.web.timesheet.TimesheetListFilter>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (315, '2010-07-13 17:42:36.212', 'org.projectforge.web.book.BookListAction:Filter', '2013-04-07 18:14:25.495', '<org.projectforge.web.book.BookListFilter>
-      <deleted>false</deleted>
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>-1</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      <present>true</present>
-      <missed>false</missed>
-      <disposed>false</disposed>
-      </org.projectforge.web.book.BookListFilter>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (316, '2010-07-13 17:42:36.217', 'org.projectforge.web.user.UserPrefListForm:Filter', '2013-04-07 18:14:25.522', '<org.projectforge.web.user.UserPrefListFilter>
-      <searchString></searchString>
-      <deleted>false</deleted>
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>-1</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      </org.projectforge.web.user.UserPrefListFilter>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (317, '2010-08-27 07:52:17.632', 'org.projectforge.web.gantt.GanttChartListForm:Filter',
-        '2013-04-07 18:14:25.52', '<org.projectforge.web.gantt.GanttChartListFilter>
-      <searchString></searchString>
-      <deleted>false</deleted>
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>-1</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      <year>0</year>
-      </org.projectforge.web.gantt.GanttChartListFilter>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (318, '2010-08-27 08:50:59.913', 'org.projectforge.web.book.BookListAction:pageSize', '2013-04-07 18:14:25.496',
-        '<int>50</int>', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (319, '2010-08-27 08:50:59.915', 'org.projectforge.web.orga.ContractListForm:Filter', '2013-04-07 18:14:25.504',
-        '<null/>', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (320, '2010-09-15 15:26:58.667', 'org.projectforge.web.orga.PosteingangListForm:Filter',
-        '2013-04-07 18:14:25.517', '<org.projectforge.web.orga.PosteingangListFilter>
-      <deleted>false</deleted>
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>-1</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      <year>2010</year>
-      <month>-1</month>
-      </org.projectforge.web.orga.PosteingangListFilter>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (321, '2010-11-08 21:47:31.455', 'org.projectforge.web.gantt.GanttChartEditForm:exportFormat',
-        '2013-04-07 18:14:25.505', '<string>PNG</string>', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (322, '2011-01-23 17:22:16.591', 'UserSelectPanel:recentUsers', '2013-04-07 18:16:46.491', '<org.projectforge.framework.utils.RecentQueue>
-      <maxSize>25</maxSize>
-      </org.projectforge.framework.utils.RecentQueue>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (323, '2011-01-23 17:38:06.594', 'org.projectforge.web.book.BookListForm:Filter', '2013-04-07 18:14:25.494', '<org.projectforge.web.book.BookListFilter>
-      <searchString></searchString>
-      <deleted>false</deleted>
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>-1</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      <present>true</present>
-      <missed>false</missed>
-      <disposed>false</disposed>
-      </org.projectforge.web.book.BookListFilter>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (324, '2011-01-23 17:38:06.597', 'bookSearchTerms', '2013-04-07 18:14:25.508', '<org.projectforge.framework.utils.RecentQueue>
-      <maxSize>25</maxSize>
-      </org.projectforge.framework.utils.RecentQueue>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (329, '2011-03-18 06:20:05.994', 'org.projectforge.web.address.AddressListForm:Filter',
-        '2017-11-23 12:56:37.506', '<null/>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (328, '2011-03-18 06:20:05.989', 'addressSearchTerms', '2017-11-23 12:56:37.513', '<org.projectforge.framework.utils.RecentQueue>
-  <maxSize>25</maxSize>
-</org.projectforge.framework.utils.RecentQueue>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (332, '2012-05-02 22:45:47.314', 'org.projectforge.plugins.todo.ToDoDO', '2017-11-23 12:56:37.534', '<null/>', 4,
-        19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (331, '2011-03-18 06:20:06.01', 'bookSearchTerms', '2017-11-23 12:56:37.605', '<org.projectforge.framework.utils.RecentQueue>
-  <maxSize>25</maxSize>
-</org.projectforge.framework.utils.RecentQueue>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (333, '2012-05-02 22:45:47.331', 'org.projectforge.plugins.todo.ToDoListForm:Filter', '2017-11-23 12:56:37.657', '<org.projectforge.plugins.todo.ToDoFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-  <opened>false</opened>
-  <reopened>false</reopened>
-  <inprogress>false</inprogress>
-  <closed>false</closed>
-  <postponed>false</postponed>
-  <onlyRecent>false</onlyRecent>
-</org.projectforge.plugins.todo.ToDoFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (325, '2011-03-18 06:20:05.98', 'PhoneCall:recentCalls', '2017-11-23 12:56:37.733', '<org.projectforge.framework.utils.RecentQueue>
-  <maxSize>25</maxSize>
-</org.projectforge.framework.utils.RecentQueue>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (330, '2011-03-18 06:20:06.003', 'org.projectforge.web.orga.ContractListForm:Filter', '2017-11-23 12:56:37.735',
-        '<null/>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (327, '2011-03-18 06:20:05.984', 'UserSelectPanel:recentUsers', '2017-11-23 12:56:37.801', '<org.projectforge.framework.utils.RecentQueue>
-  <maxSize>25</maxSize>
-  <recents>
-    <string>kai (Kai Reinhard, devnull@devnull.com)</string>
-    <string>ann (Ann Ville, a.ville@my-company.com)</string>
-    <string>admin (Admin ProjectForge Administrator, null)</string>
-    <string>demo (Demo User, devnull@devnull.com)</string>
-  </recents>
-</org.projectforge.framework.utils.RecentQueue>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (326, '2011-03-18 06:20:05.982', 'org.projectforge.web.book.BookListForm:Filter', '2017-11-23 12:56:37.808', '<org.projectforge.web.book.BookListFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-  <present>true</present>
-  <missed>false</missed>
-  <disposed>false</disposed>
-</org.projectforge.web.book.BookListFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (337, '2013-04-07 18:14:25.492', 'org.projectforge.plugins.teamcal.admin.TeamCalListForm:Filter',
-        '2013-04-07 18:14:25.492', '<org.projectforge.plugins.teamcal.admin.TeamCalFilter>
-      <searchString></searchString>
-      <deleted>false</deleted>
-      <ignoreDeleted>false</ignoreDeleted>
-      <maxRows>-1</maxRows>
-      <useModificationFilter>false</useModificationFilter>
-      <searchHistory>false</searchHistory>
-      <fullAccess>true</fullAccess>
-      <readonlyAccess>true</readonlyAccess>
-      <minimalAccess>true</minimalAccess>
-      <calOwner>ALL</calOwner>
-      </org.projectforge.plugins.teamcal.admin.TeamCalFilter>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (338, '2013-04-07 18:14:25.512', 'TeamCalendarPage.userPrefs', '2013-04-07 18:16:46.494', '
-      !rO0ABXVyAAJbQqzzF/gGCFTgAgAAeHAAAAIMH4sIAAAAAAAAAN2WXW/aMBSG7/kVqLsmnxBAyiIxChvatFVap11WXnISvDl2ZB/o+PezC/kqaVm30otKkRK/583xOY+j2KGQmVVI8RNiTPUzWAXbZJQrC4HkMWEW5QiZJEgFt661NidMX8ATIpeUIcio1++HConES4IQeY7rD5zhwHFDu1aNJ6VS4QexkdEktOuBCW0p3F7vCohm7xefL2c33xeLj6FdqcaCkBdMp1pwlBSU0bT6xPLrFLt9Ap0iPnRzJUUBEnXufsyIUm8vlJAIyUABXpTuf51yfjRJnXFfwyqJNLH9QyskmJBzkUD0JnUc7ajGTdeWKvqDQYRyAwbcftR05JQxqr6kn4jC+ZrwDCLXD0b+aOJMxoEbhHaHo+7afva2zwjSOwUyPQ/IqTsdjV8TSP8EyOVstvSCs7Ac++7UeU0shydYOk56no9y5Dn+C4O8a/Wh2KH+8u1V0uSv5zH/QXNri16X6HeJw5ZY8eqYL+Qk13sOY/2yXBXad1ppUMA0EkjKl03yI60yr8XtOwnklzqsVEPo/Qfnxn71Yhue/chy2W1+X5GYQHIfnWmeSlwnZNcCUmlNp06CVCGNm9aGWHqR5qDWAPhNgTR7ZqAPE/fFv16Qg+eKEc4pzxquSnqWhdMlHh9fQhIj3ULLvOIJ/I70f+/BWO/JtXSd2f4AepuLf/gJAAA=
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (339, '2013-04-07 18:14:25.525', 'TimesheetEditForm.userPrefs', '2013-04-07 18:14:25.525', '<org.projectforge.web.timesheet.TimesheetEditFilter>
-      <ignoredLocations class="linked-list"/>
-      </org.projectforge.web.timesheet.TimesheetEditFilter>
-    ', 4, 17);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (340, '2013-04-07 20:03:38.985', 'TeamCalendarPage.userPrefs', '2013-04-12 03:48:24.573', '
-      !rO0ABXVyAAJbQqzzF/gGCFTgAgAAeHAAAAJCH4sIAAAAAAAAAO1XXW/aMBR951egTtobJJAPiJZFYhQ21GmrtE57nLzkBryZOLIvtPz72YUEp6RjHdBJbBIS8fHJ/Tg3OVZCLqbtXPDvEGOqrqGds8WUZrKNQOYxYW2aIUwFQcqz9o3ChoSpH2QJEWPKEETUaDZDiUTgJUGIunbHadluy+6E1hbVnJQKie/4QkT90Nou9NaSwu3NKodo8Hb04XLw9ctodBVaJaopCPOcqVCjDAUFqTGFPrH8bYjVOoAKEW+6uRY8B4EqdjNmRMrXF5ILhKQlAS8K9p+mHO4k2UZc1zBJIqXY+qKyxRkXQ55A9CK1bcUo1yZrSSX9xiBCsQAt3HplMuaUMSo/pu+JxOGMZFOIOo7vOb4b9Dq+1w2tGsa2a+vobZ9QyO4+IdPTCOk7jueek5DOHiFtu2+f6KH0A8/1z0lLd4+W48Fg3PVPoqXXs4PgmbW87/axvU39xd2TxByByqOtUP9VwW4d6NSBbgUs9arJF2Zkro4dxppFuTK07rGCIIEpSSApbta17WAlecZv3wggP2SUEibVqAykcYDQxpn1/9A7/J3wlG05ffuc/OUvenXQ94Pn9urD/OUornFF6EuSc/lK/r55uP+KeVi/GIZV1fETEr2RPNRON08FzhKykpsHs4qZTBUEqUQam1QDLLhI5yBnAPhZgtD+01MjeQjWTMTIbwxkw7lmJMtoNjVYJXSUwakSd79/QhIjXUKFPMkSuIvUa/7oXuPJtdR99P0EjkMR3zkOAAA=
-    ', 4, 18);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (341, '2013-04-07 20:03:38.987', 'UserSelectPanel:recentUsers', '2013-04-12 03:48:24.582', '<org.projectforge.framework.utils.RecentQueue>
-      <maxSize>25</maxSize>
-      </org.projectforge.framework.utils.RecentQueue>
-    ', 4, 18);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (334, '2013-04-07 15:58:58.943', 'TeamCalendarPage.userPrefs', '2017-11-23 12:56:37.386', '<null/>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (344, '2013-04-27 15:10:41.152', 'org.projectforge.web.scripting.ScriptExecutePage', '2017-11-23 12:56:37.395', '<RecentScriptCalls>
-  <recentQueue>
-    <maxSize>25</maxSize>
-    <recents>
-      <ScriptCall scriptName="JFreeChart"/>
-      <ScriptCall scriptName="Excel export of all user&apos;s"/>
-      <ScriptCall scriptName="Booked person days per day">
-        <parameter type="TASK" parameterName="task" intValue="2"/>
-        <parameter type="TIME_PERIOD" parameterName="timeperiod">
-          <timePeriodValue>
-            <fromDate>2000-08-31 22:00:00.0 UTC</fromDate>
-            <toDate>2015-09-01 22:00:00.0 UTC</toDate>
-            <marker>false</marker>
-          </timePeriodValue>
-        </parameter>
-      </ScriptCall>
-    </recents>
-  </recentQueue>
-</RecentScriptCalls>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (345, '2013-04-27 15:10:41.17', 'org.projectforge.web.scripting.ScriptListForm:Filter',
-        '2017-11-23 12:56:37.472', '<org.projectforge.framework.persistence.api.BaseSearchFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-</org.projectforge.framework.persistence.api.BaseSearchFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (336, '2013-04-07 16:23:09.864', 'org.projectforge.plugins.teamcal.admin.TeamCalListForm:Filter',
-        '2017-11-23 12:56:37.485', '<org.projectforge.plugins.teamcal.admin.TeamCalFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-  <fullAccess>true</fullAccess>
-  <readonlyAccess>true</readonlyAccess>
-  <minimalAccess>true</minimalAccess>
-  <adminAccess>false</adminAccess>
-  <calOwner>ALL</calOwner>
-</org.projectforge.plugins.teamcal.admin.TeamCalFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (346, '2013-04-27 15:10:41.172', 'org.projectforge.web.fibu.KontoListForm:Filter', '2017-11-23 12:56:37.568', '<org.projectforge.framework.persistence.api.BaseSearchFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-</org.projectforge.framework.persistence.api.BaseSearchFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (343, '2013-04-27 15:10:41.149', 'org.projectforge.web.fibu.CustomerListForm:Filter', '2017-11-23 12:56:37.589', '<org.projectforge.framework.persistence.api.BaseSearchFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-</org.projectforge.framework.persistence.api.BaseSearchFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (335, '2013-04-07 16:09:02.762', 'org.projectforge.web.access.AccessListForm:Filter', '2017-11-23 12:56:37.729', '<org.projectforge.framework.access.AccessFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-  <includeAncestorTasks>false</includeAncestorTasks>
-  <includeDescendentTasks>false</includeDescendentTasks>
-  <inherit>false</inherit>
-</org.projectforge.framework.access.AccessFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (342, '2013-04-27 15:10:41.144', 'org.projectforge.web.fibu.EmployeeListForm:Filter', '2017-11-23 12:56:37.731', '<org.projectforge.business.fibu.EmployeeFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-  <showOnlyActiveEntries>false</showOnlyActiveEntries>
-</org.projectforge.business.fibu.EmployeeFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (266, '2010-04-21 22:11:35.589', 'org.projectforge.web.user.GroupListAction:Filter', '2017-11-23 12:56:37.332', '<org.projectforge.framework.persistence.api.BaseSearchFilter>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-</org.projectforge.framework.persistence.api.BaseSearchFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (263, '2010-04-21 22:11:35.584', 'org.projectforge.web.task.TaskListForm:Filter', '2017-11-23 12:56:37.355', '<TaskFilter notOpened="true" opened="true" closed="false" deleted="false">
-  <deleted defined-in="org.projectforge.framework.persistence.api.BaseSearchFilter">false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-</TaskFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (348, '2013-04-27 15:10:41.175', 'org.projectforge.web.fibu.AccountingRecordListForm:Filter',
-        '2017-11-23 12:56:37.389', '<org.projectforge.web.fibu.AccountingRecordListFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-  <fromYear>0</fromYear>
-  <toYear>0</toYear>
-  <fromMonth>0</fromMonth>
-  <toMonth>0</toMonth>
-</org.projectforge.web.fibu.AccountingRecordListFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (301, '2010-04-25 09:57:02.439', 'org.projectforge.web.address.SendSmsForm:recentSearchTerms',
-        '2017-11-23 12:56:37.399', '<org.projectforge.framework.utils.RecentQueue>
-  <maxSize>25</maxSize>
-</org.projectforge.framework.utils.RecentQueue>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (299, '2010-04-24 06:01:19.471', 'org.projectforge.web.orga.PosteingangListForm:Filter',
-        '2017-11-23 12:56:37.42', '<org.projectforge.web.orga.PosteingangListFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-  <year>-1</year>
-  <month>-1</month>
-</org.projectforge.web.orga.PosteingangListFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (349, '2013-04-27 15:10:41.177', 'ReportObjectivesForm:filter', '2017-11-23 12:56:37.454', '<org.projectforge.web.fibu.ReportObjectivesFilter>
-  <from>2012-12-31 23:00:00.0 UTC</from>
-  <to>2013-12-31 22:59:59.999 UTC</to>
-</org.projectforge.web.fibu.ReportObjectivesFilter>', 4, 19);
-INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, user_id)
-VALUES (297, '2010-04-24 06:01:19.467', 'org.projectforge.web.orga.PostausgangListForm:Filter',
-        '2017-11-23 12:56:37.771', '<org.projectforge.web.orga.PostausgangListFilter>
-  <searchString></searchString>
-  <deleted>false</deleted>
-  <ignoreDeleted>false</ignoreDeleted>
-  <maxRows>-1</maxRows>
-  <useModificationFilter>false</useModificationFilter>
-  <searchHistory>false</searchHistory>
-  <year>-1</year>
-  <month>-1</month>
-</org.projectforge.web.orga.PostausgangListFilter>', 4, 19);
