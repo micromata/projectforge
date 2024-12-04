@@ -46,6 +46,7 @@ import java.time.LocalDate
 import java.time.Month
 import java.util.*
 import jakarta.annotation.PostConstruct
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import javax.net.ssl.*
 
 private val log = KotlinLogging.logger {}
@@ -59,6 +60,9 @@ open class ConfigurationService {
 
   @Autowired
   private lateinit var configDao: ConfigurationDao
+
+  @Autowired
+  private lateinit var persistenceService: PfPersistenceService
 
   @Autowired
   private lateinit var sendMail: SendMail
@@ -235,7 +239,7 @@ open class ConfigurationService {
     val pluginsDir = FileHelper.getAbsolutePath(applicationHomeDir, "plugins")
     ensureDir(File(pluginsDir))
     setupKeyStores()
-    Configuration(this)
+    Configuration(this, persistenceService)
   }
 
   /**

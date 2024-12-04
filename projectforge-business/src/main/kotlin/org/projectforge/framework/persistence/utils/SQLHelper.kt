@@ -59,7 +59,10 @@ object SQLHelper {
             val year = Year.now().value
             Pair(year, year)
         } else {
-            Pair(PFDateTime.fromOrNull(minMaxDate[0] as? Date)?.year, PFDateTime.fromOrNull(minMaxDate[1] as? Date)?.year)
+            Pair(
+                PFDateTime.fromOrNull(minMaxDate[0] as? Date)?.year,
+                PFDateTime.fromOrNull(minMaxDate[1] as? Date)?.year
+            )
         }
         return getYears(result.first, result.second)
     }
@@ -101,38 +104,51 @@ object SQLHelper {
         val statements = mutableListOf<String>()
         val currentStatement = StringBuilder()
         var inString = false // Tracks if we are inside a string
+        var stringDelimiter: Char? = null // Tracks the type of string delimiter (' or ")
 
         var i = 0
         while (i < script.length) {
             val c = script[i]
             val next = if (i + 1 < script.length) script[i + 1] else '\u0000'
 
-            // Toggle the `inString` flag if a string delimiter (' or ") is encountered
-            if (c == '\'' || c == '"') {
-                inString = !inString
-            }
-
-            // Handle single-line comments starting with '--'
-            if (!inString && c == '-' && next == '-') {
-                // Skip everything until the end of the line
-                while (i < script.length && script[i] != '\n') {
-                    i++
+            when {
+                // Toggle `inString` when encountering string delimiters (' or ") and not escaping
+                (c == '\'' || c == '"') && (stringDelimiter == null || stringDelimiter == c) -> {
+                    if (inString) {
+                        // End string if we are inside one
+                        if (stringDelimiter == c) inString = false
+                    } else {
+                        // Start string
+                        inString = true
+                        stringDelimiter = c
+                    }
+                    currentStatement.append(c)
                 }
-                continue
-            }
 
-            currentStatement.append(c)
+                // Skip single-line comments (e.g., -- comment)
+                !inString && c == '-' && next == '-' -> {
+                    // Skip to the end of the line
+                    while (i < script.length && script[i] != '\n') i++
+                    currentStatement.append('\n')
+                }
 
-            // Add the current statement when a semicolon is encountered outside a string
-            if (!inString && c == ';') {
-                statements.add(currentStatement.toString().trim())
-                currentStatement.clear()
+                // Add semicolon-separated statements when outside strings
+                !inString && c == ';' -> {
+                    currentStatement.append(c)
+                    statements.add(currentStatement.toString().trim())
+                    currentStatement.clear()
+                }
+
+                // Default: Add character to the current statement
+                else -> {
+                    currentStatement.append(c)
+                }
             }
 
             i++
         }
 
-        // Add the last statement if it does not end with a semicolon
+        // Add the last statement if it doesn't end with a semicolon
         if (currentStatement.isNotBlank()) {
             statements.add(currentStatement.toString().trim())
         }
