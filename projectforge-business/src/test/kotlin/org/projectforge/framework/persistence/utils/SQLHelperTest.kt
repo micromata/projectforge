@@ -53,13 +53,14 @@ class SQLHelperTest {
                 name VARCHAR(255) -- comment;
             );
             INSERT INTO test (id, name) VALUES (1, 'test');
-            INSERT INTO test (id, name) VALUES (2, 'test2;');
+            INSERT INTO test (id, name) VALUES (2, 'test2;
+            Line 2');
         """.trimIndent()
         val statements = SQLHelper.splitSqlStatements(sql)
         Assertions.assertEquals(3, statements.size)
         Assertions.assertEquals("CREATE TABLE test (\n    id INT PRIMARY KEY,\n    name VARCHAR(255) \n);", statements[0])
         Assertions.assertEquals("INSERT INTO test (id, name) VALUES (1, 'test');", statements[1])
-        Assertions.assertEquals("INSERT INTO test (id, name) VALUES (2, 'test2;');", statements[2])
+        Assertions.assertEquals("INSERT INTO test (id, name) VALUES (2, 'test2;\nLine 2');", statements[2])
     }
 
     private fun assertYears(year1: Int?, year2: Int?, expectedIntArray: IntArray) {
