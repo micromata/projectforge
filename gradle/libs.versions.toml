@@ -55,12 +55,11 @@ org-apache-xmlgraphics-commons = "2.9"
 org-aspectj-aspectjtools = "1.9.22.1"
 org-bouncycastle-bcprov-jdk18on = "1.79"
 org-dom4j = "2.1.4"
-org-flywaydb-core = "10.17.0"
-org-flywaydb-database-postgresql = "10.17.0"
+org-flywaydb = "10.22.0"
 org-glassfish-jaxb = "4.0.5"
 org-hibernate-search = "7.2.1.Final"
 org-hibernate-orm = "6.6.3.Final"
-org-hsqldb-hsqldb = "2.7.3"
+org-hsqldb-hsqldb = "2.7.4"
 org-jetbrains-kotlin = "2.0.21"
 org-jetbrains-kotlinx-coroutines-core = "1.9.0"
 org-jetbrains-kotlinx-coroutines-slf4j = "1.8.1"
@@ -170,8 +169,9 @@ org-apache-xmlgraphics-commons = { module = "org.apache.xmlgraphics:xmlgraphics-
 org-aspectj-aspectjtools = { module = "org.aspectj:aspectjtools", version.ref = "org-aspectj-aspectjtools" }
 org-bouncycastle-bcprov-jdk18on = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "org-bouncycastle-bcprov-jdk18on" }
 org-dom4j = { module = "org.dom4j:dom4j", version.ref = "org-dom4j" }
-org-flywaydb-core = { module = "org.flywaydb:flyway-core", version.ref = "org-flywaydb-core" }
-org-flywaydb-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "org-flywaydb-database-postgresql" }
+org-flywaydb-core = { module = "org.flywaydb:flyway-core", version.ref = "org-flywaydb" }
+org-flywaydb-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "org-flywaydb" }
+org-flywaydb-database-hsqldb = { module = "org.flywaydb:flyway-database-hsqldb", version.ref = "org-flywaydb" }
 org-glassfish-jaxb-runtime = { module = "org.glassfish.jaxb:jaxb-runtime", version.ref = "org-glassfish-jaxb" }
 org-glassfish-jaxb-xjc = { module = "org.glassfish.jaxb:jaxb-xjc", version.ref = "org-glassfish-jaxb" }
 org-hibernate-orm-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "org-hibernate-orm" }

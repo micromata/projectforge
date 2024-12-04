@@ -34,6 +34,8 @@ import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.jpa.PersistenceCallsRecorder.CallType
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext.Companion.ENTITY_GRAPH_HINT_KEY
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext.ContextType
+import org.projectforge.framework.persistence.utils.SQLHelper
 
 private val log = KotlinLogging.logger {}
 
@@ -499,6 +501,26 @@ class PfPersistenceContext internal constructor(
                 .param("native", true)
         )
         return query.resultList
+    }
+
+    /**
+     * Splits the sql into statements and executes each statement via [executeNativeUpdate].
+     * @param sqlScript The sql string.
+     * @param abortOnError If true, an exception is thrown if an error occurs.
+     * @see SQLHelper.splitSqlStatements
+     */
+    @JvmOverloads
+    fun executeNativeScript(sqlScript: String, abortOnError: Boolean = true) {
+        SQLHelper.splitSqlStatements(sqlScript).forEach { statement ->
+            try {
+                executeNativeUpdate(statement)
+            } catch (ex: Exception) {
+                log.error(ex) { "Error executing SQL statement. ${ex.message}: $statement" }
+                if (abortOnError) {
+                    throw ex
+                }
+            }
+        }
     }
 
     fun <T> getReference(

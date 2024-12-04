@@ -1,4 +1,4 @@
-/////////////////////////////////////////////////////////////////////////////
+/// //////////////////////////////////////////////////////////////////////////
 //
 // Project ProjectForge Community Edition
 //         www.projectforge.org
@@ -36,6 +36,7 @@ import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.database.DatabaseInitTestDataService;
 import org.projectforge.framework.persistence.database.DatabaseService;
+import org.projectforge.framework.persistence.jpa.PfPersistenceService;
 import org.projectforge.framework.persistence.search.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -46,183 +47,196 @@ import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.AbstractUnsecureBasePage;
 import org.projectforge.web.wicket.MessagePage;
 import org.projectforge.web.wicket.WicketUtils;
-import org.springframework.jdbc.datasource.init.ScriptUtils;
 
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
 
 public class SetupPage extends AbstractUnsecureBasePage {
-  private static final long serialVersionUID = 9174903871130640690L;
+    private static final long serialVersionUID = 9174903871130640690L;
 
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SetupPage.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SetupPage.class);
 
-  private final SetupForm setupForm;
+    private final SetupForm setupForm;
 
-  private final SetupImportForm importForm;
+    private final SetupImportForm importForm;
 
-  public SetupPage(final PageParameters parameters) {
-    super(parameters);
-    checkAccess();
-    WicketSupport.getMenuCreator().refresh();
-    setupForm = new SetupForm(this);
-    body.add(setupForm);
-    setupForm.init();
-    importForm = new SetupImportForm(this);
-    body.add(importForm);
-    importForm.init();
-  }
+    public SetupPage(final PageParameters parameters) {
+        super(parameters);
+        checkAccess();
+        WicketSupport.getMenuCreator().refresh();
+        setupForm = new SetupForm(this);
+        body.add(setupForm);
+        setupForm.init();
+        importForm = new SetupImportForm(this);
+        body.add(importForm);
+        importForm.init();
+    }
 
-  protected void finishSetup() {
-    ConfigurationDao configurationDao = WicketSupport.get(ConfigurationDao.class);
-    var databaseService = WicketSupport.get(DatabaseService.class);
-    log.info("Finishing the set-up...");
-    checkAccess();
-    PFUserDO adminUser = setupForm.getAdminUser();
-    final String message;
+    protected void finishSetup() {
+        ConfigurationDao configurationDao = WicketSupport.get(ConfigurationDao.class);
+        var databaseService = WicketSupport.get(DatabaseService.class);
+        log.info("Finishing the set-up...");
+        checkAccess();
+        PFUserDO adminUser = setupForm.getAdminUser();
+        final String message;
 
-    //Init global addressbook
-    databaseService.insertGlobalAddressbook();
+        //Init global addressbook
+        databaseService.insertGlobalAddressbook();
 
-    if (setupForm.getSetupTarget() == SetupTarget.EMPTY_DATABASE) {
-      //Init default data (admin user, groups and root task)
-      databaseService.initializeDefaultData(adminUser, setupForm.getTimeZone());
-      message = "administration.setup.message.emptyDatabase";
-    } else {
-      try {
-        ScriptUtils.executeSqlScript(databaseService.getDataSource().getConnection(),
-            configurationDao.applicationContext.getResource("classpath:data/pfTestdata.sql"));
-        if (databaseService.getDialect() == DatabaseDialect.PostgreSQL) {
-          ScriptUtils.executeSqlScript(databaseService.getDataSource().getConnection(),
-              configurationDao.applicationContext.getResource("classpath:data/pfTestdataPostgres.sql"));
+        if (setupForm.getSetupTarget() == SetupTarget.EMPTY_DATABASE) {
+            //Init default data (admin user, groups and root task)
+            databaseService.initializeDefaultData(adminUser, setupForm.getTimeZone());
+            message = "administration.setup.message.emptyDatabase";
+        } else {
+            var persistenceService = WicketSupport.get(PfPersistenceService.class);
+            log.info("Inserting test data...");
+            persistenceService.runInNewTransaction((context) -> {
+                try {
+                    var resource = configurationDao.applicationContext.getResource("classpath:data/pfTestdata.sql");
+                    var script = resource.getContentAsString(StandardCharsets.UTF_8);
+                    context.executeNativeScript(script);
+                    if (databaseService.getDialect() == DatabaseDialect.PostgreSQL) {
+                        log.info("Doing PostgreSQL stuff...");
+                        resource = configurationDao.applicationContext.getResource("classpath:data/pfTestdataPostgres.sql");
+                        script = resource.getContentAsString(StandardCharsets.UTF_8);
+                        context.executeNativeScript(script);
+                    } else {
+                        log.info("Doing HsqlDB stuff...");
+                        resource = configurationDao.applicationContext.getResource("classpath:data/pfTestdataHsqlDB.sql");
+                        script = resource.getContentAsString(StandardCharsets.UTF_8);
+                        context.executeNativeScript(script);
+                    }
+                } catch (Exception e) {
+                    log.error("Exception occured while running test data insert script. Message: " + e.getMessage());
+                }
+                return null;
+            });
+            Configuration.getInstance().forceReload();
+            WicketSupport.get(DatabaseInitTestDataService.class).initAdditionalTestData();
+            databaseService.afterCreatedTestDb(false);
+            message = "administration.setup.message.testdata";
+            // refreshes the visibility of the costConfigured dependent menu items:
+            WicketSupport.getMenuCreator().refresh();
         }
-      } catch (Exception e) {
-        log.error("Exception occured while running test data insert script. Message: " + e.getMessage());
-      }
-      Configuration.getInstance().forceReload();
-      WicketSupport.get(DatabaseInitTestDataService.class).initAdditionalTestData();
-      databaseService.afterCreatedTestDb(false);
-      message = "administration.setup.message.testdata";
-      // refreshes the visibility of the costConfigured dependent menu items:
-      WicketSupport.getMenuCreator().refresh();
-    }
-    adminUser = databaseService.updateAdminUser(adminUser, setupForm.getTimeZone());
-    if (StringUtils.isNotBlank(setupForm.getPassword())) {
-      char[] clearTextPassword = setupForm.getPassword().toCharArray();
-      WicketSupport.get(UserService.class).encryptAndSavePassword(adminUser, clearTextPassword);
-    }
-
-    WicketSupport.getSystemStatus().setSetupRequiredFirst(false);
-    loginAdminUser(adminUser);
-
-    configurationDao.checkAndUpdateDatabaseEntries();
-    if (setupForm.getTimeZone() != null) {
-      final ConfigurationDO configurationDO = getConfigurationDO(ConfigurationParam.DEFAULT_TIMEZONE);
-      if (configurationDO != null) {
-        configurationDO.setTimeZone(setupForm.getTimeZone());
-        configurationDao.update(configurationDO);
-      }
-    }
-    configure(ConfigurationParam.CALENDAR_DOMAIN, setupForm.getCalendarDomain());
-    configure(ConfigurationParam.SYSTEM_ADMIN_E_MAIL, setupForm.getSysopEMail());
-    configure(ConfigurationParam.FEEDBACK_E_MAIL, setupForm.getFeedbackEMail());
-    WicketSupport.get(PluginAdminService.class).afterSetup();
-
-    setResponsePage(new MessagePage(message));
-    log.info("Set-up finished.");
-  }
-
-  private void loginAdminUser(PFUserDO adminUser) {
-    //Login admin user
-    final UserContext userContext = new UserContext(adminUser);
-    ((MySession) getSession()).internalLogin(userContext, getRequest());
-    LoginService.internalLogin(WicketUtils.getHttpServletRequest(getRequest()), userContext);
-  }
-
-  private ConfigurationDO getConfigurationDO(final ConfigurationParam param) {
-    final ConfigurationDO configurationDO = WicketSupport.get(ConfigurationDao.class).getEntry(param);
-    if (configurationDO == null) {
-      log.error("Oups, can't find configuration parameter '" + param + "'. You can re-configure it anytime later.");
-    }
-    return configurationDO;
-  }
-
-  private void configure(final ConfigurationParam param, final String value) {
-    if (StringUtils.isBlank(value) == true) {
-      return;
-    }
-    final ConfigurationDO configurationDO = getConfigurationDO(param);
-    if (configurationDO != null) {
-      configurationDO.setStringValue(value);
-      WicketSupport.get(ConfigurationDao.class).update(configurationDO);
-    }
-  }
-
-  protected void upload() {
-    checkAccess();
-    log.info("Uploading data-base dump file...");
-    final FileUpload fileUpload = importForm.fileUploadField.getFileUpload();
-    if (fileUpload == null) {
-      return;
-    }
-    try {
-      final String clientFileName = fileUpload.getClientFileName();
-      InputStream is = null;
-      if (clientFileName.endsWith(".xml.gz") == true) {
-        is = new GZIPInputStream(fileUpload.getInputStream());
-      } else if (clientFileName.endsWith(".xml") == true) {
-        is = fileUpload.getInputStream();
-      } else {
-        log.info("Unsupported file suffix. Only *.xml and *.xml.gz is supported: " + clientFileName);
-        error(getString("administration.setup.error.uploadfile"));
-        return;
-      }
-      //      final XStreamSavingConverter converter = xmlDump.restoreDatabase(reader);
-      //      final int counter = xmlDump.verifyDump(converter);
-      //      configurationDao.checkAndUpdateDatabaseEntries();
-
-      // intialize DB schema
-      WicketSupport.get(DatabaseService.class).updateSchema();
-
-      log.error("XmlDumpService not yet migrated!!!");
-      int counter = 0; //jpaXmlDumpService.restoreDb(PfEmgrFactory.get(), is, RestoreMode.InsertAll);
-      Configuration.getInstance().setExpired();
-      TaskTree.getInstance().setExpired();
-      getUserGroupCache().setExpired();
-      new Thread() {
-        @Override
-        public void run() {
-          WicketSupport.get(HibernateSearchReindexer.class).rebuildDatabaseSearchIndices();
+        adminUser = databaseService.updateAdminUser(adminUser, setupForm.getTimeZone());
+        if (StringUtils.isNotBlank(setupForm.getPassword())) {
+            char[] clearTextPassword = setupForm.getPassword().toCharArray();
+            WicketSupport.get(UserService.class).encryptAndSavePassword(adminUser, clearTextPassword);
         }
-      }.start();
-      if (counter > 0) {
-        ((MySession) getSession()).internalLogout();
-        WicketUtils.redirectToLogin(this);
-      } else {
-        error(getString("administration.setup.error.import"));
-      }
-    } catch (final Exception ex) {
-      log.error(ex.getMessage(), ex);
-      error(getString("administration.setup.error.import"));
+
+        WicketSupport.getSystemStatus().setSetupRequiredFirst(false);
+        loginAdminUser(adminUser);
+
+        configurationDao.checkAndUpdateDatabaseEntries();
+        if (setupForm.getTimeZone() != null) {
+            final ConfigurationDO configurationDO = getConfigurationDO(ConfigurationParam.DEFAULT_TIMEZONE);
+            if (configurationDO != null) {
+                configurationDO.setTimeZone(setupForm.getTimeZone());
+                configurationDao.update(configurationDO);
+            }
+        }
+        configure(ConfigurationParam.CALENDAR_DOMAIN, setupForm.getCalendarDomain());
+        configure(ConfigurationParam.SYSTEM_ADMIN_E_MAIL, setupForm.getSysopEMail());
+        configure(ConfigurationParam.FEEDBACK_E_MAIL, setupForm.getFeedbackEMail());
+        WicketSupport.get(PluginAdminService.class).afterSetup();
+
+        setResponsePage(new MessagePage(message));
+        log.info("Set-up finished.");
     }
-  }
 
-  @Override
-  protected String getTitle() {
-    return getString("administration.setup.title");
-  }
-
-  private void checkAccess() {
-    if (WicketSupport.get(DatabaseService.class).databaseTablesWithEntriesExist()) {
-      log.error("Couldn't call set-up page, because the data-base isn't empty!");
-      ((MySession) getSession()).internalLogout();
-      throw new RestartResponseException(WicketUtils.getDefaultPage());
+    private void loginAdminUser(PFUserDO adminUser) {
+        //Login admin user
+        final UserContext userContext = new UserContext(adminUser);
+        ((MySession) getSession()).internalLogin(userContext, getRequest());
+        LoginService.internalLogin(WicketUtils.getHttpServletRequest(getRequest()), userContext);
     }
-  }
 
-  /**
-   * @see org.projectforge.web.wicket.AbstractUnsecureBasePage#thisIsAnUnsecuredPage()
-   */
-  @Override
-  protected void thisIsAnUnsecuredPage() {
-  }
+    private ConfigurationDO getConfigurationDO(final ConfigurationParam param) {
+        final ConfigurationDO configurationDO = WicketSupport.get(ConfigurationDao.class).getEntry(param);
+        if (configurationDO == null) {
+            log.error("Oups, can't find configuration parameter '" + param + "'. You can re-configure it anytime later.");
+        }
+        return configurationDO;
+    }
+
+    private void configure(final ConfigurationParam param, final String value) {
+        if (StringUtils.isBlank(value) == true) {
+            return;
+        }
+        final ConfigurationDO configurationDO = getConfigurationDO(param);
+        if (configurationDO != null) {
+            configurationDO.setStringValue(value);
+            WicketSupport.get(ConfigurationDao.class).update(configurationDO);
+        }
+    }
+
+    protected void upload() {
+        checkAccess();
+        log.info("Uploading data-base dump file...");
+        final FileUpload fileUpload = importForm.fileUploadField.getFileUpload();
+        if (fileUpload == null) {
+            return;
+        }
+        try {
+            final String clientFileName = fileUpload.getClientFileName();
+            InputStream is = null;
+            if (clientFileName.endsWith(".xml.gz") == true) {
+                is = new GZIPInputStream(fileUpload.getInputStream());
+            } else if (clientFileName.endsWith(".xml") == true) {
+                is = fileUpload.getInputStream();
+            } else {
+                log.info("Unsupported file suffix. Only *.xml and *.xml.gz is supported: " + clientFileName);
+                error(getString("administration.setup.error.uploadfile"));
+                return;
+            }
+            //      final XStreamSavingConverter converter = xmlDump.restoreDatabase(reader);
+            //      final int counter = xmlDump.verifyDump(converter);
+            //      configurationDao.checkAndUpdateDatabaseEntries();
+
+            // intialize DB schema
+            WicketSupport.get(DatabaseService.class).updateSchema();
+
+            log.error("XmlDumpService not yet migrated!!!");
+            int counter = 0; //jpaXmlDumpService.restoreDb(PfEmgrFactory.get(), is, RestoreMode.InsertAll);
+            Configuration.getInstance().setExpired();
+            TaskTree.getInstance().setExpired();
+            getUserGroupCache().setExpired();
+            new Thread() {
+                @Override
+                public void run() {
+                    WicketSupport.get(HibernateSearchReindexer.class).rebuildDatabaseSearchIndices();
+                }
+            }.start();
+            if (counter > 0) {
+                ((MySession) getSession()).internalLogout();
+                WicketUtils.redirectToLogin(this);
+            } else {
+                error(getString("administration.setup.error.import"));
+            }
+        } catch (final Exception ex) {
+            log.error(ex.getMessage(), ex);
+            error(getString("administration.setup.error.import"));
+        }
+    }
+
+    @Override
+    protected String getTitle() {
+        return getString("administration.setup.title");
+    }
+
+    private void checkAccess() {
+        if (WicketSupport.get(DatabaseService.class).databaseTablesWithEntriesExist()) {
+            log.error("Couldn't call set-up page, because the data-base isn't empty!");
+            ((MySession) getSession()).internalLogout();
+            throw new RestartResponseException(WicketUtils.getDefaultPage());
+        }
+    }
+
+    /**
+     * @see org.projectforge.web.wicket.AbstractUnsecureBasePage#thisIsAnUnsecuredPage()
+     */
+    @Override
+    protected void thisIsAnUnsecuredPage() {
+    }
 }

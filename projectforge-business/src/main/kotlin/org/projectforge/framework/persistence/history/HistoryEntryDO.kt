@@ -148,7 +148,7 @@ class HistoryEntryDO : HistoryEntry {
             entry.entityName = entityName
             entry.entityId = entity.id
             entry.entityOpType = entityOpType
-            entry.modifiedBy = modifiedBy
+            entry.modifiedBy = modifiedBy ?: "anon"
             entry.modifiedAt = Date()
             return entry
         }

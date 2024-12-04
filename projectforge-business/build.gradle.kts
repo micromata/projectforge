@@ -92,6 +92,7 @@ dependencies {
     api(libs.org.dom4j)
     api(libs.org.apache.httpcomponents.client5.httpclient5)
     api(libs.org.flywaydb.core)
+    api(libs.org.flywaydb.database.hsqldb)
     api(libs.org.flywaydb.database.postgresql)
     api(libs.org.postgresql)
     api(libs.org.hsqldb.hsqldb)
@@ -133,6 +134,7 @@ dependencies {
     testFixturesImplementation(libs.org.springframework.spring.test)
     testFixturesImplementation(libs.org.mockito.core)
     testFixturesImplementation(libs.org.mockito.kotlin)
+    testFixturesImplementation(libs.com.googlecode.gson)
 
     testImplementation(project(":projectforge-commons-test"))
     testImplementation(libs.org.springframework.spring.test)

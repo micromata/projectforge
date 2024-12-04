@@ -1,3 +1,5 @@
+ALTER TABLE t_plugin_calendar_event ADD COLUMN original_ics_entry TEXT;
+
 ALTER TABLE t_pf_history ALTER COLUMN createdat DROP NOT NULL; -- modifiedat is used instead.
 ALTER TABLE t_pf_history ALTER COLUMN createdby DROP NOT NULL; -- modifiedby is used instead.
 ALTER TABLE t_pf_history ALTER COLUMN updatecounter DROP NOT NULL;
