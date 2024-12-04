@@ -45,6 +45,23 @@ class SQLHelperTest {
         assertYears(2022, 2025, intArrayOf(2022, 2023, 2024, 2025))
     }
 
+    @Test
+    fun `test splitting of sql scripts in executable statements`() {
+        val sql = """
+            CREATE TABLE test (
+                id INT PRIMARY KEY,
+                name VARCHAR(255) -- comment;
+            );
+            INSERT INTO test (id, name) VALUES (1, 'test');
+            INSERT INTO test (id, name) VALUES (2, 'test2;');
+        """.trimIndent()
+        val statements = SQLHelper.splitSqlStatements(sql)
+        Assertions.assertEquals(3, statements.size)
+        Assertions.assertEquals("CREATE TABLE test (\n    id INT PRIMARY KEY,\n    name VARCHAR(255) \n);", statements[0])
+        Assertions.assertEquals("INSERT INTO test (id, name) VALUES (1, 'test');", statements[1])
+        Assertions.assertEquals("INSERT INTO test (id, name) VALUES (2, 'test2;');", statements[2])
+    }
+
     private fun assertYears(year1: Int?, year2: Int?, expectedIntArray: IntArray) {
         Assertions.assertArrayEquals(SQLHelper.getYears(year1, year2), expectedIntArray)
         Assertions.assertArrayEquals(

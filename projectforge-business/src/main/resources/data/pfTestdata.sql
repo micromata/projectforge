@@ -488,71 +488,71 @@ VALUES (171, '2011-02-07 21:19:47.902', FALSE, '2011-02-07 21:19:47.902', NULL, 
         'Enterprise Architekturen. Leitfaden für effiziente Software-Entwicklung',
         'BOOK', '2006', NULL);
 
-INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, intvalue,
+INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, longvalue,
                              parameter, stringvalue)
 VALUES (3, '2010-04-21 00:12:07.601', FALSE, '2011-02-07 21:22:26.455', 'STRING', NULL, FALSE, NULL, 'feedbackEMail',
         'admin@dev-null.com');
-INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, intvalue,
+INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, longvalue,
                              parameter, stringvalue)
 VALUES (4, '2010-04-21 00:12:07.603', FALSE, '2010-04-21 22:07:27.722', 'PERCENT', 0.19000, FALSE, NULL,
         'fibu.defaultVAT', NULL);
-INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, intvalue,
+INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, longvalue,
                              parameter, stringvalue)
 VALUES (7, '2010-04-21 00:12:07.607', FALSE, '2010-04-21 22:07:40.197', 'STRING', NULL, FALSE, NULL,
         'countryPhonePrefix', '+49');
-INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, intvalue,
+INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, longvalue,
                              parameter, stringvalue)
 VALUES (8, '2010-07-13 17:39:34.685', FALSE, '2010-07-13 17:39:34.685', 'STRING', NULL, FALSE, NULL,
         'mebSMSReceivingPhoneNumber', NULL);
-INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, intvalue,
+INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, longvalue,
                              parameter, stringvalue)
 VALUES (10, '2011-03-18 06:18:53.377', FALSE, '2011-03-18 06:18:53.377', 'STRING', NULL, FALSE, NULL, 'dateFormats',
         'dd/MM/yyyy;MM/dd/yyyy;dd.MM.yyyy;yyyy-MM-dd');
-INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, intvalue,
+INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, longvalue,
                              parameter, stringvalue)
 VALUES (11, '2011-03-18 06:18:53.381', FALSE, '2011-03-18 06:18:53.381', 'STRING', NULL, FALSE, NULL,
         'excelDateFormats', 'DD/MM/YYYY;MM/DD/YYYY;DD.MM.YYYY');
-INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, intvalue,
+INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, longvalue,
                              parameter, stringvalue)
 VALUES (12, '2011-03-18 06:18:53.383', FALSE, '2011-03-18 06:19:57.347', 'BOOLEAN', NULL, FALSE, NULL,
         'fibu.costConfigured', 'true');
-INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, intvalue,
+INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, longvalue,
                              parameter, stringvalue)
 VALUES (13, '2012-05-02 22:42:13.084', FALSE, '2012-05-02 22:42:13.084', 'TEXT', NULL, FALSE, NULL, 'organization',
         NULL);
-INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, intvalue,
+INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, longvalue,
                              parameter, stringvalue)
 VALUES (1, '2010-04-21 00:12:07.576', FALSE, '2011-02-07 21:22:17.164', 'STRING', NULL, TRUE, NULL,
         'systemAdministratorEMail', 'admin@dev-null.com');
-INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, intvalue,
+INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, longvalue,
                              parameter, stringvalue)
 VALUES (2, '2010-04-21 00:12:07.599', FALSE, '2013-04-01 12:21:20.99', 'TEXT', NULL, TRUE, NULL, 'messageOfTheDay',
         'Please try user demo with password demo123. Have a lot of fun!');
-INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, intvalue,
+INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, longvalue,
                              parameter, stringvalue)
 VALUES (514, '2017-11-23 12:56:36.808', FALSE, '2017-11-23 12:56:36.808', 'STRING', NULL, TRUE, NULL,
         'pluginsActivated', NULL);
-INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, intvalue,
+INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, longvalue,
                              parameter, stringvalue)
 VALUES (15, '2016-09-30 12:03:23.48', FALSE, '2016-09-30 15:02:18.298', 'STRING', NULL, TRUE, NULL, 'hr.emailaddress',
         'hr@management.de');
-INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, intvalue,
+INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, longvalue,
                              parameter, stringvalue)
 VALUES (542, '2017-11-23 12:56:36.888', FALSE, '2017-11-23 12:56:36.888', 'STRING', NULL, TRUE, NULL,
         'vacation.lastyear.enddate', '31.03.');
-INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, intvalue,
+INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, longvalue,
                              parameter, stringvalue)
 VALUES (558, '2017-11-23 12:56:36.928', FALSE, '2017-11-23 12:56:36.928', 'INTEGER', NULL, TRUE, 10,
         'minPasswordLength', NULL);
-INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, intvalue,
+INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, longvalue,
                              parameter, stringvalue)
 VALUES (574, '2017-11-23 12:56:36.968', FALSE, '2017-11-23 12:56:36.968', 'BOOLEAN', NULL, TRUE, NULL,
         'password.flag.checkChange', 'true');
-INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, intvalue,
+INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, longvalue,
                              parameter, stringvalue)
 VALUES (9, '2011-01-23 17:21:33.597', FALSE, '2017-11-23 12:56:37.103', 'TIME_ZONE', NULL, FALSE, NULL, 'timezone',
         'UTC');
-INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, intvalue,
+INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, longvalue,
                              parameter, stringvalue)
 VALUES (14, '2013-04-01 12:03:23.48', FALSE, '2017-11-23 12:56:37.154', 'STRING', NULL, FALSE, NULL, 'calendarDomain',
         'test');
