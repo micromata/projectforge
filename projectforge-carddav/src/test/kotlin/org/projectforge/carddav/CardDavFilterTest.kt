@@ -31,15 +31,15 @@ import org.mockito.Mockito
 class CardDavFilterTest {
     @Test
     fun `test handledByCardDavFilter`() {
-        checkRequest(
-            "/",
-            "PROPFIND",
-            "/path doesn't matter",
-            true,
-            "PROPFIND should be handled by CardDavFilter, independent of the request URI"
-        )
-        checkRequest("/carddav", "OPTIONS", "/carddav/users", true)
-        checkRequest("/", "OPTIONS", "/users", true)
+        checkRequest("/carddav", "OPTIONS", "/carddav/users/kai", true)
+        checkRequest("/", "OPTIONS", "/users/kai", true)
+        checkRequest("/carddav", "OPTIONS", "/carddav/users", false)
+        checkRequest("/", "OPTIONS", "/users", false)
+
+        checkRequest("/carddav", "PROPFIND", "/carddav/users/kai", true)
+        checkRequest("/", "PROPFIND", "/users/kai", true)
+        checkRequest("/carddav", "PROPFIND", "/carddav/users", false)
+        checkRequest("/", "PROPFIND", "/users", false)
     }
 
     private fun checkRequest(
@@ -57,3 +57,11 @@ class CardDavFilterTest {
         return request
     }
 }
+
+/*
+Call from old CardDav-Server:
+
+
+
+
+ */

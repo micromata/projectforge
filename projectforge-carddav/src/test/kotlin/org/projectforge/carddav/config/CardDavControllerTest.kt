@@ -25,25 +25,25 @@ package org.projectforge.web
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.carddav.CardDavController
+import org.projectforge.carddav.CardDavService
 import java.util.Date
 
 class CardDavControllerTest {
     @Test
     fun `test writing xml response of PROPFIND`() {
         StringBuilder().let { sb ->
-            CardDavController.writeMultiStatusStart(sb, "www.projectforge.org")
+            CardDavService.writeMultiStatusStart(sb, "www.projectforge.org")
             Assertions.assertEquals(
                 "<d:multistatus xmlns:d=\"DAV:\" xmlns:cs=\"https://www.projectforge.org/ns/\">\n",
                 sb.toString()
             )
         }
         StringBuilder().let { sb ->
-            CardDavController.writeMultiStatusEnd(sb)
+            CardDavService.writeMultiStatusEnd(sb)
             Assertions.assertEquals("</d:multistatus>\n", sb.toString())
         }
         StringBuilder().let { sb ->
-            CardDavController.writeResponse(sb, user = "kai", addressId = 42L, etag = Date(1234567890), displayName = "Kai")
+            CardDavService.writeResponse(sb, user = "kai", addressId = 42L, etag = Date(1234567890), displayName = "Kai")
             Assertions.assertEquals(response, sb.toString())
         }
     }
