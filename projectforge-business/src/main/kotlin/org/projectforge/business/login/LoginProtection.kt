@@ -24,6 +24,7 @@
 package org.projectforge.business.login
 
 import org.slf4j.LoggerFactory
+import kotlin.math.max
 
 /**
  * Class for avoiding brute force attacks by time offsets during login after failed login attempts. Usage:<br></br>
@@ -94,13 +95,13 @@ class LoginProtection private constructor() {
     }
 
     /**
-     * Returns the number of failed login attempts. If failed login attempts exist for both (user id and ip) the larger value will be
+     * Returns the number of failed login attempts. If failed login-attempts exist for both (user id and ip) the larger value will be
      * returned.
      *
      * @param userId          May-be null.
      * @param clientIpAddress May-be null.
      * @param authenticationType Type of authentication (or null) for separating time penalties for different types (DAV, REST_CLIENT and normal login).
-     * @return The number of failed login attempts (not expired ones) if exist, otherwise 0.
+     * @return The number of failed login attempts (not expired ones) if existed, otherwise 0.
      */
     @JvmOverloads
     fun getNumberOfFailedLoginAttempts(userId: String?, clientIpAddress: String?, authenticationType: String? = null): Int {
@@ -179,7 +180,7 @@ class LoginProtection private constructor() {
                 log.warn("Time-offset (penalty) for ip address '$clientIpAddress' increased: ${timeOffsetForIpAddress / 1000} seconds.")
             }
         }
-        return if (timeOffsetForUserId > timeOffsetForIpAddress) timeOffsetForUserId else timeOffsetForIpAddress
+        return max(timeOffsetForUserId, timeOffsetForIpAddress)
     }
 
     private fun getUserString(user: Any, authenticationType: String?): String? {
