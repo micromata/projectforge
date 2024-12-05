@@ -8,8 +8,10 @@ Aktuell:
 - Milton
 - Kalendereinträge und Subscriptions.
 - InitDatabaseDaoWithTestDataTestFork implementieren.
+- LoginProtection: Increases penalty time for DAV only after 5 tries.
 
 - remove all BaseDO.xxxId (lazy fetch) and replace callee by baseDO?.id
+- Wicket: CalendarPage als Default ersetzen, CalendarPages remove.
 - Entitygraphen nutzen: ConflictVacationCache, AuftragCache etc.
   - Auftrag editieren: massenhaft SQLs
   - employeeSalaryList: lädt wie blöde nach dem Editieren. (Excel-Exports auch zuviele SQLs)

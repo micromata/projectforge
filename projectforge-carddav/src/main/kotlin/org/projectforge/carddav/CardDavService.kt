@@ -33,14 +33,14 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.*
 import java.util.Date
 
 private val log = KotlinLogging.logger {}
 
-@RestController
-@RequestMapping("\${projectforge.carddav.basePath:/carddav}")
-class CardDavController {
+@Service
+class CardDavService {
     @Autowired
     private lateinit var addressService: AddressService
 
@@ -50,16 +50,16 @@ class CardDavController {
      *
      * @return ResponseEntity with allowed methods and DAV capabilities in the headers.
      */
-    @RequestMapping(value = ["/**"], method = [RequestMethod.OPTIONS])
     fun handleDynamicOptions(request: HttpServletRequest): ResponseEntity<Void> {
         val requestedPath = request.requestURI
 
         val headers = HttpHeaders().apply {
             // Indicate DAV capabilities
-            add("DAV", "1, 2, addressbook")
+            add("DAV", "1, 2, 3, addressbook")
 
             // Indicate allowed HTTP methods
-            add("Allow", "OPTIONS, GET, HEAD, POST, PUT, DELETE, PROPFIND, REPORT")
+            // add("Allow", "OPTIONS, GET, HEAD, POST, PUT, DELETE, PROPFIND, REPORT")
+            add("Allow", "OPTIONS, GET, PROPFIND")
 
             // Expose additional headers for client visibility
             add("Access-Control-Expose-Headers", "DAV, Allow")
@@ -80,8 +80,7 @@ class CardDavController {
      * @param request The HTTP request.
      * @return The response entity.
      */
-    @RequestMapping(value = ["/{user}/addressbook"])
-    fun handlePropfind(@PathVariable user: String, request: HttpServletRequest): ResponseEntity<String> {
+´    fun handlePropfindUsers(@PathVariable user: String, request: HttpServletRequest): ResponseEntity<String> {
         if (!request.method.equals("PROPFIND", ignoreCase = true)) {
             log.error { "Method not allowed: ${request.method}, PROPFIND expected." }
             return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build()
@@ -98,8 +97,30 @@ class CardDavController {
             .body(response.toString())
     }
 
-    @GetMapping("/{user}/addressbook/{contactId}")
-    fun getContact(@PathVariable user: String, @PathVariable contactId: String): ResponseEntity<String> {
+    /**
+     * Handle PROPFIND requests. Get the address book metadata for the given user.
+     * @param user The user for which the address book is requested.
+     * @param request The HTTP request.
+     * @return The response entity.
+     */
++    fun handlePropfindAddressBook(@PathVariable user: String, request: HttpServletRequest): ResponseEntity<String> {
+        if (!request.method.equals("PROPFIND", ignoreCase = true)) {
+            log.error { "Method not allowed: ${request.method}, PROPFIND expected." }
+            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build()
+        }
+        val response = StringBuilder()
+        writeMultiStatusStart(response, request.serverName)
+        val addressBook = AddressBook(User(user))
+        addressService.getContactList(addressBook).forEach { contact ->
+            writeResponse(response, user, contact.id, contact.lastUpdated, contact.displayName)
+        }
+        writeMultiStatusEnd(response)
+        return ResponseEntity.status(HttpStatus.MULTI_STATUS)
+            .contentType(MediaType.APPLICATION_XML)
+            .body(response.toString())
+    }
+
+´    fun getContact(@PathVariable user: String, @PathVariable contactId: String): ResponseEntity<String> {
         val vcard = contactId.toLongOrNull()?.let {
             addressService.getContact(it)?.vcardData?.toString(Charsets.UTF_8)
         }

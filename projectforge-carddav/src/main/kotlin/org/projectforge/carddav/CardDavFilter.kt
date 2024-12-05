@@ -30,7 +30,6 @@ import mu.KotlinLogging
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.carddav.CardDavInit.Companion.cardDavBasePath
-import org.projectforge.carddav.service.DavSessionCache
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.security.SecurityLogging
 import org.projectforge.web.rest.BasicAuthenticationData
@@ -50,9 +49,6 @@ class CardDavFilter : Filter {
     private lateinit var springContext: WebApplicationContext
 
     @Autowired
-    private lateinit var davSessionCache: DavSessionCache
-
-    @Autowired
     private lateinit var restAuthenticationUtils: RestAuthenticationUtils
 
     @Autowired
@@ -68,56 +64,47 @@ class CardDavFilter : Filter {
 
     private fun authenticate(authInfo: RestAuthenticationInfo) {
         log.debug { "Trying to authenticate user (${RequestLog.asString(authInfo.request)})..." }
-        val davSessionData = davSessionCache.getSessionData(authInfo.request)
-        val davSessionUser = davSessionData?.user
-        if (davSessionUser != null) {
-            log.debug { "User found by session id (${RequestLog.asString(authInfo.request)})..." }
-            authInfo.user = davSessionUser
-        } else {
-            log.debug { "No user found by session id (${RequestLog.asString(authInfo.request)})..." }
-            restAuthenticationUtils.basicAuthentication(
-                authInfo,
+        restAuthenticationUtils.basicAuthentication(
+            authInfo,
+            UserTokenType.DAV_TOKEN,
+            true
+        ) { userString, authenticationToken ->
+            val authenticatedUser = userAuthenticationsService.getUserByToken(
+                authInfo.request,
+                userString,
                 UserTokenType.DAV_TOKEN,
-                true
-            ) { userString, authenticationToken ->
-                val authenticatedUser = userAuthenticationsService.getUserByToken(
+                authenticationToken
+            )
+            if (authenticatedUser == null) {
+                val msg = "Can't authenticate user '$userString' by given token. User name and/or token invalid (${
+                    RequestLog.asString(authInfo.request)
+                }."
+                log.error(msg)
+                SecurityLogging.logSecurityWarn(
                     authInfo.request,
-                    userString,
-                    UserTokenType.DAV_TOKEN,
-                    authenticationToken
+                    this::class.java,
+                    "${UserTokenType.DAV_TOKEN.name} AUTHENTICATION FAILED",
+                    msg
                 )
-                if (authenticatedUser == null) {
-                    val msg = "Can't authenticate user '$userString' by given token. User name and/or token invalid (${
-                        RequestLog.asString(authInfo.request)
-                    }."
-                    log.error(msg)
-                    SecurityLogging.logSecurityWarn(
-                        authInfo.request,
-                        this::class.java,
-                        "${UserTokenType.DAV_TOKEN.name} AUTHENTICATION FAILED",
-                        msg
-                    )
-                } else {
-                    log.debug {
-                        "Registering authenticated user: ${
-                            RequestLog.asString(
-                                authInfo.request,
-                                authenticatedUser.username
-                            )
-                        }"
-                    }
-                    davSessionCache.registerSessionData(authInfo.request, authenticatedUser)
-                    log.info {
-                        "Authenticated user registered: ${
-                            RequestLog.asString(
-                                authInfo.request,
-                                authenticatedUser.username
-                            )
-                        }"
-                    }
+            } else {
+                log.debug {
+                    "Registering authenticated user: ${
+                        RequestLog.asString(
+                            authInfo.request,
+                            authenticatedUser.username
+                        )
+                    }"
                 }
-                authenticatedUser
+                log.info {
+                    "Authenticated user registered: ${
+                        RequestLog.asString(
+                            authInfo.request,
+                            authenticatedUser.username
+                        )
+                    }"
+                }
             }
+            authenticatedUser
         }
     }
 
@@ -151,63 +138,72 @@ class CardDavFilter : Filter {
             }
             // Not for us:
             chain.doFilter(request, response)
-        } else {
-            if (request.method == "PUT") {
-                log.info { "DAV doesn't support PUT method (yet): ${request.requestURI}" }
-                response as HttpServletResponse
-                response.sendError(
-                    HttpServletResponse.SC_SERVICE_UNAVAILABLE,
-                    "PUT not (yet) supported by ProjectForge."
-                )
-                return
-            }
-            log.info(
-                "Request with method=${request.method} for CardDav (${
-                    RequestLog.asString(
-                        request
-                    )
-                })..."
-            )
-            log.debug { "Request-Info: ${RequestLog.asJson(request, true)}" }
-            restAuthenticationUtils.doFilter(
-                request,
-                response,
-                UserTokenType.DAV_TOKEN,
-                authenticate = { authInfo -> authenticate(authInfo) },
-                doFilter = { -> chain.doFilter(request, response) }
-            )
+            return
         }
+        if (request.method == "PUT") {
+            log.info { "DAV doesn't support PUT method (yet): ${request.requestURI}" }
+            response as HttpServletResponse
+            response.sendError(
+                HttpServletResponse.SC_SERVICE_UNAVAILABLE,
+                "PUT not (yet) supported by ProjectForge."
+            )
+            return
+        }
+        log.info(
+            "Request with method=${request.method} for CardDav (${
+                RequestLog.asString(
+                    request
+                )
+            })..."
+        )
+        log.debug { "Request-Info: ${RequestLog.asJson(request, true)}" }
+        if (request.method == "OPTIONS") {
+            // No login required for OPTIONS.
+            chain.doFilter(request, response)
+            return
+        }
+        restAuthenticationUtils.doFilter(
+            request,
+            response,
+            UserTokenType.DAV_TOKEN,
+            authenticate = { authInfo -> authenticate(authInfo) },
+            doFilter = { -> chain.doFilter(request, response) }
+        )
     }
 
     companion object {
-        private val METHODS = arrayOf("OPTIONS", "PROPPATCH", "REPORT", "PUT")
-
         /**
-         * @return true if given method is in list "PROPFIND", "PROPPATCH", "OPTIONS" (with /users/...), "REPORT".
-         * Otherwise, false.
+         * @return true if given is handled by CardDavController. Otherwise, false.
          */
         fun handledByCardDavFilter(request: HttpServletRequest): Boolean {
-            val method = request.method
-            if (method == "PROPFIND") {
-                val uri = request.requestURI
-                log.info("PROPFIND call detected: $uri")
-                // All PROPFIND's will be handled by CardDav.
-                return true
+            val uri = request.requestURI
+            return when (request.method) {
+                "PROPFIND" -> {
+                    log.debug { "PROPFIND call detected: $uri" }
+                    return urlMatches(uri, "/users/")
+                }
+
+                "OPTIONS" -> {
+                    log.debug { "OPTIONS call detected: $uri" }
+                    return urlMatches(uri, "/users/")
+                }
+
+                else -> {
+                    false
+                }
             }
-            if (METHODS.contains(method)) {
-                // We may add uri pattern later ("/", "/principals/*", "/users/*").
-                return urlMatches(request)
-            }
-            return false
         }
 
-        fun urlMatches(request: HttpServletRequest): Boolean {
-            val uri = request.requestURI
-            // We may add uri pattern later ("/", "/principals/*", "/users/*").
-            return if (cardDavBasePath == "/") {
-                uri.matches("/+users.*".toRegex())
+        /**
+         * @param uri The URI to check.
+         * @param paths The path to check, must start with /.
+         * @return true if given URI is a CardDav URI.
+         */
+        internal fun urlMatches(uri: String, vararg paths: String): Boolean {
+            return if (cardDavBasePath == "/") { // Avoid //users instead of /users:
+                paths.any { uri.startsWith(it) }
             } else {
-                uri.matches("/*${cardDavBasePath}/users.*".toRegex())
+                paths.any { uri.startsWith("$cardDavBasePath$it") }
             }
         }
     }
