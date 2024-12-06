@@ -23,28 +23,27 @@
 
 package org.projectforge.carddav
 
-import jakarta.annotation.PostConstruct
-import jakarta.servlet.ServletContext
-import org.projectforge.rest.config.RestUtils
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Component
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 
-@Component
-open class CardDavInit {
-    @Value("\${projectforge.carddav.useRootPath:false}")
-    private var cardDavUseRootPath: Boolean = false
-
-    @PostConstruct
-    private fun initCompanion() {
-        CardDavInit.cardDavUseRootPath = this.cardDavUseRootPath
-    }
-
-    fun init(sc: ServletContext) {
-        RestUtils.registerFilter(sc, "CardDavFilter", CardDavFilter::class.java, false, "/*")
-    }
-
-    companion object {
-        internal const val CARD_DAV_BASE_PATH = "/carddav"
-        internal var cardDavUseRootPath: Boolean = false
+class PropFindUtilsTest {
+    @Test
+    fun `test of extracting propFinds`() {
+        val xml = """
+            <propfind xmlns="DAV:">
+              <prop>
+                <resourcetype/>
+                <displayname/>
+                <current-user-principal/>
+                <current-user-privilege-set/>
+              </prop>
+            </propfind>
+        """.trimIndent()
+        val propFinds = PropFindUtils.extractProps(xml)
+        Assertions.assertEquals(4, propFinds.size)
+        Assertions.assertEquals(PropFindUtils.Prop.RESOURCETYPE, propFinds[0])
+        Assertions.assertEquals(PropFindUtils.Prop.DISPLAYNAME, propFinds[1])
+        Assertions.assertEquals(PropFindUtils.Prop.CURRENT_USER_PRINCIPAL, propFinds[2])
+        Assertions.assertEquals(PropFindUtils.Prop.CURRENT_USER_PRIVILEGE_SET, propFinds[3])
     }
 }

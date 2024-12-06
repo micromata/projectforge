@@ -23,28 +23,36 @@
 
 package org.projectforge.carddav
 
-import jakarta.annotation.PostConstruct
-import jakarta.servlet.ServletContext
-import org.projectforge.rest.config.RestUtils
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Component
+import jakarta.servlet.http.HttpServletRequest
+import mu.KotlinLogging
+import org.projectforge.rest.utils.RequestLog
+import java.io.BufferedReader
 
-@Component
-open class CardDavInit {
-    @Value("\${projectforge.carddav.useRootPath:false}")
-    private var cardDavUseRootPath: Boolean = false
+private val log = KotlinLogging.logger {}
 
-    @PostConstruct
-    private fun initCompanion() {
-        CardDavInit.cardDavUseRootPath = this.cardDavUseRootPath
+internal class RequestWrapper(val request: HttpServletRequest) {
+    val requestURI = request.requestURI
+    val basicAuth: Boolean by lazy {
+        request.getHeader("authorization") != null ||
+                request.getHeader("Authorization") != null
     }
-
-    fun init(sc: ServletContext) {
-        RestUtils.registerFilter(sc, "CardDavFilter", CardDavFilter::class.java, false, "/*")
+    val baseUrl: String by lazy {
+        if (request.requestURI.startsWith(CardDavInit.CARD_DAV_BASE_PATH)) {
+            CardDavInit.CARD_DAV_BASE_PATH
+        } else {
+            "/"
+        }
     }
-
-    companion object {
-        internal const val CARD_DAV_BASE_PATH = "/carddav"
-        internal var cardDavUseRootPath: Boolean = false
+    val body: String by lazy {
+        try {
+            if (request.contentLength > 0) {
+                request.inputStream.bufferedReader().use(BufferedReader::readText)
+            } else {
+                ""
+            }
+        } catch (e: Exception) {
+            log.info { "Can't read body of request: ${RequestLog.asJson(request)}" }
+            ""
+        }
     }
 }

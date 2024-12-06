@@ -31,19 +31,21 @@ import org.mockito.Mockito
 class CardDavFilterTest {
     @Test
     fun `test handledByCardDavFilter`() {
-        checkRequest("/carddav", "OPTIONS", "/carddav/users/kai", true)
-        checkRequest("/", "OPTIONS", "/users/kai", true)
-        checkRequest("/carddav", "OPTIONS", "/carddav/users", false)
-        checkRequest("/", "OPTIONS", "/users", false)
+        checkRequest(false, "OPTIONS", "/carddav/users/kai", true)
+        checkRequest(true, "OPTIONS", "/users/kai", true)
+        checkRequest(false, "OPTIONS", "/carddav/users", false)
+        checkRequest(true, "OPTIONS", "/users", false)
 
-        checkRequest("/carddav", "PROPFIND", "/carddav/users/kai", true)
-        checkRequest("/", "PROPFIND", "/users/kai", true)
-        checkRequest("/carddav", "PROPFIND", "/carddav/users", false)
-        checkRequest("/", "PROPFIND", "/users", false)
+        checkRequest(false, "PROPFIND", "/carddav/users/kai", true)
+        checkRequest(true, "PROPFIND", "/users/kai", true)
+        checkRequest(false, "PROPFIND", "/carddav/users", false)
+        checkRequest(true, "PROPFIND", "/users", false)
+
+        checkRequest(false, "OPTIONS", "/.well-known/carddav", true)
     }
 
     private fun checkRequest(
-        basePath: String,
+        useRootPath: Boolean,
         method: String,
         requestUri: String?,
         expected: Boolean,
@@ -52,7 +54,7 @@ class CardDavFilterTest {
         val request = Mockito.mock(HttpServletRequest::class.java)
         Mockito.`when`(request.requestURI).thenReturn(requestUri)
         Mockito.`when`(request.method).thenReturn(method)
-        CardDavInit.cardDavBasePath = basePath
+        CardDavInit.cardDavUseRootPath = useRootPath
         Assertions.assertEquals(expected, CardDavFilter.handledByCardDavFilter(request), msg)
         return request
     }
