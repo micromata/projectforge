@@ -345,7 +345,7 @@ open class RestAuthenticationUtils {
     RegisterUser4Thread.unregister()
     ConnectionSettings.set(null)
     val resultCode = (response as HttpServletResponse).status
-    if (resultCode != HttpStatus.OK.value() && resultCode != HttpStatus.MULTI_STATUS.value()) { // MULTI_STATUS (207) will be returned by milton.io (CalDAV/CardDAV), because XML is returned.
+    if (resultCode != HttpStatus.OK.value() && resultCode != HttpStatus.MULTI_STATUS.value()) { // MULTI_STATUS (207) will be returned by CardDavService, because XML is returned.
       val user = authInfo.user!!
       val clientIpAddress = authInfo.clientIpAddress
       log.error("User: ${user.username} calls RestURL: ${(request as HttpServletRequest).requestURI} with ip: $clientIpAddress: Response status not OK: status=${response.status}.")

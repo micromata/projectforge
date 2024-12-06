@@ -24,18 +24,23 @@
 package org.projectforge.carddav
 
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
+import org.projectforge.business.user.UserAuthenticationsService
+import org.projectforge.business.user.UserTokenType
 import org.projectforge.carddav.model.AddressBook
 import org.projectforge.carddav.model.User
 import org.projectforge.carddav.service.AddressService
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.rest.utils.RequestLog
+import org.projectforge.security.SecurityLogging
+import org.projectforge.web.rest.RestAuthenticationInfo
+import org.projectforge.web.rest.RestAuthenticationUtils
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
-import org.springframework.web.bind.annotation.*
-import java.util.Date
 
 private val log = KotlinLogging.logger {}
 
@@ -44,83 +49,166 @@ class CardDavService {
     @Autowired
     private lateinit var addressService: AddressService
 
+    @Autowired
+    private lateinit var restAuthenticationUtils: RestAuthenticationUtils
+
+    @Autowired
+    private lateinit var userAuthenticationsService: UserAuthenticationsService
+
+    fun dispatch(request: HttpServletRequest, response: HttpServletResponse) {
+        if (request.method == "OPTIONS") {
+            // No login required for OPTIONS.
+            handleDynamicOptions(request, response)
+            return
+        }
+        val authInfo = authenticate(request, response)
+        val user = authInfo.user
+        if (user == null) {
+            log.error { "Authentication failed: ${RequestLog.asString(request)}" }
+            response.status = HttpStatus.UNAUTHORIZED.value()
+            return
+        }
+        try {
+            // Register user in threadlocal for further usage:
+            restAuthenticationUtils.registerUser(request, authInfo, UserTokenType.DAV_TOKEN)
+            dispathAuthenticated(request, response, user)
+        } finally {
+            restAuthenticationUtils.unregister(request, response, authInfo)
+        }
+    }
+
+    private fun dispathAuthenticated(request: HttpServletRequest, response: HttpServletResponse, user: PFUserDO) {
+        // val path = request.requestURI
+        val method = request.method
+        if (method == "PROPFIND") {
+            handlePropfindUsers(request, response, user)
+        }
+        response.status = HttpStatus.METHOD_NOT_ALLOWED.value()
+    }
+
+    private fun authenticate(request: HttpServletRequest, response: HttpServletResponse): RestAuthenticationInfo {
+        val authInfo = RestAuthenticationInfo(request, response)
+        log.debug { "Trying to authenticate user (${RequestLog.asString(authInfo.request)})..." }
+        restAuthenticationUtils.basicAuthentication(
+            authInfo,
+            UserTokenType.DAV_TOKEN,
+            true
+        ) { userString, authenticationToken ->
+            val authenticatedUser = userAuthenticationsService.getUserByToken(
+                authInfo.request,
+                userString,
+                UserTokenType.DAV_TOKEN,
+                authenticationToken
+            )
+            if (authenticatedUser == null) {
+                val msg = "Can't authenticate user '$userString' by given token. User name and/or token invalid (${
+                    RequestLog.asString(authInfo.request)
+                }."
+                log.error(msg)
+                SecurityLogging.logSecurityWarn(
+                    authInfo.request,
+                    this::class.java,
+                    "${UserTokenType.DAV_TOKEN.name} AUTHENTICATION FAILED",
+                    msg
+                )
+            } else {
+                log.debug {
+                    "Registering authenticated user: ${
+                        RequestLog.asString(
+                            authInfo.request,
+                            authenticatedUser.username
+                        )
+                    }"
+                }
+                log.info {
+                    "Authenticated user registered: ${
+                        RequestLog.asString(
+                            authInfo.request,
+                            authenticatedUser.username
+                        )
+                    }"
+                }
+            }
+            authenticatedUser
+        }
+        return authInfo
+    }
+
     /**
      * Handles the initial OPTIONS request to indicate supported methods and DAV capabilities.
      * This is the initial request to determine the allowed methods and DAV capabilities by the client.
      *
      * @return ResponseEntity with allowed methods and DAV capabilities in the headers.
      */
-    fun handleDynamicOptions(request: HttpServletRequest): ResponseEntity<Void> {
+    private fun handleDynamicOptions(request: HttpServletRequest, response: HttpServletResponse) {
         val requestedPath = request.requestURI
+        // Indicate DAV capabilities
+        response.addHeader("DAV", "1, 2, 3, addressbook")
 
-        val headers = HttpHeaders().apply {
-            // Indicate DAV capabilities
-            add("DAV", "1, 2, 3, addressbook")
+        // Indicate allowed HTTP methods
+        // add("Allow", "OPTIONS, GET, HEAD, POST, PUT, DELETE, PROPFIND, REPORT")
+        response.addHeader("Allow", "OPTIONS, GET, PROPFIND")
 
-            // Indicate allowed HTTP methods
-            // add("Allow", "OPTIONS, GET, HEAD, POST, PUT, DELETE, PROPFIND, REPORT")
-            add("Allow", "OPTIONS, GET, PROPFIND")
+        // Expose additional headers for client visibility
+        response.addHeader("Access-Control-Expose-Headers", "DAV, Allow")
 
-            // Expose additional headers for client visibility
-            add("Access-Control-Expose-Headers", "DAV, Allow")
-
-            // Additional headers for user-specific paths
-            if (requestedPath.contains("/users/")) {
-                // Example: You might add user-specific behavior here
-                add("Content-Type", "application/xml")
-            }
+        // Additional headers for user-specific paths
+        if (requestedPath.contains("/users/")) {
+            // Example: You might add user-specific behavior here
+            response.addHeader("Content-Type", "application/xml")
         }
-
-        return ResponseEntity.ok().headers(headers).build()
+        response.status = HttpStatus.OK.value()
     }
 
     /**
      * Handle PROPFIND requests. Get the address book metadata for the given user.
-     * @param user The user for which the address book is requested.
+     * @param userDO The user for which the address book is requested.
      * @param request The HTTP request.
      * @return The response entity.
      */
-´    fun handlePropfindUsers(@PathVariable user: String, request: HttpServletRequest): ResponseEntity<String> {
-        if (!request.method.equals("PROPFIND", ignoreCase = true)) {
-            log.error { "Method not allowed: ${request.method}, PROPFIND expected." }
-            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build()
-        }
-        val response = StringBuilder()
-        writeMultiStatusStart(response, request.serverName)
-        val addressBook = AddressBook(User(user))
+    private fun handlePropfindUsers(request: HttpServletRequest, response: HttpServletResponse, userDO: PFUserDO) {
+        val sb = StringBuilder()
+        CardDavXmlWriter.appendMultiStatusStart(sb, request.serverName)
+        val user = User(userDO.username)
+        val addressBook = AddressBook(user)
         addressService.getContactList(addressBook).forEach { contact ->
-            writeResponse(response, user, contact.id, contact.lastUpdated, contact.displayName)
+            CardDavXmlWriter.appendPropfindContact(sb, user, contact)
         }
-        writeMultiStatusEnd(response)
-        return ResponseEntity.status(HttpStatus.MULTI_STATUS)
-            .contentType(MediaType.APPLICATION_XML)
-            .body(response.toString())
+        CardDavXmlWriter.appendMultiStatusEnd(sb)
+        response.contentType = MediaType.APPLICATION_XML_VALUE
+        response.status = HttpStatus.MULTI_STATUS.value()
+        response.writer.write(sb.toString())
     }
 
     /**
      * Handle PROPFIND requests. Get the address book metadata for the given user.
-     * @param user The user for which the address book is requested.
+     * @param userDO The user for which the address book is requested.
      * @param request The HTTP request.
      * @return The response entity.
      */
-+    fun handlePropfindAddressBook(@PathVariable user: String, request: HttpServletRequest): ResponseEntity<String> {
+    fun handlePropfindAddressBook(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        userDO: PFUserDO
+    ): ResponseEntity<String> {
         if (!request.method.equals("PROPFIND", ignoreCase = true)) {
             log.error { "Method not allowed: ${request.method}, PROPFIND expected." }
             return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build()
         }
-        val response = StringBuilder()
-        writeMultiStatusStart(response, request.serverName)
-        val addressBook = AddressBook(User(user))
+        val sb = StringBuilder()
+        CardDavXmlWriter.appendMultiStatusStart(sb, request.serverName)
+        val user = User(userDO.username)
+        val addressBook = AddressBook(user)
         addressService.getContactList(addressBook).forEach { contact ->
-            writeResponse(response, user, contact.id, contact.lastUpdated, contact.displayName)
+            CardDavXmlWriter.appendPropfindContact(sb, user, contact)
         }
-        writeMultiStatusEnd(response)
+        CardDavXmlWriter.appendMultiStatusEnd(sb)
         return ResponseEntity.status(HttpStatus.MULTI_STATUS)
             .contentType(MediaType.APPLICATION_XML)
-            .body(response.toString())
+            .body(sb.toString())
     }
 
-´    fun getContact(@PathVariable user: String, @PathVariable contactId: String): ResponseEntity<String> {
+    fun getContact(userDO: PFUserDO, contactId: String): ResponseEntity<String> {
         val vcard = contactId.toLongOrNull()?.let {
             addressService.getContact(it)?.vcardData?.toString(Charsets.UTF_8)
         }
@@ -131,46 +219,6 @@ class CardDavService {
         return ResponseEntity.ok()
             .contentType(MediaType.parseMediaType("text/vcard"))
             .body(vcard)
-    }
-
-    companion object {
-        internal fun writeMultiStatusStart(sb: StringBuilder, server: String) {
-            sb.append("<d:multistatus xmlns:d=\"DAV:\" xmlns:cs=\"https://")
-                .append(server)
-                .append("/ns/\">\n")
-        }
-
-        internal fun writeMultiStatusEnd(sb: StringBuilder) {
-            sb.append("</d:multistatus>\n")
-        }
-
-        internal fun writeResponse(
-            sb: StringBuilder,
-            user: String,
-            addressId: Long?,
-            etag: Date?,
-            displayName: String,
-        ) {
-            sb.appendLine("  <d:response>")
-                .append("    <d:href>/carddav/")
-                .append(user)
-                .append("/addressbook/contact")
-                .append(addressId ?: -1L)
-                .appendLine(".vcf</d:href>")
-                .appendLine("    <d:propstat>")
-                .appendLine("      <d:prop>")
-                // According to the HTTP/1.1 specification, which is also used by CardDAV, ETags must be enclosed in double quotes.
-                .append("        <d:getetag>\"")
-                .append(etag?.time ?: -1)
-                .appendLine("\"</d:getetag>")
-                .append("        <d:displayname>")
-                .append(displayName)
-                .appendLine("</d:displayname>")
-                .appendLine("      </d:prop>")
-                .appendLine("      <d:status>HTTP/1.1 200 OK</d:status>")
-                .appendLine("    </d:propstat>")
-                .appendLine("  </d:response>")
-        }
     }
 
     // <d:multistatus xmlns:d="DAV:" xmlns:cs="http://calendarserver.org/ns/">

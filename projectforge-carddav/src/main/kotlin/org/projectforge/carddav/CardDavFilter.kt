@@ -49,10 +49,7 @@ class CardDavFilter : Filter {
     private lateinit var springContext: WebApplicationContext
 
     @Autowired
-    private lateinit var restAuthenticationUtils: RestAuthenticationUtils
-
-    @Autowired
-    private lateinit var userAuthenticationsService: UserAuthenticationsService
+    private lateinit var cardDavService: CardDavService
 
     @Throws(ServletException::class)
     override fun init(filterConfig: FilterConfig) {
@@ -60,52 +57,6 @@ class CardDavFilter : Filter {
         springContext = WebApplicationContextUtils.getRequiredWebApplicationContext(filterConfig.servletContext)
         val beanFactory = springContext.autowireCapableBeanFactory
         beanFactory.autowireBean(this)
-    }
-
-    private fun authenticate(authInfo: RestAuthenticationInfo) {
-        log.debug { "Trying to authenticate user (${RequestLog.asString(authInfo.request)})..." }
-        restAuthenticationUtils.basicAuthentication(
-            authInfo,
-            UserTokenType.DAV_TOKEN,
-            true
-        ) { userString, authenticationToken ->
-            val authenticatedUser = userAuthenticationsService.getUserByToken(
-                authInfo.request,
-                userString,
-                UserTokenType.DAV_TOKEN,
-                authenticationToken
-            )
-            if (authenticatedUser == null) {
-                val msg = "Can't authenticate user '$userString' by given token. User name and/or token invalid (${
-                    RequestLog.asString(authInfo.request)
-                }."
-                log.error(msg)
-                SecurityLogging.logSecurityWarn(
-                    authInfo.request,
-                    this::class.java,
-                    "${UserTokenType.DAV_TOKEN.name} AUTHENTICATION FAILED",
-                    msg
-                )
-            } else {
-                log.debug {
-                    "Registering authenticated user: ${
-                        RequestLog.asString(
-                            authInfo.request,
-                            authenticatedUser.username
-                        )
-                    }"
-                }
-                log.info {
-                    "Authenticated user registered: ${
-                        RequestLog.asString(
-                            authInfo.request,
-                            authenticatedUser.username
-                        )
-                    }"
-                }
-            }
-            authenticatedUser
-        }
     }
 
     @Throws(IOException::class, ServletException::class)
@@ -157,18 +108,7 @@ class CardDavFilter : Filter {
             })..."
         )
         log.debug { "Request-Info: ${RequestLog.asJson(request, true)}" }
-        if (request.method == "OPTIONS") {
-            // No login required for OPTIONS.
-            chain.doFilter(request, response)
-            return
-        }
-        restAuthenticationUtils.doFilter(
-            request,
-            response,
-            UserTokenType.DAV_TOKEN,
-            authenticate = { authInfo -> authenticate(authInfo) },
-            doFilter = { -> chain.doFilter(request, response) }
-        )
+        cardDavService.dispatch(request, response as HttpServletResponse)
     }
 
     companion object {

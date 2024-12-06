@@ -44,7 +44,7 @@ fun main(args: Array<String>) {
     }
     val username = args[0]
     val davToken = args[1]
-    val baseUrl = if (args.size > 2) args[2] else "http://localhost:8080/carddav"
+    val baseUrl = "http://localhost:8080/carddav"// if (args.size > 2) args[2] else "http://localhost:8080/carddav"
     val client = CardDavTestClient(baseUrl, username, davToken)
     client.run()
 }
