@@ -43,6 +43,10 @@ subprojects {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    tasks.withType<JavaCompile> {
+        options.isIncremental = true
+    }
+
     tasks.withType<KotlinCompile> {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
