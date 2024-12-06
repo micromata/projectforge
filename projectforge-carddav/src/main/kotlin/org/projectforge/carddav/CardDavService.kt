@@ -33,6 +33,7 @@ import org.projectforge.carddav.model.User
 import org.projectforge.carddav.service.AddressService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.utils.RequestLog
+import org.projectforge.rest.utils.ResponseUtils
 import org.projectforge.security.SecurityLogging
 import org.projectforge.web.rest.RestAuthenticationInfo
 import org.projectforge.web.rest.RestAuthenticationUtils
@@ -56,34 +57,66 @@ class CardDavService {
     private lateinit var userAuthenticationsService: UserAuthenticationsService
 
     fun dispatch(request: HttpServletRequest, response: HttpServletResponse) {
+        val requestWrapper = RequestWrapper(request)
+        log.debug { "****************** ${request.method}:${request.requestURI}, auth=${requestWrapper.basicAuth}, body=[${requestWrapper.body}]" }
+        log.debug { "Request-Info: ${RequestLog.asJson(request, true)}" }
         if (request.method == "OPTIONS") {
             // No login required for OPTIONS.
-            handleDynamicOptions(request, response)
+            handleDynamicOptions(requestWrapper, response)
+            return
+        }
+        if (request.method == "PROPFIND" && request.requestURI.startsWith("/.well-known/carddav")) {
+            // Sometimes the clients tries to find the carddav service. Here it is:
+            log.debug { "PROPFIND: ${request.requestURI} -> moved permanently]" }
+            ResponseUtils.setValues(response, HttpStatus.MOVED_PERMANENTLY)
+            response.addHeader("Location", "/carddav")
             return
         }
         val authInfo = authenticate(request, response)
         val user = authInfo.user
         if (user == null) {
             log.error { "Authentication failed: ${RequestLog.asString(request)}" }
-            response.status = HttpStatus.UNAUTHORIZED.value()
+            ResponseUtils.setValues(
+                response, HttpStatus.UNAUTHORIZED, contentType = MediaType.TEXT_PLAIN_VALUE,
+                content = "Authentication is required to access this resource.",
+            )
             return
         }
         try {
-            // Register user in threadlocal for further usage:
+            // Register user in thread local for further usage:
             restAuthenticationUtils.registerUser(request, authInfo, UserTokenType.DAV_TOKEN)
-            dispathAuthenticated(request, response, user)
+            dispathAuthenticated(requestWrapper, response, user)
         } finally {
             restAuthenticationUtils.unregister(request, response, authInfo)
         }
     }
 
-    private fun dispathAuthenticated(request: HttpServletRequest, response: HttpServletResponse, user: PFUserDO) {
-        // val path = request.requestURI
+    private fun dispathAuthenticated(requestWrapper: RequestWrapper, response: HttpServletResponse, user: PFUserDO) {
+        val request = requestWrapper.request
         val method = request.method
         if (method == "PROPFIND") {
-            handlePropfindUsers(request, response, user)
+            if (request.requestURI == "index.html") {
+                // PROPFIND call to /index.html after authentication is a typical behavior of many WebDAV or CardDAV clients.
+                ResponseUtils.setValues(
+                    response,
+                    HttpStatus.MULTI_STATUS, // Alternatives: Not found (404) or Forbidden (403)
+                )
+                return
+            } else if (request.requestURI == "/" || request.requestURI == "/carddav") {
+                PropFindUtils.handleCurrentUserPrincipal(requestWrapper, response, user)
+            /*} else if (request.requestURI == "/") {
+                log.debug { "PROPFIND '/': ${CardDavUtils.readBody(request)}" }
+                val content = CardDavXmlWriter.generateCurrentUserPrincipal(user)
+                ResponseUtils.setValues(
+                    response,
+                    HttpStatus.MULTI_STATUS,
+                    contentType = MediaType.APPLICATION_XML_VALUE,
+                    content = content,
+                )*/
+            } else {
+                handlePropfindUsers(requestWrapper, response, user)
+            }
         }
-        response.status = HttpStatus.METHOD_NOT_ALLOWED.value()
     }
 
     private fun authenticate(request: HttpServletRequest, response: HttpServletResponse): RestAuthenticationInfo {
@@ -140,8 +173,8 @@ class CardDavService {
      *
      * @return ResponseEntity with allowed methods and DAV capabilities in the headers.
      */
-    private fun handleDynamicOptions(request: HttpServletRequest, response: HttpServletResponse) {
-        val requestedPath = request.requestURI
+    private fun handleDynamicOptions(requestWrapper: RequestWrapper, response: HttpServletResponse) {
+        val requestedPath = requestWrapper.requestURI
         // Indicate DAV capabilities
         response.addHeader("DAV", "1, 2, 3, addressbook")
 
@@ -157,7 +190,7 @@ class CardDavService {
             // Example: You might add user-specific behavior here
             response.addHeader("Content-Type", "application/xml")
         }
-        response.status = HttpStatus.OK.value()
+        ResponseUtils.setValues(response, status = HttpStatus.OK)
     }
 
     /**
@@ -166,7 +199,9 @@ class CardDavService {
      * @param request The HTTP request.
      * @return The response entity.
      */
-    private fun handlePropfindUsers(request: HttpServletRequest, response: HttpServletResponse, userDO: PFUserDO) {
+    private fun handlePropfindUsers(requestWrapper: RequestWrapper, response: HttpServletResponse, userDO: PFUserDO) {
+        val request = requestWrapper.request
+        log.debug { "PROPFIND '${request.requestURI}': ${requestWrapper.body}" }
         val sb = StringBuilder()
         CardDavXmlWriter.appendMultiStatusStart(sb, request.serverName)
         val user = User(userDO.username)
@@ -175,9 +210,12 @@ class CardDavService {
             CardDavXmlWriter.appendPropfindContact(sb, user, contact)
         }
         CardDavXmlWriter.appendMultiStatusEnd(sb)
-        response.contentType = MediaType.APPLICATION_XML_VALUE
-        response.status = HttpStatus.MULTI_STATUS.value()
-        response.writer.write(sb.toString())
+        ResponseUtils.setValues(
+            response,
+            HttpStatus.MULTI_STATUS,
+            contentType = MediaType.APPLICATION_XML_VALUE,
+            content = sb.toString()
+        )
     }
 
     /**

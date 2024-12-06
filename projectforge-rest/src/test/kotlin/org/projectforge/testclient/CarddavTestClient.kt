@@ -34,7 +34,7 @@ import org.apache.hc.core5.http.io.HttpClientResponseHandler
 import org.apache.hc.core5.http.io.entity.StringEntity
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder
 import org.apache.hc.core5.http.protocol.HttpCoreContext
-import java.io.BufferedReader
+import org.projectforge.common.extensions.abbreviate
 import java.util.*
 
 fun main(args: Array<String>) {
@@ -44,7 +44,7 @@ fun main(args: Array<String>) {
     }
     val username = args[0]
     val davToken = args[1]
-    val baseUrl = "http://localhost:8080/carddav"// if (args.size > 2) args[2] else "http://localhost:8080/carddav"
+    val baseUrl = if (args.size > 2) args[2] else "http://localhost:8080/carddav"
     val client = CardDavTestClient(baseUrl, username, davToken)
     client.run()
 }
@@ -64,7 +64,7 @@ class CardDavTestClient(private val baseUrl: String, private val username: Strin
 
     private val responseHandler = HttpClientResponseHandler { response: ClassicHttpResponse ->
         val entity: HttpEntity? = response.entity
-        val content = entity?.content?.bufferedReader()?.use(BufferedReader::readText) ?: ""
+        val content = entity?.content?.bufferedReader(Charsets.UTF_8)?.use { it.readText() } ?: ""
         ResponseData(content, response.headers.joinToString { "${it.name}=${it.value}" })
     }
 
@@ -117,7 +117,6 @@ class CardDavTestClient(private val baseUrl: String, private val username: Strin
         val response = client.execute(builder.build(), context, responseHandler).also {
             logResponse("PROPFIND", url, it)
         }
-        logResponse("PROPFIND", url, response)
     }
 
     private fun sendSyncReportRequest(path: String = "") {
@@ -155,7 +154,7 @@ class CardDavTestClient(private val baseUrl: String, private val username: Strin
     }
 
     private fun logResponse(method: String, endpoint: String, response: ResponseData) {
-        println("$method: $endpoint: response=[content=[${response.content}], headers=[${response.headers}]]")
+        println("$method: $endpoint: response=[content=[${response.content.abbreviate(1000)}], headers=[${response.headers}]]")
     }
 
     /*

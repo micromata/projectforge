@@ -32,9 +32,9 @@ import org.projectforge.carddav.CardDavFilter
 class CardDavFilterTest {
     @Test
     fun handledByMiltonFilterTest() {
-        checkRequest("....", "PROPFIND", true)
-        checkRequest("/users", "PROPFIND", true)
-        checkRequest("/wa/...", "PROPFIND", true)
+        checkRequest("/.well-known/carddav", "PROPFIND", true)
+        checkRequest("/carddav/users", "PROPFIND", true)
+        checkRequest("/wa/...", "PROPFIND", false)
 
         checkRequest("....", "GET", false)
         checkRequest("/users", "GET", false)

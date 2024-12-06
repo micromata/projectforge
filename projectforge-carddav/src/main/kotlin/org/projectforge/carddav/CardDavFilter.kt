@@ -27,13 +27,10 @@ import jakarta.servlet.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
-import org.projectforge.business.user.UserAuthenticationsService
-import org.projectforge.business.user.UserTokenType
-import org.projectforge.carddav.CardDavInit.Companion.cardDavBasePath
+import org.projectforge.carddav.CardDavInit.Companion.CARD_DAV_BASE_PATH
+import org.projectforge.carddav.CardDavInit.Companion.cardDavUseRootPath
 import org.projectforge.rest.utils.RequestLog
-import org.projectforge.security.SecurityLogging
 import org.projectforge.web.rest.BasicAuthenticationData
-import org.projectforge.web.rest.RestAuthenticationInfo
 import org.projectforge.web.rest.RestAuthenticationUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.context.WebApplicationContext
@@ -107,12 +104,14 @@ class CardDavFilter : Filter {
                 )
             })..."
         )
-        log.debug { "Request-Info: ${RequestLog.asJson(request, true)}" }
+        log.debug { "******* CardDavFilter.doFilter: ${request.method}, ${request.requestURI}..." }
         cardDavService.dispatch(request, response as HttpServletResponse)
     }
 
     companion object {
         /**
+         * PROPFIND: /index.html, /carddav, /.well-known/carddav
+         * OPTIONS: /carddav, /users/...
          * @return true if given is handled by CardDavController. Otherwise, false.
          */
         fun handledByCardDavFilter(request: HttpServletRequest): Boolean {
@@ -120,6 +119,10 @@ class CardDavFilter : Filter {
             return when (request.method) {
                 "PROPFIND" -> {
                     log.debug { "PROPFIND call detected: $uri" }
+                    if (uri == "index.html" || uri == "/") {
+                        // PROPFIND call to /index.html after authentication is a typical behavior of many WebDAV or CardDAV clients.
+                        return true
+                    }
                     return urlMatches(uri, "/users/")
                 }
 
@@ -140,10 +143,11 @@ class CardDavFilter : Filter {
          * @return true if given URI is a CardDav URI.
          */
         internal fun urlMatches(uri: String, vararg paths: String): Boolean {
-            return if (cardDavBasePath == "/") { // Avoid //users instead of /users:
+            return if (cardDavUseRootPath) { // Avoid //users instead of /users:
                 paths.any { uri.startsWith(it) }
             } else {
-                paths.any { uri.startsWith("$cardDavBasePath$it") }
+                uri == CARD_DAV_BASE_PATH || uri == "/.well-known${CARD_DAV_BASE_PATH}" ||
+                        paths.any { uri.startsWith("$CARD_DAV_BASE_PATH$it") }
             }
         }
     }

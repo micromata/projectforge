@@ -25,6 +25,7 @@ package org.projectforge.carddav
 
 import org.projectforge.carddav.model.Contact
 import org.projectforge.carddav.model.User
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 internal object CardDavXmlWriter {
     /**
@@ -108,6 +109,53 @@ internal object CardDavXmlWriter {
 
     fun appendMultiStatusEnd(sb: StringBuilder) {
         sb.appendLine("</d:multistatus>")
+    }
+
+    fun generateCurrentUserPrincipal(requestWrapper: RequestWrapper, user: PFUserDO, props: List<PropFindUtils.Prop>): String {
+        CardDavInit.cardDavUseRootPath
+        val href = "${requestWrapper.baseUrl}/users/${user.username}/"
+        val sb = StringBuilder()
+        sb.appendLine("""
+            <?xml version="1.0" encoding="UTF-8"?>
+            <d:multistatus xmlns:d="DAV:">
+                <d:response>
+                    <d:href>$href</d:href>
+                    <d:propstat>
+                        <d:prop>""".trimIndent())
+        if (props.contains(PropFindUtils.Prop.RESOURCETYPE)) {
+            appendPropLines(sb, "<d:resourcetype>")
+            appendPropLines(sb, "  <d:collection />")
+            appendPropLines(sb, "  <cs:addressbook />")
+            appendPropLines(sb, "</d:resourcetype>")
+        }
+        if (props.contains(PropFindUtils.Prop.DISPLAYNAME)) {
+            appendPropLines(sb, "<d:displayname>CardDAV Root</d:displayname>")
+        }
+        if (props.contains(PropFindUtils.Prop.CURRENT_USER_PRINCIPAL)) {
+            appendPropLines(sb, "<d:current-user-principal>")
+            appendPropLines(sb, "  <d:href>$href</d:href>")
+            appendPropLines(sb, "</d:current-user-principal>")
+        }
+        if (props.contains(PropFindUtils.Prop.CURRENT_USER_PRIVILEGE_SET)) {
+            appendPropLines(sb, "<d:current-user-privilege-set>")
+            appendPropLines(sb, "  <d:privilege><d:read /></d:privilege>")
+            // appendPropLines(sb, "  <d:privilege><d:write /></d:privilege>")
+            appendPropLines(sb, "</d:current-user-privilege-set>")
+        }
+        sb.appendLine("""
+                        </d:prop>
+                        <d:status>HTTP/1.1 200 OK</d:status>
+                    </d:propstat>
+                </d:response>
+            </d:multistatus>
+        """.trimIndent())
+        return sb.toString()
+    }
+
+    private fun appendPropLines(sb: StringBuilder, vararg lines: String) {
+        lines.forEach { line ->
+            sb.appendLine("              $line")
+        }
     }
 
     /*
