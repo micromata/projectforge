@@ -58,22 +58,33 @@ tasks {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         group = "build"
         description = "Copies built React files to the target directory"
-        dependsOn("npmBuild") // Depends on the React build process
-        dependsOn("compileJava") // Ensure Java compilation is complete
-        dependsOn("processResources") // Ensure resources are processed
-        dependsOn("processTestResources") // Ensure test resources are processed
-        mustRunAfter("processResources", "processTestResources") // Ensure resources are processed before copying
-        from(file("build")) {
-            // Exclude the target directory to prevent recursion
+        // Use the provider API to configure paths
+        val buildDirProvider = layout.projectDirectory.dir("build")
+        val outputDirProvider = layout.buildDirectory.dir("resources/main/static")
+        // Define dependencies
+        dependsOn("npmBuild")
+        mustRunAfter("processResources", "processTestResources")
+        from(buildDirProvider) {
             exclude("resources/main/static/**")
         }
-        from(file("src")) {
+        from(layout.projectDirectory.dir("src")) {
             include("index.html")
         }
-        into(layout.buildDirectory.dir("resources/main/static")) // Target directory in the Gradle project
-        // Skip task if target directory is up-to-date
-        inputs.dir("build") // React build directory as input
-        outputs.dir(layout.buildDirectory.dir("resources/main/static")) // Static resources directory as output
+        into(outputDirProvider)
+        // Declare inputs and outputs correctly
+        inputs.dir(buildDirProvider)
+        outputs.dir(outputDirProvider)
+        // Check when the task is up-to-date
+        outputs.upToDateWhen {
+            outputDirProvider.get().asFile.exists()
+        }
+        // Only run if necessary
+        onlyIf {
+            val outputDir = outputDirProvider.get().asFile
+            val sourceDir = buildDirProvider.asFile
+
+            !outputDir.exists() || outputDir.lastModified() < sourceDir.lastModified()
+        }
     }
 
     // Include the React build in the Gradle build process
