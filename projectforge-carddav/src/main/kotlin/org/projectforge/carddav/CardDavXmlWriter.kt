@@ -23,6 +23,9 @@
 
 package org.projectforge.carddav
 
+import org.projectforge.carddav.model.Contact
+import org.projectforge.carddav.model.User
+
 internal object CardDavXmlWriter {
     /**
      * Generates a response for a PROPFIND request for a user.
@@ -74,6 +77,39 @@ internal object CardDavXmlWriter {
         //    </d:response>
         //</d:multistatus>
     }
+
+    fun appendPropfindContact(sb: StringBuilder, user: User, contact: Contact) {
+        sb.appendLine(
+            """  <d:response>
+    <d:href>/carddav/${user.userName}/addressbook/contact${contact.id}.vcf</d:href>
+    <d:propstat>
+      <d:prop>
+        <d:getetag>"${CardDavUtils.getETag(contact)}"</d:getetag>
+        <d:displayname>${contact.displayName}</d:displayname>
+      </d:prop>
+      <d:status>HTTP/1.1 200 OK</d:status>
+    </d:propstat>
+  </d:response>"""
+        )
+    }
+
+    fun appendXmlPrefix(sb: StringBuilder) {
+        sb.appendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+    }
+
+    fun appendMultiStatusStart(sb: StringBuilder, server: String, prependXmlPrefix: Boolean = true) {
+        if (prependXmlPrefix) {
+            appendXmlPrefix(sb)
+        }
+        sb.append("<d:multistatus xmlns:d=\"DAV:\" xmlns:cs=\"https://")
+            .append(server)
+            .appendLine("/ns/\">")
+    }
+
+    fun appendMultiStatusEnd(sb: StringBuilder) {
+        sb.appendLine("</d:multistatus>")
+    }
+
     /*
     fun generateSyncReportResponse(
         displayname: String,

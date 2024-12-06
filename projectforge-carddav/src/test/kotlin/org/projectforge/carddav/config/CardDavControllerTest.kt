@@ -26,24 +26,37 @@ package org.projectforge.web
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.carddav.CardDavService
+import org.projectforge.carddav.CardDavUtils
+import org.projectforge.carddav.CardDavXmlWriter
+import org.projectforge.carddav.model.Contact
+import org.projectforge.carddav.model.User
 import java.util.Date
 
 class CardDavControllerTest {
     @Test
     fun `test writing xml response of PROPFIND`() {
         StringBuilder().let { sb ->
-            CardDavService.writeMultiStatusStart(sb, "www.projectforge.org")
+            CardDavXmlWriter.appendMultiStatusStart(sb, "www.projectforge.org")
+            Assertions.assertEquals(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:cs=\"https://www.projectforge.org/ns/\">\n",
+                sb.toString()
+            )
+        }
+        StringBuilder().let { sb ->
+            CardDavXmlWriter.appendMultiStatusStart(sb, "www.projectforge.org", false)
             Assertions.assertEquals(
                 "<d:multistatus xmlns:d=\"DAV:\" xmlns:cs=\"https://www.projectforge.org/ns/\">\n",
                 sb.toString()
             )
         }
         StringBuilder().let { sb ->
-            CardDavService.writeMultiStatusEnd(sb)
+            CardDavXmlWriter.appendMultiStatusEnd(sb)
             Assertions.assertEquals("</d:multistatus>\n", sb.toString())
         }
         StringBuilder().let { sb ->
-            CardDavService.writeResponse(sb, user = "kai", addressId = 42L, etag = Date(1234567890), displayName = "Kai")
+            val user = User("kai")
+            val contact = Contact(42L, "Kai", "Reinhard", Date(1234567890))
+            CardDavXmlWriter.appendPropfindContact(sb, user, contact)
             Assertions.assertEquals(response, sb.toString())
         }
     }
@@ -53,7 +66,7 @@ class CardDavControllerTest {
     <d:propstat>
       <d:prop>
         <d:getetag>"1234567890"</d:getetag>
-        <d:displayname>Kai</d:displayname>
+        <d:displayname>Reinhard, Kai</d:displayname>
       </d:prop>
       <d:status>HTTP/1.1 200 OK</d:status>
     </d:propstat>
