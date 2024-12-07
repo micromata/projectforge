@@ -30,11 +30,11 @@ public class WorkFileHelper
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WorkFileHelper.class);
 
-  private static final String WORK_DIR = "./target/work";
+  private static final String WORK_DIR = "./build/work";
 
   /**
    * Get the file from the working directory. If the working directory doesn't exist then it'll be created.
-   * 
+   *
    * @param filename
    * @return
    */

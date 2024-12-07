@@ -37,9 +37,9 @@ jobs:
         run: chmod +x gradlew
 
       - name: Test and build with Gradle
-        run: ./gradlew build --info --stacktrace
+        run: ./gradlew build
         env:
-          SPRING_PROFILES_ACTIVE: test
+          SPRING_PROFILES_ACTIVE: ci
         #  MY_CUSTOM_ENV_VAR: "value"
 
       #- name: Run tests
