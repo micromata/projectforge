@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.projectforge.BuildPropertiesGenerator
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
@@ -5,6 +6,13 @@ plugins {
     id("org.springframework.boot") version "3.1.4"
     id("io.spring.dependency-management") version "1.1.3"
     java
+    id("org.jetbrains.kotlin.jvm")
+}
+
+tasks.withType<KotlinCompile> {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
 }
 
 springBoot {
@@ -205,6 +213,15 @@ dependencies {
 
 val kotlinCompilerDependencyFiles = kotlinCompilerDependency.map { it.name }
 tasks.named<BootJar>("bootJar") {
+    dependsOn(":projectforge-webapp:webAppJar")
+    from({
+        val webAppJar = layout.buildDirectory.file("libs/projectforge-webapp-${project.version}.jar")
+        if (webAppJar.get().asFile.exists()) zipTree(webAppJar) else null
+    }) {
+        into("BOOT-INF/lib")
+    }
+    // dependsOn(":projectforge-webapp:copyReactBuild")
+    // from("$buildDir/resources/main/static") // Copy the React build to the fat jar.
     // println(kotlinCompilerDependencyFiles.joinToString())
     exclude(kotlinCompilerDependencyFiles.map { "**/$it" }) // Exclude this jar, it's extracted.
 }
