@@ -82,8 +82,8 @@ tasks {
         from(layout.buildDirectory.get()) {
             into("static") // Place files under /static in the JAR
             exclude("resources")
-            exclude("libs/**")
-            exclude("tmp/**")
+            exclude("libs")
+            exclude("tmp")
         }
         dependsOn("copyReactBuild") // Ensure React build and copy are done first
     }
