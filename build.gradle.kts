@@ -33,27 +33,3 @@ allprojects {
         }
     }
 }
-
-subprojects {
-    apply(plugin = "org.jetbrains.kotlin.jvm")
-    apply(plugin = "java")
-
-    configure<JavaPluginExtension> {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    tasks.withType<JavaCompile> {
-        options.isIncremental = true
-    }
-
-    tasks.withType<KotlinCompile> {
-        compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
-        }
-    }
-
-    tasks.withType<Test> {
-        useJUnitPlatform()
-    }
-}

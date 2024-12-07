@@ -65,14 +65,11 @@ object SourcesUtils {
         if (file.exists() && (file.extension == "kt" || file.extension == "java")) {
             var fileContent = file.readText()
 
-            // 1. Remove single-line comments (// ...)
-            fileContent = fileContent.replace(Regex("//.*"), "")
+            // 1. Remove comments
+            fileContent = removeComments(fileContent)
 
-            // 2. Remove multi-line comments (/* ... */)
-            fileContent = fileContent.replace(Regex("/\\*.*?\\*/", RegexOption.DOT_MATCHES_ALL), "")
-
-            // 3. Remove content within double quotes (string literals)
-            fileContent = fileContent.replace(Regex("\"(\\\\\"|[^\"])*\""), "")
+            // 2. Remove Strings "..." as well as multiline strings """...""".
+            fileContent = removeStrings(fileContent)
 
             // Process the cleaned content line by line
             fileContent.lines().forEach { line ->
@@ -86,6 +83,7 @@ object SourcesUtils {
 
                 // Refined regex for class, interface, enum declarations
                 val classRegex = Regex("""\b(class|interface|object|enum)\s+([A-Z]\w*)\b(\s*\(.*\))?\s*\{?""")
+                //val classRegex = Regex("""\b(class|interface|object|enum)\s+([A-Z]\w*)\b""")
                 val classMatch = classRegex.find(line)
 
                 // If a class is found
@@ -225,5 +223,128 @@ object SourcesUtils {
         }
         log.error { "Cannot find 'projectforge-application' directory in path '${path.toAbsolutePath()}'." }
         return path
+    }
+
+    internal fun removeComments(content: String): String {
+        val builder = StringBuilder()
+        var inSimpleString = false
+        var inMultiLineString = false
+        var inBlockComment = false
+        var inLineComment = false
+        var escapeNext = false
+        var i = 0
+
+        while (i < content.length) {
+            if (inSimpleString) {
+                if (escapeNext) {
+                    escapeNext = false // Leave escape state
+                } else if (content[i] == '\\') {
+                    escapeNext = true // Enter escape state
+                } else if (content[i] == '"') {
+                    inSimpleString = false // End of simple string
+                }
+                builder.append(content[i]) // Add string content
+                i++
+            } else if (inMultiLineString) {
+                if (i + 2 < content.length && content[i] == '"' && content[i + 1] == '"' && content[i + 2] == '"') {
+                    inMultiLineString = false // End of multi-line string
+                    builder.append(content, i, i + 3) // Add """ to result
+                    i += 3
+                } else {
+                    builder.append(content[i]) // Add multi-line string content
+                    i++
+                }
+            } else if (inBlockComment) {
+                // End the block comment if "*/" is found
+                if (i + 1 < content.length && content[i] == '*' && content[i + 1] == '/') {
+                    inBlockComment = false
+                    i += 2 // Skip "*/"
+                } else {
+                    i++ // Skip block comment content
+                }
+            } else if (inLineComment) {
+                // End the line comment if a newline is found
+                if (content[i] == '\n') {
+                    inLineComment = false
+                    builder.append(content[i]) // Retain the newline
+                }
+                i++ // Skip line comment content
+            } else {
+                // Start of multi-line string """..."""
+                if (i + 2 < content.length && content[i] == '"' && content[i + 1] == '"' && content[i + 2] == '"') {
+                    inMultiLineString = true
+                    builder.append(content, i, i + 3) // Add """ to result
+                    i += 3
+                }
+                // Start of simple string "..."
+                else if (content[i] == '"') {
+                    inSimpleString = true
+                    builder.append(content[i]) // Add " to result
+                    i++
+                }
+                // Start a block comment if "/*" is found
+                else if (i + 1 < content.length && content[i] == '/' && content[i + 1] == '*') {
+                    inBlockComment = true
+                    i += 2 // Skip "/*"
+                }
+                // Start a line comment if "//" is found
+                else if (i + 1 < content.length && content[i] == '/' && content[i + 1] == '/') {
+                    inLineComment = true
+                    i += 2 // Skip "//"
+                }
+                // Append normal content to the result
+                else {
+                    builder.append(content[i])
+                    i++
+                }
+            }
+        }
+
+        return builder.toString()
+    }
+
+    internal fun removeStrings(content: String): String {
+        val builder = StringBuilder()
+        var inSimpleString = false
+        var inMultiLineString = false
+        var escapeNext = false
+        var i = 0
+
+        while (i < content.length) {
+            if (inSimpleString) {
+                if (escapeNext) {
+                    escapeNext = false // Leave escape state
+                } else if (content[i] == '\\') {
+                    escapeNext = true // Enter escape state
+                } else if (content[i] == '"') {
+                    inSimpleString = false // End of simple string
+                }
+                i++ // Skip content inside simple string
+            } else if (inMultiLineString) {
+                if (i + 2 < content.length && content[i] == '"' && content[i + 1] == '"' && content[i + 2] == '"') {
+                    inMultiLineString = false // End of multi-line string
+                    i += 3 // Skip closing """
+                } else {
+                    i++ // Skip content inside multi-line string
+                }
+            } else {
+                // Start of multi-line string """..."""
+                if (i + 2 < content.length && content[i] == '"' && content[i + 1] == '"' && content[i + 2] == '"') {
+                    inMultiLineString = true
+                    i += 3 // Skip opening """
+                }
+                // Start of simple string "..."
+                else if (content[i] == '"') {
+                    inSimpleString = true
+                    i++ // Skip opening "
+                }
+                // Append normal content to the result
+                else {
+                    builder.append(content[i])
+                    i++
+                }
+            }
+        }
+        return builder.toString()
     }
 }

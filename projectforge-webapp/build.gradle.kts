@@ -1,5 +1,6 @@
 plugins {
     id("com.github.node-gradle.node") version "7.1.0"
+    id("base") // Fügt die 'clean'-Task hinzu
 }
 
 node {
@@ -23,9 +24,9 @@ node {
 tasks.named<Delete>("clean") {
     delete(
         file("node"),  // Delete download directory of node and npm.
-        file("node_modules")
+        file("node_modules"),
+        layout.buildDirectory
     )
-    delete(layout.buildDirectory)
 }
 
 tasks {
@@ -42,63 +43,58 @@ tasks {
         outputs.dir(project.layout.projectDirectory.dir("node_modules"))
     }
 
-    // Task to build the React project
     register<com.github.gradle.node.npm.task.NpmTask>("npmBuild") {
         group = "build"
         description = "Builds the React project"
         args.set(listOf("run", "build"))
-        dependsOn("npmInstall") // Ensures `npm install` is executed before the build
-        // Skip task if the React build directory is up-to-date
+        dependsOn("npmInstall")
+
         inputs.files(fileTree("src")) // All source files as input
         outputs.dir("build") // React output directory as output
     }
 
-    // Task to copy the built React files
     register<Copy>("copyReactBuild") {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         group = "build"
         description = "Copies built React files to the target directory"
-        // Use the provider API to configure paths
-        val buildDirProvider = layout.projectDirectory.dir("build")
-        val outputDirProvider = layout.buildDirectory.dir("resources/main/static")
-        // Define dependencies
-        dependsOn("npmBuild")
-        mustRunAfter("processResources", "processTestResources")
-        from(buildDirProvider) {
+        dependsOn("npmBuild") // Depends on the React build process
+        from(file("build")) {
+            // Exclude the target directory to prevent recursion
             exclude("resources/main/static/**")
         }
-        from(layout.projectDirectory.dir("src")) {
+        from(file("src")) {
             include("index.html")
         }
-        into(outputDirProvider)
-        // Declare inputs and outputs correctly
-        inputs.dir(buildDirProvider)
-        outputs.dir(outputDirProvider)
-        // Check when the task is up-to-date
-        outputs.upToDateWhen {
-            outputDirProvider.get().asFile.exists()
-        }
-        // Only run if necessary
-        onlyIf {
-            val outputDir = outputDirProvider.get().asFile
-            val sourceDir = buildDirProvider.asFile
+        into(layout.buildDirectory.dir("resources/main/static")) // Target directory in the Gradle project
+        // Skip task if target directory is up-to-date
+        inputs.dir("build") // React build directory as input
+        outputs.dir(layout.buildDirectory.dir("resources/main/static")) // Static resources directory as output
+    }
 
-            !outputDir.exists() || outputDir.lastModified() < sourceDir.lastModified()
+    register<Jar>("webAppJar") {
+        group = "build"
+        description = "Package React build output as a JAR"
+        archiveBaseName.set("projectforge-webapp")
+        archiveVersion.set(project.version.toString())
+        destinationDirectory.set(layout.buildDirectory.dir("libs"))
+
+        // Include files from react-build directory
+        from(layout.buildDirectory.get()) {
+            into("static") // Place files under /static in the JAR
+            exclude("resources")
+            exclude("libs")
+            exclude("tmp")
         }
+        // Include additional files (e.g., src/index.html)
+        from(layout.projectDirectory.file("src/index.html")) {
+            into("static") // Copy index.html to /static
+        }
+        dependsOn("copyReactBuild") // Ensure React build and copy are done first
     }
 
     // Include the React build in the Gradle build process
     named("build") {
         dependsOn("copyReactBuild") // Makes React build a part of the Gradle build
-    }
-
-    // Add explicit dependencies to fix task ordering issues
-    named<Jar>("jar") {
-        dependsOn("copyReactBuild") // Ensure the jar task waits for copyReactBuild
-    }
-
-    named("build") {
-        dependsOn("copyReactBuild") // Ensure build task includes copyReactBuild
     }
 }
 

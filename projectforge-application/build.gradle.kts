@@ -1,10 +1,19 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.projectforge.BuildPropertiesGenerator
 import org.springframework.boot.gradle.tasks.bundling.BootJar
+import org.springframework.boot.gradle.tasks.run.BootRun
 
 plugins {
     id("org.springframework.boot") version "3.1.4"
     id("io.spring.dependency-management") version "1.1.3"
     java
+    id("org.jetbrains.kotlin.jvm")
+}
+
+tasks.withType<KotlinCompile> {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
 }
 
 springBoot {
@@ -202,10 +211,22 @@ dependencies {
     implementation(libs.se.sawano.java.alphanumeric.comparator)
 }
 
+sourceSets {
+    named("main") {
+        resources {
+            srcDir(project(":projectforge-webapp").layout.buildDirectory.dir("resources/main"))
+        }
+    }
+}
+
 val kotlinCompilerDependencyFiles = kotlinCompilerDependency.map { it.name }
 tasks.named<BootJar>("bootJar") {
-    // println(kotlinCompilerDependencyFiles.joinToString())
-    exclude(kotlinCompilerDependencyFiles.map { "**/$it" }) // Exclude this jar, it's extracted.
+    dependsOn(":projectforge-webapp:webAppJar")
+    val webAppJarProvider = project(":projectforge-webapp").layout.buildDirectory.file("libs/projectforge-webapp-${project.version}.jar")
+    from(webAppJarProvider) {
+        into("BOOT-INF/lib") // Insert the webapp jar into the boot jar.
+    }
+    exclude(kotlinCompilerDependencyFiles.map { "**/$it" }) // Exclude these jar, they're already contained as extracted files.
 }
 
 tasks.withType<Jar> {
@@ -226,7 +247,6 @@ tasks.register("generateGitProperties") {
     val propsFile = layout.buildDirectory.file("resources/main/build.properties").get().asFile
     outputs.file(propsFile)
 
-    // Lokale Kopien aller Projekt-Informationen
     val rootDirPath = rootDir.absolutePath
     val projectVersion = version.toString()
     val outputFilePath = propsFile.absolutePath
