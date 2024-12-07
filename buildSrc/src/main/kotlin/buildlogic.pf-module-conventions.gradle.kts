@@ -1,6 +1,5 @@
 plugins {
     id("java-library")
-    //`maven-publish`
 }
 
 repositories {
@@ -17,10 +16,25 @@ val libs = project.extensions.getByType<VersionCatalogsExtension>().named("libs"
 
 group = "org.projectforge"
 version = libs.findVersion("org.projectforge").get().requiredVersion
-java.sourceCompatibility = JavaVersion.VERSION_17
 
-tasks.withType<JavaCompile>() {
+extensions.configure<JavaPluginExtension> {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
+    options.isIncremental = true
+}
+/*
+tasks.withType<KotlinCompile> {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
+}*/
+
+tasks.withType<Test> {
+    useJUnitPlatform() // JUnit 5
 }
 
 tasks.withType<Javadoc>() {

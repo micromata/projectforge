@@ -69,7 +69,8 @@ object SourcesUtils {
             fileContent = fileContent.replace(Regex("//.*"), "")
 
             // 2. Remove multi-line comments (/* ... */)
-            fileContent = fileContent.replace(Regex("/\\*.*?\\*/", RegexOption.DOT_MATCHES_ALL), "")
+            // fileContent = fileContent.replace(Regex("/\\*.*?\\*/", RegexOption.DOT_MATCHES_ALL), "")
+            fileContent = fileContent.replace(Regex("/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/", RegexOption.DOT_MATCHES_ALL), "")
 
             // 3. Remove content within double quotes (string literals)
             fileContent = fileContent.replace(Regex("\"(\\\\\"|[^\"])*\""), "")
@@ -85,7 +86,8 @@ object SourcesUtils {
                 }
 
                 // Refined regex for class, interface, enum declarations
-                val classRegex = Regex("""\b(class|interface|object|enum)\s+([A-Z]\w*)\b(\s*\(.*\))?\s*\{?""")
+                //val classRegex = Regex("""\b(class|interface|object|enum)\s+([A-Z]\w*)\b(\s*\(.*\))?\s*\{?""")
+                val classRegex = Regex("""\b(class|interface|object|enum)\s+([A-Z]\w*)\b""")
                 val classMatch = classRegex.find(line)
 
                 // If a class is found
