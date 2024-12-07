@@ -1,6 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.projectforge.BuildPropertiesGenerator
 import org.springframework.boot.gradle.tasks.bundling.BootJar
+import org.springframework.boot.gradle.tasks.run.BootRun
 
 plugins {
     id("org.springframework.boot") version "3.1.4"
@@ -209,6 +210,14 @@ dependencies {
     implementation(libs.org.wicketstuff.html5)
     implementation(libs.org.wicketstuff.select2)
     implementation(libs.se.sawano.java.alphanumeric.comparator)
+}
+
+sourceSets {
+    named("main") {
+        resources {
+            srcDir(project(":projectforge-webapp").layout.buildDirectory.dir("resources/main"))
+        }
+    }
 }
 
 val kotlinCompilerDependencyFiles = kotlinCompilerDependency.map { it.name }
