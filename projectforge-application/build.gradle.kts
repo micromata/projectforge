@@ -214,13 +214,11 @@ dependencies {
 val kotlinCompilerDependencyFiles = kotlinCompilerDependency.map { it.name }
 tasks.named<BootJar>("bootJar") {
     dependsOn(":projectforge-webapp:webAppJar")
-    from({
-        val webAppJar = project(":projectforge-webapp").layout.buildDirectory.file("libs/projectforge-webapp-${project.version}.jar")
-        if (webAppJar.get().asFile.exists()) zipTree(webAppJar) else null
-    }) {
-        into("BOOT-INF/lib")
+    val webAppJarProvider = project(":projectforge-webapp").layout.buildDirectory.file("libs/projectforge-webapp-${project.version}.jar")
+    from(webAppJarProvider) {
+        into("BOOT-INF/lib") // Insert the webapp jar into the boot jar.
     }
-    exclude(kotlinCompilerDependencyFiles.map { "**/$it" }) // Exclude this jar, it's extracted.
+    exclude(kotlinCompilerDependencyFiles.map { "**/$it" }) // Exclude these jar, they're already contained as extracted files.
 }
 
 tasks.withType<Jar> {
@@ -241,7 +239,6 @@ tasks.register("generateGitProperties") {
     val propsFile = layout.buildDirectory.file("resources/main/build.properties").get().asFile
     outputs.file(propsFile)
 
-    // Lokale Kopien aller Projekt-Informationen
     val rootDirPath = rootDir.absolutePath
     val projectVersion = version.toString()
     val outputFilePath = propsFile.absolutePath
