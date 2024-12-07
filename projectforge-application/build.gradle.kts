@@ -215,14 +215,11 @@ val kotlinCompilerDependencyFiles = kotlinCompilerDependency.map { it.name }
 tasks.named<BootJar>("bootJar") {
     dependsOn(":projectforge-webapp:webAppJar")
     from({
-        val webAppJar = layout.buildDirectory.file("libs/projectforge-webapp-${project.version}.jar")
+        val webAppJar = project(":projectforge-webapp").layout.buildDirectory.file("libs/projectforge-webapp-${project.version}.jar")
         if (webAppJar.get().asFile.exists()) zipTree(webAppJar) else null
     }) {
         into("BOOT-INF/lib")
     }
-    // dependsOn(":projectforge-webapp:copyReactBuild")
-    // from("$buildDir/resources/main/static") // Copy the React build to the fat jar.
-    // println(kotlinCompilerDependencyFiles.joinToString())
     exclude(kotlinCompilerDependencyFiles.map { "**/$it" }) // Exclude this jar, it's extracted.
 }
 
