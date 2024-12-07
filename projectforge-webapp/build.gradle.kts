@@ -85,6 +85,10 @@ tasks {
             exclude("libs")
             exclude("tmp")
         }
+        // Include additional files (e.g., src/index.html)
+        from(layout.projectDirectory.file("src/index.html")) {
+            into("static") // Copy index.html to /static
+        }
         dependsOn("copyReactBuild") // Ensure React build and copy are done first
     }
 
