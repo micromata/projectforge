@@ -50,28 +50,25 @@ tasks {
         dependsOn("npmInstall")
 
         inputs.files(fileTree("src")) // All source files as input
-        outputs.dir(layout.buildDirectory.dir("react-build")) // Set output directory
+        outputs.dir("build") // React output directory as output
     }
 
     register<Copy>("copyReactBuild") {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         group = "build"
         description = "Copies built React files to the target directory"
-        val reactBuildDir = layout.buildDirectory.dir("react-build")
-        val staticOutputDir = layout.buildDirectory.dir("resources/main/static")
-        dependsOn("npmBuild")
-        from(reactBuildDir) // React build directory
-        into(staticOutputDir) // Target directory
-        inputs.dir(reactBuildDir)
-        outputs.dir(staticOutputDir)
-        outputs.upToDateWhen {
-            staticOutputDir.get().asFile.exists()
+        dependsOn("npmBuild") // Depends on the React build process
+        from(file("build")) {
+            // Exclude the target directory to prevent recursion
+            exclude("resources/main/static/**")
         }
-    }
-
-    // Include the React build in the Gradle build process
-    named("build") {
-        dependsOn("copyReactBuild") // Makes React build a part of the Gradle build
+        from(file("src")) {
+            include("index.html")
+        }
+        into(layout.buildDirectory.dir("resources/main/static")) // Target directory in the Gradle project
+        // Skip task if target directory is up-to-date
+        inputs.dir("build") // React build directory as input
+        outputs.dir(layout.buildDirectory.dir("resources/main/static")) // Static resources directory as output
     }
 
     register<Jar>("webAppJar") {
@@ -82,16 +79,18 @@ tasks {
         destinationDirectory.set(layout.buildDirectory.dir("libs"))
 
         // Include files from react-build directory
-        from(layout.buildDirectory.dir("react-build")) {
+        from(layout.buildDirectory.get()) {
             into("static") // Place files under /static in the JAR
+            exclude("resources")
+            exclude("tmp/**")
         }
         dependsOn("copyReactBuild") // Ensure React build and copy are done first
     }
 
-}
-
-tasks.named("build") {
-    dependsOn("webAppJar")
+    // Include the React build in the Gradle build process
+    named("build") {
+        dependsOn("copyReactBuild") // Makes React build a part of the Gradle build
+    }
 }
 
 description = "projectforge-webapp"
