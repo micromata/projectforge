@@ -216,7 +216,7 @@ class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(
     }
 
     private fun showJdbcSettingsDialog() {
-        // PostgreSQL is selected. Open the JdbcSetingsDialog:
+        // PostgreSQL is selected. Open the JdbcSettingsDialog:
         SwingJdbcSettingsDialog(this,
                 context = context
         ).showDialog()
