@@ -40,8 +40,16 @@ internal object PropFindUtils {
         CURRENT_USER_PRIVILEGE_SET("current-user-privilege-set")
     }
 
+    /**
+     * Handles a PROPFIND request for the current user principal.
+     * This is the initial call to the CardDAV server for getting the
+     * @param requestWrapper The request wrapper.
+     * @param response The response.
+     * @param user The user.
+     * @see CardDavXmlWriter.generateCurrentUserPrincipal
+     */
     fun handleCurrentUserPrincipal(requestWrapper: RequestWrapper, response: HttpServletResponse, user: PFUserDO) {
-        log.debug { "handleCurrentUserPrincipal: ${requestWrapper.body}" }
+        log.debug { "handleCurrentUserPrincipal: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
         val props = extractProps(requestWrapper.body)
         if (props.isEmpty()) {
             ResponseUtils.setValues(
@@ -50,7 +58,30 @@ internal object PropFindUtils {
             )
         }
         val content = CardDavXmlWriter.generateCurrentUserPrincipal(requestWrapper, user, props)
-        log.debug { "handleCurrentUserPrincipal: response: $content" }
+        log.debug { "handleCurrentUserPrincipal: response=[$content]" }
+        ResponseUtils.setValues(
+            response,
+            HttpStatus.MULTI_STATUS,
+            contentType = MediaType.APPLICATION_XML_VALUE,
+            content = content,
+        )
+    }
+
+    /**
+     * Handle PROPFIND requests: /carddav/users/<username>
+     * The client expects information about the address book of the given user.
+     * @param userDO The user for which the address book is requested.
+     * @param request The HTTP request.
+     * @return The response entity.
+     */
+     fun handlePropfindUserDirectory(
+        requestWrapper: RequestWrapper,
+        response: HttpServletResponse,
+        userDO: PFUserDO
+    ) {
+        log.debug { "handlePropfindUserDirectory: PROPFIND '${requestWrapper.requestURI}', body=[${requestWrapper.body}]" }
+        val content = CardDavXmlWriter.generatePropfindUserDirectory(requestWrapper, userDO)
+        log.debug { "handlePropfindUserDirectory: response=[$content]" }
         ResponseUtils.setValues(
             response,
             HttpStatus.MULTI_STATUS,

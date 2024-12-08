@@ -25,6 +25,7 @@ package org.projectforge.carddav
 
 import org.projectforge.carddav.model.Contact
 import org.projectforge.carddav.model.User
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 internal object CardDavXmlWriter {
@@ -46,7 +47,7 @@ internal object CardDavXmlWriter {
         val ctagLine = if (ctag != null) "\n                <cs:getctag>$ctag</cs:getctag>" else ""
         return """
         <?xml version="1.0" encoding="UTF-8"?>
-        <d:multistatus xmlns:d="DAV:" xmlns:cs="http://calendarserver.org/ns/">
+        <d:multistatus $XML_NS>
             <d:response>
                 <d:href>$href</d:href>
                 <d:propstat>
@@ -102,22 +103,28 @@ internal object CardDavXmlWriter {
         if (prependXmlPrefix) {
             appendXmlPrefix(sb)
         }
-        sb.append("<d:multistatus xmlns:d=\"DAV:\" xmlns:cs=\"https://")
-            .append(server)
-            .appendLine("/ns/\">")
+        sb.append("<d:multistatus $XML_NS>")
     }
 
     fun appendMultiStatusEnd(sb: StringBuilder) {
         sb.appendLine("</d:multistatus>")
     }
 
+    /**
+     * Generates a response for a PROPFIND request for the current user principal.
+     * This is the initial call to the CardDAV server for getting the principal.
+     * Information about resources and privileges are returned, if requested.
+     * @param requestWrapper The request wrapper.
+     * @param user The user.
+     * @param props The properties to include in the response.
+     * @return The response as a string.
+     */
     fun generateCurrentUserPrincipal(requestWrapper: RequestWrapper, user: PFUserDO, props: List<PropFindUtils.Prop>): String {
-        CardDavInit.cardDavUseRootPath
         val href = "${requestWrapper.baseUrl}/users/${user.username}/"
         val sb = StringBuilder()
         sb.appendLine("""
             <?xml version="1.0" encoding="UTF-8"?>
-            <d:multistatus xmlns:d="DAV:">
+            <d:multistatus $XML_NS>
                 <d:response>
                     <d:href>$href</d:href>
                     <d:propstat>
@@ -129,7 +136,7 @@ internal object CardDavXmlWriter {
             appendPropLines(sb, "</d:resourcetype>")
         }
         if (props.contains(PropFindUtils.Prop.DISPLAYNAME)) {
-            appendPropLines(sb, "<d:displayname>CardDAV Root</d:displayname>")
+            appendPropLines(sb, "<d:displayname>${getUsersAddressbookDisplayName(user)}</d:displayname>")
         }
         if (props.contains(PropFindUtils.Prop.CURRENT_USER_PRINCIPAL)) {
             appendPropLines(sb, "<d:current-user-principal>")
@@ -152,6 +159,60 @@ internal object CardDavXmlWriter {
         return sb.toString()
     }
 
+    /**
+     * Generates a response for a PROPFIND request for the current user directory.
+     * Handle PROPFIND requests: /carddav/users/<username>
+     * The client expects information about the address book of the given user.
+     * @param requestWrapper The request wrapper.
+     * @param user The user.
+     * @return The response as a string.
+     */
+    fun generatePropfindUserDirectory(requestWrapper: RequestWrapper, user: PFUserDO): String {
+        val href = "${requestWrapper.baseUrl}/users/${user.username}/"
+        val sb = StringBuilder()
+        sb.appendLine("""
+            <?xml version="1.0" encoding="UTF-8"?>
+            <d:multistatus $XML_NS>
+                <d:response>
+                    <d:href>$href</d:href>
+                    <d:propstat>
+                        <d:prop>
+                            <d:resourcetype>
+                                <d:collection />
+                            </d:resourcetype>
+                            <d:displayname>${getUsersAddressbookDisplayName(user)}</d:displayname>
+                            <d:current-user-principal>
+                                <d:href>$href</d:href>
+                            </d:current-user-principal>
+                            <d:supported-report-set>
+                                <d:supported-report>
+                                    <d:report>
+                                        <cs:addressbook-query />
+                                    </d:report>
+                                </d:supported-report>
+                            </d:supported-report-set>
+                        </d:prop>
+                        <d:status>HTTP/1.1 200 OK</d:status>
+                    </d:propstat>
+                </d:response>
+                <d:response>
+                    <d:href>$href/contacts/</d:href>
+                    <d:propstat>
+                        <d:prop>
+                            <d:resourcetype>
+                                <d:collection />
+                                <cs:addressbook />
+                            </d:resourcetype>
+                            <d:displayname>${getUsersAddressbookDisplayName(user)}</d:displayname>
+                            <cs:addressbook-description>${translate("address.cardDAV.addressbook.description")}</cs:addressbook-description>
+                        </d:prop>
+                        <d:status>HTTP/1.1 200 OK</d:status>
+                    </d:propstat>
+                </d:response>
+            </d:multistatus>""".trimIndent())
+        return sb.toString()
+    }
+
     private fun appendPropLines(sb: StringBuilder, vararg lines: String) {
         lines.forEach { line ->
             sb.appendLine("              $line")
@@ -169,7 +230,7 @@ internal object CardDavXmlWriter {
         val ctagLine = if (ctag != null) "\n                <cs:getctag>$ctag</cs:getctag>" else ""
         return """
         <?xml version="1.0" encoding="UTF-8"?>
-        <d:multistatus xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav">
+        <d:multistatus $XML_NS>
             <d:response>
                 <d:href>/users/joe/addressBooks/default/contact1.vcf</d:href>
                 <d:propstat>
@@ -189,4 +250,10 @@ internal object CardDavXmlWriter {
             <d:sync-token>https://example.com/carddav/users/joe/new-sync-token</d:sync-token>
         </d:multistatus>""".trimIndent()
     }*/
+
+    private fun getUsersAddressbookDisplayName(user: PFUserDO): String {
+        return translate("address.cardDAV.addressbook.displayName")
+    }
+
+    private const val XML_NS = "xmlns:d=\"DAV:\" xmlns:cs=\"urn:ietf:params:xml:ns:carddav\""
 }

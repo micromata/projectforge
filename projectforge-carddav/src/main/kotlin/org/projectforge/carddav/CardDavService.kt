@@ -94,27 +94,21 @@ class CardDavService {
     private fun dispathAuthenticated(requestWrapper: RequestWrapper, response: HttpServletResponse, user: PFUserDO) {
         val request = requestWrapper.request
         val method = request.method
+        // Runs under /carddav as well as under /
+        // Normalize URI for further processing:
+        val normalizedRequestURI = request.requestURI.removePrefix("/carddav").removePrefix("/").removeSuffix("/")
         if (method == "PROPFIND") {
-            if (request.requestURI == "index.html") {
+            if (normalizedRequestURI == "index.html") {
                 // PROPFIND call to /index.html after authentication is a typical behavior of many WebDAV or CardDAV clients.
-                ResponseUtils.setValues(
-                    response,
-                    HttpStatus.MULTI_STATUS, // Alternatives: Not found (404) or Forbidden (403)
-                )
+                // Alternatives: Not found (404) or Forbidden (403)
+                ResponseUtils.setValues(response, HttpStatus.MULTI_STATUS)
                 return
-            } else if (request.requestURI == "/" || request.requestURI == "/carddav") {
+            } else if (normalizedRequestURI == "") {
                 PropFindUtils.handleCurrentUserPrincipal(requestWrapper, response, user)
-            /*} else if (request.requestURI == "/") {
-                log.debug { "PROPFIND '/': ${CardDavUtils.readBody(request)}" }
-                val content = CardDavXmlWriter.generateCurrentUserPrincipal(user)
-                ResponseUtils.setValues(
-                    response,
-                    HttpStatus.MULTI_STATUS,
-                    contentType = MediaType.APPLICATION_XML_VALUE,
-                    content = content,
-                )*/
+            } else if (normalizedRequestURI == "users/${user.username}") {
+                PropFindUtils.handlePropfindUserDirectory(requestWrapper, response, user)
             } else {
-                handlePropfindUsers(requestWrapper, response, user)
+                handlePropfindXXX(requestWrapper, response, user)
             }
         }
     }
@@ -193,13 +187,14 @@ class CardDavService {
         ResponseUtils.setValues(response, status = HttpStatus.OK)
     }
 
+
     /**
      * Handle PROPFIND requests. Get the address book metadata for the given user.
      * @param userDO The user for which the address book is requested.
      * @param request The HTTP request.
      * @return The response entity.
      */
-    private fun handlePropfindUsers(requestWrapper: RequestWrapper, response: HttpServletResponse, userDO: PFUserDO) {
+    private fun handlePropfindXXX(requestWrapper: RequestWrapper, response: HttpServletResponse, userDO: PFUserDO) {
         val request = requestWrapper.request
         log.debug { "PROPFIND '${request.requestURI}': ${requestWrapper.body}" }
         val sb = StringBuilder()
