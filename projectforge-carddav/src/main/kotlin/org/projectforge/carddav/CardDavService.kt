@@ -106,6 +106,12 @@ class CardDavService {
             } else {
                 PropFindUtils.handlePropFindCall(requestWrapper, response, user)
             }
+        } else if (method == "REPORT") {
+            PropFindUtils.handleSyncReportCall(requestWrapper, response, user)
+            /*if (normalizedRequestURI.startsWith("users/")) {
+                val contactId = normalizedRequestURI.removePrefix("users/").removeSuffix(".vcf")
+                getContact(user, contactId)
+            }*/
         }
     }
 
@@ -190,31 +196,6 @@ class CardDavService {
      * @param request The HTTP request.
      * @return The response entity.
      */
-    private fun handlePropfindXXX(requestWrapper: RequestWrapper, response: HttpServletResponse, userDO: PFUserDO) {
-        val request = requestWrapper.request
-        log.debug { "PROPFIND '${request.requestURI}': ${requestWrapper.body}" }
-        val sb = StringBuilder()
-        CardDavXmlWriter.appendMultiStatusStart(sb)
-        val user = User(userDO.username)
-        val addressBook = AddressBook(user)
-        addressService.getContactList(addressBook).forEach { contact ->
-            CardDavXmlWriter.appendPropfindContact(sb, user, contact)
-        }
-        CardDavXmlWriter.appendMultiStatusEnd(sb)
-        ResponseUtils.setValues(
-            response,
-            HttpStatus.MULTI_STATUS,
-            contentType = MediaType.APPLICATION_XML_VALUE,
-            content = sb.toString()
-        )
-    }
-
-    /**
-     * Handle PROPFIND requests. Get the address book metadata for the given user.
-     * @param userDO The user for which the address book is requested.
-     * @param request The HTTP request.
-     * @return The response entity.
-     */
     fun handlePropfindAddressBook(
         request: HttpServletRequest,
         response: HttpServletResponse,
@@ -249,28 +230,4 @@ class CardDavService {
             .contentType(MediaType.parseMediaType("text/vcard"))
             .body(vcard)
     }
-
-    // <d:multistatus xmlns:d="DAV:" xmlns:cs="http://calendarserver.org/ns/">
-    //    <d:sync-token>http://example.com/sync/abcd1234</d:sync-token>
-    //    <d:response>
-    //        <d:href>/carddav/user/addressbook/contact1.vcf</d:href>
-    //        <d:propstat>
-    //            <d:prop>
-    //                <d:getetag>"12345"</d:getetag>
-    //                <d:displayname>John Doe</d:displayname>
-    //            </d:prop>
-    //            <d:status>HTTP/1.1 200 OK</d:status>
-    //        </d:propstat>
-    //    </d:response>
-    //    <d:response>
-    //        <d:href>/carddav/user/addressbook/contact2.vcf</d:href>
-    //        <d:propstat>
-    //            <d:prop>
-    //                <d:getetag>"67890"</d:getetag>
-    //                <d:displayname>Jane Doe</d:displayname>
-    //            </d:prop>
-    //            <d:status>HTTP/1.1 200 OK</d:status>
-    //        </d:propstat>
-    //    </d:response>
-    //</d:multistatus>
 }

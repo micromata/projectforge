@@ -37,10 +37,11 @@ internal object PropFindUtils {
         RESOURCETYPE("resourcetype"),
         DISPLAYNAME("displayname"),
         GETETAG("getetag"),
-        GETCTAG("cs:getctag"),
+        GETCTAG("getctag"),
         SYNCTOKEN("sync-token"),
         CURRENT_USER_PRINCIPAL("current-user-principal"),
-        CURRENT_USER_PRIVILEGE_SET("current-user-privilege-set")
+        CURRENT_USER_PRIVILEGE_SET("current-user-privilege-set"),
+        ADDRESS_DATA("caddress-data"),
     }
 
     /**
@@ -52,7 +53,7 @@ internal object PropFindUtils {
      * @see CardDavXmlWriter.generatePropFindResponse
      */
     fun handlePropFindCall(requestWrapper: RequestWrapper, response: HttpServletResponse, user: PFUserDO) {
-        log.debug { "handleCurrentUserPrincipal: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
+        log.debug { "handlePropFindCall: ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
         val props = extractProps(requestWrapper.body)
         if (props.isEmpty()) {
             ResponseUtils.setValues(
@@ -61,7 +62,7 @@ internal object PropFindUtils {
             )
         }
         val content = CardDavXmlWriter.generatePropFindResponse(requestWrapper, user, props)
-        log.debug { "handleCurrentUserPrincipal: response=[$content]" }
+        log.debug { "handlePropFindCall: response=[$content]" }
         ResponseUtils.setValues(
             response,
             HttpStatus.MULTI_STATUS,
@@ -71,20 +72,25 @@ internal object PropFindUtils {
     }
 
     /**
-     * Handle PROPFIND requests: /carddav/users/<username>
-     * The client expects information about the address book of the given user.
-     * @param userDO The user for which the address book is requested.
-     * @param request The HTTP request.
-     * @return The response entity.
+     * Handles a PROPFIND request for the current user principal.
+     * This is the initial call to the CardDAV server for getting the
+     * @param requestWrapper The request wrapper.
+     * @param response The response.
+     * @param user The user.
+     * @see CardDavXmlWriter.generatePropFindResponse
      */
-     fun handlePropfindUserDirectory(
-        requestWrapper: RequestWrapper,
-        response: HttpServletResponse,
-        userDO: PFUserDO
-    ) {
-        log.debug { "handlePropfindUserDirectory: PROPFIND '${requestWrapper.requestURI}', body=[${requestWrapper.body}]" }
-        val content = CardDavXmlWriter.generatePropfindUserDirectory(requestWrapper, userDO)
-        log.debug { "handlePropfindUserDirectory: response=[$content]" }
+    fun handleSyncReportCall(requestWrapper: RequestWrapper, response: HttpServletResponse, user: PFUserDO) {
+        log.debug { "handleReportCall:  ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
+        val props = extractProps(requestWrapper.body)
+        if (props.isEmpty()) {
+            ResponseUtils.setValues(
+                response, HttpStatus.BAD_REQUEST, contentType = MediaType.TEXT_PLAIN_VALUE,
+                content = "No properties found in PROPFIND request."
+            )
+        }
+        val syncToken = System.currentTimeMillis().toString() // Nothing better for now.
+        val content = CardDavXmlWriter.generateSyncReportResponse(syncToken, props)
+        log.debug { "handleReportCall: response=[$content]" }
         ResponseUtils.setValues(
             response,
             HttpStatus.MULTI_STATUS,
@@ -92,6 +98,7 @@ internal object PropFindUtils {
             content = content,
         )
     }
+
 
     /**
      * <propfind xmlns="DAV:">
@@ -100,6 +107,7 @@ internal object PropFindUtils {
      *     <displayname/>
      *     <current-user-principal/>
      *     <current-user-privilege-set/>
+     *     <card:address-data />
      *   </prop>
      * </propfind>
      */
@@ -108,7 +116,7 @@ internal object PropFindUtils {
         val propfindXml = xml.substringAfter("<propfind").substringBefore("</propfind>")
         val propXml = propfindXml.substringAfter("<prop>").substringBefore("</prop>")
         Prop.entries.forEach { prop ->
-            if ("<${prop.str}" in propXml) {
+            if ("<${prop.str}" in propXml || ":${prop.str}" in propXml) { // e.g. <card:address-data /> or <getetag/>
                 props.add(prop)
             }
         }
