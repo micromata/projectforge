@@ -59,14 +59,23 @@ internal object CardDavXmlWriter {
             appendPropLines(sb, "</resourcetype>")
         }
         if (props.contains(PropFindUtils.Prop.GETCTAG)) {
-            appendPropLines(sb, "<cs:getctag>\"88d6c17fa866ef38e6e0122a59bf3da10a66daa042860116c88979a50c025eb9\"</cs:getctag>")
+            appendPropLines(
+                sb,
+                "<cs:getctag>\"88d6c17fa866ef38e6e0122a59bf3da10a66daa042860116c88979a50c025eb9\"</cs:getctag>"
+            )
         }
         if (props.contains(PropFindUtils.Prop.GETETAG)) {
-            appendPropLines(sb, "<getetag>\"88d6c17fa866ef38e6e0122a59bf3da10a66daa042860116c88979a50c025eb9\"</getetag>")
+            appendPropLines(
+                sb,
+                "<getetag>\"88d6c17fa866ef38e6e0122a59bf3da10a66daa042860116c88979a50c025eb9\"</getetag>"
+            )
         }
         if (props.contains(PropFindUtils.Prop.SYNCTOKEN)) {
             appendPropLines(sb, "<sync-token>")
-            appendPropLines(sb, "  https://www.projectforge.org/ns/sync/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
+            appendPropLines(
+                sb,
+                "  https://www.projectforge.org/ns/sync/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            )
             appendPropLines(sb, "</sync-token>")
         }
         if (props.contains(PropFindUtils.Prop.DISPLAYNAME)) {
@@ -95,6 +104,17 @@ internal object CardDavXmlWriter {
             </response>
         """.trimIndent()
         )
+        appendMultiStatusEnd(sb)
+        return sb.toString()
+    }
+
+    fun generateSyncReportResponse(
+        syncToken: String? = null,
+        props: List<PropFindUtils.Prop>,
+    ): String {
+        val sb = StringBuilder()
+        appendMultiStatusStart(sb)
+        sb.appendLine("  <sync-token>$syncToken</sync-token>")
         appendMultiStatusEnd(sb)
         return sb.toString()
     }
@@ -129,108 +149,11 @@ internal object CardDavXmlWriter {
         sb.appendLine("</multistatus>")
     }
 
-    /**
-     * Generates a response for a PROPFIND request for the current user directory.
-     * Handle PROPFIND requests: /carddav/users/<username>
-     * The client expects information about the address book of the given user.
-     * @param requestWrapper The request wrapper.
-     * @param user The user.
-     * @return The response as a string.
-     */
-    fun generatePropfindUserDirectory(requestWrapper: RequestWrapper, user: PFUserDO): String {
-        val href = "${requestWrapper.baseUrl}/users/${user.username}/"
-        val sb = StringBuilder()
-        appendMultiStatusStart(sb)
-        sb.appendLine(
-            """
-            <response>
-              <href>$href</href>
-              <propstat>
-                <prop>
-                  <resourcetype>
-                    <collection />
-                  </resourcetype>
-                  <displayname>Kai's Home Collection</displayname>
-                  <getcontenttype>text/vcard</getcontenttype>
-                  <cr:addressbook-home-set>
-                    <href>${href}addressBooks/</href>
-                  </cr:addressbook-home-set>
-                </prop>
-                <status>HTTP/1.1 200 OK</status>
-              </propstat>
-            </response>
-            <response>
-                <href>${href}addressBooks/</href>
-                <propstat>
-                    <prop>
-                        <resourcetype>
-                            <collection />
-                            <cr:addressbook />
-                        </resourcetype>
-                            <getcontenttype>text/vcard</getcontenttype>
-                        <displayname>${getUsersAddressbookDisplayName(user)}</displayname>
-                        <getcontenttype>text/vcard</getcontenttype>
-                        <getetag>"test-e-123"</getetag>
-                        <cr:getctag>"test-124"</cr:getctag>
-                    </prop>
-                    <status>HTTP/1.1 200 OK</status>
-                </propstat>
-            </response>""".trimIndent()
-        )
-        /*sb.appendLine("""
-                <response>
-                    <href>${href}contacts/john_doe.vcf</href>
-                    <propstat>
-                        <prop>
-                            <getetag>"12345"</getetag>
-                            <getcontenttype>text/vcard</getcontenttype>
-                            <resourcetype />
-                        </prop>
-                        <status>HTTP/1.1 200 OK</status>
-                    </propstat>
-                </response>
-        """.trimIndent())*/
-        appendMultiStatusEnd(sb)
-        return sb.toString()
-    }
-
     private fun appendPropLines(sb: StringBuilder, vararg lines: String) {
         lines.forEach { line ->
             sb.appendLine("          $line")
         }
     }
-
-    /*
-    fun generateSyncReportResponse(
-        displayname: String,
-        href: String,
-        ctag: String? = null,
-        syncToken: String? = null,
-    ): String {
-        val syncTokenLine = if (syncToken != null) "\n                <sync-token>$syncToken</sync-token>" else ""
-        val ctagLine = if (ctag != null) "\n                <cs:getctag>$ctag</cs:getctag>" else ""
-        return """
-        <?xml version="1.0" encoding="UTF-8"?>
-        <multistatus $XML_NS>
-            <response>
-                <href>/users/joe/addressBooks/default/contact1.vcf</href>
-                <propstat>
-                    <prop>
-                        <getetag>"123456789"</getetag>
-                    </prop>
-                    <status>HTTP/1.1 200 OK</status>
-                </response>
-            <response>
-                <href>/users/joe/addressBooks/default/contact2.vcf</href>
-                <propstat>
-                    <prop>
-                        <getetag>"987654321"</getetag>
-                    </prop>
-                    <status>HTTP/1.1 200 OK</status>
-                </response>
-            <sync-token>https://example.com/carddav/users/joe/new-sync-token</sync-token>
-        </multistatus>""".trimIndent()
-    }*/
 
     private fun getUsersAddressbookDisplayName(user: PFUserDO): String {
         return translate("address.cardDAV.addressbook.displayName")

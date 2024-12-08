@@ -59,7 +59,8 @@ fun main(args: Array<String>) {
     val username = args[0]
     val davToken = args[1]
     val baseUrl = if (args.size > 2) args[2] else "http://localhost:8080/carddav"
-    val client = CardDavTestClient(baseUrl, username, davToken)
+    val lastSyncToken = if (args.size > 3) args[3] else null
+    val client = CardDavTestClient(baseUrl, username = username, password = davToken, lastSyncToken = lastSyncToken)
     client.run()
 }
 
@@ -70,7 +71,7 @@ fun main(args: Array<String>) {
 // PROPFIND for Milton (uri=/users/username/addressBooks/default/
 // REPORT for Milton (uri=/users/username/addressBooks/default/
 
-class CardDavTestClient(private val baseUrl: String, username: String, password: String) {
+class CardDavTestClient(private val baseUrl: String, username: String, password: String, val lastSyncToken: String?) {
     private class ResponseData(val content: String, val headers: String)
 
     private val client: CloseableHttpClient = HttpClients.createDefault()
@@ -110,7 +111,7 @@ class CardDavTestClient(private val baseUrl: String, username: String, password:
                 </propfind>""".trimIndent().let { body ->
                 sendRequest("PROPFIND", requestBody = body, useAuthHeader = true)
             }
-            var syncToken = "<not yet set>"
+            var newSyncToken: String? = null
             """
                 <propfind xmlns="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/" xmlns:d="DAV:">
                   <prop>
@@ -122,18 +123,26 @@ class CardDavTestClient(private val baseUrl: String, username: String, password:
                 sendRequest("PROPFIND", requestBody = body, useAuthHeader = true).let { response ->
                     val regex = Regex("<sync-token>\\s*(.*?)\\s*</sync-token>", RegexOption.DOT_MATCHES_ALL)
                     val match = regex.find(response)
-                    syncToken = match?.groups?.get(1)?.value?.trim() ?: "<not found>"
+                    newSyncToken = match?.groups?.get(1)?.value?.trim()
+                    if (newSyncToken != lastSyncToken) {
+                        println("**************************************")
+                        println("New sync token: $newSyncToken (for usage as args[3])")
+                        println("**************************************")
+                    }
+                    if (newSyncToken == null) {
+                        newSyncToken = lastSyncToken
+                    }
                 }
             }
             """
-                <sync-collection xmlns="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/" xmlns:d="DAV:">
+                <sync-collection xmlns="DAV:" xmlns:CR="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/" xmlns:d="DAV:">
                   <sync-token>
-                        $syncToken
+                        $lastSyncToken
                   </sync-token>
                   <sync-level>1</sync-level>
                   <prop>
                     <getetag/>
-                    <card:address-data/>
+                    <CR:address-data/>
                   </prop>
                 </sync-collection>""".trimIndent().let { body ->
                 sendRequest("REPORT", requestBody = body, useAuthHeader = true)
@@ -162,7 +171,7 @@ class CardDavTestClient(private val baseUrl: String, username: String, password:
         if (requestBody != null) {
             builder.setEntity(StringEntity(requestBody, ContentType.APPLICATION_XML))
         }
-        println("$method call: $path")
+        println("$method call: $url")
         if (requestBody != null) {
             println("   body=[")
             println(requestBody)
