@@ -25,10 +25,10 @@ package org.projectforge.carddav
 
 import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
-import org.projectforge.carddav.CardDavXmlWriter.appendMultiStatusEnd
-import org.projectforge.carddav.CardDavXmlWriter.appendMultiStatusStart
-import org.projectforge.carddav.CardDavXmlWriter.appendPropLines
-import org.projectforge.carddav.CardDavXmlWriter.getUsersAddressbookDisplayName
+import org.projectforge.carddav.CardDavUtils.getUsersAddressbookDisplayName
+import org.projectforge.carddav.CardDavXmlUtils.appendMultiStatusEnd
+import org.projectforge.carddav.CardDavXmlUtils.appendMultiStatusStart
+import org.projectforge.carddav.CardDavXmlUtils.appendPropLines
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.utils.ResponseUtils
 import org.springframework.http.HttpStatus
@@ -43,7 +43,7 @@ internal object PropFindRequestHandler {
      * @param requestWrapper The request wrapper.
      * @param response The response.
      * @param user The user.
-     * @see CardDavXmlWriter.generatePropFindResponse
+     * @see CardDavXmlUtils.generatePropFindResponse
      */
     fun handlePropFindCall(requestWrapper: RequestWrapper, response: HttpServletResponse, user: PFUserDO) {
         log.debug { "handlePropFindCall: ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
@@ -82,10 +82,10 @@ internal object PropFindRequestHandler {
         appendMultiStatusStart(sb)
         sb.appendLine(
             """
-                <response>
-                    <href>$href</href>
-                    <propstat>
-                        <prop>""".trimIndent()
+            |    <response>
+            |        <href>$href</href>
+            |        <propstat>
+            |            <prop>""".trimMargin()
         )
         if (props.contains(Prop.RESOURCETYPE)) {
             appendPropLines(sb, "<resourcetype>")
@@ -133,11 +133,11 @@ internal object PropFindRequestHandler {
         }
         sb.appendLine(
             """
-                    </prop>
-                    <status>HTTP/1.1 200 OK</status>
-                </propstat>
-            </response>
-        """.trimIndent()
+            |          </prop>
+            |          <status>HTTP/1.1 200 OK</status>
+            |      </propstat>
+            |  </response>
+        """.trimMargin()
         )
         appendMultiStatusEnd(sb)
         return sb.toString()

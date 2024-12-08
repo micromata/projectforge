@@ -26,7 +26,7 @@ package org.projectforge.carddav
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
-class PropFindUtilsTest {
+class PropTest {
     @Test
     fun `test of extracting propFinds`() {
         """
@@ -47,7 +47,11 @@ class PropFindUtilsTest {
             Assertions.assertEquals(Prop.CURRENT_USER_PRIVILEGE_SET, propFinds[3])
         }
         """
-            <propfind xmlns="DAV:">
+            <sync-collection xmlns="DAV:">
+              <sync-token>
+                    https://www.projectforge.org/ns/sync/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+                  </sync-token>
+              <sync-level>1</sync-level>
               <prop>
                 <resourcetype/>
                 <getetag/>

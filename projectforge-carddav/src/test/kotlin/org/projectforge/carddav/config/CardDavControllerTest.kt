@@ -25,9 +25,7 @@ package org.projectforge.web
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.carddav.CardDavService
-import org.projectforge.carddav.CardDavUtils
-import org.projectforge.carddav.CardDavXmlWriter
+import org.projectforge.carddav.CardDavXmlUtils
 import org.projectforge.carddav.model.Contact
 import org.projectforge.carddav.model.User
 import java.util.Date
@@ -36,22 +34,22 @@ class CardDavControllerTest {
     @Test
     fun `test writing xml response of PROPFIND`() {
         StringBuilder().let { sb ->
-            CardDavXmlWriter.appendMultiStatusStart(sb)
+            CardDavXmlUtils.appendMultiStatusStart(sb)
             Assertions.assertEquals(
-                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:cs=\"urn:ietf:params:xml:ns:carddav\">\n",
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<multistatus xmlns:d=\"DAV:\" xmlns:cr=\"urn:ietf:params:xml:ns:carddav\" xmlns:cs=\"http://calendarserver.org/ns/\">\n",
                 sb.toString()
             )
         }
         StringBuilder().let { sb ->
-            CardDavXmlWriter.appendMultiStatusStart(sb, false)
+            CardDavXmlUtils.appendMultiStatusStart(sb, false)
             Assertions.assertEquals(
-                "<d:multistatus xmlns:d=\"DAV:\" xmlns:cs=\"urn:ietf:params:xml:ns:carddav\">\n",
+                "<multistatus xmlns:d=\"DAV:\" xmlns:cr=\"urn:ietf:params:xml:ns:carddav\" xmlns:cs=\"http://calendarserver.org/ns/\">\n",
                 sb.toString()
             )
         }
         StringBuilder().let { sb ->
-            CardDavXmlWriter.appendMultiStatusEnd(sb)
-            Assertions.assertEquals("</d:multistatus>\n", sb.toString())
+            CardDavXmlUtils.appendMultiStatusEnd(sb)
+            Assertions.assertEquals("</multistatus>\n", sb.toString())
         }
         StringBuilder().let { sb ->
             val user = User("kai")

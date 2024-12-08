@@ -28,6 +28,9 @@ import org.jetbrains.kotlin.utils.addToStdlib.countOccurrencesOf
 
 private val log = KotlinLogging.logger {}
 
+/**
+ * Properties that can be requested in a PROPFIND request.
+ */
 internal enum class Prop(val str: String) {
     RESOURCETYPE("resourcetype"),
     DISPLAYNAME("displayname"),
@@ -49,6 +52,11 @@ internal enum class Prop(val str: String) {
          *     <card:address-data />
          *   </prop>
          * </propfind>
+         */
+        /**
+         * List of all available properties.
+         * @param xml The XML string to extract the properties from.
+         * @return The list of found/requested properties.
          */
         fun extractProps(xml: String): List<Prop> {
             val props = mutableListOf<Prop>()
