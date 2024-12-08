@@ -30,6 +30,8 @@ data class Contact(
     val lastUpdated: java.util.Date? = null,
     var vcardData: ByteArray? = null,
 ) {
+    val vcardDataAsString: String
+        get() = vcardData?.let { String(it) } ?: ""
     val displayName = "$lastName, $firstName"
     override fun toString(): String {
         return "Contact[id=$id, name=[$displayName], lastUpdated=$lastUpdated, vcardData-size=${vcardData?.size}]"

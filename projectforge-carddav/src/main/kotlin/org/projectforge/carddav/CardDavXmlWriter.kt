@@ -24,7 +24,6 @@
 package org.projectforge.carddav
 
 import org.projectforge.carddav.model.Contact
-import org.projectforge.carddav.model.User
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
@@ -108,29 +107,39 @@ internal object CardDavXmlWriter {
         return sb.toString()
     }
 
-    fun generateSyncReportResponse(
-        syncToken: String? = null,
-        props: List<PropFindUtils.Prop>,
-    ): String {
+    fun generateSyncReportResponse(href: String, syncToken: String? = null, contacts: List<Contact>): String {
         val sb = StringBuilder()
         appendMultiStatusStart(sb)
         sb.appendLine("  <sync-token>$syncToken</sync-token>")
+        contacts.forEach { contact ->
+            appendPropfindContact(sb, href, contact)
+        }
         appendMultiStatusEnd(sb)
         return sb.toString()
     }
 
-    fun appendPropfindContact(sb: StringBuilder, user: User, contact: Contact) {
+    fun appendPropfindContact(sb: StringBuilder, href: String, contact: Contact) {
         sb.appendLine(
-            """  <response>
-    <href>/carddav/${user.userName}/addressbook/contact${contact.id}.vcf</href>
-    <propstat>
-      <prop>
-        <getetag>"${CardDavUtils.getETag(contact)}"</getetag>
-        <displayname>${contact.displayName}</displayname>
-      </prop>
-      <status>HTTP/1.1 200 OK</status>
-    </propstat>
-  </response>"""
+            """
+          <response>
+            <href>${href}/ProjectForge-${contact.id ?: -1}.vcf</href>
+            <propstat>
+                <prop>
+            <getetag>"${CardDavUtils.getETag(contact)}"</getetag>
+                    <cr:address-data />""".trimIndent()
+        )
+        //                    <getetag>"${CardDavUtils.getETag(contact)}"</getetag>
+        //            <cr:address-data>""".trimIndent()
+        /*contact.vcardDataAsString.let { vcardData ->
+            sb.appendLine(vcardData)
+        }*/
+        //            </cr:address-data>
+        sb.appendLine(
+            """
+                </prop>
+                <status>HTTP/1.1 200 OK</status>
+            </propstat>
+          </response>""".trimIndent()
         )
     }
 

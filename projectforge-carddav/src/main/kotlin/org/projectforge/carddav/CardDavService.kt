@@ -40,7 +40,6 @@ import org.projectforge.web.rest.RestAuthenticationUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 
 private val log = KotlinLogging.logger {}
@@ -91,7 +90,7 @@ class CardDavService {
         }
     }
 
-    private fun dispathAuthenticated(requestWrapper: RequestWrapper, response: HttpServletResponse, user: PFUserDO) {
+    private fun dispathAuthenticated(requestWrapper: RequestWrapper, response: HttpServletResponse, userDO: PFUserDO) {
         val request = requestWrapper.request
         val method = request.method
         // Runs under /carddav as well as under /
@@ -104,10 +103,13 @@ class CardDavService {
                 ResponseUtils.setValues(response, HttpStatus.MULTI_STATUS)
                 return
             } else {
-                PropFindUtils.handlePropFindCall(requestWrapper, response, user)
+                PropFindUtils.handlePropFindCall(requestWrapper, response, userDO)
             }
         } else if (method == "REPORT") {
-            PropFindUtils.handleSyncReportCall(requestWrapper, response, user)
+            val user = User(userDO.username)
+            val addressBook = AddressBook(user)
+            val contactList = addressService.getContactList(addressBook).take(10) // Take only 10 for now.
+            PropFindUtils.handleSyncReportCall(requestWrapper, response, contactList)
             /*if (normalizedRequestURI.startsWith("users/")) {
                 val contactId = normalizedRequestURI.removePrefix("users/").removeSuffix(".vcf")
                 getContact(user, contactId)
@@ -187,47 +189,5 @@ class CardDavService {
             response.addHeader("Content-Type", "application/xml")
         }
         ResponseUtils.setValues(response, status = HttpStatus.OK)
-    }
-
-
-    /**
-     * Handle PROPFIND requests. Get the address book metadata for the given user.
-     * @param userDO The user for which the address book is requested.
-     * @param request The HTTP request.
-     * @return The response entity.
-     */
-    fun handlePropfindAddressBook(
-        request: HttpServletRequest,
-        response: HttpServletResponse,
-        userDO: PFUserDO
-    ): ResponseEntity<String> {
-        if (!request.method.equals("PROPFIND", ignoreCase = true)) {
-            log.error { "Method not allowed: ${request.method}, PROPFIND expected." }
-            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build()
-        }
-        val sb = StringBuilder()
-        CardDavXmlWriter.appendMultiStatusStart(sb)
-        val user = User(userDO.username)
-        val addressBook = AddressBook(user)
-        addressService.getContactList(addressBook).forEach { contact ->
-            CardDavXmlWriter.appendPropfindContact(sb, user, contact)
-        }
-        CardDavXmlWriter.appendMultiStatusEnd(sb)
-        return ResponseEntity.status(HttpStatus.MULTI_STATUS)
-            .contentType(MediaType.APPLICATION_XML)
-            .body(sb.toString())
-    }
-
-    fun getContact(userDO: PFUserDO, contactId: String): ResponseEntity<String> {
-        val vcard = contactId.toLongOrNull()?.let {
-            addressService.getContact(it)?.vcardData?.toString(Charsets.UTF_8)
-        }
-        if (vcard == null) {
-            log.error { "Invalid contact id: $contactId" }
-            return ResponseEntity.notFound().build()
-        }
-        return ResponseEntity.ok()
-            .contentType(MediaType.parseMediaType("text/vcard"))
-            .body(vcard)
     }
 }

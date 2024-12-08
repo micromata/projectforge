@@ -25,6 +25,7 @@ package org.projectforge.carddav
 
 import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
+import org.projectforge.carddav.model.Contact
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.utils.ResponseUtils
 import org.springframework.http.HttpStatus
@@ -79,7 +80,7 @@ internal object PropFindUtils {
      * @param user The user.
      * @see CardDavXmlWriter.generatePropFindResponse
      */
-    fun handleSyncReportCall(requestWrapper: RequestWrapper, response: HttpServletResponse, user: PFUserDO) {
+    fun handleSyncReportCall(requestWrapper: RequestWrapper, response: HttpServletResponse, contactList: List<Contact>) {
         log.debug { "handleReportCall:  ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
         val props = extractProps(requestWrapper.body)
         if (props.isEmpty()) {
@@ -89,7 +90,7 @@ internal object PropFindUtils {
             )
         }
         val syncToken = System.currentTimeMillis().toString() // Nothing better for now.
-        val content = CardDavXmlWriter.generateSyncReportResponse(syncToken, props)
+        val content = CardDavXmlWriter.generateSyncReportResponse(syncToken, requestWrapper.requestURI, contactList)
         log.debug { "handleReportCall: response=[$content]" }
         ResponseUtils.setValues(
             response,
