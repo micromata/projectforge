@@ -23,126 +23,10 @@
 
 package org.projectforge.carddav
 
-import org.projectforge.carddav.model.Contact
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 internal object CardDavXmlWriter {
-    /**
-     * Generates a response for a PROPFIND request.
-     * Information about resources and privileges are returned, if requested.
-     * @param requestWrapper The request wrapper.
-     * @param user The user.
-     * @param props The properties to include in the response.
-     * @return The response as a string.
-     */
-    fun generatePropFindResponse(
-        requestWrapper: RequestWrapper,
-        user: PFUserDO,
-        props: List<PropFindUtils.Prop>
-    ): String {
-        val href = "${requestWrapper.baseUrl}/users/${user.username}/"
-        val sb = StringBuilder()
-        appendMultiStatusStart(sb)
-        sb.appendLine(
-            """
-                <response>
-                    <href>$href</href>
-                    <propstat>
-                        <prop>""".trimIndent()
-        )
-        if (props.contains(PropFindUtils.Prop.RESOURCETYPE)) {
-            appendPropLines(sb, "<resourcetype>")
-            appendPropLines(sb, "  <cr:addressbook />")
-            appendPropLines(sb, "  <collection />")
-            appendPropLines(sb, "</resourcetype>")
-        }
-        if (props.contains(PropFindUtils.Prop.GETCTAG)) {
-            appendPropLines(
-                sb,
-                "<cs:getctag>\"88d6c17fa866ef38e6e0122a59bf3da10a66daa042860116c88979a50c025eb9\"</cs:getctag>"
-            )
-        }
-        if (props.contains(PropFindUtils.Prop.GETETAG)) {
-            appendPropLines(
-                sb,
-                "<getetag>\"88d6c17fa866ef38e6e0122a59bf3da10a66daa042860116c88979a50c025eb9\"</getetag>"
-            )
-        }
-        if (props.contains(PropFindUtils.Prop.SYNCTOKEN)) {
-            appendPropLines(sb, "<sync-token>")
-            appendPropLines(
-                sb,
-                "  https://www.projectforge.org/ns/sync/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-            )
-            appendPropLines(sb, "</sync-token>")
-        }
-        if (props.contains(PropFindUtils.Prop.DISPLAYNAME)) {
-            appendPropLines(sb, "<displayname>${getUsersAddressbookDisplayName(user)}</displayname>")
-            // appendPropLines(sb, "<getcontenttype>text/vcard</getcontenttype>")
-        }
-        if (props.contains(PropFindUtils.Prop.CURRENT_USER_PRINCIPAL)) {
-            appendPropLines(sb, "<current-user-principal>")
-            appendPropLines(sb, "  <href>$href</href>")
-            appendPropLines(sb, "</current-user-principal>")
-        }
-        if (props.contains(PropFindUtils.Prop.CURRENT_USER_PRIVILEGE_SET)) {
-            appendPropLines(sb, "<current-user-privilege-set>")
-            appendPropLines(sb, "  <privilege><read /></privilege>")
-            appendPropLines(sb, "  <privilege><all /></privilege>")
-            appendPropLines(sb, "  <privilege><write /></privilege>")
-            appendPropLines(sb, "  <privilege><write-properties /></privilege>")
-            appendPropLines(sb, "  <privilege><write-content /></privilege>")
-            appendPropLines(sb, "</current-user-privilege-set>")
-        }
-        sb.appendLine(
-            """
-                    </prop>
-                    <status>HTTP/1.1 200 OK</status>
-                </propstat>
-            </response>
-        """.trimIndent()
-        )
-        appendMultiStatusEnd(sb)
-        return sb.toString()
-    }
-
-    fun generateSyncReportResponse(href: String, syncToken: String? = null, contacts: List<Contact>): String {
-        val sb = StringBuilder()
-        appendMultiStatusStart(sb)
-        sb.appendLine("  <sync-token>$syncToken</sync-token>")
-        contacts.forEach { contact ->
-            appendPropfindContact(sb, href, contact)
-        }
-        appendMultiStatusEnd(sb)
-        return sb.toString()
-    }
-
-    fun appendPropfindContact(sb: StringBuilder, href: String, contact: Contact) {
-        sb.appendLine(
-            """
-          <response>
-            <href>${href}/ProjectForge-${contact.id ?: -1}.vcf</href>
-            <propstat>
-                <prop>
-            <getetag>"${CardDavUtils.getETag(contact)}"</getetag>
-                    <cr:address-data />""".trimIndent()
-        )
-        //                    <getetag>"${CardDavUtils.getETag(contact)}"</getetag>
-        //            <cr:address-data>""".trimIndent()
-        /*contact.vcardDataAsString.let { vcardData ->
-            sb.appendLine(vcardData)
-        }*/
-        //            </cr:address-data>
-        sb.appendLine(
-            """
-                </prop>
-                <status>HTTP/1.1 200 OK</status>
-            </propstat>
-          </response>""".trimIndent()
-        )
-    }
-
     fun appendXmlPrefix(sb: StringBuilder) {
         sb.appendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
     }
@@ -158,16 +42,16 @@ internal object CardDavXmlWriter {
         sb.appendLine("</multistatus>")
     }
 
-    private fun appendPropLines(sb: StringBuilder, vararg lines: String) {
+    fun appendPropLines(sb: StringBuilder, vararg lines: String) {
         lines.forEach { line ->
             sb.appendLine("          $line")
         }
     }
 
-    private fun getUsersAddressbookDisplayName(user: PFUserDO): String {
+    fun getUsersAddressbookDisplayName(user: PFUserDO): String {
         return translate("address.cardDAV.addressbook.displayName")
     }
 
-    private const val XML_NS =
+    const val XML_NS =
         "xmlns:d=\"DAV:\" xmlns:cr=\"urn:ietf:params:xml:ns:carddav\" xmlns:cs=\"http://calendarserver.org/ns/\""
 }

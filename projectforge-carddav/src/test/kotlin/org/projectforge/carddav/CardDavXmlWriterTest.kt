@@ -35,23 +35,23 @@ class CardDavXmlWriterTest {
         val request = Mockito.mock(HttpServletRequest::class.java)
         Mockito.`when`(request.requestURI).thenReturn("/carddav")
         val requestWrapper = RequestWrapper(request)
-        listOf(PropFindUtils.Prop.RESOURCETYPE, PropFindUtils.Prop.DISPLAYNAME).let { props ->
-            CardDavXmlWriter.generatePropFindResponse(requestWrapper, PFUserDO().also { it.username = "kai" }, props).let {
+        listOf(Prop.RESOURCETYPE, Prop.DISPLAYNAME).let { props ->
+            PropFindRequestHandler.generatePropFindResponse(requestWrapper, PFUserDO().also { it.username = "kai" }, props).let {
                 Assertions.assertTrue(it.contains("resourcetype"))
                 Assertions.assertTrue(it.contains("displayname"))
-                Assertions.assertFalse(it.contains("kai"))
                 Assertions.assertFalse(it.contains("current-user-principal"))
+                Assertions.assertFalse(it.contains("current-user-privilege-set"))
             }
         }
         listOf(
-            PropFindUtils.Prop.CURRENT_USER_PRINCIPAL,
-            PropFindUtils.Prop.CURRENT_USER_PRIVILEGE_SET,
+            Prop.CURRENT_USER_PRINCIPAL,
+            Prop.CURRENT_USER_PRIVILEGE_SET,
         ).let { props ->
-            CardDavXmlWriter.generatePropFindResponse(requestWrapper, PFUserDO().also { it.username = "kai" }, props).let {
+            PropFindRequestHandler.generatePropFindResponse(requestWrapper, PFUserDO().also { it.username = "kai" }, props).let {
                 Assertions.assertFalse(it.contains("resourcetype"))
                 Assertions.assertFalse(it.contains("displayname"))
-                Assertions.assertTrue(it.contains("kai"))
                 Assertions.assertTrue(it.contains("current-user-principal"))
+                Assertions.assertTrue(it.contains("current-user-privilege-set"))
             }
         }
     }
