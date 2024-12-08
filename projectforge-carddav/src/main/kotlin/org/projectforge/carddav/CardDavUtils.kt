@@ -23,8 +23,12 @@
 
 package org.projectforge.carddav
 
+import mu.KotlinLogging
+import org.jetbrains.kotlin.utils.addToStdlib.countOccurrencesOf
 import org.projectforge.carddav.model.Contact
 import java.util.*
+
+private val log = KotlinLogging.logger {}
 
 internal object CardDavUtils {
     fun getETag(contact: Contact): String {

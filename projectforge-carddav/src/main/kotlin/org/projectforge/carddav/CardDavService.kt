@@ -103,13 +103,13 @@ class CardDavService {
                 ResponseUtils.setValues(response, HttpStatus.MULTI_STATUS)
                 return
             } else {
-                PropFindUtils.handlePropFindCall(requestWrapper, response, userDO)
+                PropFindRequestHandler.handlePropFindCall(requestWrapper, response, userDO)
             }
         } else if (method == "REPORT") {
             val user = User(userDO.username)
             val addressBook = AddressBook(user)
             val contactList = addressService.getContactList(addressBook).take(10) // Take only 10 for now.
-            PropFindUtils.handleSyncReportCall(requestWrapper, response, contactList)
+            ReportRequestHandler.handleSyncReportCall(requestWrapper, response, contactList)
             /*if (normalizedRequestURI.startsWith("users/")) {
                 val contactId = normalizedRequestURI.removePrefix("users/").removeSuffix(".vcf")
                 getContact(user, contactId)

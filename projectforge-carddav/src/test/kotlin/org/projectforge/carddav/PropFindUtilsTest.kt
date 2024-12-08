@@ -39,12 +39,12 @@ class PropFindUtilsTest {
               </prop>
             </propfind>
         """.trimIndent().let { xml ->
-            val propFinds = PropFindUtils.extractProps(xml)
+            val propFinds = Prop.extractProps(xml)
             Assertions.assertEquals(4, propFinds.size)
-            Assertions.assertEquals(PropFindUtils.Prop.RESOURCETYPE, propFinds[0])
-            Assertions.assertEquals(PropFindUtils.Prop.DISPLAYNAME, propFinds[1])
-            Assertions.assertEquals(PropFindUtils.Prop.CURRENT_USER_PRINCIPAL, propFinds[2])
-            Assertions.assertEquals(PropFindUtils.Prop.CURRENT_USER_PRIVILEGE_SET, propFinds[3])
+            Assertions.assertEquals(Prop.RESOURCETYPE, propFinds[0])
+            Assertions.assertEquals(Prop.DISPLAYNAME, propFinds[1])
+            Assertions.assertEquals(Prop.CURRENT_USER_PRINCIPAL, propFinds[2])
+            Assertions.assertEquals(Prop.CURRENT_USER_PRIVILEGE_SET, propFinds[3])
         }
         """
             <propfind xmlns="DAV:">
@@ -56,12 +56,12 @@ class PropFindUtilsTest {
               </prop>
             </propfind>
         """.trimIndent().let { xml ->
-            val propFinds = PropFindUtils.extractProps(xml)
+            val propFinds = Prop.extractProps(xml)
             Assertions.assertEquals(4, propFinds.size)
-            Assertions.assertEquals(PropFindUtils.Prop.RESOURCETYPE, propFinds[0])
-            Assertions.assertEquals(PropFindUtils.Prop.GETETAG, propFinds[1])
-            Assertions.assertEquals(PropFindUtils.Prop.GETCTAG, propFinds[2])
-            Assertions.assertEquals(PropFindUtils.Prop.SYNCTOKEN, propFinds[3])
+            Assertions.assertEquals(Prop.RESOURCETYPE, propFinds[0])
+            Assertions.assertEquals(Prop.GETETAG, propFinds[1])
+            Assertions.assertEquals(Prop.GETCTAG, propFinds[2])
+            Assertions.assertEquals(Prop.SYNCTOKEN, propFinds[3])
         }
     }
 }
