@@ -28,6 +28,7 @@ data class Contact(
     val firstName: String? = null,
     val lastName: String? = null,
     val lastUpdated: java.util.Date? = null,
+    val hasImage: Boolean = false,
     var vcardData: ByteArray? = null,
 ) {
     val vcardDataAsString: String

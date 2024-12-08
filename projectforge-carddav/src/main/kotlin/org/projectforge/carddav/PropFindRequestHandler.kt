@@ -28,7 +28,7 @@ import mu.KotlinLogging
 import org.projectforge.carddav.CardDavUtils.getUsersAddressbookDisplayName
 import org.projectforge.carddav.CardDavXmlUtils.appendMultiStatusEnd
 import org.projectforge.carddav.CardDavXmlUtils.appendMultiStatusStart
-import org.projectforge.carddav.CardDavXmlUtils.appendPropLines
+import org.projectforge.carddav.CardDavXmlUtils.appendLines
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.utils.ResponseUtils
 import org.springframework.http.HttpStatus
@@ -88,48 +88,48 @@ internal object PropFindRequestHandler {
             |            <prop>""".trimMargin()
         )
         if (props.contains(Prop.RESOURCETYPE)) {
-            appendPropLines(sb, "<resourcetype>")
-            appendPropLines(sb, "  <cr:addressbook />")
-            appendPropLines(sb, "  <collection />")
-            appendPropLines(sb, "</resourcetype>")
+            appendLines(sb, "<resourcetype>")
+            appendLines(sb, "  <cr:addressbook />")
+            appendLines(sb, "  <collection />")
+            appendLines(sb, "</resourcetype>")
         }
         if (props.contains(Prop.GETCTAG)) {
-            appendPropLines(
+            appendLines(
                 sb,
                 "<cs:getctag>\"88d6c17fa866ef38e6e0122a59bf3da10a66daa042860116c88979a50c025eb9\"</cs:getctag>"
             )
         }
         if (props.contains(Prop.GETETAG)) {
-            appendPropLines(
+            appendLines(
                 sb,
                 "<getetag>\"88d6c17fa866ef38e6e0122a59bf3da10a66daa042860116c88979a50c025eb9\"</getetag>"
             )
         }
         if (props.contains(Prop.SYNCTOKEN)) {
-            appendPropLines(sb, "<sync-token>")
-            appendPropLines(
+            appendLines(sb, "<sync-token>")
+            appendLines(
                 sb,
                 "  https://www.projectforge.org/ns/sync/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
             )
-            appendPropLines(sb, "</sync-token>")
+            appendLines(sb, "</sync-token>")
         }
         if (props.contains(Prop.DISPLAYNAME)) {
-            appendPropLines(sb, "<displayname>${getUsersAddressbookDisplayName(user)}</displayname>")
+            appendLines(sb, "<displayname>${getUsersAddressbookDisplayName(user)}</displayname>")
             // appendPropLines(sb, "<getcontenttype>text/vcard</getcontenttype>")
         }
         if (props.contains(Prop.CURRENT_USER_PRINCIPAL)) {
-            appendPropLines(sb, "<current-user-principal>")
-            appendPropLines(sb, "  <href>$href</href>")
-            appendPropLines(sb, "</current-user-principal>")
+            appendLines(sb, "<current-user-principal>")
+            appendLines(sb, "  <href>$href</href>")
+            appendLines(sb, "</current-user-principal>")
         }
         if (props.contains(Prop.CURRENT_USER_PRIVILEGE_SET)) {
-            appendPropLines(sb, "<current-user-privilege-set>")
-            appendPropLines(sb, "  <privilege><read /></privilege>")
-            appendPropLines(sb, "  <privilege><all /></privilege>")
-            appendPropLines(sb, "  <privilege><write /></privilege>")
-            appendPropLines(sb, "  <privilege><write-properties /></privilege>")
-            appendPropLines(sb, "  <privilege><write-content /></privilege>")
-            appendPropLines(sb, "</current-user-privilege-set>")
+            appendLines(sb, "<current-user-privilege-set>")
+            appendLines(sb, "  <privilege><read /></privilege>")
+            appendLines(sb, "  <privilege><all /></privilege>")
+            appendLines(sb, "  <privilege><write /></privilege>")
+            appendLines(sb, "  <privilege><write-properties /></privilege>")
+            appendLines(sb, "  <privilege><write-content /></privilege>")
+            appendLines(sb, "</current-user-privilege-set>")
         }
         sb.appendLine(
             """

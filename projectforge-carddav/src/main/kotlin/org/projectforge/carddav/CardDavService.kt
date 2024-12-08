@@ -108,7 +108,8 @@ class CardDavService {
         } else if (method == "REPORT") {
             val user = User(userDO.username)
             val addressBook = AddressBook(user)
-            val contactList = addressService.getContactList(addressBook).take(10) // Take only 10 for now.
+            val contactList = addressService.getContactList(addressBook).filter { !it.hasImage }.sortedBy { it.id }
+                .take(10) // Take only 10 for now.
             ReportRequestHandler.handleSyncReportCall(requestWrapper, response, contactList)
             /*if (normalizedRequestURI.startsWith("users/")) {
                 val contactId = normalizedRequestURI.removePrefix("users/").removeSuffix(".vcf")

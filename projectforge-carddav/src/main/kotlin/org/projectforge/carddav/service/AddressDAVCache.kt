@@ -77,6 +77,7 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
                         firstName = it.firstName,
                         lastName = it.name,
                         lastUpdated = it.lastUpdate,
+                        hasImage = it.image == true,
                         vcardData = vcard,
                     )
                 addCachedContact(it.id!!, contact)

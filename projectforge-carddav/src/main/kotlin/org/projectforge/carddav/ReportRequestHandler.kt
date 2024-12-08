@@ -72,8 +72,33 @@ internal object ReportRequestHandler {
             )
         }
         val rootElement = CardDavXmlUtils.getRootElement(requestWrapper.body)
-        val syncToken = System.currentTimeMillis().toString() // Nothing better for now.
-        val content = generateSyncReportResponse(syncToken, requestWrapper.requestURI, contactList)
+        val sb = StringBuilder()
+        appendMultiStatusStart(sb)
+        if (rootElement == "sync-collection") {
+            val syncToken = System.currentTimeMillis().toString() // Nothing better for now.
+            sb.appendLine("  <sync-token>$syncToken</sync-token>")
+            contactList.forEach { contact ->
+                appendPropfindContact(sb, requestWrapper.requestURI, contact, false)
+            }
+        } else if (rootElement == "addressbook-multiget") {
+            val requestedAddressIds = CardDavXmlUtils.extractAddressIds(requestWrapper.body)
+            val notFoundContactIds = requestedAddressIds.filter { addressId -> contactList.none { it.id == addressId } }
+            notFoundContactIds.forEach { notFoundId ->
+                generateNotFoundContact(sb, CardDavUtils.getVcfFileName(Contact(notFoundId)))
+            }
+            val requestedContacts = contactList.filter { contact -> requestedAddressIds.contains(contact.id) }
+            requestedContacts.forEach { contact ->
+                appendPropfindContact(sb, requestWrapper.requestURI, contact, true)
+            }
+        } else {
+            ResponseUtils.setValues(
+                response, HttpStatus.BAD_REQUEST, contentType = MediaType.TEXT_PLAIN_VALUE,
+                content = "Unknown root element for REPORT-call '$rootElement'."
+            )
+            return
+        }
+        appendMultiStatusEnd(sb)
+        val content = sb.toString()
         log.debug { "handleReportCall: response=[$content]" }
         ResponseUtils.setValues(
             response,
@@ -83,33 +108,42 @@ internal object ReportRequestHandler {
         )
     }
 
-    fun generateSyncReportResponse(href: String, syncToken: String? = null, contacts: List<Contact>): String {
-        val sb = StringBuilder()
-        appendMultiStatusStart(sb)
-        sb.appendLine("  <sync-token>$syncToken</sync-token>")
-        contacts.forEach { contact ->
-            appendPropfindContact(sb, href, contact)
-        }
-        appendMultiStatusEnd(sb)
-        return sb.toString()
+    /**
+     * Generates a response for a not found contact.
+     * ```
+     * <response>
+     *    <href>/1733697201904/ProjectForge-7833476.vcf</href>
+     *    <status>HTTP/1.1 404 Not Found</status>
+     * </response>
+     * ```
+     */
+    fun generateNotFoundContact(sb: StringBuilder, href: String) {
+        sb.appendLine("""
+            |  <response>
+            |    <href>$href</href>
+            |    <status>HTTP/1.1 404 Not Found</status>
+            |  </response>
+        """.trimMargin())
     }
 
-    fun appendPropfindContact(sb: StringBuilder, href: String, contact: Contact) {
+    fun appendPropfindContact(sb: StringBuilder, href: String, contact: Contact, fullVCards: Boolean) {
         sb.appendLine(
             """
             |  <response>
-            |    <href>${href}/ProjectForge-${contact.id ?: -1}.vcf</href>
+            |    <href>${href}${CardDavUtils.getVcfFileName(contact)}</href>
             |    <propstat>
             |        <prop>
-            |    <getetag>"${CardDavUtils.getETag(contact)}"</getetag>
-            |            <cr:address-data />""".trimMargin()
+            |          <getetag>"${CardDavUtils.getETag(contact)}"</getetag>""".trimMargin()
         )
-        //                    <getetag>"${CardDavUtils.getETag(contact)}"</getetag>
-        //            <cr:address-data>""".trimIndent()
-        /*contact.vcardDataAsString.let { vcardData ->
-            sb.appendLine(vcardData)
-        }*/
-        //            </cr:address-data>
+        if (fullVCards) {
+            sb.append("        <cr:address-data>")
+            contact.vcardDataAsString.let { vcardData ->
+                sb.append(vcardData) // No indent here!!!
+            }
+            CardDavXmlUtils.appendLines(sb, "</cr:address-data>")
+        } else {
+            CardDavXmlUtils.appendLines(sb, "<cr:address-data />")
+        }
         sb.appendLine(
             """
             |        </prop>

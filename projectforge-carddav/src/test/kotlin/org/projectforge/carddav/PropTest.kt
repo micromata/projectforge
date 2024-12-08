@@ -52,12 +52,12 @@ class PropTest {
                     https://www.projectforge.org/ns/sync/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
                   </sync-token>
               <sync-level>1</sync-level>
-              <prop>
+              <d:prop>
                 <resourcetype/>
-                <getetag/>
+                <d:getetag/>
                 <cs:getctag/>
                 <sync-token/>
-              </prop>
+              </d:prop>
             </propfind>
         """.trimIndent().let { xml ->
             val propFinds = Prop.extractProps(xml)

@@ -60,15 +60,17 @@ internal enum class Prop(val str: String) {
          */
         fun extractProps(xml: String): List<Prop> {
             val props = mutableListOf<Prop>()
-            val count = xml.countOccurrencesOf("<prop>")
+            // First, get the element name of the prop element:
+            val propElement = CardDavXmlUtils.getElementName(xml, "prop") ?: "prop"
+            val count = xml.countOccurrencesOf("<$propElement>")
             if (count == 0) {
-                log.warn { "Invalid Props request (no <prop>...</prop> found): $xml" }
+                log.warn { "Invalid Props request (no <$propElement>...</$propElement> found): $xml" }
                 return props
             }
             if (count > 1) {
-                log.warn { "Invalid Props request (multiple entries of <prop>...</prop> found, first is used): $xml" }
+                log.warn { "Invalid Props request (multiple entries of <$propElement>...</$propElement> found, first is used): $xml" }
             }
-            val propXml = xml.substringAfter("<prop>").substringBefore("</prop>")
+            val propXml = xml.substringAfter("<$propElement>").substringBefore("</$propElement>")
             Prop.entries.forEach { prop ->
                 if ("<${prop.str}" in propXml || ":${prop.str}" in propXml) { // e.g. <card:address-data /> or <getetag/>
                     props.add(prop)
