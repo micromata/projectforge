@@ -30,89 +30,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 internal object CardDavXmlWriter {
     /**
-     * Generates a response for a PROPFIND request for a user.
-     * @param displayname The display name of the user.
-     * @param href The href of the user.
-     * @param ctag A change tag that clients can use to detect whether content has changed (not standardized, but common).
-     * @param syncToken A token to track incremental changes (optional if the server supports synchronization).
-     * @return The response as a string.
-     */
-    fun generatePropfindUserResponse(
-        displayname: String,
-        href: String,
-        ctag: String? = null,
-        syncToken: String? = null,
-    ): String {
-        val syncTokenLine = if (syncToken != null) "\n                <sync-token>$syncToken</sync-token>" else ""
-        val ctagLine = if (ctag != null) "\n                <cs:getctag>$ctag</cs:getctag>" else ""
-        return """
-        <?xml version="1.0" encoding="UTF-8"?>
-        <multistatus $XML_NS>
-            <response>
-                <href>$href</href>
-                <propstat>
-                    <prop>
-                        <displayname>$displayname</displayname>
-                        <getcontenttype>text/vcard</getcontenttype>$ctagLine$syncTokenLine
-                    </prop>
-                    <status>HTTP/1.1 200 OK</status>
-                </propstat>
-            </response>
-        </multistatus>
-    """.trimIndent()
-        // Chat-GPT:
-        // <multistatus xmlns:d="DAV:" xmlns:cs="http://calendarserver.org/ns/">
-        //    <response>
-        //        <href>/carddav/users/joe/</href>
-        //        <propstat>
-        //            <prop>
-        //                <displayname>Joe's Address Book</displayname>
-        //                <resourcetype>
-        //                    <collection />
-        //                    <cs:addressbook />
-        //                </resourcetype>
-        //                <cs:getctag>1234567890</cs:getctag>
-        //                <sync-token>https://example.com/carddav/users/joe/sync-token</sync-token>
-        //            </prop>
-        //            <status>HTTP/1.1 200 OK</status>
-        //        </propstat>
-        //    </response>
-        //</multistatus>
-    }
-
-    fun appendPropfindContact(sb: StringBuilder, user: User, contact: Contact) {
-        sb.appendLine(
-            """  <response>
-    <href>/carddav/${user.userName}/addressbook/contact${contact.id}.vcf</href>
-    <propstat>
-      <prop>
-        <getetag>"${CardDavUtils.getETag(contact)}"</getetag>
-        <displayname>${contact.displayName}</displayname>
-      </prop>
-      <status>HTTP/1.1 200 OK</status>
-    </propstat>
-  </response>"""
-        )
-    }
-
-    fun appendXmlPrefix(sb: StringBuilder) {
-        sb.appendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
-    }
-
-    fun appendMultiStatusStart(sb: StringBuilder, prependXmlPrefix: Boolean = true) {
-        if (prependXmlPrefix) {
-            appendXmlPrefix(sb)
-        }
-        sb.appendLine("<multistatus $XML_NS>")
-    }
-
-    fun appendMultiStatusEnd(sb: StringBuilder) {
-        sb.appendLine("</multistatus>")
-    }
-
-    /**
-     * Generates a response for a PROPFIND request for the current user principal.
-     * This is the initial call to the CardDAV server for getting the principal.
+     * Generates a response for a PROPFIND request.
      * Information about resources and privileges are returned, if requested.
      * @param requestWrapper The request wrapper.
      * @param user The user.
@@ -179,6 +97,36 @@ internal object CardDavXmlWriter {
         )
         appendMultiStatusEnd(sb)
         return sb.toString()
+    }
+
+    fun appendPropfindContact(sb: StringBuilder, user: User, contact: Contact) {
+        sb.appendLine(
+            """  <response>
+    <href>/carddav/${user.userName}/addressbook/contact${contact.id}.vcf</href>
+    <propstat>
+      <prop>
+        <getetag>"${CardDavUtils.getETag(contact)}"</getetag>
+        <displayname>${contact.displayName}</displayname>
+      </prop>
+      <status>HTTP/1.1 200 OK</status>
+    </propstat>
+  </response>"""
+        )
+    }
+
+    fun appendXmlPrefix(sb: StringBuilder) {
+        sb.appendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+    }
+
+    fun appendMultiStatusStart(sb: StringBuilder, prependXmlPrefix: Boolean = true) {
+        if (prependXmlPrefix) {
+            appendXmlPrefix(sb)
+        }
+        sb.appendLine("<multistatus $XML_NS>")
+    }
+
+    fun appendMultiStatusEnd(sb: StringBuilder) {
+        sb.appendLine("</multistatus>")
     }
 
     /**

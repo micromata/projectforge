@@ -24,7 +24,6 @@
 package org.projectforge.testclient
 
 import org.apache.hc.client5.http.classic.methods.HttpGet
-import org.apache.hc.client5.http.classic.methods.HttpOptions
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient
 import org.apache.hc.client5.http.impl.classic.HttpClients
 import org.apache.hc.core5.http.ClassicHttpResponse
@@ -71,7 +70,7 @@ fun main(args: Array<String>) {
 // PROPFIND for Milton (uri=/users/username/addressBooks/default/
 // REPORT for Milton (uri=/users/username/addressBooks/default/
 
-class CardDavTestClient(private val baseUrl: String, private val username: String, private val password: String) {
+class CardDavTestClient(private val baseUrl: String, username: String, password: String) {
     private class ResponseData(val content: String, val headers: String)
 
     private val client: CloseableHttpClient = HttpClients.createDefault()
@@ -88,7 +87,7 @@ class CardDavTestClient(private val baseUrl: String, private val username: Strin
      */
     fun run() {
         try {
-            sendOptionsRequest("/users/$username/")
+            sendRequest("OPTIONS") // "/users/$username/")
             """
                 <propfind xmlns="DAV:">
                    <prop>
@@ -99,7 +98,7 @@ class CardDavTestClient(private val baseUrl: String, private val username: Strin
                    </prop>
                  </propfind>
             """.trimIndent().let { body ->
-                sendPropfindRequest(requestBody = body, useAuthHeader = true)
+                sendRequest("PROPFIND", requestBody = body, useAuthHeader = true)
             }
             """
                 <propfind xmlns="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/" xmlns:d="DAV:">
@@ -109,8 +108,9 @@ class CardDavTestClient(private val baseUrl: String, private val username: Strin
                      <cs:getctag/>
                    </prop>
                 </propfind>""".trimIndent().let { body ->
-                sendPropfindRequest(requestBody = body, useAuthHeader = true)
+                sendRequest("PROPFIND", requestBody = body, useAuthHeader = true)
             }
+            var syncToken = "<not yet set>"
             """
                 <propfind xmlns="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/" xmlns:d="DAV:">
                   <prop>
@@ -119,42 +119,58 @@ class CardDavTestClient(private val baseUrl: String, private val username: Strin
                     <sync-token/>
                   </prop>
                 </propfind>""".trimIndent().let { body ->
-                sendPropfindRequest(requestBody = body, useAuthHeader = true)
+                sendRequest("PROPFIND", requestBody = body, useAuthHeader = true).let { response ->
+                    val regex = Regex("<sync-token>\\s*(.*?)\\s*</sync-token>", RegexOption.DOT_MATCHES_ALL)
+                    val match = regex.find(response)
+                    syncToken = match?.groups?.get(1)?.value?.trim() ?: "<not found>"
+                }
             }
-         //sendGetRequest(propfindResponse)
+            """
+                <sync-collection xmlns="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/" xmlns:d="DAV:">
+                  <sync-token>
+                        $syncToken
+                  </sync-token>
+                  <sync-level>1</sync-level>
+                  <prop>
+                    <getetag/>
+                    <card:address-data/>
+                  </prop>
+                </sync-collection>""".trimIndent().let { body ->
+                sendRequest("REPORT", requestBody = body, useAuthHeader = true)
+            }
+            //sendGetRequest(propfindResponse)
             //sendSyncReportRequest("/users/$username/addressBooks/default/")
         } finally {
             client.close()
         }
     }
 
-    private fun sendOptionsRequest(path: String = "", useAuthHeader: Boolean = false) {
-        val url = "$baseUrl$path"
-        val optionsRequest = HttpOptions(url)
-        if (useAuthHeader) {
-            optionsRequest.addHeader("Authorization", authHeader)
-        }
-        val context = HttpCoreContext.create()
-        val repsonse = client.execute(optionsRequest, context, responseHandler)
-        logResponse("OPTIONS", url, repsonse)
-    }
-
-    private fun sendPropfindRequest(path: String = "", requestBody: String, useAuthHeader: Boolean = false) {
+    private fun sendRequest(
+        method: String,
+        path: String = "",
+        requestBody: String? = null,
+        useAuthHeader: Boolean = false
+    ): String {
         val url = "$baseUrl$path"
         val context = HttpCoreContext.create()
-        val builder = ClassicRequestBuilder.create("PROPFIND")
+        val builder = ClassicRequestBuilder.create(method)
             .setUri(url)
             .addHeader("Depth", "1")
         if (useAuthHeader) {
             builder.addHeader("Authorization", authHeader)
         }
-        builder.setEntity(StringEntity(requestBody, ContentType.APPLICATION_XML))
-        println("PROPFIND call: $path")
-        println("   body=[")
-        println(requestBody)
-        println("   ]")
+        if (requestBody != null) {
+            builder.setEntity(StringEntity(requestBody, ContentType.APPLICATION_XML))
+        }
+        println("$method call: $path")
+        if (requestBody != null) {
+            println("   body=[")
+            println(requestBody)
+            println("   ]")
+        }
         client.execute(builder.build(), context, responseHandler).also {
-            logResponse("PROPFIND", url, it)
+            logResponse(method, url, it)
+            return it.content
         }
     }
 
@@ -194,10 +210,13 @@ class CardDavTestClient(private val baseUrl: String, private val username: Strin
 
     private fun logResponse(method: String, endpoint: String, response: ResponseData) {
         println("$method: $endpoint: response=[")
-        println("   headers=[${response.headers}]")
-        println("   content=[")
-        println("${response.content.abbreviate(1000)}")
-        println("   ]")
+        println("   headers=[${response.headers}], content-length=${response.content.length}")
+        if (response.content.isNotEmpty()) {
+            println("   content=[")
+            println(response.content.abbreviate(1000))
+            println("   ]")
+        }
+        println("]")
     }
 
     /*
