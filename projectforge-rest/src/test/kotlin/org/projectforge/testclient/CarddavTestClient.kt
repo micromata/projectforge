@@ -222,7 +222,7 @@ class CardDavTestClient(private val baseUrl: String, username: String, password:
         println("   headers=[${response.headers}], content-length=${response.content.length}")
         if (response.content.isNotEmpty()) {
             println("   content=[")
-            println(response.content.abbreviate(1000))
+            println(response.content.abbreviate(2000))
             println("   ]")
         }
         println("]")
