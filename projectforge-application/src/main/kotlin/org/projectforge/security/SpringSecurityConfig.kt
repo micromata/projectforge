@@ -62,7 +62,7 @@ open class SpringSecurityConfig {
         firewall.setAllowedHttpMethods(
             listOf(
                 "GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD",
-                "PROPFIND", //"PROPPATCH", "MKCOL", "COPY", "MOVE",
+                "PROPFIND", "REPORT", //"PROPPATCH", "MKCOL", "COPY", "MOVE",
                 //"LOCK", "UNLOCK", "REPORT"
             )
         )

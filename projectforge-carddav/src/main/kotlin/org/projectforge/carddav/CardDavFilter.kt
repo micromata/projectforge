@@ -117,8 +117,8 @@ class CardDavFilter : Filter {
         fun handledByCardDavFilter(request: HttpServletRequest): Boolean {
             val uri = request.requestURI
             return when (request.method) {
-                "PROPFIND" -> {
-                    log.debug { "PROPFIND call detected: $uri" }
+                "PROPFIND", "REPORT" -> {
+                    log.debug { "PROPFIND/REPORT call detected: method=${request.method}, uri=$uri" }
                     if (uri == "index.html" || uri == "/") {
                         // PROPFIND call to /index.html after authentication is a typical behavior of many WebDAV or CardDAV clients.
                         return true

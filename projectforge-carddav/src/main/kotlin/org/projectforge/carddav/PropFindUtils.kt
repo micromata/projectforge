@@ -36,6 +36,9 @@ internal object PropFindUtils {
     enum class Prop(val str: String) {
         RESOURCETYPE("resourcetype"),
         DISPLAYNAME("displayname"),
+        GETETAG("getetag"),
+        GETCTAG("cs:getctag"),
+        SYNCTOKEN("sync-token"),
         CURRENT_USER_PRINCIPAL("current-user-principal"),
         CURRENT_USER_PRIVILEGE_SET("current-user-privilege-set")
     }
@@ -46,9 +49,9 @@ internal object PropFindUtils {
      * @param requestWrapper The request wrapper.
      * @param response The response.
      * @param user The user.
-     * @see CardDavXmlWriter.generateCurrentUserPrincipal
+     * @see CardDavXmlWriter.generatePropFindResponse
      */
-    fun handleCurrentUserPrincipal(requestWrapper: RequestWrapper, response: HttpServletResponse, user: PFUserDO) {
+    fun handlePropFindCall(requestWrapper: RequestWrapper, response: HttpServletResponse, user: PFUserDO) {
         log.debug { "handleCurrentUserPrincipal: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
         val props = extractProps(requestWrapper.body)
         if (props.isEmpty()) {
@@ -57,7 +60,7 @@ internal object PropFindUtils {
                 content = "No properties found in PROPFIND request."
             )
         }
-        val content = CardDavXmlWriter.generateCurrentUserPrincipal(requestWrapper, user, props)
+        val content = CardDavXmlWriter.generatePropFindResponse(requestWrapper, user, props)
         log.debug { "handleCurrentUserPrincipal: response=[$content]" }
         ResponseUtils.setValues(
             response,

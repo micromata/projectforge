@@ -36,7 +36,7 @@ class CardDavXmlWriterTest {
         Mockito.`when`(request.requestURI).thenReturn("/carddav")
         val requestWrapper = RequestWrapper(request)
         listOf(PropFindUtils.Prop.RESOURCETYPE, PropFindUtils.Prop.DISPLAYNAME).let { props ->
-            CardDavXmlWriter.generateCurrentUserPrincipal(requestWrapper, PFUserDO().also { it.username = "kai" }, props).let {
+            CardDavXmlWriter.generatePropFindResponse(requestWrapper, PFUserDO().also { it.username = "kai" }, props).let {
                 Assertions.assertTrue(it.contains("resourcetype"))
                 Assertions.assertTrue(it.contains("displayname"))
                 Assertions.assertFalse(it.contains("kai"))
@@ -47,7 +47,7 @@ class CardDavXmlWriterTest {
             PropFindUtils.Prop.CURRENT_USER_PRINCIPAL,
             PropFindUtils.Prop.CURRENT_USER_PRIVILEGE_SET,
         ).let { props ->
-            CardDavXmlWriter.generateCurrentUserPrincipal(requestWrapper, PFUserDO().also { it.username = "kai" }, props).let {
+            CardDavXmlWriter.generatePropFindResponse(requestWrapper, PFUserDO().also { it.username = "kai" }, props).let {
                 Assertions.assertFalse(it.contains("resourcetype"))
                 Assertions.assertFalse(it.contains("displayname"))
                 Assertions.assertTrue(it.contains("kai"))
