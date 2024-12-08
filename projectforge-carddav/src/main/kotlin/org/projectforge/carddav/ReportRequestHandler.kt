@@ -25,10 +25,9 @@ package org.projectforge.carddav
 
 import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
-import org.projectforge.carddav.CardDavXmlWriter.appendMultiStatusEnd
-import org.projectforge.carddav.CardDavXmlWriter.appendMultiStatusStart
+import org.projectforge.carddav.CardDavXmlUtils.appendMultiStatusEnd
+import org.projectforge.carddav.CardDavXmlUtils.appendMultiStatusStart
 import org.projectforge.carddav.model.Contact
-import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.utils.ResponseUtils
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -39,10 +38,25 @@ internal object ReportRequestHandler {
     /**
      * Handles a PROPFIND request for the current user principal.
      * This is the initial call to the CardDAV server for getting the
+     *
+     * Example 1:
+     * ```
+     *   <sync-collection xmlns="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/" xmlns:d="DAV:">
+     *     <sync-token>
+     *           https://www.projectforge.org/ns/sync/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+     *         </sync-token>
+     *     <sync-level>1</sync-level>
+     *     <prop>
+     *       <getetag/>
+     *       <card:address-data/>
+     *     </prop>
+     *   </sync-collection>
+     * ```
+     *
      * @param requestWrapper The request wrapper.
      * @param response The response.
      * @param user The user.
-     * @see CardDavXmlWriter.generatePropFindResponse
+     * @see CardDavXmlUtils.generatePropFindResponse
      */
     fun handleSyncReportCall(
         requestWrapper: RequestWrapper,
@@ -57,6 +71,7 @@ internal object ReportRequestHandler {
                 content = "No properties found in PROPFIND request."
             )
         }
+        val rootElement = CardDavXmlUtils.getRootElement(requestWrapper.body)
         val syncToken = System.currentTimeMillis().toString() // Nothing better for now.
         val content = generateSyncReportResponse(syncToken, requestWrapper.requestURI, contactList)
         log.debug { "handleReportCall: response=[$content]" }
@@ -82,12 +97,12 @@ internal object ReportRequestHandler {
     fun appendPropfindContact(sb: StringBuilder, href: String, contact: Contact) {
         sb.appendLine(
             """
-          <response>
-            <href>${href}/ProjectForge-${contact.id ?: -1}.vcf</href>
-            <propstat>
-                <prop>
-            <getetag>"${CardDavUtils.getETag(contact)}"</getetag>
-                    <cr:address-data />""".trimIndent()
+            |  <response>
+            |    <href>${href}/ProjectForge-${contact.id ?: -1}.vcf</href>
+            |    <propstat>
+            |        <prop>
+            |    <getetag>"${CardDavUtils.getETag(contact)}"</getetag>
+            |            <cr:address-data />""".trimMargin()
         )
         //                    <getetag>"${CardDavUtils.getETag(contact)}"</getetag>
         //            <cr:address-data>""".trimIndent()
@@ -97,10 +112,10 @@ internal object ReportRequestHandler {
         //            </cr:address-data>
         sb.appendLine(
             """
-                </prop>
-                <status>HTTP/1.1 200 OK</status>
-            </propstat>
-          </response>""".trimIndent()
+            |        </prop>
+            |        <status>HTTP/1.1 200 OK</status>
+            |    </propstat>
+            |  </response>""".trimMargin()
         )
     }
 }

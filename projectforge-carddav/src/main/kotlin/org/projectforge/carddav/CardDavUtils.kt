@@ -23,16 +23,23 @@
 
 package org.projectforge.carddav
 
-import mu.KotlinLogging
-import org.jetbrains.kotlin.utils.addToStdlib.countOccurrencesOf
 import org.projectforge.carddav.model.Contact
+import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
-
-private val log = KotlinLogging.logger {}
 
 internal object CardDavUtils {
     fun getETag(contact: Contact): String {
         val lastUpdated = contact.lastUpdated ?: Date()
         return lastUpdated.time.toString()
+    }
+
+    /**
+     * Returns the display name of the user's addressbook.
+     * This is the name that is shown in the CardDAV client.
+     * @param user The user.
+     */
+    fun getUsersAddressbookDisplayName(user: PFUserDO): String {
+        return translateMsg("address.cardDAV.addressbook.displayName", user.firstname)
     }
 }
