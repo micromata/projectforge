@@ -43,55 +43,55 @@ internal object CardDavXmlWriter {
         ctag: String? = null,
         syncToken: String? = null,
     ): String {
-        val syncTokenLine = if (syncToken != null) "\n                <d:sync-token>$syncToken</d:sync-token>" else ""
+        val syncTokenLine = if (syncToken != null) "\n                <sync-token>$syncToken</sync-token>" else ""
         val ctagLine = if (ctag != null) "\n                <cs:getctag>$ctag</cs:getctag>" else ""
         return """
         <?xml version="1.0" encoding="UTF-8"?>
-        <d:multistatus $XML_NS>
-            <d:response>
-                <d:href>$href</d:href>
-                <d:propstat>
-                    <d:prop>
-                        <d:displayname>$displayname</d:displayname>
-                        <d:getcontenttype/>$ctagLine$syncTokenLine
-                    </d:prop>
-                    <d:status>HTTP/1.1 200 OK</d:status>
-                </d:propstat>
-            </d:response>
-        </d:multistatus>
+        <multistatus $XML_NS>
+            <response>
+                <href>$href</href>
+                <propstat>
+                    <prop>
+                        <displayname>$displayname</displayname>
+                        <getcontenttype>text/vcard</getcontenttype>$ctagLine$syncTokenLine
+                    </prop>
+                    <status>HTTP/1.1 200 OK</status>
+                </propstat>
+            </response>
+        </multistatus>
     """.trimIndent()
         // Chat-GPT:
-        // <d:multistatus xmlns:d="DAV:" xmlns:cs="http://calendarserver.org/ns/">
-        //    <d:response>
-        //        <d:href>/carddav/users/joe/</d:href>
-        //        <d:propstat>
-        //            <d:prop>
-        //                <d:displayname>Joe's Address Book</d:displayname>
-        //                <d:resourcetype>
-        //                    <d:collection />
+        // <multistatus xmlns:d="DAV:" xmlns:cs="http://calendarserver.org/ns/">
+        //    <response>
+        //        <href>/carddav/users/joe/</href>
+        //        <propstat>
+        //            <prop>
+        //                <displayname>Joe's Address Book</displayname>
+        //                <resourcetype>
+        //                    <collection />
         //                    <cs:addressbook />
-        //                </d:resourcetype>
+        //                </resourcetype>
         //                <cs:getctag>1234567890</cs:getctag>
-        //                <d:sync-token>https://example.com/carddav/users/joe/sync-token</d:sync-token>
-        //            </d:prop>
-        //            <d:status>HTTP/1.1 200 OK</d:status>
-        //        </d:propstat>
-        //    </d:response>
-        //</d:multistatus>
+        //                <sync-token>https://example.com/carddav/users/joe/sync-token</sync-token>
+        //            </prop>
+        //            <status>HTTP/1.1 200 OK</status>
+        //        </propstat>
+        //    </response>
+        //</multistatus>
     }
 
     fun appendPropfindContact(sb: StringBuilder, user: User, contact: Contact) {
         sb.appendLine(
-            """  <d:response>
-    <d:href>/carddav/${user.userName}/addressbook/contact${contact.id}.vcf</d:href>
-    <d:propstat>
-      <d:prop>
-        <d:getetag>"${CardDavUtils.getETag(contact)}"</d:getetag>
-        <d:displayname>${contact.displayName}</d:displayname>
-      </d:prop>
-      <d:status>HTTP/1.1 200 OK</d:status>
-    </d:propstat>
-  </d:response>"""
+            """  <response>
+    <href>/carddav/${user.userName}/addressbook/contact${contact.id}.vcf</href>
+    <propstat>
+      <prop>
+        <getetag>"${CardDavUtils.getETag(contact)}"</getetag>
+        <displayname>${contact.displayName}</displayname>
+      </prop>
+      <status>HTTP/1.1 200 OK</status>
+    </propstat>
+  </response>"""
         )
     }
 
@@ -99,15 +99,15 @@ internal object CardDavXmlWriter {
         sb.appendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
     }
 
-    fun appendMultiStatusStart(sb: StringBuilder, server: String, prependXmlPrefix: Boolean = true) {
+    fun appendMultiStatusStart(sb: StringBuilder, prependXmlPrefix: Boolean = true) {
         if (prependXmlPrefix) {
             appendXmlPrefix(sb)
         }
-        sb.append("<d:multistatus $XML_NS>")
+        sb.appendLine("<multistatus $XML_NS>")
     }
 
     fun appendMultiStatusEnd(sb: StringBuilder) {
-        sb.appendLine("</d:multistatus>")
+        sb.appendLine("</multistatus>")
     }
 
     /**
@@ -119,43 +119,65 @@ internal object CardDavXmlWriter {
      * @param props The properties to include in the response.
      * @return The response as a string.
      */
-    fun generateCurrentUserPrincipal(requestWrapper: RequestWrapper, user: PFUserDO, props: List<PropFindUtils.Prop>): String {
+    fun generatePropFindResponse(
+        requestWrapper: RequestWrapper,
+        user: PFUserDO,
+        props: List<PropFindUtils.Prop>
+    ): String {
         val href = "${requestWrapper.baseUrl}/users/${user.username}/"
         val sb = StringBuilder()
-        sb.appendLine("""
-            <?xml version="1.0" encoding="UTF-8"?>
-            <d:multistatus $XML_NS>
-                <d:response>
-                    <d:href>$href</d:href>
-                    <d:propstat>
-                        <d:prop>""".trimIndent())
+        appendMultiStatusStart(sb)
+        sb.appendLine(
+            """
+                <response>
+                    <href>$href</href>
+                    <propstat>
+                        <prop>""".trimIndent()
+        )
         if (props.contains(PropFindUtils.Prop.RESOURCETYPE)) {
-            appendPropLines(sb, "<d:resourcetype>")
-            appendPropLines(sb, "  <d:collection />")
-            appendPropLines(sb, "  <cs:addressbook />")
-            appendPropLines(sb, "</d:resourcetype>")
+            appendPropLines(sb, "<resourcetype>")
+            appendPropLines(sb, "  <cr:addressbook />")
+            appendPropLines(sb, "  <collection />")
+            appendPropLines(sb, "</resourcetype>")
+        }
+        if (props.contains(PropFindUtils.Prop.GETCTAG)) {
+            appendPropLines(sb, "<cs:getctag>\"88d6c17fa866ef38e6e0122a59bf3da10a66daa042860116c88979a50c025eb9\"</cs:getctag>")
+        }
+        if (props.contains(PropFindUtils.Prop.GETETAG)) {
+            appendPropLines(sb, "<getetag>\"88d6c17fa866ef38e6e0122a59bf3da10a66daa042860116c88979a50c025eb9\"</getetag>")
+        }
+        if (props.contains(PropFindUtils.Prop.SYNCTOKEN)) {
+            appendPropLines(sb, "<sync-token>")
+            appendPropLines(sb, "  https://www.projectforge.org/ns/sync/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
+            appendPropLines(sb, "</sync-token>")
         }
         if (props.contains(PropFindUtils.Prop.DISPLAYNAME)) {
-            appendPropLines(sb, "<d:displayname>${getUsersAddressbookDisplayName(user)}</d:displayname>")
+            appendPropLines(sb, "<displayname>${getUsersAddressbookDisplayName(user)}</displayname>")
+            // appendPropLines(sb, "<getcontenttype>text/vcard</getcontenttype>")
         }
         if (props.contains(PropFindUtils.Prop.CURRENT_USER_PRINCIPAL)) {
-            appendPropLines(sb, "<d:current-user-principal>")
-            appendPropLines(sb, "  <d:href>$href</d:href>")
-            appendPropLines(sb, "</d:current-user-principal>")
+            appendPropLines(sb, "<current-user-principal>")
+            appendPropLines(sb, "  <href>$href</href>")
+            appendPropLines(sb, "</current-user-principal>")
         }
         if (props.contains(PropFindUtils.Prop.CURRENT_USER_PRIVILEGE_SET)) {
-            appendPropLines(sb, "<d:current-user-privilege-set>")
-            appendPropLines(sb, "  <d:privilege><d:read /></d:privilege>")
-            // appendPropLines(sb, "  <d:privilege><d:write /></d:privilege>")
-            appendPropLines(sb, "</d:current-user-privilege-set>")
+            appendPropLines(sb, "<current-user-privilege-set>")
+            appendPropLines(sb, "  <privilege><read /></privilege>")
+            appendPropLines(sb, "  <privilege><all /></privilege>")
+            appendPropLines(sb, "  <privilege><write /></privilege>")
+            appendPropLines(sb, "  <privilege><write-properties /></privilege>")
+            appendPropLines(sb, "  <privilege><write-content /></privilege>")
+            appendPropLines(sb, "</current-user-privilege-set>")
         }
-        sb.appendLine("""
-                        </d:prop>
-                        <d:status>HTTP/1.1 200 OK</d:status>
-                    </d:propstat>
-                </d:response>
-            </d:multistatus>
-        """.trimIndent())
+        sb.appendLine(
+            """
+                    </prop>
+                    <status>HTTP/1.1 200 OK</status>
+                </propstat>
+            </response>
+        """.trimIndent()
+        )
+        appendMultiStatusEnd(sb)
         return sb.toString()
     }
 
@@ -170,52 +192,63 @@ internal object CardDavXmlWriter {
     fun generatePropfindUserDirectory(requestWrapper: RequestWrapper, user: PFUserDO): String {
         val href = "${requestWrapper.baseUrl}/users/${user.username}/"
         val sb = StringBuilder()
-        sb.appendLine("""
-            <?xml version="1.0" encoding="UTF-8"?>
-            <d:multistatus $XML_NS>
-                <d:response>
-                    <d:href>$href</d:href>
-                    <d:propstat>
-                        <d:prop>
-                            <d:resourcetype>
-                                <d:collection />
-                            </d:resourcetype>
-                            <d:displayname>${getUsersAddressbookDisplayName(user)}</d:displayname>
-                            <d:current-user-principal>
-                                <d:href>$href</d:href>
-                            </d:current-user-principal>
-                            <d:supported-report-set>
-                                <d:supported-report>
-                                    <d:report>
-                                        <cs:addressbook-query />
-                                    </d:report>
-                                </d:supported-report>
-                            </d:supported-report-set>
-                        </d:prop>
-                        <d:status>HTTP/1.1 200 OK</d:status>
-                    </d:propstat>
-                </d:response>
-                <d:response>
-                    <d:href>$href/contacts/</d:href>
-                    <d:propstat>
-                        <d:prop>
-                            <d:resourcetype>
-                                <d:collection />
-                                <cs:addressbook />
-                            </d:resourcetype>
-                            <d:displayname>${getUsersAddressbookDisplayName(user)}</d:displayname>
-                            <cs:addressbook-description>${translate("address.cardDAV.addressbook.description")}</cs:addressbook-description>
-                        </d:prop>
-                        <d:status>HTTP/1.1 200 OK</d:status>
-                    </d:propstat>
-                </d:response>
-            </d:multistatus>""".trimIndent())
+        appendMultiStatusStart(sb)
+        sb.appendLine(
+            """
+            <response>
+              <href>$href</href>
+              <propstat>
+                <prop>
+                  <resourcetype>
+                    <collection />
+                  </resourcetype>
+                  <displayname>Kai's Home Collection</displayname>
+                  <getcontenttype>text/vcard</getcontenttype>
+                  <cr:addressbook-home-set>
+                    <href>${href}addressBooks/</href>
+                  </cr:addressbook-home-set>
+                </prop>
+                <status>HTTP/1.1 200 OK</status>
+              </propstat>
+            </response>
+            <response>
+                <href>${href}addressBooks/</href>
+                <propstat>
+                    <prop>
+                        <resourcetype>
+                            <collection />
+                            <cr:addressbook />
+                        </resourcetype>
+                            <getcontenttype>text/vcard</getcontenttype>
+                        <displayname>${getUsersAddressbookDisplayName(user)}</displayname>
+                        <getcontenttype>text/vcard</getcontenttype>
+                        <getetag>"test-e-123"</getetag>
+                        <cr:getctag>"test-124"</cr:getctag>
+                    </prop>
+                    <status>HTTP/1.1 200 OK</status>
+                </propstat>
+            </response>""".trimIndent()
+        )
+        /*sb.appendLine("""
+                <response>
+                    <href>${href}contacts/john_doe.vcf</href>
+                    <propstat>
+                        <prop>
+                            <getetag>"12345"</getetag>
+                            <getcontenttype>text/vcard</getcontenttype>
+                            <resourcetype />
+                        </prop>
+                        <status>HTTP/1.1 200 OK</status>
+                    </propstat>
+                </response>
+        """.trimIndent())*/
+        appendMultiStatusEnd(sb)
         return sb.toString()
     }
 
     private fun appendPropLines(sb: StringBuilder, vararg lines: String) {
         lines.forEach { line ->
-            sb.appendLine("              $line")
+            sb.appendLine("          $line")
         }
     }
 
@@ -226,34 +259,35 @@ internal object CardDavXmlWriter {
         ctag: String? = null,
         syncToken: String? = null,
     ): String {
-        val syncTokenLine = if (syncToken != null) "\n                <d:sync-token>$syncToken</d:sync-token>" else ""
+        val syncTokenLine = if (syncToken != null) "\n                <sync-token>$syncToken</sync-token>" else ""
         val ctagLine = if (ctag != null) "\n                <cs:getctag>$ctag</cs:getctag>" else ""
         return """
         <?xml version="1.0" encoding="UTF-8"?>
-        <d:multistatus $XML_NS>
-            <d:response>
-                <d:href>/users/joe/addressBooks/default/contact1.vcf</d:href>
-                <d:propstat>
-                    <d:prop>
-                        <d:getetag>"123456789"</d:getetag>
-                    </d:prop>
-                    <d:status>HTTP/1.1 200 OK</d:status>
-                </d:response>
-            <d:response>
-                <d:href>/users/joe/addressBooks/default/contact2.vcf</d:href>
-                <d:propstat>
-                    <d:prop>
-                        <d:getetag>"987654321"</d:getetag>
-                    </d:prop>
-                    <d:status>HTTP/1.1 200 OK</d:status>
-                </d:response>
-            <d:sync-token>https://example.com/carddav/users/joe/new-sync-token</d:sync-token>
-        </d:multistatus>""".trimIndent()
+        <multistatus $XML_NS>
+            <response>
+                <href>/users/joe/addressBooks/default/contact1.vcf</href>
+                <propstat>
+                    <prop>
+                        <getetag>"123456789"</getetag>
+                    </prop>
+                    <status>HTTP/1.1 200 OK</status>
+                </response>
+            <response>
+                <href>/users/joe/addressBooks/default/contact2.vcf</href>
+                <propstat>
+                    <prop>
+                        <getetag>"987654321"</getetag>
+                    </prop>
+                    <status>HTTP/1.1 200 OK</status>
+                </response>
+            <sync-token>https://example.com/carddav/users/joe/new-sync-token</sync-token>
+        </multistatus>""".trimIndent()
     }*/
 
     private fun getUsersAddressbookDisplayName(user: PFUserDO): String {
         return translate("address.cardDAV.addressbook.displayName")
     }
 
-    private const val XML_NS = "xmlns:d=\"DAV:\" xmlns:cs=\"urn:ietf:params:xml:ns:carddav\""
+    private const val XML_NS =
+        "xmlns:d=\"DAV:\" xmlns:cr=\"urn:ietf:params:xml:ns:carddav\" xmlns:cs=\"http://calendarserver.org/ns/\""
 }

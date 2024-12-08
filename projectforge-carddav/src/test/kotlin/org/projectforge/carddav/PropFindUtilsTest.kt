@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test
 class PropFindUtilsTest {
     @Test
     fun `test of extracting propFinds`() {
-        val xml = """
+        """
             <propfind xmlns="DAV:">
               <prop>
                 <resourcetype/>
@@ -38,12 +38,30 @@ class PropFindUtilsTest {
                 <current-user-privilege-set/>
               </prop>
             </propfind>
-        """.trimIndent()
-        val propFinds = PropFindUtils.extractProps(xml)
-        Assertions.assertEquals(4, propFinds.size)
-        Assertions.assertEquals(PropFindUtils.Prop.RESOURCETYPE, propFinds[0])
-        Assertions.assertEquals(PropFindUtils.Prop.DISPLAYNAME, propFinds[1])
-        Assertions.assertEquals(PropFindUtils.Prop.CURRENT_USER_PRINCIPAL, propFinds[2])
-        Assertions.assertEquals(PropFindUtils.Prop.CURRENT_USER_PRIVILEGE_SET, propFinds[3])
+        """.trimIndent().let { xml ->
+            val propFinds = PropFindUtils.extractProps(xml)
+            Assertions.assertEquals(4, propFinds.size)
+            Assertions.assertEquals(PropFindUtils.Prop.RESOURCETYPE, propFinds[0])
+            Assertions.assertEquals(PropFindUtils.Prop.DISPLAYNAME, propFinds[1])
+            Assertions.assertEquals(PropFindUtils.Prop.CURRENT_USER_PRINCIPAL, propFinds[2])
+            Assertions.assertEquals(PropFindUtils.Prop.CURRENT_USER_PRIVILEGE_SET, propFinds[3])
+        }
+        """
+            <propfind xmlns="DAV:">
+              <prop>
+                <resourcetype/>
+                <getetag/>
+                <cs:getctag/>
+                <sync-token/>
+              </prop>
+            </propfind>
+        """.trimIndent().let { xml ->
+            val propFinds = PropFindUtils.extractProps(xml)
+            Assertions.assertEquals(4, propFinds.size)
+            Assertions.assertEquals(PropFindUtils.Prop.RESOURCETYPE, propFinds[0])
+            Assertions.assertEquals(PropFindUtils.Prop.GETETAG, propFinds[1])
+            Assertions.assertEquals(PropFindUtils.Prop.GETCTAG, propFinds[2])
+            Assertions.assertEquals(PropFindUtils.Prop.SYNCTOKEN, propFinds[3])
+        }
     }
 }

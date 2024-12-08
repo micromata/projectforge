@@ -36,16 +36,16 @@ class CardDavControllerTest {
     @Test
     fun `test writing xml response of PROPFIND`() {
         StringBuilder().let { sb ->
-            CardDavXmlWriter.appendMultiStatusStart(sb, "www.projectforge.org")
+            CardDavXmlWriter.appendMultiStatusStart(sb)
             Assertions.assertEquals(
-                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:cs=\"https://www.projectforge.org/ns/\">\n",
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:cs=\"urn:ietf:params:xml:ns:carddav\">\n",
                 sb.toString()
             )
         }
         StringBuilder().let { sb ->
-            CardDavXmlWriter.appendMultiStatusStart(sb, "www.projectforge.org", false)
+            CardDavXmlWriter.appendMultiStatusStart(sb, false)
             Assertions.assertEquals(
-                "<d:multistatus xmlns:d=\"DAV:\" xmlns:cs=\"https://www.projectforge.org/ns/\">\n",
+                "<d:multistatus xmlns:d=\"DAV:\" xmlns:cs=\"urn:ietf:params:xml:ns:carddav\">\n",
                 sb.toString()
             )
         }

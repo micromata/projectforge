@@ -103,12 +103,8 @@ class CardDavService {
                 // Alternatives: Not found (404) or Forbidden (403)
                 ResponseUtils.setValues(response, HttpStatus.MULTI_STATUS)
                 return
-            } else if (normalizedRequestURI == "") {
-                PropFindUtils.handleCurrentUserPrincipal(requestWrapper, response, user)
-            } else if (normalizedRequestURI == "users/${user.username}") {
-                PropFindUtils.handlePropfindUserDirectory(requestWrapper, response, user)
             } else {
-                handlePropfindXXX(requestWrapper, response, user)
+                PropFindUtils.handlePropFindCall(requestWrapper, response, user)
             }
         }
     }
@@ -198,7 +194,7 @@ class CardDavService {
         val request = requestWrapper.request
         log.debug { "PROPFIND '${request.requestURI}': ${requestWrapper.body}" }
         val sb = StringBuilder()
-        CardDavXmlWriter.appendMultiStatusStart(sb, request.serverName)
+        CardDavXmlWriter.appendMultiStatusStart(sb)
         val user = User(userDO.username)
         val addressBook = AddressBook(user)
         addressService.getContactList(addressBook).forEach { contact ->
@@ -229,7 +225,7 @@ class CardDavService {
             return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build()
         }
         val sb = StringBuilder()
-        CardDavXmlWriter.appendMultiStatusStart(sb, request.serverName)
+        CardDavXmlWriter.appendMultiStatusStart(sb)
         val user = User(userDO.username)
         val addressBook = AddressBook(user)
         addressService.getContactList(addressBook).forEach { contact ->
