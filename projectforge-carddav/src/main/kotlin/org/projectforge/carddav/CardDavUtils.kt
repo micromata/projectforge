@@ -29,6 +29,11 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
 
 internal object CardDavUtils {
+    fun getVcfFileName(contact: Contact): String {
+        // If you change this, don't forget to change the regex in CardDavXmlUtils.extractAddressIds.
+        return "ProjectForge-${contact.id}.vcf"
+    }
+
     fun getETag(contact: Contact): String {
         val lastUpdated = contact.lastUpdated ?: Date()
         return lastUpdated.time.toString()

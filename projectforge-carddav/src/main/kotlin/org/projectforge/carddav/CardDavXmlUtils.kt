@@ -36,6 +36,26 @@ internal object CardDavXmlUtils {
     }
 
     /**
+     * Determine the used element name of the given tag name.
+     * Examples: <d:prop> -> d:prop, <prop> -> prop
+     * @param xml The XML string.
+     * @param tagName The name of the tag to extract the value from.
+     */
+    fun getElementName(xml: String, tagName: String): String? {
+        // Regex to find the element with or without namespace
+        val regex = Regex("<\\s*([a-zA-Z_][a-zA-Z0-9_\\-]*:)?$tagName\\b[^>]*>")
+        // Search for the first matching element:
+        val match = regex.find(xml)
+        return match?.groupValues?.get(0)?.substringAfter('<')?.substringBefore('>')
+    }
+
+    fun extractAddressIds(xml: String): Sequence<Long> {
+        val regex = Regex("ProjectForge-(\\d+)\\.vcf")
+        return regex.findAll(xml)
+            .map { it.groupValues[1].toLong() }
+    }
+
+    /**
      * Appends the XML prefix to the given StringBuilder. Every xml response should start with this prefix.
      * @param sb The StringBuilder to append the XML prefix to.
      */
@@ -66,15 +86,18 @@ internal object CardDavXmlUtils {
 
     /**
      * Appends the start of a response to a propfind request to the given StringBuilder.
+     * Uses an indent depth of 4 (8 spaces)..
+     * @param sb The StringBuilder to append the XML to.
+     * @param lines The lines to append to the StringBuilder.
      */
-    fun appendPropLines(sb: StringBuilder, vararg lines: String) {
-        appendPropLines(sb, 4, lines = lines)
+    fun appendLines(sb: StringBuilder, vararg lines: String) {
+        appendLines(sb, 4, lines = lines)
     }
 
     /**
      * Appends the start of a response to a propfind request to the given StringBuilder.
      */
-    fun appendPropLines(sb: StringBuilder, indentDepth: Int = 8, vararg lines: String) {
+    fun appendLines(sb: StringBuilder, indentDepth: Int = 8, vararg lines: String) {
         val indentStr = "  ".repeat(2 * indentDepth)
         lines.forEach { line ->
             sb.appendLine("$indentStr$line")

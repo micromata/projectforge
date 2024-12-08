@@ -147,8 +147,17 @@ class CardDavTestClient(private val baseUrl: String, username: String, password:
                 </sync-collection>""".trimIndent().let { body ->
                 sendRequest("REPORT", requestBody = body, useAuthHeader = true)
             }
-            //sendGetRequest(propfindResponse)
-            //sendSyncReportRequest("/users/$username/addressBooks/default/")
+            """
+                <card:addressbook-multiget xmlns:card="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/" xmlns:d="DAV:">
+      <d:prop>
+        <d:getetag/>
+        <card:address-data/>
+      </d:prop>
+      <d:href>/kai/testcollection/e8efcc9a-10f4-4d1c-8bb6-718aece30586.vcf</d:href>
+      <d:href>/kai/testcollection/4ebaea4c-3a96-44dd-84eb-c2207d8f38f5.vcf</d:href>
+    </card:addressbook-multiget>""".trimIndent().let { body ->
+                sendRequest("REPORT", requestBody = body, useAuthHeader = true)
+            }
         } finally {
             client.close()
         }
