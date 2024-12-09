@@ -118,12 +118,14 @@ internal object ReportRequestHandler {
      * ```
      */
     fun generateNotFoundContact(sb: StringBuilder, href: String) {
-        sb.appendLine("""
+        sb.appendLine(
+            """
             |  <response>
             |    <href>$href</href>
             |    <status>HTTP/1.1 404 Not Found</status>
             |  </response>
-        """.trimMargin())
+        """.trimMargin()
+        )
     }
 
     fun appendPropfindContact(sb: StringBuilder, href: String, contact: Contact, fullVCards: Boolean) {
@@ -138,7 +140,8 @@ internal object ReportRequestHandler {
         if (fullVCards) {
             sb.append("        <cr:address-data>")
             contact.vcardDataAsString.let { vcardData ->
-                sb.append(vcardData) // No indent here!!!
+                val xml = CardDavXmlUtils.escapeXml(vcardData)
+                sb.append(xml) // No indent here!!!
             }
             CardDavXmlUtils.appendLines(sb, "</cr:address-data>")
         } else {
