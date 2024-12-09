@@ -77,6 +77,36 @@ adminstrator's password and the target (empty data-base for a productive
 system or pre-filled with test data). You can configure or change all
 other settings such as time zone, e-mail addresses etc. any time later.
 
+=== SSL / Https
+
+It's recommended to start ProjectForge on a localhost http port and to handle https over nginx or apache.
+
+For testing purposes you can use the following configuration:
+
+==== Self-signed certificate
+Generate a self-signed certificate:`keytool -genkeypair -alias selfsigned -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore keystore.p12 -validity 365`
+
+==== Configure the file `~/ProjectForge/projectforge.properties`
+
+*File:* `application.properties`:
+
+[source,shell,linenums]
+----
+...
+# Bind to all interfaces, or localhost
+server.address=0.0.0.0
+server.port=8443
+server.ssl.key-store=file:/home/joe/keystore.p12
+server.ssl.key-store-password=<password of your certificate>
+server.ssl.key-store-type=PKCS12
+..
+----
+
+==== Trust the self-signed certificate
+
+. Extract: `keytool -exportcert -alias selfsigned -keystore keystore.p12 -storetype PKCS12 -file selfsigned.crt -rfc`
+. Copy it e. g. to MacOS key-chain system certificates and trust it.
+
 === PostgreSQL
 
 
@@ -141,7 +171,7 @@ outputs.
 The files must be located in the Resources/Images folder.
 ----
 
-*File:* `application.properties`:
+*File:* `projectforge.properties`:
 
 [source,shell,linenums]
 ----
@@ -238,39 +268,6 @@ projectforge.receiveSmsKey=*******SECRET********
 
 ProjectForges ensures that messages will be imported only once.
 
-==== E-Mail
-
-ProjectForge can receive messages from a mail server (e. g. IMAP mail
-account). The e-mails will be parsed as key-value:
-
-[source,shell,linenums]
-----
-#Alias to public url
-cfg.public.url=http://localhost:8080
-mail.session.pfmailsession.name=pfmailsession
-mail.session.pfmailsession.emailEnabled=true
-
-#A standard sender email address. The application may use another one
-mail.session.pfmailsession.standardEmailSender=sender@yourserver.org
-
-#Mail protocol: Plain, StartTLS,SSL
-mail.session.pfmailsession.encryption=Plain
-
-#Hostname of the email server
-mail.session.pfmailsession.smtp.host=mail.yourserver.org
-
-#Port number of the email server
-mail.session.pfmailsession.smtp.port=25
-
-#The email server needs authentification
-mail.session.pfmailsession.smtp.auth=false
-
-#Authentification by user name
-mail.session.pfmailsession.smtp.user=
-
-#Users password
-mail.session.pfmailsession.smtp.password=
-----
 
 ==== Servlet-Call
 
@@ -358,7 +355,7 @@ if(is_dir($SMS_DIR)) {
 ?>
 ----
 
-=== Asterisk connection: phone calls and texting with ProjectForge
+=== phone calls and texting with ProjectForge
 
 ==== Phone calls
 
@@ -1205,321 +1202,6 @@ entries are deleted as well!
 `LoginDefaultHandler   : User login failed:`
 
 `LoginDefaultHandler[ \t]+\: User login failed\:`
-
-== Attr-Schema in ProjectForge
-
-=== Overview
-
-The following (red rectangle) shows an example of how the web interface
-can look like with configurable attributes.
-
-image::/uploads/adminguide/Configurable_Attributes_Screenshot.png[image]
-
-
-The following is an example of such a xml file:
-
-[source,xml,linenums]
-----
-<?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-
-  <bean id="attrSchemataMap" class="java.util.HashMap">
-    <constructor-arg>
-      <map>
-        <entry key="employee">
-          <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrSchema">
-            <constructor-arg>
-              <list>
-
-                <!-- health insurance -->
-                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
-                  <property name="type" value="PERIOD"/>
-                  <property name="name" value="healthinsurance"/>
-                  <property name="i18nKey" value="fibu.employee.healthinsurance.title"/>
-                  <property name="i18nKeyStartTime" value="attr.validFrom"/>
-                  <property name="descriptions">
-                    <list>
-                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
-                        <property name="propertyName" value="name"/>
-                        <property name="i18nkey" value="fibu.employee.healthinsurance.name"/>
-                        <property name="type" value="java.lang.String"/>
-                        <property name="wicketComponentFactoryClass">
-                          <bean class="org.projectforge.web.common.timeattr.StringAttrWicketComponentFactory"/>
-                        </property>
-                        <property name="maxLength" value="255"/>
-                        <property name="required" value="true"/>
-                      </bean>
-                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
-                        <property name="propertyName" value="number"/>
-                        <property name="i18nkey" value="fibu.employee.healthinsurance.number"/>
-                        <property name="type" value="java.lang.String"/>
-                        <property name="wicketComponentFactoryClass">
-                          <bean class="org.projectforge.web.common.timeattr.StringAttrWicketComponentFactory"/>
-                        </property>
-                        <property name="maxLength" value="40"/>
-                        <property name="required" value="true"/>
-                      </bean>
-                    </list>
-                  </property>
-                </bean>
-
-                <!-- wage tax -->
-                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
-                  <property name="type" value="PERIOD"/>
-                  <property name="name" value="wagetax"/>
-                  <property name="i18nKey" value="fibu.employee.wagetax"/>
-                  <property name="i18nKeyStartTime" value="attr.validFrom"/>
-                  <property name="descriptions">
-                    <list>
-                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
-                        <property name="propertyName" value="taxbracket"/>
-                        <property name="i18nkey" value="fibu.employee.taxbracket"/>
-                        <property name="type" value="java.lang.Integer"/>
-                        <property name="wicketComponentFactoryClass">
-                          <bean class="org.projectforge.web.common.timeattr.IntegerAttrWicketComponentFactory"/>
-                        </property>
-                        <property name="minIntValue" value="1"/>
-                        <property name="maxIntValue" value="6"/>
-                        <property name="required" value="true"/>
-                      </bean>
-                    </list>
-                  </property>
-                </bean>
-
-                <!-- weekend work -->
-                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
-                  <property name="type" value="INSTANT_OF_TIME"/>
-                  <property name="name" value="weekendwork"/>
-                  <property name="i18nKey" value="fibu.employee.weekendwork.title"/>
-                  <property name="i18nKeyStartTime" value="attr.instantOfTime"/>
-                  <property name="descriptions">
-                    <list>
-                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
-                        <property name="propertyName" value="weekendworkday"/>
-                        <property name="i18nkey" value="fibu.employee.weekendwork.day"/>
-                        <property name="type" value="java.lang.String"/>
-                        <property name="wicketComponentFactoryClass">
-                          <bean class="org.projectforge.web.common.timeattr.DropDownAttrWicketComponentFactory">
-                            <property name="i18nKeyList">
-                              <list>
-                                <value>fibu.employee.weekendwork.saturday</value>
-                                <value>fibu.employee.weekendwork.sunday</value>
-                              </list>
-                            </property>
-                          </bean>
-                        </property>
-                      </bean>
-                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
-                        <property name="propertyName" value="workinghours"/>
-                        <property name="i18nkey" value="fibu.employee.weekendwork.workhours"/>
-                        <property name="type" value="java.math.BigDecimal"/>
-                        <property name="wicketComponentFactoryClass">
-                          <bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>
-                        </property>
-                        <property name="minIntValue" value="0"/>
-                        <property name="maxIntValue" value="10"/>
-                        <property name="required" value="true"/>
-                      </bean>
-                    </list>
-                  </property>
-                </bean>
-
-                <!-- nutrition -->
-                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
-                  <property name="type" value="NOT_TIMEABLE"/>
-                  <property name="name" value="nutrition"/>
-                  <property name="i18nKey" value="fibu.employee.nutrition.title"/>
-                  <property name="descriptions">
-                    <list>
-                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
-                        <property name="propertyName" value="nutrition"/>
-                        <property name="i18nkey" value="fibu.employee.nutrition.title"/>
-                        <property name="type" value="java.lang.String"/>
-                        <property name="wicketComponentFactoryClass">
-                          <bean class="org.projectforge.web.common.timeattr.DropDownAttrWicketComponentFactory">
-                            <property name="i18nKeyList">
-                              <list>
-                                <value>fibu.employee.nutrition.omnivorous</value>
-                                <value>fibu.employee.nutrition.vegetarian</value>
-                                <value>fibu.employee.nutrition.vegan</value>
-                              </list>
-                            </property>
-                          </bean>
-                        </property>
-                      </bean>
-                    </list>
-                  </property>
-                </bean>
-
-                <!-- end of probation -->
-                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
-                  <property name="type" value="NOT_TIMEABLE"/>
-                  <property name="name" value="probation"/>
-                  <property name="i18nKey" value="fibu.employee.probation.title"/>
-                  <property name="descriptions">
-                    <list>
-                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
-                        <property name="propertyName" value="probation"/>
-                        <property name="i18nkey" value="fibu.employee.probation.title"/>
-                        <property name="type" value="java.util.Date"/>
-                        <property name="wicketComponentFactoryClass">
-                          <bean class="org.projectforge.web.common.timeattr.DateAttrWicketComponentFactory"/>
-                        </property>
-                      </bean>
-                    </list>
-                  </property>
-                </bean>
-
-              </list>
-            </constructor-arg>
-          </bean>
-        </entry>
-      </map>
-    </constructor-arg>
-  </bean>
-</beans>
-----
-
-=== The attrschema.xml file
-
-The xml file must have the name attrschema.xml and must be located in
-the ProjectForge base directory[.gwikiLocalLink]## ##. It is a spring
-beans xml file and must be in the following format:
-
-[source,xml,linenums]
-----
-<?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-
-  <bean id="attrSchemataMap" class="java.util.HashMap">
-    <constructor-arg>
-      <map>
-
-        <entry key="employee">
-          <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrSchema">
-            <constructor-arg>
-              <list>
-
-                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
-                  <property .../>
-                  ...
-                  <property name="descriptions">
-                    <list>
-                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
-                        <property .../>
-                        ...
-                      </bean>
-                    </list>
-                  </property>
-                </bean>
-                ...
-
-              </list>
-            </constructor-arg>
-          </bean>
-        </entry>
-        ...
-
-      </map>
-    </constructor-arg>
-  </bean>
-</beans>
-----
-
-=== Structure of the attrschema.xml file
-
-. `AttrSchema`: The `<entry>` element corresponds to a database entity.
-At the moment only `employee` is supported.
-. `AttrGroup`: Within each `<entry>` element there is a `<list>` which
-can contain multiple
-`<bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">`
-elements. Each of these elements is shown as a panel in the
-corresponding edit page (see screenshot of the employee edit page). Each
-element has multiple `<property>` sub elements which are describing this
-group/panel:
-.. `<property name="type" value="..."/>` valid values of the attribute
-`value` are `NOT_TIMEABLE`, `PERIOD` and `INSTANT_OF_TIME`. Both
-`PERIOD` and `INSTANT_OF_TIME` have in common that in the web interface
-you can add/change/delete multiple entries for different dates. Compared
-to `NOT_TIMEABLE` the panels of these two types have additional UI
-elements for these purposes.
-... `NOT_TIMEABLE`: This value is designated for a group of regular
-fields which are not time-dependent.
-... `PERIOD`: This value is designated for a group of fields whose
-values are valid for a certain period. This period starts at the date
-which is selected in the web interface and it ends at the date of the
-nearest successor entry. If there is no successor entry, than it's end
-is open. At the moment, the only granularity is day. _Example: An
-employee has the tax bracket 1 since 01.01.2016. As of 01.01.2017 it
-will have the tax bracket 4._
-... `INSTANT_OF_TIME` This value is designated for a group of fields
-whose values are valid for a certain instant of time, which is selected
-in the web interface. At the moment, the only granularity is day.
-_Example: An employee has worked on sunday 11.06.2016 for 10 hours._
-.. `<property name="name" value="..."/>` The value must be a string. It
-is used as the first part of the html ID of all input fields of the
-panel. Therefore it must follow the rules for valid html IDs.
-Furthermore it must be unique within each `AttrSchema` because it is
-used as a key in the database.
-.. `<property name="i18nKey" value="..."/>` The value must be an i18n
-key.
-It's translation is shown in the heading of the panel.
-.. `<property name="i18nKeyStartTime" value="..."/>` This property is
-only required for `PERIOD` and `INSTANT_OF_TIME`. It is an i18n key
-whose translation is shown to the left of the datepicker in the panel.
-Typical values are `attr.validFrom` for `PERIOD` and
-`attr.instantOfTime` for `INSTANT_OF_TIME`.
-.. `<property name="descriptions">` This is a `<list>` of
-`<bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">`
-elements, each of them describing one field of the panel.
-. `AttrDescription`: Each element has multiple `<property>` sub elements
-which are describing this field:
-.. `<property name="propertyName" value="..."/>` The value must be a
-string. It is used as the second part of the html ID of this field.
-Therefore it must follow the rules for valid html IDs. Furthermore it
-must be unique within each `AttrGroup` for `PERIOD` and
-`INSTANT_OF_TIME` and unique within each `AttrSchema` for `NOT_TIMEABLE`
-because it is used as a key in the database.
-.. `<property name="i18nkey" value="..."/>` This is the i18n key of the
-field. It is shown to it's left.
-.. `<property name="required" value="..."/>` Valid values are `true` and
-`false`. This property is optional. If it is omitted is has the same
-effect as set to `false`.
-... `true`: The field must be filled in the web interface.
-... `false`: The field does not need to be filled.
-.. `<property name="wicketComponentFactoryClass">` This describes what
-kind of field should be generated. These are the possible sub elements:
-... `<bean class="org.projectforge.web.common.timeattr.IntegerAttrWicketComponentFactory"/>`
-This will create a number field of type Integer. The following optional
-properties can be used to restrict the input:
-`<property name="minIntValue" value="..."/>` and
-`<property name="maxIntValue" value="..."/>` . Furthermore this property
-must be set: `<property name="type" value="java.lang.Integer"/>`.
-... `<bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>`
-This will create a number field of type BigDecimal. The following
-optional properties can be used to restrict the input:
-`<property name="minIntValue" value="..."/>` and
-`<property name="maxIntValue" value="..."/>`. Furthermore this property
-must be set: `<property name="type" value="java.math.BigDecimal"/>`.
-... `<bean class="org.projectforge.web.common.timeattr.StringAttrWicketComponentFactory"/>`
-This will create a text field of type String. The following optional
-property can be used to restrict the length of the input:
-`<property name="maxLength" value="..."/>` (see the example).
-Furthermore this property must be set:
-`<property name="type" value="java.lang.String"/>`.
-... `<bean class="org.projectforge.web.common.timeattr.DropDownAttrWicketComponentFactory">`
-This will create a drop down menu. The example above shows how the
-options can be added to it. The options must be i18n keys which will be
-translated for the web interface. Furthermore this property must be set:
-`<property name="type" value="java.lang.String"/>`.
-... `<bean class="org.projectforge.web.common.timeattr.DateAttrWicketComponentFactory">`
-This will create a date picker. The example above shows how the options
-can be added to it. Furthermore this property must be set:
-`<property name="type" value="java.util.Date"/>`.
-... `<bean class="org.projectforge.web.common.timeattr.BooleanAttrWicketComponentFactory">`
-This will create a CheckBoxPanel. The example above shows how the
-options can be added to it. Furthermore this property must be set:
-`<property name="type" value="java.util.Boolean"/>`.
 
 == Plugins
 

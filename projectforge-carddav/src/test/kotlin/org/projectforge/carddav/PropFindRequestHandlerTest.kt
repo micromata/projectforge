@@ -33,7 +33,7 @@ class PropFindRequestHandlerTest {
     @Test
     fun test() {
         val request = Mockito.mock(HttpServletRequest::class.java)
-        Mockito.`when`(request.requestURI).thenReturn("/carddav")
+        Mockito.`when`(request.requestURI).thenReturn("/carddav/users/kai/")
         val requestWrapper = RequestWrapper(request)
         listOf(Prop.RESOURCETYPE, Prop.DISPLAYNAME).let { props ->
             PropFindRequestHandler.generatePropFindResponse(

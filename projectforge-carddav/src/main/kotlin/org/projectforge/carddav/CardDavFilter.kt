@@ -28,7 +28,6 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
 import org.projectforge.carddav.CardDavInit.Companion.CARD_DAV_BASE_PATH
-import org.projectforge.carddav.CardDavInit.Companion.cardDavUseRootPath
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.web.rest.BasicAuthenticationData
 import org.projectforge.web.rest.RestAuthenticationUtils
@@ -75,21 +74,19 @@ class CardDavFilter : Filter {
             }
         }
         if (!handledByCardDavFilter(request)) {
-            if (log.isDebugEnabled) {
-                log.debug(
-                    "Request is not for us (neither CalDAV nor CardDAV-call), processing normal filter chain (${
-                        RequestLog.asString(
-                            request
-                        )
-                    })..."
-                )
+            log.debug {
+                "Request is not for us, processing normal filter chain (${
+                    RequestLog.asString(
+                        request
+                    )
+                })..."
             }
             // Not for us:
             chain.doFilter(request, response)
             return
         }
         if (request.method == "PUT") {
-            log.info { "DAV doesn't support PUT method (yet): ${request.requestURI}" }
+            log.info { "DAV doesn't support PUT method (yet): ${RequestLog.asString(request)}" }
             response as HttpServletResponse
             response.sendError(
                 HttpServletResponse.SC_SERVICE_UNAVAILABLE,
@@ -97,14 +94,7 @@ class CardDavFilter : Filter {
             )
             return
         }
-        log.info(
-            "Request with method=${request.method} for CardDav (${
-                RequestLog.asString(
-                    request
-                )
-            })..."
-        )
-        log.debug { "******* CardDavFilter.doFilter: ${request.method}, ${request.requestURI}..." }
+        log.info { "Call for us: ${RequestLog.asString(request)}" }
         cardDavService.dispatch(request, response as HttpServletResponse)
     }
 
@@ -115,20 +105,20 @@ class CardDavFilter : Filter {
          * @return true if given is handled by CardDavController. Otherwise, false.
          */
         fun handledByCardDavFilter(request: HttpServletRequest): Boolean {
-            val uri = request.requestURI
+            val normalizedUri = CardDavUtils.normalizedUri(request.requestURI)
             return when (request.method) {
                 "PROPFIND", "REPORT" -> {
-                    log.debug { "PROPFIND/REPORT call detected: method=${request.method}, uri=$uri" }
-                    if (uri == "index.html" || uri == "/") {
+                    log.debug { "PROPFIND/REPORT call detected: method=${request.method}, uri=$normalizedUri" }
+                    if (normalizedUri == "index.html" || normalizedUri == "/") {
                         // PROPFIND call to /index.html after authentication is a typical behavior of many WebDAV or CardDAV clients.
                         return true
                     }
-                    return urlMatches(uri, "/users/")
+                    return urlMatches(normalizedUri, "users", "principals")
                 }
 
                 "OPTIONS" -> {
-                    log.debug { "OPTIONS call detected: $uri" }
-                    return urlMatches(uri, "/users/")
+                    log.debug { "OPTIONS call detected: $normalizedUri" }
+                    return urlMatches(normalizedUri, "users")
                 }
 
                 else -> {
@@ -138,17 +128,13 @@ class CardDavFilter : Filter {
         }
 
         /**
-         * @param uri The URI to check.
+         * @param normalizedUri The URI to check.
          * @param paths The path to check, must start with /.
          * @return true if given URI is a CardDav URI.
          */
-        internal fun urlMatches(uri: String, vararg paths: String): Boolean {
-            return if (cardDavUseRootPath) { // Avoid //users instead of /users:
-                paths.any { uri.startsWith(it) }
-            } else {
-                uri == CARD_DAV_BASE_PATH || uri == "/.well-known${CARD_DAV_BASE_PATH}" ||
-                        paths.any { uri.startsWith("$CARD_DAV_BASE_PATH$it") }
-            }
+        internal fun urlMatches(normalizedUri: String, vararg paths: String): Boolean {
+            return normalizedUri == CARD_DAV_BASE_PATH || normalizedUri == ".well-known${CARD_DAV_BASE_PATH}" ||
+                    paths.any { normalizedUri.startsWith(it) }
         }
     }
 }

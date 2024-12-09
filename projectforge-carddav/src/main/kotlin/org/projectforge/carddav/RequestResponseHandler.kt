@@ -32,6 +32,7 @@ private val log = KotlinLogging.logger {}
 
 internal class RequestWrapper(val request: HttpServletRequest) {
     val requestURI = request.requestURI
+    val method = request.method
     val basicAuth: Boolean by lazy {
         request.getHeader("authorization") != null ||
                 request.getHeader("Authorization") != null
