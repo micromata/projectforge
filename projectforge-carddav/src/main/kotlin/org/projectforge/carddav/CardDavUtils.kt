@@ -23,9 +23,13 @@
 
 package org.projectforge.carddav
 
+import jakarta.servlet.http.HttpServletResponse
 import org.projectforge.carddav.model.Contact
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.rest.utils.ResponseUtils
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import java.util.*
 
 internal object CardDavUtils {
@@ -46,5 +50,38 @@ internal object CardDavUtils {
      */
     fun getUsersAddressbookDisplayName(user: PFUserDO): String {
         return translateMsg("address.cardDAV.addressbook.displayName", user.firstname)
+    }
+
+    /**
+     * Handles the PROPFIND request for the current user principal.
+     * If no properties were found, a bad request response is set and null returned.
+     * @param requestWrapper The request wrapper.
+     * @param response The response.
+     * @param user The user.
+     * @return The list of properties or null if no properties were found.
+     */
+    fun handleProps(requestWrapper: RequestWrapper, response: HttpServletResponse): List<Prop>? {
+        val props = Prop.extractProps(requestWrapper.body)
+        if (props.isEmpty()) {
+            ResponseUtils.setValues(
+                response, HttpStatus.BAD_REQUEST, contentType = MediaType.TEXT_PLAIN_VALUE,
+                content = "No properties found in ${requestWrapper.method} request."
+            )
+            return null
+        }
+        return props
+    }
+
+    fun setMultiStatusResponse(response: HttpServletResponse, content: String) {
+        ResponseUtils.setValues(
+            response,
+            HttpStatus.MULTI_STATUS,
+            contentType = MediaType.APPLICATION_XML_VALUE,
+            content = content,
+        )
+    }
+
+    fun normalizedUri(requestUri: String): String {
+        return requestUri.removePrefix("/carddav").removePrefix("/").removeSuffix("/")
     }
 }

@@ -64,13 +64,7 @@ internal object ReportRequestHandler {
         contactList: List<Contact>
     ) {
         log.debug { "handleReportCall:  ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
-        val props = Prop.extractProps(requestWrapper.body)
-        if (props.isEmpty()) {
-            ResponseUtils.setValues(
-                response, HttpStatus.BAD_REQUEST, contentType = MediaType.TEXT_PLAIN_VALUE,
-                content = "No properties found in PROPFIND request."
-            )
-        }
+        val props = CardDavUtils.handleProps(requestWrapper, response) ?: return // No properties response is handled in handleProps.
         val rootElement = CardDavXmlUtils.getRootElement(requestWrapper.body)
         val sb = StringBuilder()
         appendMultiStatusStart(sb)
@@ -100,12 +94,7 @@ internal object ReportRequestHandler {
         appendMultiStatusEnd(sb)
         val content = sb.toString()
         log.debug { "handleReportCall: response=[$content]" }
-        ResponseUtils.setValues(
-            response,
-            HttpStatus.MULTI_STATUS,
-            contentType = MediaType.APPLICATION_XML_VALUE,
-            content = content,
-        )
+        CardDavUtils.setMultiStatusResponse(response, content)
     }
 
     /**

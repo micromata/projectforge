@@ -95,13 +95,15 @@ class CardDavService {
         val method = request.method
         // Runs under /carddav as well as under /
         // Normalize URI for further processing:
-        val normalizedRequestURI = request.requestURI.removePrefix("/carddav").removePrefix("/").removeSuffix("/")
+        val normalizedRequestURI = CardDavUtils.normalizedUri(request.requestURI)
         if (method == "PROPFIND") {
             if (normalizedRequestURI == "index.html") {
                 // PROPFIND call to /index.html after authentication is a typical behavior of many WebDAV or CardDAV clients.
                 // Alternatives: Not found (404) or Forbidden (403)
                 ResponseUtils.setValues(response, HttpStatus.MULTI_STATUS)
                 return
+            } else if (normalizedRequestURI.startsWith("principals")) {
+                PropFindRequestHandler.handlePropFindPrincipalsCall(requestWrapper, response, userDO)
             } else {
                 PropFindRequestHandler.handlePropFindCall(requestWrapper, response, userDO)
             }

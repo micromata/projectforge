@@ -47,21 +47,21 @@ internal object PropFindRequestHandler {
      */
     fun handlePropFindCall(requestWrapper: RequestWrapper, response: HttpServletResponse, user: PFUserDO) {
         log.debug { "handlePropFindCall: ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
-        val props = Prop.extractProps(requestWrapper.body)
-        if (props.isEmpty()) {
-            ResponseUtils.setValues(
-                response, HttpStatus.BAD_REQUEST, contentType = MediaType.TEXT_PLAIN_VALUE,
-                content = "No properties found in PROPFIND request."
-            )
-        }
+        val props = CardDavUtils.handleProps(requestWrapper, response) ?: return // No properties response is handled in handleProps.
         val content = generatePropFindResponse(requestWrapper, user, props)
         log.debug { "handlePropFindCall: response=[$content]" }
-        ResponseUtils.setValues(
-            response,
-            HttpStatus.MULTI_STATUS,
-            contentType = MediaType.APPLICATION_XML_VALUE,
-            content = content,
-        )
+        CardDavUtils.setMultiStatusResponse(response, content)
+    }
+
+    /**
+     * /principals/ or /carddav/principals/
+     */
+    fun handlePropFindPrincipalsCall(requestWrapper: RequestWrapper, response: HttpServletResponse, user: PFUserDO) {
+        log.debug { "handlePropFindPrincipalsCall: ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
+        val props = CardDavUtils.handleProps(requestWrapper, response) ?: return // No properties response is handled in handleProps.
+        val content = generatePropFindResponse(requestWrapper, user, props)
+        log.debug { "handlePropFindPrincipalsCall: response=[$content]" }
+        CardDavUtils.setMultiStatusResponse(response, content)
     }
 
     /**
@@ -77,7 +77,7 @@ internal object PropFindRequestHandler {
         user: PFUserDO,
         props: List<Prop>
     ): String {
-        val href = "${requestWrapper.baseUrl}/users/${user.username}/"
+        val href = requestWrapper.requestURI
         val sb = StringBuilder()
         appendMultiStatusStart(sb)
         sb.appendLine(
@@ -142,4 +142,25 @@ internal object PropFindRequestHandler {
         appendMultiStatusEnd(sb)
         return sb.toString()
     }
+
+    // <?xml version="1.0" encoding="UTF-8"?>
+    //<d:multistatus xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/">
+    //  <d:response>
+    //    <d:href>/principals/users/kai/</d:href>
+    //    <d:propstat>
+    //      <d:prop>
+    //        <d:current-user-principal>
+    //          <d:href>/principals/users/kai/</d:href>
+    //        </d:current-user-principal>
+    //        <d:principal-URL>
+    //          <d:href>/principals/users/kai/</d:href>
+    //        </d:principal-URL>
+    //        <cs:email-address-set>
+    //          <d:href>mailto:kai@example.com</d:href>
+    //        </cs:email-address-set>
+    //      </d:prop>
+    //      <d:status>HTTP/1.1 200 OK</d:status>
+    //    </d:propstat>
+    //  </d:response>
+    //</d:multistatus>
 }

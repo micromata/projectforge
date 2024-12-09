@@ -33,13 +33,16 @@ class CardDavFilterTest {
     fun `test handledByCardDavFilter`() {
         checkRequest(false, "OPTIONS", "/carddav/users/kai", true)
         checkRequest(true, "OPTIONS", "/users/kai", true)
-        checkRequest(false, "OPTIONS", "/carddav/users", false)
-        checkRequest(true, "OPTIONS", "/users", false)
+        checkRequest(false, "OPTIONS", "/users", true)
+        checkRequest(false, "OPTIONS", "/principals", false)
 
         checkRequest(false, "PROPFIND", "/carddav/users/kai", true)
         checkRequest(true, "PROPFIND", "/users/kai", true)
-        checkRequest(false, "PROPFIND", "/carddav/users", false)
-        checkRequest(true, "PROPFIND", "/users", false)
+        checkRequest(false, "PROPFIND", "/carddav/users/", true)
+        checkRequest(true, "PROPFIND", "/users", true)
+
+        checkRequest(false, "PROPFIND", "/carddav/principals/", true)
+        checkRequest(true, "PROPFIND", "/principals", true)
 
         checkRequest(false, "OPTIONS", "/.well-known/carddav", true)
     }
