@@ -70,7 +70,7 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
         log.info { "Got ${result.size} addresses from cache and must load ${missedInCache.size} from data base..." }
         if (missedInCache.size > 0) {
             addressDao.select(missedInCache, checkAccess = false)?.forEach {
-                val vcard = VCardUtils.buildVCardByteArray(it, addressImageDao)
+                val vcard = VCardUtils.buildVCardString(it, addressImageDao)
                 val contact =
                     Contact(
                         it.id,

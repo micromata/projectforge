@@ -139,9 +139,8 @@ internal object ReportRequestHandler {
         )
         if (fullVCards) {
             sb.append("        <cr:address-data>")
-            contact.vcardDataAsString.let { vcardData ->
-                val xml = CardDavXmlUtils.escapeXml(vcardData)
-                sb.append(xml) // No indent here!!!
+            contact.vcardData?.let {
+                CardDavXmlUtils.appendEscapedXml(sb, it) // No indent here!!!
             }
             CardDavXmlUtils.appendLines(sb, "</cr:address-data>")
         } else {

@@ -85,7 +85,7 @@ class AddressService {
 
     fun deleteContact(contact: Contact) {
         try {
-            val list = VCardUtils.parseVCardsFromByteArray(contact.vcardData)
+            val list = VCardUtils.parseVCardsFromString(contact.vcardData)
             if (list.isEmpty()) {
                 return // Nothing to do.
             }
