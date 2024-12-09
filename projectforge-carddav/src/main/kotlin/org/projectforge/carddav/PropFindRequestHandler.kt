@@ -28,11 +28,7 @@ import mu.KotlinLogging
 import org.projectforge.carddav.CardDavUtils.getUsersAddressbookDisplayName
 import org.projectforge.carddav.CardDavXmlUtils.appendMultiStatusEnd
 import org.projectforge.carddav.CardDavXmlUtils.appendMultiStatusStart
-import org.projectforge.carddav.CardDavXmlUtils.appendLines
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.rest.utils.ResponseUtils
-import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 
 private val log = KotlinLogging.logger {}
 
@@ -47,7 +43,8 @@ internal object PropFindRequestHandler {
      */
     fun handlePropFindCall(requestWrapper: RequestWrapper, response: HttpServletResponse, user: PFUserDO) {
         log.debug { "handlePropFindCall: ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
-        val props = CardDavUtils.handleProps(requestWrapper, response) ?: return // No properties response is handled in handleProps.
+        val props = CardDavUtils.handleProps(requestWrapper, response)
+            ?: return // No properties response is handled in handleProps.
         val content = generatePropFindResponse(requestWrapper, user, props)
         log.debug { "handlePropFindCall: response=[$content]" }
         CardDavUtils.setMultiStatusResponse(response, content)
@@ -58,7 +55,8 @@ internal object PropFindRequestHandler {
      */
     fun handlePropFindPrincipalsCall(requestWrapper: RequestWrapper, response: HttpServletResponse, user: PFUserDO) {
         log.debug { "handlePropFindPrincipalsCall: ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
-        val props = CardDavUtils.handleProps(requestWrapper, response) ?: return // No properties response is handled in handleProps.
+        val props = CardDavUtils.handleProps(requestWrapper, response)
+            ?: return // No properties response is handled in handleProps.
         val content = generatePropFindResponse(requestWrapper, user, props)
         log.debug { "handlePropFindPrincipalsCall: response=[$content]" }
         CardDavUtils.setMultiStatusResponse(response, content)
@@ -82,62 +80,79 @@ internal object PropFindRequestHandler {
         appendMultiStatusStart(sb)
         sb.appendLine(
             """
-            |    <response>
-            |        <href>$href</href>
-            |        <propstat>
-            |            <prop>""".trimMargin()
+                |  <d:response>
+                |    <d:href>$href</d:href>
+                |    <d:propstat>
+                |      <d:prop>
+            """.trimMargin()
         )
         if (props.contains(Prop.RESOURCETYPE)) {
-            appendLines(sb, "<resourcetype>")
-            appendLines(sb, "  <cr:addressbook />")
-            appendLines(sb, "  <collection />")
-            appendLines(sb, "</resourcetype>")
+            sb.appendLine("        <d:resourcetype>")
+            if (!props.contains(Prop.PRINCIPAL_URL)) {
+                // Apple-client requests PRINCIPAL_URL and doesn't expect <cr:addressbook/> in the response. But Thunderbird expects it.
+                sb.appendLine("          <cr:addressbook />")
+            }
+            sb.appendLine("          <d:collection />")
+            sb.appendLine("        </d:resourcetype>")
         }
         if (props.contains(Prop.GETCTAG)) {
-            appendLines(
-                sb,
-                "<cs:getctag>\"88d6c17fa866ef38e6e0122a59bf3da10a66daa042860116c88979a50c025eb9\"</cs:getctag>"
-            )
+            sb.appendLine("        <cs:getctag>\"88d6c17fa866ef38e6e0122a59bf3da10a66daa042860116c88979a50c025eb9\"</cs:getctag>")
         }
         if (props.contains(Prop.GETETAG)) {
-            appendLines(
-                sb,
-                "<getetag>\"88d6c17fa866ef38e6e0122a59bf3da10a66daa042860116c88979a50c025eb9\"</getetag>"
-            )
+            sb.appendLine("        <d:getetag>\"88d6c17fa866ef38e6e0122a59bf3da10a66daa042860116c88979a50c025eb9\"</d:getetag>")
         }
         if (props.contains(Prop.SYNCTOKEN)) {
-            appendLines(sb, "<sync-token>")
-            appendLines(
-                sb,
-                "  https://www.projectforge.org/ns/sync/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            // This sync token is just a random constant string for testing.
+            sb.appendLine(
+                """
+                |        <d:sync-token>
+                |          https://www.projectforge.org/ns/sync/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+                |        </d:sync-token>
+                """.trimMargin()
             )
-            appendLines(sb, "</sync-token>")
         }
         if (props.contains(Prop.DISPLAYNAME)) {
-            appendLines(sb, "<displayname>${getUsersAddressbookDisplayName(user)}</displayname>")
+            sb.appendLine("        <d:displayname>${getUsersAddressbookDisplayName(user)}</d:displayname>")
             // appendPropLines(sb, "<getcontenttype>text/vcard</getcontenttype>")
         }
         if (props.contains(Prop.CURRENT_USER_PRINCIPAL)) {
-            appendLines(sb, "<current-user-principal>")
-            appendLines(sb, "  <href>$href</href>")
-            appendLines(sb, "</current-user-principal>")
+            sb.appendLine(
+                """
+                |        <d:current-user-principal>
+                |          <d:href>${CardDavUtils.getPrincipalsUsersUrl(href, user)}</d:href>
+                |        </d:current-user-principal>
+                """.trimMargin()
+            )
+        }
+        if (props.contains(Prop.PRINCIPAL_URL)) {
+            sb.appendLine(
+                """
+                |        <d:principal-URL>
+                |          <d:href>${CardDavUtils.getPrincipalsUsersUrl(href, user)}</d:href>
+                |        </d:principal-URL>
+                """.trimMargin()
+            )
         }
         if (props.contains(Prop.CURRENT_USER_PRIVILEGE_SET)) {
-            appendLines(sb, "<current-user-privilege-set>")
-            appendLines(sb, "  <privilege><read /></privilege>")
-            appendLines(sb, "  <privilege><all /></privilege>")
-            appendLines(sb, "  <privilege><write /></privilege>")
-            appendLines(sb, "  <privilege><write-properties /></privilege>")
-            appendLines(sb, "  <privilege><write-content /></privilege>")
-            appendLines(sb, "</current-user-privilege-set>")
+            sb.appendLine(
+                """
+                |        <d:current-user-privilege-set>
+                |          <d:privilege><d:read /></d:privilege>
+                |          <d:privilege><d:all /></d:privilege>
+                |          <d:privilege><d:write /></d:privilege>
+                |          <d:privilege><d:write-properties /></d:privilege>
+                |          <d:privilege><d:write-content /></d:privilege>
+                |        </d:current-user-privilege-set>
+                """.trimMargin()
+            )
         }
         sb.appendLine(
             """
-            |          </prop>
-            |          <status>HTTP/1.1 200 OK</status>
-            |      </propstat>
-            |  </response>
-        """.trimMargin()
+                |      </d:prop>
+                |      <d:status>HTTP/1.1 200 OK</d:status>
+                |    </d:propstat>
+                |  </d:response>
+            """.trimMargin()
         )
         appendMultiStatusEnd(sb)
         return sb.toString()

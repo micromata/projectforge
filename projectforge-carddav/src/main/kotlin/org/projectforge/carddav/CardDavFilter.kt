@@ -105,7 +105,12 @@ class CardDavFilter : Filter {
          * @return true if given is handled by CardDavController. Otherwise, false.
          */
         fun handledByCardDavFilter(request: HttpServletRequest): Boolean {
-            val normalizedUri = CardDavUtils.normalizedUri(request.requestURI)
+            val uri = request.requestURI
+            val normalizedUri = if (uri == CARD_DAV_BASE_PATH || uri == "$CARD_DAV_BASE_PATH/") {
+                CARD_DAV_BASE_PATH // Preserve /carddav instead of ""
+            } else {
+                CardDavUtils.normalizedUri(request.requestURI)
+            }
             return when (request.method) {
                 "PROPFIND", "REPORT" -> {
                     log.debug { "PROPFIND/REPORT call detected: method=${request.method}, uri=$normalizedUri" }

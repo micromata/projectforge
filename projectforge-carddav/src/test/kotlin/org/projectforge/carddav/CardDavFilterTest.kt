@@ -31,24 +31,24 @@ import org.mockito.Mockito
 class CardDavFilterTest {
     @Test
     fun `test handledByCardDavFilter`() {
-        checkRequest(false, "OPTIONS", "/carddav/users/kai", true)
-        checkRequest(true, "OPTIONS", "/users/kai", true)
-        checkRequest(false, "OPTIONS", "/users", true)
-        checkRequest(false, "OPTIONS", "/principals", false)
+        checkRequest("OPTIONS", "/carddav", true)
+        checkRequest("OPTIONS", "/carddav/users/kai", true)
+        checkRequest("OPTIONS", "/users/kai", true)
+        checkRequest("OPTIONS", "/users", true)
+        checkRequest("OPTIONS", "/principals", false)
 
-        checkRequest(false, "PROPFIND", "/carddav/users/kai", true)
-        checkRequest(true, "PROPFIND", "/users/kai", true)
-        checkRequest(false, "PROPFIND", "/carddav/users/", true)
-        checkRequest(true, "PROPFIND", "/users", true)
+        checkRequest("PROPFIND", "/carddav", true)
+        checkRequest("PROPFIND", "/carddav/users/kai", true)
+        checkRequest("PROPFIND", "/users/kai", true)
+        checkRequest("PROPFIND", "/carddav/users/", true)
+        checkRequest("PROPFIND", "/users", true)
+        checkRequest("PROPFIND", "/carddav/principals/", true)
+        checkRequest("PROPFIND", "/principals", true)
 
-        checkRequest(false, "PROPFIND", "/carddav/principals/", true)
-        checkRequest(true, "PROPFIND", "/principals", true)
-
-        checkRequest(false, "OPTIONS", "/.well-known/carddav", true)
+        checkRequest( "OPTIONS", "/.well-known/carddav", true)
     }
 
     private fun checkRequest(
-        useRootPath: Boolean,
         method: String,
         requestUri: String?,
         expected: Boolean,
@@ -57,7 +57,6 @@ class CardDavFilterTest {
         val request = Mockito.mock(HttpServletRequest::class.java)
         Mockito.`when`(request.requestURI).thenReturn(requestUri)
         Mockito.`when`(request.method).thenReturn(method)
-        CardDavInit.cardDavUseRootPath = useRootPath
         Assertions.assertEquals(expected, CardDavFilter.handledByCardDavFilter(request), msg)
         return request
     }

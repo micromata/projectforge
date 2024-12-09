@@ -23,28 +23,17 @@
 
 package org.projectforge.carddav
 
-import jakarta.annotation.PostConstruct
 import jakarta.servlet.ServletContext
 import org.projectforge.rest.config.RestUtils
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 @Component
 open class CardDavInit {
-    @Value("\${projectforge.carddav.useRootPath:false}")
-    private var cardDavUseRootPath: Boolean = false
-
-    @PostConstruct
-    private fun initCompanion() {
-        CardDavInit.cardDavUseRootPath = this.cardDavUseRootPath
-    }
-
     fun init(sc: ServletContext) {
         RestUtils.registerFilter(sc, "CardDavFilter", CardDavFilter::class.java, false, "/*")
     }
 
     companion object {
         internal const val CARD_DAV_BASE_PATH = "/carddav"
-        internal var cardDavUseRootPath: Boolean = false
     }
 }

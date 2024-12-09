@@ -109,10 +109,10 @@ internal object ReportRequestHandler {
     fun generateNotFoundContact(sb: StringBuilder, href: String) {
         sb.appendLine(
             """
-            |  <response>
-            |    <href>$href</href>
-            |    <status>HTTP/1.1 404 Not Found</status>
-            |  </response>
+            |  <d:response>
+            |    <d:href>$href</d:href>
+            |    <d:status>HTTP/1.1 404 Not Found</d:status>
+            |  </d:response>
         """.trimMargin()
         )
     }
@@ -120,27 +120,27 @@ internal object ReportRequestHandler {
     fun appendPropfindContact(sb: StringBuilder, href: String, contact: Contact, fullVCards: Boolean) {
         sb.appendLine(
             """
-            |  <response>
-            |    <href>${href}${CardDavUtils.getVcfFileName(contact)}</href>
-            |    <propstat>
-            |        <prop>
-            |          <getetag>"${CardDavUtils.getETag(contact)}"</getetag>""".trimMargin()
+            |  <d:response>
+            |    <d:href>${href}${CardDavUtils.getVcfFileName(contact)}</d:href>
+            |    <d:propstat>
+            |      <d:prop>
+            |        <d:getetag>"${CardDavUtils.getETag(contact)}"</d:getetag>""".trimMargin()
         )
         if (fullVCards) {
             sb.append("        <cr:address-data>")
             contact.vcardData?.let {
                 CardDavXmlUtils.appendEscapedXml(sb, it) // No indent here!!!
             }
-            CardDavXmlUtils.appendLines(sb, "</cr:address-data>")
+            sb.append("        </cr:address-data>")
         } else {
-            CardDavXmlUtils.appendLines(sb, "<cr:address-data />")
+            sb.append("        <cr:address-data />")
         }
         sb.appendLine(
             """
-            |        </prop>
-            |        <status>HTTP/1.1 200 OK</status>
-            |    </propstat>
-            |  </response>""".trimMargin()
+            |      </d:prop>
+            |      <d:status>HTTP/1.1 200 OK</d:status>
+            |    </d:propstat>
+            |  </d:response>""".trimMargin()
         )
     }
 }

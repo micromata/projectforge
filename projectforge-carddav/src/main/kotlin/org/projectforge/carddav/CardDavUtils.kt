@@ -24,6 +24,7 @@
 package org.projectforge.carddav
 
 import jakarta.servlet.http.HttpServletResponse
+import org.aspectj.weaver.tools.cache.SimpleCacheFactory.path
 import org.projectforge.carddav.model.Contact
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -81,7 +82,39 @@ internal object CardDavUtils {
         )
     }
 
+    /**
+     * Returns the normalized URI without the CardDAV base path and without leading and trailing slashes.
+     * For better comparison, the URI is normalized.
+     * @param requestUri The request URI.
+     * @return The normalized URI.
+     */
     fun normalizedUri(requestUri: String): String {
         return requestUri.removePrefix("/carddav").removePrefix("/").removeSuffix("/")
+    }
+
+    /**
+     * Returns the URL for the given path.
+     * If the path starts with the CardDAV base path, the CardDAV base path is returned.
+     * Otherwise, the path is returned with a leading slash.
+     * @param requestUri The request URI.
+     * @param path The path with a leading slash, but without /carddav (e.g. /users/joe/).
+     */
+    fun getUrl(requestUri: String, path: String): String {
+        require(path.startsWith("/")) { "Path must start with a slash: $path" }
+        return if (requestUri.startsWith(CardDavInit.CARD_DAV_BASE_PATH)) {
+            "${CardDavInit.CARD_DAV_BASE_PATH}$path"
+        } else {
+            path
+        }
+    }
+
+    /**
+     * Returns the URL for the given user.
+     * @param requestUri The request URI.
+     * @param user The user.
+     * @return The URL for the user.
+     */
+    fun getPrincipalsUsersUrl(requestUri: String, user: PFUserDO): String {
+        return getUrl(requestUri, "/principals/users/${user.username}/")
     }
 }

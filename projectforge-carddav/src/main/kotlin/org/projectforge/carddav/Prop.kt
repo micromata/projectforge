@@ -39,6 +39,7 @@ internal enum class Prop(val str: String) {
     SYNCTOKEN("sync-token"),
     CURRENT_USER_PRINCIPAL("current-user-principal"),
     CURRENT_USER_PRIVILEGE_SET("current-user-privilege-set"),
+    PRINCIPAL_URL("principal-URL"),
     ADDRESS_DATA("caddress-data");
 
     companion object {
