@@ -25,8 +25,15 @@ package org.projectforge.carddav
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 class CardDavUtilsTest {
+    @Test
+    fun `test getPrincipalsUsersUrl`() {
+        Assertions.assertEquals("/carddav/principals/users/joe/", CardDavUtils.getPrincipalsUsersUrl("/carddav/users/...", PFUserDO().also { it.username = "joe" }))
+        Assertions.assertEquals("/principals/users/joe/", CardDavUtils.getPrincipalsUsersUrl("/users/...", PFUserDO().also { it.username = "joe" }))
+    }
+
     @Test
     fun `test normalizedUri`() {
         Assertions.assertEquals("users", CardDavUtils.normalizedUri("/carddav/users/"))

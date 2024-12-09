@@ -36,20 +36,20 @@ class CardDavControllerTest {
         StringBuilder().let { sb ->
             CardDavXmlUtils.appendMultiStatusStart(sb)
             Assertions.assertEquals(
-                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<multistatus xmlns:d=\"DAV:\" xmlns:cr=\"urn:ietf:params:xml:ns:carddav\" xmlns:cs=\"http://calendarserver.org/ns/\">\n",
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:cr=\"urn:ietf:params:xml:ns:carddav\" xmlns:cs=\"http://calendarserver.org/ns/\">\n",
                 sb.toString()
             )
         }
         StringBuilder().let { sb ->
             CardDavXmlUtils.appendMultiStatusStart(sb, false)
             Assertions.assertEquals(
-                "<multistatus xmlns:d=\"DAV:\" xmlns:cr=\"urn:ietf:params:xml:ns:carddav\" xmlns:cs=\"http://calendarserver.org/ns/\">\n",
+                "<d:multistatus xmlns:d=\"DAV:\" xmlns:cr=\"urn:ietf:params:xml:ns:carddav\" xmlns:cs=\"http://calendarserver.org/ns/\">\n",
                 sb.toString()
             )
         }
         StringBuilder().let { sb ->
             CardDavXmlUtils.appendMultiStatusEnd(sb)
-            Assertions.assertEquals("</multistatus>\n", sb.toString())
+            Assertions.assertEquals("</d:multistatus>\n", sb.toString())
         }
         StringBuilder().let { sb ->
             val user = User("kai")
@@ -58,16 +58,4 @@ class CardDavControllerTest {
             //Assertions.assertEquals(response, sb.toString())
         }
     }
-
-    private val response = """  <d:response>
-    <d:href>/carddav/kai/addressbook/contact42.vcf</d:href>
-    <d:propstat>
-      <d:prop>
-        <d:getetag>"1234567890"</d:getetag>
-        <d:displayname>Reinhard, Kai</d:displayname>
-      </d:prop>
-      <d:status>HTTP/1.1 200 OK</d:status>
-    </d:propstat>
-  </d:response>
-"""
 }

@@ -102,7 +102,7 @@ internal object CardDavXmlUtils {
         if (prependXmlPrefix) {
             appendXmlPrefix(sb)
         }
-        sb.appendLine("<multistatus $XML_NS>")
+        sb.appendLine("<d:multistatus $XML_NS>")
     }
 
     /**
@@ -110,27 +110,7 @@ internal object CardDavXmlUtils {
      * @param sb The StringBuilder to append the XML to.
      */
     fun appendMultiStatusEnd(sb: StringBuilder) {
-        sb.appendLine("</multistatus>")
-    }
-
-    /**
-     * Appends the start of a response to a propfind request to the given StringBuilder.
-     * Uses an indent depth of 4 (8 spaces)..
-     * @param sb The StringBuilder to append the XML to.
-     * @param lines The lines to append to the StringBuilder.
-     */
-    fun appendLines(sb: StringBuilder, vararg lines: String) {
-        appendLines(sb, 4, lines = lines)
-    }
-
-    /**
-     * Appends the start of a response to a propfind request to the given StringBuilder.
-     */
-    fun appendLines(sb: StringBuilder, indentDepth: Int = 8, vararg lines: String) {
-        val indentStr = "  ".repeat(2 * indentDepth)
-        lines.forEach { line ->
-            sb.appendLine("$indentStr$line")
-        }
+        sb.appendLine("</d:multistatus>")
     }
 
     const val XML_NS =

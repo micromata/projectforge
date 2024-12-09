@@ -90,6 +90,19 @@ class CardDavTestClient(private val baseUrl: String, username: String, password:
         try {
             sendRequest("OPTIONS") // "/users/$username/")
             """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <A:propfind xmlns:A="DAV:">
+                  <A:prop>
+                    <A:current-user-principal/>
+                    <A:principal-URL/>
+                    <A:resourcetype/>
+                  </A:prop>
+                </A:propfind>
+            """.trimIndent().let { body ->
+                sendRequest("PROPFIND", requestBody = body, useAuthHeader = true)
+            }
+            /*
+            """
                 <propfind xmlns="DAV:">
                    <prop>
                      <resourcetype/>
@@ -157,7 +170,7 @@ class CardDavTestClient(private val baseUrl: String, username: String, password:
       <d:href>/kai/testcollection/4ebaea4c-3a96-44dd-84eb-c2207d8f38f5.vcf</d:href>
     </card:addressbook-multiget>""".trimIndent().let { body ->
                 sendRequest("REPORT", requestBody = body, useAuthHeader = true)
-            }
+            }*/
         } finally {
             client.close()
         }

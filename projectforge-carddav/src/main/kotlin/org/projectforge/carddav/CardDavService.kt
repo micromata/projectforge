@@ -91,6 +91,7 @@ class CardDavService {
     }
 
     private fun dispathAuthenticated(requestWrapper: RequestWrapper, response: HttpServletResponse, userDO: PFUserDO) {
+        log.debug { "Dispatching authenticated request: ${RequestLog.asString(requestWrapper.request)}" }
         val request = requestWrapper.request
         val method = request.method
         // Runs under /carddav as well as under /
@@ -116,6 +117,12 @@ class CardDavService {
                 val contactId = normalizedRequestURI.removePrefix("users/").removeSuffix(".vcf")
                 getContact(user, contactId)
             }*/
+        } else {
+            log.warn { "Method not supported: $method" }
+            ResponseUtils.setValues(
+                response, HttpStatus.METHOD_NOT_ALLOWED, contentType = MediaType.TEXT_PLAIN_VALUE,
+                content = "Method not supported: $method"
+            )
         }
     }
 

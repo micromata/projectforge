@@ -43,21 +43,21 @@ class PropFindRequestHandlerTest {
             ).let {
                 val expected = """
                     |<?xml version="1.0" encoding="UTF-8"?>
-                    |<multistatus xmlns:d="DAV:" xmlns:cr="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/">
-                    |    <response>
-                    |        <href>/carddav/users/kai/</href>
-                    |        <propstat>
-                    |            <prop>
-                    |                <resourcetype>
-                    |                  <cr:addressbook />
-                    |                  <collection />
-                    |                </resourcetype>
-                    |                <displayname>address.cardDAV.addressbook.displayName</displayname>
-                    |          </prop>
-                    |          <status>HTTP/1.1 200 OK</status>
-                    |      </propstat>
-                    |  </response>
-                    |</multistatus>
+                    |<d:multistatus xmlns:d="DAV:" xmlns:cr="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/">
+                    |  <d:response>
+                    |    <d:href>/carddav/users/kai/</d:href>
+                    |    <d:propstat>
+                    |      <d:prop>
+                    |        <d:resourcetype>
+                    |          <cr:addressbook />
+                    |          <d:collection />
+                    |        </d:resourcetype>
+                    |        <d:displayname>address.cardDAV.addressbook.displayName</d:displayname>
+                    |      </d:prop>
+                    |      <d:status>HTTP/1.1 200 OK</d:status>
+                    |    </d:propstat>
+                    |  </d:response>
+                    |</d:multistatus>
                     |""".trimMargin()
                 Assertions.assertEquals(expected, it)
             }
@@ -65,6 +65,7 @@ class PropFindRequestHandlerTest {
         listOf(
             Prop.CURRENT_USER_PRINCIPAL,
             Prop.CURRENT_USER_PRIVILEGE_SET,
+            Prop.PRINCIPAL_URL,
         ).let { props ->
             PropFindRequestHandler.generatePropFindResponse(
                 requestWrapper,
@@ -73,26 +74,29 @@ class PropFindRequestHandlerTest {
             ).let {
                 val expected = """
                     |<?xml version="1.0" encoding="UTF-8"?>
-                    |<multistatus xmlns:d="DAV:" xmlns:cr="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/">
-                    |    <response>
-                    |        <href>/carddav/users/kai/</href>
-                    |        <propstat>
-                    |            <prop>
-                    |                <current-user-principal>
-                    |                  <href>/carddav/users/kai/</href>
-                    |                </current-user-principal>
-                    |                <current-user-privilege-set>
-                    |                  <privilege><read /></privilege>
-                    |                  <privilege><all /></privilege>
-                    |                  <privilege><write /></privilege>
-                    |                  <privilege><write-properties /></privilege>
-                    |                  <privilege><write-content /></privilege>
-                    |                </current-user-privilege-set>
-                    |          </prop>
-                    |          <status>HTTP/1.1 200 OK</status>
-                    |      </propstat>
-                    |  </response>
-                    |</multistatus>
+                    |<d:multistatus xmlns:d="DAV:" xmlns:cr="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/">
+                    |  <d:response>
+                    |    <d:href>/carddav/users/kai/</d:href>
+                    |    <d:propstat>
+                    |      <d:prop>
+                    |        <d:current-user-principal>
+                    |          <d:href>/carddav/principals/users/kai/</d:href>
+                    |        </d:current-user-principal>
+                    |        <d:principal-URL>
+                    |          <d:href>/carddav/principals/users/kai/</d:href>
+                    |        </d:principal-URL>
+                    |        <d:current-user-privilege-set>
+                    |          <d:privilege><d:read /></d:privilege>
+                    |          <d:privilege><d:all /></d:privilege>
+                    |          <d:privilege><d:write /></d:privilege>
+                    |          <d:privilege><d:write-properties /></d:privilege>
+                    |          <d:privilege><d:write-content /></d:privilege>
+                    |        </d:current-user-privilege-set>
+                    |      </d:prop>
+                    |      <d:status>HTTP/1.1 200 OK</d:status>
+                    |    </d:propstat>
+                    |  </d:response>
+                    |</d:multistatus>
                     |""".trimMargin()
                 Assertions.assertEquals(expected, it)
             }
