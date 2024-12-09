@@ -108,7 +108,7 @@ class PollMailService {
         return userList.mapNotNull { it.email }
     }
 
-    fun getAllAttendesEmails(poll: Poll): List<String> {
+    fun getAllAttendeesEmails(poll: Poll): List<String> {
         val attendees = poll.attendees
 
         val userList = attendees
