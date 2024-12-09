@@ -49,6 +49,26 @@ internal object CardDavXmlUtils {
         return match?.groupValues?.get(0)?.substringAfter('<')?.substringBefore('>')
     }
 
+    /**
+     * Escapes the given input string for XML.
+     * @param input The input string.
+     * @return The escaped string.
+     */
+    fun escapeXml(input: String): String {
+        val sb = StringBuilder(input.length)
+        for (char in input) {
+            when (char) {
+                '&' -> sb.append("&amp;")
+                '<' -> sb.append("&lt;")
+                '>' -> sb.append("&gt;")
+                '"' -> sb.append("&quot;")
+                '\'' -> sb.append("&apos;")
+                else -> sb.append(char)
+            }
+        }
+        return sb.toString()
+    }
+
     fun extractAddressIds(xml: String): Sequence<Long> {
         val regex = Regex("ProjectForge-(\\d+)\\.vcf")
         return regex.findAll(xml)

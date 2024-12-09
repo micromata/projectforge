@@ -125,7 +125,7 @@ object VCardUtils {
         addressImageDao: AddressImageDao
     ): ByteArray { //See: https://github.com/mangstadt/ez-vcard
         val vcard = buildVCard(addressDO, addressImageDao)
-        return Ezvcard.write(vcard).version(VCardVersion.V3_0).go().toByteArray()
+        return Ezvcard.write(vcard).version(VCardVersion.V4_0).go().toByteArray()
     }
 
     @JvmStatic

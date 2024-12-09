@@ -44,4 +44,11 @@ class CardDavXmlUtilsTest {
             Assertions.assertEquals("d:prop", CardDavXmlUtils.getElementName(xml, "prop"))
         }
     }
+
+    @Test
+    fun `escape xml string`() {
+        """<hurzel test="dkfsld">  & '""".let { xml ->
+            Assertions.assertEquals("&lt;hurzel test=&quot;dkfsld&quot;&gt;  &amp; &apos;", CardDavXmlUtils.escapeXml(xml))
+        }
+    }
 }
