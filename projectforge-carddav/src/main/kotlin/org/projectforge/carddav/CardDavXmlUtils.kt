@@ -56,6 +56,16 @@ internal object CardDavXmlUtils {
      */
     fun escapeXml(input: String): String {
         val sb = StringBuilder(input.length)
+        appendEscapedXml(sb, input)
+        return sb.toString()
+    }
+
+    /**
+     * Escapes the given input string for XML.
+     * @param input The input string.
+     * @return The escaped string.
+     */
+    fun appendEscapedXml(sb: StringBuilder, input: String) {
         for (char in input) {
             when (char) {
                 '&' -> sb.append("&amp;")
@@ -66,7 +76,6 @@ internal object CardDavXmlUtils {
                 else -> sb.append(char)
             }
         }
-        return sb.toString()
     }
 
     fun extractAddressIds(xml: String): Sequence<Long> {
