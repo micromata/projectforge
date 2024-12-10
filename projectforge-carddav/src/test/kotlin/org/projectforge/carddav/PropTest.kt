@@ -41,10 +41,10 @@ class PropTest {
         """.trimIndent().let { xml ->
             val propFinds = Prop.extractProps(xml)
             Assertions.assertEquals(4, propFinds.size)
-            Assertions.assertEquals(Prop.CURRENT_USER_PRINCIPAL, propFinds[0])
-            Assertions.assertEquals(Prop.CURRENT_USER_PRIVILEGE_SET, propFinds[1])
-            Assertions.assertEquals(Prop.DISPLAYNAME, propFinds[2])
-            Assertions.assertEquals(Prop.RESOURCETYPE, propFinds[3])
+            Assertions.assertEquals(PropType.CURRENT_USER_PRINCIPAL, propFinds[0].type)
+            Assertions.assertEquals(PropType.CURRENT_USER_PRIVILEGE_SET, propFinds[1].type)
+            Assertions.assertEquals(PropType.DISPLAYNAME, propFinds[2].type)
+            Assertions.assertEquals(PropType.RESOURCETYPE, propFinds[3].type)
         }
         """
             <sync-collection xmlns="DAV:">
@@ -62,10 +62,10 @@ class PropTest {
         """.trimIndent().let { xml ->
             val propFinds = Prop.extractProps(xml)
             Assertions.assertEquals(4, propFinds.size)
-            Assertions.assertEquals(Prop.GETCTAG, propFinds[0])
-            Assertions.assertEquals(Prop.GETETAG, propFinds[1])
-            Assertions.assertEquals(Prop.RESOURCETYPE, propFinds[2])
-            Assertions.assertEquals(Prop.SYNCTOKEN, propFinds[3])
+            Assertions.assertEquals(PropType.GETCTAG, propFinds[0].type)
+            Assertions.assertEquals(PropType.GETETAG, propFinds[1].type)
+            Assertions.assertEquals(PropType.RESOURCETYPE, propFinds[2].type)
+            Assertions.assertEquals(PropType.SYNCTOKEN, propFinds[3].type)
         }
     }
 }

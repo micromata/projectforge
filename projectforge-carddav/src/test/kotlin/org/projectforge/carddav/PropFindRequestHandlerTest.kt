@@ -36,7 +36,7 @@ class PropFindRequestHandlerTest {
         val request = Mockito.mock(HttpServletRequest::class.java)
         Mockito.`when`(request.requestURI).thenReturn("/carddav/users/kai/")
         val requestWrapper = RequestWrapper(request)
-        listOf(Prop.RESOURCETYPE, Prop.DISPLAYNAME).let { props ->
+        listOf(Prop(PropType.RESOURCETYPE), Prop(PropType.DISPLAYNAME)).let { props ->
             val writerContext = WriterContext(
                 requestWrapper,
                 Mockito.mock(HttpServletResponse::class.java),
@@ -53,9 +53,8 @@ class PropFindRequestHandlerTest {
                     |      <d:prop>
                     |        <d:resourcetype>
                     |          <d:collection />
-                    |          <card:addressbook />
                     |        </d:resourcetype>
-                    |        <d:displayname>address.cardDAV.addressbook.displayName</d:displayname>
+                    |        <d:displayname>kai</d:displayname>
                     |      </d:prop>
                     |      <d:status>HTTP/1.1 200 OK</d:status>
                     |    </d:propstat>
@@ -66,9 +65,9 @@ class PropFindRequestHandlerTest {
             }
         }
         listOf(
-            Prop.CURRENT_USER_PRINCIPAL,
-            Prop.CURRENT_USER_PRIVILEGE_SET,
-            Prop.PRINCIPAL_URL,
+            Prop(PropType.CURRENT_USER_PRINCIPAL),
+            Prop(PropType.CURRENT_USER_PRIVILEGE_SET),
+            Prop(PropType.PRINCIPAL_URL),
         ).let { props ->
             val writerContext = WriterContext(
                 requestWrapper,

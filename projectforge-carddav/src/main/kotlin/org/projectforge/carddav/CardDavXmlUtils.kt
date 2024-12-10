@@ -23,9 +23,13 @@
 
 package org.projectforge.carddav
 
+import mu.KotlinLogging
+import org.jetbrains.kotlin.utils.addToStdlib.countOccurrencesOf
 import org.projectforge.carddav.CardDavUtils.CARD
 import org.projectforge.carddav.CardDavUtils.CS
 import org.projectforge.carddav.CardDavUtils.D
+
+private val log = KotlinLogging.logger {}
 
 internal object CardDavXmlUtils {
     /**
@@ -51,6 +55,19 @@ internal object CardDavXmlUtils {
         // Search for the first matching element:
         val match = regex.find(xml)
         return match?.groupValues?.get(0)?.substringAfter('<')?.substringBefore('>')
+    }
+
+    fun extractElementValue(xml: String, tagName: String): String? {
+        val element = getElementName(xml, tagName)?.removeSuffix("/")?.trim() ?: return null
+        val count = xml.countOccurrencesOf("<$element>")
+        if (count > 1) {
+            log.warn { "Invalid xml request (multiple entries of <$element>...</$element> found, first is used): $xml" }
+        }
+        if (xml.replace(" />", "/>").contains("<$element/>")) {
+            // Empty element
+            return null
+        }
+        return xml.substringAfter("<$element>").substringBefore("</$element>")
     }
 
     /**
@@ -80,11 +97,6 @@ internal object CardDavXmlUtils {
                 else -> sb.append(char)
             }
         }
-    }
-
-    fun extractContactId(path: String): Long? {
-        val regex = """ProjectForge-(\d+)\.vcf""".toRegex()
-        return regex.find(path)?.groups?.get(1)?.value?.toLong()
     }
 
     fun extractContactIds(xml: String): Sequence<Long> {
@@ -124,5 +136,5 @@ internal object CardDavXmlUtils {
     const val XML_NS =
         "xmlns:$D=\"DAV:\" xmlns:$CARD=\"urn:ietf:params:xml:ns:carddav\" xmlns:$CS=\"http://calendarserver.org/ns/\" xmlns:me=\"http://me.com/_namespace/\""
 
-    private val EXTRACT_ADDRESS_ID_REGEX = """ProjectForge-(\d+)\.vcf""".toRegex()
+    val EXTRACT_ADDRESS_ID_REGEX = """ProjectForge-(\d+)\.vcf""".toRegex()
 }

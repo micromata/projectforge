@@ -24,6 +24,7 @@
 package org.projectforge.carddav
 
 import jakarta.servlet.http.HttpServletResponse
+import org.projectforge.carddav.CardDavXmlUtils.EXTRACT_ADDRESS_ID_REGEX
 import org.projectforge.carddav.model.Contact
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.i18n.translateMsg
@@ -71,6 +72,14 @@ internal object CardDavUtils {
         val oldDate = Date(0)
         val lastUpdated = contactList?.maxByOrNull { it.lastUpdated ?: oldDate }?.lastUpdated
         return "\"${PFDateTime.fromOrNow(lastUpdated).format(DateFormatType.ISO_TIMESTAMP_MILLIS)}\""
+    }
+
+    fun getSyncToken(contactList: List<Contact>?): String {
+        return "\"sync-${System.currentTimeMillis()}\""
+    }
+
+    fun extractContactId(path: String): Long? {
+        return EXTRACT_ADDRESS_ID_REGEX.find(path)?.groups?.get(1)?.value?.toLong()
     }
 
     /**

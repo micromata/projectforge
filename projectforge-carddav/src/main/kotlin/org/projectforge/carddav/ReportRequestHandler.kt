@@ -64,17 +64,18 @@ internal object ReportRequestHandler {
         val response = writerContext.response
         val contactList = writerContext.contactList ?: emptyList()
         log.debug { "handleReportCall:  ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
-        val props = CardDavUtils.handleProps(requestWrapper, response)
-            ?: return // No properties response is handled in handleProps.
+        writerContext.props ?: return // No properties response is handled in handleProps.
         val rootElement = CardDavXmlUtils.getRootElement(requestWrapper.body)
         val sb = StringBuilder()
         appendMultiStatusStart(sb)
         if (rootElement == "sync-collection") {
-            val syncToken = System.currentTimeMillis().toString() // Nothing better for now.
-            sb.appendLine("  <sync-token>$syncToken</sync-token>")
+            //val syncToken = CardDavXmlUtils.extractSyncToken(requestWrapper.body)
+            // 1. Modifications since the last sync-token.
+            PropWriter.appendSupportedProps(sb, writerContext)
             contactList.forEach { contact ->
                 appendPropfindContact(sb, requestWrapper.requestURI, contact, false)
             }
+            // 2. No modifications since the last sync-token.
         } else if (rootElement == "addressbook-multiget") {
             val requestedAddressIds = CardDavXmlUtils.extractContactIds(requestWrapper.body)
             val notFoundContactIds = requestedAddressIds.filter { addressId -> contactList.none { it.id == addressId } }
