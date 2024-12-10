@@ -43,7 +43,7 @@ class PropFindRequestHandlerTest {
             ).let {
                 val expected = """
                     |<?xml version="1.0" encoding="UTF-8"?>
-                    |<d:multistatus xmlns:d="DAV:" xmlns:cr="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/">
+                    |<d:multistatus xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/">
                     |  <d:response>
                     |    <d:href>/carddav/users/kai/</d:href>
                     |    <d:propstat>
@@ -74,7 +74,7 @@ class PropFindRequestHandlerTest {
             ).let {
                 val expected = """
                     |<?xml version="1.0" encoding="UTF-8"?>
-                    |<d:multistatus xmlns:d="DAV:" xmlns:cr="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/">
+                    |<d:multistatus xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/">
                     |  <d:response>
                     |    <d:href>/carddav/users/kai/</d:href>
                     |    <d:propstat>

@@ -102,7 +102,7 @@ internal object PropFindRequestHandler {
             sb.appendLine(
                 """
                 |        <$CS:email-address-set>
-                |          <$D:href>mailto:${user.email}</$D:href>
+                |          <$D:href>mailto:${user.email ?: "${user.username}@example.com"}</$D:href>
                 |        </$CS:email-address-set>
                 """.trimMargin()
             )
@@ -206,7 +206,7 @@ internal object PropFindRequestHandler {
             """.trimMargin()
         )
         if (props.contains(Prop.DIRECTORY_GATEWAY)) {
-            addUnsupportedProp(sb, Prop.DIRECTORY_GATEWAY)
+            // addUnsupportedProp(sb, Prop.DIRECTORY_GATEWAY)
         }
         sb.appendLine("  </$D:response>")
         appendMultiStatusEnd(sb)
