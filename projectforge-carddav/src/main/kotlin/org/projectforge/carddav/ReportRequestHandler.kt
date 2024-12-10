@@ -59,11 +59,10 @@ internal object ReportRequestHandler {
      * @param response The response.
      * @see CardDavXmlUtils.generatePropFindResponse
      */
-    fun handleSyncReportCall(
-        requestWrapper: RequestWrapper,
-        response: HttpServletResponse,
-        contactList: List<Contact>
-    ) {
+    fun handleSyncReportCall(writerContext: WriterContext) {
+        val requestWrapper = writerContext.requestWrapper
+        val response = writerContext.response
+        val contactList = writerContext.contactList ?: emptyList()
         log.debug { "handleReportCall:  ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
         val props = CardDavUtils.handleProps(requestWrapper, response)
             ?: return // No properties response is handled in handleProps.
@@ -77,7 +76,7 @@ internal object ReportRequestHandler {
                 appendPropfindContact(sb, requestWrapper.requestURI, contact, false)
             }
         } else if (rootElement == "addressbook-multiget") {
-            val requestedAddressIds = CardDavXmlUtils.extractAddressIds(requestWrapper.body)
+            val requestedAddressIds = CardDavXmlUtils.extractContactIds(requestWrapper.body)
             val notFoundContactIds = requestedAddressIds.filter { addressId -> contactList.none { it.id == addressId } }
             notFoundContactIds.forEach { notFoundId ->
                 generateNotFoundContact(sb, CardDavUtils.getVcfFileName(Contact(notFoundId)))
@@ -126,7 +125,8 @@ internal object ReportRequestHandler {
             |    <$D:href>${href}${CardDavUtils.getVcfFileName(contact)}</$D:href>
             |    <$D:propstat>
             |      <$D:prop>
-            |        <$D:getetag>"${CardDavUtils.getETag(contact)}"</$D:getetag>""".trimMargin()
+            |        <$D:getetag>"${contact.etag}"</$D:getetag>
+            """.trimMargin()
         )
         if (fullVCards) {
             sb.appendLine("        <$CARD:address-data>")

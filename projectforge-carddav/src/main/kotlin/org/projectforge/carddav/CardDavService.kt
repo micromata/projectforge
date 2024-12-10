@@ -31,6 +31,7 @@ import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.carddav.model.AddressBook
+import org.projectforge.carddav.model.Contact
 import org.projectforge.carddav.model.User
 import org.projectforge.carddav.service.AddressService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -71,7 +72,7 @@ class CardDavService {
         log.debug { "Request-Info: ${RequestLog.asJson(request, true)}" }
         if (request.method == "OPTIONS") {
             // No login required for OPTIONS.
-            handleDynamicOptions(requestWrapper, response)
+            OptionsRequestHandler.handleDynamicOptions(requestWrapper, response)
             return
         }
         if (request.method == "PROPFIND" && request.requestURI.startsWith("/.well-known/carddav")) {
@@ -107,26 +108,34 @@ class CardDavService {
         // Runs under /carddav as well as under /
         // Normalize URI for further processing:
         val normalizedRequestURI = CardDavUtils.normalizedUri(request.requestURI)
+        val writerContext = WriterContext(requestWrapper, response, userDO)
         if (method == "PROPFIND") {
             if (normalizedRequestURI == "index.html") {
                 // PROPFIND call to /index.html after authentication is a typical behavior of many WebDAV or CardDAV clients.
                 // Alternatives: Not found (404) or Forbidden (403)
                 ResponseUtils.setValues(response, HttpStatus.MULTI_STATUS)
                 return
-            } else if (normalizedRequestURI.startsWith("principals")) {
-                PropFindRequestHandler.handlePropFindPrincipalsCall(requestWrapper, response, userDO)
+            }
+            writerContext.props = CardDavUtils.handleProps(requestWrapper, response)
+            writerContext.contactList = getContactList(userDO)
+            if (normalizedRequestURI.startsWith("principals")) {
+                PropFindRequestHandler.handlePropFindPrincipalsCall(writerContext)
             } else {
-                PropFindRequestHandler.handlePropFindCall(requestWrapper, response, userDO)
+                PropFindRequestHandler.handlePropFindCall(writerContext)
             }
         } else if (method == "REPORT") {
-            val user = User(userDO.username)
-            val addressBook = AddressBook(user)
-            val contactList = addressService.getContactList(addressBook)
-            ReportRequestHandler.handleSyncReportCall(requestWrapper, response, contactList)
+            // /carddav/users/admin/joe/addressbooks
+            writerContext.props = CardDavUtils.handleProps(requestWrapper, response)
+            writerContext.contactList = getContactList(userDO)
+            ReportRequestHandler.handleSyncReportCall(writerContext)
             /*if (normalizedRequestURI.startsWith("users/")) {
                 val contactId = normalizedRequestURI.removePrefix("users/").removeSuffix(".vcf")
                 getContact(user, contactId)
             }*/
+        } else if (method == "GET") {
+            // /carddav/users/admin/addressbooks/ProjectForge-129.vcf
+            writerContext.contactList = getContactList(userDO)
+            GetRequestHandler.handleGetCall(writerContext)
         } else {
             log.warn { "Method not supported: $method" }
             ResponseUtils.setValues(
@@ -134,6 +143,12 @@ class CardDavService {
                 content = "Method not supported: $method"
             )
         }
+    }
+
+    private fun getContactList(userDO: PFUserDO): List<Contact> {
+        val user = User(userDO.username)
+        val addressBook = AddressBook(user)
+        return addressService.getContactList(addressBook)
     }
 
     private fun authenticate(request: HttpServletRequest, response: HttpServletResponse): RestAuthenticationInfo {
@@ -182,33 +197,6 @@ class CardDavService {
             authenticatedUser
         }
         return authInfo
-    }
-
-    /**
-     * Handles the initial OPTIONS request to indicate supported methods and DAV capabilities.
-     * This is the initial request to determine the allowed methods and DAV capabilities by the client.
-     *
-     * @return ResponseEntity with allowed methods and DAV capabilities in the headers.
-     */
-    private fun handleDynamicOptions(requestWrapper: RequestWrapper, response: HttpServletResponse) {
-        log.debug { "handlePropFindCall: ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
-        val requestedPath = requestWrapper.requestURI
-        // Indicate DAV capabilities
-        response.addHeader("DAV", "1, 2, 3, addressbook")
-
-        // Indicate allowed HTTP methods
-        // add("Allow", "OPTIONS, GET, HEAD, POST, PUT, DELETE, PROPFIND, REPORT")
-        response.addHeader("Allow", "OPTIONS, GET, DELETE, PROPFIND, REPORT")
-
-        // Expose additional headers for client visibility
-        response.addHeader("Access-Control-Expose-Headers", "DAV, Allow")
-
-        // Additional headers for user-specific paths
-        if (requestedPath.contains("/users/")) {
-            // Example: You might add user-specific behavior here
-            response.addHeader("Content-Type", "application/xml")
-        }
-        ResponseUtils.setValues(response, status = HttpStatus.OK)
     }
 
     companion object {

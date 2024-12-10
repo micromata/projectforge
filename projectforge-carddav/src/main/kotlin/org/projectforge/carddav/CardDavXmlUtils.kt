@@ -82,10 +82,14 @@ internal object CardDavXmlUtils {
         }
     }
 
-    fun extractAddressIds(xml: String): Sequence<Long> {
-        val regex = Regex("ProjectForge-(\\d+)\\.vcf")
-        return regex.findAll(xml)
-            .map { it.groupValues[1].toLong() }
+    fun extractContactId(path: String): Long? {
+        val regex = """ProjectForge-(\d+)\.vcf""".toRegex()
+        return regex.find(path)?.groups?.get(1)?.value?.toLong()
+    }
+
+    fun extractContactIds(xml: String): Sequence<Long> {
+        return EXTRACT_ADDRESS_ID_REGEX.findAll(xml)
+            .map { it.groups.get(1)?.value?.toLong() }.filterNotNull()
     }
 
     /**
@@ -119,4 +123,6 @@ internal object CardDavXmlUtils {
 
     const val XML_NS =
         "xmlns:$D=\"DAV:\" xmlns:$CARD=\"urn:ietf:params:xml:ns:carddav\" xmlns:$CS=\"http://calendarserver.org/ns/\" xmlns:me=\"http://me.com/_namespace/\""
+
+    private val EXTRACT_ADDRESS_ID_REGEX = """ProjectForge-(\d+)\.vcf""".toRegex()
 }

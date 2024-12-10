@@ -24,6 +24,7 @@
 package org.projectforge.carddav
 
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -36,11 +37,13 @@ class PropFindRequestHandlerTest {
         Mockito.`when`(request.requestURI).thenReturn("/carddav/users/kai/")
         val requestWrapper = RequestWrapper(request)
         listOf(Prop.RESOURCETYPE, Prop.DISPLAYNAME).let { props ->
-            PropFindRequestHandler.generatePropFindResponse(
+            val writerContext = WriterContext(
                 requestWrapper,
+                Mockito.mock(HttpServletResponse::class.java),
                 PFUserDO().also { it.username = "kai" },
                 props,
-            ).let {
+            )
+            PropFindRequestHandler.generatePropFindResponse(writerContext).let {
                 val expected = """
                     |<?xml version="1.0" encoding="UTF-8"?>
                     |<d:multistatus xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/" xmlns:me="http://me.com/_namespace/">
@@ -67,11 +70,13 @@ class PropFindRequestHandlerTest {
             Prop.CURRENT_USER_PRIVILEGE_SET,
             Prop.PRINCIPAL_URL,
         ).let { props ->
-            PropFindRequestHandler.generatePropFindResponse(
+            val writerContext = WriterContext(
                 requestWrapper,
+                Mockito.mock(HttpServletResponse::class.java),
                 PFUserDO().also { it.username = "kai" },
-                props
-            ).let {
+                props,
+            )
+            PropFindRequestHandler.generatePropFindResponse(writerContext).let {
                 val expected = """
                     |<?xml version="1.0" encoding="UTF-8"?>
                     |<d:multistatus xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/" xmlns:me="http://me.com/_namespace/">
@@ -84,7 +89,6 @@ class PropFindRequestHandlerTest {
                     |        </d:current-user-principal>
                     |        <d:current-user-privilege-set>
                     |          <d:privilege><d:read /></d:privilege>
-                    |          <d:privilege><d:all /></d:privilege>
                     |          <d:privilege><d:write /></d:privilege>
                     |          <d:privilege><d:write-properties /></d:privilege>
                     |          <d:privilege><d:write-content /></d:privilege>

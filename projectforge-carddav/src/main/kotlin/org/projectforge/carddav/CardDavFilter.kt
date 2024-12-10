@@ -99,6 +99,9 @@ class CardDavFilter : Filter {
     }
 
     companion object {
+        // users/joe/addressbooks/ProjectForge-129.vcf
+        val NORMALIZED_GET_REQUEST_REGEX = """^users/([^/]+)/addressbooks/ProjectForge-(\d+)\.vcf$""".toRegex()
+
         /**
          * PROPFIND: /index.html, /carddav, /.well-known/carddav
          * OPTIONS: /carddav, /users/...
@@ -109,6 +112,7 @@ class CardDavFilter : Filter {
             val normalizedUri = if (uri == CARD_DAV_BASE_PATH || uri == "$CARD_DAV_BASE_PATH/") {
                 CARD_DAV_BASE_PATH // Preserve /carddav instead of ""
             } else {
+                // /carddav/users/joe/addressbooks/ -> users/joe/addressbooks
                 CardDavUtils.normalizedUri(request.requestURI)
             }
             return when (request.method) {
@@ -119,6 +123,12 @@ class CardDavFilter : Filter {
                         return true
                     }
                     return urlMatches(normalizedUri, "users", "principals")
+                }
+
+                "GET" -> {
+                    log.debug { "GET call detected: $normalizedUri" }
+                    // /carddav/users/admin/addressbooks/ProjectForge-129.vcf
+                    return normalizedUri.matches(NORMALIZED_GET_REQUEST_REGEX)
                 }
 
                 "OPTIONS" -> {

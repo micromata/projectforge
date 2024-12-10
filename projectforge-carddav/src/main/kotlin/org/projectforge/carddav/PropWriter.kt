@@ -28,7 +28,6 @@ import org.projectforge.carddav.CardDavUtils.CARD
 import org.projectforge.carddav.CardDavUtils.CS
 import org.projectforge.carddav.CardDavUtils.D
 import org.projectforge.carddav.CardDavUtils.getUsersAddressbookDisplayName
-import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 private val log = KotlinLogging.logger {}
 
@@ -36,9 +35,10 @@ private val log = KotlinLogging.logger {}
  * Writes properties to a StringBuilder.
  */
 internal object PropWriter {
-    fun appendSupportedProps(sb: StringBuilder, props: List<Prop>, href: String, user: PFUserDO) {
+    fun appendSupportedProps(sb: StringBuilder, writerContext: WriterContext) {
+        val props = writerContext.props ?: return
         props.filter { it.supported }.forEach { prop ->
-            appendSupportedProp(sb, prop, href, user, !props.contains(Prop.PRINCIPAL_URL))
+            appendSupportedProp(sb, prop, writerContext)
         }
     }
 
@@ -48,10 +48,11 @@ internal object PropWriter {
      * @param prop The property to append.
      * @param href The href.
      * @param user The user.
-     * @param thunderBird Whether the client is Thunderbird. Thunderbird needs the <card:addressbook/> tag inside
      * the <D:resourcetype> tag.
      */
-    fun appendSupportedProp(sb: StringBuilder, prop: Prop, href: String, user: PFUserDO, thunderBird: Boolean) {
+    fun appendSupportedProp(sb: StringBuilder, prop: Prop, writerContext: WriterContext) {
+        val href = writerContext.href
+        val user = writerContext.userDO
         when (prop) {
             Prop.ADDRESSBOOK_HOME_SET -> {
                 appendMultilineProp(
@@ -80,9 +81,8 @@ internal object PropWriter {
             }
 
             Prop.DISPLAYNAME -> {
-                if (thunderBird || href.contains("addressbooks")) {
+                if (href.contains("addressbooks")) {
                     appendProp(sb, prop, getUsersAddressbookDisplayName(user))
-                    // ??? sb.appendLine("        <getcontenttype>text/vcard</getcontenttype>")
                 } else {
                     appendProp(sb, prop, user.getFullname())
                 }
@@ -95,22 +95,8 @@ internal object PropWriter {
                 )
             }
 
-            Prop.GETCTAG -> {
-                // TODO: This is just a random constant string for testing.
-                appendProp(
-                    sb,
-                    prop,
-                    "<$CS:getctag>\"88d6c17fa866ef38e6e0122a59bf3da10a66daa042860116c88979a50c025eb9\"</$CS:getctag>"
-                )
-            }
-
-            Prop.GETETAG -> {
-                // TODO: This is just a random constant string for testing.
-                appendProp(
-                    sb,
-                    prop,
-                    "<$D:getetag>\"88d6c17fa866ef38e6e0122a59bf3da10a66daa042860116c88979a50c025eb9\"</$D:getetag>"
-                )
+            Prop.GETCTAG, Prop.GETETAG -> {
+                appendProp(sb, prop, CardDavUtils.getEtag(writerContext.contactList))
             }
 
             Prop.MAX_IMAGE_SIZE -> appendProp(sb, prop, CardDavInit.MAX_IMAGE_SIZE)
@@ -140,7 +126,7 @@ internal object PropWriter {
             Prop.RESOURCETYPE -> {
                 appendMultilineProp(
                     sb, prop,
-                    if (thunderBird || href.contains("addressbooks")) {
+                    if (href.contains("addressbooks")) {
                         """
                         |          <$D:collection />
                         |          <$CARD:addressbook />

@@ -41,11 +41,13 @@ internal object PropFindRequestHandler {
      * @param user The user.
      * @see CardDavXmlUtils.generatePropFindResponse
      */
-    fun handlePropFindCall(requestWrapper: RequestWrapper, response: HttpServletResponse, user: PFUserDO) {
+    fun handlePropFindCall(writerContext: WriterContext) {
+        val requestWrapper = writerContext.requestWrapper
+        val response = writerContext.response
         log.debug { "handlePropFindCall: ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
         val props = CardDavUtils.handleProps(requestWrapper, response)
             ?: return // No properties response is handled in handleProps.
-        val content = generatePropFindResponse(requestWrapper, user, props)
+        val content = generatePropFindResponse(writerContext)
         log.debug { "handlePropFindCall: response=[$content]" }
         CardDavUtils.setMultiStatusResponse(response, content)
     }
@@ -53,11 +55,13 @@ internal object PropFindRequestHandler {
     /**
      * /principals/ or /carddav/principals/
      */
-    fun handlePropFindPrincipalsCall(requestWrapper: RequestWrapper, response: HttpServletResponse, user: PFUserDO) {
+    fun handlePropFindPrincipalsCall(writerContext: WriterContext) {
+        val requestWrapper = writerContext.requestWrapper
+        val response = writerContext.response
         log.debug { "handlePropFindPrincipalsCall: ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
         val props = CardDavUtils.handleProps(requestWrapper, response)
             ?: return // No properties response is handled in handleProps.
-        val content = generatePropFindResponse(requestWrapper, user, props)
+        val content = generatePropFindResponse(writerContext)
         log.debug { "handlePropFindPrincipalsCall: response=[$content]" }
         CardDavUtils.setMultiStatusResponse(response, content)
     }
@@ -70,12 +74,8 @@ internal object PropFindRequestHandler {
      * @param props The properties to include in the response.
      * @return The response as a string.
      */
-    fun generatePropFindResponse(
-        requestWrapper: RequestWrapper,
-        user: PFUserDO,
-        props: List<Prop>
-    ): String {
-        val href = requestWrapper.requestURI
+    fun generatePropFindResponse(writerContext: WriterContext): String {
+        val href = writerContext.href
         val sb = StringBuilder()
         appendMultiStatusStart(sb)
         sb.appendLine(
@@ -86,7 +86,7 @@ internal object PropFindRequestHandler {
                 |      <$D:prop>
             """.trimMargin()
         )
-        PropWriter.appendSupportedProps(sb, props, href, user)
+        PropWriter.appendSupportedProps(sb, writerContext)
         sb.appendLine(
             """
                 |      </$D:prop>
