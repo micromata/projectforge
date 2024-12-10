@@ -31,19 +31,13 @@ import java.io.BufferedReader
 private val log = KotlinLogging.logger {}
 
 internal class RequestWrapper(val request: HttpServletRequest) {
-    val requestURI = request.requestURI
-    val method = request.method
+    val requestURI = request.requestURI ?: "null"
+    val method = request.method ?: "null"
     val basicAuth: Boolean by lazy {
         request.getHeader("authorization") != null ||
                 request.getHeader("Authorization") != null
     }
-    val baseUrl: String by lazy {
-        if (request.requestURI.startsWith(CardDavInit.CARD_DAV_BASE_PATH)) {
-            CardDavInit.CARD_DAV_BASE_PATH
-        } else {
-            "/"
-        }
-    }
+
     val body: String by lazy {
         try {
             if (request.contentLength > 0) {
