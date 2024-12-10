@@ -23,6 +23,10 @@
 
 package org.projectforge.carddav
 
+import org.projectforge.carddav.CardDavUtils.CARD
+import org.projectforge.carddav.CardDavUtils.CS
+import org.projectforge.carddav.CardDavUtils.D
+
 internal object CardDavXmlUtils {
     /**
      * Extracts the root element from the given XML string. For <d:multistatus> responses, this would be "multistatus".
@@ -114,5 +118,5 @@ internal object CardDavXmlUtils {
     }
 
     const val XML_NS =
-        "xmlns:d=\"DAV:\" xmlns:card=\"urn:ietf:params:xml:ns:carddav\" xmlns:cs=\"http://calendarserver.org/ns/\""
+        "xmlns:$D=\"DAV:\" xmlns:$CARD=\"urn:ietf:params:xml:ns:carddav\" xmlns:$CS=\"http://calendarserver.org/ns/\" xmlns:me=\"http://me.com/_namespace/\""
 }

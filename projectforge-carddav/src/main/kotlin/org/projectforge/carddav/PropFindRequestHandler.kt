@@ -25,10 +25,7 @@ package org.projectforge.carddav
 
 import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
-import org.projectforge.carddav.CardDavUtils.CARD
-import org.projectforge.carddav.CardDavUtils.CS
 import org.projectforge.carddav.CardDavUtils.D
-import org.projectforge.carddav.CardDavUtils.getUsersAddressbookDisplayName
 import org.projectforge.carddav.CardDavXmlUtils.appendMultiStatusEnd
 import org.projectforge.carddav.CardDavXmlUtils.appendMultiStatusStart
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -89,115 +86,7 @@ internal object PropFindRequestHandler {
                 |      <$D:prop>
             """.trimMargin()
         )
-        if (props.contains(Prop.ADDRESSBOOK_HOME_SET)) {
-            sb.appendLine(
-                """
-                |        <$CARD:addressbook-home-set>
-                |          <$D:href>${CardDavUtils.getUsersUrl(href, user, "addressbooks/")}</$D:href>
-                |        </$CARD:addressbook-home-set>
-                """.trimMargin()
-            )
-        }
-        if (props.contains(Prop.EMAIL_ADDRESS_SET)) {
-            sb.appendLine(
-                """
-                |        <$CS:email-address-set>
-                |          <$D:href>mailto:${user.email ?: "${user.username}@example.com"}</$D:href>
-                |        </$CS:email-address-set>
-                """.trimMargin()
-            )
-        }
-        if (props.contains(Prop.RESOURCETYPE)) {
-            sb.appendLine("        <$D:resourcetype>")
-            if (!props.contains(Prop.PRINCIPAL_URL)) {
-                // Apple-client requests PRINCIPAL_URL and doesn't expect <card:addressbook/> in the response. But Thunderbird expects it.
-                sb.appendLine("          <$CARD:addressbook />")
-            }
-            sb.appendLine("          <$D:collection />")
-            sb.appendLine("        </$D:resourcetype>")
-        }
-        if (props.contains(Prop.GETCTAG)) {
-            sb.appendLine("        <$CS:getctag>\"88d6c17fa866ef38e6e0122a59bf3da10a66daa042860116c88979a50c025eb9\"</$CS:getctag>")
-        }
-        if (props.contains(Prop.GETETAG)) {
-            sb.appendLine("        <$D:getetag>\"88d6c17fa866ef38e6e0122a59bf3da10a66daa042860116c88979a50c025eb9\"</$D:getetag>")
-        }
-        if (props.contains(Prop.SYNCTOKEN)) {
-            // This sync token is just a random constant string for testing.
-            sb.appendLine(
-                """
-                |        <$D:sync-token>
-                |          https://www.projectforge.org/ns/sync/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-                |        </$D:sync-token>
-                """.trimMargin()
-            )
-        }
-        if (props.contains(Prop.DISPLAYNAME)) {
-            sb.appendLine("        <$D:displayname>${getUsersAddressbookDisplayName(user)}</$D:displayname>")
-            // appendPropLines(sb, "<getcontenttype>text/vcard</getcontenttype>")
-        }
-        if (props.contains(Prop.CURRENT_USER_PRINCIPAL)) {
-            sb.appendLine(
-                """
-                |        <$D:current-user-principal>
-                |          <$D:href>${CardDavUtils.getPrincipalsUsersUrl(href, user)}</$D:href>
-                |        </$D:current-user-principal>
-                """.trimMargin()
-            )
-        }
-        if (props.contains(Prop.PRINCIPAL_URL)) {
-            sb.appendLine(
-                """
-                |        <$D:principal-URL>
-                |          <$D:href>${CardDavUtils.getPrincipalsUsersUrl(href, user)}</$D:href>
-                |        </$D:principal-URL>
-                """.trimMargin()
-            )
-        }
-        if (props.contains(Prop.PRINCIPAL_COLLECTION_SET)) {
-            sb.appendLine(
-                """
-                |        <$D:principal-collection-set>
-                |          <$D:href>${CardDavUtils.getUrl(href, "/principals")}</$D:href>
-                |        </$D:principal-collection-set>
-                """.trimMargin()
-            )
-        }
-        if (props.contains(Prop.CURRENT_USER_PRIVILEGE_SET)) {
-            sb.appendLine(
-                """
-                |        <$D:current-user-privilege-set>
-                |          <$D:privilege><$D:read /></$D:privilege>
-                |          <$D:privilege><$D:all /></$D:privilege>
-                |          <$D:privilege><$D:write /></$D:privilege>
-                |          <$D:privilege><$D:write-properties /></$D:privilege>
-                |          <$D:privilege><$D:write-content /></$D:privilege>
-                |        </$D:current-user-privilege-set>
-                """.trimMargin()
-            )
-        }
-        if (props.contains(Prop.RESOURCE_ID)) {
-            // A unique, immutable identifier for the user or resource. Typically, a urn:uuid.
-            sb.appendLine("        <$D:resource-id>${CardDavUtils.generateDeterministicUUID(user)}</$D:resource-id>")
-        }
-        if (props.contains(Prop.SUPPORTED_REPORT_SET)) {
-            sb.appendLine(
-                """
-                |        <$D:supported-report-set>
-                |          <$D:supported-report>
-                |            <$D:report>
-                |              <$CARD:addressbook-query />
-                |            </$D:report>
-                |          </$D:supported-report>
-                |          <$D:supported-report>
-                |            <$D:report>
-                |              <$D:sync-collection />
-                |            </$D:report>
-                |          </$D:supported-report>
-                |        </$D:supported-report-set>
-                """.trimMargin()
-            )
-        }
+        PropWriter.appendSupportedProps(sb, props, href, user)
         sb.appendLine(
             """
                 |      </$D:prop>
@@ -205,24 +94,20 @@ internal object PropFindRequestHandler {
                 |    </$D:propstat>
             """.trimMargin()
         )
-        if (props.contains(Prop.DIRECTORY_GATEWAY)) {
-            // addUnsupportedProp(sb, Prop.DIRECTORY_GATEWAY)
-        }
+        /*
+        val unsupportedProps = props.filter { it.supported.not() }
+        if (unsupportedProps.isNotEmpty()) {
+            sb.appendLine("    <$D:propstat>")
+            sb.appendLine("      <$D:prop>")
+            unsupportedProps.forEach { prop ->
+                sb.appendLine("        <${prop.xmlns}:${prop.tag} />")
+            }
+            sb.appendLine("      </$D:prop>")
+            sb.appendLine("      <$D:status>HTTP/1.1 404 Not Found</$D:status>")
+            sb.appendLine("    </$D:propstat>")
+        }*/
         sb.appendLine("  </$D:response>")
         appendMultiStatusEnd(sb)
         return sb.toString()
-    }
-
-    fun addUnsupportedProp(sb: StringBuilder, prop: Prop) {
-        sb.appendLine(
-            """
-                |    <$D:propstat>
-                |      <$D:prop>
-                |        <${prop.xmlns}:${prop.str} />
-                |      </$D:prop>
-                |      <$D:status>HTTP/1.1 404 Not Found</$D:status>
-                |    </$D:propstat>
-                """.trimMargin()
-        )
     }
 }

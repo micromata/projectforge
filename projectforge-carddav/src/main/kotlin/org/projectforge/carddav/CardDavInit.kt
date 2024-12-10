@@ -24,6 +24,7 @@
 package org.projectforge.carddav
 
 import jakarta.servlet.ServletContext
+import org.projectforge.common.NumberOfBytes
 import org.projectforge.rest.config.RestUtils
 import org.springframework.stereotype.Component
 
@@ -35,5 +36,11 @@ open class CardDavInit {
 
     companion object {
         internal const val CARD_DAV_BASE_PATH = "/carddav"
+
+        internal const val MAX_IMAGE_SIZE = (5 * NumberOfBytes.MEGA_BYTES).toString()
+
+        internal const val QUOTA_AVAILABLE_BYTES = (100 * NumberOfBytes.MEGA_BYTES).toString()
+
+        internal const val MAX_RESOURCE_SIZE = (20 * NumberOfBytes.MEGA_BYTES).toString()
     }
 }

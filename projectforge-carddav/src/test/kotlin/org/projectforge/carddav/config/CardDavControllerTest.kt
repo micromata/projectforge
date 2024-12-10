@@ -36,14 +36,14 @@ class CardDavControllerTest {
         StringBuilder().let { sb ->
             CardDavXmlUtils.appendMultiStatusStart(sb)
             Assertions.assertEquals(
-                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:card=\"urn:ietf:params:xml:ns:carddav\" xmlns:cs=\"http://calendarserver.org/ns/\">\n",
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:card=\"urn:ietf:params:xml:ns:carddav\" xmlns:cs=\"http://calendarserver.org/ns/\" xmlns:me=\"http://me.com/_namespace/\">\n",
                 sb.toString()
             )
         }
         StringBuilder().let { sb ->
             CardDavXmlUtils.appendMultiStatusStart(sb, false)
             Assertions.assertEquals(
-                "<d:multistatus xmlns:d=\"DAV:\" xmlns:card=\"urn:ietf:params:xml:ns:carddav\" xmlns:cs=\"http://calendarserver.org/ns/\">\n",
+                "<d:multistatus xmlns:d=\"DAV:\" xmlns:card=\"urn:ietf:params:xml:ns:carddav\" xmlns:cs=\"http://calendarserver.org/ns/\" xmlns:me=\"http://me.com/_namespace/\">\n",
                 sb.toString()
             )
         }

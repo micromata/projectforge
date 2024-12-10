@@ -43,14 +43,14 @@ class PropFindRequestHandlerTest {
             ).let {
                 val expected = """
                     |<?xml version="1.0" encoding="UTF-8"?>
-                    |<d:multistatus xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/">
+                    |<d:multistatus xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/" xmlns:me="http://me.com/_namespace/">
                     |  <d:response>
                     |    <d:href>/carddav/users/kai/</d:href>
                     |    <d:propstat>
                     |      <d:prop>
                     |        <d:resourcetype>
-                    |          <card:addressbook />
                     |          <d:collection />
+                    |          <card:addressbook />
                     |        </d:resourcetype>
                     |        <d:displayname>address.cardDAV.addressbook.displayName</d:displayname>
                     |      </d:prop>
@@ -74,7 +74,7 @@ class PropFindRequestHandlerTest {
             ).let {
                 val expected = """
                     |<?xml version="1.0" encoding="UTF-8"?>
-                    |<d:multistatus xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/">
+                    |<d:multistatus xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/" xmlns:me="http://me.com/_namespace/">
                     |  <d:response>
                     |    <d:href>/carddav/users/kai/</d:href>
                     |    <d:propstat>
@@ -82,9 +82,6 @@ class PropFindRequestHandlerTest {
                     |        <d:current-user-principal>
                     |          <d:href>/carddav/principals/users/kai/</d:href>
                     |        </d:current-user-principal>
-                    |        <d:principal-URL>
-                    |          <d:href>/carddav/principals/users/kai/</d:href>
-                    |        </d:principal-URL>
                     |        <d:current-user-privilege-set>
                     |          <d:privilege><d:read /></d:privilege>
                     |          <d:privilege><d:all /></d:privilege>
@@ -92,6 +89,9 @@ class PropFindRequestHandlerTest {
                     |          <d:privilege><d:write-properties /></d:privilege>
                     |          <d:privilege><d:write-content /></d:privilege>
                     |        </d:current-user-privilege-set>
+                    |        <d:principal-URL>
+                    |          <d:href>/carddav/principals/users/kai/</d:href>
+                    |        </d:principal-URL>
                     |      </d:prop>
                     |      <d:status>HTTP/1.1 200 OK</d:status>
                     |    </d:propstat>

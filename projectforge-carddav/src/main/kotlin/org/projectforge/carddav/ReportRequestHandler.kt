@@ -57,7 +57,6 @@ internal object ReportRequestHandler {
      *
      * @param requestWrapper The request wrapper.
      * @param response The response.
-     * @param user The user.
      * @see CardDavXmlUtils.generatePropFindResponse
      */
     fun handleSyncReportCall(
@@ -130,13 +129,13 @@ internal object ReportRequestHandler {
             |        <$D:getetag>"${CardDavUtils.getETag(contact)}"</$D:getetag>""".trimMargin()
         )
         if (fullVCards) {
-            sb.append("        <$CARD:address-data>")
+            sb.appendLine("        <$CARD:address-data>")
             contact.vcardData?.let {
                 CardDavXmlUtils.appendEscapedXml(sb, it) // No indent here!!!
             }
-            sb.append("        </$CARD:address-data>")
+            sb.appendLine("        </$CARD:address-data>")
         } else {
-            sb.append("        <$CARD:address-data />")
+            sb.appendLine("        <$CARD:address-data />")
         }
         sb.appendLine(
             """
