@@ -25,6 +25,8 @@ package org.projectforge.carddav
 
 import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
+import org.projectforge.carddav.CardDavUtils.CARD
+import org.projectforge.carddav.CardDavUtils.D
 import org.projectforge.carddav.CardDavXmlUtils.appendMultiStatusEnd
 import org.projectforge.carddav.CardDavXmlUtils.appendMultiStatusStart
 import org.projectforge.carddav.model.Contact
@@ -64,7 +66,8 @@ internal object ReportRequestHandler {
         contactList: List<Contact>
     ) {
         log.debug { "handleReportCall:  ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
-        val props = CardDavUtils.handleProps(requestWrapper, response) ?: return // No properties response is handled in handleProps.
+        val props = CardDavUtils.handleProps(requestWrapper, response)
+            ?: return // No properties response is handled in handleProps.
         val rootElement = CardDavXmlUtils.getRootElement(requestWrapper.body)
         val sb = StringBuilder()
         appendMultiStatusStart(sb)
@@ -109,10 +112,10 @@ internal object ReportRequestHandler {
     fun generateNotFoundContact(sb: StringBuilder, href: String) {
         sb.appendLine(
             """
-            |  <d:response>
-            |    <d:href>$href</d:href>
-            |    <d:status>HTTP/1.1 404 Not Found</d:status>
-            |  </d:response>
+            |  <$D:response>
+            |    <$D:href>$href</$D:href>
+            |    <$D:status>HTTP/1.1 404 Not Found</$D:status>
+            |  </$D:response>
         """.trimMargin()
         )
     }
@@ -120,27 +123,27 @@ internal object ReportRequestHandler {
     fun appendPropfindContact(sb: StringBuilder, href: String, contact: Contact, fullVCards: Boolean) {
         sb.appendLine(
             """
-            |  <d:response>
-            |    <d:href>${href}${CardDavUtils.getVcfFileName(contact)}</d:href>
-            |    <d:propstat>
-            |      <d:prop>
-            |        <d:getetag>"${CardDavUtils.getETag(contact)}"</d:getetag>""".trimMargin()
+            |  <$D:response>
+            |    <$D:href>${href}${CardDavUtils.getVcfFileName(contact)}</$D:href>
+            |    <$D:propstat>
+            |      <$D:prop>
+            |        <$D:getetag>"${CardDavUtils.getETag(contact)}"</$D:getetag>""".trimMargin()
         )
         if (fullVCards) {
-            sb.append("        <cr:address-data>")
+            sb.append("        <$CARD:address-data>")
             contact.vcardData?.let {
                 CardDavXmlUtils.appendEscapedXml(sb, it) // No indent here!!!
             }
-            sb.append("        </cr:address-data>")
+            sb.append("        </$CARD:address-data>")
         } else {
-            sb.append("        <cr:address-data />")
+            sb.append("        <$CARD:address-data />")
         }
         sb.appendLine(
             """
-            |      </d:prop>
-            |      <d:status>HTTP/1.1 200 OK</d:status>
-            |    </d:propstat>
-            |  </d:response>""".trimMargin()
+            |      </$D:prop>
+            |      <$D:status>HTTP/1.1 200 OK</$D:status>
+            |    </$D:propstat>
+            |  </$D:response>""".trimMargin()
         )
     }
 }
