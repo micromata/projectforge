@@ -238,6 +238,14 @@ open class PFDateTime internal constructor(
     }
 
     /**
+     * Formatting with the predefined RFC 1123 Formatter (corresponds to RFC 7231 for HTTP)
+     * @see DateTimeFormatter.RFC_1123_DATE_TIME
+     */
+    fun formatAsHttpDate(): String {
+        return dateTime.format(DateTimeFormatter.RFC_1123_DATE_TIME)
+    }
+
+    /**
      * For filenames (local time of user): yyyy-MM-dd_HH-mm-ss
      */
     fun format4Filenames(): String {

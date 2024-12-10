@@ -25,8 +25,10 @@ package org.projectforge.carddav
 
 import jakarta.servlet.http.HttpServletResponse
 import org.projectforge.carddav.model.Contact
+import org.projectforge.common.DateFormatType
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.utils.ResponseUtils
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -43,11 +45,6 @@ internal object CardDavUtils {
         return "ProjectForge-${contact.id}.vcf"
     }
 
-    fun getETag(contact: Contact): String {
-        val lastUpdated = contact.lastUpdated ?: Date()
-        return lastUpdated.time.toString()
-    }
-
     /**
      * Returns the display name of the user's addressbook.
      * This is the name that is shown in the CardDAV client.
@@ -55,6 +52,25 @@ internal object CardDavUtils {
      */
     fun getUsersAddressbookDisplayName(user: PFUserDO): String {
         return translateMsg("address.cardDAV.addressbook.displayName", user.firstname)
+    }
+
+    /**
+     * Simply calls [getEtag] with the contact list.
+     */
+    fun getCtag(contactList: List<Contact>?): String {
+        return getEtag(contactList)
+    }
+
+    /**
+     * Returns the ETag for the given contact list.
+     * The ETag is the timestamp of the last updated contact.
+     * @param contactList The contact list. If empty, the ETag is the timestamp of now.
+     * @return The ETag.
+     */
+    fun getEtag(contactList: List<Contact>?): String {
+        val oldDate = Date(0)
+        val lastUpdated = contactList?.maxByOrNull { it.lastUpdated ?: oldDate }?.lastUpdated
+        return "\"${PFDateTime.fromOrNow(lastUpdated).format(DateFormatType.ISO_TIMESTAMP_MILLIS)}\""
     }
 
     /**

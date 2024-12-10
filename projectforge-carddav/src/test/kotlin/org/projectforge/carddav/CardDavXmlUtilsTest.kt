@@ -50,7 +50,7 @@ class CardDavXmlUtilsTest {
             |  <d:href>1733690125261/ProjectForge-7859171.vcf</d:href>
             |</card:addressbook-multiget>
         """.trimMargin().let { xml ->
-            CardDavXmlUtils.extractAddressIds(xml).toList().let { ids ->
+            CardDavXmlUtils.extractContactIds(xml).toList().let { ids ->
                 Assertions.assertEquals(7833476, ids[0])
                 Assertions.assertEquals(7858940, ids[1])
                 Assertions.assertEquals(7859171, ids[2])

@@ -23,6 +23,9 @@
 
 package org.projectforge.carddav.model
 
+import org.projectforge.framework.time.PFDateTime
+import java.security.MessageDigest
+
 data class Contact(
     val id: Long? = null,
     val firstName: String? = null,
@@ -32,6 +35,28 @@ data class Contact(
     var vcardData: String? = null,
 ) {
     val displayName = "$lastName, $firstName"
+
+    /**
+     * A unique identifier for this version of the resource. This allows clients to detect changes efficiently.
+     * The hashcode of the vcard, embedded in quotes.
+     * @return The ETag.
+     */
+    val etag: String by lazy {
+        vcardData?.let {
+            val digest = MessageDigest.getInstance("SHA-256")
+            val hashBytes = digest.digest(it.toByteArray())
+            "\"" + hashBytes.joinToString("") { "%02x".format(it) } + "\""
+        } ?: "\"null\""
+    }
+
+    /**
+     * The last modified date of the resource as Http date.
+     * @return The last modified date as Http date
+     * @see PFDateTime.formatAsHttpDate
+     */
+    val lastModifiedAsHttpDate: String
+        get() = PFDateTime.fromOrNow(lastUpdated).formatAsHttpDate()
+
     override fun toString(): String {
         return "Contact[id=$id, name=[$displayName], lastUpdated=$lastUpdated, vcardData-size=${vcardData?.length}]"
     }
