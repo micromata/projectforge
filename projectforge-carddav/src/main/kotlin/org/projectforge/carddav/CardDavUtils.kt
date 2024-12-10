@@ -36,6 +36,7 @@ internal object CardDavUtils {
     const val D = "d"        // xmlns:d="DAV:"
     const val CARD = "card"  // xmlns:card="urn:ietf:params:xml:ns:carddav"
     const val CS = "cs"      // xmlns:cs="http://calendarserver.org/ns/"
+    const val ME = "me"      // xmlns:me="http://me.com/_namespace/"
 
     fun getVcfFileName(contact: Contact): String {
         // If you change this, don't forget to change the regex in CardDavXmlUtils.extractAddressIds.
