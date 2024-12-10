@@ -25,7 +25,6 @@ package org.projectforge.carddav
 
 import mu.KotlinLogging
 import org.projectforge.carddav.CardDavUtils.CARD
-import org.projectforge.carddav.CardDavUtils.CS
 import org.projectforge.carddav.CardDavUtils.D
 import org.projectforge.carddav.CardDavUtils.getUsersAddressbookDisplayName
 
@@ -50,25 +49,25 @@ internal object PropWriter {
      * @param user The user.
      * the <D:resourcetype> tag.
      */
-    fun appendSupportedProp(sb: StringBuilder, prop: Prop, writerContext: WriterContext) {
+    private fun appendSupportedProp(sb: StringBuilder, prop: Prop, writerContext: WriterContext) {
         val href = writerContext.href
         val user = writerContext.userDO
-        when (prop) {
-            Prop.ADDRESSBOOK_HOME_SET -> {
+        when (prop.type) {
+            PropType.ADDRESSBOOK_HOME_SET -> {
                 appendMultilineProp(
                     sb, prop,
                     "<$D:href>${CardDavUtils.getUsersUrl(href, user, "addressbooks/")}</$D:href>"
                 )
             }
 
-            Prop.CURRENT_USER_PRINCIPAL -> {
+            PropType.CURRENT_USER_PRINCIPAL -> {
                 appendMultilineProp(
                     sb, prop,
                     "<$D:href>${CardDavUtils.getPrincipalsUsersUrl(href, user)}</$D:href>"
                 )
             }
 
-            Prop.CURRENT_USER_PRIVILEGE_SET -> {
+            PropType.CURRENT_USER_PRIVILEGE_SET -> {
                 appendMultilineProp(
                     sb, prop,
                     """
@@ -80,7 +79,7 @@ internal object PropWriter {
                 )
             }
 
-            Prop.DISPLAYNAME -> {
+            PropType.DISPLAYNAME -> {
                 if (href.contains("addressbooks")) {
                     appendProp(sb, prop, getUsersAddressbookDisplayName(user))
                 } else {
@@ -88,42 +87,42 @@ internal object PropWriter {
                 }
             }
 
-            Prop.EMAIL_ADDRESS_SET -> {
+            PropType.EMAIL_ADDRESS_SET -> {
                 appendMultilineProp(
                     sb, prop,
                     "<$D:href>mailto:${user.email ?: "${user.username}@example.com"}</$D:href>"
                 )
             }
 
-            Prop.GETCTAG, Prop.GETETAG -> {
+            PropType.GETCTAG, PropType.GETETAG -> {
                 appendProp(sb, prop, CardDavUtils.getEtag(writerContext.contactList))
             }
 
-            Prop.MAX_IMAGE_SIZE -> appendProp(sb, prop, CardDavInit.MAX_IMAGE_SIZE)
+            PropType.MAX_IMAGE_SIZE -> appendProp(sb, prop, CardDavInit.MAX_IMAGE_SIZE)
 
-            Prop.MAX_RESOURCE_SIZE -> appendProp(sb, prop, CardDavInit.MAX_RESOURCE_SIZE)
+            PropType.MAX_RESOURCE_SIZE -> appendProp(sb, prop, CardDavInit.MAX_RESOURCE_SIZE)
 
-            Prop.PRINCIPAL_COLLECTION_SET -> {
+            PropType.PRINCIPAL_COLLECTION_SET -> {
                 appendMultilineProp(
                     sb, prop,
                     "<$D:href>${CardDavUtils.getUrl(href, "/principals")}</$D:href>"
                 )
             }
 
-            Prop.PRINCIPAL_URL, Prop.OWNER -> {
+            PropType.PRINCIPAL_URL, PropType.OWNER -> {
                 appendMultilineProp(
                     sb, prop,
                     "<$D:href>${CardDavUtils.getPrincipalsUsersUrl(href, user)}</$D:href>"
                 )
             }
 
-            Prop.QUOTA_AVAILABLE_BYTES -> appendProp(sb, prop, CardDavInit.QUOTA_AVAILABLE_BYTES)
+            PropType.QUOTA_AVAILABLE_BYTES -> appendProp(sb, prop, CardDavInit.QUOTA_AVAILABLE_BYTES)
 
-            Prop.QUOTA_USED_BYTES -> appendProp(sb, prop, "1000") // Dummy value.
+            PropType.QUOTA_USED_BYTES -> appendProp(sb, prop, "1000") // Dummy value.
 
-            Prop.RESOURCE_ID -> appendProp(sb, prop, CardDavUtils.generateDeterministicUUID(user))
+            PropType.RESOURCE_ID -> appendProp(sb, prop, CardDavUtils.generateDeterministicUUID(user))
 
-            Prop.RESOURCETYPE -> {
+            PropType.RESOURCETYPE -> {
                 appendMultilineProp(
                     sb, prop,
                     if (href.contains("addressbooks")) {
@@ -137,7 +136,7 @@ internal object PropWriter {
                 )
             }
 
-            Prop.SUPPORTED_REPORT_SET -> {
+            PropType.SUPPORTED_REPORT_SET -> {
                 appendMultilineProp(
                     sb, prop,
                     """
@@ -155,7 +154,7 @@ internal object PropWriter {
                 )
             }
 
-            Prop.SYNCTOKEN -> {
+            PropType.SYNCTOKEN -> {
                 // TODO: This sync token is just a random constant string for testing.
                 appendProp(
                     sb, prop,
@@ -177,7 +176,7 @@ internal object PropWriter {
         sb.appendLine("        </${prop.xmlns}:${prop.tag}>")
     }
 
-    private fun appendProp(sb: StringBuilder, prop: Prop, value: String, multiLine: Boolean = true) {
+    private fun appendProp(sb: StringBuilder, prop: Prop, value: String) {
         sb.appendLine("        <${prop.xmlns}:${prop.tag}>$value</${prop.xmlns}:${prop.tag}>")
     }
 }

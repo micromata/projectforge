@@ -43,7 +43,7 @@ internal object GetRequestHandler {
         val contactList = writerContext.contactList ?: emptyList()
         log.debug { "handleGetCall:  ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
         val requestedPath = requestWrapper.requestURI
-        val contactId = CardDavXmlUtils.extractContactId(requestedPath)
+        val contactId = CardDavUtils.extractContactId(requestedPath)
         val contact = contactList.find { it.id == contactId }
         val vcardData = contact?.vcardData
         if (vcardData == null) {

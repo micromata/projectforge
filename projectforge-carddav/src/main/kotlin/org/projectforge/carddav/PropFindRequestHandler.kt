@@ -23,12 +23,10 @@
 
 package org.projectforge.carddav
 
-import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
 import org.projectforge.carddav.CardDavUtils.D
 import org.projectforge.carddav.CardDavXmlUtils.appendMultiStatusEnd
 import org.projectforge.carddav.CardDavXmlUtils.appendMultiStatusStart
-import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 private val log = KotlinLogging.logger {}
 

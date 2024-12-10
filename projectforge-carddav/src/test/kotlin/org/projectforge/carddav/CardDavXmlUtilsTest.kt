@@ -69,9 +69,31 @@ class CardDavXmlUtilsTest {
     }
 
     @Test
+    fun `extract element value`() {
+        """<hurzel test="dkfsld"><prop>  <etag>  </etag>  </prop></hurzel>""".let { xml ->
+            Assertions.assertEquals("  ", CardDavXmlUtils.extractElementValue(xml, "etag"))
+        }
+        """<hurzel test="dkfsld"><d:prop>  <etag>  </etag>  </d:prop></hurzel>""".let { xml ->
+            Assertions.assertEquals("  <etag>  </etag>  ", CardDavXmlUtils.extractElementValue(xml, "prop"))
+        }
+        """<hurzel test="dkfsld"><prop>  <etag />  </prop></hurzel>""".let { xml ->
+            Assertions.assertNull(CardDavXmlUtils.extractElementValue(xml, "etag"))
+        }
+        """<hurzel test="dkfsld"><prop>  <d:etag />  </prop></hurzel>""".let { xml ->
+            Assertions.assertNull(CardDavXmlUtils.extractElementValue(xml, "etag"))
+        }
+        """<hurzel test="dkfsld"><prop>  <d:sync-token>123456</d:sync-token>  </prop></hurzel>""".let { xml ->
+            Assertions.assertEquals("123456", CardDavXmlUtils.extractElementValue(xml, "sync-token"))
+        }
+    }
+
+    @Test
     fun `escape xml string`() {
         """<hurzel test="dkfsld">  & '""".let { xml ->
-            Assertions.assertEquals("&lt;hurzel test=&quot;dkfsld&quot;&gt;  &amp; &apos;", CardDavXmlUtils.escapeXml(xml))
+            Assertions.assertEquals(
+                "&lt;hurzel test=&quot;dkfsld&quot;&gt;  &amp; &apos;",
+                CardDavXmlUtils.escapeXml(xml)
+            )
         }
     }
 }
