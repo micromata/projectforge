@@ -35,7 +35,7 @@ class CardDavFilterTest {
         checkRequest("OPTIONS", "/carddav/users/kai", true)
         checkRequest("OPTIONS", "/users/kai", true)
         checkRequest("OPTIONS", "/users", true)
-        checkRequest("OPTIONS", "/principals", false)
+        checkRequest("OPTIONS", "/principals", true)
 
         checkRequest("PROPFIND", "/carddav", true)
         checkRequest("PROPFIND", "/carddav/users/kai", true)

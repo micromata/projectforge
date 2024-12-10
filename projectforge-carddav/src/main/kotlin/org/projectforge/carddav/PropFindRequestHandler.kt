@@ -25,6 +25,9 @@ package org.projectforge.carddav
 
 import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
+import org.projectforge.carddav.CardDavUtils.CARD
+import org.projectforge.carddav.CardDavUtils.CS
+import org.projectforge.carddav.CardDavUtils.D
 import org.projectforge.carddav.CardDavUtils.getUsersAddressbookDisplayName
 import org.projectforge.carddav.CardDavXmlUtils.appendMultiStatusEnd
 import org.projectforge.carddav.CardDavXmlUtils.appendMultiStatusStart
@@ -80,102 +83,146 @@ internal object PropFindRequestHandler {
         appendMultiStatusStart(sb)
         sb.appendLine(
             """
-                |  <d:response>
-                |    <d:href>$href</d:href>
-                |    <d:propstat>
-                |      <d:prop>
+                |  <$D:response>
+                |    <$D:href>$href</$D:href>
+                |    <$D:propstat>
+                |      <$D:prop>
             """.trimMargin()
         )
+        if (props.contains(Prop.ADDRESSBOOK_HOME_SET)) {
+            sb.appendLine(
+                """
+                |        <$CARD:addressbook-home-set>
+                |          <$D:href>${CardDavUtils.getUsersUrl(href, user, "addressbooks/")}</$D:href>
+                |        </$CARD:addressbook-home-set>
+                """.trimMargin()
+            )
+        }
+        if (props.contains(Prop.EMAIL_ADDRESS_SET)) {
+            sb.appendLine(
+                """
+                |        <$CS:email-address-set>
+                |          <$D:href>mailto:${user.email}</$D:href>
+                |        </$CS:email-address-set>
+                """.trimMargin()
+            )
+        }
         if (props.contains(Prop.RESOURCETYPE)) {
-            sb.appendLine("        <d:resourcetype>")
+            sb.appendLine("        <$D:resourcetype>")
             if (!props.contains(Prop.PRINCIPAL_URL)) {
                 // Apple-client requests PRINCIPAL_URL and doesn't expect <cr:addressbook/> in the response. But Thunderbird expects it.
                 sb.appendLine("          <cr:addressbook />")
             }
-            sb.appendLine("          <d:collection />")
-            sb.appendLine("        </d:resourcetype>")
+            sb.appendLine("          <$D:collection />")
+            sb.appendLine("        </$D:resourcetype>")
         }
         if (props.contains(Prop.GETCTAG)) {
-            sb.appendLine("        <cs:getctag>\"88d6c17fa866ef38e6e0122a59bf3da10a66daa042860116c88979a50c025eb9\"</cs:getctag>")
+            sb.appendLine("        <$CS:getctag>\"88d6c17fa866ef38e6e0122a59bf3da10a66daa042860116c88979a50c025eb9\"</$CS:getctag>")
         }
         if (props.contains(Prop.GETETAG)) {
-            sb.appendLine("        <d:getetag>\"88d6c17fa866ef38e6e0122a59bf3da10a66daa042860116c88979a50c025eb9\"</d:getetag>")
+            sb.appendLine("        <$D:getetag>\"88d6c17fa866ef38e6e0122a59bf3da10a66daa042860116c88979a50c025eb9\"</$D:getetag>")
         }
         if (props.contains(Prop.SYNCTOKEN)) {
             // This sync token is just a random constant string for testing.
             sb.appendLine(
                 """
-                |        <d:sync-token>
+                |        <$D:sync-token>
                 |          https://www.projectforge.org/ns/sync/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-                |        </d:sync-token>
+                |        </$D:sync-token>
                 """.trimMargin()
             )
         }
         if (props.contains(Prop.DISPLAYNAME)) {
-            sb.appendLine("        <d:displayname>${getUsersAddressbookDisplayName(user)}</d:displayname>")
+            sb.appendLine("        <$D:displayname>${getUsersAddressbookDisplayName(user)}</$D:displayname>")
             // appendPropLines(sb, "<getcontenttype>text/vcard</getcontenttype>")
         }
         if (props.contains(Prop.CURRENT_USER_PRINCIPAL)) {
             sb.appendLine(
                 """
-                |        <d:current-user-principal>
-                |          <d:href>${CardDavUtils.getPrincipalsUsersUrl(href, user)}</d:href>
-                |        </d:current-user-principal>
+                |        <$D:current-user-principal>
+                |          <$D:href>${CardDavUtils.getPrincipalsUsersUrl(href, user)}</$D:href>
+                |        </$D:current-user-principal>
                 """.trimMargin()
             )
         }
         if (props.contains(Prop.PRINCIPAL_URL)) {
             sb.appendLine(
                 """
-                |        <d:principal-URL>
-                |          <d:href>${CardDavUtils.getPrincipalsUsersUrl(href, user)}</d:href>
-                |        </d:principal-URL>
+                |        <$D:principal-URL>
+                |          <$D:href>${CardDavUtils.getPrincipalsUsersUrl(href, user)}</$D:href>
+                |        </$D:principal-URL>
+                """.trimMargin()
+            )
+        }
+        if (props.contains(Prop.PRINCIPAL_COLLECTION_SET)) {
+            sb.appendLine(
+                """
+                |        <$D:principal-collection-set>
+                |          <$D:href>${CardDavUtils.getUrl(href, "principals")}</$D:href>
+                |        </$D:principal-collection-set>
                 """.trimMargin()
             )
         }
         if (props.contains(Prop.CURRENT_USER_PRIVILEGE_SET)) {
             sb.appendLine(
                 """
-                |        <d:current-user-privilege-set>
-                |          <d:privilege><d:read /></d:privilege>
-                |          <d:privilege><d:all /></d:privilege>
-                |          <d:privilege><d:write /></d:privilege>
-                |          <d:privilege><d:write-properties /></d:privilege>
-                |          <d:privilege><d:write-content /></d:privilege>
-                |        </d:current-user-privilege-set>
+                |        <$D:current-user-privilege-set>
+                |          <$D:privilege><$D:read /></$D:privilege>
+                |          <$D:privilege><$D:all /></$D:privilege>
+                |          <$D:privilege><$D:write /></$D:privilege>
+                |          <$D:privilege><$D:write-properties /></$D:privilege>
+                |          <$D:privilege><$D:write-content /></$D:privilege>
+                |        </$D:current-user-privilege-set>
+                """.trimMargin()
+            )
+        }
+        if (props.contains(Prop.RESOURCE_ID)) {
+            // A unique, immutable identifier for the user or resource. Typically, a urn:uuid.
+            sb.appendLine("        <$D:resource-id>${CardDavUtils.generateDeterministicUUID(user)}</$D:resource-id>")
+        }
+        if (props.contains(Prop.SUPPORTED_REPORT_SET)) {
+            sb.appendLine(
+                """
+                |        <$D:supported-report-set>
+                |          <$D:supported-report>
+                |            <$D:report>
+                |              <$CARD:addressbook-query />
+                |            </$D:report>
+                |          </$D:supported-report>
+                |          <$D:supported-report>
+                |            <$D:report>
+                |              <$D:sync-collection />
+                |            </$D:report>
+                |          </$D:supported-report>
+                |        </$D:supported-report-set>
                 """.trimMargin()
             )
         }
         sb.appendLine(
             """
-                |      </d:prop>
-                |      <d:status>HTTP/1.1 200 OK</d:status>
-                |    </d:propstat>
-                |  </d:response>
+                |      </$D:prop>
+                |      <$D:status>HTTP/1.1 200 OK</$D:status>
+                |    </$D:propstat>
             """.trimMargin()
         )
+        if (props.contains(Prop.DIRECTORY_GATEWAY)) {
+            addUnsupportedProp(sb, Prop.DIRECTORY_GATEWAY)
+        }
+        sb.appendLine("  </$D:response>")
         appendMultiStatusEnd(sb)
         return sb.toString()
     }
 
-    // <?xml version="1.0" encoding="UTF-8"?>
-    //<d:multistatus xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/">
-    //  <d:response>
-    //    <d:href>/principals/users/kai/</d:href>
-    //    <d:propstat>
-    //      <d:prop>
-    //        <d:current-user-principal>
-    //          <d:href>/principals/users/kai/</d:href>
-    //        </d:current-user-principal>
-    //        <d:principal-URL>
-    //          <d:href>/principals/users/kai/</d:href>
-    //        </d:principal-URL>
-    //        <cs:email-address-set>
-    //          <d:href>mailto:kai@example.com</d:href>
-    //        </cs:email-address-set>
-    //      </d:prop>
-    //      <d:status>HTTP/1.1 200 OK</d:status>
-    //    </d:propstat>
-    //  </d:response>
-    //</d:multistatus>
+    fun addUnsupportedProp(sb: StringBuilder, prop: Prop) {
+        sb.appendLine(
+            """
+                |    <$D:propstat>
+                |      <$D:prop>
+                |        <${prop.xmlns}:${prop.str} />
+                |      </$D:prop>
+                |      <$D:status>HTTP/1.1 404 Not Found</$D:status>
+                |    </$D:propstat>
+                """.trimMargin()
+        )
+    }
 }
