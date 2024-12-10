@@ -29,6 +29,7 @@ import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.mail.MailAttachment
+import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.poll.excel.ExcelExport
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

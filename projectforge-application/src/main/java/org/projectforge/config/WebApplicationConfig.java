@@ -24,11 +24,8 @@
 package org.projectforge.config;
 
 import org.projectforge.Constants;
-import org.projectforge.caldav.config.DAVMethodsInterceptor;
-import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.framework.configuration.PFSpringConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -45,11 +42,6 @@ public class WebApplicationConfig implements WebMvcConfigurer {
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
         registry.addViewController("/" + Constants.REACT_APP_PATH + "**").setViewName("forward:/react-app.html");
-    }
-
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new DAVMethodsInterceptor());
     }
 
     @Override
