@@ -123,7 +123,7 @@ class CardDavFilter : Filter {
 
                 "OPTIONS" -> {
                     log.debug { "OPTIONS call detected: $normalizedUri" }
-                    return urlMatches(normalizedUri, "users")
+                    return urlMatches(normalizedUri, "users", "principals")
                 }
 
                 else -> {

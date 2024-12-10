@@ -23,9 +23,11 @@
 
 package org.projectforge.carddav
 
+import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
+import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.carddav.model.AddressBook
@@ -50,10 +52,18 @@ class CardDavService {
     private lateinit var addressService: AddressService
 
     @Autowired
+    private lateinit var domainService: DomainService
+
+    @Autowired
     private lateinit var restAuthenticationUtils: RestAuthenticationUtils
 
     @Autowired
     private lateinit var userAuthenticationsService: UserAuthenticationsService
+
+    @PostConstruct
+    fun init() {
+        domain = domainService.plainDomain
+    }
 
     fun dispatch(request: HttpServletRequest, response: HttpServletResponse) {
         val requestWrapper = RequestWrapper(request)
@@ -181,13 +191,14 @@ class CardDavService {
      * @return ResponseEntity with allowed methods and DAV capabilities in the headers.
      */
     private fun handleDynamicOptions(requestWrapper: RequestWrapper, response: HttpServletResponse) {
+        log.debug { "handlePropFindCall: ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
         val requestedPath = requestWrapper.requestURI
         // Indicate DAV capabilities
         response.addHeader("DAV", "1, 2, 3, addressbook")
 
         // Indicate allowed HTTP methods
         // add("Allow", "OPTIONS, GET, HEAD, POST, PUT, DELETE, PROPFIND, REPORT")
-        response.addHeader("Allow", "OPTIONS, GET, PROPFIND")
+        response.addHeader("Allow", "OPTIONS, GET, DELETE, PROPFIND, REPORT")
 
         // Expose additional headers for client visibility
         response.addHeader("Access-Control-Expose-Headers", "DAV, Allow")
@@ -198,5 +209,9 @@ class CardDavService {
             response.addHeader("Content-Type", "application/xml")
         }
         ResponseUtils.setValues(response, status = HttpStatus.OK)
+    }
+
+    companion object {
+        internal var domain: String = "localhost"
     }
 }

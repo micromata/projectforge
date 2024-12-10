@@ -31,16 +31,22 @@ private val log = KotlinLogging.logger {}
 /**
  * Properties that can be requested in a PROPFIND request.
  */
-internal enum class Prop(val str: String) {
-    RESOURCETYPE("resourcetype"),
-    DISPLAYNAME("displayname"),
-    GETETAG("getetag"),
-    GETCTAG("getctag"),
-    SYNCTOKEN("sync-token"),
+internal enum class Prop(val str: String, val xmlns: String = CardDavUtils.D) {
+    ADDRESSBOOK_HOME_SET("addressbook-home-set"),
+    ADDRESS_DATA("caddress-data"),
     CURRENT_USER_PRINCIPAL("current-user-principal"),
     CURRENT_USER_PRIVILEGE_SET("current-user-privilege-set"),
+    DIRECTORY_GATEWAY("directory-gateway", CardDavUtils.CARD), // 404 - Not found.
+    DISPLAYNAME("displayname"),
+    EMAIL_ADDRESS_SET("email-address-set"),
+    GETCTAG("getctag"),
+    GETETAG("getetag"),
+    RESOURCETYPE("resourcetype"),
+    PRINCIPAL_COLLECTION_SET("principal-collection-set"),
     PRINCIPAL_URL("principal-URL"),
-    ADDRESS_DATA("caddress-data");
+    RESOURCE_ID("resource-id"),
+    SUPPORTED_REPORT_SET("supported-report-set"),
+    SYNCTOKEN("sync-token");
 
     companion object {
         /**

@@ -24,7 +24,6 @@
 package org.projectforge.carddav
 
 import jakarta.servlet.http.HttpServletResponse
-import org.aspectj.weaver.tools.cache.SimpleCacheFactory.path
 import org.projectforge.carddav.model.Contact
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -34,6 +33,10 @@ import org.springframework.http.MediaType
 import java.util.*
 
 internal object CardDavUtils {
+    const val D = "d"        // xmlns:d="DAV:"
+    const val CARD = "card"  // xmlns:card="urn:ietf:params:xml:ns:carddav"
+    const val CS = "cs"      // xmlns:cs="http://calendarserver.org/ns/"
+
     fun getVcfFileName(contact: Contact): String {
         // If you change this, don't forget to change the regex in CardDavXmlUtils.extractAddressIds.
         return "ProjectForge-${contact.id}.vcf"
@@ -109,12 +112,34 @@ internal object CardDavUtils {
     }
 
     /**
-     * Returns the URL for the given user.
+     * Generate UUID of type 5 (deterministic based on [org.projectforge.business.configuration.DomainService.plainDomain] and userId)
+     * @param user The user with ID.
+     * @return The generated UUID.
+     */
+    fun generateDeterministicUUID(user: PFUserDO): String {
+        val uuid = UUID.nameUUIDFromBytes("${CardDavService.domain}:${user.id}".toByteArray())
+        return "urn:uuid:$uuid"
+    }
+
+    /**
+     * Returns the URL for the given user: /principals/users/{username}/
      * @param requestUri The request URI.
      * @param user The user.
      * @return The URL for the user.
      */
     fun getPrincipalsUsersUrl(requestUri: String, user: PFUserDO): String {
         return getUrl(requestUri, "/principals/users/${user.username}/")
+    }
+
+    /**
+     * Returns the URL for the given user: /users/{username}/{subPath}
+     * @param requestUri The request URI.
+     * @param user The user.
+     * @param subPath The sub path to append to the user URL. Mustn't start with a slash.
+     * @return The URL for the user.
+     */
+    fun getUsersUrl(requestUri: String, user: PFUserDO, subPath: String = ""): String {
+        require(!subPath.startsWith("/")) { "subPath mustn't start with a slash: $subPath" }
+        return getUrl(requestUri, "/users/${user.username}/$subPath")
     }
 }
