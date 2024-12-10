@@ -185,14 +185,14 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val layout = super.createEditLayout(dto, userAccess)
         val fieldset = UIFieldset(UILength(12))
         layout.add(fieldset)
-        if (dto.isFinished() && dto.isAlreadyCreated()) {
+        if (/*dto.isFinished()*/ dto.isAlreadyCreated()) {
             layout.add(
                 MenuItem(
                     "export-poll-response-button",
                     i18nKey = "poll.export.response.poll",
                     url = RestResolver.getRestUrl(
                         restClass = PollPageRest::class.java,
-                        subPath = "export",
+                        subPath = "/export",
                         params = mapOf("id" to dto.id)
                     ),
                     type = MenuItemTargetType.DOWNLOAD
@@ -428,7 +428,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
 
-    @GetMapping("export")
+    @GetMapping("/export")
     fun export(@RequestParam("id") id: String): ResponseEntity<Resource>? {
         val poll = Poll()
         val pollDo = pollDao.find(id.toLong())!!
@@ -493,7 +493,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
             val owner = userService.getUser(postData.data.owner?.id)
             val mailFrom = owner?.email.toString()
-            val mailTo = pollMailService.getAllAttendesEmails(postData.data)
+            val mailTo = pollMailService.getAllAttendeesEmails(postData.data)
             val mailSubject = translateMsg("poll.mail.ended.subject", postData.data.title)
             val mailContent = translateMsg("poll.mail.ended.content", postData.data.title, owner?.displayName)
             pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
@@ -552,7 +552,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                         "poll.mail.created.content",
                         obj.title,
                         owner?.displayName,
-                        "http://localhost:8080/react/pollResponse/dynamic/?pollId=${obj.id}"
+                        obj.id.toString(),
                     )
                     pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
 
@@ -564,7 +564,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                         content,
                         obj.title,
                         owner?.displayName,
-                        "<p>Hier kommst du direkt <a href=\"http://localhost:8080/react/pollResponse/dynamic/?pollId=${obj.id}\"> zur Umfrage</a></p>",
+                        "<p><a href=\"https://projectforge.micromata.de/react/pollResponse/dynamic/?pollId=${obj.id}\">Link</a></p>",
                         obj.description,
                         obj.deadline
                     )
@@ -577,7 +577,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                         "poll.mail.created.content",
                         obj.title,
                         owner?.displayName,
-                        "http://localhost:8080/react/pollResponse/dynamic/?pollId=${obj.id}",
+                        "https://projectforge.micromata.de/react/pollResponse/dynamic/?pollId=${obj.id}",
                         obj.description,
                         obj.deadline
                     )
@@ -591,7 +591,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                         content,
                         obj.title,
                         owner?.displayName,
-                        "<p>Hier kommst du direkt <a href=\"http://localhost:8080/react/pollResponse/dynamic/?pollId=${obj.id}\"> zur Umfrage</a></p>",
+                        "<p>Hier kommst du direkt <a href=\"https://projectforge.micromata.de/react/pollResponse/dynamic/?pollId=${obj.id}\"> zur Umfrage</a></p>",
                         obj.description,
                         obj.deadline
                     )

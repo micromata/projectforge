@@ -29,7 +29,6 @@ import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.mail.MailAttachment
-import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.poll.excel.ExcelExport
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -65,7 +64,7 @@ class PollCronJobs {
      * Cron job for daily stuff
      */
 
-    @Scheduled(cron = "0 0 */12 * * *") //Alle 12 Stunden
+    @Scheduled(cron = "0 5 0 * * *") // 00:05
     fun dailyCronJobs() {
         log.info("Start daily cron jobs")
         cronDeletePolls()
@@ -77,7 +76,7 @@ class PollCronJobs {
      * Method to end polls after deadline
      */
     private fun cronEndPolls() {
-        val pollDOs = pollDao.selectAll(checkAccess = false)
+        val pollDOs = pollDao.selectAllNotDeleted(checkAccess = false)
         // set State.FINISHED for all old polls and export excel
         pollDOs.forEach { pollDO ->
             // try to send mail until successfully changed to FINISHED_AND_MAIL_SENT
@@ -101,16 +100,15 @@ class PollCronJobs {
                             }
                         }
                         val owner = userService.getUser(poll.owner?.id)
-                        val mailTo: ArrayList<String> =
-                            ArrayList(poll.attendees?.map { it.email }?.mapNotNull { it } ?: emptyList())
+                        val mailTo = pollMailService.getAllAttendeesEmails(poll)
                         val mailFrom = pollDO.owner?.email.toString()
                         val mailSubject = translateMsg("poll.mail.endedafterdeadline.subject", poll.title)
                         val mailContent = translateMsg("poll.mail.endedafterdeadline.content", pollDO.title, owner?.displayName, )
 
-                        pollDao.insertOrUpdate(pollDO, checkAccess = false)
-                        log.info("Set state of poll (${pollDO.id}) ${pollDO.title} to FINISHED")
                         pollMailService.sendMail(mailFrom, mailTo, mailContent, mailSubject, listOf(mailAttachment))
                         pollDO.state = PollDO.State.FINISHED_AND_MAIL_SENT
+                        log.info("Set state of poll (${pollDO.id}) ${pollDO.title} to FINISHED_AND_MAIL_SENT")
+                        pollDao.insertOrUpdate(pollDO, checkAccess = false)
                     } catch (e: Exception) {
                         log.error(e.message, e)
                     }
@@ -125,8 +123,7 @@ class PollCronJobs {
             val daysDifference = ChronoUnit.DAYS.between(LocalDate.now(), pollDO.deadline)
             if (daysDifference == 1L || daysDifference == 7L) {
                 // add all attendees mails
-                val mailTo: ArrayList<String> =
-                    ArrayList(poll.attendees?.map { it.email }?.mapNotNull { it } ?: emptyList())
+                val mailTo = pollMailService.getAllAttendeesEmails(poll)
                 val mailFrom = pollDO.owner?.email.toString()
                 val mailSubject = translateMsg("poll.mail.endingSoon.subject", daysDifference)
                 val mailContent = translateMsg(
@@ -134,7 +131,7 @@ class PollCronJobs {
                     pollDO.title,
                     pollDO.owner?.displayName,
                     pollDO.deadline?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString(),
-                    "https://projectforge.micromata.de/react/response/dynamic/${pollDO.id}"
+                    pollDO.id.toString(),
                 )
                 pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
             }
