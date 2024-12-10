@@ -221,8 +221,13 @@ sourceSets {
 }
 
 val kotlinCompilerDependencyFiles = kotlinCompilerDependency.map { it.name }
+tasks.named("processResources") {
+    dependsOn(":projectforge-webapp:npmBuild", ":projectforge-webapp:copyReactBuild")
+}
+
 tasks.named<BootJar>("bootJar") {
     dependsOn(":projectforge-webapp:webAppJar")
+    dependsOn(tasks.named("jar")) // Ensure the plain JAR is built before bootJar
     val webAppJarProvider = project(":projectforge-webapp").layout.buildDirectory.file("libs/projectforge-webapp-${project.version}.jar")
     from(webAppJarProvider) {
         into("BOOT-INF/lib") // Insert the webapp jar into the boot jar.
