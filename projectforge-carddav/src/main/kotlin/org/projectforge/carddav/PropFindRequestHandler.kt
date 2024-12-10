@@ -110,8 +110,8 @@ internal object PropFindRequestHandler {
         if (props.contains(Prop.RESOURCETYPE)) {
             sb.appendLine("        <$D:resourcetype>")
             if (!props.contains(Prop.PRINCIPAL_URL)) {
-                // Apple-client requests PRINCIPAL_URL and doesn't expect <cr:addressbook/> in the response. But Thunderbird expects it.
-                sb.appendLine("          <cr:addressbook />")
+                // Apple-client requests PRINCIPAL_URL and doesn't expect <card:addressbook/> in the response. But Thunderbird expects it.
+                sb.appendLine("          <$CARD:addressbook />")
             }
             sb.appendLine("          <$D:collection />")
             sb.appendLine("        </$D:resourcetype>")

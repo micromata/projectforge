@@ -49,7 +49,7 @@ class PropFindRequestHandlerTest {
                     |    <d:propstat>
                     |      <d:prop>
                     |        <d:resourcetype>
-                    |          <cr:addressbook />
+                    |          <card:addressbook />
                     |          <d:collection />
                     |        </d:resourcetype>
                     |        <d:displayname>address.cardDAV.addressbook.displayName</d:displayname>
