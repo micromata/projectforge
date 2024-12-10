@@ -32,7 +32,7 @@ private val log = KotlinLogging.logger {}
  * Properties that can be requested in a PROPFIND request.
  */
 internal enum class Prop(val str: String, val xmlns: String = CardDavUtils.D) {
-    ADDRESSBOOK_HOME_SET("addressbook-home-set"),
+    ADDRESSBOOK_HOME_SET("addressbook-home-set", CardDavUtils.CARD),
     ADDRESS_DATA("caddress-data"),
     CURRENT_USER_PRINCIPAL("current-user-principal"),
     CURRENT_USER_PRIVILEGE_SET("current-user-privilege-set"),

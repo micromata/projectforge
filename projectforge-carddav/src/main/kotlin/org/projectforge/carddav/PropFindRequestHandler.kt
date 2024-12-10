@@ -158,7 +158,7 @@ internal object PropFindRequestHandler {
             sb.appendLine(
                 """
                 |        <$D:principal-collection-set>
-                |          <$D:href>${CardDavUtils.getUrl(href, "principals")}</$D:href>
+                |          <$D:href>${CardDavUtils.getUrl(href, "/principals")}</$D:href>
                 |        </$D:principal-collection-set>
                 """.trimMargin()
             )
