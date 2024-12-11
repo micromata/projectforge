@@ -48,13 +48,12 @@ internal class DeleteRequestHandler {
         log.debug { "handleDeleteCall:  ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
         val requestedPath = requestWrapper.requestURI
         val contactId = CardDavUtils.extractContactId(requestedPath)
-        val contact = contactList.find { it.id == contactId }
         if (contactId == null) {
             log.info { "Contact with id=$contactId not found in personal contact list. Can't delete it." }
             ResponseUtils.setValues(response, content = "The resource does not exist.", status = HttpStatus.NOT_FOUND)
             return
         }
-        if (addressService.deleteContact(contactId, contact)) {
+        if (addressService.deleteContact(contactId)) {
             ResponseUtils.setValues(response, HttpStatus.NO_CONTENT)
         } else {
             ResponseUtils.setValues(response, content = "The resource does not exist.", status = HttpStatus.NOT_FOUND)
