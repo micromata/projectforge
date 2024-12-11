@@ -23,6 +23,8 @@
 
 package org.projectforge.business.user
 
+import jakarta.annotation.PostConstruct
+import org.projectforge.ShutdownService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.DependsOn
 import org.springframework.stereotype.Component
@@ -39,7 +41,15 @@ import org.springframework.stereotype.Component
 class UserXmlPreferencesCache
     : AbstractUserPrefCache<UserXmlPreferencesDO>("UserXmlPreferencesCache", "key") {
     @Autowired
+    private lateinit var shutdownService: ShutdownService
+
+    @Autowired
     private lateinit var userXmlPreferencesDao: UserXmlPreferencesDao
+
+    @PostConstruct
+    private fun postConstruct() {
+        shutdownService.registerListener(this)
+    }
 
     override fun newEntry(): UserXmlPreferencesDO {
         return UserXmlPreferencesDO()

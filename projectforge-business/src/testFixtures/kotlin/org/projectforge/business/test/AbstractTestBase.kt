@@ -537,7 +537,7 @@ abstract class AbstractTestBase protected constructor() {
             internalJunitTestMode = true
             internalSetTestMode()
             initialized = false
-            UserPrefCache.dontCallPreDestroyInTestMode = true
+            UserPrefCache.dontCallShutdownInTestMode = true
         }
 
         @JvmStatic

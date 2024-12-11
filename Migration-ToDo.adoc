@@ -1,5 +1,4 @@
 Aktuell:
-- Shutdown: Connection.close()
 - Pagesize wird ignoriert (bei Adressen)
 - Gradle-Version-Checker: Read lib.versions.toml und Vergleichen mit fatjar.
 - Check milton (and address favorites)
