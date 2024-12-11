@@ -84,17 +84,17 @@ class AddressService {
             return Contact()
         }
     */
-    fun deleteContact(contactId: Long, contact: Contact?): Boolean {
+    fun deleteContact(contactId: Long): Boolean {
         try {
             val personalAddress = personalAddressDao.getByAddressId(contactId)
             if (personalAddress?.isFavorite == true) {
                 personalAddress.isFavoriteCard = false
                 personalAddressDao.saveOrUpdate(personalAddress)
-                log.info("Contact #$contactId '${contact?.displayName}' removed from favorite list.")
+                log.info("Contact #$contactId removed from favorite list.")
             }
             return true
         } catch (e: Exception) {
-            log.error(e) { "Exception while deleting contact: id=${contactId}, name=[${contact?.displayName}]" }
+            log.error(e) { "Exception while deleting contact: id=${contactId}." }
             return false
         }
     }
