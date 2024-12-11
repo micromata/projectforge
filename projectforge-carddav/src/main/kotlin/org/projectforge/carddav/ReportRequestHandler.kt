@@ -33,6 +33,7 @@ import org.projectforge.carddav.model.Contact
 import org.projectforge.rest.utils.ResponseUtils
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import java.util.Date
 
 private val log = KotlinLogging.logger {}
 
@@ -64,18 +65,26 @@ internal object ReportRequestHandler {
         val response = writerContext.response
         val contactList = writerContext.contactList ?: emptyList()
         log.debug { "handleReportCall:  ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
-        writerContext.props ?: return // No properties response is handled in handleProps.
+        val props = writerContext.props ?: return // No properties response is handled in handleProps.
         val rootElement = CardDavXmlUtils.getRootElement(requestWrapper.body)
         val sb = StringBuilder()
         appendMultiStatusStart(sb)
         if (rootElement == "sync-collection") {
-            //val syncToken = CardDavXmlUtils.extractSyncToken(requestWrapper.body)
-            // 1. Modifications since the last sync-token.
-            PropWriter.appendSupportedProps(sb, writerContext)
-            contactList.forEach { contact ->
-                appendPropfindContact(sb, requestWrapper.requestURI, contact, false)
+            val syncToken = props.find { it.type == PropType.SYNCTOKEN }?.value
+            val syncTokenMillis = CardDavUtils.getMillisFromSyncToken(syncToken)
+            val lastUpdated =  CardDavUtils.getLastUpdated(contactList)?.time ?: 0L
+            val newSyncToken = CardDavUtils.getSyncToken()
+            if (syncTokenMillis != null && syncTokenMillis >= lastUpdated) {
+                // 1. No modifications since the last sync-token.
+                sb.appendLine("  <d:sync-token>$newSyncToken</d:sync-token>")
+            } else {
+                // 2. Modifications since the last sync-token.
+                //val syncToken = CardDavXmlUtils.extractSyncToken(requestWrapper.body)
+                contactList.forEach { contact ->
+                    appendPropfindContact(sb, requestWrapper.requestURI, contact, false)
+                }
+                sb.appendLine("  <d:sync-token>$newSyncToken</d:sync-token>")
             }
-            // 2. No modifications since the last sync-token.
         } else if (rootElement == "addressbook-multiget") {
             val requestedAddressIds = CardDavXmlUtils.extractContactIds(requestWrapper.body)
             val notFoundContactIds = requestedAddressIds.filter { addressId -> contactList.none { it.id == addressId } }

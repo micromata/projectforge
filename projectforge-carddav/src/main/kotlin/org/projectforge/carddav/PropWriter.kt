@@ -155,11 +155,7 @@ internal object PropWriter {
             }
 
             PropType.SYNCTOKEN -> {
-                // TODO: This sync token is just a random constant string for testing.
-                appendProp(
-                    sb, prop,
-                    "76731ß1284"
-                )
+                appendProp(sb, prop, CardDavUtils.getSyncToken())
             }
 
             else -> log.warn { "Unsupported prop '<${prop.xmlns}:${prop.tag}>'" }
