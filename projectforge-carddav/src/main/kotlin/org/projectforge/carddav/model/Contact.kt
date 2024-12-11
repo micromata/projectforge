@@ -39,13 +39,14 @@ data class Contact(
     /**
      * A unique identifier for this version of the resource. This allows clients to detect changes efficiently.
      * The hashcode of the vcard, embedded in quotes.
+     * Please note: the etag is embedded in quotes. Must be used in xml as well as in http response of GET call.
      * @return The ETag.
      */
     val etag: String by lazy {
         vcardData?.let {
             val digest = MessageDigest.getInstance("SHA-256")
             val hashBytes = digest.digest(it.toByteArray())
-            hashBytes.joinToString("") { "%02x".format(it) }
+            "\"${hashBytes.joinToString("") { "%02x".format(it) }}\""
         } ?: "\"null\""
     }
 

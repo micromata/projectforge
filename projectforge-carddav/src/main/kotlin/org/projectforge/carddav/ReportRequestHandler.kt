@@ -23,7 +23,6 @@
 
 package org.projectforge.carddav
 
-import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
 import org.projectforge.carddav.CardDavUtils.CARD
 import org.projectforge.carddav.CardDavUtils.D
@@ -33,7 +32,6 @@ import org.projectforge.carddav.model.Contact
 import org.projectforge.rest.utils.ResponseUtils
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import java.util.Date
 
 private val log = KotlinLogging.logger {}
 
@@ -56,9 +54,7 @@ internal object ReportRequestHandler {
      *   </sync-collection>
      * ```
      *
-     * @param requestWrapper The request wrapper.
-     * @param response The response.
-     * @see CardDavXmlUtils.generatePropFindResponse
+     * @param writerContext The writer context.
      */
     fun handleSyncReportCall(writerContext: WriterContext) {
         val requestWrapper = writerContext.requestWrapper
@@ -72,7 +68,7 @@ internal object ReportRequestHandler {
         if (rootElement == "sync-collection") {
             val syncToken = props.find { it.type == PropType.SYNCTOKEN }?.value
             val syncTokenMillis = CardDavUtils.getMillisFromSyncToken(syncToken)
-            val lastUpdated =  CardDavUtils.getLastUpdated(contactList)?.time ?: 0L
+            val lastUpdated = CardDavUtils.getLastUpdated(contactList)?.time ?: 0L
             val newSyncToken = CardDavUtils.getSyncToken()
             if (syncTokenMillis != null && syncTokenMillis >= lastUpdated) {
                 // 1. No modifications since the last sync-token.
@@ -137,7 +133,7 @@ internal object ReportRequestHandler {
             |    <$D:href>${href}${CardDavUtils.getVcfFileName(contact)}</$D:href>
             |    <$D:propstat>
             |      <$D:prop>
-            |        <$D:getetag>"${contact.etag}"</$D:getetag>
+            |        <$D:getetag>${contact.etag}</$D:getetag>
             """.trimMargin()
         )
         if (fullVCards) {

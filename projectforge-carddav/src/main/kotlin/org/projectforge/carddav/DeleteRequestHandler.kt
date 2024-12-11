@@ -24,35 +24,41 @@
 package org.projectforge.carddav
 
 import mu.KotlinLogging
+import org.projectforge.carddav.service.AddressService
 import org.projectforge.rest.utils.ResponseUtils
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.stereotype.Service
 
 private val log = KotlinLogging.logger {}
 
-internal object GetRequestHandler {
+@Service
+internal class DeleteRequestHandler {
+    @Autowired
+    private lateinit var addressService: AddressService
+
     /**
-     * Handles /carddav/users/admin/addressbooks/ProjectForge-129.vcf, method=GET
+     * Handles uri=/carddav/users/admin/addressbooks/ProjectForge-128.vcf, method=DELETE
      * @param writerContext The writer context.
      */
-    fun handleGetCall(writerContext: WriterContext) {
+    fun handleDeleteCall(writerContext: WriterContext) {
         val requestWrapper = writerContext.requestWrapper
         val response = writerContext.response
         val contactList = writerContext.contactList ?: emptyList()
-        log.debug { "handleGetCall:  ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
+        log.debug { "handleDeleteCall:  ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
         val requestedPath = requestWrapper.requestURI
         val contactId = CardDavUtils.extractContactId(requestedPath)
         val contact = contactList.find { it.id == contactId }
-        val vcardData = contact?.vcardData
-        if (vcardData == null) {
-            ResponseUtils.setValues(response, status = HttpStatus.NOT_FOUND)
+        if (contactId == null) {
+            log.info { "Contact with id=$contactId not found in personal contact list. Can't delete it." }
+            ResponseUtils.setValues(response, content = "The resource does not exist.", status = HttpStatus.NOT_FOUND)
             return
         }
-        val content = vcardData
-        // For vCard data, use text/vcard (for version 3.0 or earlier) or text/vcard;charset=utf-8 for newer versions like 4.0.
-        // A unique identifier for this version of the resource. This allows clients to detect changes efficiently.
-        response.addHeader("ETag", contact.etag)
-        response.addHeader("Last-Modified", contact.lastModifiedAsHttpDate)
-        ResponseUtils.setValues(response, HttpStatus.OK, contentType = "text/vcard", content = content)
-        log.debug { "handleGetCall: response=${ResponseUtils.asJson(response)}, content=[$content]" }
+        if (addressService.deleteContact(contactId, contact)) {
+            ResponseUtils.setValues(response, HttpStatus.NO_CONTENT)
+        } else {
+            ResponseUtils.setValues(response, content = "The resource does not exist.", status = HttpStatus.NOT_FOUND)
+        }
+        log.debug { "handleGetCall: response.content=[]" }
     }
 }

@@ -45,7 +45,7 @@ internal object PropFindRequestHandler {
         log.debug { "handlePropFindCall: ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
         CardDavUtils.handleProps(requestWrapper, response) ?: return // No properties response is handled in handleProps.
         val content = generatePropFindResponse(writerContext)
-        log.debug { "handlePropFindCall: response=[$content]" }
+        log.debug { "handlePropFindCall: response.content=[$content]" }
         CardDavUtils.setMultiStatusResponse(response, content)
     }
 

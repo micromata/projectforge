@@ -276,13 +276,16 @@ class PersonalAddressDao {
          * @return the list of all PersonalAddressDO entries for the context user without any check access (addresses might be also deleted).
          */
         get() {
-            val owner = requiredLoggedInUser
-            return persistenceService.executeNamedQuery(
-                PersonalAddressDO.FIND_FAVORITE_ADDRESS_IDS_BY_OWNER,
-                Long::class.java,
-                Pair("ownerId", owner.id)
-            )
+            return getFavoriteAddressIdList(requiredLoggedInUser)
         }
+
+    fun getFavoriteAddressIdList(owner: PFUserDO): List<Long> {
+        return persistenceService.executeNamedQuery(
+            PersonalAddressDO.FIND_FAVORITE_ADDRESS_IDS_BY_OWNER,
+            Long::class.java,
+            Pair("ownerId", owner.id)
+        )
+    }
 
     val personalAddressByAddressId: Map<Long, PersonalAddressDO>
         /**
