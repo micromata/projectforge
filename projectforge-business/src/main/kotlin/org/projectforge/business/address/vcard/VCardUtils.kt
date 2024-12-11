@@ -132,7 +132,7 @@ object VCardUtils {
         addressImageDao: AddressImageDao
     ): String { //See: https://github.com/mangstadt/ez-vcard
         val vcard = buildVCard(addressDO, addressImageDao)
-        return Ezvcard.write(vcard).version(VCardVersion.V4_0).go()
+        return Ezvcard.write(vcard).version(VCardVersion.V3_0).go()
     }
 
     @JvmStatic

@@ -26,6 +26,7 @@ package org.projectforge.rest.utils
 import jakarta.servlet.http.HttpServletResponse
 import org.projectforge.framework.json.JsonUtils
 import org.springframework.http.HttpStatus
+import java.nio.charset.StandardCharsets
 
 object ResponseUtils {
     /**
@@ -56,8 +57,9 @@ object ResponseUtils {
             if (contentType == null) {
                 response.contentType = "charset=UTF-8"
             }
-            response.writer.write(content)
-            response.setContentLength(content.length)
+            val contentBytes = content.toByteArray(StandardCharsets.UTF_8)
+            response.setContentLength(contentBytes.size)
+            response.outputStream.use { it.write(contentBytes) }
         }
     }
 

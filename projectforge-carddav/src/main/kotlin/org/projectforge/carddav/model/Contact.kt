@@ -45,7 +45,7 @@ data class Contact(
         vcardData?.let {
             val digest = MessageDigest.getInstance("SHA-256")
             val hashBytes = digest.digest(it.toByteArray())
-            "\"" + hashBytes.joinToString("") { "%02x".format(it) } + "\""
+            hashBytes.joinToString("") { "%02x".format(it) }
         } ?: "\"null\""
     }
 
