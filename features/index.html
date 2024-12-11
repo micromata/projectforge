@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>ProjectForge | ProjectForge Documentation.</title>
+<meta name="generator" content="Jekyll v4.2.0" />
+<meta property="og:title" content="ProjectForge" />
+<meta name="author" content="kai" />
+<meta property="og:locale" content="en" />
+<meta name="description" content="ProjectForge Documentation." />
+<meta property="og:description" content="ProjectForge Documentation." />
+<link rel="canonical" href="https://projectforge.org/features/" />
+<meta property="og:url" content="https://projectforge.org/features/" />
+<meta property="og:site_name" content="ProjectForge" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="ProjectForge" />
+<script type="application/ld+json">
+{"author":{"@type":"Person","name":"kai"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://projectforge.org/logo_projectforge.gif"},"name":"kai"},"headline":"ProjectForge","description":"ProjectForge Documentation.","url":"https://projectforge.org/features/","@type":"WebPage","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+  <meta property="og:image" content="https://projectforge.org/uploads/logo_projectforge.gif"/>
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="shortcut icon" type="image/png" href="/uploads/favicon.png" >
+  <link rel="alternate" type="application/rss+xml" title="ProjectForge" href="/feed.xml">
+  <script src="/assets/js/main.js"></script>
+  
+  
+  
+</head>
+
+
+    <body>
+
+    
+        
+
+
+
+<header class="uk-background-center-center uk-background-cover" style="">
+    <div class="uk-overlay-header" style="">
+
+        <div data-uk-sticky="animation: uk-animation-slide-top; sel-target: .uk-navbar-container; cls-active: uk-navbar-sticky; cls-inactive: uk-navbar-transparent; top: 200">
+    <nav class="uk-navbar-container">
+        <div class="uk-container">
+            <div data-uk-navbar>
+                <div class="uk-navbar-left">
+                    <a class="uk-navbar-item uk-logo uk-visible@m" href="/"><img src="https://projectforge.org/uploads/logo_projectforge.gif" alt="ProjectForge"></a>
+                    
+                        <a class="uk-navbar-toggle uk-hidden@m" href="#offcanvas-docs" data-uk-toggle><span data-uk-navbar-toggle-icon></span> <span class="uk-margin-small-left">Docs</span></a>
+                    
+
+                    <ul class="uk-navbar-nav uk-visible@m">
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/" >Home</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="https://github.com/micromata/projectforge/" target="_blank" >GitHub</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li class="uk-active"><a href="/features/" >Features</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="#">Docs</a>
+                                        
+                                            <div class="uk-navbar-dropdown">
+                                                <ul class="uk-nav uk-navbar-dropdown-nav">
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/quickstart/">Quick Start</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/installation/">Installation</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/adminguide/">Administration guide</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/userguide/">User guide</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/development/">Development</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/technologies/">Technologies</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/migration/">Migration</a></li>
+                                                    
+                                                    
+                                                </ul>
+                                            </div>
+                                        
+                                        </li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/misc/faqs" >FAQ</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/about/" >About</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/search/" >Search</a></li>
+                                                                                                        
+                                
+                            
+                        
+                    </ul>
+                </div>
+                <div class="uk-navbar-center uk-hidden@m">
+                    <a class="uk-navbar-item uk-logo" href="/"><img src="https://projectforge.org/uploads/logo_projectforge.gif" alt="ProjectForge"></a>
+                </div>
+                <div class="uk-navbar-right">
+                    
+
+                    <ul class="uk-navbar-nav uk-visible@m">
+                        
+                            
+                            
+                            
+                                
+                                    <li><div class="uk-navbar-item"><a class="uk-button uk-button-primary-outline" href="/changelog-posts/" >Changelog</a></div></li>
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    <li><div class="uk-navbar-item"><a class="uk-button uk-button-success" href="/download/" >Download</a></div></li>
+                                
+                            
+                        
+                    </ul>
+
+                    
+                        <a class="uk-navbar-toggle uk-hidden@m" href="#offcanvas" data-uk-toggle><span data-uk-navbar-toggle-icon></span> <span class="uk-margin-small-left">Menu</span></a>
+                    
+
+                </div>
+            </div>
+        </div>
+    </nav>
+</div>
+
+
+        <div class="uk-section section-hero uk-position-relative" data-uk-scrollspy="cls: uk-animation-slide-bottom-medium; repeat: true">
+            <div class="uk-container uk-container-small">
+                
+                <h1 class="uk-heading-primary uk-text-center uk-margin-remove-top">Features</h1>
+                <p class="uk-text-lead uk-text-center">ProjectForge is developed as a professional and secure Software. A lot of features make your project management and daily work much easier!</p>
+
+                
+
+            </div>
+        </div>
+
+    </div>
+</header>
+
+    
+
+    
+<div class="uk-section">
+    <div class="uk-container uk-container-small">
+
+        <article class="uk-article">
+
+            <h1 class="uk-article-title"></h1>
+
+            <div class="article-content link-primary">
+                <div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#main_features">1. Main features</a></li>
+<li><a href="#project_management">2. Project Management</a></li>
+<li><a href="#team_work">3. Team work</a></li>
+<li><a href="#plugins">4. Plugins</a></li>
+<li><a href="#miscellaneous">5. Miscellaneous</a></li>
+<li><a href="#financial_administration">6. Financial administration</a></li>
+<li><a href="#technical_requirements">7. Technical requirements</a></li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Its modern architecture is very scalable and uses encrypted communication for usage over the Internet. You can start ProjectForge as a small installation (as executable for Windows, Mac or Linux) and migrate it later, if needed, on a server farm.</p>
+</div>
+<div class="paragraph">
+<p>Your users only need a modern Internet browser. There is no need to install anything on the user&#8217;s client.</p>
+</div>
+<div class="sect1">
+<h2 id="main_features">1. Main features</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Feature</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Time sheet booking</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Convenient booking of the time sheets on your project tasks and issues. Templates support your team to book their work in seconds.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Data transfer tool</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Share your files with other user&#8217;s as well as with your customers. Full drag and drop support and secured by password.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Task trees</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Organize your company, your customers and your projects in tasks with an unlimited hierarchy. Configure, where your users should book their work.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Calendar</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A calendar with holidays and working days is a central view of ProjectForge. It gives you an overview of the daily work.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Team calendar</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Manage and share your calendar events on all your devices and with your teams.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gantt</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Visualize your tasks with Gantt diagrams to give your customer and teams a maximum of transparency.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">User management</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A detailed user management gives you the opportunity to manage very detailed access rights of your users.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Business objects</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">There are a lot of business objects such as employees, salaries, accounting records etc. Refer the demo for further details.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LDAP support</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">You may run ProjectForge as LDAP client or run ProjectForge as master of your user/groups administration. All changes of users, groups and assignments will be published to the LDAP server in master mode immediately after any modification. You can administrate POSIX accounts data as well (Samba accounts will be supported with the next version of ProjectForge).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="project_management">2. Project Management</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Feature</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Consumption</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Track your project whenever you want. Consumption bars give you and your team members an overview: which tasks are on track and which tasks not.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Order book</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Organize all offers with your project managers and key-accounters. Assign orders with their budgets to tasks for your project controlling.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HR planning</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Make your multi-project management much easier by planning your team members on projects. So every employee and all project managers are every time up-to-date.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="team_work">3. Team work</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Feature</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Address book</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A central address book provides an Excel export as well as v-card exports.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Library</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Manage your books and their lend-out-states of your library with ProjectForge.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="plugins">4. Plugins</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Feature</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Software License Management</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A central address book provides an Excel export as well as v-card exportsYou may organize your Software licenses with ProjectForge (Adobe, Microsoft etc.). The administrators have full access to all licenses and keys, the users only to the keys of licenses to which they&#8217;re assigned. You can track the history of changes easily. Try it (within the demo system on this web site or refer the AdministrationGuide for enabling this plugin).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="miscellaneous">5. Miscellaneous</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Feature</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Full text search</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">With the full text search engine which is built-in you can find your data in seconds. A query syntax is provided for a customized search.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Excel-Exports</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">see Scripting</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Scripting</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Scripting engine allows the enabled users to analyze and calculate data and generate Excel exports as well as diagrams. All data of ProjectForge is accessible via scripts.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Templating</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Templates used e. g. for html-formatted e-mails are internationalized in the language of the receiver and can be configured by administrators (see AdministrationGuide). Groovy is used for enabling more complex logic and embedding other templates in a convenient way. So you can define main style templates for assuring a well-defined layout and design for all the e-mails.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mobile devices</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ProjectForge is usable with mobile devices. More and more pages are optimized for devices such as iPhone, Android etc.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="financial_administration">6. Financial administration</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Feature</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Invoices</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Organize your inbound and outbound invoices with ProjectForge. Assign the positions of your invoices to projects, releases etc.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cost calculation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">It&#8217;s possible to get every time you want the profit of your projects, customers etc. See which releases or project phases were successful and where you have to improve your processes.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="technical_requirements">7. Technical requirements</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>The ProjectForge server is available as a ready-to-run executable jar (for Windows, Mac, Linux and all Java-capable platforms).</p>
+</li>
+<li>
+<p>ProjectForge is available as docker image.</p>
+</li>
+<li>
+<p>The users only need a modern web browser to have full access to ProjectForge anywhere.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+            </div>
+
+        </article>
+
+    </div>
+</div>
+
+
+    <div id="offcanvas-docs" data-uk-offcanvas="overlay: true">
+    <div class="uk-offcanvas-bar">
+
+        <button class="uk-offcanvas-close" type="button" data-uk-close></button>
+
+        
+        <h5 class="uk-margin-top">Documentation</h5>
+        <ul class="uk-nav uk-nav-default doc-nav">
+        
+          
+          
+          <li class=""><a href="/docs/quickstart/">Quick Start</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/installation/">Installation</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/userguide/">User guide</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/adminguide/">Administration guide</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/development/">Development</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/technologies/">Technologies</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/migration/">Migration</a></li>
+        
+        </ul>
+        
+
+    </div>
+</div>
+
+
+    <div id="offcanvas" data-uk-offcanvas="flip: true; overlay: true">
+    <div class="uk-offcanvas-bar">
+
+        <a class="uk-logo uk-margin-small-bottom" href="/"><img src="https://projectforge.org/uploads/logo_projectforge.gif" alt="ProjectForge"></a>
+     
+        <button class="uk-offcanvas-close" type="button" data-uk-close></button>
+      
+        <ul class="uk-nav uk-nav-primary uk-margin-top">
+            
+                
+
+                
+
+                
+                    <li><a href="/" >Home</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li class="uk-active"><a href="/features/" >Features</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/changelog-posts/" >Changelog</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/download/" >Download</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/misc/faqs" >FAQ</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/about/" >About</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/search/" >Search</a></li>
+                
+            
+        </ul>
+
+        <div class="uk-margin-top uk-text-center">
+            <div data-uk-grid class="uk-child-width-auto uk-grid-small uk-flex-center uk-grid">
+                
+<div class="uk-first-column">
+    <a href="https://twitter.com/micromata" data-uk-icon="icon: twitter" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+
+
+<div>
+    <a href="https://www.instagram.com/micromata/" data-uk-icon="icon: instagram" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+
+
+<div>
+    <a href="https://vimeo.com/user44553474" data-uk-icon="icon: vimeo" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+<div>
+    <a href="https://github.com/micromata/projectforge" data-uk-icon="icon: github" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+<div>
+    <a href="https://projectforge.org" data-uk-icon="icon: link" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+    
+        <footer class="uk-section uk-text-center uk-text-muted">
+    <div class="uk-container uk-container-small">
+
+        <div>
+            <ul class="uk-subnav uk-flex-center">
+                
+                    
+                    
+                    
+                        <li><a href="/" >Home</a></li>
+                    
+                
+                    
+                    
+                    
+                        <li><a href="/misc/terms-of-use" >Terms Of Use</a></li>
+                    
+                
+                    
+                    
+                    
+                        <li><a href="/misc/imprint" >Imprint</a></li>
+                    
+                
+                    
+                    
+                    
+                        <li><a href="/misc/privacy-policy" >Privacy Policy</a></li>
+                    
+                
+            </ul>
+        </div>
+        <div class="uk-margin-medium">
+            <div data-uk-grid class="uk-child-width-auto uk-grid-small uk-flex-center uk-grid">
+                
+<div class="uk-first-column">
+    <a href="https://twitter.com/micromata" data-uk-icon="icon: twitter" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+
+
+<div>
+    <a href="https://www.instagram.com/micromata/" data-uk-icon="icon: instagram" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+
+
+<div>
+    <a href="https://vimeo.com/user44553474" data-uk-icon="icon: vimeo" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+<div>
+    <a href="https://github.com/micromata/projectforge" data-uk-icon="icon: github" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+<div>
+    <a href="https://projectforge.org" data-uk-icon="icon: link" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+            </div>
+        </div>
+        <div class="uk-margin-medium uk-text-small copyright link-secondary"><a href="https://projectforge.org/">ProjectForge&copy</a> is a registered trade mark.</div>
+
+    </div>
+</footer>
+
+    
+
+    
+
+    
+
+    </body>
+
+</html>
