@@ -43,8 +43,7 @@ internal object PropFindRequestHandler {
         val requestWrapper = writerContext.requestWrapper
         val response = writerContext.response
         log.debug { "handlePropFindCall: ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
-        val props = CardDavUtils.handleProps(requestWrapper, response)
-            ?: return // No properties response is handled in handleProps.
+        CardDavUtils.handleProps(requestWrapper, response) ?: return // No properties response is handled in handleProps.
         val content = generatePropFindResponse(writerContext)
         log.debug { "handlePropFindCall: response=[$content]" }
         CardDavUtils.setMultiStatusResponse(response, content)
@@ -57,8 +56,7 @@ internal object PropFindRequestHandler {
         val requestWrapper = writerContext.requestWrapper
         val response = writerContext.response
         log.debug { "handlePropFindPrincipalsCall: ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
-        val props = CardDavUtils.handleProps(requestWrapper, response)
-            ?: return // No properties response is handled in handleProps.
+        CardDavUtils.handleProps(requestWrapper, response) ?: return // No properties response is handled in handleProps.
         val content = generatePropFindResponse(writerContext)
         log.debug { "handlePropFindPrincipalsCall: response=[$content]" }
         CardDavUtils.setMultiStatusResponse(response, content)

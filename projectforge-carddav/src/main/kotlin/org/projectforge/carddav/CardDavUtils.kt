@@ -69,13 +69,21 @@ internal object CardDavUtils {
      * @return The ETag.
      */
     fun getEtag(contactList: List<Contact>?): String {
-        val oldDate = Date(0)
-        val lastUpdated = contactList?.maxByOrNull { it.lastUpdated ?: oldDate }?.lastUpdated
+        val lastUpdated = getLastUpdated(contactList)
         return "\"${PFDateTime.fromOrNow(lastUpdated).format(DateFormatType.ISO_TIMESTAMP_MILLIS)}\""
     }
 
-    fun getSyncToken(contactList: List<Contact>?): String {
+    fun getSyncToken(): String {
         return "\"sync-${System.currentTimeMillis()}\""
+    }
+
+    fun getMillisFromSyncToken(syncToken: String?): Long? {
+        return syncToken?.removePrefix("sync-")?.toLongOrNull()
+    }
+
+    fun getLastUpdated(contactList: List<Contact>?): Date? {
+        val oldDate = Date(0)
+        return contactList?.maxByOrNull { it.lastUpdated ?: oldDate }?.lastUpdated
     }
 
     fun extractContactId(path: String): Long? {
