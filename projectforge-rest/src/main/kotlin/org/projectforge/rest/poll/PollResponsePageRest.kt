@@ -127,34 +127,34 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
             .add(UIReadOnlyField(value = pollDto.owner?.displayName, label = translateMsg("poll.owner")))
             .add(UIReadOnlyField(value = pollDto.deadline.toString(), label = translateMsg("poll.deadline")))
 
-      /*  Aktuell nicht benutzbar auskommentiert bis es behoben wird
-        if (pollDto.isFinished() && ThreadLocalUserContext.userId == questionOwnerId && pollDao.hasFullAccess(pollData)) {
-            val fieldSetDelegationUser = UIFieldset(title = "poll.userDelegation")
-            fieldSetDelegationUser.add(
-                UIInput(
-                    id = "delegationUser",
-                    label = "user",
-                    dataType = UIDataType.USER
-                )
-            )
-                .add(UISpacer())
-                .add(
-                    UIButton.createDefaultButton(
-                        id = "response-poll-button",
-                        responseAction = ResponseAction(
-                            RestResolver.getRestUrl(
-                                this::class.java,
-                                "showDelegatedUser"
-                            ),
-                            targetType = TargetType.GET
-                        ),
-                        title = "poll.selectUser"
-                    ),
-                )
-            layout.add(fieldSetDelegationUser)
-        }
+        /*  Aktuell nicht benutzbar auskommentiert bis es behoben wird
+          if (pollDto.isFinished() && ThreadLocalUserContext.userId == questionOwnerId && pollDao.hasFullAccess(pollData)) {
+              val fieldSetDelegationUser = UIFieldset(title = "poll.userDelegation")
+              fieldSetDelegationUser.add(
+                  UIInput(
+                      id = "delegationUser",
+                      label = "user",
+                      dataType = UIDataType.USER
+                  )
+              )
+                  .add(UISpacer())
+                  .add(
+                      UIButton.createDefaultButton(
+                          id = "response-poll-button",
+                          responseAction = ResponseAction(
+                              RestResolver.getRestUrl(
+                                  this::class.java,
+                                  "showDelegatedUser"
+                              ),
+                              targetType = TargetType.GET
+                          ),
+                          title = "poll.selectUser"
+                      ),
+                  )
+              layout.add(fieldSetDelegationUser)
+          }
 
-       */
+         */
 
         val pollResponse = PollResponse()
         pollResponse.poll = pollData
@@ -262,27 +262,19 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
         return FormLayoutData(pollResponse, layout, createServerData(request))
     }
 
-    @PostMapping("addResponse")
+    @PostMapping("addResponse/")
     fun addResponse(
-        @RequestBody postData: PostData<PollResponse>, @RequestParam("questionOwner") questionOwner: Long?
-    ): ResponseEntity<ResponseAction>? {
+        @RequestBody postData: PostData<PollResponse>,
+        @RequestParam("questionOwner") questionOwner: Long?
+    ): ResponseEntity<ResponseAction> {
         val pollResponseDO = PollResponseDO()
         postData.data.copyTo(pollResponseDO)
-
         pollResponseDO.owner = userService.getUser(questionOwner)
-        pollResponseDao.selectAll(checkAccess = false).firstOrNull { pollResponse ->
-            pollResponse.owner?.id == questionOwner
-                    && pollResponse.poll?.id == postData.data.poll?.id
-        }?.let {
-            it.responses = pollResponseDO.responses
-            pollResponseDao.update(it)
-            return ResponseEntity.ok(
-                ResponseAction(
-                    targetType = TargetType.REDIRECT,
-                    url = PagesResolver.getListPageUrl(PollPageRest::class.java, absolute = true)
-                )
-            )
-        }
+
+        val existingResponse = pollResponseDao.selectAll(checkAccess = false)
+            .firstOrNull { response ->
+                response.owner?.id == questionOwner && response.poll?.id == postData.data.poll?.id
+            }
 
         pollResponseDao.insertOrUpdate(pollResponseDO)
 
