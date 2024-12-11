@@ -29,7 +29,6 @@ import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressImageDao
 import org.projectforge.business.address.vcard.VCardUtils
-import org.projectforge.carddav.model.AddressBook
 import org.projectforge.carddav.model.Contact
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
@@ -56,7 +55,7 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
         return getCachedAddress(id)
     }
 
-    fun getContacts(addressBook: AddressBook, ids: List<Long>): List<Contact> {
+    fun getContacts(ids: List<Long>): List<Contact> {
         val result = mutableListOf<Contact>()
         val missedInCache = mutableListOf<Long>()
         ids.forEach {
@@ -116,7 +115,7 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
     }
 
     override fun refresh() {
-        org.projectforge.carddav.service.log.info("Clearing cache ${this::class.java.simpleName}.")
+        log.info("Clearing cache ${this::class.java.simpleName}.")
         synchronized(contactMap) {
             contactMap.clear()
         }

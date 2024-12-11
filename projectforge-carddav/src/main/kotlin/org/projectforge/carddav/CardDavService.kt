@@ -53,6 +53,9 @@ class CardDavService {
     private lateinit var addressService: AddressService
 
     @Autowired
+    private lateinit var deleteRequestHandler: DeleteRequestHandler
+
+    @Autowired
     private lateinit var domainService: DomainService
 
     @Autowired
@@ -136,6 +139,9 @@ class CardDavService {
             // /carddav/users/admin/addressbooks/ProjectForge-129.vcf
             writerContext.contactList = getContactList(userDO)
             GetRequestHandler.handleGetCall(writerContext)
+        } else if (method == "DELETE") {
+            // /carddav/users/admin/addressbooks/ProjectForge-129.vcf
+            deleteRequestHandler.handleDeleteCall(writerContext)
         } else {
             log.warn { "Method not supported: $method" }
             ResponseUtils.setValues(
@@ -146,9 +152,7 @@ class CardDavService {
     }
 
     private fun getContactList(userDO: PFUserDO): List<Contact> {
-        val user = User(userDO.username)
-        val addressBook = AddressBook(user)
-        return addressService.getContactList(addressBook)
+        return addressService.getContactList(userDO)
     }
 
     private fun authenticate(request: HttpServletRequest, response: HttpServletResponse): RestAuthenticationInfo {

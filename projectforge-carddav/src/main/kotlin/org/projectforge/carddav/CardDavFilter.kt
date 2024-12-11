@@ -44,6 +44,7 @@ private val log = KotlinLogging.logger {}
 class CardDavFilter : Filter {
     private lateinit var springContext: WebApplicationContext
 
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private lateinit var cardDavService: CardDavService
 
@@ -125,7 +126,7 @@ class CardDavFilter : Filter {
                     return urlMatches(normalizedUri, "users", "principals")
                 }
 
-                "GET" -> {
+                "GET", "DELETE" -> {
                     log.debug { "GET call detected: $normalizedUri" }
                     // /carddav/users/admin/addressbooks/ProjectForge-129.vcf
                     return normalizedUri.matches(NORMALIZED_GET_REQUEST_REGEX)
