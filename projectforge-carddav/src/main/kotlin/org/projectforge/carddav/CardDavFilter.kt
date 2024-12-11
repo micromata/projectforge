@@ -104,7 +104,7 @@ class CardDavFilter : Filter {
         val NORMALIZED_GET_REQUEST_REGEX = """^users/([^/]+)/addressbooks/ProjectForge-(\d+)\.vcf$""".toRegex()
 
         /**
-         * PROPFIND: /index.html, /carddav, /.well-known/carddav
+         * PROPFIND: /, /index.html, /carddav, /.well-known/carddav
          * OPTIONS: /carddav, /users/...
          * @return true if given is handled by CardDavController. Otherwise, false.
          */
@@ -119,7 +119,7 @@ class CardDavFilter : Filter {
             return when (request.method) {
                 "PROPFIND", "REPORT" -> {
                     log.debug { "PROPFIND/REPORT call detected: method=${request.method}, uri=$normalizedUri" }
-                    if (normalizedUri == "index.html" || normalizedUri == "/") {
+                    if (normalizedUri == "index.html" || normalizedUri == "") {
                         // PROPFIND call to /index.html after authentication is a typical behavior of many WebDAV or CardDAV clients.
                         return true
                     }
