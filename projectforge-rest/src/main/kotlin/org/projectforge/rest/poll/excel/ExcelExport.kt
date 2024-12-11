@@ -75,13 +75,11 @@ class ExcelExport {
                 createNewRow(excelSheet, emptyRow, anzNewRows)
                 setFirstRow(excelSheet, style, poll)
 
-                if (responses.isNotEmpty()) {
                     poll.attendees?.sortedBy { it.displayName }
                     poll.attendees?.forEachIndexed { index, user ->
                         val res = PollResponse()
                         responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
                         setNewRows(excelSheet, poll, user, res, index + FIRST_DATA_ROW_NUM)
-                    }
 
                     val fullAccessUser = poll.fullAccessUsers?.toMutableList() ?: mutableListOf()
                     val accessGroupIds = poll.fullAccessGroups?.filter { it.id != null }?.map { it.id!! }?.toLongArray()
