@@ -28,6 +28,7 @@ import mu.KotlinLogging
 import org.projectforge.carddav.model.Contact
 import org.projectforge.rest.utils.ResponseUtils
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 
 private val log = KotlinLogging.logger {}
 
@@ -50,14 +51,17 @@ internal object GetRequestHandler {
             ResponseUtils.setValues(response, status = HttpStatus.NOT_FOUND)
             return
         }
-        val content = CardDavXmlUtils.escapeXml(vcardData)
+        val content = vcardData
         // For vCard data, use text/vcard (for version 3.0 or earlier) or text/vcard;charset=utf-8 for newer versions like 4.0.
-        response.addHeader("Content-Type", "text/vcard;charset=utf-8")
-        response.addHeader("Content-Length", content.length.toString())
         // A unique identifier for this version of the resource. This allows clients to detect changes efficiently.
         response.addHeader("ETag", contact.etag)
         response.addHeader("Last-Modified", contact.lastModifiedAsHttpDate)
-        log.debug { "handleGetCall: response=[$content]" }
-        CardDavUtils.setMultiStatusResponse(response, content)
+        ResponseUtils.setValues(
+            response,
+            HttpStatus.OK,
+            contentType = "text/vcard",
+            content = content,
+        )
+        log.debug { "handleGetCall: response=${ResponseUtils.asJson(response)}, content=[$content]" }
     }
 }

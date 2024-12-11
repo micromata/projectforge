@@ -76,10 +76,12 @@ internal object ReportRequestHandler {
             val newSyncToken = CardDavUtils.getSyncToken()
             if (syncTokenMillis != null && syncTokenMillis >= lastUpdated) {
                 // 1. No modifications since the last sync-token.
+                log.debug { "handleReportCall: No modifications since the last sync-token." }
                 sb.appendLine("  <d:sync-token>$newSyncToken</d:sync-token>")
             } else {
                 // 2. Modifications since the last sync-token.
                 //val syncToken = CardDavXmlUtils.extractSyncToken(requestWrapper.body)
+                log.debug { "handleReportCall: Modifications detected since the last sync-token." }
                 contactList.forEach { contact ->
                     appendPropfindContact(sb, requestWrapper.requestURI, contact, false)
                 }
