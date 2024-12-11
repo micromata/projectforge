@@ -41,7 +41,7 @@ class VCardUtilsTest {
             address.firstName = "Kai"
             address.name = "Reinhard"
             val vcardString = VCardUtils.buildVCardString(address, AddressImageDao())
-            Assertions.assertTrue(vcardString.contains("BDAY:19701111"))
+            Assertions.assertTrue(vcardString.contains("BDAY:1970-11-11"))
         }
         val vcard = VCardUtils.parseVCardsFromByteArray(EXAMPLE_VCF.toByteArray(StandardCharsets.UTF_8))
         Assertions.assertEquals(1, vcard.size)
@@ -54,7 +54,7 @@ class VCardUtilsTest {
 
     private val EXAMPLE_VCF = """
         BEGIN:VCARD
-        VERSION:4.0
+        VERSION:3.0
         FN:John Doe
         N:Doe;John;;;
         ADR;TYPE=HOME:;;123 Main Street;Anytown;CA;12345;USA
