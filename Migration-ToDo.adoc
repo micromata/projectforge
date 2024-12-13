@@ -1,5 +1,6 @@
 Aktuell:
 - Pagesize wird ignoriert (bei Adressen)
+- Summenbildung Brutto/Netto in Rechnungen nicht automatisch.
 - Gradle-Version-Checker: Read lib.versions.toml und Vergleichen mit fatjar.
 - Check milton (and address favorites)
 - Farbige Balken in ProjectForge, E-Mail-Versand
