@@ -163,7 +163,9 @@ open class DBQuery {
                         // Current result object fits the modified query:
                         baseDao.afterLoad(next)
                         list.add(next)
-                        if (++resultCounter >= filter.maxRows) {
+                        // filter.limitResultSize is a workaround for older rest pages don't using Ag-Grid and
+                        // doesn't support paging.
+                        if (++resultCounter >= filter.maxRows || resultCounter >= filter.limitResultSize) {
                             break
                         }
                     }
@@ -185,7 +187,9 @@ open class DBQuery {
                         )
                     ) {
                         list.add(next)
-                        if (++resultCounter >= filter.maxRows) {
+                        // filter.limitResultSize is a workaround for older rest pages don't using Ag-Grid and
+                        // doesn't support paging.
+                        if (++resultCounter >= filter.maxRows || resultCounter >= filter.limitResultSize) {
                             break
                         }
                     }

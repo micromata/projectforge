@@ -40,6 +40,9 @@ import kotlin.math.max
 class DBFilter(
     // var paginationPageSize: Int = 50, // currently not implemented in db calls.
     var maxRows: Int = QUERY_FILTER_MAX_ROWS,
+    // Workaround for old pagesrest, using UITable (instead of AgGrid).
+    // Used by AddressPagesRest.
+    var limitResultSize: Int = Int.MAX_VALUE,
 ) {
     val allPredicates = mutableListOf<DBPredicate>()
 
