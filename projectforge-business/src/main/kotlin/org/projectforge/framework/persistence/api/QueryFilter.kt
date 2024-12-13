@@ -103,6 +103,9 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
 
     var maxRows: Int = QUERY_FILTER_MAX_ROWS
 
+    // Not yet implemented:
+    // var paginationPageSize: Int = 50
+
     var sortAndLimitMaxRowsWhileSelect: Boolean = true
 
     var entityGraphName: String? = null
@@ -145,6 +148,9 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
             if (filter.maxRows > 0) {
                 maxRows = filter.maxRows
             }
+            /*if (filter.pageSize > 0) {
+                paginationPageSize = filter.pageSize
+            }*/
         }
     }
 
@@ -227,7 +233,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
 
     fun createDBFilter(): DBFilter {
         logDebugFunCall(log) { it.mtd("createDBFilter()") }
-        val dbFilter = DBFilter(sortAndLimitMaxRowsWhileSelect, maxRows, fullTextSearchFields)
+        val dbFilter = DBFilter(/*paginationPageSize = paginationPageSize,*/ maxRows = maxRows)
         if (predicates.none { it.field == "deleted" } && deleted != null) {
             // Adds deleted flag, if not already exist in predicates:
             dbFilter.allPredicates.add(DBPredicate.Equal("deleted", deleted == true))
