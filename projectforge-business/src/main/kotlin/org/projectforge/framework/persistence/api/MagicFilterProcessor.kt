@@ -54,12 +54,11 @@ object MagicFilterProcessor {
         }*/
 
         queryFilter.deleted = magicFilter.deleted
-        val paginationPageSize = magicFilter.paginationPageSize
+        /* Not yet implemented (done by frontend, not in database):
+        magicFilter.paginationPageSize?.let {
+            // queryFilter.paginationPageSize = it
+        }*/
         queryFilter.maxRows = magicFilter.maxRows
-        if (paginationPageSize != null && paginationPageSize > magicFilter.maxRows) {
-            // For old pages without pagination, pageSize is used as maxRows.
-            queryFilter.maxRows = paginationPageSize
-        }
 
         queryFilter.searchHistory = magicFilter.searchHistory
         queryFilter.sortAndLimitMaxRowsWhileSelect = magicFilter.sortAndLimitMaxRowsWhileSelect

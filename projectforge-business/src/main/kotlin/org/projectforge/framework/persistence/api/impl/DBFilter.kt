@@ -24,7 +24,9 @@
 package org.projectforge.framework.persistence.api.impl
 
 import org.projectforge.framework.ToStringUtil
+import org.projectforge.framework.persistence.api.QueryFilter.Companion.QUERY_FILTER_MAX_ROWS
 import org.projectforge.framework.persistence.api.SortProperty
+import kotlin.math.max
 
 /**
  * DBFilter is created by QueryFilter and hold all predicates for building a query.
@@ -36,11 +38,9 @@ import org.projectforge.framework.persistence.api.SortProperty
  * The DBFilter is used for building the query and for filtering the result set.
  */
 class DBFilter(
-    var sortAndLimitMaxRowsWhileSelect: Boolean = true,
-    var maxRows: Int = 50,
-    val searchFields: Array<String>?
+    // var paginationPageSize: Int = 50, // currently not implemented in db calls.
+    var maxRows: Int = QUERY_FILTER_MAX_ROWS,
 ) {
-
     val allPredicates = mutableListOf<DBPredicate>()
 
     val sortProperties = mutableListOf<SortProperty>()

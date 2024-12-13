@@ -1,5 +1,6 @@
 Aktuell:
-- Pagesize wird ignoriert (bei Adressen)
+- Pagesize wird ignoriert (bei Adressen, bei allen alten Nicht-AGGrid-Listen).
+- QueryFilter.sortAndLimitMaxRowsWhileSelect: not yet supported
 - Summenbildung Brutto/Netto in Rechnungen nicht automatisch.
 - Gradle-Version-Checker: Read lib.versions.toml und Vergleichen mit fatjar.
 - Check milton (and address favorites)
@@ -12,6 +13,7 @@ Aktuell:
 - InitDatabaseDaoWithTestDataTestFork implementieren.
 - LoginProtection: Increases penalty time for DAV only after 5 tries.
 
+- Pagination of selects: Aktuell wird nicht DB-seitig paginiert, sondern immer die ganze Liste gefetched.
 - remove all BaseDO.xxxId (lazy fetch) and replace callee by baseDO?.id
 - Wicket: CalendarPage als Default ersetzen, CalendarPages remove.
 - Entitygraphen nutzen: ConflictVacationCache, AuftragCache etc.
