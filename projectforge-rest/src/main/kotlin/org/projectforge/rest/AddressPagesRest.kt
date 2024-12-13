@@ -182,6 +182,11 @@ class AddressPagesRest
         if (imagesFilterEntry?.isTrueValue == true) {
             filters.add(ImagesResultFilter())
         }
+        source.paginationPageSize?.let {
+            // filter.limitResultSize is a workaround, because this rest page doesn't use Ag-Grid and
+            // doesn't support paging.
+            target.limitResultSize = it
+        }
         return filters
     }
 

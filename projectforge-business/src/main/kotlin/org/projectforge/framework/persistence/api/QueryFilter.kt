@@ -106,6 +106,10 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
     // Not yet implemented:
     // var paginationPageSize: Int = 50
 
+    // Workaround for old pagesrest, using UITable (instead of AgGrid).
+    // Used by AddressPagesRest.
+    var limitResultSize: Int = Int.MAX_VALUE
+
     var sortAndLimitMaxRowsWhileSelect: Boolean = true
 
     var entityGraphName: String? = null
@@ -233,7 +237,8 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
 
     fun createDBFilter(): DBFilter {
         logDebugFunCall(log) { it.mtd("createDBFilter()") }
-        val dbFilter = DBFilter(/*paginationPageSize = paginationPageSize,*/ maxRows = maxRows)
+        val dbFilter =
+            DBFilter(/*paginationPageSize = paginationPageSize,*/ maxRows = maxRows, limitResultSize = limitResultSize)
         if (predicates.none { it.field == "deleted" } && deleted != null) {
             // Adds deleted flag, if not already exist in predicates:
             dbFilter.allPredicates.add(DBPredicate.Equal("deleted", deleted == true))
