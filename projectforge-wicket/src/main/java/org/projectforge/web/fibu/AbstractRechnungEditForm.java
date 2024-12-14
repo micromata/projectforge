@@ -423,7 +423,8 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
           amountTextField.add(new AjaxFormComponentUpdatingBehavior("blur") {
             @Override
             protected void onUpdate(final AjaxRequestTarget target) {
-              addAjaxComponents(target, ajaxUpdatePositionComponents);
+                RechnungCalculator.INSTANCE.calculate(data);
+                addAjaxComponents(target, ajaxUpdatePositionComponents);
             }
           });
           fieldset.add(amountTextField);
@@ -443,6 +444,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
           netTextField.add(new AjaxFormComponentUpdatingBehavior("blur") {
             @Override
             protected void onUpdate(final AjaxRequestTarget target) {
+              RechnungCalculator.INSTANCE.calculate(data);
               addAjaxComponents(target, ajaxUpdatePositionComponents);
             }
           });
@@ -463,6 +465,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
           vatTextField.add(new AjaxFormComponentUpdatingBehavior("blur") {
             @Override
             protected void onUpdate(final AjaxRequestTarget target) {
+              RechnungCalculator.INSTANCE.calculate(data);
               addAjaxComponents(target, ajaxUpdatePositionComponents);
             }
           });
