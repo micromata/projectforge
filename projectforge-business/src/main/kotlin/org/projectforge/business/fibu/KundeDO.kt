@@ -26,7 +26,9 @@ package org.projectforge.business.fibu
 import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
+import org.projectforge.business.common.NumberToStringValueBridge
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
@@ -52,6 +54,7 @@ open class KundeDO : AbstractHistorizableBaseDO<Long>(), DisplayNameCapable {
      * @see .getId
      */
     @PropertyInfo(i18nKey = "fibu.kunde.nummer")
+    @GenericField(valueBridge = ValueBridgeRef(type = NumberToStringValueBridge::class))
     @get:Id
     @get:Column(name = "pk")
     open var nummer: Long? = null

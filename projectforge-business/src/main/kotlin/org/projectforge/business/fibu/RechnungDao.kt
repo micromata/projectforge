@@ -394,7 +394,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
 
         val ADDITIONAL_SEARCH_FIELDS = arrayOf(
             "kunde.name", "projekt.name",
-            "projekt.kunde.name", "positionen.auftragsPosition.auftrag.nummer"
+            "projekt.kunde.name", // "positionen.auftragsPosition.auftrag.nummer"
         )
 
         @JvmStatic

@@ -124,7 +124,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
 
     init {
         if (filter != null) {
-            this.fullTextSearchFields = filter.getFullTextSearchFields()
+            this.fullTextSearchFields = filter.searchFields
             this.autoWildcardSearch = true
             // Legacy for old implementation:
             if (!filter.ignoreDeleted) {

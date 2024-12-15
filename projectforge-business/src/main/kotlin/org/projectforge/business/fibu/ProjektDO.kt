@@ -27,7 +27,9 @@ import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
+import org.projectforge.business.common.NumberToStringValueBridge
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
@@ -86,6 +88,7 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
      * Ziffer 5-6 von KOST2 (00-99)
      */
     @PropertyInfo(i18nKey = "fibu.projekt.nummer")
+    @GenericField(valueBridge = ValueBridgeRef(type = NumberToStringValueBridge::class))
     @get:Column(nullable = false)
     open var nummer: Int = 0
 

@@ -39,12 +39,12 @@ import org.springframework.stereotype.Service
 class KostFormatter {
     /**
      * Format types for Kost2DO.
-     * NUMBER - only the kost2 number (123456789),
+     * NUMBER - only the kost2 number (123),
      * FORMATTED_NUMBER (1.234.56.78)
      * TEXT - kost2 number and abbreviated text (1.234.56.78 This is the descrip...),
      * LONG - kost2 number and full text (1.234.56.78 This is the description as full version).
      */
-    enum class FormatType { NUMBER, FORMATTED_NUMBER, TEXT, LONG }
+    enum class FormatType { NUMBER, FORMATTED_NUMBER, NUMBER_AND_NAME, TEXT, LONG }
 
     @Autowired
     private lateinit var kostCache: KostCache
@@ -75,15 +75,26 @@ class KostFormatter {
         abbreviationLength: Int = ABBREVIATION_LENGTH,
     ): String {
         val kundeNummer = kunde?.nummer ?: return "5.???"
-        if (formatType == FormatType.FORMATTED_NUMBER || formatType == FormatType.NUMBER) {
-            return "5.${kundeNummer.format3Digits()}"
+        when (formatType) {
+            FormatType.NUMBER -> return kundeNummer.format3Digits()
+            FormatType.FORMATTED_NUMBER -> return "5.${kundeNummer.format3Digits()}"
+            FormatType.NUMBER_AND_NAME -> {
+                return abbreviateIfRequired(
+                    "${kundeNummer.format3Digits()} - ${kunde.name}",
+                    formatType,
+                    abbreviationLength,
+                )
+            }
+
+            else -> {
+                val useKunde = kundeCache.getKundeIfNotInitialized(kunde) ?: return "5.${kundeNummer.format3Digits()}"
+                return abbreviateIfRequired(
+                    "5.${format3Digits(kundeNummer)}: ${useKunde.name}",
+                    formatType,
+                    abbreviationLength
+                )
+            }
         }
-        val useKunde = kundeCache.getKundeIfNotInitialized(kunde) ?: return "5.${kundeNummer.format3Digits()}"
-        return abbreviateIfRequired(
-            "5.${format3Digits(kundeNummer)}: ${useKunde.name}",
-            formatType,
-            abbreviationLength
-        )
     }
 
     /**
