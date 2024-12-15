@@ -130,16 +130,6 @@ open class BaseSearchFilter : Serializable {
         return StringUtils.isNotEmpty(searchString)
     }
 
-    /**
-     * If not null and a query string for a full text index search is given, then only the given search fields are used
-     * instead of the default search fields of the dao.
-     *
-     * @return
-     */
-    fun getFullTextSearchFields(): Array<String>? {
-        return searchFields
-    }
-
     fun applyModificationFilter(): Boolean {
         return this.useModificationFilter && (this.startTimeOfModification != null || this.stopTimeOfModification != null || this.modifiedByUserId != null)
     }
