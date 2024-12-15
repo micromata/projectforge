@@ -46,7 +46,7 @@ class MagicFilterProcessorTest {
     @Test
     fun filterEntrySearchStringConversionTest() {
         testEntry("12345", "12345",  MatchType.EXACT)
-        testEntry("12345", "12345",  MatchType.EXACT, true) // Numerical
+        testEntry("12345", "12345",  MatchType.STARTS_WITH, true) // Numerical
 
         testEntry("abc", "abc",  MatchType.EXACT)
         testEntry("abc", "abc",  MatchType.STARTS_WITH, true) // Numerical

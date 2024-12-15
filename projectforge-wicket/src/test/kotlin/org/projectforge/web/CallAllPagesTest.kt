@@ -36,6 +36,7 @@ import org.projectforge.web.address.AddressListPage
 import org.projectforge.web.admin.SetupPage
 import org.projectforge.web.calendar.CalendarPage
 import org.projectforge.web.registry.WebRegistry
+import org.projectforge.web.task.TaskTreePage
 import org.projectforge.web.wicket.WicketPageTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -69,7 +70,7 @@ class CallAllPagesTest : WicketPageTestBase() {
         testCase = true
         _testAllMountedPages()
         suppressErrorLogs {
-            testPage(SetupPage::class.java, CalendarPage::class.java) // Database isn't empty.
+            testPage(SetupPage::class.java, TaskTreePage::class.java) // Database isn't empty.
         }
         // clearDatabase();
         // testPage(SetupPage.class); // Doesn't work (table t_pf_user exists).

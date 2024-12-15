@@ -122,6 +122,7 @@ public class RechnungCostEditTablePanel extends Panel
       position = new EingangsrechnungsPositionDO();
     }
     position.copyValuesFrom(origPosition, "kostZuweisungen");
+    position.info = origPosition.info;
     KostZuweisungenCopyHelper.copy(origPosition.getKostZuweisungen(), position);
     List<KostZuweisungDO> kostzuweisungen = position.getKostZuweisungen();
     if (CollectionUtils.isEmpty(kostzuweisungen) == true) {
