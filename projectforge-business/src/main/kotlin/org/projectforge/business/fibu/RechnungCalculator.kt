@@ -145,7 +145,7 @@ object RechnungCalculator {
         }
         roundAmountIf(posInfo, RechnungPosInfo::kostZuweisungGrossSum, roundPositionsBeforeSum)
         val netSum = roundAmountIf(posInfo.netSum, roundPositionsBeforeSum)
-        posInfo.kostZuweisungNetFehlbetrag = netSum - posInfo.kostZuweisungNetSum
+        posInfo.kostZuweisungNetFehlbetrag = (netSum - posInfo.kostZuweisungNetSum).negate()
         return posInfo
     }
 
