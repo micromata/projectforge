@@ -159,7 +159,7 @@ class KostFormatter {
         formatType: FormatType = FormatType.FORMATTED_NUMBER,
         abbreviationLength: Int = ABBREVIATION_LENGTH,
     ): String {
-        var useKost2 = kostCache.getKost2IfNotInitialized(kost2)
+        val useKost2 = kostCache.getKost2IfNotInitialized(kost2)
             ?: return if (formatType == FormatType.NUMBER) "????????" else "?.???.??.??"
         val delimiter = if ((formatType == FormatType.NUMBER)) "" else "."
         val sb = StringBuilder()
@@ -171,7 +171,7 @@ class KostFormatter {
         } else {
             sb.append("--")
         }
-        var useProjekt = projektCache.getProjektIfNotInitialized(useKost2.projekt)
+        val useProjekt = projektCache.getProjektIfNotInitialized(useKost2.projekt)
         if (formatType == FormatType.LONG || formatType == FormatType.TEXT) {
             sb.append(": ")
             useProjekt.let { projekt ->
