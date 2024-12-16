@@ -521,9 +521,10 @@ abstract class DBPredicate(
             logDebugFunCall(log) { it.mtd("FullSearch.handledByFullTextQuery(...)") }
             val useSearchFields =
                 if (fulltextSearchFields.isNullOrEmpty()) searchClassInfo.stringFieldNames else fulltextSearchFields
-            if (fulltextSearchFields.isNullOrEmpty() && NumberUtils.isCreatable(queryString)) {
+            val plainQueryString = queryString.removeSuffix("*").removeSuffix("%")
+            if (fulltextSearchFields.isNullOrEmpty() && NumberUtils.isCreatable(plainQueryString)) {
                 // query string is number, so search in number search fields as well as in text search fields.
-                val number = NumberUtils.createNumber(queryString)
+                val number = NumberUtils.createNumber(plainQueryString)
                 search(
                     searchPredicateFactory,
                     boolCollector,

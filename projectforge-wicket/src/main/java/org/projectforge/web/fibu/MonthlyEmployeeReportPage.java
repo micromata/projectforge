@@ -287,7 +287,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
             }
             final Kost2Row kost2Row = rowEntry.getValue();
             final Kost2DO cost2 = kost2Row.getKost2();
-            addLabelCols(row, cost2, null, "kost2.nummer:" + cost2.getFormattedNumber(), report.getUser(),
+            addLabelCols(row, cost2, null, "kost2.nummer:" + cost2.getFormattedNumber() + "*", report.getUser(),
                     report.getFromDate().getTime(), report
                             .getToDate().getTime());
             final RepeatingView colWeekRepeater = new RepeatingView("colWeekRepeater");

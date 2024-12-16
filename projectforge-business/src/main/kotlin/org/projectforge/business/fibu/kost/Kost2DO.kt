@@ -155,7 +155,7 @@ open class Kost2DO : DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
      */
     @get:PropertyInfo(i18nKey = "fibu.kost2")
     @get:Transient
-    @get:GenericField
+    @get:GenericField(name = "nummer")
     @get:IndexingDependency(derivedFrom = [ObjectPath(PropertyValue(propertyName = "id"))])
     val formattedNumber: String
         get() = KostFormatter.instance.formatKost2(this, KostFormatter.FormatType.FORMATTED_NUMBER)
