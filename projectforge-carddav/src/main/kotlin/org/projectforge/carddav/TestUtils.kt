@@ -28,6 +28,7 @@ import mu.KotlinLogging
 import org.projectforge.ProjectForgeVersion
 import org.projectforge.carddav.TestUtils.sanitizeContent
 import org.projectforge.framework.configuration.ConfigXml
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.rest.utils.ResponseUtils
@@ -42,11 +43,11 @@ internal object TestUtils {
     /**
      * Set by [CardDavConfig] to enable test mode.
      */
-    var testMode = false
+    var testUserMode = ""
 
     private val logFile: File by lazy {
         val tempDir = ConfigXml.getInstance().tempDirectory
-        val file = File(tempDir, "projectforge-carddav-test-${PFDateTime.now().format4Filenames()}.log")
+        val file = File(tempDir, "projectforge-carddav-test-$testUserMode-${PFDateTime.now().format4Filenames()}.log")
         val text = "ProjectForge ${ProjectForgeVersion.VERSION} CardDav test log started..."
         Files.write(Paths.get(file.absolutePath), text.toByteArray())
         log.info { "Writing CardDav requests to ${file.absolutePath}." }
@@ -58,7 +59,11 @@ internal object TestUtils {
         response: HttpServletResponse,
         responseContent: String = "",
     ) {
-        if (!testMode) {
+        if (testUserMode.isBlank()) {
+            return
+        }
+        val loggedInUser = ThreadLocalUserContext.loggedInUser
+        if (loggedInUser?.username != testUserMode) {
             return
         }
         val sb = StringBuilder()

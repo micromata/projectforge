@@ -24,6 +24,7 @@
 package org.projectforge.carddav
 
 import jakarta.servlet.http.HttpServletResponse
+import org.projectforge.carddav.CardDavService.Companion.domain
 import org.projectforge.carddav.CardDavXmlUtils.EXTRACT_ADDRESS_ID_REGEX
 import org.projectforge.carddav.model.Contact
 import org.projectforge.common.DateFormatType
@@ -127,6 +128,31 @@ internal object CardDavUtils {
      */
     fun normalizedUri(requestUri: String): String {
         return requestUri.removePrefix("/carddav").removePrefix("/").removeSuffix("/")
+    }
+
+    /**
+     * Fixes the href by adding the CardDAV base path if necessary.
+     * @param url The URL.
+     * @param withDomain If true, the domain is added to the URL: https://projectforge.acme.com/carddav/users/joe/
+     * @return The fixed href.
+     */
+    fun fixHref(url: String, withDomain: Boolean = false): String {
+        val path = concatPath(CardDavInit.CARD_DAV_BASE_PATH, url)
+        return if (withDomain) {
+            concatPath(domain, path)
+        } else {
+            path
+        }
+    }
+
+    private fun concatPath(path1: String, path2: String): String {
+        return if (path1.endsWith("/") && path2.startsWith("/")) {
+            path1 + path2.removePrefix("/")
+        } else if (!path1.endsWith("/") && !path2.startsWith("/")) {
+            "$path1/$path2"
+        } else {
+            path1 + path2
+        }
     }
 
     /**
