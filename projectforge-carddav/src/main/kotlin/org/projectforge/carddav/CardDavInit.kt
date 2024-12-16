@@ -24,14 +24,26 @@
 package org.projectforge.carddav
 
 import jakarta.servlet.ServletContext
+import mu.KotlinLogging
 import org.projectforge.common.NumberOfBytes
 import org.projectforge.rest.config.RestUtils
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+private val log = KotlinLogging.logger {}
 
 @Component
 open class CardDavInit {
+    @Autowired
+    private lateinit var cardDavConfig: CardDavConfig
+
     fun init(sc: ServletContext) {
-        RestUtils.registerFilter(sc, "CardDavFilter", CardDavFilter::class.java, false, "/*")
+        if (cardDavConfig.enable) {
+            log.info { "Enabling CardDav-Server by registering CardDavFilter (projectforge.properties:projectforge.carddav.server.enable)..." }
+            RestUtils.registerFilter(sc, "CardDavFilter", CardDavFilter::class.java, false, "/*")
+        } else {
+            log.info { "CardDav-Server disabled in projectforge.properties:projectforge.carddav.server.enable" }
+        }
     }
 
     companion object {

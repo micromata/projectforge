@@ -53,6 +53,7 @@ internal object GetRequestHandler {
         response.addHeader("ETag", contact.etag)
         response.addHeader("Last-Modified", contact.lastModifiedAsHttpDate)
         ResponseUtils.setValues(response, HttpStatus.OK, contentType = "text/vcard", content = content)
-        log.debug { "handleGetCall: response=${ResponseUtils.asJson(response)}, content=[$content]" }
+        TestUtils.writeRequestResponseLogInTestMode(requestWrapper, response, content)
+        log.debug { "handleGetCall: response=${ResponseUtils.asJson(response)}, content=[${TestUtils.sanitizeContent(content)}]" }
     }
 }

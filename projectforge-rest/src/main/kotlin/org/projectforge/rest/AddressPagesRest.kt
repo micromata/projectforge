@@ -70,6 +70,9 @@ class AddressPagesRest
     i18nKeyPrefix = "address.title",
     cloneSupport = CloneSupport.CLONE
 ) {
+    companion object {
+        var carddavServerEnabled = false
+    }
 
     /**
      * For exporting list of addresses.
@@ -303,14 +306,16 @@ class AddressPagesRest
             )
         }
         val exportMenu = MenuItem("address.export", i18nKey = "export")
-        exportMenu.add(
-            MenuItem(
-                "address.useCardDAVService",
-                i18nKey = "address.cardDAV.infopage.title",
-                type = MenuItemTargetType.MODAL,
-                url = PagesResolver.getDynamicPageUrl(CardDAVInfoPageRest::class.java)
+        if (carddavServerEnabled) {
+            exportMenu.add(
+                MenuItem(
+                    "address.useCardDAVService",
+                    i18nKey = "address.cardDAV.infopage.title",
+                    type = MenuItemTargetType.MODAL,
+                    url = PagesResolver.getDynamicPageUrl(CardDAVInfoPageRest::class.java)
+                )
             )
-        )
+        }
         exportMenu.add(
             MenuItem(
                 "address.vCardExport",
