@@ -35,8 +35,8 @@ open class CardDavConfig {
     var enable: Boolean = true
         private set
 
-    @Value("\${projectforge.carddav.server.testMode:false}")
-    internal var testMode: Boolean = false
+    @Value("\${projectforge.carddav.server.testUserMode:}")
+    internal var testUserMode: String = ""
         private set
 
     /**
@@ -47,7 +47,7 @@ open class CardDavConfig {
 
     @PostConstruct
     private fun postConstruct() {
-        TestUtils.testMode = testMode
+        TestUtils.testUserMode = testUserMode
         AddressPagesRest.carddavServerEnabled = enable
     }
 

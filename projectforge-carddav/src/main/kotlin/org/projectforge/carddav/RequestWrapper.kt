@@ -33,6 +33,10 @@ private val log = KotlinLogging.logger {}
 internal class RequestWrapper(val request: HttpServletRequest) {
     val requestURI = request.requestURI ?: "null"
     val method = request.method ?: "null"
+    val href: String by lazy {
+        CardDavUtils.fixHref(requestURI)
+    }
+
     val basicAuth: Boolean by lazy {
         request.getHeader("authorization") != null ||
                 request.getHeader("Authorization") != null
