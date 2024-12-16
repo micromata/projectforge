@@ -138,11 +138,12 @@ internal object ReportRequestHandler {
             """.trimMargin()
         )
         if (fullVCards) {
-            sb.appendLine("        <$CARD:address-data>")
+            sb.append("        <$CARD:address-data><![CDATA[")
             contact.vcardData?.let {
-                CardDavXmlUtils.appendEscapedXml(sb, it) // No indent here!!!
+                sb.append(it)
+                // CardDavXmlUtils.appendEscapedXml(sb, it) // No indent here!!!
             }
-            sb.appendLine("        </$CARD:address-data>")
+            sb.appendLine("]]></$CARD:address-data>")
         } else {
             sb.appendLine("        <$CARD:address-data />")
         }
