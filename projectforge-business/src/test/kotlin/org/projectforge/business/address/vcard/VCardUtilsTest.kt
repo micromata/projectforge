@@ -37,18 +37,25 @@ class VCardUtilsTest {
     fun `test converting of vcards from and to AddressDO`() {
         TestSetup.init()
         AddressDO().also { address ->
-            address.birthday = LocalDate.of(1970, Month.NOVEMBER, 11)
-            address.firstName = "Kai"
-            address.name = "Reinhard"
-            val vcardString = VCardUtils.buildVCardString(address, AddressImageDao())
-            Assertions.assertTrue(vcardString.contains("BDAY:1970-11-11"))
+            address.birthday = LocalDate.of(1992, Month.JULY, 11)
+            address.firstName = "Joe"
+            address.name = "Hill"
+            val vcardString = VCardUtils.buildVCardString(address, AddressImageDao(), VCardVersion.V_3_0)
+            Assertions.assertTrue(vcardString.contains("BDAY:1992-07-11"))
+        }
+        AddressDO().also { address ->
+            address.birthday = LocalDate.of(1992, Month.JULY, 11)
+            address.firstName = "Joe"
+            address.name = "Hill"
+            val vcardString = VCardUtils.buildVCardString(address, AddressImageDao(), VCardVersion.V_4_0)
+            Assertions.assertTrue(vcardString.contains("BDAY:19920711"))
         }
         val vcard = VCardUtils.parseVCardsFromByteArray(EXAMPLE_VCF.toByteArray(StandardCharsets.UTF_8))
         Assertions.assertEquals(1, vcard.size)
         VCardUtils.buildAddressDO(vcard[0]).also { address ->
             Assertions.assertEquals("John", address.firstName)
             Assertions.assertEquals("Doe", address.name)
-            Assertions.assertEquals(LocalDate.of(1970, Month.NOVEMBER, 11), address.birthday)
+            Assertions.assertEquals(LocalDate.of(1992, Month.JULY, 11), address.birthday)
         }
     }
 
@@ -60,6 +67,6 @@ class VCardUtilsTest {
         ADR;TYPE=HOME:;;123 Main Street;Anytown;CA;12345;USA
         TEL;TYPE=CELL:+1-123-456-7890
         EMAIL:john.doe@example.com
-        BDAY:1970-11-11
+        BDAY:1992-07-11
         END:VCARD""".trimIndent()
 }

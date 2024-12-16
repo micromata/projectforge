@@ -56,5 +56,6 @@ internal object OptionsRequestHandler {
             response.addHeader("Content-Type", "application/xml")
         }
         ResponseUtils.setValues(response, status = HttpStatus.OK)
+        TestUtils.writeRequestResponseLogInTestMode(requestWrapper, response)
     }
 }

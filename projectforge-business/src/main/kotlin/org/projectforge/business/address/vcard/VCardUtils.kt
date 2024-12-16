@@ -25,7 +25,6 @@ package org.projectforge.business.address.vcard
 
 import ezvcard.Ezvcard
 import ezvcard.VCard
-import ezvcard.VCardVersion
 import ezvcard.parameter.AddressType
 import ezvcard.parameter.EmailType
 import ezvcard.parameter.ImageType
@@ -42,7 +41,6 @@ import java.time.LocalDate
 private val log = KotlinLogging.logger {}
 
 object VCardUtils {
-
     @JvmStatic
     fun buildVCard(
         addressDO: AddressDO,
@@ -119,20 +117,24 @@ object VCardUtils {
     }
 
     @JvmStatic
+    @JvmOverloads
     fun buildVCardByteArray(
         addressDO: AddressDO,
-        addressImageDao: AddressImageDao
+        addressImageDao: AddressImageDao,
+        vCardVersion: VCardVersion = VCardVersion.V_4_0,
     ): ByteArray { //See: https://github.com/mangstadt/ez-vcard
-        return buildVCardString(addressDO, addressImageDao).toByteArray()
+        return buildVCardString(addressDO, addressImageDao, vCardVersion).toByteArray()
     }
 
     @JvmStatic
+    @JvmOverloads
     fun buildVCardString(
         addressDO: AddressDO,
-        addressImageDao: AddressImageDao
+        addressImageDao: AddressImageDao,
+        vCardVersion: VCardVersion = VCardVersion.V_4_0,
     ): String { //See: https://github.com/mangstadt/ez-vcard
         val vcard = buildVCard(addressDO, addressImageDao)
-        return Ezvcard.write(vcard).version(VCardVersion.V3_0).go()
+        return Ezvcard.write(vcard).version(vCardVersion.ezVCardType).go()
     }
 
     @JvmStatic

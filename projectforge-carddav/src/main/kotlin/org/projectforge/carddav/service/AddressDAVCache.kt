@@ -29,6 +29,7 @@ import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressImageDao
 import org.projectforge.business.address.vcard.VCardUtils
+import org.projectforge.carddav.CardDavConfig
 import org.projectforge.carddav.model.Contact
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
@@ -48,6 +49,9 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
 
     @Autowired
     private lateinit var addressImageDao: AddressImageDao
+
+    @Autowired
+    private lateinit var cardDavConfig: CardDavConfig
 
     private var contactMap = mutableMapOf<Long, Contact>()
 
@@ -69,7 +73,7 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
         log.info { "Got ${result.size} addresses from cache and must load ${missedInCache.size} from data base..." }
         if (missedInCache.size > 0) {
             addressDao.select(missedInCache, checkAccess = false)?.forEach {
-                val vcard = VCardUtils.buildVCardString(it, addressImageDao)
+                val vcard = VCardUtils.buildVCardString(it, addressImageDao, cardDavConfig.vcardVersion)
                 val contact =
                     Contact(
                         it.id,

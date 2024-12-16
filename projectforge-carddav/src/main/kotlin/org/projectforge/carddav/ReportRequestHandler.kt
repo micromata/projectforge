@@ -102,8 +102,9 @@ internal object ReportRequestHandler {
         }
         appendMultiStatusEnd(sb)
         val content = sb.toString()
-        log.debug { "handleReportCall: response=[$content]" }
+        log.debug { "handleReportCall: response=[${TestUtils.sanitizeContent(content)}]" }
         CardDavUtils.setMultiStatusResponse(response, content)
+        TestUtils.writeRequestResponseLogInTestMode(requestWrapper, response, content)
     }
 
     /**
