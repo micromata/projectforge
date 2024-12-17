@@ -283,6 +283,7 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
     final TimesheetDO timesheet = getData();
     getBaseDao().setUser(timesheet, getUser().getId());
     form.userSelectPanel.markTextFieldModelAsChanged();
+    setResponsePage(new TimesheetEditPage(form.getData()));
   }
 
   @Override
