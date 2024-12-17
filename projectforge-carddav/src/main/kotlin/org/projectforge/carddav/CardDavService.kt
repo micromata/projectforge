@@ -23,12 +23,15 @@
 
 package org.projectforge.carddav
 
+import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
+import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.carddav.model.AddressBook
+import org.projectforge.carddav.model.Contact
 import org.projectforge.carddav.model.User
 import org.projectforge.carddav.service.AddressService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -40,7 +43,6 @@ import org.projectforge.web.rest.RestAuthenticationUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 
 private val log = KotlinLogging.logger {}
@@ -51,10 +53,21 @@ class CardDavService {
     private lateinit var addressService: AddressService
 
     @Autowired
+    private lateinit var deleteRequestHandler: DeleteRequestHandler
+
+    @Autowired
+    private lateinit var domainService: DomainService
+
+    @Autowired
     private lateinit var restAuthenticationUtils: RestAuthenticationUtils
 
     @Autowired
     private lateinit var userAuthenticationsService: UserAuthenticationsService
+
+    @PostConstruct
+    fun init() {
+        domain = domainService.plainDomain
+    }
 
     fun dispatch(request: HttpServletRequest, response: HttpServletResponse) {
         val requestWrapper = RequestWrapper(request)
@@ -62,7 +75,7 @@ class CardDavService {
         log.debug { "Request-Info: ${RequestLog.asJson(request, true)}" }
         if (request.method == "OPTIONS") {
             // No login required for OPTIONS.
-            handleDynamicOptions(requestWrapper, response)
+            OptionsRequestHandler.handleDynamicOptions(requestWrapper, response)
             return
         }
         if (request.method == "PROPFIND" && request.requestURI.startsWith("/.well-known/carddav")) {
@@ -91,32 +104,55 @@ class CardDavService {
         }
     }
 
-    private fun dispathAuthenticated(requestWrapper: RequestWrapper, response: HttpServletResponse, user: PFUserDO) {
+    private fun dispathAuthenticated(requestWrapper: RequestWrapper, response: HttpServletResponse, userDO: PFUserDO) {
+        log.debug { "Dispatching authenticated request: ${RequestLog.asString(requestWrapper.request)}" }
         val request = requestWrapper.request
         val method = request.method
+        // Runs under /carddav as well as under /
+        // Normalize URI for further processing:
+        val normalizedRequestURI = CardDavUtils.normalizedUri(request.requestURI)
+        val writerContext = WriterContext(requestWrapper, response, userDO)
         if (method == "PROPFIND") {
-            if (request.requestURI == "index.html") {
+            if (normalizedRequestURI == "index.html") {
                 // PROPFIND call to /index.html after authentication is a typical behavior of many WebDAV or CardDAV clients.
-                ResponseUtils.setValues(
-                    response,
-                    HttpStatus.MULTI_STATUS, // Alternatives: Not found (404) or Forbidden (403)
-                )
+                // Alternatives: Not found (404) or Forbidden (403)
+                ResponseUtils.setValues(response, HttpStatus.MULTI_STATUS)
                 return
-            } else if (request.requestURI == "/" || request.requestURI == "/carddav") {
-                PropFindUtils.handleCurrentUserPrincipal(requestWrapper, response, user)
-            /*} else if (request.requestURI == "/") {
-                log.debug { "PROPFIND '/': ${CardDavUtils.readBody(request)}" }
-                val content = CardDavXmlWriter.generateCurrentUserPrincipal(user)
-                ResponseUtils.setValues(
-                    response,
-                    HttpStatus.MULTI_STATUS,
-                    contentType = MediaType.APPLICATION_XML_VALUE,
-                    content = content,
-                )*/
-            } else {
-                handlePropfindUsers(requestWrapper, response, user)
             }
+            writerContext.props = CardDavUtils.handleProps(requestWrapper, response)
+            writerContext.contactList = getContactList(userDO)
+            if (normalizedRequestURI.startsWith("principals")) {
+                PropFindRequestHandler.handlePropFindPrincipalsCall(writerContext)
+            } else {
+                PropFindRequestHandler.handlePropFindCall(writerContext)
+            }
+        } else if (method == "REPORT") {
+            // /carddav/users/admin/joe/addressbooks
+            writerContext.props = CardDavUtils.handleProps(requestWrapper, response)
+            writerContext.contactList = getContactList(userDO)
+            ReportRequestHandler.handleSyncReportCall(writerContext)
+            /*if (normalizedRequestURI.startsWith("users/")) {
+                val contactId = normalizedRequestURI.removePrefix("users/").removeSuffix(".vcf")
+                getContact(user, contactId)
+            }*/
+        } else if (method == "GET") {
+            // /carddav/users/admin/addressbooks/ProjectForge-129.vcf
+            writerContext.contactList = getContactList(userDO)
+            GetRequestHandler.handleGetCall(writerContext)
+        } else if (method == "DELETE") {
+            // /carddav/users/admin/addressbooks/ProjectForge-129.vcf
+            deleteRequestHandler.handleDeleteCall(writerContext)
+        } else {
+            log.warn { "Method not supported: $method" }
+            ResponseUtils.setValues(
+                response, HttpStatus.METHOD_NOT_ALLOWED, contentType = MediaType.TEXT_PLAIN_VALUE,
+                content = "Method not supported: $method"
+            )
         }
+    }
+
+    private fun getContactList(userDO: PFUserDO): List<Contact> {
+        return addressService.getContactList(userDO)
     }
 
     private fun authenticate(request: HttpServletRequest, response: HttpServletResponse): RestAuthenticationInfo {
@@ -167,119 +203,7 @@ class CardDavService {
         return authInfo
     }
 
-    /**
-     * Handles the initial OPTIONS request to indicate supported methods and DAV capabilities.
-     * This is the initial request to determine the allowed methods and DAV capabilities by the client.
-     *
-     * @return ResponseEntity with allowed methods and DAV capabilities in the headers.
-     */
-    private fun handleDynamicOptions(requestWrapper: RequestWrapper, response: HttpServletResponse) {
-        val requestedPath = requestWrapper.requestURI
-        // Indicate DAV capabilities
-        response.addHeader("DAV", "1, 2, 3, addressbook")
-
-        // Indicate allowed HTTP methods
-        // add("Allow", "OPTIONS, GET, HEAD, POST, PUT, DELETE, PROPFIND, REPORT")
-        response.addHeader("Allow", "OPTIONS, GET, PROPFIND")
-
-        // Expose additional headers for client visibility
-        response.addHeader("Access-Control-Expose-Headers", "DAV, Allow")
-
-        // Additional headers for user-specific paths
-        if (requestedPath.contains("/users/")) {
-            // Example: You might add user-specific behavior here
-            response.addHeader("Content-Type", "application/xml")
-        }
-        ResponseUtils.setValues(response, status = HttpStatus.OK)
+    companion object {
+        internal var domain: String = "localhost"
     }
-
-    /**
-     * Handle PROPFIND requests. Get the address book metadata for the given user.
-     * @param userDO The user for which the address book is requested.
-     * @param request The HTTP request.
-     * @return The response entity.
-     */
-    private fun handlePropfindUsers(requestWrapper: RequestWrapper, response: HttpServletResponse, userDO: PFUserDO) {
-        val request = requestWrapper.request
-        log.debug { "PROPFIND '${request.requestURI}': ${requestWrapper.body}" }
-        val sb = StringBuilder()
-        CardDavXmlWriter.appendMultiStatusStart(sb, request.serverName)
-        val user = User(userDO.username)
-        val addressBook = AddressBook(user)
-        addressService.getContactList(addressBook).forEach { contact ->
-            CardDavXmlWriter.appendPropfindContact(sb, user, contact)
-        }
-        CardDavXmlWriter.appendMultiStatusEnd(sb)
-        ResponseUtils.setValues(
-            response,
-            HttpStatus.MULTI_STATUS,
-            contentType = MediaType.APPLICATION_XML_VALUE,
-            content = sb.toString()
-        )
-    }
-
-    /**
-     * Handle PROPFIND requests. Get the address book metadata for the given user.
-     * @param userDO The user for which the address book is requested.
-     * @param request The HTTP request.
-     * @return The response entity.
-     */
-    fun handlePropfindAddressBook(
-        request: HttpServletRequest,
-        response: HttpServletResponse,
-        userDO: PFUserDO
-    ): ResponseEntity<String> {
-        if (!request.method.equals("PROPFIND", ignoreCase = true)) {
-            log.error { "Method not allowed: ${request.method}, PROPFIND expected." }
-            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build()
-        }
-        val sb = StringBuilder()
-        CardDavXmlWriter.appendMultiStatusStart(sb, request.serverName)
-        val user = User(userDO.username)
-        val addressBook = AddressBook(user)
-        addressService.getContactList(addressBook).forEach { contact ->
-            CardDavXmlWriter.appendPropfindContact(sb, user, contact)
-        }
-        CardDavXmlWriter.appendMultiStatusEnd(sb)
-        return ResponseEntity.status(HttpStatus.MULTI_STATUS)
-            .contentType(MediaType.APPLICATION_XML)
-            .body(sb.toString())
-    }
-
-    fun getContact(userDO: PFUserDO, contactId: String): ResponseEntity<String> {
-        val vcard = contactId.toLongOrNull()?.let {
-            addressService.getContact(it)?.vcardData?.toString(Charsets.UTF_8)
-        }
-        if (vcard == null) {
-            log.error { "Invalid contact id: $contactId" }
-            return ResponseEntity.notFound().build()
-        }
-        return ResponseEntity.ok()
-            .contentType(MediaType.parseMediaType("text/vcard"))
-            .body(vcard)
-    }
-
-    // <d:multistatus xmlns:d="DAV:" xmlns:cs="http://calendarserver.org/ns/">
-    //    <d:sync-token>http://example.com/sync/abcd1234</d:sync-token>
-    //    <d:response>
-    //        <d:href>/carddav/user/addressbook/contact1.vcf</d:href>
-    //        <d:propstat>
-    //            <d:prop>
-    //                <d:getetag>"12345"</d:getetag>
-    //                <d:displayname>John Doe</d:displayname>
-    //            </d:prop>
-    //            <d:status>HTTP/1.1 200 OK</d:status>
-    //        </d:propstat>
-    //    </d:response>
-    //    <d:response>
-    //        <d:href>/carddav/user/addressbook/contact2.vcf</d:href>
-    //        <d:propstat>
-    //            <d:prop>
-    //                <d:getetag>"67890"</d:getetag>
-    //                <d:displayname>Jane Doe</d:displayname>
-    //            </d:prop>
-    //            <d:status>HTTP/1.1 200 OK</d:status>
-    //        </d:propstat>
-    //    </d:response>
-    //</d:multistatus>
 }

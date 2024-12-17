@@ -63,7 +63,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
 
     private static final String USER_PREF_KEY_RECENT_CUSTOMERS = "CustomerSelectPanel:recentCustomers";
 
-    private static final String[] SEARCH_FIELDS = {"id", "name", "identifier", "division"};
+    private static final String[] SEARCH_FIELDS = {"nummer", "name", "identifier", "division"};
 
     @SuppressWarnings("unused")
     private boolean defaultFormProcessing = false;
@@ -84,6 +84,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
     /**
      * @param id
      * @param model
+     *
      * @param caller
      * @param selectProperty
      */
@@ -112,7 +113,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
                 if (customer == null) {
                     return "";
                 }
-                return KundeFormatter.getInstance().format(customer);
+                return KundeFormatter.getInstance().format(customer, KostFormatter.FormatType.NUMBER_AND_NAME);
             }
 
             @Override
@@ -120,7 +121,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
                 if (customer == null) {
                     return "";
                 }
-                return KundeFormatter.getInstance().format(customer);
+                return KundeFormatter.getInstance().format(customer, KostFormatter.FormatType.NUMBER_AND_NAME);
             }
 
             @Override

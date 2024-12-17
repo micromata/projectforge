@@ -278,7 +278,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         if (addressbookRight == null) {
             addressbookRight = userRights.getRight(UserRightId.MISC_ADDRESSBOOK) as AddressbookRight
         }
-        val addressbookList = obj?.addressbookList ?: addressbookCache.getAddressbooksForAddress(obj)
+        val addressbookList =  addressbookCache.getAddressbooksForAddress(obj) ?: obj?.addressbookList
         if (addressbookList.isNullOrEmpty()) {
             return true
         }

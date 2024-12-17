@@ -101,7 +101,10 @@ abstract class AbstractRechnungCache(
         posInfo = RechnungPosInfo(info, pos)
         return RechnungCalculator.calculate(posInfo, pos).also {
             synchronized(invoiceInfoMap) {
-                invoicePosInfoMap[pos.id!!] = it
+                pos.id?.let { posId ->
+                    // pos.id is null for cloned invoices.
+                    invoicePosInfoMap[posId] = it
+                }
             }
             // rechnung.info = it // Set by RechnungsCalculator.
         }

@@ -43,11 +43,29 @@ object RequestLog {
     return ToStringUtil.toJsonString(data)
   }
 
+  /**
+   * Get the request as a single line string, useful for logging.
+   * The string contains the URI, method and, if given: auth user, session-id, and basic auth user.
+   * Format: uri=[/path], method=[GET|POST|...], user=[username], session-id=[sessionId], AuthUser=[username]
+   * @param user Optional username to be added to the log.
+   * @return The request as a single line string.
+   */
   @JvmStatic
   fun asString(request: HttpServletRequest, user: String? = null): String {
-    val userString = if (user.isNullOrBlank()) "" else ", user='$user'"
+    val userString = if (user.isNullOrBlank()) "" else ", user=[$user]"
     val sessionId = getTruncatedSessionId(request.getSession(false)?.id)
-    return "uri=${request.requestURI}, session-id=$sessionId$userString"
+    val sessionIdString = if (sessionId != null) {
+      ", session-id=[$sessionId]"
+    } else {
+      ""
+    }
+    val authHeader = RestAuthenticationUtils.getHeader(request, "authorization", "Authorization")
+    val basicAuthUser = if (authHeader != null) {
+      ", AuthUser=[${BasicAuthenticationData(request, authHeader).username}]"
+    } else {
+      ""
+    }
+    return "uri=${request.requestURI}, method=[${request.method}]$userString$sessionIdString$basicAuthUser"
   }
 
   /**

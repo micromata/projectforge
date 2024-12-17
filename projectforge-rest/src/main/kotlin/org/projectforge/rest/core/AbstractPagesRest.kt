@@ -565,6 +565,8 @@ constructor(
         } else {
             currentFilter.init()
         }
+        // Fixing the maxRows to the default value. Max rows was mis-used as paginationPageSize in the past.
+        currentFilter.maxRows = QueryFilter.QUERY_FILTER_MAX_ROWS
         @Suppress("UNCHECKED_CAST")
         return currentFilter
     }

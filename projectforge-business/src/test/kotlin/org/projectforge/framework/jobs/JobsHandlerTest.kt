@@ -68,7 +68,7 @@ class JobsHandlerTest {
         }
       }
     }
-    jobHandler.shutdownJobHandler()
+    jobHandler.shutdown()
     Assertions.assertTrue(onBeforeCancel)
     Assertions.assertTrue(onAfterCancel)
   }
@@ -148,7 +148,7 @@ class JobsHandlerTest {
       Thread.sleep(2000)
       jobHandler.cancelJob(job1)
       Thread.sleep(2000)
-      jobHandler.shutdownJobHandler()
+      jobHandler.shutdown()
       println("exit")
     }
   }

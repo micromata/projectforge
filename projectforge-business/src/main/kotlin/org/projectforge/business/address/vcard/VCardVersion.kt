@@ -21,38 +21,31 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.carddav
+package org.projectforge.business.address.vcard
 
-import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
-import org.projectforge.rest.utils.RequestLog
-import java.io.BufferedReader
 
 private val log = KotlinLogging.logger {}
 
-internal class RequestWrapper(val request: HttpServletRequest) {
-    val requestURI = request.requestURI
-    val basicAuth: Boolean by lazy {
-        request.getHeader("authorization") != null ||
-                request.getHeader("Authorization") != null
-    }
-    val baseUrl: String by lazy {
-        if (request.requestURI.startsWith(CardDavInit.CARD_DAV_BASE_PATH)) {
-            CardDavInit.CARD_DAV_BASE_PATH
-        } else {
-            "/"
-        }
-    }
-    val body: String by lazy {
-        try {
-            if (request.contentLength > 0) {
-                request.inputStream.bufferedReader().use(BufferedReader::readText)
-            } else {
-                ""
+/**
+ * VCard version to use for generating vcard strings.
+ */
+enum class VCardVersion(internal val ezVCardType: ezvcard.VCardVersion) {
+    /**
+     * VCard 3.0 is supported by Apple Address Book und Mac OS X.
+     */
+    V_3_0(ezvcard.VCardVersion.V3_0), V_4_0(ezvcard.VCardVersion.V4_0);
+
+    companion object {
+        fun from(str: String): VCardVersion {
+            return when (str) {
+                "3.0" -> V_3_0
+                "4.0" -> V_4_0
+                else -> {
+                    log.error { "Unknown VCardVersion: $str, using 3.0 at default." }
+                    V_3_0
+                }
             }
-        } catch (e: Exception) {
-            log.info { "Can't read body of request: ${RequestLog.asJson(request)}" }
-            ""
         }
     }
 }

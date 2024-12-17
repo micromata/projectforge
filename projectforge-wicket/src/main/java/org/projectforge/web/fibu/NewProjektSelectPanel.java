@@ -59,7 +59,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
 
     private static final String USER_PREF_KEY_RECENT_PROJECTS = "ProjectSelectPanel:recentProjects";
 
-    private static final String[] SEARCH_FIELDS = {"id", "name", "identifier", "nummer"};
+    private static final String[] SEARCH_FIELDS = {"name", "identifier", "nummer", "kunde.name"};
 
     @SuppressWarnings("unused")
     private boolean defaultFormProcessing = false;

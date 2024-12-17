@@ -270,7 +270,7 @@ class OrderInfo() : Serializable {
                 // Only finished orders can be fully invoiced.
                 return false
             }
-            if (positions?.any { !it.vollstaendigFakturiert } == true) {
+            if (positions?.any { !it.vollstaendigFakturiert && !it.deleted && it.status.orderState != AuftragsOrderState.LOST } == true) {
                 // Only fully invoiced positions can be fully invoiced.
                 return false
             }

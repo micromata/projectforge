@@ -29,7 +29,7 @@ import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressImageDao
 import org.projectforge.business.address.vcard.VCardUtils
-import org.projectforge.carddav.model.AddressBook
+import org.projectforge.carddav.CardDavConfig
 import org.projectforge.carddav.model.Contact
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
@@ -50,13 +50,16 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
     @Autowired
     private lateinit var addressImageDao: AddressImageDao
 
+    @Autowired
+    private lateinit var cardDavConfig: CardDavConfig
+
     private var contactMap = mutableMapOf<Long, Contact>()
 
     fun getContact(id: Long): Contact? {
         return getCachedAddress(id)
     }
 
-    fun getContacts(addressBook: AddressBook, ids: List<Long>): List<Contact> {
+    fun getContacts(ids: List<Long>): List<Contact> {
         val result = mutableListOf<Contact>()
         val missedInCache = mutableListOf<Long>()
         ids.forEach {
@@ -70,13 +73,14 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
         log.info { "Got ${result.size} addresses from cache and must load ${missedInCache.size} from data base..." }
         if (missedInCache.size > 0) {
             addressDao.select(missedInCache, checkAccess = false)?.forEach {
-                val vcard = VCardUtils.buildVCardByteArray(it, addressImageDao)
+                val vcard = VCardUtils.buildVCardString(it, addressImageDao, cardDavConfig.vcardVersion)
                 val contact =
                     Contact(
                         it.id,
                         firstName = it.firstName,
                         lastName = it.name,
                         lastUpdated = it.lastUpdate,
+                        hasImage = it.image == true,
                         vcardData = vcard,
                     )
                 addCachedContact(it.id!!, contact)
@@ -115,7 +119,7 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
     }
 
     override fun refresh() {
-        org.projectforge.carddav.service.log.info("Clearing cache ${this::class.java.simpleName}.")
+        log.info("Clearing cache ${this::class.java.simpleName}.")
         synchronized(contactMap) {
             contactMap.clear()
         }

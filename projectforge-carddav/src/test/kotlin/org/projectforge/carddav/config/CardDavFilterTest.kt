@@ -31,25 +31,23 @@ import org.projectforge.carddav.CardDavFilter
 
 class CardDavFilterTest {
     @Test
-    fun handledByMiltonFilterTest() {
+    fun handledByCardDavFilterTest() {
         checkRequest("/.well-known/carddav", "PROPFIND", true)
-        checkRequest("/carddav/users", "PROPFIND", true)
+        checkRequest("/carddav/users/", "PROPFIND", true)
         checkRequest("/wa/...", "PROPFIND", false)
 
         checkRequest("....", "GET", false)
         checkRequest("/users", "GET", false)
 
-        arrayOf("OPTIONS", "PROPPATCH", "REPORT").forEach {
+        arrayOf("OPTIONS", "PROPFIND", "REPORT").forEach {
             checkMethod(it)
         }
     }
 
     private fun checkMethod(method: String) {
         checkRequest("....", method, false)
-        checkRequest("users", method, false)
-        checkRequest("/users", method, true)
-        checkRequest("//users", method, true)
-        checkRequest("///users", method, true)
+        checkRequest("users", method, true)
+        checkRequest("/carddav/users/", method, true)
     }
 
     private fun checkRequest(uri: String, method: String, expected: Boolean) {

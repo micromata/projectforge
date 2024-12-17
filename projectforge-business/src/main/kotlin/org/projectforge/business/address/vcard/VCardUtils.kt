@@ -25,7 +25,6 @@ package org.projectforge.business.address.vcard
 
 import ezvcard.Ezvcard
 import ezvcard.VCard
-import ezvcard.VCardVersion
 import ezvcard.parameter.AddressType
 import ezvcard.parameter.EmailType
 import ezvcard.parameter.ImageType
@@ -35,7 +34,6 @@ import mu.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressImageDao
 import org.projectforge.framework.time.PFDateTime
-import org.projectforge.framework.time.PFDay
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.time.LocalDate
@@ -43,7 +41,6 @@ import java.time.LocalDate
 private val log = KotlinLogging.logger {}
 
 object VCardUtils {
-
     @JvmStatic
     fun buildVCard(
         addressDO: AddressDO,
@@ -120,12 +117,24 @@ object VCardUtils {
     }
 
     @JvmStatic
+    @JvmOverloads
     fun buildVCardByteArray(
         addressDO: AddressDO,
-        addressImageDao: AddressImageDao
+        addressImageDao: AddressImageDao,
+        vCardVersion: VCardVersion = VCardVersion.V_4_0,
     ): ByteArray { //See: https://github.com/mangstadt/ez-vcard
+        return buildVCardString(addressDO, addressImageDao, vCardVersion).toByteArray()
+    }
+
+    @JvmStatic
+    @JvmOverloads
+    fun buildVCardString(
+        addressDO: AddressDO,
+        addressImageDao: AddressImageDao,
+        vCardVersion: VCardVersion = VCardVersion.V_4_0,
+    ): String { //See: https://github.com/mangstadt/ez-vcard
         val vcard = buildVCard(addressDO, addressImageDao)
-        return Ezvcard.write(vcard).version(VCardVersion.V3_0).go().toByteArray()
+        return Ezvcard.write(vcard).version(vCardVersion.ezVCardType).go()
     }
 
     @JvmStatic
@@ -242,6 +251,17 @@ object VCardUtils {
                 log.error("An exception accured while parsing vcard from byte array: " + e.message, e)
                 return emptyList()
             }
+        }
+    }
+
+    @JvmStatic
+    fun parseVCardsFromString(vcardString: String?): List<VCard> {
+        vcardString ?: return emptyList()
+        try {
+            return Ezvcard.parse(vcardString).all()
+        } catch (e: IOException) {
+            log.error("An exception accured while parsing vcard from byte array: " + e.message, e)
+            return emptyList()
         }
     }
 

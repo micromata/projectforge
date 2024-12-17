@@ -21,10 +21,9 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.testclient
+package org.projectforge.carddav
 
 import org.apache.hc.client5.http.classic.methods.HttpGet
-import org.apache.hc.client5.http.classic.methods.HttpOptions
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient
 import org.apache.hc.client5.http.impl.classic.HttpClients
 import org.apache.hc.core5.http.ClassicHttpResponse
@@ -37,6 +36,21 @@ import org.apache.hc.core5.http.protocol.HttpCoreContext
 import org.projectforge.common.extensions.abbreviate
 import java.util.*
 
+/*
+https://developers.google.com/people/carddav?hl=de
+Wireshark on macOS:
+To fully complete your installation and use Wireshark
+    to capture from devices (like network interfaces) please run:
+
+      sudo dseditgroup -q -o edit -a [USER] -t user access_bpf
+
+    and change [USER] to the user that needs access to the devices.
+    A reboot should not be required for this to take effect.
+
+    A startup item has been generated that will start wireshark-chmodbpf with launchd, and will be enabled automatically on activation. Execute the following command to manually _disable_ it:
+
+        sudo port unload wireshark-chmodbpf
+ */
 fun main(args: Array<String>) {
     if (args.size < 2) {
         println("Usage: CardDavTestClient <username> <dav-token>")
@@ -45,7 +59,8 @@ fun main(args: Array<String>) {
     val username = args[0]
     val davToken = args[1]
     val baseUrl = if (args.size > 2) args[2] else "http://localhost:8080/carddav"
-    val client = CardDavTestClient(baseUrl, username, davToken)
+    val lastSyncToken = if (args.size > 3) args[3] else null
+    val client = CardDavTestClient(baseUrl, username = username, password = davToken, lastSyncToken = lastSyncToken)
     client.run()
 }
 
@@ -56,7 +71,7 @@ fun main(args: Array<String>) {
 // PROPFIND for Milton (uri=/users/username/addressBooks/default/
 // REPORT for Milton (uri=/users/username/addressBooks/default/
 
-class CardDavTestClient(private val baseUrl: String, private val username: String, private val password: String) {
+class CardDavTestClient(private val baseUrl: String, username: String, password: String, val lastSyncToken: String?) {
     private class ResponseData(val content: String, val headers: String)
 
     private val client: CloseableHttpClient = HttpClients.createDefault()
@@ -73,49 +88,120 @@ class CardDavTestClient(private val baseUrl: String, private val username: Strin
      */
     fun run() {
         try {
-            sendOptionsRequest("/users/$username/")
-            // sendPropfindRequest("/users/$username/")
-            val propfindResponse = sendPropfindRequest("/users/$username/", useAuthHeader = true)
-            //sendGetRequest(propfindResponse)
-            sendSyncReportRequest("/users/$username/addressBooks/default/")
+            sendRequest("OPTIONS") // "/users/$username/")
+            """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <A:propfind xmlns:A="DAV:">
+                  <A:prop>
+                    <A:current-user-principal/>
+                    <A:principal-URL/>
+                    <A:resourcetype/>
+                  </A:prop>
+                </A:propfind>
+            """.trimIndent().let { body ->
+                sendRequest("PROPFIND", requestBody = body, useAuthHeader = true)
+            }
+            /*
+            """
+                <propfind xmlns="DAV:">
+                   <prop>
+                     <resourcetype/>
+                     <displayname/>
+                     <current-user-principal/>
+                     <current-user-privilege-set/>
+                   </prop>
+                 </propfind>
+            """.trimIndent().let { body ->
+                sendRequest("PROPFIND", requestBody = body, useAuthHeader = true)
+            }
+            """
+                <propfind xmlns="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/" xmlns:d="DAV:">
+                  <prop>
+                     <resourcetype/>
+                     <getetag/>
+                     <cs:getctag/>
+                   </prop>
+                </propfind>""".trimIndent().let { body ->
+                sendRequest("PROPFIND", requestBody = body, useAuthHeader = true)
+            }
+            var newSyncToken: String? = null
+            """
+                <propfind xmlns="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/" xmlns:d="DAV:">
+                  <prop>
+                    <displayname/>
+                    <cs:getctag/>
+                    <sync-token/>
+                  </prop>
+                </propfind>""".trimIndent().let { body ->
+                sendRequest("PROPFIND", requestBody = body, useAuthHeader = true).let { response ->
+                    val regex = Regex("<sync-token>\\s*(.*?)\\s*</sync-token>", RegexOption.DOT_MATCHES_ALL)
+                    val match = regex.find(response)
+                    newSyncToken = match?.groups?.get(1)?.value?.trim()
+                    if (newSyncToken != lastSyncToken) {
+                        println("**************************************")
+                        println("New sync token: $newSyncToken (for usage as args[3])")
+                        println("**************************************")
+                    }
+                    if (newSyncToken == null) {
+                        newSyncToken = lastSyncToken
+                    }
+                }
+            }
+            """
+                <sync-collection xmlns="DAV:" xmlns:CR="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/" xmlns:d="DAV:">
+                  <sync-token>
+                        $lastSyncToken
+                  </sync-token>
+                  <sync-level>1</sync-level>
+                  <prop>
+                    <getetag/>
+                    <CR:address-data/>
+                  </prop>
+                </sync-collection>""".trimIndent().let { body ->
+                sendRequest("REPORT", requestBody = body, useAuthHeader = true)
+            }
+            """
+                <card:addressbook-multiget xmlns:card="urn:ietf:params:xml:ns:carddav" xmlns:cs="http://calendarserver.org/ns/" xmlns:d="DAV:">
+      <d:prop>
+        <d:getetag/>
+        <card:address-data/>
+      </d:prop>
+      <d:href>/kai/testcollection/e8efcc9a-10f4-4d1c-8bb6-718aece30586.vcf</d:href>
+      <d:href>/kai/testcollection/4ebaea4c-3a96-44dd-84eb-c2207d8f38f5.vcf</d:href>
+    </card:addressbook-multiget>""".trimIndent().let { body ->
+                sendRequest("REPORT", requestBody = body, useAuthHeader = true)
+            }*/
         } finally {
             client.close()
         }
     }
 
-    private fun sendOptionsRequest(path: String = "", useAuthHeader: Boolean = false) {
-        val url = "$baseUrl$path"
-        val optionsRequest = HttpOptions(url)
-        if (useAuthHeader) {
-            optionsRequest.addHeader("Authorization", authHeader)
-        }
-        val context = HttpCoreContext.create()
-        val repsonse = client.execute(optionsRequest, context, responseHandler)
-        logResponse("OPTIONS", url, repsonse)
-    }
-
-    private fun sendPropfindRequest(path: String = "", useAuthHeader: Boolean = false) {
+    private fun sendRequest(
+        method: String,
+        path: String = "",
+        requestBody: String? = null,
+        useAuthHeader: Boolean = false
+    ): String {
         val url = "$baseUrl$path"
         val context = HttpCoreContext.create()
-        val propfindBody = """
-        <d:propfind xmlns:d="DAV:">
-            <d:prop>
-                <d:displayname />
-                <d:getcontenttype />
-            </d:prop>
-        </d:propfind>
-    """.trimIndent()
-
-        val builder = ClassicRequestBuilder.create("PROPFIND")
+        val builder = ClassicRequestBuilder.create(method)
             .setUri(url)
             .addHeader("Depth", "1")
         if (useAuthHeader) {
             builder.addHeader("Authorization", authHeader)
         }
-        builder.setEntity(StringEntity(propfindBody, ContentType.APPLICATION_XML))
-
-        val response = client.execute(builder.build(), context, responseHandler).also {
-            logResponse("PROPFIND", url, it)
+        if (requestBody != null) {
+            builder.setEntity(StringEntity(requestBody, ContentType.APPLICATION_XML))
+        }
+        println("$method call: $url")
+        if (requestBody != null) {
+            println("   body=[")
+            println(requestBody)
+            println("   ]")
+        }
+        client.execute(builder.build(), context, responseHandler).also {
+            logResponse(method, url, it)
+            return it.content
         }
     }
 
@@ -154,7 +240,14 @@ class CardDavTestClient(private val baseUrl: String, private val username: Strin
     }
 
     private fun logResponse(method: String, endpoint: String, response: ResponseData) {
-        println("$method: $endpoint: response=[content=[${response.content.abbreviate(1000)}], headers=[${response.headers}]]")
+        println("$method: $endpoint: response=[")
+        println("   headers=[${response.headers}], content-length=${response.content.length}")
+        if (response.content.isNotEmpty()) {
+            println("   content=[")
+            println(response.content.abbreviate(2000))
+            println("   ]")
+        }
+        println("]")
     }
 
     /*

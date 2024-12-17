@@ -104,14 +104,16 @@ abstract class DBPredicate(
             str: String,
             oldChar: Char,
             newChar: Char,
-            autoWildcardSearch: Boolean = false
+            autoWildcardSearch: Boolean = false,
+            allowNumericSearchValues: Boolean = false,
         ): String {
             logDebugFunCall(log) {
                 it.mtd("modifySearchString(...)").params(
                     "str" to str,
                     "oldChar" to oldChar,
                     "newChar" to newChar,
-                    "autoWildcardSearch" to autoWildcardSearch
+                    "autoWildcardSearch" to autoWildcardSearch,
+                    "allowNumericSearchValues" to allowNumericSearchValues,
                 )
             }
             var queryString = str.trim()
@@ -123,7 +125,8 @@ abstract class DBPredicate(
                 queryString = HibernateSearchFilterUtils.modifySearchString(
                     queryString,
                     "$newChar",
-                    false
+                    false,
+                    allowNumericSearchValues = allowNumericSearchValues,
                 ) // Always look for keyword* (\p{L} means all letters in all languages.
             logDebugFunCall(log) { it.mtd("modifySearchString(...)").msg("Modified search string: $queryString") }
             return queryString
@@ -417,7 +420,8 @@ abstract class DBPredicate(
         internal var queryString: String
 
         init {
-            queryString = modifySearchString(expectedValue, '*', '%', autoWildcardSearch)
+            queryString =
+                modifySearchString(expectedValue, '*', '%', autoWildcardSearch, allowNumericSearchValues = false)
             plainString = queryString
             if (plainString.startsWith("%")) {
                 plainString = plainString.substring(1)
@@ -476,7 +480,7 @@ abstract class DBPredicate(
 
     class FullSearch(
         expectedValue: String,
-        private val searchFields: Array<String>?,
+        private val fulltextSearchFields: Array<String>?,
         autoWildcardSearch: Boolean = false
     ) :
         DBPredicate(null, true, false, false) {
@@ -486,6 +490,13 @@ abstract class DBPredicate(
             logDebugFunCall(log) { it.mtd("FullSearch.init") }
             queryString = modifySearchString(expectedValue, '%', '*', autoWildcardSearch)
         }
+
+        /**
+         * If true, no wild card character will be appended to the search string.
+         * @return true if no text search fields are given.
+         */
+        private val allowNumericSearchValues: Boolean
+            get() = fulltextSearchFields.isNullOrEmpty()
 
         override fun match(obj: Any): Boolean {
             throw UnsupportedOperationException("match method only available for full text search!")
@@ -508,19 +519,25 @@ abstract class DBPredicate(
             searchClassInfo: HibernateSearchClassInfo,
         ) {
             logDebugFunCall(log) { it.mtd("FullSearch.handledByFullTextQuery(...)") }
-            if (NumberUtils.isCreatable(queryString)) {
-                val number = NumberUtils.createNumber(queryString)
+            val useSearchFields =
+                if (fulltextSearchFields.isNullOrEmpty()) searchClassInfo.stringFieldNames else fulltextSearchFields
+            val plainQueryString = queryString.removeSuffix("*").removeSuffix("%")
+            if (fulltextSearchFields.isNullOrEmpty() && NumberUtils.isCreatable(plainQueryString)) {
+                // query string is number, so search in number search fields as well as in text search fields.
+                val number = NumberUtils.createNumber(plainQueryString)
                 search(
                     searchPredicateFactory,
                     boolCollector,
                     number,
                     searchClassInfo.numericFields,
-                    searchClassInfo.stringFieldNames
+                    useSearchFields,
                 )
-            } else if (searchFields.isNullOrEmpty()) {
+            } else if (fulltextSearchFields.isNullOrEmpty()) {
+                // query string is not a number, so search in the given text search fields.
                 search(searchPredicateFactory, boolCollector, queryString, searchClassInfo.stringFieldNames)
             } else {
-                search(searchPredicateFactory, boolCollector, queryString, searchFields)
+                // query string is not a number, no search fields given, so search in the standard search fields.
+                search(searchPredicateFactory, boolCollector, queryString, fulltextSearchFields)
             }
         }
 

@@ -23,28 +23,36 @@
 
 package org.projectforge.carddav
 
-import jakarta.annotation.PostConstruct
 import jakarta.servlet.ServletContext
+import mu.KotlinLogging
+import org.projectforge.common.NumberOfBytes
 import org.projectforge.rest.config.RestUtils
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+private val log = KotlinLogging.logger {}
 
 @Component
 open class CardDavInit {
-    @Value("\${projectforge.carddav.useRootPath:false}")
-    private var cardDavUseRootPath: Boolean = false
-
-    @PostConstruct
-    private fun initCompanion() {
-        CardDavInit.cardDavUseRootPath = this.cardDavUseRootPath
-    }
+    @Autowired
+    private lateinit var cardDavConfig: CardDavConfig
 
     fun init(sc: ServletContext) {
-        RestUtils.registerFilter(sc, "CardDavFilter", CardDavFilter::class.java, false, "/*")
+        if (cardDavConfig.enable) {
+            log.info { "Enabling CardDav-Server by registering CardDavFilter (projectforge.properties:projectforge.carddav.server.enable)..." }
+            RestUtils.registerFilter(sc, "CardDavFilter", CardDavFilter::class.java, false, "/*")
+        } else {
+            log.info { "CardDav-Server disabled in projectforge.properties:projectforge.carddav.server.enable" }
+        }
     }
 
     companion object {
         internal const val CARD_DAV_BASE_PATH = "/carddav"
-        internal var cardDavUseRootPath: Boolean = false
+
+        internal const val MAX_IMAGE_SIZE = (5 * NumberOfBytes.MEGA_BYTES).toString()
+
+        internal const val QUOTA_AVAILABLE_BYTES = (100 * NumberOfBytes.MEGA_BYTES).toString()
+
+        internal const val MAX_RESOURCE_SIZE = (20 * NumberOfBytes.MEGA_BYTES).toString()
     }
 }
