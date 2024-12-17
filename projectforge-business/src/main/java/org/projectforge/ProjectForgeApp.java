@@ -111,6 +111,8 @@ public class ProjectForgeApp {
 
     private RepoBackupService repoBackupService;
 
+    private ShutdownService shutdownService;
+
     private SystemInfoCache systemInfoCache;
 
     private SystemStatus systemStatus;
@@ -132,6 +134,7 @@ public class ProjectForgeApp {
                     Environment environment,
                     RepoService repoService,
                     RepoBackupService repoBackupService,
+                    ShutdownService shutdownService,
                     SystemInfoCache systemInfoCache,
                     SystemStatus systemStatus) {
         this.applicationContext = applicationContext;
@@ -140,6 +143,7 @@ public class ProjectForgeApp {
         this.environment = environment;
         this.repoService = repoService;
         this.repoBackupService = repoBackupService;
+        this.shutdownService = shutdownService;
         this.systemInfoCache = systemInfoCache;
         this.systemStatus = systemStatus;
     }
@@ -211,6 +215,7 @@ public class ProjectForgeApp {
 
     private void internalShutdown() {
         log.info("Shutdown...");
+        shutdownService.shutdown();
         upAndRunning = false;
         try {
             final UserContext internalSystemAdminUserContext = UserContext

@@ -112,13 +112,13 @@ class RechnungCalculatorTest : AbstractTestBase() {
             val info = calculateAndAssert(it, net = "20.00", gross = "20.00")
             assertEquals(BigDecimal("15.00"), info.kostZuweisungNetSum)
             assertEquals(BigDecimal("15.00"), info.kostZuweisungGrossSum)
-            assertEquals(BigDecimal("5.00"), info.kostZuweisungNetFehlbetrag)
+            assertEquals(BigDecimal("-5.00"), info.kostZuweisungNetFehlbetrag)
         }
         createPositionInfo("2", "10.00", "0.19", "5", "10").also {
             val info = calculateAndAssert(it, net = "20.00", gross = "23.80")
             assertEquals(BigDecimal("15.00"), info.kostZuweisungNetSum, "kostZuweisungNetSum")
             assertEquals(BigDecimal("17.85"), info.kostZuweisungGrossSum, "kostZuweisungGrossSum")
-            assertEquals(BigDecimal("5.00"), info.kostZuweisungNetFehlbetrag, "kostZuweisungNetFehlbetrag")
+            assertEquals(BigDecimal("-5.00"), info.kostZuweisungNetFehlbetrag, "kostZuweisungNetFehlbetrag")
         }
     }
 

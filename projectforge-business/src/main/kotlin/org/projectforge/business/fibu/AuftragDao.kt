@@ -282,18 +282,13 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
     }
 
     private fun addCriterionForAuftragsStatuses(myFilter: AuftragFilter, queryFilter: QueryFilter) {
-        val auftragsStatuses: Collection<AuftragsStatus> = myFilter.auftragsStatuses
-        if (CollectionUtils.isEmpty(auftragsStatuses)) {
-            // nothing to do
-            return
+        val auftragsStatuses = myFilter.auftragsStatuses
+        if (auftragsStatuses.isNotEmpty()) {
+            val orCriterions: MutableList<DBPredicate> = ArrayList()
+            orCriterions.add(isIn<Any>("status", auftragsStatuses))
+            orCriterions.add(isIn<Any>("positionen.status", myFilter.auftragsStatuses))
+            queryFilter.add(or(*orCriterions.toTypedArray<DBPredicate>()))
         }
-        val orCriterions: MutableList<DBPredicate> = ArrayList()
-
-        orCriterions.add(isIn<Any>("status", auftragsStatuses))
-
-        orCriterions.add(isIn<Any>("positionen.status", myFilter.auftragsPositionStatuses))
-
-        queryFilter.add(or(*orCriterions.toTypedArray<DBPredicate>()))
 
         // check deleted
         if (!myFilter.ignoreDeleted) {
@@ -342,10 +337,10 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
     }
 
     private fun filterPositionsStatus(myFilter: AuftragFilter, list: List<AuftragDO>) {
-        if (CollectionUtils.isEmpty(myFilter.auftragsPositionStatuses)) {
+        if (CollectionUtils.isEmpty(myFilter.auftragsStatuses)) {
             return
         }
-        val statusFilter = AuftragsPositionsStatusFilter(myFilter.auftragsPositionStatuses)
+        val statusFilter = AuftragsPositionsStatusFilter(myFilter.auftragsStatuses)
         CollectionUtils.filter(
             list
         ) { `object`: AuftragDO? ->

@@ -23,9 +23,9 @@
 
 package org.projectforge.business.user
 
-import jakarta.annotation.PreDestroy
 import mu.KotlinLogging
-import org.projectforge.business.user.UserPrefCache.Companion.dontCallPreDestroyInTestMode
+import org.projectforge.ShutdownListener
+import org.projectforge.business.user.UserPrefCache.Companion.dontCallShutdownInTestMode
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.cache.AbstractCache
@@ -48,7 +48,7 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
     val title: String,
     val identifierName: String
 ) :
-    AbstractCache() {
+    AbstractCache(), ShutdownListener {
     @Autowired
     private lateinit var accessChecker: AccessChecker
 
@@ -305,9 +305,8 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
         this.expireTime = 10 * TICKS_PER_MINUTE
     }
 
-    @PreDestroy
-    fun preDestroy() {
-        if (dontCallPreDestroyInTestMode) {
+    override fun shutdown() {
+        if (dontCallShutdownInTestMode) {
             log.info("$title: It seems to be running in test mode. No sync to database in UserXmlPreferencesCache.")
             return
         }

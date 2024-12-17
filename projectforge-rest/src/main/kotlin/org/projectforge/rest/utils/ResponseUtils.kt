@@ -24,7 +24,9 @@
 package org.projectforge.rest.utils
 
 import jakarta.servlet.http.HttpServletResponse
+import org.projectforge.framework.json.JsonUtils
 import org.springframework.http.HttpStatus
+import java.nio.charset.StandardCharsets
 
 object ResponseUtils {
     /**
@@ -55,7 +57,25 @@ object ResponseUtils {
             if (contentType == null) {
                 response.contentType = "charset=UTF-8"
             }
-            response.writer.write(content)
+            val contentBytes = content.toByteArray(StandardCharsets.UTF_8)
+            response.setContentLength(contentBytes.size)
+            response.outputStream.use { it.write(contentBytes) }
+        }
+    }
+
+    fun asJson(response: HttpServletResponse): String {
+        return JsonUtils.toJson(Response(response))
+    }
+
+    class Response(response: HttpServletResponse) {
+        val headers: MutableMap<String, String> = mutableMapOf()
+        var status: Int = response.status
+        var contentType: String = response.contentType
+
+        init {
+            for (header in response.headerNames) {
+                headers[header] = response.getHeader(header)
+            }
         }
     }
 }

@@ -23,7 +23,9 @@
 
 package org.projectforge.business.user
 
+import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
+import org.projectforge.ShutdownService
 import org.projectforge.framework.persistence.user.entities.UserPrefDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.DependsOn
@@ -41,7 +43,15 @@ private val log = KotlinLogging.logger {}
 @DependsOn("entityManagerFactory")
 class UserPrefCache : AbstractUserPrefCache<UserPrefDO>("UserPrefCache", "area") {
     @Autowired
+    private lateinit var shutdownService: ShutdownService
+
+    @Autowired
     private lateinit var userPrefDao: UserPrefDao
+
+    @PostConstruct
+    private fun postConstruct() {
+        shutdownService.registerListener(this)
+    }
 
     override fun newEntry(): UserPrefDO {
         return UserPrefDO()
@@ -81,6 +91,6 @@ class UserPrefCache : AbstractUserPrefCache<UserPrefDO>("UserPrefCache", "area")
          * This variable is also used by [UserXmlPreferencesCache].
          */
         @JvmStatic
-        var dontCallPreDestroyInTestMode = false
+        var dontCallShutdownInTestMode = false
     }
 }

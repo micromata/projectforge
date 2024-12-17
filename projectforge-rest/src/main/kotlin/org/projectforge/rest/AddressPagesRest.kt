@@ -23,6 +23,7 @@
 
 package org.projectforge.rest
 
+import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.SystemStatus
@@ -36,6 +37,7 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUserId
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -57,8 +59,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.*
-import jakarta.servlet.http.HttpServletRequest
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUserId
 
 private val log = KotlinLogging.logger {}
 
@@ -70,6 +70,9 @@ class AddressPagesRest
     i18nKeyPrefix = "address.title",
     cloneSupport = CloneSupport.CLONE
 ) {
+    companion object {
+        var carddavServerEnabled = false
+    }
 
     /**
      * For exporting list of addresses.
@@ -181,6 +184,11 @@ class AddressPagesRest
         }
         if (imagesFilterEntry?.isTrueValue == true) {
             filters.add(ImagesResultFilter())
+        }
+        source.paginationPageSize?.let {
+            // filter.limitResultSize is a workaround, because this rest page doesn't use Ag-Grid and
+            // doesn't support paging.
+            target.limitResultSize = it
         }
         return filters
     }
@@ -298,14 +306,16 @@ class AddressPagesRest
             )
         }
         val exportMenu = MenuItem("address.export", i18nKey = "export")
-        exportMenu.add(
-            MenuItem(
-                "address.useCardDAVService",
-                i18nKey = "address.cardDAV.infopage.title",
-                type = MenuItemTargetType.MODAL,
-                url = PagesResolver.getDynamicPageUrl(CardDAVInfoPageRest::class.java)
+        if (carddavServerEnabled) {
+            exportMenu.add(
+                MenuItem(
+                    "address.useCardDAVService",
+                    i18nKey = "address.cardDAV.infopage.title",
+                    type = MenuItemTargetType.MODAL,
+                    url = PagesResolver.getDynamicPageUrl(CardDAVInfoPageRest::class.java)
+                )
             )
-        )
+        }
         exportMenu.add(
             MenuItem(
                 "address.vCardExport",
@@ -594,7 +604,13 @@ class AddressPagesRest
             it.address.imageData = null
             it.address.imageDataPreview = null
         }
-        return ResultSet(newList, resultSet, newList.size, magicFilter = magicFilter)
+        return ResultSet(
+            newList,
+            resultSet,
+            newList.size,
+            selectedEntityIds = resultSet.selectedEntityIds,
+            magicFilter = magicFilter
+        )
     }
 
     private fun createFavoriteRow(id: String, inputElement: UIElement): UIRow {

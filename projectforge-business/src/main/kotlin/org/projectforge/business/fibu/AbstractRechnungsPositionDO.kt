@@ -74,7 +74,7 @@ abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), DisplayNameCapable
      * Must be set via [RechnungCalculator.calculate] before usage.
      */
     @get:Transient
-    @CandHIgnore // Do not handle it by canh (it might not be initialized).
+    @CandHIgnore // Do not handle it by CandH (it might not be initialized).
     lateinit var info: RechnungPosInfo
 
     internal val isInfoInitialized: Boolean

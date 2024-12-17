@@ -31,8 +31,10 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.util.*
 import jakarta.persistence.*
 import mu.KotlinLogging
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
+import org.projectforge.business.common.NumberToStringValueBridge
 
 @Entity
 @Indexed
@@ -47,7 +49,7 @@ open class KontoDO : DefaultBaseDO(), DisplayNameCapable {
         get() = "$nummer - $bezeichnung"
 
     @PropertyInfo(i18nKey = "fibu.konto.nummer")
-    @GenericField // was: @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
+    @GenericField(valueBridge = ValueBridgeRef(type = NumberToStringValueBridge::class))
     @get:Column(name = "nummer", nullable = false)
     open var nummer: Int? = null
 

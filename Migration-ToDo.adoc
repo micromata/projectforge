@@ -1,16 +1,13 @@
 Aktuell:
-- Pagesize wird ignoriert (bei Adressen)
+- QueryFilter.sortAndLimitMaxRowsWhileSelect: not yet supported
 - Gradle-Version-Checker: Read lib.versions.toml und Vergleichen mit fatjar.
-- Check milton (and address favorites)
-- Farbige Balken in ProjectForge, E-Mail-Versand
 - Fehlerhinweis, wenn halber Tag für Urlaubsanfang/ende gewählt wird, es aber kein Arbeitstag ist.
 - Scripts
 - Download/Upload vcf
-- Milton
 - Kalendereinträge und Subscriptions.
-- InitDatabaseDaoWithTestDataTestFork implementieren.
 - LoginProtection: Increases penalty time for DAV only after 5 tries.
 
+- Pagination of selects: Aktuell wird nicht DB-seitig paginiert, sondern immer die ganze Liste gefetched.
 - remove all BaseDO.xxxId (lazy fetch) and replace callee by baseDO?.id
 - Wicket: CalendarPage als Default ersetzen, CalendarPages remove.
 - Entitygraphen nutzen: ConflictVacationCache, AuftragCache etc.
