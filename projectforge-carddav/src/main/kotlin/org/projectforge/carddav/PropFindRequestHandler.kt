@@ -45,9 +45,9 @@ internal object PropFindRequestHandler {
         log.debug { "handlePropFindCall: ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
         CardDavUtils.handleProps(requestWrapper, response) ?: return // No properties response is handled in handleProps.
         val content = generatePropFindResponse(writerContext)
-        log.debug { "handlePropFindCall: response.content=[${TestUtils.sanitizeContent(content)}]" }
+        log.debug { "handlePropFindCall: response.content=[${CardDavServerTestUtils.sanitizeContent(content)}]" }
         CardDavUtils.setMultiStatusResponse(response, content)
-        TestUtils.writeRequestResponseLogInTestMode(requestWrapper, response, content)
+        CardDavServerTestUtils.writeRequestResponseLogInTestMode(requestWrapper, response, content)
     }
 
     /**
@@ -59,9 +59,9 @@ internal object PropFindRequestHandler {
         log.debug { "handlePropFindPrincipalsCall: ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
         CardDavUtils.handleProps(requestWrapper, response) ?: return // No properties response is handled in handleProps.
         val content = generatePropFindResponse(writerContext)
-        log.debug { "handlePropFindPrincipalsCall: response=[${TestUtils.sanitizeContent(content)}]" }
+        log.debug { "handlePropFindPrincipalsCall: response=[${CardDavServerTestUtils.sanitizeContent(content)}]" }
         CardDavUtils.setMultiStatusResponse(response, content)
-        TestUtils.writeRequestResponseLogInTestMode(requestWrapper, response, content)
+        CardDavServerTestUtils.writeRequestResponseLogInTestMode(requestWrapper, response, content)
     }
 
     /**

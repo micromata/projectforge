@@ -26,12 +26,13 @@ package org.projectforge.carddav
 import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
 import org.projectforge.ProjectForgeVersion
-import org.projectforge.carddav.TestUtils.sanitizeContent
+import org.projectforge.carddav.CardDavServerTestUtils.sanitizeContent
 import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.rest.utils.ResponseUtils
+import java.awt.SystemColor.text
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -39,7 +40,7 @@ import java.nio.file.StandardOpenOption
 
 private val log = KotlinLogging.logger {}
 
-internal object TestUtils {
+internal object CardDavServerTestUtils {
     /**
      * Set by [CardDavConfig] to enable test mode.
      */
@@ -47,9 +48,16 @@ internal object TestUtils {
 
     private val logFile: File by lazy {
         val tempDir = ConfigXml.getInstance().tempDirectory
-        val file = File(tempDir, "projectforge-carddav-test-$testUserMode-${PFDateTime.now().format4Filenames()}.log")
-        val text = "ProjectForge ${ProjectForgeVersion.VERSION} CardDav test log started..."
-        Files.write(Paths.get(file.absolutePath), text.toByteArray())
+        val file = File(tempDir, "projectforge-carddav-test-$testUserMode.log")
+        val text = """**********************************************************************************
+                     |**********************************************************************************
+                     |**
+                     |** ${PFDateTime.now().isoStringSeconds}: ProjectForge ${ProjectForgeVersion.VERSION} CardDav test log started...
+                     |**
+                     |**********************************************************************************
+                     |**********************************************************************************
+                     |""".trimMargin()
+        append(text)
         log.info { "Writing CardDav requests to ${file.absolutePath}." }
         file
     }
