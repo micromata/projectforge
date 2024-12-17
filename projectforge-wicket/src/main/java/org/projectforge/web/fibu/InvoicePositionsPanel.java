@@ -31,6 +31,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.fibu.RechnungDao;
+import org.projectforge.business.fibu.RechnungInfo;
 import org.projectforge.business.fibu.RechnungPosInfo;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.framework.time.DateTimeFormatter;
@@ -64,7 +65,16 @@ public class InvoicePositionsPanel extends Panel {
         if (invoicePositionsByOrderPositionId != null) {
             final SortedSet<Integer> invoiceNumbers = new TreeSet<Integer>();
             for (final RechnungPosInfo invoicePosition : invoicePositionsByOrderPositionId) {
-                invoiceNumbers.add(invoicePosition.getRechnungInfo().getNummer());
+                RechnungInfo rechnungInfo = invoicePosition.getRechnungInfo();
+                if (rechnungInfo == null) {
+                    // Rechnung no available.
+                    continue;
+                }
+                Integer nummer = rechnungInfo.getNummer();
+                if (nummer == null) {
+                    continue; // Rechnung without number (planned one?).
+                }
+                invoiceNumbers.add(nummer);
             }
             boolean first = true;
             Long invoiceId = null;
