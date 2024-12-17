@@ -544,6 +544,7 @@ open class MenuCreator {
         // MISC
         //
         menuItemDefHolder.add(MenuItemDef(MenuItemDefId.MISC))
+            .add(MenuItemDef(MenuItemDefId.POLL))
     }
 
     /**
