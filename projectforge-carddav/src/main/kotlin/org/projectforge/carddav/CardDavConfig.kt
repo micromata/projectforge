@@ -64,7 +64,7 @@ open class CardDavConfig {
 
     @PostConstruct
     private fun postConstruct() {
-        TestUtils.testUserMode = testUserMode
+        CardDavServerTestUtils.testUserMode = testUserMode
         AddressPagesRest.carddavServerEnabled = enable
     }
 
