@@ -1,4 +1,4 @@
-/////////////////////////////////////////////////////////////////////////////
+/// //////////////////////////////////////////////////////////////////////////
 //
 // Project ProjectForge Community Edition
 //         www.projectforge.org
@@ -19,7 +19,7 @@
 // You should have received a copy of the GNU General Public License along
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
-/////////////////////////////////////////////////////////////////////////////
+/// //////////////////////////////////////////////////////////////////////////
 
 package org.projectforge.web.fibu;
 
@@ -33,8 +33,8 @@ import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragDao;
-import org.projectforge.business.fibu.AuftragFilter;
 import org.projectforge.business.fibu.AuftragsPositionDO;
+import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 
@@ -45,140 +45,126 @@ import java.util.*;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class AuftragsPositionFormComponent extends PFAutoCompleteTextField<AuftragsPositionDO>
-{
-  private static final long serialVersionUID = -4741993589740783229L;
+public class AuftragsPositionFormComponent extends PFAutoCompleteTextField<AuftragsPositionDO> {
+    private static final long serialVersionUID = -4741993589740783229L;
 
-  @SuppressWarnings("rawtypes")
-  class AuftragsPositionConverter implements IConverter
-  {
-    private static final long serialVersionUID = -8117783418789940569L;
+    private static final String[] SEARCH_FIELDS = {"nummerAsString", "projekt.name", "kunde.name"};
 
-    @Override
-    public AuftragsPositionDO convertToObject(String value, final Locale locale)
-    {
-      value = StringUtils.trimToEmpty(value);
-      if (StringUtils.isEmpty(value) == true) {
-        return null;
-      }
-      final AuftragsPositionDO auftragsPosition = WicketSupport.get(AuftragDao.class).getAuftragsPosition(value);
-      if (auftragsPosition == null) {
-        throw new ConversionException("Parse error").setResourceKey("fibu.auftrag.position.error.notFound");
-      }
-      return auftragsPosition;
+
+    @SuppressWarnings("rawtypes")
+    class AuftragsPositionConverter implements IConverter {
+        private static final long serialVersionUID = -8117783418789940569L;
+
+        @Override
+        public AuftragsPositionDO convertToObject(String value, final Locale locale) {
+            value = StringUtils.trimToEmpty(value);
+            if (StringUtils.isEmpty(value) == true) {
+                return null;
+            }
+            final AuftragsPositionDO auftragsPosition = WicketSupport.get(AuftragDao.class).getAuftragsPosition(value);
+            if (auftragsPosition == null) {
+                throw new ConversionException("Parse error").setResourceKey("fibu.auftrag.position.error.notFound");
+            }
+            return auftragsPosition;
+        }
+
+        @Override
+        public String convertToString(final Object value, final Locale locale) {
+            if (value == null) {
+                return "";
+            }
+            return ((AuftragsPositionDO) value).getFormattedNumber();
+        }
+    }
+
+    @SuppressWarnings("serial")
+    public AuftragsPositionFormComponent(final String id, final IModel<AuftragsPositionDO> model, final boolean required) {
+        super(id, model);
+        if (required == true) {
+            setRequired(true);
+            add((INullAcceptingValidator<AuftragsPositionDO>) validatable -> {
+                final AuftragsPositionDO value = validatable.getValue();
+                if (value == null) {
+                    error(new ValidationError().addKey("fibu.auftrag.error.invalidPosition"));
+                }
+            });
+        }
+        this.withLabelValue(true).withMatchContains(true).withMinChars(2).withWidth(800);
+        add(new AttributeModifier("title", new Model<String>() {
+            @Override
+            public String getObject() {
+                final AuftragsPositionDO pos = getModelObject();
+                if (pos == null) {
+                    return "";
+                }
+                return getTooltip(pos);
+            }
+        }));
     }
 
     @Override
-    public String convertToString(final Object value, final Locale locale)
-    {
-      if (value == null) {
-        return "";
-      }
-      return ((AuftragsPositionDO) value).getFormattedNumber();
+    protected List<AuftragsPositionDO> getChoices(final String input) {
+        final BaseSearchFilter filter = new BaseSearchFilter();
+        filter.setSearchFields(SEARCH_FIELDS);
+        filter.setSearchString(input);
+        final List<AuftragDO> list = WicketSupport.get(AuftragDao.class).select(filter);
+        Collections.sort(list, new Comparator<AuftragDO>() {
+            @Override
+            public int compare(final AuftragDO o1, final AuftragDO o2) {
+                return (o1.getNummer().compareTo(o2.getNummer()));
+            }
+        });
+        final List<AuftragsPositionDO> result = new ArrayList<AuftragsPositionDO>();
+        for (final AuftragDO auftrag : list) {
+            if (auftrag.getPositionenExcludingDeleted() != null) {
+                for (final AuftragsPositionDO pos : auftrag.getPositionenExcludingDeleted()) {
+                    result.add(pos);
+                }
+            }
+        }
+        return result;
     }
-  }
 
-  @SuppressWarnings("serial")
-  public AuftragsPositionFormComponent(final String id, final IModel<AuftragsPositionDO> model, final boolean required)
-  {
-    super(id, model);
-    if (required == true) {
-      setRequired(true);
-      add((INullAcceptingValidator<AuftragsPositionDO>) validatable -> {
-        final AuftragsPositionDO value = validatable.getValue();
+    @Override
+    protected String formatValue(final AuftragsPositionDO value) {
         if (value == null) {
-          error(new ValidationError().addKey("fibu.auftrag.error.invalidPosition"));
+            return "";
         }
-      });
+        return value.getFormattedNumber();
     }
-    this.withLabelValue(true).withMatchContains(true).withMinChars(2).withWidth(800);
-    add(new AttributeModifier("title", new Model<String>()
-    {
-      @Override
-      public String getObject()
-      {
-        final AuftragsPositionDO pos = getModelObject();
-        if (pos == null) {
-          return "";
+
+    @Override
+    protected String formatLabel(final AuftragsPositionDO value) {
+        if (value == null) {
+            return "";
         }
-        return getTooltip(pos);
-      }
-    }));
-  }
-
-  @Override
-  protected List<AuftragsPositionDO> getChoices(final String input)
-  {
-    final AuftragFilter filter = new AuftragFilter();
-    if (input.indexOf('*') >= 0) {
-      filter.setSearchString(input);
-    } else {
-      filter.setSearchString(input + "*");
+        return getTooltip(value);
     }
-    final List<AuftragDO> list = WicketSupport.get(AuftragDao.class).select(filter);
-    Collections.sort(list, new Comparator<AuftragDO>()
-    {
-      @Override
-      public int compare(final AuftragDO o1, final AuftragDO o2)
-      {
-        return (o1.getNummer().compareTo(o2.getNummer()));
-      }
-    });
-    final List<AuftragsPositionDO> result = new ArrayList<AuftragsPositionDO>();
-    for (final AuftragDO auftrag : list) {
-      if (auftrag.getPositionenExcludingDeleted() != null) {
-        for (final AuftragsPositionDO pos : auftrag.getPositionenExcludingDeleted()) {
-          result.add(pos);
+
+    private static String getTooltip(final AuftragsPositionDO pos) {
+        final AuftragDO auftrag = pos.getAuftrag();
+        final StringBuilder buf = new StringBuilder();
+        buf.append(auftrag.getNummer()).append(".").append(pos.getNumber()).append(": ");
+        if (auftrag.getKunde() != null) {
+            buf.append(auftrag.getKundeAsString());
+            if (auftrag.getProjekt() != null) {
+                buf.append(" - ").append(auftrag.getProjekt().getName());
+            }
+            buf.append(": ");
+        } else if (auftrag.getProjekt() != null) {
+            buf.append(auftrag.getProjekt().getName());
+            buf.append(": ");
         }
-      }
+        buf.append(auftrag.getTitel()).append(" / ").append(pos.getNumber());
+        if (StringUtils.isNotBlank(pos.getTitel()) == true) {
+            buf.append(": ").append(pos.getTitel());
+        }
+        return buf.toString();
     }
-    return result;
-  }
 
-  @Override
-  protected String formatValue(final AuftragsPositionDO value)
-  {
-    if (value == null) {
-      return "";
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Override
+    public IConverter getConverter(final Class type) {
+        return new AuftragsPositionConverter();
     }
-    return value.getFormattedNumber();
-  }
-
-  @Override
-  protected String formatLabel(final AuftragsPositionDO value)
-  {
-    if (value == null) {
-      return "";
-    }
-    return getTooltip(value);
-  }
-
-  private static String getTooltip(final AuftragsPositionDO pos)
-  {
-    final AuftragDO auftrag = pos.getAuftrag();
-    final StringBuilder buf = new StringBuilder();
-    buf.append(auftrag.getNummer()).append(".").append(pos.getNumber()).append(": ");
-    if (auftrag.getKunde() != null) {
-      buf.append(auftrag.getKundeAsString());
-      if (auftrag.getProjekt() != null) {
-        buf.append(" - ").append(auftrag.getProjekt().getName());
-      }
-      buf.append(": ");
-    } else if (auftrag.getProjekt() != null) {
-      buf.append(auftrag.getProjekt().getName());
-      buf.append(": ");
-    }
-    buf.append(auftrag.getTitel()).append(" / ").append(pos.getNumber());
-    if (StringUtils.isNotBlank(pos.getTitel()) == true) {
-      buf.append(": ").append(pos.getTitel());
-    }
-    return buf.toString();
-  }
-
-  @SuppressWarnings({ "rawtypes", "unchecked" })
-  @Override
-  public IConverter getConverter(final Class type)
-  {
-    return new AuftragsPositionConverter();
-  }
 }
