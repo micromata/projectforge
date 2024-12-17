@@ -115,7 +115,8 @@ class UISelect<T>(
       label: String? = null,
       additionalLabel: String? = null,
       tooltip: String? = null,
-      showOnlyActiveEmployees: Boolean = true
+      showOnlyActiveEmployees: Boolean = true,
+      required: Boolean? = null,
     ): UISelect<Long> {
       return UISelect(
         id,
@@ -124,7 +125,8 @@ class UISelect<T>(
         label = label ?: ElementsRegistry.getElementInfo(lc, id)?.i18nKey,
         additionalLabel = additionalLabel ?: ElementsRegistry.getElementInfo(lc, id)?.additionalI18nKey,
         autoCompletion = AutoCompletion.getAutoCompletion4Employees(showOnlyActiveEmployees),
-        tooltip = tooltip ?: ElementsRegistry.getElementInfo(lc, id)?.tooltipI18nKey
+        tooltip = tooltip ?: ElementsRegistry.getElementInfo(lc, id)?.tooltipI18nKey,
+        required = required,
       )
     }
 

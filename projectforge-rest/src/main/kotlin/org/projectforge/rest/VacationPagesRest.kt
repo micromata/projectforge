@@ -344,7 +344,7 @@ class VacationPagesRest :
                 UIRow()
                     .add(
                         UICol(6)
-                            .add(lc, "manager")
+                            .add(UISelect.createEmployeeSelect(lc, "manager", required  = true))
                     )
                     .add(
                         UICol(6)
@@ -355,7 +355,7 @@ class VacationPagesRest :
                 UIRow()
                     .add(
                         UICol(6)
-                            .add(lc, "replacement")
+                            .add(UISelect.createEmployeeSelect(lc, "replacement", required  = true))
                     )
                     .add(
                         UICol(6)
