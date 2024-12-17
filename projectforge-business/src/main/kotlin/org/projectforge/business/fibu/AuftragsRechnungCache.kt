@@ -105,7 +105,7 @@ class AuftragsRechnungCache : AbstractCache() {
         val mapByAuftragId = mutableMapOf<Long, TreeSet<Long>>()
         val mapByAuftragsPositionId = mutableMapOf<Long, TreeSet<RechnungPosInfo>>()
         val mapByRechnungsPositionMapByRechnungId = mutableMapOf<Long, TreeSet<RechnungPosInfo>>()
-        log.info("Analyzing orders in invoices (RechnungsPositionDO.AuftragsPosition)...")
+        log.info("Analyzing orders in invoices (RechnungsPositionDO.AuftragsPosition, ${list.size} entries)...")
         for (pos in list) {
             val rechnungInfo = rechnungCache.getRechnungInfo(pos.rechnung?.id)
             val auftragsPositionId = pos.auftragsPosition?.id
