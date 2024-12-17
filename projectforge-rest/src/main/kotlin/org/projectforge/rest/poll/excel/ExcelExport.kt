@@ -39,7 +39,6 @@ import org.projectforge.rest.poll.types.PollResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
 import java.io.IOException
 import java.util.*
@@ -64,13 +63,11 @@ class ExcelExport {
         val responses = pollResponseDao.selectAll(checkAccess = false).filter { it.poll?.id == poll.id }
         log.info("Loaded ${responses.size} responses for poll ID: ${poll.id}")
 
-        val classPathResource = ClassPathResource("officeTemplates/PollResultTemplate.xlsx")
-
         try {
-            ExcelWorkbook(classPathResource.inputStream, classPathResource.file.name).use { workbook ->
+            ExcelWorkbook.createEmptyWorkbook().use { workbook ->
                 log.info("Excel template loaded successfully")
 
-                val excelSheet = workbook.getSheet(0)
+                val excelSheet = workbook.createOrGetSheet("Umfrageergebnisse")
                 val style = workbook.createOrGetCellStyle()
                 excelSheet.autosize(0)
                 val emptyRow = excelSheet.getRow(0)
