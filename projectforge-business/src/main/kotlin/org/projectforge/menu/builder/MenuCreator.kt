@@ -465,7 +465,6 @@ open class MenuCreator {
                     requiredUserRightId = ContractDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE
                 )
             )
-            //.add(MenuItemDef(MenuItemDefId.POLL))
             .add(
                 MenuItemDef(
                     MenuItemDefId.VISITORBOOK,
@@ -544,6 +543,7 @@ open class MenuCreator {
         // MISC
         //
         menuItemDefHolder.add(MenuItemDef(MenuItemDefId.MISC))
+            .add(MenuItemDef(MenuItemDefId.POLL))
     }
 
     /**

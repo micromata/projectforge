@@ -64,6 +64,7 @@ class RechnungJdbcService {
                     instance.also {
                         it.id = rechnungId
                         it.deleted = rs.getBoolean("deleted")
+                        it.datum = getLocalDate(rs, "datum")
                         it.bezahlDatum = getLocalDate(rs, "bezahl_datum")
                         it.faelligkeit = getLocalDate(rs, "faelligkeit")
                         it.zahlBetrag = getBigDecimal(rs, "zahl_betrag")
@@ -154,7 +155,7 @@ class RechnungJdbcService {
         """.trimIndent()
 
         private val SELECT_RECHNUNG_WITH_KOST = """
-            SELECT r.pk as rechnung_id,r.deleted,r.status,r.nummer,r.bezahl_datum,r.zahl_betrag,r.faelligkeit,r.discountmaturity,r.discountpercent,
+            SELECT r.pk as rechnung_id,r.deleted,r.status,r.nummer,r.datum,r.bezahl_datum,r.zahl_betrag,r.faelligkeit,r.discountmaturity,r.discountpercent,
                    p.pk as pos_id,p.number,p.menge,p.einzel_netto,p.vat,p.s_text,p.auftrags_position_fk,
                    k.pk as kost_id,k.netto,k.index,k.kost1_fk,k.kost2_fk
             FROM t_fibu_rechnung r
@@ -162,7 +163,7 @@ class RechnungJdbcService {
             LEFT JOIN t_fibu_kost_zuweisung k ON k.rechnungs_pos_fk = p.pk
         """.trimIndent()
         private val SELECT_EINGANGS_RECHNUNG_WITH_KOST = """
-            SELECT r.pk as rechnung_id,r.deleted,r.bezahl_datum,r.zahl_betrag,r.faelligkeit,r.discountmaturity,r.discountpercent,
+            SELECT r.pk as rechnung_id,r.deleted,r.datum,r.bezahl_datum,r.zahl_betrag,r.faelligkeit,r.discountmaturity,r.discountpercent,
                    p.pk as pos_id,p.number,p.menge,p.einzel_netto,p.vat,p.s_text,
                    k.pk as kost_id,k.netto,k.index,k.kost1_fk,k.kost2_fk
             FROM t_fibu_eingangsrechnung r

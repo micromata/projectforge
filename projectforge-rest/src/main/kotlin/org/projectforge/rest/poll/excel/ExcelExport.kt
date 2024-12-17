@@ -39,7 +39,6 @@ import org.projectforge.rest.poll.types.PollResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
 import java.io.IOException
 import java.util.*
@@ -59,65 +58,75 @@ class ExcelExport {
 
 
     fun getExcel(poll: Poll): ByteArray? {
+        log.info("Starting Excel export for poll with ID: ${poll.id}")
+
         val responses = pollResponseDao.selectAll(checkAccess = false).filter { it.poll?.id == poll.id }
-        val classPathResource = ClassPathResource("officeTemplates/PollResultTemplate" + ".xlsx")
+        log.info("Loaded ${responses.size} responses for poll ID: ${poll.id}")
 
         try {
-            ExcelWorkbook(classPathResource.inputStream, classPathResource.file.name).use { workbook ->
-                val excelSheet = workbook.getSheet(0)
+            ExcelWorkbook.createEmptyWorkbook().use { workbook ->
+                log.info("Excel template loaded successfully")
+
+                val excelSheet = workbook.createOrGetSheet("Umfrageergebnisse")
                 val style = workbook.createOrGetCellStyle()
                 excelSheet.autosize(0)
                 val emptyRow = excelSheet.getRow(0)
                 var anzNewRows = 2
 
                 anzNewRows += (poll.attendees?.size ?: 0)
+                log.info("Preparing to create $anzNewRows new rows for attendees")
 
                 createNewRow(excelSheet, emptyRow, anzNewRows)
                 setFirstRow(excelSheet, style, poll)
 
-                    poll.attendees?.sortedBy { it.displayName }
-                    poll.attendees?.forEachIndexed { index, user ->
-                        val res = PollResponse()
-                        responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
-                        setNewRows(excelSheet, poll, user, res, index + FIRST_DATA_ROW_NUM)
+                poll.attendees?.sortedBy { it.displayName }
+                poll.attendees?.forEachIndexed { index, user ->
+                    val res = PollResponse()
+                    responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
+                    setNewRows(excelSheet, poll, user, res, index + FIRST_DATA_ROW_NUM)
+                }
+                log.info("Processed attendee rows successfully")
 
-                    val fullAccessUser = poll.fullAccessUsers?.toMutableList() ?: mutableListOf()
-                    val accessGroupIds = poll.fullAccessGroups?.filter { it.id != null }?.map { it.id!! }?.toLongArray()
-                    val accessUserIds = UserService().getUserIds(groupService.getGroupUsers(accessGroupIds))
-                    val accessUsers = User.toUserList(accessUserIds)
-                    User.restoreDisplayNames(accessUsers)
+                val fullAccessUser = poll.fullAccessUsers?.toMutableList() ?: mutableListOf()
+                val accessGroupIds = poll.fullAccessGroups?.filter { it.id != null }?.map { it.id!! }?.toLongArray()
+                val accessUserIds = UserService().getUserIds(groupService.getGroupUsers(accessGroupIds))
+                val accessUsers = User.toUserList(accessUserIds)
+                User.restoreDisplayNames(accessUsers)
 
-                    accessUsers?.forEach { user ->
-                        if (fullAccessUser.none { it.id == user.id }) {
-                            fullAccessUser.add(user)
-                        }
-                    }
-
-                    val owner = User.getUser(poll.owner?.id, false)
-                    if (owner != null) {
-                        fullAccessUser.add(owner)
-                    }
-
-                    User.restoreDisplayNames(fullAccessUser)
-                    fullAccessUser.forEachIndexed { _, user ->
-                        val number = (anzNewRows)
-                        if (poll.attendees?.map { it.id }?.contains(user.id) == false) {
-                            val res = PollResponse()
-                            responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
-                            if (res.id != null) {
-                                setNewRows(excelSheet, poll, user, res, number)
-                            }
-                        }
+                accessUsers?.forEach { user ->
+                    if (fullAccessUser.none { it.id == user.id }) {
+                        fullAccessUser.add(user)
                     }
                 }
 
-                return returnByteFile(excelSheet)
+                val owner = User.getUser(poll.owner?.id, false)
+                if (owner != null) {
+                    fullAccessUser.add(owner)
+                }
+
+                User.restoreDisplayNames(fullAccessUser)
+                fullAccessUser.forEachIndexed { _, user ->
+                    val number = (anzNewRows)
+                    if (poll.attendees?.map { it.id }?.contains(user.id) == false) {
+                        val res = PollResponse()
+                        responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
+                        if (res.id != null) {
+                            setNewRows(excelSheet, poll, user, res, number)
+                        }
+                    }
+                }
+                log.info("Processed full access user rows successfully")
+
+                return returnByteFile(excelSheet).also {
+                    log.info("Excel export for poll ID: ${poll.id} completed successfully")
+                }
             }
         } catch (e: NullPointerException) {
-            e.printStackTrace()
+            log.error("NullPointerException occurred while exporting Excel for poll ID: ${poll.id}", e)
         } catch (e: IOException) {
-            e.printStackTrace()
+            log.error("IOException occurred while exporting Excel for poll ID: ${poll.id}", e)
         }
+        log.warn("Excel export for poll ID: ${poll.id} failed")
         return null
     }
 

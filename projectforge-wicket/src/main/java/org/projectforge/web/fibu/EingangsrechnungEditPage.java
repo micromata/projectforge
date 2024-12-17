@@ -49,6 +49,12 @@ public class EingangsrechnungEditPage
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EingangsrechnungEditPage.class);
 
+  public EingangsrechnungEditPage(final EingangsrechnungDO data) {
+    super(new PageParameters(), "fibu.eingangsrechnung");
+    init(data);
+    getData().recalculate(); // Muss immer gemacht werden, damit das Zahlungsziel in Tagen berechnet wird.
+  }
+
   public EingangsrechnungEditPage(final PageParameters parameters) {
     super(parameters, "fibu.eingangsrechnung");
     init();
@@ -138,6 +144,7 @@ public class EingangsrechnungEditPage
       }
     }
     form.refreshPositions();
+    setResponsePage(new EingangsrechnungEditPage(form.getData()));
   }
 
   @Override
