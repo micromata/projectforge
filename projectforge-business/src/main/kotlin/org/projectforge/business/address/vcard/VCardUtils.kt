@@ -44,7 +44,8 @@ object VCardUtils {
     @JvmStatic
     fun buildVCard(
         addressDO: AddressDO,
-        addressImageDao: AddressImageDao
+        addressImageDao: AddressImageDao,
+        vCardImageMode: VCardImageMode = VCardImageMode.EMBEDDED,
     ): VCard { //See: https://github.com/mangstadt/ez-vcard
         val vcard = VCard()
         val uid = Uid("urn:uuid:" + addressDO.uid)
@@ -110,8 +111,20 @@ object VCardUtils {
         vcard.addUrl(addressDO.website)
         vcard.addNote(addressDO.comment)
         if (addressDO.image == true) {
-            val photo = Photo(addressImageDao.getImage(addressDO.id!!), ImageType.JPEG)
-            vcard.addPhoto(photo)
+            when (vCardImageMode) {
+                VCardImageMode.EMBEDDED -> {
+                    val photo = Photo(addressImageDao.getImage(addressDO.id!!), ImageType.JPEG)
+                    vcard.addPhoto(photo)
+                }
+
+                VCardImageMode.URL -> {
+                    log.warn { "VCardImageMode.URL not yet supported." }
+                }
+
+                else -> {
+                    // Do nothing
+                }
+            }
         }
         return vcard
     }
@@ -122,8 +135,9 @@ object VCardUtils {
         addressDO: AddressDO,
         addressImageDao: AddressImageDao,
         vCardVersion: VCardVersion = VCardVersion.V_4_0,
+        vCardImageMode: VCardImageMode = VCardImageMode.EMBEDDED,
     ): ByteArray { //See: https://github.com/mangstadt/ez-vcard
-        return buildVCardString(addressDO, addressImageDao, vCardVersion).toByteArray()
+        return buildVCardString(addressDO, addressImageDao, vCardVersion, vCardImageMode).toByteArray()
     }
 
     @JvmStatic
@@ -132,8 +146,9 @@ object VCardUtils {
         addressDO: AddressDO,
         addressImageDao: AddressImageDao,
         vCardVersion: VCardVersion = VCardVersion.V_4_0,
+        vCardImageMode: VCardImageMode = VCardImageMode.EMBEDDED,
     ): String { //See: https://github.com/mangstadt/ez-vcard
-        val vcard = buildVCard(addressDO, addressImageDao)
+        val vcard = buildVCard(addressDO, addressImageDao, vCardImageMode)
         return Ezvcard.write(vcard).version(vCardVersion.ezVCardType).go()
     }
 
