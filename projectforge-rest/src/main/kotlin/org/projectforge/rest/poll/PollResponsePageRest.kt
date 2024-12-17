@@ -212,14 +212,6 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
                         )
                     }
                 }
-                col.add(
-                    UITextArea(
-                        "responses[$index].annotation[0]",
-                        label = "poll.Annotations",
-                        additionalLabel = "poll.annotations.description"
-                    )
-                )
-
             }
 
             fieldSetQuestions.add(UIRow().add(col))
