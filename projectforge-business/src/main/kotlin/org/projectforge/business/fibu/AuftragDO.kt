@@ -96,6 +96,15 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     open var nummer: Int? = null
 
     /**
+     * Needed for editing invoices to autocomplete the order number.
+     */
+    @get:Transient
+    @get:GenericField(name = "nummerAsString")
+    @get:IndexingDependency(derivedFrom = [ObjectPath(PropertyValue(propertyName = "nummer"))])
+    val nummerAsString: String
+        get() = nummer?.toString() ?: ""
+
+    /**
      * Dies sind die alten Auftragsnummern oder Kundenreferenzen.
      */
     @PropertyInfo(i18nKey = "fibu.common.customer.reference")
