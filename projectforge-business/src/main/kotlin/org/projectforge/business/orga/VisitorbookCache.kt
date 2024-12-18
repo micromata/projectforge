@@ -44,7 +44,7 @@ open class VisitorbookCache : AbstractCache() {
     /**
      * The key is the visitorbook id (database pk). Must be synchronized, because isn't only read.
      */
-    private var visitorbookMap: Map<Long, VisitorbookInfo> = emptyMap()
+    private var visitorbookMap = mutableMapOf<Long, VisitorbookInfo>()
 
     fun getVisitorbookInfo(id: Long?): VisitorbookInfo? {
         id ?: return null
@@ -57,9 +57,9 @@ open class VisitorbookCache : AbstractCache() {
     fun setExpired(id: Long?) {
         id ?: return // Should not happen.
         val info = synchronized(visitorbookMap) {
-            visitorbookMap[id]
+            visitorbookMap[id] ?: VisitorbookInfo().also { visitorbookMap[id] = it }
         }
-        info?.let { visitorbookInfo ->
+        info.let { visitorbookInfo ->
             persistenceService.executeQuery(
                 queryVisitEntries,
                 VisitorbookEntryDO::class.java,
