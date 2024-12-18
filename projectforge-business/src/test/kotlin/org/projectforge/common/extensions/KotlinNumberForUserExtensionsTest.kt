@@ -26,6 +26,8 @@ package org.projectforge.common.extensions
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.utils.NumberFormatter.formatCurrency
+import java.math.BigDecimal
 import java.util.*
 
 class KotlinNumberForUserExtensionsTest {
@@ -74,6 +76,24 @@ class KotlinNumberForUserExtensionsTest {
         scale *= 1024
         formatBytesTest(scale, "TB")
     }
+
+    @Test
+    fun `test formatting of currency`() {
+        ThreadLocalUserContext.clear() // Must be cleared, otherwise, the locale can't be set.
+        Locale.setDefault(Locale.ENGLISH)
+        Assertions.assertEquals("", null.formatCurrency())
+        Assertions.assertEquals("10.00", BigDecimal.TEN.formatCurrency())
+        Assertions.assertEquals("10.00 €", BigDecimal.TEN.formatCurrency(true))
+        ThreadLocalUserContext.locale = Locale.GERMAN
+        Assertions.assertEquals("", null.formatCurrency())
+        Assertions.assertEquals("10,00", BigDecimal.TEN.formatCurrency())
+        Assertions.assertEquals("10,00 €", BigDecimal.TEN.formatCurrency(true))
+        ThreadLocalUserContext.locale = Locale.ENGLISH
+        Assertions.assertEquals("", null.formatCurrency())
+        Assertions.assertEquals("10.00", BigDecimal.TEN.formatCurrency())
+        Assertions.assertEquals("10.00 €", BigDecimal.TEN.formatCurrency(true))
+    }
+
 
     private fun formatBytesTest(scale: Long, unit: String) {
         Locale.setDefault(Locale.ENGLISH)

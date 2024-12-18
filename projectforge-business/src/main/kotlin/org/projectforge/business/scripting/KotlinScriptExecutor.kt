@@ -126,6 +126,13 @@ class KotlinScriptExecutor : ScriptExecutor() {
         private val kotlinImports = listOf(
             "import org.projectforge.framework.i18n.translate",
             "import org.projectforge.framework.i18n.translateMsg",
+            "import org.projectforge.common.extensions.format",
+            "import org.projectforge.common.extensions.format2Digits",
+            "import org.projectforge.common.extensions.format3Digits",
+            "import org.projectforge.common.extensions.formatBytes",
+            "import org.projectforge.common.extensions.formatBytesForUser",
+            "import org.projectforge.common.extensions.formatCurrency",
+            "import org.projectforge.common.extensions.formatForUser",
             "import org.projectforge.business.PfCaches.Companion.initialize"
         )
     }

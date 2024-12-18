@@ -1,4 +1,7 @@
 Aktuell:
+- -XX:ReservedCodeCacheSize=100m
+- Rechnungen: skonto-Datum wird automatisch auf nonsens gesetzt.
+- History: Rechnungsposition -> Auftragsposition taucht nicht in History auf.
 - QueryFilter.sortAndLimitMaxRowsWhileSelect: not yet supported
 - Gradle-Version-Checker: Read lib.versions.toml und Vergleichen mit fatjar.
 - Fehlerhinweis, wenn halber Tag für Urlaubsanfang/ende gewählt wird, es aber kein Arbeitstag ist.
@@ -6,6 +9,7 @@ Aktuell:
 - Download/Upload vcf
 - Kalendereinträge und Subscriptions.
 - LoginProtection: Increases penalty time for DAV only after 5 tries.
+- Stacktraces, wie für Exceptions in TeamEventSubscription kürzen, vermüllen logfiles ohne wirkliche Informationen.
 
 - Pagination of selects: Aktuell wird nicht DB-seitig paginiert, sondern immer die ganze Liste gefetched.
 - remove all BaseDO.xxxId (lazy fetch) and replace callee by baseDO?.id
