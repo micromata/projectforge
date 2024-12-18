@@ -25,38 +25,31 @@ package org.projectforge.rest.poll.types
 
 import java.util.UUID
 
-
 val Neujahrsfeier = mapOf(
-    "HAS_FOOD" to Question(
-        uid = UUID.randomUUID().toString(),
-        question = "Was willst du essen?",
-        type = BaseType.PollSingleResponseQuestion,
-        answers = mutableListOf("Fleisch", "Vegetarisch", "Vegan")
-    ),
     "CAN_HAVE_COMPANIONS" to Question(
         uid = UUID.randomUUID().toString(),
-        question = "Nimmst du eine Begleitung mit? (Name der Begleitung)",
+        question = "Erscheinst du in Begleitung?",
+        type = BaseType.PollSingleResponseQuestion,
+        answers = mutableListOf("Ohne Begleitung", "Mit Begleitung")
+    ),
+    "HAS_FOOD" to Question(
+        uid = UUID.randomUUID().toString(),
+        question = "Gibt es Essenspräferenzen für die Party?",
+        type = BaseType.PollSingleResponseQuestion,
+        answers = mutableListOf("Vegetarisch", "Vegan", "Pescetarier (Fisch)", "Omnivor (Fleisch)")
+    ),
+    "SONG_REQUESTs" to Question(
+        uid = UUID.randomUUID().toString(),
+        question = "Hast du Musikwünsche für die Party?",
         type = BaseType.PollTextQuestion,
         answers = mutableListOf("")
     ),
-    "CAN_HAVE_CHILDREN" to Question(
+    "USER_COMMENT" to Question(
         uid = UUID.randomUUID().toString(),
-        question = "Nimmst du ein Kind mit? (Name des Kindes)",
+        question = "Hast du weitere Anmerkungen und/oder Wünsche?",
         type = BaseType.PollTextQuestion,
         answers = mutableListOf("")
-    ),
-    "CAN_STAY_OVERNIGHT" to Question(
-        uid = UUID.randomUUID().toString(),
-        question = "Willst du dort übernachten?",
-        type = BaseType.PollSingleResponseQuestion,
-        answers = mutableListOf("Ja", "Nein")
-    ),
-    "HAS_BREAKFAST" to Question(
-        uid = UUID.randomUUID().toString(),
-        question = "Willst du am nächsten Tag frühstücken?",
-        type = BaseType.PollSingleResponseQuestion,
-        answers = mutableListOf("Ja", "Nein")
-    ),
+    )
 )
 
 val Sommerfest = mapOf(
@@ -101,19 +94,25 @@ val Sommerfest = mapOf(
         question = "Welche Art von Ernährung bevorzugst du ?",
         type = BaseType.PollSingleResponseQuestion,
         answers = mutableListOf("Omnivor (Fleisch)", "Pescetarier (Fisch)", "Vegetarisch", "Vegan")
+    ),
+    "USER_COMMENT" to Question(
+        uid = UUID.randomUUID().toString(),
+        question = "Hast du weitere Anmerkungen und/oder Wünsche?",
+        type = BaseType.PollTextQuestion,
+        answers = mutableListOf("")
     )
 )
 
 val Teamessen = mapOf(
     "IS_IN" to Question(
         uid = UUID.randomUUID().toString(),
-        question = "Hast du Zeit und Lust ?",
+        question = "Nimmst du am gemeinsamen Team-Essen teil?",
         type = BaseType.PollSingleResponseQuestion,
         answers = mutableListOf("Ja", "Nein")
     ),
     "WHAT_TO_EAT" to Question(
         uid = UUID.randomUUID().toString(),
-        question = "Zur Essens Auswahl gibt es",
+        question = "Folgende Speisen stehen zur Auswahl. Was möchtest du essen?",
         type = BaseType.PollSingleResponseQuestion,
         answers = mutableListOf("Pizza", "Pasta", "Burger")
     ),
@@ -123,4 +122,10 @@ val Teamessen = mapOf(
         type = BaseType.PollMultiResponseQuestion,
         answers = mutableListOf("", "")
     ),
+    "USER_COMMENT" to Question(
+        uid = UUID.randomUUID().toString(),
+        question = "Hast du weitere Anmerkungen und/oder Wünsche?",
+        type = BaseType.PollTextQuestion,
+        answers = mutableListOf("")
+    )
 )

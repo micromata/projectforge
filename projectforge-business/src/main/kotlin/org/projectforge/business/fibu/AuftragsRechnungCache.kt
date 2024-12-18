@@ -25,7 +25,7 @@ package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
-import org.projectforge.business.fibu.AuftragsCache.Companion.instance
+import org.projectforge.common.extensions.format
 import org.projectforge.common.logging.LogDuration
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
@@ -106,15 +106,15 @@ class AuftragsRechnungCache : AbstractCache() {
         val mapByAuftragId = mutableMapOf<Long, TreeSet<Long>>()
         val mapByAuftragsPositionId = mutableMapOf<Long, TreeSet<RechnungPosInfo>>()
         val mapByRechnungsPositionMapByRechnungId = mutableMapOf<Long, TreeSet<RechnungPosInfo>>()
-        log.info("Analyzing orders in invoices (RechnungsPositionDO.AuftragsPosition)...")
+        log.info("Analyzing orders in invoices (RechnungsPositionDO.AuftragsPosition, ${list.size.format()} entries)...")
         for (pos in list) {
-            val rechnung = rechnungCache.getRechnungInfo(pos.rechnung?.id)
+            val rechnungInfo = rechnungCache.getRechnungInfo(pos.rechnung?.id)
             val auftragsPositionId = pos.auftragsPosition?.id
             if (auftragsPositionId == null) {
                 log.error("Assigned order position expected: $pos")
                 continue
             }
-            if (pos.deleted || rechnung == null || rechnung.deleted || rechnung.nummer == null) {
+            if (pos.deleted || rechnungInfo == null || rechnungInfo.deleted || rechnungInfo.nummer == null) {
                 // Invoice position or invoice is deleted.
                 continue
             }
@@ -128,7 +128,7 @@ class AuftragsRechnungCache : AbstractCache() {
             mapByAuftragsPositionId
                 .getOrPut(auftragsPositionId) { TreeSet() }
                 .add(rechnungPosInfo)
-            mapByRechnungsPositionMapByRechnungId.getOrPut(rechnung.id) { TreeSet() }
+            mapByRechnungsPositionMapByRechnungId.getOrPut(rechnungInfo.id) { TreeSet() }
                 .add(rechnungPosInfo)
         }
         this.invoicePositionMapByAuftragId = mapByAuftragId

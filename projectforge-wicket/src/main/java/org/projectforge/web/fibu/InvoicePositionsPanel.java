@@ -30,7 +30,9 @@ import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.projectforge.business.fibu.RechnungCache;
 import org.projectforge.business.fibu.RechnungDao;
+import org.projectforge.business.fibu.RechnungInfo;
 import org.projectforge.business.fibu.RechnungPosInfo;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.framework.time.DateTimeFormatter;
@@ -52,6 +54,7 @@ import java.util.TreeSet;
  */
 public class InvoicePositionsPanel extends Panel {
     private static final long serialVersionUID = 4744964208090705536L;
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(InvoicePositionsPanel.class);
 
     public InvoicePositionsPanel(final String id) {
         super(id);
@@ -64,7 +67,26 @@ public class InvoicePositionsPanel extends Panel {
         if (invoicePositionsByOrderPositionId != null) {
             final SortedSet<Integer> invoiceNumbers = new TreeSet<Integer>();
             for (final RechnungPosInfo invoicePosition : invoicePositionsByOrderPositionId) {
-                invoiceNumbers.add(invoicePosition.getRechnungInfo().getNummer());
+                RechnungInfo rechnungInfo = invoicePosition.getRechnungInfo();
+                if (rechnungInfo == null) {
+                    log.warn("RechnungInfo not found for invoicePosition #" + invoicePosition.getId());
+                    // Rechnung no available.
+                    continue;
+                }
+                rechnungInfo = WicketSupport.get(RechnungCache.class).getRechnungInfo(rechnungInfo.getId());
+                if (rechnungInfo == null) {
+                    log.warn("RechnungInfo not found for invoice position id #" + invoicePosition.getId());
+                    // Rechnung no available.
+                    continue;
+                }
+                Integer nummer = rechnungInfo.getNummer();
+                if (nummer == null) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("No invoice number given for invoice with id #" + rechnungInfo.getId());
+                    }
+                    continue; // Rechnung without number (planned one?).
+                }
+                invoiceNumbers.add(nummer);
             }
             boolean first = true;
             Long invoiceId = null;

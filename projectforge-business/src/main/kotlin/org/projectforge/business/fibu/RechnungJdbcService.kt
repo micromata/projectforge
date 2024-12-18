@@ -139,7 +139,11 @@ class RechnungJdbcService {
                         it.auftragsPosition = AuftragsPositionDO().also { it.id = posId }
                     }
                     getLong(rs, "rechnung_fk")?.let { rechnungId ->
-                        it.rechnung = RechnungDO().also { it.id = rechnungId }
+                        val rechnungNummer = getInt(rs, "rechnung_nummer")
+                        it.rechnung = RechnungDO().also {
+                            it.id = rechnungId
+                            it.nummer = rechnungNummer
+                        }
                     }
                 }
             }
@@ -149,8 +153,9 @@ class RechnungJdbcService {
 
     companion object {
         private val SELECT_RECHNUNG_ORDER = """
-            SELECT p.pk,p.deleted,p.rechnung_fk,p.number,p.menge,p.einzel_netto,p.vat,p.auftrags_position_fk
+            SELECT p.pk,p.deleted,p.rechnung_fk,p.number,p.menge,p.einzel_netto,p.vat,p.auftrags_position_fk,r.nummer as rechnung_nummer
             FROM t_fibu_rechnung_position p
+            LEFT JOIN t_fibu_rechnung r ON p.rechnung_fk = r.pk
             WHERE p.auftrags_position_fk IS NOT NULL
         """.trimIndent()
 

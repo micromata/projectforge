@@ -23,7 +23,9 @@
 
 package org.projectforge.common.extensions
 
+import org.projectforge.Constants
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import java.util.*
 
 /**
  * Formats a number for the user by using the locale of [ThreadLocalUserContext].
@@ -42,4 +44,16 @@ fun Number?.formatForUser(scale: Int? = null): String {
 fun Number?.formatBytesForUser(): String {
     this ?: return ""
     return this.formatBytes(ThreadLocalUserContext.locale)
+}
+
+/**
+ * Formats a number for the user by using the locale of [ThreadLocalUserContext].
+ */
+fun Number?.formatCurrency(withCurrencySymbol: Boolean = false): String {
+    val amount = this.formatForUser(2)
+    return if (!withCurrencySymbol || Constants.CURRENCY_SYMBOL.isBlank()) {
+        amount
+    } else {
+        "$amount ${Constants.CURRENCY_SYMBOL}"
+    }
 }
