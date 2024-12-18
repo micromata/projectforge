@@ -42,6 +42,6 @@ class Visitorbook(var lastname: String? = null,
 
     var numberOfVisits: Int? = 0
 
-    var entries: List<VisitorbookEntry>? = null
+    var entries = emptyList<VisitorbookEntry>() // empty list required by frontend.
 
 }

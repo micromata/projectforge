@@ -79,7 +79,7 @@ class PollInfoPageRest : AbstractDynamicPageRest() {
         layout.add(field)
 
         layout.add(
-            UIFieldset().add(UILabel(translate("poll.question.singletitel"))).add(
+            UIFieldset().add(UILabel(translate("poll.question.singleResponseQuestionTitle"))).add(
                 UICol()
                     .add(
                         UIReadOnlyField(
@@ -91,7 +91,7 @@ class PollInfoPageRest : AbstractDynamicPageRest() {
             )
         )
         layout.add(
-            UIFieldset().add(UILabel(translate("poll.question.multititle"))).add(
+            UIFieldset().add(UILabel(translate("poll.question.multiResponseQuestionTitle"))).add(
                 UICol()
                     .add(
                         UIReadOnlyField(
@@ -103,7 +103,7 @@ class PollInfoPageRest : AbstractDynamicPageRest() {
             )
         )
         layout.add(
-            UIFieldset().add(UILabel(translate("poll.question.texttitle"))).add(
+            UIFieldset().add(UILabel(translate("poll.question.textQuestionTitle"))).add(
                 UICol()
                     .add(
                         UIReadOnlyField(

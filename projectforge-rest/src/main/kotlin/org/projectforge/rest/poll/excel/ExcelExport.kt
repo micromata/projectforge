@@ -142,10 +142,6 @@ class ExcelExport {
         poll.inputFields?.forEach { question ->
             val answers = question.answers
             if (question.type == BaseType.PollMultiResponseQuestion || question.type == BaseType.PollSingleResponseQuestion) {
-                if (!question.answers!!.contains("Anmerkung")) {
-                    val ind = question.answers!!.size
-                    question.answers!!.add(ind, "Anmerkung")
-                }
                 var counter = merge
                 question.answers?.forEach { answer ->
                     excelRow1.getCell(counter).setCellValue(answer)
@@ -182,38 +178,29 @@ class ExcelExport {
 
         var largestAnswer = ""
         poll.inputFields?.forEachIndexed { _, question ->
-            val questionpossibilities = res?.responses?.find { it.questionUid == question.uid }
+            val choices = res?.responses?.find { it.questionUid == question.uid }
 
             var index: Int
             question.answers?.forEachIndexed { ind, answer ->
                 index = question.answers!!.size - 1
                 cell++
 
-                if (question.type == BaseType.PollMultiResponseQuestion || question.type == BaseType.PollSingleResponseQuestion) {
-                    if (index == ind && questionpossibilities != null) {
-                        excelSheet.autosize(cell)
-                        if (questionpossibilities.annotation != null && questionpossibilities.annotation!!.size != 0) {
-                            excelRow.getCell(cell).setCellValue(questionpossibilities.annotation?.get(0))
-                        }
-                    }
-                }
-
                 if (question.type == BaseType.PollMultiResponseQuestion) {
-                    questionpossibilities?.answers?.forEach {
+                    choices?.answers?.forEach {
                         excelSheet.autosize(cell)
-                        if (questionpossibilities.answers?.get(ind)!!.equals(true) && ind != index) {
+                        if (choices.answers?.get(ind)!!.equals(true) && ind != index) {
                             excelRow.getCell(cell).setCellValue("X")
                         }
                     }
                 } else if (question.type == BaseType.PollSingleResponseQuestion) {
                     excelSheet.autosize(cell)
-                    if (answer == questionpossibilities?.answers?.get(0) && ind != index) {
+                    if (answer == choices?.answers?.get(0) && ind != index) {
                         excelRow.getCell(cell).setCellValue("X")
                     }
                 } else {
-                    if (questionpossibilities?.answers?.isNotEmpty() == true) {
+                    if (choices?.answers?.isNotEmpty() == true) {
                         excelSheet.autosize(cell)
-                        excelRow.getCell(cell).setCellValue(questionpossibilities.answers?.get(0).toString())
+                        excelRow.getCell(cell).setCellValue(choices.answers?.get(0).toString())
                         if (countLines(answer) > countLines(largestAnswer)) {
                             largestAnswer = answer
                         }
