@@ -25,6 +25,7 @@ package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
+import org.projectforge.common.extensions.format
 import org.projectforge.common.logging.LogDuration
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
@@ -105,7 +106,7 @@ class AuftragsRechnungCache : AbstractCache() {
         val mapByAuftragId = mutableMapOf<Long, TreeSet<Long>>()
         val mapByAuftragsPositionId = mutableMapOf<Long, TreeSet<RechnungPosInfo>>()
         val mapByRechnungsPositionMapByRechnungId = mutableMapOf<Long, TreeSet<RechnungPosInfo>>()
-        log.info("Analyzing orders in invoices (RechnungsPositionDO.AuftragsPosition, ${list.size} entries)...")
+        log.info("Analyzing orders in invoices (RechnungsPositionDO.AuftragsPosition, ${list.size.format()} entries)...")
         for (pos in list) {
             val rechnungInfo = rechnungCache.getRechnungInfo(pos.rechnung?.id)
             val auftragsPositionId = pos.auftragsPosition?.id
