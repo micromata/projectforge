@@ -205,9 +205,6 @@ class ExcelExport {
                         }
 
                         BaseType.PollSingleResponseQuestion, BaseType.PollMultiResponseQuestion -> {
-                            // get the answer of choices for this question that is not false
-                            // itarate over all possible answers of question and get the matching one
-                            // if yes set X in cell
                             if (choices?.answers?.get(ind).toString() == "true") {
                                 excelRow.getCell(cell).setCellValue("X")
                             }
