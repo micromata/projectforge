@@ -319,7 +319,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                                     UISelect(
                                         "questionType",
                                         values = BaseType.values()
-                                            .map { UISelectValue(it, translateMsg("poll.questionType." + it.name)) },
+                                            .map { UISelectValue(it, translateMsg("poll.question." + it.name)) },
                                         label = "poll.questionType",
                                         tooltip = "poll.questionType.tooltip"
                                     )
