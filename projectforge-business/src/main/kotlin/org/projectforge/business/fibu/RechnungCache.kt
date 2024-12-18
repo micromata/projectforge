@@ -90,8 +90,6 @@ class RechnungCache(rechnungJdbcService: RechnungJdbcService) :
             }
         }
 
-        // TODO: Update rechungPosInfo
-        auftragsRechnungCache.setExpired() // Invalidate cache.
     }
 
     fun update(invoice: EingangsrechnungDO) {
@@ -116,11 +114,6 @@ class RechnungCache(rechnungJdbcService: RechnungJdbcService) :
         } else {
             eingangsrechnungCache.getRechnungInfo(id)
         }
-    }
-
-    override fun setExpired() {
-        super.setExpired()
-        auftragsRechnungCache.setExpired()
     }
 
     companion object {

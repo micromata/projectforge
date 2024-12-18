@@ -56,9 +56,6 @@ private val log = KotlinLogging.logger {}
 @Service
 open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     @Autowired
-    private lateinit var auftragsCache: AuftragsCache
-
-    @Autowired
     private lateinit var kundeDao: KundeDao
 
     @Autowired
@@ -149,7 +146,6 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
 
     override fun afterInsertOrModify(obj: RechnungDO, operationType: OperationType) {
         rechnungCache.update(obj)
-        auftragsCache.setExpired() // Expire the cache because assignments to order position may be changed.
     }
 
     /**
