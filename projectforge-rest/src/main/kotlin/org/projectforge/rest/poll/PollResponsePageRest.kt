@@ -191,7 +191,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
             }
 
             if (field.type == BaseType.PollMultiResponseQuestion || field.type == BaseType.PollSingleResponseQuestion) {
-                field.answers?.forEachIndexed { index2, _ ->
+                field.answers?.forEachIndexed { index2, answer ->
                     if (pollResponse.responses?.get(index)?.answers?.getOrNull(index2) == null) {
                         pollResponse.responses?.get(index)?.answers?.add(index2, false)
                     }
@@ -199,15 +199,15 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
                         col.add(
                             UICheckbox(
                                 "responses[$index].answers[$index2]",
-                                label = field.answers?.get(index2) ?: ""
+                                label = answer,
                             )
                         )
                     } else {
                         col.add(
                             UIRadioButton(
                                 "responses[$index].answers[0]",
-                                value = field.answers?.get(index2) ?: "",
-                                label = field.answers?.get(index2) ?: ""
+                                value = answer,
+                                label = answer,
                             )
                         )
                     }
@@ -260,6 +260,25 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
         @RequestParam("questionOwner") questionOwner: Long?
     ): ResponseEntity<ResponseAction> {
         val pollResponseDO = PollResponseDO()
+        
+        // most ugly workaround in existence - for now - TODO mnuhn
+        val poll = pollDao.find(pollId, checkAccess = false)
+        val inputFields = ObjectMapper().readValue(poll!!.inputFields, MutableList::class.java)
+        postData.data.responses?.forEachIndexed { index, response ->
+            val question = inputFields[index] as Map<*, *>
+            if (question["type"] != "PollTextQuestion") {
+                val originalAnswers = question["answers"] as List<*>
+                postData.data.responses?.get(index)?.answers?.forEachIndexed { index2, answer ->
+                    if (answer != false) {
+                        val originalIndex = originalAnswers.indexOf(answer)
+                        if (originalIndex != -1) {
+                            postData.data.responses?.get(index)?.answers?.set(originalIndex, true)
+                        }
+                    }
+                }
+            }
+        }
+        
         postData.data.copyTo(pollResponseDO)
         pollResponseDO.owner = userService.getUser(questionOwner)
 

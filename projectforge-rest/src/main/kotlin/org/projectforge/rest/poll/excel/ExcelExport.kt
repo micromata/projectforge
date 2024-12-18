@@ -83,7 +83,7 @@ class ExcelExport {
                 poll.attendees?.forEachIndexed { index, user ->
                     val res = PollResponse()
                     responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
-                    setNewRows(excelSheet, poll, user, res, index + FIRST_DATA_ROW_NUM)
+                    setAnswerRow(excelSheet, poll, user, res, index + FIRST_DATA_ROW_NUM)
                 }
                 log.info("Processed attendee rows successfully")
 
@@ -111,7 +111,7 @@ class ExcelExport {
                         val res = PollResponse()
                         responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
                         if (res.id != null) {
-                            setNewRows(excelSheet, poll, user, res, number)
+                            setAnswerRow(excelSheet, poll, user, res, number)
                         }
                     }
                 }
@@ -167,44 +167,58 @@ class ExcelExport {
         }
         excelRow.setHeight(30F)
     }
-
-    private fun setNewRows(excelSheet: ExcelSheet, poll: Poll, user: User, res: PollResponse?, rowNumber: Int) {
+    
+    private fun setAnswerRow(excelSheet: ExcelSheet, poll: Poll, user: User, res: PollResponse?, rowNumber: Int) {
         val excelRow = excelSheet.getRow(rowNumber)
-
-
+        
+        // set username to first cell of row
         excelRow.getCell(0).setCellValue(user.displayName)
-        var cell = 0
+        
+        var cell = 1
         excelSheet.autosize(0)
-
+        
         var largestAnswer = ""
+        
+        // each question gets itterated ones
         poll.inputFields?.forEachIndexed { _, question ->
             val choices = res?.responses?.find { it.questionUid == question.uid }
+            
+            // if choices is null skip
+            if (choices != null) {
 
-            var index: Int
-            question.answers?.forEachIndexed { ind, answer ->
-                index = question.answers!!.size - 1
-                cell++
+                var index: Int
 
-                if (question.type == BaseType.PollMultiResponseQuestion) {
-                    choices?.answers?.forEach {
-                        excelSheet.autosize(cell)
-                        if (choices.answers?.get(ind)!!.equals(true) && ind != index) {
-                            excelRow.getCell(cell).setCellValue("X")
-                        }
-                    }
-                } else if (question.type == BaseType.PollSingleResponseQuestion) {
+                // each answer-field oft the question is itterated
+                question.answers?.forEachIndexed { ind, answer ->
+                    index = question.answers!!.size - 1
                     excelSheet.autosize(cell)
-                    if (answer == choices?.answers?.get(0) && ind != index) {
-                        excelRow.getCell(cell).setCellValue("X")
-                    }
-                } else {
-                    if (choices?.answers?.isNotEmpty() == true) {
-                        excelSheet.autosize(cell)
-                        excelRow.getCell(cell).setCellValue(choices.answers?.get(0).toString())
-                        if (countLines(answer) > countLines(largestAnswer)) {
-                            largestAnswer = answer
+
+                    when (question.type) {
+                        BaseType.PollTextQuestion -> {
+                            if (choices?.answers?.isNotEmpty() == true) {
+                                excelRow.getCell(cell).setCellValue(choices.answers?.get(0).toString())
+                                if (countLines(answer) > countLines(largestAnswer)) {
+                                    largestAnswer = answer
+                                }
+                            }
+                            cell++;
+                        }
+
+                        BaseType.PollSingleResponseQuestion, BaseType.PollMultiResponseQuestion -> {
+                            // get the answer of choices for this question that is not false
+                            // itarate over all possible answers of question and get the matching one
+                            // if yes set X in cell
+                            if (choices?.answers?.get(ind).toString() == "true") {
+                                excelRow.getCell(cell).setCellValue("X")
+                            }
+                            cell++;
+                        }
+
+                        else -> {
+                            log.error("Unknown BaseType on Poll Excel Export: ${question.type}")
                         }
                     }
+
                 }
             }
         }
