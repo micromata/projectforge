@@ -21,25 +21,15 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu;
+package org.projectforge.business.fibu
 
-import org.projectforge.business.scripting.ScriptingDao;
+import org.projectforge.business.scripting.ScriptingDao
 
-public class EmployeeScriptingDao extends ScriptingDao<EmployeeDO>
-{
-  private EmployeeDao __baseDao;
-
-  public EmployeeScriptingDao(EmployeeDao employeeDao)
-  {
-    super(employeeDao);
-    this.__baseDao = employeeDao;
-  }
-
-  /**
-   * @see EmployeeDao#findByName(String)
-   */
-  public EmployeeDO getByName(String fullname)
-  {
-    return __baseDao.findByName(fullname);
-  }
+class EmployeeScriptingDao(private val __baseDao: EmployeeDao) : ScriptingDao<EmployeeDO>(__baseDao) {
+    /**
+     * @see EmployeeDao.findByName
+     */
+    fun getByName(fullname: String): EmployeeDO? {
+        return __baseDao.findByName(fullname)
+    }
 }

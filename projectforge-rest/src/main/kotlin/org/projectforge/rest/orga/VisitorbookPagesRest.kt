@@ -32,6 +32,7 @@ import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Visitorbook
 import org.projectforge.rest.dto.VisitorbookEntry
 import org.projectforge.ui.*
@@ -131,30 +132,37 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
             .add(company)
             .add(UISelect.createUserSelect(lc, "contactPersons", true, "orga.visitorbook.contactPerson"))
             .add(lc, "visitortype")
-        layout.layoutBelowActions.add(
-            UIFieldset(title = "orga.visitorbook.visits")
-                .add(
-                    UIButton.createAddButton(
-                        responseAction = ResponseAction(
-                            createModalUrl(dto, true),
-                            targetType = TargetType.MODAL
-                        ),
-                        default = false,
-                    )
-                )
-                .add(
-                    UIAgGrid("entries")
-                        .add(UIAgGridColumnDef.createCol(lc, "dateOfVisit", headerName = "date"))
-                        .add(UIAgGridColumnDef.createCol(lc, "arrived", headerName = "orga.visitorbook.arrive"))
-                        .add(UIAgGridColumnDef.createCol(lc, "departed", headerName = "orga.visitorbook.depart"))
-                        .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
-                        .withRowClickRedirectUrl(
-                            createModalUrl(dto),
-                            openModal = true,
+        if (dto.id != null) {
+            layout.layoutBelowActions.add(
+                UIFieldset(title = "orga.visitorbook.visits")
+                    .add(
+                        UIButton.createAddButton(
+                            responseAction = ResponseAction(
+                                createModalUrl(dto, true),
+                                targetType = TargetType.MODAL
+                            ),
+                            default = false,
                         )
-                )
-        )
+                    )
+                    .add(
+                        UIAgGrid("entries")
+                            .add(UIAgGridColumnDef.createCol(lc, "dateOfVisit", headerName = "date"))
+                            .add(UIAgGridColumnDef.createCol(lc, "arrived", headerName = "orga.visitorbook.arrive"))
+                            .add(UIAgGridColumnDef.createCol(lc, "departed", headerName = "orga.visitorbook.depart"))
+                            .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
+                            .withRowClickRedirectUrl(
+                                createModalUrl(dto),
+                                openModal = true,
+                            )
+                    )
+            )
+        }
         return LayoutUtils.processEditPage(layout, dto, this)
+    }
+
+    override fun onAfterSave(obj: VisitorbookDO, postData: PostData<Visitorbook>): ResponseAction {
+        return ResponseAction(PagesResolver.getEditPageUrl(VisitorbookPagesRest::class.java, obj.id, absolute = true))
+            .addVariable("id", obj.id ?: -1)
     }
 
     private fun createModalUrl(
