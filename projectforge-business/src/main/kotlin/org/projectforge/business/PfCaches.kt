@@ -35,6 +35,7 @@ import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.vacation.model.VacationDO
+import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -65,6 +66,9 @@ class PfCaches {
     private lateinit var projektCache: ProjektCache
 
     @Autowired
+    private lateinit var rechnungCache: RechnungCache
+
+    @Autowired
     private lateinit var taskTree: TaskTree
 
     @Autowired
@@ -76,6 +80,23 @@ class PfCaches {
     @PostConstruct
     private fun init() {
         instance = this
+    }
+
+    /**
+     * Fills the kunde, projekt and users of the given order.
+     * @param order The order to fill.
+     * @return The filled order for chaining.
+     */
+    fun initialize(order: AuftragDO): AuftragDO {
+        order.kunde = getKundeIfNotInitialized(order.kunde)
+        order.projekt = getProjektIfNotInitialized(order.projekt)
+        order.contactPerson = getUserIfNotInitialized(order.contactPerson)
+        order.headOfBusinessManager = getUserIfNotInitialized(order.headOfBusinessManager)
+        order.projectManager = getUserIfNotInitialized(order.projectManager)
+        order.salesManager = getUserIfNotInitialized(order.salesManager)
+        // order.paymentSchedules
+        // order.positionen
+        return order
     }
 
     /**
@@ -144,6 +165,43 @@ class PfCaches {
         return vacation
     }
 
+    fun initialize(satz: BuchungssatzDO): BuchungssatzDO {
+        satz.konto = getKontoIfNotInitialized(satz.konto)
+        satz.gegenKonto = getKontoIfNotInitialized(satz.gegenKonto)
+        satz.kost1 = getKost1IfNotInitialized(satz.kost1)
+        satz.kost2 = getKost2IfNotInitialized(satz.kost2)
+        return satz
+    }
+
+    fun initialize(invoice: RechnungDO): RechnungDO {
+        rechnungCache.ensureRechnungInfo(invoice)
+        invoice.kunde = getKundeIfNotInitialized(invoice.kunde)
+        invoice.projekt = getProjektIfNotInitialized(invoice.projekt)
+        invoice.positionen?.forEach { pos ->
+            // pos.rechnung = invoice
+            // pos.auftragsPosition
+            rechnungCache.ensureRechnungPosInfo(pos)
+        }
+        return invoice
+    }
+
+    /**
+     * Generic method to initialize the given object, used by ScriptingDao.
+     * Don't name it initialize for avoiding stack overflow on missing initialize methods.
+     */
+    fun initializeBaseDO(obj: BaseDO<*>) {
+        when (obj) {
+            is AuftragDO -> initialize(obj)
+            is BuchungssatzDO -> initialize(obj)
+            is EmployeeDO -> initialize(obj)
+            is Kost2DO -> initialize(obj)
+            is ProjektDO -> initialize(obj)
+            is RechnungDO -> initialize(obj)
+            is TimesheetDO -> initialize(obj)
+            is VacationDO -> initialize(obj)
+        }
+    }
+
     /**
      * Gets the kost2 from the KostCache first and then fills the user, kost2, project and customer.
      * @param kost2Id The kost2Id to fill.
@@ -167,6 +225,7 @@ class PfCaches {
     fun getEmployeeIfNotInitialized(employee: EmployeeDO?): EmployeeDO? {
         return employeeCache.getEmployeeIfNotInitialized(employee)?.also {
             it.user = getUserIfNotInitialized(it.user)
+            it.kost1 = getKost1IfNotInitialized(it.kost1)
         }
     }
 
@@ -179,7 +238,10 @@ class PfCaches {
     }
 
     fun getGroupIfNotInitialized(groupDO: GroupDO?): GroupDO? {
-        return userGroupCache.getGroupIfNotInitialized(groupDO)
+        return userGroupCache.getGroupIfNotInitialized(groupDO)?.also { group ->
+            group.groupOwner = getUserIfNotInitialized(group.groupOwner)
+            group.assignedUsers = group.assignedUsers?.mapNotNull { getUserIfNotInitialized(it) }?.toMutableSet()
+        }
     }
 
     fun getKonto(konto: Long?): KontoDO? {
@@ -199,11 +261,16 @@ class PfCaches {
     }
 
     fun getKost2(kost2Id: Long?): Kost2DO? {
-        return kostCache.getKost2(kost2Id)
+        return kostCache.getKost2(kost2Id)?.also { kost2 ->
+            kost2.projekt = getProjektIfNotInitialized(kost2.projekt)
+            kost2.kost2Art = getKost2ArtIfNotInitialized(kost2.kost2Art)
+        }
     }
 
     fun getKost2IfNotInitialized(kost2DO: Kost2DO?): Kost2DO? {
-        return kostCache.getKost2IfNotInitialized(kost2DO)
+        return kostCache.getKost2IfNotInitialized(kost2DO)?.also { kost2 ->
+            kost2.projekt = getProjektIfNotInitialized(kost2.projekt)
+        }
     }
 
     fun getKost2Art(kost2ArtId: Long?): Kost2ArtDO? {
@@ -224,7 +291,9 @@ class PfCaches {
     }
 
     fun getKundeIfNotInitialized(kunde: KundeDO?): KundeDO? {
-        return kundeCache.getKundeIfNotInitialized(kunde)
+        return kundeCache.getKundeIfNotInitialized(kunde)?.also { kunde ->
+            kunde.konto = getKontoIfNotInitialized(kunde.konto)
+        }
     }
 
     fun getProjekt(projektId: Long?): ProjektDO? {
@@ -237,7 +306,15 @@ class PfCaches {
     }
 
     fun getProjektIfNotInitialized(projektDO: ProjektDO?): ProjektDO? {
-        return projektCache.getProjektIfNotInitialized(projektDO)
+        return projektCache.getProjektIfNotInitialized(projektDO)?.also { project ->
+            project.konto = getKontoIfNotInitialized(project.konto)
+            project.task = getTaskIfNotInitialized(project.task)
+            project.kunde = getKundeIfNotInitialized(project.kunde)
+            project.projectManager = getUserIfNotInitialized(project.projectManager)
+            project.headOfBusinessManager = getUserIfNotInitialized(project.headOfBusinessManager)
+            project.projektManagerGroup = getGroupIfNotInitialized(project.projektManagerGroup)
+            project.salesManager = getUserIfNotInitialized(project.salesManager)
+        }
     }
 
     fun getTask(taskId: Long?): TaskDO? {
@@ -245,7 +322,9 @@ class PfCaches {
     }
 
     fun getTaskIfNotInitialized(taskDO: TaskDO?): TaskDO? {
-        return taskTree.getTaskIfNotInitialized(taskDO)
+        return taskTree.getTaskIfNotInitialized(taskDO)?.also { task ->
+            task.responsibleUser = getUserIfNotInitialized(task.responsibleUser)
+        }
     }
 
     fun getTeamCal(calId: Long?): TeamCalDO? {
@@ -253,7 +332,9 @@ class PfCaches {
     }
 
     fun getTeamCalIfNotInitialized(teamCal: TeamCalDO?): TeamCalDO? {
-        return teamCalCache.getCalendarIfNotInitialized(teamCal)
+        return teamCalCache.getCalendarIfNotInitialized(teamCal)?.also { cal ->
+            cal.owner = getUserIfNotInitialized(cal.owner)
+        }
     }
 
     fun getUser(userId: Long?): PFUserDO? {
