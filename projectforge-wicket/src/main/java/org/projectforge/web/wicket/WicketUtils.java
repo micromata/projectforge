@@ -50,6 +50,7 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
+import org.apache.wicket.util.string.StringValueConversionException;
 import org.projectforge.Constants;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.common.BeanHelper;
@@ -169,7 +170,12 @@ public class WicketUtils {
         if (sval == null || sval.isNull() == true) {
             return null;
         } else {
-            return sval.toLong();
+            try {
+                return sval.toLong();
+            } catch (Exception ex) {
+                log.warn("Error while trying to convert parameter '" + name + "' to long: " + ex.getMessage(), ex);
+                return null;
+            }
         }
     }
 
