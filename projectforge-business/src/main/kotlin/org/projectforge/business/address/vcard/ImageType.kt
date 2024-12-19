@@ -23,12 +23,14 @@
 
 package org.projectforge.business.address.vcard
 
-/**
- * Supported: "NONE", "EMBEDDED" or "URL".
- * If [ImageMode.URL] is being used, the image URL is provided in the vCard.
- * If [ImageMode.NONE] is being used, no image is stored.
- * If [ImageMode.EMBEDDED] is being used, the image will be embedded in the vCard.
- */
-enum class VCardImageMode {
-    NONE, EMBEDDED, URL
+enum class ImageType(val extension: String) {
+    JPEG("jpg"), PNG("png"), GIF("gif");
+
+    fun asVCardImageType(): ezvcard.parameter.ImageType {
+        return when (this) {
+            JPEG -> ezvcard.parameter.ImageType.JPEG
+            PNG -> ezvcard.parameter.ImageType.PNG
+            GIF -> ezvcard.parameter.ImageType.GIF
+        }
+    }
 }

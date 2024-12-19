@@ -27,12 +27,10 @@ import ezvcard.Ezvcard
 import ezvcard.VCard
 import ezvcard.parameter.AddressType
 import ezvcard.parameter.EmailType
-import ezvcard.parameter.ImageType
 import ezvcard.parameter.TelephoneType
 import ezvcard.property.*
 import mu.KotlinLogging
 import org.projectforge.business.address.AddressDO
-import org.projectforge.business.address.AddressImageDao
 import org.projectforge.framework.time.PFDateTime
 import java.io.ByteArrayInputStream
 import java.io.IOException
@@ -44,8 +42,8 @@ object VCardUtils {
     @JvmStatic
     fun buildVCard(
         addressDO: AddressDO,
-        addressImageDao: AddressImageDao,
-        vCardImageMode: VCardImageMode = VCardImageMode.EMBEDDED,
+        imageUrl: String? = null,
+        imageType: ImageType? = null,
     ): VCard { //See: https://github.com/mangstadt/ez-vcard
         val vcard = VCard()
         val uid = Uid("urn:uuid:" + addressDO.uid)
@@ -110,20 +108,10 @@ object VCardUtils {
         }
         vcard.addUrl(addressDO.website)
         vcard.addNote(addressDO.comment)
-        if (addressDO.image == true) {
-            when (vCardImageMode) {
-                VCardImageMode.EMBEDDED -> {
-                    val photo = Photo(addressImageDao.getImage(addressDO.id!!), ImageType.JPEG)
-                    vcard.addPhoto(photo)
-                }
-
-                VCardImageMode.URL -> {
-                    log.warn { "VCardImageMode.URL not yet supported." }
-                }
-
-                else -> {
-                    // Do nothing
-                }
+        if (addressDO.image == true && imageUrl != null && imageType != null) {
+            // embedded: Photo(addressImageDao.getImage(addressDO.id!!), ImageType.JPEG).let { vcard.addPhoto(it) }
+            Photo(imageUrl, imageType.asVCardImageType()).let {
+                vcard.addPhoto(it)
             }
         }
         return vcard
@@ -133,22 +121,27 @@ object VCardUtils {
     @JvmOverloads
     fun buildVCardByteArray(
         addressDO: AddressDO,
-        addressImageDao: AddressImageDao,
         vCardVersion: VCardVersion = VCardVersion.V_4_0,
-        vCardImageMode: VCardImageMode = VCardImageMode.EMBEDDED,
+        imageUrl: String? = null,
+        imageType: ImageType? = null,
     ): ByteArray { //See: https://github.com/mangstadt/ez-vcard
-        return buildVCardString(addressDO, addressImageDao, vCardVersion, vCardImageMode).toByteArray()
+        return buildVCardString(
+            addressDO,
+            vCardVersion,
+            imageUrl,
+            imageType
+        ).toByteArray()
     }
 
     @JvmStatic
     @JvmOverloads
     fun buildVCardString(
         addressDO: AddressDO,
-        addressImageDao: AddressImageDao,
         vCardVersion: VCardVersion = VCardVersion.V_4_0,
-        vCardImageMode: VCardImageMode = VCardImageMode.EMBEDDED,
+        imageUrl: String? = null,
+        imageType: ImageType? = null,
     ): String { //See: https://github.com/mangstadt/ez-vcard
-        val vcard = buildVCard(addressDO, addressImageDao, vCardImageMode)
+        val vcard = buildVCard(addressDO, imageUrl, imageType)
         return Ezvcard.write(vcard).version(vCardVersion.ezVCardType).go()
     }
 

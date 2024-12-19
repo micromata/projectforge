@@ -24,7 +24,9 @@
 package org.projectforge.carddav
 
 import jakarta.servlet.http.HttpServletResponse
+import org.projectforge.business.address.vcard.ImageType
 import org.projectforge.carddav.CardDavService.Companion.domain
+import org.projectforge.carddav.CardDavXmlUtils.EXTRACT_ADDRESS_ID_PHOTO_REGEX
 import org.projectforge.carddav.CardDavXmlUtils.EXTRACT_ADDRESS_ID_REGEX
 import org.projectforge.carddav.model.Contact
 import org.projectforge.common.DateFormatType
@@ -63,6 +65,16 @@ internal object CardDavUtils {
         return getEtag(contactList)
     }
 
+    fun getImageUrl(contactId: Long, imageType: ImageType): String {
+        val path =
+            concatPath(CardDavInit.CARD_DAV_BASE_PATH, "${CardDavInit.PHOTO_PATH}$contactId.${imageType.extension}")
+        return concatPath(domain, path)
+    }
+
+    fun isImageUrl(requestUri: String): Boolean {
+        return normalizedUri(requestUri).startsWith(CardDavInit.PHOTO_PATH)
+    }
+
     /**
      * Returns the ETag for the given contact list.
      * The ETag is the timestamp of the last updated contact.
@@ -87,8 +99,20 @@ internal object CardDavUtils {
         return contactList?.maxByOrNull { it.lastUpdated ?: oldDate }?.lastUpdated
     }
 
+    /**
+     * Extracts the contact ID from the given path.
+     * Examples:
+     * ...ProjectForge-123.vcf -> 123
+     * ...contact-123.[jpg|png] -> 123
+     * @param path The path.
+     * @return The contact ID or null if no contact ID was found.
+     */
     fun extractContactId(path: String): Long? {
-        return EXTRACT_ADDRESS_ID_REGEX.find(path)?.groups?.get(1)?.value?.toLong()
+        return if (path.contains(CardDavInit.PHOTO_PATH)) {
+            EXTRACT_ADDRESS_ID_PHOTO_REGEX.find(path)?.groups?.get(1)?.value?.toLong()
+        } else {
+            EXTRACT_ADDRESS_ID_REGEX.find(path)?.groups?.get(1)?.value?.toLong()
+        }
     }
 
     /**
@@ -123,11 +147,14 @@ internal object CardDavUtils {
     /**
      * Returns the normalized URI without the CardDAV base path and without leading and trailing slashes.
      * For better comparison, the URI is normalized.
+     * Examples:
+     * /carddav/users/joe/ -> users/joe
+     * /users/joe/ -> users/joe
      * @param requestUri The request URI.
      * @return The normalized URI.
      */
     fun normalizedUri(requestUri: String): String {
-        return requestUri.removePrefix("/carddav").removePrefix("/").removeSuffix("/")
+        return requestUri.removePrefix(CardDavInit.CARD_DAV_BASE_PATH).removePrefix("/").removeSuffix("/")
     }
 
     /**

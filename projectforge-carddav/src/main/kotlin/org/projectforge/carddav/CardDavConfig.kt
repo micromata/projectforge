@@ -24,7 +24,6 @@
 package org.projectforge.carddav
 
 import jakarta.annotation.PostConstruct
-import org.projectforge.business.address.vcard.VCardImageMode
 import org.projectforge.business.address.vcard.VCardVersion
 import org.projectforge.rest.AddressPagesRest
 import org.springframework.beans.factory.annotation.Value
@@ -39,22 +38,6 @@ open class CardDavConfig {
     @Value("\${projectforge.carddav.server.testUserMode:}")
     internal var testUserMode: String = ""
         private set
-
-    /**
-     * Supported: "NONE", "EMBEDDED" or "URL".
-     * @see VCardImageMode
-     */
-    @Value("\${projectforge.carddav.server.imageMode:NONE}")
-    private var imageModeConfig: String = ""
-        private set
-
-    internal val imageMode: VCardImageMode by lazy {
-        try {
-            VCardImageMode.valueOf(imageModeConfig)
-        } catch (e: IllegalArgumentException) {
-            VCardImageMode.EMBEDDED
-        }
-    }
 
     /**
      * Supported: "3.0" or "4.0".

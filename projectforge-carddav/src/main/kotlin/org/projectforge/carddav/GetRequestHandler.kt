@@ -56,4 +56,8 @@ internal object GetRequestHandler {
         CardDavServerTestUtils.writeRequestResponseLogInTestMode(requestWrapper, response, content)
         log.debug { "handleGetCall: response=${ResponseUtils.asJson(response)}, content=[${CardDavServerTestUtils.sanitizeContent(content)}]" }
     }
+
+    private fun handleImageGetCall(writerContext: WriterContext) {
+
+    }
 }
