@@ -188,6 +188,7 @@ dependencies {
     implementation(libs.org.hibernate.orm.core)
     implementation(libs.org.hibernate.search.backend.lucene)
     implementation(libs.org.hibernate.search.mapper.orm)
+    implementation(libs.org.hibernate.validator)
     implementation(libs.org.hsqldb.hsqldb)
     implementation(libs.org.jfree.jfreechart)
     implementation(libs.org.mnode.ical4j.ical4j)

@@ -70,6 +70,7 @@ dependencies {
     api(libs.org.hibernate.orm.core)
     api(libs.org.hibernate.search.mapper.orm)
     api(libs.org.hibernate.search.backend.lucene)
+    api(libs.org.hibernate.validator)
     api(libs.org.jetbrains.kotlin.compiler.embeddable)
     api(libs.org.jetbrains.kotlin.scripting.compiler.embeddable)
     api(libs.org.jetbrains.kotlin.scripting.common)
