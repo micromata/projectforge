@@ -137,4 +137,6 @@ internal object CardDavXmlUtils {
         "xmlns:$D=\"DAV:\" xmlns:$CARD=\"urn:ietf:params:xml:ns:carddav\" xmlns:$CS=\"http://calendarserver.org/ns/\" xmlns:me=\"http://me.com/_namespace/\""
 
     val EXTRACT_ADDRESS_ID_REGEX = """ProjectForge-(\d+)\.vcf""".toRegex()
+
+    val EXTRACT_ADDRESS_ID_PHOTO_REGEX = """${CardDavInit.PHOTO_PATH}(\d+)\.""".toRegex()
 }

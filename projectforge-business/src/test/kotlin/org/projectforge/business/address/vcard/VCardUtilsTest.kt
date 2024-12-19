@@ -26,7 +26,6 @@ package org.projectforge.business.address.vcard
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.address.AddressDO
-import org.projectforge.business.address.AddressImageDao
 import org.projectforge.business.test.TestSetup
 import java.nio.charset.StandardCharsets
 import java.time.LocalDate
@@ -40,14 +39,14 @@ class VCardUtilsTest {
             address.birthday = LocalDate.of(1992, Month.JULY, 11)
             address.firstName = "Joe"
             address.name = "Hill"
-            val vcardString = VCardUtils.buildVCardString(address, AddressImageDao(), VCardVersion.V_3_0)
+            val vcardString = VCardUtils.buildVCardString(address, VCardVersion.V_3_0)
             Assertions.assertTrue(vcardString.contains("BDAY:1992-07-11"))
         }
         AddressDO().also { address ->
             address.birthday = LocalDate.of(1992, Month.JULY, 11)
             address.firstName = "Joe"
             address.name = "Hill"
-            val vcardString = VCardUtils.buildVCardString(address, AddressImageDao(), VCardVersion.V_4_0)
+            val vcardString = VCardUtils.buildVCardString(address, VCardVersion.V_4_0)
             Assertions.assertTrue(vcardString.contains("BDAY:19920711"))
         }
         val vcard = VCardUtils.parseVCardsFromByteArray(EXAMPLE_VCF.toByteArray(StandardCharsets.UTF_8))

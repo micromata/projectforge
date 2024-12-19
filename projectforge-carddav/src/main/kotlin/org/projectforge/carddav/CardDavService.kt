@@ -30,9 +30,7 @@ import mu.KotlinLogging
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
-import org.projectforge.carddav.model.AddressBook
 import org.projectforge.carddav.model.Contact
-import org.projectforge.carddav.model.User
 import org.projectforge.carddav.service.AddressService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.utils.RequestLog

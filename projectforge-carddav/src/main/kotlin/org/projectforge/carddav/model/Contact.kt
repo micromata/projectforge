@@ -25,27 +25,29 @@ package org.projectforge.carddav.model
 
 import org.projectforge.framework.time.PFDateTime
 import java.security.MessageDigest
+import java.util.Date
 
 data class Contact(
     val id: Long? = null,
     val firstName: String? = null,
     val lastName: String? = null,
-    val lastUpdated: java.util.Date? = null,
+    val lastUpdated: Date? = null,
     val hasImage: Boolean = false,
+    val imageLastUpdate: Date? = null,
     var vcardData: String? = null,
 ) {
     val displayName = "$lastName, $firstName"
 
     /**
      * A unique identifier for this version of the resource. This allows clients to detect changes efficiently.
-     * The hashcode of the vcard, embedded in quotes.
+     * The hashcode of the vcard combined with last update of image, embedded in quotes.
      * Please note: the etag is embedded in quotes. Must be used in xml as well as in http response of GET call.
      * @return The ETag.
      */
     val etag: String by lazy {
         vcardData?.let {
             val digest = MessageDigest.getInstance("SHA-256")
-            val hashBytes = digest.digest(it.toByteArray())
+            val hashBytes = digest.digest("$it:imageLastUpdate=$imageLastUpdate".toByteArray())
             "\"${hashBytes.joinToString("") { "%02x".format(it) }}\""
         } ?: "\"null\""
     }
