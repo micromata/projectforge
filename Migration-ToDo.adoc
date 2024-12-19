@@ -1,4 +1,6 @@
 Aktuell:
+- Besucherbuch: englische Übersetzung
+- AG-Grid: setColumnStates wird nicht in den UserPrefs gespeichert.
 - -XX:ReservedCodeCacheSize=100m
 - Rechnungen: skonto-Datum wird automatisch auf nonsens gesetzt.
 - History: Rechnungsposition -> Auftragsposition taucht nicht in History auf.

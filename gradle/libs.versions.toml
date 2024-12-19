@@ -59,6 +59,7 @@ org-flywaydb = "10.22.0"
 org-glassfish-jaxb = "4.0.5"
 org-hibernate-search = "7.2.1.Final"
 org-hibernate-orm = "6.6.3.Final"
+org-hibernate-validator = "8.0.2.Final"
 org-hsqldb-hsqldb = "2.7.4"
 org-jetbrains-kotlin = "2.0.21"
 org-jetbrains-kotlinx-coroutines-core = "1.9.0"
@@ -177,6 +178,7 @@ org-glassfish-jaxb-xjc = { module = "org.glassfish.jaxb:jaxb-xjc", version.ref =
 org-hibernate-orm-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "org-hibernate-orm" }
 org-hibernate-search-backend-lucene = { module = "org.hibernate.search:hibernate-search-backend-lucene", version.ref = "org-hibernate-search" }
 org-hibernate-search-mapper-orm = { module = "org.hibernate.search:hibernate-search-mapper-orm", version.ref = "org-hibernate-search" }
+org-hibernate-validator = { module = "org.hibernate.validator:hibernate-validator", version.ref = "org-hibernate-validator" }
 org-hsqldb-hsqldb = { module = "org.hsqldb:hsqldb", version.ref = "org-hsqldb-hsqldb" }
 org-jetbrains-kotlin-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "org-jetbrains-kotlin" }
 org-jetbrains-kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "org-jetbrains-kotlin" }
