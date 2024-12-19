@@ -311,6 +311,8 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Long>, F extends
         final O data = getData();
         getLogger().info("Clone of data chosen: " + data);
         data.setId(null);
+        data.setCreated(null);
+        data.setLastUpdate(null);
         data.setDeleted(false);
     }
 
