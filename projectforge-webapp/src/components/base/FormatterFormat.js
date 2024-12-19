@@ -25,7 +25,7 @@ const formatterFormat = (
         case 'KONTO':
         case 'PROJECT':
         case 'EMPLOYEE':
-            return value.displayName;
+            return value?.displayName ?? '???';
         case 'SHOW_LIST_OF_DISPLAYNAMES':
             if (value && Array.isArray(value)) {
                 return value.map((obj) => obj.displayName).join(', ');
