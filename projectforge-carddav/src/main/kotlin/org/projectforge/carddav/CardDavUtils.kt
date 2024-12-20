@@ -199,6 +199,10 @@ internal object CardDavUtils {
     }
 
     private fun concatPath(path1: String, path2: String): String {
+        if (path2.startsWith(path1)) {
+            // path2 already starts with path1:
+            return path2
+        }
         return if (path1.endsWith("/") && path2.startsWith("/")) {
             path1 + path2.removePrefix("/")
         } else if (!path1.endsWith("/") && !path2.startsWith("/")) {
