@@ -92,6 +92,20 @@ class PFDateTimeTest {
             "2019-03-31 22:00",
             PFDateTimeUtils.parseAndCreateDateTime("2019-03-31T22:00:00.000Z")!!.isoString
         )
+        assertEquals(
+            "2024-11-16 22:36",
+            PFDateTimeUtils.parseAndCreateDateTime(
+                "1731796572",
+                numberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS
+            )!!.isoString
+        )
+        assertEquals(
+            "1970-01-21 01:03",
+            PFDateTimeUtils.parseAndCreateDateTime(
+                "1731796572",
+                numberFormat = PFDateTime.NumberFormat.EPOCH_MILLIS
+            )!!.isoString
+        )
         assertNull(PFDateTimeUtils.parseAndCreateDateTime("2019-03-31"))
     }
 
