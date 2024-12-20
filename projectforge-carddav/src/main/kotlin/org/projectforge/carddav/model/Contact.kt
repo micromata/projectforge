@@ -23,6 +23,7 @@
 
 package org.projectforge.carddav.model
 
+import org.projectforge.carddav.CardDavUtils
 import org.projectforge.framework.time.PFDateTime
 import java.security.MessageDigest
 import java.util.Date
@@ -46,9 +47,7 @@ data class Contact(
      */
     val etag: String by lazy {
         vcardData?.let {
-            val digest = MessageDigest.getInstance("SHA-256")
-            val hashBytes = digest.digest("$it:imageLastUpdate=$imageLastUpdate".toByteArray())
-            "\"${hashBytes.joinToString("") { "%02x".format(it) }}\""
+            CardDavUtils.getEtag("$it:imageLastUpdate=$imageLastUpdate".toByteArray())
         } ?: "\"null\""
     }
 

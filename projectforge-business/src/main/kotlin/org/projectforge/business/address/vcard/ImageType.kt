@@ -23,8 +23,8 @@
 
 package org.projectforge.business.address.vcard
 
-enum class ImageType(val extension: String) {
-    JPEG("jpg"), PNG("png"), GIF("gif");
+enum class ImageType(val extension: String, val mimeType: String) {
+    JPEG("jpg", "image/jpeg"), PNG("png", "image/png"), GIF("gif", "image/gif");
 
     fun asVCardImageType(): ezvcard.parameter.ImageType {
         return when (this) {

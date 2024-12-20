@@ -36,6 +36,7 @@ import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.utils.ResponseUtils
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import java.security.MessageDigest
 import java.util.*
 
 internal object CardDavUtils {
@@ -65,6 +66,12 @@ internal object CardDavUtils {
         return getEtag(contactList)
     }
 
+    /**
+     * Returns the URL for the given contact image.
+     * @param contactId The contact ID.
+     * @param imageType The image type.
+     * @return The URL. Example: https://projectforge.acme.com/carddav/photos/contact-123.jpg
+     */
     fun getImageUrl(contactId: Long, imageType: ImageType): String {
         val path =
             concatPath(CardDavInit.CARD_DAV_BASE_PATH, "${CardDavInit.PHOTO_PATH}$contactId.${imageType.extension}")
@@ -84,6 +91,25 @@ internal object CardDavUtils {
     fun getEtag(contactList: List<Contact>?): String {
         val lastUpdated = getLastUpdated(contactList)
         return "\"${PFDateTime.fromOrNow(lastUpdated).format(DateFormatType.ISO_TIMESTAMP_MILLIS)}\""
+    }
+
+    fun getEtag(date: Date): String {
+        return getEtag(date.time.toString().toByteArray())
+    }
+
+    /**
+     * Returns the ETag for the given bytearray.
+     * The ETag is the SHA-256 hash of the bytes formatted as hexadecimal string.
+     * @param bytes The bytes (e.g. of an image).
+     * @return The ETag.
+     */
+    fun getEtag(bytes: ByteArray): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val hashBytes = digest.digest(bytes)
+        // %: Marks the beginning of a formatting placeholder.
+        // 02: Means that the output should be at least 2 digits long. If the value is shorter, it is padded with leading zeros (0).
+        // x: Specifies that the number should be displayed in hexadecimal format (with lowercase letters a-f).
+        return "\"${hashBytes.joinToString("") { "%02x".format(it) }}\""
     }
 
     fun getSyncToken(): String {
