@@ -57,6 +57,9 @@ class CardDavService {
     private lateinit var domainService: DomainService
 
     @Autowired
+    private lateinit var getRequestHandler: GetRequestHandler
+
+    @Autowired
     private lateinit var restAuthenticationUtils: RestAuthenticationUtils
 
     @Autowired
@@ -136,7 +139,7 @@ class CardDavService {
         } else if (method == "GET") {
             // /carddav/users/admin/addressbooks/ProjectForge-129.vcf
             writerContext.contactList = getContactList(userDO)
-            GetRequestHandler.handleGetCall(writerContext)
+            getRequestHandler.handleGetCall(writerContext)
         } else if (method == "DELETE") {
             // /carddav/users/admin/addressbooks/ProjectForge-129.vcf
             deleteRequestHandler.handleDeleteCall(writerContext)
