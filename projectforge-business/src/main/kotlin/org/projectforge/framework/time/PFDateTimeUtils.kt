@@ -195,7 +195,7 @@ object PFDateTimeUtils {
     fun parse(
         str: String?,
         defaultZoneId: ZoneId? = null,
-        numberFormat: PFDateTime.NumberFormat? = PFDateTime.NumberFormat.EPOCH_SECONDS,
+        numberFormat: PFDateTime.NumberFormat? = null,
         locale: Locale = PFDateTime.getUsersLocale()
     )
             : PFDateTime? {
@@ -210,7 +210,7 @@ object PFDateTimeUtils {
             // Simply remove milliseconds for this special case:
             trimmedString = trimmedString.substring(0 until trimmedString.length - 4)
         }
-        val temporal = DateParser.parse(trimmedString, defaultZoneId, parseLocalDateIfNoTimeOfDayGiven = false)
+        val temporal = DateParser.parse(trimmedString, defaultZoneId, parseLocalDateIfNoTimeOfDayGiven = false, numberFormat = numberFormat)
         if (temporal != null) {
             val zoneId = defaultZoneId ?: ZoneOffset.UTC
             return PFDateTime.fromTemporal(temporal, zoneId, locale)
