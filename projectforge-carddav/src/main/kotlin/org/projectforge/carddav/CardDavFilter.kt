@@ -103,6 +103,9 @@ class CardDavFilter : Filter {
         // users/joe/addressbooks/ProjectForge-129.vcf
         val NORMALIZED_GET_REQUEST_REGEX = """^users/([^/]+)/addressbooks/ProjectForge-(\d+)\.vcf$""".toRegex()
 
+        // users/joe/addressbooks/ProjectForge-129.vcf
+        val NORMALIZED_GET_PHOTO_REQUEST_REGEX = """^photos/contact-(\d+).png$""".toRegex()
+
         /**
          * PROPFIND: /, /index.html, /carddav, /.well-known/carddav
          * OPTIONS: /carddav, /users/...
@@ -129,7 +132,9 @@ class CardDavFilter : Filter {
                 "GET", "DELETE" -> {
                     log.debug { "GET call detected: $normalizedUri" }
                     // /carddav/users/admin/addressbooks/ProjectForge-129.vcf
-                    return normalizedUri.matches(NORMALIZED_GET_REQUEST_REGEX)
+                    // /carddav/photos/contact-129.png
+                    return normalizedUri.matches(NORMALIZED_GET_REQUEST_REGEX) ||
+                            normalizedUri.matches(NORMALIZED_GET_PHOTO_REQUEST_REGEX)
                 }
 
                 "OPTIONS" -> {
