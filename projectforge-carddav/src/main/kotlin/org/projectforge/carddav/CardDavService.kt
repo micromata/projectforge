@@ -67,7 +67,7 @@ class CardDavService {
 
     @PostConstruct
     fun init() {
-        domain = domainService.plainDomain
+        domain = domainService.domainWithContextPath
     }
 
     fun dispatch(request: HttpServletRequest, response: HttpServletResponse) {
