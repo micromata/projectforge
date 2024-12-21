@@ -57,7 +57,11 @@ internal object CardDavServerTestUtils {
                      |**********************************************************************************
                      |**********************************************************************************
                      |""".trimMargin()
-        append(text)
+        if (!file.exists()) {
+            file.writeText(text)
+        } else {
+            file.appendText(text)
+        }
         log.info { "Writing CardDav requests to ${file.absolutePath}." }
         file
     }
