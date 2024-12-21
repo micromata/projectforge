@@ -190,7 +190,7 @@ internal object CardDavUtils {
      * @return The fixed href.
      */
     fun fixHref(url: String, withDomain: Boolean = false): String {
-        val path = concatPath(CardDavInit.CARD_DAV_BASE_PATH, url)
+        val path = url // concatPath(CardDavInit.CARD_DAV_BASE_PATH, url)
         return if (withDomain) {
             concatPath(domain, path)
         } else {

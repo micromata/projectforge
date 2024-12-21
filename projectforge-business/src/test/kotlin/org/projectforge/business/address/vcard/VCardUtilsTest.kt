@@ -39,7 +39,8 @@ class VCardUtilsTest {
             address.birthday = LocalDate.of(1992, Month.JULY, 11)
             address.firstName = "Joe"
             address.name = "Hill"
-            val vcardString = VCardUtils.buildVCardString(address, VCardVersion.V_3_0)
+            address.image = true
+            val vcardString = VCardUtils.buildVCardString(address, VCardVersion.V_3_0, "https://www.projectforge.org/carddav/users/kai/photos/contact-1234.png", ImageType.JPEG)
             Assertions.assertTrue(vcardString.contains("BDAY:1992-07-11"))
         }
         AddressDO().also { address ->

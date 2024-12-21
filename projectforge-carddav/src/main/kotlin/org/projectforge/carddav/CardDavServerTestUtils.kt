@@ -32,7 +32,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.rest.utils.ResponseUtils
-import java.awt.SystemColor.text
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -112,14 +111,19 @@ internal object CardDavServerTestUtils {
 
         for (line in lines) {
             when {
-                line.startsWith("PHOTO;", true) -> {
+                // PHOTO;ENCODING=b;TYPE=JPEG:
+                //  9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB
+                //  AQEBAQEB...
+                line.startsWith("PHOTO;", true) && line.contains("encoding=b", ignoreCase = true) -> {
                     result.append(line)
-                    result.appendLine("...")
                     skipFollowingLines = true // Folgende Zeilen ignorieren
+                    result.appendLine("...")
                 }
+
                 line.startsWith(" ") && skipFollowingLines -> {
                     continue
                 }
+
                 else -> {
                     result.appendLine(line)
                     skipFollowingLines = false
@@ -128,7 +132,8 @@ internal object CardDavServerTestUtils {
         }
 
         return result.toString()
-    }}
+    }
+}
 
 fun main() {
     val vcard = """
