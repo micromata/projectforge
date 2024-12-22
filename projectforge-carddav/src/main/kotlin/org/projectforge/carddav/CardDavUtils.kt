@@ -31,6 +31,7 @@ import org.projectforge.carddav.CardDavXmlUtils.EXTRACT_ADDRESS_ID_REGEX
 import org.projectforge.carddav.model.Contact
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.utils.ResponseUtils
@@ -73,13 +74,26 @@ internal object CardDavUtils {
      * @return The URL. Example: https://projectforge.acme.com/carddav/photos/contact-123.jpg
      */
     fun getImageUrl(contactId: Long, imageType: ImageType): String {
-        val path =
-            concatPath(CardDavInit.CARD_DAV_BASE_PATH, "${CardDavInit.PHOTO_PATH}$contactId.${imageType.extension}")
+        // Workarround: /carddav not yet available:
+        // TODO: val path =
+        //    concatPath(CardDavInit.CARD_DAV_BASE_PATH, "${CardDavInit.PHOTO_PATH}$contactId.${imageType.extension}")
+        // Don't forget to change the regex in CardDavFilter.NORMALIZED_GET_PHOTO_REQUEST_REGEX.
+        val user = ThreadLocalUserContext.loggedInUser?.username ?: "unknown"
+        val path = concatPath("/users/$user/photos", "contact-$contactId.${imageType.extension}")
         return concatPath(domain, path)
     }
 
     fun isImageUrl(requestUri: String): Boolean {
-        return normalizedUri(requestUri).startsWith(CardDavInit.PHOTO_PATH)
+        // Workarround: /carddav not yet available:
+        // TODO: return normalizedUri(requestUri).startsWith(CardDavInit.PHOTO_PATH)
+        val normalizedUri = normalizedUri(requestUri)
+        return normalizedUri.startsWith("users/") && normalizedUri.contains(CardDavInit.PHOTO_PATH)
+    }
+
+    fun getBaseUrl(): String {
+        // Workarround: /carddav not yet available:
+        // TODO: return concatPath(domain, CardDavInit.CARD_DAV_BASE_PATH)
+        return domain
     }
 
     /**

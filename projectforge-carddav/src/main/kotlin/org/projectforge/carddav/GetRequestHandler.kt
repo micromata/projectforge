@@ -51,6 +51,10 @@ internal class GetRequestHandler {
         val contactList = writerContext.contactList ?: emptyList()
         log.debug { "handleGetCall:  ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
         val requestedPath = requestWrapper.requestURI
+        if (requestedPath == "/.well-known/carddav") {
+            handleWellKnownGetCall(writerContext)
+            return
+        }
         val contactId = CardDavUtils.extractContactId(requestedPath)
         if (contactId != null && CardDavUtils.isImageUrl(requestedPath)) {
             handleImageGetCall(writerContext, contactId)
@@ -76,6 +80,20 @@ internal class GetRequestHandler {
                 )
             }]"
         }
+    }
+
+    private fun handleWellKnownGetCall(writerContext: WriterContext) {
+        log.debug { "handleWellKnownGetCall:  ${writerContext.requestWrapper.request.method}: '${writerContext.requestWrapper.requestURI}'" }
+        // HTTP/1.1 301 Moved Permanently
+        // Location: https://example.com/carddav/
+        val response = writerContext.response
+        ResponseUtils.setValues(response, status = HttpStatus.MOVED_PERMANENTLY)  // HTTP 301
+        response.setHeader("Location", CardDavUtils.getBaseUrl())
+        CardDavServerDebugWriter.writeRequestResponseLogInTestMode(
+            writerContext.requestWrapper,
+            response,
+            "<empty-content> Location=${CardDavUtils.getBaseUrl()}"
+        )
     }
 
     /**
