@@ -59,8 +59,10 @@ open class CardDavConfig {
     private fun postConstruct() {
         CardDavServerDebugWriter.debugUser = debugUser
         AddressPagesRest.carddavServerEnabled = enable
-        CardDAVInfoPageRest.appleUrl = "${domainService.plainDomain}${CardDavInit.CARD_DAV_BASE_PATH}"
         CardDAVInfoPageRest.standardUrl = "${domainService.domain}${CardDavInit.CARD_DAV_BASE_PATH}"
+        CardDAVInfoPageRest.appleUrl = domainService.plainDomain
+        CardDAVInfoPageRest.applePath = CardDavInit.CARD_DAV_BASE_PATH
+        CardDAVInfoPageRest.iOSUrl = "${domainService.plainDomain}${CardDavInit.CARD_DAV_BASE_PATH}"
     }
 
     val vcardVersion: VCardVersion
