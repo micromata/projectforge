@@ -68,10 +68,10 @@ internal class GetRequestHandler {
         response.addHeader("ETag", contact.etag)
         response.addHeader("Last-Modified", contact.lastModifiedAsHttpDate)
         ResponseUtils.setValues(response, HttpStatus.OK, contentType = "text/vcard", content = content)
-        CardDavServerTestUtils.writeRequestResponseLogInTestMode(requestWrapper, response, content)
+        CardDavServerDebugWriter.writeRequestResponseLogInTestMode(requestWrapper, response, content)
         log.debug {
             "handleGetCall: response=${ResponseUtils.asJson(response)}, content=[${
-                CardDavServerTestUtils.sanitizeContent(
+                CardDavServerDebugWriter.sanitizeContent(
                     content
                 )
             }]"
@@ -133,5 +133,8 @@ internal class GetRequestHandler {
             response.addHeader("Last-Modified", PFDateTime.from(imageLastUpdate).formatAsHttpDate())
             response.addHeader("ETag", eTag)
         }
+        val requestWrapper = writerContext.requestWrapper
+        val response = writerContext.response
+        CardDavServerDebugWriter.writeRequestResponseLogInTestMode(requestWrapper, response, "<imagedata>")
     }
 }

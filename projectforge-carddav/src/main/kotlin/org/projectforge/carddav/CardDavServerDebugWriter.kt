@@ -26,28 +26,36 @@ package org.projectforge.carddav
 import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
 import org.projectforge.ProjectForgeVersion
-import org.projectforge.carddav.CardDavServerTestUtils.sanitizeContent
+import org.projectforge.carddav.CardDavServerDebugWriter.sanitizeContent
+import org.projectforge.common.CSVWriter
 import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.rest.utils.ResponseUtils
 import java.io.File
+import java.io.StringWriter
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 
 private val log = KotlinLogging.logger {}
 
-internal object CardDavServerTestUtils {
+/**
+ * For debugging purposes. If a debug user is given (in projectforge.properties), all requests and responses are written to log files.
+ * @see CardDavConfig
+ */
+internal object CardDavServerDebugWriter {
     /**
      * Set by [CardDavConfig] to enable test mode.
      */
-    var testUserMode = ""
+    var debugUser = ""
 
     private val logFile: File by lazy {
-        val tempDir = ConfigXml.getInstance().tempDirectory
-        val file = File(tempDir, "projectforge-carddav-test-$testUserMode.log")
+        prepareLogFile("projectforge-carddav-$debugUser-calls.log", writeCsvHeadLine())
+    }
+
+    private val logDetailFile: File by lazy {
         val text = """**********************************************************************************
                      |**********************************************************************************
                      |**
@@ -56,13 +64,7 @@ internal object CardDavServerTestUtils {
                      |**********************************************************************************
                      |**********************************************************************************
                      |""".trimMargin()
-        if (!file.exists()) {
-            file.writeText(text)
-        } else {
-            file.appendText(text)
-        }
-        log.info { "Writing CardDav requests to ${file.absolutePath}." }
-        file
+        prepareLogFile("projectforge-carddav-$debugUser-detail.log", text)
     }
 
     fun writeRequestResponseLogInTestMode(
@@ -70,16 +72,18 @@ internal object CardDavServerTestUtils {
         response: HttpServletResponse,
         responseContent: String = "",
     ) {
-        if (testUserMode.isBlank()) {
+        if (debugUser.isBlank()) {
             return
         }
         val loggedInUser = ThreadLocalUserContext.loggedInUser
-        if (loggedInUser?.username != testUserMode) {
+        if (loggedInUser?.username != debugUser) {
             return
         }
+        val date = PFDateTime.now().isoStringSeconds
         val sb = StringBuilder()
         sb.appendLine("---------------------------")
-        sb.appendLine("-- new request: ${PFDateTime.now().isoStringSeconds}")
+        sb.appendLine("-- new request: $date")
+        sb.appendLine("--              user-agent=${requestWrapper.request.getHeader("User-Agent")}")
         sb.appendLine("--              ${requestWrapper.method}: ${requestWrapper.requestURI}")
         sb.appendLine("-- ")
         sb.appendLine("Request:")
@@ -90,12 +94,43 @@ internal object CardDavServerTestUtils {
         sb.appendLine("response=${ResponseUtils.asJson(response)}")
         sb.appendLine("content=[$responseContent]")
         sb.appendLine()
-        append(sb.toString())
+        append(logDetailFile, sb.toString())
+        append(logFile, writeCsvLine(date, requestWrapper))
     }
 
-    private fun append(text: String) {
+    private fun writeCsvHeadLine(): String {
+        return """"date";"uri";"method";"user-agent","auth-type","body""""
+    }
+
+    private fun writeCsvLine(date: String, requestWrapper: RequestWrapper): String {
+        val uri = requestWrapper.requestURI
+        val method = requestWrapper.method
+        val userAgent = requestWrapper.request.getHeader("User-Agent")
+        val authType = requestWrapper.request.authType
+        return """${asCsvValue(date)};${asCsvValue(uri)};${asCsvValue(method)};${asCsvValue(userAgent)},${asCsvValue(authType)};${asCsvValue(requestWrapper.body)}"""
+    }
+
+    internal fun asCsvValue(text: String?): String {
+        if (text == null) {
+            return ""
+        }
+        val sb = StringBuilder()
+        sb.append("\"")
+        text.forEach { c ->
+            when (c) {
+                '"' -> sb.append("\"\"")
+                '\r' -> sb.append("\\r")
+                '\n' -> sb.append("\\n")
+                else -> sb.append(c)
+            }
+        }
+        sb.append("\"")
+        return sb.toString()
+    }
+
+    private fun append(file: File, text: String) {
         Files.write(
-            Paths.get(logFile.absolutePath),
+            Paths.get(file.absolutePath),
             sanitizeContent(text).toByteArray(),
             StandardOpenOption.APPEND
         )
@@ -132,6 +167,18 @@ internal object CardDavServerTestUtils {
         }
 
         return result.toString()
+    }
+
+    private fun prepareLogFile(filename: String, introText: String): File {
+        val tempDir = ConfigXml.getInstance().tempDirectory
+        val file = File(tempDir, filename)
+        if (!file.exists()) {
+            file.writeText(introText)
+        } else {
+            file.appendText(introText)
+        }
+        log.info { "Writing CardDav requests to ${file.absolutePath}." }
+        return file
     }
 }
 

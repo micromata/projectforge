@@ -53,7 +53,6 @@ class PropFindRequestHandlerTest {
                     |      <d:prop>
                     |        <d:resourcetype>
                     |          <d:collection />
-                    |          <card:addressbook />
                     |        </d:resourcetype>
                     |        <d:displayname>kai</d:displayname>
                     |      </d:prop>

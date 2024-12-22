@@ -125,14 +125,14 @@ internal object PropWriter {
             PropType.RESOURCETYPE -> {
                 appendMultilineProp(
                     sb, prop,
-                    //if (href.contains("addressbooks")) {
+                    if (href.contains("addressbooks")) {
                         """
                         |          <$D:collection />
                         |          <$CARD:addressbook />
                         """.trimMargin()
-                    //} else {
-                    //    "<$D:collection />"
-                    //}
+                    } else {
+                        "<$D:collection />"
+                    }
                 )
             }
 
