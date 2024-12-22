@@ -44,6 +44,8 @@ class CardDAVInfoPageRest {
         var password: String? = null,
         var standardUrl: String? = null,
         var appleUrl: String? = null,
+        var applePath: String? = null,
+        var iOSUrl: String? = null,
     )
 
     @Autowired
@@ -71,11 +73,43 @@ class CardDAVInfoPageRest {
                 UIRow()
                     .add(
                         UICol()
-                            .add(UIReadOnlyField("appleUrl", label = "'Apple (macOS X, iOS)", canCopy = true))
+                            .add(
+                                UIRow()
+                                    .add(
+                                        UICol()
+                                            .add(
+                                                UIReadOnlyField(
+                                                    "appleUrl",
+                                                    label = "'Server (Apple macOS X)",
+                                                    canCopy = true
+                                                )
+                                            )
+                                    )
+                                    .add(
+                                        UICol()
+                                            .add(
+                                                UIReadOnlyField(
+                                                    "applePath",
+                                                    label = "'Path (Apple macOS X)",
+                                                    canCopy = true
+                                                )
+                                            )
+                                    )
+                            )
                     )
                     .add(
                         UICol()
                             .add(UIReadOnlyField("standardUrl", label = "'Server (Thunderbird etc.)", canCopy = true))
+                    )
+            )
+            .add(
+                UIRow()
+                    .add(
+                        UICol()
+                            .add(UIReadOnlyField("iOSUrl", label = "'Url (Apple iOS)", canCopy = true))
+                    )
+                    .add(
+                        UICol()
                     )
             )
 
@@ -88,14 +122,18 @@ class CardDAVInfoPageRest {
                 UserTokenType.DAV_TOKEN
             ),
             appleUrl = appleUrl,
-            standardUrl = standardUrl
+            applePath = applePath,
+            iOSUrl = iOSUrl,
+            standardUrl = standardUrl,
         )
 
         return FormLayoutData(data, layout, null)
     }
 
     companion object {
-        var standardUrl = "localhost"
+        var standardUrl = "http://localhost:8080/carddav"
         var appleUrl = "localhost"
+        var applePath = "/carddav"
+        var iOSUrl = "localhost/carddav"
     }
 }
