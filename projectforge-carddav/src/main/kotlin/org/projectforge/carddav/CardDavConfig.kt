@@ -25,12 +25,18 @@ package org.projectforge.carddav
 
 import jakarta.annotation.PostConstruct
 import org.projectforge.business.address.vcard.VCardVersion
+import org.projectforge.business.configuration.DomainService
 import org.projectforge.rest.AddressPagesRest
+import org.projectforge.rest.CardDAVInfoPageRest
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 
 @Configuration
 open class CardDavConfig {
+    @Autowired
+    private lateinit var domainService: DomainService
+
     @Value("\${projectforge.carddav.server.enable:true}")
     var enable: Boolean = true
         private set
@@ -53,6 +59,8 @@ open class CardDavConfig {
     private fun postConstruct() {
         CardDavServerDebugWriter.debugUser = debugUser
         AddressPagesRest.carddavServerEnabled = enable
+        CardDAVInfoPageRest.appleUrl = "${domainService.plainDomain}${CardDavInit.CARD_DAV_BASE_PATH}"
+        CardDAVInfoPageRest.standardUrl = "${domainService.domain}${CardDavInit.CARD_DAV_BASE_PATH}"
     }
 
     val vcardVersion: VCardVersion
