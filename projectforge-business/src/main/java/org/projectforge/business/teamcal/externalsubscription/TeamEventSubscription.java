@@ -223,7 +223,7 @@ public class TeamEventSubscription implements Serializable {
           + " information, quit from url '"
           + displayUrl
           + "': "
-          + e.getMessage(), e);
+          + e.getMessage());
     }
   }
 
