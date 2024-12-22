@@ -35,8 +35,12 @@ open class CardDavConfig {
     var enable: Boolean = true
         private set
 
-    @Value("\${projectforge.carddav.server.testUserMode:}")
-    internal var testUserMode: String = ""
+    /**
+     * If set, the user with this name is used for debugging by writing requests and responses to log files.
+     * @see CardDavServerDebugWriter
+     */
+    @Value("\${projectforge.carddav.server.debugUser:}")
+    internal var debugUser: String = ""
         private set
 
     /**
@@ -47,7 +51,7 @@ open class CardDavConfig {
 
     @PostConstruct
     private fun postConstruct() {
-        CardDavServerTestUtils.testUserMode = testUserMode
+        CardDavServerDebugWriter.debugUser = debugUser
         AddressPagesRest.carddavServerEnabled = enable
     }
 

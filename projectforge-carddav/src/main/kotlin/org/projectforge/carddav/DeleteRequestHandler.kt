@@ -58,7 +58,7 @@ internal class DeleteRequestHandler {
         } else {
             ResponseUtils.setValues(response, content = "The resource does not exist.", status = HttpStatus.NOT_FOUND)
         }
-        CardDavServerTestUtils.writeRequestResponseLogInTestMode(requestWrapper, response)
+        CardDavServerDebugWriter.writeRequestResponseLogInTestMode(requestWrapper, response)
         log.debug { "handleGetCall: response.content=[]" }
     }
 }
