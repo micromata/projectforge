@@ -74,26 +74,19 @@ internal object CardDavUtils {
      * @return The URL. Example: https://projectforge.acme.com/carddav/photos/contact-123.jpg
      */
     fun getImageUrl(contactId: Long, imageType: ImageType): String {
-        // Workarround: /carddav not yet available:
-        // TODO: val path =
-        //    concatPath(CardDavInit.CARD_DAV_BASE_PATH, "${CardDavInit.PHOTO_PATH}$contactId.${imageType.extension}")
+        val path =
+            concatPath(CardDavInit.CARD_DAV_BASE_PATH, "${CardDavInit.PHOTO_PATH}$contactId.${imageType.extension}")
         // Don't forget to change the regex in CardDavFilter.NORMALIZED_GET_PHOTO_REQUEST_REGEX.
         val user = ThreadLocalUserContext.loggedInUser?.username ?: "unknown"
-        val path = concatPath("/users/$user/photos", "contact-$contactId.${imageType.extension}")
         return concatPath(domain, path)
     }
 
     fun isImageUrl(requestUri: String): Boolean {
-        // Workarround: /carddav not yet available:
-        // TODO: return normalizedUri(requestUri).startsWith(CardDavInit.PHOTO_PATH)
-        val normalizedUri = normalizedUri(requestUri)
-        return normalizedUri.startsWith("users/") && normalizedUri.contains(CardDavInit.PHOTO_PATH)
+        return normalizedUri(requestUri).startsWith(CardDavInit.PHOTO_PATH)
     }
 
     fun getBaseUrl(): String {
-        // Workarround: /carddav not yet available:
-        // TODO: return concatPath(domain, CardDavInit.CARD_DAV_BASE_PATH)
-        return domain
+        return concatPath(domain, CardDavInit.CARD_DAV_BASE_PATH)
     }
 
     /**
