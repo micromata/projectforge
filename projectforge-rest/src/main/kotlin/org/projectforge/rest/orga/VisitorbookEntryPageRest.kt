@@ -66,9 +66,9 @@ class VisitorbookEntryPageRest : AbstractDynamicPageRest() {
         @RequestParam("id") idString: String?,
         @RequestParam("visitorbookId") visitorbookId: Long?,
     ): FormLayoutData {
-        val id = idString?.toLongOrNull()
+        val id = idString?.toLongOrNull() ?: -1
         requiredFields(id, visitorbookId)
-        val data = if (id!! > 0) {
+        val data = if (id > 0) {
             VisitorbookEntry(visitorbookService.findVisitorbookEntry(id))
         } else {
             VisitorbookEntry(visitorbookId = visitorbookId).also {
@@ -79,6 +79,7 @@ class VisitorbookEntryPageRest : AbstractDynamicPageRest() {
         val lc = LayoutContext(VisitorbookEntryDO::class.java)
         val layout = UILayout("orga.visitorbook.timeofvisit")
         layout.add(lc, "dateOfVisit", "arrived", "departed", "comment")
+        layout.addAction(UIButton.createCancelButton(responseAction = ResponseAction(targetType = TargetType.CLOSE_MODAL)))
         if (id < 0) {
             // New entry
             layout.addAction(
