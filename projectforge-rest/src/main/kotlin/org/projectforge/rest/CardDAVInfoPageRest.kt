@@ -133,7 +133,7 @@ class CardDAVInfoPageRest {
     companion object {
         var standardUrl = "http://localhost:8080/carddav"
         var appleUrl = "localhost"
-        var applePath = "/carddav"
+        var applePath = "/carddav/"
         var iOSUrl = "localhost/carddav"
     }
 }

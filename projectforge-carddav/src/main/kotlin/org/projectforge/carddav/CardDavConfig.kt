@@ -61,7 +61,7 @@ open class CardDavConfig {
         AddressPagesRest.carddavServerEnabled = enable
         CardDAVInfoPageRest.standardUrl = "${domainService.domain}${CardDavInit.CARD_DAV_BASE_PATH}"
         CardDAVInfoPageRest.appleUrl = domainService.plainDomain
-        CardDAVInfoPageRest.applePath = CardDavInit.CARD_DAV_BASE_PATH
+        CardDAVInfoPageRest.applePath = "${CardDavInit.CARD_DAV_BASE_PATH}/"
         CardDAVInfoPageRest.iOSUrl = "${domainService.plainDomain}${CardDavInit.CARD_DAV_BASE_PATH}"
     }
 
