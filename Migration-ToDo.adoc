@@ -1,18 +1,14 @@
 Aktuell:
-- Besucherbuch: englische Übersetzung
 - AG-Grid: setColumnStates wird nicht in den UserPrefs gespeichert.
 - Wicket: Auftragsbuch: org.apache.wicket.core.request.mapper.StalePageException: A request to page '[Page class = org.projectforge.web.fibu.AuftragEditPage, id = 9, render count = 3]' has been made with stale 'renderCount'. The page will be re-rendered.
 - -XX:ReservedCodeCacheSize=100m
-- Rechnungen: skonto-Datum wird automatisch auf nonsens gesetzt.
 - History: Rechnungsposition -> Auftragsposition taucht nicht in History auf.
 - QueryFilter.sortAndLimitMaxRowsWhileSelect: not yet supported
 - Gradle-Version-Checker: Read lib.versions.toml und Vergleichen mit fatjar.
 - Fehlerhinweis, wenn halber Tag für Urlaubsanfang/ende gewählt wird, es aber kein Arbeitstag ist.
 - Scripts
-- Download/Upload vcf
 - Kalendereinträge und Subscriptions.
 - LoginProtection: Increases penalty time for DAV only after 5 tries.
-- Stacktraces, wie für Exceptions in TeamEventSubscription kürzen, vermüllen logfiles ohne wirkliche Informationen.
 
 - Pagination of selects: Aktuell wird nicht DB-seitig paginiert, sondern immer die ganze Liste gefetched.
 - remove all BaseDO.xxxId (lazy fetch) and replace callee by baseDO?.id
@@ -35,21 +31,12 @@ History
 
 - ProjektEdit: History enthält keine neuen Kost2DOs/Arten (Einträge sind aber da).
 - CronReindexingHourlyJob ohne Effekt.
-- Protokoll einsehen: http://localhost:8080/react/logViewer/dynamic/1
 - Reindizierung der letzten n einträge nicht migriert (sinnvoll?).
 - history-entries bei EmployeeValidityAttrDO nichtssagend.
 - HistoryEntry: EmployeeValidityAttrDO.insert muss sinnvoll für Anzeige formatiert werden.
-- Cascade aller Entitäten prüfen (z. B. war GroupTaskAccessDO.task auf Merged!!!!) Abgleich mit autoUpdateCollectionEntries (evtl. kann auf autoUpdateCollectionEntries verzichtet werden, zumindest aber Sanity-Check in CandH.)
 - PFHistoryMasterDO: Indexe setzen, wenn Einträge wieder gehen.
 - XML-Import für Testsystem
-- TypeBinding: ProjektDO, Kost1DO, Kost2DO, ...: Add path to list of searchable items
-- @WithHistory: AuftragDO, TeamEventDO
-- UserRights zu Benutzer hinzufügen testen (Reihenfolge update/save wichtig)
-- ICalGeneratorParserTest
 - UserRightId: ClassBridge müsste eigentlich in die Felder der benutzenden DOs
-- Script-Parameter: intValue ist nun long!?
-- StringHelper: splitToLongs/LongObjects OK?
-- SetupPage testen
 - reindexing settings implementieren. Aktuell wird nur komplett gemass-indexed.
 - History of AddressCampaignValueDO's (AddressCampaignValueDao.convertToDisplayHistoryEntries removed)
 
@@ -63,10 +50,3 @@ Später
 
 Ganz später
 - Kalenderlist ruft x-fach DB: FIND GroupDO resultClass=GroupDO auf.
-
-
-- Produktion:
-  # In postgresql.conf (Neustart der Datenbank erforderlich)
-  lock_timeout = '300s'   # 5 minutes timeout for locks.
-  statement_timeout = '300s'   # 5 minutes timeout for SQL-commands.
-
