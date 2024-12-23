@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import org.projectforge.common.extensions.isZeroOrNull
 import org.projectforge.framework.i18n.RequiredFieldIsEmptyException
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -100,6 +101,10 @@ object AuftragAndRechnungDaoHelper {
     }
 
     private fun checkAndCalculateDiscountMaturity(rechnung: AbstractRechnungDO) {
+        if (rechnung.discountPercent.isZeroOrNull()) {
+            // No discount, so no discount maturity.
+            return
+        }
         val discountZahlungsZiel = rechnung.discountZahlungsZielInTagen
         if (rechnung.discountMaturity == null && discountZahlungsZiel != null) {
             val rechnungsDatum: LocalDate? = rechnung.datum

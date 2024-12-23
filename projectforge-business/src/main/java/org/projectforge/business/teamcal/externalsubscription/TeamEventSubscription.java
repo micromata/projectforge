@@ -142,7 +142,7 @@ public class TeamEventSubscription implements Serializable {
         }
       });
     } catch (IOException ex) {
-      log.error(ex.getMessage(), ex);
+      log.error(ex.getMessage());
       return;
     }
     if (bytes == null) {
@@ -223,7 +223,7 @@ public class TeamEventSubscription implements Serializable {
           + " information, quit from url '"
           + displayUrl
           + "': "
-          + e.getMessage(), e);
+          + e.getMessage());
     }
   }
 
