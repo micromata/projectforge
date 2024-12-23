@@ -42,6 +42,22 @@ object ResponseUtils {
         contentType: String? = null,
         content: String? = null
     ) {
+        setByteArrayContent(response, status, contentType, content?.toByteArray(StandardCharsets.UTF_8))
+    }
+
+    /**
+     * Set the response values.
+     * @param response The response.
+     * @param status The status to set, if given.
+     * @param contentType The content type to set, if given. Examples: MediaType.TEXT_PLAIN_VALUE, MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE.
+     * @param content The content to set, if given.
+     */
+    fun setByteArrayContent(
+        response: HttpServletResponse,
+        status: HttpStatus? = null,
+        contentType: String? = null,
+        content: ByteArray? = null
+    ) {
         contentType?.let {
             if (it.contains("charset", ignoreCase = true)) {
                 response.contentType = it
@@ -57,9 +73,8 @@ object ResponseUtils {
             if (contentType == null) {
                 response.contentType = "charset=UTF-8"
             }
-            val contentBytes = content.toByteArray(StandardCharsets.UTF_8)
-            response.setContentLength(contentBytes.size)
-            response.outputStream.use { it.write(contentBytes) }
+            response.setContentLength(content.size)
+            response.outputStream.use { it.write(content) }
         }
     }
 

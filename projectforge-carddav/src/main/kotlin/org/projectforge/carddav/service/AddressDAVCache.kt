@@ -28,8 +28,10 @@ import mu.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressImageDao
+import org.projectforge.business.address.vcard.ImageType
 import org.projectforge.business.address.vcard.VCardUtils
 import org.projectforge.carddav.CardDavConfig
+import org.projectforge.carddav.CardDavUtils
 import org.projectforge.carddav.model.Contact
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
@@ -73,7 +75,13 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
         log.info { "Got ${result.size} addresses from cache and must load ${missedInCache.size} from data base..." }
         if (missedInCache.size > 0) {
             addressDao.select(missedInCache, checkAccess = false)?.forEach {
-                val vcard = VCardUtils.buildVCardString(it, addressImageDao, cardDavConfig.vcardVersion)
+                val imageType = ImageType.PNG
+                val imageUrl = if(it.image == true) {
+                    CardDavUtils.getImageUrl(it.id!!, imageType)
+                } else {
+                    null
+                }
+                val vcard = VCardUtils.buildVCardString(it, cardDavConfig.vcardVersion, imageUrl = imageUrl, imageType = imageType)
                 val contact =
                     Contact(
                         it.id,
@@ -81,6 +89,7 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
                         lastName = it.name,
                         lastUpdated = it.lastUpdate,
                         hasImage = it.image == true,
+                        imageLastUpdate = it.imageLastUpdate,
                         vcardData = vcard,
                     )
                 addCachedContact(it.id!!, contact)

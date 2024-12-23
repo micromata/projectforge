@@ -49,6 +49,8 @@ open class CardDavInit {
     companion object {
         internal const val CARD_DAV_BASE_PATH = "/carddav"
 
+        internal const val PHOTO_PATH = "photos/contact-" // Don't use '/' as prefix!
+
         internal const val MAX_IMAGE_SIZE = (5 * NumberOfBytes.MEGA_BYTES).toString()
 
         internal const val QUOTA_AVAILABLE_BYTES = (100 * NumberOfBytes.MEGA_BYTES).toString()
