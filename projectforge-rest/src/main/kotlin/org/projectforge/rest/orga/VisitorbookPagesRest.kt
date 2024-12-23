@@ -113,10 +113,13 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
             // Name	Vorname	Status	Personalnummer	Kost1	Position	Team	Eintrittsdatum	Austrittsdatum	Bemerkung
             .add(
                 lc,
-                "lastname", "firstname", "company", "visitortype",
-                "lastDateOfVisit", "latestArrived", "latestDeparted", "numberOfVisits", "contactPersons",
-                "comment"
+                "lastname", "firstname", "company", "visitortype"
             )
+            .add("lastDateOfVisit", headerName = "orga.visitorbook.lastVisit")
+            .add("latestArrived", headerName = "orga.visitorbook.lastVisit.arrived")
+            .add("latestDeparted", headerName = "orga.visitorbook.lastVisit.departed")
+            .add("numberOfVisits", headerName = "orga.visitorbook.numberOfVisits")
+            .add(lc,  "contactPersons", "comment")
     }
 
     /**
