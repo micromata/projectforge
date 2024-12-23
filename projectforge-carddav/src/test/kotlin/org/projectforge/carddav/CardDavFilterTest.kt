@@ -46,9 +46,10 @@ class CardDavFilterTest {
         checkRequest("PROPFIND", "/principals", true)
 
         checkRequest( "OPTIONS", "/.well-known/carddav", true)
+        checkRequest( "GET", "/.well-known/carddav", true)
 
         checkRequest("GET", "/principals", false)
-        checkRequest("GET", "/carddav", false)
+        checkRequest("GET", "/carddav", true)
         checkRequest("GET", "/carddav/users/joe/addressbooks/ProjectForge-123.vcf", true)
         checkRequest("GET", "/users/joe/addressbooks/ProjectForge-123.vcf", true)
         checkRequest("GET", "/users/joe/addressbooks/ProjectForge123.vcf", false)

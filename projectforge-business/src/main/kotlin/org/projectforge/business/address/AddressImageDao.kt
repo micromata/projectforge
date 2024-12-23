@@ -23,11 +23,14 @@
 
 package org.projectforge.business.address
 
+import jakarta.persistence.Tuple
 import mu.KotlinLogging
 import org.projectforge.business.image.ImageService
+import org.projectforge.framework.persistence.database.TupleUtils
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.util.*
 
 private val log = KotlinLogging.logger {}
 
@@ -45,28 +48,60 @@ open class AddressImageDao {
     @Autowired
     private lateinit var imageService: ImageService
 
-    /**
-     * Does the access checking. The user may only get images, if he has the select access to the given address.
-     */
-    open fun getImage(addressId: Long): ByteArray? {
-        addressDao.find(addressId) ?: return null // For access checking!
-        return persistenceService.selectNamedSingleResult(
-            AddressImageDO.SELECT_IMAGE,
-            ByteArray::class.java,
-            Pair("addressId", addressId),
-        )
+    fun findImage(
+        addressId: Long,
+        fetchImage: Boolean = false,
+        fetchPreviewImage: Boolean = false,
+        checkAccess: Boolean = true
+    ): AddressImageDO? {
+        var address: AddressDO? = null
+        if (checkAccess) {
+            address = addressDao.find(addressId, checkAccess = true) ?: return null // For access checking!
+        }
+        if (fetchImage && fetchPreviewImage) {
+            // Fetch all:
+            val res = persistenceService.find(AddressImageDO::class.java, addressId)
+            if (res != null && res.lastUpdate == null) {
+                // Fix: lastUpdate is not set in the database for older entries.
+                res.lastUpdate = address?.imageLastUpdate ?: Date(0L)
+            }
+            return res
+        }
+        val result = AddressImageDO()
+        val namedQuery = if (fetchImage) {
+            AddressImageDO.SELECT_IMAGE_ONLY
+        } else if (fetchPreviewImage) {
+            AddressImageDO.SELECT_IMAGE_PREVIEW_ONLY
+        } else {
+            AddressImageDO.SELECT_WITHOUT_IMAGES
+        }
+        persistenceService.selectNamedSingleResult(namedQuery, Tuple::class.java, Pair("addressId", addressId))?.let {
+            result.id = it[0] as? Long
+            result.lastUpdate = it[1] as? Date
+            if (fetchImage) {
+                result.image = it[2] as? ByteArray
+            } else if (fetchPreviewImage) {
+                result.imagePreview = it[2] as? ByteArray
+            }
+        }
+        // Fix: lastUpdate is not set in the database for older entries.
+        result.lastUpdate = result.lastUpdate ?: address?.imageLastUpdate ?: Date(0L)
+        return result
     }
 
     /**
      * Does the access checking. The user may only get images, if he has the select access to the given address.
      */
-    open fun getPreviewImage(addressId: Long): ByteArray? {
-        addressDao.find(addressId) ?: return null // For access checking!
-        return persistenceService.selectNamedSingleResult(
-            AddressImageDO.SELECT_IMAGE_PREVIEW,
-            ByteArray::class.java,
-            Pair("addressId", addressId),
-        )
+    @JvmOverloads
+    open fun getImage(addressId: Long, checkAccess: Boolean = true): ByteArray? {
+        return findImage(addressId, fetchImage = true, checkAccess = checkAccess)?.image
+    }
+
+    /**
+     * Does the access checking. The user may only get images, if he has the select access to the given address.
+     */
+    open fun getPreviewImage(addressId: Long, checkAccess: Boolean = true): ByteArray? {
+        return findImage(addressId, fetchPreviewImage = true, checkAccess = checkAccess)?.imagePreview
     }
 
     /**
@@ -91,6 +126,7 @@ open class AddressImageDao {
             addressImage.address = address
             addressImage.image = image
             addressImage.imagePreview = imageService.resizeImage(image)
+            addressImage.lastUpdate = Date()
             if (addressImage.id != null) {
                 // Update
                 context.update(addressImage)
