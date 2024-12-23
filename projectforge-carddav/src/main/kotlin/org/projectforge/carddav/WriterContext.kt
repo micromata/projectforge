@@ -33,6 +33,6 @@ internal class WriterContext(
     val userDO: PFUserDO,
     var props: List<Prop>? = null
 ) {
-    val href = requestWrapper.requestURI
+    val href = requestWrapper.href
     var contactList: List<Contact>? = null
 }

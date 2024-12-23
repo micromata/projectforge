@@ -24,8 +24,6 @@
 package org.projectforge.business.fibu
 
 import jakarta.persistence.Tuple
-import org.projectforge.business.fibu.kost.Kost1DO
-import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.framework.persistence.database.TupleUtils.getBigDecimal
@@ -34,8 +32,6 @@ import org.projectforge.framework.persistence.database.TupleUtils.getShort
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import kotlin.reflect.KClass
-import kotlin.reflect.full.createInstance
 
 /**
  * Uses tuple query for faster access to the database.

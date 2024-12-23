@@ -89,7 +89,7 @@ class CardDavTestClient(private val baseUrl: String, username: String, password:
     fun run() {
         try {
             sendRequest("OPTIONS") // "/users/$username/")
-            """
+            /*"""
                 <?xml version="1.0" encoding="UTF-8"?>
                 <A:propfind xmlns:A="DAV:">
                   <A:prop>
@@ -100,6 +100,9 @@ class CardDavTestClient(private val baseUrl: String, username: String, password:
                 </A:propfind>
             """.trimIndent().let { body ->
                 sendRequest("PROPFIND", requestBody = body, useAuthHeader = true)
+            }*/
+            sendRequest("GET", path = "/users/kai/photos/contact-825.png", useAuthHeader = true).let { response ->
+                println("Response GET: size=${response.length}")
             }
             /*
             """
@@ -180,7 +183,7 @@ class CardDavTestClient(private val baseUrl: String, username: String, password:
         method: String,
         path: String = "",
         requestBody: String? = null,
-        useAuthHeader: Boolean = false
+        useAuthHeader: Boolean = false,
     ): String {
         val url = "$baseUrl$path"
         val context = HttpCoreContext.create()

@@ -23,35 +23,16 @@
 
 package org.projectforge.carddav
 
-import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
-import org.projectforge.rest.utils.RequestLog
-import java.io.BufferedReader
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 
-private val log = KotlinLogging.logger {}
-
-internal class RequestWrapper(val request: HttpServletRequest) {
-    val requestURI = request.requestURI ?: "null"
-    val method = request.method ?: "null"
-    val href: String by lazy {
-        CardDavUtils.fixHref(requestURI)
-    }
-
-    val basicAuth: Boolean by lazy {
-        request.getHeader("authorization") != null ||
-                request.getHeader("Authorization") != null
-    }
-
-    val body: String by lazy {
-        try {
-            if (request.contentLength > 0) {
-                request.inputStream.bufferedReader().use(BufferedReader::readText)
-            } else {
-                ""
-            }
-        } catch (e: Exception) {
-            log.info { "Can't read body of request: ${RequestLog.asJson(request)}" }
-            ""
-        }
+class CardDavServerDebugWriterTest {
+    @Test
+    fun `test escaping of csv strings`() {
+        Assertions.assertEquals("\"\"", CardDavServerDebugWriter.asCsvValue(""))
+        Assertions.assertEquals(
+            "\"Test \"\"user\"\"\\r\\nHello world\"",
+            CardDavServerDebugWriter.asCsvValue("Test \"user\"\r\nHello world"),
+        )
     }
 }
