@@ -18,4 +18,11 @@ dependencies {
     testImplementation(libs.jakarta.servlet.api)
 }
 
+tasks.withType<ProcessResources> {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from("src/main/java") {
+        include( "**/*.html") // Wicket pages.
+    }
+}
+
 description = "org.projectforge.plugins.marketing"

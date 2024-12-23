@@ -1,6 +1,7 @@
 Aktuell:
 - Besucherbuch: englische Übersetzung
 - AG-Grid: setColumnStates wird nicht in den UserPrefs gespeichert.
+- Wicket: Auftragsbuch: org.apache.wicket.core.request.mapper.StalePageException: A request to page '[Page class = org.projectforge.web.fibu.AuftragEditPage, id = 9, render count = 3]' has been made with stale 'renderCount'. The page will be re-rendered.
 - -XX:ReservedCodeCacheSize=100m
 - Rechnungen: skonto-Datum wird automatisch auf nonsens gesetzt.
 - History: Rechnungsposition -> Auftragsposition taucht nicht in History auf.
