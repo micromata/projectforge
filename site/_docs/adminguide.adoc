@@ -121,6 +121,11 @@ with: `dropdb projectforge` and `dropuser projectforge`
 . *Re-use of existing database (use a dump --> 5.5 or 5.6)*  +
 `psql -q -f projectforge_2008-04-02_02-00.sql -U postgres projectforge 2>&1 > log.txt`
 
+Recommended settings in `postgresql.conf`:
+```
+statement_timeout =  300000 # 300s
+lock_timeout = 300000       # 300s
+```
 == Configuration
 
 === Base directory (application's home)

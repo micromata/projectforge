@@ -286,7 +286,7 @@ public class WebRegistry
     addMountPages(DaoConst.USER_PREF, UserPrefListPage.class, UserPrefEditPage.class);
 
     addMountPage("admin", AdminPage.class);
-    addMountPage("calendar", CalendarPage.class);
+    addMountPage("oldCalendar", CalendarPage.class); // Backup url for deprecated calendar, will be removed.
     addMountPage("configuration", ConfigurationListPage.class);
     addMountPage("datevImport", DatevImportPage.class);
     addMountPage("error", ErrorPage.class);
@@ -301,6 +301,6 @@ public class WebRegistry
     addMountPage("taskTree", TaskTreePage.class);
 
     register("teamEvent", TeamEventListPage.class);
-    addMountPage("teamCalendar", TeamCalCalendarPage.class);
+    addMountPage("oldTeamCalendar", TeamCalCalendarPage.class); // Backup url for deprecated calendar, will be removed.
   }
 }
