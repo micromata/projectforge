@@ -21,37 +21,16 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.carddav
+package org.projectforge.business.address.vcard
 
-import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
-import org.projectforge.rest.utils.RequestLog
-import java.io.BufferedReader
+enum class ImageType(val extension: String, val mimeType: String) {
+    JPEG("jpg", "image/jpeg"), PNG("png", "image/png"), GIF("gif", "image/gif");
 
-private val log = KotlinLogging.logger {}
-
-internal class RequestWrapper(val request: HttpServletRequest) {
-    val requestURI = request.requestURI ?: "null"
-    val method = request.method ?: "null"
-    val href: String by lazy {
-        CardDavUtils.fixHref(requestURI)
-    }
-
-    val basicAuth: Boolean by lazy {
-        request.getHeader("authorization") != null ||
-                request.getHeader("Authorization") != null
-    }
-
-    val body: String by lazy {
-        try {
-            if (request.contentLength > 0) {
-                request.inputStream.bufferedReader().use(BufferedReader::readText)
-            } else {
-                ""
-            }
-        } catch (e: Exception) {
-            log.info { "Can't read body of request: ${RequestLog.asJson(request)}" }
-            ""
+    fun asVCardImageType(): ezvcard.parameter.ImageType {
+        return when (this) {
+            JPEG -> ezvcard.parameter.ImageType.JPEG
+            PNG -> ezvcard.parameter.ImageType.PNG
+            GIF -> ezvcard.parameter.ImageType.GIF
         }
     }
 }

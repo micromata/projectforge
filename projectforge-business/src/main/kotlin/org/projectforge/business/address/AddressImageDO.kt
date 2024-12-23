@@ -25,18 +25,23 @@ package org.projectforge.business.address
 
 import jakarta.persistence.*
 import org.projectforge.framework.persistence.api.IdObject
+import java.util.Date
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @NamedQueries(
     NamedQuery(
-        name = AddressImageDO.SELECT_IMAGE,
-        query = "select image from AddressImageDO where address.id = :addressId"
+        name = AddressImageDO.SELECT_WITHOUT_IMAGES,
+        query = "select id,lastUpdate from AddressImageDO where address.id = :addressId"
     ),
     NamedQuery(
-        name = AddressImageDO.SELECT_IMAGE_PREVIEW,
-        query = "select imagePreview from AddressImageDO where address.id = :addressId"
+        name = AddressImageDO.SELECT_IMAGE_ONLY,
+        query = "select id,lastUpdate,image from AddressImageDO where address.id = :addressId"
+    ),
+    NamedQuery(
+        name = AddressImageDO.SELECT_IMAGE_PREVIEW_ONLY,
+        query = "select id,lastUpdate,imagePreview from AddressImageDO where address.id = :addressId"
     ),
     NamedQuery(
         name = AddressImageDO.DELETE_ALL_IMAGES_BY_ADDRESS_ID,
@@ -45,11 +50,14 @@ import org.projectforge.framework.persistence.api.IdObject
 )
 @Entity
 @Table(name = "T_ADDRESS_IMAGE")
-open class AddressImageDO : IdObject<Int> {
+open class AddressImageDO : IdObject<Long> {
     @get:Id
     @get:GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
     @get:Column(name = "pk")
-    override open var id: Int? = null
+    override open var id: Long? = null
+
+    @get:Column(name = "last_update")
+    open var lastUpdate: Date? = null
 
     @get:OneToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "address_fk", nullable = false)
@@ -64,8 +72,9 @@ open class AddressImageDO : IdObject<Int> {
     open var imagePreview: ByteArray? = null
 
     companion object {
-        internal const val SELECT_IMAGE = "AddressImageDO.selectImage"
-        internal const val SELECT_IMAGE_PREVIEW = "AddressImageDO.selectImagePreview"
+        internal const val SELECT_WITHOUT_IMAGES = "AddressImageDO.selectWithoutImages"
+        internal const val SELECT_IMAGE_ONLY = "AddressImageDO.selectImage"
+        internal const val SELECT_IMAGE_PREVIEW_ONLY = "AddressImageDO.selectImagePreview"
         internal const val DELETE_ALL_IMAGES_BY_ADDRESS_ID = "AddressImageDO.deleteAllImagesByAddressId"
     }
 }
