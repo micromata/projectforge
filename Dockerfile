@@ -1,52 +1,58 @@
-#FROM node:16.0.0-buster as buildreact
-#RUN apt-get update && apt-get -y upgrade
-#RUN mkdir /app
-#WORKDIR /app
-#RUN npm install -g npm@7.11.2
-#COPY ./projectforge-webapp /app
-#RUN npm install
-#RUN npm run build
+# docker buildx build --platform linux/arm64 --build-arg JAR_FILE=projectforge-application-8.0.jar -t projectforge:arm64 -t projectforge:8.0 -t projectforge:latest \--load .
+# docker buildx build --platform linux/amd64 --build-arg JAR_FILE=projectforge-application-8.0.jar -t projectforge:amd64 -t projectforge:8.0 -t projectforge:latest \--load .
 
-FROM maven:3.8.1-jdk-15 AS build
-RUN mkdir /app
-COPY . /app
+# Stage 1: Build stage
+FROM openjdk:17-slim AS build
+
+# Argument to accept JAR file name
+ARG JAR_FILE
+
+RUN mkdir -p /app
+COPY ${JAR_FILE} /app
+COPY docker/entrypoint.sh /app/docker/entrypoint.sh
 WORKDIR /app
-# http://whitfin.io/speeding-up-maven-docker-builds/
-#RUN mvn dependency:go-offline -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -B
-# -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -B needed, otherwise log will be clipped (log limit reached)
-# RUN mvn install -DskipTests -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -B
-# For test only: COPY projectforge-application-7.1.1.jar /app
-# mvn fails from time to time, so run mvn outside and copy projectforge-application/target/projectforge-application*.jar to current dir.
+
+# Install Gradle wrapper and build project
+# Optional: Uncomment if offline dependencies are required
+# RUN ./gradlew dependencies --refresh-dependencies
+
+# Install findutils (xargs needed by gradle)
+#RUN apt-get update && apt-get install -y findutils && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y unzip && rm -rf /var/lib/apt/lists/*
+
+#RUN chmod +x ./gradlew
+
+# Build the project
+#RUN ./gradlew build -x test
+
+# Extract the built application
 RUN mkdir /dist
-WORKDIR /dist
-# For test only: RUN unzip /app/projectforge-application*.jar
-RUN unzip /app/projectforge-application-*.jar
+RUN unzip /app/${JAR_FILE} -d /dist
 
-FROM openjdk:15-buster
+# Stage 2: Runtime stage
+FROM openjdk:17-slim
 
-# See: https://spring.io/guides/gs/spring-boot-docker/
-
-# This is a Debian system, update system packages (if needed)
+# Update system packages (optional, only if needed)
 RUN apt-get update && apt-get -y upgrade
 
-RUN addgroup projectforge && adduser --ingroup projectforge projectforge
-# ProjectForge's base dir: must be mounted on host file system:
-RUN mkdir /ProjectForge
-# Grant access for user projectforge:
-RUN chown projectforge.projectforge /ProjectForge
+# Create a dedicated user and group for the application
+RUN addgroup --system projectforge && adduser --system --ingroup projectforge projectforge
+
+# Set up the application base directory
+RUN mkdir /ProjectForge && chown projectforge:projectforge /ProjectForge
 VOLUME /ProjectForge
 EXPOSE 8080
 
+# Switch to the non-root user
 USER projectforge:projectforge
 
-# Don't put fat jar files in docker images: https://phauer.com/2019/no-fat-jar-in-docker-image/
+# Set application dependencies and configuration
 ARG DEPENDENCY=/dist
 COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
 COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
 COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
 
-#COPY --from=buildreact /app ${DEPENDENCY}/BOOT-INF/classes
-
+# Add entrypoint script
 COPY --from=build --chown=projectforge:projectforge /app/docker/entrypoint.sh /app
 RUN chmod 755 /app/entrypoint.sh
 
