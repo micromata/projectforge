@@ -28,6 +28,7 @@ import mu.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.ArrayUtils
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction
+import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.business.user.UserRightId
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.OperationType
@@ -35,7 +36,6 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
-import org.projectforge.framework.persistence.history.HistoryFormatUtils
 import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.springframework.beans.factory.annotation.Autowired
@@ -182,18 +182,22 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
      */
     override fun addOwnHistoryEntries(obj: EingangsrechnungDO, context: HistoryLoadContext) {
         obj.positionen?.forEach { position ->
-            historyService.loadAndMergeHistory(position, context) { entry ->
-                HistoryFormatUtils.setNumberAsPropertyNameForListEntries(entry, prefix = "pos", number = position.number)
-            }
+            historyService.loadAndMergeHistory(position, context)
             position.kostZuweisungen?.forEach { zuweisung ->
-                historyService.loadAndMergeHistory(zuweisung, context) { entry ->
-                    HistoryFormatUtils.setNumberAsPropertyNameForListEntries(
-                        entry,
-                        Pair("pos", position.number),
-                        Pair("kost", zuweisung.index),
-                    )
-                }
+                historyService.loadAndMergeHistory(zuweisung, context)
             }
+        }
+    }
+
+    override fun getHistoryPropertyPrefix(context: HistoryLoadContext): String? {
+        val entry = context.requiredHistoryEntry
+        val item = context.findLoadedEntity(entry)
+        return if (item is EingangsrechnungsPositionDO) {
+            item.number.toString()
+        } else if (item is KostZuweisungDO) {
+            "${item.eingangsrechnungsPosition?.number}: kost #${item.index}"
+        } else {
+            null
         }
     }
 

@@ -218,7 +218,7 @@ public class ProjektEditForm extends AbstractEditForm<ProjektDO, ProjektEditPage
     if (isNew() == true) {
       kost2Arts = WicketSupport.get(KostCache.class).getCloneOfAllKost2Arts();
     } else {
-      kost2Arts = WicketSupport.get(KostCache.class).getAllKost2Arts(getData().getId());
+      kost2Arts = WicketSupport.get(KostCache.class).getAllKost2ArtsForProjekt(getData().getId());
     }
     {
       // cost 2 types

@@ -51,7 +51,6 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.persistence.history.FlatHistoryFormatService
-import org.projectforge.framework.persistence.history.HistoryFormatUtils
 import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.projectforge.framework.utils.NumberHelper.parseInteger
@@ -607,18 +606,22 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         context: HistoryLoadContext
     ) {
         obj.positionenIncludingDeleted?.forEach { position ->
-            historyService.loadAndMergeHistory(position, context) { entry ->
-                HistoryFormatUtils.setNumberAsPropertyNameForListEntries(entry, prefix = "pos", number = position.number)
-            }
+            historyService.loadAndMergeHistory(position, context)
         }
         obj.paymentSchedules?.forEach { schedule ->
-            historyService.loadAndMergeHistory(schedule, context) { entry ->
-                HistoryFormatUtils.setNumberAsPropertyNameForListEntries(
-                    entry,
-                    prefix = "paymentSchedule",
-                    number = schedule.number
-                )
-            }
+            historyService.loadAndMergeHistory(schedule, context)
+        }
+    }
+
+    override fun getHistoryPropertyPrefix(context: HistoryLoadContext): String? {
+        val entry = context.requiredHistoryEntry
+        val item = context.findLoadedEntity(entry)
+        return if (item is AuftragsPositionDO) {
+            "pos#${item.number}"
+        } else if (item is PaymentScheduleDO) {
+            "payment#${item.number}"
+        } else {
+            null
         }
     }
 
