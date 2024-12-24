@@ -89,6 +89,9 @@ class AddressPagesRest
     private lateinit var addressbookDao: AddressbookDao
 
     @Autowired
+    private lateinit var addressImageCache: AddressImageCache
+
+    @Autowired
     private lateinit var addressExport: AddressExport
 
     @Autowired
@@ -228,10 +231,10 @@ class AddressPagesRest
         personalAddressDao.saveOrUpdate(personalAddress)
 
         val session = request.getSession(false)
-        val bytes = ExpiringSessionAttributes.getAttribute(session, SESSION_IMAGE_ATTR)
-        if (bytes != null && bytes is ByteArray) {
-            // The user uploaded an image, so
-            addressImageDao.saveOrUpdate(obj.id!!, bytes)
+        val image = ExpiringSessionAttributes.getAttribute(session, SESSION_IMAGE_ATTR)
+        if (image != null && image is AddressImageServicesRest.SessionImage) {
+            // The user uploaded an image, so save it now.
+            addressImageDao.saveOrUpdate(obj.id!!, image.bytes, image.imageType)
             ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
         }
     }
@@ -592,12 +595,13 @@ class AddressPagesRest
         magicFilter: MagicFilter,
     ): ResultSet<*> {
         val newList = resultSet.resultSet.map {
+            val image = addressImageCache.getImage(it.id)
             ListAddress(
                 transformFromDB(it),
                 id = it.id!!,
                 deleted = it.deleted,
-                imageUrl = if (it.image == true) "address/image/${it.id}" else null,
-                previewImageUrl = if (it.image == true) "address/imagePreview/${it.id}" else null
+                imageUrl = if (image != null) "address/image/${it.id}" else null,
+                previewImageUrl = if (image != null) "address/imagePreview/${it.id}" else null
             )
         }
         newList.forEach {

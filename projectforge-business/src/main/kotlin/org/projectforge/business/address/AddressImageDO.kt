@@ -33,15 +33,15 @@ import java.util.Date
 @NamedQueries(
     NamedQuery(
         name = AddressImageDO.SELECT_WITHOUT_IMAGES,
-        query = "select id,lastUpdate from AddressImageDO where address.id = :addressId"
+        query = "select id as id,lastUpdate as lastUpdate,imageType as imageType from AddressImageDO where address.id = :addressId"
     ),
     NamedQuery(
         name = AddressImageDO.SELECT_IMAGE_ONLY,
-        query = "select id,lastUpdate,image from AddressImageDO where address.id = :addressId"
+        query = "select id as id,lastUpdate as lastUpdate,imageType as imageType,image as image from AddressImageDO where address.id = :addressId"
     ),
     NamedQuery(
         name = AddressImageDO.SELECT_IMAGE_PREVIEW_ONLY,
-        query = "select id,lastUpdate,imagePreview from AddressImageDO where address.id = :addressId"
+        query = "select id as id,lastUpdate as lastUpdate,imageType as imageType,imagePreview as imagePreview from AddressImageDO where address.id = :addressId"
     ),
     NamedQuery(
         name = AddressImageDO.DELETE_ALL_IMAGES_BY_ADDRESS_ID,
@@ -70,6 +70,10 @@ open class AddressImageDO : IdObject<Long> {
     @get:Column(name = "image_preview")
     @get:Basic(fetch = FetchType.LAZY)
     open var imagePreview: ByteArray? = null
+
+    @get:Column(name = "image_type", length = 5)
+    @get:Enumerated(EnumType.STRING)
+    open var imageType: ImageType? = null
 
     companion object {
         internal const val SELECT_WITHOUT_IMAGES = "AddressImageDO.selectWithoutImages"
