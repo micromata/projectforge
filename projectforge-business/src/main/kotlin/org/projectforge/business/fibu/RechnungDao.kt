@@ -38,7 +38,6 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
-import org.projectforge.framework.persistence.history.HistoryFormatUtils
 import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.projectforge.framework.time.PFDateTime.Companion.from
@@ -228,7 +227,10 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
 
     private fun validate(rechnung: RechnungDO) {
         if (rechnung.datum == null) {
-            throw UserException("validation.required.valueNotPresent", MessageParam("fibu.rechnung.datum", MessageParamType.I18N_KEY))
+            throw UserException(
+                "validation.required.valueNotPresent",
+                MessageParam("fibu.rechnung.datum", MessageParamType.I18N_KEY)
+            )
         }
         val status = rechnung.status
         val zahlBetrag = rechnung.zahlBetrag
@@ -343,18 +345,22 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      */
     override fun addOwnHistoryEntries(obj: RechnungDO, context: HistoryLoadContext) {
         obj.positionen?.forEach { position ->
-            historyService.loadAndMergeHistory(position, context) { entry ->
-                HistoryFormatUtils.setNumberAsPropertyNameForListEntries(entry, "pos", position.number)
-            }
+            historyService.loadAndMergeHistory(position, context)
             position.kostZuweisungen?.forEach { zuweisung ->
-                historyService.loadAndMergeHistory(zuweisung, context) { entry ->
-                    HistoryFormatUtils.setNumberAsPropertyNameForListEntries(
-                        entry,
-                        Pair("pos", position.number),
-                        Pair("kost", zuweisung.index),
-                    )
-                }
+                historyService.loadAndMergeHistory(zuweisung, context)
             }
+        }
+    }
+
+    override fun getHistoryPropertyPrefix(context: HistoryLoadContext): String? {
+        val entry = context.requiredHistoryEntry
+        val item = context.findLoadedEntity(entry)
+        return if (item is RechnungsPositionDO) {
+            item.number.toString()
+        } else if (item is KostZuweisungDO) {
+            "${item.rechnungsPosition?.number}: kost #${item.index}"
+        } else {
+            null
         }
     }
 

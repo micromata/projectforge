@@ -70,7 +70,7 @@ open class EingangsrechnungsPositionDO : AbstractRechnungsPositionDO() {
     override var kostZuweisungen: MutableList<KostZuweisungDO>? = null
 
     override fun checkKostZuweisungId(zuweisung: KostZuweisungDO): Boolean {
-        return zuweisung.eingangsrechnungsPositionId == this.id
+        return zuweisung.eingangsrechnungsPosition?.id == this.id
     }
 
     /**
