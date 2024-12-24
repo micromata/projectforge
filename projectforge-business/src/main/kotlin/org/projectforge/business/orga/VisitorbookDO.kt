@@ -36,6 +36,7 @@ import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.history.NoHistory
 import java.io.Serializable
 
 private val log = KotlinLogging.logger {}
@@ -82,28 +83,14 @@ open class VisitorbookDO : DefaultBaseDO() {
     @get:Column(name = "visitor_type", nullable = false)
     open var visitortype: VisitorType? = null
 
-    /*
-    @FullTextField(store = Store.YES)
-    //@FieldBridge(impl = TimeableListFieldBridge::class)
-    @IndexedEmbedded(depth = 2)
-    private var timeableAttributes: MutableList<VisitorbookTimedDO> = ArrayList()
-*/
     @get:OneToMany(
         cascade = [CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH],
         fetch = FetchType.LAZY, orphanRemoval = false,
         mappedBy = "visitorbook", targetEntity = VisitorbookEntryDO::class
     )
+    @NoHistory
     // @HistoryProperty(converter = TimependingHistoryPropertyConverter::class)
     open var entries: MutableList<VisitorbookEntryDO>? = null
-
-    override fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
-        var modificationStatus = super.copyValuesFrom(src, "timeableAttributes")
-        //wval src = obj as VisitorbookDO
-        log.error("Not yet implemented: copyValuesFrom")
-        // modificationStatus = modificationStatus
-        //    .combine(BaseDaoJpaAdapter.copyTimeableAttribute(this, src))
-        return modificationStatus
-    }
 
     fun addEntry(entry: VisitorbookEntryDO) {
         entries?.add(entry) ?: run {

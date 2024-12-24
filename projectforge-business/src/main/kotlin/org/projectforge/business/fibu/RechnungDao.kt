@@ -344,11 +344,11 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     override fun addOwnHistoryEntries(obj: RechnungDO, context: HistoryLoadContext) {
         obj.positionen?.forEach { position ->
             historyService.loadAndMergeHistory(position, context) { entry ->
-                HistoryFormatUtils.setPropertyNameForListEntries(entry, "pos", position.number)
+                HistoryFormatUtils.setNumberAsPropertyNameForListEntries(entry, "pos", position.number)
             }
             position.kostZuweisungen?.forEach { zuweisung ->
                 historyService.loadAndMergeHistory(zuweisung, context) { entry ->
-                    HistoryFormatUtils.setPropertyNameForListEntries(
+                    HistoryFormatUtils.setNumberAsPropertyNameForListEntries(
                         entry,
                         Pair("pos", position.number),
                         Pair("kost", zuweisung.index),

@@ -608,12 +608,12 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
     ) {
         obj.positionenIncludingDeleted?.forEach { position ->
             historyService.loadAndMergeHistory(position, context) { entry ->
-                HistoryFormatUtils.setPropertyNameForListEntries(entry, prefix = "pos", number = position.number)
+                HistoryFormatUtils.setNumberAsPropertyNameForListEntries(entry, prefix = "pos", number = position.number)
             }
         }
         obj.paymentSchedules?.forEach { schedule ->
             historyService.loadAndMergeHistory(schedule, context) { entry ->
-                HistoryFormatUtils.setPropertyNameForListEntries(
+                HistoryFormatUtils.setNumberAsPropertyNameForListEntries(
                     entry,
                     prefix = "paymentSchedule",
                     number = schedule.number

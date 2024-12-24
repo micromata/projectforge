@@ -45,8 +45,8 @@ class VisitorbookService : IDao<VisitorbookDO?> {
     @Autowired
     private lateinit var visitorbookCache: VisitorbookCache
 
-    @Autowired
-    private lateinit var visitorbookDao: VisitorbookDao
+    // Set by VisitorbookDao.postConstruct().
+    internal lateinit var visitorbookDao: VisitorbookDao
 
     override fun select(filter: BaseSearchFilter): List<VisitorbookDO> {
         return visitorbookDao.select(filter)
