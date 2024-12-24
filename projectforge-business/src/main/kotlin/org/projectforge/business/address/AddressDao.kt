@@ -278,7 +278,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         if (addressbookRight == null) {
             addressbookRight = userRights.getRight(UserRightId.MISC_ADDRESSBOOK) as AddressbookRight
         }
-        val addressbookList =  addressbookCache.getAddressbooksForAddress(obj) ?: obj?.addressbookList
+        val addressbookList = addressbookCache.getAddressbooksForAddress(obj) ?: obj?.addressbookList
         if (addressbookList.isNullOrEmpty()) {
             return true
         }
@@ -331,14 +331,6 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         }
     }
 
-    override fun onUpdate(obj: AddressDO, dbObj: AddressDO) {
-        // Don't modify the following fields:
-        if (obj.getTransientAttribute("Modify image modification data") !== "true") {
-            obj.image = dbObj.image
-            obj.imageLastUpdate = dbObj.imageLastUpdate
-        }
-    }
-
     /**
      * On force deletion all personal address references has to be deleted.
      * @param obj The deleted object.
@@ -361,19 +353,6 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
                 }
             }
         }
-    }
-
-    /**
-     * Mark the given address, so the image fields (image and imageLastUpdate) will be updated. imageLastUpdate will be
-     * set to now.
-     *
-     * @param address
-     * @param hasImage Is there an image or not?
-     */
-    fun internalModifyImageData(address: AddressDO, hasImage: Boolean) {
-        address.setTransientAttribute("Modify image modification data", "true")
-        address.image = hasImage
-        address.imageLastUpdate = Date()
     }
 
     override fun onInsert(obj: AddressDO) {
