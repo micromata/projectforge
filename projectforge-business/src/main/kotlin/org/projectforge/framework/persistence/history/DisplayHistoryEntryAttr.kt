@@ -42,8 +42,9 @@ class DisplayHistoryEntryAttr {
                 it.operation = HistoryFormatService.translate(attr.opType)
                 it.propertyName = HistoryFormatUtils.getPlainPropertyName(attr)
                 it.displayPropertyName = attr.displayPropertyName
-                if (it.displayPropertyName == null && entityClass != null)
+                if (it.displayPropertyName == null && entityClass != null) {
                     it.displayPropertyName = HistoryFormatUtils.translatePropertyName(entityClass, attr.propertyName)
+                }
                 it.oldValue = attr.oldValue
                 it.newValue = attr.value
             }

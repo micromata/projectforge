@@ -183,11 +183,11 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
     override fun addOwnHistoryEntries(obj: EingangsrechnungDO, context: HistoryLoadContext) {
         obj.positionen?.forEach { position ->
             historyService.loadAndMergeHistory(position, context) { entry ->
-                HistoryFormatUtils.setPropertyNameForListEntries(entry, prefix = "pos", number = position.number)
+                HistoryFormatUtils.setNumberAsPropertyNameForListEntries(entry, prefix = "pos", number = position.number)
             }
             position.kostZuweisungen?.forEach { zuweisung ->
                 historyService.loadAndMergeHistory(zuweisung, context) { entry ->
-                    HistoryFormatUtils.setPropertyNameForListEntries(
+                    HistoryFormatUtils.setNumberAsPropertyNameForListEntries(
                         entry,
                         Pair("pos", position.number),
                         Pair("kost", zuweisung.index),
