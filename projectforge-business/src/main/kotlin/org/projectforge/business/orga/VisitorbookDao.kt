@@ -27,7 +27,10 @@ import jakarta.annotation.PostConstruct
 import org.projectforge.business.user.UserRightId
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.history.DisplayHistoryEntryAttr
+import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.history.HistoryLoadContext
+import org.projectforge.framework.persistence.history.PropertyOpType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -57,13 +60,14 @@ class VisitorbookDao protected constructor() : BaseDao<VisitorbookDO>(Visitorboo
         return resultList
     }
 
-    override fun customizeHistoryEntryAttr(context: HistoryLoadContext) {
-        /*        val entry = context.requiredHistoryEntry
-                val item = context.findLoadedEntity(entry)
-                if (item is VisitorbookEntryDO) {
-                    val attr = context.requiredHistoryEntryAttr
-                    attr.displayPropertyPrefix = item.dateOfVisit?.toString() ?: "???"
-                }*/
+    override fun getHistoryPropertyPrefix(context: HistoryLoadContext): String? {
+        val entry = context.requiredHistoryEntry
+        val item = context.findLoadedEntity(entry)
+        return if (item is VisitorbookEntryDO) {
+            item.dateOfVisit?.toString() ?: "???"
+        } else {
+            null
+        }
     }
 
     override fun newInstance(): VisitorbookDO {

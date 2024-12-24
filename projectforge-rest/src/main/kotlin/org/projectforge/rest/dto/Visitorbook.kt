@@ -23,16 +23,19 @@
 
 package org.projectforge.rest.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.orga.VisitorType
 import org.projectforge.business.orga.VisitorbookDO
+import org.projectforge.framework.i18n.translate
 import java.time.LocalDate
 
-class Visitorbook(var lastname: String? = null,
-                  var firstname: String? = null,
-                  var company: String? = null,
-                  var contactPersons: Set<EmployeeDO>? = null,
-                  var visitortype: VisitorType? = null
+class Visitorbook(
+    var lastname: String? = null,
+    var firstname: String? = null,
+    var company: String? = null,
+    var contactPersons: Set<EmployeeDO>? = null,
+    var visitortype: VisitorType? = null
 ) : BaseDTO<VisitorbookDO>() {
     var lastDateOfVisit: LocalDate? = null
 
@@ -43,5 +46,12 @@ class Visitorbook(var lastname: String? = null,
     var numberOfVisits: Int? = 0
 
     var entries = emptyList<VisitorbookEntry>() // empty list required by frontend.
+
+    @get:JsonProperty
+    val visitortypeAsString: String?
+        get() {
+            visitortype?.let { return translate(it.i18nKey) }
+            return null
+        }
 
 }

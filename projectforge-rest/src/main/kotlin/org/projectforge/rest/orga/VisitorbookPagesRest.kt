@@ -23,15 +23,18 @@
 
 package org.projectforge.rest.orga
 
+import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.orga.VisitorbookCache
 import org.projectforge.business.orga.VisitorbookDO
 import org.projectforge.business.orga.VisitorbookDao
 import org.projectforge.business.orga.VisitorbookService
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.dto.Book
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Visitorbook
 import org.projectforge.rest.dto.VisitorbookEntry
@@ -51,6 +54,11 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
 
     @Autowired
     private lateinit var visitorbookService: VisitorbookService
+
+    @PostConstruct
+    private fun postConstruct() {
+        JacksonConfiguration.registerAllowedUnknownProperties(Visitorbook::class.java, "visitortypeAsString")
+    }
 
     override fun transformForDB(dto: Visitorbook): VisitorbookDO {
         val visitorbookDO = VisitorbookDO()
@@ -113,13 +121,14 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
             // Name	Vorname	Status	Personalnummer	Kost1	Position	Team	Eintrittsdatum	Austrittsdatum	Bemerkung
             .add(
                 lc,
-                "lastname", "firstname", "company", "visitortype"
+                "lastname", "firstname", "company"
             )
+            .add("visitortypeAsString", headerName = "orga.visitorbook.visitortype")
             .add("lastDateOfVisit", headerName = "orga.visitorbook.lastVisit")
             .add("latestArrived", headerName = "orga.visitorbook.lastVisit.arrived")
             .add("latestDeparted", headerName = "orga.visitorbook.lastVisit.departed")
             .add("numberOfVisits", headerName = "orga.visitorbook.numberOfVisits")
-            .add(lc,  "contactPersons", "comment")
+            .add(lc, "contactPersons", "comment")
     }
 
     /**
