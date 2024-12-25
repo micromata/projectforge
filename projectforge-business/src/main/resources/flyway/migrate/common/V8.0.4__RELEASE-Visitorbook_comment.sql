@@ -1,0 +1,1 @@
+ALTER TABLE t_orga_visitorbook ADD COLUMN comment CHARACTER VARYING(4000);
