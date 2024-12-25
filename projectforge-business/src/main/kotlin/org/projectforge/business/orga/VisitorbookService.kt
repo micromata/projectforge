@@ -123,6 +123,10 @@ class VisitorbookService : IDao<VisitorbookDO?> {
         return list
     }
 
+    fun getVisitorbookInfo(visitorbookId: Long?): VisitorbookInfo? {
+        visitorbookId ?: return null
+        return visitorbookCache.getVisitorbookInfo(visitorbookId)
+    }
 
     fun insert(
         visitorbookId: Long,

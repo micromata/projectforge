@@ -27,14 +27,18 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.orga.VisitorType
 import org.projectforge.business.orga.VisitorbookDO
+import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.framework.i18n.translate
+import org.projectforge.rest.dto.User.Companion.toUserList
 import java.time.LocalDate
 
 class Visitorbook(
     var lastname: String? = null,
     var firstname: String? = null,
     var company: String? = null,
-    var contactPersons: Set<EmployeeDO>? = null,
+    var contactPersons: List<Employee>? = null,
+    var contactPersonsAsString: String? = null,
+    var comment: String? = null,
     var visitortype: VisitorType? = null
 ) : BaseDTO<VisitorbookDO>() {
     var lastDateOfVisit: LocalDate? = null
@@ -54,4 +58,15 @@ class Visitorbook(
             return null
         }
 
+    override fun copyFrom(src: VisitorbookDO) {
+        super.copyFrom(src)
+        contactPersons = Employee.toEmployeeList(src.contactPersons)?.also {
+            contactPersonsAsString = it.joinToString { it.displayName ?: "???" }
+        }
+    }
+
+    override fun copyTo(dest: VisitorbookDO) {
+        super.copyTo(dest)
+        dest.contactPersons = Employee.toEmployeeDOList(contactPersons)
+    }
 }

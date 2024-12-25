@@ -25,7 +25,7 @@ package org.projectforge.rest.orga
 
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
-import org.projectforge.business.orga.VisitorbookCache
+import org.projectforge.business.PfCaches
 import org.projectforge.business.orga.VisitorbookDO
 import org.projectforge.business.orga.VisitorbookDao
 import org.projectforge.business.orga.VisitorbookService
@@ -34,7 +34,6 @@ import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
-import org.projectforge.rest.dto.Book
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Visitorbook
 import org.projectforge.rest.dto.VisitorbookEntry
@@ -50,7 +49,7 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
     "orga.visitorbook.title"
 ) {
     @Autowired
-    private lateinit var visitorbookCache: VisitorbookCache
+    private lateinit var caches: PfCaches
 
     @Autowired
     private lateinit var visitorbookService: VisitorbookService
@@ -70,23 +69,13 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
         val visitorbook = Visitorbook()
         visitorbook.copyFrom(obj)
         obj.id?.let { id ->
-            visitorbookCache.getVisitorbookInfo(id)?.let { info ->
+            visitorbookService.getVisitorbookInfo(id)?.let { info ->
                 visitorbook.lastDateOfVisit = info.lastDateOfVisit
                 visitorbook.latestArrived = info.latestArrived
                 visitorbook.latestDeparted = info.latestDeparted
                 visitorbook.numberOfVisits = info.numberOfVisits
             }
         }
-
-        /*
-        val timeableAttributes = timeableService!!.getTimeableAttrRowsForGroupName<Int, VisitorbookTimedDO>(obj, "timeofvisit")
-        if (timeableAttributes != null && timeableAttributes.size > 0) {
-            val sortedList = timeableService.sortTimeableAttrRowsByDateDescending(timeableAttributes)
-            val newestEntry = sortedList[0]
-            visitorbook.arrive = if (newestEntry.getAttribute("arrive") != null) newestEntry.getAttribute("arrive", String::class.java) else ""
-            visitorbook.depart = if (newestEntry.getAttribute("depart") != null) newestEntry.getAttribute("depart", String::class.java) else ""
-        }*/
-
         return visitorbook
     }
 
@@ -128,7 +117,8 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
             .add("latestArrived", headerName = "orga.visitorbook.lastVisit.arrived")
             .add("latestDeparted", headerName = "orga.visitorbook.lastVisit.departed")
             .add("numberOfVisits", headerName = "orga.visitorbook.numberOfVisits")
-            .add(lc, "contactPersons", "comment")
+            .add("contactPersonsAsString", headerName = "orga.visitorbook.contactPersons")
+            .add(lc, "comment")
     }
 
     /**
@@ -139,11 +129,28 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
         val lastname = UIInput("lastname", lc)
         val company = UIInput("company", lc)
         val layout = super.createEditLayout(dto, userAccess)
-            .add(firstname)
-            .add(lastname)
-            .add(company)
-            .add(UISelect.createUserSelect(lc, "contactPersons", true, "orga.visitorbook.contactPerson"))
-            .add(lc, "visitortype")
+            .add(
+                UIRow()
+                    .add(
+                        UICol()
+                            .add(firstname)
+                            .add(lastname)
+                            .add(company)
+                    )
+                    .add(
+                        UICol()
+                            .add(lc, "visitortype")
+                            .add(
+                                UISelect.createEmployeeSelect(
+                                    lc,
+                                    "contactPersons",
+                                    true,
+                                    "orga.visitorbook.contactPersons"
+                                )
+                            )
+                    )
+            )
+            .add(lc, "comment")
         if (dto.id != null) {
             layout.layoutBelowActions.add(
                 UIFieldset(title = "orga.visitorbook.visits")
@@ -159,8 +166,20 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
                     .add(
                         UIAgGrid("entries")
                             .add(UIAgGridColumnDef.createCol(lc, "dateOfVisit", headerName = "date"))
-                            .add(UIAgGridColumnDef.createCol(lc, "arrived", headerName = "orga.visitorbook.arrive"))
-                            .add(UIAgGridColumnDef.createCol(lc, "departed", headerName = "orga.visitorbook.depart"))
+                            .add(
+                                UIAgGridColumnDef.createCol(
+                                    lc,
+                                    "arrived",
+                                    headerName = "orga.visitorbook.arrive"
+                                )
+                            )
+                            .add(
+                                UIAgGridColumnDef.createCol(
+                                    lc,
+                                    "departed",
+                                    headerName = "orga.visitorbook.depart"
+                                )
+                            )
                             .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
                             .withRowClickRedirectUrl(
                                 createModalUrl(dto),

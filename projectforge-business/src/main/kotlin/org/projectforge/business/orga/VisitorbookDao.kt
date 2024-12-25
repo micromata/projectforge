@@ -25,12 +25,12 @@ package org.projectforge.business.orga
 
 import jakarta.annotation.PostConstruct
 import org.projectforge.business.user.UserRightId
+import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
-import org.projectforge.framework.persistence.history.DisplayHistoryEntryAttr
-import org.projectforge.framework.persistence.history.EntityOpType
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.history.HistoryLoadContext
-import org.projectforge.framework.persistence.history.PropertyOpType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -48,16 +48,24 @@ class VisitorbookDao protected constructor() : BaseDao<VisitorbookDO>(Visitorboo
         visitorbookService.visitorbookDao = this
     }
 
-    override fun select(filter: BaseSearchFilter): List<VisitorbookDO> {
-        val myFilter = if (filter is VisitorbookFilter) {
-            filter
-        } else {
-            VisitorbookFilter(filter)
+    override fun createQueryFilter(filter: BaseSearchFilter?): QueryFilter {
+        return super.createQueryFilter(filter).also {
+            // it.createJoin("contactPersons")
+            it.entityGraphName = VisitorbookDO.ENTITY_GRAPH_WITH_CONTACT_EMPLOYEES
         }
+    }
 
-        val queryFilter = createQueryFilter(myFilter)
-        val resultList = select(queryFilter)
-        return resultList
+    override fun select(
+        filter: QueryFilter,
+        customResultFilters: List<CustomResultFilter<VisitorbookDO>>?,
+        checkAccess: Boolean
+    ): List<VisitorbookDO> {
+        val list = super.select(filter, customResultFilters, checkAccess)
+        return if (filter.sortProperties.isEmpty()) {
+            list.sortedByDescending { visitorbookService.getVisitorbookInfo(it.id)?.lastDateOfVisit }
+        } else {
+            list
+        }
     }
 
     override fun getHistoryPropertyPrefix(context: HistoryLoadContext): String? {

@@ -30,7 +30,9 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
+import org.projectforge.Constants
 import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.api.BaseDO
@@ -45,6 +47,14 @@ private val log = KotlinLogging.logger {}
 @Indexed
 //@HibernateSearchInfo(fieldInfoProvider = HibernateSearchAttrSchemaFieldInfoProvider::class, param = "visitorbook")
 @Table(name = "t_orga_visitorbook")
+@NamedEntityGraph(
+    name = VisitorbookDO.ENTITY_GRAPH_WITH_CONTACT_EMPLOYEES,
+    attributeNodes = [NamedAttributeNode(value = "contactPersons", subgraph = "contactPersonIds")],
+    subgraphs = [NamedSubgraph(
+        name = "contactPersonIds",
+        attributeNodes = [NamedAttributeNode(value = "id")]
+    )]
+)
 @AUserRightId("ORGA_VISITORBOOK")
 open class VisitorbookDO : DefaultBaseDO() {
 
@@ -63,7 +73,7 @@ open class VisitorbookDO : DefaultBaseDO() {
     @get:Column(name = "company")
     open var company: String? = null
 
-    @PropertyInfo(i18nKey = "orga.visitorbook.contactPerson")
+    @PropertyInfo(i18nKey = "orga.visitorbook.contactPersons")
     @IndexedEmbedded(includeDepth = 2, includePaths = ["user.firstname", "user.lastname"])
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToMany(targetEntity = EmployeeDO::class, fetch = FetchType.LAZY)
@@ -77,6 +87,11 @@ open class VisitorbookDO : DefaultBaseDO() {
         ), jakarta.persistence.Index(name = "idx_fk_t_orga_employee_employee_id", columnList = "employee_id")]
     )
     open var contactPersons: Set<EmployeeDO>? = null
+
+    @PropertyInfo(i18nKey = "comment")
+    @FullTextField
+    @get:Column(name = "comment", length = Constants.LENGTH_TEXT)
+    open var comment: String? = null
 
     @PropertyInfo(i18nKey = "orga.visitorbook.visitortype")
     @get:Enumerated(EnumType.STRING)
@@ -96,5 +111,9 @@ open class VisitorbookDO : DefaultBaseDO() {
         entries?.add(entry) ?: run {
             entries = mutableListOf(entry)
         }
+    }
+
+    companion object {
+        const val ENTITY_GRAPH_WITH_CONTACT_EMPLOYEES = "VisitorbookDO.contactEmployees"
     }
 }
