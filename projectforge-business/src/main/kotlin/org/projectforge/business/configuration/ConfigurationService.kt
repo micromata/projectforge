@@ -187,10 +187,6 @@ open class ConfigurationService {
   @Value("\${projectforge.wicket.developmentMode}")
   private var developmentMode = false
 
-  @Value("\${pf.config.security.sqlConsoleAvailable:false}")
-  open var isSqlConsoleAvailable = false
-    protected set
-
   @Value("\${pf.config.security.teamCalCryptPassword}")
   open var teamCalCryptPassword: String? = null
     protected set
