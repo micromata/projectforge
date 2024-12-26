@@ -20,14 +20,15 @@ link:index{outfilesuffix}[Top]
 5. If all tests are finished successfully and the test of the ProjectForge-Application works for new and existing databases), proceeed:
 6. Copy executable jar file from `projectforge-application/build/libs/projectforge-application-\*.jar` to SourceForge and tag this file as default for all platforms
 7. Building and pushing docker
-    a. `export PF_VERSION=8.0`
-    b. `export DOCKER_USER=micromata`
-    b. `cp projectforge-application/build/libs/projectforge-application*.jar .`
-    c. `docker buildx build --platform linux/arm64 --build-arg JAR_FILE=projectforge-application-$PF_VERSION.jar -t projectforge:arm64 --load .`
-    c. `docker buildx build --platform linux/arm64,linux/amd64 --build-arg JAR_FILE=projectforge-application-$PF_VERSION.jar -t $DOCKER_USER/projectforge:8.0 -t $DOCKER_USER/projectforge:latest --push .`
-    d. `docker tag bc0459ed7d01 micromata/projectforge:$PF_NEW_VERSION` (use image id for tagging)
-    e. `docker push micromata/projectforge:$PF_NEW_VERSION`
-    f. `docker push micromata/projectforge:latest`
+    a. For testing docker images first, please refer `/dokcer/README.adoc`.
+    b. `export PF_VERSION=8.0`
+    c. `export DOCKER_USER=micromata`
+    d. `cp projectforge-application/build/libs/projectforge-application*.jar .`
+    e. `docker buildx build --platform linux/arm64,linux/amd64
+          --build-arg JAR_FILE=projectforge-application-$PF_VERSION.jar
+          -t $DOCKER_USER/projectforge:$PF_VERSION
+          -t $DOCKER_USER/projectforge:latest --push .`
+    f. Check docker images: https://hub.docker.com/r/micromata/projectforge/tags (both should be available: arm64 and amd64)
 8. Merge the release branch into the master and develop branch (Git Flow: Finish release)
 9. Tag master branch with version number
 10. Change to develop branch
