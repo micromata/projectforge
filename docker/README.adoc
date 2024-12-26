@@ -3,15 +3,24 @@
 ProjectForge is a web-based solution for project management including time tracking, team calendar, gantt-charting, financial administration, issue management,
 controlling and managing work-break-down-structures (e. g. together with JIRA as issue management system).
 
-== Documentation of Docker (in progress)
+== Building and testing docker image locally
 
-=== With built-in data base HsqlDB:
-1. Checkout: +
-   https://github.com/micromata/projectforge.git
-2. Build ProjectForge in main directory: +
-   `docker build -t micromata/projectforge:latest .`
-3. Run ProjectForge and enjoy: +
-   `docker run -t -i -p 127.0.0.1:8080:8080 -v ~/ProjectForgeDocker:/ProjectForge --name projectforge micromata/projectforge`
+1. `docker login`
+2. `export PF_VERSION=8.0`
+3. Build docker test image:
+  a. `docker buildx build --platform linux/arm64 --build-arg JAR_FILE=projectforge-application-$PF_VERSION.jar -t projectforge:latest-arm64-test \--load .`, or
+  b. 'docker buildx build --platform linux/amd64 --build-arg JAR_FILE=projectforge-application-$PF_VERSION.jar -t projectforge:latest-amd64-test \--load .'
+4. Run: `docker run -t -i -p 127.0.0.1:8080:8080 -v ~/ProjectForgeDocker:/ProjectForge --name projectforge projectforge:latest-arm64-test`
+5. Enter docker: `docker exec -it projectforge bash`
+6. Restart: `docker start -ai projectforge`
+
+Edit memory settings etc. in `ProjectForge/environment.sh`.
+
+Deleting test container:
+1. `docker stop projectforge`
+2. `docker rm projectforge`
+3. `docker images`
+4. `docker rmi <image-id>`
 
 === With external PostgreSQL
 tbd.
@@ -23,8 +32,12 @@ tbd.
 tbd.
 
 
+== Deploying docker images
 
-=== FAQ
+Please refer /doc/deployment.adoc for detailed information.
+
+
+== FAQ
 
 - *Can't access port 8080?* +
   The built-in main `application.properties` defines `server.address=localhost`, therefore this port can't be exported to the host system. The Dockerfile of

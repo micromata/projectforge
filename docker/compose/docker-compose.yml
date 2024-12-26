@@ -1,7 +1,7 @@
 version: "3.7"
 services:
   projectforge-app:
-    image: kreinhard/projectforge
+    image: micromata/projectforge
     container_name: projectforge-app
     restart: always
     ports:
@@ -14,7 +14,7 @@ services:
   depends_on:
       - projectforge-db
   projectforge-db:
-    image: postgres:12.6
+    image: postgres:13.9
     container_name: projectforge-db
     restart: always
     ports:
