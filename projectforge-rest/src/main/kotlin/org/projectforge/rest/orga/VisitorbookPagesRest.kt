@@ -49,9 +49,6 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
     "orga.visitorbook.title"
 ) {
     @Autowired
-    private lateinit var caches: PfCaches
-
-    @Autowired
     private lateinit var visitorbookService: VisitorbookService
 
     @PostConstruct
