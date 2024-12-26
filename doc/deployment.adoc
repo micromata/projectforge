@@ -20,11 +20,15 @@ link:index{outfilesuffix}[Top]
 5. If all tests are finished successfully and the test of the ProjectForge-Application works for new and existing databases), proceeed:
 6. Copy executable jar file from `projectforge-application/build/libs/projectforge-application-\*.jar` to SourceForge and tag this file as default for all platforms
 7. Building and pushing docker
-    a. `cp projectforge-application/build/libs/projectforge-application*.jar .`
-    b. `docker build -t micromata/projectforge:latest .`
-    c. `docker tag bc0459ed7d01 micromata/projectforge:$PF_NEW_VERSION` (use image id for tagging)
-    d. `docker push micromata/projectforge:$PF_NEW_VERSION`
-    e. `docker push micromata/projectforge:latest`
+    a. For testing docker images first, please refer `/dokcer/README.adoc`.
+    b. `export PF_VERSION=8.0`
+    c. `export DOCKER_USER=micromata`
+    d. `cp projectforge-application/build/libs/projectforge-application*.jar .`
+    e. `docker buildx build --platform linux/arm64,linux/amd64
+          --build-arg JAR_FILE=projectforge-application-$PF_VERSION.jar
+          -t $DOCKER_USER/projectforge:$PF_VERSION
+          -t $DOCKER_USER/projectforge:latest --push .`
+    f. Check docker images: https://hub.docker.com/r/micromata/projectforge/tags (both should be available: arm64 and amd64)
 8. Merge the release branch into the master and develop branch (Git Flow: Finish release)
 9. Tag master branch with version number
 10. Change to develop branch
@@ -32,3 +36,12 @@ link:index{outfilesuffix}[Top]
 `./build.gradle.kts: version = '8.0.1-SNAPSHOT'`
 12. Commit everything to master and develop branch and push it to Github
 13. Upload the saved jar files to Github (Create release from taged version) and SourceForge (e.g. as zip (see previous versions as example)).
+
+Optional (if not done before):
+
+[source]
+----
+docker buildx create --name mybuilder --use
+docker buildx inspect mybuilder --bootstrap
+----
+

@@ -1,0 +1,38 @@
+---
+title: ProjectForge 8.0 released
+date: 2024-12-23
+---
+:page-liquid:
+
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Own CardDav-Implementation for synchronization of contacts (tested with Apple contacts (macOS/iOS), Thunderbird).
+- Sipgate interface implemented for synchronization of address.
+- Calendar view improved.
+- Excel-Export of vacations for all employees, teams and colleagues.
+- Birthdaybutler for monthly birthday list.
+- Export of timesheets as xlsx.
+- Attachments to books added.
+- lots of minor improvements.
+++++
+{% include tag.html tag="fixed" %}
+++++
+- several bugs fixed.
+++++
+{% include tag.html tag="admin" %}
+++++
+
+++++
+{% include tag.html tag="security" %}
+++++
+
+++++
+{% include tag.html tag="technology" %}
+- New major versions: Java 17, Spring 6.1.15, Hibernate 6.6.3, Hibernate search 7.2.1, javax -> jakarta, React/Router, Wicket 10.2, ...
+++++
+
+++++
+{% include download-link.html %}
+++++
