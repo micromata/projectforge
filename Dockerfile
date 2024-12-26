@@ -1,55 +1,43 @@
-#FROM node:16.0.0-buster as buildreact
-#RUN apt-get update && apt-get -y upgrade
-#RUN mkdir /app
-#WORKDIR /app
-#RUN npm install -g npm@7.11.2
-#COPY ./projectforge-webapp /app
-#RUN npm install
-#RUN npm run build
+FROM openjdk:17-slim
 
-FROM maven:3.8.1-jdk-15 AS build
-RUN mkdir /app
-COPY . /app
+# Argument for JAR file name to use in working directory:
+ARG JAR_FILE
+
+# Set working directory
 WORKDIR /app
-# http://whitfin.io/speeding-up-maven-docker-builds/
-#RUN mvn dependency:go-offline -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -B
-# -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -B needed, otherwise log will be clipped (log limit reached)
-# RUN mvn install -DskipTests -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -B
-# For test only: COPY projectforge-application-7.1.1.jar /app
-# mvn fails from time to time, so run mvn outside and copy projectforge-application/target/projectforge-application*.jar to current dir.
-RUN mkdir /dist
-WORKDIR /dist
-# For test only: RUN unzip /app/projectforge-application*.jar
-RUN unzip /app/projectforge-application-*.jar
 
-FROM openjdk:15-buster
+RUN mkdir -p /app
 
-# See: https://spring.io/guides/gs/spring-boot-docker/
+# Copy the specified JAR file into the container
+COPY ${JAR_FILE} /app/application.jar
+COPY docker/entrypoint.sh /app/entrypoint.sh
 
-# This is a Debian system, update system packages (if needed)
-RUN apt-get update && apt-get -y upgrade
+# Set permissions for the entrypoint script
+RUN chmod +x /app/entrypoint.sh
 
-RUN addgroup projectforge && adduser --ingroup projectforge projectforge
-# ProjectForge's base dir: must be mounted on host file system:
-RUN mkdir /ProjectForge
-# Grant access for user projectforge:
-RUN chown projectforge.projectforge /ProjectForge
-VOLUME /ProjectForge
+# Expose application port
 EXPOSE 8080
 
+# Use a non-root user
+RUN addgroup --system projectforge && adduser --system --ingroup projectforge projectforge
+
+# Install findutils (xargs needed by gradle)
+#RUN apt-get update && apt-get install -y findutils && rm -rf /var/lib/apt/lists/*
+# pgrep needed by the entrypoint.sh
+RUN apt-get update && apt-get install -y procps && rm -rf /var/lib/apt/lists/*
+
+
+# Expose the port and declare the volume
+RUN mkdir -p /ProjectForge && chown -R projectforge:projectforge /ProjectForge
+VOLUME /ProjectForge
+
+COPY docker/environment.sh /ProjectForge
+
+# Switch to the non-root user
 USER projectforge:projectforge
 
-# Don't put fat jar files in docker images: https://phauer.com/2019/no-fat-jar-in-docker-image/
-ARG DEPENDENCY=/dist
-COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
-COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
-COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
-
-#COPY --from=buildreact /app ${DEPENDENCY}/BOOT-INF/classes
-
-COPY --from=build --chown=projectforge:projectforge /app/docker/entrypoint.sh /app
-RUN chmod 755 /app/entrypoint.sh
-
+# Run the Spring Boot application
 ENTRYPOINT ["/app/entrypoint.sh"]
+# ENTRYPOINT ["java", "-jar", "/app/application.jar"]
 
-MAINTAINER Micromata
+LABEL maintainer="Micromata"
