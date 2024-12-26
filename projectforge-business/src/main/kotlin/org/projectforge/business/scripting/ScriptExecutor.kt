@@ -311,6 +311,8 @@ abstract class ScriptExecutor(
             "import org.projectforge.common.*",
             "import org.projectforge.excel.ExcelUtils",
             "import org.projectforge.framework.calendar.*",
+            "import org.projectforge.framework.persistence.api.QueryFilter",
+            "import org.projectforge.framework.persistence.api.SortProperty",
             "import org.projectforge.framework.time.*",
             "import org.projectforge.framework.utils.NumberHelper",
             "import org.projectforge.framework.utils.RoundUtils",
