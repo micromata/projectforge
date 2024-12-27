@@ -28,6 +28,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 internal class OrderPosition {
+    var id: Long? = null
     var number: Short = 0
     var taskId: Long? = null
     var art: AuftragsPositionsArt? = null
@@ -45,6 +46,7 @@ internal class OrderPosition {
     companion object {
         fun from(pos: OrderPositionInfo): OrderPosition {
             return OrderPosition().apply {
+                id = pos.id
                 number = pos.number
                 taskId = pos.taskId
                 art = pos.art

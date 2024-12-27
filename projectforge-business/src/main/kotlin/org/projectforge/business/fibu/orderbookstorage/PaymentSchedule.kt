@@ -29,6 +29,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 class PaymentSchedule {
+    var id: Long? = null
     var number: Short = 0
     var orderPositionNumber: Short? = null
     var scheduleDate: LocalDate? = null
@@ -40,6 +41,7 @@ class PaymentSchedule {
     companion object {
         fun from(scheduleInfo: OrderInfo.PaymentScheduleInfo): PaymentSchedule {
             return PaymentSchedule().apply {
+                id = scheduleInfo.id
                 number = scheduleInfo.number
                 orderPositionNumber = scheduleInfo.positionNumber
                 scheduleDate = scheduleInfo.scheduleDate

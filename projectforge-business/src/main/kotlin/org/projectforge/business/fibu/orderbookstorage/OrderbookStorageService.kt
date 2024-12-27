@@ -24,10 +24,13 @@
 package org.projectforge.business.fibu.orderbookstorage
 
 import com.fasterxml.jackson.core.type.TypeReference
+import jakarta.persistence.Tuple
 import mu.KotlinLogging
+import org.jetbrains.kotlin.ir.types.IdSignatureValues.result
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.AuftragDao
 import org.projectforge.framework.json.JsonUtils
+import org.projectforge.framework.persistence.database.TupleUtils
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -80,7 +83,7 @@ class OrderbookStorageService {
         // First, select all orders that are not deleted:
         val auftragList = auftragDao.select(deleted = false, checkAccess = false)
         val incrementList = if (incrementalBasedOn != null) {
-            val basedOn = findEntry(incrementalBasedOn)
+            val basedOn = selectMeta(incrementalBasedOn)
             if (basedOn == null) {
                 log.error { "No orderbook found, which based on given date: $incrementalBasedOn. Falling back to full backup." }
                 auftragList
@@ -110,7 +113,7 @@ class OrderbookStorageService {
             it.incrementalBasedOn = incrementalBasedOn
         }.let {
             persistenceService.runInTransaction { context ->
-                val entry = findEntry(today)
+                val entry = selectMeta(today)
                 if (entry != null) {
                     entry.serializedOrderBook = it.serializedOrderBook
                     context.em.merge(entry)
@@ -124,21 +127,54 @@ class OrderbookStorageService {
     }
 
     fun restoreOrderbook(date: LocalDate): List<AuftragDO>? {
-        val entry = persistenceService.selectNamedSingleResult(
-            OrderbookStorageDO.FIND_BY_DATE, OrderbookStorageDO::class.java,
-            "date" to date
-        ) ?: return null
-        val serialized = entry.serializedOrderBook ?: return emptyList()
+        val orderbook = mutableMapOf<Long, Order>()
+        restoreOrderbook(date, orderbook)
+        return orderConverterService.convertFromOrder(orderbook.values)
+    }
+
+    private fun restoreOrderbook(date: LocalDate, orderbook: MutableMap<Long, Order>) {
+        val entry = findEntry(date)
+        if (entry == null) {
+            log.error { "No orderbook found for date: $date" }
+            return
+        }
+        if (entry.incremental) {
+            log.info { "Restoring orderbook for date $date (incremental based on ${entry.incrementalBasedOn})..." }
+        } else {
+            log.info { "Restoring orderbook for date $date..." }
+        }
+        entry.incrementalBasedOn?.let { incrementalBasedOn ->
+            log.info { "Restoring orderbook from previous backup first: date=$date..." }
+            if (date <= incrementalBasedOn) {
+                log.error { "Internal error: Incremental based on date is greater than the date of the orderbook: $incrementalBasedOn > $date" }
+            }
+            // Load orderbook from the incremental based on date first:
+            restoreOrderbook(incrementalBasedOn, orderbook)
+        }
+        val serialized = entry.serializedOrderBook ?: return
         val json = gunzip(serialized)
-        val result = JsonUtils.fromJson(json, object : TypeReference<List<Order?>?>() {})
-        return orderConverterService.convertFromOrder(result)
+        JsonUtils.fromJson(json, object : TypeReference<List<Order?>?>() {})?.forEach { order ->
+            order?.id?.let { id ->
+                orderbook[id] = order
+            }
+        }
+    }
+
+    private fun selectMeta(date: LocalDate): OrderbookStorageDO? {
+        return persistenceService.selectNamedSingleResult(
+            OrderbookStorageDO.FIND_META_BY_DATE,
+            Tuple::class.java,
+            "date" to date,
+        )?.let {
+            OrderbookStorageDO().also { result ->
+                result.date = TupleUtils.getLocalDate(it, "date")
+                result.incrementalBasedOn = TupleUtils.getLocalDate(it, "incrementalBasedOn")
+            }
+        }
     }
 
     private fun findEntry(date: LocalDate): OrderbookStorageDO? {
-        return persistenceService.selectNamedSingleResult(
-            OrderbookStorageDO.FIND_BY_DATE, OrderbookStorageDO::class.java,
-            "date" to date
-        )
+        return persistenceService.find(OrderbookStorageDO::class.java, date)
     }
 
     private fun gzip(str: String): ByteArray {
