@@ -269,7 +269,7 @@ open class PfPersistenceService {
      */
     @JvmOverloads
     fun <T> selectNamedSingleResult(
-        sql: String,
+        namedQuery: String,
         resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         nullAllowed: Boolean = true,
@@ -278,7 +278,7 @@ open class PfPersistenceService {
         entityGraphName: String? = null,
     ): T? {
         return selectSingleResult(
-            sql = sql,
+            sql = namedQuery,
             resultClass = resultClass,
             keyValues = keyValues,
             nullAllowed = nullAllowed,
@@ -325,7 +325,7 @@ open class PfPersistenceService {
      */
     @JvmOverloads
     fun <T> executeNamedQuery(
-        sql: String,
+        namedQuery: String,
         resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         attached: Boolean = false,
@@ -334,7 +334,7 @@ open class PfPersistenceService {
         entityGraphName: String? = null,
     ): List<T> {
         return executeQuery(
-            sql = sql,
+            sql = namedQuery,
             resultClass = resultClass,
             keyValues = keyValues,
             attached = attached,

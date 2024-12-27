@@ -63,11 +63,11 @@ open class AddressImageDO : IdObject<Long> {
     @get:JoinColumn(name = "address_fk", nullable = false)
     open var address: AddressDO? = null
 
-    @get:Column
+    @get:Column(columnDefinition = "BLOB")
     @get:Basic(fetch = FetchType.LAZY)
     open var image: ByteArray? = null
 
-    @get:Column(name = "image_preview")
+    @get:Column(name = "image_preview", columnDefinition = "BLOB")
     @get:Basic(fetch = FetchType.LAZY)
     open var imagePreview: ByteArray? = null
 
