@@ -152,7 +152,7 @@ open class PFDateTime internal constructor(
     /**
      * 0-based: 0 (January) to 11 (December) for backward compatibility with [java.util.Calendar.MONTH]
      */
-    fun withCompatibilityMonth(month: Int): PFDateTime {
+    fun withCompabilityMonth(month: Int): PFDateTime {
         return PFDateTime(dateTime.withMonth(month + 1), locale, precision)
     }
 
