@@ -25,12 +25,10 @@ package org.projectforge.business.fibu.orderbookstorage
 
 import mu.KotlinLogging
 import org.projectforge.business.PfCaches
-import org.projectforge.business.fibu.AuftragDO
-import org.projectforge.business.fibu.AuftragsCache
-import org.projectforge.business.fibu.AuftragsPositionDO
-import org.projectforge.business.fibu.PaymentScheduleDO
+import org.projectforge.business.fibu.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.awt.SystemColor.info
 
 private val log = KotlinLogging.logger {}
 
@@ -53,18 +51,7 @@ internal class OrderConverterService {
     }
 
     fun from(auftrag: AuftragDO): Order {
-        var info = auftragsCache.getOrderInfo(auftrag.id)
-        if (info == null) {
-            log.warn { "No order info found for order with id ${auftrag.id}, trying to refresh AuftragsCache..." }
-            auftragsCache.setExpired(auftrag)
-            info = auftragsCache.getOrderInfo(auftrag.id)
-            if (info == null) {
-                log.error { "No order info found for order with id ${auftrag.id}, also after AuftragsCache.refresh!!! No details calculated." }
-            }
-        }
-        if (info != null) {
-            auftrag.info = info
-        }
+        auftrag.info.calculateAll(auftrag)
         return Order.from(auftrag)
     }
 

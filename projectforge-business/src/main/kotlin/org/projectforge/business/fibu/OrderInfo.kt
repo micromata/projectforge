@@ -32,7 +32,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.Serializable
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.Date
+import java.util.*
 
 private val log = KotlinLogging.logger {}
 
@@ -47,6 +47,7 @@ class OrderInfo() : Serializable {
         val amount = schedule.amount
         val reached = schedule.reached
         val scheduleDate = schedule.scheduleDate
+
         /**
          * Not deleted and amount is given > 0,00.
          */
@@ -171,6 +172,13 @@ class OrderInfo() : Serializable {
     fun getInfoPosition(id: Long?): OrderPositionInfo? {
         id ?: return null
         return infoPositions?.find { it.id == id }
+    }
+
+    /** Use this method to calculate all fields of this order info without using the cached order info. */
+    fun calculateAll(order: AuftragDO) {
+        updateFields(order, order.paymentSchedules) // Update order info fields from given order.
+        val posInfos = order.positionen?.map { OrderPositionInfo(it, order.info) }
+        calculateAll(order, posInfos, order.paymentSchedules)
     }
 
     /**
