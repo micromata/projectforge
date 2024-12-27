@@ -1,4 +1,5 @@
 Aktuell:
+- Groovy-scripts: remove or fix.
 - AG-Grid: setColumnStates wird nicht in den UserPrefs gespeichert.
 - Wicket: Auftragsbuch: org.apache.wicket.core.request.mapper.StalePageException: A request to page '[Page class = org.projectforge.web.fibu.AuftragEditPage, id = 9, render count = 3]' has been made with stale 'renderCount'. The page will be re-rendered.
 - -XX:ReservedCodeCacheSize=100m
