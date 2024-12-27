@@ -41,7 +41,7 @@ private val log = KotlinLogging.logger {}
 
 @Service
 class OrderbookStorageService {
-    class Stats(val date: LocalDate, val count: Int)
+    class Stats(val date: LocalDate, val count: Int, val gzBytes: ByteArray?)
 
     @Autowired
     private lateinit var auftragDao: AuftragDao
@@ -52,28 +52,49 @@ class OrderbookStorageService {
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
-    fun storeOrderbook(): Stats {
+    /**
+     * Stores the current orderbook in the database.
+     * If there are no orders, nothing is stored.
+     * If today's orderbook is already stored, it will be updated/overwritten.
+     * @return the date and the number of stored orders.
+     */
+    @JvmOverloads
+    fun storeOrderbook(returnGZipBytes: Boolean = false): Stats {
+        log.info { "Storing orderbook..." }
         // First, select all orders that are not deleted:
         val auftragList = auftragDao.select(deleted = false, checkAccess = false)
+        log.info { "Converting ${auftragList.size} orders..." }
         val orderbook = orderConverterService.convertFromAuftragDO(auftragList)
         val date = LocalDate.now()
         if (orderbook.isNullOrEmpty()) {
             log.warn { "No orders found to store!!!" }
-            return Stats(date, 0)
+            return Stats(date, 0, null)
         }
         val count = orderbook.size
+        log.info { "Converting ${auftragList.size} orders to json..." }
         val json = JsonUtils.toJson(orderbook)
-        val ba = gzip(json)
+        log.info { "Zipping ${auftragList.size} orders..." }
+        val gzipBytes = gzip(json)
         // Store the orderbook in the database:
         OrderbookStorageDO().also {
             it.date = date
-            it.serializedOrderBook = ba
+            it.serializedOrderBook = gzipBytes
         }.let {
             persistenceService.runInTransaction { context ->
-                context.em.persist(it)
+                val entry = persistenceService.selectNamedSingleResult(
+                    OrderbookStorageDO.FIND_BY_DATE, OrderbookStorageDO::class.java,
+                    "date" to date
+                )
+                if (entry != null) {
+                    entry.serializedOrderBook = it.serializedOrderBook
+                    context.em.merge(entry)
+                } else {
+                    context.em.persist(it)
+                }
             }
         }
-        return Stats(date, count)
+        log.info { "Storing orderbook done." }
+        return Stats(date, count, if (returnGZipBytes) gzipBytes else null)
     }
 
     fun restoreOrderbook(date: LocalDate): List<AuftragDO>? {

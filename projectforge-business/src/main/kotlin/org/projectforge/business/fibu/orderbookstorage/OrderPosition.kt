@@ -34,7 +34,7 @@ internal class OrderPosition {
     var paymentType: AuftragsPositionsPaymentType? = null
     var status: AuftragsStatus? = null
     var titel: String? = null
-    var nettoSumme: BigDecimal? = null
+    var netSum: BigDecimal? = null
     var personDays: BigDecimal? = null
     var vollstaendigFakturiert: Boolean? = false
     var periodOfPerformanceType: PeriodOfPerformanceType? = PeriodOfPerformanceType.SEEABOVE
@@ -43,15 +43,15 @@ internal class OrderPosition {
     var modeOfPaymentType: ModeOfPaymentType? = null
 
     companion object {
-        fun from(pos: AuftragsPositionDO): OrderPosition {
+        fun from(pos: OrderPositionInfo): OrderPosition {
             return OrderPosition().apply {
                 number = pos.number
-                taskId = pos.task?.id
+                taskId = pos.taskId
                 art = pos.art
                 paymentType = pos.paymentType
                 status = pos.status
                 titel = pos.titel
-                nettoSumme = pos.nettoSumme
+                netSum = pos.netSum
                 personDays = pos.personDays
                 vollstaendigFakturiert = pos.vollstaendigFakturiert
                 periodOfPerformanceType = pos.periodOfPerformanceType

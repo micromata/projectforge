@@ -45,6 +45,7 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
     val paymentType = position.paymentType
     val art = position.art
     val personDays = position.personDays
+    val modeOfPaymentType = position.modeOfPaymentType
 
     /** netSum of the order position in database. */
     val dbNetSum = position.nettoSumme ?: BigDecimal.ZERO

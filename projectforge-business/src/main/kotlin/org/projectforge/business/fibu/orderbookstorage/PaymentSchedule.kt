@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu.orderbookstorage
 
+import org.projectforge.business.fibu.OrderInfo
 import org.projectforge.business.fibu.PaymentScheduleDO
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -37,15 +38,15 @@ class PaymentSchedule {
     var vollstaendigFakturiert: Boolean = false
 
     companion object {
-        fun from(schedule: PaymentScheduleDO): PaymentSchedule {
+        fun from(scheduleInfo: OrderInfo.PaymentScheduleInfo): PaymentSchedule {
             return PaymentSchedule().apply {
-                number = schedule.number
-                orderPositionNumber = schedule.positionNumber
-                scheduleDate = schedule.scheduleDate
-                amount = schedule.amount
-                comment = schedule.comment
-                reached = schedule.reached
-                vollstaendigFakturiert = schedule.vollstaendigFakturiert
+                number = scheduleInfo.number
+                orderPositionNumber = scheduleInfo.positionNumber
+                scheduleDate = scheduleInfo.scheduleDate
+                amount = scheduleInfo.amount
+                comment = scheduleInfo.comment
+                reached = scheduleInfo.reached
+                vollstaendigFakturiert = scheduleInfo.vollstaendigFakturiert
             }
         }
     }
