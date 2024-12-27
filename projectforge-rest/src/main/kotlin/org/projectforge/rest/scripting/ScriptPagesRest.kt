@@ -28,6 +28,7 @@ import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
 import org.projectforge.business.scripting.*
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.jcr.FileInfo
 import org.projectforge.menu.MenuItem
@@ -160,6 +161,20 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
                 )
             )
         )
+        val examplesMenu = MenuItem("examples", translate("scripting.script.examples"))
+        layout.add(examplesMenu)
+        ExampleScripts.exampleFiles.forEachIndexed { index, exampleScript ->
+            examplesMenu.add(
+                MenuItem(
+                    id = "example$index",
+                    title = exampleScript.title,
+                    url = PagesResolver.getDynamicPageUrl(
+                        ScriptExecutePageRest::class.java,
+                        params = mapOf("example" to index),
+                    ),
+                )
+            )
+        }
     }
 
     /**
