@@ -33,6 +33,7 @@ import java.time.LocalDate
  * For storing serializing and deserializing orders.
  */
 internal class Order {
+    var id: Long? = null
     var nummer: Int? = null
     var positionen: Collection<OrderPosition>? = null
     var status: AuftragsStatus? = null
@@ -112,6 +113,7 @@ internal class Order {
          */
         fun from(order: AuftragDO): Order {
             return Order().apply {
+                id = order.id
                 nummer = order.nummer
                 positionen = order.info.infoPositions?.map { OrderPosition.from(it) }
                 status = order.status

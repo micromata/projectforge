@@ -62,6 +62,7 @@ internal class OrderConverterService {
 
     fun from(order: Order): AuftragDO {
         return AuftragDO().apply {
+            id = order.id
             nummer = order.nummer
             positionen = order.positionen?.map { from(it) }?.toMutableList()
             status = order.status
@@ -90,6 +91,7 @@ internal class OrderConverterService {
 
     private fun from(pos: OrderPosition): AuftragsPositionDO {
         return AuftragsPositionDO().apply {
+            id = pos.id
             number = pos.number
             task = caches.getTask(pos.taskId)
             art = pos.art
@@ -108,6 +110,7 @@ internal class OrderConverterService {
 
     private fun from(schedule: PaymentSchedule): PaymentScheduleDO {
         return PaymentScheduleDO().apply {
+            id = schedule.id
             number = schedule.number
             positionNumber = schedule.orderPositionNumber
             scheduleDate = schedule.scheduleDate

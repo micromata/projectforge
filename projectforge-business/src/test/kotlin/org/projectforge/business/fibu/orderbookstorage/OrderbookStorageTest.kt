@@ -100,6 +100,18 @@ class OrderbookStorageTest : AbstractTestBase() {
 
         // Restore the incremental storage:
         list = orderbookStorageService.restoreOrderbook(incrementalStats.date)
+        Assertions.assertEquals(6, list!!.size)
+        list.forEach { order ->
+            Assertions.assertEquals("30.00".toBigDecimal(), order.info.netSum)
+            Assertions.assertEquals("30.00".toBigDecimal(), order.info.akquiseSum)
+            Assertions.assertEquals("3.00".toBigDecimal(), order.info.personDays)
+            Assertions.assertEquals(AuftragsStatus.POTENZIAL, order.info.status)
+        }
+        Assertions.assertTrue(list.any { it.titel == "new title 4" }, "Modified title expected.")
+
+        list = orderbookStorageService.restoreOrderbook(stats.date) // Restore the full backup (without last changes).
+        Assertions.assertEquals(6, list!!.size)
+        Assertions.assertTrue(list.none { it.titel == "new title 4" }, "Modified title expected.")
 
         // Test incremental storage with a date that is not found:
         incrementalStats =

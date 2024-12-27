@@ -35,8 +35,8 @@ import java.time.LocalDate
     uniqueConstraints = [UniqueConstraint(columnNames = ["date"])],
 )
 @NamedQueries(
-    NamedQuery(name = OrderbookStorageDO.FIND_BY_DATE, query = "from OrderbookStorageDO where date=:date"),
-    NamedQuery(name = OrderbookStorageDO.FIND_ALL_DATES, query = "select date from OrderbookStorageDO"),
+    NamedQuery(name = OrderbookStorageDO.FIND_META_BY_DATE, query = "select date as date,incrementalBasedOn as incrementalBasedOn from OrderbookStorageDO where date=:date"),
+    NamedQuery(name = OrderbookStorageDO.SELECT_ALL_METAS, query = "select date as date,incrementalBasedOn as incrementalBasedOn from OrderbookStorageDO"),
 )
 internal class OrderbookStorageDO {
     @get:Id
@@ -62,7 +62,7 @@ internal class OrderbookStorageDO {
         get() = incrementalBasedOn != null
 
     companion object {
-        internal const val FIND_BY_DATE = "OrderStorageDO_FindByDate"
-        internal const val FIND_ALL_DATES = "OrderStorageDO_FindAllDates"
+        internal const val FIND_META_BY_DATE = "OrderStorageDO_FindMetaByDate"
+        internal const val SELECT_ALL_METAS = "OrderStorageDO_SelectAllMetas"
     }
 }
