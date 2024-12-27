@@ -31,7 +31,7 @@ import java.util.Date
 
 /**
  * Base search filter supported by the DAO's for filtering the result lists. The search filter will be translated via
- * QueryFilter into hibernate query criterias.
+ * QueryFilter into hibernate query criteria.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
@@ -83,7 +83,7 @@ open class BaseSearchFilter : Serializable {
     var searchHistory = false
 
     /**
-     * If an error occured (e. g. lucene parse exception) this message will be returned.
+     * If an error occurred (e. g. lucene parse exception) this message will be returned.
      */
     var errorMessage: String? = null
 

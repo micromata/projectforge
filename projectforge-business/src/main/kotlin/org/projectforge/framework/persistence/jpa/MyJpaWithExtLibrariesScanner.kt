@@ -198,7 +198,7 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
           urlmatcher = BooleanListRulesFactory<String?>().createMatcher(matcherexppr)
           if (!externalUrlMatcherLogged) {
             log.info("Using url matcher '$matcherexppr' for external urls.")
-            externalUrlMatcherLogged = true // Don't log mutliple times.
+            externalUrlMatcherLogged = true // Don't log multiple times.
           }
         }
         val prov = loadJpaExtScannerUrlProvider(environment)
@@ -344,7 +344,7 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
       }*/
 
     /**
-     * Workarround, because if started in Intellij, the entities of the plugins are not scanned for Hibernate.
+     * Workaround, because if started in Intellij, the entities of the plugins are not scanned for Hibernate.
      */
     /*
     private fun workarroundForIDEStart(

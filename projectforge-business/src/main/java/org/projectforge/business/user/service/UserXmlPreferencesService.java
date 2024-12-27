@@ -113,7 +113,7 @@ public class UserXmlPreferencesService {
         if (expectedType.isAssignableFrom(entry.getClass())) {
             return (T) entry;
         }
-        // Probably a new software release results in an incompability of old and new object format.
+        // Probably a new software release results in an incompatibility of old and new object format.
         log.info("Could not get user preference entry: (old) type "
                 + entry.getClass().getName()
                 + " is not assignable to (new) required type "

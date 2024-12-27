@@ -297,7 +297,7 @@ open class ConfigurationService {
     }
     if (inputStream == null) {
       log.error(
-        "File '" + filename + "' not found (wether in file system under '" + base.absolutePath
+        "File '" + filename + "' not found (whether in file system under '" + base.absolutePath
             + "' nor in resource!)"
       )
     }

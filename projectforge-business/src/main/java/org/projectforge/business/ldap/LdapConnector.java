@@ -121,7 +121,7 @@ public class LdapConnector implements ConfigurationListener {
       final LdapContext ctx = new InitialLdapContext(env, null);
       return ctx;
     } catch (final NamingException ex) {
-      log.error("While trying to connect LDAP initally: " + ex.getMessage(), ex);
+      log.error("While trying to connect LDAP initially: " + ex.getMessage(), ex);
       throw new RuntimeException(ex);
     }
   }

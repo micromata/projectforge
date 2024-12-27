@@ -53,7 +53,7 @@ class DatabaseBackupPurgeJob {
     @Scheduled(cron = "\${projectforge.cron.purgeBackup}")
     fun execute() {
         if (dbBackupDir.isNullOrBlank()) {
-            log.info { "No backup dir will be cleaned up, because the backup dir isn't configured. If you want the feature, that all daily backups will be removed after 30 days but the montly backups will be kept, please configure projectforge.cron.dbBackupCleanup in projectforge.properties." }
+            log.info { "No backup dir will be cleaned up, because the backup dir isn't configured. If you want the feature, that all daily backups will be removed after 30 days but the monthly backups will be kept, please configure projectforge.cron.dbBackupCleanup in projectforge.properties." }
             return
         }
         val backupDir = File(dbBackupDir)

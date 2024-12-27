@@ -165,7 +165,7 @@ public class Registry {
         }
         final RegistryEntry entry = new RegistryEntry(id, daoClassType, dao, i18nPrefix);
         register(entry);
-        log.debug("Dao '" + id + "' registerd.");
+        log.debug("Dao '" + id + "' registered.");
         return entry;
     }
 

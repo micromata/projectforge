@@ -58,7 +58,7 @@ public class FileHelper
 
   /**
    * Creates a safe filename from the given string by converting all non specified characters will replaces by an underscore or will be
-   * substitue. Example: "Schrödinger" -&gt; "Schroedinger", "http://www.micromata.de" -&gt; "http_www.micromata.de".
+   * substitute. Example: "Schrödinger" -&gt; "Schroedinger", "http://www.micromata.de" -&gt; "http_www.micromata.de".
    * 
    * @param str
    * @param maxlength The maximum length of the result.

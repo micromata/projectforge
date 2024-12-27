@@ -150,7 +150,7 @@ public class AccessTestFork extends AbstractTestBase {
         assertEquals(TimesheetDao.HIDDEN_FIELD_MARKER, timesheet.getShortDescription(),"Field should be hidden");
         assertEquals(TimesheetDao.HIDDEN_FIELD_MARKER, timesheet.getDescription(),"Field should be hidden");
         assertEquals(TimesheetDao.HIDDEN_FIELD_MARKER, timesheet.getLocation(),"Field should be hidden");
-        // fail("Timesheet should not be accessable for user1 (because he is not member of group3)");
+        // fail("Timesheet should not be accessible for user1 (because he is not member of group3)");
         // } catch (AccessException ex) {
         // OK
         // }

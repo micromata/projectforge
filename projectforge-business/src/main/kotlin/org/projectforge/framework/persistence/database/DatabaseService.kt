@@ -392,7 +392,7 @@ class DatabaseService {
      * @param name
      * @param table
      * @param attributes
-     * @return true, if the index was created, false if an error has occured or the index already exists.
+     * @return true, if the index was created, false if an error has occurred or the index already exists.
      */
     fun createIndex(name: String, table: String, attributes: String): Boolean {
         accessCheck()

@@ -121,7 +121,7 @@ public class ContractDao extends BaseDao<ContractDO> {
     /**
      * Gets the highest contract number.
      *
-     * @param contract is needed to check wether the contract does already exist or not. If already exist it will be
+     * @param contract is needed to check whether the contract does already exist or not. If already exist it will be
      *                 assured that this contract has an unchanged number.
      */
     @SuppressWarnings("unchecked")

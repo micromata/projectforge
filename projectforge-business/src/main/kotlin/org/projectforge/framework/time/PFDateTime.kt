@@ -150,9 +150,9 @@ open class PFDateTime internal constructor(
     }
 
     /**
-     * 0-based: 0 (January) to 11 (December) for backward compability with [java.util.Calendar.MONTH]
+     * 0-based: 0 (January) to 11 (December) for backward compatibility with [java.util.Calendar.MONTH]
      */
-    fun withCompabilityMonth(month: Int): PFDateTime {
+    fun withCompatibilityMonth(month: Int): PFDateTime {
         return PFDateTime(dateTime.withMonth(month + 1), locale, precision)
     }
 
@@ -479,7 +479,7 @@ open class PFDateTime internal constructor(
          * @param value Date in millis or seconds (depends on [numberFormat]).
          * @param zoneId ZoneId to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
          * @param locale Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
-         * @param numberFormat value is intepreted as millis at default.
+         * @param numberFormat value is interpreted as millis at default.
          * @return PFDateTime from given value...
          * @throws java.lang.IllegalStateException if date is null.
          */
@@ -503,7 +503,7 @@ open class PFDateTime internal constructor(
          * @param value Date in millis or seconds (depends on [numberFormat]). Null is supported.
          * @param zoneId ZoneId to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
          * @param locale Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
-         * @param numberFormat value is intepreted as millis at default.
+         * @param numberFormat value is interpreted as millis at default.
          * @return PFDateTime from given value or now, if value is null.
          */
         @JvmStatic
@@ -523,7 +523,7 @@ open class PFDateTime internal constructor(
          * @param value Date in millis or seconds (depends on [numberFormat]). Null is supported.
          * @param zoneId ZoneId to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
          * @param locale Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
-         * @param numberFormat value is intepreted as millis at default.
+         * @param numberFormat value is interpreted as millis at default.
          * @return PFDateTime from given value or null, if value is null.
          */
         @JvmStatic

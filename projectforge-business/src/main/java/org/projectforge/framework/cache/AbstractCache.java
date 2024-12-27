@@ -24,7 +24,7 @@
 package org.projectforge.framework.cache;
 
 /**
- * This class is usefull, if the stored object of derived classes has to be cached. After reaching expireTime during a
+ * This class is useful, if the stored object of derived classes has to be cached. After reaching expireTime during a
  * request, the method refresh will be called.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)

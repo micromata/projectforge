@@ -292,7 +292,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     /**
      * This method is used by the searchDao and calls [.getList] by default.
      *
-     * @return A list of found entries or empty list. PLEASE NOTE: Returns null only if any error occured.
+     * @return A list of found entries or empty list. PLEASE NOTE: Returns null only if any error occurred.
      * @see .getList
      */
     @JvmOverloads
@@ -304,7 +304,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
      * Builds query filter by simply calling constructor of QueryFilter with given search filter and calls
      * getList(QueryFilter). Override this method for building more complex query filters.
      *
-     * @return A list of found entries or empty list. PLEASE NOTE: Returns null only if any error occured.
+     * @return A list of found entries or empty list. PLEASE NOTE: Returns null only if any error occurred.
      */
     override fun select(filter: BaseSearchFilter): List<O> {
         return select(filter, true)
@@ -561,7 +561,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     }
 
     /**
-     * Historizable objects will be deleted (including all history entries). This option is used to fullfill the
+     * Historizable objects will be deleted (including all history entries). This option is used to fulfill the
      * privacy protection rules.
      */
     @Throws(AccessException::class)
@@ -962,7 +962,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     protected open val additionalHistorySearchDOs: Array<Class<*>>? = null
 
     /**
-     * @return Wether the data object (BaseDO) this dao is responsible for is from type Historizable or not.
+     * @return Whether the data object (BaseDO) this dao is responsible for is from type Historizable or not.
      */
     override fun isHistorizable(): Boolean {
         return HistoryBaseDaoAdapter.isHistorizable(doClass)

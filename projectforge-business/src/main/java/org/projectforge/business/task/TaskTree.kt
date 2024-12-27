@@ -697,7 +697,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
     /**
      * @param node
      * @return The ordered person days or if not found the defined max hours. If both not found, the get the sum of all
-     * diect or null if both not found.
+     * direct or null if both not found.
      */
     fun getPersonDays(node: TaskNode?): BigDecimal? {
         checkRefresh()

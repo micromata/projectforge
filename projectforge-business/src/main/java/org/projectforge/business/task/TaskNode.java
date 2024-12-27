@@ -344,7 +344,7 @@ public class TaskNode implements IdObject<Long>, Serializable {
   }
 
   /**
-   * Adds a new task as a child of this node. It does not check wether this task already exist as child or not! This
+   * Adds a new task as a child of this node. It does not check whether this task already exist as child or not! This
    * method does not modify the child task!
    */
   void addChild(final TaskNode child) {
