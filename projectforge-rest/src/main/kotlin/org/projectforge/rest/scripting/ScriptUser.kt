@@ -35,10 +35,14 @@ import org.projectforge.rest.dto.User
  */
 @Suppress("unused")
 class ScriptUser internal constructor() {
-  private val loggedInUser = ThreadLocalUserContext.loggedInUser!!
+  private val loggedInUser = ThreadLocalUserContext.requiredLoggedInUser
   private val userGroupCache = UserGroupCache.getInstance()
 
   val user = User()
+
+  init {
+    user.copyFrom(loggedInUser)
+  }
 
   /**
    * Convenient field.
@@ -103,9 +107,5 @@ class ScriptUser internal constructor() {
 
   fun isHRStaffMember(): Boolean {
     return userGroupCache.isUserMemberOfHRGroup(loggedInUser.id)
-  }
-
-  init {
-    user.copyFrom(ThreadLocalUserContext.loggedInUser!!)
   }
 }
