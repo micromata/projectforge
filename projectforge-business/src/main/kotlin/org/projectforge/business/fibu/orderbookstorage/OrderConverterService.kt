@@ -28,7 +28,6 @@ import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.awt.SystemColor.info
 
 private val log = KotlinLogging.logger {}
 
@@ -51,7 +50,13 @@ internal class OrderConverterService {
     }
 
     fun from(auftrag: AuftragDO): Order {
-        auftrag.info.calculateAll(auftrag)
+        val info = auftragsCache.getOrderInfo(auftrag.id)
+        if (info == null) {
+            log.warn { "No order info found for order with id ${auftrag.id}, trying to recalculate it..." }
+            auftrag.info.calculateAll(auftrag) // Expensive due to lazy loadings...
+        } else {
+            auftrag.info = info
+        }
         return Order.from(auftrag)
     }
 
@@ -92,7 +97,7 @@ internal class OrderConverterService {
             paymentType = pos.paymentType
             status = pos.status
             titel = pos.titel
-            nettoSumme = pos.nettoSumme
+            nettoSumme = pos.netSum
             personDays = pos.personDays
             vollstaendigFakturiert = pos.vollstaendigFakturiert
             periodOfPerformanceType = pos.periodOfPerformanceType

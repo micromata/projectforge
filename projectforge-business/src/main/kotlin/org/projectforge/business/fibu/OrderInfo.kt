@@ -43,6 +43,7 @@ private val log = KotlinLogging.logger {}
 class OrderInfo() : Serializable {
     class PaymentScheduleInfo(schedule: PaymentScheduleDO) : Serializable {
         val id = schedule.id
+        val number = schedule.number
         val positionNumber = schedule.positionNumber
         val amount = schedule.amount
         val reached = schedule.reached

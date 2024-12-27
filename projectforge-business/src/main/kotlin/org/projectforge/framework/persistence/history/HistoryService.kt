@@ -150,7 +150,7 @@ class HistoryService {
         customize: ((entry: HistoryEntryDO) -> Unit)? = null,
     ) {
         val newHistoryEntries = context.executeNamedQuery(
-            sql = HistoryEntryDO.SELECT_HISTORY_BY_ENTITY_IDS,
+            namedQuery = HistoryEntryDO.SELECT_HISTORY_BY_ENTITY_IDS,
             resultClass = HistoryEntryDO::class.java,
             keyValues = arrayOf(
                 Pair("entityIds", entityIds),
@@ -169,7 +169,7 @@ class HistoryService {
     ) {
         entityId ?: return
         val newHistoryEntries = context.executeNamedQuery(
-            sql = HistoryEntryDO.SELECT_HISTORY_FOR_BASEDO,
+            namedQuery = HistoryEntryDO.SELECT_HISTORY_FOR_BASEDO,
             resultClass = HistoryEntryDO::class.java,
             keyValues = arrayOf(
                 Pair("entityId", entityId),

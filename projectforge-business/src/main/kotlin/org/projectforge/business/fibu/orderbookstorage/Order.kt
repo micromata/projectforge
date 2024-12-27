@@ -26,6 +26,7 @@ package org.projectforge.business.fibu.orderbookstorage
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.AuftragsStatus
 import org.projectforge.business.fibu.OrderInfo
+import org.projectforge.business.fibu.OrderPositionInfo
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -35,13 +36,13 @@ import java.time.LocalDate
 internal class Order {
     var nummer: Int? = null
     var referenz: String? = null
-    var positionen: List<OrderPosition>? = null
+    var positionen: Collection<OrderPosition>? = null
     var status: AuftragsStatus? = null
     var kundeId: Long? = null
     var kundeText: String? = null
     var projektId: Long? = null
     var titel: String? = null
-    var paymentSchedules: List<PaymentSchedule>? = null
+    var paymentSchedules: Collection<PaymentSchedule>? = null
     var periodOfPerformanceBegin: LocalDate? = null
     var periodOfPerformanceEnd: LocalDate? = null
     var probabilityOfOccurrence: Int? = null
@@ -110,13 +111,13 @@ internal class Order {
             return Order().apply {
                 nummer = order.nummer
                 referenz = order.referenz
-                positionen = order.positionen?.map { OrderPosition.from(it) }
+                positionen = order.info.infoPositions?.map { OrderPosition.from(it) }
                 status = order.status
                 kundeId = order.kunde?.id
                 kundeText = order.kundeText
                 projektId = order.projekt?.id
                 titel = order.titel
-                paymentSchedules = order.paymentSchedules?.map { PaymentSchedule.from(it) }
+                paymentSchedules = order.info.paymentScheduleEntries?.map { PaymentSchedule.from(it) }
                 periodOfPerformanceBegin = order.periodOfPerformanceBegin
                 periodOfPerformanceEnd = order.periodOfPerformanceEnd
                 probabilityOfOccurrence = order.probabilityOfOccurrence

@@ -71,9 +71,16 @@ class OrderbookStorageTest : AbstractTestBase() {
         auftragDao.insert(createOrder("5"), checkAccess = false)
         auftragDao.insert(createOrder("6"), checkAccess = false)
         val stats = orderbookStorageService.storeOrderbook()
+        orderbookStorageService.storeOrderbook() // Previous entry should be overwritten. No exception expected.
         Assertions.assertEquals(6, stats.count)
         val list = orderbookStorageService.restoreOrderbook(stats.date)
         Assertions.assertEquals(6, list!!.size)
+        list.forEach { order ->
+            Assertions.assertEquals("30.00".toBigDecimal(), order.info.netSum)
+            Assertions.assertEquals("30.00".toBigDecimal(), order.info.akquiseSum)
+            Assertions.assertEquals("3.00".toBigDecimal(), order.info.personDays)
+            Assertions.assertEquals(AuftragsStatus.POTENZIAL, order.info.status)
+        }
     }
 
     private fun createOrder(id: String): AuftragDO {
