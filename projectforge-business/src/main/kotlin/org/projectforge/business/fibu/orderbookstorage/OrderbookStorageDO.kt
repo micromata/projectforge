@@ -41,15 +41,25 @@ import java.time.LocalDate
 internal class OrderbookStorageDO {
     @get:Id
     @get:Column
-    open var date: LocalDate? = null
+    var date: LocalDate? = null
 
     /**
      * Serialized order book.
      * All orders are serialized as json objects and zipped.
      */
     @get:Column(name = "serialized_orderbook", columnDefinition = "BLOB")
-    @get:Basic(fetch = FetchType.LAZY)
-    open var serializedOrderBook: ByteArray? = null
+    @get:Basic(fetch = FetchType.LAZY) // Lazy isn't reliable for byte arrays.
+    var serializedOrderBook: ByteArray? = null
+
+    /**
+     * If given, this entry contains only the orders which were modified after this date.
+     */
+    @get:Column(name = "incremental_based_on")
+    var incrementalBasedOn: LocalDate? = null
+
+    @get:Transient
+    val incremental: Boolean
+        get() = incrementalBasedOn != null
 
     companion object {
         internal const val FIND_BY_DATE = "OrderStorageDO_FindByDate"

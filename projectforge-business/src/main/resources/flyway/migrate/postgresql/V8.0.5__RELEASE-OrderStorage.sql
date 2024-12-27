@@ -1,6 +1,7 @@
 CREATE TABLE t_fibu_orderbook_storage
 (
     date                 DATE NOT NULL,
+    incremental_based_on DATE,
     serialized_orderbook BYTEA
 );
 

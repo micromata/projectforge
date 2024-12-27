@@ -29,11 +29,14 @@ import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.AuftragDao
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
+import org.projectforge.framework.time.PFDateTimeUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
+import java.util.*
+import java.util.zip.Deflater
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 
@@ -56,35 +59,58 @@ class OrderbookStorageService {
      * Stores the current orderbook in the database.
      * If there are no orders, nothing is stored.
      * If today's orderbook is already stored, it will be updated/overwritten.
+     * @param incrementalBasedOn if given, this entry contains only the orders which were modified after this date.
+     * @param returnGZipBytes if true, the gzipped bytes are returned.
      * @return the date and the number of stored orders.
      */
     @JvmOverloads
-    fun storeOrderbook(returnGZipBytes: Boolean = false): Stats {
-        log.info { "Storing orderbook..." }
+    fun storeOrderbook(returnGZipBytes: Boolean = false, incrementalBasedOn: LocalDate? = null): Stats {
+        return storeOrderbook(incrementalBasedOn, returnGZipBytes, LocalDate.now())
+    }
+
+    /**
+     * @param today the date of the orderbook, default is today. This is only for testing purposes.
+     */
+    internal fun storeOrderbook(
+        incrementalBasedOn: LocalDate? = null,
+        returnGZipBytes: Boolean = false,
+        today: LocalDate,
+    ): Stats {
+        log.info { "Storing orderbook (incrementalBasedOn=$incrementalBasedOn)..." }
         // First, select all orders that are not deleted:
         val auftragList = auftragDao.select(deleted = false, checkAccess = false)
-        log.info { "Converting ${auftragList.size} orders..." }
-        val orderbook = orderConverterService.convertFromAuftragDO(auftragList)
-        val date = LocalDate.now()
+        val incrementList = if (incrementalBasedOn != null) {
+            val basedOn = findEntry(incrementalBasedOn)
+            if (basedOn == null) {
+                log.error { "No orderbook found, which based on given date: $incrementalBasedOn. Falling back to full backup." }
+                auftragList
+            } else {
+                val basedOnDate = PFDateTimeUtils.getBeginOfDateAsUtildate(incrementalBasedOn)
+                // Filter all orders that were modified at or after the given date:
+                auftragList.filter { (it.lastUpdate ?: Date()) >= basedOnDate }
+            }
+        } else {
+            auftragList
+        }
+        log.info { "Converting ${incrementList.size}/${auftragList.size} orders..." }
+        val orderbook = orderConverterService.convertFromAuftragDO(incrementList)
         if (orderbook.isNullOrEmpty()) {
             log.warn { "No orders found to store!!!" }
-            return Stats(date, 0, null)
+            return Stats(today, 0, null)
         }
         val count = orderbook.size
-        log.info { "Converting ${auftragList.size} orders to json..." }
-        val json = JsonUtils.toJson(orderbook)
-        log.info { "Zipping ${auftragList.size} orders..." }
+        log.info { "Converting ${incrementList.size}/${auftragList.size} orders to json..." }
+        val json = JsonUtils.toJson(orderbook, ignoreNullableProps = true)
+        log.info { "Zipping ${incrementList.size} orders..." }
         val gzipBytes = gzip(json)
         // Store the orderbook in the database:
         OrderbookStorageDO().also {
-            it.date = date
+            it.date = today
             it.serializedOrderBook = gzipBytes
+            it.incrementalBasedOn = incrementalBasedOn
         }.let {
             persistenceService.runInTransaction { context ->
-                val entry = persistenceService.selectNamedSingleResult(
-                    OrderbookStorageDO.FIND_BY_DATE, OrderbookStorageDO::class.java,
-                    "date" to date
-                )
+                val entry = findEntry(today)
                 if (entry != null) {
                     entry.serializedOrderBook = it.serializedOrderBook
                     context.em.merge(entry)
@@ -94,7 +120,7 @@ class OrderbookStorageService {
             }
         }
         log.info { "Storing orderbook done." }
-        return Stats(date, count, if (returnGZipBytes) gzipBytes else null)
+        return Stats(today, count, if (returnGZipBytes) gzipBytes else null)
     }
 
     fun restoreOrderbook(date: LocalDate): List<AuftragDO>? {
@@ -108,9 +134,21 @@ class OrderbookStorageService {
         return orderConverterService.convertFromOrder(result)
     }
 
+    private fun findEntry(date: LocalDate): OrderbookStorageDO? {
+        return persistenceService.selectNamedSingleResult(
+            OrderbookStorageDO.FIND_BY_DATE, OrderbookStorageDO::class.java,
+            "date" to date
+        )
+    }
+
     private fun gzip(str: String): ByteArray {
         val byteArrayOutputStream = ByteArrayOutputStream()
-        GZIPOutputStream(byteArrayOutputStream).use { gzipStream ->
+        val gzipStream = object : GZIPOutputStream(byteArrayOutputStream) {
+            init {
+                def.setLevel(Deflater.BEST_COMPRESSION)
+            }
+        }
+        gzipStream.use { gzipStream ->
             gzipStream.write(str.toByteArray(Charsets.UTF_8))
         }
         return byteArrayOutputStream.toByteArray()

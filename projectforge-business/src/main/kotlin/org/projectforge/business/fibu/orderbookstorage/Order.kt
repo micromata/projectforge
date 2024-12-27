@@ -26,7 +26,6 @@ package org.projectforge.business.fibu.orderbookstorage
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.AuftragsStatus
 import org.projectforge.business.fibu.OrderInfo
-import org.projectforge.business.fibu.OrderPositionInfo
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -35,7 +34,6 @@ import java.time.LocalDate
  */
 internal class Order {
     var nummer: Int? = null
-    var referenz: String? = null
     var positionen: Collection<OrderPosition>? = null
     var status: AuftragsStatus? = null
     var kundeId: Long? = null
@@ -104,19 +102,23 @@ internal class Order {
     var paymentSchedulesReached: Boolean = false
 
     companion object {
+        internal fun abbreviate(str: String?): String? {
+            return str
+            // return str.abbreviate(20)
+        }
+
         /**
          * [AuftragDO.info] must be calculated before calling this method.
          */
         fun from(order: AuftragDO): Order {
             return Order().apply {
                 nummer = order.nummer
-                referenz = order.referenz
                 positionen = order.info.infoPositions?.map { OrderPosition.from(it) }
                 status = order.status
                 kundeId = order.kunde?.id
                 kundeText = order.kundeText
                 projektId = order.projekt?.id
-                titel = order.titel
+                titel = abbreviate(order.titel)
                 paymentSchedules = order.info.paymentScheduleEntries?.map { PaymentSchedule.from(it) }
                 periodOfPerformanceBegin = order.periodOfPerformanceBegin
                 periodOfPerformanceEnd = order.periodOfPerformanceEnd

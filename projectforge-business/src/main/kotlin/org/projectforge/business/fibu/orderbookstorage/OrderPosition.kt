@@ -50,7 +50,7 @@ internal class OrderPosition {
                 art = pos.art
                 paymentType = pos.paymentType
                 status = pos.status
-                titel = pos.titel
+                titel = Order.abbreviate(pos.titel)
                 netSum = pos.netSum
                 personDays = pos.personDays
                 vollstaendigFakturiert = pos.vollstaendigFakturiert
