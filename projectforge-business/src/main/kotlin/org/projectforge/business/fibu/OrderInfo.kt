@@ -128,9 +128,9 @@ class OrderInfo() : Serializable {
     var netSum = BigDecimal.ZERO
 
     /**
-     * The sum of all net sums of the positions (only ordered positions) of this order. This value is 0 for lost orders.
+     * The sum of all net sums of the positions (only commissioned positions) of this order. This value is 0 for lost orders.
      */
-    var orderedNetSum = BigDecimal.ZERO
+    var commissionedNetSum = BigDecimal.ZERO
 
     /**
      * For not lost orders the sum of all akquise sums of the positions of this order.
@@ -186,8 +186,8 @@ class OrderInfo() : Serializable {
         updateFields(order, paymentScheduleDOEntries)
         positionInfos?.forEach { it.recalculate(this) }
         netSum = positionInfos?.sumOf { it.netSum } ?: BigDecimal.ZERO
-        orderedNetSum = if (status.orderState != AuftragsOrderState.LOST) {
-            positionInfos?.sumOf { it.orderedNetSum } ?: BigDecimal.ZERO
+        commissionedNetSum = if (status.orderState != AuftragsOrderState.LOST) {
+            positionInfos?.sumOf { it.commissionedNetSum } ?: BigDecimal.ZERO
         } else {
             BigDecimal.ZERO
         }
@@ -220,7 +220,7 @@ class OrderInfo() : Serializable {
         if (deleted) {
             toBeInvoiced = false
             netSum = BigDecimal.ZERO
-            orderedNetSum = BigDecimal.ZERO
+            commissionedNetSum = BigDecimal.ZERO
             akquiseSum = BigDecimal.ZERO
             toBeInvoicedSum = BigDecimal.ZERO
             positionAbgeschlossenUndNichtVollstaendigFakturiert = false

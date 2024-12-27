@@ -41,7 +41,6 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.utils.CurrencyFormatter
 import org.projectforge.common.StringHelper
-import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.utils.NumberHelper.greaterZero
@@ -119,7 +118,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO) :
       fs.add(DivTextPanel(fs.newChildId(), ", " + getString("fibu.auftrag.commissioned") + ": "))
       val orderedPanel = DivTextPanel(fs.newChildId(), object : Model<String>() {
         override fun getObject(): String {
-          return CurrencyFormatter.format(data!!.info.orderedNetSum)
+          return CurrencyFormatter.format(data!!.info.commissionedNetSum)
         }
       }, TextStyle.FORM_TEXT)
       fs.add(orderedPanel)

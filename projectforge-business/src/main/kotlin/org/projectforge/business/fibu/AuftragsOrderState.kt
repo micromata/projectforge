@@ -28,7 +28,7 @@ package org.projectforge.business.fibu
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 enum class AuftragsOrderState {
-    POTENTIAL, ORDERED, LOST;
+    POTENTIAL, COMMISSIONED, LOST;
 
     fun isIn(vararg state: AuftragsOrderState): Boolean {
         return state.contains(this)
