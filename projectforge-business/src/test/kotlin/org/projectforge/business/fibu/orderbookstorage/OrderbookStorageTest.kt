@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.*
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.framework.time.PFDateTimeUtils
 import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -64,16 +65,17 @@ class OrderbookStorageTest : AbstractTestBase() {
             it.name = "Project"
             projektDao.insert(it, checkAccess = false)
         }
-        auftragDao.insert(createOrder("1"), checkAccess = false)
-        auftragDao.insert(createOrder("2"), checkAccess = false)
-        auftragDao.insert(createOrder("3"), checkAccess = false)
-        auftragDao.insert(createOrder("4"), checkAccess = false)
-        auftragDao.insert(createOrder("5"), checkAccess = false)
-        auftragDao.insert(createOrder("6"), checkAccess = false)
-        val stats = orderbookStorageService.storeOrderbook()
-        orderbookStorageService.storeOrderbook() // Previous entry should be overwritten. No exception expected.
+        createOrder("1", LocalDate.of(2024, Month.DECEMBER, 1))
+        createOrder("2", LocalDate.of(2024, Month.DECEMBER, 1))
+        createOrder("3", LocalDate.of(2024, Month.DECEMBER, 1))
+        val order4 = createOrder("4")
+        val order5 = createOrder("5")
+        val order6 = createOrder("6")
+        val stats = orderbookStorageService.storeOrderbook(today = LocalDate.of(2024, Month.DECEMBER, 15))
+        // Previous entry should be overwritten. No exception expected:
+        orderbookStorageService.storeOrderbook(today = stats.date)
         Assertions.assertEquals(6, stats.count)
-        val list = orderbookStorageService.restoreOrderbook(stats.date)
+        var list = orderbookStorageService.restoreOrderbook(stats.date)
         Assertions.assertEquals(6, list!!.size)
         list.forEach { order ->
             Assertions.assertEquals("30.00".toBigDecimal(), order.info.netSum)
@@ -81,9 +83,31 @@ class OrderbookStorageTest : AbstractTestBase() {
             Assertions.assertEquals("3.00".toBigDecimal(), order.info.personDays)
             Assertions.assertEquals(AuftragsStatus.POTENZIAL, order.info.status)
         }
+
+        persistenceService.runInTransaction {
+            order4.titel = "new title 4"
+            auftragDao.update(order4, checkAccess = false)
+            order5.titel = "new title 5"
+            auftragDao.update(order5, checkAccess = false)
+            order6.titel = "new title 6"
+            auftragDao.update(order6, checkAccess = false)
+        }
+
+        // Test incremental storage:
+        var incrementalStats =
+            orderbookStorageService.storeOrderbook(incrementalBasedOn = stats.date)
+        Assertions.assertEquals(3, incrementalStats.count)
+
+        // Restore the incremental storage:
+        list = orderbookStorageService.restoreOrderbook(incrementalStats.date)
+
+        // Test incremental storage with a date that is not found:
+        incrementalStats =
+            orderbookStorageService.storeOrderbook(incrementalBasedOn = LocalDate.of(2024, Month.NOVEMBER, 12))
+        Assertions.assertEquals(6, incrementalStats.count, "No storage found, based on date 2024-11-12, full backup expected.")
     }
 
-    private fun createOrder(id: String): AuftragDO {
+    private fun createOrder(id: String, dateOfLastUpdate: LocalDate? = null): AuftragDO {
         return AuftragDO().also { order ->
             order.nummer = auftragDao.nextNumber
             order.referenz = "reference $id"
@@ -105,6 +129,16 @@ class OrderbookStorageTest : AbstractTestBase() {
             order.addPosition(createOrderPosition("$id.3"))
             order.addPaymentSchedule(createPaymentSchedule(pos1, "$id.1"))
             order.addPaymentSchedule(createPaymentSchedule(pos2, "$id.2"))
+
+            val id = auftragDao.insert(order, checkAccess = false)
+            if (dateOfLastUpdate != null) {
+                val order = auftragDao.find(id, checkAccess = false)!!
+                persistenceService.runInTransaction { context ->
+                    order.created = PFDateTimeUtils.getBeginOfDateAsUtildate(dateOfLastUpdate)
+                    order.lastUpdate = order.created
+                    context.em.merge(order)
+                }
+            }
         }
     }
 

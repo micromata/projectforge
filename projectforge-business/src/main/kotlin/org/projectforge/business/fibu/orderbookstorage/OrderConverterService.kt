@@ -63,7 +63,6 @@ internal class OrderConverterService {
     fun from(order: Order): AuftragDO {
         return AuftragDO().apply {
             nummer = order.nummer
-            referenz = order.referenz
             positionen = order.positionen?.map { from(it) }?.toMutableList()
             status = order.status
             kunde = caches.getKunde(order.kundeId)
