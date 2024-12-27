@@ -142,7 +142,7 @@ class HistoryTester(
     }
 
     /**
-     * Get the entry by the primary key. Only useable for testing old history entries, imported as csv?
+     * Get the entry by the primary key. Only usable for testing old history entries, imported as csv?
      * @param id The primary key of the database entry.
      * @param expectedNumberOfAttributes The expected number of attributes. If null, the number of attributes is not checked.
      * @param msg The message for the assertion error.
@@ -286,7 +286,7 @@ class HistoryTester(
 
         /**
          * Asserts the history entry.
-         * @return The attributes of the history entry (migth be null).
+         * @return The attributes of the history entry (might be null).
          */
         fun assertHistoryEntry(
             holder: HistoryEntryHolder,
@@ -308,7 +308,7 @@ class HistoryTester(
 
         /**
          * Asserts the history entry.
-         * @return The attributes of the history entry (migth be null).
+         * @return The attributes of the history entry (might be null).
          */
         fun assertHistoryEntry(
             entry: HistoryEntry,

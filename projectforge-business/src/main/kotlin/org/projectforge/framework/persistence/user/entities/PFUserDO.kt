@@ -78,7 +78,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     open var username: String? = null
 
     /**
-     * Timesamp of the lastPasswordChange.
+     * Timestamp of the lastPasswordChange.
      */
     @PropertyInfo(i18nKey = "user.changePassword.password.lastChange")
     @get:Column(name = "last_password_change")

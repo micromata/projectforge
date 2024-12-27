@@ -30,7 +30,7 @@ import java.util.*
 import jakarta.persistence.*
 
 /**
- * Users may have serveral authentication tokens, e. g. for CardDAV/CalDAV-Clients or other clients. ProjectForge shows the usage of this tokens and such tokens
+ * Users may have several authentication tokens, e. g. for CardDAV/CalDAV-Clients or other clients. ProjectForge shows the usage of this tokens and such tokens
  * may easily be revokable. In addition, no password may be stored on smartphone client e. g. for using ProjectForge's CardDAV/CalDAV service.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */

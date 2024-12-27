@@ -156,7 +156,7 @@ class HibernateSearchReindexer {
         try {
             databaseDao.reindex(clazz, settings, sb)
         } catch (ex: Exception) {
-            sb.append(" (an error occured, see log file for further information.), ")
+            sb.append(" (an error occurred, see log file for further information.), ")
             log.error("While rebuilding data-base-search-index for '" + clazz.name + "': " + ex.message, ex)
         }
     }
@@ -168,7 +168,7 @@ class HibernateSearchReindexer {
     companion object {
         private const val ERROR_MSG =
             ("Error while re-indexing data base: found lock files while re-indexing data-base. "
-                    + "Try to run re-index manually in the web administration menu and if occured again, "
+                    + "Try to run re-index manually in the web administration menu and if occurred again, "
                     + "shutdown ProjectForge, delete lock file(s) in hibernate-search sub directory and restart.")
     }
 }

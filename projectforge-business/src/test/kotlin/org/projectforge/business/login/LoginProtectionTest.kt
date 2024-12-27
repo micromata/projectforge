@@ -75,7 +75,7 @@ class LoginProtectionTest {
                 "Time offset between 0 and 1 second expected due to 1 failed login attempt.")
         Thread.sleep(offset + 1)
         Assertions.assertEquals(0, lp.getFailedLoginTimeOffsetIfExists("horst").toInt(),
-                "No time offset for 'horst' expected, because time offest was run down.")
+                "No time offset for 'horst' expected, because time offset was run down.")
     }
 
     @Test

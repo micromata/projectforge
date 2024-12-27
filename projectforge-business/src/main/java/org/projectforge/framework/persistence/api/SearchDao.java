@@ -54,7 +54,7 @@ public class SearchDao {
     }
     final List<ExtendedBaseDO> list = baseDao.selectForSearchDao(filter);
     if (list == null) {
-      // An error occured.
+      // An error occurred.
       return null;
     }
     final List<SearchResultData> result = new ArrayList<>();

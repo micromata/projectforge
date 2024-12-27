@@ -34,7 +34,7 @@ import kotlin.reflect.KMutableProperty1
  * Stores history attributes.
  *
  * Table t_pf_history_attr
- *  withdata            | character(1)                |           | not null | -- 0, 1 (only used by mgc), attr_data concatinated to attr.value.
+ *  withdata            | character(1)                |           | not null | -- 0, 1 (only used by mgc), attr_data concatenated to attr.value.
  *  pk                  | bigint                      |           | not null |
  *  createdat           | timestamp without time zone |           | not null | -- equals to modifiedat and parent.modifiedat
  *  createdby           | character varying(60)       |           | not null | -- equals to modifiedby and parent.modifiedby

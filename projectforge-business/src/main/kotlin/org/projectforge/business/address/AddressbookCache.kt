@@ -56,7 +56,7 @@ open class AddressbookCache : AbstractCache() {
 
     private var addressBookList = listOf<AddressbookDO>() // Mustn't be synchronized, it's only read.
 
-    // key is the addres.id, value is a set of addressbook's assigned to the address.
+    // key is the address.id, value is a set of addressbook's assigned to the address.
     private var addressBookByAddressMap = mapOf<Long, List<AddressbookDO>>() // Mustn't be synchronized, it's only read.
 
     fun getAll(): List<AddressbookDO> {

@@ -282,7 +282,7 @@ public class GanttChart {
     g2.appendChild(g3);
     // diagram.appendChild(SVGHelper.createUse(doc, "#diamond", 100, 15.5 * style.getYScale()));
     // diagram.appendChild(SVGHelper.createRect(doc, 110, 15 * style.getYScale() + 2, 140, 16, "white"));
-    // diagram.appendChild(SVGHelper.createText(doc, 110, 15.5 * style.getYScale() + 5, "This is a nonsens milestone.", "fill", "gray",
+    // diagram.appendChild(SVGHelper.createText(doc, 110, 15.5 * style.getYScale() + 5, "This is a nonsense milestone.", "fill", "gray",
     // "font-size", "8pt"));
 
     g1 = SVGHelper.createElement(doc, "g", "transform", "translate(265,65)");

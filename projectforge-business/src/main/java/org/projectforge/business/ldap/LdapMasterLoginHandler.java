@@ -107,7 +107,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler {
         ldapUserDao.changePassword(ldapUser, null, password); // update the userPassword but not the (WLAN)sambaNTPassword
       }
     } catch (final Exception ex) {
-      log.error("An exception occured while checking login against LDAP system (ignoring this error): " + ex.getMessage(), ex);
+      log.error("An exception occurred while checking login against LDAP system (ignoring this error): " + ex.getMessage(), ex);
     }
     return loginResult;
   }

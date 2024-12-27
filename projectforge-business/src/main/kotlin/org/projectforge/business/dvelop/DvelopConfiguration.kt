@@ -45,7 +45,7 @@ open class DvelopConfiguration {
   open lateinit var apiKey: String
 
   /**
-   * If given, all entities (TradingPartner) will be assigned to this organistion referred by ID.
+   * If given, all entities (TradingPartner) will be assigned to this organisation referred by ID.
    */
   @Value("\${projectforge.dvelop.organization}")
   open lateinit var organizationName: String

@@ -54,7 +54,7 @@ public class ImportTestDataTest extends AbstractTestBase {
 
   @Override
   protected void initDb() {
-    // no intial entities.
+    // no initial entities.
     init(false);
   }
 

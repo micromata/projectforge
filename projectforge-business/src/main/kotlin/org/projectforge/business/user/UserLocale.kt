@@ -115,7 +115,7 @@ object UserLocale {
     }
   }
 
-  // Available Loacles for external i18n-files
+  // Available Locales for external i18n-files
   @JvmField
   val I18NSERVICE_LANGUAGES = arrayOf(Locale.GERMAN, Locale.ENGLISH, Locale.ROOT)
 

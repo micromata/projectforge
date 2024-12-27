@@ -111,7 +111,7 @@ class JobHandler : ShutdownListener {
                                 }
                             }
                             if (blocking == null) {
-                                // Must be set here, otherwise two waiting jobs may run simultanously
+                                // Must be set here, otherwise two waiting jobs may run simultaneously
                                 job.status = AbstractJob.Status.RUNNING
                             }
                         }

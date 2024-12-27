@@ -45,7 +45,7 @@ public class SearchResultData
   }
 
   /**
-   * History entriy of the object for the search result.
+   * History entry of the object for the search result.
    */
   public HistoryEntry getHistoryEntry()
   {

@@ -55,7 +55,7 @@ class HistoryServiceUtils private constructor() {
     }
 
     private fun determineNoHistoryProperties(entityClass: Class<*>, set: MutableSet<String>) {
-        log.debug { "Determing NoHistory properties of class ${entityClass.name}" }
+        log.debug { "Determining NoHistory properties of class ${entityClass.name}" }
         for (field in entityClass.declaredFields) {
             if (field.isAnnotationPresent(NoHistory::class.java)) {
                 log.debug { "NoHistory annotation found for field: ${entityClass.name}.${field.name}" }

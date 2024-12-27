@@ -357,7 +357,7 @@ open class VacationService {
     }
 
     /**
-     * Checks for collissions, enough left days etc.
+     * Checks for collisions, enough left days etc.
      * @param vacation The vacation entry to check.
      * @param dbVacation If modified, the previous entry (data base entry).
      * @param throwException If true, an exception is thrown if validation failed. Default is false.

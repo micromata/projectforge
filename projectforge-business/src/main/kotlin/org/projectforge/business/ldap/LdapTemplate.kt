@@ -55,7 +55,7 @@ abstract class LdapTemplate(private val ldapConnector: LdapConnector) {
     ctx = try {
       ldapConnector.createContext(username, password)
     } catch (ex: NamingException) {
-      log.error("While trying to connect LDAP initally: " + ex.message, ex)
+      log.error("While trying to connect LDAP initially: " + ex.message, ex)
       throw RuntimeException(ex)
     }
     return internalExcecute()

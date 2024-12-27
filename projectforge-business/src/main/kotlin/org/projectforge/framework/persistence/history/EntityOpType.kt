@@ -45,7 +45,7 @@ enum class EntityOpType {
     MarkAsDeleted,
 
     /**
-     * The Umark deleted.
+     * The Mark undeleted.
      */
     Undelete
 }

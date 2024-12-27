@@ -297,7 +297,7 @@ open class ConfigurationDO : DefaultBaseDO {
             } else if (type == ConfigurationType.FLOAT && this.configurationType == ConfigurationType.PERCENT) {
                 return
             } else if (this.configurationType == ConfigurationType.TASK) {
-                // Only for backward compability.
+                // Only for backward compatibility.
                 return
             }
         }

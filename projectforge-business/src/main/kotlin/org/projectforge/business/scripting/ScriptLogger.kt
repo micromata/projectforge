@@ -30,7 +30,7 @@ import kotlin.script.experimental.api.ScriptDiagnostic
 private val log = KotlinLogging.logger {}
 
 /**
- * You may use loging functionality inside your scripts by using log.info(String) and log.error(String).
+ * You may use logging functionality inside your scripts by using log.info(String) and log.error(String).
  */
 class ScriptLogger {
     class Message(val message: String?, val level: LogLevel)

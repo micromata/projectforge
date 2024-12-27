@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <config>
-    <!-- This is the standard jira server used for all jira issues found if not definined in jira-config.-->
+    <!-- This is the standard jira server used for all jira issues found if not defined in jira-config.-->
     <!--jiraBrowseBaseUrl>https://jira.acme.com/jira/browse/</jiraBrowseBaseUrl-->
     <!-- jiraServers>
         <!- - These projects should be use this base-url - ->
