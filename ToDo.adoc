@@ -1,6 +1,4 @@
 Aktuell:
-- Release 8.0 notes
-- Docker
 - AG-Grid: setColumnStates wird nicht in den UserPrefs gespeichert.
 - Wicket: Auftragsbuch: org.apache.wicket.core.request.mapper.StalePageException: A request to page '[Page class = org.projectforge.web.fibu.AuftragEditPage, id = 9, render count = 3]' has been made with stale 'renderCount'. The page will be re-rendered.
 - -XX:ReservedCodeCacheSize=100m
@@ -44,7 +42,6 @@ History
 
 Später
 - Hibernate-Search: K+S etc.
-- Milton
 - Besuchsbuch und EmployeeValidSinceAttr: DisplayEntries von Besuchtagen mit Datum des Besuchs versehen.
 - Suche-Seite hat veraltete Bereiche, AddressListPage läuft auf Fehler.
 - OrderExport: paymentSchedules werden gefetcht.

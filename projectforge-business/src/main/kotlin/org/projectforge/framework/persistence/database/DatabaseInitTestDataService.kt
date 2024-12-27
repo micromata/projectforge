@@ -52,6 +52,14 @@ open class DatabaseInitTestDataService {
             "This short demo shows how easy it is to filter and export data.",
             exportUsersScript
         )
+
+        insertScript(
+            "Excel export of time sheets",
+            "This short demo shows how easy it is to format and export data as an Excel file.",
+            exportTimesheetsScript,
+            p1Name = "Period",
+            p1Type = ScriptParameterType.TIME_PERIOD,
+        )
     }
 
     private fun insertScript(
@@ -72,7 +80,7 @@ open class DatabaseInitTestDataService {
     }
 
     companion object {
-        private  val exportJFreeChartScript = """
+        private val exportJFreeChartScript = """
             |import org.jfree.chart.*
             |import org.jfree.chart.plot.*
             |import org.jfree.data.general.*
@@ -91,23 +99,67 @@ open class DatabaseInitTestDataService {
         """.trimMargin()
 
         private val exportUsersScript = """
-            |val filter = QueryFilter()         // Defines new query
-            |filter.addOrder(SortProperty("username"))// Sort
-            |val userList = userDao.select(filter)        // Gets the user list
-            |
-            |val workbook = ExcelUtils.prepareWorkbook("Users.xlsx")
-            |
-            |val sheet = workbook.createOrGetSheet("Overview")
+            |val users = userDao.getList().filter { it.hasSystemAccess() }.sortedBy { it.username }
+            |val workbook = ExcelUtils.prepareWorkbook("Userlist.xlsx")
+            |val sheet = workbook.createOrGetSheet("Users")
+            |workbook.createOrGetCellStyle("integer").dataFormat = workbook.createDataFormat().getFormat("#0")
             |sheet.registerColumns(
-            |    "Username|10",
-            |    "Lastname|20",
-            |    "Firstname|20",
-            |  )
-            |sheet.createRow().fillHeadRow(sheet.createOrGetCellStyle("headStyle"))
-            |
-            |userList.forEach { user ->
-            |  sheet.createRow().apply { autoFillFromObject(user) }
+            |  "Username|20",
+            |  "Full name|fullname|30",
+            |  "Email|30",
+            |  "Gender|10",
+            |  "System access|5",
+            |  "Mobile phone|mobilePhone|20",
+            |  "Id|10|:integer",
+            |  "JIRA username|JiraUsername|20",
+            |  "Description|50",
+            |)
+            |sheet.createRow().fillHeadRow()
+            |users.forEach { user ->
+            |  val row = sheet.createRow()
+            |  ExcelUtils.autoFill(row, user)
+            |  row.getCell("System access")?.setCellValue(user.hasSystemAccess())
             |}
+            |sheet.setAutoFilter()
+            |workbook
+        """.trimMargin()
+
+        private val exportTimesheetsScript = """
+            |val from = period?.fromDate
+            |val until = period?.toDate
+            |
+            |val filter = TimesheetFilter().also {
+            |  it.startTime = from
+            |  it.stopTime = until
+            |}
+            |
+            |val users = timesheetDao.select(filter)
+            |val workbook = ExcelUtils.prepareWorkbook("Timesheets.xlsx")
+            |val sheet = workbook.createOrGetSheet("Timesheets")
+            |workbook.createOrGetCellStyle("timeFormat").dataFormat = workbook.createDataFormat().getFormat("HH:mm")
+            |workbook.createOrGetCellStyle("dateTimeFormat").dataFormat = workbook.createDataFormat().getFormat("yyyy-MM-dd HH:mm")
+            |sheet.registerColumns(
+            |  "User|20",
+            |  "StartTime|20|:dateTimeFormat",
+            |  "StopTime|10|:timeFormat",
+            |  "Duration|20",
+            |  "Location|30",
+            |  "Description|50",
+            |  "Task|30",
+            |  "TaskPath|30",
+            |)
+            |sheet.createRow().fillHeadRow()
+            |users.forEach { ts ->
+            |  val row = sheet.createRow()
+            |  ExcelUtils.autoFill(row, ts)
+            |  row.getCell("Duration")?.setCellValue(ts.durationAsString)
+            |  row.getCell("User")?.setCellValue(ts.user?.getFullname())
+            |  row.getCell("Task")?.setCellValue(ts.task?.title)
+            |  row.getCell("TaskPath")?.setCellValue(TaskFormatter.getTaskPath(ts.task?.id))
+            |  //row.getCell("Duration")?.setCellValue(TaskFormatter.getTaskPath(ts.task))
+            |}
+            |sheet.setAutoFilter()
+            |sheet.createFreezePane(1, 1)
             |
             |workbook
         """.trimMargin()

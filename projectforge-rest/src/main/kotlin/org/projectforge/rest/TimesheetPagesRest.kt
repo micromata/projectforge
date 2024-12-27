@@ -212,7 +212,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         }
         var duration = 0L
         resultSet.resultSet.forEach { timesheet ->
-            duration += timesheet.getDuration()
+            duration += timesheet.duration
         }
         val md = MarkdownBuilder()
         md.appendPipedValue(
