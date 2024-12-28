@@ -50,3 +50,30 @@ Später
 
 Ganz später
 - Kalenderlist ruft x-fach DB: FIND GroupDO resultClass=GroupDO auf.
+
+Postgresql-Dump-Imports bechleunigen:
+
+ALTER SYSTEM SET fsync = off;
+ALTER SYSTEM SET synchronous_commit = off;
+SET maintenance_work_mem = '512MB';
+drop view v_t_pf_user;
+
+Rancher
+
+docker system df
+docker system prune -a --volumes
+docker system df
+docker volume ls
+docker volume rm <volume-name>
+
+
+Orderbooks importieren:
+docker cp ~/ProjectForgeBackup/ProjectForge-Orderbook_*.gz projectforge-postgres:/tmp/
+
+\set file_path '/tmp/ProjectForge-Orderbook_2023-11-01.gz'
+INSERT INTO t_fibu_orderbook_storage (date, serialized_orderbook)  VALUES ('2023-11-01', pg_read_binary_file(:'file_path')::bytea);
+\set file_path '/tmp/ProjectForge-Orderbook_2023-12-01.gz'
+INSERT INTO t_fibu_orderbook_storage (date, serialized_orderbook)  VALUES ('2023-12-01', pg_read_binary_file(:'file_path')::bytea);
+
+
+SELECT date, octet_length(serialized_orderbook) AS byte_count FROM t_fibu_orderbook_storage;
