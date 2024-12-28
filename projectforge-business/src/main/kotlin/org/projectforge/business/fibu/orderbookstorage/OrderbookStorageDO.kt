@@ -27,6 +27,7 @@ import jakarta.persistence.*
 import java.time.LocalDate
 
 /**
+ * SELECT date, octet_length(serialized_orderbook) AS byte_count FROM t_fibu_orderbook_storage;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
