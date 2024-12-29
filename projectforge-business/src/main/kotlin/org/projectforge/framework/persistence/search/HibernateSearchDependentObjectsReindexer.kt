@@ -239,7 +239,7 @@ class HibernateSearchDependentObjectsReindexer {
                 } else {
                     for (e in list) {
                         if (entry == e) {
-                            log.warn("Entry already registerd: $entry")
+                            log.warn("Entry already registered: $entry")
                         }
                     }
                 }

@@ -30,7 +30,7 @@ import java.util.Date;
 import java.util.TimeZone;
 
 /**
- * For export and import it's usefull to use an instance of this object to define for example the time zone, version etc.
+ * For export and import it's useful to use an instance of this object to define for example the time zone, version etc.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  *
  */

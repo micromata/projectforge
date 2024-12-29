@@ -201,7 +201,7 @@ public class MonthlyEmployeeReport implements Serializable {
     }
 
     /**
-     * Dont't forget to initialize: setFormatter and setUser or setEmployee.
+     * Don't forget to initialize: setFormatter and setUser or setEmployee.
      *
      * @param year
      * @param month 1-based: 1 - January, ..., 12 - December

@@ -91,7 +91,7 @@ public class UserXmlPreferencesBaseDOSingleValueConverter implements SingleValue
     final Long id = Long.parseLong(str);
     final BaseDao<?> dao = applicationContext.getBean(daoClass);
     if (dao == null) {
-      log.error("Could not get dao '" + daoClass + "'. It's not registerd in the Registry.");
+      log.error("Could not get dao '" + daoClass + "'. It's not registered in the Registry.");
       return null;
     } else {
       return dao.findOrLoad(id);

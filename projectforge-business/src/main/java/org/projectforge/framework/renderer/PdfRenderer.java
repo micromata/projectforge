@@ -49,7 +49,7 @@ import java.util.Map;
 /**
  * This class provides the functionality for rendering pdf files. The underlaying technology is XSL-FO. The dynamic data
  * will be given in xml format and the transformation will be done via xslt-scripts. For a better ease of use a meta
- * language similiar to html will be used instead of plain xsl-fo. The html file with jelly script elements will be
+ * language similar to html will be used instead of plain xsl-fo. The html file with jelly script elements will be
  * rendered via xslt-scripts into xsl-fo and afterwards to pdf.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)

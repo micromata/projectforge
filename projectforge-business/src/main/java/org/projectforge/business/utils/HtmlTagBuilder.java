@@ -97,7 +97,7 @@ public class HtmlTagBuilder
   }
 
   /**
-   * Appends '>' character for closing the start tag. Only useable in quick and dirty mode. Otherwise a
+   * Appends '>' character for closing the start tag. Only usable in quick and dirty mode. Otherwise a
    * NullPointerException will be thrown.
    */
   public void finishStartTag()
@@ -106,7 +106,7 @@ public class HtmlTagBuilder
   }
 
   /**
-   * Appends " />" character for closing the start tag. Only useable in quick and dirty mode. Otherwise a
+   * Appends " />" character for closing the start tag. Only usable in quick and dirty mode. Otherwise a
    * NullPointerException will be thrown.
    */
   public void finishEmptyTag()

@@ -32,7 +32,7 @@ enum class BookStatus(
     val key: String
 ) : I18nEnum {
     /**
-     * Book is present at the office ore lend out is known.
+     * Book is present at the office or lend out is known.
      */
     PRESENT("present"),
 

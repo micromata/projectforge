@@ -24,7 +24,7 @@
 package org.projectforge.business.scripting
 
 /**
- * Workarround for bindings.
+ * Workaround for bindings.
  */
 class KotlinScriptContext {
     private val propertyValues = mutableMapOf<String, Any?>()

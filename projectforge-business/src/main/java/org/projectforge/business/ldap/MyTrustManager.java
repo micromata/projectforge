@@ -127,7 +127,7 @@ public class MyTrustManager implements X509TrustManager
       try {
         chain[0].verify(certificate.getPublicKey());
         for (final X509Certificate cert : chain) {
-          // Verifing by public key
+          // Verifying by public key
           cert.checkValidity();
         }
       } catch (final InvalidKeyException | SignatureException | NoSuchAlgorithmException | NoSuchProviderException ex) {

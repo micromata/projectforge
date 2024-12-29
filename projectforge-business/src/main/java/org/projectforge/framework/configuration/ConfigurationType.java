@@ -26,7 +26,7 @@ package org.projectforge.framework.configuration;
 public enum ConfigurationType
 {
   STRING, TEXT, LONG, INTEGER, FLOAT, BOOLEAN, PERCENT,
-  /** TASK only for backward compability. Isn't in use anymore. */
+  /** TASK only for backward compatibility. Isn't in use anymore. */
   TASK,
   TIME_ZONE, CALENDAR;
 

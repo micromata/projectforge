@@ -143,7 +143,7 @@ internal class My2FABruteForceProtection {
 
     /**
      * If retry is not allowed, this method will return a localized message about the reason including the number
-     * of failed retries, the risk of beeing deactivated as well as any time penalty.
+     * of failed retries, the risk of being deactivated as well as any time penalty.
      */
     fun getBlockedResult(userId: Long = ThreadLocalUserContext.loggedInUserId!!): OTPCheckResult? {
         getBlockedMessage(userId)?.let { message ->
@@ -154,7 +154,7 @@ internal class My2FABruteForceProtection {
 
     /**
      * If retry is not allowed, this method will return a localized message about the reason including the number
-     * of failed retries, the risk of beeing deactivated as well as any time penalty.
+     * of failed retries, the risk of being deactivated as well as any time penalty.
      */
     fun getBlockedMessage(userId: Long = ThreadLocalUserContext.loggedInUserId!!): String? {
         if (!isBlocked(userId)) {

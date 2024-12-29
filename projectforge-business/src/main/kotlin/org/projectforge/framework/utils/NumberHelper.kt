@@ -341,7 +341,7 @@ object NumberHelper {
   /**
    * Extracts the phone number of the given string. All characters of the set "+-/()." and white spaces will be deleted and +## will be
    * replaced by 00##. Example: +49 561 / 316793-0 -> 00495613167930 <br></br>
-   * Ignores any characters after the first occurence of ':' or any letter.
+   * Ignores any characters after the first occurrence of ':' or any letter.
    *
    * @param str
    * @param countryPrefix If country prefix is given, for all numbers beginning with the country prefix the country prefix will be replaced

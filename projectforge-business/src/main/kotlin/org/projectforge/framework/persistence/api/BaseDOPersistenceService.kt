@@ -427,7 +427,7 @@ class BaseDOPersistenceService {
     private fun flushSearchSession(em: EntityManager?) {
         if (LUCENE_FLUSH_ALWAYS) {
             val searchSession = Search.session(em)
-            // Flushing the index changes asynchonously
+            // Flushing the index changes asynchronously
             searchSession.indexingPlan().execute()
         }
     }

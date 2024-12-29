@@ -1,4 +1,4 @@
--- Vacation forms of employees supports now others substitutes (replacements) in addition to the main substitue (replacement)
+-- Vacation forms of employees supports now others substitutes (replacements) in addition to the main substitute (replacement)
 
 CREATE TABLE t_employee_vacation_other_replacements
 (

@@ -230,7 +230,7 @@ public class DateHelper implements Serializable {
 
   /**
    * @param str
-   * @param logError If true, any ParseException error will be logged if occured.
+   * @param logError If true, any ParseException error will be logged if occurred.
    * @return The parsed date or null, if not parseable.
    */
   public static Date parseMillis(final String str, final boolean logError) {

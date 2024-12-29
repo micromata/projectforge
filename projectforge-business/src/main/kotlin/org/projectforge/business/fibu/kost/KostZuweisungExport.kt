@@ -99,7 +99,7 @@ class KostZuweisungExport {
     }
 
     /**
-     * Export all cost assignements of the given invoices as excel list.
+     * Export all cost assignments of the given invoices as excel list.
      */
     fun exportRechnungen(list: List<AbstractRechnungDO>, sheetTitle: String): ByteArray? {
         rechnungService.fetchPositionen(list)
@@ -121,7 +121,7 @@ class KostZuweisungExport {
     }
 
     /**
-     * Export all cost assignements of the given invoices as excel list.
+     * Export all cost assignments of the given invoices as excel list.
      */
     fun exportEingangsRechnungen(list: List<AbstractRechnungDO>, sheetTitle: String): ByteArray? {
         rechnungService.fetchPositionen(list)

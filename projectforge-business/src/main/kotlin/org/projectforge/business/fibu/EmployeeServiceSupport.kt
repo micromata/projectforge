@@ -322,7 +322,7 @@ internal class EmployeeServiceSupport {
                 // the users can't add or modify entries with the validSince date of the deleted ones.
                 // Please remember: There are no unique constraints in the database!
                 findValidSinceAttr(attrDO.id, expectedType = attrDO.type, checkAccess = checkAccess).let { dbEntry ->
-                    requireNotNull(dbEntry) { "Can't update EmployeeValidSinceAttr entry without exisiting id." }
+                    requireNotNull(dbEntry) { "Can't update EmployeeValidSinceAttr entry without existing id." }
                     // Mark current entry as deleted and modify existing deleted entry with desired validSince date.
                     markValidSinceAttrAsDeleted(employee, dbEntry, checkAccess)
                 }

@@ -115,7 +115,7 @@ public interface ContentProvider
   public ContentProvider setColWidths(int... charLengths);
 
   /**
-   * Creates a new instance. This is usefull because every sheet of the workbook should have its own content provider (regarding col widths,
+   * Creates a new instance. This is useful because every sheet of the workbook should have its own content provider (regarding col widths,
    * property formats etc.) if not set explicit.
    *
    * @return

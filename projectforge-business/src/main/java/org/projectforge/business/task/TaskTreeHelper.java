@@ -26,7 +26,7 @@ package org.projectforge.business.task;
 import org.projectforge.business.task.TaskTree;
 
 /**
- * For backward compability, please use TaskTree as autowired member instead.
+ * For backward compatibility, please use TaskTree as autowired member instead.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class TaskTreeHelper {

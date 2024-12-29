@@ -42,7 +42,7 @@ object RechnungCalculator {
 
     /**
      * Calculates the net sum, vat amount sum and gross sum of the given invoice.
-     * @oaram rechnung The invoice to calculate the values for (positions and positions.kostZuweisungen will be fetched).
+     * @param rechnung The invoice to calculate the values for (positions and positions.kostZuweisungen will be fetched).
      * @return The calculated values.
      */
     @JvmOverloads

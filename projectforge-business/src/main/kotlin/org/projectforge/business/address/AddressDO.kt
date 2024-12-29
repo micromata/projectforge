@@ -273,7 +273,7 @@ open class AddressDO : DefaultBaseDO(), DisplayNameCapable {
     open var birthday: LocalDate? = null
 
     /**
-     * Time stamp of last image modification (or deletion). Usefull for history of changes.
+     * Time stamp of last image modification (or deletion). Useful for history of changes.
      */
     @get:Column(name = "image_last_update")
     open var imageLastUpdate: Date? = null

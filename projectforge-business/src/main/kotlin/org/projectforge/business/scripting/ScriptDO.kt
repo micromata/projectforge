@@ -269,7 +269,7 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
         try {
             str = String(bytes, Charsets.UTF_8)
         } catch (ex: UnsupportedEncodingException) {
-            log.error("Exception encountered while convering byte[] to String: " + ex.message, ex)
+            log.error("Exception encountered while converting byte[] to String: " + ex.message, ex)
         }
 
         return str
@@ -283,7 +283,7 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
         try {
             bytes = str.toByteArray(charset("UTF-8"))
         } catch (ex: UnsupportedEncodingException) {
-            log.error("Exception encountered while convering String to bytes: " + ex.message, ex)
+            log.error("Exception encountered while converting String to bytes: " + ex.message, ex)
         }
 
         return bytes
