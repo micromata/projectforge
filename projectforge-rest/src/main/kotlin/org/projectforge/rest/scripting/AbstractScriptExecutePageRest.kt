@@ -25,13 +25,11 @@ package org.projectforge.rest.scripting
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
-import kotlinx.coroutines.*
 import mu.KotlinLogging
 import org.projectforge.business.scripting.*
 import org.projectforge.common.DateFormatType
 import org.projectforge.common.logging.LogLevel
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.*
@@ -47,7 +45,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
-import java.io.IOException
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -264,58 +261,31 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
         @PathVariable("scriptId") scriptIdString: String?
     ): SseEmitter {
         val scriptId = scriptIdString?.toLongOrNull()
-        val emitter = SseEmitter(60000L) // 60 seconds
-        val coroutineScope = CoroutineScope(Dispatchers.IO)
-        coroutineScope.launch {
-            try {
-                var lastClientUpdate = Date(0L) // epoch in seconds.
-                for (i in 0..10000) {
-                    val scriptLogger = ExpiringSessionAttributes.getAttribute(
-                        request.getSession(false),
-                        getSessionAttr(scriptId),
-                        ScriptLogger::class.java,
-                    )
-                    val lastModified = scriptLogger?.lastModified
-                    if (lastModified != null && lastModified > lastClientUpdate) {
-                        // New entries available:
-                        log.info { "Sending new log entries to client." }
-                        val data = JsonUtils.toJson(scriptLogger.messages.map {
-                            LogEntry(it.timestamp, it.level, it.message ?: "")
-                        })
-                        try {
-                            emitter.send(data) // Send the data to the client.
-                        } catch (ex: IOException) {
-                            // Connection closed?
-                            break
-                        }
-                        lastClientUpdate = Date()
-                    } else if (lastClientUpdate.time < System.currentTimeMillis() - 30_000) {
-                        log.info { "Sending ping to client" }
-                        // Send a ping every 30 seconds to keep the connection alive.
-                        try {
-                            emitter.send("ping")
-                        } catch (ex: IOException) {
-                            // Connection closed?
-                            break
-                        }
-                        lastClientUpdate = Date()
+        object: SseEmitterTool() {
+            var scriptLogger: ScriptLogger? = null
+                get() {
+                    if (field == null) {
+                        field = ExpiringSessionAttributes.getAttribute(
+                            request.getSession(false),
+                            getSessionAttr(scriptId),
+                            ScriptLogger::class.java,
+                        )
                     }
-                    delay(500) // Wait .5 seconds
+                    return field
                 }
-                emitter.complete() // Signal that the stream is complete
-            } catch (e: Exception) {
-                emitter.completeWithError(e)
+
+            override val lastModified: Date?
+                get() = scriptLogger?.lastModified
+
+            override fun getData(): Any? {
+                return scriptLogger?.messages?.map {
+                    LogEntry(it.timestamp, it.level, it.message ?: "")
+                }
             }
+        }.also {
+            it.launch()
+            return it.emitter
         }
-        emitter.onCompletion {
-            log.info { "Cancelling coroutine onCompletion." }
-            coroutineScope.cancel()
-        }
-        emitter.onError { ex ->
-            log.info { "Cancelling coroutine onError." }
-            coroutineScope.cancel()
-        }
-        return emitter
     }
 
     @GetMapping("download")
