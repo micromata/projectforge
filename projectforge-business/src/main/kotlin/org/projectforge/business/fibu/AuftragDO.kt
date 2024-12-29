@@ -371,7 +371,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @Deprecated("Use info.orderedNetSum instead.")
     @get:Transient
     val beauftragtNettoSumme: BigDecimal
-        get() = info.orderedNetSum
+        get() = info.commissionedNetSum
 
     @Deprecated("Use info.invoicedSum instead.")
     @get:Transient

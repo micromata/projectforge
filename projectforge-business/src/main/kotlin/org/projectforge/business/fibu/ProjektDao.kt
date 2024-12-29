@@ -24,6 +24,9 @@
 package org.projectforge.business.fibu
 
 import org.hibernate.Hibernate
+import org.projectforge.business.fibu.kost.Kost2DO
+import org.projectforge.business.fibu.kost.KostCache
+import org.projectforge.business.orga.VisitorbookEntryDO
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.GroupDao
@@ -37,6 +40,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.isNull
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.ne
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
+import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -44,6 +48,9 @@ import org.springframework.stereotype.Service
 
 @Service
 open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
+    @Autowired
+    private lateinit var kostCache: KostCache
+
     @Autowired
     private lateinit var kundeDao: KundeDao
 
@@ -184,6 +191,25 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         if (dbObj?.task?.id != null && obj.task?.id == null) {
             // Project task was removed:
             taskTree.internalSetProject(dbObj.task?.id!!, null)
+        }
+    }
+
+    /**
+     * Gets history entries of super and adds all history entries of the RechnungsPositionDO children.
+     */
+    override fun addOwnHistoryEntries(obj: ProjektDO, context: HistoryLoadContext) {
+        kostCache.getKost2ForProjekt(obj.id).forEach { kost2 ->
+            historyService.loadAndMergeHistory(kost2, context)
+        }
+    }
+
+    override fun getHistoryPropertyPrefix(context: HistoryLoadContext): String? {
+        val entry = context.requiredHistoryEntry
+        val item = context.findLoadedEntity(entry)
+        return if (item is Kost2DO) {
+            item.formattedNumber
+        } else {
+            null
         }
     }
 

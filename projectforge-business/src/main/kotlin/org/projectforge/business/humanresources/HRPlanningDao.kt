@@ -282,7 +282,7 @@ class HRPlanningDao protected constructor() : BaseDao<HRPlanningDO>(HRPlanningDO
                 prefix = "" // Just in case.
             }
             historyService.loadAndMergeHistory(position, context) { entry ->
-                HistoryFormatUtils.setPropertyNameForListEntries(entry, prefix)
+                HistoryFormatUtils.setNumberAsPropertyNameForListEntries(entry, prefix)
             }
         }
     }

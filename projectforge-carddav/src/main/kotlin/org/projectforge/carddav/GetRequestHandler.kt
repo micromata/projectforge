@@ -25,7 +25,7 @@ package org.projectforge.carddav
 
 import mu.KotlinLogging
 import org.projectforge.business.address.AddressImageDao
-import org.projectforge.business.address.vcard.ImageType
+import org.projectforge.business.address.ImageType
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.rest.utils.ResponseUtils
@@ -121,6 +121,7 @@ internal class GetRequestHandler {
         log.debug { "handleImageGetCall:  ${writerContext.requestWrapper.request.method}: '${writerContext.requestWrapper.requestURI}'" }
         val imageDO = addressImageDao.findImage(contactId, fetchImage = true)
         val image = imageDO?.image
+        val imageType = imageDO?.imageType ?: ImageType.PNG
         if (image == null) {
             ResponseUtils.setValues(writerContext.response, status = HttpStatus.NOT_FOUND)
             return
@@ -143,7 +144,7 @@ internal class GetRequestHandler {
         ResponseUtils.setByteArrayContent(
             writerContext.response,
             status = HttpStatus.OK,
-            contentType = ImageType.PNG.mimeType,
+            contentType = imageType.mimeType,
             content = image
         )
         writerContext.response.let { response ->

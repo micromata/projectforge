@@ -69,7 +69,6 @@ import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTime.Companion.fromTemporal
 import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.framework.time.PFDateTime.Companion.fromOrNull
-import org.projectforge.framework.time.PFDateTime.Companion.fromTemporalOrNull
 import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.time.PFDateTimeUtils.getUTCBeginOfDayTimestamp
@@ -633,7 +632,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     override fun addOwnHistoryEntries(obj: TeamEventDO, context: HistoryLoadContext) {
         obj.attendees?.forEach { attendee ->
             historyService.loadAndMergeHistory(attendee, context) { entry ->
-                HistoryFormatUtils.setPropertyNameForListEntries(entry, attendee.toString())
+                HistoryFormatUtils.setNumberAsPropertyNameForListEntries(entry, attendee.toString())
             }
         }
     }

@@ -119,7 +119,7 @@ open class TimesheetExport {
         row.getCell(stopTimeColDef).cell.cellStyle = timeFormat
         ExcelUtils.getCell(row, TimesheetDO::startTime)?.setCellValue(PFDateTime.fromOrNull(timesheet.startTime)?.localDateTime)
         ExcelUtils.getCell(row, TimesheetDO::stopTime)?.setCellValue(PFDateTime.fromOrNull(timesheet.stopTime)?.localDateTime)
-        val seconds = BigDecimal(timesheet.getDuration() / 1000) // Seconds
+        val seconds = BigDecimal(timesheet.duration / 1000) // Seconds
         val duration = seconds.divide(BigDecimal(60 * 60 * 24), 8, RoundingMode.HALF_UP) // Fraction of day (24 hours)
         row.getCell("duration")?.setCellValue(duration.toDouble())?.setCellStyle(durationFormat)
         val hours = seconds.divide(BigDecimal(60 * 60), 2, RoundingMode.HALF_UP)

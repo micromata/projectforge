@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.address.vcard
+package org.projectforge.business.address
 
 enum class ImageType(val extension: String, val mimeType: String) {
     JPEG("jpg", "image/jpeg"), PNG("png", "image/png"), GIF("gif", "image/gif");
@@ -31,6 +31,40 @@ enum class ImageType(val extension: String, val mimeType: String) {
             JPEG -> ezvcard.parameter.ImageType.JPEG
             PNG -> ezvcard.parameter.ImageType.PNG
             GIF -> ezvcard.parameter.ImageType.GIF
+        }
+    }
+
+    companion object {
+        fun fromExtension(filename: String?): ImageType? {
+            filename ?: return null
+            return if (filename.endsWith(".jpg", ignoreCase = true) || filename.endsWith(".jpeg", ignoreCase = true)) {
+                JPEG
+            } else if (filename.endsWith(".png", ignoreCase = true)) {
+                PNG
+            } else if (filename.endsWith(".gif", ignoreCase = true)) {
+                GIF
+            } else {
+                null
+            }
+        }
+
+        fun fromString(value: String?): ImageType? {
+            value ?: return null
+            return when (value.lowercase()) {
+                "jpg", "jpeg" -> JPEG
+                "png" -> PNG
+                "gif" -> GIF
+                else -> null
+            }
+        }
+
+        fun from(imageType: ezvcard.parameter.ImageType): ImageType? {
+            return when (imageType) {
+                ezvcard.parameter.ImageType.JPEG -> JPEG
+                ezvcard.parameter.ImageType.PNG -> PNG
+                ezvcard.parameter.ImageType.GIF -> GIF
+                else -> null
+            }
         }
     }
 }

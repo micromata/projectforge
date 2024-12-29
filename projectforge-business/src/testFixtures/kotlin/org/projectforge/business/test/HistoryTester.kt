@@ -200,23 +200,31 @@ class HistoryTester(
      * The total number of history entries is updated.
      * @param expectedNumberOfNewHistoryEntries The expected number of new history entries.
      * @param expectedNumberOfNewHistoryAttrEntries The expected number of new history attributes.
+     * @param msg The message for the assertion error.
+     * @param skipAssertions If true, the assertions are skipped.
      * @return This for chaining.
      */
     fun loadRecentHistoryEntries(
-        expectedNumberOfNewHistoryEntries: Int,
+        expectedNumberOfNewHistoryEntries: Int = 1,
         expectedNumberOfNewHistoryAttrEntries: Int = 0,
         msg: String = "",
+        skipAssertions: Boolean = false,
     ): HistoryTester {
         val count = count()
         val numberOfNewHistoryEntries = count.first - totalNumberHistoryEntries
         loadAndTailHistoryEntries(numberOfNewHistoryEntries)
         // ####### For debugging, it's recommended to set the breakpoint at the following line: ##############
-        assertSizes(expectedNumberOfNewHistoryEntries, expectedNumberOfNewHistoryAttrEntries, msg = msg)
+        if (!skipAssertions) {
+            assertSizes(expectedNumberOfNewHistoryEntries, expectedNumberOfNewHistoryAttrEntries, msg = msg)
+        }
         totalNumberHistoryEntries = count.first
         totalNumberOfHistoryAttrs = count.second
         return this
     }
 
+    /**
+     * Asserts the number of new history entries and attributes since creation of this tester or last call of [reset].
+     */
     fun assertSizes(
         expectedNumberOfNewHistoryEntries: Int,
         expectedNumberOfNewHistoryAttrEntries: Int = 0,
@@ -226,6 +234,9 @@ class HistoryTester(
         return this
     }
 
+    /**
+     * Asserts the number of new history entries and attributes since creation of this tester or last call of [reset].
+     */
     fun assertSizes(
         wrappers: List<HistoryEntryHolder>?,
         expectedNumberOfHistoryEntries: Int,
@@ -291,8 +302,8 @@ class HistoryTester(
         fun assertHistoryEntry(
             holder: HistoryEntryHolder,
             entityClass: KClass<*>,
-            entityId: Long?,
-            opType: EntityOpType,
+            entityId: Long? = null,
+            opType: EntityOpType = EntityOpType.Update,
             modUser: PFUserDO? = null,
             numberOfAttributes: Int = 0,
         ): Set<HistoryEntryAttr>? {
@@ -313,8 +324,8 @@ class HistoryTester(
         fun assertHistoryEntry(
             entry: HistoryEntry,
             entityClass: KClass<*>,
-            entityId: Long?,
-            opType: EntityOpType,
+            entityId: Long? = null,
+            opType: EntityOpType = EntityOpType.Update,
             modUser: PFUserDO? = null,
             numberOfAttributes: Int = 0,
         ): Set<HistoryEntryAttr>? {

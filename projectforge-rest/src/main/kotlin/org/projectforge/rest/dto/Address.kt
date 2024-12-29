@@ -87,7 +87,7 @@ class Address(
 
     override fun copyFrom(src: AddressDO) {
         super.copyFrom(src)
-        if (src.image == true) {
+        if (AddressImageCache.instance.getImage(src.id) != null) {
             imageData = byteArrayOf(1) // Marker for frontend for an available image.
         }
         // For new addresses no cache entry exist.

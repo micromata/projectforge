@@ -45,8 +45,8 @@ class VisitorbookService : IDao<VisitorbookDO?> {
     @Autowired
     private lateinit var visitorbookCache: VisitorbookCache
 
-    @Autowired
-    private lateinit var visitorbookDao: VisitorbookDao
+    // Set by VisitorbookDao.postConstruct().
+    internal lateinit var visitorbookDao: VisitorbookDao
 
     override fun select(filter: BaseSearchFilter): List<VisitorbookDO> {
         return visitorbookDao.select(filter)
@@ -123,6 +123,10 @@ class VisitorbookService : IDao<VisitorbookDO?> {
         return list
     }
 
+    fun getVisitorbookInfo(visitorbookId: Long?): VisitorbookInfo? {
+        visitorbookId ?: return null
+        return visitorbookCache.getVisitorbookInfo(visitorbookId)
+    }
 
     fun insert(
         visitorbookId: Long,

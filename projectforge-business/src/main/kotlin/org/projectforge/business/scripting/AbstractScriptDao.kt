@@ -24,6 +24,7 @@
 package org.projectforge.business.scripting
 
 import mu.KotlinLogging
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseDao
 
 private val log = KotlinLogging.logger {}
@@ -56,7 +57,7 @@ abstract class AbstractScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
         additionalVariables: Map<String, Any?>,
         myImports: List<String>? = null,
     ): List<String> {
-        val scriptExecutor = createScriptExecutor(script, additionalVariables, parameters, myImports)
+        val scriptExecutor = createScriptExecutor(script, additionalVariables, parameters, myImports, ScriptLogger())
         return scriptExecutor.allVariables.keys.filter { it.isNotBlank() }.sortedBy { it.lowercase() }
     }
 
@@ -66,7 +67,7 @@ abstract class AbstractScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
         additionalVariables: Map<String, Any?>,
         imports: List<String>? = null,
     ): String {
-        val scriptExecutor = createScriptExecutor(script, additionalVariables, parameters, imports)
+        val scriptExecutor = createScriptExecutor(script, additionalVariables, parameters, imports, ScriptLogger())
         return scriptExecutor.effectiveScript
     }
 
@@ -78,9 +79,11 @@ abstract class AbstractScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
         parameters: List<ScriptParameter>,
         additionalVariables: Map<String, Any>,
         imports: List<String>? = null,
+        scriptLogger: ScriptLogger,
     ): ScriptExecutionResult {
         hasLoggedInUserSelectAccess(script, true)
-        val executor = createScriptExecutor(script, additionalVariables, parameters, imports)
+        scriptLogger.info(translate("scripting.script.execution.log.preparing"))
+        val executor = createScriptExecutor(script, additionalVariables, parameters, imports, scriptLogger)
         return executor.execute()
     }
 
@@ -89,8 +92,9 @@ abstract class AbstractScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
         additionalVariables: Map<String, Any?>,
         scriptParameters: List<ScriptParameter>? = null,
         imports: List<String>? = null,
+        scriptLogger: ScriptLogger,
     ): ScriptExecutor {
-        val scriptExecutor = ScriptExecutor.createScriptExecutor(script)
+        val scriptExecutor = ScriptExecutor.createScriptExecutor(script, scriptLogger)
         scriptExecutor.init(script, this, additionalVariables, scriptParameters, imports)
         return scriptExecutor
     }

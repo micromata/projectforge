@@ -151,7 +151,7 @@ class KostCache : AbstractCache() {
      * Prevents lazy loadings.
      */
     fun getKost1IfNotInitialized(kost1: Kost1DO?): Kost1DO? {
-        kost1?: return null
+        kost1 ?: return null
         if (Hibernate.isInitialized(kost1)) {
             return kost1
         }
@@ -199,14 +199,12 @@ class KostCache : AbstractCache() {
      *
      * @param projektId
      */
-    fun getKost2Arts(projektId: Long?): Set<Kost2ArtDO> {
+    fun getKost2ArtsForProjekt(projektId: Long?): Set<Kost2ArtDO> {
         projektId ?: return emptySet()
         checkRefresh()
-        synchronized(kost2Map) {
-            return kost2Map.values.filter { !it.deleted && it.projekt?.id == projektId }
-                .mapNotNull { it.kost2Art }
-                .toSet()
-        }
+        return getKost2ForProjekt(projektId, false)
+            .mapNotNull { it.kost2Art }
+            .toSet()
     }
 
     /**
@@ -214,10 +212,10 @@ class KostCache : AbstractCache() {
      *
      * @param projektId
      */
-    fun getAllKost2Arts(projektId: Long?): List<Kost2Art> {
+    fun getAllKost2ArtsForProjekt(projektId: Long?): List<Kost2Art> {
         checkRefresh()
         synchronized(kost2Map) {
-            val set = getKost2Arts(projektId)
+            val set = getKost2ArtsForProjekt(projektId)
             val result = mutableListOf<Kost2Art>()
             allKost2Arts?.filter { !it.isDeleted }?.forEach { kost2Art ->
                 val kost2ArtDO = Kost2ArtDO()
@@ -229,6 +227,14 @@ class KostCache : AbstractCache() {
                 result.add(art)
             }
             return result
+        }
+    }
+
+    fun getKost2ForProjekt(projektId: Long?, includeDeleted: Boolean = false): List<Kost2DO> {
+        projektId ?: return emptyList()
+        checkRefresh()
+        synchronized(kost2Map) {
+            return kost2Map.values.filter { it.projekt?.id == projektId && (includeDeleted || !it.deleted) }
         }
     }
 
