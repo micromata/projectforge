@@ -103,8 +103,8 @@ class AuftragsStatistik() : Serializable {
             akquiseSum = add(akquiseSum, info.akquiseSum)
             counterAkquise++
         }
-        if (info.orderedNetSum > BigDecimal.ZERO) {
-            beauftragtSum = add(beauftragtSum, info.orderedNetSum)
+        if (info.commissionedNetSum > BigDecimal.ZERO) {
+            beauftragtSum = add(beauftragtSum, info.commissionedNetSum)
             counterBeauftragt++
         }
         if (info.notYetInvoicedSum > BigDecimal.ZERO) {

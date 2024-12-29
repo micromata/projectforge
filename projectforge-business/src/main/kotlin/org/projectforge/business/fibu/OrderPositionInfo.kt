@@ -45,6 +45,7 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
     val paymentType = position.paymentType
     val art = position.art
     val personDays = position.personDays
+    val modeOfPaymentType = position.modeOfPaymentType
 
     /** netSum of the order position in database. */
     val dbNetSum = position.nettoSumme ?: BigDecimal.ZERO
@@ -69,10 +70,10 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
     var toBeInvoiced: Boolean = false
 
     /**
-     * The net sum for ordered positions ([AuftragsOrderState.ORDERED]), otherwise, 0.
+     * The net sum for commissioned positions ([AuftragsOrderState.COMMISSIONED]), otherwise, 0.
      * @see calculate
      */
-    var orderedNetSum = BigDecimal.ZERO
+    var commissionedNetSum = BigDecimal.ZERO
 
     /**
      * The net sum of the position as stored in database if the position isn't rejected or replaced.
@@ -117,11 +118,11 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
      */
     fun recalculate(order: OrderInfo) {
         netSum = if (status.orderState != AuftragsOrderState.LOST) dbNetSum else BigDecimal.ZERO
-        orderedNetSum = if (status.orderState == AuftragsOrderState.ORDERED) netSum else BigDecimal.ZERO
+        commissionedNetSum = if (status.orderState == AuftragsOrderState.COMMISSIONED) netSum else BigDecimal.ZERO
         toBeInvoiced = if (status.orderState == AuftragsOrderState.LOST) {
             false
         } else if (status == AuftragsStatus.ABGESCHLOSSEN ||
-            (order.status == AuftragsStatus.ABGESCHLOSSEN && status.orderState == AuftragsOrderState.ORDERED) ||
+            (order.status == AuftragsStatus.ABGESCHLOSSEN && status.orderState == AuftragsOrderState.COMMISSIONED) ||
             // Now, check payment schedules
             order.paymentScheduleEntries?.any { it.positionNumber == number && it.toBeInvoiced } == true
         ) {
@@ -132,7 +133,7 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
             invoicedSum += RechnungDao.getNettoSumme(set)
         }
         toBeInvoicedSum = if (toBeInvoiced) netSum - invoicedSum else BigDecimal.ZERO
-        notYetInvoiced = if (status.orderState == AuftragsOrderState.ORDERED && !vollstaendigFakturiert) {
+        notYetInvoiced = if (status.orderState == AuftragsOrderState.COMMISSIONED && !vollstaendigFakturiert) {
             netSum - invoicedSum
         } else {
             BigDecimal.ZERO
@@ -144,7 +145,7 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
         if (deleted) {
             // Leave the values for invoicedSum untouched.
             netSum = BigDecimal.ZERO
-            orderedNetSum = BigDecimal.ZERO
+            commissionedNetSum = BigDecimal.ZERO
             toBeInvoiced = false
             toBeInvoicedSum = BigDecimal.ZERO
             notYetInvoiced = BigDecimal.ZERO

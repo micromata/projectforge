@@ -50,11 +50,11 @@ internal object KotlinScriptUtils {
             }
             val message = report.message
             val location = report.location
-            var line1 = "[$severity] $message"
+            var line1 = message
             var line2: String? = null
             location?.let {
-                // line1 = "[$severity] $message: ${it.start.line}:${it.start.col} to ${it.end?.line}:${it.end?.col}"
-                line1 = "[$severity] $message: line ${it.start.line} to ${it.end?.line}"
+                // line1 = "$message: ${it.start.line}:${it.start.col} to ${it.end?.line}:${it.end?.col}"
+                line1 = "$message: line ${it.start.line} to ${it.end?.line}"
                 val lineIndex = it.start.line - 1 // Zeilenindex anpassen
                 if (lineIndex in scriptLines.indices) {
                     val line = scriptLines[lineIndex]

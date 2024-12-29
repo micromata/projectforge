@@ -158,7 +158,7 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
         if (obj.projekt?.id != null) {
             // Projekt ist gegeben. Dann müssen auch die Ziffern stimmen:
             val projekt =
-                projektDao.find(obj.projekt?.id) // Bei Neuanlage ist Projekt nicht wirklich gebunden.
+                projektDao.find(obj.projekt?.id, checkAccess = false) // Bei Neuanlage ist Projekt nicht wirklich gebunden.
             if (projekt!!.nummernkreis != obj.nummernkreis || projekt.bereich != obj.bereich || projekt.nummer != obj.teilbereich) {
                 throw UserException(
                     ("Inkonsistenz bei Kost2: "

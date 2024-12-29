@@ -77,14 +77,14 @@ org-postgresql = "42.7.4"
 org-reflections = "0.10.2"
 org-springframework-boot = "3.3.6"
 org-apache-tomcat-embed = "10.1.33" # must match spring-boot
-org-springframework-spring = "6.1.15"
+org-springframework-spring = "6.1.16"
 org-springframework-security = "6.4.1"
 org-wicketstuff-html5 = "10.2.0"
 org-wicketstuff-select2 = "10.2.0"
 se-sawano-java-alphanumeric-comparator = "1.4.1"
 
 # logging
-ch-qos-logback = "1.5.12"
+ch-qos-logback = "1.5.15"
 io-github-microutils-kotlin-logging = "3.0.5"
 jboss-logging = "3.6.0.Final"
 org-apache-logging-log4j = "2.24.2" # Needed by poi.

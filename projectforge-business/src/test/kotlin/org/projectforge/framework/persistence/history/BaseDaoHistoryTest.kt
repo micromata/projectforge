@@ -122,7 +122,7 @@ class BaseDaoHistoryTest : AbstractTestBase() {
         clazz?.let { cls ->
             Assertions.assertEquals(
                 translatePropertyName(cls, propertyName),
-                entry.displayPropertyName,
+                entry.displayPropertyName?.substringAfterLast(':'), // "1:kostZuweisungen" -> "kostZuweisungen"
                 "$cls.$propertyName"
             )
         }

@@ -52,7 +52,7 @@ enum class AuftragsStatus(
     val orderState: AuftragsOrderState
         get() = when (this) {
             IN_ERSTELLUNG, POTENZIAL, GELEGT, LOI, OPTIONAL -> AuftragsOrderState.POTENTIAL
-            BEAUFTRAGT, ABGESCHLOSSEN, ESKALATION -> AuftragsOrderState.ORDERED
+            BEAUFTRAGT, ABGESCHLOSSEN, ESKALATION -> AuftragsOrderState.COMMISSIONED
             ABGELEHNT, ERSETZT -> AuftragsOrderState.LOST
         }
 

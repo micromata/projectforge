@@ -25,8 +25,10 @@ package org.projectforge.rest.core
 
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
 import mu.KotlinLogging
 import org.projectforge.Constants
+import org.projectforge.business.orga.VisitorbookDO
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.NestedNullException
 import org.projectforge.common.PropertyUtils
@@ -45,7 +47,6 @@ import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.history.HistoryFormatService
-import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileSizeStandardChecker
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -64,7 +65,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.io.Serializable
-import jakarta.validation.Valid
 
 private val log = KotlinLogging.logger {}
 
@@ -413,7 +413,8 @@ constructor(
 
     protected fun getInitialList(request: HttpServletRequest, filter: MagicFilter): InitialListData {
         val favorites = getFilterFavorites()
-        val resultSet = postProcessResultSet(getList(request, this, baseDao, filter), request, filter)
+        val list = getList(request, this, baseDao, filter)
+        val resultSet = postProcessResultSet(list, request, filter)
         resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Long::class.java)
         val ui = createListLayout(request, filter)
             .addTranslations(
@@ -1236,12 +1237,12 @@ constructor(
             return responseAction
         }
         returnToCaller = afterOperationRedirectTo(obj, postData, event)
-                // Workarround to force reload to restore the AG Grid state:
+                // Workarround to force reload to restore the AG Grid state (forceAGGridReload = true):
             ?: PagesResolver.getListPageUrl(
                 this::class.java,
                 absolute = true,
                 // Force new hash for getting initialList (including ui on actions/list/index.js
-                params = mapOf("hash" to NumberHelper.getSecureRandomAlphanumeric(4))
+                forceAGGridReload = true,
             )
         return ResponseAction(returnToCaller)
             .addVariable("id", obj.id ?: -1)
@@ -1301,6 +1302,62 @@ constructor(
                 baseDao, jcrPath, supportedListIds, FileSizeStandardChecker(maxFileSize, maxFileSizeSpringProperty)
             )
     }
+
+    /**
+     * Convenience method for getting the list page response entity.
+     * @param params Additional parameters for the list page.
+     * @param absolute If true, the absolute URL will be returned.
+     * @param highlightedObjectId If given, the row with this id will be highlighted. The id will be stored in the user preferences as well.
+     * @param forceAGGridReload If true, the AG Grid will be reloaded (workaround).
+     * @return ResponseEntity for the list page.
+     */
+    fun getListPageResponseEntity(
+        params: Map<String, Any?>? = null,
+        absolute: Boolean = false,
+        highlightedObjectId: Long? = null,
+        forceAGGridReload: Boolean = false,
+    ): ResponseEntity<ResponseAction> {
+        return ResponseEntity.ok()
+            .body(
+                getListPageResponseAction(
+                    params,
+                    absolute = absolute,
+                    highlightedObjectId = highlightedObjectId,
+                    forceAGGridReload = forceAGGridReload,
+                )
+            )
+    }
+
+    /**
+     * Convenience method for getting the list page response action.
+     * @param params Additional parameters for the list page.
+     * @param absolute If true, the absolute URL will be returned.
+     * @param highlightedObjectId If given, the row with this id will be highlighted. The id will be stored in the user preferences as well.
+     * @param forceAGGridReload If true, the AG Grid will be reloaded (workaround).
+     * @return ResponseAction for the list page.
+     */
+    fun getListPageResponseAction(
+        params: Map<String, Any?>? = null,
+        absolute: Boolean = false,
+        highlightedObjectId: Long? = null,
+        forceAGGridReload: Boolean = false,
+    ): ResponseAction {
+        val url = PagesResolver.getListPageUrl(
+            this::class.java,
+            params,
+            absolute = absolute,
+            forceAGGridReload = forceAGGridReload
+        )
+        val action = ResponseAction(url)
+        if (highlightedObjectId != null) {
+            action.addVariable("id", highlightedObjectId)
+            if (highlightedObjectId >= 0) {
+                userPrefService.putEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, highlightedObjectId, false)
+            }
+        }
+        return action
+    }
+
 
     /**
      * Might be initialized by [enableJcr] with default dao access checker.

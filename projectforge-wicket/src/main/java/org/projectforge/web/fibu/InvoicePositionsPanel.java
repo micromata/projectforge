@@ -43,6 +43,7 @@ import org.projectforge.web.wicket.WicketUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -94,7 +95,7 @@ public class InvoicePositionsPanel extends Panel {
             for (final Integer invoiceNumber : invoiceNumbers) {
                 BigDecimal netSum = BigDecimal.ZERO;
                 for (final RechnungPosInfo invoicePosition : invoicePositionsByOrderPositionId) {
-                    if (invoicePosition.getRechnungInfo().getNummer() != invoiceNumber) {
+                    if (!Objects.equals(invoicePosition.getRechnungInfo().getNummer(), invoiceNumber)) {
                         // Invoice position doesn't match current invoice.
                         continue;
                     }

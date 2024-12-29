@@ -1,10 +1,8 @@
-import org.projectforge.framework.time.PFDay
-
 // How to modify existing Excel file:
 // val workbook = ExcelWorkbook(files.file, files.filename) // Only one file is uploaded
 // val workbook = ExcelWorkbook(files.getFile("MyExcel_template.xlsx"), "MyExcel.xlsx") // Choose file by name
 
-val users = userDao.getList().filter { it.hasSystemAccess() }
+val users = userDao.list.filter { it.hasSystemAccess() }
 
 // Create new in this example:
 val workbook = ExcelUtils.prepareWorkbook("Advanced.xlsx")

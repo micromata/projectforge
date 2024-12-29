@@ -123,7 +123,7 @@ class TimesheetEventsProvider {
             }
             val title: String = CalendarHelper.getTitle(timesheet)
             val description = CalendarHelper.getDescription(timesheet)
-            val formattedDuration = FullCalendarEvent.formatDuration(timesheet.getDuration())
+            val formattedDuration = FullCalendarEvent.formatDuration(timesheet.duration)
             /*var outOfRange: Boolean? = null
             //if (ctx.longFormat) {
             // }
@@ -164,7 +164,7 @@ class TimesheetEventsProvider {
                 event.setTooltip("${translate("timesheet")}: ${timesheetUser?.displayName}", tooltipBuilder)
             }
 
-            val duration = timesheet.getDuration()
+            val duration = timesheet.duration
             if (ctx.month == null || ctx.month == startTime.month) {
                 ctx.totalDuration += duration
                 ctx.addDurationOfDay(startTime.dayOfMonth, duration)

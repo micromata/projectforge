@@ -54,7 +54,7 @@ object ExcelUtils {
    */
   @JvmStatic
   fun prepareWorkbook(filename: String? = null): ExcelWorkbook {
-    val workbook = ExcelWorkbook(ThreadLocalUserContext.locale!!)
+    val workbook = ExcelWorkbook(ThreadLocalUserContext.locale)
     filename?.let { workbook.filename = it }
     workbook.configuration.let { cfg ->
       cfg.setDateFormats(

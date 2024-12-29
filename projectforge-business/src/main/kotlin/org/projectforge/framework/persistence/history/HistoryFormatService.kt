@@ -98,12 +98,28 @@ class HistoryFormatService {
         val displayHistoryEntry = adapter?.convertHistoryEntry(item, context)
             ?: stdHistoryFormatAdapter.convertHistoryEntry(item, context)
         context.setCurrent(displayHistoryEntry)
+        context.baseDao?.customizeHistoryEntry(context)
+        if (historyEntry.entityOpType == EntityOpType.Insert && historyEntry.attributes.isNullOrEmpty()) {
+            // Special case: Insert without attributes.
+            context.baseDao?.getHistoryPropertyPrefix(context)?.let { propertyPrefix ->
+                // Add the operation as attribute, if a propertyPrefix is given.
+                displayHistoryEntry.attributes.add(DisplayHistoryEntryAttr().also { attr ->
+                    attr.operationType = PropertyOpType.Insert
+                    attr.operation = context.requiredDisplayHistoryEntry.operation
+                    attr.displayPropertyName = propertyPrefix
+                    attr.newValue = attr.operation
+                })
+            }
+        }
         historyEntry.attributes?.forEach { attr ->
             context.setCurrent(attr)
             val displayAttr = adapter?.convertHistoryEntryAttr(item, context)
                 ?: stdHistoryFormatAdapter.convertHistoryEntryAttr(item, context)
             displayHistoryEntry.attributes.add(displayAttr)
             context.setCurrent(displayAttr)
+            context.baseDao?.getHistoryPropertyPrefix(context)?.let {
+                displayAttr.displayPropertyName = "$it:${displayAttr.displayPropertyName}"
+            }
             context.baseDao?.customizeHistoryEntryAttr(context)
             context.clearCurrentDisplayHistoryEntryAttr()
         }

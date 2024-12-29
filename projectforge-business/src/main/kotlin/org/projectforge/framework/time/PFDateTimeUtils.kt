@@ -30,6 +30,7 @@ import org.projectforge.framework.time.PFDateTime.Companion.withDate
 import java.sql.Timestamp
 import java.time.DateTimeException
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
@@ -130,6 +131,13 @@ object PFDateTimeUtils {
         return withDate(ud.year, ud.month, ud.dayOfMonth, 0, 0, 0, 0, ZONE_UTC)
     }
 
+    @JvmStatic
+    fun getBeginOfDateAsUtildate(localDate: LocalDate): Date {
+        // Combine LocalDate with 00:00 Uhr in UTC
+        val instant = localDate.atStartOfDay(ZoneOffset.UTC).toInstant()
+        // Convert Instant to Date
+        return Date.from(instant)
+    }
 
     /**
      * Including limits.

@@ -76,7 +76,7 @@ class Auftrag(
         personDays = orderInfo.personDays
         assignedPersons = src.assignedPersons
         formattedNettoSumme = NumberFormatter.formatCurrency(orderInfo.netSum)
-        formattedBeauftragtNettoSumme = NumberFormatter.formatCurrency(orderInfo.orderedNetSum)
+        formattedBeauftragtNettoSumme = NumberFormatter.formatCurrency(orderInfo.commissionedNetSum)
         formattedFakturiertSum = NumberFormatter.formatCurrency(orderInfo.invoicedSum)
         formattedZuFakturierenSum = NumberFormatter.formatCurrency(orderInfo.notYetInvoicedSum)
         pos = "#" + positionen?.size

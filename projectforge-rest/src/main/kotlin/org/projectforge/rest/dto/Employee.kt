@@ -69,5 +69,30 @@ class Employee(
         fun restoreDisplayNames(employees: List<Employee>?) {
             employees?.forEach { it.displayName = employeeCache.getEmployee(it.id)?.displayName }
         }
+
+        /**
+         * Converts csv of group ids to list of groups (only with id and displayName = "???", no other content).
+         */
+        fun toEmployeeList(employees: Collection<EmployeeDO>?): List<Employee>? {
+            employees ?: return null
+            val result = mutableListOf<Employee>()
+            employees.forEach {
+                val employee = Employee()
+                employee.copyFromMinimal(it)
+                result.add(employee)
+            }
+            return result.sortedBy { it.displayName }
+        }
+
+        fun toEmployeeDOList(employees: Collection<Employee>?): MutableSet<EmployeeDO>? {
+            employees ?: return null
+            val result = mutableSetOf<EmployeeDO>()
+            employees.forEach { e ->
+                val employeeDO = EmployeeDO()
+                employeeDO.id = e.id
+                result.add(employeeDO)
+            }
+            return result
+        }
     }
 }
