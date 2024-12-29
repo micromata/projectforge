@@ -42,6 +42,8 @@ class ScriptExecutionResult(val scriptLogger: ScriptLogger) : Serializable {
      */
     var downloadAvailable: String? = null
 
+    var resultAsUserFriendlyString: String? = null
+
     fun hasResult(): Boolean {
         return result != null
     }

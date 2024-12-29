@@ -67,7 +67,7 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
         script: Script,
         variables: MutableMap<String, Any>,
         scriptDO: ScriptDO?,
-        executionResults: String? = null
+        executionResult: ScriptExecutionResult? = null
     ): UILayout {
         val layout = UILayout("scripting.script.execute")
         if (scriptDO != null) {
@@ -120,13 +120,17 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
             )
         )
 
-        if (!executionResults.isNullOrBlank()) {
+        if (executionResult?.resultAsUserFriendlyString?.isNotBlank() == true) {
             layout.add(
                 UIAlert(
-                    executionResults,
+                    executionResult.resultAsUserFriendlyString,
                     title = "scripting.script.result",
                     markdown = true,
-                    color = UIColor.INFO
+                    color = if (executionResult.scriptLogger.hasErrors ) {
+                        UIColor.DANGER
+                    } else {
+                        UIColor.INFO
+                    }
                 )
             )
         }
@@ -221,12 +225,12 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
                 output.appendLine(translate("scripting.script.execution.log.successfullyCompleted"))
             }
         }
-        val executionResults = output.toString()
+        result.resultAsUserFriendlyString = output.toString()
         val scriptDO = scriptDao.find(script.id) // null, if script.id is null.
         return ResponseEntity.ok(
             ResponseAction(targetType = TargetType.UPDATE, merge = true)
                 .addVariable("data", script)
-                .addVariable("ui", getLayout(request, script, variables, scriptDO, executionResults = executionResults))
+                .addVariable("ui", getLayout(request, script, variables, scriptDO, executionResult = result))
                 .addVariable("variables", variables)
         )
     }
