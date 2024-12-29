@@ -77,6 +77,7 @@ internal class GlobalDefaultExceptionHandler {
         if (ex is AsyncRequestNotUsableException || ex is AsyncRequestTimeoutException) {
             // Occurs on SseEmitter.send() if the client has disconnected.
             // log.error("Async request not usable: ${ex.message}")
+            log.info { "Asyn client connection lost (OK): ${ex.message}" }
             return ResponseEntity("Async request not usable.", HttpStatus.BAD_REQUEST)
         }
         if (ex::class.qualifiedName?.contains("NoResourceFoundException") == true) {
