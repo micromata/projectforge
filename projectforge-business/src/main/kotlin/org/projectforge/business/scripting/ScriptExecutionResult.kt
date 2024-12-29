@@ -37,6 +37,11 @@ class ScriptExecutionResult(val scriptLogger: ScriptLogger) : Serializable {
      */
     var script: String = ""
 
+    /**
+     * If a download is prepared, a user-friendly message is stored here.
+     */
+    var downloadAvailable: String? = null
+
     fun hasResult(): Boolean {
         return result != null
     }

@@ -23,18 +23,16 @@
 
 package org.projectforge.rest.scripting
 
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
 import mu.KotlinLogging
-import org.projectforge.business.scripting.AbstractScriptDao
-import org.projectforge.business.scripting.ScriptDO
-import org.projectforge.business.scripting.ScriptExecutor
-import org.projectforge.business.scripting.ScriptParameterType
+import org.projectforge.business.scripting.*
+import org.projectforge.common.DateFormatType
 import org.projectforge.common.logging.LogLevel
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.config.RestUtils
-import org.projectforge.rest.core.AbstractDynamicPageRest
-import org.projectforge.rest.core.AbstractPagesRest
-import org.projectforge.rest.core.DownloadFileSupport
-import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.core.*
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Script
 import org.projectforge.rest.task.TaskServicesRest
@@ -42,222 +40,286 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.validation.Valid
+import java.util.*
 
 private val log = KotlinLogging.logger {}
 
 abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
-  protected lateinit var scriptDao: AbstractScriptDao
-
-  @Autowired
-  protected lateinit var scriptExecution: ScriptExecution
-
-  protected abstract val pagesRest: AbstractPagesRest<*, *, *>
-
-  protected open val accessCheckOnExecute = true
-
-  protected fun getLayout(
-    request: HttpServletRequest,
-    script: Script,
-    variables: MutableMap<String, Any>,
-    scriptDO: ScriptDO?,
-    executionResults: String? = null
-  ): UILayout {
-    val layout = UILayout("scripting.script.execute")
-    if (scriptDO != null) {
-      // DB-Script execution
-      scriptExecution.updateFromRecentCall(script)?.let { task ->
-        // Task must be added to variables for displaying it:
-        variables["task"] = task
-      }
-      // Update param names
-      script.parameter1?.name = scriptDO.parameter1Name
-      script.parameter2?.name = scriptDO.parameter2Name
-      script.parameter3?.name = scriptDO.parameter3Name
-      script.parameter4?.name = scriptDO.parameter4Name
-      script.parameter5?.name = scriptDO.parameter5Name
-      script.parameter6?.name = scriptDO.parameter6Name
-      layout.add(UIReadOnlyField("name", label = "scripting.script.name"))
-      layout.add(UIAlert(id = "description", title = "description", markdown = true, color = UIColor.LIGHT))
-      UIFieldset(title = "scripting.script.parameter").let { fieldset ->
-        layout.add(fieldset)
-        addParameterInput(fieldset, script.parameter1, 1)
-        addParameterInput(fieldset, script.parameter2, 2)
-        addParameterInput(fieldset, script.parameter3, 3)
-        addParameterInput(fieldset, script.parameter4, 4)
-        addParameterInput(fieldset, script.parameter5, 5)
-        addParameterInput(fieldset, script.parameter6, 6)
-      }
-    } else {
-      // Editing and executing ad-hoc script
-      layout.add(UIEditor("script", type = ScriptExecutor.getScriptType(script.script, script.type)))
-        .add(UIReadOnlyField("availableVariables", label = "scripting.script.availableVariables"))
+    class LogEntry(timestamp: Date, val level: LogLevel, val message: String) {
+        val id = timestamp.time
+        val timestamp: String = PFDateTime.from(timestamp).format(DateFormatType.DATE_TIME_SECONDS)
     }
 
-    layout.add(
-      UIButton.createBackButton(
-        ResponseAction(
-          PagesResolver.getListPageUrl(pagesRest::class.java, absolute = true),
-          targetType = TargetType.REDIRECT
-        ),
-      )
-    )
+    protected lateinit var scriptDao: AbstractScriptDao
 
-    layout.add(
-      UIButton.createDefaultButton(
-        "execute",
-        title = "execute",
-        responseAction = ResponseAction(
-          url = "${getRestPath()}/execute",
-          targetType = TargetType.POST
-        )
-      )
-    )
+    @Autowired
+    protected lateinit var scriptExecution: ScriptExecution
 
-    if (!executionResults.isNullOrBlank()) {
-      layout.add(UIAlert(executionResults, title = "scripting.script.result", markdown = true, color = UIColor.INFO))
-    }
+    protected abstract val pagesRest: AbstractPagesRest<*, *, *>
 
-    scriptExecution.getDownloadFile(request)?.let { downloadFile ->
-      val download = DownloadFileSupport.Download(downloadFile)
-      script.download = download
-      layout.add(
-        UIRow().add(
-          scriptExecution.downloadFileSupport.createDownloadFieldset(
-            "scripting.download.filename.info",
-            "${getRestPath()}/download",
-            download,
-          )
-        )
-      )
-    }
+    protected open val accessCheckOnExecute = true
 
-    onAfterLayout(layout, script, scriptDO)
-    LayoutUtils.process(layout)
-    return layout
-  }
-
-  protected open fun onAfterLayout(layout: UILayout, script: Script, scriptDO: ScriptDO?) {
-  }
-
-  @PostMapping("execute")
-  fun execute(
-    request: HttpServletRequest,
-    @Valid @RequestBody postData: PostData<Script>
-  ): ResponseEntity<ResponseAction> {
-    validateCsrfToken(request, postData)?.let { return it }
-    val variables = mutableMapOf<String, Any>()
-    val script = postData.data
-
-    val parameters = script.parameters
-    parameters.forEach { scriptParameter ->
-      if (scriptParameter.type == ScriptParameterType.TASK) {
-        scriptParameter.intValue?.let { taskId ->
-          TaskServicesRest.createTask(taskId)?.let { task ->
-            // Task must be added to variables for displaying it:
-            variables["task"] = task
-          }
+    protected fun getLayout(
+        request: HttpServletRequest,
+        script: Script,
+        variables: MutableMap<String, Any>,
+        scriptDO: ScriptDO?,
+        executionResults: String? = null
+    ): UILayout {
+        val layout = UILayout("scripting.script.execute")
+        if (scriptDO != null) {
+            // DB-Script execution
+            scriptExecution.updateFromRecentCall(script)?.let { task ->
+                // Task must be added to variables for displaying it:
+                variables["task"] = task
+            }
+            // Update param names
+            script.parameter1?.name = scriptDO.parameter1Name
+            script.parameter2?.name = scriptDO.parameter2Name
+            script.parameter3?.name = scriptDO.parameter3Name
+            script.parameter4?.name = scriptDO.parameter4Name
+            script.parameter5?.name = scriptDO.parameter5Name
+            script.parameter6?.name = scriptDO.parameter6Name
+            layout.add(UIReadOnlyField("name", label = "scripting.script.name"))
+            layout.add(UIAlert(id = "description", title = "description", markdown = true, color = UIColor.LIGHT))
+            UIFieldset(title = "scripting.script.parameter").let { fieldset ->
+                layout.add(fieldset)
+                addParameterInput(fieldset, script.parameter1, 1)
+                addParameterInput(fieldset, script.parameter2, 2)
+                addParameterInput(fieldset, script.parameter3, 3)
+                addParameterInput(fieldset, script.parameter4, 4)
+                addParameterInput(fieldset, script.parameter5, 5)
+                addParameterInput(fieldset, script.parameter6, 6)
+            }
+        } else {
+            // Editing and executing ad-hoc script
+            layout.add(UIEditor("script", type = ScriptExecutor.getScriptType(script.script, script.type)))
+                .add(UIReadOnlyField("availableVariables", label = "scripting.script.availableVariables"))
         }
-      }
-    }
-    if (!accessCheckOnExecute) {
-      // If no accessCheckOnExecute, then at least check the select access of the actual script:
-      scriptDao.find(script.id) // Throws exception if user is not financial or controlling staff member.
-    }
-    val result = scriptExecution.execute(request, script, parameters, scriptDao, pagesRest)
-    val output = StringBuilder()
-    output.append("'") // ProjectForge shouldn't try to find i18n-key.
-    result.exception?.let { ex ->
-      output.appendLine("---") // Horizontal rule
-      output.appendLine("${ex::class.java.name}:")
-      output.appendLine("```") // Code
-      output.appendLine(ex.message)
-      output.appendLine("```") // Code
-    }
-    result.scriptLogger.messages.forEach { msg ->
-      if (msg.level == LogLevel.ERROR) {
-        msg.message?.lines()?.forEach { line ->
-          if (line.isNotBlank()) {
-            output.appendLine("** ${line}")
-            output.appendLine()
-          }
+
+        layout.add(
+            UIButton.createBackButton(
+                ResponseAction(
+                    PagesResolver.getListPageUrl(pagesRest::class.java, absolute = true),
+                    targetType = TargetType.REDIRECT
+                ),
+            )
+        )
+
+        layout.add(
+            UIButton.createDefaultButton(
+                "execute",
+                title = "execute",
+                responseAction = ResponseAction(
+                    url = "${getRestPath()}/execute",
+                    targetType = TargetType.POST
+                )
+            )
+        )
+
+        if (!executionResults.isNullOrBlank()) {
+            layout.add(
+                UIAlert(
+                    executionResults,
+                    title = "scripting.script.result",
+                    markdown = true,
+                    color = UIColor.INFO
+                )
+            )
         }
-      } else {
-        output.appendLine(msg.message)
-        output.appendLine()
-      }
-    }
-    result.result?.let {
-      if (it is String) {
-        output.appendLine(it)
-      }
-    }
-    val executionResults = output.toString()
-    val scriptDO = scriptDao.find(script.id) // null, if script.id is null.
-    return ResponseEntity.ok(
-      ResponseAction(targetType = TargetType.UPDATE, merge = true)
-        .addVariable("data", script)
-        .addVariable("ui", getLayout(request, script, variables, scriptDO, executionResults = executionResults))
-        .addVariable("variables", variables)
-    )
-  }
 
-  @GetMapping("download")
-  fun download(request: HttpServletRequest): ResponseEntity<*> {
-    val downloadFile = scriptExecution.getDownloadFile(request)
-      ?: return RestUtils.badRequest(translate("download.expired"))
-    log.info("Downloading '${downloadFile.filename}' of size ${downloadFile.sizeHumanReadable}.")
-    return RestUtils.downloadFile(downloadFile.filename, downloadFile.bytes)
-  }
+        scriptExecution.getDownloadFile(request)?.let { downloadFile ->
+            val download = DownloadFileSupport.Download(downloadFile)
+            script.download = download
+            layout.add(
+                UIRow().add(
+                    scriptExecution.downloadFileSupport.createDownloadFieldset(
+                        "scripting.download.filename.info",
+                        "${getRestPath()}/download",
+                        download,
+                    )
+                )
+            )
+        }
 
-  private fun addParameterInput(col: UICol, parameter: Script.Param?, index: Int) {
-    parameter?.type ?: return
-    val label = "'${parameter.name}"
-    col.add(
-      when (parameter.type!!) {
-        ScriptParameterType.STRING -> UIInput("parameter$index.stringValue", label = label)
-        ScriptParameterType.INTEGER -> UIInput(
-          "parameter$index.intValue",
-          label = label, dataType = UIDataType.INT
-        )
-        ScriptParameterType.DECIMAL -> UIInput(
-          "parameter$index.decimalValue",
-          label = label, dataType = UIDataType.DECIMAL
-        )
-        ScriptParameterType.BOOLEAN -> UICheckbox("parameter$index.booleanValue", label = label)
-        ScriptParameterType.TASK -> UIInput(
-          "parameter$index.taskValue",
-          label = label, dataType = UIDataType.TASK
-        )
-        ScriptParameterType.USER -> UISelect.createUserSelect(
-          id = "parameter$index.userValue",
-          label = label
-        )
-        ScriptParameterType.TIME_PERIOD -> UIRow()
-          .add(
-            UICol(4).add(
-              UIInput(
-                "parameter$index.dateValue",
-                label = label,
-                additionalLabel = "date.begin",
-                dataType = UIDataType.DATE
-              )
+        layout.add(
+            UIRow().add(
+                UITable(
+                    "logging",
+                    refreshUrl = RestResolver.getRestUrl(this::class.java, "refresh/${script.id}"),
+                    refreshIntervalSeconds = 1,
+                    refreshMethod = UITable.RefreshMethod.GET,
+                ).also {
+                    it.add(UITableColumn("timestamp", title = "time", sortable = false))
+                    it.add(UITableColumn("level", sortable = false))
+                    it.add(UITableColumn("message", title = "message.title", sortable = false))
+                }
             )
-          ).add(
-            UICol(4).add(
-              UIInput(
-                "parameter$index.toDateValue",
-                label = label,
-                additionalLabel = "date.end",
-                dataType = UIDataType.DATE
-              )
-            )
-          )
-        ScriptParameterType.DATE -> UIInput("parameter$index.dateValue", label = label, dataType = UIDataType.DATE)
-      }
+        )
+
+        onAfterLayout(layout, script, scriptDO)
+        LayoutUtils.process(layout)
+        return layout
+    }
+
+    protected open fun onAfterLayout(layout: UILayout, script: Script, scriptDO: ScriptDO?) {
+    }
+
+    @PostMapping("execute")
+    fun execute(
+        request: HttpServletRequest,
+        @Valid @RequestBody postData: PostData<Script>
+    ): ResponseEntity<ResponseAction> {
+        validateCsrfToken(request, postData)?.let { return it }
+        val variables = mutableMapOf<String, Any>()
+        val script = postData.data
+
+        val parameters = script.parameters
+        parameters.forEach { scriptParameter ->
+            if (scriptParameter.type == ScriptParameterType.TASK) {
+                scriptParameter.intValue?.let { taskId ->
+                    TaskServicesRest.createTask(taskId)?.let { task ->
+                        // Task must be added to variables for displaying it:
+                        variables["task"] = task
+                    }
+                }
+            }
+        }
+        if (!accessCheckOnExecute) {
+            // If no accessCheckOnExecute, then at least check the select access of the actual script:
+            scriptDao.find(script.id) // Throws exception if user is not financial or controlling staff member.
+        }
+        val scriptLogger = ScriptLogger()
+        val session = request.getSession(false)
+        // Store the scriptLogger in user's session to show the log entries in the UI.
+        ExpiringSessionAttributes.setAttribute(session, getSessionAttr(script.id), scriptLogger, 5)
+        val result = scriptExecution.execute(request, script, parameters, scriptDao, pagesRest, scriptLogger)
+        val output = StringBuilder()
+        output.append("'") // ProjectForge shouldn't try to find i18n-key.
+        result.exception?.let { ex ->
+            output.appendLine("---") // Horizontal rule
+            output.appendLine("${ex::class.java.name}:")
+            output.appendLine("```") // Code
+            output.appendLine(ex.message)
+            output.appendLine("```") // Code
+        }
+        result.downloadAvailable?.let {
+            output.appendLine(it)
+        }
+        result.result?.let {
+            if (it is String) {
+                output.appendLine(it)
+            }
+        }
+        if (output.length == 1) {
+            if (result.scriptLogger.hasErrors) {
+                output.appendLine(translate("scripting.script.execution.log.terminatedWithErrors"))
+            } else {
+                output.appendLine(translate("scripting.script.execution.log.successfullyCompleted"))
+            }
+        }
+        val executionResults = output.toString()
+        val scriptDO = scriptDao.find(script.id) // null, if script.id is null.
+        return ResponseEntity.ok(
+            ResponseAction(targetType = TargetType.UPDATE, merge = true)
+                .addVariable("data", script)
+                .addVariable("ui", getLayout(request, script, variables, scriptDO, executionResults = executionResults))
+                .addVariable("variables", variables)
+        )
+    }
+
+    /**
+     * Refreshes the log viewer.
+     * @param scriptId The script ID, or null if only code is executed and the script isn't persisted.
+     *                 scriptId is used to find the log entries in the user's session.
+     */
+    @GetMapping("refresh/{scriptId}")
+    fun refresh(
+        request: HttpServletRequest,
+        @PathVariable("scriptId") scriptId: Long,
     )
-  }
+            : List<LogEntry> {
+        val scriptLogger = ExpiringSessionAttributes.getAttribute(
+            request.getSession(false),
+            getSessionAttr(scriptId),
+            ScriptLogger::class.java,
+        ) ?: return emptyList()
+        return scriptLogger.messages.map {
+            LogEntry(it.timestamp, it.level, it.message ?: "")
+        }
+    }
+
+    @GetMapping("download")
+    fun download(request: HttpServletRequest): ResponseEntity<*> {
+        val downloadFile = scriptExecution.getDownloadFile(request)
+            ?: return RestUtils.badRequest(translate("download.expired"))
+        log.info("Downloading '${downloadFile.filename}' of size ${downloadFile.sizeHumanReadable}.")
+        return RestUtils.downloadFile(downloadFile.filename, downloadFile.bytes)
+    }
+
+    private fun addParameterInput(col: UICol, parameter: Script.Param?, index: Int) {
+        parameter?.type ?: return
+        val label = "'${parameter.name}"
+        col.add(
+            when (parameter.type!!) {
+                ScriptParameterType.STRING -> UIInput("parameter$index.stringValue", label = label)
+                ScriptParameterType.INTEGER -> UIInput(
+                    "parameter$index.intValue",
+                    label = label, dataType = UIDataType.INT
+                )
+
+                ScriptParameterType.DECIMAL -> UIInput(
+                    "parameter$index.decimalValue",
+                    label = label, dataType = UIDataType.DECIMAL
+                )
+
+                ScriptParameterType.BOOLEAN -> UICheckbox("parameter$index.booleanValue", label = label)
+                ScriptParameterType.TASK -> UIInput(
+                    "parameter$index.taskValue",
+                    label = label, dataType = UIDataType.TASK
+                )
+
+                ScriptParameterType.USER -> UISelect.createUserSelect(
+                    id = "parameter$index.userValue",
+                    label = label
+                )
+
+                ScriptParameterType.TIME_PERIOD -> UIRow()
+                    .add(
+                        UICol(4).add(
+                            UIInput(
+                                "parameter$index.dateValue",
+                                label = label,
+                                additionalLabel = "date.begin",
+                                dataType = UIDataType.DATE
+                            )
+                        )
+                    ).add(
+                        UICol(4).add(
+                            UIInput(
+                                "parameter$index.toDateValue",
+                                label = label,
+                                additionalLabel = "date.end",
+                                dataType = UIDataType.DATE
+                            )
+                        )
+                    )
+
+                ScriptParameterType.DATE -> UIInput(
+                    "parameter$index.dateValue",
+                    label = label,
+                    dataType = UIDataType.DATE
+                )
+            }
+        )
+    }
+
+    companion object {
+        private fun getSessionAttr(scriptId: Long?): String {
+            return "${AbstractScriptExecutePageRest::class.simpleName}:$scriptId"
+        }
+    }
 }

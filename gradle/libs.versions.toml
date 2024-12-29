@@ -84,7 +84,7 @@ org-wicketstuff-select2 = "10.2.0"
 se-sawano-java-alphanumeric-comparator = "1.4.1"
 
 # logging
-ch-qos-logback = "1.5.12"
+ch-qos-logback = "1.5.15"
 io-github-microutils-kotlin-logging = "3.0.5"
 jboss-logging = "3.6.0.Final"
 org-apache-logging-log4j = "2.24.2" # Needed by poi.

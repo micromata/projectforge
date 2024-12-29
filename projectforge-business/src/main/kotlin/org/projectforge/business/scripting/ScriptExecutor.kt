@@ -35,6 +35,7 @@ import org.projectforge.registry.Registry
 private val log = KotlinLogging.logger {}
 
 abstract class ScriptExecutor(
+    var scriptLogger: ScriptLogger = ScriptLogger(),
     /**
      * Script input (before pre-processing). #INCLUDE statements are not yet resolved and
      * auto-imports and bindings (Kotlin) are not included.
@@ -76,8 +77,6 @@ abstract class ScriptExecutor(
      */
     val effectiveScript: String
         get() = _effectiveScript ?: resolvedScript ?: source
-
-    val scriptLogger = ScriptLogger()
 
     val scriptExecutionResult = ScriptExecutionResult(scriptLogger)
 
@@ -258,11 +257,11 @@ abstract class ScriptExecutor(
             return sb.toString()
         }
 
-        fun createScriptExecutor(scriptDO: ScriptDO): ScriptExecutor {
+        fun createScriptExecutor(scriptDO: ScriptDO, scriptLogger: ScriptLogger = ScriptLogger()): ScriptExecutor {
             return if (getScriptType(scriptDO) == ScriptDO.ScriptType.GROOVY) {
-                GroovyScriptExecutor()
+                GroovyScriptExecutor(scriptLogger)
             } else {
-                KotlinScriptExecutor()
+                KotlinScriptExecutor(scriptLogger)
             }
         }
 
