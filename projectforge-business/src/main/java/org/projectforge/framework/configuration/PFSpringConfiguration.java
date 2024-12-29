@@ -44,7 +44,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.sql.DataSource;
 
 /**
- * Intial spring configuration for ProjectForge.
+ * Initial spring configuration for ProjectForge.
  *
  * @author Florian Blumenstein, Roger Rene Kommer (r.kommer.extern@micromata.de)
  */

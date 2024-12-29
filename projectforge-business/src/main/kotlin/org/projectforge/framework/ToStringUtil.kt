@@ -65,7 +65,7 @@ import java.time.format.DateTimeFormatter
  * Helper method to serialize objects as json strings and to use it in toString method.
  * @param obj Object to serialize as json string.
  * @param ignoreEmbeddedSerializers Most embedded objects of type [DefaultBaseDO] are serialized in short form (id and short info field).
- *        If this param constains a class of a [DefaultBaseDO], this object will be serialized with all fields.
+ *        If this param contains a class of a [DefaultBaseDO], this object will be serialized with all fields.
  */
 fun toJsonString(obj: Any, vararg ignoreEmbeddedSerializers: Class<out Any>): String {
     return ToStringUtil.toJsonString(obj, ignoreEmbeddedSerializers, null)
@@ -102,7 +102,7 @@ class ToStringUtil {
          * Helper method to serialize objects as json strings and to use it in toString method.
          * @param obj Object to serialize as json string.
          * @param ignoreEmbeddedSerializers Most embedded objects of type [DefaultBaseDO] are serialized in short form (id and short info field).
-         *        If this param constains a class of a [DefaultBaseDO], this object will be serialized with all fields.
+         *        If this param contains a class of a [DefaultBaseDO], this object will be serialized with all fields.
          */
         @JvmStatic
         fun toJsonString(obj: Any, vararg ignoreEmbeddedSerializers: Class<out Any>): String {
@@ -113,7 +113,7 @@ class ToStringUtil {
          * Helper method to serialize objects as json strings and to use it in toString method.
          * @param obj Object to serialize as json string.
          * @param ignoreEmbeddedSerializers Most embedded objects of type [DefaultBaseDO] are serialized in short form (id and short info field).
-         *        If this param constains a class of a [DefaultBaseDO], this object will be serialized with all fields.
+         *        If this param contains a class of a [DefaultBaseDO], this object will be serialized with all fields.
          */
         @JvmStatic
         fun toJsonStringExtended(obj: Any, vararg additionalSerializers: Serializer<Any>): String {

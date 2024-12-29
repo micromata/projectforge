@@ -502,7 +502,7 @@ public class ConfigXml {
      * don't configure this element, you will receive the standard ProjectForge menu containing all menu entries which are
      * available for the system and the user. <br/>
      * Please note: ProjectForge assures, that only such menu entries are visible, to which the user has the access to
-     * (independant from your definitions here)! <br/>
+     * (independent from your definitions here)! <br/>
      * If you want to make a menu entry invisible, you can add this to this root element like this:<br/>
      *
      * <pre>

@@ -42,7 +42,7 @@ public enum UserAgentBrowser
   public static UserAgentBrowser getBrowserFromUserAgentString(String userAgent)
   {
     if (StringUtils.isNotEmpty(userAgent)) {
-      //TODO: Add mor browsers for user agent
+      //TODO: Add more browsers for user agent
       if (userAgent.contains("Version")) {
         return UserAgentBrowser.SAFARI;
       }

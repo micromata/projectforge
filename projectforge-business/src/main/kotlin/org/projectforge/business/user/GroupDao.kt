@@ -155,7 +155,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
      *
      * @param groupsToAssign   Group id's to assign (nullable). If some groups already exists, they will be ignored.
      * @param groupsToUnassign Group Id's to unassign (nullable). If some groups already unassigned, they will be ignored.
-     * @param updateUserGroupCache If true, the userGroupCache will be updated. Defualt is true.
+     * @param updateUserGroupCache If true, the userGroupCache will be updated. Default is true.
      * @throws AccessException
      */
     @JvmOverloads

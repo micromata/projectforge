@@ -120,7 +120,7 @@ public class SEPATransferGenerator {
         final SEPATransferResult result = new SEPATransferResult();
 
         if (this.jaxbContext == null || invoices == null || invoices.isEmpty()) {
-            String errorPrefix = "A problem accured while exporting invoices: ";
+            String errorPrefix = "A problem occurred while exporting invoices: ";
             String error = "";
             // if jaxb context is missing, generation is not possible
             if (this.jaxbContext == null) {
@@ -155,7 +155,7 @@ public class SEPATransferGenerator {
         try {
             grpHdr.setCreDtTm(DatatypeFactory.newInstance().newXMLGregorianCalendar(gc));
         } catch (DatatypeConfigurationException e) {
-            log.error("Exception occured while setting creDtTm property.", e);
+            log.error("Exception occurred while setting creDtTm property.", e);
         }
         grpHdr.setNbOfTxs(String.valueOf(invoices.size()));
         final PartyIdentificationSEPA1 partyIdentificationSEPA1 = factory.createPartyIdentificationSEPA1();
@@ -175,7 +175,7 @@ public class SEPATransferGenerator {
         try {
             pmtInf.setReqdExctnDt(DatatypeFactory.newInstance().newXMLGregorianCalendar(gc));
         } catch (DatatypeConfigurationException e) {
-            log.error("Exception occured while setting reqdExctnDt property.", e);
+            log.error("Exception occurred while setting reqdExctnDt property.", e);
         }
         // pmtInf.setChrgBr(ChargeBearerTypeSEPACode.SLEV); // TODO check if this is required
 

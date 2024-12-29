@@ -267,7 +267,7 @@ public class ProjectForgeApp {
     }
 
     /**
-     * @return True, if the dest file exists or was created successfully. False if an error while creation occured.
+     * @return True, if the dest file exists or was created successfully. False if an error while creation occurred.
      */
     public static boolean ensureInitialConfigFile(String classPathSourceFilename, String destFilename) {
         String baseDir = System.getProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR);
@@ -275,7 +275,7 @@ public class ProjectForgeApp {
     }
 
     /**
-     * @return True, if the dest file exists or was created successfully. False if an error while creation occured.
+     * @return True, if the dest file exists or was created successfully. False if an error while creation occurred.
      */
     public static boolean ensureInitialConfigFile(File baseDir, String classPathSourceFilename, String destFilename, boolean logEnabled, StringModifier modifier) {
         if (junitTestMode)

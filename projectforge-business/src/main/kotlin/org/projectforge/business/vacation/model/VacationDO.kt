@@ -152,7 +152,7 @@ open class VacationDO : DefaultBaseDO() {
             VacationStatus.IN_PROGRESS
         } else field
 
-    // Neede by Wicket in VacationListPage (could be removed after migration to ReactJS).
+    // Needed by Wicket in VacationListPage (could be removed after migration to ReactJS).
     @PropertyInfo(i18nKey = "vacation.vacationmode")
     private val vacationmode: VacationMode? = null
 

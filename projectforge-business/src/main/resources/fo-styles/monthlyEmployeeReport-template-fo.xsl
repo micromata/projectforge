@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding="UTF-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 version='1.0'>
-  <!-- This scipt is used for rendering timesheets to xsl-fo. -->
+  <!-- This script is used for rendering timesheets to xsl-fo. -->
   
   <xsl:import href="base-styles-fo.xsl" />
   

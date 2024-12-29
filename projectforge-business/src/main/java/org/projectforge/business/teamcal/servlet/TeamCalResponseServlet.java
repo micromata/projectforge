@@ -179,7 +179,7 @@ public class TeamCalResponseServlet extends HttpServlet
 
     resp.setContentType("text/html;charset=UTF-8");
     final Map<String, Object> templateData = new HashMap<>();
-    templateData.put("reponse", I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.response." + statusFinal.getKey()));
+    templateData.put("response", I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.response." + statusFinal.getKey()));
     final String content = renderGroovyTemplate("htmlTemplates/teamEventResponse.html", templateData);
 
     resp.getOutputStream().print(content);
@@ -189,7 +189,7 @@ public class TeamCalResponseServlet extends HttpServlet
   {
     resp.setContentType("text/html;charset=UTF-8");
     final Map<String, Object> templateData = new HashMap<>();
-    templateData.put("reponse", I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.response.error"));
+    templateData.put("response", I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.response.error"));
     final String content = renderGroovyTemplate("htmlTemplates/teamEventResponse.html", templateData);
     resp.getOutputStream().print(content);
   }

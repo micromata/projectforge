@@ -30,7 +30,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.slf4j.MDC
 
 /**
- * Helper class for registering and unregistering user in thread. Hanlding ThreadLocalUserContext as well as MDC stuff.
+ * Helper class for registering and unregistering user in thread. Handling ThreadLocalUserContext as well as MDC stuff.
  */
 object RegisterUser4Thread {
   /**

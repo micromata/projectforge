@@ -43,13 +43,13 @@ class UserAuthenticationsDaoTest : AbstractTestBase() {
         val loggedInUser = ThreadLocalUserContext.loggedInUser!!
         try {
             userAuthenticationsDao.getByUserId(otherUser.id!!)
-            fail("Access exception exptected.")
+            fail("Access exception expected.")
         } catch (ex: AccessException) {
             // OK
         }
         try {
             userAuthenticationsDao.renewToken(otherUser.id!!, UserTokenType.STAY_LOGGED_IN_KEY)
-            fail("Access exception exptected.")
+            fail("Access exception expected.")
         } catch (ex: AccessException) {
             // OK
         }

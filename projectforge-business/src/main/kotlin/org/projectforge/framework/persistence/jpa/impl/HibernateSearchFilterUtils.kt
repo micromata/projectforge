@@ -52,7 +52,7 @@ object HibernateSearchFilterUtils {
     private const val ALLOWED_BEGINNING_CHARS = "@._*"
 
     /**
-     * If the search string containts any of this escape chars, no string modification will be done.
+     * If the search string contains any of these escape chars, no string modification will be done.
      */
     private const val ESCAPE_CHARS = "+-"
     /**

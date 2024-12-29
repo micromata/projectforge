@@ -37,7 +37,7 @@ public class CloneHelper
 
   /**
    * Serialized the given object as ByteArray and deserializes it.
-   * @param orgin
+   * @param origin
    * @return
    */
   @SuppressWarnings("unchecked")

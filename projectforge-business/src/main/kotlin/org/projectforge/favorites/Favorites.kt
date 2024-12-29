@@ -231,7 +231,7 @@ open class Favorites<T : AbstractFavorite>() {
     }
 
     /**
-     * Rename the user pref itself, not the name of the favorite. This is only used for backwardcompability (e. g. used by TaskFavorites).
+     * Rename the user pref itself, not the name of the favorite. This is only used for backwardcompatibility (e. g. used by TaskFavorites).
      */
     fun renameUserPref(userPrefDao: UserPrefDao, area: String, id: Long, newName: String) {
       val userPref = userPrefDao.selectUserPref(area, id)
@@ -248,7 +248,7 @@ open class Favorites<T : AbstractFavorite>() {
           userPrefDao.update(userPref)
         }
       } else {
-        log.warn("User tried to reanme user pref with id #$id for area '$area', but it can't be renamed (is from other user, different area or has an unknown id).")
+        log.warn("User tried to rename user pref with id #$id for area '$area', but it can't be renamed (is from other user, different area or has an unknown id).")
       }
     }
   }

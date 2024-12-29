@@ -293,7 +293,7 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
         }
 
         /**
-         * Date "2020-02-09 **:**:**" (UTC) results in 2020-02-09 independant of user's or system timezoone.
+         * Date "2020-02-09 **:**:**" (UTC) results in 2020-02-09 independent of user's or system timezoone.
          * Convenient method of fromOrNull] with time zone UTC.
          */
         @JvmStatic

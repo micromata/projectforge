@@ -63,7 +63,7 @@ class V7_4_1_3__ReleaseUserPassword : BaseJavaMigration() {
       rowMapper
     )
       .forEach {
-        log.info { "Migrating password hashs of user '${it.userName}' (${it.userId})..." }
+        log.info { "Migrating password hashes of user '${it.userName}' (${it.userId})..." }
         val parameters = mutableMapOf<String, Any?>()
         parameters["pk"] = ++counter
         parameters["user_id"] = it.userId

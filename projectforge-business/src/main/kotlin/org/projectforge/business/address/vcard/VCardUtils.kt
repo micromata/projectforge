@@ -265,7 +265,7 @@ object VCardUtils {
             try {
                 return Ezvcard.parse(stream).all()
             } catch (e: IOException) {
-                log.error("An exception accured while parsing vcard from byte array: " + e.message, e)
+                log.error("An exception occurred while parsing vcard from byte array: " + e.message, e)
                 return emptyList()
             }
         }
@@ -277,7 +277,7 @@ object VCardUtils {
         try {
             return Ezvcard.parse(vcardString).all()
         } catch (e: IOException) {
-            log.error("An exception accured while parsing vcard from byte array: " + e.message, e)
+            log.error("An exception occurred while parsing vcard from byte array: " + e.message, e)
             return emptyList()
         }
     }
@@ -289,7 +289,7 @@ object VCardUtils {
             try {
                 return Ezvcard.parse(stream).all().map { buildAddressDO(it) }
             } catch (e: IOException) {
-                log.error("An exception accured while parsing vcard from byte array: " + e.message, e)
+                log.error("An exception occurred while parsing vcard from byte array: " + e.message, e)
                 return emptyList()
             }
         }

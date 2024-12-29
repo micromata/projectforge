@@ -115,7 +115,7 @@ open class DatabaseDao {
 
     companion object {
         /**
-         * Since yesterday and 1,000 newest entries at maximimum.
+         * Since yesterday and 1,000 newest entries at maximum.
          */
         @JvmStatic
         fun createReindexSettings(onlyNewest: Boolean): ReindexSettings {

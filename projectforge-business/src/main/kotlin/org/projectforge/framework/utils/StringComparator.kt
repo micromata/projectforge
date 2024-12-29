@@ -74,7 +74,7 @@ object StringComparator {
      * @param s2
      * @param asc
      * @param locale
-     * @return The result of [Collator.compare] or -1, 0, 1 if one or both string paramters are null.
+     * @return The result of [Collator.compare] or -1, 0, 1 if one or both string parameters are null.
      */
     @JvmStatic
     @JvmOverloads

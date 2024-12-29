@@ -138,7 +138,7 @@ public class ConfigXmlTest {
     public void testExport() {
         createTestConfiguration();
         String exported_config = ConfigXml.getInstance().exportConfiguration();
-        // on windows other pathes may be used.
+        // on windows other paths may be used.
         String expected_config = StringUtils.replace(exportXml, "\\", "/");
         exported_config = StringUtils.replace(exported_config, "\\", "/");
         assertEquals(expected_config, exported_config);

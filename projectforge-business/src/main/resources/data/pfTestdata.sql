@@ -630,7 +630,7 @@ VALUES (162, '2013-04-07 18:09:35.002', FALSE, '2013-04-07 18:09:35.002', FALSE,
         NULL, NULL, 15,
         'MINUTES', NULL,
         '2013-03-28 08:00:00',
-        'Legal affaires regular meeting', 157, 'testdata2', 19, NULL, NULL, NULL);
+        'Legal affairs regular meeting', 157, 'testdata2', 19, NULL, NULL, NULL);
 INSERT INTO t_plugin_calendar_event (pk, created, deleted, last_update, all_day, end_date, external_uid, last_email,
                                      location, note, organizer, recurrence_date, recurrence_ex_date,
                                      recurrence_reference_id, recurrence_rule, recurrence_until, reminder_action_type,

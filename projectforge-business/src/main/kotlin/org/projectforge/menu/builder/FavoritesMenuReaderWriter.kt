@@ -176,9 +176,9 @@ class FavoritesMenuReaderWriter {
         }
 
         /**
-         * Oldes CSV format until 2019.
+         * Oldest CSV format until 2019.
          * @param menuCreator
-         * @param userPrefEntry coma separated list of MenuItemDefs.
+         * @param userPrefEntry comma separated list of MenuItemDefs.
          */
         private fun buildFromOldUserPrefFormat(menuCreator: MenuCreator, userPrefEntry: String): Menu {
             val menu = Menu()

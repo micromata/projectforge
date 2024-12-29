@@ -81,7 +81,7 @@ object ExcelUtils {
 
   /**
    * Registers an excel column by using the translated i18n-key of the given property as column head and the
-   * property name as alias (for refering and [de.micromata.merlin.excel.ExcelRow.autoFillFromObject].
+   * property name as alias (for referring and [de.micromata.merlin.excel.ExcelRow.autoFillFromObject].
    * @param size approx no of characters
    */
   @JvmStatic
