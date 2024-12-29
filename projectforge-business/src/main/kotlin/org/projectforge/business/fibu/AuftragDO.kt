@@ -160,7 +160,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @get:JoinColumn(name = "projekt_fk", nullable = true)
     open var projekt: ProjektDO? = null
 
-    @PropertyInfo(i18nKey = "fibu.auftrag.titel")
+    @PropertyInfo(i18nKey = "fibu.auftrag.title")
     @FullTextField
     @get:Column(name = "titel", length = 1000)
     open var titel: String? = null

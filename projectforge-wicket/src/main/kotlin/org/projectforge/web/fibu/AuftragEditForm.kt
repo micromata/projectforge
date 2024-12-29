@@ -134,7 +134,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO) :
     run {
 
       // Title
-      val fs = gridBuilder.newFieldset(getString("fibu.auftrag.titel"))
+      val fs = gridBuilder.newFieldset(getString("fibu.auftrag.title"))
       val subject: MaxLengthTextField = RequiredMaxLengthTextField(
         InputPanel.WICKET_ID,
         PropertyModel(data, "titel")
@@ -524,7 +524,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO) :
       val posGridBuilder = positionsPanel.createGridBuilder()
       posGridBuilder.newGridPanel()
       run {
-        val fs = posGridBuilder.newFieldset(getString("fibu.auftrag.titel"))
+        val fs = posGridBuilder.newFieldset(getString("fibu.auftrag.title"))
         fs.add(MaxLengthTextField(InputPanel.WICKET_ID, PropertyModel(position, "titel")))
       }
       posGridBuilder.newSplitPanel(GridSize.COL33)

@@ -101,7 +101,7 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   @get:Column(name = "status", length = 30)
   open var status: AuftragsStatus? = null
 
-  @PropertyInfo(i18nKey = "fibu.auftrag.titel")
+  @PropertyInfo(i18nKey = "fibu.auftrag.title")
   @FullTextField
   @get:Column(name = "titel", length = 255)
   open var titel: String? = null
