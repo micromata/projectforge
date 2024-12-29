@@ -19,6 +19,7 @@ dependencies {
     api(libs.jakarta.validation.api)
     api(libs.com.google.zxing.core)
     api(libs.com.google.zxing.javase)
+    api(libs.org.springframework.spring.webmvc)
     testImplementation(project(":projectforge-commons-test"))
     testImplementation(testFixtures(project(":projectforge-business")))
     testImplementation(libs.com.googlecode.gson)
