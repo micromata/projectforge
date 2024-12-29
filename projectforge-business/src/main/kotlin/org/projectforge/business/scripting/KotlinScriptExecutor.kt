@@ -42,7 +42,7 @@ private val log = KotlinLogging.logger {}
 /**
  * For checking new algorithm and strategies, refer https://github.com/micromata/SpringBoot-KotlinScripting
  */
-class KotlinScriptExecutor : ScriptExecutor() {
+class KotlinScriptExecutor(scriptLogger: ScriptLogger) : ScriptExecutor(scriptLogger) {
     override fun execute(): ScriptExecutionResult {
         log.debug { "Updated classpathFiles: ${JarExtractor.classpathFiles?.joinToString()}" }
         log.debug { "Updated classpath URLs: ${JarExtractor.classpathUrls?.joinToString()}" }

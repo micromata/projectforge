@@ -41,7 +41,6 @@ import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta
 import org.projectforge.framework.persistence.database.DatabaseDao
 import org.projectforge.framework.persistence.database.DatabaseDao.Companion.createReindexSettings
 import org.projectforge.framework.persistence.history.*
-import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.jpa.PersistenceCallsRecorder
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.search.HibernateSearchDependentObjectsReindexer
@@ -426,12 +425,33 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     }
 
     /**
+     * For customizing [DisplayHistoryEntry]'s. The context holds the current processed [HistoryEntry] as well as the current
+     * created [DisplayHistoryEntry]. Called after converting to display history entries.
+     * Get the current [DisplayHistoryEntry] by calling [HistoryLoadContext.requiredDisplayHistoryEntry].
+     * Does nothing at default.
+     */
+    open fun customizeHistoryEntry(context: HistoryLoadContext) {
+    }
+
+    /**
      * For customizing [DisplayHistoryEntryAttr]'s. The context holds the current processed [HistoryEntryAttr] as well as the current
      * created [DisplayHistoryEntryAttr]. Called after converting to display history entries.
      * Get the current [DisplayHistoryEntryAttr] by calling [HistoryLoadContext.requiredDisplayHistoryEntryAttr].
      * Does nothing at default.
      */
     open fun customizeHistoryEntryAttr(context: HistoryLoadContext) {
+    }
+
+
+    /**
+     * Can optionally be used to indicate changes to fields in lists.
+     * This value allows the user to assign the change to a list entry.
+     * Get the current [HistoryEntry] by calling [HistoryLoadContext.requiredHistoryEntry].
+     * See [org.projectforge.business.orga.VisitorbookDao] for an example.
+     * @return null at default for no prefix.
+     */
+    open fun getHistoryPropertyPrefix(context: HistoryLoadContext): String? {
+        return null
     }
 
     /**

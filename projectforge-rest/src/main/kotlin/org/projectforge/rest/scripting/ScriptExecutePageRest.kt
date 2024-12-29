@@ -141,20 +141,6 @@ class ScriptExecutePageRest : AbstractScriptExecutePageRest() {
     if (executableByMails.isNotEmpty()) {
       layout.add(UIReadOnlyField("executableByEmails", label = "scripting.script.executableByUsers"))
     }
-    val examplesMenu = MenuItem("examples", translate("scripting.script.examples"))
-    layout.add(examplesMenu)
-    ExampleScripts.exampleFiles.forEachIndexed { index, exampleScript ->
-      examplesMenu.add(
-        MenuItem(
-          id = "example$index",
-          title = exampleScript.title,
-          url = PagesResolver.getDynamicPageUrl(
-            ScriptExecutePageRest::class.java,
-            params = mapOf("example" to index),
-          ),
-        )
-      )
-    }
     layout.add(
       MenuItem(
         "logViewer",

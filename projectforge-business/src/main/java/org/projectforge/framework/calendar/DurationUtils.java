@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 public class DurationUtils {
   /**
    * @param millis
-   * @return hours:minutes (e. g. 2:30, 12:30, 127:15, ...)
+   * @return hours:minutes (e.g. 2:30, 12:30, 127:15, ...)
    */
   public static String getFormattedHoursAndMinutes(final long millis) {
     return getFormattedHoursAndMinutes(millis, false);
@@ -39,7 +39,7 @@ public class DurationUtils {
 
   /**
    * @param millis
-   * @return hours:minutes (e. g. 2:30, 12:30, 127:15, ...)
+   * @return hours:minutes (e.g. 2:30, 12:30, 127:15, ...)
    */
   public static String getFormattedHoursAndMinutes(final long millis, boolean withSeconds) {
     final StringBuilder sb = new StringBuilder();

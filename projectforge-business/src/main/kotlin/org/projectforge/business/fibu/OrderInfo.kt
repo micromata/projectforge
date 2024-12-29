@@ -32,7 +32,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.Serializable
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.Date
+import java.util.*
 
 private val log = KotlinLogging.logger {}
 
@@ -43,10 +43,12 @@ private val log = KotlinLogging.logger {}
 class OrderInfo() : Serializable {
     class PaymentScheduleInfo(schedule: PaymentScheduleDO) : Serializable {
         val id = schedule.id
+        val number = schedule.number
         val positionNumber = schedule.positionNumber
         val amount = schedule.amount
         val reached = schedule.reached
         val scheduleDate = schedule.scheduleDate
+
         /**
          * Not deleted and amount is given > 0,00.
          */
@@ -128,9 +130,9 @@ class OrderInfo() : Serializable {
     var netSum = BigDecimal.ZERO
 
     /**
-     * The sum of all net sums of the positions (only ordered positions) of this order. This value is 0 for lost orders.
+     * The sum of all net sums of the positions (only commissioned positions) of this order. This value is 0 for lost orders.
      */
-    var orderedNetSum = BigDecimal.ZERO
+    var commissionedNetSum = BigDecimal.ZERO
 
     /**
      * For not lost orders the sum of all akquise sums of the positions of this order.
@@ -173,6 +175,13 @@ class OrderInfo() : Serializable {
         return infoPositions?.find { it.id == id }
     }
 
+    /** Use this method to calculate all fields of this order info without using the cached order info. */
+    fun calculateAll(order: AuftragDO) {
+        updateFields(order, order.paymentSchedules) // Update order info fields from given order.
+        val posInfos = order.positionen?.map { OrderPositionInfo(it, order.info) }
+        calculateAll(order, posInfos, order.paymentSchedules)
+    }
+
     /**
      * For list of orders you should select positions and payment schedules in one query to avoid N+1 problem.
      * @param positionInfos The positions of the order. If not given, the positions of the order will be lazy loaded (if order is attached).
@@ -186,8 +195,8 @@ class OrderInfo() : Serializable {
         updateFields(order, paymentScheduleDOEntries)
         positionInfos?.forEach { it.recalculate(this) }
         netSum = positionInfos?.sumOf { it.netSum } ?: BigDecimal.ZERO
-        orderedNetSum = if (status.orderState != AuftragsOrderState.LOST) {
-            positionInfos?.sumOf { it.orderedNetSum } ?: BigDecimal.ZERO
+        commissionedNetSum = if (status.orderState != AuftragsOrderState.LOST) {
+            positionInfos?.sumOf { it.commissionedNetSum } ?: BigDecimal.ZERO
         } else {
             BigDecimal.ZERO
         }
@@ -220,7 +229,7 @@ class OrderInfo() : Serializable {
         if (deleted) {
             toBeInvoiced = false
             netSum = BigDecimal.ZERO
-            orderedNetSum = BigDecimal.ZERO
+            commissionedNetSum = BigDecimal.ZERO
             akquiseSum = BigDecimal.ZERO
             toBeInvoicedSum = BigDecimal.ZERO
             positionAbgeschlossenUndNichtVollstaendigFakturiert = false

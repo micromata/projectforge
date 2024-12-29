@@ -52,6 +52,14 @@ open class DatabaseInitTestDataService {
             "This short demo shows how easy it is to filter and export data.",
             exportUsersScript
         )
+
+        insertScript(
+            "Excel export of time sheets",
+            "This short demo shows how easy it is to format and export data as an Excel file.",
+            exportTimesheetsScript,
+            p1Name = "Period",
+            p1Type = ScriptParameterType.TIME_PERIOD,
+        )
     }
 
     private fun insertScript(
@@ -66,105 +74,94 @@ open class DatabaseInitTestDataService {
         scriptDO.parameter2Name = p2Name
         scriptDO.parameter2Type = p2Type
         scriptDO.script = script.toByteArray()
+        scriptDO.type = ScriptDO.ScriptType.KOTLIN
         scriptDao.insert(scriptDO, checkAccess = false)
 
     }
 
     companion object {
-        private const val exportJFreeChartScript = "import org.jfree.chart.*\n" +
-                "import org.jfree.chart.plot.*\n" +
-                "import org.jfree.data.general.*\n" +
-                "import org.jfree.util.*\n" +
-                "import org.projectforge.export.*\n" +
-                "\n" +
-                "DefaultPieDataset dataset = new DefaultPieDataset()\n" +
-                "dataset.setValue(\"Linux\", 15)\n" +
-                "dataset.setValue(\"Mac\", 8)\n" +
-                "dataset.setValue(\"Windows\", 70)\n" +
-                "dataset.setValue(\"Others\", 7)\n" +
-                "JFreeChart chart = ChartFactory.createPieChart3D(\"Users on www.heise.de\", dataset, true, true, false)\n" +
-                "PiePlot3D plot = (PiePlot3D) chart.getPlot()\n" +
-                "\n" +
-                "ExportJFreeChart export = new ExportJFreeChart(chart, 800, 600)\n" +
-                "return export"
+        private val exportJFreeChartScript = """
+            |import org.jfree.chart.*
+            |import org.jfree.chart.plot.*
+            |import org.jfree.data.general.*
+            |import org.projectforge.export.*
+            |
+            |val dataset = DefaultPieDataset<String>()
+            |dataset.setValue("Linux", 15)
+            |dataset.setValue("Mac", 8)
+            |dataset.setValue("Windows", 70)
+            |dataset.setValue("Others", 7)
+            |val chart = ChartFactory.createPieChart3D("Users on www.heise.de", dataset, true, true, false)
+            |val plot = chart.getPlot() as PiePlot3D
+            |
+            |val export = ExportJFreeChart(chart, 800, 600)
+            |export
+        """.trimMargin()
 
-        private const val exportUsersScript = "import org.projectforge.framework.persistence.api.*\n" +
-                "import org.projectforge.core.*\n" +
-                "import org.projectforge.export.*\n" +
-                "\n" +
-                "QueryFilter filter = new QueryFilter()         // Defines new query\n" +
-                "filter.addOrder(new SortProperty(\"username\"))// Sort\n" +
-                "List userList = userDao.getList(filter)        // Gets the user list\n" +
-                "\n" +
-                "ExportWorkbook workbook = new ExportWorkbook();// Creates a new work book\n" +
-                "ExportSheet sheet = workbook.addSheet(\"Users\") // Creates sheet\n" +
-                "sheet.contentProvider.colWidths = [10, 20]     // Sets width of columns.\n" +
-                "sheet.propertyNames = [\"username\", \"lastname\"] // Defines properties\n" +
-                "sheet.addRow().setCapitalizedValues(sheet.propertyNames)  // Adds column heads\n" +
-                "sheet.addRows(userList)                        // Fills the rows from the beans\n" +
-                "\n" +
-                "return workbook"
+        private val exportUsersScript = """
+            |val users = userDao.getList().filter { it.hasSystemAccess() }.sortedBy { it.username }
+            |val workbook = ExcelUtils.prepareWorkbook("Userlist.xlsx")
+            |val sheet = workbook.createOrGetSheet("Users")
+            |workbook.createOrGetCellStyle("integer").dataFormat = workbook.createDataFormat().getFormat("#0")
+            |sheet.registerColumns(
+            |  "Username|20",
+            |  "Full name|fullname|30",
+            |  "Email|30",
+            |  "Gender|10",
+            |  "System access|5",
+            |  "Mobile phone|mobilePhone|20",
+            |  "Id|10|:integer",
+            |  "JIRA username|JiraUsername|20",
+            |  "Description|50",
+            |)
+            |sheet.createRow().fillHeadRow()
+            |users.forEach { user ->
+            |  val row = sheet.createRow()
+            |  ExcelUtils.autoFill(row, user)
+            |  row.getCell("System access")?.setCellValue(user.hasSystemAccess())
+            |}
+            |sheet.setAutoFilter()
+            |workbook
+        """.trimMargin()
 
-        private const val exportTimesheets = "import org.projectforge.export.*\n" +
-                "import org.projectforge.fibu.*\n" +
-                "import org.projectforge.task.*\n" +
-                "import org.projectforge.common.*\n" +
-                "import org.projectforge.timesheet.*\n" +
-                "import org.projectforge.framework.time.*\n" +
-                "import java.lang.reflect.*\n" +
-                "import org.projectforge.calendar.*\n" +
-                "\n" +
-                "//Umrechnung Sekunden in Stunden\n" +
-                "final BigDecimal coeff = 1/(60*60*1000)\n" +
-                "\n" +
-                "TimesheetFilter tf = new TimesheetFilter()\n" +
-                "tf.setStartTime(timeperiod.fromDate)\n" +
-                "tf.setStopTime(timeperiod.toDate)\n" +
-                "tf.setTaskId(task.id)\n" +
-                "tf.setRecursive(true)\n" +
-                "\n" +
-                "// Überführung in HashMaps mit relevanten Attributen\n" +
-                "lom = timesheetDao.getList(tf).collect{ts -> \t\n" +
-                "\n" +
-                "\t\t\t\t\t\t\tdef map = new HashMap()\n" +
-                "\t\t\t\t\t\t\t\n" +
-                "\t\t\t\t\t\t\tPFDay date = PFDay.from(ts?.startTime)\n" +
-                "\t\t\t\t\t\t\tmap['date'] = date\n" +
-                "\t\t\t\t\t\t\t\n" +
-                "\t\t\t\t\t\t\tmap['day'] = date.dayOfMonth\n" +
-                "\t\t\t\t\t\t\tmap['month'] = date.month\n" +
-                "\t\t\t\t\t\t\tmap['year'] = date.year\n" +
-                "\t\t\t\t\t\t\t\n" +
-                "\t\t\t\t\t\t\tWeekHolder week = new WeekHolder(date)\n" +
-                "\t\t\t\t\t\t\tmap['week'] = week.weekOfYear\n" +
-                "\t\t\t\t\t\t\t\n" +
-                "\t\t\t\t\t\t\tmap['pd'] =  ts?.duration * coeff\n" +
-                "\t\t\t\t\t\t\t\t\t\t\t\n" +
-                "\t\t\t\t\t\t\treturn map\n" +
-                "\t\t\t\t\t} \n" +
-                "\n" +
-                "Closure equiv = {x,y -> return x.date.isSameDay(y.date)}\n" +
-                "\n" +
-                "Closure agg = {x,a -> \ta.lt += x.lt\n" +
-                "\t\t\t\t\t\treturn a}\n" +
-                "\n" +
-                "// Generiere Ergebnisliste\n" +
-                "result = GeneralAggregation.aggregate(lom,equiv,{x -> x},agg,{x -> x})\n" +
-                "\n" +
-                "// Export\n" +
-                "ExportWorkbook workbook = new ExportWorkbook();\n" +
-                "ExportSheet sheet = workbook.addSheet(\"Working times\")\n" +
-                "sheet.contentProvider.colWidths = [10, 10, 10,10, 30, 30, 10]\n" +
-                "sheet.addRow().setValues(\"Date\",\"Year\",\"Month\",\"Week\",\"Day\",\"Person days\")\n" +
-                "sheet.contentProvider.putFormat(\"date\",\"YYYY-MM-DD\")\n" +
-                "sheet.contentProvider.putFormat(\"pd\",\"0.0\")\n" +
-                "sheet.contentProvider.putFormat(\"year\",\"0\")\n" +
-                "sheet.contentProvider.putFormat(\"month\",\"0\")\n" +
-                "sheet.contentProvider.putFormat(\"day\",\"0\")\n" +
-                "sheet.propertyNames = [\"date\",\"year\",\"month\",\"week\",\"day\",\"pd\"]\n" +
-                "sheet.addRows(result)\n" +
-                "\n" +
-                "return workbook"
+        private val exportTimesheetsScript = """
+            |val from = period?.fromDate
+            |val until = period?.toDate
+            |
+            |val filter = TimesheetFilter().also {
+            |  it.startTime = from
+            |  it.stopTime = until
+            |}
+            |
+            |val users = timesheetDao.select(filter)
+            |val workbook = ExcelUtils.prepareWorkbook("Timesheets.xlsx")
+            |val sheet = workbook.createOrGetSheet("Timesheets")
+            |workbook.createOrGetCellStyle("timeFormat").dataFormat = workbook.createDataFormat().getFormat("HH:mm")
+            |workbook.createOrGetCellStyle("dateTimeFormat").dataFormat = workbook.createDataFormat().getFormat("yyyy-MM-dd HH:mm")
+            |sheet.registerColumns(
+            |  "User|20",
+            |  "StartTime|20|:dateTimeFormat",
+            |  "StopTime|10|:timeFormat",
+            |  "Duration|20",
+            |  "Location|30",
+            |  "Description|50",
+            |  "Task|30",
+            |  "TaskPath|30",
+            |)
+            |sheet.createRow().fillHeadRow()
+            |users.forEach { ts ->
+            |  val row = sheet.createRow()
+            |  ExcelUtils.autoFill(row, ts)
+            |  row.getCell("Duration")?.setCellValue(ts.durationAsString)
+            |  row.getCell("User")?.setCellValue(ts.user?.getFullname())
+            |  row.getCell("Task")?.setCellValue(ts.task?.title)
+            |  row.getCell("TaskPath")?.setCellValue(TaskFormatter.getTaskPath(ts.task?.id))
+            |  //row.getCell("Duration")?.setCellValue(TaskFormatter.getTaskPath(ts.task))
+            |}
+            |sheet.setAutoFilter()
+            |sheet.createFreezePane(1, 1)
+            |
+            |workbook
+        """.trimMargin()
     }
-
 }

@@ -272,10 +272,6 @@ open class AddressDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column
     open var birthday: LocalDate? = null
 
-    @PropertyInfo(i18nKey = "address.image")
-    @get:Column
-    open var image: Boolean? = null
-
     /**
      * Time stamp of last image modification (or deletion). Useful for history of changes.
      */

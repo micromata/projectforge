@@ -31,6 +31,8 @@ import ezvcard.parameter.TelephoneType
 import ezvcard.property.*
 import mu.KotlinLogging
 import org.projectforge.business.address.AddressDO
+import org.projectforge.business.address.AddressImageDO
+import org.projectforge.business.address.ImageType
 import org.projectforge.framework.time.PFDateTime
 import java.io.ByteArrayInputStream
 import java.io.IOException
@@ -108,9 +110,9 @@ object VCardUtils {
         }
         vcard.addUrl(addressDO.website)
         vcard.addNote(addressDO.comment)
-        if (addressDO.image == true && imageUrl != null && imageType != null) {
+        if (imageUrl != null) {
             // embedded: Photo(addressImageDao.getImage(addressDO.id!!), ImageType.JPEG).let { vcard.addPhoto(it) }
-            Photo(imageUrl, imageType.asVCardImageType()).let {
+            Photo(imageUrl, (imageType ?: ImageType.PNG).asVCardImageType()).let {
                 vcard.addPhoto(it)
             }
         }
@@ -221,7 +223,14 @@ object VCardUtils {
         for (note in vcard.notes) {
             address.comment = if (address.comment != null) address.comment else "" + note.value + " "
         }
-        address.image = vcard.photos.isNullOrEmpty()
+        vcard.photos.firstOrNull { it.data != null }?.let { photo ->
+            address.setTransientAttribute("image", AddressImageDO().also {
+                it.image = photo.data
+                photo.contentType?.let { contentType ->
+                    it.imageType = ImageType.from(contentType) ?: ImageType.PNG
+                }
+            })
+        }
         if (vcard.organization?.values?.isNotEmpty() == true) {
             when (vcard.organization.values.size) {
                 3 -> {

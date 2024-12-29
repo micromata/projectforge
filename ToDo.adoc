@@ -1,22 +1,24 @@
 Aktuell:
+- Groovy-scripts: remove or fix.
 - AG-Grid: setColumnStates wird nicht in den UserPrefs gespeichert.
 - Wicket: Auftragsbuch: org.apache.wicket.core.request.mapper.StalePageException: A request to page '[Page class = org.projectforge.web.fibu.AuftragEditPage, id = 9, render count = 3]' has been made with stale 'renderCount'. The page will be re-rendered.
 - -XX:ReservedCodeCacheSize=100m
-- History: Rechnungsposition -> Auftragsposition taucht nicht in History auf.
 - QueryFilter.sortAndLimitMaxRowsWhileSelect: not yet supported
 - Gradle-Version-Checker: Read lib.versions.toml und Vergleichen mit fatjar.
 - Fehlerhinweis, wenn halber Tag für Urlaubsanfang/ende gewählt wird, es aber kein Arbeitstag ist.
-- Scripts
 - Kalendereinträge und Subscriptions.
 - LoginProtection: Increases penalty time for DAV only after 5 tries.
+
+- Auftragsbuch nächtlich persistieren (als json-zip) für Forecast-Vergleiche.
+- Apple for Webauthn4j
+- Abwesenheiten
+- Fakturaquote Monatsbericht
+- Google-Calendar-Integration
 
 - Pagination of selects: Aktuell wird nicht DB-seitig paginiert, sondern immer die ganze Liste gefetched.
 - remove all BaseDO.xxxId (lazy fetch) and replace callee by baseDO?.id
 - Entitygraphen nutzen: ConflictVacationCache, AuftragCache etc.
-  - Auftrag editieren: massenhaft SQLs
-  - employeeSalaryList: lädt wie blöde nach dem Editieren. (Excel-Exports auch zuviele SQLs)
   - AddressKampagnen: ebd. (massenhaft SQLs)
-- Suche nach Kontonummer in KontoDO
 
 - Lazy-Breakpoint: AbstractLazyInitializer.initialize (#170)
 org.hibernate.persister.entity.AbstractEntityPersister#generateSelectLazy:
@@ -25,7 +27,6 @@ History
 - Positionen etc. vernünftig anzeigen.
 
 - Suche:
-  - Suche in History
   - Suche nach K+S (aktuell noch Provisorium)
 - HistoryConvertContext: Am Ende alle displayProperties übernehmen.
 
@@ -42,7 +43,6 @@ History
 
 Später
 - Hibernate-Search: K+S etc.
-- Milton
 - Besuchsbuch und EmployeeValidSinceAttr: DisplayEntries von Besuchtagen mit Datum des Besuchs versehen.
 - Suche-Seite hat veraltete Bereiche, AddressListPage läuft auf Fehler.
 - OrderExport: paymentSchedules werden gefetcht.
@@ -50,3 +50,30 @@ Später
 
 Ganz später
 - Kalenderlist ruft x-fach DB: FIND GroupDO resultClass=GroupDO auf.
+
+Postgresql-Dump-Imports bechleunigen:
+
+ALTER SYSTEM SET fsync = off;
+ALTER SYSTEM SET synchronous_commit = off;
+SET maintenance_work_mem = '512MB';
+drop view v_t_pf_user;
+
+Rancher
+
+docker system df
+docker system prune -a --volumes
+docker system df
+docker volume ls
+docker volume rm <volume-name>
+
+
+Orderbooks importieren:
+docker cp ~/ProjectForgeBackup/ProjectForge-Orderbook_*.gz projectforge-postgres:/tmp/
+
+\set file_path '/tmp/ProjectForge-Orderbook_2023-11-01.gz'
+INSERT INTO t_fibu_orderbook_storage (date, serialized_orderbook)  VALUES ('2023-11-01', pg_read_binary_file(:'file_path')::bytea);
+\set file_path '/tmp/ProjectForge-Orderbook_2023-12-01.gz'
+INSERT INTO t_fibu_orderbook_storage (date, serialized_orderbook)  VALUES ('2023-12-01', pg_read_binary_file(:'file_path')::bytea);
+
+
+SELECT date, octet_length(serialized_orderbook) AS byte_count FROM t_fibu_orderbook_storage;

@@ -37,10 +37,12 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.projectforge.SystemStatus;
 import org.projectforge.business.common.OutputType;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.KundeCache;
 import org.projectforge.business.fibu.kost.ProjektCache;
+import org.projectforge.business.fibu.orderbookstorage.OrderbookStorageService;
 import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.common.i18n.UserException;
@@ -271,6 +273,20 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
                     }
                 }, getString("fibu.auftrag.forecastExportAsXls")).setTooltip(getString("fibu.auftrag.forecastExportAsXls.tooltip"));
         addContentMenuEntry(forecastExportButton);
+
+        if (SystemStatus.isDevelopmentMode()) {
+            final ContentMenuEntryPanel orderbookExportButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
+                    new SubmitLink(ContentMenuEntryPanel.LINK_ID, form) {
+                        @Override
+                        public void onSubmit() {
+                            byte[] gz = WicketSupport.get(OrderbookStorageService.class).storeOrderbook(true).getGzBytes();
+                            final String filename = "ProjectForge-Orderbook_" + DateHelper.getDateAsFilenameSuffix(new Date())
+                                    + ".gz";
+                            DownloadUtils.setDownloadTarget(gz, filename);
+                        }
+                    }, "Dev: Export order book").setTooltip("Export order book as json for development purposes");
+            addContentMenuEntry(orderbookExportButton);
+        }
     }
 
     @Override

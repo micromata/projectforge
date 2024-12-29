@@ -131,7 +131,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
                 }
             }
         }
-        val duration = timesheetDao.select(selectedIds)?.sumOf { it.getDuration() }
+        val duration = timesheetDao.select(selectedIds)?.sumOf { it.duration }
         val durationAsString = dateTimeFormatter.getPrettyFormattedDuration(duration ?: 0)
         layout.add(
             UIAlert(

@@ -27,6 +27,6 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 
 class ImagesResultFilter : CustomResultFilter<AddressDO> {
     override fun match(list: MutableList<AddressDO>, element: AddressDO): Boolean {
-        return element.image == true
+        return AddressImageCache.instance.getImage(element.id) != null
     }
 }

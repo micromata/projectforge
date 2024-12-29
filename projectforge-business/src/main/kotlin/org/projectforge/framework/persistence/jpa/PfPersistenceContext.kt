@@ -163,7 +163,7 @@ class PfPersistenceContext internal constructor(
      */
     @JvmOverloads
     fun <T> selectNamedSingleResult(
-        sql: String,
+        namedQuery: String,
         resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         nullAllowed: Boolean = true,
@@ -172,7 +172,7 @@ class PfPersistenceContext internal constructor(
         entityGraphName: String? = null,
     ): T? {
         return selectSingleResult(
-            sql = sql,
+            sql = namedQuery,
             resultClass = resultClass,
             keyValues = keyValues,
             nullAllowed = nullAllowed,
@@ -313,7 +313,7 @@ class PfPersistenceContext internal constructor(
      * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     fun <T> executeNamedQuery(
-        sql: String,
+        namedQuery: String,
         resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         attached: Boolean = false,
@@ -321,7 +321,7 @@ class PfPersistenceContext internal constructor(
         entityGraphName: String? = null,
     ): List<T> {
         return executeQuery(
-            sql = sql,
+            sql = namedQuery,
             resultClass = resultClass,
             keyValues = keyValues,
             attached = attached,
@@ -459,10 +459,10 @@ class PfPersistenceContext internal constructor(
      * Calls Query(sql, params).executeUpdate()
      */
     fun executeNamedUpdate(
-        sql: String,
+        namedQuery: String,
         vararg keyValues: Pair<String, Any?>,
     ): Int {
-        return executeUpdate(sql, keyValues = keyValues, namedQuery = true)
+        return executeUpdate(namedQuery, keyValues = keyValues, namedQuery = true)
     }
 
     /**

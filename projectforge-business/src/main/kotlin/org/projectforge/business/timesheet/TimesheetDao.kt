@@ -277,10 +277,10 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     override fun onInsertOrModify(obj: TimesheetDO, operationType: OperationType) {
         validateTimestamp(obj.startTime, "startTime")
         validateTimestamp(obj.stopTime, "stopTime")
-        if (obj.getDuration() < 60000) {
+        if (obj.duration < 60000) {
             throw UserException("timesheet.error.zeroDuration") // "Duration of time sheet must be at minimum 60s!
         }
-        if (obj.getDuration() > MAXIMUM_DURATION) {
+        if (obj.duration > MAXIMUM_DURATION) {
             throw UserException("timesheet.error.maximumDurationExceeded")
         }
         Validate.isTrue(obj.startTime!!.before(obj.stopTime), "Stop time of time sheet is before start time!")

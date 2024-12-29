@@ -24,7 +24,7 @@
 package org.projectforge.carddav
 
 import jakarta.servlet.http.HttpServletResponse
-import org.projectforge.business.address.vcard.ImageType
+import org.projectforge.business.address.ImageType
 import org.projectforge.carddav.CardDavService.Companion.domain
 import org.projectforge.carddav.CardDavXmlUtils.EXTRACT_ADDRESS_ID_PHOTO_REGEX
 import org.projectforge.carddav.CardDavXmlUtils.EXTRACT_ADDRESS_ID_REGEX
