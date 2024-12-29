@@ -4,7 +4,7 @@
 -- In java.time months are handled 1-based (from 1-January to 12-December).
 
 -- Increment month column (12 statements for preventing constraint violations)
--- UPDATE  t_fibu_buchungssatz SET month=month+1; doesn't work.
+-- UPDATE  t_fibu_buchungssatz SET month=month+1; does't work.
 UPDATE t_fibu_buchungssatz SET month=12 where month=11;
 UPDATE t_fibu_buchungssatz SET month=11 where month=10;
 UPDATE t_fibu_buchungssatz SET month=10 where month=9;

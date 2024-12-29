@@ -125,7 +125,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
                 cellItemListener));
         columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.projekt"), "projekt.name", "projekt.name",
                 cellItemListener));
-        columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.auftrag.titel"), "titel", "titel",
+        columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.auftrag.title"), "titel", "titel",
                 cellItemListener));
         columns.add(new AbstractColumn<AuftragDO, String>(new Model<String>(getString("label.position.short"))) {
             @Override
