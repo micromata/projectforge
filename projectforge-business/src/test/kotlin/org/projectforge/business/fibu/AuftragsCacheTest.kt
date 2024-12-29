@@ -168,7 +168,7 @@ class AuftragsCacheTest : AbstractTestBase() {
         toBeInvoiced: Boolean = false,
     ) {
         Assertions.assertNotNull(orderInfo, "OrderInfo not found.")
-        assertSame(orderedNetSum, orderInfo!!.orderedNetSum, "Ordered sum.")
+        assertSame(orderedNetSum, orderInfo!!.commissionedNetSum, "Ordered sum.")
         assertSame(akquiseSum, orderInfo.akquiseSum, "Akquise sum.")
         assertSame(netSum, orderInfo.netSum, "Net sum.")
         assertSame(notYetInvoicedSum, orderInfo.notYetInvoicedSum, "Not yet invoiced sum.")

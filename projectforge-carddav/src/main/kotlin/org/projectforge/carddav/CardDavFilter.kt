@@ -104,7 +104,7 @@ class CardDavFilter : Filter {
         val NORMALIZED_GET_REQUEST_REGEX = """^users/([^/]+)/addressbooks/ProjectForge-(\d+)\.vcf$""".toRegex()
 
         // photos/contact-129.png
-        val NORMALIZED_GET_PHOTO_REQUEST_REGEX = """^photos/contact-(\d+).png$""".toRegex()
+        val NORMALIZED_GET_PHOTO_REQUEST_REGEX = """^photos/contact-(\d+).(png|gif|jpg|jpeg)$""".toRegex()
 
         /**
          * PROPFIND: /, /index.html, /carddav, /.well-known/carddav

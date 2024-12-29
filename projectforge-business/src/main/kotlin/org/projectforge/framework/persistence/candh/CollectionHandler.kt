@@ -27,6 +27,8 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
 import jakarta.persistence.OneToMany
 import mu.KotlinLogging
+import org.hibernate.Hibernate
+import org.hibernate.collection.spi.PersistentList
 import org.hibernate.collection.spi.PersistentSet
 import org.projectforge.common.AnnotationsUtils
 import org.projectforge.common.KClassUtils
@@ -103,7 +105,7 @@ open class CollectionHandler : CandHIHandler {
         compareResults.added?.forEach { addEntry ->
             log.debug { "process: Adding new collection entry: $addEntry" }
             destCollection.add(addEntry)
-            log.debug { "process: Adding entry $addEntry to destPropertyValue." }
+            log.debug { "process: Adding entry to destPropertyValue: $addEntry" }
         }
         val entry = compareResults.anyOrNull // Get any entry from the collections for extracting the class type.
         propertyContext.entriesHistorizable = HistoryServiceUtils.isHistorizable(entry)
@@ -153,11 +155,10 @@ open class CollectionHandler : CandHIHandler {
                             entityOpType = EntityOpType.Delete,
                         )
                     }
-                    // if (!compareResults.added.isNullOrEmpty()) {
-                    // If there are modified entries or added entries, we don't need to add a history entry of added and updated entries as list.
+                    //
+                    // Note for added entries: It's later done in [writeInsertHistoryEntriesForNewCollectionEntries].
                     // toAdd: Entity id is null, so can't create history master entry now.
-                    // It's later done in CollectionHandler.writeInsertHistoryEntriesForNewCollectionEntries.
-                    //}
+                    //
                 }
                 if (updated.isNotEmpty()) {
                     val oldValues = updated.map { it.first }
@@ -221,9 +222,8 @@ open class CollectionHandler : CandHIHandler {
     ): MutableCollection<Any?> {
         val collection: MutableCollection<Any?> = when (srcCollection) {
             is TreeSet<*> -> TreeSet()
-            is HashSet<*> -> HashSet()
-            is ArrayList<*> -> ArrayList()
-            is PersistentSet<*> -> HashSet()
+            is HashSet<*>, is PersistentSet<*> -> HashSet()
+            is ArrayList<*>, is PersistentList<*> -> ArrayList()
             else -> {
                 log.error { "createCollectionInstance: Unsupported collection type: " + srcCollection.javaClass.name }
                 ArrayList()
@@ -245,7 +245,11 @@ open class CollectionHandler : CandHIHandler {
             srcObj: BaseDO<*>?,
             entryList: MutableList<HistoryEntryDO>,
         ) {
-            mergedObj ?: return
+            if (mergedObj == null) {
+                log.debug { "writeInsertHistoryEntriesForNewCollectionEntries: Check for history entries for new collection entries. mergedObj: null" }
+                return
+            }
+            log.debug { "writeInsertHistoryEntriesForNewCollectionEntries: Check for history entries for new collection entries. mergedObj: ${mergedObj::class.simpleName}:${mergedObj.id}" }
             KClassUtils.filterPublicMutableProperties(mergedObj::class).forEach { property ->
                 @Suppress("UNCHECKED_CAST")
                 property as KMutableProperty1<BaseDO<*>, Any?>
@@ -275,7 +279,26 @@ open class CollectionHandler : CandHIHandler {
                     }
                 }
                 newCollectionEntriesWithIdNull.forEach { newEntry ->
+                    log.debug { "writeInsertHistoryEntriesForNewCollectionEntries: Create history entry for new collection entry. newEntry=${newEntry::class.simpleName}:${newEntry.id}" }
                     entryList.add(HistoryEntryDO.create(newEntry, EntityOpType.Insert))
+                }
+                // If autoUpdateCollectionEntries is true, we have to historize the child collections of all existing entries:
+                val behavior = AnnotationsUtils.getAnnotation(property, PersistenceBehavior::class.java)
+                log.debug { "writeInsertHistoryEntriesForNewCollectionEntries: srcEntry of src-collection is BaseDO. autoUpdateCollectionEntres = ${behavior?.autoUpdateCollectionEntries == true}" }
+                if (behavior?.autoUpdateCollectionEntries == true) {
+                    // No, we have to handle the child collections of all exisiting collection entries:
+                    // Example: RechnungDO -> list of RechnungPositionDO -> list of KostZuweisungDO.
+                    mergedCol.forEach { mergedEntry ->
+                        if (Hibernate.isInitialized(mergedEntry) && mergedEntry.id != null) {
+                            log.debug { "writeInsertHistoryEntriesForNewCollectionEntries: Check for history entries of child collections of (if any): ${mergedEntry::class.simpleName}:${mergedEntry.id}" }
+                            // Historize only existing entries.
+                            // If an entry is new, it's clear, that any existing child entry is also new.
+                            @Suppress("UNCHECKED_CAST")
+                            val srcEntry =
+                                srcCol?.firstOrNull { (it as BaseDO<Long>).id == mergedEntry.id } as BaseDO<Long>?
+                            writeInsertHistoryEntriesForNewCollectionEntries(mergedEntry, srcEntry, entryList)
+                        }
+                    }
                 }
             }
         }

@@ -25,6 +25,7 @@ package org.projectforge.business.scripting
 
 import mu.KotlinLogging
 import org.projectforge.common.logging.LogLevel
+import java.util.*
 import kotlin.script.experimental.api.ScriptDiagnostic
 
 private val log = KotlinLogging.logger {}
@@ -33,9 +34,15 @@ private val log = KotlinLogging.logger {}
  * You may use loging functionality inside your scripts by using log.info(String) and log.error(String).
  */
 class ScriptLogger {
-    class Message(val message: String?, val level: LogLevel)
+    class Message(val message: String?, val level: LogLevel, val timestamp: Date = Date())
+
+    val hasErrors: Boolean
+        get() = messages.any { it.level <= LogLevel.ERROR }
 
     val messages = mutableListOf<Message>()
+
+    val lastModified: Date?
+        get() = messages.maxOfOrNull { it.timestamp }
 
     fun error(msg: Any?) {
         error { msg }

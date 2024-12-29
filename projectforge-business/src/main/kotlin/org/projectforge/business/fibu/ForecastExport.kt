@@ -145,13 +145,10 @@ open class ForecastExport { // open needed by Wicket.
         }
     }
 
-    // Vergangene Auftragspositionen anzeigen, die nicht vollständig fakturiert bzw. abgelehnt sind.
-
     @Throws(IOException::class)
     open fun export(origFilter: AuftragFilter): ByteArray? {
         val baseDateParam = origFilter.periodOfPerformanceStartDate
         val baseDate = if (baseDateParam != null) PFDay.from(baseDateParam).beginOfMonth else PFDay.now().beginOfYear
-        val prevYearBaseDate = baseDate.plusYears(-1) // One year back for getting all invoices.
         val filter = AuftragFilter()
         filter.searchString = origFilter.searchString
         filter.projectList = origFilter.projectList
@@ -161,11 +158,24 @@ open class ForecastExport { // open needed by Wicket.
             baseDate.plusYears(-2).localDate // Go 2 years back for getting all orders referred by invoices of prior year.
         filter.user = origFilter.user
         val orderList = orderDao.select(filter)
+        log.info { "Exporting forecast script for date ${baseDate.isoString} with filter: str='${filter.searchString ?: ""}', projects=${filter.projectList?.joinToString { it.name ?: "???" }}" }
+        val showAll = accessChecker.isLoggedInUserMemberOfGroup(
+            ProjectForgeGroup.FINANCE_GROUP,
+            ProjectForgeGroup.CONTROLLING_GROUP
+        ) &&
+                filter.searchString.isNullOrBlank() &&
+                filter.projectList.isNullOrEmpty()
+        return export(orderList, baseDate, showAll = showAll)
+    }
+
+    @Throws(IOException::class)
+    open fun export(orderList: Collection<AuftragDO>, baseDate: PFDay, showAll: Boolean): ByteArray? {
         if (orderList.isEmpty()) {
             log.info { "No orders found for export." }
             // No orders found, so we don't need the forecast sheet.
             return null
         }
+        val prevYearBaseDate = baseDate.plusYears(-1) // One year back for getting all invoices.
         val invoiceFilter = RechnungFilter()
         invoiceFilter.fromDate =
             prevYearBaseDate.plusDays(-1).localDate // Go 1 day back, paranoia setting for getting all invoices for given time period.
@@ -173,7 +183,6 @@ open class ForecastExport { // open needed by Wicket.
         queryFilter.addOrder(desc("datum"))
         queryFilter.addOrder(desc("nummer"))
         val invoices = rechnungDao.select(queryFilter, checkAccess = false)
-        log.info { "Exporting forecast script for date ${baseDate.isoString} with filter: str='${filter.searchString ?: ""}', projects=${filter.projectList?.joinToString { it.name ?: "???" }}" }
         val forecastTemplate = applicationContext.getResource("classpath:officeTemplates/ForecastTemplate.xlsx")
 
         ExcelWorkbook(forecastTemplate.inputStream, "ForecastTemplate.xlsx").use { workbook ->
@@ -193,15 +202,7 @@ open class ForecastExport { // open needed by Wicket.
             MonthCol.entries.forEach { invoicesPriorYearSheet.registerColumn(it.header) }
 
             val ctx = Context(workbook, forecastSheet, invoicesSheet, invoicesPriorYearSheet, baseDate, invoices)
-            if (accessChecker.isLoggedInUserMemberOfGroup(
-                    ProjectForgeGroup.FINANCE_GROUP,
-                    ProjectForgeGroup.CONTROLLING_GROUP
-                ) &&
-                filter.searchString.isNullOrBlank() &&
-                filter.projectList.isNullOrEmpty()
-            ) {
-                ctx.showAll = true
-            }
+            ctx.showAll = showAll
 
             var currentRow = 9
             var orderPositionFound = false

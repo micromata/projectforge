@@ -180,7 +180,7 @@ public class ProjektListPage extends AbstractListPage<ProjektListForm, ProjektDa
           {
             final ProjektDO projektDO = rowModel.getObject();
             final ProjektImpl projekt = new ProjektImpl(projektDO);
-            final List<Kost2Art> kost2Arts = WicketSupport.get(KostCache.class).getAllKost2Arts(projektDO.getId());
+            final List<Kost2Art> kost2Arts = WicketSupport.get(KostCache.class).getAllKost2ArtsForProjekt(projektDO.getId());
             projekt.setKost2Arts(kost2Arts);
             final Label label = new Label(componentId, new Model<String>(projekt.getKost2ArtsAsHtml()));
             label.setEscapeModelStrings(false);

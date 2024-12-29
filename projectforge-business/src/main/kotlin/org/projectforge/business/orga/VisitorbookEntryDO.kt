@@ -35,7 +35,7 @@ import java.io.Serializable
 import java.time.LocalDate
 
 /**
- * Represents timeable attributes of an employee (annual leave days and status).
+ * Represents a single visit of a visitor.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */

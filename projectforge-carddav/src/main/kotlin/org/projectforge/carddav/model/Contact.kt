@@ -23,6 +23,7 @@
 
 package org.projectforge.carddav.model
 
+import org.projectforge.business.address.ImageType
 import org.projectforge.carddav.CardDavUtils
 import org.projectforge.framework.time.PFDateTime
 import java.security.MessageDigest
@@ -33,8 +34,8 @@ data class Contact(
     val firstName: String? = null,
     val lastName: String? = null,
     val lastUpdated: Date? = null,
-    val hasImage: Boolean = false,
     val imageLastUpdate: Date? = null,
+    val imageType: ImageType? = null,
     var vcardData: String? = null,
 ) {
     val displayName = "$lastName, $firstName"

@@ -103,36 +103,36 @@ class HistoryFormatUtils {
         }
 
         /**
-         * Calls [setPropertyNameForListEntries] for each given attribute.
+         * Calls [setNumberAsPropertyNameForListEntries] for each given attribute.
          */
         @JvmOverloads
         @JvmStatic
-        fun setPropertyNameForListEntries(
+        fun setNumberAsPropertyNameForListEntries(
             historyEntries: Collection<HistoryEntryDO>,
             prefix: String,
             number: Number? = null
         ) {
             historyEntries.forEach { entry ->
-                setPropertyNameForListEntries(entry, prefix = prefix, number = number)
+                setNumberAsPropertyNameForListEntries(entry, prefix = prefix, number = number)
             }
         }
 
         /**
-         * Calls [setPropertyNameForListEntries] for each given attribute.
+         * Calls [setNumberAsPropertyNameForListEntries] for each given attribute.
          */
-        fun setPropertyNameForListEntries(
+        fun setNumberAsPropertyNameForListEntries(
             historyEntries: Collection<HistoryEntryDO>,
             vararg prefixes: Pair<String, Number?>
         ) {
             historyEntries.forEach { entry ->
-                setPropertyNameForListEntries(entry, prefixes = prefixes)
+                setNumberAsPropertyNameForListEntries(entry, prefixes = prefixes)
             }
         }
 
         /**
-         * Calls [setPropertyNameForListEntries] for each given attribute.
+         * Calls [setNumberAsPropertyNameForListEntries] for each given attribute.
          */
-        fun setPropertyNameForListEntries(
+        fun setNumberAsPropertyNameForListEntries(
             historyEntry: HistoryEntryDO,
             prefix: String,
             number: Number? = null
@@ -143,9 +143,9 @@ class HistoryFormatUtils {
         }
 
         /**
-         * Calls [setPropertyNameForListEntries] for each given attribute.
+         * Calls [setNumberAsPropertyNameForListEntries] for each given attribute.
          */
-        fun setPropertyNameForListEntries(
+        fun setNumberAsPropertyNameForListEntries(
             historyEntry: HistoryEntryDO,
             vararg prefixes: Pair<String, Number?>
         ) {

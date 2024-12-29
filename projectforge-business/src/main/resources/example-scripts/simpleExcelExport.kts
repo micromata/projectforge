@@ -1,5 +1,5 @@
 // First, load all users (not deactivated):
-val users = userDao.getList().filter { it.hasSystemAccess() }
+val users = userDao.list.filter { it.hasSystemAccess() }
 
 val workbook = ExcelUtils.prepareWorkbook("Userlist.xlsx")
 val sheet = workbook.createOrGetSheet("list of users")

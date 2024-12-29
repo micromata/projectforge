@@ -28,6 +28,7 @@ import org.projectforge.business.address.AddressbookCache
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.kost.*
+import org.projectforge.business.orga.VisitorbookDO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.teamcal.admin.TeamCalCache
@@ -163,6 +164,17 @@ class PfCaches {
         vacation.otherReplacements =
             vacation.otherReplacements?.mapNotNull { getEmployeeIfNotInitialized(it) }?.toMutableSet()
         return vacation
+    }
+
+    /**
+     * Fills the contact persons (employees).
+     * @param visitorbook The visitorbook to fill.
+     * @return The filled visitorbook for chaining.
+     */
+    fun initialize(visitorbook: VisitorbookDO): VisitorbookDO {
+        visitorbook.contactPersons =
+            visitorbook.contactPersons?.mapNotNull { getEmployeeIfNotInitialized(it) }?.toMutableSet()
+        return visitorbook
     }
 
     fun initialize(satz: BuchungssatzDO): BuchungssatzDO {

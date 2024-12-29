@@ -185,24 +185,6 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
       null
     } else kost2!!.id
 
-  val rechnungsPositionId: Long?
-    @Transient
-    get() = if (this.rechnungsPosition == null) {
-      null
-    } else rechnungsPosition!!.id
-
-  val eingangsrechnungsPositionId: Long?
-    @Transient
-    get() = if (this.eingangsrechnungsPosition == null) {
-      null
-    } else eingangsrechnungsPosition!!.id
-
-  val employeeSalaryId: Long?
-    @Transient
-    get() = if (this.employeeSalary == null) {
-      null
-    } else employeeSalary!!.id
-
   /**
    * @return true if betrag is zero or not given.
    */
@@ -221,13 +203,13 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
       return null
     }
     var counter = 0
-    if (rechnungsPositionId != null) {
+    if (rechnungsPosition?.id != null) {
       counter++
     }
-    if (eingangsrechnungsPositionId != null) {
+    if (eingangsrechnungsPosition?.id != null) {
       counter++
     }
-    if (employeeSalaryId != null) {
+    if (employeeSalary?.id != null) {
       counter++
     }
     return if (counter != 1) {
@@ -241,13 +223,13 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
       if (this.index != o!!.index) {
         return false
       }
-      if (this.rechnungsPositionId != o.rechnungsPositionId) {
+      if (this.rechnungsPosition?.id != o.rechnungsPosition?.id) {
         return false
       }
-      if (this.eingangsrechnungsPositionId != o.eingangsrechnungsPositionId) {
+      if (this.eingangsrechnungsPosition?.id != o.eingangsrechnungsPosition?.id) {
         return false
       }
-      return this.employeeSalaryId == o.employeeSalaryId
+      return this.employeeSalary?.id == o.employeeSalary?.id
     }
     return false
   }
@@ -256,13 +238,13 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
     val hcb = HashCodeBuilder()
     hcb.append(index)
     if (rechnungsPosition != null) {
-      hcb.append(rechnungsPositionId)
+      hcb.append(rechnungsPosition?.id)
     }
     if (eingangsrechnungsPosition != null) {
-      hcb.append(eingangsrechnungsPositionId)
+      hcb.append(eingangsrechnungsPosition?.id)
     }
     if (employeeSalary != null) {
-      hcb.append(employeeSalaryId)
+      hcb.append(employeeSalary?.id)
     }
     return hcb.toHashCode()
   }
