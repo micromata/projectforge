@@ -47,7 +47,7 @@ open class UITable(
      */
     var autoRefreshFlag: String? = null,
 ) : UIElement(if (listPageTable) UIElementType.TABLE_LIST_PAGE else UIElementType.TABLE) {
-    enum class RefreshMethod { POST, GET }
+    enum class RefreshMethod { POST, GET, SSE }
 
     companion object {
         @JvmStatic

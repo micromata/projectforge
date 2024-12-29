@@ -34,6 +34,39 @@ function DynamicTable(
     React.useEffect(() => {
         if (!refreshUrl) return undefined;
 
+        if (refreshMethod === 'SSE') {
+            let eventSource = null;
+
+            const connect = () => {
+                // console.log('Opening SSE connection...');
+                eventSource = new EventSource(refreshUrl);
+
+                eventSource.onmessage = (event) => {
+                    if (event.data !== 'ping') {
+                        const json = JSON.parse(event.data); // Parse JSON from server.
+                        setVariables({ [id]: json }); // Update the table content.
+                    } else {
+                        // console.log('Ping');
+                    }
+                };
+
+                eventSource.onerror = (error) => {
+                    // console.error('SSE connection error:', error);
+                    eventSource.close(); // Close connection on error
+                    setTimeout(() => connect(), 5000); // Attempt reconnect after 5 seconds
+                };
+            };
+
+            connect(); // Initial connection
+
+            // Cleanup: Close connection.
+            return () => {
+                // console.log('SSE connection closed.');
+                if (eventSource) {
+                    eventSource.close();
+                }
+            };
+        }
         const interval = setInterval(() => {
             if (!autoRefreshFlag || Object.getByString(data, autoRefreshFlag)) {
                 // eslint-disable-next-line max-len

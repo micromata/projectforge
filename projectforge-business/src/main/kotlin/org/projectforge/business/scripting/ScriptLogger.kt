@@ -41,6 +41,9 @@ class ScriptLogger {
 
     val messages = mutableListOf<Message>()
 
+    val lastModified: Date?
+        get() = messages.maxOfOrNull { it.timestamp }
+
     fun error(msg: Any?) {
         error { msg }
     }
