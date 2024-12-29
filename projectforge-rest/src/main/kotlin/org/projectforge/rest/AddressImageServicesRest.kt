@@ -86,7 +86,7 @@ class AddressImageServicesRest {
         request: HttpServletRequest
     ):
             ResponseEntity<*> {
-        val filename = file.originalFilename
+        val filename = file.originalFilename!!
         val imageType = addressImageDao.getSupportedImageType(filename) ?: run {
             return ResponseEntity("Unsupported file: $filename. Only png files supported", HttpStatus.BAD_REQUEST)
         }
