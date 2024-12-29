@@ -30,6 +30,9 @@ date: 2024-12-23
 
 ++++
 {% include tag.html tag="technology" %}
+++++
+- Persistence layer completely refactored, MGC removed and replaced by Spring Data JPA.
+- technical debt reduced.
 - New major versions: Java 17, Spring 6.1.15, Hibernate 6.6.3, Hibernate search 7.2.1, javax -> jakarta, React/Router, Wicket 10.2, ...
 ++++
 
