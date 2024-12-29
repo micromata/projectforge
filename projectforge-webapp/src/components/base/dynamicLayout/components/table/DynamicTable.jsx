@@ -3,7 +3,7 @@ import React from 'react';
 import useInterval from '@use-hooks/interval';
 import { Table } from '../../../../design';
 import { DynamicLayoutContext } from '../../context';
-import { fetchJsonPost } from '../../../../../utilities/rest';
+import { fetchJsonGet, fetchJsonPost } from '../../../../../utilities/rest';
 import DynamicTableHead from './DynamicTableHead';
 import DynamicTableRow from './DynamicTableRow';
 
@@ -13,6 +13,7 @@ function DynamicTable(
         id,
         rowClickPostUrl,
         refreshUrl,
+        refreshMethod,
         refreshIntervalSeconds,
         autoRefreshFlag,
     },
@@ -30,21 +31,26 @@ function DynamicTable(
       If automatic refresh is required, the table content must be given as variable in variables.
       Reason: If given in data, the table content would be posted by every refresh.
      */
-    if (refreshUrl) {
-        useInterval(() => {
+    React.useEffect(() => {
+        if (!refreshUrl) return undefined;
+
+        const interval = setInterval(() => {
             if (!autoRefreshFlag || Object.getByString(data, autoRefreshFlag)) {
-                fetchJsonPost(
+                // eslint-disable-next-line max-len
+                const fetchFunction = refreshMethod === 'POST' ? fetchJsonPost : fetchJsonGet;
+                fetchFunction(
                     refreshUrl,
-                    {
-                        data,
-                    },
+                    refreshMethod === 'POST' ? { data } : {},
                     (json) => {
                         setVariables({ [id]: json });
                     },
                 );
             }
         }, refreshIntervalSeconds * 1000);
-    }
+
+        return () => clearInterval(interval);
+        // eslint-disable-next-line max-len
+    }, [refreshUrl, refreshMethod, refreshIntervalSeconds, autoRefreshFlag, data, id, setVariables]);
 
     return React.useMemo(() => (
         <div
@@ -102,6 +108,7 @@ DynamicTable.defaultProps = {
     id: undefined,
     rowClickPostUrl: undefined,
     refreshUrl: undefined,
+    refreshMethod: undefined,
     refreshIntervalSeconds: 10, // 10 seconds as default intervall.
     autoRefreshFlag: undefined,
 };

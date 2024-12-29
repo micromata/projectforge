@@ -25,7 +25,7 @@ package org.projectforge.business.scripting
 
 import org.projectforge.framework.configuration.ApplicationContextProvider
 
-class GroovyScriptExecutor : ScriptExecutor() {
+class GroovyScriptExecutor(scriptLogger: ScriptLogger) : ScriptExecutor(scriptLogger) {
   /**
    * @param script Common imports will be prepended.
    * @param variables Variables to bind. Variables are usable via binding["key"] or directly, if #autobind# is part of script.
@@ -33,6 +33,6 @@ class GroovyScriptExecutor : ScriptExecutor() {
    */
   override fun execute(): ScriptExecutionResult {
     val groovyExecutor = ApplicationContextProvider.getApplicationContext().getBean(GroovyExecutor::class.java)
-    return groovyExecutor.execute(scriptExecutionResult, effectiveScript, allVariables)
+    return groovyExecutor.execute(scriptExecutionResult, effectiveScript, allVariables, scriptLogger)
   }
 }
