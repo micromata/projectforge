@@ -25,11 +25,13 @@ package org.projectforge.rest.scripting
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
+import kotlinx.coroutines.*
 import mu.KotlinLogging
 import org.projectforge.business.scripting.*
 import org.projectforge.common.DateFormatType
 import org.projectforge.common.logging.LogLevel
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.*
@@ -38,11 +40,14 @@ import org.projectforge.rest.dto.Script
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
+import java.io.IOException
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -126,7 +131,7 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
                     executionResult.resultAsUserFriendlyString,
                     title = "scripting.script.result",
                     markdown = true,
-                    color = if (executionResult.scriptLogger.hasErrors ) {
+                    color = if (executionResult.scriptLogger.hasErrors) {
                         UIColor.DANGER
                     } else {
                         UIColor.INFO
@@ -153,9 +158,9 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
             UIRow().add(
                 UITable(
                     "logging",
-                    refreshUrl = RestResolver.getRestUrl(this::class.java, "refresh/${script.id}"),
+                    refreshUrl = RestResolver.getRestUrl(this::class.java, "logs/${script.id}"),
                     refreshIntervalSeconds = 1,
-                    refreshMethod = UITable.RefreshMethod.GET,
+                    refreshMethod = UITable.RefreshMethod.SSE,
                 ).also {
                     it.add(UITableColumn("timestamp", title = "time", sortable = false))
                     it.add(UITableColumn("level", sortable = false))
@@ -241,10 +246,7 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
      *                 scriptId is used to find the log entries in the user's session.
      */
     @GetMapping("refresh/{scriptId}")
-    fun refresh(
-        request: HttpServletRequest,
-        @PathVariable("scriptId") scriptId: Long,
-    )
+    fun refresh(request: HttpServletRequest, @PathVariable("scriptId") scriptId: Long)
             : List<LogEntry> {
         val scriptLogger = ExpiringSessionAttributes.getAttribute(
             request.getSession(false),
@@ -254,6 +256,66 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
         return scriptLogger.messages.map {
             LogEntry(it.timestamp, it.level, it.message ?: "")
         }
+    }
+
+    @GetMapping("logs/{scriptId}", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
+    fun streamLogs(
+        request: HttpServletRequest,
+        @PathVariable("scriptId") scriptIdString: String?
+    ): SseEmitter {
+        val scriptId = scriptIdString?.toLongOrNull()
+        val emitter = SseEmitter(60000L) // 60 seconds
+        val coroutineScope = CoroutineScope(Dispatchers.IO)
+        coroutineScope.launch {
+            try {
+                var lastClientUpdate = Date(0L) // epoch in seconds.
+                for (i in 0..10000) {
+                    val scriptLogger = ExpiringSessionAttributes.getAttribute(
+                        request.getSession(false),
+                        getSessionAttr(scriptId),
+                        ScriptLogger::class.java,
+                    )
+                    val lastModified = scriptLogger?.lastModified
+                    if (lastModified != null && lastModified > lastClientUpdate) {
+                        // New entries available:
+                        log.info { "Sending new log entries to client." }
+                        val data = JsonUtils.toJson(scriptLogger.messages.map {
+                            LogEntry(it.timestamp, it.level, it.message ?: "")
+                        })
+                        try {
+                            emitter.send(data) // Send the data to the client.
+                        } catch (ex: IOException) {
+                            // Connection closed?
+                            break
+                        }
+                        lastClientUpdate = Date()
+                    } else if (lastClientUpdate.time < System.currentTimeMillis() - 30_000) {
+                        log.info { "Sending ping to client" }
+                        // Send a ping every 30 seconds to keep the connection alive.
+                        try {
+                            emitter.send("ping")
+                        } catch (ex: IOException) {
+                            // Connection closed?
+                            break
+                        }
+                        lastClientUpdate = Date()
+                    }
+                    delay(500) // Wait .5 seconds
+                }
+                emitter.complete() // Signal that the stream is complete
+            } catch (e: Exception) {
+                emitter.completeWithError(e)
+            }
+        }
+        emitter.onCompletion {
+            log.info { "Cancelling coroutine onCompletion." }
+            coroutineScope.cancel()
+        }
+        emitter.onError { ex ->
+            log.info { "Cancelling coroutine onError." }
+            coroutineScope.cancel()
+        }
+        return emitter
     }
 
     @GetMapping("download")

@@ -38,6 +38,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException
+import org.springframework.web.context.request.async.AsyncRequestTimeoutException
 import org.springframework.web.multipart.MaxUploadSizeExceededException
 import java.io.IOException
 import java.net.NoRouteToHostException
@@ -71,6 +73,11 @@ internal class GlobalDefaultExceptionHandler {
         if (ex is NoRouteToHostException) {
             log.error("No route to host: ${ex.message}")
             return ResponseEntity("No route to host.", HttpStatus.BAD_REQUEST)
+        }
+        if (ex is AsyncRequestNotUsableException || ex is AsyncRequestTimeoutException) {
+            // Occurs on SseEmitter.send() if the client has disconnected.
+            // log.error("Async request not usable: ${ex.message}")
+            return ResponseEntity("Async request not usable.", HttpStatus.BAD_REQUEST)
         }
         if (ex::class.qualifiedName?.contains("NoResourceFoundException") == true) {
             log.error("Resource not found: ${ex.message}")
