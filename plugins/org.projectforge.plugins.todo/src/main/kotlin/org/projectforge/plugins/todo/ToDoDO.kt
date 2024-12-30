@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.todo
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.Priority
@@ -35,6 +36,7 @@ import java.time.LocalDate
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.history.NoHistory
 
 /**
@@ -57,6 +59,7 @@ open class ToDoDO : DefaultBaseDO() {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "reporter_fk")
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var reporter: PFUserDO? = null
 
     /**
@@ -69,6 +72,7 @@ open class ToDoDO : DefaultBaseDO() {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "assignee_fk")
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var assignee: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "task")
@@ -77,6 +81,7 @@ open class ToDoDO : DefaultBaseDO() {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "task_id", nullable = true)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var task: TaskDO? = null
 
     /**
@@ -88,6 +93,7 @@ open class ToDoDO : DefaultBaseDO() {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "group_id", nullable = true)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var group: GroupDO? = null
 
     @PropertyInfo(i18nKey = "description")

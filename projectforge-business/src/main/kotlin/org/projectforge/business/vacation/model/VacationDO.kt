@@ -23,6 +23,7 @@
 
 package org.projectforge.business.vacation.model
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
@@ -32,6 +33,8 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDe
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.json.IdOnlySerializer
+import org.projectforge.framework.json.IdsOnlySerializer
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -77,6 +80,7 @@ open class VacationDO : DefaultBaseDO() {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "employee_id", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var employee: EmployeeDO? = null
 
     @PropertyInfo(i18nKey = "vacation.startdate")
@@ -95,6 +99,7 @@ open class VacationDO : DefaultBaseDO() {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "replacement_id", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var replacement: EmployeeDO? = null
 
     /**
@@ -115,6 +120,7 @@ open class VacationDO : DefaultBaseDO() {
             columnList = "employee_id",
         )]
     )
+    @JsonSerialize(using = IdsOnlySerializer::class)
     open var otherReplacements: MutableSet<EmployeeDO>? = null
 
     /**
@@ -143,6 +149,7 @@ open class VacationDO : DefaultBaseDO() {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "manager_id", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var manager: EmployeeDO? = null
 
     @PropertyInfo(i18nKey = "vacation.status")

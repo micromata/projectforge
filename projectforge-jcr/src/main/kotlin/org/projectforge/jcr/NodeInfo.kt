@@ -40,27 +40,35 @@ class NodeInfo() {
       node.parent.path
     }
     if (recursive) {
-      node.nodes?.let {
-        val nodes = mutableListOf<NodeInfo>()
-        while (it.hasNext()) {
-          val child = it.nextNode()
-          if (PFJcrUtils.matchAnyPath(child, listOfIgnoredNodePaths)) {
-            log.info { "Ignore path=${child.path} as configured." }
-            continue
+      try {
+        node.nodes?.let {
+          val nodes = mutableListOf<NodeInfo>()
+          while (it.hasNext()) {
+            val child = it.nextNode()
+            if (PFJcrUtils.matchAnyPath(child, listOfIgnoredNodePaths)) {
+              log.info { "Ignore path=${child.path} as configured." }
+              continue
+            }
+            nodes.add(NodeInfo(child))
           }
-          nodes.add(NodeInfo(child))
+          children = nodes
         }
-        children = nodes
+      } catch(e: Exception) {
+        log.error { "Error while reading children of node '${node.path}': ${e.message}" }
       }
     }
-    if (node.properties?.hasNext() == true) {
-      val props = mutableListOf<PropertyInfo>()
-      properties = props
-      node.properties.let {
-        while (it.hasNext()) {
-          props.add(PropertyInfo(it.nextProperty()))
+    try {
+      if (node.properties?.hasNext() == true) {
+        val props = mutableListOf<PropertyInfo>()
+        properties = props
+        node.properties.let {
+          while (it.hasNext()) {
+            props.add(PropertyInfo(it.nextProperty()))
+          }
         }
       }
+    } catch (e: Exception) {
+      log.error { "Error while reading properties of node '${node.path}': ${e.message}" }
     }
   }
 

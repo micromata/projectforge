@@ -23,11 +23,13 @@
 
 package org.projectforge.framework.persistence.user.entities
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.util.*
 import jakarta.persistence.*
+import org.projectforge.framework.json.IdOnlySerializer
 
 /**
  * Users may have several authentication tokens, e. g. for CardDAV/CalDAV-Clients or other clients. ProjectForge shows the usage of this tokens and such tokens
@@ -98,6 +100,7 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
   @PropertyInfo(i18nKey = "user")
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "user_id")
+  @JsonSerialize(using = IdOnlySerializer::class)
   open var user: PFUserDO? = null
 
   val userId: Long?

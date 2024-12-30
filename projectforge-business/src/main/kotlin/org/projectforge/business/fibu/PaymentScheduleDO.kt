@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.projectforge.common.anots.PropertyInfo
@@ -32,6 +33,7 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
 import java.time.LocalDate
 import jakarta.persistence.*
+import org.projectforge.framework.json.IdOnlySerializer
 
 /**
  * @author Werner Feder (werner.feder@t-online.de)
@@ -55,6 +57,7 @@ open class PaymentScheduleDO : DefaultBaseDO(), DisplayNameCapable {
   @JsonIgnore
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "auftrag_id", nullable = false)
+  @JsonSerialize(using = IdOnlySerializer::class)
   open var auftrag: AuftragDO? = null
 
   /**

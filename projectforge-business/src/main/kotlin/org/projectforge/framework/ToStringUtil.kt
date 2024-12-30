@@ -64,17 +64,33 @@ import java.time.format.DateTimeFormatter
 /**
  * Helper method to serialize objects as json strings and to use it in toString method.
  * @param obj Object to serialize as json string.
- * @param ignoreEmbeddedSerializers Most embedded objects of type [DefaultBaseDO] are serialized in short form (id and short info field).
- *        If this param contains a class of a [DefaultBaseDO], this object will be serialized with all fields.
+ * @param preferEmbeddedSerializers If true [IdOnlySerializer] and [IdsOnlySerializer] uses configured serializers instead of writing id only. Default is false.
+ * @param ignoreIdOnlySerializers If true [IdOnlySerializer] and [IdsOnlySerializer] are ignored. Default is false.
  */
-fun toJsonString(obj: Any, vararg ignoreEmbeddedSerializers: Class<out Any>): String {
-    return ToStringUtil.toJsonString(obj, ignoreEmbeddedSerializers, null)
+fun toJsonString(
+    obj: Any,
+    preferEmbeddedSerializers: Boolean = true,
+    ignoreIdOnlySerializers: Boolean = false,
+): String {
+    return ToStringUtil.toJsonString(
+        obj,
+        ToStringUtil.Configuration(
+            preferEmbeddedSerializers = preferEmbeddedSerializers,
+            ignoreIdOnlySerializers = ignoreIdOnlySerializers,
+        )
+    )
 }
 
 private val log = KotlinLogging.logger {}
 
 class ToStringUtil {
     class Serializer<T>(val clazz: Class<T>, val serializer: JsonSerializer<T>)
+
+    class Configuration(
+        var preferEmbeddedSerializers: Boolean = false,
+        var ignoreIdOnlySerializers: Boolean = false,
+        val additionalSerializers: Array<out Serializer<Any>>? = null
+    )
 
     /**
      * Helper class for having data classes with to json functionality (e. g. for logging).
@@ -98,15 +114,14 @@ class ToStringUtil {
 
         private val mapperMap = mutableMapOf<ObjectMapperKey, ObjectMapper>()
 
+
         /**
          * Helper method to serialize objects as json strings and to use it in toString method.
          * @param obj Object to serialize as json string.
-         * @param ignoreEmbeddedSerializers Most embedded objects of type [DefaultBaseDO] are serialized in short form (id and short info field).
-         *        If this param contains a class of a [DefaultBaseDO], this object will be serialized with all fields.
          */
         @JvmStatic
-        fun toJsonString(obj: Any, vararg ignoreEmbeddedSerializers: Class<out Any>): String {
-            return toJsonString(obj, ignoreEmbeddedSerializers, null)
+        fun toJsonString(obj: Any): String {
+            return toJsonString(obj, Configuration())
         }
 
         /**
@@ -117,15 +132,21 @@ class ToStringUtil {
          */
         @JvmStatic
         fun toJsonStringExtended(obj: Any, vararg additionalSerializers: Serializer<Any>): String {
-            return toJsonString(obj, null, additionalSerializers = additionalSerializers)
+            return toJsonString(obj, Configuration(additionalSerializers = additionalSerializers))
         }
 
         internal fun toJsonString(
-            obj: Any, ignoreEmbeddedSerializers: Array<out Class<out Any>>?,
-            additionalSerializers: Array<out Serializer<Any>>?
+            obj: Any,
+            configuration: Configuration,
         ): String {
             try {
-                val mapper = getObjectMapper(obj::class.java, ignoreEmbeddedSerializers, additionalSerializers)
+                val mapper = getObjectMapper(obj::class.java, configuration)
+                if (configuration.preferEmbeddedSerializers || configuration.ignoreIdOnlySerializers) {
+                    JsonThreadLocalContext.set(
+                        preferEmbeddedSerializers = configuration.preferEmbeddedSerializers,
+                        ignoreIdOnlySerializers = configuration.ignoreIdOnlySerializers,
+                    )
+                }
                 return mapper.writeValueAsString(obj)
             } catch (ex: Exception) {
                 val id = System.currentTimeMillis()
@@ -134,6 +155,8 @@ class ToStringUtil {
                     ex
                 )
                 return "[*** Exception while serializing object of type '${obj::class.java.simpleName}', see log files #$id for more details.]"
+            } finally {
+                JsonThreadLocalContext.clear()
             }
         }
 
@@ -142,15 +165,9 @@ class ToStringUtil {
             clazz: Class<T>,
             serializer: EmbeddedDOSerializer<T>,
             objClass: Class<*>,
-            ignoreEmbeddedSerializers: Array<out Class<out Any>>?
         ) {
             if (objClass.equals(clazz)) {
                 return // Don't use embedded serializer for current object itself.
-            }
-            if (!ignoreEmbeddedSerializers.isNullOrEmpty()) {
-                ignoreEmbeddedSerializers.forEach {
-                    if (it == clazz) return
-                }
             }
             module.addSerializer(clazz, serializer)
         }
@@ -168,13 +185,13 @@ class ToStringUtil {
         }
 
         private fun getObjectMapper(
-            objClass: Class<*>?, ignoreEmbeddedSerializers: Array<out Class<out Any>>?,
-            additionalSerializers: Array<out Serializer<Any>>?
+            objClass: Class<*>?,
+            configuration: Configuration,
         ): ObjectMapper {
             val key = if (objClass != null && embeddedSerializerClasses.any { it.isAssignableFrom(objClass) }) {
-                ObjectMapperKey(objClass, ignoreEmbeddedSerializers, additionalSerializers)
+                ObjectMapperKey(objClass, configuration)
             } else {
-                ObjectMapperKey(null, ignoreEmbeddedSerializers, additionalSerializers)
+                ObjectMapperKey(null, configuration)
             }
             var mapper = mapperMap[key]
             if (mapper != null) {
@@ -197,18 +214,18 @@ class ToStringUtil {
             module.addSerializer(AddressbookDO::class.java, AddressbookSerializer())
             module.addSerializer(AbstractLazyInitializer::class.java, HibernateProxySerializer())
 
-            additionalSerializers?.forEach {
+            configuration.additionalSerializers?.forEach {
                 module.addSerializer(it.clazz, it.serializer)
             }
             if (objClass != null) {
-                register(module, GroupDO::class.java, GroupSerializer(), objClass, ignoreEmbeddedSerializers)
-                register(module, Kost1DO::class.java, Kost1Serializer(), objClass, ignoreEmbeddedSerializers)
-                register(module, Kost2DO::class.java, Kost2Serializer(), objClass, ignoreEmbeddedSerializers)
-                register(module, KundeDO::class.java, KundeSerializer(), objClass, ignoreEmbeddedSerializers)
-                register(module, PFUserDO::class.java, UserSerializer(), objClass, ignoreEmbeddedSerializers)
-                register(module, EmployeeDO::class.java, EmployeeSerializer(), objClass, ignoreEmbeddedSerializers)
-                register(module, ProjektDO::class.java, ProjektSerializer(), objClass, ignoreEmbeddedSerializers)
-                register(module, TaskDO::class.java, TaskSerializer(), objClass, ignoreEmbeddedSerializers)
+                register(module, GroupDO::class.java, GroupSerializer(), objClass)
+                register(module, Kost1DO::class.java, Kost1Serializer(), objClass)
+                register(module, Kost2DO::class.java, Kost2Serializer(), objClass)
+                register(module, KundeDO::class.java, KundeSerializer(), objClass)
+                register(module, PFUserDO::class.java, UserSerializer(), objClass)
+                register(module, EmployeeDO::class.java, EmployeeSerializer(), objClass)
+                register(module, ProjektDO::class.java, ProjektSerializer(), objClass)
+                register(module, TaskDO::class.java, TaskSerializer(), objClass)
             }
             mapper.registerModule(module)
             mapper.registerModule(KotlinModule.Builder().build())
@@ -316,23 +333,22 @@ class ToStringUtil {
 
     private class ObjectMapperKey(
         var objClass: Class<*>?,
-        var ignoreEmbeddedSerializers: Array<out Class<out Any>>?,
-        var additionalSerializers: Array<out Serializer<Any>>?
+        val configuration: Configuration,
     ) {
         override fun equals(other: Any?): Boolean {
             other as ObjectMapperKey
             return EqualsBuilder()
                 .append(this.objClass, other.objClass)
-                .append(this.ignoreEmbeddedSerializers, other.ignoreEmbeddedSerializers)
-                .append(this.additionalSerializers, other.additionalSerializers)
+                //.append(this.configuration.preferEmbeddedSerializers, other.configuration.preferEmbeddedSerializers)
+                .append(this.configuration.additionalSerializers, other.configuration.additionalSerializers)
                 .isEquals
         }
 
         override fun hashCode(): Int {
             return HashCodeBuilder()
                 .append(objClass)
-                .append(ignoreEmbeddedSerializers)
-                .append(additionalSerializers)
+                //.append(configuration.preferEmbeddedSerializers)
+                .append(configuration.additionalSerializers)
                 .toHashCode()
         }
     }

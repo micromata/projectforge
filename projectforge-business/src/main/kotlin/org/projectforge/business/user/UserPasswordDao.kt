@@ -244,7 +244,7 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
         val saltPepper = (pepper ?: "") + (salt ?: "")
         val saltedAndPepperedPassword = ArrayUtils.addAll(saltPepper.toCharArray(), *password)
         val encryptedPassword = digest(saltedAndPepperedPassword)
-        LoginHandler.clearPassword(saltedAndPepperedPassword) // Clear array to to security reasons.
+        LoginHandler.clearPassword(saltedAndPepperedPassword) // Clear array due to security reasons.
         return encryptedPassword
     }
 

@@ -23,8 +23,7 @@
 
 package org.projectforge.framework.persistence.user.entities
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo
-import com.fasterxml.jackson.annotation.ObjectIdGenerators
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.apache.commons.lang3.builder.ToStringBuilder
@@ -34,6 +33,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmb
 import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.io.Serializable
@@ -49,7 +49,6 @@ import java.io.Serializable
     NamedQuery(name = UserRightDO.FIND_ALL_ORDERED, query = "from UserRightDO order by user.id, rightIdString"),
     NamedQuery(name = UserRightDO.FIND_ALL_BY_USER_ID, query = "from UserRightDO where user.id=:userId"),
 )
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class UserRightDO : DefaultBaseDO, Comparable<UserRightDO>, Serializable, DisplayNameCapable {
     /**
      * Only for storing the right id in the data base.
@@ -66,6 +65,7 @@ open class UserRightDO : DefaultBaseDO, Comparable<UserRightDO>, Serializable, D
     @get:JoinColumn(name = "user_fk", nullable = false)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @IndexedEmbedded(includeDepth = 1)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var user: PFUserDO? = null
 
     constructor()

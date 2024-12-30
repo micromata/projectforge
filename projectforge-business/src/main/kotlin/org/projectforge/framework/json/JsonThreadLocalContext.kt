@@ -21,23 +21,34 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.api
+package org.projectforge.framework.json
 
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
-import org.projectforge.business.user.UserPrefDao
+/**
+ * Thread local context for JSON serialization.
+ * This context is used to control the behavior of the [IdOnlySerializer].
+ */
+class JsonThreadLocalContext(
+    val preferEmbeddedSerializers: Boolean = false,
+    val ignoreIdOnlySerializers: Boolean = false,
+) {
+    companion object {
+        private val threadLocal = ThreadLocal<JsonThreadLocalContext>()
 
-class MagicFilterTest {
-    @Suppress("UNCHECKED_CAST")
-    @Test
-    fun serializationTest() {
-        val filter = MagicFilter()
-        filter.entries.add(MagicFilterEntry("zipCode", "12345"))
-        val om = UserPrefDao.objectMapper
-        val json = om.writeValueAsString(filter)
-        val obj = om.readValue(json, MagicFilter::class.java) as MagicFilter
-        Assertions.assertEquals(1, obj.entries.size)
-        Assertions.assertEquals("zipCode", obj.entries[0].field)
-        Assertions.assertEquals("12345", obj.entries[0].value.value)
+        fun get(): JsonThreadLocalContext? {
+            return threadLocal.get()
+        }
+
+        fun set(preferEmbeddedSerializers: Boolean = false, ignoreIdOnlySerializers: Boolean = false) {
+            threadLocal.set(
+                JsonThreadLocalContext(
+                    preferEmbeddedSerializers = preferEmbeddedSerializers,
+                    ignoreIdOnlySerializers = ignoreIdOnlySerializers,
+                )
+            )
+        }
+
+        fun clear() {
+            threadLocal.remove()
+        }
     }
 }

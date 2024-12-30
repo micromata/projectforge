@@ -25,6 +25,7 @@ package org.projectforge.business.teamcal.admin.model
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.annotations.Type
@@ -38,6 +39,7 @@ import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.hibernate.type.SqlTypes
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.persistence.search.ClassBridge
 
@@ -75,6 +77,7 @@ open class TeamCalDO : BaseUserGroupRightsDO() {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "owner_fk")
+    @JsonSerialize(using = IdOnlySerializer::class)
     override var owner: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "plugins.teamcal.description")

@@ -24,12 +24,12 @@
 package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonBackReference
-import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonManagedReference
-import com.fasterxml.jackson.annotation.ObjectIdGenerators
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.business.fibu.kost.KostZuweisungDO
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.history.PersistenceBehavior
 
 /**
@@ -46,12 +46,12 @@ import org.projectforge.framework.persistence.history.PersistenceBehavior
         columnList = "eingangsrechnung_fk"
     )]
 )
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class EingangsrechnungsPositionDO : AbstractRechnungsPositionDO() {
 
     @JsonBackReference
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "eingangsrechnung_fk", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var eingangsrechnung: EingangsrechnungDO? = null
 
     override val rechnungId: Long?

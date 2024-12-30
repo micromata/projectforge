@@ -21,23 +21,24 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.api
+package org.projectforge.jcr
 
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
-import org.projectforge.business.user.UserPrefDao
+import org.projectforge.jcr.BackupMain.Companion.checkRepoDir
 
-class MagicFilterTest {
-    @Suppress("UNCHECKED_CAST")
-    @Test
-    fun serializationTest() {
-        val filter = MagicFilter()
-        filter.entries.add(MagicFilterEntry("zipCode", "12345"))
-        val om = UserPrefDao.objectMapper
-        val json = om.writeValueAsString(filter)
-        val obj = om.readValue(json, MagicFilter::class.java) as MagicFilter
-        Assertions.assertEquals(1, obj.entries.size)
-        Assertions.assertEquals("zipCode", obj.entries[0].field)
-        Assertions.assertEquals("12345", obj.entries[0].value.value)
+class SanityCheckMain {
+    companion object {
+        @JvmStatic
+        fun main(args: Array<String>) {
+            if (args.size != 1) {
+                BackupMain.printHelp()
+                return
+            }
+            val repositoryLocation = checkRepoDir(args[0]) ?: return
+            val repoService = RepoService()
+            repoService.init(repositoryLocation)
+            val jcrCheckSanityJob = JCRCheckSanityJob()
+            jcrCheckSanityJob.repoService = repoService
+            jcrCheckSanityJob.execute()
+        }
     }
 }
