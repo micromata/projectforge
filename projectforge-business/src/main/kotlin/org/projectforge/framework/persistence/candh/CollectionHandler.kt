@@ -286,7 +286,7 @@ open class CollectionHandler : CandHIHandler {
                 val behavior = AnnotationsUtils.getAnnotation(property, PersistenceBehavior::class.java)
                 log.debug { "writeInsertHistoryEntriesForNewCollectionEntries: srcEntry of src-collection is BaseDO. autoUpdateCollectionEntres = ${behavior?.autoUpdateCollectionEntries == true}" }
                 if (behavior?.autoUpdateCollectionEntries == true) {
-                    // No, we have to handle the child collections of all exisiting collection entries:
+                    // No, we have to handle the child collections of all existing collection entries:
                     // Example: RechnungDO -> list of RechnungPositionDO -> list of KostZuweisungDO.
                     mergedCol.forEach { mergedEntry ->
                         if (Hibernate.isInitialized(mergedEntry) && mergedEntry.id != null) {
