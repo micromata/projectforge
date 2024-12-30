@@ -52,8 +52,8 @@ class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
   }
 
   internal fun register(subscription: LogSubscription): LogSubscription {
+    log.info { "Registering subscription '${subscription.title}' for user '${subscription.user}'." }
     synchronized(logSubscriptions) {
-      log.info { "Registering subscription '${subscription.title}' for user '${subscription.user}'." }
       logSubscriptions.add(subscription)
       return subscription
     }
