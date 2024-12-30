@@ -27,19 +27,41 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
 import org.projectforge.framework.persistence.api.BaseDO
+import org.projectforge.framework.persistence.api.IdObject
 import java.io.IOException
 
-class IdOnlySerializer : JsonSerializer<BaseDO<*>>() {
+class IdOnlySerializer : JsonSerializer<IdObject<*>>() {
     @Throws(IOException::class)
-    override fun serialize(value: BaseDO<*>?, gen: JsonGenerator, serializers: SerializerProvider) {
-        if (value == null) {
-            gen.writeNull()
-        } else {
+    override fun serialize(value: IdObject<*>?, gen: JsonGenerator, serializers: SerializerProvider) {
+        writeObject(value, gen, serializers)
+    }
+
+    companion object {
+        internal fun writeObject(value: IdObject<*>?, gen: JsonGenerator, serializers: SerializerProvider) {
+            if (value == null) {
+                gen.writeNull()
+                return
+            }
+
+            JsonThreadLocalContext.get()?.let { ctx ->
+                if (ctx.preferEmbeddedSerializers == true || ctx.ignoreIdOnlySerializers == true) {
+                    // Check if another serializer exists
+                    val existingSerializer = serializers.findValueSerializer(value.javaClass, null)
+                    if (existingSerializer != null && existingSerializer.javaClass != IdOnlySerializer::class.java) {
+                        existingSerializer.serialize(value, gen, serializers)
+                        return
+                    }
+                    // Let Jackson serialize the value:
+                    serializers.defaultSerializeValue(value, gen)
+                    return
+                }
+            }
             gen.writeStartObject()
             value.id.let { id ->
                 JsonUtils.writeField(gen, "id", id)
             }
             gen.writeEndObject()
+
         }
     }
 }

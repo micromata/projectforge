@@ -25,10 +25,9 @@ package org.projectforge.business.user
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.vacation.model.VacationDO
-import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.json.JsonTestUtils
 
 class UserPrefDaoTest : AbstractTestBase() {
     @Test
@@ -55,56 +54,24 @@ class UserPrefDaoTest : AbstractTestBase() {
 
     @Test
     fun `test serialization of vacation`() {
-        val employee1 = EmployeeDO().also { employee ->
-            employee.id = 101
-            employee.abteilung = "Abteilung 1"
-            employee.user = PFUserDO().also {
-                it.id = 1
-                it.username = "user1"
-            }
-        }
-        val employee2 = EmployeeDO().also { employee ->
-            employee.id = 102
-            employee.abteilung = "Abteilung 2"
-            employee.user = PFUserDO().also {
-                it.id = 2
-                it.username = "user2"
-            }
-        }
-        val employee3 = EmployeeDO().also { employee ->
-            employee.id = 103
-            employee.abteilung = "Abteilung 3"
-            employee.user = PFUserDO().also {
-                it.id = 3
-                it.username = "user3"
-            }
-        }
-        VacationDO().let { vacation ->
-            vacation.id = 5
-            vacation.comment = "This is a comment"
-            vacation.employee = employee1
-            vacation.replacement = employee2
-            vacation.manager = employee2
-            vacation.otherReplacements = mutableSetOf(employee2, employee3)
-            Assertions.assertEquals(vacation, vacation)
-            val json = UserPrefDao.serialize(vacation)
-            Assertions.assertTrue { json.contains("\"comment\":\"This is a comment\"") }
-            Assertions.assertTrue { json.contains("\"employee\":{\"id\":101}") }
-            Assertions.assertTrue { json.contains("\"replacement\":{\"id\":102}") }
-            Assertions.assertTrue { json.contains("\"manager\":{\"id\":102}") }
-            Assertions.assertTrue { json.contains("\"otherReplacements\":[{\"id\":102},{\"id\":103}]") }
+        val test = JsonTestUtils()
+        val json = UserPrefDao.serialize(test.vacation)
+        Assertions.assertTrue { json.contains("\"comment\":\"This is a comment\"") }
+        Assertions.assertTrue { json.contains("\"employee\":{\"id\":101}") }
+        Assertions.assertTrue { json.contains("\"replacement\":{\"id\":102}") }
+        Assertions.assertTrue { json.contains("\"manager\":{\"id\":102}") }
+        Assertions.assertTrue { json.contains("\"otherReplacements\":[{\"id\":102},{\"id\":103}]") }
 
-            UserPrefDao.fromJson(json, VacationDO::class.java).let {
-                Assertions.assertNotNull(it)
-                Assertions.assertEquals(5, it!!.id)
-                Assertions.assertEquals("This is a comment", it.comment)
-                Assertions.assertEquals(101, it.employee?.id)
-                Assertions.assertEquals(102, it.replacement?.id)
-                Assertions.assertEquals(102, it.manager?.id)
-                Assertions.assertEquals(2, it.otherReplacements!!.size)
-                Assertions.assertTrue(it.otherReplacements!!.any{ it.id == 102L })
-                Assertions.assertTrue(it.otherReplacements!!.any{ it.id == 103L })
-            }
+        UserPrefDao.fromJson(json, VacationDO::class.java).let {
+            Assertions.assertNotNull(it)
+            Assertions.assertEquals(5, it!!.id)
+            Assertions.assertEquals("This is a comment", it.comment)
+            Assertions.assertEquals(101, it.employee?.id)
+            Assertions.assertEquals(102, it.replacement?.id)
+            Assertions.assertEquals(102, it.manager?.id)
+            Assertions.assertEquals(2, it.otherReplacements!!.size)
+            Assertions.assertTrue(it.otherReplacements!!.any { it.id == 102L })
+            Assertions.assertTrue(it.otherReplacements!!.any { it.id == 103L })
         }
     }
 }

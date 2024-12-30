@@ -39,11 +39,10 @@ class IdsOnlySerializer : JsonSerializer<Collection<*>>() {
             gen.writeStartArray()
             value.forEach { item ->
                 if (item is IdObject<*>) {
-                    gen.writeStartObject()
-                    JsonUtils.writeField(gen, "id", item.id)
-                    gen.writeEndObject()
+                    IdOnlySerializer.writeObject(item, gen, serializers)
                 } else {
-                    gen.writeNull()
+                    // Let Jackson serialize the value:
+                    serializers.defaultSerializeValue(value, gen)
                 }
             }
             gen.writeEndArray()
