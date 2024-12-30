@@ -1,6 +1,6 @@
 In progress
 
-Dirctories:
+Directories:
 project/
 ├── ProjectForge/          # Application
 ├── ProjectForge/database  # Database

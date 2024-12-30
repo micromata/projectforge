@@ -150,7 +150,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
     }
 
     /**
-     * Sends an e-mail to the projekt manager if exists and is not equals to the logged in user.
+     * Sends an e-mail to the project manager if exists and is not equals to the logged in user.
      */
     public void sendNotification(final ToDoDO todo, final String requestUrl) {
         if (!configurationService.isSendMailConfigured()) {
@@ -181,7 +181,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
             sendNotification(todo.getReporter(), todo, data, true);
         }
         if (userId != assigneeId && userId != reporterId && !hasUserSelectAccess(user, todo, false)) {
-            // User is whether reporter nor assignee, so send e-mail (in the case the user hasn't read access anymore).
+            // User is neither reporter nor assignee, so send e-mail (in the case the user has no read access anymore).
             sendNotification(ThreadLocalUserContext.getLoggedInUser(), todo, data, false);
         }
     }
