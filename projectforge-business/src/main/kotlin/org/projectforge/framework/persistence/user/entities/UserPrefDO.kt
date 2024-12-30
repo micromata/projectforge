@@ -25,6 +25,7 @@
 
 package org.projectforge.framework.persistence.user.entities
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import mu.KotlinLogging
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
@@ -35,6 +36,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDe
 import org.projectforge.business.user.IUserPref
 import org.projectforge.business.user.UserPrefAreaRegistry
 import org.projectforge.common.StringHelper
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
@@ -102,6 +104,7 @@ class UserPrefDO : AbstractBaseDO<Long>(), IUserPref {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_fk", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     override var user: PFUserDO? = null
 
     @FullTextField

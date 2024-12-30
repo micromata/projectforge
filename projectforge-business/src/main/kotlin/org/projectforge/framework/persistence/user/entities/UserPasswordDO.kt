@@ -24,10 +24,12 @@
 package org.projectforge.framework.persistence.user.entities
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import mu.KotlinLogging
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import jakarta.persistence.*
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.history.NoHistory
 
 private val log = KotlinLogging.logger {}
@@ -53,6 +55,7 @@ open class UserPasswordDO : DefaultBaseDO() {
   @PropertyInfo(i18nKey = "user")
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "user_id")
+  @JsonSerialize(using = IdOnlySerializer::class)
   open var user: PFUserDO? = null
 
   /**

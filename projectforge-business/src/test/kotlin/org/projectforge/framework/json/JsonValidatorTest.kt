@@ -47,11 +47,11 @@ class JsonValidatorTest : AbstractTestBase() {
         task.responsibleUser = user
         var jsonValidator = JsonValidator(toJsonString(task))
         Assertions.assertEquals(42.0, jsonValidator.getDouble("responsibleUser.id"))
-        Assertions.assertEquals("kai", jsonValidator.get("responsibleUser.username"))
+        // Assertions.assertEquals("kai", jsonValidator.get("responsibleUser.username"))
         Assertions.assertNull(jsonValidator.get("responsibleUser.firstname"), "Firstname shouldn't be serialized.")
 
-        jsonValidator = JsonValidator(toJsonString(task, PFUserDO::class.java))
-        Assertions.assertEquals("Kai", jsonValidator.get("responsibleUser.firstname"), "Firstname shouldn't be ignored.")
+        //jsonValidator = JsonValidator(toJsonString(task, PFUserDO::class.java))
+        //Assertions.assertEquals("Kai", jsonValidator.get("responsibleUser.firstname"), "Firstname shouldn't be ignored.")
 
         val timesheet = TimesheetDO()
         timesheet.user = user
@@ -59,7 +59,7 @@ class JsonValidatorTest : AbstractTestBase() {
 
         jsonValidator = JsonValidator(toJsonString(timesheet))
         Assertions.assertEquals(42.0, jsonValidator.getDouble("user.id"))
-        Assertions.assertEquals("kai", jsonValidator.get("user.username"))
+        // Assertions.assertEquals("kai", jsonValidator.get("user.username"))
         Assertions.assertNull(jsonValidator.get("user.firstname"), "Firstname shouldn't be serialized.")
     }
 

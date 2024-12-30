@@ -60,7 +60,6 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.metamodel.HibernateMetaModel.getPropertyLength
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUserId
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUser
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUserId
 import org.projectforge.framework.persistence.user.api.UserPrefArea
 import org.projectforge.framework.persistence.user.api.UserPrefParameter
@@ -662,7 +661,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
 
         fun serialize(value: Any?, compressBigContent: Boolean = true): String {
             val json = try {
-                MAGIC_JSON_START + getObjectMapper().writeValueAsString(value)
+                MAGIC_JSON_START + objectMapper.writeValueAsString(value)
             } catch (ex: JsonProcessingException) {
                 log.error("Error while trying to serialize object as json: " + ex.message, ex)
                 ""
@@ -679,54 +678,47 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
             return StringUtils.startsWith(value, MAGIC_JSON_START)
         }*/
 
-        private fun <T> fromJson(json: String, classOfT: Class<T>): T? {
+        internal fun <T> fromJson(json: String, classOfT: Class<T>): T? {
             var useJson = getUncompressed(json)
             useJson = useJson.removePrefix(MAGIC_JSON_START)
             // if (!isJsonObject(useJson)) return null
             try {
-                return getObjectMapper().readValue(useJson, classOfT)
+                return objectMapper.readValue(useJson, classOfT)
             } catch (ex: IOException) {
-                log.error(
-                    "Can't deserialize json object (may-be incompatible ProjectForge versions): " + ex.message + " json=" + useJson,
-                    ex
-                )
+                log.error { "Can't deserialize json object (may-be incompatible ProjectForge versions): ${ex.message}, json=$useJson" }
                 return null
             }
         }
 
-        private var objectMapper: ObjectMapper? = null
+        val objectMapper: ObjectMapper by lazy {
+            ObjectMapper().also { mapper ->
+                mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
+                mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
+                mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                mapper.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT)
+                mapper.configure(SerializationFeature.FAIL_ON_SELF_REFERENCES, false)
+                mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false)
+                mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
-        fun getObjectMapper(): ObjectMapper {
-            objectMapper?.let { return it }
-            val mapper = ObjectMapper()
-            mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
-            mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
-            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL)
-            mapper.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT)
-            mapper.configure(SerializationFeature.FAIL_ON_SELF_REFERENCES, false)
-            mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false)
-            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                val module = SimpleModule()
+                module.addSerializer(LocalDate::class.java, LocalDateSerializer())
+                module.addDeserializer(LocalDate::class.java, LocalDateDeserializer())
 
-            val module = SimpleModule()
-            module.addSerializer(LocalDate::class.java, LocalDateSerializer())
-            module.addDeserializer(LocalDate::class.java, LocalDateDeserializer())
+                module.addSerializer(PFDateTime::class.java, PFDateTimeSerializer())
+                module.addDeserializer(PFDateTime::class.java, PFDateTimeDeserializer())
 
-            module.addSerializer(PFDateTime::class.java, PFDateTimeSerializer())
-            module.addDeserializer(PFDateTime::class.java, PFDateTimeDeserializer())
+                module.addSerializer(
+                    java.util.Date::class.java,
+                    UtilDateSerializer(UtilDateFormat.ISO_DATE_TIME_SECONDS)
+                )
+                module.addDeserializer(java.util.Date::class.java, UtilDateDeserializer())
 
-            module.addSerializer(
-                java.util.Date::class.java,
-                UtilDateSerializer(UtilDateFormat.ISO_DATE_TIME_SECONDS)
-            )
-            module.addDeserializer(java.util.Date::class.java, UtilDateDeserializer())
+                module.addSerializer(Date::class.java, SqlDateSerializer())
+                module.addDeserializer(Date::class.java, SqlDateDeserializer())
 
-            module.addSerializer(Date::class.java, SqlDateSerializer())
-            module.addDeserializer(Date::class.java, SqlDateDeserializer())
-
-            mapper.registerModule(module)
-            mapper.registerModule(KotlinModule.Builder().build())
-            objectMapper = mapper
-            return mapper
+                mapper.registerModule(module)
+                mapper.registerModule(KotlinModule.Builder().build())
+            }
         }
 
         internal fun getUncompressed(content: String?): String {

@@ -23,6 +23,7 @@
 
 package org.projectforge.business.orga
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import mu.KotlinLogging
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
@@ -34,6 +35,7 @@ import org.projectforge.Constants
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.json.IdsOnlySerializer
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
@@ -86,6 +88,7 @@ open class VisitorbookDO : DefaultBaseDO() {
             columnList = "visitorbook_id"
         ), jakarta.persistence.Index(name = "idx_fk_t_orga_employee_employee_id", columnList = "employee_id")]
     )
+    @JsonSerialize(using = IdsOnlySerializer::class)
     open var contactPersons: Set<EmployeeDO>? = null
 
     @PropertyInfo(i18nKey = "comment")
@@ -105,6 +108,7 @@ open class VisitorbookDO : DefaultBaseDO() {
     )
     @NoHistory
     // @HistoryProperty(converter = TimependingHistoryPropertyConverter::class)
+    @JsonSerialize(using = IdsOnlySerializer::class)
     open var entries: MutableList<VisitorbookEntryDO>? = null
 
     fun addEntry(entry: VisitorbookEntryDO) {

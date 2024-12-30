@@ -24,6 +24,7 @@
 package org.projectforge.business.timesheet
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
@@ -32,6 +33,7 @@ import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.calendar.DurationUtils
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.UserPrefParameter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -81,6 +83,7 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "task_id", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var task: TaskDO? = null
 
     @PropertyInfo(i18nKey = "user")
@@ -89,6 +92,7 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_id", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var user: PFUserDO? = null
 
     @get:Column(name = "time_zone", length = 100)
@@ -140,6 +144,7 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "kost2_id", nullable = true)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var kost2: Kost2DO? = null
 
     /**

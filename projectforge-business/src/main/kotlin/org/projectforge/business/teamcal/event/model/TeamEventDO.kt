@@ -23,6 +23,7 @@
 
 package org.projectforge.business.teamcal.event.model
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import mu.KotlinLogging
 import net.fortuna.ical4j.model.Month
@@ -39,6 +40,7 @@ import org.projectforge.business.teamcal.event.RecurrenceMonthMode
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.calendar.ICal4JUtils
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.history.NoHistory
@@ -150,6 +152,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "calendar_fk", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var calendar: TeamCalDO? = null
 
     /**
@@ -255,6 +258,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
     @get:Transient
     open var attachments: MutableSet<TeamEventAttachmentDO>? = null
 
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var creator: PFUserDO? = null
         @ManyToOne(fetch = FetchType.LAZY)
         @JoinColumn(name = "team_event_fk_creator")

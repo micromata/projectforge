@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.user.entities
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.Hibernate
 import org.projectforge.common.StringHelper
@@ -37,6 +38,8 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
+import org.projectforge.framework.json.IdOnlySerializer
+import org.projectforge.framework.json.IdsOnlySerializer
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -131,6 +134,7 @@ open class GroupDO : DefaultBaseDO(), DisplayNameCapable {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToMany(targetEntity = PFUserDO::class, fetch = FetchType.LAZY)
     @get:JoinTable(name = "T_GROUP_USER", joinColumns = [JoinColumn(name = "GROUP_ID")], inverseJoinColumns = [JoinColumn(name = "USER_ID")], indexes = [jakarta.persistence.Index(name = "idx_fk_t_group_user_group_id", columnList = "group_id"), jakarta.persistence.Index(name = "idx_fk_t_group_user_user_id", columnList = "user_id")])
+    @JsonSerialize(using = IdsOnlySerializer::class)
     open var assignedUsers: MutableSet<PFUserDO>? = null
 
     @PropertyInfo(i18nKey = "group.owner")
@@ -138,6 +142,7 @@ open class GroupDO : DefaultBaseDO(), DisplayNameCapable {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "group_owner_fk")
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var groupOwner: PFUserDO? = null
 
     /**

@@ -23,9 +23,7 @@
 
 package org.projectforge.business.fibu
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonManagedReference
-import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import jakarta.persistence.*
 import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef
@@ -58,7 +56,6 @@ import org.projectforge.framework.utils.StringComparator
         query = "select min(datum), max(datum) from EingangsrechnungDO"
     )
 )
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<EingangsrechnungDO>, DisplayNameCapable {
 
     override val displayName: String
