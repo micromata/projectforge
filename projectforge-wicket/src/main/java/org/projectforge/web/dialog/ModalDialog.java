@@ -480,7 +480,7 @@ public abstract class ModalDialog extends Panel
    * Called if user hit the close button.
    *
    * @param target
-   * @return true if the dialog can be close, false if errors occured.
+   * @return true if the dialog can be close, false if errors occurred.
    */
   protected boolean onCloseButtonSubmit(final AjaxRequestTarget target)
   {

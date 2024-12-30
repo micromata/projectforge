@@ -108,7 +108,7 @@ public class SetupPage extends AbstractUnsecureBasePage {
                         context.executeNativeScript(script);
                     }
                 } catch (Exception e) {
-                    log.error("Exception occured while running test data insert script. Message: " + e.getMessage());
+                    log.error("Exception occurred while running test data insert script. Message: " + e.getMessage());
                 }
                 return null;
             });
@@ -194,7 +194,7 @@ public class SetupPage extends AbstractUnsecureBasePage {
             //      final int counter = xmlDump.verifyDump(converter);
             //      configurationDao.checkAndUpdateDatabaseEntries();
 
-            // intialize DB schema
+            // initialize DB schema
             WicketSupport.get(DatabaseService.class).updateSchema();
 
             log.error("XmlDumpService not yet migrated!!!");

@@ -113,7 +113,7 @@ class TaskServicesRest {
         )
 
         /**
-         * Only for creating a pseudo emty task.
+         * Only for creating a pseudo empty task.
          */
         constructor(title: String) : this(
             id = -1, title = title
@@ -153,7 +153,7 @@ class TaskServicesRest {
         fun addKost2List(task: Task, includeKost2ObjectList: Boolean = true) {
             val kost2DOList = TaskTree.instance.getKost2List(task.id)
             if (!kost2DOList.isNullOrEmpty()) {
-                if (includeKost2ObjectList) {  // Only if needed in tree, save bandwith...
+                if (includeKost2ObjectList) {  // Only if needed in tree, save bandwidth...
                     val kost2List: List<Kost2> = kost2DOList.map {
                         Kost2(
                             it.id!!,

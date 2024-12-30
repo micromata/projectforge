@@ -73,7 +73,7 @@ public class WicketPageTestBase extends AbstractTestBase {
     private LoginDefaultHandler loginHandler;
 
     /**
-     * don't know why, but we chache it...
+     * don't know why, but we cache it...
      */
     private static ResourceSettings resourceSettings;
 

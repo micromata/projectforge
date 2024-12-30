@@ -202,7 +202,7 @@ Envjs.loadLocalScript = function(script){
     filename = Envjs.uri(script.src, base);
     try {
         xhr = new XMLHttpRequest();
-        xhr.open("GET", filename, false/*syncronous*/);
+        xhr.open("GET", filename, false/*synchronous*/);
         //console.log("loading external script %s", filename);
         xhr.onreadystatechange = function(){
             //console.log("readyState %s", xhr.readyState);
@@ -236,7 +236,7 @@ Envjs.loadLocalScript = function(script){
 /**
  * An 'image' was requested by the document.
  *
- * - During inital parse of a <link>
+ * - During initial parse of a <link>
  * - Via an innerHTML parse of a <link>
  * - A modificiation of the 'src' attribute of an Image/HTMLImageElement
  *
@@ -254,7 +254,7 @@ Envjs.loadImage = function(node, src) {
 
 /**
  * A 'link'  was requested by the document.  Typically this occurs when:
- * - During inital parse of a <link>
+ * - During initial parse of a <link>
  * - Via an innerHTML parse of a <link>
  * - A modificiation of the 'href' attribute on a <link> node in the tree
  *
@@ -276,7 +276,7 @@ Envjs.loadLink = function(node, href) {
 
 /*
  *  cookie handling
- *  Private internal helper class used to save/retreive cookies
+ *  Private internal helper class used to save/retrieve cookies
  */
 
 /**
@@ -776,7 +776,7 @@ Envjs.WAIT_INTERVAL = 20;//milliseconds
  * http://docs.python.org/library/urlparse.html
  *
  *  urlsplit: break apart a URL into components
- *  urlunsplit:  reconsistute a URL from componets
+ *  urlunsplit:  reconsistute a URL from components
  *  urljoin: join an absolute and another URL
  *  urldefrag: remove the fragment from a URL
  *
@@ -825,7 +825,7 @@ Envjs.WAIT_INTERVAL = 20;//milliseconds
  * Similar functionality in different languages:
  *
  *   http://php.net/manual/en/function.parse-url.php
- *   returns assocative array but cannot handle relative URL
+ *   returns associative array but cannot handle relative URL
  *
  * TODO: test allowfragments more
  * TODO: test netloc missing, but hostname present
@@ -1125,7 +1125,7 @@ Envjs.uri = function(path, base) {
     if (!base) {
         base = 'file://' +  Envjs.getcwd() + '/';
     }
-    // handles all cases if path is abosulte or relative to base
+    // handles all cases if path is absolute or relative to base
     // 3rd arg is "false" --> remove fragments
     var newurl = urlparse.urlnormalize(urlparse.urljoin(base, path, false));
 
@@ -1136,7 +1136,7 @@ Envjs.uri = function(path, base) {
 
 /**
  * Used in the XMLHttpRquest implementation to run a
- * request in a seperate thread
+ * request in a separate thread
  * @param {Object} fn
  */
 Envjs.runAsync = function(fn){};
@@ -1290,7 +1290,7 @@ function __extend__(a,b) {
  * Some sites redefine 'print' as in 'window.print', so instead of
  * printing to stdout, you are popping open a new window, which might
  * call print, etc, etc,etc This can cause infinite loops and can
- * exhausing all memory.
+ * exhausting all memory.
  *
  * By defining this upfront now, Envjs.log will always call the native 'print'
  * function
@@ -8369,7 +8369,7 @@ HTMLElement.registerSetAttribute('BUTTON', 'name',
 
 
 /*
- * This is a "non-Abstract Base Class". For an implmentation that actually
+ * This is a "non-Abstract Base Class". For an implementation that actually
  * did something, all these methods would need to over-written
  */
 CanvasRenderingContext2D = function() {
@@ -9102,7 +9102,7 @@ __extend__(HTMLImageElement.prototype, {
  *  the fake doco parser to indicate that events should not be
  *  triggered on this.
  *
- * We coud make 'owner.parser' == [ 'none', 'full', 'fragment']
+ * We could make 'owner.parser' == [ 'none', 'full', 'fragment']
  * and just use one variable That was not done since the patch is
  * quite large as is.
  *
@@ -10228,7 +10228,7 @@ __extend__(HTMLTableElement.prototype, {
       if(child&&child.nodeType==Node.ELEMENT_NODE){
       tagName = child.tagName.toLowerCase();
       if (tagName === "tr") {
-      // need an implcit <tbody> to contain this...
+      // need an implicit <tbody> to contain this...
       if (!this.currentBody) {
       this.currentBody = document.createElement("tbody");
 
@@ -10469,7 +10469,7 @@ HTMLTableCellElement.prototype = new HTMLElement();
 __extend__(HTMLTableCellElement.prototype, {
 
 
-    // TOOD: attribute unsigned long  colSpan;
+    // TODO: attribute unsigned long  colSpan;
     // TODO: attribute unsigned long  rowSpan;
     // TODO: attribute DOMString      headers;
     // TODO: readonly attribute long  cellIndex;
@@ -13896,7 +13896,7 @@ Window = function(scope, parent, opener){
          * Safari 4:
          *  - Requires one argument (second can be MIA)
          *  - Returns a CSSStyleDeclaration object
-         *  - if bad imput, returns null
+         *  - if bad input, returns null
          *
          * getComputedStyle should really be an "add on" from the css
          * modules.  Unfortunately, 'window' comes way after the 'css'

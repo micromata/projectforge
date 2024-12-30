@@ -195,7 +195,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage {
   public String getPageAsLink(final PageParameters parameters) {
     String relativeUrl = (String) urlFor(this.getClass(), parameters);
     if (relativeUrl.contains("../")) {
-      // Therefore ignore relative pathes ../:
+      // Therefore ignore relative paths ../:
       relativeUrl = relativeUrl.replace("../", "");
     }
 

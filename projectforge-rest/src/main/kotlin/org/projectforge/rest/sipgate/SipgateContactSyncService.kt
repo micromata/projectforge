@@ -354,7 +354,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
         }
 
         /**
-         * Builds a list of all contact / adddress pairs with their match score (must be greater or equal 1). Already
+         * Builds a list of all contact / address pairs with their match score (must be greater or equal 1). Already
          * paired (matched) contacts and addresses (member of syncDOList) will be ignored.
          * @param syncContext list of all addresses, all remote contacts and all already synced contacts (syncDOList)
          * @return List of all match scores greater or equal 1.
@@ -490,7 +490,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
     /**
      * The main sync method: gets all remote contacts and local addresses, find the matching pairs (if not yet paired) and
      * inserts, updates and deletes the remote contacts and local addresses.
-     * @param resetContacts If true, the Sipgate contacts will be resetted after synchronizing. This may be useful for removing
+     * @param resetContacts If true, the Sipgate contacts will be reset after synchronizing. This may be useful for removing
      * duplicating numbers. Default is false.
      */
     fun sync(resetContacts: Boolean = false): SyncContext {

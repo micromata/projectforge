@@ -342,7 +342,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
                 return WicketSupport.get(ProjektDao.class).getProjekt(kunde, nummer);
             }
         } catch (Exception e) {
-            log.error("An exception accured while parsing customer id and kost2.", e);
+            log.error("An exception occurred while parsing customer id and kost2.", e);
         }
         return null;
     }

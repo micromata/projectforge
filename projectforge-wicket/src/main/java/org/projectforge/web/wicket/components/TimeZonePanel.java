@@ -96,7 +96,7 @@ public class TimeZonePanel extends Panel
       }
     };
     textField.withMatchContains(true).withMinChars(2);
-    // Cant't use getString(i18nKey) because we're in the constructor and this would result in a Wicket warning.
+    // Can't use getString(i18nKey) because we're in the constructor and this would result in a Wicket warning.
     final String tooltip = ThreadLocalUserContext.getLocalizedString("tooltip.autocomplete.timeZone");
     WicketUtils.addTooltip(textField, tooltip);
     add(textField);

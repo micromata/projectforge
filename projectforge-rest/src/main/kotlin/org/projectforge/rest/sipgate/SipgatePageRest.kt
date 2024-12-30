@@ -81,7 +81,7 @@ class SipgatePageRest : AbstractDynamicPageRest() {
       MenuItem(
         "resetContacts",
         title = "Reset Sipgate contacts",
-        tooltip = "Sync and resets Sipgate contacts. May be used for re-organizing contacts in Sipgate having dublicated number entries....",
+        tooltip = "Sync and resets Sipgate contacts. May be used for re-organizing contacts in Sipgate having duplicated number entries....",
         url = "${getRestPath()}/resetContacts",
         type = MenuItemTargetType.DOWNLOAD
       )

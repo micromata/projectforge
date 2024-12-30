@@ -109,7 +109,7 @@ public class SearchAreaPanel extends Panel
         webRegistryEntry.getDao());
     boolean hasError = false;
     if (searchResult == null) {
-      // An error occured!
+      // An error occurred!
       hasError = true;
     } else if (searchResult.size() == 0) {
       // No hits.

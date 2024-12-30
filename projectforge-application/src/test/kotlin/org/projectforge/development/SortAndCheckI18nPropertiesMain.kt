@@ -279,7 +279,7 @@ object SortAndCheckI18nPropertiesMain {
   }
 
   /**
-   * Single apostrophs of i18n messages (containg params) will be replaced (if not used as escape chars).
+   * Single apostrophs of i18n messages (containing params) will be replaced (if not used as escape chars).
    * "Don't believe the hype." -> "Don't believe the hype."
    * "Don''t believe {0}." -> "Don't believe (0})."
    * "Don''t escape '{0}'." -> "Don''t escape '{0}'."

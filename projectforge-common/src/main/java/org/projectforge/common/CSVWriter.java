@@ -111,7 +111,7 @@ public class CSVWriter
   }
 
   /**
-   * Appends the given value. The string will be encapsulated in quotation marks: " Any occurance of the quotation mark will be quoted by
+   * Appends the given value. The string will be encapsulated in quotation marks: " Any occurrence of the quotation mark will be quoted by
    * duplication. Example: hallo -> "hallo", hal"lo -> "hal""lo"
    *
    * @param s The value to append.

@@ -66,7 +66,7 @@
 
     <!-- For debugging Persistence calls, add to your projectforge.properties file: -->
     <!--
-         # Logs all persistance calls (without lazy loadings by hibernate, but gives you a good overview):
+         # Logs all persistence calls (without lazy loadings by hibernate, but gives you a good overview):
          logging.level.org.projectforge.framework.persistence.jpa.PfPersistenceContext=DEBUG
 
           # Extensive logging of Hibernate SQL statements:

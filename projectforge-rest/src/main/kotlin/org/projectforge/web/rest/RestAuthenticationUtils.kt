@@ -123,7 +123,7 @@ open class RestAuthenticationUtils {
     if (authHeader.isNullOrBlank()) {
       if (required) {
         authInfo.resultCode = HttpStatus.UNAUTHORIZED
-        authInfo.response.setHeader("WWW-Authenticate", "Basic realm=\"Basic authenticaiton required\"")
+        authInfo.response.setHeader("WWW-Authenticate", "Basic realm=\"Basic authentication required\"")
         logError(authInfo, "Basic authentication failed, header 'authorization' not found.")
         log.debug{ "Basic authentication failed, header 'authorization' not found (debug info): ${RequestLog.asJson(authInfo.request)}"}
       } else if (log.isDebugEnabled) {

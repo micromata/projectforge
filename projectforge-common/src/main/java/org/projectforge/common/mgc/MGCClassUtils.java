@@ -107,7 +107,7 @@ public class MGCClassUtils extends org.apache.commons.lang3.ClassUtils
    */
   public static Class<?> findGenericTypeArgument(Type genericSuperclass, int index)
   {
-    // CHECKSTYLE.OFF SIMULIERTE_POLYMORPHIE Necesssary for technical reasons (low level handling).
+    // CHECKSTYLE.OFF SIMULIERTE_POLYMORPHIE Necessary for technical reasons (low level handling).
     while (genericSuperclass != null && !(ParameterizedType.class.isAssignableFrom(genericSuperclass.getClass()))) {
       genericSuperclass = ((Class) genericSuperclass).getGenericSuperclass();
     }
@@ -286,7 +286,7 @@ public class MGCClassUtils extends org.apache.commons.lang3.ClassUtils
   /**
    * Converts name of an enum to enum.
    *
-   * If empty or cannot be convertet, returns default.
+   * If empty or cannot be converted, returns default.
    *
    * @param <T> the generic type
    * @param defaultValue the default value

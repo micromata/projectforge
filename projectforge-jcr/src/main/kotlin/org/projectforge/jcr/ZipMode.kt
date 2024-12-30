@@ -42,12 +42,12 @@ enum class ZipMode(val key: String) : I18nEnum {
   ENCRYPTED_STANDARD("encryptedStandard"),
 
   /**
-   * AES-128 encrpyted (not supported by all clients)
+   * AES-128 encrypted (not supported by all clients)
    */
   ENCRYPTED_AES128("encrytpedAes128"),
 
   /**
-   * AES-256 encrpyted (not supported by all clients, highest security)
+   * AES-256 encrypted (not supported by all clients, highest security)
    */
   ENCRYPTED_AES256("encrytpedAes256");
 

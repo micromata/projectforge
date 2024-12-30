@@ -287,7 +287,7 @@ BrowserHistory = (function() {
                 //This occurs when the user has navigated to a specific URL
                 //within the app, and didn't use browser back/forward
                 //IE seems to have a bug where it stops updating the URL it
-                //shows the end-user at this point, but programatically it
+                //shows the end-user at this point, but programmatically it
                 //appears to be correct.  Do a full app reload to get around
                 //this issue.
                 if (browser.version < 7) {

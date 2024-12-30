@@ -48,7 +48,7 @@ public class CSVParser
 
   public static final String ERROR_QUOTATIONMARK_MISSED_AT_END_OF_CELL = "Quotation \" missed at the end of cell.";
 
-  public static final String ERROR_DELIMITER_OR_NEW_LINE_EXPECTED_AFTER_QUOTATION_MARK = "Delimter or new line expected after quotation mark.";
+  public static final String ERROR_DELIMITER_OR_NEW_LINE_EXPECTED_AFTER_QUOTATION_MARK = "Delimiter or new line expected after quotation mark.";
 
   public static final String ERROR_UNEXPECTED_CHARACTER_AFTER_QUOTATION_MARK = "Unexpected character after quotation mark.";
 

@@ -81,7 +81,7 @@ public class TimeZoneField extends PFAutoCompleteTextField<TimeZone>
     final String[] favoriteIds = favoritesIds.toArray(new String[favoritesIds.size()]);
     favoriteTimeZones = getAsTimeZoneObjects(favoriteIds);
     withMatchContains(true).withMinChars(2);
-    // Cant't use getString(i18nKey) because we're in the constructor and this would result in a Wicket warning.
+    // Can't use getString(i18nKey) because we're in the constructor and this would result in a Wicket warning.
     final String tooltip = ThreadLocalUserContext.getLocalizedString("tooltip.autocomplete.timeZone");
     WicketUtils.addTooltip(this, tooltip);
   }

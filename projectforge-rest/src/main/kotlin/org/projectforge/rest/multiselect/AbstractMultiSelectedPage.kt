@@ -200,7 +200,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     }
 
     /**
-     * Field translation is used by Excel export. Returns translation of field from LayoutContext, if availabel in this
+     * Field translation is used by Excel export. Returns translation of field from LayoutContext, if available in this
      * class, or capitalized field name itself at default.
      * You may use [getFieldTranslation] with param [LayoutContext] for auto translation of known fields in your derived fun.
      */

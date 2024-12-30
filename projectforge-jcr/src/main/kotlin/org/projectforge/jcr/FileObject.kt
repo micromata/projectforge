@@ -121,7 +121,7 @@ class FileObject() : FileInfo() {
     }
 
   /**
-   * An unique random alpha-numeric string. This id will internally also used as child node name of [RepoService.NODENAME_FILES].
+   * A unique random alphanumeric string. This id will internally also used as child node name of [RepoService.NODENAME_FILES].
    * Leave this id null for new files to store.
    */
   var fileId: String? = null
