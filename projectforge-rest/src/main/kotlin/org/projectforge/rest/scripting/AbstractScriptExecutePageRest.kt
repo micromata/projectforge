@@ -31,6 +31,7 @@ import org.projectforge.common.DateFormatType
 import org.projectforge.common.logging.LogLevel
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.rest.config.RestConfiguration
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.*
 import org.projectforge.rest.dto.PostData
@@ -56,6 +57,9 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
     }
 
     protected lateinit var scriptDao: AbstractScriptDao
+
+    @Autowired
+    private lateinit var restConfiguration: RestConfiguration
 
     @Autowired
     protected lateinit var scriptExecution: ScriptExecution
@@ -151,13 +155,20 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
             )
         }
 
+        val method = if (restConfiguration.sseEnabled == true) UITable.RefreshMethod.SSE else UITable.RefreshMethod.GET
+        val refreshUrl = if (method == UITable.RefreshMethod.GET) {
+            "refresh/${script.id}"
+        } else {
+            "logs/${script.id}"
+        }
+
         layout.add(
             UIRow().add(
                 UITable(
                     "logging",
-                    refreshUrl = RestResolver.getRestUrl(this::class.java, "logs/${script.id}"),
-                    refreshIntervalSeconds = 1,
-                    refreshMethod = UITable.RefreshMethod.SSE,
+                    refreshUrl = RestResolver.getRestUrl(this::class.java, refreshUrl),
+                    refreshIntervalSeconds = 2,
+                    refreshMethod = method,
                 ).also {
                     it.add(UITableColumn("timestamp", title = "time", sortable = false))
                     it.add(UITableColumn("level", sortable = false))
