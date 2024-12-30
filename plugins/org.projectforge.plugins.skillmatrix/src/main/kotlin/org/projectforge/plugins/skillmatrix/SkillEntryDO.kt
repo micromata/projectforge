@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.skillmatrix
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.Constants
@@ -31,6 +32,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
+import org.projectforge.framework.json.IdOnlySerializer
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -77,6 +79,7 @@ open class SkillEntryDO : AbstractBaseDO<Long>() {
   @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "owner_fk")
+  @JsonSerialize(using = IdOnlySerializer::class)
   open var owner: PFUserDO? = null
 
   /**

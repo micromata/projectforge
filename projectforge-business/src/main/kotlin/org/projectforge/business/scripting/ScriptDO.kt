@@ -24,6 +24,7 @@
 package org.projectforge.business.scripting
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.JdbcTypeCode
@@ -32,6 +33,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.hibernate.type.SqlTypes
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.jcr.AttachmentsInfo
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -76,6 +78,7 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "execute_as_user_id", nullable = true)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var executeAsUser: PFUserDO? = null
 
     /**

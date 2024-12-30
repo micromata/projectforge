@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.banking
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.apache.commons.codec.digest.DigestUtils
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
@@ -31,6 +32,7 @@ import org.projectforge.Constants
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.time.PFDay
 import java.math.BigDecimal
@@ -56,6 +58,7 @@ open class BankAccountRecordDO : DefaultBaseDO() {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "banking_account_fk", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var bankAccount: BankAccountDO? = null
 
     @PropertyInfo(i18nKey = "plugins.banking.account.record.amount", type = PropertyType.CURRENCY)

@@ -24,6 +24,7 @@
 package org.projectforge.framework.json
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature
@@ -45,82 +46,101 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 object JsonUtils {
-  private val typeAdapterMap: MutableMap<Class<*>, Any> = HashMap()
-  private val objectMapper: ObjectMapper = ObjectMapper()
-  private val objectMapperIgnoreNullableProps: ObjectMapper = ObjectMapper()
-  private val objectMapperIgnoreUnknownProps: ObjectMapper = ObjectMapper()
+    private val typeAdapterMap: MutableMap<Class<*>, Any> = HashMap()
+    private val objectMapper: ObjectMapper = ObjectMapper()
+    private val objectMapperIgnoreNullableProps: ObjectMapper = ObjectMapper()
+    private val objectMapperIgnoreUnknownProps: ObjectMapper = ObjectMapper()
 
-  init {
-    objectMapper.registerModule(KotlinModule.Builder().build())
-    objectMapperIgnoreNullableProps.registerModule(KotlinModule.Builder().build())
-    val module = SimpleModule()
-    initializeMapper(module)
-    objectMapper.registerModule(module)
-    objectMapperIgnoreNullableProps.registerModule(module)
-    objectMapperIgnoreNullableProps.setSerializationInclusion(JsonInclude.Include.NON_NULL)
-    objectMapperIgnoreUnknownProps.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-  }
-
-  fun add(cls: Class<*>, typeAdapter: Any) {
-    typeAdapterMap[cls] = typeAdapter
-  }
-
-  @JvmStatic
-  @JvmOverloads
-  fun toJson(obj: Any?, ignoreNullableProps: Boolean = false): String {
-    return try {
-      if (ignoreNullableProps) {
-        objectMapperIgnoreNullableProps.writeValueAsString(obj)
-      } else {
-        objectMapper.writeValueAsString(obj)
-      }
-    } catch (ex: JsonProcessingException) {
-      log.error(ex.message, ex)
-      ""
+    init {
+        objectMapper.registerModule(KotlinModule.Builder().build())
+        objectMapperIgnoreNullableProps.registerModule(KotlinModule.Builder().build())
+        val module = SimpleModule()
+        initializeMapper(module)
+        objectMapper.registerModule(module)
+        objectMapperIgnoreNullableProps.registerModule(module)
+        objectMapperIgnoreNullableProps.setSerializationInclusion(JsonInclude.Include.NON_NULL)
+        objectMapperIgnoreUnknownProps.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     }
-  }
 
-  @JvmStatic
-  @JvmOverloads
-  @Throws(IOException::class)
-  fun <T> fromJson(json: String?, classOfT: Class<T>?, failOnUnknownProps: Boolean = true): T? {
-    return if (failOnUnknownProps) {
-      objectMapper.readValue(json, classOfT)
-    } else {
-      objectMapperIgnoreUnknownProps.readValue(json, classOfT)
+    fun add(cls: Class<*>, typeAdapter: Any) {
+        typeAdapterMap[cls] = typeAdapter
     }
-  }
 
-  @JvmStatic
-  @JvmOverloads
-  @Throws(IOException::class)
-  fun <T> fromJson(json: String?, typeReference: TypeReference<T>?, failOnUnknownProps: Boolean = true): T? {
-    return if (failOnUnknownProps) {
-      objectMapper.readValue(json, typeReference)
-    } else {
-      objectMapperIgnoreUnknownProps.readValue(json, typeReference)
+    @JvmStatic
+    @JvmOverloads
+    fun toJson(obj: Any?, ignoreNullableProps: Boolean = false): String {
+        return try {
+            if (ignoreNullableProps) {
+                objectMapperIgnoreNullableProps.writeValueAsString(obj)
+            } else {
+                objectMapper.writeValueAsString(obj)
+            }
+        } catch (ex: JsonProcessingException) {
+            log.error(ex.message, ex)
+            ""
+        }
     }
-  }
 
-  fun initializeMapper(module: SimpleModule) {
-    module.addSerializer(LocalDate::class.java, LocalDateSerializer())
-    module.addDeserializer(LocalDate::class.java, LocalDateDeserializer())
+    @JvmStatic
+    @JvmOverloads
+    @Throws(IOException::class)
+    fun <T> fromJson(json: String?, classOfT: Class<T>?, failOnUnknownProps: Boolean = true): T? {
+        return if (failOnUnknownProps) {
+            objectMapper.readValue(json, classOfT)
+        } else {
+            objectMapperIgnoreUnknownProps.readValue(json, classOfT)
+        }
+    }
 
-    module.addSerializer(LocalTime::class.java, LocalTimeSerializer())
-    module.addDeserializer(LocalTime::class.java, LocalTimeDeserializer())
+    @JvmStatic
+    @JvmOverloads
+    @Throws(IOException::class)
+    fun <T> fromJson(json: String?, typeReference: TypeReference<T>?, failOnUnknownProps: Boolean = true): T? {
+        return if (failOnUnknownProps) {
+            objectMapper.readValue(json, typeReference)
+        } else {
+            objectMapperIgnoreUnknownProps.readValue(json, typeReference)
+        }
+    }
 
-    module.addSerializer(PFDateTime::class.java, PFDateTimeSerializer())
-    module.addDeserializer(PFDateTime::class.java, PFDateTimeDeserializer())
+    fun initializeMapper(module: SimpleModule) {
+        module.addSerializer(LocalDate::class.java, LocalDateSerializer())
+        module.addDeserializer(LocalDate::class.java, LocalDateDeserializer())
 
-    module.addSerializer(java.util.Date::class.java, UtilDateSerializer(UtilDateFormat.JS_DATE_TIME_MILLIS))
-    module.addDeserializer(java.util.Date::class.java, UtilDateDeserializer())
+        module.addSerializer(LocalTime::class.java, LocalTimeSerializer())
+        module.addDeserializer(LocalTime::class.java, LocalTimeDeserializer())
 
-    module.addSerializer(Timestamp::class.java, TimestampSerializer(UtilDateFormat.JS_DATE_TIME_MILLIS))
-    module.addDeserializer(Timestamp::class.java, TimestampDeserializer())
+        module.addSerializer(PFDateTime::class.java, PFDateTimeSerializer())
+        module.addDeserializer(PFDateTime::class.java, PFDateTimeDeserializer())
 
-    module.addSerializer(java.sql.Date::class.java, SqlDateSerializer())
-    module.addDeserializer(java.sql.Date::class.java, SqlDateDeserializer())
+        module.addSerializer(java.util.Date::class.java, UtilDateSerializer(UtilDateFormat.JS_DATE_TIME_MILLIS))
+        module.addDeserializer(java.util.Date::class.java, UtilDateDeserializer())
 
+        module.addSerializer(Timestamp::class.java, TimestampSerializer(UtilDateFormat.JS_DATE_TIME_MILLIS))
+        module.addDeserializer(Timestamp::class.java, TimestampDeserializer())
 
-  }
+        module.addSerializer(java.sql.Date::class.java, SqlDateSerializer())
+        module.addDeserializer(java.sql.Date::class.java, SqlDateDeserializer())
+    }
+
+    /**
+     * Writes the id by using methods [JsonGenerator.writeNullField], [JsonGenerator.writeNumberField] or
+     * [JsonGenerator.writeString] dependent on type of id.
+     * @param gen the json generator
+     * @param field the field name.
+     * @param value the id to write.
+     */
+    fun writeField(gen: JsonGenerator, field: String, value: Any?) {
+        if (value == null) {
+            gen.writeNullField(field)
+        } else if (value is Long) {
+            gen.writeNumberField(field, value)
+        } else if (value is Int) {
+            gen.writeNumberField(field, value)
+        } else if (value is String) {
+            gen.writeStringField(field, value)
+        } else {
+            gen.writeStringField(field, "$value")
+        }
+    }
 }

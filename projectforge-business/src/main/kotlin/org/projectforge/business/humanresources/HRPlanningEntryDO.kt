@@ -23,30 +23,35 @@
 
 package org.projectforge.business.humanresources
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo
-import com.fasterxml.jackson.annotation.ObjectIdGenerators
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektFormatter
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.Priority
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.ObjectHelper
 import java.math.BigDecimal
-import jakarta.persistence.*
-import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 
 /**
  * @author Mario Groß (m.gross@micromata.de)
  */
 @Entity
 @Indexed
-@Table(name = "T_HR_PLANNING_ENTRY", indexes = [jakarta.persistence.Index(name = "idx_fk_t_hr_planning_entry_planning_fk", columnList = "planning_fk"), jakarta.persistence.Index(name = "idx_fk_t_hr_planning_entry_projekt_fk", columnList = "projekt_fk")])
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
+@Table(
+    name = "T_HR_PLANNING_ENTRY",
+    indexes = [jakarta.persistence.Index(
+        name = "idx_fk_t_hr_planning_entry_planning_fk",
+        columnList = "planning_fk"
+    ), jakarta.persistence.Index(name = "idx_fk_t_hr_planning_entry_projekt_fk", columnList = "projekt_fk")]
+)
 open class HRPlanningEntryDO : DefaultBaseDO(), DisplayNameCapable {
 
     override val displayName: String
@@ -57,6 +62,7 @@ open class HRPlanningEntryDO : DefaultBaseDO(), DisplayNameCapable {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "planning_fk", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var planning: HRPlanningDO? = null
 
     @PropertyInfo(i18nKey = "fibu.projekt")
@@ -64,6 +70,7 @@ open class HRPlanningEntryDO : DefaultBaseDO(), DisplayNameCapable {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "projekt_fk")
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var projekt: ProjektDO? = null
 
     @FullTextField
@@ -194,9 +201,11 @@ open class HRPlanningEntryDO : DefaultBaseDO(), DisplayNameCapable {
 
     val isEmpty: Boolean
         @Transient
-        get() = ObjectHelper.isEmpty(this.description, this.mondayHours, this.tuesdayHours, this.wednesdayHours,
-                this.thursdayHours,
-                this.fridayHours, this.weekendHours, this.priority, this.probability, this.projekt)
+        get() = ObjectHelper.isEmpty(
+            this.description, this.mondayHours, this.tuesdayHours, this.wednesdayHours,
+            this.thursdayHours,
+            this.fridayHours, this.weekendHours, this.priority, this.probability, this.projekt
+        )
 
     override fun equals(other: Any?): Boolean {
         if (other is HRPlanningEntryDO) {

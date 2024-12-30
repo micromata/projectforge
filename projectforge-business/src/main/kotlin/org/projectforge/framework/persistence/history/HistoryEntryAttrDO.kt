@@ -24,8 +24,10 @@
 package org.projectforge.framework.persistence.history
 
 import com.fasterxml.jackson.annotation.JsonBackReference
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.api.HibernateUtils
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
@@ -75,6 +77,7 @@ class HistoryEntryAttrDO : HistoryEntryAttr {
     @JsonBackReference
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "master_fk", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     var parent: HistoryEntryDO? = null
 
     /**

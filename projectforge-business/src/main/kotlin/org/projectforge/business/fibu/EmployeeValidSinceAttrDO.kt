@@ -25,9 +25,11 @@ package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonIdentityReference
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.projectforge.Constants
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.candh.CandHHistoryEntryICustomizer
 import org.projectforge.framework.persistence.candh.CandHIgnore
@@ -73,6 +75,7 @@ open class EmployeeValidSinceAttrDO : Serializable, AbstractBaseDO<Long>(), Cand
     @JsonIdentityReference(alwaysAsId = true)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "employee_fk", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var employee: EmployeeDO? = null
 
     @get:Enumerated(EnumType.STRING)

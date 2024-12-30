@@ -21,23 +21,25 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.api
+package org.projectforge.framework.json
 
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
-import org.projectforge.business.user.UserPrefDao
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.databind.JsonSerializer
+import com.fasterxml.jackson.databind.SerializerProvider
+import org.projectforge.framework.persistence.api.BaseDO
+import java.io.IOException
 
-class MagicFilterTest {
-    @Suppress("UNCHECKED_CAST")
-    @Test
-    fun serializationTest() {
-        val filter = MagicFilter()
-        filter.entries.add(MagicFilterEntry("zipCode", "12345"))
-        val om = UserPrefDao.objectMapper
-        val json = om.writeValueAsString(filter)
-        val obj = om.readValue(json, MagicFilter::class.java) as MagicFilter
-        Assertions.assertEquals(1, obj.entries.size)
-        Assertions.assertEquals("zipCode", obj.entries[0].field)
-        Assertions.assertEquals("12345", obj.entries[0].value.value)
+class IdOnlySerializer : JsonSerializer<BaseDO<*>>() {
+    @Throws(IOException::class)
+    override fun serialize(value: BaseDO<*>?, gen: JsonGenerator, serializers: SerializerProvider) {
+        if (value == null) {
+            gen.writeNull()
+        } else {
+            gen.writeStartObject()
+            value.id.let { id ->
+                JsonUtils.writeField(gen, "id", id)
+            }
+            gen.writeEndObject()
+        }
     }
 }

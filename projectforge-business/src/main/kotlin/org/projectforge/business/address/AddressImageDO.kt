@@ -23,7 +23,9 @@
 
 package org.projectforge.business.address
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.api.IdObject
 import java.util.Date
 
@@ -61,6 +63,7 @@ open class AddressImageDO : IdObject<Long> {
 
     @get:OneToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "address_fk", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var address: AddressDO? = null
 
     @get:Column(columnDefinition = "BLOB")

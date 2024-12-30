@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu.kost
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
@@ -30,6 +31,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.business.fibu.KontoDO
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.time.PFDayUtils
 import org.slf4j.LoggerFactory
@@ -113,6 +115,7 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "konto_id", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var konto: KontoDO? = null
 
     @PropertyInfo(i18nKey = "fibu.buchungssatz.gegenKonto")
@@ -120,6 +123,7 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "gegenkonto_id", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var gegenKonto: KontoDO? = null
 
     @GenericField // was: @FullTextField(analyze = Analyze.NO)
@@ -148,6 +152,7 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "kost1_id", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var kost1: Kost1DO? = null
 
     @PropertyInfo(i18nKey = "fibu.kost2")
@@ -155,6 +160,7 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "kost2_id", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var kost2: Kost2DO? = null
 
     @PropertyInfo(i18nKey = "comment")

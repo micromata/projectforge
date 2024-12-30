@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.access
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.apache.commons.lang3.builder.ToStringBuilder
@@ -34,13 +35,13 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmb
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.history.PersistenceBehavior
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import java.io.Serializable
-import java.util.*
 
 /**
  * Represents an access entry with the permissions of one group to one task. The persistent data object of
@@ -70,6 +71,7 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne
     @get:JoinColumn(name = "group_id")
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var group: GroupDO? = null
 
     @PropertyInfo(i18nKey = "task")
@@ -77,6 +79,7 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne
     @get:JoinColumn(name = "task_id")
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var task: TaskDO? = null
 
     /**

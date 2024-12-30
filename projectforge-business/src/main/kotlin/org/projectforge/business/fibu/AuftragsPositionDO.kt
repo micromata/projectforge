@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.projectforge.business.task.TaskDO
@@ -39,6 +40,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.search.ClassBridge
 
 /**
@@ -78,10 +80,12 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   // @ContainedIn
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "auftrag_fk", nullable = false)
+  @JsonSerialize(using = IdOnlySerializer::class)
   open var auftrag: AuftragDO? = null
 
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "task_fk", nullable = true)
+  @JsonSerialize(using = IdOnlySerializer::class)
   open var task: TaskDO? = null
 
   @PropertyInfo(i18nKey = "fibu.auftrag.position.art")

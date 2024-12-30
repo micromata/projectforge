@@ -23,6 +23,7 @@
 
 package org.projectforge.business.address
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
@@ -35,6 +36,7 @@ import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.json.IdsOnlySerializer
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.LabelValueBean
@@ -293,6 +295,7 @@ open class AddressDO : DefaultBaseDO(), DisplayNameCapable {
                 columnList = "addressbook_id"
             )]
     )
+    @JsonSerialize(using = IdsOnlySerializer::class)
     open var addressbookList: MutableSet<AddressbookDO>? = null
 
     fun add(addressbook: AddressbookDO) {
