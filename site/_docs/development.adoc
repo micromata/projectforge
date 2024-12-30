@@ -71,7 +71,7 @@ With ProjectForge 7.x Kotlin and ReactJS is introduced.
   ** Smart operations on collections (map, find, sort etc.)
   ** Immutable objects, classes and functions as default.
   ** Null safety
-  ** Compability with JAVA code.
+  ** Compatibility with JAVA code.
 * Java and Kotlin will both exist. Only most BaseDO classes were migrated and new functionality will mostly be written in Kotlin.
 
 Please note: Kotlin must be compiled with target 1.8 (Java version) but is fully runnable on Java 9, 10 and 11 VMs.

@@ -88,7 +88,7 @@ class MerlinStatistics {
   }
 
   /**
-   * Updates dto variables: Adds statistics variables not yet included in dto and updates usage info (defined, master variabl etc.)
+   * Updates dto variables: Adds statistics variables not yet included in dto and updates usage info (defined, master variable etc.)
    * of dto variables and dependentVariables.
    */
   fun updateDtoVariables(dto: MerlinTemplate) {

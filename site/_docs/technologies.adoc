@@ -73,7 +73,7 @@ Java 8 might work also with ProjectForge 7, but OpenJDK 11 is recommended (teste
 |JCR|JackRabbit for document storage (used by data transfer tool and others)
 |FOP |For the creation of PDFs, e. g. the user time sheets, monthly employee reports etc.
 |JUnit |Test framework
-|GitHub actions|CI - continouos integration system
+|GitHub actions|CI - continuous integration system
 |Groovy/Kotlin Script |Used for scripting ProjectForge for reports (MS Excel exports, charting etc.) as well as for e-mail templating (see AdministrationGuide for further information).
 |Jasperreports|For generating reports.
 |JFreeChart|For internal graphics and diagrams as well as for usage in the groovy scriptlets by the users, e. g. for reports.

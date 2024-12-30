@@ -83,7 +83,7 @@ if [ -f "$CONFIG_FILE" ]; then
   echo "Normal start"
   java $START &
 else
-  # CONFIG_FILE doesn't exist, so assume intial start:
+  # CONFIG_FILE doesn't exist, so assume initial start:
   # java must run in foreground for using the console setup wizard.
   echo "Initial start"
   java $START

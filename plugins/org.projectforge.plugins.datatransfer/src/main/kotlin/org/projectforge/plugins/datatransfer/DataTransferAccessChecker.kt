@@ -74,7 +74,7 @@ open class DataTransferAccessChecker(
   }
 
   /**
-   * Checks select/download-access (same). See [checkDownloadAccess] for special handling of perosnal boxes.
+   * Checks select/download-access (same). See [checkDownloadAccess] for special handling of personal boxes.
    */
   private fun checkAccess(user: PFUserDO?, id: Any) {
     user!!

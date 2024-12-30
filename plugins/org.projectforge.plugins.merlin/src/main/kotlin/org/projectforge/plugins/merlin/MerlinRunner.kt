@@ -421,7 +421,7 @@ open class MerlinRunner {
       }
     }
     if (!validUsernames) {
-      log.error { "Errors for personal box users occured. No document will be send to any personal user box. Aborting." }
+      log.error { "Errors for personal box users occurred. No document will be send to any personal user box. Aborting." }
       return pdfDocuments
     }
     var counter = 0

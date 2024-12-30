@@ -49,7 +49,7 @@ Login as admin user and create a top level structure element with the name of yo
 
 === Create a group for all employees
 
-Add a user group (meu item "Administration" -> "Groups") named e. g. "JavaGurus employees".
+Add a user group (menu item "Administration" -> "Groups") named e. g. "JavaGurus employees".
 
 [cols=2*,options="header"]
 |===
@@ -79,9 +79,9 @@ Click on the menu entry 'structure tree' and create a structure element named as
 | ACME web portal           | Root (select parent structure element by clicking on the hierarchy icon and simply select Root).
 |===
 
-can change the hierarchy and the names of your structure elements (e. g. for organizing your projects per customer) later, so start with your project as top level structure element. Also user names, group names etc. can be changed any time you want without loosing any references in the system.
+can change the hierarchy and the names of your structure elements (e. g. for organizing your projects per customer) later, so start with your project as top level structure element. Also user names, group names etc. can be changed any time you want without losing any references in the system.
 
-You can change the hierarchy and the names of your structure elements (e. g. for organizing your projects per customer) later, so start with your project as top level structure element. Also user names, group names etc. can be changed any time you want without loosing any references in the system.
+You can change the hierarchy and the names of your structure elements (e. g. for organizing your projects per customer) later, so start with your project as top level structure element. Also user names, group names etc. can be changed any time you want without losing any references in the system.
 
 
 === Assign the required team access
@@ -95,7 +95,7 @@ ProjectForge® has an very detailed access management, so you can configure whic
 | ACME web portal   |	ACME web portal team | yes      | The top-level structure element for the ACME web portal project. | Choose template 'employee'.
 |===
 
-If they're are any labels or text fields with italic letters (such as the label 'recursive') you'll get a tool-tip explaning the component when you place your mouse over such elements.
+If they're are any labels or text fields with italic letters (such as the label 'recursive') you'll get a tool-tip explaining the component when you place your mouse over such elements.
 Finish
 
 Now your project team members are able to book time sheets on your ACME web portal project. They're also able to give their project a sub structure, explaining in the next chapter: ProjectForge Quickstart Structure of your projects
@@ -139,7 +139,7 @@ In the structure tree you can see all consumptions of every displayed structure 
 There are two ways to configure budgets. The easiest way is to enter the budget in hours on every structure element. If a structure element has structure sub elements with given maximum hours and the structure element has itself no budget setting, the budget for this parent structure element is automatically calculated (sum of all structure sub elements budgets). The other way is to define your budgets by assigning orders (described not here). You can mix both approaches.
 ProjectForge Quickstart Gantt charts
 
-Planning a project and controlling a project to keep the project on track, Gantt charts are a very often used technique. ProjectForge® supports Gantt charts as descriped in this chapter.
+Planning a project and controlling a project to keep the project on track, Gantt charts are a very often used technique. ProjectForge® supports Gantt charts as described in this chapter.
 You can edit all Gantt parameters such as start/stop dates, duration, predecessors etc. by editing the structure element in the structure tree. But it's more convenient to edit the parameters of the structure element in the Gantt tree directly.
 You'll get the Gantt functionality by choosing the menu entry 'Gantt'. Add a new chart and choose your structure element (project, release of project phase) you like to plan. In this example we choose the project's main structure element 'ACME web portal'.
 
@@ -161,7 +161,7 @@ Following steps are required to enable your ProjectForge installation for having
 Set the flag "is cost activated" to true (see configuration menu).
 
 ==== Access rights and required group of the financial administrative user
-Please ensure that the financial adminstrative user is assigned to the group PF_FINANCE and the right "cost *" is set to read/write, same for projects.
+Please ensure that the financial administrative user is assigned to the group PF_FINANCE and the right "cost *" is set to read/write, same for projects.
 
 ==== Define cost2 types
 
@@ -194,7 +194,7 @@ For project/customer specific cost objectives you'll need to define customers fi
 
 ==== Define cost2
 
-You can define cost2 entries (independant from projects) or project specific cost2 entries by selecting the project first.
+You can define cost2 entries (independent from projects) or project specific cost2 entries by selecting the project first.
 
 ==== Assign projects or cost2 to structure elements
 
