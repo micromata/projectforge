@@ -41,7 +41,7 @@ private val log = KotlinLogging.logger {}
 class SkillMatrixPlugin : AbstractPlugin(
     PluginAdminService.PLUGIN_SKILL_MATRIX_ID,
     "Skill matrix",
-    "The users skills managed by the users themselve."
+    "The users skills managed by the users themselves."
 ) {
 
     override fun initialize() {

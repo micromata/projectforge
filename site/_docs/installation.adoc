@@ -123,7 +123,7 @@ ProjectForge is only available on port 8080 from localhost due to security reaso
 
 [NOTE]
 ====
-Please be aware, that after your first start of ProjectForge, your page might be public and be configured by anybody else! So proceed immediatelyly with the configuration if your new ProjectForge instance is
+Please be aware, that after your first start of ProjectForge, your page might be public and be configured by anybody else! So proceed immediately with the configuration if your new ProjectForge instance is
 public available.
 ====
 
@@ -139,7 +139,7 @@ h|User name | The user name of the initial admin user of ProjectForge.
 h|Password | Admin's password.
 h|Default time zone | Default time zone for all users, if not configured by an user und MyAccount.
 h|Calendar domain | ProjectForge provides calendar and events. For having world-wide unique event id's, choose here your personal name.
-h|Administrators | ProjectForge sends e-mails to this address(es) in the case of special errors. You can specify one ore more (coma separated) addresses (RFC822).
+h|Administrators | ProjectForge sends e-mails to this address(es) in the case of special errors. You can specify one or more (coma separated) addresses (RFC822).
 h|Feed-back | If this e-mail is given then a feedback panel will be shown if an error occurs. The user has the possibility to send an e-mail feedback (e. g. JIRA-system or help desk).
 |===
 
@@ -213,10 +213,10 @@ All of the commands below should be run with `root` privileges.
 ==== Configure Nginx
 
 To use NGINX as a reverse proxy, it's necessary to create a configuration file. The standard path for NGINX configurations is `/etc/nginx/sites-available/`, so let's create the file link:misc/nginx_sites-available_projectforge[`/etc/nginx/sites-available/projectforge`].
-If you want to use `.htaccess` to blok access to the installation, you need to remove the comment character (`#`) in front of the `auth_basic` and `auth_basic_file` parameters.
+If you want to use `.htaccess` to block access to the installation, you need to remove the comment character (`#`) in front of the `auth_basic` and `auth_basic_file` parameters.
 If you want to use HSTS (which makes browsers show an error page when the SSL certificate is invalid and/or nonexistent), remove the comment character (`#`) in front of the `add_header Strict-Transport-Security` parameter.
 
-**Remeber to replace *projectforge.example.com* with the actual domain you'll run ProjectForge on!**
+**Remember to replace *projectforge.example.com* with the actual domain you'll run ProjectForge on!**
 
 
 To activate the NGINX configuration, you'll need to symlink the configuration file we just created to `/etc/nginx/sites-enabled`. This can be done by using the following command:
@@ -281,7 +281,7 @@ Daily backups (not monthly) will be deleted after 30 days.
 Refer config file for all options: [https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/application.properties]
 
 == Supported Java versions
-.Java Compability (2021/04/12)
+.Java Compatibility (2021/04/12)
 [cols="1,1,1,3"]
 |===
 |Java version | V7.5+ | V8.0+ | Comments

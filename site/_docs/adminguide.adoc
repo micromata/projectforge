@@ -209,7 +209,7 @@ ProjectForge works with Groovy templates for generating e-mails (as
 notifications). You'll find the templates inside your web archive of the
 ProjectForge
 installation: `plugins/projectforge-business-X.X.X.jar/mail/.` You can
-modify any template of this directory if needed by simply copiing the
+modify any template of this directory if needed by simply copying the
 file(s) you want to modify into your ProjectForge application dir, which
 is also the destination of `application.properties:`
 
@@ -528,10 +528,10 @@ projectforge.phoneLookupKey=*******SECRET********
 
 If you work with accounting records (DATEV) you may be want to have
 business assessments (BWA in German). The business assessments of DATEV
-constist of rows. Each row has a line number (no) and a title (for
+consists of rows. Each row has a line number (no) and a title (for
 displaying). The `accountRange` defines which DATEV accounts matches the
 row. Please note, that a record is assigned to the first row found.  +
-If the priorty of a row is not high, the row will not be shown in the
+If the priority of a row is not high, the row will not be shown in the
 short form of business assessments. The value defines row amounts which
 are calculated (see example below).
 
@@ -585,7 +585,7 @@ password change.
 
 ==== 2FA (two-factor-authentication)
 
-2FA (two factor autentication) is supported:
+2FA (two factor authentication) is supported:
 
  * by using RFC6238, used by e. g. Google or Microsoft Authenticator.
  * SMS if configured
@@ -593,9 +593,9 @@ password change.
 
 You may specify the expiry periods of 2FA for different expiry periods URL's by shortcuts for
 predefined sets of uri matchers and/or own regular expressions (as uri matchers).
-A web filter checks for every request, if there is a 2FA is required and
-if the last successfull 2FA of the current session is not older than the specified expiry period.
-The timestamp of a sucessfull 2FA is stored in the user's session as well as in any user's
+A web filter checks for every request, if a 2FA is required and if the last
+successful 2FA of the current session is not older than the specified expiry period.
+The timestamp of a successful 2FA is stored in the user's session as well as in any user's
 stay-logged-in-session.
 
 Recoomended example configuration:
@@ -623,7 +623,7 @@ Rules
 * If expressions do start with `/` they will be replaced by their regex: `/rs/user` -> `^/rs/user.+++*+++`:
 Any uri *starting* with `/rs/user` is matching.
 * Empty entries means: no 2nd factor
-* Regular expressions and shortcuts should be seperated by ';'.
+* Regular expressions and shortcuts should be separated by ';'.
 * Supported shortcuts are `ADMIN`, `HR`, `FINANCE`, `ORGA`, `SCRIPTING`, `MY_ACCOUNT`, `PASSWORD`
 containing a bunch of regex.
 * You may also use `WRITE:<entity-name>` for specifying only all write access calls of an entity (rest calls of React and
@@ -765,7 +765,7 @@ assigned in ProjectForge to the same ProjectForge group.
 
 ===== LDAP entries
 
-See figures [.external-link]#3# and [.external-link]#4# for detailled
+See figures [.external-link]#3# and [.external-link]#4# for detailed
 information of how does ProjectForge stores and expect LDAP fields and
 object classes.
 
@@ -779,7 +779,7 @@ fields `uidNumber, gidNumber, homeDirectory` and `loginShell` are only
 used and managed if configured).
 The field `employeeNumber` is used by ProjectForge for storing the
 primary key of the ProjectForge user entry in LDAP (for a better
-syncronization). So the renaming of user names should work.
+synchronization). So the renaming of user names should work.
 |===
 
 image::/uploads/adminguide/LDAP-group-entry.png[image]
@@ -789,7 +789,7 @@ image::/uploads/adminguide/LDAP-group-entry.png[image]
 |Figure 4: |ProjectForge uses the fields and object classes shown in
 this figure for groups. The field `businessCategory` is used by
 ProjectForge for storing the primary key of the ProjectForge group entry
-in LDAP (for a better syncronization). So the renaming of group names
+in LDAP (for a better synchronization). So the renaming of group names
 should work.
 |===
 
@@ -798,7 +798,7 @@ should work.
 ProjectForge supports the management of POSIX accounts with the
 data `uidNumber,` `gidNumber,` `homeDirectory,` and `loginShell.`
 
-You can adminster the POSIX account data in the UserEditPage after
+You can administer the POSIX account data in the UserEditPage after
 configuring the *`application.properties`* like the above example.
 Pleaser refer the tool-tips for further information:
 
@@ -949,7 +949,7 @@ Refer the migration guide for required, manual changes.
 
 === Re-indexing the database
 
-Should be done after setup: Use the adminstration menu.
+Should be done after setup: Use the administration menu.
 
 === Analysing tools
 
@@ -1053,7 +1053,7 @@ ____
 If you want to use productive data in your develepment system for
 testing, it's recommended to set all e-mail addresses of the users to
 your developers e-mail. Also all passwords can be easily set
-to `test123` if you user folliwing sql statement in your test database
+to `test123` if you user following sql statement in your test database
 (not productive!):
 ____
 
@@ -1216,7 +1216,7 @@ automatically enabled are described here.
 The plugins-jar must be in another folder(plugins) next to the
 ProcetForgeJar.
 
-The plugins are managed under Adminstration --> Plugins in the
+The plugins are managed under Administration --> Plugins in the
 ProjectForge web app. After the activation, they have to restart
  ProjectForge.
 
