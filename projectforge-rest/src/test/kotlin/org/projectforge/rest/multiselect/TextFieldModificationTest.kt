@@ -34,7 +34,7 @@ class TextFieldModificationTest {
     checkNewTextValue("", "", "", "empty string to delete", delete = true)
     checkNewTextValue("test", "", "", "delete string", delete = true)
     checkNewTextValue("test", "", "test", "Can't delete and append text!", delete = true, append = true)
-    checkNewTextValue("test", "new text", "test\nnew text", "new value shoud be appended", append = true)
+    checkNewTextValue("test", "new text", "test\nnew text", "new value should be appended", append = true)
     checkNewTextValue(
       "test\nnew text",
       "new text",

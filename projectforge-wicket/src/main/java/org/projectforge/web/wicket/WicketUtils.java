@@ -99,7 +99,7 @@ public class WicketUtils {
         String relativeUrl = page.urlFor(page.getPageClass(), page.getPageParameters()).toString();
 
         if (relativeUrl.contains("../")) {
-            // Therefore ignore relative pathes ../:
+            // Therefore ignore relative paths ../:
             relativeUrl = relativeUrl.replace("../", "");
         }
 
@@ -268,7 +268,7 @@ public class WicketUtils {
      * application.
      *
      * @param pageClass
-     * @param Optional  list of params in tupel form: key, value, key, value...
+     * @param Optional  list of params in tuple form: key, value, key, value...
      */
     public static String getBookmarkablePageUrl(final Class<? extends Page> pageClass, final String... params) {
         final RequestCycle requestCylce = RequestCycle.get();
@@ -772,7 +772,7 @@ public class WicketUtils {
     }
 
     /**
-     * For compability reasons.
+     * For compatibility reasons.
      *
      * @param label Label as prefix
      * @param date
@@ -1115,7 +1115,7 @@ public class WicketUtils {
     }
 
     /**
-     * Searchs the attribute behavior (SimpleAttributeModifier or AttibuteApendModifier) with the given attribute name and
+     * Searches the attribute behavior (SimpleAttributeModifier or AttibuteApendModifier) with the given attribute name and
      * returns it if found, otherwise null.
      *
      * @param comp

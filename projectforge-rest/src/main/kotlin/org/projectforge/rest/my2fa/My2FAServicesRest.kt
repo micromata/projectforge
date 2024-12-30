@@ -146,7 +146,7 @@ class My2FAServicesRest {
 
     /**
      * Should be called after [ThreadLocalUserContext.getUserContext] -> [UserContext.updateLastSuccessful2FA].
-     * Updates the time stamp of the last succesful 2FA as cookie as well as in the user's session.
+     * Updates the time stamp of the last successful 2FA as cookie as well as in the user's session.
      */
     fun updateCookieAndSession(request: HttpServletRequest, response: HttpServletResponse) {
         ThreadLocalUserContext.userContext!!.lastSuccessful2FA?.let { lastSuccessful2FA ->
@@ -337,7 +337,7 @@ class My2FAServicesRest {
 
     /**
      * @param showCancelButton Only true for login process (the private services aren't yet available) and password reset
-     * @param mailOTPDisabled True, if no mail button should be displayed (escpecially for password reset).
+     * @param mailOTPDisabled True, if no mail button should be displayed (especially for password reset).
      * @param restServiceClass Optional rest service class, [My2FAPublicServicesRest] is default.
      */
     private fun fillCodeCol(

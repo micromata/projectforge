@@ -179,7 +179,7 @@ class ExcelExport {
         
         var largestAnswer = ""
         
-        // each question gets itterated ones
+        // each question gets iterated once
         poll.inputFields?.forEachIndexed { _, question ->
             val choices = res?.responses?.find { it.questionUid == question.uid }
             
@@ -188,7 +188,7 @@ class ExcelExport {
 
                 var index: Int
 
-                // each answer-field oft the question is itterated
+                // each answer-field oft the question is iterated
                 question.answers?.forEachIndexed { ind, answer ->
                     index = question.answers!!.size - 1
                     excelSheet.autosize(cell)

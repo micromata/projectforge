@@ -72,7 +72,7 @@ open class BaseDTO<T : ExtendedBaseDO<Long>>(
   }
 
   /**
-   * Copy only minimal fields. Id at default, if not overridden. This method is usally used for embedded objects.
+   * Copy only minimal fields. Id at default, if not overridden. This method is usually used for embedded objects.
    */
   open fun copyFromMinimal(src: T) {
     id = src.id
@@ -180,7 +180,7 @@ open class BaseDTO<T : ExtendedBaseDO<Long>>(
             }
           } catch (ex: Exception) {
             log.error(
-              "Error while copiing field '${destField.name}' from $srcClazz to ${dest.javaClass}: ${ex.message}",
+              "Error while copying field '${destField.name}' from $srcClazz to ${dest.javaClass}: ${ex.message}",
               ex
             )
           }

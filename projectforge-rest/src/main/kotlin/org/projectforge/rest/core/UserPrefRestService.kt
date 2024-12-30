@@ -132,7 +132,7 @@ class UserPrefRestService {
             @Suppress("UNCHECKED_CAST")
             return entry as T
         }
-        // Probably a new software release results in an incompability of old and new object format.
+        // Probably a new software release results in an incompatibility of old and new object format.
         log.info("Could not get user preference entry: (old) type "
                 + entry.javaClass.name
                 + " is not assignable tox (new) required type "

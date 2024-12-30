@@ -93,14 +93,14 @@ public abstract class ListAndEditPagesTestBase extends WicketPageTestBase {
   }
 
   /**
-   * Starts list page with reseted filter.
+   * Starts list page with reset filter.
    */
   protected void startListPage() {
     startListPage(null);
   }
 
   /**
-   * Starts list page with reseted filter and given search string as filter string.
+   * Starts list page with reset filter and given search string as filter string.
    */
   protected void startListPage(final String searchString) {
     tester.startPage(getListPageClass());

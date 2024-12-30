@@ -51,7 +51,7 @@ function ValidationManager({ children, customValidation }) {
 
                 return {
                     ...child,
-                    // Manupulating the props of the child.
+                    // Manipulating the props of the child.
                     props: {
                         ...child.props,
                         additionalLabel,

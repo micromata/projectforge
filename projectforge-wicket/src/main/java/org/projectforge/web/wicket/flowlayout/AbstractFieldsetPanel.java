@@ -409,7 +409,7 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel<?>> 
   }
 
   /**
-   * @return The Wicket id of the embedded text fiel of {@link DropDownChoicePanel}.
+   * @return The Wicket id of the embedded text field of {@link DropDownChoicePanel}.
    */
   public String getSelect2MultiChoiceId()
   {

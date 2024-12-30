@@ -66,7 +66,7 @@ public class PriorityTest
     Assertions.assertEquals(Priority.getPriority("HIGH"), HIGH);
     Assertions.assertEquals(Priority.getPriority("HIGHEST"), HIGHEST);
     try {
-      Priority.getPriority("Extrordinary High");
+      Priority.getPriority("Extraordinary High");
     } catch (UnsupportedOperationException e) {
       Assertions.assertNotNull(e);
     }

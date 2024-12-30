@@ -108,7 +108,7 @@ internal class I18nKeysSourceAnalyzer {
         }
         getI18nEnums()
         getPropertyInfos()
-        // Now, add all found occurences of all i18n keys detected:
+        // Now, add all found occurrences of all i18n keys detected:
         i18nKeyMap.values.forEach { entry ->
             stringConstantsMap[entry.i18nKey]?.forEach { file ->
                 entry.addUsage(file)
