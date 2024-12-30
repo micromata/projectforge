@@ -54,6 +54,7 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
     class LogEntry(timestamp: Date, val level: LogLevel, val message: String) {
         val id = timestamp.time
         val timestamp: String = PFDateTime.from(timestamp).format(DateFormatType.DATE_TIME_SECONDS)
+        val levelAsString = translate(level.i18nKey)
     }
 
     protected lateinit var scriptDao: AbstractScriptDao
@@ -171,7 +172,7 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
                     refreshMethod = method,
                 ).also {
                     it.add(UITableColumn("timestamp", title = "time", sortable = false))
-                    it.add(UITableColumn("level", sortable = false))
+                    it.add(UITableColumn("levelAsString", title = "log.level", sortable = false))
                     it.add(UITableColumn("message", title = "message.title", sortable = false))
                 }
             )
@@ -272,7 +273,7 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
         @PathVariable("scriptId") scriptIdString: String?
     ): SseEmitter {
         val scriptId = scriptIdString?.toLongOrNull()
-        object: SseEmitterTool() {
+        object : SseEmitterTool() {
             var scriptLogger: ScriptLogger? = null
                 get() {
                     if (field == null) {
