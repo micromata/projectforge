@@ -155,7 +155,7 @@ class GroovyEngine @JvmOverloads constructor(
     if (template == null) {
       log.error(
         "Template with filename '" + file
-            + "' not found (whether in resource path nor in ProjectForge's application dir."
+            + "' not found (neither in resource path nor in ProjectForge's application dir."
       )
       return ""
     }
