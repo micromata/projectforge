@@ -4,4 +4,4 @@ categories: [administration,faq]
 permalink: /misc/faqs.html
 ---
 
-Please add your logo at the given path as pdf-logo.png. Please refer the AdminstrationGuide.
+Please add your logo at the given path as pdf-logo.png. Please refer the AdministrationGuide.

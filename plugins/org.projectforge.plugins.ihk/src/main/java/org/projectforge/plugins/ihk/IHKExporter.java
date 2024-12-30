@@ -192,7 +192,7 @@ class IHKExporter
 
 
     /*
-      Calculate height of cell from the content lenght and the number of line breaks
+      Calculate height of cell from the content length and the number of line breaks
     */
 
     String puffer = description;

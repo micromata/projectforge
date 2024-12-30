@@ -92,10 +92,10 @@ OR test* +
 untouched.)
 
 |hello AND name:hurzel |hello AND name:hurzel hello AND name:hurzel +
-(no substituion because of ':'.)
+(no substitution because of ':'.)
 
 |+hello and hurzel |+hello and hurzel +
-(no substituion because of '+'.)
+(no substitution because of '+'.)
 |===
 
 If in doubt, ProjectForge® displays any substitution of the user's
@@ -121,7 +121,7 @@ objects regarding the history of changes, e. g. the user wants to find
 any object which was changed during the last 10 minutes etc. Click on
 the plus sign at the right bottom of the search field's label to see the
 opportunities.  +
-All other filter criterias will also be used. (see figure 2)
+All other filter criteria will also be used. (see figure 2)
 
 image::/uploads/userguide/extendedFilter.png[image]
 
@@ -177,7 +177,7 @@ edit pages:
 
 . Direct link for displaying an object by id.
 . Direct link including parameters for calling the edit page with
-pre-filled parameters. This is usefull for adding new time-sheets with
+pre-filled parameters. This is useful for adding new time-sheets with
 pre-filled parameters.
 
 The second link may be used for creation of new time-sheets with
@@ -365,7 +365,7 @@ the contain only a single event which isn't already present. Later an
 update dialog with differences to accept/deny will be shown and a
 multi-import should be supported.
 * *More complex recurrence pattern*
-* *Subsciption of external calendars in ProjectForge*  +
+* *Subscription of external calendars in ProjectForge*  +
 Starting with icloud. An user is able to share his icloud calendars via
 ProjectForge.
 
@@ -448,7 +448,7 @@ You may import phone numbers to your mobile device or system telephone
 (e. g. SNOM telephone) if vCard isn't supported.  +
 Via the button 'Export phone list' all' all marked phone numbers will be
 exported with ISO-8859 encoding as csv file. ProjectForge® extends
-the names of the contacs automaticall with "mobile" or "private", if the
+the names of the contacts automatically with "mobile" or "private", if the
 number is not the business phone number.
 
 
@@ -649,7 +649,7 @@ to a structure element.
 === Booking of time sheets
 
 Time sheets must be assigned to a structure element. For improving the
-quality of time sheets different rules may be definied in
+quality of time sheets different rules may be defined in
 ProjectForge®.  +
 Following rules are implemented, if the user doesn't hit the rules he
 won't be able to book his working time on such structure elements.
@@ -685,7 +685,7 @@ the right to do (see user administration of ProjectForge®).
 
 All modifications of orders, if not done by the project manager itself
 will be sent by e-mail including a quick link to the order, see figure
-20, a notication is suppressed if the check-box is disabled..
+20, a notification is suppressed if the check-box is disabled..
 
 image::/uploads/userguide/Auftragsbuch-Notification.png[image]
 
@@ -869,7 +869,7 @@ The total amount is: £92.23
 
 === Invoices
 
-ProjectForge® supportes the management of invoices (inbound and
+ProjectForge® supports the management of invoices (inbound and
 outbound, creditors and debitors):
 
 * Inovices may contain an unlimited number of positions.
@@ -1193,7 +1193,7 @@ return result;
 
 You may protect time sheets by date for structure elements (including
 all descendent structure elements). This protection ensures that no
-employee is able to modifiy time sheets with dates before the date where
+employee is able to modify time sheets with dates before the date where
 the protection ends.  +
 This is useful if the time sheets are invoiced or taken over by other
 accounting systems. Figure 31 shows a structure element with a
@@ -1331,7 +1331,7 @@ Examples:
 * +++"'^5.02.*"+++ -> +++"^5.02.*"+++ (matches all strings starting with "5?02".
 
 (This strategy of replacement is for convenience purposes because '.'
-means normally any character and '*' means a multiple occurence of the
+means normally any character and '*' means a multiple occurrence of the
 character before the asterisk: for example "3.1*" will match "3x1111"
 but not "3.120.08.02".)
 
@@ -1442,7 +1442,7 @@ they represent customers, projects, releases, tasks etc.
 
 |Beleg |receipt |
 
-|Betrag |ammount |
+|Betrag |amount |
 
 |Brutto |gross (amount) |
 
@@ -1489,7 +1489,7 @@ ProjectForge®.
 |Kostenträgerart |type of cost unit |Term used inside the financial
 module of ProjectForge®. Examples for types of cost units are:
 'Travelling', 'Acquisition', 'Meetings' etc. Types are customizable and
-used for specifiing different types of costs in projects and/or company
+used for specifying different types of costs in projects and/or company
 wide.
 
 |Kostenzuweisung |cost assignment |Term used inside the financial module

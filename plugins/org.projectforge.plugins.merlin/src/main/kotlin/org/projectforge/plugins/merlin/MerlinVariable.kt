@@ -76,7 +76,7 @@ class MerlinVariable : MerlinVariableBase() {
 
   /**
    * Input variables will be displayed for editing (or given in serial Excel). Input variables are defined and not dependent.
-   * Equals to definded && !dependent.
+   * Equals to defined && !dependent.
    */
   val input: Boolean
     get() = defined && !dependent

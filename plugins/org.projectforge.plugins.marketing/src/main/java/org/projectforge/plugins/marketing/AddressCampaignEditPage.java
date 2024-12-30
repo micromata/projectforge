@@ -31,7 +31,7 @@ import org.projectforge.web.wicket.EditPage;
 import org.slf4j.Logger;
 
 /**
- * The controler of the edit formular page. Most functionality such as insert, update, delete etc. is done by the super
+ * The controller of the edit formular page. Most functionality such as insert, update, delete etc. is done by the super
  * class.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
