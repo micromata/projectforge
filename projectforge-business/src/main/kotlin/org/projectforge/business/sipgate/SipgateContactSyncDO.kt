@@ -24,10 +24,12 @@
 package org.projectforge.business.sipgate
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.projectforge.business.address.AddressDO
 import org.projectforge.framework.json.JsonUtils
 import java.util.*
 import jakarta.persistence.*
+import org.projectforge.framework.json.IdOnlySerializer
 
 /**
  * @author K. Reinhard (k.reinhard@micromata.de)
@@ -149,6 +151,7 @@ open class SipgateContactSyncDO {
   @get:ManyToOne
   @get:JoinColumn(name = "address_id")
   @get:JsonIgnore
+  @JsonSerialize(using = IdOnlySerializer::class)
   open var address: AddressDO? = null
 
   @get:Column(name = "last_sync")

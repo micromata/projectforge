@@ -23,6 +23,7 @@
 
 package org.projectforge.business.vacation.model
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.business.fibu.EmployeeDO
@@ -32,6 +33,7 @@ import java.math.BigDecimal
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
+import org.projectforge.framework.json.IdOnlySerializer
 
 /**
  * Remaining leave entries for employees per year.
@@ -60,6 +62,7 @@ open class RemainingLeaveDO : DefaultBaseDO() {
   @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "employee_id", nullable = false)
+  @JsonSerialize(using = IdOnlySerializer::class)
   open var employee: EmployeeDO? = null
 
   @PropertyInfo(i18nKey = "calendar.year")

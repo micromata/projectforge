@@ -23,9 +23,11 @@
 
 package org.projectforge.business.user
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
 import jakarta.persistence.*
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_ID_AND_AREA
 
 /**
@@ -51,6 +53,7 @@ class UserXmlPreferencesDO : IUserPref {
      */
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_id", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     override var user: PFUserDO? = null
 
     /**

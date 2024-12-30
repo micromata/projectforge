@@ -23,12 +23,14 @@
 
 package org.projectforge.business.teamcal.event.model
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.business.address.AddressDO
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import jakarta.persistence.*
+import org.projectforge.framework.json.IdOnlySerializer
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -65,6 +67,7 @@ open class TeamEventAttendeeDO : DefaultBaseDO(), Comparable<TeamEventAttendeeDO
    */
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "address_id")
+  @JsonSerialize(using = IdOnlySerializer::class)
   open var address: AddressDO? = null
 
   /**
@@ -72,6 +75,7 @@ open class TeamEventAttendeeDO : DefaultBaseDO(), Comparable<TeamEventAttendeeDO
    */
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "user_id")
+  @JsonSerialize(using = IdOnlySerializer::class)
   open var user: PFUserDO? = null
 
   /**

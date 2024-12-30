@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
@@ -33,6 +34,7 @@ import org.projectforge.business.common.NumberToStringValueBridge
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.search.ClassBridge
 import org.projectforge.framework.persistence.user.entities.GroupDO
@@ -110,6 +112,7 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "kunde_id")
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var kunde: KundeDO? = null
 
     /**
@@ -139,6 +142,7 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
     @get:JoinColumn(name = "projektmanager_group_fk")
     @IndexedEmbedded(includeDepth = 1)
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var projektManagerGroup: GroupDO? = null
 
     @PropertyInfo(i18nKey = "fibu.projectManager")
@@ -146,6 +150,7 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "projectmanager_fk")
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var projectManager: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "fibu.headOfBusinessManager")
@@ -153,6 +158,7 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "headofbusinessmanager_fk")
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var headOfBusinessManager: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "fibu.salesManager")
@@ -160,11 +166,13 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "salesmanager_fk")
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var salesManager: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "task")
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "task_fk", nullable = true)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var task: TaskDO? = null
 
     /**
@@ -176,6 +184,7 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "konto_id")
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var konto: KontoDO? = null
 
     @get:PropertyInfo(i18nKey = "fibu.kost2")

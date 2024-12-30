@@ -24,6 +24,7 @@
 package org.projectforge.security.webauthn
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.webauthn4j.authenticator.Authenticator
 import com.webauthn4j.authenticator.AuthenticatorImpl
 import com.webauthn4j.converter.AttestedCredentialDataConverter
@@ -36,6 +37,7 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
 import jakarta.persistence.*
+import org.projectforge.framework.json.IdOnlySerializer
 
 @Entity
 @Indexed
@@ -78,6 +80,7 @@ open class WebAuthnEntryDO {
 
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "owner_fk")
+  @JsonSerialize(using = IdOnlySerializer::class)
   open var owner: PFUserDO? = null
 
   @get:Column(length = 4000, name = "credential_id")

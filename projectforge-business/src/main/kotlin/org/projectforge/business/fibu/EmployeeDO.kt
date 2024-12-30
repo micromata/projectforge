@@ -23,8 +23,7 @@
 
 package org.projectforge.business.fibu
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo
-import com.fasterxml.jackson.annotation.ObjectIdGenerators
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
@@ -35,6 +34,7 @@ import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.anots.StringAlphanumericSort
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
@@ -72,7 +72,6 @@ private val log = KotlinLogging.logger {}
         query = "from EmployeeDO where user.lastname=:lastname and user.firstname=:firstname"
     )
 )
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
     // The class must be declared as open for mocking in VacationServiceTest.
 
@@ -84,10 +83,14 @@ open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
      * The ProjectForge user assigned to this employee.
      */
     @PropertyInfo(i18nKey = "fibu.employee.user")
-    @IndexedEmbedded(includeDepth = 1, includePaths = ["username", "firstname", "lastname", "description", "organization"])
+    @IndexedEmbedded(
+        includeDepth = 1,
+        includePaths = ["username", "firstname", "lastname", "description", "organization"]
+    )
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "user_id", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var user: PFUserDO? = null
 
     /**

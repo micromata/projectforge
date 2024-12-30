@@ -23,8 +23,7 @@
 
 package org.projectforge.framework.persistence.user.entities
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo
-import com.fasterxml.jackson.annotation.ObjectIdGenerators
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
@@ -34,6 +33,7 @@ import org.projectforge.business.common.HibernateSearchPhoneNumberBridge
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.configuration.Configuration
+import org.projectforge.framework.json.IdsOnlySerializer
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.history.NoHistory
@@ -59,7 +59,6 @@ import java.util.*
         query = "from PFUserDO where username=:username and id<>:id"
     )
 )
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
 
     override val displayName: String
@@ -288,6 +287,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
         orphanRemoval = false,
         mappedBy = "user"
     ) // No cascade, because the rights are managed by the UserRightDao.
+    @JsonSerialize(using = IdsOnlySerializer::class)
     open var rights: MutableSet<UserRightDO>? = mutableSetOf()
 
     /**
