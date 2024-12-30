@@ -48,7 +48,7 @@ class ListFilterService {
                 } catch (ex: ClassCastException) {
                     // No output needed, info message follows:
                 }
-                // Probably a new software release results in an incompability of old and new filter format.
+                // Probably a new software release results in an incompatibility of old and new filter format.
                 log.info(
                         "Could not restore filter from user prefs: (old) filter type "
                                 + filter.javaClass.getName()

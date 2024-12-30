@@ -156,7 +156,7 @@ public abstract class TaskSelectAutoCompleteFormComponent extends PFAutoComplete
     }
 
     /**
-     * Hook method which is called when the model is changed with a valid durin an ajax call
+     * Hook method which is called when the model is changed with a valid during an ajax call
      *
      * @param target
      * @param taskDo

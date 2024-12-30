@@ -66,7 +66,7 @@ class MassUpdateParameterTest {
     check(false, append = true, msg = "parameter has no action (append without text)")
 
     check(true, delete = true, msg = "parameter has action to delete field")
-    check(true, delete = true, textValue = "part to delete", msg = "parameter has action to delete occurences of text")
+    check(true, delete = true, textValue = "part to delete", msg = "parameter has action to delete occurrences of text")
     check(false, change = true, msg = "change of id not handled by MassUpdateParameter")
     check(false, change = true, id = 42, msg = "change of id not handled by MassUpdateParameter")
 

@@ -87,7 +87,7 @@ class SystemStatusRest {
       }
 
   /**
-   * Contains only message of the day without detailled information of version, build-date etc. due to security reasons.
+   * Contains only message of the day without detailed information of version, build-date etc. due to security reasons.
    */
   val publicSystemData: SystemData
     get() =

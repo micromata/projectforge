@@ -292,7 +292,7 @@ public class AddressImportForm extends AbstractEditForm<AddressDO, AddressImport
      * @param property
      *//*
     private void setHomeData(final Property property, final AddressDO address) {
-        boolean telCheck = true; // to seperate phone and mobil number
+        boolean telCheck = true; // to separate phone and mobil number
         // //// SET HOME EMAIL
         if (property.getId().toString().equals("EMAIL"))
             address.setPrivateEmail(property.getValue());
@@ -360,7 +360,7 @@ public class AddressImportForm extends AbstractEditForm<AddressDO, AddressImport
     }
 
     private void setWorkData(final Property property, final AddressDO address) {
-        boolean telCheck = true; // to seperate phone and mobil number
+        boolean telCheck = true; // to separate phone and mobil number
 
         // //// SET WORK PHONE
         if (property.getId().toString().equals("TEL")) {

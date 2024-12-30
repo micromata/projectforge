@@ -49,7 +49,7 @@ class WebAuthnPublicKeyCredentialCreationOptions(
   /**
    * Yubico: *Specifies which cryptographic algorithms the RP supports. type: only one type: “public-key”. alg:
    * cryptographic signature algorithm preference specified by COSE Algorithms registry. If you use a library to
-   * validate authenticator responses, pubKeyCredParams is probably determined by what the library suppports.*
+   * validate authenticator responses, pubKeyCredParams is probably determined by what the library supports.*
    */
   var pubKeyCredParams: Array<PublicKeyCredentialParameters>,
   /**

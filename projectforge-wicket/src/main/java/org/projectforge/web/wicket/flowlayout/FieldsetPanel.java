@@ -273,7 +273,7 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
   }
 
   /**
-   * @return The Wicket id of the embedded text fiel of {@link ListMultipleChoicePanel}.
+   * @return The Wicket id of the embedded text field of {@link ListMultipleChoicePanel}.
    */
   public String getListChoiceId()
   {

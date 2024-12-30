@@ -210,7 +210,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
   }
 
   /**
-   * Must be called befor {@link #init()}. If false then the select-me-button is never displayed (default is true).
+   * Must be called before {@link #init()}. If false, then the select-me-button is never displayed (default is true).
    *
    * @param showSelectMeButton the showSelectMeButton to set
    * @return this for chaining.

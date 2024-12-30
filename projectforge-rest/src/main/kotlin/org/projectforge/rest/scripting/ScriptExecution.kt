@@ -176,7 +176,7 @@ class ScriptExecution {
     ): ScriptInitData {
         val scriptDO: ScriptDO
         if (script.id != null) {
-            // Exceuting db script:
+            // Executing db script:
             scriptDO =
                 scriptDao.find(script.id) ?: throw IllegalArgumentException("Script with id #${script.id} not found.")
         } else {

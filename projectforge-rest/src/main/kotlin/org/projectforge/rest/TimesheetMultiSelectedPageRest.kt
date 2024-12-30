@@ -148,7 +148,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
             TaskServicesRest.createTask(taskId)?.let { task ->
                 ensureMassUpdateParam(massUpdateData, "task").id = taskId
                 variables["task"] = if (taskNode.isRootNode) {
-                    // Don't show. If task is null, the React page will not be updated from time to time (workarround)
+                    // Don't show. If task is null, the React page will not be updated from time to time (workaround)
                     TaskServicesRest.Task("")
                 } else {
                     task

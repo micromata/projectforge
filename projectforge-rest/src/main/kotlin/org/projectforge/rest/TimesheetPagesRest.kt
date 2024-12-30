@@ -133,7 +133,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         val timesheetDO = TimesheetDO()
         dto.copyTo(timesheetDO)
         if (timesheetDO.kost2 != null && baseDao.getKost2List(timesheetDO).isNullOrEmpty()) {
-            // Work arround: if kost 2 was selected in client before new task without kost2 assignments was chosen,
+            // Work around: if kost 2 was selected in client before new task without kost2 assignments was chosen,
             // the former kost2 selection will be sent by the client.
             timesheetDO.kost2 = null
         }
@@ -371,7 +371,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     }
 
     /**
-     * @return The list fo recent edited time sheets of the current logged in user.
+     * @return The list of recent edited time sheets of the current logged in user.
      */
     @GetMapping("recentList")
     fun getRecentList(): RecentTimesheets {

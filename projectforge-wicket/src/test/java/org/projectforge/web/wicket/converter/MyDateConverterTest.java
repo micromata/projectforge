@@ -130,7 +130,7 @@ public class MyDateConverterTest {
     assertDates(testDate, date);
     try {
       date = conv.convertToObject("21/10/1970", Locale.GERMAN);
-      fail("ConversionException exprected.");
+      fail("ConversionException expected.");
     } catch (final ConversionException ex) {
       // OK
     }
