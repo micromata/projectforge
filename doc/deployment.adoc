@@ -17,10 +17,10 @@ link:index{outfilesuffix}[Top]
 3. Define new release variable: +
    `./build.gradle.kts: version = '8.0'`
 4. `./gradlew clean build`
-5. If all tests are finished successfully and the test of the ProjectForge-Application works for new and existing databases), proceeed:
+5. If all tests are finished successfully and the test of the ProjectForge-Application works for new and existing databases), proceed:
 6. Copy executable jar file from `projectforge-application/build/libs/projectforge-application-\*.jar` to SourceForge and tag this file as default for all platforms
 7. Building and pushing docker
-    a. For testing docker images first, please refer `/dokcer/README.adoc`.
+    a. For testing docker images first, please refer `/docker/README.adoc`.
     b. `export PF_VERSION=8.0`
     c. `export DOCKER_USER=micromata`
     d. `cp projectforge-application/build/libs/projectforge-application*.jar .`
@@ -35,7 +35,7 @@ link:index{outfilesuffix}[Top]
 11. Create new SNAPSHOT-Release by increasing version number: +
 `./build.gradle.kts: version = '8.0.1-SNAPSHOT'`
 12. Commit everything to master and develop branch and push it to Github
-13. Upload the saved jar files to Github (Create release from taged version) and SourceForge (e.g. as zip (see previous versions as example)).
+13. Upload the saved jar files to Github (Create release from tagged version) and SourceForge (e.g. as zip (see previous versions as example)).
 
 Optional (if not done before):
 

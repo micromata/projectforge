@@ -9,7 +9,7 @@ Security issues of pentests, DataTransfer improved.
 ++++
 {% include tag.html tag="added" %}
 ++++
-- Word-Templating (Merlin): Word templating for letters, information, contracts etc. with serial execution including variables, if-else-expressions etc. inside docx (like Velocity-Scripting-engine). All users/emloyees may receive letters/contracts etc. (as Word and/or PDF-files) in ther personal boxes via serial execution. +
+- Word-Templating (Merlin): Word templating for letters, information, contracts etc. with serial execution including variables, if-else-expressions etc. inside docx (like Velocity-Scripting-engine). All users/emloyees may receive letters/contracts etc. (as Word and/or PDF-files) in their personal boxes via serial execution. +
   example template files included for a quick start.
 - Log viewer added (for admins as well as for users for tracking own activity for mass updates of time-sheets, usage of Merlin or Datev-imports)
 - Gender for users added: Used by Merlin (word templating) for creation of personalized letters, contracts etc.
