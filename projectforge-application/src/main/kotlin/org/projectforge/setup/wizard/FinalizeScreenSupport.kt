@@ -77,7 +77,7 @@ object FinalizeScreenSupport {
             sb.append("You chose a directory different to ${File(System.getProperty("user.home"), "ProjectForge")}. That's OK.\n")
             sb.append("To be sure, that this directory is found by the ProjectForge server, please refer log files or home page.\n\n")
         }
-        sb.append("Press 'Finish' for starting the intialization and for starting-up the server.")
+        sb.append("Press 'Finish' for starting the initialization and for starting-up the server.")
         return sb.toString()
     }
 

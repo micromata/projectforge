@@ -35,7 +35,7 @@ object JdbcConnectionTest {
             val saveLogLevelConnection = Logger.getLogger(ConnectionFactoryImpl::class.java.name).level
             val saveLogLevelDriver = Logger.getLogger("org.postgresql.Driver").level
             try {
-                // Will avoid logs on console (otherwise lanterna teminal window might be overlayed and results in crap).
+                // Will avoid logs on console (otherwise lanterna terminal window might be overlayed and results in crap).
                 Logger.getLogger(ConnectionFactoryImpl::class.java.name).level = Level.OFF
                 Logger.getLogger("org.postgresql.Driver").level = Level.OFF
                 val connection = DriverManager.getConnection(jdbcUrl, username, password)

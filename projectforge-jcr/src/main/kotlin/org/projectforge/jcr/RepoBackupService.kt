@@ -59,7 +59,7 @@ open class RepoBackupService {
   internal val listOfIgnoredNodePaths = mutableListOf<String>()
 
   /**
-   * These node pathes will be ignored by backup job. Data transfer files are ignored (plugin datatransfer).
+   * These node paths will be ignored by backup job. Data transfer files are ignored (plugin datatransfer).
    */
   fun registerNodePathToIgnore(nodePath: String) {
     log.info { "Adding path '$nodePath' as path to ignore for backup service." }
@@ -67,7 +67,7 @@ open class RepoBackupService {
   }
 
   /**
-   * Where to put the nigthly backups of the jcr as zip files?
+   * Where to put the nightly backups of the jcr as zip files?
    */
   var backupDirectory: File? = null
     private set

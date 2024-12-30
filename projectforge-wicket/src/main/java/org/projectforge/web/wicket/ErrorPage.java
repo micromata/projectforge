@@ -146,7 +146,7 @@ public class ErrorPage extends AbstractSecuredPage {
     try {
       receiver = Configuration.getInstance().getStringValue(ConfigurationParam.FEEDBACK_E_MAIL);
     } catch (final Exception ex) {
-      log.error("Exception occured while trying to get configured e-mail for feedback: " + ex.getMessage(), ex);
+      log.error("Exception occurred while trying to get configured e-mail for feedback: " + ex.getMessage(), ex);
     }
     form.data.setReceiver(receiver);
     form.data.setMessageNumber(messageNumber);
@@ -204,8 +204,8 @@ public class ErrorPage extends AbstractSecuredPage {
       SendFeedbackData errorData = new SendFeedbackData();
       errorData.setSender(WicketSupport.get(SendMail.class).getMailFromStandardEmailSender());
       errorData.setReceiver(configService.getPfSupportMailAddress());
-      errorData.setSubject("Error occured: #" + form.data.getMessageNumber() + " on " + WicketSupport.get(DomainService.class).getDomain());
-      errorData.setDescription("Error occured at: " + dateString + "(" + cal.getTimeZone().getID()
+      errorData.setSubject("Error occurred: #" + form.data.getMessageNumber() + " on " + WicketSupport.get(DomainService.class).getDomain());
+      errorData.setDescription("Error occurred at: " + dateString + "(" + cal.getTimeZone().getID()
           + ") with number: #" + form.data.getMessageNumber()
           + " from user: " + form.data.getSender() + " \n "
           + "Exception stack trace: \n" +

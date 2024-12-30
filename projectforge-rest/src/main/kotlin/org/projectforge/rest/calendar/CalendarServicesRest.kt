@@ -353,7 +353,7 @@ class CalendarServicesRest {
     }
 
     /**
-     * Adjustes the range (start and end) to max 50 days and sets end date to start date + 1 day if not given.
+     * Adjusts the range (start and end) to max 50 days and sets end date to start date + 1 day if not given.
      */
     private fun adjustRange(range: DateTimeRange) {
         if (range.end != null) {

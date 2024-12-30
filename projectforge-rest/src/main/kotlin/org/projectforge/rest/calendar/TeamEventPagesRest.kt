@@ -196,7 +196,7 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
         }
         return transformFromDB(eventDO, editMode)
       } catch (ex: NumberFormatException) {
-        log.error("Can't get event of subscribed calendar. id must be of form {calId}-{uid} but is '$idString', a NumberFormatException occured.")
+        log.error("Can't get event of subscribed calendar. id must be of form {calId}-{uid} but is '$idString', a NumberFormatException occurred.")
         return TeamEvent()
       }
     }

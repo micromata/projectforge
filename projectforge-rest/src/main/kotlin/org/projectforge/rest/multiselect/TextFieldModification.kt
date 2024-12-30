@@ -59,7 +59,7 @@ object TextFieldModification {
         // Whole field should be empty:
         ""
       } else {
-        // Only occurence of textValue should be deleted:
+        // Only occurrence of textValue should be deleted:
         // Delete full line:
         oldValue?.replace("""\n\s*${param.textValue}\s*\n""".toRegex(RegexOption.IGNORE_CASE), "\n")
           // Delete occurrence including leading spaces:

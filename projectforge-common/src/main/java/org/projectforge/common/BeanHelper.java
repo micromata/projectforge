@@ -31,7 +31,7 @@ import java.lang.reflect.*;
 import java.util.*;
 
 /**
- * Some useful methods for determing and converting property, getter and setter names.
+ * Some useful methods for determining and converting property, getter and setter names.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */

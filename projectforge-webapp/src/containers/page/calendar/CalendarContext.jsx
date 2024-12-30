@@ -6,7 +6,7 @@ export const defaultValues = {
      *
      * @params {Object} The json from the server call.
      */
-    // Disable no-unused-vars so its clear what you need to override tthe function.
+    // Disable no-unused-vars so its clear what you need to override the function.
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     saveUpdateResponseInState: (json) => {
         throw new Error('not implemented.');

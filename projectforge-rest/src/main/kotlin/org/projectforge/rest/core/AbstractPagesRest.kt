@@ -153,7 +153,7 @@ constructor(
     private var _category: String? = null
 
     /**
-     * Category should be unique and is e. g. used as react path. At default it's the dir of the url definined in class annotation [RequestMapping].
+     * Category should be unique and is e. g. used as react path. At default it's the dir of the url defined in class annotation [RequestMapping].
      */
     open val category: String // open needed by Wicket's SpringBean for proxying.
         get() {
@@ -930,7 +930,7 @@ constructor(
             if (result.statusCode == HttpStatus.OK) {
                 return result
             }
-            // Validation errors or other errors occured, doesn't save. Proceed with editing.
+            // Validation errors or other errors occurred, doesn't save. Proceed with editing.
         }
         val formLayoutData = getItemAndLayout(request, clone, UILayout.UserAccess(history = false, insert = true))
         return ResponseEntity(
@@ -1237,7 +1237,7 @@ constructor(
             return responseAction
         }
         returnToCaller = afterOperationRedirectTo(obj, postData, event)
-                // Workarround to force reload to restore the AG Grid state (forceAGGridReload = true):
+                // Workaround to force reload to restore the AG Grid state (forceAGGridReload = true):
             ?: PagesResolver.getListPageUrl(
                 this::class.java,
                 absolute = true,
@@ -1276,7 +1276,7 @@ constructor(
      * jcr part will be set to '$prefix.${baseDao.identifier}', must be unique.
      * @param prefix Define a prefix for having uniqueness. At default 'org.projectforge' is used.
      * @param identifier Uses [BaseDao.identifier] at default value.
-     * @param supportedListIds Each entitiy may support multiple lists of attachments. This specifies the available lists in
+     * @param supportedListIds Each entity may support multiple lists of attachments. This specifies the available lists in
      * *addition* to [AttachmentsDaoAccessChecker.DEFAULT_LIST_OF_ATTACHMENTS].
      */
     @JvmOverloads

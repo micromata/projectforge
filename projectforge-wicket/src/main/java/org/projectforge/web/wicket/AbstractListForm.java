@@ -500,7 +500,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
               // No output needed, info message follows:
             }
             if (this.searchFilter == null) {
-              // Probably a new software release results in an incompability of old and new filter format.
+              // Probably a new software release results in an incompatibility of old and new filter format.
               getLogger().info(
                   "Could not restore filter from user prefs: (old) filter type "
                       + filter.getClass().getName()

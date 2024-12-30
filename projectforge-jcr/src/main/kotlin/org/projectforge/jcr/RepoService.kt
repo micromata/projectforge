@@ -514,7 +514,7 @@ open class RepoService {
       log.info { "Reading file from repository '${node.path}': $fileObject..." }
     }
     if (!useEncryptedFile && fileObject.aesEncrypted == true && password.isNullOrBlank()) {
-      log.error { "File is crypted, but no password given to decrypt in repository '${node.path}': $fileObject" }
+      log.error { "File is encrypted, but no password given to decrypt in repository '${node.path}': $fileObject" }
       return null
     }
     var binary: Binary? = null
@@ -542,7 +542,7 @@ open class RepoService {
   internal fun getFileSize(node: Node?, fileObject: FileObject, suppressLogInfo: Boolean = false): Long? {
     node ?: return null
     if (!suppressLogInfo) {
-      log.info { "Determing size of file from repository '${node.path}': '${fileObject.fileName}'..." }
+      log.info { "Determining size of file from repository '${node.path}': '${fileObject.fileName}'..." }
     }
     var binary: Binary? = null
     try {

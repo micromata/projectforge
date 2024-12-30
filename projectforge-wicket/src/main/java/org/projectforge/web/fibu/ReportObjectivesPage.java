@@ -115,7 +115,7 @@ public class ReportObjectivesPage extends AbstractStandardFormPage
   }
 
   /**
-   * @return Any existing user storage or null if not exist (wether in class nor in user's session).
+   * @return Any existing user storage or null if not exist (whether in class nor in user's session).
    */
   protected ReportStorage getReportStorage()
   {

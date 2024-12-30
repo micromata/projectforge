@@ -105,7 +105,7 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
     }
     val errorMsgKeys = changePassword(data, changeOwnPassword)
     processErrorKeys(errorMsgKeys)?.let {
-      return it // Error messages occured:
+      return it // Error messages occurred:
     }
     data.clear()
     val responseAction = UIToast.createToastResponseAction(

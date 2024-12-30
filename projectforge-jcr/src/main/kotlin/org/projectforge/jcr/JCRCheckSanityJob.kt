@@ -112,7 +112,7 @@ open class JCRCheckSanityJob {
                   FormatterUtils.format(
                     fileSize
                   )
-                } differs from reposity value ${FormatterUtils.format(repoSize)}!"
+                } differs from repository value ${FormatterUtils.format(repoSize)}!"
               errors.add(msg)
               log.error { msg }
             }

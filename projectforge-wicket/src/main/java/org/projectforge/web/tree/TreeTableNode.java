@@ -243,7 +243,7 @@ public class TreeTableNode implements Comparable<TreeTableNode>, Serializable
   }
 
   /**
-   * Adds a new child node. It does not check wether this node already exist as child or not! This method does not modify the child task!
+   * Adds a new child node. It does not check whether this node already exist as child or not! This method does not modify the child task!
    */
   protected void addChild(TreeTableNode child)
   {

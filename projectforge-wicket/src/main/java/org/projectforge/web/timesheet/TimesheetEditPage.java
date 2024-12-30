@@ -193,7 +193,7 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
   public void setResponsePage() {
     super.setResponsePage();
     if (returnToPage instanceof CalendarPage) {
-      // Display the date of this time sheet in the CalendarPage (usefull if the time sheet was moved).
+      // Display the date of this time sheet in the CalendarPage (useful if the time sheet was moved).
       ((CalendarPage) returnToPage).setStartDate(getData().getStartTime());
     }
   }

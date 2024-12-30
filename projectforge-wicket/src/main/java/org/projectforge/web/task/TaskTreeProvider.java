@@ -176,7 +176,7 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
     }
 
     /**
-     * Important! Models must be identifyable by their contained object.
+     * Important! Models must be identifiable by their contained object.
      */
     @Override
     public boolean equals(final Object obj)
@@ -188,7 +188,7 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
     }
 
     /**
-     * Important! Models must be identifyable by their contained object.
+     * Important! Models must be identifiable by their contained object.
      */
     @Override
     public int hashCode()
