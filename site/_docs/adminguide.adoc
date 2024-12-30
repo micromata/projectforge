@@ -1067,14 +1067,9 @@ update t_pf_user SET password='SHA\{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', 
 The JCR repository contains all uploaded files (contracts, orders etc.). The file of the data transfer boxes is not included (it's normally to large for backup). The data transfer boxes are used for exchanging very large
 files between users and/or customers.
 
-For restoring a JCR backup you may use:
-[source,shell,linenums]
-----
-mv ./ProjectForge/jcr ./ProjectForge/jcr.old
-mkdir ./ProjectForge/jcr
-java -cp projectforge-application-version.jar -Dloader.main=org.projectforge.jcr.RestoreMain org.springframework.boot.loader.PropertiesLauncher /home/$user/ProjectForge/jcr/ projectforge-jcr-backup.zip
-----
+For restoring a JCR backup, please refer the file `backupReadme.txt` inside the backup zip file.
 
+If you have a corrupted JCR repository or if you want to make a full backup, refer `backupReadme.txt` as well. You will also find the readme here: `https://github.com/micromata/projectforge/blob/develop/projectforge-jcr/src/main/resources/backupReadme.txt`.
 
 === Automatical backup
 
