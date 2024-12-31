@@ -21,25 +21,26 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu.orderbookstorage
+package org.projectforge.business.fibu.orderbooksnapshots
 
 import jakarta.persistence.*
 import java.time.LocalDate
 
 /**
- * SELECT date, octet_length(serialized_orderbook) AS byte_count FROM t_fibu_orderbook_storage;
+ * SELECT date, octet_length(serialized_orderbook) AS byte_count FROM t_fibu_orderbook_snapshots;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
 @Table(
-    name = "t_fibu_orderbook_storage",
+    name = "t_fibu_orderbook_snapshots",
     uniqueConstraints = [UniqueConstraint(columnNames = ["date"])],
 )
 @NamedQueries(
-    NamedQuery(name = OrderbookStorageDO.FIND_META_BY_DATE, query = "select date as date,incrementalBasedOn as incrementalBasedOn from OrderbookStorageDO where date=:date"),
-    NamedQuery(name = OrderbookStorageDO.SELECT_ALL_METAS, query = "select date as date,incrementalBasedOn as incrementalBasedOn from OrderbookStorageDO"),
+    NamedQuery(name = OrderbookSnapshotDO.FIND_META_BY_DATE, query = "select date as date,incrementalBasedOn as incrementalBasedOn from OrderbookSnapshotDO where date=:date"),
+    NamedQuery(name = OrderbookSnapshotDO.SELECT_ALL_METAS, query = "select date as date,incrementalBasedOn as incrementalBasedOn from OrderbookSnapshotDO order by date desc"),
+    NamedQuery(name = OrderbookSnapshotDO.SELECT_ALL_FULLBACKUP_METAS, query = "select date as date,incrementalBasedOn as incrementalBasedOn from OrderbookSnapshotDO where incrementalBasedOn is null order by date desc"),
 )
-internal class OrderbookStorageDO {
+internal class OrderbookSnapshotDO {
     @get:Id
     @get:Column
     var date: LocalDate? = null
@@ -63,7 +64,8 @@ internal class OrderbookStorageDO {
         get() = incrementalBasedOn != null
 
     companion object {
-        internal const val FIND_META_BY_DATE = "OrderStorageDO_FindMetaByDate"
-        internal const val SELECT_ALL_METAS = "OrderStorageDO_SelectAllMetas"
+        internal const val FIND_META_BY_DATE = "OrderSnapshotsDO_FindMetaByDate"
+        internal const val SELECT_ALL_METAS = "OrderSnapshotsDO_SelectAllMetas"
+        internal const val SELECT_ALL_FULLBACKUP_METAS = "OrderSnapshotsDO_SelectAllFullBackupMetas"
     }
 }

@@ -47,6 +47,7 @@ public class CronReindexingHourlyJob {
   //@Scheduled(cron = "${projectforge.cron.hourly}")
 
   /**
+   * TODO: If reindexing of database entries, modified in the last hour, this job should be reactivated.
    * In ms.
    */
   //@Scheduled(fixedDelay = 3600 * 1000, initialDelay = 120 * 1000)

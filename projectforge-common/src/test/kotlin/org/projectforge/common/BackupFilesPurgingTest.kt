@@ -63,7 +63,7 @@ class BackupFilesPurgingTest {
                 files.any { it.name == "$basename-2019-12-03$SUFFIX" },
                 "Keep the first file of the month."
             )
-            // Keep daily until 2020-04-03, wwekly backups until 2020-05-03
+            // Keep daily until 2020-04-03, weekly backups until 2020-05-03
             Assertions.assertTrue(files.any { it.name == "$basename-2020-04-03$SUFFIX" })
             Assertions.assertFalse(files.any { it.name == "$basename-2020-04-02$SUFFIX" })
             Assertions.assertTrue(files.any { it.name == "$basename-2020-04-01$SUFFIX" })
