@@ -23,12 +23,15 @@
 
 package org.projectforge.business.jobs
 
+import jakarta.annotation.PostConstruct
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
+import org.projectforge.business.task.TaskDao
 import org.projectforge.common.extensions.formatMillis
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
@@ -42,24 +45,32 @@ private val log = KotlinLogging.logger {}
  */
 @Component
 class CronSanityCheckJob {
-    private val jobs = mutableListOf<SanityCheckJob>()
+    private val jobs = mutableListOf<AbstractSanityCheckJob>()
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
+    @Autowired
+    private lateinit var taskDao: TaskDao
+
+    @PostConstruct
+    private fun postConstruct() {
+        registerJob(SystemSanityCheckJob(taskDao))
+    }
+
     @Scheduled(cron = "\${projectforge.cron.sanityChecks}")
-    fun execute() {
+    fun cron() {
         log.info("Cronjob for executing sanity checks started...")
 
         coroutineScope.launch {
             val start = System.currentTimeMillis()
             try {
-                val contextList = executeNow()
+                val contextList = execute()
             } finally {
                 log.info("Cronjob for executing sanity checks finished after ${(System.currentTimeMillis() - start).formatMillis()}")
             }
         }
     }
 
-    fun executeNow(): SanityCheckContext {
+    fun execute(): SanityCheckContext {
         val context = SanityCheckContext()
         jobs.forEach { job ->
             val jobContext = context.add(job)
@@ -74,7 +85,7 @@ class CronSanityCheckJob {
         return context
     }
 
-    fun registerJob(job: SanityCheckJob) {
+    fun registerJob(job: AbstractSanityCheckJob) {
         log.info { "Registering sanity check job: ${job::class.simpleName}" }
         jobs.add(job)
     }

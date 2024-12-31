@@ -28,7 +28,7 @@ import java.time.LocalDate
 import java.util.Date
 
 /**
- * SELECT date, created, octet_length(serialized_orderbook) AS byte_count FROM t_fibu_orderbook_snapshots;
+ * SELECT date, created, incremental_based_on, octet_length(serialized_orderbook) AS byte_count FROM t_fibu_orderbook_snapshots;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity

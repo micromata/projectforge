@@ -23,15 +23,19 @@
 
 package org.projectforge.business.jobs
 
-import java.util.*
-import kotlin.reflect.KClass
+import org.projectforge.business.jobs.SanityCheckContext.Companion.addBoxedLine
+import org.projectforge.business.jobs.SanityCheckContext.Companion.addErrorBoxedLineMarker
+import org.projectforge.business.jobs.SanityCheckContext.Companion.addSeparatorLine
+import org.projectforge.framework.time.PFDateTime
 
-class SanityCheckJobContext(val producer: KClass<*>) {
+class SanityCheckJobContext(val producer: AbstractSanityCheckJob) {
     enum class Status {
         OK, WARNINGS, ERRORS
     }
 
-    class Message(val date: Date, val message: String)
+    class Message(val message: String, val status: Status) {
+        val date = PFDateTime.now()
+    }
 
     val status: Status
         get() = when {
@@ -42,20 +46,65 @@ class SanityCheckJobContext(val producer: KClass<*>) {
     val warnings = mutableListOf<Message>()
     val errors = mutableListOf<Message>()
 
+    val allMessages = mutableListOf<Message>()
+
     /**
      * Info messages, log messages etc.
      */
     val messages = mutableListOf<Message>()
 
     fun addError(msg: String) {
-        errors.add(Message(Date(), msg))
+        Message(msg, Status.ERRORS).also {
+            errors.add(it)
+            allMessages.add(it)
+        }
     }
 
     fun addWarning(msg: String) {
-        warnings.add(Message(Date(), msg))
+        Message(msg, Status.WARNINGS).also {
+            warnings.add(it)
+            allMessages.add(it)
+        }
     }
 
     fun addMessage(msg: String) {
-        messages.add(Message(Date(), msg))
+        Message(msg, Status.OK).also {
+            messages.add(it)
+            allMessages.add(it)
+        }
+    }
+
+    fun addReportAsText(sb: StringBuilder) {
+        addIntro(sb)
+        if (errors.isNotEmpty()) {
+            sb.appendLine("*** Errors:")
+            errors.forEach { sb.appendLine("*** ERROR: ${it.date}: ${it.message}") }
+            sb.appendLine()
+        }
+        if (allMessages.isNotEmpty()) {
+            sb.appendLine("Messages:")
+            allMessages.forEach { msg ->
+                val marker = when (msg.status) {
+                    Status.OK -> "    INFO     "
+                    Status.WARNINGS -> "!!! WARN     "
+                    Status.ERRORS -> "*** ERROR ***"
+                }
+
+                sb.appendLine("${msg.date.isoStringSeconds} $marker: ${msg.message}")
+            }
+            sb.appendLine()
+        }
+    }
+
+    fun addIntro(sb: StringBuilder) {
+        addSeparatorLine(sb)
+        addBoxedLine(sb, "${producer::class.simpleName}:${producer.title}")
+        addSeparatorLine(sb)
+        when (status) {
+            Status.OK -> addBoxedLine(sb, "  Status: OK")
+            Status.WARNINGS -> addBoxedLine(sb, "  Status: WARNINGS")
+            Status.ERRORS -> addErrorBoxedLineMarker(sb)
+        }
+        addSeparatorLine(sb)
     }
 }

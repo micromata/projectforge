@@ -29,7 +29,8 @@ import org.projectforge.business.fibu.AuftragsCache;
 import org.projectforge.business.fibu.KontoCache;
 import org.projectforge.business.fibu.RechnungCache;
 import org.projectforge.business.fibu.kost.KostCache;
-import org.projectforge.business.jsonRest.RestCallService;
+import org.projectforge.business.jobs.CronSanityCheckJob;
+import org.projectforge.business.jobs.SanityCheckContext;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskTree;
@@ -51,130 +52,80 @@ import java.util.Map;
  */
 @Service
 public class SystemService {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SystemService.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SystemService.class);
 
-  @Autowired
-  private UserGroupCache userGroupCache;
+    @Autowired
+    private UserGroupCache userGroupCache;
 
-  @Autowired
-  private TaskDao taskDao;
+    @Autowired
+    private TaskDao taskDao;
 
-  @Autowired
-  private TaskTree taskTree;
+    @Autowired
+    private TaskTree taskTree;
 
-  @Autowired
-  private SystemInfoCache systemInfoCache;
+    @Autowired
+    private SystemInfoCache systemInfoCache;
 
-  @Autowired
-  private AuftragsCache auftragsCache;
+    @Autowired
+    private AuftragsCache auftragsCache;
 
-  @Autowired
-  private RechnungCache rechnungCache;
+    @Autowired
+    private CronSanityCheckJob cronSanityCheckJob;
 
-  @Autowired
-  private KontoCache kontoCache;
+    @Autowired
+    private RechnungCache rechnungCache;
 
-  @Autowired
-  private KostCache kostCache;
+    @Autowired
+    private KontoCache kontoCache;
 
-  @Autowired
-  private RestCallService restCallService;
+    @Autowired
+    private KostCache kostCache;
 
-  public String exportSchema() {
-    final SchemaExport exp = new SchemaExport();
-    File file;
-    try {
-      file = File.createTempFile("projectforge-schema", ".sql");
-    } catch (final IOException ex) {
-      log.error(ex.getMessage(), ex);
-      return ex.getMessage();
-    }
-    exp.exportSchema(file.getPath());
-    String result;
-    try {
-      result = FileUtils.readFileToString(file, "UTF-8");
-    } catch (final IOException ex) {
-      log.error(ex.getMessage(), ex);
-      return ex.getMessage();
-    }
-    file.delete();
-    return result;
-  }
-
-  /**
-   * Search for abandoned tasks (task outside the task hierarchy, unaccessible and unavailable for the users).
-   *
-   * @return
-   */
-  public String checkSystemIntegrity() {
-    final StringBuilder buf = new StringBuilder();
-    buf.append("ProjectForge system integrity check.\n\n");
-    buf.append("------------------------------------\n");
-    buf.append("|                                  |\n");
-    buf.append("| Task integrity (abandoned tasks) |\n");
-    buf.append("|                                  |\n");
-    buf.append("------------------------------------\n");
-    final List<TaskDO> tasks = taskDao.selectAll(false);
-    buf.append("Found " + tasks.size() + " tasks.\n");
-    final Map<Long, TaskDO> taskMap = new HashMap<>();
-    for (final TaskDO task : tasks) {
-      taskMap.put(task.getId(), task);
-    }
-    boolean rootTask = false;
-    boolean abandonedTasks = false;
-    for (final TaskDO task : tasks) {
-      if (task.getParentTask() == null) {
-        if (rootTask) {
-          buf.append("\n*** Error: Found another root task:\n " + task + "\n");
-        } else {
-          buf.append("\nFound root task:\n " + task + "\n");
-          rootTask = true;
+    public String exportSchema() {
+        final SchemaExport exp = new SchemaExport();
+        File file;
+        try {
+            file = File.createTempFile("projectforge-schema", ".sql");
+        } catch (final IOException ex) {
+            log.error(ex.getMessage(), ex);
+            return ex.getMessage();
         }
-      } else {
-        TaskDO ancestor = taskMap.get(task.getParentTaskId());
-        boolean rootTaskFound = false;
-        for (int i = 0; i < 50; i++) { // Max. depth of 50, otherwise cyclic task!
-          if (ancestor == null) {
-            break;
-          }
-          if (ancestor.getParentTaskId() == null) {
-            // Root task found, OK.
-            rootTaskFound = true;
-            break;
-          }
-          ancestor = taskMap.get(ancestor.getParentTaskId());
+        exp.exportSchema(file.getPath());
+        String result;
+        try {
+            result = FileUtils.readFileToString(file, "UTF-8");
+        } catch (final IOException ex) {
+            log.error(ex.getMessage(), ex);
+            return ex.getMessage();
         }
-        if (!rootTaskFound) {
-          buf.append("\n*** Error: Found abandoned task (cyclic tasks without path to root):\n " + task + "\n");
-          abandonedTasks = true;
-        } else {
-          buf.append('.');
-        }
-      }
-      taskMap.put(task.getId(), task);
+        file.delete();
+        return result;
     }
-    if (!abandonedTasks) {
-      buf.append("\n\nTest OK, no abandoned tasks detected.");
-    } else {
-      buf.append("\n\n*** Test FAILED, abandoned tasks detected.");
-    }
-    return buf.toString();
-  }
 
-  /**
-   * Refreshes the caches: TaskTree, userGroupCache and kost2.
-   *
-   * @return the name of the refreshed caches.
-   */
-  public String refreshCaches() {
-    userGroupCache.forceReload();
-    taskTree.forceReload();
-    kontoCache.forceReload();
-    kostCache.forceReload();
-    rechnungCache.forceReload();
-    auftragsCache.forceReload();
-    systemInfoCache.forceReload();
-    BirthdayCache.getInstance().forceReload();
-    return "UserGroupCache, TaskTree, KontoCache, KostCache, RechnungCache, AuftragsCache, SystemInfoCache, BirthdayCache";
-  }
+    /**
+     * Search for abandoned tasks (task outside the task hierarchy, unaccessible and unavailable for the users).
+     *
+     * @return
+     */
+    public String checkSystemIntegrity() {
+        SanityCheckContext context = cronSanityCheckJob.execute();
+        return context.getReportAsText();
+    }
+
+    /**
+     * Refreshes the caches: TaskTree, userGroupCache and kost2.
+     *
+     * @return the name of the refreshed caches.
+     */
+    public String refreshCaches() {
+        userGroupCache.forceReload();
+        taskTree.forceReload();
+        kontoCache.forceReload();
+        kostCache.forceReload();
+        rechnungCache.forceReload();
+        auftragsCache.forceReload();
+        systemInfoCache.forceReload();
+        BirthdayCache.getInstance().forceReload();
+        return "UserGroupCache, TaskTree, KontoCache, KostCache, RechnungCache, AuftragsCache, SystemInfoCache, BirthdayCache";
+    }
 }
