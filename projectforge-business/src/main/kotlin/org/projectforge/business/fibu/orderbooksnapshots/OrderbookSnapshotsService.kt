@@ -171,6 +171,7 @@ class OrderbookSnapshotsService {
         OrderbookSnapshotDO().also {
             it.date = date
             it.serializedOrderBook = rawSnapshot.gzBytes
+            it.size = it.serializedOrderBook?.size
             it.incrementalBasedOn = incrementalBasedOn
         }.let {
             persistenceService.runInTransaction { context ->
@@ -239,11 +240,12 @@ class OrderbookSnapshotsService {
             OrderbookSnapshotDO().also { result ->
                 result.date = TupleUtils.getLocalDate(it, "date")
                 result.incrementalBasedOn = TupleUtils.getLocalDate(it, "incrementalBasedOn")
+                result.size = TupleUtils.getInt(it, "size")
             }
         }
     }
 
-    private fun selectMetas(onlyFullBackups: Boolean = false): List<OrderbookSnapshotDO> {
+    internal fun selectMetas(onlyFullBackups: Boolean = false): List<OrderbookSnapshotDO> {
         val named =
             if (onlyFullBackups) OrderbookSnapshotDO.SELECT_ALL_FULLBACKUP_METAS else OrderbookSnapshotDO.SELECT_ALL_METAS
         val res = persistenceService.executeNamedQuery(
@@ -253,6 +255,7 @@ class OrderbookSnapshotsService {
             OrderbookSnapshotDO().also { result ->
                 result.date = TupleUtils.getLocalDate(it, "date")
                 result.incrementalBasedOn = TupleUtils.getLocalDate(it, "incrementalBasedOn")
+                result.size = TupleUtils.getInt(it, "size")
             }
         }
         return if (onlyFullBackups) {
