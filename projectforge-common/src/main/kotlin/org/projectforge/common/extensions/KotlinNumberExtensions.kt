@@ -102,6 +102,9 @@ fun Number?.formatBytes(locale: Locale? = null): String {
     return FormatterUtils.formatBytes(this.toLong(), locale ?: Locale.getDefault())
 }
 
+/**
+ * Formats a number given in millis to a string in the format HH:mm:ss.SSS.
+ */
 fun Number?.formatMillis(): String {
     this ?: return ""
     val millis = this.toLong()

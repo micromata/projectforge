@@ -1,5 +1,6 @@
 Aktuell:
 - Scripting: Ergebnis Unresolved reference 'memo', 'todo'.: line 94 to 94 (add only activated plugins)
+- Zeitberichte: kost2.nummer:4.* dauert sehr lang, auch für kurze Zeiträume.
 - Healthcheck (daily) with mail notification on errors. Mit Registrierung von Services (jcr, orderbook snaphosts etc.)
 - Groovy-scripts: remove or fix.
 - AG-Grid: setColumnStates wird nicht in den UserPrefs gespeichert.

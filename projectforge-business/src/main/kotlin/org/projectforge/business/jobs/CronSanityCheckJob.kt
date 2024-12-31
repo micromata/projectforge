@@ -29,8 +29,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import org.projectforge.common.extensions.formatMillis
-import org.projectforge.framework.persistence.search.HibernateSearchReindexer
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
@@ -38,30 +36,46 @@ private val log = KotlinLogging.logger {}
 
 /**
  * Job should be scheduled nightly.
+ * Lot of sanity checks will be done and a mail is sent to the administrator, if something is wrong.
  *
- * @author Florian Blumenstein
  * @author Kai Reinhard
  */
 @Component
-class CronNightlyJob {
-    @Autowired
-    private lateinit var hibernateSearchReindexer: HibernateSearchReindexer
+class CronSanityCheckJob {
+    private val jobs = mutableListOf<SanityCheckJob>()
+    private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
-    private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-
-    //@Scheduled(cron = "0 30 2 * * *")
-    @Scheduled(cron = "\${projectforge.cron.nightly}")
+    @Scheduled(cron = "\${projectforge.cron.sanityChecks}")
     fun execute() {
-        val started = System.currentTimeMillis()
-        log.info("Nightly job started.")
+        log.info("Cronjob for executing sanity checks started...")
+
         coroutineScope.launch {
+            val start = System.currentTimeMillis()
             try {
-                hibernateSearchReindexer.execute()
-            } catch (ex: Throwable) {
-                log.error("While executing hibernate search re-index job: " + ex.message, ex)
+                val contextList = executeNow()
             } finally {
-                log.info("Nightly job job finished after ${(System.currentTimeMillis() - started).formatMillis()}.")
+                log.info("Cronjob for executing sanity checks finished after ${(System.currentTimeMillis() - start).formatMillis()}")
             }
         }
+    }
+
+    fun executeNow(): SanityCheckContext {
+        val context = SanityCheckContext()
+        jobs.forEach { job ->
+            val jobContext = context.add(job)
+            try {
+                log.info("Executing sanity check job: ${job::class.simpleName}")
+                job.execute(jobContext)
+                log.info("Execution of sanity check job done: ${job::class.simpleName}")
+            } catch (ex: Throwable) {
+                log.error("While executing sanity job ${job::class.simpleName}: " + ex.message, ex)
+            }
+        }
+        return context
+    }
+
+    fun registerJob(job: SanityCheckJob) {
+        log.info { "Registering sanity check job: ${job::class.simpleName}" }
+        jobs.add(job)
     }
 }

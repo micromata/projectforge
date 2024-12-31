@@ -24,12 +24,13 @@
 package org.projectforge.business.fibu.orderbooksnapshots
 
 import com.fasterxml.jackson.core.type.TypeReference
+import jakarta.annotation.PostConstruct
 import jakarta.persistence.Tuple
 import mu.KotlinLogging
-import org.bouncycastle.asn1.x500.style.RFC4519Style.o
 import org.projectforge.Constants
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.AuftragDao
+import org.projectforge.business.jobs.CronSanityCheckJob
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.database.TupleUtils
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
@@ -60,6 +61,16 @@ class OrderbookSnapshotsService {
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
+    @Autowired
+    private lateinit var cronSanityCheckJob: CronSanityCheckJob
+
+    @PostConstruct
+    private fun postConstruct() {
+        OrderbookSnapshotsSanityCheck(this).let {
+            cronSanityCheckJob.registerJob(it)
+        }
+    }
+
     /**
      * Creates daily snapshots of the order book at the beginning of a day (after midnight).
      * This jobs runs hourly and check, if a snapshot for today exists. If not, it will be created.
@@ -82,9 +93,17 @@ class OrderbookSnapshotsService {
                     // Find the last full backup:
                     selectRecentFullBackup()?.let {
                         log.debug { "Found recent full backup: ${it.date}" }
-                        if (it.date?.month == today.month) {
-                            log.info { "Full backup found in the current month: ${it.date}, so store an incremental snapshot..." }
-                            incrementalBasedOn = it.date
+                        it.date?.let { snapshotDate ->
+                            if (snapshotDate.month == today.month) {
+                                log.info { "Full backup found in the current month: ${it.date}, so store an incremental snapshot..." }
+                                try {
+                                    // Checking for sanity:
+                                    readSnapshot(snapshotDate)
+                                    incrementalBasedOn = it.date
+                                } catch (e: Exception) {
+                                    log.error { "Recent full backup seems to be corrupted. Creating a full backup again: ${e.message}" }
+                                }
+                            }
                         }
                     }
                 }
@@ -194,6 +213,10 @@ class OrderbookSnapshotsService {
             readSnapshot(incrementalBasedOn, orderbook)
         }
         val serialized = entry.serializedOrderBook ?: return
+        readSnapshot(serialized, orderbook)
+    }
+
+    private fun readSnapshot(serialized: ByteArray, orderbook: MutableMap<Long, Order>) {
         val json = gunzip(serialized)
         JsonUtils.fromJson(json, object : TypeReference<List<Order?>?>() {})?.forEach { order ->
             order?.id?.let { id ->
@@ -223,7 +246,7 @@ class OrderbookSnapshotsService {
     private fun selectMetas(onlyFullBackups: Boolean = false): List<OrderbookSnapshotDO> {
         val named =
             if (onlyFullBackups) OrderbookSnapshotDO.SELECT_ALL_FULLBACKUP_METAS else OrderbookSnapshotDO.SELECT_ALL_METAS
-        return persistenceService.executeNamedQuery(
+        val res = persistenceService.executeNamedQuery(
             named,
             Tuple::class.java,
         ).map {
@@ -231,6 +254,11 @@ class OrderbookSnapshotsService {
                 result.date = TupleUtils.getLocalDate(it, "date")
                 result.incrementalBasedOn = TupleUtils.getLocalDate(it, "incrementalBasedOn")
             }
+        }
+        return if (onlyFullBackups) {
+            res.filter { it.incrementalBasedOn == null } // incrementalBasedOn == null means full backup (double check)
+        } else {
+            return res
         }
     }
 
