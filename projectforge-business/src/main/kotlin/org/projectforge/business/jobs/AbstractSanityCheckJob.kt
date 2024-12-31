@@ -23,6 +23,6 @@
 
 package org.projectforge.business.jobs
 
-interface SanityCheckJob {
-    fun execute(jobContext: SanityCheckJobContext)
+abstract class AbstractSanityCheckJob(val title: String) {
+    abstract fun execute(jobContext: SanityCheckJobContext)
 }

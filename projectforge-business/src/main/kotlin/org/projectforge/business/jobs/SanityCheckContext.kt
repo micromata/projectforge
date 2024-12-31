@@ -23,6 +23,10 @@
 
 package org.projectforge.business.jobs
 
+import org.bouncycastle.asn1.x500.style.RFC4519Style.title
+import org.projectforge.common.extensions.abbreviate
+import org.projectforge.framework.time.PFDateTime
+
 class SanityCheckContext {
     val jobs = mutableListOf<SanityCheckJobContext>()
 
@@ -33,7 +37,44 @@ class SanityCheckContext {
             else -> SanityCheckJobContext.Status.OK
         }
 
-    fun add(job: Any): SanityCheckJobContext {
-        return SanityCheckJobContext(job::class).also { jobs.add(it) }
+    fun add(job: AbstractSanityCheckJob): SanityCheckJobContext {
+        return SanityCheckJobContext(job).also { jobs.add(it) }
+    }
+
+    fun getReportAsText(): String {
+        val sb = StringBuilder()
+        addSeparatorLine(sb)
+        addSeparatorLine(sb)
+        addBoxedLine(sb, "Sanity Check Report: ${PFDateTime.now().isoStringSeconds}")
+        addSeparatorLine(sb)
+        when (status) {
+            SanityCheckJobContext.Status.OK -> addBoxedLine(sb, "  All checks passed successfully.")
+            SanityCheckJobContext.Status.WARNINGS -> addBoxedLine(sb, "  Some checks passed with warnings.")
+            SanityCheckJobContext.Status.ERRORS -> addErrorBoxedLineMarker(sb)
+        }
+        addSeparatorLine(sb)
+        addSeparatorLine(sb)
+        jobs.forEach { job ->
+            job.addReportAsText(sb)
+        }
+        sb.appendLine()
+        return sb.toString()
+    }
+
+    companion object {
+        internal const val LINE_LENGTH = 80
+        internal fun addBoxedLine(sb: StringBuilder, title: String) {
+            sb.appendLine("| ${title.abbreviate(LINE_LENGTH - 4).padEnd(LINE_LENGTH - 4)} |")
+        }
+
+        internal fun addErrorBoxedLineMarker(sb: StringBuilder) {
+            addBoxedLine(sb, "  *************************************")
+            addBoxedLine(sb, "  ******* Some checks failed!!! *******")
+            addBoxedLine(sb, "  *************************************")
+        }
+
+        internal fun addSeparatorLine(sb: StringBuilder) {
+            sb.appendLine("-".repeat(LINE_LENGTH))
+        }
     }
 }
