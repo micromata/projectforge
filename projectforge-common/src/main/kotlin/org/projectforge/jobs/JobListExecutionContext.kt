@@ -21,50 +21,74 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.jobs
+package org.projectforge.jobs
 
-import org.bouncycastle.asn1.x500.style.RFC4519Style.title
 import org.projectforge.common.extensions.abbreviate
-import org.projectforge.framework.time.PFDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.util.*
 
-class SanityCheckContext {
-    val jobs = mutableListOf<SanityCheckJobContext>()
+class JobListExecutionContext {
+    val jobs = mutableListOf<JobExecutionContext>()
 
-    val status: SanityCheckJobContext.Status
+    val status: JobExecutionContext.Status
         get() = when {
-            jobs.any { it.status == SanityCheckJobContext.Status.ERRORS } -> SanityCheckJobContext.Status.ERRORS
-            jobs.any { it.status == SanityCheckJobContext.Status.WARNINGS } -> SanityCheckJobContext.Status.WARNINGS
-            else -> SanityCheckJobContext.Status.OK
+            jobs.any { it.status == JobExecutionContext.Status.ERRORS } -> JobExecutionContext.Status.ERRORS
+            jobs.any { it.status == JobExecutionContext.Status.WARNINGS } -> JobExecutionContext.Status.WARNINGS
+            else -> JobExecutionContext.Status.OK
         }
 
-    fun add(job: AbstractSanityCheckJob): SanityCheckJobContext {
-        return SanityCheckJobContext(job).also { jobs.add(it) }
+    fun add(job: AbstractJob): JobExecutionContext {
+        return JobExecutionContext(job).also { jobs.add(it) }
     }
 
     fun getReportAsText(): String {
         val sb = StringBuilder()
         addSeparatorLine(sb)
         addSeparatorLine(sb)
-        addBoxedLine(sb, "Sanity Check Report: ${PFDateTime.now().isoStringSeconds}")
+        addBoxedLine(sb, "Sanity Check Report: ${format(Date())}")
         addSeparatorLine(sb)
         when (status) {
-            SanityCheckJobContext.Status.OK -> addBoxedLine(sb, "  All checks passed successfully.")
-            SanityCheckJobContext.Status.WARNINGS -> addBoxedLine(sb, "  Some checks passed with warnings.")
-            SanityCheckJobContext.Status.ERRORS -> addErrorBoxedLineMarker(sb)
+            JobExecutionContext.Status.OK -> addBoxedLine(sb, "  All checks passed successfully.")
+            JobExecutionContext.Status.WARNINGS -> addBoxedLine(sb, "  Some checks passed with warnings.")
+            JobExecutionContext.Status.ERRORS -> addErrorBoxedLineMarker(sb)
         }
         addSeparatorLine(sb)
+        sortedJobs.forEach { job ->
+            job.addStatusLineAsText(sb)
+        }
         addSeparatorLine(sb)
-        jobs.forEach { job ->
+        sb.appendLine()
+        sortedJobs.forEach { job ->
             job.addReportAsText(sb)
         }
         sb.appendLine()
         return sb.toString()
     }
 
+    private val sortedJobs: List<JobExecutionContext>
+        get() = jobs.sortedWith(compareBy<JobExecutionContext> { it.status }
+            .thenBy { it.lastUpdate })
+
     companion object {
         internal const val LINE_LENGTH = 80
+        private val isoDateTimeFormatterSeconds =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneOffset.UTC)
+
+        internal fun format(date: Date): String {
+            return isoDateTimeFormatterSeconds.format(date.toInstant())
+        }
+
         internal fun addBoxedLine(sb: StringBuilder, title: String) {
-            sb.appendLine("| ${title.abbreviate(LINE_LENGTH - 4).padEnd(LINE_LENGTH - 4)} |")
+            addCell(sb, title, LINE_LENGTH)
+        }
+
+        internal fun addCell(sb: StringBuilder, text: String, length: Int, lineCompleted: Boolean = true) {
+            val useLength = if (lineCompleted) length - 4 else length -2
+            sb.append("| ${text.abbreviate(useLength).padEnd(useLength)}")
+            if (lineCompleted) {
+                sb.appendLine(" |")
+            }
         }
 
         internal fun addErrorBoxedLineMarker(sb: StringBuilder) {

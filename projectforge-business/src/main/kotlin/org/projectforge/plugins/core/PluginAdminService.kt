@@ -80,6 +80,14 @@ open class PluginAdminService {
             return pluginsRegistry.plugins
         }
 
+    fun isActive(pluginId: String): Boolean {
+        return activePlugins.any { it.id == pluginId }
+    }
+
+    fun isActive(clazz: Class<*>): Boolean {
+        return activePlugins.any { it.javaClass == clazz }
+    }
+
     /**
      * Store a plugin as activated.
      * read LocalSettings pf.plugins.active. If not defined, uses ConfigurationParam.

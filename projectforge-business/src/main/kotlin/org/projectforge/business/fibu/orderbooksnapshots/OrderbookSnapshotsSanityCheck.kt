@@ -23,11 +23,11 @@
 
 package org.projectforge.business.fibu.orderbooksnapshots
 
-import org.projectforge.business.jobs.AbstractSanityCheckJob
-import org.projectforge.business.jobs.SanityCheckJobContext
+import org.projectforge.jobs.AbstractJob
+import org.projectforge.jobs.JobExecutionContext
 
 class OrderbookSnapshotsSanityCheck(val orderbookSnapshotsService: OrderbookSnapshotsService) :
-    AbstractSanityCheckJob("Checks the recent order book' snapshots.") {
-    override fun execute(jobContext: SanityCheckJobContext) {
+    AbstractJob("Checks the recent order book' snapshots.") {
+    override fun execute(jobContext: JobExecutionContext) {
     }
 }

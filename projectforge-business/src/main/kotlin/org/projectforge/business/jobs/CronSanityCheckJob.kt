@@ -31,6 +31,10 @@ import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import org.projectforge.business.task.TaskDao
 import org.projectforge.common.extensions.formatMillis
+import org.projectforge.jcr.JCRCheckSanityJob
+import org.projectforge.jobs.AbstractJob
+import org.projectforge.jobs.JobListExecutionContext
+import org.projectforge.plugins.core.PluginAdminService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -45,8 +49,11 @@ private val log = KotlinLogging.logger {}
  */
 @Component
 class CronSanityCheckJob {
-    private val jobs = mutableListOf<AbstractSanityCheckJob>()
+    private val jobs = mutableListOf<AbstractJob>()
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+
+    @Autowired
+    private lateinit var jcrCheckSanityJob: JCRCheckSanityJob
 
     @Autowired
     private lateinit var taskDao: TaskDao
@@ -54,6 +61,7 @@ class CronSanityCheckJob {
     @PostConstruct
     private fun postConstruct() {
         registerJob(SystemSanityCheckJob(taskDao))
+        registerJob(jcrCheckSanityJob)
     }
 
     @Scheduled(cron = "\${projectforge.cron.sanityChecks}")
@@ -70,8 +78,8 @@ class CronSanityCheckJob {
         }
     }
 
-    fun execute(): SanityCheckContext {
-        val context = SanityCheckContext()
+    fun execute(): JobListExecutionContext {
+        val context = JobListExecutionContext()
         jobs.forEach { job ->
             val jobContext = context.add(job)
             try {
@@ -85,7 +93,7 @@ class CronSanityCheckJob {
         return context
     }
 
-    fun registerJob(job: AbstractSanityCheckJob) {
+    fun registerJob(job: AbstractJob) {
         log.info { "Registering sanity check job: ${job::class.simpleName}" }
         jobs.add(job)
     }
