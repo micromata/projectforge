@@ -23,12 +23,14 @@
 
 package org.projectforge.business.fibu.orderbooksnapshots
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
+import org.projectforge.framework.json.JsonUtils
 import java.time.LocalDate
-import java.util.Date
+import java.util.*
 
 /**
- * SELECT date, created, incremental_based_on, octet_length(serialized_orderbook) AS byte_count FROM t_fibu_orderbook_snapshots;
+ * SELECT date, created, incremental_based_on, octet_length(serialized_orderbook) AS byte_count, size FROM t_fibu_orderbook_snapshots;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
@@ -37,9 +39,18 @@ import java.util.Date
     uniqueConstraints = [UniqueConstraint(columnNames = ["date"])],
 )
 @NamedQueries(
-    NamedQuery(name = OrderbookSnapshotDO.FIND_META_BY_DATE, query = "select date as date,incrementalBasedOn as incrementalBasedOn from OrderbookSnapshotDO where date=:date"),
-    NamedQuery(name = OrderbookSnapshotDO.SELECT_ALL_METAS, query = "select date as date,incrementalBasedOn as incrementalBasedOn from OrderbookSnapshotDO order by date desc"),
-    NamedQuery(name = OrderbookSnapshotDO.SELECT_ALL_FULLBACKUP_METAS, query = "select date as date,incrementalBasedOn as incrementalBasedOn from OrderbookSnapshotDO where incrementalBasedOn is null order by date desc"),
+    NamedQuery(
+        name = OrderbookSnapshotDO.FIND_META_BY_DATE,
+        query = "select date as date,incrementalBasedOn as incrementalBasedOn,size as size from OrderbookSnapshotDO where date=:date"
+    ),
+    NamedQuery(
+        name = OrderbookSnapshotDO.SELECT_ALL_METAS,
+        query = "select date as date,incrementalBasedOn as incrementalBasedOn,size as size from OrderbookSnapshotDO order by date desc"
+    ),
+    NamedQuery(
+        name = OrderbookSnapshotDO.SELECT_ALL_FULLBACKUP_METAS,
+        query = "select date as date,incrementalBasedOn as incrementalBasedOn,size as size from OrderbookSnapshotDO where incrementalBasedOn is null order by date desc"
+    ),
 )
 internal class OrderbookSnapshotDO {
     @get:Id
@@ -55,6 +66,7 @@ internal class OrderbookSnapshotDO {
      */
     @get:Column(name = "serialized_orderbook", columnDefinition = "BLOB")
     @get:Basic(fetch = FetchType.LAZY) // Lazy isn't reliable for byte arrays.
+    @JsonIgnore
     var serializedOrderBook: ByteArray? = null
 
     /**
@@ -63,9 +75,16 @@ internal class OrderbookSnapshotDO {
     @get:Column(name = "incremental_based_on")
     var incrementalBasedOn: LocalDate? = null
 
+    @get:Column
+    var size: Int? = null
+
     @get:Transient
     val incremental: Boolean
         get() = incrementalBasedOn != null
+
+    override fun toString(): String {
+        return JsonUtils.toJson(this)
+    }
 
     companion object {
         internal const val FIND_META_BY_DATE = "OrderSnapshotsDO_FindMetaByDate"

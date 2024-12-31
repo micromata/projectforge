@@ -3,7 +3,8 @@ CREATE TABLE t_fibu_orderbook_snapshots
     date                 DATE NOT NULL,
     created              TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     incremental_based_on DATE,
-    serialized_orderbook BLOB
+    serialized_orderbook BLOB,
+    size                 INTEGER
 );
 
 ALTER TABLE t_fibu_orderbook_snapshots
