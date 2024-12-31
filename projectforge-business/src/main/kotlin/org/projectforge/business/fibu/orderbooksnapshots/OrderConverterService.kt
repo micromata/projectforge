@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu.orderbookstorage
+package org.projectforge.business.fibu.orderbooksnapshots
 
 import mu.KotlinLogging
 import org.projectforge.business.PfCaches

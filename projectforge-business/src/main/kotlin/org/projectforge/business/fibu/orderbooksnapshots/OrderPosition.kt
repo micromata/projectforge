@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu.orderbookstorage
+package org.projectforge.business.fibu.orderbooksnapshots
 
 import org.projectforge.business.fibu.*
 import java.math.BigDecimal
