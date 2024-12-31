@@ -21,21 +21,25 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.jobs
+package org.projectforge.jobs
 
-import org.projectforge.business.jobs.SanityCheckContext.Companion.addBoxedLine
-import org.projectforge.business.jobs.SanityCheckContext.Companion.addErrorBoxedLineMarker
-import org.projectforge.business.jobs.SanityCheckContext.Companion.addSeparatorLine
-import org.projectforge.framework.time.PFDateTime
+import org.projectforge.jobs.JobListExecutionContext.Companion.addBoxedLine
+import org.projectforge.jobs.JobListExecutionContext.Companion.addCell
+import org.projectforge.jobs.JobListExecutionContext.Companion.addErrorBoxedLineMarker
+import org.projectforge.jobs.JobListExecutionContext.Companion.addSeparatorLine
+import org.projectforge.jobs.JobListExecutionContext.Companion.format
+import java.util.*
 
-class SanityCheckJobContext(val producer: AbstractSanityCheckJob) {
+class JobExecutionContext(val producer: AbstractJob) {
     enum class Status {
-        OK, WARNINGS, ERRORS
+        ERRORS, WARNINGS, OK
     }
 
     class Message(val message: String, val status: Status) {
-        val date = PFDateTime.now()
+        val date = Date()
     }
+
+    private val attributes = mutableMapOf<String, Any?>()
 
     val status: Status
         get() = when {
@@ -52,6 +56,25 @@ class SanityCheckJobContext(val producer: AbstractSanityCheckJob) {
      * Info messages, log messages etc.
      */
     val messages = mutableListOf<Message>()
+
+    val lastUpdate: Date
+        get() = allMessages.maxByOrNull { it.date }?.date ?: Date()
+
+    fun setAttribute(key: String, value: Any?) {
+        attributes[key] = value
+    }
+
+    fun getAttribute(key: String): Any? {
+        return attributes[key]
+    }
+
+    fun getAttributeAsLong(key: String): Long? {
+        return attributes[key] as? Long
+    }
+
+    fun getAttributeAsInt(key: String): Int? {
+        return attributes[key] as? Int
+    }
 
     fun addError(msg: String) {
         Message(msg, Status.ERRORS).also {
@@ -90,13 +113,19 @@ class SanityCheckJobContext(val producer: AbstractSanityCheckJob) {
                     Status.ERRORS -> "*** ERROR ***"
                 }
 
-                sb.appendLine("${msg.date.isoStringSeconds} $marker: ${msg.message}")
+                sb.appendLine("${format(msg.date)} $marker: ${msg.message}")
             }
             sb.appendLine()
         }
     }
 
-    fun addIntro(sb: StringBuilder) {
+    fun addStatusLineAsText(sb: StringBuilder) {
+        addCell(sb, producer.title, 50, lineCompleted = false)
+        val statusString = if (status == Status.ERRORS) "*** ERRORS ***" else status.toString()
+        addCell(sb, statusString, 30)
+    }
+
+    internal fun addIntro(sb: StringBuilder) {
         addSeparatorLine(sb)
         addBoxedLine(sb, "${producer::class.simpleName}:${producer.title}")
         addSeparatorLine(sb)

@@ -23,8 +23,17 @@
 
 package org.projectforge.jcr
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import org.projectforge.common.FormatterUtils
+import org.projectforge.common.extensions.format
+import org.projectforge.common.extensions.formatBytes
+import org.projectforge.common.extensions.formatMillis
+import org.projectforge.jobs.AbstractJob
+import org.projectforge.jobs.JobExecutionContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -33,114 +42,144 @@ import javax.jcr.Node
 private val log = KotlinLogging.logger {}
 
 @Component
-open class JCRCheckSanityJob {
-  @Autowired
-  internal lateinit var repoService: RepoService
+open class JCRCheckSanityJob : AbstractJob("JCR Check Sanity") {
+    @Autowired
+    internal lateinit var repoService: RepoService
 
-  class CheckResult(
-    val errors: List<String>,
-    val warnings: List<String>,
-    val numberOfVisitedFiles: Int,
-    val numberOfVisitedNodes: Int
-  ) {
-    fun toText(): String {
-      val sb = StringBuilder()
-      sb.appendLine("Errors").appendLine("------")
-      errors.forEach { sb.appendLine("  *** $it") }
-      sb.appendLine("Warnings").appendLine("--------")
-      warnings.forEach { sb.appendLine("  $it") }
-      sb.appendLine()
-      sb.appendLine("Number of visited nodes: ${FormatterUtils.format(numberOfVisitedNodes)}")
-      sb.appendLine("Number of visited files: ${FormatterUtils.format(numberOfVisitedFiles)}")
-      return sb.toString()
-    }
-  }
+    private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-  // For testing: @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 10 * 1000)
-  // projectforge.jcr.cron.backup=0 30 0 * * *
-  @Scheduled(cron = "\${projectforge.jcr.cron.sanityCheck}")
-  open fun execute(): CheckResult {
-    log.info("JCR sanity check job started.")
-    val errors = mutableListOf<String>()
-    val warnings = mutableListOf<String>()
-    val walker = object : RepoTreeWalker(repoService) {
-      override fun visitFile(fileNode: Node, fileObject: FileObject) {
-        fileObject.checksum.let { repoChecksum ->
-          if (repoChecksum != null && repoChecksum.length > 10) {
-            log.info { "Checking checksum of file '${fileObject.fileName}' (${FormatterUtils.formatBytes(fileObject.size)})..." }
-            val checksum =
-              repoService.getFileInputStream(fileNode, fileObject, true, useEncryptedFile = true)
-                .use { istream -> RepoService.checksum(istream) }
-            if (!validateChecksum(checksum, repoChecksum)) {
-              val msg =
-                "Checksum of file '${fileObject.fileName}' from repository '${normalizeChecksum(checksum)}' differs from repository value '${
-                  normalizeChecksum(
-                    repoChecksum
-                  )
-                }'! ['${fileNode.path}']"
-              errors.add(msg)
-              log.error { msg }
+    class CheckResult(
+        val errors: List<String>,
+        val warnings: List<String>,
+        val numberOfVisitedFiles: Int,
+        val numberOfVisitedNodes: Int
+    )
+
+    // For testing: @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 10 * 1000)
+    // projectforge.jcr.cron.backup=0 30 0 * * *
+    @Scheduled(cron = "\${projectforge.jcr.cron.sanityCheck}")
+    open fun cron() {
+        val started = System.currentTimeMillis()
+        log.info("JCR sanity check job started.")
+        val job = this
+        coroutineScope.launch {
+            try {
+                val jobContext = JobExecutionContext(job)
+                execute(jobContext)
+                val numberOfVisitedNodes = jobContext.getAttributeAsInt(NUMBER_OF_VISITED_NODES)
+                val numberOfVisitedFiles = jobContext.getAttributeAsInt(NUMBER_OF_VISITED_FILES)
+                val msgPart1 =
+                    "JCR sanity check job finished after ${(System.currentTimeMillis() - started).formatMillis()}"
+                val msgPart2 =
+                    "${numberOfVisitedFiles.format()} files and ${numberOfVisitedNodes.format()} nodes checked: errors=${jobContext.errors.size}, warnings=${jobContext.warnings.size}."
+                if (jobContext.status == JobExecutionContext.Status.ERRORS) {
+                    log.error { "$msgPart1 with errors. $msgPart2" }
+                } else {
+                    log.info { "$msgPart1. $msgPart2" }
+                }
+            } catch (ex: Throwable) {
+                log.error("While executing hibernate search re-index job: " + ex.message, ex)
             }
-          } else {
-            val msg =
-              "Checksum of file '${fileObject.fileName}' from repository not given (skipping checksum check). ['${fileNode.path}']"
-            warnings.add(msg)
-            log.info { msg }
-          }
         }
-        if (fileObject.fileExtension == "zip") {
-          // Check mode of zip files (encryption).
-          if (fileObject.zipMode == null) {
-            val newZipMode = repoService.getFileInputStream(fileNode, fileObject, true, useEncryptedFile = true)
-              .use { istream -> ZipUtils.determineZipMode(istream) }
-            if (newZipMode != null) {
-              fileNode.setProperty(RepoService.PROPERTY_ZIP_MODE, newZipMode.name)
-            }
-          }
-        }
-        fileObject.size.let { repoSize ->
-          if (repoSize == null) {
-            val msg =
-              "Size of file '${fileObject.fileName}' from repository not given (skipping file size check). ['${fileNode.path}']"
-            warnings.add(msg)
-            log.info { msg }
-          } else {
-            val fileSize = repoService.getFileSize(fileNode, fileObject, true)
-            if (fileSize != repoSize) {
-              val msg =
-                "Size of file from repository '${fileNode.path}': '${fileObject.fileName}'=${
-                  FormatterUtils.format(
-                    fileSize
-                  )
-                } differs from repository value ${FormatterUtils.format(repoSize)}!"
-              errors.add(msg)
-              log.error { msg }
-            }
-          }
-        }
-      }
     }
-    walker.walk()
-    log.info { "JCR sanity check job finished. ${walker.numberOfVisitedFiles} Files checked with ${warnings.size} warnings and ${errors.size} errors." }
-    return CheckResult(errors, warnings, walker.numberOfVisitedFiles, walker.numberOfVisitedNodes)
-  }
 
-  private fun validateChecksum(checksum1: String, checksum2: String): Boolean {
-    val c1 = normalizeChecksum(checksum1)
-    val c2 = normalizeChecksum(checksum2)
-    return c1 == c2
-  }
-
-  private fun normalizeChecksum(checksum: String): String {
-    return subString(subString(checksum, '='), ' ')
-  }
-
-  private fun subString(checksum: String, ch: Char): String {
-    val idx = checksum.indexOf(ch)
-    return if (idx > 0 && checksum.length > idx) {
-      checksum.substring(idx + 1)
-    } else {
-      checksum
+    override fun execute(jobContext: JobExecutionContext) {
+        val walker = object : RepoTreeWalker(repoService) {
+            override fun visitFile(fileNode: Node, fileObject: FileObject) {
+                fileObject.checksum.let { repoChecksum ->
+                    if (repoChecksum != null && repoChecksum.length > 10) {
+                        jobContext.addMessage(
+                            "Checking checksum of file '${fileObject.fileName}' (${fileObject.size.formatBytes()})..."
+                        )
+                        val checksum =
+                            repoService.getFileInputStream(fileNode, fileObject, true, useEncryptedFile = true)
+                                .use { istream -> RepoService.checksum(istream) }
+                        if (!validateChecksum(checksum, repoChecksum)) {
+                            val msg =
+                                "Checksum of file '${fileObject.fileName}' from repository '${normalizeChecksum(checksum)}' differs from repository value '${
+                                    normalizeChecksum(
+                                        repoChecksum
+                                    )
+                                }'! ['${fileNode.path}']"
+                            jobContext.addError(msg)
+                            log.error { msg }
+                        }
+                    } else {
+                        val msg =
+                            "Checksum of file '${fileObject.fileName}' from repository not given (skipping checksum check). ['${fileNode.path}']"
+                        jobContext.addError(msg)
+                        log.error { msg }
+                    }
+                }
+                if (fileObject.fileExtension == "zip") {
+                    // Check mode of zip files (encryption).
+                    if (fileObject.zipMode == null) {
+                        val newZipMode =
+                            repoService.getFileInputStream(fileNode, fileObject, true, useEncryptedFile = true)
+                                .use { istream -> ZipUtils.determineZipMode(istream) }
+                        if (newZipMode != null) {
+                            fileNode.setProperty(RepoService.PROPERTY_ZIP_MODE, newZipMode.name)
+                        }
+                    }
+                }
+                fileObject.size.let { repoSize ->
+                    if (repoSize == null) {
+                        val msg =
+                            "Size of file '${fileObject.fileName}' from repository not given (skipping file size check). ['${fileNode.path}']"
+                        jobContext.addWarning(msg)
+                        log.info { msg }
+                    } else {
+                        val fileSize = repoService.getFileSize(fileNode, fileObject, true)
+                        if (fileSize != repoSize) {
+                            val msg =
+                                "Size of file from repository '${fileNode.path}': '${fileObject.fileName}'=${
+                                    FormatterUtils.format(
+                                        fileSize
+                                    )
+                                } differs from repository value ${FormatterUtils.format(repoSize)}!"
+                            jobContext.addError(msg)
+                            log.error { msg }
+                        }
+                    }
+                }
+            }
+        }
+        walker.walk()
+        jobContext.setAttribute(NUMBER_OF_VISITED_NODES, walker.numberOfVisitedNodes)
+        jobContext.setAttribute(NUMBER_OF_VISITED_FILES, walker.numberOfVisitedFiles)
     }
-  }
+
+    open fun execute(): CheckResult {
+        val jobContext = JobExecutionContext(this)
+        execute(jobContext)
+        val errors = jobContext.errors.map { it.message }.toMutableList()
+        val warnings = jobContext.warnings.map { it.message }.toMutableList()
+        val numberOfVisitedNodes = jobContext.getAttributeAsInt(NUMBER_OF_VISITED_NODES)
+        val numberOfVisitedFiles = jobContext.getAttributeAsInt(NUMBER_OF_VISITED_FILES)
+        return CheckResult(errors, warnings, numberOfVisitedFiles ?: -1, numberOfVisitedNodes ?: -1)
+    }
+
+    private fun validateChecksum(checksum1: String, checksum2: String): Boolean {
+        val c1 = normalizeChecksum(checksum1)
+        val c2 = normalizeChecksum(checksum2)
+        return c1 == c2
+    }
+
+    private fun normalizeChecksum(checksum: String): String {
+        return subString(subString(checksum, '='), ' ')
+    }
+
+    private fun subString(checksum: String, ch: Char): String {
+        val idx = checksum.indexOf(ch)
+        return if (idx > 0 && checksum.length > idx) {
+            checksum.substring(idx + 1)
+        } else {
+            checksum
+        }
+    }
+
+    companion object {
+        const val NUMBER_OF_VISITED_NODES = "numberOfVisitedNodes"
+        const val NUMBER_OF_VISITED_FILES = "numberOfVisitedFiles"
+    }
 }

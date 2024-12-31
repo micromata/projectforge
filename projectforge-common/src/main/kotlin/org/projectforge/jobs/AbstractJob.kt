@@ -21,8 +21,11 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.jobs
+package org.projectforge.jobs
 
-abstract class AbstractSanityCheckJob(val title: String) {
-    abstract fun execute(jobContext: SanityCheckJobContext)
+/**
+ * A job using [JobExecutionContext] to report its status and messages.
+ */
+abstract class AbstractJob(val title: String) {
+    abstract fun execute(jobContext: JobExecutionContext)
 }

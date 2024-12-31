@@ -30,8 +30,7 @@ import org.projectforge.business.fibu.KontoCache;
 import org.projectforge.business.fibu.RechnungCache;
 import org.projectforge.business.fibu.kost.KostCache;
 import org.projectforge.business.jobs.CronSanityCheckJob;
-import org.projectforge.business.jobs.SanityCheckContext;
-import org.projectforge.business.task.TaskDO;
+import org.projectforge.jobs.JobListExecutionContext;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.user.UserGroupCache;
@@ -41,9 +40,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Provides some system routines.
@@ -108,7 +104,7 @@ public class SystemService {
      * @return
      */
     public String checkSystemIntegrity() {
-        SanityCheckContext context = cronSanityCheckJob.execute();
+        JobListExecutionContext context = cronSanityCheckJob.execute();
         return context.getReportAsText();
     }
 

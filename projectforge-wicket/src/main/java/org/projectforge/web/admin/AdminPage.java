@@ -43,7 +43,6 @@ import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.search.HibernateSearchReindexer;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
-import org.projectforge.jcr.JCRCheckSanityJob;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
@@ -54,7 +53,6 @@ import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class AdminPage extends AbstractStandardFormPage implements ISelectCallerPage {
@@ -87,7 +85,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     addDatabaseActionsMenu();
     addCachesMenu();
     addConfigurationMenu();
-    addMiscMenu();
+    addCheckMenuItem();
     addDevelopmentMenu();
   }
 
@@ -220,11 +218,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   }
 
   @SuppressWarnings("serial")
-  protected void addMiscMenu() {
-    // Misc checks
-    final ContentMenuEntryPanel miscChecksMenu = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-        getString("system.admin.group.title.systemChecksAndFunctionality.miscChecks"));
-    addContentMenuEntry(miscChecksMenu);
+  protected void addCheckMenuItem() {
     // Check system integrity
     final Link<Void> checkSystemIntegrityLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
       @Override
@@ -233,25 +227,10 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
       }
     };
     final ContentMenuEntryPanel checkSystemIntegrityLinkMenuItem = new ContentMenuEntryPanel(
-        miscChecksMenu.newSubMenuChildId(),
+            getNewContentMenuChildId(),
         checkSystemIntegrityLink, getString("system.admin.button.checkSystemIntegrity"))
         .setTooltip(getString("system.admin.button.checkSystemIntegrity.tooltip"));
-    miscChecksMenu.addSubMenuEntry(checkSystemIntegrityLinkMenuItem);
-
-    // JCR sanity check
-    // Check system integrity
-    final Link<Void> checkJCRSanityLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
-      @Override
-      public void onClick() {
-        checkJCRSanity();
-      }
-    };
-    final ContentMenuEntryPanel checkJCRSanityLinkMenuItem = new ContentMenuEntryPanel(
-        miscChecksMenu.newSubMenuChildId(),
-        checkJCRSanityLink, getString("system.admin.button.checkJCRSanity"))
-        .setTooltip(getString("system.admin.button.checkJCRSanity.tooltip"));
-    miscChecksMenu.addSubMenuEntry(checkJCRSanityLinkMenuItem);
-
+    addContentMenuEntry(checkSystemIntegrityLinkMenuItem);
   }
 
   @SuppressWarnings("serial")
@@ -299,16 +278,8 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     log.info("Administration: check integrity of tasks.");
     checkAccess();
     final String result = WicketSupport.get(SystemService.class).checkSystemIntegrity();
-    final String filename = "projectforge_check_report" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
+    final String filename = "projectforge_sanity-check" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
     DownloadUtils.setDownloadTarget(result.getBytes(), filename);
-  }
-
-  protected void checkJCRSanity() {
-    log.info("Administration: JCR sanity check.");
-    checkAccess();
-    JCRCheckSanityJob.CheckResult result = WicketSupport.get(JCRCheckSanityJob.class).execute();
-    final String filename = "projectforge_jcr-sanity-check" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
-    DownloadUtils.setDownloadTarget(result.toText().getBytes(StandardCharsets.UTF_8), filename);
   }
 
 
