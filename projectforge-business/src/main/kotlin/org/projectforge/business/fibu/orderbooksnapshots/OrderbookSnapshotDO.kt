@@ -25,9 +25,10 @@ package org.projectforge.business.fibu.orderbooksnapshots
 
 import jakarta.persistence.*
 import java.time.LocalDate
+import java.util.Date
 
 /**
- * SELECT date, octet_length(serialized_orderbook) AS byte_count FROM t_fibu_orderbook_snapshots;
+ * SELECT date, created, octet_length(serialized_orderbook) AS byte_count FROM t_fibu_orderbook_snapshots;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
@@ -42,8 +43,11 @@ import java.time.LocalDate
 )
 internal class OrderbookSnapshotDO {
     @get:Id
-    @get:Column
+    @get:Column(nullable = false)
     var date: LocalDate? = null
+
+    @get:Column(nullable = false)
+    var created: Date? = Date()
 
     /**
      * Serialized order book.
