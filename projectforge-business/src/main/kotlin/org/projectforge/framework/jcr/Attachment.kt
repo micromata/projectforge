@@ -62,6 +62,9 @@ class Attachment() {
   val fileExtension: String
     get() = name?.substringAfterLast('.', "") ?: ""
 
+  /**
+   * Size of file in bytes.
+   */
   var size: Long? = null
 
   @get:JsonProperty
