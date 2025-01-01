@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,7 +30,7 @@ import org.projectforge.SystemStatus;
 import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookDao;
 import org.projectforge.business.book.BookStatus;
-import org.projectforge.business.systeminfo.SystemService;
+import org.projectforge.business.system.SystemService;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.user.UserXmlPreferencesMigrationDao;
 import org.projectforge.framework.configuration.ApplicationContextProvider;

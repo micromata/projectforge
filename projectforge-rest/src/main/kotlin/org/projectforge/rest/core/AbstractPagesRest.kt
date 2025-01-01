@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -1264,7 +1264,7 @@ constructor(
     }
 
     /**
-     * An unique id which is used as parent node for all attachments. Use [enableJcr] for creating unique nodes.
+     * A unique id which is used as parent node for all attachments. Use [enableJcr] for creating unique nodes.
      * @return unique jcr path if attachments are supported or null, if no attachment support is given (download, upload and list).
      * @see [org.projectforge.rest.orga.ContractPagesRest] as an example.
      */

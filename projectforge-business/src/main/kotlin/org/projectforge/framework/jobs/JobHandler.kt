@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,6 +34,7 @@ import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.framework.calendar.DurationUtils
 import org.projectforge.framework.i18n.I18nHelper.getLocalizedMessage
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.locale
 import org.projectforge.mail.Mail
 import org.projectforge.mail.SendMail
 import org.springframework.beans.factory.annotation.Autowired
@@ -88,16 +89,14 @@ class JobHandler : ShutdownListener {
         synchronized(jobs) {
             jobs.add(job)
         }
-        val userContext = ThreadLocalUserContext.userContext!!
-        val locale = ThreadLocalUserContext.locale
+        val userContext = ThreadLocalUserContext.userContextAsContextElement
+        val localeContext = ThreadLocalUserContext.localeAsContextElement
         val mdcContext = MDCContext() // For MDC context of logger.
         thread {
             var start = true
             runBlocking {
                 job.coroutinesJob = launch(
-                    Dispatchers.Default + ThreadLocalUserContext.getUserAsContextElement(userContext) + ThreadLocalUserContext.getLocaleAsContextElement(
-                        locale
-                    ) + mdcContext
+                    Dispatchers.Default + userContext + localeContext + mdcContext
                 ) {
                     for (i in 0..10000) {// Paranoia counter (wait time max 10.000s)
                         var blocking: AbstractJob.Status? = null

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,7 +34,6 @@ import org.projectforge.common.extensions.formatMillis
 import org.projectforge.jcr.JCRCheckSanityJob
 import org.projectforge.jobs.AbstractJob
 import org.projectforge.jobs.JobListExecutionContext
-import org.projectforge.plugins.core.PluginAdminService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -61,7 +60,7 @@ class CronSanityCheckJob {
     @PostConstruct
     private fun postConstruct() {
         registerJob(SystemSanityCheckJob(taskDao))
-        registerJob(jcrCheckSanityJob)
+        registerJob(jcrCheckSanityJob) // JCRCheckSanityJob is a plugin job, and it is registered here, because CronSanityCheckJob is not known by JCR.
     }
 
     @Scheduled(cron = "\${projectforge.cron.sanityChecks}")
