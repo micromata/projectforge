@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.systeminfo
+package org.projectforge.business.system
 
 import mu.KotlinLogging
 import org.hibernate.query.sqm.tree.SqmNode.log
