@@ -97,14 +97,14 @@ class JobExecutionContext(val producer: AbstractJob) {
         }
     }
 
-    fun addReportAsText(sb: StringBuilder) {
+    fun addReportAsText(sb: StringBuilder, showAllMessages: Boolean = true) {
         addIntro(sb)
         if (errors.isNotEmpty()) {
             sb.appendLine("*** Errors:")
             errors.forEach { sb.appendLine("*** ERROR: ${it.date}: ${it.message}") }
             sb.appendLine()
         }
-        if (allMessages.isNotEmpty()) {
+        if (showAllMessages && allMessages.isNotEmpty()) {
             sb.appendLine("Messages:")
             allMessages.forEach { msg ->
                 val marker = when (msg.status) {

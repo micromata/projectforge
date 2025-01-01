@@ -84,8 +84,18 @@ class CronSanityCheckJob {
                         val msg = Mail()
                         msg.addTo(recipients)
                         msg.setProjectForgeSubject("Errors occurred on sanity check job.")
-                        msg.content =
-                            "Please refer the attached log file for more information or simply\nre-run system check on page Administration -> System -> check system integrity.\n\nYour ProjectForge system"
+                        val sb = StringBuilder()
+                        sb.appendLine(
+                            """
+                            |Please refer the attached log file for more information or simply
+                            |re-run system check on page Administration -> System -> check system integrity.
+                            |
+                            |Your ProjectForge system
+                            |
+                        """.trimMargin()
+                        )
+                        sb.appendLine(contextList.getReportAsText(showAllMessages = false))
+                        msg.content = sb.toString()
                         msg.contentType = Mail.CONTENTTYPE_TEXT
                         val attachments = listOf(MailAttachment(FILENAME, contextList.getReportAsText().toByteArray()))
                         sendMail.send(msg, null, attachments)
