@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu.orderbookstorage
+package org.projectforge.business.fibu.orderbooksnapshots
 
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.AuftragsStatus

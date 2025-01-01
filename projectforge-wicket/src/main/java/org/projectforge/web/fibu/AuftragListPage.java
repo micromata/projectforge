@@ -42,7 +42,7 @@ import org.projectforge.business.common.OutputType;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.KundeCache;
 import org.projectforge.business.fibu.kost.ProjektCache;
-import org.projectforge.business.fibu.orderbookstorage.OrderbookStorageService;
+import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotsService;
 import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.common.i18n.UserException;
@@ -279,7 +279,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
                     new SubmitLink(ContentMenuEntryPanel.LINK_ID, form) {
                         @Override
                         public void onSubmit() {
-                            byte[] gz = WicketSupport.get(OrderbookStorageService.class).storeOrderbook(true).getGzBytes();
+                            byte[] gz = WicketSupport.get(OrderbookSnapshotsService.class).createOrderbookSnapshot().getGzBytes();
                             final String filename = "ProjectForge-Orderbook_" + DateHelper.getDateAsFilenameSuffix(new Date())
                                     + ".gz";
                             DownloadUtils.setDownloadTarget(gz, filename);

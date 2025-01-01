@@ -74,7 +74,7 @@ object BackupFilesPurging {
         val weeksSet = mutableSetOf<Triple<String, Int, Int>>() // File prefix, Year, week of year
         val keepDailyBackupsUntil = baseDate.minusDays(keepDailyBackups)
         val keepWeeklyBackupsUntil = baseDate.minusDays(keepWeeklyBackups * 7)
-        log.info { "Keeping daily backups back until ${DATE_FORMATTER.format(keepDailyBackupsUntil)}, wwekly backups until ${DATE_FORMATTER.format(keepWeeklyBackupsUntil)} and keeping monthly backups forever in ${backupDirectory.absolutePath}/${filePrefix ?: ""}*..." }
+        log.info { "Keeping daily backups back until ${DATE_FORMATTER.format(keepDailyBackupsUntil)}, weekly backups until ${DATE_FORMATTER.format(keepWeeklyBackupsUntil)} and keeping monthly backups forever in ${backupDirectory.absolutePath}/${filePrefix ?: ""}*..." }
         var deletedFiles = 0
         var keptFiles = 0
         var totalFiles = 0

@@ -21,10 +21,9 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu.orderbookstorage
+package org.projectforge.business.fibu.orderbooksnapshots
 
 import org.projectforge.business.fibu.OrderInfo
-import org.projectforge.business.fibu.PaymentScheduleDO
 import java.math.BigDecimal
 import java.time.LocalDate
 
