@@ -23,6 +23,11 @@
 
 package org.projectforge.business.system
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import mu.KotlinLogging
 import org.apache.commons.io.FileUtils
 import org.projectforge.business.address.BirthdayCache.Companion.instance
 import org.projectforge.business.fibu.AuftragsCache
@@ -30,16 +35,22 @@ import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.RechnungCache
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.jobs.CronSanityCheckJob
-import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.common.extensions.formatMillis
+import org.projectforge.datatransfer.DataTransferBridge
+import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.database.SchemaExport
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUser
+import org.projectforge.framework.time.DateHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.File
 import java.io.IOException
+import java.util.*
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Provides some system routines.
@@ -48,17 +59,10 @@ import java.io.IOException
  */
 @Service
 class SystemService {
-    @Autowired
-    private lateinit var userGroupCache: UserGroupCache
+    private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     @Autowired
-    private lateinit var taskDao: TaskDao
-
-    @Autowired
-    private lateinit var taskTree: TaskTree
-
-    @Autowired
-    private lateinit var systemInfoCache: SystemInfoCache
+    private lateinit var accessChecker: AccessChecker
 
     @Autowired
     private lateinit var auftragsCache: AuftragsCache
@@ -67,7 +71,7 @@ class SystemService {
     private lateinit var cronSanityCheckJob: CronSanityCheckJob
 
     @Autowired
-    private lateinit var rechnungCache: RechnungCache
+    private lateinit var dataTransferBridge: DataTransferBridge
 
     @Autowired
     private lateinit var kontoCache: KontoCache
@@ -75,7 +79,20 @@ class SystemService {
     @Autowired
     private lateinit var kostCache: KostCache
 
+    @Autowired
+    private lateinit var rechnungCache: RechnungCache
+
+    @Autowired
+    private lateinit var userGroupCache: UserGroupCache
+
+    @Autowired
+    private lateinit var systemInfoCache: SystemInfoCache
+
+    @Autowired
+    private lateinit var taskTree: TaskTree
+
     fun exportSchema(): String? {
+        accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
         val exp = SchemaExport()
         val file: File
         try {
@@ -102,6 +119,36 @@ class SystemService {
      *
      */
     fun checkSystemIntegrity(): String {
+        accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+        if (!dataTransferBridge.available) {
+            return internalCheckSystemIntegrity()
+        }
+        val user = requiredLoggedInUser
+        val userContext =
+            ThreadLocalUserContext.userContextAsContextElement // Must get thread-local user outside the coroutine!
+        coroutineScope.launch(userContext) {
+            val start = System.currentTimeMillis()
+            log.info { "Check system integrity started..." }
+            try {
+                //ThreadLocalUserContext.setUser(user)
+                val content = internalCheckSystemIntegrity()
+                val filename = "projectforge_sanity-check${DateHelper.getTimestampAsFilenameSuffix(Date())}.txt"
+                val description = "System integrity check result"
+                dataTransferBridge.putFileInUsersInBox(
+                    filename = filename,
+                    content = content,
+                    description = description,
+                    receiver = user,
+                )
+            } finally {
+                //ThreadLocalUserContext.clear()
+                log.info("Checking of system integrity finished after ${(System.currentTimeMillis() - start).formatMillis()}")
+            }
+        }
+        return "Checking of system integrity started.\n\nThe results will be in Your personal data transfer box in a few minutes (dependant on your ProjectForge installation)..."
+    }
+
+    private fun internalCheckSystemIntegrity(): String {
         val context = cronSanityCheckJob.execute()
         return context.getReportAsText()
     }
@@ -121,9 +168,5 @@ class SystemService {
         systemInfoCache.forceReload()
         instance.forceReload()
         return "UserGroupCache, TaskTree, KontoCache, KostCache, RechnungCache, AuftragsCache, SystemInfoCache, BirthdayCache"
-    }
-
-    companion object {
-        private val log: Logger = LoggerFactory.getLogger(SystemService::class.java)
     }
 }
