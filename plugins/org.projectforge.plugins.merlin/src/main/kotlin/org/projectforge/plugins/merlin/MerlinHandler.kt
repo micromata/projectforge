@@ -26,12 +26,12 @@ package org.projectforge.plugins.merlin
 import de.micromata.merlin.word.WordDocument
 import de.micromata.merlin.word.templating.WordTemplateChecker
 import mu.KotlinLogging
+import org.projectforge.datatransfer.DataTransferBridge
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.jcr.FileObject
 import org.projectforge.plugins.core.PluginAdminService
-import org.projectforge.plugins.datatransfer.DataTransferPlugin
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.InputStream
@@ -52,9 +52,6 @@ open class MerlinHandler {
 
   @Autowired
   private lateinit var merlinTemplateDao: MerlinTemplateDao
-
-  @Autowired
-  private lateinit var pluginAdminService: PluginAdminService
 
   internal lateinit var attachmentsAccessChecker: AttachmentsAccessChecker // Set by MerlinPagesRest
 
@@ -174,6 +171,6 @@ open class MerlinHandler {
   }
 
   internal fun dataTransferPluginAvailable(): Boolean {
-    return pluginAdminService.activePlugins.any { it.id == DataTransferPlugin.ID }
+    return DataTransferBridge.available
   }
 }
