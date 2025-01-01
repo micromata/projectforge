@@ -36,7 +36,7 @@ class SanityCheckMain {
             val repositoryLocation = checkRepoDir(args[0]) ?: return
             val repoService = RepoService()
             repoService.init(repositoryLocation)
-            val jcrCheckSanityJob = JCRCheckSanityJob()
+            val jcrCheckSanityJob = JCRCheckSanityCheckJob()
             jcrCheckSanityJob.repoService = repoService
             jcrCheckSanityJob.execute()
         }
