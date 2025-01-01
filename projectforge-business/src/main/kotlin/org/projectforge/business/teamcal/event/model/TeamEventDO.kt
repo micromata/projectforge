@@ -970,8 +970,8 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
             clone.attachments = clone.ensureAttachments()
             for (attachment in this.attachments!!) {
                 val cloneAttachment = TeamEventAttachmentDO()
-                cloneAttachment.setFilename(attachment.filename!!)
-                cloneAttachment.setContent(attachment.content!!)
+                cloneAttachment.filename = attachment.filename!!
+                cloneAttachment.content = attachment.content!!
                 clone.addAttachment(cloneAttachment)
             }
         }

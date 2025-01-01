@@ -31,12 +31,20 @@ import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import org.projectforge.business.task.TaskDao
 import org.projectforge.common.extensions.formatMillis
+import org.projectforge.framework.configuration.Configuration
+import org.projectforge.framework.configuration.ConfigurationParam
+import org.projectforge.framework.time.DateHelper
 import org.projectforge.jcr.JCRCheckSanityJob
 import org.projectforge.jobs.AbstractJob
+import org.projectforge.jobs.JobExecutionContext
 import org.projectforge.jobs.JobListExecutionContext
+import org.projectforge.mail.Mail
+import org.projectforge.mail.MailAttachment
+import org.projectforge.mail.SendMail
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import java.util.*
 
 private val log = KotlinLogging.logger {}
 
@@ -55,6 +63,9 @@ class CronSanityCheckJob {
     private lateinit var jcrCheckSanityJob: JCRCheckSanityJob
 
     @Autowired
+    private lateinit var sendMail: SendMail
+
+    @Autowired
     private lateinit var taskDao: TaskDao
 
     @PostConstruct
@@ -63,6 +74,7 @@ class CronSanityCheckJob {
         registerJob(jcrCheckSanityJob) // JCRCheckSanityJob is a plugin job, and it is registered here, because CronSanityCheckJob is not known by JCR.
     }
 
+    // For testing: @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 10 * 1000)
     @Scheduled(cron = "\${projectforge.cron.sanityChecks}")
     fun cron() {
         log.info("Cronjob for executing sanity checks started...")
@@ -71,6 +83,19 @@ class CronSanityCheckJob {
             val start = System.currentTimeMillis()
             try {
                 val contextList = execute()
+                if (contextList.status == JobExecutionContext.Status.ERRORS) {
+                    val recipients = Configuration.instance.getStringValue(ConfigurationParam.SYSTEM_ADMIN_E_MAIL)
+                    if (!recipients.isNullOrBlank()) {
+                        val msg = Mail()
+                        msg.addTo(recipients)
+                        msg.setProjectForgeSubject("Errors occurred on sanity check job.")
+                        msg.content =
+                            "Please refer the attached log file for more information or simply\nre-run system check on page Administration -> System -> check system integrity.\n\nYour ProjectForge system"
+                        msg.contentType = Mail.CONTENTTYPE_TEXT
+                        val attachments = listOf(MailAttachment(FILENAME, contextList.getReportAsText().toByteArray()))
+                        sendMail.send(msg, null, attachments)
+                    }
+                }
             } finally {
                 log.info("Cronjob for executing sanity checks finished after ${(System.currentTimeMillis() - start).formatMillis()}")
             }
@@ -95,5 +120,10 @@ class CronSanityCheckJob {
     fun registerJob(job: AbstractJob) {
         log.info { "Registering sanity check job: ${job::class.simpleName}" }
         jobs.add(job)
+    }
+
+    companion object {
+        @JvmStatic
+        val FILENAME = "projectforge_sanity-check${DateHelper.getDateAsFilenameSuffix(Date())}.txt"
     }
 }

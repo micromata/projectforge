@@ -216,7 +216,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val colWidth = UILength(xs = 12, sm = 12, md = 6, lg = 6)
 
         fieldset
-            .add(UISpacer(width = 100))                
+            .add(UISpacer(width = 100))
             .add(UISpacer(width = 100))
             .add(UILabel("poll.headline.userConfiguration"))
             .add(
@@ -452,15 +452,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             val excel = excelExport.getExcel(poll)
             val filename = ("${postData.data.title}_${LocalDateTime.now().year}_Result.xlsx")
 
-            val mailAttachment = object : MailAttachment {
-                override fun getFilename(): String {
-                    return filename
-                }
-
-                override fun getContent(): ByteArray? {
-                    return excel
-                }
-            }
+            val mailAttachment = MailAttachment(filename, excel)
 
             if (fuemailSent != true) {
 
@@ -488,7 +480,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         if (obj.inputFields.isNullOrEmpty() || obj.inputFields.equals("[]")) {
             throw AccessException("poll.error.oneQuestionRequired")
         }
-        
+
         if(obj.owner == null) {
             throw AccessException("poll.error.ownerRequired")
         }
@@ -895,9 +887,9 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                             UICol(colWidth)
                                 .add(lc, "location")
                         )
-                    
+
                 )
-                
+
         } else {
             fieldset
                 .add(UILabel("poll.headline.generalConfiguration"))

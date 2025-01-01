@@ -1,5 +1,4 @@
-/////////////////////////////////////////////////////////////////////////////
-//
+////////////////////////////////////////////////////////////////////////////
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
@@ -19,17 +18,14 @@
 // You should have received a copy of the GNU General Public License along
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
-/////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.mail;
-
+package org.projectforge.mail
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public interface MailAttachment
-{
-  public String getFilename();
-
-  public byte[] getContent();
-}
+open class MailAttachment(
+    override var filename: String? = null,
+    override var content: ByteArray? = null,
+) : IMailAttachment
