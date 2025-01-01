@@ -84,7 +84,7 @@ class OrderbookSnapshotsService {
                 val today = LocalDate.now()
                 val entry = findEntry(today)
                 if (entry != null) {
-                    log.info { "Order book for today already exists. OK, nothing to do." }
+                    log.info { "Order book snapshot for today ($today UTC) already exists. OK, nothing to do." }
                     return@runInNewTransaction
                 }
                 var incrementalBasedOn: LocalDate? = null

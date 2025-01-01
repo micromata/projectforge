@@ -42,7 +42,7 @@ class JobListExecutionContext {
         return JobExecutionContext(job).also { jobs.add(it) }
     }
 
-    fun getReportAsText(): String {
+    fun getReportAsText(showAllMessages: Boolean = true): String {
         val sb = StringBuilder()
         addSeparatorLine(sb)
         addSeparatorLine(sb)
@@ -60,7 +60,7 @@ class JobListExecutionContext {
         addSeparatorLine(sb)
         sb.appendLine()
         sortedJobs.forEach { job ->
-            job.addReportAsText(sb)
+            job.addReportAsText(sb, showAllMessages)
         }
         sb.appendLine()
         return sb.toString()
