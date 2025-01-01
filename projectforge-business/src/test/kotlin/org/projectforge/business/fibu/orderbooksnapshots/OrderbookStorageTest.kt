@@ -95,7 +95,7 @@ class OrderbookStorageTest : AbstractTestBase() {
 
         // Test incremental storage:
         var incrementalStats =
-            orderbookStorageService.createOrderbookSnapshot(incrementalBasedOn = stats.date)
+            orderbookStorageService.storeOrderbookSnapshot(incrementalBasedOn = stats.date)
         Assertions.assertEquals(3, incrementalStats.count)
 
         // Restore the incremental storage:
