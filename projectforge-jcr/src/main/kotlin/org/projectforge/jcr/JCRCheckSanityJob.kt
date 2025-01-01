@@ -84,17 +84,16 @@ open class JCRCheckSanityJob : AbstractJob("JCR Check Sanity") {
     }
 
     override fun execute(jobContext: JobExecutionContext) {
+        var failedChecks = 0
         val walker = object : RepoTreeWalker(repoService) {
             override fun visitFile(fileNode: Node, fileObject: FileObject) {
                 fileObject.checksum.let { repoChecksum ->
                     if (repoChecksum != null && repoChecksum.length > 10) {
-                        jobContext.addMessage(
-                            "Checking checksum of file '${fileObject.fileName}' (${fileObject.size.formatBytes()})..."
-                        )
                         val checksum =
                             repoService.getFileInputStream(fileNode, fileObject, true, useEncryptedFile = true)
                                 .use { istream -> RepoService.checksum(istream) }
                         if (!validateChecksum(checksum, repoChecksum)) {
+                            ++failedChecks
                             val msg =
                                 "Checksum of file '${fileObject.fileName}' from repository '${normalizeChecksum(checksum)}' differs from repository value '${
                                     normalizeChecksum(
@@ -107,7 +106,7 @@ open class JCRCheckSanityJob : AbstractJob("JCR Check Sanity") {
                     } else {
                         val msg =
                             "Checksum of file '${fileObject.fileName}' from repository not given (skipping checksum check). ['${fileNode.path}']"
-                        jobContext.addError(msg)
+                        jobContext.addWarning(msg)
                         log.error { msg }
                     }
                 }
@@ -147,6 +146,14 @@ open class JCRCheckSanityJob : AbstractJob("JCR Check Sanity") {
         walker.walk()
         jobContext.setAttribute(NUMBER_OF_VISITED_NODES, walker.numberOfVisitedNodes)
         jobContext.setAttribute(NUMBER_OF_VISITED_FILES, walker.numberOfVisitedFiles)
+        jobContext.addMessage(
+            "Checksums of ${walker.numberOfVisitedFiles.format()} files (${walker.numberOfVisitedNodes.format()} nodes) checked."
+        )
+        if (failedChecks > 0) {
+            jobContext.addError(
+                "Checksums of $failedChecks/${walker.numberOfVisitedFiles.format()} files (${walker.numberOfVisitedNodes.format()} nodes) failed."
+            )
+        }
     }
 
     open fun execute(): CheckResult {

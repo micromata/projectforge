@@ -33,12 +33,15 @@ import jakarta.persistence.Transient
  */
 interface AttachmentsInfo {
   /**
-   * Field for adding filenames of attachments to search index.
+   * Field for adding filenames of attachments to search index. Separated by space.
+   * For displaying purposes only.
    */
   var attachmentsNames: String?
 
   /**
-   * Field for adding file ids of attachments to search index.
+   * Field for adding file ids of attachments to search index. Separated by space.
+   * A attachmentId is the fileId of a file object in the jcr: [Attachment.fileId].
+   * Example: "aqjtrqjiatlnkjijnkfl lpslbmheilidhpsdobkg dmpbhhnihhontlargpof ckdknhcnlidmfjrlicgg bdgjtjnnilhfintmmcqr"
    */
   var attachmentsIds: String?
 
