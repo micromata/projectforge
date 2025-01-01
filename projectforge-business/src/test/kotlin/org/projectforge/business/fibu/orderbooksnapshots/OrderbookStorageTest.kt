@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu.orderbookstorage
+package org.projectforge.business.fibu.orderbooksnapshots
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -42,7 +42,7 @@ class OrderbookStorageTest : AbstractTestBase() {
     private lateinit var kundeDao: KundeDao
 
     @Autowired
-    private lateinit var orderbookStorageService: OrderbookStorageService
+    private lateinit var orderbookStorageService: OrderbookSnapshotsService
 
     @Autowired
     private lateinit var projektDao: ProjektDao
@@ -71,11 +71,11 @@ class OrderbookStorageTest : AbstractTestBase() {
         val order4 = createOrder("4")
         val order5 = createOrder("5")
         val order6 = createOrder("6")
-        val stats = orderbookStorageService.storeOrderbook(today = LocalDate.of(2024, Month.DECEMBER, 15))
+        val stats = orderbookStorageService.storeOrderbookSnapshot(date = LocalDate.of(2024, Month.DECEMBER, 15))
         // Previous entry should be overwritten. No exception expected:
-        orderbookStorageService.storeOrderbook(today = stats.date)
+        orderbookStorageService.storeOrderbookSnapshot(date = stats.date)
         Assertions.assertEquals(6, stats.count)
-        var list = orderbookStorageService.restoreOrderbook(stats.date)
+        var list = orderbookStorageService.readSnapshot(stats.date)
         Assertions.assertEquals(6, list!!.size)
         list.forEach { order ->
             Assertions.assertEquals("30.00".toBigDecimal(), order.info.netSum)
@@ -95,11 +95,11 @@ class OrderbookStorageTest : AbstractTestBase() {
 
         // Test incremental storage:
         var incrementalStats =
-            orderbookStorageService.storeOrderbook(incrementalBasedOn = stats.date)
+            orderbookStorageService.createOrderbookSnapshot(incrementalBasedOn = stats.date)
         Assertions.assertEquals(3, incrementalStats.count)
 
         // Restore the incremental storage:
-        list = orderbookStorageService.restoreOrderbook(incrementalStats.date)
+        list = orderbookStorageService.readSnapshot(incrementalStats.date)
         Assertions.assertEquals(6, list!!.size)
         list.forEach { order ->
             Assertions.assertEquals("30.00".toBigDecimal(), order.info.netSum)
@@ -109,13 +109,13 @@ class OrderbookStorageTest : AbstractTestBase() {
         }
         Assertions.assertTrue(list.any { it.titel == "new title 4" }, "Modified title expected.")
 
-        list = orderbookStorageService.restoreOrderbook(stats.date) // Restore the full backup (without last changes).
+        list = orderbookStorageService.readSnapshot(stats.date) // Restore the full backup (without last changes).
         Assertions.assertEquals(6, list!!.size)
         Assertions.assertTrue(list.none { it.titel == "new title 4" }, "Modified title expected.")
 
         // Test incremental storage with a date that is not found:
         incrementalStats =
-            orderbookStorageService.storeOrderbook(incrementalBasedOn = LocalDate.of(2024, Month.NOVEMBER, 12))
+            orderbookStorageService.createOrderbookSnapshot(incrementalBasedOn = LocalDate.of(2024, Month.NOVEMBER, 12))
         Assertions.assertEquals(6, incrementalStats.count, "No storage found, based on date 2024-11-12, full backup expected.")
     }
 
