@@ -69,6 +69,8 @@ docker system df
 docker volume ls
 docker volume rm <volume-name>
 
+drop table t_fibu_orderbook_storage;
+delete from t_flyway_schema_history where version = '2023.11.01';
 
 Orderbooks importieren:
 docker cp ~/ProjectForgeBackup/ProjectForge-Orderbook_*.gz projectforge-postgres:/tmp/
@@ -77,6 +79,3 @@ docker cp ~/ProjectForgeBackup/ProjectForge-Orderbook_*.gz projectforge-postgres
 INSERT INTO t_fibu_orderbook_storage (date, serialized_orderbook)  VALUES ('2023-11-01', pg_read_binary_file(:'file_path')::bytea);
 \set file_path '/tmp/ProjectForge-Orderbook_2023-12-01.gz'
 INSERT INTO t_fibu_orderbook_storage (date, serialized_orderbook)  VALUES ('2023-12-01', pg_read_binary_file(:'file_path')::bytea);
-
-
-SELECT date, octet_length(serialized_orderbook) AS byte_count FROM t_fibu_orderbook_storage;
