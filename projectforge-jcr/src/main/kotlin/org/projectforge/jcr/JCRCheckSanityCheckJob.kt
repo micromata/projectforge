@@ -26,6 +26,7 @@ package org.projectforge.jcr
 import mu.KotlinLogging
 import org.projectforge.common.FormatterUtils
 import org.projectforge.common.extensions.format
+import org.projectforge.common.extensions.formatBytes
 import org.projectforge.common.extensions.formatMillis
 import org.projectforge.jobs.AbstractJob
 import org.projectforge.jobs.JobExecutionContext
@@ -37,7 +38,7 @@ import javax.jcr.Node
 private val log = KotlinLogging.logger {}
 
 @Component
-open class JCRCheckSanityJob : AbstractJob("JCR Check Sanity") {
+open class JCRCheckSanityCheckJob : AbstractJob("JCR Check Sanity") {
     @Autowired
     internal lateinit var repoService: RepoService
 
@@ -78,8 +79,10 @@ open class JCRCheckSanityJob : AbstractJob("JCR Check Sanity") {
 
     override fun execute(jobContext: JobExecutionContext) {
         var failedChecks = 0
+        var totalSizeOfFiles = 0L
         val walker = object : RepoTreeWalker(repoService) {
             override fun visitFile(fileNode: Node, fileObject: FileObject) {
+                totalSizeOfFiles += fileObject.size ?: 0
                 fileObject.checksum.let { repoChecksum ->
                     if (repoChecksum != null && repoChecksum.length > 10) {
                         val checksum =
@@ -144,7 +147,7 @@ open class JCRCheckSanityJob : AbstractJob("JCR Check Sanity") {
         )
         if (failedChecks > 0) {
             jobContext.addError(
-                "Checksums of $failedChecks/${walker.numberOfVisitedFiles.format()} files (${walker.numberOfVisitedNodes.format()} nodes) failed."
+                "Checksums of $failedChecks/${walker.numberOfVisitedFiles.format()} files (${totalSizeOfFiles.formatBytes()}, ${walker.numberOfVisitedNodes.format()} nodes) failed."
             )
         }
     }
@@ -181,5 +184,6 @@ open class JCRCheckSanityJob : AbstractJob("JCR Check Sanity") {
     companion object {
         const val NUMBER_OF_VISITED_NODES = "numberOfVisitedNodes"
         const val NUMBER_OF_VISITED_FILES = "numberOfVisitedFiles"
+
     }
 }

@@ -30,7 +30,7 @@ import org.projectforge.common.extensions.formatMillis
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.time.DateHelper
-import org.projectforge.jcr.JCRCheckSanityJob
+import org.projectforge.jcr.JCRCheckSanityCheckJob
 import org.projectforge.jobs.AbstractJob
 import org.projectforge.jobs.JobExecutionContext
 import org.projectforge.jobs.JobListExecutionContext
@@ -55,7 +55,7 @@ class CronSanityCheckJob {
     private val jobs = mutableListOf<AbstractJob>()
 
     @Autowired
-    private lateinit var jcrCheckSanityJob: JCRCheckSanityJob
+    private lateinit var jcrCheckSanityJob: JCRCheckSanityCheckJob
 
     @Autowired
     private lateinit var sendMail: SendMail
