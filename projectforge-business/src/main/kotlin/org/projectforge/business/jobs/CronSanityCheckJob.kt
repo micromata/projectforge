@@ -24,10 +24,6 @@
 package org.projectforge.business.jobs
 
 import jakarta.annotation.PostConstruct
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import org.projectforge.business.task.TaskDao
 import org.projectforge.common.extensions.formatMillis
@@ -57,7 +53,6 @@ private val log = KotlinLogging.logger {}
 @Component
 class CronSanityCheckJob {
     private val jobs = mutableListOf<AbstractJob>()
-    private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     @Autowired
     private lateinit var jcrCheckSanityJob: JCRCheckSanityJob
@@ -79,7 +74,7 @@ class CronSanityCheckJob {
     fun cron() {
         log.info("Cronjob for executing sanity checks started...")
 
-        coroutineScope.launch {
+        Thread {
             val start = System.currentTimeMillis()
             try {
                 val contextList = execute()
@@ -99,7 +94,7 @@ class CronSanityCheckJob {
             } finally {
                 log.info("Cronjob for executing sanity checks finished after ${(System.currentTimeMillis() - start).formatMillis()}")
             }
-        }
+        }.start()
     }
 
     fun execute(): JobListExecutionContext {
