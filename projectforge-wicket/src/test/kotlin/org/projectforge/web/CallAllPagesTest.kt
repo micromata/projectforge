@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,14 +27,13 @@ import mu.KotlinLogging
 import org.apache.wicket.markup.html.WebPage
 import org.apache.wicket.request.mapper.parameter.PageParameters
 import org.junit.jupiter.api.Test
-import org.projectforge.business.systeminfo.SystemInfoCache
-import org.projectforge.business.systeminfo.SystemInfoCache.Companion.internalInitialize
+import org.projectforge.business.system.SystemInfoCache
+import org.projectforge.business.system.SystemInfoCache.Companion.internalInitialize
 import org.projectforge.common.logging.LoggerMemoryAppender
 import org.projectforge.menu.builder.MenuCreator.Companion.testCase
 import org.projectforge.web.address.AddressEditPage
 import org.projectforge.web.address.AddressListPage
 import org.projectforge.web.admin.SetupPage
-import org.projectforge.web.calendar.CalendarPage
 import org.projectforge.web.registry.WebRegistry
 import org.projectforge.web.task.TaskTreePage
 import org.projectforge.web.wicket.WicketPageTestBase

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,7 +29,7 @@ import net.fortuna.ical4j.util.CompatibilityHints;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.projectforge.business.configuration.DomainService;
-import org.projectforge.business.systeminfo.SystemInfoCache;
+import org.projectforge.business.system.SystemInfoCache;
 import org.projectforge.common.CanonicalFileUtils;
 import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.common.StringModifier;

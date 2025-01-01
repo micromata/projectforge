@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,7 +29,7 @@ import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.business.fibu.kost.ProjektCache
-import org.projectforge.business.systeminfo.SystemInfoCache
+import org.projectforge.business.system.SystemInfoCache
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.timesheet.*
 import org.projectforge.business.user.service.UserService
