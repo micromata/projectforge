@@ -23,10 +23,6 @@
 
 package org.projectforge.jcr
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import org.projectforge.common.FormatterUtils
 import org.projectforge.common.extensions.format
@@ -42,11 +38,9 @@ import javax.jcr.Node
 private val log = KotlinLogging.logger {}
 
 @Component
-open class JCRCheckSanityJob : AbstractJob("JCR Check Sanity") {
+open class JCRCheckSanityCheckJob : AbstractJob("JCR Check Sanity") {
     @Autowired
     internal lateinit var repoService: RepoService
-
-    private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     class CheckResult(
         val errors: List<String>,
@@ -62,7 +56,7 @@ open class JCRCheckSanityJob : AbstractJob("JCR Check Sanity") {
         val started = System.currentTimeMillis()
         log.info("JCR sanity check job started.")
         val job = this
-        coroutineScope.launch {
+        Thread {
             try {
                 val jobContext = JobExecutionContext(job)
                 execute(jobContext)
@@ -80,13 +74,15 @@ open class JCRCheckSanityJob : AbstractJob("JCR Check Sanity") {
             } catch (ex: Throwable) {
                 log.error("While executing hibernate search re-index job: " + ex.message, ex)
             }
-        }
+        }.start()
     }
 
     override fun execute(jobContext: JobExecutionContext) {
         var failedChecks = 0
+        var totalSizeOfFiles = 0L
         val walker = object : RepoTreeWalker(repoService) {
             override fun visitFile(fileNode: Node, fileObject: FileObject) {
+                totalSizeOfFiles += fileObject.size ?: 0
                 fileObject.checksum.let { repoChecksum ->
                     if (repoChecksum != null && repoChecksum.length > 10) {
                         val checksum =
@@ -151,7 +147,7 @@ open class JCRCheckSanityJob : AbstractJob("JCR Check Sanity") {
         )
         if (failedChecks > 0) {
             jobContext.addError(
-                "Checksums of $failedChecks/${walker.numberOfVisitedFiles.format()} files (${walker.numberOfVisitedNodes.format()} nodes) failed."
+                "Checksums of $failedChecks/${walker.numberOfVisitedFiles.format()} files (${totalSizeOfFiles.formatBytes()}, ${walker.numberOfVisitedNodes.format()} nodes) failed."
             )
         }
     }
@@ -188,5 +184,6 @@ open class JCRCheckSanityJob : AbstractJob("JCR Check Sanity") {
     companion object {
         const val NUMBER_OF_VISITED_NODES = "numberOfVisitedNodes"
         const val NUMBER_OF_VISITED_FILES = "numberOfVisitedFiles"
+
     }
 }

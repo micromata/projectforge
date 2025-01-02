@@ -25,6 +25,7 @@ package org.projectforge.plugins.datatransfer
 
 import jakarta.annotation.PostConstruct
 import org.projectforge.business.jobs.CronSanityCheckJob
+import org.projectforge.common.extensions.format
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.jobs.AbstractJob
 import org.projectforge.jobs.JobExecutionContext
@@ -55,6 +56,7 @@ class DataTransferSanityCheckJob : AbstractJob("Check data transfer files.") {
         var areaCounter = 0
         var missingInJcrCounter = 0
         var orphanedCounter = 0
+        var fileCounter = 0
         dataTransferAreaDao.selectAll(checkAccess = false).forEach { area ->
             ++areaCounter
             val areaName = "'${area.displayName}'"
@@ -66,6 +68,7 @@ class DataTransferSanityCheckJob : AbstractJob("Check data transfer files.") {
                     checkAccess = false,
                 )
                 val attachmentsCounter = area.attachmentsCounter ?: 0
+                fileCounter += attachmentsCounter
                 if (attachmentsCounter == 0 && attachments.isNullOrEmpty()) {
                     // No attachments given/expected, nothing to check.
                     return@forEach
@@ -95,9 +98,13 @@ class DataTransferSanityCheckJob : AbstractJob("Check data transfer files.") {
                 jobContext.addWarning("Error while checking data transfer area $areaName: ${ex.message}")
             }
         }
-        if (missingInJcrCounter > 0 || orphanedCounter > 0) {
-            jobContext.addError("Checked $areaCounter data transfer areas: $missingInJcrCounter missed, $orphanedCounter orphaned attachments.")
+        val baseMsg = "Checked ${fileCounter.format()} files in ${areaCounter.format()} data transfer areas"
+        if (missingInJcrCounter > 0 ) {
+            jobContext.addError("$baseMsg: $missingInJcrCounter missed, $orphanedCounter orphaned attachments.")
+        } else if (orphanedCounter > 0) {
+            jobContext.addWarning("$baseMsg: $orphanedCounter orphaned attachments.")
+        } else {
+            jobContext.addMessage("$baseMsg.")
         }
-        jobContext.addMessage("Checked $areaCounter data transfer areas.")
     }
 }

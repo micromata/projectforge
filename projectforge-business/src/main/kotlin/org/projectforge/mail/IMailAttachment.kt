@@ -1,5 +1,4 @@
-/////////////////////////////////////////////////////////////////////////////
-//
+////////////////////////////////////////////////////////////////////////////
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
@@ -19,26 +18,14 @@
 // You should have received a copy of the GNU General Public License along
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
-/////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.jcr
+package org.projectforge.mail
 
-import org.projectforge.jcr.BackupMain.Companion.checkRepoDir
-
-class SanityCheckMain {
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            if (args.size != 1) {
-                BackupMain.printHelp()
-                return
-            }
-            val repositoryLocation = checkRepoDir(args[0]) ?: return
-            val repoService = RepoService()
-            repoService.init(repositoryLocation)
-            val jcrCheckSanityJob = JCRCheckSanityCheckJob()
-            jcrCheckSanityJob.repoService = repoService
-            jcrCheckSanityJob.execute()
-        }
-    }
+/**
+ * @author Kai Reinhard (k.reinhard@micromata.de)
+ */
+interface IMailAttachment {
+    var filename: String?
+    var content: ByteArray?
 }

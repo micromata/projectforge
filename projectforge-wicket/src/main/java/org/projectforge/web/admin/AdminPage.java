@@ -30,6 +30,7 @@ import org.projectforge.SystemStatus;
 import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookDao;
 import org.projectforge.business.book.BookStatus;
+import org.projectforge.business.jobs.CronSanityCheckJob;
 import org.projectforge.business.system.SystemService;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.user.UserXmlPreferencesMigrationDao;
@@ -278,7 +279,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     log.info("Administration: check integrity of tasks.");
     checkAccess();
     final String result = WicketSupport.get(SystemService.class).checkSystemIntegrity();
-    final String filename = "projectforge_sanity-check" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
+    final String filename = CronSanityCheckJob.getFILENAME();
     DownloadUtils.setDownloadTarget(result.getBytes(), filename);
   }
 

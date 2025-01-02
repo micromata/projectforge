@@ -27,6 +27,7 @@ import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
 import org.projectforge.common.MaxFileSizeExceeded
 import org.projectforge.common.i18n.UserException
+import org.projectforge.common.logging.LogLevel
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.utils.ExceptionStackTracePrinter
@@ -48,6 +49,24 @@ private val log = KotlinLogging.logger {}
 
 @ControllerAdvice
 internal class GlobalDefaultExceptionHandler {
+    private class ExInfo(
+        val message: String? = null,
+        val logLevel: LogLevel = LogLevel.ERROR,
+        val status: HttpStatus = HttpStatus.BAD_REQUEST,
+    )
+
+    companion object {
+        private val KNOWN_EXCEPTIONS = mapOf(
+            "StalePageException" to ExInfo("Wicket page not available anymore"),
+            "NoResourceFoundException" to ExInfo("Resource not found", status = HttpStatus.NOT_FOUND),
+        )
+        private val KNOWN_EXCEPTION_CLASSES = mapOf(
+            NoRouteToHostException::class.java to ExInfo("No route to host"),
+            AsyncRequestNotUsableException::class.java to ExInfo("Asyn client connection lost (OK)", LogLevel.INFO),
+            AsyncRequestTimeoutException::class.java to ExInfo("Asyn client connection lost (OK)", LogLevel.INFO),
+        )
+    }
+
     @ExceptionHandler(value = [(Exception::class)])
     @Throws(Exception::class)
     fun defaultErrorHandler(request: HttpServletRequest, ex: Exception): Any {
@@ -68,21 +87,7 @@ internal class GlobalDefaultExceptionHandler {
         }
         if (ex is IOException && isClientAbortException(ex)) {
             log.info { ex::class.java.name }
-            return ex::class.java.name
-        }
-        if (ex is NoRouteToHostException) {
-            log.error("No route to host: ${ex.message}")
-            return ResponseEntity("No route to host.", HttpStatus.BAD_REQUEST)
-        }
-        if (ex is AsyncRequestNotUsableException || ex is AsyncRequestTimeoutException) {
-            // Occurs on SseEmitter.send() if the client has disconnected.
-            // log.error("Async request not usable: ${ex.message}")
-            log.info { "Asyn client connection lost (OK): ${ex.message}" }
-            return ResponseEntity("Async request not usable.", HttpStatus.BAD_REQUEST)
-        }
-        if (ex::class.qualifiedName?.contains("NoResourceFoundException") == true) {
-            log.error("Resource not found: ${ex.message}")
-            return ResponseEntity("Resource not found.", HttpStatus.NOT_FOUND)
+            return ResponseEntity.badRequest()
         }
         if (ex is UserException) {
             if (ex.logHintMessage.isNullOrBlank()) {
@@ -95,6 +100,12 @@ internal class GlobalDefaultExceptionHandler {
             } else {
                 ResponseEntity.badRequest().body(UIToast.createExceptionToast(ex))
             }
+        }
+        KNOWN_EXCEPTIONS.entries.find { ex::class.qualifiedName?.contains(it.key) == true }?.let {
+            return handleKnownException(ex, it.value)
+        }
+        KNOWN_EXCEPTION_CLASSES.entries.find { ex::class.java == it.key }?.let {
+            return handleKnownException(ex, it.value)
         }
         val additionalExcptionMessage =
             if (ex is TechnicalException && ex.technicalMessage != null) " technical=${ex.technicalMessage}" else ""
@@ -121,5 +132,14 @@ internal class GlobalDefaultExceptionHandler {
     private fun isClientAbortException(exception: IOException): Boolean {
         val message = exception.message?.lowercase()
         return message?.contains("broken pipe") == true || message?.contains("connection reset by peer") == true
+    }
+
+    private fun handleKnownException(ex: Exception, exInfo: ExInfo): Any {
+        val msg = if (exInfo.message.isNullOrBlank()) exInfo.message else "${exInfo.message}: ${ex.message}"
+        when (exInfo.logLevel) {
+            LogLevel.INFO -> log.info(msg)
+            else -> log.error(msg)
+        }
+        return ResponseEntity(msg, exInfo.status)
     }
 }

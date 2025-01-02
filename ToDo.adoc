@@ -1,7 +1,5 @@
 Aktuell:
 - Scripting: Ergebnis Unresolved reference 'memo', 'todo'.: line 94 to 94 (add only activated plugins)
-- Zeitberichte: kost2.nummer:4.* dauert sehr lang, auch für kurze Zeiträume.
-- Healthcheck (daily) with mail notification on errors. Mit Registrierung von Services (jcr, orderbook snaphosts etc.)
 - Groovy-scripts: remove or fix.
 - AG-Grid: setColumnStates wird nicht in den UserPrefs gespeichert.
 - Wicket: Auftragsbuch: org.apache.wicket.core.request.mapper.StalePageException: A request to page '[Page class = org.projectforge.web.fibu.AuftragEditPage, id = 9, render count = 3]' has been made with stale 'renderCount'. The page will be re-rendered.
