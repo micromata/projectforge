@@ -47,6 +47,8 @@ public class MonthlyEmployeeReportWeek implements Serializable {
 
   private long totalDuration = 0;
 
+  private long totalGrossDuration = 0;
+
   /**
    * Key is kost2 id.
    */
@@ -110,19 +112,14 @@ public class MonthlyEmployeeReportWeek implements Serializable {
     }
     long duration = sheet.getDuration();
     entry.addMillis(duration);
-    totalDuration += duration;
+    totalDuration += entry.getWorkFractionMillis();
+    totalGrossDuration += duration;
   }
 
-  /**
-   * @see StringHelper#format2DigitNumber(int)
-   */
   public String getFormattedFromDayOfMonth() {
     return StringHelper.format2DigitNumber(fromDate.getDayOfMonth());
   }
 
-  /**
-   * @see StringHelper#format2DigitNumber(int)
-   */
   public String getFormattedToDayOfMonth() {
     return StringHelper.format2DigitNumber(toDate.getDayOfMonth());
   }
@@ -136,6 +133,10 @@ public class MonthlyEmployeeReportWeek implements Serializable {
 
   public String getFormattedTotalDuration() {
     return MonthlyEmployeeReport.getFormattedDuration(totalDuration);
+  }
+
+  public String getFormattedGrossDuration() {
+    return MonthlyEmployeeReport.getFormattedDuration(totalGrossDuration);
   }
 
   /**

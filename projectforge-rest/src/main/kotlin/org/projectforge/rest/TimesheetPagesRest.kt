@@ -300,7 +300,6 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             table.add(lc, "tag", width = 100)
         }
         table.add(lc, "description", width = 1000)
-        layout.add(UILabel("'${translate("timesheet.totalDuration")}: tbd.")) // See TimesheetListForm
     }
 
     /**
