@@ -90,15 +90,7 @@ class PollCronJobs {
 
                         val excel = exporter.getExcel(poll)
 
-                        val mailAttachment = object : MailAttachment {
-                            override fun getFilename(): String {
-                                return "${pollDO.title}_${LocalDateTime.now().year}_Result.xlsx"
-                            }
-
-                            override fun getContent(): ByteArray? {
-                                return excel
-                            }
-                        }
+                        val mailAttachment = MailAttachment("${pollDO.title}_${LocalDateTime.now().year}_Result.xlsx", excel)
                         val owner = userService.getUser(poll.owner?.id)
                         val mailTo = pollMailService.getAllAttendeesEmails(poll)
                         val mailFrom = pollDO.owner?.email.toString()

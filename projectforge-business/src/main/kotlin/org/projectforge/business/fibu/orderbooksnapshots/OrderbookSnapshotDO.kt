@@ -30,7 +30,15 @@ import java.time.LocalDate
 import java.util.*
 
 /**
+ * Order book snapshot stores the orderbook as a serialized byte array including current state of invoices (paid, to-be-invoiced etc.).
+ *
+ * The order book is stored as full backup or as incremental backup.
+ *
+ * The purpose of this table is to compare old order books with new ones to compare forecasts with reality.
+ *
+ * ```
  * SELECT date, created, incremental_based_on, octet_length(serialized_orderbook) AS byte_count, size FROM t_fibu_orderbook_snapshots;
+ * ```
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity

@@ -53,7 +53,7 @@ open class RepoBackupService {
   internal lateinit var repoService: RepoService
 
   @Autowired
-  internal lateinit var jcrCheckSanityJob: JCRCheckSanityJob
+  internal lateinit var jcrCheckSanityJob: JCRCheckSanityCheckJob
 
 
   internal val listOfIgnoredNodePaths = mutableListOf<String>()
@@ -183,7 +183,7 @@ open class RepoBackupService {
     zipIn: ZipInputStream,
     securityConfirmation: String,
     absPath: String = "/${repoService.mainNodeName}"
-  ): JCRCheckSanityJob.CheckResult {
+  ): JCRCheckSanityCheckJob.CheckResult {
     if (securityConfirmation != RESTORE_SECURITY_CONFIRMATION__I_KNOW_WHAT_I_M_DOING__REPO_MAY_BE_DESTROYED) {
       throw IllegalArgumentException("You must use the correct security confirmation if you know what you're doing. The repo content may be lost after restoring!")
     }

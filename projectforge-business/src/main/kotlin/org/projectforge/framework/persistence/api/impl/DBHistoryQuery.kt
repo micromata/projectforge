@@ -34,7 +34,7 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 internal object DBHistoryQuery {
-    private const val MAX_RESULT_SIZE = 100000 // Limit result list to 100000
+    private const val MAX_RESULT_SIZE = 100_000 // Limit result list to 100_000
 
     fun searchHistoryEntryByCriteria(
         entityManager: EntityManager,

@@ -339,7 +339,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
                     "font-weight: bold; color:red; text-align: right;")));
         }
         if (report.getTotalGrossDuration() != report.getTotalNetDuration()) {
-            // Net sum row.
+            // Gross sum row.
             final WebMarkupContainer row = new WebMarkupContainer(rowRepeater.newChildId());
             rowRepeater.add(row);
             if (rowCounter++ % 2 == 0) {
@@ -359,7 +359,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
             final RepeatingView colWeekRepeater = new RepeatingView("colWeekRepeater");
             row.add(colWeekRepeater);
             for (@SuppressWarnings("unused") final MonthlyEmployeeReportWeek week : report.getWeeks()) {
-                colWeekRepeater.add(new Label(colWeekRepeater.newChildId(), ""));
+                colWeekRepeater.add(new Label(colWeekRepeater.newChildId(), week.getFormattedGrossDuration()));
             }
             row.add(new Label("sum", report.getFormattedTotalGrossDuration()).add(AttributeModifier.replace("style",
                     "font-weight: bold; text-align: right;")));

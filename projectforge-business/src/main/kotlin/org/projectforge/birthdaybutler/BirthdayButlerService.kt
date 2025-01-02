@@ -111,15 +111,7 @@ class BirthdayButlerService {
         }
         val word = response.wordDocument
         if (word != null) {
-            val attachment = object : MailAttachment {
-                override fun getFilename(): String {
-                    return createFilename(month, locale)
-                }
-
-                override fun getContent(): ByteArray {
-                    return word
-                }
-            }
+            val attachment = MailAttachment(createFilename(month, locale), word)
             val list = mutableListOf<MailAttachment>()
             list.add(attachment)
             sendMail(month, content = "birthdayButler.email.content", mailAttachments = list, locale = locale)

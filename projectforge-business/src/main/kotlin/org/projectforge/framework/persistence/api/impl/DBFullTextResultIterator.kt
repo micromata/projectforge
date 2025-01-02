@@ -39,7 +39,10 @@ import java.text.Collator
 
 private val log = KotlinLogging.logger {}
 
-private const val MAX_RESULTS = 100
+/**
+ * Block wise search result iterator. (100 was much too low: 100 caused a lot of queries)
+ */
+private const val MAX_RESULTS = 10_000
 
 internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
     val baseDao: BaseDao<O>,
