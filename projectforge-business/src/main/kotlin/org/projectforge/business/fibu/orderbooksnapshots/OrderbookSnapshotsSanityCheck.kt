@@ -25,8 +25,10 @@ package org.projectforge.business.fibu.orderbooksnapshots
 
 import org.projectforge.common.extensions.format
 import org.projectforge.common.extensions.formatBytes
+import org.projectforge.common.extensions.isoString
 import org.projectforge.jobs.AbstractJob
 import org.projectforge.jobs.JobExecutionContext
+import java.util.Date
 
 class OrderbookSnapshotsSanityCheck(val orderbookSnapshotsService: OrderbookSnapshotsService) :
     AbstractJob("Checks the recent order book' snapshots.") {
@@ -44,8 +46,10 @@ class OrderbookSnapshotsSanityCheck(val orderbookSnapshotsService: OrderbookSnap
                 return@forEach
             }
             try {
-                orderbookSnapshotsService.readSnapshot(date)
-                jobContext.addMessage("Snapshot for date $date (${it.size.formatBytes()}) is readable.")
+                val orders = orderbookSnapshotsService.readSnapshot(date)
+                val lastUpdate = orders?.maxOf { it.lastUpdate ?: Date(0L) }
+                val highestOrderNumber = orders?.maxOf { it.nummer ?: -1 }
+                jobContext.addMessage("Snapshot for date $date (${it.size.formatBytes()}) is readable: ${orders?.size?.format()} orders, highest order number=${highestOrderNumber.format()} lastUpdate=${lastUpdate.isoString()}.")
             } catch (e: Exception) {
                 jobContext.addError("Error reading snapshot for date $date: $e")
             }

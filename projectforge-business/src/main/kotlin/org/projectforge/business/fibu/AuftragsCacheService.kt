@@ -66,8 +66,15 @@ class AuftragsCacheService {
                     order.bemerkung = getString(tuple, "bemerkung")
                     order.periodOfPerformanceBegin = getLocalDate(tuple, "periodOfPerformanceBegin")
                     order.periodOfPerformanceEnd = getLocalDate(tuple, "periodOfPerformanceEnd")
+                    order.kundeText = getString(tuple, "kundeText")
+                    getLong(tuple, "kundeId")?.let { kundeId ->
+                        order.kunde = em.getReference(KundeDO::class.java, kundeId)
+                    }
+                    getLong(tuple, "projektId")?.let { projektId ->
+                        order.projekt = em.getReference(ProjektDO::class.java, projektId)
+                    }
                     getLong(tuple, "contactPersonId")?.let { userId ->
-                        order.contactPerson = PFUserDO().also { it.id = userId }
+                        order.contactPerson = em.getReference(PFUserDO::class.java, userId)
                     }
                 }
             }
@@ -82,7 +89,7 @@ class AuftragsCacheService {
                 AuftragsPositionDO().also { pos ->
                     pos.id = getLong(tuple, "id")
                     getLong(tuple, "auftragId")?.let { auftragId ->
-                        pos.auftrag = AuftragDO().also { it.id = auftragId }
+                        pos.auftrag = em.getReference(AuftragDO::class.java, auftragId)
                     }
                     pos.number = getShort(tuple, "number")!!
                     pos.deleted = getBoolean(tuple, "deleted")!!
@@ -134,7 +141,7 @@ class AuftragsCacheService {
                    a.entscheidungsDatum as entscheidungsDatum,a.bemerkung as bemerkung,
                    a.probabilityOfOccurrence as probabilityOfOccurrence,
                    a.periodOfPerformanceBegin as periodOfPerformanceBegin, a.periodOfPerformanceEnd as periodOfPerformanceEnd,
-                   a.contactPerson.id as contactPersonId
+                   a.contactPerson.id as contactPersonId, a.kunde.id as kundeId, a.projekt.id as projektId, a.kundeText as kundeText
             FROM ${AuftragDO::class.simpleName} a
         """.trimIndent()
         private val SELECT_POSITIONS = """

@@ -191,7 +191,9 @@ class OrderbookSnapshotsService {
     fun readSnapshot(date: LocalDate): List<AuftragDO>? {
         val orderbook = mutableMapOf<Long, Order>()
         readSnapshot(date, orderbook)
-        return orderConverterService.convertFromOrder(orderbook.values)
+        return orderConverterService.convertFromOrder(orderbook.values).also {
+            log.info { "${it?.size} orders restored from snapshot of $date." }
+        }
     }
 
     private fun readSnapshot(date: LocalDate, orderbook: MutableMap<Long, Order>) {

@@ -76,7 +76,7 @@ object ForecastUtils { // open needed by Wicket.
      */
     @JvmStatic
     fun computeProbabilityNetSum(order: OrderInfo, pos: OrderPositionInfo): BigDecimal {
-        val netSum = if (pos.netSum != null) pos.netSum else BigDecimal.ZERO
+        val netSum = pos.netSum ?: BigDecimal.ZERO
         val probability = getProbabilityOfAccurence(order, pos)
         return netSum.multiply(probability)
     }
@@ -88,13 +88,13 @@ object ForecastUtils { // open needed by Wicket.
     fun getProbabilityOfAccurence(order: OrderInfo, pos: OrderPositionInfo): BigDecimal {
         // See ForecastExportProbabilities.xlsx
         // Excel rows: Order 1-4
-        if (order.status?.isIn(AuftragsStatus.ABGELEHNT, AuftragsStatus.ERSETZT) == true
-            || pos.status?.isIn(AuftragsStatus.ABGELEHNT, AuftragsStatus.ERSETZT) == true
+        if (order.status.isIn(AuftragsStatus.ABGELEHNT, AuftragsStatus.ERSETZT) == true
+            || pos.status.isIn(AuftragsStatus.ABGELEHNT, AuftragsStatus.ERSETZT) == true
         ) {
             return BigDecimal.ZERO
         }
         // Excel rows: Order 5-6
-        if (pos.status?.isIn(AuftragsStatus.POTENZIAL, AuftragsStatus.OPTIONAL) == true) {
+        if (pos.status.isIn(AuftragsStatus.POTENZIAL, AuftragsStatus.OPTIONAL) == true) {
             return getGivenProbability(order, BigDecimal.ZERO)
         }
         // Excel rows: Order 7
@@ -106,17 +106,17 @@ object ForecastUtils { // open needed by Wicket.
             return getGivenProbability(order, BigDecimal.ZERO)
         }
         // Excel rows: Order 9-10
-        if (order.status?.isIn(AuftragsStatus.ABGESCHLOSSEN, AuftragsStatus.BEAUFTRAGT) == true) {
+        if (order.status.isIn(AuftragsStatus.ABGESCHLOSSEN, AuftragsStatus.BEAUFTRAGT) == true) {
             return BigDecimal.ONE
         }
         // Excel rows: Order 11-12
-        if (order.status?.isIn(
+        if (order.status.isIn(
                 AuftragsStatus.ESKALATION,
                 AuftragsStatus.GELEGT,
                 AuftragsStatus.IN_ERSTELLUNG
             ) == true
         ) {
-            if (pos.status?.isIn(
+            if (pos.status.isIn(
                     AuftragsStatus.ESKALATION,
                     AuftragsStatus.GELEGT,
                     AuftragsStatus.IN_ERSTELLUNG
@@ -131,7 +131,7 @@ object ForecastUtils { // open needed by Wicket.
         }
         // Excel rows: Order 13
         if (order.status == AuftragsStatus.LOI
-            && pos.status?.isIn(
+            && pos.status.isIn(
                 AuftragsStatus.ESKALATION,
                 AuftragsStatus.GELEGT,
                 AuftragsStatus.IN_ERSTELLUNG

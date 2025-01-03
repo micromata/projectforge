@@ -51,7 +51,7 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
     val dbNetSum = position.nettoSumme ?: BigDecimal.ZERO
 
     /**
-     * For finished postio
+     * For finished positions. True if the position is fully invoiced and the status is [AuftragsStatus.ABGESCHLOSSEN].
      */
     val vollstaendigFakturiert = position.vollstaendigFakturiert == true && status == AuftragsStatus.ABGESCHLOSSEN
     val periodOfPerformanceType = position.periodOfPerformanceType
@@ -99,12 +99,20 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
      */
     var notYetInvoiced = BigDecimal.ZERO
 
+    /**
+     * If true, the order position was loaded from a snapshot. Therefore, no recalculation should be done.
+      */
+    var snapshotVersion: Boolean = false
+
     init {
         /*if (position.status == null) {
             log.info { "Position without status: $position shouldn't occur. Assuming POTENZIAL." }
         }*/
         if (position.deleted) {
-            log.debug {"Position is deleted: $position"}
+            log.debug { "Position is deleted: $position" }
+            // Nothing to calculate.
+        } else if (snapshotVersion) {
+            log.debug { "Position is loaded from snapshot: $position" }
             // Nothing to calculate.
         } else {
             recalculate(order)

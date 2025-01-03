@@ -32,6 +32,7 @@ import org.projectforge.Constants
 import org.projectforge.business.excel.ExcelDateFormats
 import org.projectforge.business.excel.XlsContentProvider
 import org.projectforge.business.fibu.kost.ProjektCache
+import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotsService
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.common.DateFormatType
@@ -48,6 +49,8 @@ import org.springframework.stereotype.Service
 import java.io.IOException
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.LocalDate
+import java.time.Month
 import java.time.format.DateTimeFormatter
 
 private val log = KotlinLogging.logger {}
@@ -62,6 +65,9 @@ private val log = KotlinLogging.logger {}
 open class ForecastExport { // open needed by Wicket.
     @Autowired
     private lateinit var accessChecker: AccessChecker
+
+    @Autowired
+    private lateinit var orderbookSnapshotsService: OrderbookSnapshotsService
 
     @Autowired
     private lateinit var orderDao: AuftragDao
@@ -117,8 +123,9 @@ open class ForecastExport { // open needed by Wicket.
         val forecastSheet: ExcelSheet,
         val invoicesSheet: ExcelSheet,
         val invoicesPriorYearSheet: ExcelSheet,
-        val baseDate: PFDay,
-        val invoices: List<RechnungDO>
+        val startDate: PFDay,
+        val invoices: List<RechnungDO>,
+        val today: PFDay = PFDay.now()
     ) {
         val excelDateFormat =
             ThreadLocalUserContext.loggedInUser?.excelDateFormat ?: ExcelDateFormats.EXCEL_DEFAULT_DATE
@@ -136,7 +143,6 @@ open class ForecastExport { // open needed by Wicket.
             false // showAll is true, if no filter is given and for financial and controlling staff only.
         val orderPositionMap = mutableMapOf<Long, OrderPositionInfo>()
         val orderMapByPositionId = mutableMapOf<Long, OrderInfo>()
-        val today = PFDay.now()
         val thisMonth = today.beginOfMonth
 
         init {
@@ -147,35 +153,57 @@ open class ForecastExport { // open needed by Wicket.
 
     @Throws(IOException::class)
     open fun export(origFilter: AuftragFilter): ByteArray? {
-        val baseDateParam = origFilter.periodOfPerformanceStartDate
-        val baseDate = if (baseDateParam != null) PFDay.from(baseDateParam).beginOfMonth else PFDay.now().beginOfYear
+        val startDateParam = origFilter.periodOfPerformanceStartDate
+        val startDate = if (startDateParam != null) PFDay.from(startDateParam).beginOfMonth else PFDay.now().beginOfYear
         val filter = AuftragFilter()
         filter.searchString = origFilter.searchString
         filter.projectList = origFilter.projectList
         //filter.auftragFakturiertFilterStatus = origFilter.auftragFakturiertFilterStatus
         //filter.auftragsPositionsPaymentType = origFilter.auftragsPositionsPaymentType
         filter.periodOfPerformanceStartDate =
-            baseDate.plusYears(-2).localDate // Go 2 years back for getting all orders referred by invoices of prior year.
+            startDate.plusYears(-2).localDate // Go 2 years back for getting all orders referred by invoices of prior year.
         filter.user = origFilter.user
         val orderList = orderDao.select(filter)
-        log.info { "Exporting forecast script for date ${baseDate.isoString} with filter: str='${filter.searchString ?: ""}', projects=${filter.projectList?.joinToString { it.name ?: "???" }}" }
+        log.info { "Exporting forecast script for date ${startDate.isoString} with filter: str='${filter.searchString ?: ""}', projects=${filter.projectList?.joinToString { it.name ?: "???" }}" }
         val showAll = accessChecker.isLoggedInUserMemberOfGroup(
             ProjectForgeGroup.FINANCE_GROUP,
             ProjectForgeGroup.CONTROLLING_GROUP
         ) &&
                 filter.searchString.isNullOrBlank() &&
                 filter.projectList.isNullOrEmpty()
-        return export(orderList, baseDate, showAll = showAll)
+        return export(orderList, startDate, showAll = showAll)
     }
 
     @Throws(IOException::class)
-    open fun export(orderList: Collection<AuftragDO>, baseDate: PFDay, showAll: Boolean): ByteArray? {
+    open fun export(startDate: PFDay, snapshotDate: PFDay): ByteArray? {
+        val orderList = orderbookSnapshotsService.readSnapshot(snapshotDate.localDate) ?: return null
+        return export(orderList, startDate, showAll = true, snapshotDate)
+    }
+
+    /**
+     * Export the forecast sheet.
+     * @param orderList The list of orders to export.
+     * @param startDate The start date for the forecast.
+     * @param showAll True, if no filter is given, for financial and controlling staff only.
+     * @param today Today (null) or, the day of the snapshot, if the orderList is loaded from order book snapshots.
+     *              If the date is in the past, the forecast will be simulated with the specified date.
+     *              If date is given, no caches will be used.
+     * @return The byte array of the Excel file.
+     */
+    @Throws(IOException::class)
+    open fun export(
+        orderList: Collection<AuftragDO>,
+        startDate: PFDay,
+        showAll: Boolean,
+        today: PFDay? = null,
+    ): ByteArray? {
         if (orderList.isEmpty()) {
             log.info { "No orders found for export." }
             // No orders found, so we don't need the forecast sheet.
             return null
         }
-        val prevYearBaseDate = baseDate.plusYears(-1) // One year back for getting all invoices.
+        val useAuftragsCache = today == null
+        val prevYearBaseDate = startDate.plusYears(-1) // One year back for getting all invoices.
         val invoiceFilter = RechnungFilter()
         invoiceFilter.fromDate =
             prevYearBaseDate.plusDays(-1).localDate // Go 1 day back, paranoia setting for getting all invoices for given time period.
@@ -201,7 +229,15 @@ open class ForecastExport { // open needed by Wicket.
             InvoicesCol.entries.forEach { invoicesPriorYearSheet.registerColumn(it.header) }
             MonthCol.entries.forEach { invoicesPriorYearSheet.registerColumn(it.header) }
 
-            val ctx = Context(workbook, forecastSheet, invoicesSheet, invoicesPriorYearSheet, baseDate, invoices)
+            val ctx = Context(
+                workbook,
+                forecastSheet = forecastSheet,
+                invoicesSheet = invoicesSheet,
+                invoicesPriorYearSheet = invoicesPriorYearSheet,
+                startDate = startDate,
+                invoices = invoices,
+                today = today ?: PFDay.now(),
+            )
             ctx.showAll = showAll
 
             var currentRow = 9
@@ -210,7 +246,7 @@ open class ForecastExport { // open needed by Wicket.
                 auftragDO.projekt?.id?.let { projektId ->
                     ctx.projectIds.add(projektId)
                 }
-                val orderInfo = ordersCache.getOrderInfo(auftragDO)
+                val orderInfo = if (useAuftragsCache) ordersCache.getOrderInfo(auftragDO) else auftragDO.info
                 auftragDO.id?.let { ctx.orderMap[it] = orderInfo }
                 orderInfo.infoPositions?.forEach { pos ->
                     pos.id?.let {
@@ -237,8 +273,8 @@ open class ForecastExport { // open needed by Wicket.
                 return null
             }
             fillInvoices(ctx)
-            replaceMonthDatesInHeaderRow(forecastSheet, baseDate)
-            replaceMonthDatesInHeaderRow(invoicesSheet, baseDate)
+            replaceMonthDatesInHeaderRow(forecastSheet, startDate)
+            replaceMonthDatesInHeaderRow(invoicesSheet, startDate)
             replaceMonthDatesInHeaderRow(invoicesPriorYearSheet, prevYearBaseDate)
             forecastSheet.setAutoFilter()
             invoicesSheet.setAutoFilter()
@@ -386,16 +422,8 @@ open class ForecastExport { // open needed by Wicket.
             ForecastCol.ABRECHNUNGSART.header,
             if (pos.paymentType != null) translate(pos.paymentType.i18nKey) else ""
         )
-        sheet.setStringValue(
-            row,
-            ForecastCol.AUFTRAG_STATUS.header,
-            if (order.status != null) translate(order.status!!.i18nKey) else ""
-        )
-        sheet.setStringValue(
-            row,
-            ForecastCol.POSITION_STATUS.header,
-            if (pos.status != null) translate(pos.status.i18nKey) else ""
-        )
+        sheet.setStringValue(row, ForecastCol.AUFTRAG_STATUS.header, translate(order.status.i18nKey))
+        sheet.setStringValue(row, ForecastCol.POSITION_STATUS.header, translate(pos.status.i18nKey))
         sheet.setIntValue(row, ForecastCol.PT.header, pos.personDays?.toInt() ?: 0)
         sheet.setBigDecimalValue(
             row, ForecastCol.NETTOSUMME.header, pos.netSum
@@ -443,13 +471,13 @@ open class ForecastExport { // open needed by Wicket.
             sheet.setDateValue(
                 row,
                 leistungsZeitraumColDef,
-                PFDay(order.periodOfPerformanceBegin!!).localDate,
+                PFDay.fromOrNull(order.periodOfPerformanceBegin)?.localDate,
                 ctx.excelDateFormat
             )
             sheet.setDateValue(
                 row,
                 leistungsZeitraumColDef.columnNumber + 1,
-                PFDay(order.periodOfPerformanceEnd!!).localDate,
+                PFDay.fromOrNull(order.periodOfPerformanceEnd)?.localDate,
                 ctx.excelDateFormat
             )
         }
@@ -546,7 +574,7 @@ open class ForecastExport { // open needed by Wicket.
         order: OrderInfo, pos: OrderPositionInfo
     ) { // payment values
         val probability = ForecastUtils.getProbabilityOfAccurence(order, pos)
-        var currentMonth = ctx.baseDate.plusMonths(-1).beginOfMonth
+        var currentMonth = ctx.startDate.plusMonths(-1).beginOfMonth
         MonthCol.entries.forEach {
             currentMonth = currentMonth.plusMonths(1)
             if (checkAfterMonthBefore(currentMonth)) {
@@ -589,7 +617,7 @@ open class ForecastExport { // open needed by Wicket.
 
     private fun getMonthIndex(ctx: Context, date: PFDay): Int {
         val monthDate = date.year * 12 + date.monthValue
-        val monthBaseDate = ctx.baseDate.year * 12 + ctx.baseDate.monthValue
+        val monthBaseDate = ctx.startDate.year * 12 + ctx.startDate.monthValue
         return monthDate - monthBaseDate // index from 0 to 11
     }
 
