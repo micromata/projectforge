@@ -246,7 +246,7 @@ open class ForecastExport { // open needed by Wicket.
                 auftragDO.projekt?.id?.let { projektId ->
                     ctx.projectIds.add(projektId)
                 }
-                val orderInfo = if (useAuftragsCache) auftragDO.info else ordersCache.getOrderInfo(auftragDO)
+                val orderInfo = if (useAuftragsCache) ordersCache.getOrderInfo(auftragDO) else auftragDO.info
                 auftragDO.id?.let { ctx.orderMap[it] = orderInfo }
                 orderInfo.infoPositions?.forEach { pos ->
                     pos.id?.let {
