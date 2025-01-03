@@ -79,9 +79,19 @@ class OrderInfo() : Serializable {
 
     /**
      * The positions (not deleted) of the order with additional information.
+     * If not set (e.g. by OrderbookSnapshot), the positions will be lazy loaded from cache.
      */
-    val infoPositions: Collection<OrderPositionInfo>?
-        get() = AuftragsCache.instance.getOrderPositionInfosByAuftragId(id)
+    var infoPositions: Collection<OrderPositionInfo>? = null
+        get() = if (field != null || snapshotVersion) field else AuftragsCache.instance.getOrderPositionInfosByAuftragId(id)
+        set(value) {
+            field = value
+        }
+
+    /**
+     * If true, the order was loaded from a snapshot. Therefore, no recalculation should be done.
+     */
+    var snapshotVersion: Boolean = false
+
 
     fun updateFields(order: AuftragDO, paymentSchedules: Collection<PaymentScheduleDO>? = null) {
         id = order.id

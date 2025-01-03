@@ -37,7 +37,7 @@ import java.util.*
  * The purpose of this table is to compare old order books with new ones to compare forecasts with reality.
  *
  * ```
- * SELECT date, created, incremental_based_on, octet_length(serialized_orderbook) AS byte_count, size FROM t_fibu_orderbook_snapshots;
+ * SELECT date, created, incremental_based_on, octet_length(serialized_orderbook) AS byte_count, size FROM t_fibu_orderbook_snapshots order by date desc;
  * ```
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */

@@ -63,6 +63,7 @@ internal class OrderConverterService {
     fun from(order: Order): AuftragDO {
         return AuftragDO().apply {
             id = order.id
+            lastUpdate = order.lastUpdate
             nummer = order.nummer
             positionen = order.positionen?.map { from(it) }?.toMutableList()
             status = order.status
@@ -74,6 +75,7 @@ internal class OrderConverterService {
             periodOfPerformanceBegin = order.periodOfPerformanceBegin
             periodOfPerformanceEnd = order.periodOfPerformanceEnd
             probabilityOfOccurrence = order.probabilityOfOccurrence
+            info.nummer = order.nummer
             info.netSum = order.netSum
             info.commissionedNetSum = order.commissionedNetSum
             info.akquiseSum = order.akquiseSum
@@ -86,6 +88,11 @@ internal class OrderConverterService {
             info.positionAbgeschlossenUndNichtVollstaendigFakturiert =
                 order.positionAbgeschlossenUndNichtVollstaendigFakturiert
             info.paymentSchedulesReached = order.paymentSchedulesReached
+            info.periodOfPerformanceBegin = order.periodOfPerformanceBegin
+            info.periodOfPerformanceEnd = order.periodOfPerformanceEnd
+            info.infoPositions = positionen?.map { OrderPositionInfo(it, info).also { it.snapshotVersion = true } }
+            info.kundeAsString = kundeAsString
+            info.projektAsString = projektAsString
         }
     }
 
