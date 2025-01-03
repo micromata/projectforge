@@ -37,6 +37,7 @@ internal class Order {
     var id: Long? = null
     var lastUpdate: Date? = null
     var nummer: Int? = null
+    var angebotsDatum: LocalDate? = null
     var positionen: Collection<OrderPosition>? = null
     var status: AuftragsStatus? = null
     var kundeId: Long? = null

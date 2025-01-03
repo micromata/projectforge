@@ -68,8 +68,10 @@ class OrderInfo() : Serializable {
     var created: Date? = null
     var erfassungsDatum: LocalDate? = null
     var entscheidungsDatum: LocalDate? = null
-    lateinit var kundeAsString: String
-    lateinit var projektAsString: String
+    var kundeId: Long? = null
+    var kundeAsString: String? = null
+    var projektId: Long? = null
+    var projektAsString: String? = null
     var probabilityOfOccurrence: Int? = null
     var periodOfPerformanceBegin: LocalDate? = null
     var periodOfPerformanceEnd: LocalDate? = null
@@ -82,7 +84,9 @@ class OrderInfo() : Serializable {
      * If not set (e.g. by OrderbookSnapshot), the positions will be lazy loaded from cache.
      */
     var infoPositions: Collection<OrderPositionInfo>? = null
-        get() = if (field != null || snapshotVersion) field else AuftragsCache.instance.getOrderPositionInfosByAuftragId(id)
+        get() = if (field != null || snapshotVersion) field else AuftragsCache.instance.getOrderPositionInfosByAuftragId(
+            id
+        )
         set(value) {
             field = value
         }
@@ -109,7 +113,9 @@ class OrderInfo() : Serializable {
         created = order.created
         erfassungsDatum = order.erfassungsDatum
         entscheidungsDatum = order.entscheidungsDatum
+        kundeId = order.kunde?.id
         kundeAsString = order.kundeAsString
+        projektId = order.projekt?.id
         projektAsString = order.projektAsString
         probabilityOfOccurrence = order.probabilityOfOccurrence
         periodOfPerformanceBegin = order.periodOfPerformanceBegin
