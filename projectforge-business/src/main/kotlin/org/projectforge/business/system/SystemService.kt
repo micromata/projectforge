@@ -142,7 +142,7 @@ class SystemService {
             |
             |The results will be in Your personal data transfer box in a few minutes (dependant on your ProjectForge installation)...
             |
-            |For large files in the data transfer boxes, it may take much more time (all checksums will be calculated)."
+            |For large files in the data transfer boxes, it may take much more time (all checksums will be calculated).
         """.trimMargin()
     }
 

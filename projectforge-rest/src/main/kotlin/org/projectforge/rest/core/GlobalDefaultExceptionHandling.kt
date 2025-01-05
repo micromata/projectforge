@@ -89,6 +89,11 @@ internal class GlobalDefaultExceptionHandler {
             log.info { ex::class.java.name }
             return ResponseEntity.badRequest()
         }
+        if (ex is java.lang.IllegalStateException && ex.message?.contains("Cannot start async") == true) {
+            // E.g. thrown by using SSEEmitterTool.
+            log.info { "${ex::class.java.name}: ${ex.message}" }
+            return ResponseEntity.badRequest()
+        }
         if (ex is UserException) {
             if (ex.logHintMessage.isNullOrBlank()) {
                 log.error(translateMsg(ex))
