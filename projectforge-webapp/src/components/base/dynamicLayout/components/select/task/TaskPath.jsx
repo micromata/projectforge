@@ -59,8 +59,4 @@ TaskPath.propTypes = {
     }).isRequired,
 };
 
-TaskPath.defaultProps = {
-    setTask: undefined,
-};
-
 export default TaskPath;

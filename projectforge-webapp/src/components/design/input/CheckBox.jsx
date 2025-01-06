@@ -59,12 +59,4 @@ CheckBox.propTypes = {
     tooltip: PropTypes.string,
 };
 
-CheckBox.defaultProps = {
-    additionalLabel: undefined,
-    label: undefined,
-    className: undefined,
-    color: undefined,
-    tooltip: undefined,
-};
-
 export default CheckBox;

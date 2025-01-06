@@ -5,7 +5,7 @@ import { Nav } from '../../design';
 import NavigationDropdown from './Dropdown';
 import NavigationEntry from './Entry';
 
-function Navigation({ entries, className, right }) {
+function Navigation({ entries, className = 'ml-auto', right = false }) {
     return (
         <Nav className={className}>
             {entries.map((entry) => {
@@ -27,11 +27,6 @@ Navigation.propTypes = {
     entries: PropTypes.arrayOf(menuItemPropType).isRequired,
     className: PropTypes.string,
     right: PropTypes.bool,
-};
-
-Navigation.defaultProps = {
-    className: 'ml-auto',
-    right: false,
 };
 
 export default Navigation;

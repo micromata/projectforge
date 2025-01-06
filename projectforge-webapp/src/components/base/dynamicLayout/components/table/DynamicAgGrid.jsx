@@ -16,11 +16,48 @@ import DynamicAgGridDiffCell from './DynamicAgGridDiffCell';
 
 LicenseManager.setLicenseKey('Using_this_{AG_Grid}_Enterprise_key_{AG-059988}_in_excess_of_the_licence_granted_is_not_permitted___Please_report_misuse_to_legal@ag-grid.com___For_help_with_changing_this_key_please_contact_info@ag-grid.com___{Micromata_GmbH}_is_granted_a_{Single_Application}_Developer_License_for_the_application_{ProjectForge}_only_for_{2}_Front-End_JavaScript_developers___All_Front-End_JavaScript_developers_working_on_{ProjectForge}_need_to_be_licensed___{ProjectForge}_has_not_been_granted_a_Deployment_License_Add-on___This_key_works_with_{AG_Grid}_Enterprise_versions_released_before_{14_July_2025}____[v3]_[01]_MTc1MjQ0NzYwMDAwMA==2c2e5c05a1f3b34a534c11405051440a');
 
-function DynamicAgGrid(props) {
-    const {
+function DynamicAgGrid({
+    columnDefs,
+    id, // If given, data.id is used as entries
+    entries, // own entries (not data.id)
+    sortModel,
+    rowSelection,
+    rowMultiSelectWithClick,
+    rowClickRedirectUrl,
+    rowClickFunction,
+    rowClickOpenModal,
+    onCellClicked,
+    onColumnStatesChangedUrl,
+    onGridApiReady,
+    pagination,
+    paginationPageSize,
+    getRowClass,
+    suppressRowClickSelection,
+    components,
+    // If not usable from locale from authentication, e. g. in public pages:
+    locale,
+    dateFormat = 'YYYY-MM-dd',
+    thousandSeparator = ',',
+    decimalSeparator = '.',
+    timestampFormatSeconds = 'YYYY-MM-dd HH:mm:ss',
+    timestampFormatMinutes = 'YYYY-MM-dd HH:mm',
+    currency = '€',
+    // By authentication object:
+    userLocale,
+    userDateFormat,
+    userThousandSeparator,
+    userDecimalSeparator,
+    userTimestampFormatSeconds,
+    userTimestampFormatMinutes,
+    userCurrency,
+    height,
+    highlightId,
+    ...restProps
+}) {
+    const props = {
         columnDefs,
-        id, // If given, data.id is used as entries
-        entries, // own entries (not data.id)
+        id,
+        entries,
         sortModel,
         rowSelection,
         rowMultiSelectWithClick,
@@ -35,7 +72,6 @@ function DynamicAgGrid(props) {
         getRowClass,
         suppressRowClickSelection,
         components,
-        // If not usable from locale from authentication, e. g. in public pages:
         locale,
         dateFormat,
         thousandSeparator,
@@ -43,7 +79,6 @@ function DynamicAgGrid(props) {
         timestampFormatSeconds,
         timestampFormatMinutes,
         currency,
-        // By authentication object:
         userLocale,
         userDateFormat,
         userThousandSeparator,
@@ -53,7 +88,8 @@ function DynamicAgGrid(props) {
         userCurrency,
         height,
         highlightId,
-    } = props;
+        ...restProps,
+    };
     // eslint-disable-next-line no-new-func
     const getRowClassFunction = Function('params', getRowClass);
     const rowClass = 'ag-row-standard';
@@ -369,27 +405,6 @@ DynamicAgGrid.propTypes = {
     currency: PropTypes.string,
     height: PropTypes.number,
     // visible: PropTypes.bool,
-};
-
-DynamicAgGrid.defaultProps = {
-    id: undefined,
-    entries: undefined,
-    pagination: undefined,
-    paginationPageSize: undefined,
-    getRowClass: undefined,
-    rowClickRedirectUrl: undefined,
-    onRowClicked: undefined,
-    suppressRowClickSelection: undefined,
-    components: undefined,
-    locale: undefined,
-    dateFormat: 'YYYY-MM-dd',
-    thousandSeparator: ',',
-    decimalSeparator: '.',
-    timestampFormatSeconds: 'YYYY-MM-dd HH:mm:ss',
-    timestampFormatMinutes: 'YYYY-MM-dd HH:mm',
-    currency: '€',
-    height: undefined,
-    // visible: undefined,
 };
 
 const mapStateToProps = ({ authentication }) => ({

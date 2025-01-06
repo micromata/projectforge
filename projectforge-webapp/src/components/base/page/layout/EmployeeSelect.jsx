@@ -16,16 +16,15 @@ const getOptionLabel = (option) => {
     return '';
 };
 
-function EmployeeSelect(props) {
+function EmployeeSelect({
+    onChange: handleChange,
+    required = false,
+    translations,
+    employee,
+    value,
+    ...props
+}) {
     const [selectMeIcon, setSelectMeIcon] = React.useState(faSmile);
-
-    const {
-        onChange: handleChange,
-        required,
-        translations,
-        employee,
-        value,
-    } = props;
 
     const selectMe = () => handleChange(employee);
 
@@ -55,6 +54,8 @@ function EmployeeSelect(props) {
             <ReactSelect
                 value={value}
                 onChange={handleChange}
+                required={required}
+                employee={employee}
                 {...props}
                 valueProperty="id"
                 labelProperty="fullname"
@@ -103,12 +104,6 @@ EmployeeSelect.propTypes = {
     employee: PropTypes.shape({
         id: PropTypes.string,
     }).isRequired,
-};
-
-EmployeeSelect.defaultProps = {
-    required: false,
-    displayName: undefined,
-    value: undefined,
 };
 
 const mapStateToProps = ({ authentication }) => ({

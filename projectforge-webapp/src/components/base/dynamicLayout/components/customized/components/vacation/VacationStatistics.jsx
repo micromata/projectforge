@@ -90,6 +90,4 @@ function VacationStatistics() {
 
 VacationStatistics.propTypes = {};
 
-VacationStatistics.defaultProps = {};
-
 export default VacationStatistics;

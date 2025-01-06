@@ -63,6 +63,4 @@ CustomizedAddressPhoneNumbers.propTypes = {
 
 };
 
-CustomizedAddressPhoneNumbers.defaultProps = {};
-
 export default CustomizedAddressPhoneNumbers;

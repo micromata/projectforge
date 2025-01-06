@@ -1,18 +1,17 @@
 import 'moment/min/locales';
 import PropTypes from 'prop-types';
 import React from 'react';
-import 'react-day-picker/lib/style.css';
+import 'react-day-picker/dist/style.css';
 import DateInput from '../../../../design/input/calendar/DateInput';
 import { DynamicLayoutContext } from '../../context';
 import DynamicValidationManager from './DynamicValidationManager';
 
-function DynamicDateInput(props) {
-    const {
-        additionalLabel,
-        id,
-        label,
-        required,
-    } = props;
+function DynamicDateInput({
+    additionalLabel,
+    id,
+    label,
+    required = false,
+}) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
     let value = Object.getByString(data, id);
 
@@ -37,7 +36,7 @@ function DynamicDateInput(props) {
                 />
             </DynamicValidationManager>
         );
-    }, [props, value, setData]);
+    }, [additionalLabel, id, label, required, value, setData]);
 }
 
 DynamicDateInput.propTypes = {
@@ -45,11 +44,6 @@ DynamicDateInput.propTypes = {
     label: PropTypes.string.isRequired,
     additionalLabel: PropTypes.string,
     required: PropTypes.bool,
-};
-
-DynamicDateInput.defaultProps = {
-    additionalLabel: undefined,
-    required: false,
 };
 
 export default DynamicDateInput;

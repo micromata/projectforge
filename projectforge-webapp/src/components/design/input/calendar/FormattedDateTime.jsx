@@ -10,7 +10,7 @@ function FormattedDateTime(
         dispatch,
         jsDateFormat,
         jsTimestampFormatMinutes,
-        slot,
+        slot = 'FROM',
         ...props
     },
 ) {
@@ -36,10 +36,6 @@ FormattedDateTime.propTypes = {
     jsDateFormat: PropTypes.string.isRequired,
     jsTimestampFormatMinutes: PropTypes.string.isRequired,
     slot: PropTypes.oneOf(['FROM', 'TO']),
-};
-
-FormattedDateTime.defaultProps = {
-    slot: 'FROM',
 };
 
 const mapStateToProps = ({ authentication }) => ({

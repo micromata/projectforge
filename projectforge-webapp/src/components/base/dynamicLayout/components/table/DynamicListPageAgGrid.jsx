@@ -142,9 +142,4 @@ DynamicListPageAgGrid.propTypes = {
     getRowClass: PropTypes.string,
 };
 
-DynamicListPageAgGrid.defaultProps = {
-    id: undefined,
-    getRowClass: undefined,
-};
-
 export default DynamicListPageAgGrid;

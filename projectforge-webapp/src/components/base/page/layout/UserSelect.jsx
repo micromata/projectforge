@@ -16,16 +16,24 @@ const getOptionLabel = (option) => {
     return '';
 };
 
-function UserSelect(props) {
+function UserSelect({
+    onChange: handleChange,
+    required = false,
+    translations,
+    user,
+    value,
+    ...restProps
+}) {
     const [selectMeIcon, setSelectMeIcon] = React.useState(faSmile);
 
-    const {
+    const props = {
         onChange: handleChange,
         required,
         translations,
         user,
         value,
-    } = props;
+        ...restProps,
+    };
 
     const selectMe = () => handleChange(user);
 
@@ -104,11 +112,6 @@ UserSelect.propTypes = {
         PropTypes.shape({}),
         PropTypes.arrayOf(PropTypes.shape({})),
     ]),
-};
-
-UserSelect.defaultProps = {
-    required: false,
-    value: undefined,
 };
 
 const mapStateToProps = ({ authentication }) => ({

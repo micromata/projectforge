@@ -14,7 +14,7 @@ function DynamicEditor(
     {
         id,
         mode,
-        height,
+        height = '600px',
         ...props
     },
 ) {
@@ -55,10 +55,6 @@ DynamicEditor.propTypes = {
     id: PropTypes.string.isRequired,
     mode: PropTypes.string,
     height: PropTypes.string,
-};
-
-DynamicEditor.defaultProps = {
-    height: '600px',
 };
 
 export default DynamicEditor;

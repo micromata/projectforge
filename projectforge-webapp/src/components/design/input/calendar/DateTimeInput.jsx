@@ -7,12 +7,12 @@ import TimeInput, { PrecisionType } from './TimeInput';
 
 function DateTimeInput(
     {
-        hideDayPicker,
-        hideTimeInput,
+        hideDayPicker = false,
+        hideTimeInput = false,
         jsDateFormat,
-        precision,
+        precision = 5,
         setTime,
-        showDate,
+        showDate = false,
         time,
     },
 ) {
@@ -75,14 +75,6 @@ DateTimeInput.propTypes = {
     precision: PrecisionType,
     showDate: PropTypes.bool,
     time: PropTypes.instanceOf(Date),
-};
-
-DateTimeInput.defaultProps = {
-    hideDayPicker: false,
-    hideTimeInput: false,
-    precision: 5,
-    showDate: false,
-    time: undefined,
 };
 
 const mapStateToProps = ({ authentication }) => ({

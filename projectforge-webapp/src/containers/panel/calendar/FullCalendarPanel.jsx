@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import FullCalendar from '@fullcalendar/react'; // must go before plugins
+import FullCalendar from '@fullcalendar/react';
 import '@fortawesome/fontawesome-free/css/all.css';
 import deLocale from '@fullcalendar/core/locales/de';
 import dayGridPlugin from '@fullcalendar/daygrid';

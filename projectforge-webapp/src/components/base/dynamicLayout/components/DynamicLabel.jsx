@@ -26,8 +26,4 @@ DynamicLabel.propTypes = {
     tooltip: PropTypes.string,
 };
 
-DynamicLabel.defaultProps = {
-    tooltip: undefined,
-};
-
 export default DynamicLabel;

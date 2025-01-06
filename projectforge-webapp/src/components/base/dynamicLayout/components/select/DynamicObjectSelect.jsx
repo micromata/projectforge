@@ -31,6 +31,4 @@ DynamicObjectSelect.propTypes = {
     id: PropTypes.string.isRequired,
 };
 
-DynamicObjectSelect.defaultProps = {};
-
 export default DynamicObjectSelect;

@@ -41,7 +41,7 @@ export const publicRoute = (
 function AuthorizedRoutes(
     {
         alertMessage,
-        locale,
+        locale = 'en',
     },
 ) {
     const getRoutesWithLocation = (location) => (
@@ -93,11 +93,6 @@ function AuthorizedRoutes(
 AuthorizedRoutes.propTypes = {
     alertMessage: PropTypes.string,
     locale: PropTypes.string,
-};
-
-AuthorizedRoutes.defaultProps = {
-    alertMessage: undefined,
-    locale: 'en',
 };
 
 const mapStateToProps = ({ authentication }) => ({

@@ -57,8 +57,4 @@ DynamicListPageTable.propTypes = {
     id: PropTypes.string,
 };
 
-DynamicListPageTable.defaultProps = {
-    id: undefined,
-};
-
 export default DynamicListPageTable;

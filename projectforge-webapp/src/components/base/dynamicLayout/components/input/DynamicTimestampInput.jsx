@@ -3,7 +3,7 @@ import 'moment/min/locales';
 import PropTypes from 'prop-types';
 import 'rc-time-picker/assets/index.css';
 import React from 'react';
-import 'react-day-picker/lib/style.css';
+import 'react-day-picker/dist/style.css';
 import DateTimeInput from '../../../../design/input/calendar/DateTimeInput';
 import InputContainer from '../../../../design/input/InputContainer';
 import { DynamicLayoutContext } from '../../context';
@@ -49,7 +49,5 @@ function DynamicTimestampInput(
 DynamicTimestampInput.propTypes = {
     id: PropTypes.string.isRequired,
 };
-
-DynamicTimestampInput.defaultProps = {};
 
 export default DynamicTimestampInput;

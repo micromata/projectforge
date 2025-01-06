@@ -95,8 +95,6 @@ IndexPage.propTypes = {
     }).isRequired,
 };
 
-IndexPage.defaultProps = {};
-
 const actions = {
     loadUserStatus,
 };

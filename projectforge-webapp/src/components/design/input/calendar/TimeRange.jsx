@@ -9,12 +9,12 @@ import DateTimeInput from './DateTimeInput';
 function TimeRange(
     {
         from,
-        hideDayPicker,
-        hideTimeInput,
+        hideDayPicker = false,
+        hideTimeInput = false,
         id,
         label,
         onDelete,
-        sameDate,
+        sameDate = false,
         setFrom,
         setTo,
         to,
@@ -76,17 +76,6 @@ TimeRange.propTypes = {
     sameDate: PropTypes.bool,
     to: PropTypes.instanceOf(Date),
     toLabel: PropTypes.string,
-};
-
-TimeRange.defaultProps = {
-    from: undefined,
-    hideDayPicker: false,
-    hideTimeInput: false,
-    label: undefined,
-    onDelete: undefined,
-    sameDate: false,
-    to: undefined,
-    toLabel: undefined,
 };
 
 export default TimeRange;

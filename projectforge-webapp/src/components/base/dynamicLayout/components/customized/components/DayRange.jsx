@@ -3,7 +3,7 @@ import 'moment/min/locales';
 import PropTypes from 'prop-types';
 import 'rc-time-picker/assets/index.css';
 import React from 'react';
-import 'react-day-picker/lib/style.css';
+import 'react-day-picker/dist/style.css';
 import { connect } from 'react-redux';
 import AdditionalLabel from '../../../../../design/input/AdditionalLabel';
 import TimeRange from '../../../../../design/input/calendar/TimeRange';
@@ -92,12 +92,6 @@ DayRange.propTypes = {
     additionalLabel: PropTypes.string,
     locale: PropTypes.string,
     timeNotation: PropTypes.string,
-};
-
-DayRange.defaultProps = {
-    additionalLabel: undefined,
-    locale: 'en',
-    timeNotation: 'H24',
 };
 
 const mapStateToProps = ({ authentication }) => ({

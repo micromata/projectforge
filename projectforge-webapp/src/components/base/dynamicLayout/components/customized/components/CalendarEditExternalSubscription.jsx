@@ -81,6 +81,4 @@ function CalendarEditExternalSubscription({ values }) {
 
 CalendarEditExternalSubscription.propTypes = {};
 
-CalendarEditExternalSubscription.defaultProps = {};
-
 export default CalendarEditExternalSubscription;

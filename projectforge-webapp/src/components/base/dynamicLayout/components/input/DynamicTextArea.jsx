@@ -4,7 +4,7 @@ import TextArea from '../../../../design/input/TextArea';
 import { DynamicLayoutContext } from '../../context';
 import DynamicValidationManager from './DynamicValidationManager';
 
-function DynamicTextArea({ id, focus, ...props }) {
+function DynamicTextArea({ id, focus = false, ...props }) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
     const value = Object.getByString(data, id) || '';
@@ -29,10 +29,6 @@ function DynamicTextArea({ id, focus, ...props }) {
 DynamicTextArea.propTypes = {
     id: PropTypes.string.isRequired,
     focus: PropTypes.bool,
-};
-
-DynamicTextArea.defaultProps = {
-    focus: false,
 };
 
 export default DynamicTextArea;

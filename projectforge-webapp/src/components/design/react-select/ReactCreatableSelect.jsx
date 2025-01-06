@@ -15,7 +15,7 @@ function ReactCreatableSelect(
         color,
         id,
         label,
-        required,
+        required = false,
         tooltip,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         translations,
@@ -99,15 +99,4 @@ ReactCreatableSelect.propTypes = {
     values: PropTypes.arrayOf(PropTypes.string),
 };
 
-ReactCreatableSelect.defaultProps = {
-    additionalLabel: undefined,
-    autoCompletion: undefined,
-    className: undefined,
-    color: undefined,
-    id: undefined,
-    onChange: undefined,
-    required: false,
-    tooltip: undefined,
-    values: undefined,
-};
 export default ReactCreatableSelect;

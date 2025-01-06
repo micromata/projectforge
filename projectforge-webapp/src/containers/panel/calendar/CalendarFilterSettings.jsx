@@ -40,12 +40,12 @@ function CalendarFilterSettings({
     timesheetUser,
     otherTimesheetUsersEnabled,
     showBreaks,
-    gridSize,
-    firstHour,
+    gridSize = '30',
+    firstHour = '08',
     listOfDefaultCalendars,
     translations,
-    vacationGroups,
-    vacationUsers,
+    vacationGroups = [],
+    vacationUsers = [],
 }) {
     // Modal dialog with calendars, vacations and other option such first hour of day etc.
     const [open, setOpen] = useState(false);
@@ -448,17 +448,6 @@ CalendarFilterSettings.propTypes = {
         title: PropTypes.string,
         id: PropTypes.number,
     })),
-};
-
-CalendarFilterSettings.defaultProps = {
-    defaultCalendarId: undefined,
-    timesheetUser: undefined,
-    otherTimesheetUsersEnabled: undefined,
-    showBreaks: undefined,
-    gridSize: '30',
-    firstHour: '08',
-    vacationGroups: [],
-    vacationUsers: [],
 };
 
 export default (CalendarFilterSettings);

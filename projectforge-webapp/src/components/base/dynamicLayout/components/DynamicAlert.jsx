@@ -58,11 +58,4 @@ DynamicAlert.propTypes = {
     icon: PropTypes.arrayOf(PropTypes.string),
 };
 
-DynamicAlert.defaultProps = {
-    markdown: undefined,
-    title: undefined,
-    color: undefined,
-    icon: undefined,
-};
-
 export default DynamicAlert;

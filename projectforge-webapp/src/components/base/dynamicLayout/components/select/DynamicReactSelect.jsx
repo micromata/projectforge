@@ -1,23 +1,31 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import classNames from 'classnames';
 import FavoritesPanel from '../../../../../containers/panel/favorite/FavoritesPanel';
 import { getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
 import ReactSelect from '../../../../design/react-select/ReactSelect';
 import { DynamicLayoutContext } from '../../context';
 import DynamicValidationManager from '../input/DynamicValidationManager';
 
-export const extractDataValue = (
-    {
-        data,
-        id,
-        labelProperty,
-        multi,
-        valueProperty,
-        values,
-    },
-) => {
+// Separate the default values into a constant for reuse
+const DEFAULT_VALUES = {
+    labelProperty: 'label',
+    valueProperty: 'value',
+    multi: false,
+    required: false,
+};
+
+// Modified to use default parameters matching the previous defaultProps
+export const extractDataValue = ({
+    data,
+    id,
+    labelProperty = DEFAULT_VALUES.labelProperty,
+    multi = DEFAULT_VALUES.multi,
+    valueProperty = DEFAULT_VALUES.valueProperty,
+    values,
+}) => {
     let dataValue = Object.getByString(data, id);
-    if (!multi && dataValue && values && values.length && values.length > 0) {
+    if (!multi && dataValue && values?.length > 0) {
         // For react-select it seems to be important, that the current selected element matches
         // its value of the values list.
         const valueOfArray = (typeof dataValue === 'object') ? dataValue[valueProperty] : dataValue;
@@ -38,22 +46,38 @@ export const extractDataValue = (
     return dataValue;
 };
 
-function DynamicReactSelect(props) {
+// Function using destructured props with default values
+function DynamicReactSelect({
+    id,
+    label,
+    favorites,
+    additionalLabel,
+    className,
+    getOptionLabel,
+    labelProperty = DEFAULT_VALUES.labelProperty,
+    loadOptions,
+    multi = DEFAULT_VALUES.multi,
+    required = DEFAULT_VALUES.required,
+    valueProperty = DEFAULT_VALUES.valueProperty,
+    // Other props
+    values,
+    autoCompletion,
+    ...restProps
+}) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
-    const {
+
+    const currentValue = extractDataValue({
+        data,
         id,
-        favorites,
-        autoCompletion,
         labelProperty,
+        multi,
         valueProperty,
         values,
-    } = props;
-
-    const value = extractDataValue({ data, ...props });
+    });
 
     const autoCompletionData = {};
 
-    if (autoCompletion && autoCompletion.urlparams) {
+    if (autoCompletion?.urlparams) {
         Object.keys(autoCompletion.urlparams).forEach((key) => {
             autoCompletionData[key] = Object.getByString(data, autoCompletion.urlparams[key]);
         });
@@ -61,7 +85,7 @@ function DynamicReactSelect(props) {
 
     return React.useMemo(() => {
         const onChange = (newValue) => {
-            if (autoCompletion && autoCompletion.type) {
+            if (autoCompletion?.type) {
                 setData({ [id]: newValue });
                 return;
             }
@@ -77,27 +101,31 @@ function DynamicReactSelect(props) {
             onChange(newValue);
         };
 
-        const loadOptions = (search, callback) => fetch(
-            getServiceURL(
-                autoCompletion.url.replace(':search', encodeURIComponent(search)),
-                autoCompletionData,
-            ),
-            {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    Accept: 'application/json',
-                },
-            },
-        )
-            .then(handleHTTPErrors)
-            .then((response) => response.json())
-            .then(callback);
+        const loadOptionsHandler = loadOptions || ((search, callback) => {
+            if (!autoCompletion?.url) return;
 
-        const url = autoCompletion ? autoCompletion.url : undefined;
+            fetch(
+                getServiceURL(
+                    autoCompletion.url.replace(':search', encodeURIComponent(search)),
+                    autoCompletionData,
+                ),
+                {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        Accept: 'application/json',
+                    },
+                },
+            )
+                .then(handleHTTPErrors)
+                .then((response) => response.json())
+                .then(callback);
+        });
+
+        const url = autoCompletion?.url;
 
         let favoritesElement;
-        if (favorites && favorites.length > 0) {
+        if (favorites?.length > 0) {
             favoritesElement = (
                 <FavoritesPanel
                     onFavoriteSelect={onFavoriteSelect}
@@ -111,17 +139,28 @@ function DynamicReactSelect(props) {
         return (
             <DynamicValidationManager id={id}>
                 <ReactSelect
-                    className="invalid"
+                    autoCompletion={autoCompletion}
+                    className={classNames('invalid', className)}
                     onChange={onChange}
                     translations={ui.translations}
-                    {...props}
-                    value={value}
-                    loadOptions={(url && url.length > 0) ? loadOptions : undefined}
+                    id={id}
+                    label={label}
+                    favorites={favorites}
+                    additionalLabel={additionalLabel}
+                    getOptionLabel={getOptionLabel}
+                    labelProperty={labelProperty}
+                    loadOptions={(url?.length > 0) ? loadOptionsHandler : undefined}
+                    multi={multi}
+                    required={required}
+                    valueProperty={valueProperty}
+                    values={values}
+                    {...restProps}
+                    value={currentValue}
                 />
                 {favoritesElement}
             </DynamicValidationManager>
         );
-    }, [data[id], value, setData, values, autoCompletionData]);
+    }, [data[id], currentValue, setData, values, autoCompletionData]);
 }
 
 DynamicReactSelect.propTypes = {
@@ -141,19 +180,6 @@ DynamicReactSelect.propTypes = {
     multi: PropTypes.bool,
     required: PropTypes.bool,
     valueProperty: PropTypes.string,
-};
-
-DynamicReactSelect.defaultProps = {
-    value: undefined,
-    favorites: undefined,
-    additionalLabel: undefined,
-    className: undefined,
-    getOptionLabel: undefined,
-    labelProperty: 'label',
-    loadOptions: undefined,
-    multi: false,
-    required: false,
-    valueProperty: 'value',
 };
 
 export default DynamicReactSelect;

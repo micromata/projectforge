@@ -6,7 +6,7 @@ import { UncontrolledTooltip } from 'reactstrap';
 import { Progress } from '../../../components/design';
 import style from './ConsumptionBar.module.scss';
 
-function ConsumptionBar({ progress, taskId, identifier }) {
+function ConsumptionBar({ progress, taskId, identifier = 'consumption-bar' }) {
     if (!progress) {
         return null;
     }
@@ -48,12 +48,6 @@ ConsumptionBar.propTypes = {
     }),
     taskId: PropTypes.number,
     identifier: PropTypes.string,
-};
-
-ConsumptionBar.defaultProps = {
-    progress: undefined,
-    taskId: undefined,
-    identifier: 'consumption-bar',
 };
 
 export default ConsumptionBar;
