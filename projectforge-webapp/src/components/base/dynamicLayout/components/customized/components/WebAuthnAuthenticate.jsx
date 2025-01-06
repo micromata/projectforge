@@ -55,6 +55,4 @@ WebAuthn.propTypes = {
     }).isRequired,
 };
 
-WebAuthn.defaultProps = {};
-
 export default WebAuthn;

@@ -355,6 +355,4 @@ CalendarPage.propTypes = {
     location: PropTypes.shape({}).isRequired,
 };
 
-CalendarPage.defaultProps = {};
-
 export default CalendarPage;

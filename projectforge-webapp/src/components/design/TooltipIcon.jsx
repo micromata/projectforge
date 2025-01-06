@@ -14,6 +14,4 @@ function TooltipIcon() {
 
 TooltipIcon.propTypes = {};
 
-TooltipIcon.defaultProps = {};
-
 export default TooltipIcon;

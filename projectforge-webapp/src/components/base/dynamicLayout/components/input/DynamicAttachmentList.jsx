@@ -9,20 +9,18 @@ import DynamicAgGrid from '../table/DynamicAgGrid';
 import DynamicAlert from '../DynamicAlert';
 import DynamicButton from '../DynamicButton';
 
-function DynamicAttachmentList(props) {
-    const {
-        category,
-        id,
-        listId,
-        readOnly,
-        serviceBaseUrl,
-        restBaseUrl,
-        downloadOnRowClick,
-        uploadDisabled,
-        maxSizeInKB,
-        agGrid,
-    } = props;
-
+function DynamicAttachmentList({
+    category,
+    id,
+    listId,
+    readOnly = false,
+    serviceBaseUrl = '/react/attachment/dynamic',
+    restBaseUrl = '/rs/attachments',
+    downloadOnRowClick = false,
+    uploadDisabled = false,
+    maxSizeInKB = 1000000, // 1 MB at default
+    agGrid,
+}) {
     const {
         callAction,
         data,
@@ -225,16 +223,6 @@ DynamicAttachmentList.propTypes = {
     downloadOnRowClick: PropTypes.bool,
     uploadDisabled: PropTypes.bool,
     maxSizeInKB: PropTypes.number,
-};
-
-DynamicAttachmentList.defaultProps = {
-    id: undefined, // Undefined for new object.
-    readOnly: false,
-    serviceBaseUrl: '/react/attachment/dynamic',
-    restBaseUrl: '/rs/attachments',
-    downloadOnRowClick: false,
-    uploadDisabled: false,
-    maxSizeInKB: 1000000, // 1 MB at default
 };
 
 export default DynamicAttachmentList;

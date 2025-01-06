@@ -81,10 +81,10 @@ function TaskTreePanel(
     {
         highlightTaskId,
         onTaskSelect: selectTask,
-        shortForm,
-        showRootForAdmins,
+        shortForm = false,
+        showRootForAdmins = false,
         visible,
-        consumptionBarClickable,
+        consumptionBarClickable = true,
     },
 ) {
     const [loading, setLoading] = React.useState(false);
@@ -222,14 +222,6 @@ TaskTreePanel.propTypes = {
     shortForm: PropTypes.bool,
     consumptionBarClickable: PropTypes.bool,
     showRootForAdmins: PropTypes.bool,
-};
-
-TaskTreePanel.defaultProps = {
-    highlightTaskId: undefined,
-    onTaskSelect: undefined,
-    shortForm: false,
-    showRootForAdmins: false,
-    consumptionBarClickable: true,
 };
 
 export default TaskTreePanel;

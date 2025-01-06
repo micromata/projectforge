@@ -1,120 +1,90 @@
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Collapse } from 'reactstrap';
 import style from '../Navigation.module.scss';
 import MenuBadge from './MenuBadge';
 
-class Category extends React.Component {
-    constructor(props) {
-        super(props);
+function Category({
+    category, className, closeMenu, ...props
+}) {
+    const [collapse, setCollapse] = useState(window.innerWidth > 735);
+    const [viewportWidth, setViewportWidth] = useState(0);
 
-        this.state = {
-            collapse: window.innerWidth > 735,
-            viewportWidth: 0,
-        };
+    const handleWindowResize = () => {
+        const { innerWidth: width } = window;
+        setViewportWidth(width);
 
-        this.handleWindowResize = this.handleWindowResize.bind(this);
-        this.toggle = this.toggle.bind(this);
-        this.handleLinkClick = this.handleLinkClick.bind(this);
-    }
-
-    componentDidMount() {
-        this.handleWindowResize();
-        window.addEventListener('resize', this.handleWindowResize);
-    }
-
-    componentWillUnmount() {
-        window.removeEventListener('resize', this.handleWindowResize);
-    }
-
-    handleWindowResize() {
-        const { innerWidth: viewportWidth } = window;
-
-        let collapse = true;
-
-        if (viewportWidth < 735) {
-            collapse = false;
+        if (width < 735) {
+            setCollapse(false);
+        } else {
+            setCollapse(true);
         }
+    };
 
-        this.setState({
-            viewportWidth,
-            collapse,
-        });
-    }
+    const handleLinkClick = () => {
+        closeMenu?.();
+    };
 
-    handleLinkClick() {
-        const { closeMenu } = this.props;
-
-        closeMenu();
-    }
-
-    toggle(event) {
+    const toggle = (event) => {
         event.preventDefault();
-
-        const { viewportWidth } = this.state;
 
         if (viewportWidth > 735) {
             return;
         }
 
-        this.setState((state) => ({
-            collapse: !state.collapse,
-        }));
-    }
+        setCollapse((prevCollapse) => !prevCollapse);
+    };
 
-    render() {
-        const {
-            category,
-            className,
-            // destructuring is necessary. Otherwise its in the dom.
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            closeMenu,
-            ...props
-        } = this.props;
-        const { collapse } = this.state;
+    useEffect(() => {
+        handleWindowResize();
+        window.addEventListener('resize', handleWindowResize);
 
-        return (
-            <div className={classNames(style.categoryContainer, className)} {...props}>
-                <button
-                    type="button"
-                    className={style.categoryTitle}
-                    onClick={this.toggle}
-                >
-                    {category.title}
-                    {category.badge && (
-                        <MenuBadge elementKey={category.key}>{category.badge.counter}</MenuBadge>
-                    )}
-                </button>
-                <Collapse isOpen={collapse}>
-                    <ul className={style.categoryLinks}>
-                        {category.subMenu.map((item) => (
-                            <li
-                                className={style.categoryLink}
-                                key={`category-link-${item.key}`}
+        return () => {
+            window.removeEventListener('resize', handleWindowResize);
+        };
+    }, []);
+
+    return (
+        <div className={classNames(style.categoryContainer, className)} {...props}>
+            <button
+                type="button"
+                className={style.categoryTitle}
+                onClick={toggle}
+            >
+                {category.title}
+                {category.badge && (
+                    <MenuBadge elementKey={category.key}>{category.badge.counter}</MenuBadge>
+                )}
+            </button>
+            <Collapse isOpen={collapse}>
+                <ul className={style.categoryLinks}>
+                    {category.subMenu.map((item) => (
+                        <li
+                            className={style.categoryLink}
+                            key={`category-link-${item.key}`}
+                        >
+                            <Link
+                                onClick={handleLinkClick}
+                                to={`/${item.url}/`}
                             >
-                                <Link
-                                    onClick={this.handleLinkClick}
-                                    to={`/${item.url}/`}
-                                >
-                                    {item.title}
-                                    {item.badge && (
-                                        <MenuBadge
-                                            elementKey={item.key}
-                                            tooltip={item.badge.tooltip}
-                                        >
-                                            {item.badge.counter}
-                                        </MenuBadge>
-                                    )}
-                                </Link>
-                            </li>
-                        ))}
-                    </ul>
-                </Collapse>
-            </div>
-        );
-    }
+                                {item.title}
+                                {item.badge && (
+                                    <MenuBadge
+                                        elementKey={item.key}
+                                        tooltip={item.badge.tooltip}
+                                    >
+                                        {item.badge.counter}
+                                    </MenuBadge>
+                                )}
+                            </Link>
+                        </li>
+                    ))}
+                </ul>
+            </Collapse>
+        </div>
+    );
 }
 
 Category.propTypes = {
@@ -131,11 +101,6 @@ Category.propTypes = {
     }).isRequired,
     className: PropTypes.string,
     closeMenu: PropTypes.func,
-};
-
-Category.defaultProps = {
-    className: undefined,
-    closeMenu: undefined,
 };
 
 export default Category;

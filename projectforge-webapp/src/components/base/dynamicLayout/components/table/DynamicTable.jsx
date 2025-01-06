@@ -14,7 +14,7 @@ function DynamicTable(
         rowClickPostUrl,
         refreshUrl,
         refreshMethod,
-        refreshIntervalSeconds,
+        refreshIntervalSeconds = 10,
         autoRefreshFlag,
     },
 ) {
@@ -135,15 +135,6 @@ DynamicTable.propTypes = {
     refreshUrl: PropTypes.string,
     refreshIntervalSeconds: PropTypes.number,
     autoRefreshFlag: PropTypes.string,
-};
-
-DynamicTable.defaultProps = {
-    id: undefined,
-    rowClickPostUrl: undefined,
-    refreshUrl: undefined,
-    refreshMethod: undefined,
-    refreshIntervalSeconds: 10, // 10 seconds as default intervall.
-    autoRefreshFlag: undefined,
 };
 
 export default DynamicTable;

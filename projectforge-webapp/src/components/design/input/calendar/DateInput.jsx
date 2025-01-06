@@ -15,11 +15,11 @@ function DateInput(
     {
         additionalLabel,
         color,
-        hideDayPicker,
+        hideDayPicker = false,
         jsDateFormat,
         label,
-        locale,
-        noInputContainer,
+        locale = 'en',
+        noInputContainer = false,
         setDate,
         todayButton,
         value,
@@ -179,17 +179,6 @@ DateInput.propTypes = {
     noInputContainer: PropTypes.bool,
     todayButton: PropTypes.string,
     value: PropTypes.instanceOf(Date),
-};
-
-DateInput.defaultProps = {
-    additionalLabel: undefined,
-    color: undefined,
-    hideDayPicker: false,
-    label: undefined,
-    locale: 'en',
-    noInputContainer: false,
-    todayButton: undefined,
-    value: undefined,
 };
 
 const mapStateToProps = ({ authentication }) => ({

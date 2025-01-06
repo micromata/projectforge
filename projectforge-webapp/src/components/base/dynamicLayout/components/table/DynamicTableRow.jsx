@@ -12,7 +12,7 @@ function DynamicTableRow(
     {
         columns,
         row,
-        highlightRow,
+        highlightRow = false,
         rowClickPostUrl,
     },
 ) {
@@ -90,11 +90,6 @@ DynamicTableRow.propTypes = {
     }).isRequired,
     highlightRow: PropTypes.bool,
     rowClickPostUrl: PropTypes.string,
-};
-
-DynamicTableRow.defaultProps = {
-    highlightRow: false,
-    rowClickPostUrl: undefined,
 };
 
 export default DynamicTableRow;

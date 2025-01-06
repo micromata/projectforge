@@ -109,9 +109,4 @@ DynamicGroup.propTypes = {
     collapseTitle: PropTypes.string,
 };
 
-DynamicGroup.defaultProps = {
-    length: undefined,
-    offset: undefined,
-};
-
 export default DynamicGroup;

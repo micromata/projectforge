@@ -20,6 +20,4 @@ AdvancedPopperAction.propTypes = {
     type: PropTypes.oneOf(['delete', 'success']).isRequired,
 };
 
-AdvancedPopperAction.defaultProps = {};
-
 export default AdvancedPopperAction;

@@ -12,7 +12,7 @@ function DynamicListPageTableRow(
     {
         columns,
         row,
-        highlightRow,
+        highlightRow = false,
         handleRowClick,
     },
 ) {
@@ -57,10 +57,6 @@ DynamicListPageTableRow.propTypes = {
         deleted: PropTypes.bool,
     }).isRequired,
     highlightRow: PropTypes.bool,
-};
-
-DynamicListPageTableRow.defaultProps = {
-    highlightRow: false,
 };
 
 const mapStateToProps = undefined;

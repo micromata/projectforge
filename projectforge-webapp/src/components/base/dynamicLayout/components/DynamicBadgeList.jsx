@@ -24,8 +24,4 @@ DynamicBadge.propTypes = {
     })),
 };
 
-DynamicBadge.defaultProps = {
-    badgeList: undefined,
-};
-
 export default DynamicBadge;

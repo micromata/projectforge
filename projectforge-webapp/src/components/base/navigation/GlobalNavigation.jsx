@@ -74,10 +74,6 @@ GlobalNavigation.propTypes = {
     badge: badgePropType,
 };
 
-GlobalNavigation.defaultProps = {
-    badge: undefined,
-};
-
 const mapStateToProps = (state) => ({ ...state.menu });
 
 const actions = {

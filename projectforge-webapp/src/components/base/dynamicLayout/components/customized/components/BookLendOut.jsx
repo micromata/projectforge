@@ -53,9 +53,6 @@ CustomizedBookLendOutComponent.propTypes = {
     user: PropTypes.shape({}).isRequired,
 };
 
-CustomizedBookLendOutComponent.defaultProps = {
-};
-
 const mapStateToProps = ({ authentication }) => ({
     user: authentication.user,
     jsTimestampFormatMinutes: authentication.user.jsTimestampFormatMinutes,

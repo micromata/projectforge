@@ -12,10 +12,10 @@ function AdvancedPopper(
         children,
         className,
         contentClassName,
-        isOpen,
+        isOpen = false,
         onBlur,
         setIsOpen,
-        withInput,
+        withInput = false,
         ...props
     },
 ) {
@@ -154,17 +154,6 @@ AdvancedPopper.propTypes = {
     isOpen: PropTypes.bool,
     onBlur: PropTypes.func,
     withInput: PropTypes.bool,
-};
-
-AdvancedPopper.defaultProps = {
-    actions: undefined,
-    additionalClassName: undefined,
-    children: undefined,
-    className: undefined,
-    contentClassName: undefined,
-    isOpen: false,
-    onBlur: undefined,
-    withInput: false,
 };
 
 export default AdvancedPopper;

@@ -100,8 +100,4 @@ CalendarStyler.propTypes = {
     }).isRequired,
 };
 
-CalendarStyler.defaultProps = {
-    submit: undefined,
-};
-
 export default (CalendarStyler);

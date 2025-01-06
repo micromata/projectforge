@@ -26,8 +26,6 @@ FormModal.propTypes = {
     onCallAction: PropTypes.func.isRequired,
 };
 
-FormModal.defaultProps = {};
-
 const actions = {
     onCallAction: callAction,
 };

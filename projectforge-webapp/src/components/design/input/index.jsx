@@ -10,7 +10,7 @@ import styles from './Input.module.scss';
 const Input = React.forwardRef((
     {
         additionalLabel,
-        autoFocus,
+        autoFocus = false,
         className,
         color,
         icon,
@@ -19,8 +19,8 @@ const Input = React.forwardRef((
         label,
         onBlur,
         onFocus,
-        noStyle,
-        selectOnFocus,
+        noStyle = false,
+        selectOnFocus = false,
         tooltip,
         value,
         ...props
@@ -141,22 +141,6 @@ Input.propTypes = {
     selectOnFocus: PropTypes.bool,
     tooltip: PropTypes.string,
     value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-};
-
-Input.defaultProps = {
-    additionalLabel: undefined,
-    autoFocus: false,
-    className: undefined,
-    color: undefined,
-    icon: undefined,
-    iconProps: undefined,
-    label: undefined,
-    onBlur: undefined,
-    onFocus: undefined,
-    noStyle: false,
-    selectOnFocus: false,
-    tooltip: undefined,
-    value: undefined,
 };
 
 export default Input;

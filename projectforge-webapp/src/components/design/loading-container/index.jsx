@@ -4,7 +4,7 @@ import React from 'react';
 import { Spinner } from '..';
 import style from './LoadingContainer.module.scss';
 
-function LoadingContainer({ className, children, loading }) {
+function LoadingContainer({ className, children, loading = false }) {
     return (
         <div className={classNames(style.loadingContainer, className)}>
             {loading && (
@@ -21,12 +21,6 @@ LoadingContainer.propTypes = {
     children: PropTypes.node,
     className: PropTypes.string,
     loading: PropTypes.bool,
-};
-
-LoadingContainer.defaultProps = {
-    children: undefined,
-    className: '',
-    loading: false,
 };
 
 export default LoadingContainer;

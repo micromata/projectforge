@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import styles from './AutoCompletion.module.scss';
 
-function Completion({ displayName, selected, ...props }) {
+function Completion({ displayName, selected = false, ...props }) {
     return (
         <li
             className={classNames(styles.entry, { [styles.selected]: selected })}
@@ -25,10 +25,6 @@ function Completion({ displayName, selected, ...props }) {
 Completion.propTypes = {
     displayName: PropTypes.string.isRequired,
     selected: PropTypes.bool,
-};
-
-Completion.defaultProps = {
-    selected: false,
 };
 
 export default Completion;

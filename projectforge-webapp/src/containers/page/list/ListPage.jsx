@@ -86,10 +86,6 @@ ListPage.propTypes = {
     }),
 };
 
-ListPage.defaultProps = {
-    category: undefined,
-};
-
 const mapStateToProps = ({ list }, { match }) => ({
     category: list.categories[match.params.category],
 });

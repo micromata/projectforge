@@ -130,6 +130,4 @@ DynamicCustomized.propTypes = {
     id: PropTypes.string.isRequired,
 };
 
-DynamicCustomized.defaultProps = {};
-
 export default DynamicCustomized;

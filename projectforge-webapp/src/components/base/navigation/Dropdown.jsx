@@ -14,7 +14,7 @@ function NavigationDropdown(
         title,
         subMenu,
         id,
-        right,
+        right = false,
     },
 ) {
     let displayTitle = title;
@@ -61,13 +61,6 @@ NavigationDropdown.propTypes = {
     entryKey: PropTypes.string,
     id: PropTypes.string,
     right: PropTypes.bool,
-};
-
-NavigationDropdown.defaultProps = {
-    badge: undefined,
-    id: undefined,
-    entryKey: undefined,
-    right: false,
 };
 
 export default NavigationDropdown;

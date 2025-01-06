@@ -40,6 +40,4 @@ ReactSelectControlWithLabel.propTypes = {
     }).isRequired,
 };
 
-ReactSelectControlWithLabel.defaultProps = {};
-
 export default ReactSelectControlWithLabel;

@@ -13,7 +13,7 @@ export const actionPropType = PropTypes.shape({
     type: PropTypes.oneOf(['BUTTON']),
 });
 
-function DynamicActionGroup({ actions }) {
+function DynamicActionGroup({ actions = [] }) {
     const { isFetching } = React.useContext(DynamicLayoutContext);
 
     if (!actions) {
@@ -39,10 +39,6 @@ function DynamicActionGroup({ actions }) {
 
 DynamicActionGroup.propTypes = {
     actions: PropTypes.arrayOf(actionPropType),
-};
-
-DynamicActionGroup.defaultProps = {
-    actions: [],
 };
 
 export default DynamicActionGroup;

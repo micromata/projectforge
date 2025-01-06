@@ -30,6 +30,4 @@ function TopBar() {
 
 TopBar.propTypes = {};
 
-TopBar.defaultProps = {};
-
 export default TopBar;

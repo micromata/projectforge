@@ -122,6 +122,4 @@ CustomizedColorChooser.propTypes = {
     }).isRequired,
 };
 
-CustomizedColorChooser.defaultProps = {};
-
 export default CustomizedColorChooser;

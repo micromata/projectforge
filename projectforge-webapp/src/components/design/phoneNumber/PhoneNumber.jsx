@@ -12,7 +12,7 @@ function PhoneNumber(
         number,
         phoneCallEnabled,
         phoneType,
-        sms,
+        sms = false,
         smsEnabled,
         callerPage,
     },
@@ -57,10 +57,6 @@ PhoneNumber.propTypes = {
     smsEnabled: PropTypes.bool.isRequired,
     callerPage: PropTypes.string.isRequired,
     sms: PropTypes.bool,
-};
-
-PhoneNumber.defaultProps = {
-    sms: false,
 };
 
 export default PhoneNumber;

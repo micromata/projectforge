@@ -15,9 +15,9 @@ function Formatter(
         data,
         id,
         dataType,
-        dateFormat,
-        timestampFormatSeconds,
-        timestampFormatMinutes,
+        dateFormat = 'DD/MM/YYYY',
+        timestampFormatSeconds = 'DD.MM.YYYY HH:mm:ss',
+        timestampFormatMinutes = 'DD.MM.YYYY HH:mm',
         valueIconMap,
         locale,
         currency,
@@ -119,20 +119,6 @@ Formatter.propTypes = {
     valueIconMap: PropTypes.shape({
         length: PropTypes.number,
     }),
-};
-
-Formatter.defaultProps = {
-    data: undefined,
-    id: undefined,
-    value: undefined,
-    formatter: undefined,
-    dataType: undefined,
-    dateFormat: 'DD/MM/YYYY',
-    timestampFormatSeconds: 'DD.MM.YYYY HH:mm:ss',
-    timestampFormatMinutes: 'DD.MM.YYYY HH:mm',
-    locale: undefined,
-    currency: undefined,
-    valueIconMap: undefined,
 };
 
 const mapStateToProps = ({ authentication }) => ({

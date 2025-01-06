@@ -204,8 +204,6 @@ SearchFilter.propTypes = {
     onMultiSelectionButtonClick: PropTypes.func.isRequired,
 };
 
-SearchFilter.defaultProps = {};
-
 const mapStateToProps = ({ list }) => {
     const category = list.categories[list.currentCategory];
 

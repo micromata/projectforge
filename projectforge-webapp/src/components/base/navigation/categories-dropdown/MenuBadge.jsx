@@ -9,7 +9,7 @@ function MenuBadge(
     {
         children,
         color,
-        isFlying,
+        isFlying = false,
         elementKey,
         tooltip,
         ...props
@@ -46,12 +46,6 @@ MenuBadge.propTypes = {
     color: colorPropType,
     isFlying: PropTypes.bool,
     tooltip: PropTypes.string,
-};
-
-MenuBadge.defaultProps = {
-    color: undefined,
-    isFlying: false,
-    tooltip: undefined,
 };
 
 export default MenuBadge;

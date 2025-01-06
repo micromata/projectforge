@@ -71,8 +71,4 @@ ValidationManager.propTypes = {
     }),
 };
 
-ValidationManager.defaultProps = {
-    customValidation: undefined,
-};
-
 export default ValidationManager;

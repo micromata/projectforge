@@ -33,9 +33,4 @@ CustomizedConsumptionBar.propTypes = {
     taskId: PropTypes.number,
 };
 
-CustomizedConsumptionBar.defaultProps = {
-    progress: undefined,
-    taskId: undefined,
-};
-
 export default CustomizedConsumptionBar;

@@ -65,8 +65,4 @@ TaskTreeTable.propTypes = {
     // visible: PropTypes.bool,
 };
 
-TaskTreeTable.defaultProps = {
-    // visible: undefined,
-};
-
 export default TaskTreeTable;

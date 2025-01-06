@@ -38,9 +38,9 @@ function AutoCompletion(
         input,
         url,
         onSelect,
-        required,
-        search,
-        searchParameter,
+        required = false,
+        search = '',
+        searchParameter = 'search',
         tooltip,
         ...props
     },
@@ -173,16 +173,6 @@ AutoCompletion.propTypes = {
     search: PropTypes.string,
     searchParameter: PropTypes.string,
     tooltip: PropTypes.string,
-};
-
-AutoCompletion.defaultProps = {
-    additionalLabel: undefined,
-    color: undefined,
-    url: undefined,
-    required: false,
-    search: '',
-    searchParameter: 'search',
-    tooltip: undefined,
 };
 
 export default AutoCompletion;

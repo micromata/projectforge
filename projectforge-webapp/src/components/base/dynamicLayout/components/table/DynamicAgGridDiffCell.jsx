@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
-import { DiffMethod } from 'react-diff-viewer/lib/compute-lines';
 import DiffText from '../../../../design/DiffText';
 import Formatter from '../../../Formatter';
 
@@ -32,12 +31,6 @@ DynamicAgGridDiffCell.propTypes = {
     value: PropTypes.any, // string, number, boolean, array, ...
     colDef: PropTypes.shape(),
     data: PropTypes.shape(),
-};
-
-DynamicAgGridDiffCell.defaultProps = {
-    value: undefined,
-    colDef: undefined,
-    data: undefined,
 };
 
 export default (DynamicAgGridDiffCell);

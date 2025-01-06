@@ -9,7 +9,7 @@ import styles from './RatingStars.module.scss';
 function RatingStars(
     {
         onChange,
-        value,
+        value = -1,
         values,
         ...props
     },
@@ -78,10 +78,6 @@ RatingStars.propTypes = {
     onChange: PropTypes.func.isRequired,
     values: PropTypes.arrayOf(PropTypes.string).isRequired,
     value: PropTypes.number,
-};
-
-RatingStars.defaultProps = {
-    value: -1,
 };
 
 export default RatingStars;

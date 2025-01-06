@@ -11,17 +11,19 @@ import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import { NavLink, UncontrolledTooltip } from '../../design';
 import MenuBadge from './categories-dropdown/MenuBadge';
 
-class NavigationAction extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.handleClick = this.handleClick.bind(this);
-    }
-
-    handleClick(event) {
+function NavigationAction({
+    badge,
+    badgeIsFlying = true,
+    entryKey,
+    id,
+    loadUserStatus: checkLogin,
+    title,
+    tooltip,
+    type = 'LINK',
+    url = '',
+}) {
+    const handleClick = (event) => {
         event.preventDefault();
-
-        const { type, url, loadUserStatus: checkLogin } = this.props;
 
         if (type === 'RESTCALL') {
             fetch(
@@ -56,106 +58,92 @@ class NavigationAction extends React.Component {
                 // TODO: HANDLE ERRORS
                 .catch(alert);
         }
+    };
+
+    let displayTitle = title;
+    if (id === 'CLASSIC') {
+        displayTitle = <FontAwesomeIcon icon={faHistory} />;
+    }
+    let content = displayTitle;
+
+    if (badge && badge.counter && entryKey) {
+        content = (
+            <div style={{ position: 'relative' }}>
+                {displayTitle}
+                <MenuBadge
+                    elementKey={entryKey}
+                    color="danger"
+                    isFlying={badgeIsFlying}
+                    style={{ right: '-1.3em' }}
+                >
+                    {badge.counter}
+                </MenuBadge>
+            </div>
+        );
     }
 
-    render() {
-        const {
-            badge,
-            badgeIsFlying,
-            entryKey,
-            id,
-            title,
-            tooltip,
-            type,
-            url,
-        } = this.props;
-        let displayTitle = title;
-        if (id === 'CLASSIC') {
-            displayTitle = <FontAwesomeIcon icon={faHistory} />;
-        }
-        let content = displayTitle;
+    const tooltipElement = tooltip && (
+        <UncontrolledTooltip placement="left" target={id}>
+            {tooltip}
+        </UncontrolledTooltip>
+    );
 
-        if (badge && badge.counter && entryKey) {
-            content = (
-                <div style={{ position: 'relative' }}>
-                    {displayTitle}
-                    <MenuBadge
-                        elementKey={entryKey}
-                        color="danger"
-                        isFlying={badgeIsFlying}
-                        style={{ right: '-1.3em' }}
+    switch (type) {
+        case 'RESTCALL':
+            return (
+                <>
+                    <NavLink
+                        id={id}
+                        onClick={handleClick}
+                        onKeyPress={() => undefined}
                     >
-                        {badge.counter}
-                    </MenuBadge>
-                </div>
-            );
-        }
-        let tooltipElement;
-        if (tooltip) {
-            tooltipElement = (
-                <UncontrolledTooltip placement="left" target={id}>
-                    {tooltip}
-                </UncontrolledTooltip>
-            );
-        }
-
-        switch (type) {
-            case 'RESTCALL':
-                return (
-                    <>
-                        <NavLink
-                            id={id}
-                            onClick={this.handleClick}
-                            onKeyPress={() => undefined}
-                        >
-                            {content}
-                        </NavLink>
-                        {tooltipElement}
-                    </>
-                );
-            case 'DOWNLOAD':
-                return (
-                    <>
-                        <NavLink
-                            id={id}
-                            href={getServiceURL(url)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            {content}
-                        </NavLink>
-                        {tooltipElement}
-                    </>
-                );
-            case 'LINK':
-            case 'MODAL':
-            case 'REDIRECT':
-                return (
-                    <>
-                        <NavLink
-                            id={id}
-                            tag={Link}
-                            to={{
-                                pathname: `/${url}`,
-                                state: {
-                                    background: type === 'MODAL' ? history.location : undefined,
-                                },
-                            }}
-                        >
-                            {content}
-                        </NavLink>
-                        {tooltipElement}
-                    </>
-                );
-            case 'TEXT':
-            default:
-                return (
-                    <span className="nav-link" id={id}>
                         {content}
-                        {tooltipElement}
-                    </span>
-                );
-        }
+                    </NavLink>
+                    {tooltipElement}
+                </>
+            );
+        case 'DOWNLOAD':
+            return (
+                <>
+                    <NavLink
+                        id={id}
+                        href={getServiceURL(url)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        {content}
+                    </NavLink>
+                    {tooltipElement}
+                </>
+            );
+        case 'LINK':
+        case 'MODAL':
+        case 'REDIRECT':
+            return (
+                <>
+                    <NavLink
+                        id={id}
+                        tag={Link}
+                        to={{
+                            pathname: `/${url}`,
+                            state: {
+                                background: type === 'MODAL' ? history.location : undefined,
+                            },
+                        }}
+                    >
+                        {content}
+                    </NavLink>
+                    {tooltipElement}
+                </>
+            );
+        case 'TEXT':
+        default:
+            return (
+                <span className="nav-link" id={id}>
+                    {content}
+                    {tooltipElement}
+                </span>
+            );
     }
 }
 
@@ -178,16 +166,6 @@ NavigationAction.propTypes = {
         'TEXT',
     ]),
     url: PropTypes.string,
-};
-
-NavigationAction.defaultProps = {
-    badge: undefined,
-    badgeIsFlying: true,
-    entryKey: undefined,
-    id: undefined,
-    tooltip: undefined,
-    type: 'LINK',
-    url: '',
 };
 
 const actions = { loadUserStatus };

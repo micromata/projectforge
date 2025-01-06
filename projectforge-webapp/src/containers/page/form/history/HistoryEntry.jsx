@@ -182,8 +182,4 @@ HistoryEntry.propTypes = {
     }),
 };
 
-HistoryEntry.defaultProps = {
-    translations: undefined,
-};
-
 export default HistoryEntry;

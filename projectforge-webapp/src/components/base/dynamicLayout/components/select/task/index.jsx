@@ -19,7 +19,7 @@ function DynamicTaskSelect(
         id,
         label,
         onKost2Changed,
-        showRootForAdmins,
+        showRootForAdmins = false,
     },
 ) {
     const {
@@ -210,12 +210,6 @@ DynamicTaskSelect.propTypes = {
     label: PropTypes.string,
     onKost2Changed: PropTypes.func,
     showRootForAdmins: PropTypes.bool,
-};
-
-DynamicTaskSelect.defaultProps = {
-    label: undefined,
-    onKost2Changed: undefined,
-    showRootForAdmins: false,
 };
 
 export default DynamicTaskSelect;

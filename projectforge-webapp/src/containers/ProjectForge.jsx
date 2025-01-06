@@ -105,10 +105,6 @@ ProjectForge.propTypes = {
     user: PropTypes.shape({}),
 };
 
-ProjectForge.defaultProps = {
-    user: undefined,
-};
-
 const mapStateToProps = (state) => ({
     loginInProgress: state.authentication.loading,
     user: state.authentication.user,

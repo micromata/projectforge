@@ -25,6 +25,4 @@ CustomizedAddressPhoneNumber.propTypes = {
     values: PropTypes.shape({}).isRequired,
 };
 
-CustomizedAddressPhoneNumber.defaultProps = {};
-
 export default CustomizedAddressPhoneNumber;

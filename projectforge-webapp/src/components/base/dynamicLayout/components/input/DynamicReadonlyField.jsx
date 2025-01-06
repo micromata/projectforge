@@ -36,8 +36,4 @@ DynamicReadonlyField.propTypes = {
     dataType: PropTypes.string,
 };
 
-DynamicReadonlyField.defaultProps = {
-    dataType: undefined,
-};
-
 export default DynamicReadonlyField;

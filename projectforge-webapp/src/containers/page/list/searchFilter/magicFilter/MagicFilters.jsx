@@ -162,11 +162,6 @@ MagicFilters.propTypes = {
     searchString: PropTypes.string,
 };
 
-MagicFilters.defaultProps = {
-    searchFilter: undefined,
-    searchString: undefined,
-};
-
 const mapStateToProps = ({ list }) => {
     const { ui, filter } = list.categories[list.currentCategory];
 

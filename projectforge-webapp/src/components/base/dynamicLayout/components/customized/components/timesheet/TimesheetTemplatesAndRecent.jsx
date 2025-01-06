@@ -226,6 +226,4 @@ function TimesheetTemplatesAndRecent() {
 
 TimesheetTemplatesAndRecent.propTypes = {};
 
-TimesheetTemplatesAndRecent.defaultProps = {};
-
 export default TimesheetTemplatesAndRecent;

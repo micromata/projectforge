@@ -7,7 +7,7 @@ function MagicObjectInput(
         autoCompletion,
         onChange,
         translations,
-        value,
+        value = {},
         ...props
     },
 ) {
@@ -39,10 +39,6 @@ MagicObjectInput.propTypes = {
             PropTypes.number,
         ]),
     }),
-};
-
-MagicObjectInput.defaultProps = {
-    value: {},
 };
 
 MagicObjectInput.isEmpty = ({ id }) => id === undefined;

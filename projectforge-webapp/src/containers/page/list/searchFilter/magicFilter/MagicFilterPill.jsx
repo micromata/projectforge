@@ -13,14 +13,14 @@ import useMagicInput from './inputs/MagicInputHook';
 function MagicFilterPill(
     {
         id,
-        isNew,
-        isRemovable,
+        isNew = false,
+        isRemovable = false,
         label,
         onFilterDelete,
         onFilterSet,
         translations,
         filterType,
-        value,
+        value = {},
         ...props
     },
 ) {
@@ -131,13 +131,6 @@ MagicFilterPill.propTypes = {
     isRemovable: PropTypes.bool,
     filterType: PropTypes.string,
     value: PropTypes.shape({}),
-};
-
-MagicFilterPill.defaultProps = {
-    isNew: false,
-    isRemovable: false,
-    filterType: undefined,
-    value: {},
 };
 
 const mapStateToProps = ({ list }) => ({

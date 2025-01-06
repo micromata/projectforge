@@ -19,6 +19,4 @@ CustomizedEMail.propTypes = {
     values: PropTypes.shape({}).isRequired,
 };
 
-CustomizedEMail.defaultProps = {};
-
 export default CustomizedEMail;

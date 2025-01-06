@@ -20,8 +20,8 @@ import FormHistory from './history';
 
 function FormPage(
     {
-        category,
-        isPublic,
+        category = {},
+        isPublic = false,
         location,
         match,
         onCallAction,
@@ -222,11 +222,6 @@ FormPage.propTypes = {
         variables: PropTypes.shape({}),
     }),
     isPublic: PropTypes.bool,
-};
-
-FormPage.defaultProps = {
-    category: {},
-    isPublic: false,
 };
 
 const mapStateToProps = ({ form }, { match }) => ({

@@ -13,16 +13,17 @@ import TimeRange from './TimeRange';
 
 function DateTimeRange(
     {
-        firstDayOfWeek,
+        firstDayOfWeek = 1,
         from,
-        hideTimeInput,
+        hideTimeInput = false,
         id,
-        locale,
+        locale = 'en',
         onChange,
         selectors,
         setFrom,
         setTo,
-        translations,
+        timeNotation = 'H24',
+        translations = {},
         to,
         ...props
     },
@@ -248,6 +249,7 @@ function DateTimeRange(
                         from,
                         to,
                     }]}
+                    timeNotation={timeNotation}
                     {...props}
                 />
             </Col>
@@ -268,19 +270,6 @@ DateTimeRange.propTypes = {
     timeNotation: PropTypes.string,
     translations: PropTypes.shape({}),
     to: PropTypes.instanceOf(Date),
-};
-
-DateTimeRange.defaultProps = {
-    hideTimeInput: false,
-    firstDayOfWeek: 1,
-    from: undefined,
-    locale: 'en',
-    setFrom: undefined,
-    setTo: undefined,
-    selectors: undefined,
-    timeNotation: 'H24',
-    translations: {},
-    to: undefined,
 };
 
 const mapStateToProps = ({ authentication }) => ({
