@@ -1,4 +1,4 @@
-/////////////////////////////////////////////////////////////////////////////
+/// //////////////////////////////////////////////////////////////////////////
 //
 // Project ProjectForge Community Edition
 //         www.projectforge.org
@@ -259,6 +259,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
                         byte[] xls = null;
                         try {
                             xls = WicketSupport.get(ForecastExport.class).export(form.getSearchFilter());
+                            //xls = WicketSupport.get(ForecastExport.class).export(PFDay.of(2024, Month.JANUARY, 1), PFDay.of(2024, Month.AUGUST, 1));
                         } catch (Exception e) {
                             log.error("Exception while creating forecast report: " + e.getMessage(), e);
                             throw new UserException("error", e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e));
@@ -267,8 +268,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
                             form.addError("datatable.no-records-found");
                             return;
                         }
-                        final String filename = "ProjectForge-Forecast_" + DateHelper.getDateAsFilenameSuffix(new Date())
-                                + ".xlsx";
+                        final String filename = WicketSupport.get(ForecastExport.class).getExcelFilenmame(form.getSearchFilter());
                         DownloadUtils.setDownloadTarget(xls, filename);
                     }
                 }, getString("fibu.auftrag.forecastExportAsXls")).setTooltip(getString("fibu.auftrag.forecastExportAsXls.tooltip"));

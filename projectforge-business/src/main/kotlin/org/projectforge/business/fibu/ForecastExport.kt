@@ -28,6 +28,7 @@ import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
 import de.micromata.merlin.excel.ExcelWriterContext
 import mu.KotlinLogging
+import org.apache.poi.ss.usermodel.IndexedColors
 import org.projectforge.Constants
 import org.projectforge.business.excel.ExcelDateFormats
 import org.projectforge.business.excel.XlsContentProvider
@@ -41,6 +42,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateFormats
+import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
 import org.springframework.beans.factory.annotation.Autowired
@@ -49,9 +51,8 @@ import org.springframework.stereotype.Service
 import java.io.IOException
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.time.LocalDate
-import java.time.Month
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 private val log = KotlinLogging.logger {}
 
@@ -90,7 +91,8 @@ open class ForecastExport { // open needed by Wicket.
     enum class Sheet(val title: String) {
         FORECAST("Forecast_Data"),
         INVOICES("Rechnungen"),
-        INVOICES_PREV_YEAR("Rechnungen Vorjahr")
+        INVOICES_PREV_YEAR("Rechnungen Vorjahr"),
+        INFO("Info")
     }
 
     enum class ForecastCol(val header: String) {
@@ -180,12 +182,40 @@ open class ForecastExport { // open needed by Wicket.
         return export(orderList, startDate, showAll = true, snapshotDate)
     }
 
+    private fun getStartDate(origFilter: AuftragFilter): PFDay {
+        val startDateParam = origFilter.periodOfPerformanceStartDate
+        return if (startDateParam != null) PFDay.from(startDateParam).beginOfMonth else PFDay.now().beginOfYear
+    }
+
+    open fun getExcelFilenmame(origFilter: AuftragFilter): String {
+        return getFilename(getStartDate(origFilter), extension = ".xlsx")
+    }
+
+    /**
+     * Get the export filename. Example: 'Forecast-start-2021-01-01_2025-01-02_22-48.xlsx'
+     * or 'Forecast-ACME-timeTravel-2023-08-01-start-2023-01-012025-01-02_22-48.zip'.
+     * @param startDate The start date for the forecast.
+     * @param extension The optional file extension ('.xlsx' or '.zip').
+     * @param part The optional part of the export file (e.g. 'ACME', 'Customer', ...).
+     */
+    open fun getFilename(
+        startDate: PFDay,
+        extension: String? = null,
+        part: String? = null,
+        timeTravel: PFDay? = null
+    ): String {
+        val startDateString = "-start_${startDate.isoString}"
+        val partString = if (part.isNullOrBlank()) "" else "-$part"
+        val timeTravelString = if (timeTravel != null) "-timeTravel_${timeTravel.date}" else ""
+        return "Forecast$partString$timeTravelString${startDateString}-${DateHelper.getDateAsFilenameSuffix(Date())}${extension ?: ""}"
+    }
+
     /**
      * Export the forecast sheet.
      * @param orderList The list of orders to export.
      * @param startDate The start date for the forecast.
      * @param showAll True, if no filter is given, for financial and controlling staff only.
-     * @param today Today (null) or, the day of the snapshot, if the orderList is loaded from order book snapshots.
+     * @param timeTravel Today (null) or, the day of the snapshot, if the orderList is loaded from order book snapshots.
      *              If the date is in the past, the forecast will be simulated with the specified date.
      *              If date is given, no caches will be used.
      * @return The byte array of the Excel file.
@@ -195,14 +225,14 @@ open class ForecastExport { // open needed by Wicket.
         orderList: Collection<AuftragDO>,
         startDate: PFDay,
         showAll: Boolean,
-        today: PFDay? = null,
+        timeTravel: PFDay? = null,
     ): ByteArray? {
         if (orderList.isEmpty()) {
             log.info { "No orders found for export." }
             // No orders found, so we don't need the forecast sheet.
             return null
         }
-        val useAuftragsCache = today == null
+        val useAuftragsCache = timeTravel == null
         val prevYearBaseDate = startDate.plusYears(-1) // One year back for getting all invoices.
         val invoiceFilter = RechnungFilter()
         invoiceFilter.fromDate =
@@ -210,7 +240,11 @@ open class ForecastExport { // open needed by Wicket.
         val queryFilter = AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction(invoiceFilter)
         queryFilter.addOrder(desc("datum"))
         queryFilter.addOrder(desc("nummer"))
-        val invoices = rechnungDao.select(queryFilter, checkAccess = false)
+        var invoices = rechnungDao.select(queryFilter, checkAccess = false)
+        if (timeTravel != null) {
+            // For time travel: Filter invoices before the given date.
+            invoices = invoices.filter { it.datum?.let { datum -> PFDay(datum).isBefore(timeTravel) } ?: false }
+        }
         val forecastTemplate = applicationContext.getResource("classpath:officeTemplates/ForecastTemplate.xlsx")
 
         ExcelWorkbook(forecastTemplate.inputStream, "ForecastTemplate.xlsx").use { workbook ->
@@ -236,9 +270,29 @@ open class ForecastExport { // open needed by Wicket.
                 invoicesPriorYearSheet = invoicesPriorYearSheet,
                 startDate = startDate,
                 invoices = invoices,
-                today = today ?: PFDay.now(),
+                today = timeTravel ?: PFDay.now(),
             )
             ctx.showAll = showAll
+
+            val infoSheet = workbook.getSheet(Sheet.INFO.title)!!
+            infoSheet.setDateValue(0, 1, Date(), ctx.excelDateFormat)
+            timeTravel?.let {
+                infoSheet.getCell(1, 1, ensureCell = true)?.let { cell ->
+                    val bold =
+                        workbook.createOrGetFont(
+                            "bold",
+                            bold = true,
+                            heightInPoints = 18,
+                            color = IndexedColors.RED.index
+                        )
+                    val cellStyle = workbook.createOrGetCellStyle("timeTravelDate")
+                    cellStyle.dataFormat = workbook.getDataFormat(ctx.excelDateFormat)
+                    cellStyle.setFont(bold)
+                    cell.setCellValue(it.localDate)
+                    cell.cellStyle = cellStyle
+                }
+            }
+            log.debug { "info sheet: $infoSheet" }
 
             var currentRow = 9
             var orderPositionFound = false

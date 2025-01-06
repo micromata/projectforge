@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import org.jetbrains.kotlin.ir.types.IdSignatureValues.result
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
 import java.math.BigDecimal
@@ -159,13 +160,13 @@ object ForecastUtils { // open needed by Wicket.
         return getLeistungszeitraumDate(pos, order.periodOfPerformanceEnd, pos.periodOfPerformanceEnd)
     }
 
-    private fun getLeistungszeitraumDate(
-        pos: OrderPositionInfo,
+    internal fun getLeistungszeitraumDate(
+        periodOfPerformanceType: PeriodOfPerformanceType?,
         orderDate: LocalDate?,
         posDate: LocalDate?
     ): PFDay {
         var result = PFDay.now()
-        if (PeriodOfPerformanceType.OWN == pos.periodOfPerformanceType) {
+        if (PeriodOfPerformanceType.OWN == periodOfPerformanceType) {
             if (posDate != null) {
                 result = PFDay.from(posDate) // not null
             }
@@ -175,6 +176,14 @@ object ForecastUtils { // open needed by Wicket.
             }
         }
         return result
+    }
+
+    private fun getLeistungszeitraumDate(
+        pos: OrderPositionInfo,
+        orderDate: LocalDate?,
+        posDate: LocalDate?
+    ): PFDay {
+        return getLeistungszeitraumDate(pos.periodOfPerformanceType, orderDate, posDate)
     }
 
     @JvmStatic
