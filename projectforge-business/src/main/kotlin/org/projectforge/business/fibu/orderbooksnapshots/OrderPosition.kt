@@ -53,7 +53,7 @@ internal class OrderPosition {
         fun from(pos: OrderPositionInfo): OrderPosition {
             return OrderPosition().apply {
                 id = pos.id
-                number = pos.number
+                number = pos.number ?: 0
                 taskId = pos.taskId
                 art = pos.art
                 paymentType = pos.paymentType

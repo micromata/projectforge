@@ -87,7 +87,6 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
 
                 }.setDefaultFormProcessing(false), title);
                 exportMenu.addSubMenuEntry(menu);
-                exportMenu.addSubMenuEntry(menu);
             }
         }
         getData().recalculate(); // Muss immer gemacht werden, damit das Zahlungsziel in Tagen berechnet wird.
