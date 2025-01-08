@@ -23,8 +23,8 @@
 
 package org.projectforge.business.fibu
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import mu.KotlinLogging
-import org.hsqldb.result.ResultMetaData.SysOffsets.row
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.time.PFDay
 import java.math.BigDecimal
@@ -39,15 +39,16 @@ private val log = KotlinLogging.logger {}
  * over the performance period.
  */
 class ForecastOrderPosInfo(
+    @JsonIgnore
     val orderInfo: OrderInfo,
     val orderPosInfo: OrderPositionInfo,
     baseDate: PFDay = PFDay.now()
 ) {
-    class Month(
+    class MonthEntry(
         /** First day of month. */
         val date: PFDay
     ) {
-        var toBeInvoicedSume: BigDecimal = BigDecimal.ZERO
+        var toBeInvoicedSum: BigDecimal = BigDecimal.ZERO
 
         /** Mark this month as error. */
         var error: Boolean = false
@@ -56,34 +57,46 @@ class ForecastOrderPosInfo(
     class PaymentEntries(val scheduleDate: PFDay, val amount: BigDecimal)
 
     var baseMonth = baseDate.beginOfMonth
+        private set
     var orderNumber = orderInfo.nummer
+        private set
     var orderPosNumber = orderPosInfo.number
-    var performancePeriodBegin = ForecastUtils.getStartLeistungszeitraum(orderInfo, orderPosInfo)
-    var performancePeriodEnd = ForecastUtils.getEndLeistungszeitraum(orderInfo, orderPosInfo)
+        private set
+    var periodOfPerformanceBegin = ForecastUtils.getStartLeistungszeitraum(orderInfo, orderPosInfo)
+        private set
+    var periodOfPerformanceEnd = ForecastUtils.getEndLeistungszeitraum(orderInfo, orderPosInfo)
+        private set
     lateinit var probability: BigDecimal
+        private set
     lateinit var probabilityNetSum: BigDecimal
+        private set
     lateinit var probabilityNetSumWithoutPaymentSchedule: BigDecimal
+        private set
     val invoicedSum = orderPosInfo.invoicedSum
     lateinit var toBeInvoicedSum: BigDecimal
+        private set
+    private var futureInvoicesAmountRest = BigDecimal.ZERO
+    var difference = BigDecimal.ZERO
+        private set
     lateinit var paymentSchedules: List<OrderInfo.PaymentScheduleInfo>
 
-    val months = mutableListOf<Month>()
+    val months = mutableListOf<MonthEntry>()
     val paymentEntries = mutableListOf<PaymentEntries>()
 
     /**
      * @return true, if the given period is part of the performance period (does an overlap exist?).
      */
     fun match(startDate: PFDay, endDate: PFDay): Boolean {
-        return performancePeriodBegin.isBefore(endDate) && performancePeriodEnd.isAfter(startDate)
+        return periodOfPerformanceBegin.isBefore(endDate) && periodOfPerformanceEnd.isAfter(startDate)
     }
 
-    fun distribute() {
+    fun calculate() {
         probability = ForecastUtils.getProbabilityOfAccurence(orderInfo, orderPosInfo)
         probabilityNetSum = ForecastUtils.computeProbabilityNetSum(orderInfo, orderPosInfo)
         toBeInvoicedSum = if (probabilityNetSum > invoicedSum) probabilityNetSum - invoicedSum else BigDecimal.ZERO
         paymentSchedules = ForecastUtils.getPaymentSchedule(orderInfo, orderPosInfo)
         createMonths()
-        var distributionStartDay = performancePeriodBegin
+        var distributionStartDay = periodOfPerformanceBegin
         var sumPaymentSchedule = BigDecimal.ZERO
         // handle payment schedule
         if (paymentSchedules.isNotEmpty()) {
@@ -118,7 +131,7 @@ class ForecastOrderPosInfo(
                     } else {
                         probabilityNetSumWithoutPaymentSchedule
                     }
-                    month.toBeInvoicedSume = value
+                    month.toBeInvoicedSum = value
                 }
 
                 else -> {
@@ -133,7 +146,7 @@ class ForecastOrderPosInfo(
         if (month == null) {
             log.error { "Oups, can't find month $day of order position $orderPosString: $this" }
         } else {
-            month.toBeInvoicedSume = value
+            month.toBeInvoicedSum = value
         }
     }
 
@@ -153,57 +166,54 @@ class ForecastOrderPosInfo(
                     }
                 }
                 if (sum != BigDecimal.ZERO) {
-                    current.toBeInvoicedSume = sum
+                    current.toBeInvoicedSum = sum
                 }
             }
         }
     }
 
+    /**
+     * @param distributionStartDay The day from which the distribution should start. It is the begin of the
+     *                             performance period or of last payment schedule date.
+     */
     private fun fillMonthColumnsDistributed(
         distributionStartDay: PFDay,
     ) {
-        val currentMonth = getMonthIndex(ctx, ctx.thisMonth)
-        val indexBegin = getMonthIndex(ctx, distributionStartDay) + 1 // Will be invoiced one month later (+1).
-        val indexEnd = getMonthIndex(
-            ctx,
-            ForecastUtils.getEndLeistungszeitraum(order, pos)
-        ) + 1 // Will be invoiced one month later (+1).
-        if (indexEnd < indexBegin) { // should not happen
+        val firstMonth = distributionStartDay.beginOfMonth
+        val lastMonth = periodOfPerformanceEnd
+        if (lastMonth < firstMonth) { // should not happen
             return
         }
+        val monthCount = firstMonth.monthsBetween(lastMonth) + 1 // Jan-Jan -> 1, Jan-Feb -> 2, ...
         val partlyNettoSum = probabilityNetSumWithoutPaymentSchedule.divide(
-            BigDecimal.valueOf(indexEnd - indexBegin + 1.toLong()),
+            BigDecimal.valueOf(monthCount),
             RoundingMode.HALF_UP
         )
-        var futureInvoicesAmountRest = toBeInvoicedSum
-        MonthCol.entries.forEach {
-            val month = it.ordinal
-            if (month >= indexBegin) { // Start distribution from indexBegin
-                val columnDef = ctx.forecastSheet.getColumnDef(it.header)
-                if (month >= currentMonth) {
+        futureInvoicesAmountRest = toBeInvoicedSum
+        months.forEachIndexed { index, monthEntry ->
+            val month = monthEntry.date
+            if (month >= firstMonth) { // Start distribution
+                if (month >= baseMonth) {
+                    // Distribute payments only in future (after base month).
                     val value =
-                        if (month > indexEnd || (partlyNettoSum > futureInvoicesAmountRest && partlyNettoSum > BigDecimal.ZERO)) {
-                            // If month is after indexEnd (after period of performance), total rest of sum is to be invoiced.
+                        if (index == months.size - 1 && (partlyNettoSum > futureInvoicesAmountRest && partlyNettoSum > BigDecimal.ZERO)) {
+                            // If month is the last month of performance period, the total rest of sum is to be invoiced.
                             futureInvoicesAmountRest
                         } else {
                             partlyNettoSum
                         }
                     if (value.abs() > BigDecimal.ONE) { // values < 0 are possible for Abrufaufträge (Sarah fragen, 4273)
-                        // Distribute payments only in future
-                        ctx.forecastSheet.setBigDecimalValue(row, columnDef, value).cellStyle = ctx.currencyCellStyle
+                        setMonthValue(month, value)
                     }
                     futureInvoicesAmountRest -= value // Don't forecast more than to be invoiced.
                 }
             }
         }
         // Calculate the difference between to be invoiced sum and forecasted sums:
-        if (futureInvoicesAmountRest.abs() > BigDecimal.ONE) { // Only differences greater than 1 Euro
-            ctx.forecastSheet.setBigDecimalValue(
-                row,
-                ctx.forecastSheet.getColumnDef(ForecastCol.DIFFERENCE.header),
-                futureInvoicesAmountRest
-            ).cellStyle = ctx.currencyCellStyle
+        if (futureInvoicesAmountRest.abs() <= BigDecimal.ONE) { // Only differences greater than 1 Euro
+            futureInvoicesAmountRest = BigDecimal.ZERO
         }
+        difference = futureInvoicesAmountRest.negate()
     }
 
     /**
@@ -217,13 +227,13 @@ class ForecastOrderPosInfo(
         get() = "$orderNumber.$orderPosNumber"
 
     private fun createMonths() {
-        var month = performancePeriodBegin.beginOfMonth
+        var month = periodOfPerformanceBegin.beginOfMonth
         do {
             log.debug { "Adding month $month" }
-            months.add(Month(month))
+            months.add(MonthEntry(month))
             month = month.plusMonths(1)
-        } while (month < performancePeriodEnd)
-        months.add(Month(month.plusMonths(1))) // Add one month after end of performance period (last invoice month).
+        } while (month <= periodOfPerformanceEnd)
+        months.add(MonthEntry(month)) // Add one month after end of performance period (last invoice month).
     }
 
     override fun toString(): String {

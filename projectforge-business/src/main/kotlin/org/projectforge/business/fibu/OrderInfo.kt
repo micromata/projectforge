@@ -23,11 +23,13 @@
 
 package org.projectforge.business.fibu
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.Transient
 import mu.KotlinLogging
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.extensions.abbreviate
 import org.projectforge.framework.i18n.I18nHelper
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.Serializable
 import java.math.BigDecimal
@@ -40,7 +42,7 @@ private val log = KotlinLogging.logger {}
  * Information about an order with additional calculated values.
  * @see OrderInfo.calculateAll
  */
-class OrderInfo() : Serializable {
+class OrderInfo : Serializable {
     class PaymentScheduleInfo(schedule: PaymentScheduleDO) : Serializable {
         val id = schedule.id
         val number = schedule.number
@@ -75,6 +77,7 @@ class OrderInfo() : Serializable {
     var probabilityOfOccurrence: Int? = null
     var periodOfPerformanceBegin: LocalDate? = null
     var periodOfPerformanceEnd: LocalDate? = null
+    @JsonSerialize(using = IdOnlySerializer::class)
     var contactPerson: PFUserDO? = null
     var bemerkung: String? = null
     var paymentScheduleEntries: Collection<PaymentScheduleInfo>? = null

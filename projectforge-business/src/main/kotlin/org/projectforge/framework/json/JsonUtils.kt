@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import mu.KotlinLogging
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDay
 import java.io.IOException
 import java.sql.Timestamp
 import java.time.LocalDate
@@ -112,6 +113,9 @@ object JsonUtils {
 
         module.addSerializer(PFDateTime::class.java, PFDateTimeSerializer())
         module.addDeserializer(PFDateTime::class.java, PFDateTimeDeserializer())
+
+        module.addSerializer(PFDay::class.java, PFDaySerializer())
+        module.addDeserializer(PFDay::class.java, PFDayDeserializer())
 
         module.addSerializer(java.util.Date::class.java, UtilDateSerializer(UtilDateFormat.JS_DATE_TIME_MILLIS))
         module.addDeserializer(java.util.Date::class.java, UtilDateDeserializer())

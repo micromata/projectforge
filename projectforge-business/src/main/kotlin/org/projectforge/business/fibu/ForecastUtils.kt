@@ -69,7 +69,7 @@ object ForecastUtils { // open needed by Wicket.
         val schedules = order.paymentScheduleEntries ?: return emptyList()
         return schedules
             .filter { it.positionNumber != null && it.scheduleDate != null && it.amount != null }
-            .filter { it.positionNumber!!.toInt() == pos.number.toInt() }
+            .filter { it.positionNumber?.toInt() == pos.number?.toInt() }
     }
 
     /**
@@ -203,7 +203,9 @@ object ForecastUtils { // open needed by Wicket.
     }
 
     @JvmStatic
-    fun getMonthCount(start: LocalDate, end: LocalDate): BigDecimal {
+    fun getMonthCount(start: LocalDate?, end: LocalDate?): BigDecimal {
+        start ?: return BigDecimal.ZERO
+        end ?: return BigDecimal.ZERO
         val startDate = PFDay.from(start) // not null
         val endDate = PFDay.from(end) // not null
         val diffYear = endDate.year - startDate.year
