@@ -38,6 +38,9 @@ private val log = KotlinLogging.logger {}
  * The actual invoices are used for the past and the uninvoiced and open expenses are used for the forecast.
  * These are either distributed according to the payment plan of the higher-level order or evenly distributed
  * over the performance period.
+ * @param orderInfo The order.
+ * @param orderPosInfo The order position.
+ * @param baseDate The base date for the forecast.
  */
 class ForecastOrderPosInfo(
     @JsonIgnore
@@ -172,6 +175,16 @@ class ForecastOrderPosInfo(
                 }
             }
         }
+    }
+
+    fun getRemainingForecastSumAfter(date: PFDay): BigDecimal {
+        var sum = BigDecimal.ZERO
+        months.forEach {
+            if (it.date > date) {
+                sum += it.toBeInvoicedSum
+            }
+        }
+        return sum
     }
 
     /**

@@ -107,7 +107,7 @@ open class ForecastExport { // open needed by Wicket.
         EINTRITTSWAHRSCHEINLICHKEIT("Eintrittswahrsch. in %"), ANSPRECHPARTNER("Ansprechpartner"),
         STRUKTUR_ELEMENT("Strukturelement"), BEMERKUNG("Bemerkung"), PROBABILITY_NETSUM("gewichtete Nettosumme"),
         ANZAHL_MONATE("Anzahl Monate"), PAYMENT_SCHEDULE("Zahlplan"),
-        DIFFERENCE("Differenz")
+        REMAINING("Offen"), DIFFERENCE("Abweichung")
     }
 
     enum class InvoicesCol(val header: String) {
@@ -131,6 +131,7 @@ open class ForecastExport { // open needed by Wicket.
         val baseDate: PFDay = PFDay.now(),
         val snapshot: Boolean = false,
     ) {
+        val endDate = startDate.plusMonths(11).endOfMonth
         val excelDateFormat =
             ThreadLocalUserContext.loggedInUser?.excelDateFormat ?: ExcelDateFormats.EXCEL_DEFAULT_DATE
         val dateFormat = DateTimeFormatter.ofPattern(DateFormats.getFormatString(DateFormatType.DATE_SHORT))!!
@@ -147,6 +148,7 @@ open class ForecastExport { // open needed by Wicket.
             false // showAll is true, if no filter is given and for financial and controlling staff only.
         val orderPositionMap = mutableMapOf<Long, OrderPositionInfo>()
         val orderMapByPositionId = mutableMapOf<Long, OrderInfo>()
+
         init {
             currencyCellStyle.dataFormat = workbook.getDataFormat(XlsContentProvider.FORMAT_CURRENCY)
             percentageCellStyle.dataFormat = workbook.getDataFormat("0%")
@@ -577,16 +579,16 @@ open class ForecastExport { // open needed by Wicket.
             ForecastCol.ANZAHL_MONATE.header,
             ForecastUtils.getMonthCountForOrderPosition(order, pos)
         )
+        val remaining = forecastInfo.getRemainingForecastSumAfter(ctx.endDate)
+        if (remaining.compareTo(BigDecimal.ZERO) != 0) {
+            sheet.setBigDecimalValue(row, ForecastCol.REMAINING.header, remaining).cellStyle =
+                ctx.currencyCellStyle
+        }
         if (forecastInfo.difference.compareTo(BigDecimal.ZERO) != 0) {
             sheet.setBigDecimalValue(row, ForecastCol.DIFFERENCE.header, forecastInfo.difference).cellStyle =
                 ctx.currencyCellStyle
         }
 
-        // get payment schedule for order position
-        val paymentSchedules = ForecastUtils.getPaymentSchedule(order, pos)
-        val sumPaymentSchedule: BigDecimal
-        var beginDistribute: PFDay
-        // handle payment schedule
         if (forecastInfo.paymentEntries.isNotEmpty()) {
             val str = forecastInfo.paymentEntries.joinToString {
                 "${it.scheduleDate.format(ctx.dateFormat)}: ${
@@ -595,7 +597,6 @@ open class ForecastExport { // open needed by Wicket.
             }
             sheet.setStringValue(row, ForecastCol.PAYMENT_SCHEDULE.header, str)
         }
-        val firstMonthCol = ctx.forecastSheet.getColumnDef(MonthCol.MONTH1.header)!!.columnNumber
         forecastInfo.months.forEach { monthEntry ->
             val monthDate = monthEntry.date
             val offset = ctx.startDate.monthsBetween(monthDate).toInt()

@@ -25,6 +25,7 @@ package org.projectforge.business.fibu
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.commons.test.TestUtils
 import org.projectforge.framework.time.PFDay
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -52,15 +53,15 @@ class ForecastOrderPosInfoTest {
                     }
                     if (ForecastOrderPosInfo.DISTRIBUTE_UNUSED_BUDGET) {
                         for (i in 2..4) {
-                            Assertions.assertEquals("13891.25", forecastInfo.months[i].toBeInvoicedSum.toString())
+                            assertSame("13891.25", forecastInfo.months[i].toBeInvoicedSum)
                         }
-                        Assertions.assertEquals("20857.54", forecastInfo.months[5].toBeInvoicedSum.toString())
+                        assertSame("20857.54", forecastInfo.months[5].toBeInvoicedSum)
                         Assertions.assertEquals(BigDecimal.ZERO, forecastInfo.difference)
                     } else {
                         for (i in 2..5) {
-                            Assertions.assertEquals("13891.25", forecastInfo.months[i].toBeInvoicedSum.toString())
+                            assertSame("13891.25", forecastInfo.months[i].toBeInvoicedSum)
                         }
-                        Assertions.assertEquals("-6966.29", forecastInfo.difference.toString())
+                        assertSame("-6966.29", forecastInfo.difference)
                     }
                 }
             }
@@ -80,8 +81,9 @@ class ForecastOrderPosInfoTest {
                     Assertions.assertEquals(BigDecimal.ZERO, forecastInfo.difference)
                     Assertions.assertEquals(BigDecimal.ZERO, forecastInfo.months[0].toBeInvoicedSum)
                     for (i in 1..12) {
-                        Assertions.assertEquals("41666.6667", forecastInfo.months[i].toBeInvoicedSum.toString())
+                        assertSame("41666.6667", forecastInfo.months[i].toBeInvoicedSum)
                     }
+                    assertSame("125000.00", forecastInfo.getRemainingForecastSumAfter(PFDay.of(2025, Month.OCTOBER, 31)))
                 }
             }
         }
@@ -153,6 +155,9 @@ class ForecastOrderPosInfoTest {
     }
 
     companion object {
+        private fun assertSame(expected: String, actual: Number?) {
+            TestUtils.assertSame(expected, actual, BigDecimal("0.01"))
+        }
         private val baseDate = PFDay.of(2025, Month.JANUARY, 8)
     }
 }
