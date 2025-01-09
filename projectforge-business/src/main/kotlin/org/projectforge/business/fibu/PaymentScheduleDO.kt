@@ -61,7 +61,7 @@ open class PaymentScheduleDO : DefaultBaseDO(), DisplayNameCapable {
   open var auftrag: AuftragDO? = null
 
   /**
-   * The position's number this payment schedule is assigned to. (It is not the id/pk!!!)
+   * The order position's number this payment schedule is assigned to. (It is not the id/pk!!!)
    */
   @get:Column(name = "position_number")
   open var positionNumber: Short? = null

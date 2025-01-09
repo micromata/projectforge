@@ -23,7 +23,6 @@
 
 package org.projectforge.business.fibu
 
-import org.jetbrains.kotlin.ir.types.IdSignatureValues.result
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
 import java.math.BigDecimal
@@ -80,6 +79,25 @@ object ForecastUtils { // open needed by Wicket.
         val netSum = pos.netSum ?: BigDecimal.ZERO
         val probability = getProbabilityOfAccurence(order, pos)
         return netSum.multiply(probability)
+    }
+
+    /**
+     * Multiplies the probability with the amounts of all payment schedule amounts. If a payment schedule
+     * is already fully invoiced (vollstaendigFakturiert), the amount is not multiplied with the probability.
+     */
+    @JvmStatic
+    fun computeProbabilityPaymentSchedule(order: OrderInfo, pos: OrderPositionInfo): BigDecimal {
+        var sum = BigDecimal.ZERO
+        val probability = getProbabilityOfAccurence(order, pos)
+        order.getPaymentScheduleEntriesOfPosition(pos)?.forEach { scheduleInfo ->
+            val amount = scheduleInfo.amount ?: return@forEach
+            sum += if (scheduleInfo.vollstaendigFakturiert) {
+                amount
+            } else {
+                amount.multiply(probability)
+            }
+        }
+        return sum
     }
 
     /**
