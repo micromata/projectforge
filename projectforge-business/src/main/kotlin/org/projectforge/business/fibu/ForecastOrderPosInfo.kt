@@ -29,6 +29,7 @@ import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.time.PFDay
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
 
@@ -54,7 +55,7 @@ class ForecastOrderPosInfo(
         var error: Boolean = false
     }
 
-    class PaymentEntries(val scheduleDate: PFDay, val amount: BigDecimal)
+    class PaymentEntryInfo(val scheduleDate: LocalDate, val amount: BigDecimal)
 
     var baseMonth = baseDate.beginOfMonth
         private set
@@ -79,9 +80,10 @@ class ForecastOrderPosInfo(
     var difference = BigDecimal.ZERO
         private set
     lateinit var paymentSchedules: List<OrderInfo.PaymentScheduleInfo>
+    private var distributionStartDay = periodOfPerformanceBegin
 
     val months = mutableListOf<MonthEntry>()
-    val paymentEntries = mutableListOf<PaymentEntries>()
+    val paymentEntries = mutableListOf<PaymentEntryInfo>()
 
     /**
      * @return true, if the given period is part of the performance period (does an overlap exist?).
@@ -96,29 +98,9 @@ class ForecastOrderPosInfo(
         toBeInvoicedSum = if (probabilityNetSum > invoicedSum) probabilityNetSum - invoicedSum else BigDecimal.ZERO
         paymentSchedules = ForecastUtils.getPaymentSchedule(orderInfo, orderPosInfo)
         createMonths()
-        var distributionStartDay = periodOfPerformanceBegin
-        var sumPaymentSchedule = BigDecimal.ZERO
+        val sumPaymentSchedule = ForecastUtils.computeProbabilityPaymentSchedule(orderInfo, orderPosInfo)
         // handle payment schedule
-        if (paymentSchedules.isNotEmpty()) {
-            var sum = BigDecimal.ZERO
-            distributionStartDay = PFDay.fromOrNow(paymentSchedules[0].scheduleDate)
-            for (schedule in paymentSchedules) {
-                if (schedule.vollstaendigFakturiert) { // Ignore payments already invoiced.
-                    schedule.amount?.let { sum += it }
-                    continue
-                }
-                val amount = schedule.amount!!.multiply(probability)
-                sum += amount
-                schedule.scheduleDate?.let { scheduleDate ->
-                    if (distributionStartDay.isBefore(scheduleDate)) {
-                        distributionStartDay = PFDay.from(scheduleDate)
-                    }
-                }
-                paymentEntries.add(PaymentEntries(distributionStartDay, amount))
-            }
-            fillByPaymentSchedule()
-            sumPaymentSchedule = sum
-        }
+        handlePaymentSchedules()
         // compute diff, return if diff is empty
         probabilityNetSumWithoutPaymentSchedule = probabilityNetSum - sumPaymentSchedule
         if (probabilityNetSumWithoutPaymentSchedule.compareTo(BigDecimal.ZERO) != 0) {
@@ -131,11 +113,13 @@ class ForecastOrderPosInfo(
                     } else {
                         probabilityNetSumWithoutPaymentSchedule
                     }
-                    month.toBeInvoicedSum = value
+                    if (value.abs() > BigDecimal.ONE) { // Ignore rounding errors.
+                        month.toBeInvoicedSum += value
+                    }
                 }
 
                 else -> {
-                    fillMonthColumnsDistributed(distributionStartDay)
+                    distributeMonthlyValues(distributionStartDay)
                 }
             }
         }
@@ -150,7 +134,25 @@ class ForecastOrderPosInfo(
         }
     }
 
-    private fun fillByPaymentSchedule() { // payment values
+    private fun handlePaymentSchedules() { // payment values
+        if (paymentSchedules.isEmpty()) {
+            // Nothing to do.
+            return
+        }
+        val firstScheduledDate = paymentSchedules.minOf { it.scheduleDate ?: LocalDate.MAX }
+        distributionStartDay = PFDay.fromOrNull(firstScheduledDate) ?: distributionStartDay
+        for (schedule in paymentSchedules) {
+            val amount = schedule.amount
+            val scheduleDate = schedule.scheduleDate
+            if (scheduleDate == null || amount == null || schedule.vollstaendigFakturiert) { // Ignore payments already invoiced.
+                continue
+            }
+                if (distributionStartDay.isBefore(scheduleDate)) {
+                    distributionStartDay = PFDay.from(scheduleDate)
+                }
+            // For info only (e.g. in Excel export):
+            paymentEntries.add(PaymentEntryInfo(scheduleDate, amount.multiply(probability)))
+        }
         months.forEach { current ->
             val currentMonth = current.date
             if (isPartOfForecast(currentMonth)) {
@@ -176,7 +178,7 @@ class ForecastOrderPosInfo(
      * @param distributionStartDay The day from which the distribution should start. It is the begin of the
      *                             performance period or of last payment schedule date.
      */
-    private fun fillMonthColumnsDistributed(
+    private fun distributeMonthlyValues(
         distributionStartDay: PFDay,
     ) {
         val firstMonth = distributionStartDay.beginOfMonth
@@ -234,12 +236,16 @@ class ForecastOrderPosInfo(
 
     private fun createMonths() {
         var month = periodOfPerformanceBegin.beginOfMonth
+        var monthUntil = periodOfPerformanceEnd.beginOfMonth.plusMonths(1) // Add one month after end of performance period.
+        val lastScheduleDate = PFDay.fromOrNull(paymentSchedules.maxOfOrNull { it.scheduleDate ?: LocalDate.MIN })
+        if (lastScheduleDate != null && lastScheduleDate > monthUntil) {
+            monthUntil = lastScheduleDate
+        }
         do {
             log.debug { "Adding month $month" }
             months.add(MonthEntry(month))
             month = month.plusMonths(1)
-        } while (month <= periodOfPerformanceEnd)
-        months.add(MonthEntry(month)) // Add one month after end of performance period (last invoice month).
+        } while (month <= monthUntil)
     }
 
     override fun toString(): String {

@@ -25,7 +25,6 @@ package org.projectforge.business.fibu
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.time.PFDay
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -34,102 +33,126 @@ import java.time.Month
 class ForecastOrderPosInfoTest {
     @Test
     fun `test time and materials pos`() {
-        OrderInfo().also { it.status = AuftragsStatus.BEAUFTRAGT }.let { orderInfo ->
-            val pos = JsonUtils.fromJson(pos1Json, OrderPositionInfo::class.java)!!
-            // it.paymentScheduleEntries = emptyList()}
-            val forecastInfo = ForecastOrderPosInfo(orderInfo, pos, baseDate = PFDay.of(2025, Month.JANUARY, 8))
-            forecastInfo.calculate()
-            Assertions.assertEquals(6, forecastInfo.months.size)
-            for (i in 0..1) {
-                Assertions.assertEquals(BigDecimal.ZERO, forecastInfo.months[i].toBeInvoicedSum)
-            }
-            if (ForecastOrderPosInfo.DISTRIBUTE_UNUSED_BUDGET) {
-                for (i in 2..4) {
-                    Assertions.assertEquals("13891.25", forecastInfo.months[i].toBeInvoicedSum.toString())
+        OrderInfo().also { orderInfo -> // Order 6308
+            orderInfo.status = AuftragsStatus.BEAUFTRAGT
+            createPos(
+                AuftragsStatus.BEAUFTRAGT,
+                AuftragsPositionsPaymentType.TIME_AND_MATERIALS,
+                PeriodOfPerformanceType.OWN,
+                periodOfPerformanceBegin = LocalDate.of(2024, Month.NOVEMBER, 13),
+                periodOfPerformanceEnd = LocalDate.of(2025, Month.MARCH, 31),
+                netSum = BigDecimal("69456.24"),
+                invoicedSum = BigDecimal("6924.95")
+            ).also { pos ->
+                ForecastOrderPosInfo(orderInfo, pos, baseDate = baseDate).also { forecastInfo ->
+                    forecastInfo.calculate()
+                    Assertions.assertEquals(6, forecastInfo.months.size)
+                    for (i in 0..1) {
+                        Assertions.assertEquals(BigDecimal.ZERO, forecastInfo.months[i].toBeInvoicedSum)
+                    }
+                    if (ForecastOrderPosInfo.DISTRIBUTE_UNUSED_BUDGET) {
+                        for (i in 2..4) {
+                            Assertions.assertEquals("13891.25", forecastInfo.months[i].toBeInvoicedSum.toString())
+                        }
+                        Assertions.assertEquals("20857.54", forecastInfo.months[5].toBeInvoicedSum.toString())
+                        Assertions.assertEquals(BigDecimal.ZERO, forecastInfo.difference)
+                    } else {
+                        for (i in 2..5) {
+                            Assertions.assertEquals("13891.25", forecastInfo.months[i].toBeInvoicedSum.toString())
+                        }
+                        Assertions.assertEquals("-6966.29", forecastInfo.difference.toString())
+                    }
                 }
-                Assertions.assertEquals("20857.54", forecastInfo.months[5].toBeInvoicedSum.toString())
-                Assertions.assertEquals(BigDecimal.ZERO, forecastInfo.difference)
-            } else {
-                for (i in 2..5) {
-                    Assertions.assertEquals("13891.25", forecastInfo.months[i].toBeInvoicedSum.toString())
-                }
-                Assertions.assertEquals("-6966.29", forecastInfo.difference.toString())
             }
         }
-        OrderInfo().also {
-            it.status = AuftragsStatus.GELEGT
-            it.probabilityOfOccurrence = 50
-            it.periodOfPerformanceBegin = LocalDate.of(2025, Month.JANUARY, 1)
-            it.periodOfPerformanceEnd = LocalDate.of(2025, Month.DECEMBER, 31)
-        }.let { orderInfo ->
-            val pos = JsonUtils.fromJson(pos2Json, OrderPositionInfo::class.java)!!
-            // it.paymentScheduleEntries = emptyList()}
-            val forecastInfo = ForecastOrderPosInfo(orderInfo, pos, baseDate = PFDay.of(2025, Month.JANUARY, 8))
-            forecastInfo.calculate()
-            Assertions.assertEquals(13, forecastInfo.months.size)
-            Assertions.assertEquals(BigDecimal.ZERO, forecastInfo.difference)
-            Assertions.assertEquals(BigDecimal.ZERO, forecastInfo.months[0].toBeInvoicedSum)
-            for (i in 1..12) {
-                Assertions.assertEquals("41666.6667", forecastInfo.months[i].toBeInvoicedSum.toString())
+        OrderInfo().also { orderInfo -> // Order 6395
+            orderInfo.status = AuftragsStatus.GELEGT
+            orderInfo.probabilityOfOccurrence = 50
+            orderInfo.periodOfPerformanceBegin = LocalDate.of(2025, Month.JANUARY, 1)
+            orderInfo.periodOfPerformanceEnd = LocalDate.of(2025, Month.DECEMBER, 31)
+            createPos(
+                AuftragsStatus.GELEGT, AuftragsPositionsPaymentType.TIME_AND_MATERIALS,
+                PeriodOfPerformanceType.SEEABOVE, netSum = BigDecimal("1000000.00")
+            ).also { pos ->
+                ForecastOrderPosInfo(orderInfo, pos, baseDate = baseDate).also { forecastInfo ->
+                    forecastInfo.calculate()
+                    Assertions.assertEquals(13, forecastInfo.months.size)
+                    Assertions.assertEquals(BigDecimal.ZERO, forecastInfo.difference)
+                    Assertions.assertEquals(BigDecimal.ZERO, forecastInfo.months[0].toBeInvoicedSum)
+                    for (i in 1..12) {
+                        Assertions.assertEquals("41666.6667", forecastInfo.months[i].toBeInvoicedSum.toString())
+                    }
+                }
+            }
+        }
+        OrderInfo().also { orderInfo ->  // Order 6215
+            orderInfo.status = AuftragsStatus.BEAUFTRAGT
+            orderInfo.periodOfPerformanceBegin = LocalDate.of(2024, Month.SEPTEMBER, 2)
+            orderInfo.periodOfPerformanceEnd = LocalDate.of(2025, Month.JANUARY, 31)
+            addPaymentSchedule(orderInfo, LocalDate.of(2025, Month.JANUARY, 31), BigDecimal("21457.33"))
+            addPaymentSchedule(orderInfo, LocalDate.of(2025, Month.FEBRUARY, 28), BigDecimal("21457.33"))
+            addPaymentSchedule(orderInfo, LocalDate.of(2025, Month.MARCH, 31), BigDecimal("21457.33"))
+            createPos(
+                AuftragsStatus.BEAUFTRAGT, AuftragsPositionsPaymentType.FESTPREISPAKET,
+                PeriodOfPerformanceType.SEEABOVE, netSum = BigDecimal("64372.00")
+            ).also { pos ->
+                ForecastOrderPosInfo(orderInfo, pos, baseDate = baseDate).also { forecastInfo ->
+                    forecastInfo.calculate()
+                    Assertions.assertEquals(7, forecastInfo.months.size, "September -> March")
+                    for (i in 0..3) {
+                        // December payment is before baseDate.
+                        Assertions.assertEquals(
+                            BigDecimal.ZERO,
+                            forecastInfo.months[i].toBeInvoicedSum,
+                            "September - December no payments (all in the past)"
+                        )
+                    }
+                    for (i in 4..6) {
+                        Assertions.assertEquals(
+                            "21457.33",
+                            forecastInfo.months[i].toBeInvoicedSum.toString(),
+                            "payments in January, February and March"
+                        )
+                    }
+                }
             }
         }
     }
 
-    companion object {
-        val pos1Json = """
-              |{
-              |  "id": 44474374,
-              |  "number": 1,
-              |  "auftragId": 44474373,
-              |  "auftragNummer": 6308,
-              |  "titel": "title",
-              |  "status": "BEAUFTRAGT",
-              |  "paymentType": "TIME_AND_MATERIALS",
-              |  "art": "NEUENTWICKLUNG",
-              |  "personDays": 63.00,
-              |  "modeOfPaymentType": null,
-              |  "dbNetSum": 69456.24,
-              |  "vollstaendigFakturiert": false,
-              |  "periodOfPerformanceType": "OWN",
-              |  "periodOfPerformanceBegin": "2024-11-13",
-              |  "periodOfPerformanceEnd": "2025-03-31",
-              |  "toBeInvoiced": false,
-              |  "commissionedNetSum": 69456.24,
-              |  "netSum": 69456.24,
-              |  "akquiseSum": 0,
-              |  "invoicedSum": 6924.95,
-              |  "toBeInvoicedSum": 0,
-              |  "notYetInvoiced": 62531.29
-              |}
-        """.trimMargin()
+    private fun createPos(
+        status: AuftragsStatus,
+        paymentType: AuftragsPositionsPaymentType,
+        periodOfPerformanceType: PeriodOfPerformanceType,
+        periodOfPerformanceBegin: LocalDate? = null,
+        periodOfPerformanceEnd: LocalDate? = null,
+        netSum: BigDecimal = BigDecimal.ZERO,
+        invoicedSum: BigDecimal = BigDecimal.ZERO,
+    ): OrderPositionInfo {
+        return OrderPositionInfo().also {
+            it.status = status
+            it.number = 0
+            it.paymentType = paymentType
+            it.periodOfPerformanceType = periodOfPerformanceType
+            it.periodOfPerformanceBegin = periodOfPerformanceBegin
+            it.periodOfPerformanceEnd = periodOfPerformanceEnd
+            it.netSum = netSum
+            it.invoicedSum = invoicedSum
+        }
+    }
 
-        val pos2Json = """
-              |{
-              |  "id": 61817701,
-              |  "number": 1,
-              |  "auftragId": 61817651,
-              |  "auftragNummer": 6395,
-              |  "titel": "Submitted Position with 50% probability",
-              |  "status": "GELEGT",
-              |  "paymentType": "TIME_AND_MATERIALS",
-              |  "art": "NEUENTWICKLUNG",
-              |  "personDays": 1000.00,
-              |  "modeOfPaymentType": null,
-              |  "dbNetSum": 1000000.00,
-              |  "vollstaendigFakturiert": false,
-              |  "periodOfPerformanceType": "SEEABOVE",
-              |  "periodOfPerformanceBegin": null,
-              |  "periodOfPerformanceEnd": null,
-              |  "taskId": 61815017,
-              |  "toBeInvoiced": false,
-              |  "commissionedNetSum": 0,
-              |  "netSum": 1000000.00,
-              |  "akquiseSum": 1000000.00,
-              |  "invoicedSum": 0,
-              |  "toBeInvoicedSum": 0,
-              |  "notYetInvoiced": 0,
-              |  "snapshotVersion": false
-              |}
-        """.trimMargin()
+    private fun addPaymentSchedule(orderInfo: OrderInfo, date: LocalDate, amount: BigDecimal) {
+        orderInfo.paymentScheduleEntries = orderInfo.paymentScheduleEntries ?: mutableListOf()
+        val entries = orderInfo.paymentScheduleEntries as MutableList
+        val schedule = PaymentScheduleDO().also {
+            it.scheduleDate = date
+            it.number = (entries.size + 1).toShort()
+            it.amount = amount
+            it.positionNumber = 0
+        }
+        entries.add(OrderInfo.PaymentScheduleInfo(schedule))
+    }
+
+    companion object {
+        private val baseDate = PFDay.of(2025, Month.JANUARY, 8)
     }
 }

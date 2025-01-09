@@ -99,6 +99,9 @@ class OrderInfo : Serializable {
      */
     var snapshotVersion: Boolean = false
 
+    fun getPaymentScheduleEntriesOfPosition(pos: OrderPositionInfo): Collection<PaymentScheduleInfo>? {
+        return paymentScheduleEntries?.filter { it.positionNumber == pos.number }
+    }
 
     fun updateFields(order: AuftragDO, paymentSchedules: Collection<PaymentScheduleDO>? = null) {
         id = order.id
