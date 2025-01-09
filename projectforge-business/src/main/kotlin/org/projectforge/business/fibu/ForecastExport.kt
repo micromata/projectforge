@@ -147,8 +147,6 @@ open class ForecastExport { // open needed by Wicket.
             false // showAll is true, if no filter is given and for financial and controlling staff only.
         val orderPositionMap = mutableMapOf<Long, OrderPositionInfo>()
         val orderMapByPositionId = mutableMapOf<Long, OrderInfo>()
-        val thisMonth = baseDate.beginOfMonth
-
         init {
             currencyCellStyle.dataFormat = workbook.getDataFormat(XlsContentProvider.FORMAT_CURRENCY)
             percentageCellStyle.dataFormat = workbook.getDataFormat("0%")
@@ -579,6 +577,10 @@ open class ForecastExport { // open needed by Wicket.
             ForecastCol.ANZAHL_MONATE.header,
             ForecastUtils.getMonthCountForOrderPosition(order, pos)
         )
+        if (forecastInfo.difference.compareTo(BigDecimal.ZERO) != 0) {
+            sheet.setBigDecimalValue(row, ForecastCol.DIFFERENCE.header, forecastInfo.difference).cellStyle =
+                ctx.currencyCellStyle
+        }
 
         // get payment schedule for order position
         val paymentSchedules = ForecastUtils.getPaymentSchedule(order, pos)

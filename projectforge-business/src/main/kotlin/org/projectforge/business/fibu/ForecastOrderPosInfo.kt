@@ -192,13 +192,19 @@ class ForecastOrderPosInfo(
         futureInvoicesAmountRest = toBeInvoicedSum
         months.forEachIndexed { index, monthEntry ->
             val month = monthEntry.date
-            if (month >= firstMonth) { // Start distribution
+            if (month > firstMonth) { // Start distribution one month after firstMonth (invoice one month later)
                 if (month >= baseMonth) {
                     // Distribute payments only in future (after base month).
                     val value =
-                        if (index == months.size - 1 && (partlyNettoSum > futureInvoicesAmountRest && partlyNettoSum > BigDecimal.ZERO)) {
+                        if (index == months.size - 1) {
                             // If month is the last month of performance period, the total rest of sum is to be invoiced.
-                            futureInvoicesAmountRest
+                            if (DISTRIBUTE_UNUSED_BUDGET) {
+                                // Version 1 (unused budget will be added to last month (overestimation)):
+                                maxOf(partlyNettoSum, futureInvoicesAmountRest)
+                            } else {
+                                // Version 2 (unused budget isn't part of forecast and will be shown as negative difference sum (more realistic scenario?):
+                                minOf(partlyNettoSum, futureInvoicesAmountRest)
+                            }
                         } else {
                             partlyNettoSum
                         }
@@ -238,5 +244,13 @@ class ForecastOrderPosInfo(
 
     override fun toString(): String {
         return ToStringUtil.toJsonString(this)
+    }
+
+    companion object {
+        /**
+         * If true, unused budget will be added to the last distributed month.
+         * If false, this budget will be added to the difference sum.
+         */
+        internal val DISTRIBUTE_UNUSED_BUDGET = true
     }
 }
