@@ -56,24 +56,21 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
             WicketSupport.get(AuftragDao.class).setContactPerson(getData(), getUser().getId());
         }
         if (!isNew()) {
-            ContentMenuEntryPanel menu;/* = new ContentMenuEntryPanel(getNewContentMenuChildId(),
+            ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(),
                     new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
                         @Override
                         public void onClick() {
-                            ByteArrayOutputStream baos = WicketSupport.get(InvoiceService.class).getInvoiceWordDocument(getData(), variant);
-                            if (baos != null) {
-                                String filename = WicketSupport.get(InvoiceService.class).getInvoiceFilename(getData());
-                                DownloadUtils.setDownloadTarget(baos.toByteArray(), filename);
-                            }
+                            byte[] html = WicketSupport.get(ForecastOrderAnalysis.class).htmlExportAsByteArray(getData().getId());
+                            DownloadUtils.setDownloadTarget(html, "orderAnalysis-" + getData().getNummer() + ".html");
                         }
                     }, getString("fibu.auftrag.exportAnalysis"));
-            addContentMenuEntry(menu);*/
+            addContentMenuEntry(menu);
             if (SystemStatus.isDevelopmentMode()) {
                 menu = new ContentMenuEntryPanel(getNewContentMenuChildId(),
                         new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
                             @Override
                             public void onClick() {
-                                var list = WicketSupport.get(ForecastExport.class).exportOrderAnalysis(getData().getId());
+                                var list = WicketSupport.get(ForecastOrderAnalysis.class).exportOrderAnalysis(getData().getId());
                                 if (list != null) {
                                     String filename = "orderAnalysis-" + getData().getNummer() + ".json";
                                     DownloadUtils.setDownloadTarget(JsonUtils.toJson(list).getBytes(StandardCharsets.UTF_8), filename);

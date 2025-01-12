@@ -57,3 +57,15 @@ fun Number?.formatCurrency(withCurrencySymbol: Boolean = false): String {
         "$amount ${Constants.CURRENCY_SYMBOL}"
     }
 }
+
+/**
+ * Formats a number for the user by using the locale of [ThreadLocalUserContext].
+ */
+fun Number?.formatPercent(withSymbol: Boolean = false): String {
+    val amount = this.formatForUser(0)
+    return if (withSymbol) {
+        "$amount %"
+    } else {
+        amount
+    }
+}

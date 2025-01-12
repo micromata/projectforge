@@ -107,7 +107,7 @@ open class ForecastExport { // open needed by Wicket.
         EINTRITTSWAHRSCHEINLICHKEIT("Eintrittswahrsch. in %"), ANSPRECHPARTNER("Ansprechpartner"),
         STRUKTUR_ELEMENT("Strukturelement"), BEMERKUNG("Bemerkung"), PROBABILITY_NETSUM("gewichtete Nettosumme"),
         ANZAHL_MONATE("Anzahl Monate"), PAYMENT_SCHEDULE("Zahlplan"),
-        REMAINING("Offen"), DIFFERENCE("Abweichung")
+        REMAINING("Rest"), DIFFERENCE("Abweichung")
     }
 
     enum class InvoicesCol(val header: String) {
@@ -157,7 +157,7 @@ open class ForecastExport { // open needed by Wicket.
 
     @JvmOverloads
     @Throws(IOException::class)
-    open fun export(origFilter: AuftragFilter, snapshotDate: LocalDate? = null): ByteArray? {
+    open fun xlsExport(origFilter: AuftragFilter, snapshotDate: LocalDate? = null): ByteArray? {
         val startDateParam = origFilter.periodOfPerformanceStartDate
         val startDate = if (startDateParam != null) PFDay.from(startDateParam).beginOfMonth else PFDay.now().beginOfYear
         val filter = AuftragFilter()
@@ -181,18 +181,8 @@ open class ForecastExport { // open needed by Wicket.
         ) &&
                 filter.searchString.isNullOrBlank() &&
                 filter.projectList.isNullOrEmpty()
-        return export(orderList, startDate = startDate, snapshotDate = snapshotDate, showAll = showAll)
+        return xlsExport(orderList, startDate = startDate, snapshotDate = snapshotDate, showAll = showAll)
     }
-
-    fun exportOrderAnalysis(orderId: Long?): List<ForecastOrderPosInfo>? {
-        val orderInfo = ordersCache.getOrderInfo(orderId)
-        return orderInfo?.infoPositions?.map { posInfo ->
-            ForecastOrderPosInfo(orderInfo, posInfo).also {
-                it.calculate()
-            }
-        }
-    }
-
 
     private fun getStartDate(origFilter: AuftragFilter): PFDay {
         val startDateParam = origFilter.periodOfPerformanceStartDate
@@ -233,7 +223,7 @@ open class ForecastExport { // open needed by Wicket.
      * @return The byte array of the Excel file.
      */
     @Throws(IOException::class)
-    open fun export(
+    open fun xlsExport(
         orderList: Collection<AuftragDO>,
         startDate: PFDay,
         showAll: Boolean,

@@ -21,20 +21,17 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.common.html
+package org.projectforge.common.extensions
 
-enum class CssClass(val cls: String) {
-    ERROR("error"),
-    SUCCESS("success"),
-    WARNING("warning"),
-    BOLD("bold"),
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.PFDay
+import java.time.LocalDate
 
-    /**
-     * Fixed width for th and td (minimal with, nowrap).
-     */
-    FIXED_WIDTH_NO_WRAP("fixed-width-no-wrap"),
-    /**
-     * Expand for th and td (minimal with, nowrap).
-     */
-    EXPAND("expand"),
+/**
+ * Formats a [LocalDate] for the user by using the locale of [ThreadLocalUserContext].
+ * @return The formatted number or an empty string if the number is null.
+ */
+fun LocalDate?.formatForUser(): String {
+    this ?: return ""
+    return PFDay.from(this).format()
 }
