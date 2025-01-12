@@ -23,6 +23,11 @@
 
 package org.projectforge.common.html
 
+/**
+ * Represents an HTML document. For easier creation of HTML documents, use the [HtmlDocument] class.
+ * @param title The title of the document.
+ * @param lang The language of the document. Default is "en".
+ */
 class HtmlDocument(title: String, val lang: String = "en") : HtmlElement("html") {
     class Head(title: String) : HtmlElement("head") {
         init {
@@ -66,7 +71,7 @@ class HtmlDocument(title: String, val lang: String = "en") : HtmlElement("html")
         private val style = """
             |      body {
             |          font-family: Arial, sans-serif;
-            |          font-size: 11px;
+            |          font-size: 12px;
             |      }
             |      h1, h2, h3, h4 {
             |          margin-top: 1.0em;
@@ -125,10 +130,16 @@ class HtmlDocument(title: String, val lang: String = "en") : HtmlElement("html")
             |      thead {
             |          background-color: #f2f2f2;
             |      }
+            |      .${CssClass.SUCCESS.cls} {
+            |          background-color: #d4edda;
+            |          color: #155724;
+            |      }
             |      .${CssClass.ERROR.cls} {
+            |          background-color: #f8d7da;
             |          color: #842029;
             |      }
             |      .${CssClass.WARNING.cls} {
+            |          background-color: #fff3cd;
             |          color: #856404;
             |      }
             |      .${CssClass.BOLD.cls} {

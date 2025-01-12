@@ -54,16 +54,16 @@ class JobListExecutionContext {
         }
         html.add(HtmlTable().also { table ->
             table.addHeadRow().also { tr ->
-                tr.addTH("Producer", cls = CssClass.FIXED_WIDTH_NO_WRAP)
-                tr.addTH("Status", cls = CssClass.FIXED_WIDTH_NO_WRAP)
-                tr.addTH("Job", cls = CssClass.EXPAND)
+                tr.addTH("Producer", cssClass = CssClass.FIXED_WIDTH_NO_WRAP)
+                tr.addTH("Status", cssClass = CssClass.FIXED_WIDTH_NO_WRAP)
+                tr.addTH("Job", cssClass = CssClass.EXPAND)
             }
             sortedJobs.forEachIndexed { index, job ->
-                val cssClass = getCssClass(job.status)
+                val cssClass = getCssClass(job.status) ?: CssClass.SUCCESS
                 table.addRow().also { tr ->
-                    tr.addTD(cls = cssClass).also { it.add(A("#job$index", job.producer::class.simpleName!!)) }
-                    tr.addTD(cls = cssClass).also { it.add(A("#job$index", job.status.toString())) }
-                    tr.addTD(cls = cssClass).also { it.add(A("#job$index", job.producer.title)) }
+                    tr.addTD().also { it.add(A("#job$index", job.producer::class.simpleName!!)) }
+                    tr.addTD(cssClass = cssClass).also { it.add(A("#job$index", job.status.toString())) }
+                    tr.addTD().also { it.add(A("#job$index", job.producer.title)) }
                 }
             }
         })
@@ -144,11 +144,11 @@ class JobListExecutionContext {
             }
         }
 
-        internal fun getBoldCssClass(status: Status): Array<CssClass>? {
+        internal fun getBoldCssClass(status: Status): CssClass? {
             return when (status) {
                 Status.OK -> null
-                Status.WARNINGS -> arrayOf(CssClass.WARNING, CssClass.BOLD)
-                Status.ERRORS -> arrayOf(CssClass.ERROR, CssClass.BOLD)
+                Status.WARNINGS -> CssClass.BOLD
+                Status.ERRORS -> CssClass.BOLD
             }
         }
     }

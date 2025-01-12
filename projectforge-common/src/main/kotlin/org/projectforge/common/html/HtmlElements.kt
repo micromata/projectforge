@@ -23,10 +23,9 @@
 
 package org.projectforge.common.html
 
-class Div(content: String, cls: String? = null, style: String? = null, id: String? = null) :
+class Div(content: String, style: String? = null, id: String? = null) :
     HtmlElement("div", content = content, id = id) {
     init {
-        cls?.let { attr("class", it) }
         style?.let { attr("style", it) }
     }
 }
@@ -62,5 +61,3 @@ class A(href: String, content: String) : HtmlElement("a", content = content) {
         attr("href", href)
     }
 }
-
-class Label

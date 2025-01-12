@@ -27,29 +27,17 @@ class HtmlTable : HtmlElement("table") {
     class TD(content: String? = null) : HtmlElement("td", content = content)
     class TH(content: String? = null) : HtmlElement("th", content = content)
     class TR : HtmlElement("tr") {
-        fun addTH(content: String? = null, cls: CssClass? = null): TH {
-            return addTH(content, cls?.let { arrayOf(it) })
-        }
-
-        fun addTH(content: String? = null, classes: Array<CssClass>?): TH {
+        fun addTH(content: String? = null, cssClass: CssClass? = null): TH {
             return TH(content).also { th ->
                 add(th)
-                if (!classes.isNullOrEmpty()) {
-                    th.attr("class", classes.joinToString(separator = " ") { it.cls })
-                }
+                th.addClass(cssClass)
             }
         }
 
-        fun addTD(content: String? = null, cls: CssClass? = null): TD {
-            return addTD(content, cls?.let { arrayOf(it) })
-        }
-
-        fun addTD(content: String? = null, classes: Array<CssClass>?): TD {
+        fun addTD(content: String? = null, cssClass: CssClass? = null): TD {
             return TD(content).also { td ->
                 add(td)
-                if (!classes.isNullOrEmpty()) {
-                    td.attr("class", classes.joinToString(separator = " ") { it.cls })
-                }
+                td.addClass(cssClass)
             }
         }
     }
@@ -66,8 +54,11 @@ class HtmlTable : HtmlElement("table") {
         return TR().also { thead.add(it) }
     }
 
-    fun addRow(): TR {
-        return TR().also { tbody.add(it) }
+    fun addRow(cssClass: CssClass? = null): TR {
+        return TR().also { tr ->
+            tbody.add(tr)
+            tr.addClass(cssClass)
+        }
     }
 }
 
