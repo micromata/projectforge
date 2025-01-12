@@ -54,6 +54,11 @@ class ForecastOrderPosInfo(
     ) {
         var toBeInvoicedSum: BigDecimal = BigDecimal.ZERO
 
+        /**
+         * If already invoiced, the sum of all invoices for this month.
+         */
+        var invoicedSum: BigDecimal = BigDecimal.ZERO
+
         /** Mark this month as error. */
         var error: Boolean = false
     }

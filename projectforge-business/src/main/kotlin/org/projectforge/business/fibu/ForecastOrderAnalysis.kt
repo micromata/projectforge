@@ -25,9 +25,10 @@ package org.projectforge.business.fibu
 
 import org.projectforge.common.extensions.formatCurrency
 import org.projectforge.common.extensions.formatForUser
-import org.projectforge.common.extensions.formatPercent
+import org.projectforge.common.extensions.formatFractionAsPercent
 import org.projectforge.common.html.*
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -43,11 +44,24 @@ class ForecastOrderAnalysis {
 
     fun exportOrderAnalysis(orderId: Long?): List<ForecastOrderPosInfo>? {
         val orderInfo = ordersCache.getOrderInfo(orderId)
-        return orderInfo?.infoPositions?.map { posInfo ->
+        val result = orderInfo?.infoPositions?.map { posInfo ->
             ForecastOrderPosInfo(orderInfo, posInfo).also {
                 it.calculate()
             }
         }?.sortedBy { it.orderPosNumber }
+        result?.forEach { fcPosInfo ->
+            val posInfo = fcPosInfo.orderPosInfo
+            // Add all invoices:
+            auftragsRechnungCache.getRechnungsPosInfosByAuftragsPositionId(posInfo.id)?.forEach { invoicePosInfo ->
+                val invoiceInfo = invoicePosInfo.rechnungInfo
+                val date = invoiceInfo?.date
+                val netSum = invoicePosInfo.netSum
+                fcPosInfo.months.find { it.date.year == date?.year && it.date.month == date.month }?.let {
+                    it.invoicedSum += netSum
+                }
+            }
+        }
+        return result
     }
 
     fun htmlExportAsByteArray(orderId: Long?): ByteArray {
@@ -63,9 +77,10 @@ class ForecastOrderAnalysis {
         if (firstMonth == null || lastMonth == null) {
             return noAnalysis("No order positions found for order with id ${orderId}.")
         }
-        val title = "Forecast Order Analysis for order #${orderInfo.nummer}"
+        val title = "Forecast Order Analysis for order #${orderInfo.nummer}, ${PFDateTime.now().format()}"
         val html = HtmlDocument(title)
         html.add(H1(title))
+        html.add(Alert(Alert.Type.INFO, "Forecast values are displayed in red, invoiced amounts in black."))
         html.add(HtmlTable().also { table ->
             addRow(table, translate("fibu.auftrag.nummer"), orderInfo.nummer.toString())
             addRow(table, translate("fibu.auftrag.title"), orderInfo.titel)
@@ -83,7 +98,8 @@ class ForecastOrderAnalysis {
             addRow(table, translate("fibu.invoiced"), orderInfo.invoicedSum, suppressZero = false)
             addRow(table, translate("fibu.notYetInvoiced"), orderInfo.notYetInvoicedSum)
         })
-        html.add(H2(translate("fibu.auftrag.forecast")))
+
+        html.add(H2(translate("fibu.auftrag.forecast"))) // Forecast for all positions
         html.add(HtmlTable().also { table ->
             val headRow = table.addHeadRow()
             headRow.addTH(translate("label.position.short"))
@@ -99,12 +115,14 @@ class ForecastOrderAnalysis {
                 headRow.addTH(ForecastExport.formatMonthHeader(currentMonth))
                 list.forEachIndexed { index, fcPosInfo ->
                     val month = fcPosInfo.months.find { it.date == currentMonth }
-                    val cssClass = if (month?.error == true) CssClass.ERROR else null
-                    rows[index].addTD(month?.toBeInvoicedSum?.formatCurrency(), cssClass)
+                    if (month != null) {
+                        addForecastValue(rows[index], month)
+                    }
                 }
                 currentMonth = currentMonth.plusMonths(1)
             } while (currentMonth <= lastMonth && paranoiaCounter-- > 0)
         })
+
         list.forEach { fcPosInfo ->
             val posInfo = fcPosInfo.orderPosInfo
             html.add(H2("${translate("fibu.auftrag.position")} #${posInfo.number}"))
@@ -112,7 +130,11 @@ class ForecastOrderAnalysis {
                 addRow(table, translate("title"), posInfo.titel)
                 addRow(table, translate("comment"), posInfo.bemerkung)
                 addRow(table, translate("status"), translate(posInfo.status))
-                addRow(table, translate("fibu.probabilityOfOccurrence"), fcPosInfo.probability.formatPercent(true))
+                addRow(
+                    table,
+                    translate("fibu.probabilityOfOccurrence"),
+                    fcPosInfo.probability.formatFractionAsPercent(true)
+                )
                 addRow(table, translate("fibu.auftrag.position.art"), translate(posInfo.art))
                 addRow(table, translate("fibu.auftrag.position.paymenttype"), translate(posInfo.paymentType))
                 addRow(table, translate("fibu.auftrag.nettoSumme"), posInfo.netSum.formatCurrency(true))
@@ -171,7 +193,7 @@ class ForecastOrderAnalysis {
                 val row = table.addRow()
                 fcPosInfo.months.forEach { month ->
                     headRow.addTH(ForecastExport.formatMonthHeader(month.date))
-                    row.addTD(month.toBeInvoicedSum.formatCurrency())
+                    addForecastValue(row, month)
                 }
             })
         }
@@ -197,5 +219,16 @@ class ForecastOrderAnalysis {
 
     private fun noAnalysis(msg: String): String {
         return HtmlDocument(msg).add(Alert(Alert.Type.DANGER, msg)).toString()
+    }
+
+    private fun addForecastValue(row: HtmlTable.TR, month: ForecastOrderPosInfo.MonthEntry) {
+        val cssClass = if (month.error) CssClass.ERROR else null
+        val amount = maxOf(month.toBeInvoicedSum, month.invoicedSum)
+        val style = if (amount == month.toBeInvoicedSum && amount.abs() >= BigDecimal.ONE) "color: red;" else null
+        row.addTD(amount.formatCurrency(), cssClass).also { td ->
+            if (style != null) {
+                td.attr("style", style)
+            }
+        }
     }
 }
