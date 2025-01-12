@@ -23,14 +23,15 @@
 
 package org.projectforge.common.html
 
-class Div(content: String, cls: String? = null, style: String? = null) : HtmlElement("div", content = content) {
+class Div(content: String, cls: String? = null, style: String? = null, id: String? = null) :
+    HtmlElement("div", content = content, id = id) {
     init {
         cls?.let { attr("class", it) }
         style?.let { attr("style", it) }
     }
 }
 
-class Alert(type: Type, content: String? = null) : HtmlElement("div", content = content) {
+class Alert(type: Type, content: String? = null, id: String? = null) : HtmlElement("div", content = content, id = id) {
     enum class Type(val cls: String) {
         INFO("alert-info"),
         SUCCESS("alert-success"),
@@ -43,7 +44,7 @@ class Alert(type: Type, content: String? = null) : HtmlElement("div", content = 
     }
 }
 
-class P(content: String, style: String? = null) : HtmlElement("p", content = content) {
+class P(content: String, style: String? = null, id: String? = null) : HtmlElement("p", content = content, id = id) {
     init {
         style?.let { attr("style", it) }
     }
@@ -51,13 +52,15 @@ class P(content: String, style: String? = null) : HtmlElement("p", content = con
 
 class BR() : HtmlElement("br", childrenAllowed = false)
 
-class H1(content: String) : HtmlElement("h1", content = content)
-class H2(content: String) : HtmlElement("h1", content = content)
-class H3(content: String) : HtmlElement("h1", content = content)
-class H4(content: String) : HtmlElement("h1", content = content)
+class H1(content: String, id: String? = null) : HtmlElement("h1", content = content, id = id)
+class H2(content: String, id: String? = null) : HtmlElement("h2", content = content, id = id)
+class H3(content: String, id: String? = null) : HtmlElement("h3", content = content, id = id)
+class H4(content: String, id: String? = null) : HtmlElement("h4", content = content, id = id)
 
 class A(href: String, content: String) : HtmlElement("a", content = content) {
     init {
         attr("href", href)
     }
 }
+
+class Label

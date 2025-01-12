@@ -27,14 +27,29 @@ class HtmlTable : HtmlElement("table") {
     class TD(content: String? = null) : HtmlElement("td", content = content)
     class TH(content: String? = null) : HtmlElement("th", content = content)
     class TR : HtmlElement("tr") {
-        fun addTH(content: String? = null): TH {
-            return TH(content).also { add(it) }
+        fun addTH(content: String? = null, cls: CssClass? = null): TH {
+            return addTH(content, cls?.let { arrayOf(it) })
+        }
+
+        fun addTH(content: String? = null, classes: Array<CssClass>?): TH {
+            return TH(content).also { th ->
+                add(th)
+                if (!classes.isNullOrEmpty()) {
+                    th.attr("class", classes.joinToString(separator = " ") { it.cls })
+                }
+            }
         }
 
         fun addTD(content: String? = null, cls: CssClass? = null): TD {
+            return addTD(content, cls?.let { arrayOf(it) })
+        }
+
+        fun addTD(content: String? = null, classes: Array<CssClass>?): TD {
             return TD(content).also { td ->
                 add(td)
-                cls?.let { td.attr("class", cls.cls) }
+                if (!classes.isNullOrEmpty()) {
+                    td.attr("class", classes.joinToString(separator = " ") { it.cls })
+                }
             }
         }
     }

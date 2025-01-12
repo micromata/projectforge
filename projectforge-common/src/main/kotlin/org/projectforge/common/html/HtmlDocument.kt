@@ -66,6 +66,27 @@ class HtmlDocument(title: String, val lang: String = "en") : HtmlElement("html")
         private val style = """
             |      body {
             |          font-family: Arial, sans-serif;
+            |          font-size: 11px;
+            |      }
+            |      h1, h2, h3, h4 {
+            |          margin-top: 1.0em;
+            |          margin-bottom: 0.5em;
+            |      }
+            |      h1 {
+            |          font-size: 2rem;
+            |          font-weight: bold;
+            |      }
+            |      h2 {
+            |          font-size: 1.5rem;
+            |          font-weight: semi-bold;
+            |      }
+            |      h3 {
+            |          font-size: 1.2rem;
+            |          font-weight: semi-bold;
+            |      }
+            |      h4 {
+            |          font-size: 1rem;
+            |          font-weight: semi-bold;
             |      }
             |      .alert {
             |          padding: 15px;
@@ -105,12 +126,29 @@ class HtmlDocument(title: String, val lang: String = "en") : HtmlElement("html")
             |          background-color: #f2f2f2;
             |      }
             |      .${CssClass.ERROR.cls} {
-            |          font-weight: bold;
             |          color: #842029;
             |      }
             |      .${CssClass.WARNING.cls} {
+            |          color: #856404;
+            |      }
+            |      .${CssClass.BOLD.cls} {
             |          font-weight: bold;
+            |      }
+            |      .${CssClass.ERROR.cls} a {
             |          color: #842029;
+            |      }
+            |      .${CssClass.WARNING.cls} a {
+            |          color: #856404;
+            |      }
+            |      .${CssClass.BOLD.cls} a {
+            |          font-weight: bold;
+            |      }
+            |      .${CssClass.FIXED_WIDTH_NO_WRAP.cls} {
+            |          width: 1px;
+            |          white-space: nowrap;
+            |      }
+            |      .${CssClass.EXPAND.cls} {
+            |          width: 100%;
             |      }
         """.trimMargin()
     }

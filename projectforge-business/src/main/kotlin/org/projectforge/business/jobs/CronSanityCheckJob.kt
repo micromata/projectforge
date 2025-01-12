@@ -129,6 +129,9 @@ class CronSanityCheckJob {
 
     companion object {
         @JvmStatic
-        val FILENAME = "projectforge_sanity-check${DateHelper.getDateAsFilenameSuffix(Date())}.txt"
+        val FILENAME: String
+            get() {
+                return "projectforge_sanity-check${DateHelper.getTimestampAsFilenameSuffix(Date())}.html"
+            }
     }
 }

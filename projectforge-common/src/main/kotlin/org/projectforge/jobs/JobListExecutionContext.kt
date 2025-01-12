@@ -24,6 +24,8 @@
 package org.projectforge.jobs
 
 import org.projectforge.common.extensions.abbreviate
+import org.projectforge.common.html.*
+import org.projectforge.jobs.JobExecutionContext.Status
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -31,27 +33,56 @@ import java.util.*
 class JobListExecutionContext {
     val jobs = mutableListOf<JobExecutionContext>()
 
-    val status: JobExecutionContext.Status
+    val status: Status
         get() = when {
-            jobs.any { it.status == JobExecutionContext.Status.ERRORS } -> JobExecutionContext.Status.ERRORS
-            jobs.any { it.status == JobExecutionContext.Status.WARNINGS } -> JobExecutionContext.Status.WARNINGS
-            else -> JobExecutionContext.Status.OK
+            jobs.any { it.status == Status.ERRORS } -> Status.ERRORS
+            jobs.any { it.status == Status.WARNINGS } -> Status.WARNINGS
+            else -> Status.OK
         }
 
     fun add(job: AbstractJob): JobExecutionContext {
         return JobExecutionContext(job).also { jobs.add(it) }
     }
 
+    fun getReportAsHtml(showAllMessages: Boolean = true): String {
+        val html = HtmlDocument(title)
+        html.add(H1(title))
+        when (status) {
+            Status.OK -> html.add(Alert(Alert.Type.SUCCESS, "All checks passed successfully."))
+            Status.WARNINGS -> html.add(Alert(Alert.Type.WARNING, "Some checks passed with warnings."))
+            Status.ERRORS -> html.add(Alert(Alert.Type.DANGER, "Some errors occurred!"))
+        }
+        html.add(HtmlTable().also { table ->
+            table.addHeadRow().also { tr ->
+                tr.addTH("Producer", cls = CssClass.FIXED_WIDTH_NO_WRAP)
+                tr.addTH("Status", cls = CssClass.FIXED_WIDTH_NO_WRAP)
+                tr.addTH("Job", cls = CssClass.EXPAND)
+            }
+            sortedJobs.forEachIndexed { index, job ->
+                val cssClass = getCssClass(job.status)
+                table.addRow().also { tr ->
+                    tr.addTD(cls = cssClass).also { it.add(A("#job$index", job.producer::class.simpleName!!)) }
+                    tr.addTD(cls = cssClass).also { it.add(A("#job$index", job.status.toString())) }
+                    tr.addTD(cls = cssClass).also { it.add(A("#job$index", job.producer.title)) }
+                }
+            }
+        })
+        sortedJobs.forEachIndexed { index, job ->
+            job.addReportAsHtml(html, index, showAllMessages)
+        }
+        return html.toString()
+    }
+
     fun getReportAsText(showAllMessages: Boolean = true): String {
         val sb = StringBuilder()
         addSeparatorLine(sb)
         addSeparatorLine(sb)
-        addBoxedLine(sb, "Sanity Check Report: ${format(Date())}")
+        addBoxedLine(sb, title)
         addSeparatorLine(sb)
         when (status) {
-            JobExecutionContext.Status.OK -> addBoxedLine(sb, "  All checks passed successfully.")
-            JobExecutionContext.Status.WARNINGS -> addBoxedLine(sb, "  Some checks passed with warnings.")
-            JobExecutionContext.Status.ERRORS -> addErrorBoxedLineMarker(sb)
+            Status.OK -> addBoxedLine(sb, "  All checks passed successfully.")
+            Status.WARNINGS -> addBoxedLine(sb, "  Some checks passed with warnings.")
+            Status.ERRORS -> addErrorBoxedLineMarker(sb)
         }
         addSeparatorLine(sb)
         sortedJobs.forEach { job ->
@@ -71,6 +102,10 @@ class JobListExecutionContext {
             .thenBy { it.lastUpdate })
 
     companion object {
+        val title: String
+            get() {
+                return "Sanity Check Report: ${format(Date())}"
+            }
         internal const val LINE_LENGTH = 80
         private val isoDateTimeFormatterSeconds =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneOffset.UTC)
@@ -84,7 +119,7 @@ class JobListExecutionContext {
         }
 
         internal fun addCell(sb: StringBuilder, text: String, length: Int, lineCompleted: Boolean = true) {
-            val useLength = if (lineCompleted) length - 4 else length -2
+            val useLength = if (lineCompleted) length - 4 else length - 2
             sb.append("| ${text.abbreviate(useLength).padEnd(useLength)}")
             if (lineCompleted) {
                 sb.appendLine(" |")
@@ -99,6 +134,22 @@ class JobListExecutionContext {
 
         internal fun addSeparatorLine(sb: StringBuilder) {
             sb.appendLine("-".repeat(LINE_LENGTH))
+        }
+
+        internal fun getCssClass(status: Status): CssClass? {
+            return when (status) {
+                Status.OK -> null
+                Status.WARNINGS -> CssClass.WARNING
+                Status.ERRORS -> CssClass.ERROR
+            }
+        }
+
+        internal fun getBoldCssClass(status: Status): Array<CssClass>? {
+            return when (status) {
+                Status.OK -> null
+                Status.WARNINGS -> arrayOf(CssClass.WARNING, CssClass.BOLD)
+                Status.ERRORS -> arrayOf(CssClass.ERROR, CssClass.BOLD)
+            }
         }
     }
 }
