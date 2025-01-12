@@ -49,6 +49,12 @@ class P(content: String, style: String? = null, id: String? = null) : HtmlElemen
     }
 }
 
+class Span(content: String, style: String? = null, id: String? = null) : HtmlElement("span", content = content, id = id) {
+    init {
+        style?.let { attr("style", it) }
+    }
+}
+
 class BR() : HtmlElement("br", childrenAllowed = false)
 
 class H1(content: String, id: String? = null) : HtmlElement("h1", content = content, id = id)

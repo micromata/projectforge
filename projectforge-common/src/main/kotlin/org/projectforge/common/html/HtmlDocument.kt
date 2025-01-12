@@ -133,6 +133,9 @@ class HtmlDocument(title: String, val lang: String = "en") : HtmlElement("html")
             |      thead, th {
             |          background-color: #f2f2f2;
             |      }
+            |      .${CssClass.ALIGN_RIGHT.cls} {
+            |          text-align: right;
+            |      }
             |      .${CssClass.SUCCESS.cls} {
             |          background-color: #d4edda;
             |          color: #155724;

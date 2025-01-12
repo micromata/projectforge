@@ -33,9 +33,8 @@ open class HtmlElement(
     var attributes: MutableMap<String, String>? = null
     var classnames: MutableList<String>? = null
 
-    fun addClass(cssClass: CssClass?) {
-        cssClass ?: return
-        addClassname(cssClass.cls)
+    fun addClasses(vararg cssClass: CssClass?) {
+        cssClass.forEach { it?.let { addClassname((it.cls)) } }
     }
 
     fun addClassname(classname: String) {
