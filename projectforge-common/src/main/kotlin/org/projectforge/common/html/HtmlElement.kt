@@ -23,7 +23,12 @@
 
 package org.projectforge.common.html
 
-open class HtmlElement(val tag: String, val content: String? = null, val childrenAllowed: Boolean = true) {
+open class HtmlElement(
+    val tag: String,
+    val content: String? = null,
+    val childrenAllowed: Boolean = true,
+    val id: String? = null
+) {
     var children: MutableList<HtmlElement>? = null
     var attributes: MutableMap<String, String>? = null
 
@@ -82,7 +87,7 @@ open class HtmlElement(val tag: String, val content: String? = null, val childre
 
     private fun buildAttributes(sb: StringBuilder) {
         attributes?.forEach { (name, value) -> sb.append(" $name=\"$value\"") }
-
+        id?.let { sb.append(" id=\"$it\"") }
     }
 
     companion object {
