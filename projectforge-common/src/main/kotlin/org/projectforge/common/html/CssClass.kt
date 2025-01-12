@@ -37,4 +37,6 @@ enum class CssClass(val cls: String) {
      * Expand for th and td (minimal with, nowrap).
      */
     EXPAND("expand"),
+
+    ALIGN_RIGHT("align-right"),
 }

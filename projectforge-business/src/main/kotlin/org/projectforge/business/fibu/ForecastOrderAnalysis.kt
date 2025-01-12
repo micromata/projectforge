@@ -80,9 +80,15 @@ class ForecastOrderAnalysis {
         val title = "Forecast Order Analysis for order #${orderInfo.nummer}, ${PFDateTime.now().format()}"
         val html = HtmlDocument(title)
         html.add(H1(title))
-        html.add(Alert(Alert.Type.INFO, "Forecast values are displayed in red, invoiced amounts in black."))
+        html.add(Alert(Alert.Type.INFO).also { div ->
+            div.add(Span("Forecast values are displayed in "))
+            div.add(Span("red,", style = "color: red; font-weight: bold;"))
+            div.add(Span(" invoiced amounts in "))
+            div.add(Span("black.", style = "color: black; font-weight: bold;"))
+        })
         html.add(HtmlTable().also { table ->
             addRow(table, translate("fibu.auftrag.nummer"), orderInfo.nummer.toString())
+            addRow(table, translate("fibu.auftrag.angebot.datum"), orderInfo.angebotsDatum.formatForUser())
             addRow(table, translate("fibu.auftrag.title"), orderInfo.titel)
             addRow(table, translate("fibu.kunde"), orderInfo.kundeAsString)
             addRow(table, translate("fibu.projekt"), orderInfo.projektAsString)
@@ -93,7 +99,6 @@ class ForecastOrderAnalysis {
                 translate("fibu.periodOfPerformance"),
                 "${orderInfo.periodOfPerformanceBegin.formatForUser()} - ${orderInfo.periodOfPerformanceEnd.formatForUser()}"
             )
-            addRow(table, translate("fibu.auftrag.angebot.datum"), orderInfo.angebotsDatum.formatForUser())
             addRow(table, translate("fibu.auftrag.nettoSumme"), orderInfo.netSum.formatCurrency(true))
             addRow(table, translate("fibu.invoiced"), orderInfo.invoicedSum, suppressZero = false)
             addRow(table, translate("fibu.notYetInvoiced"), orderInfo.notYetInvoicedSum)
@@ -104,6 +109,7 @@ class ForecastOrderAnalysis {
             val headRow = table.addHeadRow()
             headRow.addTH(translate("label.position.short"))
             val rows = mutableListOf<HtmlTable.TR>()
+            val totals = mutableListOf<BigDecimal>()
             list.forEach { fcPosInfo ->
                 rows.add(table.addRow().also {
                     it.addTD("#${fcPosInfo.orderPosNumber}")
@@ -113,14 +119,25 @@ class ForecastOrderAnalysis {
             var paranoiaCounter = 120
             do {
                 headRow.addTH(ForecastExport.formatMonthHeader(currentMonth))
+                var total = BigDecimal.ZERO
                 list.forEachIndexed { index, fcPosInfo ->
                     val month = fcPosInfo.months.find { it.date == currentMonth }
                     if (month != null) {
-                        addForecastValue(rows[index], month)
+                        val amount = addForecastValue(rows[index], month)
+                        total += amount
                     }
                 }
+                totals.add(total)
                 currentMonth = currentMonth.plusMonths(1)
             } while (currentMonth <= lastMonth && paranoiaCounter-- > 0)
+            table.addRow().also { tr ->
+                tr.addTH("Sum")
+                totals.forEach {
+                    tr.addTD(it.formatCurrency()).also {
+                        it.addClasses(CssClass.ALIGN_RIGHT, CssClass.BOLD)
+                    }
+                }
+            }
         })
 
         list.forEach { fcPosInfo ->
@@ -221,8 +238,8 @@ class ForecastOrderAnalysis {
         return HtmlDocument(msg).add(Alert(Alert.Type.DANGER, msg)).toString()
     }
 
-    private fun addForecastValue(row: HtmlTable.TR, month: ForecastOrderPosInfo.MonthEntry) {
-        val cssClass = if (month.error) CssClass.ERROR else null
+    private fun addForecastValue(row: HtmlTable.TR, month: ForecastOrderPosInfo.MonthEntry): BigDecimal {
+        val cssClass = if (month.error) CssClass.ERROR else CssClass.ALIGN_RIGHT
         val amount = maxOf(month.toBeInvoicedSum, month.invoicedSum)
         val style = if (amount == month.toBeInvoicedSum && amount.abs() >= BigDecimal.ONE) "color: red;" else null
         row.addTD(amount.formatCurrency(), cssClass).also { td ->
@@ -230,5 +247,6 @@ class ForecastOrderAnalysis {
                 td.attr("style", style)
             }
         }
+        return amount
     }
 }
