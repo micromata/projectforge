@@ -69,7 +69,7 @@ class ForecastExportTest : AbstractTestBase() {
 
         val filter = AuftragFilter()
         filter.periodOfPerformanceStartDate = baseDate.localDate
-        val ba = forecastExport.export(filter)
+        val ba = forecastExport.xlsExport(filter)
         val excelFile = WorkFileHelper.getWorkFile("forecast.xlsx")
         baseLog.info("Writing forecast Excel file to work directory: " + excelFile.absolutePath)
         FileUtils.writeByteArrayToFile(excelFile, ba)

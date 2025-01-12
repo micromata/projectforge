@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.i18n
 
+import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.i18n.UserException
 import java.util.*
 
@@ -68,6 +69,14 @@ fun translateMsg(ex: UserException): String {
  */
 fun translate(value: Boolean?): String {
   return translate(if (value == true) "yes" else "no")
+}
+
+/**
+ * Translates true values to 'yes' and false/null values to 'no'. (Using the user's language.)
+ */
+fun translate(value: I18nEnum?): String {
+  value ?: return ""
+  return translate(value.i18nKey)
 }
 
 fun translateMsg(i18nKey: String, vararg params: Any?): String {

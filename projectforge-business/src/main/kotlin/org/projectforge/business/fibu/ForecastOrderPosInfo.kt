@@ -244,6 +244,9 @@ class ForecastOrderPosInfo(
         return !date.isBefore(baseMonth)
     }
 
+    /**
+     * @return "orderNumber.orderPosNumber", e.g. 123.1
+     */
     val orderPosString: String
         get() = "$orderNumber.$orderPosNumber"
 
@@ -254,11 +257,12 @@ class ForecastOrderPosInfo(
         if (lastScheduleDate != null && lastScheduleDate > monthUntil) {
             monthUntil = lastScheduleDate
         }
+        var paranoidCounter = 120 // Max 10 years as paranoia counter for avoiding endless loops.
         do {
             log.debug { "Adding month $month" }
             months.add(MonthEntry(month))
             month = month.plusMonths(1)
-        } while (month <= monthUntil)
+        } while (month <= monthUntil && paranoidCounter-- > 0)
     }
 
     override fun toString(): String {

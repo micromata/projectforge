@@ -83,15 +83,18 @@ class HtmlDocument(title: String, val lang: String = "en") : HtmlElement("html")
             |      }
             |      h2 {
             |          font-size: 1.5rem;
-            |          font-weight: semi-bold;
+            |          font-weight: bold;
+            |          color: #222;
             |      }
             |      h3 {
             |          font-size: 1.2rem;
-            |          font-weight: semi-bold;
+            |          font-weight: bold;
+            |          color: #555;
             |      }
             |      h4 {
             |          font-size: 1rem;
-            |          font-weight: semi-bold;
+            |          font-weight: bold;
+            |          font-color: #555;
             |      }
             |      .alert {
             |          padding: 15px;
@@ -127,7 +130,7 @@ class HtmlDocument(title: String, val lang: String = "en") : HtmlElement("html")
             |          padding: 8px;
             |          text-align: left;
             |      }
-            |      thead {
+            |      thead, th {
             |          background-color: #f2f2f2;
             |      }
             |      .${CssClass.SUCCESS.cls} {
