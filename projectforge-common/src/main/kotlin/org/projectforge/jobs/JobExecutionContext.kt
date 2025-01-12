@@ -177,11 +177,11 @@ class JobExecutionContext(val producer: AbstractJob) {
                     Status.WARNINGS -> "Warning"
                     Status.ERRORS -> "ERROR"
                 }
-                val cssClasses = getCssClass(msg.status)
-                table.addRow().also { tr ->
-                    tr.addTD(level, classes = getBoldCssClass(msg.status))
-                    tr.addTD(format(msg.date), cls = cssClasses)
-                    tr.addTD(msg.message, cls = cssClasses)
+                val cssClass = getCssClass(msg.status)
+                table.addRow(cssClass).also { tr ->
+                    tr.addTD(level, cssClass = getBoldCssClass(msg.status))
+                    tr.addTD(format(msg.date))
+                    tr.addTD(msg.message)
                 }
             }
         }

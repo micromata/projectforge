@@ -31,6 +31,17 @@ open class HtmlElement(
 ) {
     var children: MutableList<HtmlElement>? = null
     var attributes: MutableMap<String, String>? = null
+    var classnames: MutableList<String>? = null
+
+    fun addClass(cssClass: CssClass?) {
+        cssClass ?: return
+        addClassname(cssClass.cls)
+    }
+
+    fun addClassname(classname: String) {
+        classnames = classnames ?: mutableListOf()
+        classnames!!.add(classname)
+    }
 
     fun attr(name: String, value: String) {
         attributes = attributes ?: mutableMapOf()
@@ -87,6 +98,7 @@ open class HtmlElement(
 
     private fun buildAttributes(sb: StringBuilder) {
         attributes?.forEach { (name, value) -> sb.append(" $name=\"$value\"") }
+        classnames?.let { sb.append(" class=\"${it.joinToString(separator = " ") { it }}\"") }
         id?.let { sb.append(" id=\"$it\"") }
     }
 

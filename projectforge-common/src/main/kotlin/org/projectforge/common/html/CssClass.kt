@@ -2,6 +2,7 @@ package org.projectforge.common.html
 
 enum class CssClass(val cls: String) {
     ERROR("error"),
+    SUCCESS("success"),
     WARNING("warning"),
     BOLD("bold"),
 
