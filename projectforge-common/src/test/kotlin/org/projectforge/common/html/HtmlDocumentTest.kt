@@ -21,12 +21,19 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.mail
+package org.projectforge.common.html
 
-/**
- * @author Kai Reinhard (k.reinhard@micromata.de)
- */
-interface IMailAttachment {
-    var filename: String?
-    var content: ByteArray?
+fun main() {
+    val doc = HtmlDocument("Title")
+    val table = HtmlTable()
+    val row = table.addRow()
+    row.addTH("Header 1")
+    row.addTH("Header 2")
+    val row2 = table.addRow()
+    row2.addTD("Cell 1")
+    row2.addTD("Cell 2")
+    doc.add(table)
+    doc.add(Alert(Alert.Type.INFO, "This is an info message."))
+    println(doc.toString())
 }
+

@@ -21,12 +21,22 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.mail
+package org.projectforge.common.html
 
-/**
- * @author Kai Reinhard (k.reinhard@micromata.de)
- */
-interface IMailAttachment {
-    var filename: String?
-    var content: ByteArray?
+enum class CssClass(val cls: String) {
+    ERROR("error"),
+    SUCCESS("success"),
+    WARNING("warning"),
+    BOLD("bold"),
+
+    /**
+     * Fixed width for th and td (minimal with, nowrap).
+     */
+    FIXED_WIDTH_NO_WRAP("fixed-width-no-wrap"),
+    /**
+     * Expand for th and td (minimal with, nowrap).
+     */
+    EXPAND("expand"),
+
+    ALIGN_RIGHT("align-right"),
 }

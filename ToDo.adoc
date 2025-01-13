@@ -1,5 +1,6 @@
 Aktuell:
 - Scripting: Ergebnis Unresolved reference 'memo', 'todo'.: line 94 to 94 (add only activated plugins)
+- Can't get value type from 'org.projectforge.business.timesheet.TimesheetPrefData'. Class not found (old incompatible ProjectForge version)?
 - Summen in DB-Exporten eintragen und serverseitig evaluieren.
 - Groovy-scripts: remove or fix.
 - AG-Grid: setColumnStates wird nicht in den UserPrefs gespeichert.

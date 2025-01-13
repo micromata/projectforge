@@ -23,11 +23,14 @@
 
 package org.projectforge.jobs
 
+import org.projectforge.common.html.*
 import org.projectforge.jobs.JobListExecutionContext.Companion.addBoxedLine
 import org.projectforge.jobs.JobListExecutionContext.Companion.addCell
 import org.projectforge.jobs.JobListExecutionContext.Companion.addErrorBoxedLineMarker
 import org.projectforge.jobs.JobListExecutionContext.Companion.addSeparatorLine
 import org.projectforge.jobs.JobListExecutionContext.Companion.format
+import org.projectforge.jobs.JobListExecutionContext.Companion.getBoldCssClass
+import org.projectforge.jobs.JobListExecutionContext.Companion.getCssClass
 import java.util.*
 
 class JobExecutionContext(val producer: AbstractJob) {
@@ -97,6 +100,21 @@ class JobExecutionContext(val producer: AbstractJob) {
         }
     }
 
+    /**
+     * @param index The index of the job in the list (for a href anchors).
+     */
+    fun addReportAsHtml(html: HtmlDocument, index: Int, showAllMessages: Boolean = true) {
+        addIntro(html, index)
+        if (errors.isNotEmpty()) {
+            html.add(H3("Errors:"))
+            html.add(createLogTable(errors))
+        }
+        if (showAllMessages && allMessages.isNotEmpty()) {
+            html.add(H3("All messages:"))
+            html.add(createLogTable(allMessages))
+        }
+    }
+
     fun addReportAsText(sb: StringBuilder, showAllMessages: Boolean = true) {
         addIntro(sb)
         if (errors.isNotEmpty()) {
@@ -125,7 +143,16 @@ class JobExecutionContext(val producer: AbstractJob) {
         addCell(sb, statusString, 30)
     }
 
-    internal fun addIntro(sb: StringBuilder) {
+    private fun addIntro(html: HtmlDocument, index: Int) {
+        html.add(H2("${producer::class.simpleName}: ${producer.title}", id = "job$index"))
+        when (status) {
+            Status.OK -> html.add(Alert(Alert.Type.SUCCESS, "Status: OK"))
+            Status.WARNINGS -> html.add(Alert(Alert.Type.WARNING, "Status: WARNINGS"))
+            Status.ERRORS -> html.add(Alert(Alert.Type.DANGER, "Status: ERRORS"))
+        }
+    }
+
+    private fun addIntro(sb: StringBuilder) {
         addSeparatorLine(sb)
         addBoxedLine(sb, "${producer::class.simpleName}:${producer.title}")
         addSeparatorLine(sb)
@@ -135,5 +162,28 @@ class JobExecutionContext(val producer: AbstractJob) {
             Status.ERRORS -> addErrorBoxedLineMarker(sb)
         }
         addSeparatorLine(sb)
+    }
+
+    private fun createLogTable(messages: List<Message>): HtmlTable {
+        return HtmlTable().also { table ->
+            table.addHeadRow().also {
+                it.addTH("Level")
+                it.addTH("Date")
+                it.addTH("Message")
+            }
+            messages.forEach { msg ->
+                val level = when (msg.status) {
+                    Status.OK -> "Info"
+                    Status.WARNINGS -> "Warning"
+                    Status.ERRORS -> "ERROR"
+                }
+                val cssClass = getCssClass(msg.status)
+                table.addRow(cssClass).also { tr ->
+                    tr.addTD(level, cssClass = getBoldCssClass(msg.status))
+                    tr.addTD(format(msg.date))
+                    tr.addTD(msg.message)
+                }
+            }
+        }
     }
 }

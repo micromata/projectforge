@@ -25,7 +25,9 @@ package org.projectforge.common.extensions
 
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import java.util.*
+import org.projectforge.framework.utils.NumberHelper
+import java.math.MathContext
+import java.math.RoundingMode
 
 /**
  * Formats a number for the user by using the locale of [ThreadLocalUserContext].
@@ -55,5 +57,33 @@ fun Number?.formatCurrency(withCurrencySymbol: Boolean = false): String {
         amount
     } else {
         "$amount ${Constants.CURRENCY_SYMBOL}"
+    }
+}
+
+/**
+ * Formats a number (is already percent value) for the user by using the locale of [ThreadLocalUserContext].
+ */
+fun Number?.formatPercent(withSymbol: Boolean = false): String {
+    this ?: return ""
+    val amount = this.formatForUser(0)
+    return if (withSymbol) {
+        "$amount %"
+    } else {
+        amount
+    }
+}
+
+/**
+ * Formats a fraction for the user by using the locale of [ThreadLocalUserContext].
+ */
+fun Number?.formatFractionAsPercent(withSymbol: Boolean = false): String {
+    this ?: return ""
+    val amount = this.asBigDecimal()
+        .multiply(NumberHelper.HUNDRED, MathContext(0, RoundingMode.HALF_UP))
+        .formatForUser(0)
+    return if (withSymbol) {
+        "$amount %"
+    } else {
+        amount
     }
 }

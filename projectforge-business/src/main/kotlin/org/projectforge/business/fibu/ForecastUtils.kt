@@ -68,7 +68,7 @@ object ForecastUtils { // open needed by Wicket.
         val schedules = order.paymentScheduleEntries ?: return emptyList()
         return schedules
             .filter { it.positionNumber != null && it.scheduleDate != null && it.amount != null }
-            .filter { it.positionNumber!!.toInt() == pos.number.toInt() }
+            .filter { it.positionNumber?.toInt() == pos.number?.toInt() }
     }
 
     /**
@@ -79,6 +79,25 @@ object ForecastUtils { // open needed by Wicket.
         val netSum = pos.netSum ?: BigDecimal.ZERO
         val probability = getProbabilityOfAccurence(order, pos)
         return netSum.multiply(probability)
+    }
+
+    /**
+     * Multiplies the probability with the amounts of all payment schedule amounts. If a payment schedule
+     * is already fully invoiced (vollstaendigFakturiert), the amount is not multiplied with the probability.
+     */
+    @JvmStatic
+    fun computeProbabilityPaymentSchedule(order: OrderInfo, pos: OrderPositionInfo): BigDecimal {
+        var sum = BigDecimal.ZERO
+        val probability = getProbabilityOfAccurence(order, pos)
+        order.getPaymentScheduleEntriesOfPosition(pos)?.forEach { scheduleInfo ->
+            val amount = scheduleInfo.amount ?: return@forEach
+            sum += if (scheduleInfo.vollstaendigFakturiert) {
+                amount
+            } else {
+                amount.multiply(probability)
+            }
+        }
+        return sum
     }
 
     /**
@@ -159,13 +178,13 @@ object ForecastUtils { // open needed by Wicket.
         return getLeistungszeitraumDate(pos, order.periodOfPerformanceEnd, pos.periodOfPerformanceEnd)
     }
 
-    private fun getLeistungszeitraumDate(
-        pos: OrderPositionInfo,
+    internal fun getLeistungszeitraumDate(
+        periodOfPerformanceType: PeriodOfPerformanceType?,
         orderDate: LocalDate?,
         posDate: LocalDate?
     ): PFDay {
         var result = PFDay.now()
-        if (PeriodOfPerformanceType.OWN == pos.periodOfPerformanceType) {
+        if (PeriodOfPerformanceType.OWN == periodOfPerformanceType) {
             if (posDate != null) {
                 result = PFDay.from(posDate) // not null
             }
@@ -175,6 +194,14 @@ object ForecastUtils { // open needed by Wicket.
             }
         }
         return result
+    }
+
+    private fun getLeistungszeitraumDate(
+        pos: OrderPositionInfo,
+        orderDate: LocalDate?,
+        posDate: LocalDate?
+    ): PFDay {
+        return getLeistungszeitraumDate(pos.periodOfPerformanceType, orderDate, posDate)
     }
 
     @JvmStatic
@@ -194,7 +221,9 @@ object ForecastUtils { // open needed by Wicket.
     }
 
     @JvmStatic
-    fun getMonthCount(start: LocalDate, end: LocalDate): BigDecimal {
+    fun getMonthCount(start: LocalDate?, end: LocalDate?): BigDecimal {
+        start ?: return BigDecimal.ZERO
+        end ?: return BigDecimal.ZERO
         val startDate = PFDay.from(start) // not null
         val endDate = PFDay.from(end) // not null
         val diffYear = endDate.year - startDate.year

@@ -21,12 +21,17 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.mail
+package org.projectforge.common.extensions
+
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.PFDay
+import java.time.LocalDate
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * Formats a [LocalDate] for the user by using the locale of [ThreadLocalUserContext].
+ * @return The formatted number or an empty string if the number is null.
  */
-interface IMailAttachment {
-    var filename: String?
-    var content: ByteArray?
+fun LocalDate?.formatForUser(): String {
+    this ?: return ""
+    return PFDay.from(this).format()
 }
