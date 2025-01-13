@@ -42,7 +42,7 @@ import java.util.*
  */
 object SipgateExcelExporter {
   private class Context(val workbook: ExcelWorkbook, val storage: SipgateDataStorage) {
-    val boldFont = workbook.createOrGetFont("bold", bold = true)
+    val boldFont = ExcelUtils.createFont(workbook, "bold", bold = true)
     val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
     val wrapTextStyle = workbook.createOrGetCellStyle("wrap")
 

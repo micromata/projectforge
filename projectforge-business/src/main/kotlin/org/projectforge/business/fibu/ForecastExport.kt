@@ -142,7 +142,13 @@ open class ForecastExport { // open needed by Wicket.
         val currencyFormat = NumberHelper.getCurrencyFormat(ThreadLocalUserContext.locale)
         val currencyCellStyle = workbook.createOrGetCellStyle("DataFormat.currency")
         val percentageCellStyle = workbook.createOrGetCellStyle("DataFormat.percentage")
-        val boldRedFont = workbook.createOrGetFont("bold", bold = true, color = IndexedColors.RED.index)
+        val boldRedFont = ExcelUtils.createFont(
+            workbook,
+            "boldRed",
+            bold = true,
+            heightInPoints = 10,
+            color = IndexedColors.RED.index,
+        )
         val errorCellStyle = ExcelUtils.createCellStyle(workbook, "error", font = boldRedFont)
         val writerContext =
             ExcelWriterContext(I18n(Constants.RESOURCE_BUNDLE_NAME, ThreadLocalUserContext.locale), workbook)
@@ -158,6 +164,7 @@ open class ForecastExport { // open needed by Wicket.
         init {
             currencyCellStyle.dataFormat = workbook.getDataFormat(XlsContentProvider.FORMAT_CURRENCY)
             percentageCellStyle.dataFormat = workbook.getDataFormat("0%")
+            boldRedFont.fontName = "Arial"
         }
     }
 
@@ -176,7 +183,8 @@ open class ForecastExport { // open needed by Wicket.
         filter.user = origFilter.user
         val orderList = if (snapshotDate != null) {
             log.info { "Exporting forecast script for date ${startDate.isoString} with snapshotDate ${snapshotDate}, projects=${filter.projectList?.joinToString { it.name ?: "???" }}" }
-            orderbookSnapshotsService.readSnapshot(snapshotDate)?.filter { filter.match(it) }?.sortedByDescending { it.nummer } ?: emptyList()
+            orderbookSnapshotsService.readSnapshot(snapshotDate)?.filter { filter.match(it) }
+                ?.sortedByDescending { it.nummer } ?: emptyList()
         } else {
             log.info { "Exporting forecast script for date ${startDate.isoString} with filter: str='${filter.searchString ?: ""}', projects=${filter.projectList?.joinToString { it.name ?: "???" }}" }
             orderDao.select(filter)
@@ -292,7 +300,8 @@ open class ForecastExport { // open needed by Wicket.
             snapshotDate?.let {
                 infoSheet.getCell(1, 1, ensureCell = true)?.let { cell ->
                     val bold =
-                        workbook.createOrGetFont(
+                        ExcelUtils.createFont(
+                            workbook,
                             "bold",
                             bold = true,
                             heightInPoints = 18,
@@ -617,7 +626,11 @@ open class ForecastExport { // open needed by Wicket.
                 sheet.setStringValue(
                     row,
                     ForecastCol.WARNING.header,
-                    translateMsg("fibu.auftrag.forecast.lostBudgetWarning", ForecastOrderPosInfo.PERCENTAGE_OF_LOST_BUDGET_WARNING, monthEntry.lostBudget.formatCurrency())
+                    translateMsg(
+                        "fibu.auftrag.forecast.lostBudgetWarning",
+                        ForecastOrderPosInfo.PERCENTAGE_OF_LOST_BUDGET_WARNING,
+                        monthEntry.lostBudget.formatCurrency()
+                    )
                 ).cellStyle = ctx.errorCellStyle
                 highlightErrorCell(ctx, row, columnDef.columnNumber)
             }
