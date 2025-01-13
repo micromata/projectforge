@@ -100,7 +100,7 @@ class ExtractPFTradingPartners {
 
   private fun createTradingPartnersSheet(workbook: ExcelWorkbook, name: String, tradingPartners: List<TradingPartner>) {
     val sheet = workbook.createOrGetSheet(name)
-    val boldFont = workbook.createOrGetFont("bold", bold = true)
+    val boldFont = ExcelUtils.createFont(workbook, "bold", bold = true)
     val boldStyle = workbook.createOrGetCellStyle("boldStyle")
     boldStyle.setFont(boldFont)
     val wrapStyle = workbook.createOrGetCellStyle("wrapText")
