@@ -42,8 +42,8 @@ class ForecastOrderPosInfoTest {
                 PeriodOfPerformanceType.OWN,
                 periodOfPerformanceBegin = LocalDate.of(2024, Month.NOVEMBER, 13),
                 periodOfPerformanceEnd = LocalDate.of(2025, Month.MARCH, 31),
-                netSum = BigDecimal("69456.24"),
-                invoicedSum = BigDecimal("6924.95")
+                netSum = BigDecimal("50000"), // 5 month
+                invoicedSum = BigDecimal("5000")
             ).also { pos ->
                 ForecastOrderPosInfo(orderInfo, pos, baseDate = baseDate).also { fcPosInfo ->
                     fcPosInfo.calculate()
@@ -53,15 +53,15 @@ class ForecastOrderPosInfoTest {
                     }
                     if (ForecastOrderPosInfo.DISTRIBUTE_UNUSED_BUDGET) {
                         for (i in 2..4) {
-                            assertSame("13891.25", fcPosInfo.months[i].toBeInvoicedSum)
+                            assertSame("10000", fcPosInfo.months[i].toBeInvoicedSum)
                         }
-                        assertSame("20857.54", fcPosInfo.months[5].toBeInvoicedSum)
+                        assertSame("15000", fcPosInfo.months[5].toBeInvoicedSum)
                         Assertions.assertEquals(BigDecimal.ZERO, fcPosInfo.difference)
                     } else {
                         for (i in 2..5) {
-                            assertSame("13891.25", fcPosInfo.months[i].toBeInvoicedSum)
+                            assertSame("10000", fcPosInfo.months[i].toBeInvoicedSum)
                         }
-                        assertSame("-6966.29", fcPosInfo.difference)
+                        assertSame("-5000", fcPosInfo.difference)
                     }
                 }
             }
