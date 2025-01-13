@@ -25,7 +25,6 @@ package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import mu.KotlinLogging
-import org.projectforge.common.extensions.isZeroOrNull
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
@@ -240,7 +239,6 @@ class ForecastOrderPosInfo(
                             if (isUnderBudgetWarning(budget = probabilityNetSum, unused = monthEntry.lostBudget)) {
                                 monthEntry.lostBudgetWarning = true
                             }
-                            difference = monthEntry.lostBudget.negate()
                         }
                     }
                     if (value.abs() > BigDecimal.ONE) { // values < 0 are possible for Abrufaufträge (Sarah fragen, 4273)
@@ -254,9 +252,7 @@ class ForecastOrderPosInfo(
         if (futureInvoicesAmountRest.abs() <= BigDecimal.ONE) { // Only differences greater than 1 Euro
             futureInvoicesAmountRest = BigDecimal.ZERO
         }
-        if (difference.isZeroOrNull()) {
-            difference = futureInvoicesAmountRest.negate()
-        }
+        difference = futureInvoicesAmountRest.negate()
     }
 
     /**
@@ -299,7 +295,8 @@ class ForecastOrderPosInfo(
 
     companion object {
         const val PERCENTAGE_OF_LOST_BUDGET_WARNING = 10
-        private val PERCENTAGE_OF_LOST_BUDGET_WARNING_BD = BigDecimal(PERCENTAGE_OF_LOST_BUDGET_WARNING).divide(NumberHelper.HUNDRED)
+        private val PERCENTAGE_OF_LOST_BUDGET_WARNING_BD =
+            BigDecimal(PERCENTAGE_OF_LOST_BUDGET_WARNING).divide(NumberHelper.HUNDRED)
 
         /**
          * If true, unused budget will be added to the last distributed month.
