@@ -30,7 +30,6 @@ import org.projectforge.business.scripting.ScriptDao
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
