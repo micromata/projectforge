@@ -507,7 +507,7 @@ open class ForecastExport { // open needed by Wicket.
         val posInfo = orderInfo?.getInfoPosition(pos.id)
         val netSum = pos.netSum ?: BigDecimal.ZERO
         val invoicedSum = posInfo?.invoicedSum ?: BigDecimal.ZERO
-        val forecastInfo = ForecastOrderPosInfo(order, pos)
+        val forecastInfo = ForecastOrderPosInfo(order, pos, ctx.baseDate)
         forecastInfo.calculate()
         sheet.setBigDecimalValue(row, ForecastCol.NETTOSUMME.header, netSum).cellStyle = ctx.currencyCellStyle
         if (invoicedSum.compareTo(BigDecimal.ZERO) != 0) {
@@ -524,7 +524,10 @@ open class ForecastExport { // open needed by Wicket.
             if (pos.vollstaendigFakturiert) "x" else ""
         )
 
-        val invoicePositions = rechnungCache.getRechnungsPosInfosByAuftragsPositionId(pos.id)
+        val invoicePositions = rechnungCache.getRechnungsPosInfosByAuftragsPositionId(pos.id)?.filter {
+            // Don't load invoices later than snapshotDate (baseDate):
+            !ctx.snapshot || (it.rechnungInfo?.date ?: LocalDate.MAX) <= ctx.baseDate.date
+        }
         sheet.setStringValue(row, ForecastCol.DEBITOREN_RECHNUNGEN.header, ForecastUtils.getInvoices(invoicePositions))
         val leistungsZeitraumColDef = sheet.getColumnDef(ForecastCol.LEISTUNGSZEITRAUM.header)!!
         if (PeriodOfPerformanceType.OWN == pos.periodOfPerformanceType) { // use "own" period -> from pos
