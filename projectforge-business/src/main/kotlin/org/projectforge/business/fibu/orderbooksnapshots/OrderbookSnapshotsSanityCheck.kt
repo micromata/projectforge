@@ -32,26 +32,26 @@ import java.util.Date
 
 class OrderbookSnapshotsSanityCheck(val orderbookSnapshotsService: OrderbookSnapshotsService) :
     AbstractJob("Checks the recent order book' snapshots.") {
-    override fun execute(jobContext: JobExecutionContext) {
+    override fun executeJob() {
         val entries = orderbookSnapshotsService.selectMetas()
         val fullSnapshots = entries.count { it.incrementalBasedOn == null }
         val incrementalSnapshots = entries.count { it.incrementalBasedOn != null }
         val totalSize = entries.sumOf { it.size ?: 0 }
-        jobContext.addMessage("Found ${entries.size} order book snapshots: total-size=${totalSize.formatBytes()}, full=${fullSnapshots.format()}, incremental=${incrementalSnapshots.format()}.")
+        jobExecutionContext.addMessage("Found ${entries.size} order book snapshots: total-size=${totalSize.formatBytes()}, full=${fullSnapshots.format()}, incremental=${incrementalSnapshots.format()}.")
         // Test all last 10 snapshots:
         entries.take(10).forEach {
             val date = it.date
             if (date == null) {
-                jobContext.addError("Date is null for entry: ${it}")
+                jobExecutionContext.addError("Date is null for entry: ${it}")
                 return@forEach
             }
             try {
                 val orders = orderbookSnapshotsService.readSnapshot(date)
                 val lastUpdate = orders?.maxOf { it.lastUpdate ?: Date(0L) }
                 val highestOrderNumber = orders?.maxOf { it.nummer ?: -1 }
-                jobContext.addMessage("Snapshot for date $date (${it.size.formatBytes()}) is readable: ${orders?.size?.format()} orders, highest order number=${highestOrderNumber.format()} lastUpdate=${lastUpdate.isoString()}.")
+                jobExecutionContext.addMessage("Snapshot for date $date (${it.size.formatBytes()}) is readable: ${orders?.size?.format()} orders, highest order number=${highestOrderNumber.format()} lastUpdate=${lastUpdate.isoString()}.")
             } catch (e: Exception) {
-                jobContext.addError("Error reading snapshot for date $date: $e")
+                jobExecutionContext.addError("Error reading snapshot for date $date: $e")
             }
         }
     }

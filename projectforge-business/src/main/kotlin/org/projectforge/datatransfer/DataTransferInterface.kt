@@ -23,11 +23,14 @@
 
 package org.projectforge.datatransfer
 
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 /**
  * Service for data transfer, if available as plugin. DataTransfer itself isn't accessible by this module.
  */
 interface DataTransferInterface {
+    fun getPersonalBoxOfUserLink(userId: Long): String?
+
     fun putFileInUsersInBox(receiver: PFUserDO, filename: String, content: ByteArray, description: String? = null): Boolean
 }
