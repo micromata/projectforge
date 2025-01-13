@@ -274,17 +274,11 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
     ): SseEmitter {
         val scriptId = scriptIdString?.toLongOrNull()
         object : SseEmitterTool() {
-            var scriptLogger: ScriptLogger? = null
-                get() {
-                    if (field == null) {
-                        field = ExpiringSessionAttributes.getAttribute(
-                            request.getSession(false),
-                            getSessionAttr(scriptId),
-                            ScriptLogger::class.java,
-                        )
-                    }
-                    return field
-                }
+            var scriptLogger: ScriptLogger? = ExpiringSessionAttributes.getAttribute(
+                request.getSession(false),
+                getSessionAttr(scriptId),
+                ScriptLogger::class.java,
+            )
 
             override val lastModified: Date?
                 get() = scriptLogger?.lastModified

@@ -23,8 +23,11 @@
 
 package org.projectforge.business.fibu
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import mu.KotlinLogging
 import org.projectforge.common.extensions.abbreviate
+import org.projectforge.framework.json.IdOnlySerializer
 import java.io.Serializable
 import java.math.BigDecimal
 
@@ -32,33 +35,35 @@ private val log = KotlinLogging.logger {}
 
 /**
  * Cached information about an order position.
+ * @param position The order position (not given e.g. for test cases if [OrderPositionInfo] is deserialized from json.
  */
-class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serializable {
-    val id = position.id
-    val deleted = position.deleted // Deleted positions shouldn't occur.
-    val number = position.number
-    val auftrag = order
-    val auftragId = order.id
-    val auftragNummer = order.nummer
-    val titel = position.titel
-    val status = position.status ?: AuftragsStatus.POTENZIAL //  default value shouldn't occur!
-    val paymentType = position.paymentType
-    val art = position.art
-    val personDays = position.personDays
-    val modeOfPaymentType = position.modeOfPaymentType
+class OrderPositionInfo(position: AuftragsPositionDO? = null, order: OrderInfo? = null) : Serializable {
+    var id = position?.id
+    var deleted = position?.deleted ?: false// Deleted positions shouldn't occur.
+    var number = position?.number
+    @JsonIgnore
+    var auftrag = order
+    var auftragId = order?.id
+    var auftragNummer = order?.nummer
+    var titel = position?.titel
+    var status = position?.status ?: AuftragsStatus.POTENZIAL //  default value shouldn't occur!
+    var paymentType = position?.paymentType
+    var art = position?.art
+    var personDays = position?.personDays
+    var modeOfPaymentType = position?.modeOfPaymentType
 
     /** netSum of the order position in database. */
-    val dbNetSum = position.nettoSumme ?: BigDecimal.ZERO
+    var dbNetSum = position?.nettoSumme ?: BigDecimal.ZERO
 
     /**
      * For finished positions. True if the position is fully invoiced and the status is [AuftragsStatus.ABGESCHLOSSEN].
      */
-    val vollstaendigFakturiert = position.vollstaendigFakturiert == true && status == AuftragsStatus.ABGESCHLOSSEN
-    val periodOfPerformanceType = position.periodOfPerformanceType
-    val periodOfPerformanceBegin = position.periodOfPerformanceBegin
-    val periodOfPerformanceEnd = position.periodOfPerformanceEnd
-    val taskId = position.task?.id
-    val bemerkung = position.bemerkung.abbreviate(30)
+    var vollstaendigFakturiert = position?.vollstaendigFakturiert == true && status == AuftragsStatus.ABGESCHLOSSEN
+    var periodOfPerformanceType = position?.periodOfPerformanceType
+    var periodOfPerformanceBegin = position?.periodOfPerformanceBegin
+    var periodOfPerformanceEnd = position?.periodOfPerformanceEnd
+    var taskId = position?.task?.id
+    var bemerkung = position?.bemerkung.abbreviate(30)
 
     /**
      * True if the position should be invoiced.
@@ -108,13 +113,13 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
         /*if (position.status == null) {
             log.info { "Position without status: $position shouldn't occur. Assuming POTENZIAL." }
         }*/
-        if (position.deleted) {
+        if (position?.deleted == true) {
             log.debug { "Position is deleted: $position" }
             // Nothing to calculate.
         } else if (snapshotVersion) {
             log.debug { "Position is loaded from snapshot: $position" }
             // Nothing to calculate.
-        } else {
+        } else if (order != null) {
             recalculate(order)
         }
     }
@@ -158,8 +163,6 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
             toBeInvoicedSum = BigDecimal.ZERO
             notYetInvoiced = BigDecimal.ZERO
             akquiseSum = BigDecimal.ZERO
-            return
         }
-
     }
 }

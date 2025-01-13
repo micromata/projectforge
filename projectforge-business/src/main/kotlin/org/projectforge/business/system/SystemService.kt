@@ -34,17 +34,20 @@ import org.projectforge.business.jobs.CronSanityCheckJob
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.extensions.formatMillis
+import org.projectforge.common.html.Alert
+import org.projectforge.common.html.H1
+import org.projectforge.common.html.HtmlDocument
+import org.projectforge.common.html.P
 import org.projectforge.datatransfer.DataTransferBridge
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.database.SchemaExport
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUser
-import org.projectforge.framework.time.DateHelper
+import org.projectforge.jobs.JobListExecutionContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.File
 import java.io.IOException
-import java.util.*
 
 private val log = KotlinLogging.logger {}
 
@@ -110,7 +113,6 @@ class SystemService {
     /**
      * Search for abandoned tasks, corrupted JCR/Data transfer etc.
      * The result will also be written in the user's personal data transfer box, if plugin data-transfer is enabled.
-     *
      */
     fun checkSystemIntegrity(): String {
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
@@ -124,7 +126,7 @@ class SystemService {
             try {
                 ThreadLocalUserContext.setUser(user)
                 val content = internalCheckSystemIntegrity()
-                val filename = "projectforge_sanity-check${DateHelper.getTimestampAsFilenameSuffix(Date())}.txt"
+                val filename = CronSanityCheckJob.FILENAME
                 val description = "System integrity check result"
                 dataTransferBridge.putFileInUsersInBox(
                     filename = filename,
@@ -137,18 +139,19 @@ class SystemService {
                 log.info("Checking of system integrity finished after ${(System.currentTimeMillis() - start).formatMillis()}")
             }
         }.start()
-        return """
-            |Checking of system integrity started.
-            |
-            |The results will be in Your personal data transfer box in a few minutes (dependant on your ProjectForge installation)...
-            |
-            |For large files in the data transfer boxes, it may take much more time (all checksums will be calculated)."
-        """.trimMargin()
+        val html = HtmlDocument(JobListExecutionContext.title).add(H1(JobListExecutionContext.title))
+            .add(Alert(Alert.Type.SUCCESS, "Checking of system integrity started."))
+            .add(
+                Alert(type = Alert.Type.INFO)
+                    .add(P("The results will be in Your personal data transfer box in a few minutes (dependant on your ProjectForge installation)..."))
+                    .add(P("For large files in the data transfer boxes, it may take much more time (all checksums will be calculated)."))
+            )
+        return html.toString()
     }
 
     private fun internalCheckSystemIntegrity(): String {
         val context = cronSanityCheckJob.execute()
-        return context.getReportAsText()
+        return context.getReportAsHtml()
     }
 
     /**

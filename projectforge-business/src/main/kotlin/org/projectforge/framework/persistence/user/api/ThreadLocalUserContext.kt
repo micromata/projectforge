@@ -51,6 +51,17 @@ object ThreadLocalUserContext {
     val userContextAsContextElement: ThreadContextElement<UserContext?>
         get() = threadLocalUserContext.asContextElement(threadLocalUserContext.get())
 
+    /*
+    suspend fun getCurrentUser(): UserContext? {
+        return if (kotlin.coroutines.coroutineContext == kotlin.coroutines.EmptyCoroutineContext) {
+            // Not in a Coroutine: access to ThreadLocal
+            threadLocalUserContext.get()
+        } else {
+            // In a Coroutine: access to CoroutineContext
+            kotlin.coroutines.coroutineContext[UserContextElement]?.getUserContext()
+        }
+    }*/
+
     val localeAsContextElement: ThreadContextElement<Locale?>
         get() = threadLocalLocale.asContextElement(threadLocalLocale.get())
 

@@ -47,14 +47,15 @@ class KotlinNumberForUserExtensionsTest {
         ThreadLocalUserContext.clear() // Must be cleared, otherwise, the locale can't be set.
         Locale.setDefault(Locale.ENGLISH)
         ThreadLocalUserContext.locale = Locale.GERMAN
-        Assertions.assertEquals("", null.formatForUser())
+        val nullValue: Number? = null
+        Assertions.assertEquals("", nullValue.formatForUser())
         Assertions.assertEquals("1.234,57", 1234.5678.formatForUser(scale = 2))
         Assertions.assertEquals("1.234,00", 1234.formatForUser(scale = 2))
         Assertions.assertEquals("1.234", 1234.formatForUser())
 
         Locale.setDefault(Locale.GERMAN)
         ThreadLocalUserContext.locale = Locale.ENGLISH
-        Assertions.assertEquals("", null.formatForUser())
+        Assertions.assertEquals("", nullValue.formatForUser())
         Assertions.assertEquals("1,234.57", 1234.5678.formatForUser(scale = 2))
         Assertions.assertEquals("1,234.00", 1234.formatForUser(scale = 2))
         Assertions.assertEquals("1,234", 1234.formatForUser())
