@@ -25,8 +25,10 @@ package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import mu.KotlinLogging
+import org.projectforge.common.extensions.isZeroOrNull
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.time.PFDay
+import org.projectforge.framework.utils.NumberHelper
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -59,8 +61,10 @@ class ForecastOrderPosInfo(
          */
         var invoicedSum: BigDecimal = BigDecimal.ZERO
 
+        var lostBudget: BigDecimal = BigDecimal.ZERO
+
         /** Mark this month as error. */
-        var error: Boolean = false
+        var lostBudgetWarning: Boolean = false
     }
 
     class PaymentEntryInfo(val scheduleDate: LocalDate, val amount: BigDecimal)
@@ -92,6 +96,12 @@ class ForecastOrderPosInfo(
 
     val months = mutableListOf<MonthEntry>()
     val paymentEntries = mutableListOf<PaymentEntryInfo>()
+
+    val lostBudget: BigDecimal
+        get() = months.sumOf { it.lostBudget }
+
+    val lostBudgetWarning: Boolean
+        get() = months.any { it.lostBudgetWarning }
 
     /**
      * @return true, if the given period is part of the performance period (does an overlap exist?).
@@ -155,9 +165,9 @@ class ForecastOrderPosInfo(
             if (scheduleDate == null || amount == null || schedule.vollstaendigFakturiert) { // Ignore payments already invoiced.
                 continue
             }
-                if (distributionStartDay.isBefore(scheduleDate)) {
-                    distributionStartDay = PFDay.from(scheduleDate)
-                }
+            if (distributionStartDay.isBefore(scheduleDate)) {
+                distributionStartDay = PFDay.from(scheduleDate)
+            }
             // For info only (e.g. in Excel export):
             paymentEntries.add(PaymentEntryInfo(scheduleDate, amount.multiply(probability)))
         }
@@ -215,19 +225,24 @@ class ForecastOrderPosInfo(
             if (month > firstMonth) { // Start distribution one month after firstMonth (invoice one month later)
                 if (month >= baseMonth) {
                     // Distribute payments only in future (after base month).
-                    val value =
-                        if (index == months.size - 1) {
-                            // If month is the last month of performance period, the total rest of sum is to be invoiced.
-                            if (DISTRIBUTE_UNUSED_BUDGET) {
-                                // Version 1 (unused budget will be added to last month (overestimation)):
-                                futureInvoicesAmountRest
-                            } else {
-                                // Version 2 (unused budget isn't part of forecast and will be shown as negative difference sum (more realistic scenario?):
-                                minOf(partlyNetSum, futureInvoicesAmountRest)
-                            }
+                    var value = partlyNetSum
+                    if (index == months.size - 1) {
+                        // If month is the last month of performance period, the total rest of sum is to be invoiced.
+                        if (DISTRIBUTE_UNUSED_BUDGET) {
+                            // Version 1 (unused budget will be added to last month (overestimation)):
+                            value = futureInvoicesAmountRest
                         } else {
-                            partlyNetSum
+                            // Version 2 (unused budget isn't part of forecast and will be shown as negative difference sum (more realistic scenario?):
+                            value = minOf(partlyNetSum, futureInvoicesAmountRest)
                         }
+                        if (futureInvoicesAmountRest > partlyNetSum) {
+                            monthEntry.lostBudget = futureInvoicesAmountRest - partlyNetSum
+                            if (isUnderBudgetWarning(budget = probabilityNetSum, unused = monthEntry.lostBudget)) {
+                                monthEntry.lostBudgetWarning = true
+                            }
+                            difference = monthEntry.lostBudget.negate()
+                        }
+                    }
                     if (value.abs() > BigDecimal.ONE) { // values < 0 are possible for Abrufaufträge (Sarah fragen, 4273)
                         setMonthValue(month, value)
                     }
@@ -239,7 +254,9 @@ class ForecastOrderPosInfo(
         if (futureInvoicesAmountRest.abs() <= BigDecimal.ONE) { // Only differences greater than 1 Euro
             futureInvoicesAmountRest = BigDecimal.ZERO
         }
-        difference = futureInvoicesAmountRest.negate()
+        if (difference.isZeroOrNull()) {
+            difference = futureInvoicesAmountRest.negate()
+        }
     }
 
     /**
@@ -257,7 +274,8 @@ class ForecastOrderPosInfo(
 
     private fun createMonths() {
         var month = periodOfPerformanceBegin.beginOfMonth
-        var monthUntil = periodOfPerformanceEnd.beginOfMonth.plusMonths(1) // Add one month after end of performance period.
+        var monthUntil =
+            periodOfPerformanceEnd.beginOfMonth.plusMonths(1) // Add one month after end of performance period.
         val lastScheduleDate = PFDay.fromOrNull(paymentSchedules.maxOfOrNull { it.scheduleDate ?: LocalDate.MIN })
         if (lastScheduleDate != null && lastScheduleDate > monthUntil) {
             monthUntil = lastScheduleDate
@@ -270,11 +288,19 @@ class ForecastOrderPosInfo(
         } while (month <= monthUntil && paranoidCounter-- > 0)
     }
 
+    private fun isUnderBudgetWarning(budget: BigDecimal, unused: BigDecimal): Boolean {
+        val percentOfBudget = budget.multiply(PERCENTAGE_OF_LOST_BUDGET_WARNING_BD) // 10% of budget
+        return unused > percentOfBudget
+    }
+
     override fun toString(): String {
         return ToStringUtil.toJsonString(this)
     }
 
     companion object {
+        const val PERCENTAGE_OF_LOST_BUDGET_WARNING = 10
+        private val PERCENTAGE_OF_LOST_BUDGET_WARNING_BD = BigDecimal(PERCENTAGE_OF_LOST_BUDGET_WARNING).divide(NumberHelper.HUNDRED)
+
         /**
          * If true, unused budget will be added to the last distributed month.
          * If false, this budget will be added to the difference sum.

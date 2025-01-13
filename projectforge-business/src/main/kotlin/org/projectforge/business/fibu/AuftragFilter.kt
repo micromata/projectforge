@@ -113,11 +113,11 @@ class AuftragFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) 
      *              If this filter setting is empty, true is returned.
      */
     fun matchUser(auftrag: AuftragDO): Boolean {
-        val u = user ?: return true
-        return (auftrag.projectManager == u ||
-                auftrag.headOfBusinessManager == u ||
-                auftrag.contactPerson == u ||
-                auftrag.salesManager == u
+        val uid = user?.id ?: return true
+        return (auftrag.projectManager?.id == uid ||
+                auftrag.headOfBusinessManager?.id == uid ||
+                auftrag.contactPerson?.id == uid ||
+                auftrag.salesManager?.id == uid
                 )
     }
 
@@ -130,8 +130,8 @@ class AuftragFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) 
         if (list.isNullOrEmpty()) {
             return true
         }
-        return auftrag.projekt?.let { projekt ->
-            list.contains(projekt)
+        return auftrag.projekt?.id?.let { projektId ->
+            list.any{ projektId == it.id }
         } ?: false
     }
 

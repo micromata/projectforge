@@ -94,6 +94,7 @@ internal class OrderConverterService {
             info.paymentSchedulesReached = order.paymentSchedulesReached
             info.periodOfPerformanceBegin = order.periodOfPerformanceBegin
             info.periodOfPerformanceEnd = order.periodOfPerformanceEnd
+            info.probabilityOfOccurrence = order.probabilityOfOccurrence
             info.infoPositions = positionen?.map { OrderPositionInfo(it, info).also { it.snapshotVersion = true } }
             info.infoPositions?.forEach { infoPos ->
                 order.positionen?.find { it.number == infoPos.number }?.let { pos ->

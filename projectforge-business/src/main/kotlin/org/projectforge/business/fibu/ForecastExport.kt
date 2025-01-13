@@ -37,8 +37,12 @@ import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotsServi
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.common.DateFormatType
+import org.projectforge.common.extensions.format2Digits
+import org.projectforge.common.extensions.formatCurrency
+import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateFormats
@@ -107,7 +111,7 @@ open class ForecastExport { // open needed by Wicket.
         EINTRITTSWAHRSCHEINLICHKEIT("Eintrittswahrsch. in %"), ANSPRECHPARTNER("Ansprechpartner"),
         STRUKTUR_ELEMENT("Strukturelement"), BEMERKUNG("Bemerkung"), PROBABILITY_NETSUM("gewichtete Nettosumme"),
         ANZAHL_MONATE("Anzahl Monate"), PAYMENT_SCHEDULE("Zahlplan"),
-        REMAINING("Rest"), DIFFERENCE("Abweichung")
+        REMAINING("Rest"), DIFFERENCE("Abweichung"), WARNING("Warnung")
     }
 
     enum class InvoicesCol(val header: String) {
@@ -138,6 +142,8 @@ open class ForecastExport { // open needed by Wicket.
         val currencyFormat = NumberHelper.getCurrencyFormat(ThreadLocalUserContext.locale)
         val currencyCellStyle = workbook.createOrGetCellStyle("DataFormat.currency")
         val percentageCellStyle = workbook.createOrGetCellStyle("DataFormat.percentage")
+        val boldRedFont = workbook.createOrGetFont("bold", bold = true, color = IndexedColors.RED.index)
+        val errorCellStyle = ExcelUtils.createCellStyle(workbook, "error", font = boldRedFont)
         val writerContext =
             ExcelWriterContext(I18n(Constants.RESOURCE_BUNDLE_NAME, ThreadLocalUserContext.locale), workbook)
         val orderMap = mutableMapOf<Long, OrderInfo>()
@@ -170,7 +176,7 @@ open class ForecastExport { // open needed by Wicket.
         filter.user = origFilter.user
         val orderList = if (snapshotDate != null) {
             log.info { "Exporting forecast script for date ${startDate.isoString} with snapshotDate ${snapshotDate}, projects=${filter.projectList?.joinToString { it.name ?: "???" }}" }
-            orderbookSnapshotsService.readSnapshot(snapshotDate)?.filter { filter.match(it) } ?: emptyList()
+            orderbookSnapshotsService.readSnapshot(snapshotDate)?.filter { filter.match(it) }?.sortedByDescending { it.nummer } ?: emptyList()
         } else {
             log.info { "Exporting forecast script for date ${startDate.isoString} with filter: str='${filter.searchString ?: ""}', projects=${filter.projectList?.joinToString { it.name ?: "???" }}" }
             orderDao.select(filter)
@@ -194,8 +200,8 @@ open class ForecastExport { // open needed by Wicket.
     }
 
     /**
-     * Get the export filename. Example: 'Forecast-start-2021-01-01_2025-01-02_22-48.xlsx'
-     * or 'Forecast-ACME-snapshot-2023-08-01-start-2023-01-012025-01-02_22-48.zip'.
+     * Get the export filename. Example: 'Forecast-start-2021-01_2025-01-02_22-48.xlsx'
+     * or 'Forecast-ACME-snapshot-2023-08-01-start-2023-01-2025-01-02_22-48.zip'.
      * @param startDate The start date for the forecast.
      * @param extension The optional file extension ('.xlsx' or '.zip').
      * @param part The optional part of the export file (e.g. 'ACME', 'Customer', ...).
@@ -206,10 +212,10 @@ open class ForecastExport { // open needed by Wicket.
         part: String? = null,
         snapshot: LocalDate? = null
     ): String {
-        val startDateString = "-start_${startDate.isoString}"
+        val startDateString = "-start_${startDate.year}-${startDate.monthValue.format2Digits()}"
         val partString = if (part.isNullOrBlank()) "" else "-$part"
         val snapshotString = if (snapshot != null) "-snapshot_${snapshot}" else ""
-        return "Forecast$partString$snapshotString${startDateString}-${DateHelper.getDateAsFilenameSuffix(Date())}${extension ?: ""}"
+        return "Forecast$partString$snapshotString${startDateString}-created_${DateHelper.getDateAsFilenameSuffix(Date())}${extension ?: ""}"
     }
 
     /**
@@ -241,7 +247,7 @@ open class ForecastExport { // open needed by Wicket.
             prevYearBaseDate.plusDays(-1).localDate // Go 1 day back, paranoia setting for getting all invoices for given time period.
         if (snapshotDate != null) {
             // Don't load invoices later than snapshotDate:
-            invoiceFilter.toDate = startDate.localDate.minusDays(1)
+            invoiceFilter.toDate = snapshotDate.minusDays(1)
         }
         val queryFilter = AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction(invoiceFilter)
         queryFilter.addOrder(desc("datum"))
@@ -604,13 +610,18 @@ open class ForecastExport { // open needed by Wicket.
                     monthEntry.toBeInvoicedSum.setScale(2, RoundingMode.HALF_UP),
                 )
             cell.cellStyle = ctx.currencyCellStyle
-            if (monthEntry.error) {
+            if (monthEntry.lostBudgetWarning) {
+                sheet.setStringValue(
+                    row,
+                    ForecastCol.WARNING.header,
+                    translateMsg("fibu.auftrag.forecast.lostBudgetWarning", ForecastOrderPosInfo.PERCENTAGE_OF_LOST_BUDGET_WARNING, monthEntry.lostBudget.formatCurrency())
+                ).cellStyle = ctx.errorCellStyle
                 highlightErrorCell(ctx, row, columnDef.columnNumber)
             }
         }
     }
 
-    private fun highlightErrorCell(ctx: Context, rowNumber: Int, colNumber: Int, comment: String? = null) {
+    private fun highlightErrorCell(ctx: Context, rowNumber: Int, colNumber: Int) {
         val excelRow = ctx.forecastSheet.getRow(rowNumber)
         val excelCell = excelRow.getCell(colNumber)
         ctx.writerContext.cellHighlighter.highlightErrorCell(
@@ -620,8 +631,6 @@ open class ForecastExport { // open needed by Wicket.
             ctx.forecastSheet.getColumnDef(0),
             excelRow
         )
-        if (comment != null)
-            ctx.writerContext.cellHighlighter.setCellComment(excelCell, comment)
     }
 
     private fun getMonthIndex(ctx: Context, date: PFDay): Int {
