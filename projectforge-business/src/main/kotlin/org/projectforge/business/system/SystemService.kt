@@ -141,9 +141,18 @@ class SystemService {
             .add(Html.Alert(Html.Alert.Type.SUCCESS, "Checking of system integrity started."))
             .add(
                 Html.Alert(type = Html.Alert.Type.INFO)
-                    .add(Html.P("The results will be in Your personal data transfer box in a few minutes (dependant on your ProjectForge installation)..."))
-                    .add(Html.P("For large files in the data transfer boxes, it may take much more time (all checksums will be calculated)."))
+                    .add(Html.P().also { p ->
+                        p.add(Html.Text("The results will be in Your "))
+                            .add(
+                                Html.A(
+                                    dataTransferBridge.getPersonalBoxOfUserLink() ?: "???",
+                                    "personal data transfer box"
+                                )
+                            )
+                            .add(Html.Text(" in a few minutes (dependant on your ProjectForge installation)..."))
+                    })
             )
+            .add(Html.P("For large files in the data transfer boxes, it may take much more time (all checksums will be calculated)."))
         return html.toString()
     }
 

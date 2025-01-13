@@ -24,7 +24,7 @@
 package org.projectforge.common.html
 
 class Html {
-    class Div(content: String, style: String? = null, id: String? = null) :
+    class Div(content: String? = null, style: String? = null, id: String? = null) :
         HtmlElement("div", content = content, id = id) {
         init {
             style?.let { attr("style", it) }
@@ -45,7 +45,7 @@ class Html {
         }
     }
 
-    class P(content: String, style: String? = null, id: String? = null) : HtmlElement("p", content = content, id = id) {
+    class P(content: String? = null, style: String? = null, id: String? = null) : HtmlElement("p", content = content, id = id) {
         init {
             style?.let { attr("style", it) }
         }
@@ -58,7 +58,9 @@ class Html {
         }
     }
 
-    class BR() : HtmlElement("br", childrenAllowed = false)
+    class Text(content: String) : HtmlElement("NOTAG", content = content, childrenAllowed = false)
+
+    class BR : HtmlElement("br", childrenAllowed = false)
 
     class H1(content: String, id: String? = null) : HtmlElement("h1", content = content, id = id)
     class H2(content: String, id: String? = null) : HtmlElement("h2", content = content, id = id)
