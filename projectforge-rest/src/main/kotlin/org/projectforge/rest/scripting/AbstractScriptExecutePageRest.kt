@@ -90,6 +90,12 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
             script.parameter4?.name = scriptDO.parameter4Name
             script.parameter5?.name = scriptDO.parameter5Name
             script.parameter6?.name = scriptDO.parameter6Name
+            script.parameter1?.description = scriptDO.parameter1Description
+            script.parameter2?.description = scriptDO.parameter2Description
+            script.parameter3?.description = scriptDO.parameter3Description
+            script.parameter4?.description = scriptDO.parameter4Description
+            script.parameter5?.description = scriptDO.parameter5Description
+            script.parameter6?.description = scriptDO.parameter6Description
             layout.add(UIReadOnlyField("name", label = "scripting.script.name"))
             layout.add(UIAlert(id = "description", title = "description", markdown = true, color = UIColor.LIGHT))
             UIFieldset(title = "scripting.script.parameter").let { fieldset ->
@@ -302,61 +308,68 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
         return RestUtils.downloadFile(downloadFile.filename, downloadFile.bytes)
     }
 
-    private fun addParameterInput(col: UICol, parameter: Script.Param?, index: Int) {
+    private fun addParameterInput(parent: IUIContainer, parameter: Script.Param?, index: Int) {
         parameter?.type ?: return
-        val label = "'${parameter.name}"
-        col.add(
-            when (parameter.type!!) {
-                ScriptParameterType.STRING -> UIInput("parameter$index.stringValue", label = label)
-                ScriptParameterType.INTEGER -> UIInput(
-                    "parameter$index.intValue",
-                    label = label, dataType = UIDataType.INT
-                )
-
-                ScriptParameterType.DECIMAL -> UIInput(
-                    "parameter$index.decimalValue",
-                    label = label, dataType = UIDataType.DECIMAL
-                )
-
-                ScriptParameterType.BOOLEAN -> UICheckbox("parameter$index.booleanValue", label = label)
-                ScriptParameterType.TASK -> UIInput(
-                    "parameter$index.taskValue",
-                    label = label, dataType = UIDataType.TASK
-                )
-
-                ScriptParameterType.USER -> UISelect.createUserSelect(
-                    id = "parameter$index.userValue",
-                    label = label
-                )
-
-                ScriptParameterType.TIME_PERIOD -> UIRow()
-                    .add(
-                        UICol(4).add(
-                            UIInput(
-                                "parameter$index.dateValue",
-                                label = label,
-                                additionalLabel = "date.begin",
-                                dataType = UIDataType.DATE
-                            )
+        parent.add(UIRow().also { row ->
+            val label = "'${parameter.name}"
+            row.add(
+                UICol().add(
+                    when (parameter.type!!) {
+                        ScriptParameterType.STRING -> UIInput("parameter$index.stringValue", label = label)
+                        ScriptParameterType.INTEGER -> UIInput(
+                            "parameter$index.intValue",
+                            label = label, dataType = UIDataType.INT
                         )
-                    ).add(
-                        UICol(4).add(
-                            UIInput(
-                                "parameter$index.toDateValue",
-                                label = label,
-                                additionalLabel = "date.end",
-                                dataType = UIDataType.DATE
-                            )
-                        )
-                    )
 
-                ScriptParameterType.DATE -> UIInput(
-                    "parameter$index.dateValue",
-                    label = label,
-                    dataType = UIDataType.DATE
+                        ScriptParameterType.DECIMAL -> UIInput(
+                            "parameter$index.decimalValue",
+                            label = label, dataType = UIDataType.DECIMAL
+                        )
+
+                        ScriptParameterType.BOOLEAN -> UICheckbox("parameter$index.booleanValue", label = label)
+                        ScriptParameterType.TASK -> UIInput(
+                            "parameter$index.taskValue",
+                            label = label, dataType = UIDataType.TASK
+                        )
+
+                        ScriptParameterType.USER -> UISelect.createUserSelect(
+                            id = "parameter$index.userValue",
+                            label = label
+                        )
+
+                        ScriptParameterType.TIME_PERIOD -> UIRow()
+                            .add(
+                                UICol(4).add(
+                                    UIInput(
+                                        "parameter$index.dateValue",
+                                        label = label,
+                                        additionalLabel = "date.begin",
+                                        dataType = UIDataType.DATE
+                                    )
+                                )
+                            ).add(
+                                UICol(4).add(
+                                    UIInput(
+                                        "parameter$index.toDateValue",
+                                        label = label,
+                                        additionalLabel = "date.end",
+                                        dataType = UIDataType.DATE
+                                    )
+                                )
+                            )
+
+                        ScriptParameterType.DATE -> UIInput(
+                            "parameter$index.dateValue",
+                            label = label,
+                            dataType = UIDataType.DATE
+                        )
+                    }
                 )
+            )
+            parameter.description?.let {
+                row.add(UICol().add(UIAlert(message = it, color = UIColor.LIGHT, markdown = true)))
             }
-        )
+        })
     }
 
     companion object {

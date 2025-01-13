@@ -30,10 +30,10 @@ import org.projectforge.jobs.AbstractJob
 import org.projectforge.jobs.JobExecutionContext
 
 class SystemSanityCheckJob(val taskDao: TaskDao) : AbstractJob("System integrity check") {
-    override fun execute(jobContext: JobExecutionContext) {
-        jobContext.addMessage("Task integrity (abandoned tasks)")
+    override fun executeJob() {
+        jobExecutionContext.addMessage("Task integrity (abandoned tasks)")
         val tasks: List<TaskDO> = taskDao.selectAll(false)
-        jobContext.addMessage("Found ${tasks.size} tasks.")
+        jobExecutionContext.addMessage("Found ${tasks.size} tasks.")
         val taskMap: MutableMap<Long?, TaskDO> = HashMap()
         for (task in tasks) {
             taskMap[task.id] = task
@@ -43,9 +43,9 @@ class SystemSanityCheckJob(val taskDao: TaskDao) : AbstractJob("System integrity
         for (task in tasks) {
             if (task.parentTask == null) {
                 if (rootTask) {
-                    jobContext.addError("Found another root task: ${asString(task)}")
+                    jobExecutionContext.addError("Found another root task: ${asString(task)}")
                 } else {
-                    jobContext.addMessage("Found root task: ${asString(task)}")
+                    jobExecutionContext.addMessage("Found root task: ${asString(task)}")
                     rootTask = true
                 }
             } else {
@@ -63,16 +63,16 @@ class SystemSanityCheckJob(val taskDao: TaskDao) : AbstractJob("System integrity
                     ancestor = taskMap[ancestor.parentTaskId]
                 }
                 if (!rootTaskFound) {
-                    jobContext.addError("Found abandoned task (cyclic tasks without path to root): ${asString(task)}")
+                    jobExecutionContext.addError("Found abandoned task (cyclic tasks without path to root): ${asString(task)}")
                     abandonedTasks = true
                 }
             }
             taskMap[task.id] = task
         }
         if (!abandonedTasks) {
-            jobContext.addMessage("Test OK, no abandoned tasks detected.")
+            jobExecutionContext.addMessage("Test OK, no abandoned tasks detected.")
         } else {
-            jobContext.addError("Test FAILED, abandoned tasks detected.")
+            jobExecutionContext.addError("Test FAILED, abandoned tasks detected.")
         }
     }
 

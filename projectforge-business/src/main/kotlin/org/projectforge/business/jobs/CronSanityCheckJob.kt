@@ -113,7 +113,7 @@ class CronSanityCheckJob {
             val jobContext = context.add(job)
             try {
                 log.info("Executing sanity check job: ${job::class.simpleName}")
-                job.execute(jobContext)
+                job.executeJob(jobContext)
                 log.info("Execution of sanity check job done: ${job::class.simpleName}")
             } catch (ex: Throwable) {
                 log.error("While executing sanity job ${job::class.simpleName}: " + ex.message, ex)
