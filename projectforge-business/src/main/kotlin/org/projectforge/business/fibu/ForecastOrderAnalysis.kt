@@ -81,7 +81,7 @@ class ForecastOrderAnalysis {
         val html = HtmlDocument(title)
         html.add(H1(title))
         html.add(Alert(Alert.Type.INFO).also { div ->
-            div.add(Span("Forecast values are displayed in "))
+            div.add(Span("Forecast values are shown in "))
             div.add(Span("red,", style = "color: red; font-weight: bold;"))
             div.add(Span(" invoiced amounts in "))
             div.add(Span("black.", style = "color: black; font-weight: bold;"))
@@ -104,7 +104,7 @@ class ForecastOrderAnalysis {
             addRow(table, translate("fibu.notYetInvoiced"), orderInfo.notYetInvoicedSum)
         })
 
-        html.add(H2(translate("fibu.auftrag.forecast"))) // Forecast for all positions
+        html.add(H2("${translate("fibu.auftrag.forecast")} all positions")) // Forecast for all positions
         html.add(HtmlTable().also { table ->
             val headRow = table.addHeadRow()
             headRow.addTH(translate("label.position.short"))
@@ -204,7 +204,7 @@ class ForecastOrderAnalysis {
                     }
                 }
             })
-            html.add(H3(translate("fibu.auftrag.forecast")))
+            html.add(H3("${translate("fibu.auftrag.forecast")} #${posInfo.number}")) // Forecast current position
             html.add(HtmlTable().also { table ->
                 val headRow = table.addHeadRow()
                 val row = table.addRow()

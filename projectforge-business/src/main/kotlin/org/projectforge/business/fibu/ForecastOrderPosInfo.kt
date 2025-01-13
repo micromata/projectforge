@@ -205,7 +205,7 @@ class ForecastOrderPosInfo(
             return
         }
         val monthCount = firstMonth.monthsBetween(lastMonth) + 1 // Jan-Jan -> 1, Jan-Feb -> 2, ...
-        val partlyNettoSum = probabilityNetSumWithoutPaymentSchedule.divide(
+        val partlyNetSum = probabilityNetSumWithoutPaymentSchedule.divide(
             BigDecimal.valueOf(monthCount),
             RoundingMode.HALF_UP
         )
@@ -220,13 +220,13 @@ class ForecastOrderPosInfo(
                             // If month is the last month of performance period, the total rest of sum is to be invoiced.
                             if (DISTRIBUTE_UNUSED_BUDGET) {
                                 // Version 1 (unused budget will be added to last month (overestimation)):
-                                maxOf(partlyNettoSum, futureInvoicesAmountRest)
+                                futureInvoicesAmountRest
                             } else {
                                 // Version 2 (unused budget isn't part of forecast and will be shown as negative difference sum (more realistic scenario?):
-                                minOf(partlyNettoSum, futureInvoicesAmountRest)
+                                minOf(partlyNetSum, futureInvoicesAmountRest)
                             }
                         } else {
-                            partlyNettoSum
+                            partlyNetSum
                         }
                     if (value.abs() > BigDecimal.ONE) { // values < 0 are possible for Abrufaufträge (Sarah fragen, 4273)
                         setMonthValue(month, value)
