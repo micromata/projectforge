@@ -34,10 +34,8 @@ import org.projectforge.business.jobs.CronSanityCheckJob
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.extensions.formatMillis
-import org.projectforge.common.html.Alert
-import org.projectforge.common.html.H1
+import org.projectforge.common.html.Html
 import org.projectforge.common.html.HtmlDocument
-import org.projectforge.common.html.P
 import org.projectforge.datatransfer.DataTransferBridge
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.database.SchemaExport
@@ -139,12 +137,12 @@ class SystemService {
                 log.info("Checking of system integrity finished after ${(System.currentTimeMillis() - start).formatMillis()}")
             }
         }.start()
-        val html = HtmlDocument(JobListExecutionContext.title).add(H1(JobListExecutionContext.title))
-            .add(Alert(Alert.Type.SUCCESS, "Checking of system integrity started."))
+        val html = HtmlDocument(JobListExecutionContext.title).add(Html.H1(JobListExecutionContext.title))
+            .add(Html.Alert(Html.Alert.Type.SUCCESS, "Checking of system integrity started."))
             .add(
-                Alert(type = Alert.Type.INFO)
-                    .add(P("The results will be in Your personal data transfer box in a few minutes (dependant on your ProjectForge installation)..."))
-                    .add(P("For large files in the data transfer boxes, it may take much more time (all checksums will be calculated)."))
+                Html.Alert(type = Html.Alert.Type.INFO)
+                    .add(Html.P("The results will be in Your personal data transfer box in a few minutes (dependant on your ProjectForge installation)..."))
+                    .add(Html.P("For large files in the data transfer boxes, it may take much more time (all checksums will be calculated)."))
             )
         return html.toString()
     }

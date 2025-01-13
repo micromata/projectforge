@@ -101,22 +101,22 @@ class HtmlDocument(title: String, val lang: String = "en") : HtmlElement("html")
             |          margin-bottom: 20px;
             |          border-radius: 5px;
             |      }
-            |      .${Alert.Type.INFO.cls} {
+            |      .${Html.Alert.Type.INFO.cls} {
             |          background-color: #d9edf7;
             |          color: #31708f;
             |          border: 2px solid #31708f;
             |      }
-            |      .${Alert.Type.DANGER.cls} {
+            |      .${Html.Alert.Type.DANGER.cls} {
             |          background-color: #f8d7da;
             |          color: #842029;
             |          border: 2px solid #842029;
             |      }
-            |      .${Alert.Type.WARNING.cls} {
+            |      .${Html.Alert.Type.WARNING.cls} {
             |          background-color: #fff3cd;
             |          color: #856404;
             |          border: 2px solid #ffca2c;
             |      }
-            |      .${Alert.Type.SUCCESS.cls} {
+            |      .${Html.Alert.Type.SUCCESS.cls} {
             |          background-color: #d4edda;
             |          color: #155724;
             |          border: 2px solid #155724;

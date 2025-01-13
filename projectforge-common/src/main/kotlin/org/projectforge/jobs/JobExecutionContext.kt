@@ -106,11 +106,11 @@ class JobExecutionContext(val producer: AbstractJob) {
     fun addReportAsHtml(html: HtmlDocument, index: Int, showAllMessages: Boolean = true) {
         addIntro(html, index)
         if (errors.isNotEmpty()) {
-            html.add(H3("Errors:"))
+            html.add(Html.H3("Errors:"))
             html.add(createLogTable(errors))
         }
         if (showAllMessages && allMessages.isNotEmpty()) {
-            html.add(H3("All messages:"))
+            html.add(Html.H3("All messages:"))
             html.add(createLogTable(allMessages))
         }
     }
@@ -144,11 +144,11 @@ class JobExecutionContext(val producer: AbstractJob) {
     }
 
     private fun addIntro(html: HtmlDocument, index: Int) {
-        html.add(H2("${producer::class.simpleName}: ${producer.title}", id = "job$index"))
+        html.add(Html.H2("${producer::class.simpleName}: ${producer.title}", id = "job$index"))
         when (status) {
-            Status.OK -> html.add(Alert(Alert.Type.SUCCESS, "Status: OK"))
-            Status.WARNINGS -> html.add(Alert(Alert.Type.WARNING, "Status: WARNINGS"))
-            Status.ERRORS -> html.add(Alert(Alert.Type.DANGER, "Status: ERRORS"))
+            Status.OK -> html.add(Html.Alert(Html.Alert.Type.SUCCESS, "Status: OK"))
+            Status.WARNINGS -> html.add(Html.Alert(Html.Alert.Type.WARNING, "Status: WARNINGS"))
+            Status.ERRORS -> html.add(Html.Alert(Html.Alert.Type.DANGER, "Status: ERRORS"))
         }
     }
 
