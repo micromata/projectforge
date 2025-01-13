@@ -79,12 +79,12 @@ class ForecastOrderAnalysis {
         }
         val title = "Forecast Order Analysis for order #${orderInfo.nummer}, ${PFDateTime.now().format()}"
         val html = HtmlDocument(title)
-        html.add(H1(title))
-        html.add(Alert(Alert.Type.INFO).also { div ->
-            div.add(Span("Forecast values are shown in "))
-            div.add(Span("red,", style = "color: red; font-weight: bold;"))
-            div.add(Span(" invoiced amounts in "))
-            div.add(Span("black.", style = "color: black; font-weight: bold;"))
+        html.add(Html.H1(title))
+        html.add(Html.Alert(Html.Alert.Type.INFO).also { div ->
+            div.add(Html.Span("Forecast values are shown in "))
+            div.add(Html.Span("red,", style = "color: red; font-weight: bold;"))
+            div.add(Html.Span(" invoiced amounts in "))
+            div.add(Html.Span("black.", style = "color: black; font-weight: bold;"))
         })
         html.add(HtmlTable().also { table ->
             addRow(table, translate("fibu.auftrag.nummer"), orderInfo.nummer.toString())
@@ -104,7 +104,7 @@ class ForecastOrderAnalysis {
             addRow(table, translate("fibu.notYetInvoiced"), orderInfo.notYetInvoicedSum)
         })
 
-        html.add(H2("${translate("fibu.auftrag.forecast")} all positions")) // Forecast for all positions
+        html.add(Html.H2("${translate("fibu.auftrag.forecast")} all positions")) // Forecast for all positions
         html.add(HtmlTable().also { table ->
             val headRow = table.addHeadRow()
             headRow.addTH(translate("label.position.short"))
@@ -142,7 +142,7 @@ class ForecastOrderAnalysis {
 
         list.forEach { fcPosInfo ->
             val posInfo = fcPosInfo.orderPosInfo
-            html.add(H2("${translate("fibu.auftrag.position")} #${posInfo.number}"))
+            html.add(Html.H2("${translate("fibu.auftrag.position")} #${posInfo.number}"))
             html.add(HtmlTable().also { table ->
                 addRow(table, translate("title"), posInfo.titel)
                 addRow(table, translate("comment"), posInfo.bemerkung)
@@ -167,7 +167,7 @@ class ForecastOrderAnalysis {
                     "${posInfo.periodOfPerformanceBegin.formatForUser()} - ${posInfo.periodOfPerformanceEnd.formatForUser()}"
                 )
             })
-            html.add(H3(translate("fibu.rechnung.rechnungen")))
+            html.add(Html.H3(translate("fibu.rechnung.rechnungen")))
             html.add(HtmlTable().also { table ->
                 table.addHeadRow().also { tr ->
                     tr.addTH(translate("fibu.rechnung.nummer"))
@@ -187,7 +187,7 @@ class ForecastOrderAnalysis {
                     }
                 }
             })
-            html.add(H3(translate("fibu.auftrag.paymentschedule")))
+            html.add(Html.H3(translate("fibu.auftrag.paymentschedule")))
             html.add(HtmlTable().also { table ->
                 table.addHeadRow().also { tr ->
                     tr.addTH(translate("fibu.rechnung.datum.short"))
@@ -204,7 +204,7 @@ class ForecastOrderAnalysis {
                     }
                 }
             })
-            html.add(H3("${translate("fibu.auftrag.forecast")} #${posInfo.number}")) // Forecast current position
+            html.add(Html.H3("${translate("fibu.auftrag.forecast")} #${posInfo.number}")) // Forecast current position
             html.add(HtmlTable().also { table ->
                 val headRow = table.addHeadRow()
                 val row = table.addRow()
@@ -235,7 +235,7 @@ class ForecastOrderAnalysis {
     }
 
     private fun noAnalysis(msg: String): String {
-        return HtmlDocument(msg).add(Alert(Alert.Type.DANGER, msg)).toString()
+        return HtmlDocument(msg).add(Html.Alert(Html.Alert.Type.DANGER, msg)).toString()
     }
 
     private fun addForecastValue(row: HtmlTable.TR, month: ForecastOrderPosInfo.MonthEntry): BigDecimal {

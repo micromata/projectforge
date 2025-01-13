@@ -33,7 +33,7 @@ fun main() {
     row2.addTD("Cell 1")
     row2.addTD("Cell 2")
     doc.add(table)
-    doc.add(Alert(Alert.Type.INFO, "This is an info message."))
+    doc.add(Html.Alert(Html.Alert.Type.INFO, "This is an info message."))
     println(doc.toString())
 }
 
