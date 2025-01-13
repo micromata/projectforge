@@ -49,6 +49,10 @@ class DataTransferBridge {
         this.dataTransferInterface = dataTransferInterface
     }
 
+    fun getPersonalBoxOfUserLink(userId: Long = ThreadLocalUserContext.requiredLoggedInUserId): String? {
+        return dataTransferInterface?.getPersonalBoxOfUserLink(userId)
+    }
+
     fun putFileInUsersInBox(
         filename: String,
         content: ByteArray,

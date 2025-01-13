@@ -25,6 +25,7 @@ package org.projectforge.plugins.datatransfer
 
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
+import org.projectforge.business.configuration.DomainService
 import org.projectforge.common.extensions.formatBytes
 import org.projectforge.datatransfer.DataTransferBridge
 import org.projectforge.datatransfer.DataTransferInterface
@@ -32,6 +33,8 @@ import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.jcr.FileInfo
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
+import org.projectforge.plugins.datatransfer.rest.DataTransferPageRest
+import org.projectforge.rest.core.PagesResolver
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -51,11 +54,29 @@ class DataTransferService : DataTransferInterface {
     @Autowired
     private lateinit var dataTransferBridge: DataTransferBridge
 
+    @Autowired
+    private lateinit var domainService: DomainService
+
     val jcrPath: String by lazy { dataTransferAreaPagesRest.jcrPath!! }
 
     @PostConstruct
     private fun postConstruct() {
         dataTransferBridge.register(this)
+    }
+
+    override fun getPersonalBoxOfUserLink(userId: Long): String {
+        val personalBox = dataTransferAreaDao.ensurePersonalBox(userId)
+            ?: throw IllegalStateException("Personal box not found for user with ID $userId.")
+        return getDataTransferAreaLink(personalBox.id)
+    }
+
+    fun getDataTransferAreaLink(areaId: Long?): String {
+        return domainService.getDomain(
+            PagesResolver.getDynamicPageUrl(
+                DataTransferPageRest::class.java,
+                id = areaId ?: 0
+            )
+        )
     }
 
     override fun putFileInUsersInBox(
