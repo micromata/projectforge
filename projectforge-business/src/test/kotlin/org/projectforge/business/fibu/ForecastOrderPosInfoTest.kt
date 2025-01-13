@@ -87,6 +87,71 @@ class ForecastOrderPosInfoTest {
                 }
             }
         }
+        OrderInfo().also { orderInfo ->  // Order 5850
+            orderInfo.status = AuftragsStatus.ABGESCHLOSSEN
+            orderInfo.periodOfPerformanceBegin = LocalDate.of(2024, Month.JANUARY, 2)
+            orderInfo.periodOfPerformanceEnd = LocalDate.of(2024, Month.DECEMBER, 31)
+            createPos(
+                AuftragsStatus.BEAUFTRAGT, AuftragsPositionsPaymentType.TIME_AND_MATERIALS,
+                PeriodOfPerformanceType.SEEABOVE, netSum = BigDecimal("120000.00")
+            ).also { pos ->
+                pos.invoicedSum = BigDecimal("120000.00")
+                ForecastOrderPosInfo(orderInfo, pos, baseDate = baseDate).also { fcPosInfo ->
+                    fcPosInfo.calculate()
+                    Assertions.assertEquals(13, fcPosInfo.months.size, "September -> March")
+                    for (i in 0..12) {
+                        // December payment is before baseDate.
+                        Assertions.assertEquals(
+                            BigDecimal.ZERO,
+                            fcPosInfo.months[i].toBeInvoicedSum,
+                            "Jan - jan no payments (all is invoiced), ${fcPosInfo.months[i].date} should be 0.00 but is ${fcPosInfo.months[i].toBeInvoicedSum}"
+                        )
+                    }
+                }
+            }
+        }
+        // Test order with big loss of budget:
+        OrderInfo().also { orderInfo ->  // Order 5575
+            orderInfo.status = AuftragsStatus.BEAUFTRAGT
+            orderInfo.periodOfPerformanceBegin = LocalDate.of(2024, Month.JANUARY, 7)
+            orderInfo.periodOfPerformanceEnd = LocalDate.of(2025, Month.JUNE, 30)
+            createPos(
+                AuftragsStatus.BEAUFTRAGT, AuftragsPositionsPaymentType.TIME_AND_MATERIALS,
+                PeriodOfPerformanceType.SEEABOVE, netSum = BigDecimal(1_800_000)
+            ).also { pos ->
+                // Nothing invoiced.
+                ForecastOrderPosInfo(orderInfo, pos, baseDate = baseDate).also { fcPosInfo ->
+                    fcPosInfo.calculate()
+                    Assertions.assertEquals(19, fcPosInfo.months.size, "Jan 24 -> Jul 25")
+                    for (i in 0..11) {
+                        // December payment is before baseDate.
+                        Assertions.assertEquals(
+                            BigDecimal.ZERO,
+                            fcPosInfo.months[i].toBeInvoicedSum,
+                            "Jan - Dec no payments, ${fcPosInfo.months[i].date} should be 0.00 but is ${fcPosInfo.months[i].toBeInvoicedSum}"
+                        )
+                    }
+                    for (i in 12..17) {
+                        // December payment is before baseDate.
+                        Assertions.assertEquals(
+                            BigDecimal(100_000),
+                            fcPosInfo.months[i].toBeInvoicedSum,
+                            "Jan - Jun 2025 , ${fcPosInfo.months[i].date} should be 10,000.00 but is ${fcPosInfo.months[i].toBeInvoicedSum}"
+                        )
+                    }
+                    val remaining = if (ForecastOrderPosInfo.DISTRIBUTE_UNUSED_BUDGET) {
+                        BigDecimal(1_200_000)
+                    } else {
+                        BigDecimal(100_000)
+                    }
+                    Assertions.assertEquals(remaining, fcPosInfo.months[18].toBeInvoicedSum,"remaining in Jul 2025")
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `test fixed price orders`() {
         OrderInfo().also { orderInfo ->  // Order 6215
             orderInfo.status = AuftragsStatus.BEAUFTRAGT
             orderInfo.periodOfPerformanceBegin = LocalDate.of(2024, Month.SEPTEMBER, 2)
@@ -114,29 +179,6 @@ class ForecastOrderPosInfoTest {
                             "21457.33",
                             fcPosInfo.months[i].toBeInvoicedSum.toString(),
                             "payments in January, February and March"
-                        )
-                    }
-                }
-            }
-        }
-        OrderInfo().also { orderInfo ->  // Order 5850
-            orderInfo.status = AuftragsStatus.ABGESCHLOSSEN
-            orderInfo.periodOfPerformanceBegin = LocalDate.of(2024, Month.JANUARY, 2)
-            orderInfo.periodOfPerformanceEnd = LocalDate.of(2024, Month.DECEMBER, 31)
-            createPos(
-                AuftragsStatus.BEAUFTRAGT, AuftragsPositionsPaymentType.TIME_AND_MATERIALS,
-                PeriodOfPerformanceType.SEEABOVE, netSum = BigDecimal("120000.00")
-            ).also { pos ->
-                pos.invoicedSum = BigDecimal("120000.00")
-                ForecastOrderPosInfo(orderInfo, pos, baseDate = baseDate).also { fcPosInfo ->
-                    fcPosInfo.calculate()
-                    Assertions.assertEquals(13, fcPosInfo.months.size, "September -> March")
-                    for (i in 0..12) {
-                        // December payment is before baseDate.
-                        Assertions.assertEquals(
-                            BigDecimal.ZERO,
-                            fcPosInfo.months[i].toBeInvoicedSum,
-                            "Jan - jan no payments (all is invoiced), ${fcPosInfo.months[i].date} should be 0.00 but is ${fcPosInfo.months[i].toBeInvoicedSum}"
                         )
                     }
                 }
@@ -181,6 +223,7 @@ class ForecastOrderPosInfoTest {
         private fun assertSame(expected: String, actual: Number?) {
             TestUtils.assertSame(expected, actual, BigDecimal("0.01"))
         }
+
         private val baseDate = PFDay.of(2025, Month.JANUARY, 8)
     }
 }

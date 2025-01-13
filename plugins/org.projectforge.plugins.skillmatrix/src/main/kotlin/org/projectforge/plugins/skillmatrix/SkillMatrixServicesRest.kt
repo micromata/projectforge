@@ -26,6 +26,7 @@ package org.projectforge.plugins.skillmatrix
 import de.micromata.merlin.excel.ExcelCellType
 import de.micromata.merlin.excel.ExcelWorkbook
 import mu.KotlinLogging
+import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateHelper
@@ -72,12 +73,12 @@ class SkillMatrixServicesRest {
 
     ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
       val sheet = workbook.createOrGetSheet(translate("plugins.skillmatrix.title.list"))
-      val boldFont = workbook.createOrGetFont("bold", bold = true)
+      val boldFont = ExcelUtils.createFont(workbook, "bold", bold = true)
       val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
       val decimalStyle = workbook.createOrGetCellStyle("decimal")
       decimalStyle.dataFormat = workbook.createDataFormat().getFormat("0.0")
       val headRow = sheet.createRow()
-      ExcelCol.values().forEach {
+      ExcelCol.entries.forEach {
         headRow.getCell(it.ordinal, ExcelCellType.STRING)
           .setCellValue(
             if (it.header != "#") {

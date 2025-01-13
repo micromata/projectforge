@@ -24,7 +24,11 @@
 package org.projectforge.jobs
 
 import org.projectforge.common.extensions.abbreviate
-import org.projectforge.common.html.*
+import org.projectforge.common.extensions.formatMillis
+import org.projectforge.common.html.CssClass
+import org.projectforge.common.html.Html
+import org.projectforge.common.html.HtmlDocument
+import org.projectforge.common.html.HtmlTable
 import org.projectforge.jobs.JobExecutionContext.Status
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -32,6 +36,7 @@ import java.util.*
 
 class JobListExecutionContext {
     val jobs = mutableListOf<JobExecutionContext>()
+    val startTime = System.currentTimeMillis()
 
     val status: Status
         get() = when {
@@ -46,29 +51,32 @@ class JobListExecutionContext {
 
     fun getReportAsHtml(showAllMessages: Boolean = true): String {
         val html = HtmlDocument(title)
-        html.add(H1(title))
+        html.add(Html.H1(title))
+        val time = "(Execution time in total: ${(System.currentTimeMillis() - startTime).formatMillis(showMillis = false)})"
         when (status) {
-            Status.OK -> html.add(Alert(Alert.Type.SUCCESS, "All checks passed successfully."))
-            Status.WARNINGS -> html.add(Alert(Alert.Type.WARNING, "Some checks passed with warnings."))
-            Status.ERRORS -> html.add(Alert(Alert.Type.DANGER, "Some errors occurred!"))
+            Status.OK -> html.add(Html.Alert(Html.Alert.Type.SUCCESS, "All checks passed successfully. $time"))
+            Status.WARNINGS -> html.add(Html.Alert(Html.Alert.Type.WARNING, "Some checks passed with warnings. $time"))
+            Status.ERRORS -> html.add(Html.Alert(Html.Alert.Type.DANGER, "Some errors occurred! $time"))
         }
         html.add(HtmlTable().also { table ->
             table.addHeadRow().also { tr ->
                 tr.addTH("Producer", cssClass = CssClass.FIXED_WIDTH_NO_WRAP)
                 tr.addTH("Status", cssClass = CssClass.FIXED_WIDTH_NO_WRAP)
+                tr.addTH("Duration", cssClass = CssClass.FIXED_WIDTH_NO_WRAP)
                 tr.addTH("Job", cssClass = CssClass.EXPAND)
             }
             sortedJobs.forEachIndexed { index, job ->
                 val cssClass = getCssClass(job.status) ?: CssClass.SUCCESS
                 table.addRow().also { tr ->
-                    tr.addTD().also { it.add(A("#job$index", job.producer::class.simpleName!!)) }
-                    tr.addTD(cssClass = cssClass).also { it.add(A("#job$index", job.status.toString())) }
-                    tr.addTD().also { it.add(A("#job$index", job.producer.title)) }
+                    tr.addTD().also { it.add(Html.A("#job$index", job.producer::class.simpleName!!)) }
+                    tr.addTD(cssClass = cssClass).also { it.add(Html.A("#job$index", job.status.toString())) }
+                    tr.addTD(job.durationInMs.formatMillis())
+                    tr.addTD().also { it.add(Html.A("#job$index", job.producer.title)) }
                 }
             }
         })
-        sortedJobs.forEachIndexed { index, job ->
-            job.addReportAsHtml(html, index, showAllMessages)
+        sortedJobs.forEachIndexed { index, jobExecutionContext ->
+            jobExecutionContext.addReportAsHtml(html, index, jobExecutionContext, showAllMessages)
         }
         return html.toString()
     }

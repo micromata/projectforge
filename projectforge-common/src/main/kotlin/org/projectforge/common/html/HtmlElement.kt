@@ -62,6 +62,11 @@ open class HtmlElement(
     }
 
     open fun append(sb: StringBuilder, indent: Int) {
+        if (this is Html.Text) {
+            // Special case for text elements: Just append the content
+            sb.append(escape(content))
+            return
+        }
         if (children.isNullOrEmpty() && content.isNullOrEmpty()) {
             indent(sb, indent)
             sb.append("<$tag")

@@ -52,7 +52,7 @@ class DataTransferSanityCheckJob : AbstractJob("Check data transfer files.") {
         cronSanityCheckJob.registerJob(this)
     }
 
-    override fun execute(jobContext: JobExecutionContext) {
+    override fun executeJob() {
         var areaCounter = 0
         var missingInJcrCounter = 0
         var orphanedCounter = 0
@@ -73,38 +73,38 @@ class DataTransferSanityCheckJob : AbstractJob("Check data transfer files.") {
                     // No attachments given/expected, nothing to check.
                     return@forEach
                 }
-                jobContext.addMessage("Checking data transfer area $areaName with ${attachmentsCounter} attachments.")
+                jobExecutionContext.addMessage("Checking data transfer area $areaName with ${attachmentsCounter} attachments.")
                 attachments?.forEach { attachment ->
                     if (attachment.size == 0L) {
-                        jobContext.addWarning("Empty attachment ${attachment.name} in area $areaName.")
+                        jobExecutionContext.addWarning("Empty attachment ${attachment.name} in area $areaName.")
                     }
                 }
                 if (attachmentsCounter != attachments?.size) {
-                    jobContext.addWarning("Attachments counter in area $areaName is ${attachmentsCounter}, but found ${attachments?.size} attachments.")
+                    jobExecutionContext.addWarning("Attachments counter in area $areaName is ${attachmentsCounter}, but found ${attachments?.size} attachments.")
                 }
                 val areaAttachmentIds = area.attachmentsIds?.split(" ")?.filter { it.isNotBlank() } ?: emptyList()
                 val jcrAttachmentIds = attachments?.map { it.fileId.toString() } ?: emptyList()
                 val missingInJcr = areaAttachmentIds - jcrAttachmentIds
                 val unknown = jcrAttachmentIds - areaAttachmentIds
                 if (missingInJcr.isNotEmpty()) {
-                    jobContext.addError("${missingInJcr.size}/$attachmentsCounter attachments missing in JCR for area $areaName: ${missingInJcr.joinToString()}")
+                    jobExecutionContext.addError("${missingInJcr.size}/$attachmentsCounter attachments missing in JCR for area $areaName: ${missingInJcr.joinToString()}")
                     missingInJcrCounter += missingInJcr.size
                 }
                 if (unknown.isNotEmpty()) {
-                    jobContext.addWarning("${unknown.size} unknown (orphaned) attachments in JCR for area $areaName: ${unknown.joinToString()}")
+                    jobExecutionContext.addWarning("${unknown.size} unknown (orphaned) attachments in JCR for area $areaName: ${unknown.joinToString()}")
                     orphanedCounter += unknown.size
                 }
             } catch (ex: Exception) {
-                jobContext.addWarning("Error while checking data transfer area $areaName: ${ex.message}")
+                jobExecutionContext.addWarning("Error while checking data transfer area $areaName: ${ex.message}")
             }
         }
         val baseMsg = "Checked ${fileCounter.format()} files in ${areaCounter.format()} data transfer areas"
         if (missingInJcrCounter > 0 ) {
-            jobContext.addError("$baseMsg: $missingInJcrCounter missed, $orphanedCounter orphaned attachments.")
+            jobExecutionContext.addError("$baseMsg: $missingInJcrCounter missed, $orphanedCounter orphaned attachments.")
         } else if (orphanedCounter > 0) {
-            jobContext.addWarning("$baseMsg: $orphanedCounter orphaned attachments.")
+            jobExecutionContext.addWarning("$baseMsg: $orphanedCounter orphaned attachments.")
         } else {
-            jobContext.addMessage("$baseMsg.")
+            jobExecutionContext.addMessage("$baseMsg.")
         }
     }
 }
