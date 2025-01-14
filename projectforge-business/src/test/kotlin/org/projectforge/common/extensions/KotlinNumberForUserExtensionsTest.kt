@@ -26,7 +26,6 @@ package org.projectforge.common.extensions
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.utils.NumberFormatter.formatCurrency
 import java.math.BigDecimal
 import java.util.*
 
@@ -93,6 +92,10 @@ class KotlinNumberForUserExtensionsTest {
         Assertions.assertEquals("", null.formatCurrency())
         Assertions.assertEquals("10.00", BigDecimal.TEN.formatCurrency())
         Assertions.assertEquals("10.00 €", BigDecimal.TEN.formatCurrency(true))
+
+        Assertions.assertEquals("11", BigDecimal("10.5").formatCurrency(scale = 0))
+        Assertions.assertEquals("11 €", BigDecimal("10.5").formatCurrency(true, scale = 0))
+        Assertions.assertEquals("-11 €", BigDecimal("-10.5").formatCurrency(true, scale = 0))
     }
 
 

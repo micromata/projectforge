@@ -26,6 +26,7 @@ package org.projectforge.common.extensions
 import org.projectforge.common.FormatterUtils
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.math.RoundingMode
 import java.text.NumberFormat
 import java.util.*
 import kotlin.math.absoluteValue
@@ -42,14 +43,13 @@ fun Number?.format(locale: Locale? = null, scale: Int? = null): String {
     if (scale != null) {
         format.maximumFractionDigits = scale
         format.minimumFractionDigits = scale
+        format.roundingMode = RoundingMode.HALF_UP
     }
     return when (this) {
-        is BigDecimal -> format.format(this)
-        is BigInteger -> format.format(this)
-        is Double -> format.format(this)
-        is Float -> format.format(this)
-        is Int -> format.format(this)
-        is Long -> format.format(this)
+        is BigDecimal, is BigInteger, is Double, is Float, is Int, is Long -> {
+            format.format(this)
+        }
+
         else -> format.format(this.toDouble())
     }
 }
