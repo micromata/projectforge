@@ -169,9 +169,6 @@ class UserPagesRest
     return super.prepareClone(dto)
   }
 
-  override val classicsLinkListUrl: String
-    get() = "wa/userList"
-
   /**
    * LAYOUT List page
    */

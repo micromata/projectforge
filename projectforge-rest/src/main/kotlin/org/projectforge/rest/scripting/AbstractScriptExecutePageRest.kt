@@ -366,9 +366,11 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
                     }
                 )
             )
-            parameter.description?.let {
-                row.add(UICol().add(UIAlert(message = it, color = UIColor.LIGHT, markdown = true)))
-            }
+            row.add(UICol().also { col ->
+                parameter.description?.let {
+                    col.add(UIAlert(message = it, color = UIColor.LIGHT, markdown = true))
+                }
+            })
         })
     }
 
