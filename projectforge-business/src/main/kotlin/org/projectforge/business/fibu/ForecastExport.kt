@@ -34,6 +34,8 @@ import org.projectforge.business.excel.ExcelDateFormats
 import org.projectforge.business.excel.XlsContentProvider
 import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotsService
+import org.projectforge.business.scripting.ScriptLogger
+import org.projectforge.business.scripting.ThreadLocalScriptingContext
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.common.DateFormatType
@@ -181,12 +183,22 @@ open class ForecastExport { // open needed by Wicket.
         filter.periodOfPerformanceStartDate =
             startDate.plusYears(-2).localDate // Go 2 years back for getting all orders referred by invoices of prior year.
         filter.user = origFilter.user
+        val scriptLogger = ThreadLocalScriptingContext.getLogger()
+        val msg = StringBuilder("Exporting forecast script for date ${startDate.isoString}")
+        if (snapshotDate != null) {
+            msg.append(" with snapshotDate ${snapshotDate}")
+        } else if (!filter.searchString.isNullOrBlank()) {
+            msg.append(" with filter: str='${filter.searchString}'")
+        }
+        if (!filter.projectList.isNullOrEmpty()) {
+            msg.append(", projects=${filter.projectList?.joinToString { it.name ?: "???" }}")
+        }
         val orderList = if (snapshotDate != null) {
-            log.info { "Exporting forecast script for date ${startDate.isoString} with snapshotDate ${snapshotDate}, projects=${filter.projectList?.joinToString { it.name ?: "???" }}" }
+            scriptLogger?.info { msg } ?: log.info { msg }
             orderbookSnapshotsService.readSnapshot(snapshotDate)?.filter { filter.match(it) }
                 ?.sortedByDescending { it.nummer } ?: emptyList()
         } else {
-            log.info { "Exporting forecast script for date ${startDate.isoString} with filter: str='${filter.searchString ?: ""}', projects=${filter.projectList?.joinToString { it.name ?: "???" }}" }
+            scriptLogger?.info { msg } ?: log.info { msg }
             orderDao.select(filter)
         }
         val showAll = accessChecker.isLoggedInUserMemberOfGroup(
@@ -195,7 +207,13 @@ open class ForecastExport { // open needed by Wicket.
         ) &&
                 filter.searchString.isNullOrBlank() &&
                 filter.projectList.isNullOrEmpty()
-        return xlsExport(orderList, startDate = startDate, snapshotDate = snapshotDate, showAll = showAll)
+        return xlsExport(
+            orderList,
+            startDate = startDate,
+            snapshotDate = snapshotDate,
+            showAll = showAll,
+            scriptLogger = scriptLogger
+        )
     }
 
     private fun getStartDate(origFilter: AuftragFilter): PFDay {
@@ -237,14 +255,16 @@ open class ForecastExport { // open needed by Wicket.
      * @return The byte array of the Excel file.
      */
     @Throws(IOException::class)
-    open fun xlsExport(
+    private fun xlsExport(
         orderList: Collection<AuftragDO>,
         startDate: PFDay,
         showAll: Boolean,
-        snapshotDate: LocalDate? = null,
+        snapshotDate: LocalDate?,
+        scriptLogger: ScriptLogger?,
     ): ByteArray? {
         if (orderList.isEmpty()) {
-            log.info { "No orders found for export." }
+            val msg = "No orders found for export."
+            scriptLogger?.info { msg } ?: log.info { msg } // scriptLogger does also log.info
             // No orders found, so we don't need the forecast sheet.
             return null
         }
@@ -344,7 +364,8 @@ open class ForecastExport { // open needed by Wicket.
                 }
             }
             if (!orderPositionFound) {
-                log.info { "No orders positions found for export." }
+                val msg = "No orders positions found for export."
+                scriptLogger?.info { msg } ?: log.info { msg } // scriptLogger does also log.info
                 // No order positions found, so we don't need the forecast sheet.
                 return null
             }
@@ -372,7 +393,7 @@ open class ForecastExport { // open needed by Wicket.
                     cell.evaluateFormularCell()
                 }
             }
-
+            workbook.pOIWorkbook.creationHelper.createFormulaEvaluator().evaluateAll()
             return workbook.asByteArrayOutputStream.toByteArray()
         }
     }
@@ -629,7 +650,7 @@ open class ForecastExport { // open needed by Wicket.
                     translateMsg(
                         "fibu.auftrag.forecast.lostBudgetWarning",
                         ForecastOrderPosInfo.PERCENTAGE_OF_LOST_BUDGET_WARNING,
-                        monthEntry.lostBudget.formatCurrency()
+                        monthEntry.lostBudget.formatCurrency(true, scale = 0)
                     )
                 ).cellStyle = ctx.errorCellStyle
                 highlightErrorCell(ctx, row, columnDef.columnNumber)
