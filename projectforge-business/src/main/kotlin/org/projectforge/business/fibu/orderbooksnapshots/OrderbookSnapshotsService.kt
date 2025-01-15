@@ -45,6 +45,7 @@ import java.util.*
 import java.util.zip.Deflater
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
+import kotlin.math.abs
 
 private val log = KotlinLogging.logger {}
 
@@ -188,6 +189,13 @@ class OrderbookSnapshotsService {
         return rawSnapshot
     }
 
+    fun selectClosestSnapshotDate(date: LocalDate?): LocalDate? {
+        date ?: return null
+        selectMetas(onlyFullBackups = false).also { entries ->
+            return entries.minByOrNull { abs((it.date?.toEpochDay() ?: 0L) - date.toEpochDay()) }?.date
+        }
+    }
+
     fun readSnapshot(date: LocalDate): List<AuftragDO>? {
         val orderbook = mutableMapOf<Long, Order>()
         readSnapshot(date, orderbook)
@@ -284,7 +292,7 @@ class OrderbookSnapshotsService {
         return byteArrayOutputStream.toByteArray()
     }
 
-    fun gunzip(compressed: ByteArray): String {
+    private fun gunzip(compressed: ByteArray): String {
         val byteArrayInputStream = ByteArrayInputStream(compressed)
         GZIPInputStream(byteArrayInputStream).use { gzipStream ->
             return gzipStream.readBytes().toString(Charsets.UTF_8)

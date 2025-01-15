@@ -23,13 +23,10 @@
 
 package org.projectforge.business.fibu
 
-import de.micromata.merlin.I18n
 import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
-import de.micromata.merlin.excel.ExcelWriterContext
 import mu.KotlinLogging
 import org.apache.poi.ss.usermodel.IndexedColors
-import org.projectforge.Constants
 import org.projectforge.business.excel.ExcelDateFormats
 import org.projectforge.business.excel.XlsContentProvider
 import org.projectforge.business.fibu.kost.ProjektCache
@@ -146,14 +143,42 @@ open class ForecastExport { // open needed by Wicket.
         val percentageCellStyle = workbook.createOrGetCellStyle("DataFormat.percentage")
         val boldRedFont = ExcelUtils.createFont(
             workbook,
-            "boldRed",
+            "boldRedFont",
             bold = true,
             heightInPoints = 10,
-            color = IndexedColors.RED.index,
+            color = IndexedColors.DARK_RED.index,
         )
+        val boldRedLargeFont = ExcelUtils.cloneFont(workbook, "boldRedLargeFont", boldRedFont, heightInPoints = 12)
+        val boldRedHugeFont = ExcelUtils.cloneFont(workbook, "boldRedLargeFont", boldRedFont, heightInPoints = 14)
         val errorCellStyle = ExcelUtils.createCellStyle(workbook, "error", font = boldRedFont)
-        val writerContext =
-            ExcelWriterContext(I18n(Constants.RESOURCE_BUNDLE_NAME, ThreadLocalUserContext.locale), workbook)
+        val largeErrorCellStyle = ExcelUtils.cloneStyle(
+            workbook,
+            "largeError",
+            errorCellStyle,
+            fillForegroundColor = IndexedColors.LIGHT_YELLOW,
+            font = boldRedLargeFont
+        )
+        val hugeErrorCellStyle = ExcelUtils.cloneStyle(
+            workbook,
+            "hugeError",
+            errorCellStyle,
+            fillForegroundColor = IndexedColors.LIGHT_ORANGE,
+            font = boldRedHugeFont
+        )
+        init {
+            currencyCellStyle.dataFormat = workbook.getDataFormat(XlsContentProvider.FORMAT_CURRENCY)
+            percentageCellStyle.dataFormat = workbook.getDataFormat("0%")
+            boldRedFont.fontName = "Arial"
+        }
+
+        val errorCurrencyCellStyle = // currencyCellStyle of errorCellStyle must be set before.
+            ExcelUtils.cloneStyle(
+                workbook,
+                "errorCurrency",
+                currencyCellStyle,
+                font = boldRedFont,
+                fillForegroundColor = IndexedColors.LIGHT_YELLOW,
+            )
         val orderMap = mutableMapOf<Long, OrderInfo>()
 
         // All projects of the user used in the orders to show also invoices without order, but with assigned project:
@@ -162,12 +187,6 @@ open class ForecastExport { // open needed by Wicket.
             false // showAll is true, if no filter is given and for financial and controlling staff only.
         val orderPositionMap = mutableMapOf<Long, OrderPositionInfo>()
         val orderMapByPositionId = mutableMapOf<Long, OrderInfo>()
-
-        init {
-            currencyCellStyle.dataFormat = workbook.getDataFormat(XlsContentProvider.FORMAT_CURRENCY)
-            percentageCellStyle.dataFormat = workbook.getDataFormat("0%")
-            boldRedFont.fontName = "Arial"
-        }
     }
 
     @JvmOverloads
@@ -184,21 +203,31 @@ open class ForecastExport { // open needed by Wicket.
             startDate.plusYears(-2).localDate // Go 2 years back for getting all orders referred by invoices of prior year.
         filter.user = origFilter.user
         val scriptLogger = ThreadLocalScriptingContext.getLogger()
-        val msg = StringBuilder("Exporting forecast script for date ${startDate.isoString}")
+        var closesSnapshotDate = snapshotDate
         if (snapshotDate != null) {
-            msg.append(" with snapshotDate ${snapshotDate}")
+            orderbookSnapshotsService.selectClosestSnapshotDate(snapshotDate)?.let {
+                closesSnapshotDate = it
+            }
+            if (closesSnapshotDate != snapshotDate) {
+                val msg = "No snapshot found for date $snapshotDate. Using closest snapshot date $closesSnapshotDate."
+                scriptLogger?.warn { msg } ?: log.warn { msg }
+            }
+        }
+        val msgSB = StringBuilder("Exporting forecast script for date ${startDate.isoString}")
+        if (closesSnapshotDate != null) {
+            msgSB.append(" with snapshotDate ${closesSnapshotDate}")
         } else if (!filter.searchString.isNullOrBlank()) {
-            msg.append(" with filter: str='${filter.searchString}'")
+            msgSB.append(" with filter: str='${filter.searchString}'")
         }
         if (!filter.projectList.isNullOrEmpty()) {
-            msg.append(", projects=${filter.projectList?.joinToString { it.name ?: "???" }}")
+            msgSB.append(", projects=${filter.projectList?.joinToString { it.name ?: "???" }}")
         }
-        val orderList = if (snapshotDate != null) {
-            scriptLogger?.info { msg } ?: log.info { msg }
-            orderbookSnapshotsService.readSnapshot(snapshotDate)?.filter { filter.match(it) }
+        val orderList = if (closesSnapshotDate != null) {
+            scriptLogger?.info { msgSB } ?: log.info { msgSB }
+            orderbookSnapshotsService.readSnapshot(closesSnapshotDate!!)?.filter { filter.match(it) }
                 ?.sortedByDescending { it.nummer } ?: emptyList()
         } else {
-            scriptLogger?.info { msg } ?: log.info { msg }
+            scriptLogger?.info { msgSB } ?: log.info { msgSB }
             orderDao.select(filter)
         }
         val showAll = accessChecker.isLoggedInUserMemberOfGroup(
@@ -210,7 +239,7 @@ open class ForecastExport { // open needed by Wicket.
         return xlsExport(
             orderList,
             startDate = startDate,
-            snapshotDate = snapshotDate,
+            snapshotDate = closesSnapshotDate,
             showAll = showAll,
             scriptLogger = scriptLogger
         )
@@ -240,7 +269,8 @@ open class ForecastExport { // open needed by Wicket.
     ): String {
         val startDateString = "-start_${startDate.year}-${startDate.monthValue.format2Digits()}"
         val partString = if (part.isNullOrBlank()) "" else "-$part"
-        val snapshotString = if (snapshot != null) "-snapshot_${snapshot}" else ""
+        val useSnapshot = orderbookSnapshotsService.selectClosestSnapshotDate(snapshot)
+        val snapshotString = if (useSnapshot != null) "-snapshot_${useSnapshot}" else ""
         return "Forecast$partString$snapshotString${startDateString}-created_${DateHelper.getDateAsFilenameSuffix(Date())}${extension ?: ""}"
     }
 
@@ -644,30 +674,24 @@ open class ForecastExport { // open needed by Wicket.
                 )
             cell.cellStyle = ctx.currencyCellStyle
             if (monthEntry.lostBudgetWarning) {
+                val errorStyle = when {
+                    monthEntry.lostBudget > NumberHelper.HUNDRED_THOUSAND -> ctx.hugeErrorCellStyle
+                    monthEntry.lostBudget > NumberHelper.TEN_THOUSAND -> ctx.largeErrorCellStyle
+                    else -> ctx.errorCellStyle
+                }
                 sheet.setStringValue(
                     row,
                     ForecastCol.WARNING.header,
                     translateMsg(
                         "fibu.auftrag.forecast.lostBudgetWarning",
+                        monthEntry.lostBudget.formatCurrency(true, scale = 0),
+                        monthEntry.lostBudgetPercent,
                         ForecastOrderPosInfo.PERCENTAGE_OF_LOST_BUDGET_WARNING,
-                        monthEntry.lostBudget.formatCurrency(true, scale = 0)
                     )
-                ).cellStyle = ctx.errorCellStyle
-                highlightErrorCell(ctx, row, columnDef.columnNumber)
+                ).cellStyle = errorStyle
+                sheet.getCell(row, columnDef.columnNumber)?.cellStyle = ctx.errorCurrencyCellStyle
             }
         }
-    }
-
-    private fun highlightErrorCell(ctx: Context, rowNumber: Int, colNumber: Int) {
-        val excelRow = ctx.forecastSheet.getRow(rowNumber)
-        val excelCell = excelRow.getCell(colNumber)
-        ctx.writerContext.cellHighlighter.highlightErrorCell(
-            excelCell,
-            ctx.writerContext,
-            ctx.forecastSheet,
-            ctx.forecastSheet.getColumnDef(0),
-            excelRow
-        )
     }
 
     private fun getMonthIndex(ctx: Context, date: PFDay): Int {
