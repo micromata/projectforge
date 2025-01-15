@@ -26,7 +26,7 @@ package org.projectforge.business.fibu
 import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
 import mu.KotlinLogging
-import org.apache.poi.ss.usermodel.IndexedColors
+import org.jetbrains.kotlin.cfg.pseudocode.or
 import org.projectforge.business.fibu.ForecastExportContext.*
 import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotsService
 import org.projectforge.business.scripting.ScriptLogger
@@ -35,7 +35,6 @@ import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.common.extensions.format2Digits
 import org.projectforge.common.extensions.formatCurrency
-import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -110,7 +109,7 @@ open class ForecastExport { // open needed by Wicket.
         val closestSnapshotDate = getClosestSnapshotDate(snapshotDate, scriptLogger, "snapshot")
         val msgSB = StringBuilder("Exporting forecast script with start date ${startDate.isoString}")
         if (closestPlanningDate != null) {
-            msgSB.append(" with planningDate ${closestSnapshotDate}")
+            msgSB.append(" with planningDate ${closestPlanningDate}")
         }
         if (closestSnapshotDate != null) {
             msgSB.append(" with snapshotDate ${closestSnapshotDate}")
@@ -120,8 +119,7 @@ open class ForecastExport { // open needed by Wicket.
         }
         scriptLogger?.info { msgSB } ?: log.info { msgSB }
         val orderList = if (closestSnapshotDate != null) {
-            orderbookSnapshotsService.readSnapshot(closestSnapshotDate)?.filter { filter.match(it) }
-                ?.sortedByDescending { it.nummer } ?: emptyList()
+            readSnapshot(closestSnapshotDate, filter)
         } else {
             orderDao.select(filter)
         }
@@ -160,7 +158,7 @@ open class ForecastExport { // open needed by Wicket.
 
     private fun getClosestSnapshotDate(date: LocalDate?, scriptLogger: ScriptLogger?, name: String): LocalDate? {
         date ?: return null
-        val closestDate = orderbookSnapshotsService.selectClosestSnapshotDate(date)
+        val closestDate = orderbookSnapshotsService.findClosestSnapshotDate(date)
         if (closestDate != date) {
             val msg = "No $name found for date $date. Using closest $name date $closestDate."
             scriptLogger?.warn { msg } ?: log.warn { msg }
@@ -184,9 +182,9 @@ open class ForecastExport { // open needed by Wicket.
     ): String {
         val startDateString = "-start_${startDate.year}-${startDate.monthValue.format2Digits()}"
         val partString = if (part.isNullOrBlank()) "" else "-$part"
-        val usePlanningDate = orderbookSnapshotsService.selectClosestSnapshotDate(planningDate)
+        val usePlanningDate = orderbookSnapshotsService.findClosestSnapshotDate(planningDate)
         val planningDateString = if (planningDate != null) "-planning_${usePlanningDate}" else ""
-        val useSnapshot = orderbookSnapshotsService.selectClosestSnapshotDate(snapshot)
+        val useSnapshot = orderbookSnapshotsService.findClosestSnapshotDate(snapshot)
         val snapshotString = if (useSnapshot != null) "-snapshot_${useSnapshot}" else ""
         return "Forecast$partString$planningDateString$snapshotString${startDateString}-created_${
             DateHelper.getDateAsFilenameSuffix(
@@ -370,8 +368,7 @@ open class ForecastExport { // open needed by Wicket.
 
     private fun fillPlanningForecast(planningDate: LocalDate?, auftragFilter: AuftragFilter, ctx: Context) {
         planningDate ?: return
-        val orderList = orderbookSnapshotsService.readSnapshot(planningDate)?.filter { auftragFilter.match(it) }
-            ?.sortedByDescending { it.nummer } ?: return
+        val orderList = readSnapshot(planningDate, auftragFilter) ?: return
         fillOrderPositions(orderList, ctx, ctx.planningSheet, baseDate = planningDate, useAuftragsCache = false)
     }
 
@@ -558,6 +555,11 @@ open class ForecastExport { // open needed by Wicket.
                 sheet.getCell(row, columnDef.columnNumber)?.cellStyle = ctx.errorCurrencyCellStyle
             }
         }
+    }
+
+    private fun readSnapshot(date: LocalDate, filter: AuftragFilter): List<AuftragDO> {
+       return orderbookSnapshotsService.readSnapshot(date)?.filter { filter.match(it) }
+            ?.sortedByDescending { it.nummer } ?: emptyList()
     }
 
     companion object {

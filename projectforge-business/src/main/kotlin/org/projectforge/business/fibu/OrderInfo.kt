@@ -128,6 +128,10 @@ class OrderInfo : Serializable {
         periodOfPerformanceEnd = order.periodOfPerformanceEnd
         contactPerson = order.contactPerson
         bemerkung = order.bemerkung.abbreviate(30)
+        updatePaymentScheduleEntries(paymentSchedules)
+    }
+
+    fun updatePaymentScheduleEntries(paymentSchedules: Collection<PaymentScheduleDO>?) {
         paymentSchedules?.let { this.paymentScheduleEntries = it.map { PaymentScheduleInfo(it) } }
     }
 
