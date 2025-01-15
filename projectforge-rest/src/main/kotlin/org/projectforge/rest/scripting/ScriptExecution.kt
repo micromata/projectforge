@@ -164,6 +164,10 @@ class ScriptExecution {
                 is ExportJson -> {
                     exportJson(request, result, scriptExecutionResult)
                 }
+
+                is ExportFile -> {
+                    exportFile(request, result, scriptExecutionResult)
+                }
             }
         }
         return scriptExecutionResult
@@ -274,6 +278,24 @@ class ScriptExecution {
                 request,
                 filename,
                 JsonUtils.toJson(exportJson.result).toByteArray(StandardCharsets.UTF_8),
+                scriptExecutionResult,
+            )
+        } catch (ex: Exception) {
+            scriptExecutionResult.exception = ex
+            log.error(ex.message, ex)
+        }
+    }
+
+    private fun exportFile(
+        request: HttpServletRequest,
+        exportFile: ExportFile,
+        scriptExecutionResult: ScriptExecutionResult,
+    ) {
+        try {
+            storeDownloadFile(
+                request,
+                exportFile.filename,
+                exportFile.content ?: ByteArray(0),
                 scriptExecutionResult,
             )
         } catch (ex: Exception) {
