@@ -27,7 +27,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import mu.KotlinLogging
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.time.PFDay
-import org.projectforge.framework.utils.NumberHelper
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -64,6 +63,8 @@ class ForecastOrderPosInfo(
 
         /** Mark this month as error. */
         var lostBudgetWarning: Boolean = false
+
+        var lostBudgetPercent = 0
     }
 
     class PaymentEntryInfo(val scheduleDate: LocalDate, val amount: BigDecimal)
@@ -236,7 +237,16 @@ class ForecastOrderPosInfo(
                         }
                         if (futureInvoicesAmountRest > partlyNetSum) {
                             monthEntry.lostBudget = futureInvoicesAmountRest - partlyNetSum
-                            if (isUnderBudgetWarning(budget = probabilityNetSum, unused = monthEntry.lostBudget)) {
+                            monthEntry.lostBudgetPercent =
+                                if (probabilityNetSum > BigDecimal.ZERO) {
+                                    (monthEntry.lostBudget * BigDecimal(100)).divide(
+                                        probabilityNetSum,
+                                        RoundingMode.HALF_UP
+                                    ).toInt()
+                                } else {
+                                    0
+                                }
+                            if (monthEntry.lostBudgetPercent >= PERCENTAGE_OF_LOST_BUDGET_WARNING) {
                                 monthEntry.lostBudgetWarning = true
                             }
                         }
@@ -284,19 +294,12 @@ class ForecastOrderPosInfo(
         } while (month <= monthUntil && paranoidCounter-- > 0)
     }
 
-    private fun isUnderBudgetWarning(budget: BigDecimal, unused: BigDecimal): Boolean {
-        val percentOfBudget = budget.multiply(PERCENTAGE_OF_LOST_BUDGET_WARNING_BD) // 10% of budget
-        return unused > percentOfBudget
-    }
-
     override fun toString(): String {
         return ToStringUtil.toJsonString(this)
     }
 
     companion object {
         const val PERCENTAGE_OF_LOST_BUDGET_WARNING = 10
-        private val PERCENTAGE_OF_LOST_BUDGET_WARNING_BD =
-            BigDecimal(PERCENTAGE_OF_LOST_BUDGET_WARNING).divide(NumberHelper.HUNDRED)
 
         /**
          * If true, unused budget will be added to the last distributed month.
