@@ -1,4 +1,6 @@
 Aktuell:
+- KI-Anteil in Zeitberichten
+- Viewpage für user für non-admins.
 - Scripting: Ergebnis Unresolved reference 'memo', 'todo'.: line 94 to 94 (add only activated plugins)
 - Can't get value type from 'org.projectforge.business.timesheet.TimesheetPrefData'. Class not found (old incompatible ProjectForge version)?
 - Summen in DB-Exporten eintragen und serverseitig evaluieren.
@@ -60,12 +62,27 @@ docker volume rm <volume-name>
 
 Postgresql-Dump-Imports bechleunigen:
 
+docker run --name projectforge-postgres -p 127.0.0.1:5432:5432 -e POSTGRES_PASSWORD=$PGPASSWORD -e POSTGRES_USER=projectforge -d postgres:13.18
+docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:13.18 psql -h postgres -U projectforge
+
 ALTER SYSTEM SET fsync = off;
 ALTER SYSTEM SET synchronous_commit = off;
 SET maintenance_work_mem = '512MB';
 
+gunzip projectforge-*.sql.gz
+docker run -v ~/ProjectForgeBackup/pf.sql:/mnt/pf.sql -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:13.18 psql -h postgres -U projectforge -q -f /mnt/pf.sql
 
 drop view v_t_pf_user;
+update t_pf_user_password SET password_hash='SHA{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', password_salt=null;
+update t_pf_user SET password='SHA{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', password_salt=null, email='m.developer@localhost';
+update t_calendar set ext_subscription=false;
+insert into t_pf_user_password (pk,deleted,user_id,password_hash) values(2,false,2,'SHA{BC871652288E56E306CFA093BEFC3FFCD0ED8872}');
+
+Orderbook-Export über die GUI Auftragsbuch -> Dev: export order book
+
+\c postgres;
+DROP DATABASE projectforge;
+CREATE DATABASE projectforge;
 
 
 Orderbooks importieren:
@@ -75,5 +92,7 @@ docker cp ~/ProjectForgeBackup/ProjectForge-Orderbook_*.gz projectforge-postgres
 INSERT INTO t_fibu_orderbook_snapshots (date, created, serialized_orderbook, size)  VALUES ('2023-11-01', NOW(), pg_read_binary_file(:'file_path')::bytea, (pg_stat_file(:'file_path')).size);
 
 docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:13.18 pg_dump -h postgres -U projectforge --data-only --column-inserts  --table=t_fibu_orderbook_snapshots
-
+remove duplicates
 psql -f export.sql
+
+

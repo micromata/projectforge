@@ -39,37 +39,15 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
-import org.springframework.web.context.request.async.AsyncRequestNotUsableException
-import org.springframework.web.context.request.async.AsyncRequestTimeoutException
 import org.springframework.web.multipart.MaxUploadSizeExceededException
-import java.io.IOException
-import java.net.NoRouteToHostException
 
 private val log = KotlinLogging.logger {}
 
 @ControllerAdvice
 internal class GlobalDefaultExceptionHandler {
-    private class ExInfo(
-        val message: String? = null,
-        val logLevel: LogLevel = LogLevel.ERROR,
-        val status: HttpStatus = HttpStatus.BAD_REQUEST,
-    )
-
-    companion object {
-        private val KNOWN_EXCEPTIONS = mapOf(
-            "StalePageException" to ExInfo("Wicket page not available anymore"),
-            "NoResourceFoundException" to ExInfo("Resource not found", status = HttpStatus.NOT_FOUND),
-        )
-        private val KNOWN_EXCEPTION_CLASSES = mapOf(
-            NoRouteToHostException::class.java to ExInfo("No route to host"),
-            AsyncRequestNotUsableException::class.java to ExInfo("Asyn client connection lost (OK)", LogLevel.INFO),
-            AsyncRequestTimeoutException::class.java to ExInfo("Asyn client connection lost (OK)", LogLevel.INFO),
-        )
-    }
-
     @ExceptionHandler(value = [(Exception::class)])
     @Throws(Exception::class)
-    fun defaultErrorHandler(request: HttpServletRequest, ex: Exception): Any {
+    fun defaultErrorHandler(request: HttpServletRequest, ex: Throwable): Any {
         // If the exception is annotated with @ResponseStatus rethrow it and let
         // the framework handle it.
         if (AnnotationUtils.findAnnotation(ex.javaClass, ResponseStatus::class.java) != null) {
@@ -85,15 +63,6 @@ internal class GlobalDefaultExceptionHandler {
             log.error("${translateMsg(userEx)} ${userEx.logHintMessage}")
             return ResponseEntity.badRequest().body(UIToast.createExceptionToast(userEx))
         }
-        if (ex is IOException && isClientAbortException(ex)) {
-            log.info { ex::class.java.name }
-            return ResponseEntity.badRequest()
-        }
-        if (ex is java.lang.IllegalStateException && ex.message?.contains("Cannot start async") == true) {
-            // E.g. thrown by using SSEEmitterTool.
-            log.info { "${ex::class.java.name}: ${ex.message}" }
-            return ResponseEntity.badRequest()
-        }
         if (ex is UserException) {
             if (ex.logHintMessage.isNullOrBlank()) {
                 log.error(translateMsg(ex))
@@ -106,11 +75,8 @@ internal class GlobalDefaultExceptionHandler {
                 ResponseEntity.badRequest().body(UIToast.createExceptionToast(ex))
             }
         }
-        KNOWN_EXCEPTIONS.entries.find { ex::class.qualifiedName?.contains(it.key) == true }?.let {
-            return handleKnownException(ex, it.value)
-        }
-        KNOWN_EXCEPTION_CLASSES.entries.find { ex::class.java == it.key }?.let {
-            return handleKnownException(ex, it.value)
+        GlobalExceptionRegistry.findExInfo(ex)?.let {
+            return handleKnownException(ex, it)
         }
         val additionalExcptionMessage =
             if (ex is TechnicalException && ex.technicalMessage != null) " technical=${ex.technicalMessage}" else ""
@@ -129,17 +95,7 @@ internal class GlobalDefaultExceptionHandler {
         return ResponseEntity("Internal error.", HttpStatus.BAD_REQUEST)
     }
 
-    /**
-     * Checks if the exception is a client abort exception.
-     * @param exception The exception to check.
-     * @return True if the exception is a client abort exception.
-     */
-    private fun isClientAbortException(exception: IOException): Boolean {
-        val message = exception.message?.lowercase()
-        return message?.contains("broken pipe") == true || message?.contains("connection reset by peer") == true
-    }
-
-    private fun handleKnownException(ex: Exception, exInfo: ExInfo): Any {
+    private fun handleKnownException(ex: Throwable, exInfo: GlobalExceptionRegistry.ExInfo): Any {
         val msg = if (exInfo.message.isNullOrBlank()) exInfo.message else "${exInfo.message}: ${ex.message}"
         when (exInfo.logLevel) {
             LogLevel.INFO -> log.info(msg)

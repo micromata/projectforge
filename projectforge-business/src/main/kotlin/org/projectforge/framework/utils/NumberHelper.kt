@@ -48,15 +48,17 @@ object NumberHelper {
 
   @JvmField
   val HUNDRED = BigDecimal(100)
-  val THOUSAND = BigDecimal(1000)
+  val THOUSAND = BigDecimal(1_000)
+  val TEN_THOUSAND = BigDecimal(10_000)
+  val HUNDRED_THOUSAND = BigDecimal(100_000)
 
   @JvmField
-  val THREE_THOUSAND_SIX_HUNDRED = BigDecimal(3600)
+  val THREE_THOUSAND_SIX_HUNDRED = BigDecimal(3_600)
   val MINUS_TWENTY = BigDecimal(-20)
   val MINUS_HUNDRED = BigDecimal(-100)
 
   @JvmField
-  val BILLION = BigDecimal(1000000000)
+  val BILLION = BigDecimal(1_000_000_000)
   private val log = LoggerFactory.getLogger(NumberHelper::class.java)
 
   @JvmStatic
