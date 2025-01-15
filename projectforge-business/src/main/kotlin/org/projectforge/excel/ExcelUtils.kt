@@ -180,9 +180,35 @@ object ExcelUtils {
         }
     }
 
+    /**
+     * Clones the font and returns the new font.
+     * @param bold if null, the original font's bold is used.
+     * @param heightInPoints if null, the original font's heightInPoints is used.
+     * @param color if null, the original font's color is used.
+     * @param fontName if null, the original font's fontName is used.
+     * @return the new font.
+     */
+    @JvmStatic
+    fun cloneFont(
+        workbook: ExcelWorkbook, id: String, origFont: Font, bold: Boolean? = null,
+        heightInPoints: Short? = null,
+        color: Short? = null,
+        fontName: String? = null
+    ): Font {
+        return createFont(
+            workbook,
+            id,
+            bold = bold ?: origFont.bold,
+            heightInPoints = heightInPoints ?: origFont.fontHeightInPoints,
+            color = color ?: origFont.color,
+            fontName = fontName ?: origFont.fontName,
+        )
+    }
+
     @JvmStatic
     fun createCellStyle(
-        workbook: ExcelWorkbook, name: String,
+        workbook: ExcelWorkbook,
+        name: String,
         font: Font? = null,
         alignment: HorizontalAlignment? = null,
         fillForegroundColor: IndexedColors? = null,
@@ -196,22 +222,64 @@ object ExcelUtils {
         if (alignment != null) {
             style.alignment = alignment
         }
+        setFill(style, fillForegroundColor?.index, fillPattern)
+        setBorderStyle(style, borderStyle)
+        return style
+    }
+
+    private fun setBorderStyle(style: CellStyle, borderStyle: BorderStyle?) {
+        borderStyle?.let {
+            style.borderTop = it
+            style.borderBottom = it
+            style.borderLeft = it
+            style.borderRight = it
+        }
+    }
+
+    private fun setFill(style: CellStyle, fillForegroundColor: Short?, fillPattern: FillPatternType?) {
+        // If cell style is copied, the fillPattern is NO_FILL at default!
         if (fillForegroundColor != null) {
-            style.fillForegroundColor = fillForegroundColor.index
-            if (fillPattern == null) {
+            style.fillForegroundColor = fillForegroundColor
+            if (fillPattern == null || fillPattern == FillPatternType.NO_FILL) {
                 style.fillPattern = FillPatternType.SOLID_FOREGROUND
             }
+        } else {
+            if (fillPattern != null) {
+                style.fillPattern = fillPattern
+            }
         }
-        if (fillPattern != null) {
-            style.fillPattern = fillPattern
+    }
+
+    /**
+     * Clones the style (except the font) and returns the new style.
+     */
+    @JvmStatic
+    fun cloneStyle(
+        workbook: ExcelWorkbook,
+        name: String,
+        origStyle: CellStyle,
+        font: Font? = null,
+        alignment: HorizontalAlignment? = null,
+        fillForegroundColor: IndexedColors? = null,
+        fillPattern: FillPatternType? = null,
+        borderStyle: BorderStyle? = null,
+    ): CellStyle {
+        return createCellStyle(workbook, name = name, font = font, alignment = alignment ?: origStyle.alignment).also {
+            setFill(
+                it,
+                fillForegroundColor?.index ?: origStyle.fillForegroundColor,
+                fillPattern ?: origStyle.fillPattern
+            )
+            if (borderStyle != null) {
+                setBorderStyle(it, borderStyle)
+            } else {
+                it.borderTop = origStyle.borderTop
+                it.borderBottom = origStyle.borderBottom
+                it.borderLeft = origStyle.borderLeft
+                it.borderRight = origStyle.borderRight
+            }
+            it.dataFormat = origStyle.dataFormat
         }
-        if (borderStyle != null) {
-            style.borderTop = borderStyle
-            style.borderBottom = borderStyle
-            style.borderLeft = borderStyle
-            style.borderRight = borderStyle
-        }
-        return style
     }
 
     object Size {

@@ -224,6 +224,8 @@ class ScriptExecution {
     ) {
         workbook.use {
             val filename = createDownloadFilename(workbook.filename, workbook.filenameExtension)
+            // Evaluate all formulas before exporting:
+            workbook.pOIWorkbook.creationHelper.createFormulaEvaluator().evaluateAll()
             val xls = workbook.asByteArrayOutputStream.toByteArray()
             if (xls == null || xls.size == 0) {
                 scriptExecutionResult.scriptLogger.error("Oups, xls has zero size. Filename: $filename")

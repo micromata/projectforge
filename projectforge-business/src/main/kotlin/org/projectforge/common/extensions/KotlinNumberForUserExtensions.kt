@@ -51,8 +51,8 @@ fun Number?.formatBytesForUser(): String {
 /**
  * Formats a number for the user by using the locale of [ThreadLocalUserContext].
  */
-fun Number?.formatCurrency(withCurrencySymbol: Boolean = false): String {
-    val amount = this.formatForUser(2)
+fun Number?.formatCurrency(withCurrencySymbol: Boolean = false, scale: Int = 2): String {
+    val amount = this.formatForUser(scale = scale)
     return if (!withCurrencySymbol || Constants.CURRENCY_SYMBOL.isBlank()) {
         amount
     } else {
