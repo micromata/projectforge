@@ -23,6 +23,8 @@
 
 package org.projectforge.business.fibu
 
+import jakarta.annotation.PostConstruct
+import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotsService
 import org.projectforge.common.extensions.formatCurrency
 import org.projectforge.common.extensions.formatForUser
 import org.projectforge.common.extensions.formatFractionAsPercent
@@ -36,18 +38,36 @@ import org.projectforge.framework.time.PFDay
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
+import java.time.LocalDate
 
 @Service
 class ForecastOrderAnalysis {
     @Autowired
-    private lateinit var ordersCache: AuftragsCache
-
-    @Autowired
     private lateinit var auftragsRechnungCache: AuftragsRechnungCache
 
-    fun exportOrderAnalysis(orderId: Long?): List<ForecastOrderPosInfo>? {
-        val orderInfo = ordersCache.getOrderInfo(orderId)
-        val result = orderInfo?.infoPositions?.map { posInfo ->
+    @Autowired
+    private lateinit var auftragDao: AuftragDao
+
+    @Autowired
+    private lateinit var auftragsCache: AuftragsCache
+
+    @Autowired
+    private lateinit var orderbookSnapshotsService: OrderbookSnapshotsService
+
+    @PostConstruct
+    private fun postConstruct() {
+        instance = this
+    }
+
+    @JvmOverloads
+    fun exportOrderAnalysis(orderId: Long?, snapshotDate: LocalDate? = null): List<ForecastOrderPosInfo>? {
+        val orderInfo = loadOrder(orderId = orderId, snapshotDate = snapshotDate)
+        return exportOrderAnalysis(orderInfo)
+    }
+
+    private fun exportOrderAnalysis(orderInfo: OrderInfo?): List<ForecastOrderPosInfo>? {
+        orderInfo ?: return null
+        val result = orderInfo.infoPositions?.map { posInfo ->
             ForecastOrderPosInfo(orderInfo, posInfo).also {
                 it.calculate()
             }
@@ -67,13 +87,33 @@ class ForecastOrderAnalysis {
         return result
     }
 
-    fun htmlExportAsByteArray(orderId: Long?): ByteArray {
-        return htmlExport(orderId).toByteArray()
+    private fun loadOrder(orderId: Long? = null, orderNumber: Int? = null, snapshotDate: LocalDate?): OrderInfo? {
+        val closestSnapshotDate = snapshotDate?.let {
+            orderbookSnapshotsService.findClosestSnapshotDate(it)
+        }
+        val id = orderId ?: auftragsCache.findOrderInfoByNumber(orderNumber)?.id
+        val order = if (closestSnapshotDate == null) {
+            auftragDao.find(id)
+        } else {
+            orderbookSnapshotsService.readSnapshot(closestSnapshotDate)?.find { it.id == id }
+        }
+        return order?.info
     }
 
-    fun htmlExport(orderId: Long?): String {
-        val orderInfo = ordersCache.getOrderInfo(orderId) ?: return noAnalysis("Order with id $orderId not found.")
-        val list = exportOrderAnalysis(orderId)
+    @JvmOverloads
+    fun htmlExportAsByteArray(
+        orderId: Long? = null,
+        orderNumber: Int? = null,
+        snapshotDate: LocalDate? = null,
+    ): ByteArray {
+        return htmlExport(orderId = orderId, orderNumber = orderNumber, snapshotDate = snapshotDate).toByteArray()
+    }
+
+    fun htmlExport(orderId: Long? = null, orderNumber: Int? = null, snapshotDate: LocalDate? = null): String {
+        val orderInfo =
+            loadOrder(orderId = orderId, orderNumber = orderNumber, snapshotDate)
+                ?: return noAnalysis("Order with id $orderId or positions not found.")
+        val list = exportOrderAnalysis(orderInfo)
             ?: return noAnalysis("No order positions found for order #${orderInfo.nummer}.")
         val firstMonth = list.flatMap { it.months }.minByOrNull { it.date }?.date
         val lastMonth = list.flatMap { it.months }.maxByOrNull { it.date }?.date
@@ -277,5 +317,17 @@ class ForecastOrderAnalysis {
             if (amount == month.toBeInvoicedSum && amount.abs() >= BigDecimal.ONE) "color: blue;" else "color: green;"
         row.addTD(amount.formatCurrency(), cssClass).also { td -> td.attr("style", style) }
         return amount
+    }
+
+    companion object {
+        private lateinit var instance: ForecastOrderAnalysis
+
+        fun createAnalysisAsHtml(
+            orderId: Long? = null,
+            orderNumber: Int? = null,
+            snapshotDate: LocalDate? = null,
+        ): String {
+            return instance.htmlExport(orderId = orderId, orderNumber = orderNumber, snapshotDate)
+        }
     }
 }

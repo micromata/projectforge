@@ -136,6 +136,18 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
         }
     }
 
+    /**
+     * @param orderNumber [AuftragDO.nummer]
+     */
+    fun findOrderInfoByNumber(orderNumber: Int?): OrderInfo? {
+        orderNumber ?: return null
+        checkRefresh()
+        synchronized(orderInfoMap) {
+            return orderInfoMap.values.find { it.nummer == orderNumber }
+        }
+    }
+
+
     fun getOrderInfoByPositionId(positionInfoId: Long?): OrderInfo? {
         positionInfoId ?: return null
         checkRefresh()
