@@ -40,6 +40,10 @@ public class IHKCommentObject {
 
     }
 
+    public IHKCommentObject() {
+
+    }
+
     public int getAusbildungsjahr() {
         return ausbildungsjahr;
     }
@@ -50,5 +54,17 @@ public class IHKCommentObject {
 
     public String getTeamname() {
         return teamname;
+    }
+
+    public void setAusbildungsbeginn(String ausbildungsbeginn) {
+        this.ausbildungsbeginn = ausbildungsbeginn;
+    }
+
+    public void setAusbildungsjahr(int ausbildungsjahr) {
+        this.ausbildungsjahr = ausbildungsjahr;
+    }
+
+    public void setTeamname(String teamname) {
+        this.teamname = teamname;
     }
 }
