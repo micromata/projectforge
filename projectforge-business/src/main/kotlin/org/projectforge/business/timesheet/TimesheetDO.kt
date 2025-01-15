@@ -38,6 +38,7 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.UserPrefParameter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.*
+import java.math.BigDecimal
 import java.util.*
 
 /**
@@ -109,6 +110,10 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     //@DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
     @get:Column(name = "stop_time", nullable = false)
     open var stopTime: Date? = null
+
+    @PropertyInfo(i18nKey = "timesheet.ai.minutesSavedByAI", tooltip = "timesheet.ai.minutesSavedByAI.info")
+    @get:Column(name = "minutes_saved_by_ai")
+    open var minutesSavedByAI: Int? = null
 
     @PropertyInfo(i18nKey = "timesheet.location")
     @UserPrefParameter(i18nKey = "timesheet.location")
