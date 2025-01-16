@@ -203,12 +203,23 @@ function initializeComponents() {
     if ($("textarea.autogrow").length) {
         $("textarea.autogrow").autoGrow();
     }
-    $('textarea').each(function (my) {
-        $(this).keypress(function (e) {
-            if (e.ctrlKey && e.keyCode == 13 || e.ctrlKey && e.keyCode == 10) {
+    // Allow Ctrl+Enter to submit the form while Enter alone inserts a newline in textareas.
+    $('textarea').on('keydown', function (e) {
+        if (e.key === 'Enter') {
+            if (e.ctrlKey) {
+                // Ctrl+Enter: Submit formular
+                e.preventDefault();
                 $(this).closest('form').find('.btn-success').click();
+            } else {
+                // Only Enter: Fill in a newline (since Wicket 10.3.0 Enter results in submitting the form)
+                const cursorPos = this.selectionStart;
+                const text = $(this).val();
+                $(this).val(text.substring(0, cursorPos) + '\n' + text.substring(cursorPos));
+                this.selectionStart = this.selectionEnd = cursorPos + 1; // Cursor after the newline.
+                e.preventDefault(); // Prevents the default action
+                e.stopPropagation(); // Prevents the event from bubbling up the DOM tree
             }
-        });
+        }
     });
     hideAllTooltips();
     $('[rel=mypopup]').popover({
