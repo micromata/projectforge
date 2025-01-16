@@ -24,6 +24,7 @@
 package org.projectforge.framework.cache
 
 import mu.KotlinLogging
+import java.util.concurrent.CopyOnWriteArrayList
 
 private val log = KotlinLogging.logger {}
 
@@ -34,7 +35,7 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 abstract class AbstractCache {
-    private var cacheListeners: MutableList<CacheListener>? = null
+    private var cacheListeners: CopyOnWriteArrayList<CacheListener>? = null
 
     protected var expireTime: Long = 60 * TICKS_PER_MINUTE
 
@@ -94,22 +95,19 @@ abstract class AbstractCache {
     }
 
     fun register(listener: CacheListener) {
-        synchronized(this) {
-            cacheListeners = cacheListeners ?: mutableListOf()
-            cacheListeners!!.add(listener)
-        }
+        cacheListeners = cacheListeners ?: CopyOnWriteArrayList()
+        cacheListeners!!.add(listener)
     }
 
     fun unregister(listener: CacheListener) {
-        synchronized(this) {
-            cacheListeners?.remove(listener)
-        }
+        cacheListeners?.remove(listener)
     }
 
     /**
      * Checks the expired time and calls refresh, if cache is expired.
      */
     protected fun checkRefresh() {
+        cacheListeners?.forEach { listener -> listener.onBeforeCacheRefresh() }
         synchronized(this) {
             if (isRefreshInProgress) {
                 // Do nothing because refreshing is already in progress.
@@ -117,11 +115,6 @@ abstract class AbstractCache {
             }
             if (this.isExpired || System.currentTimeMillis() - this.timeOfLastRefresh > this.expireTime) {
                 try {
-                    cacheListeners?.let {
-                        synchronized(it) {
-                            it.forEach { listener -> listener.onBeforeCacheRefresh() }
-                        }
-                    }
                     isRefreshInProgress = true
                     this.timeOfLastRefresh = System.currentTimeMillis()
                     try {
