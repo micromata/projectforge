@@ -1,4 +1,5 @@
 Aktuell:
+- Favoriten bei Scriptausführung für Parameter.
 - KI-Anteil in Zeitberichten
 - Viewpage für user für non-admins.
 - Scripting: Ergebnis Unresolved reference 'memo', 'todo'.: line 94 to 94 (add only activated plugins)
