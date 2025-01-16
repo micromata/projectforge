@@ -23,6 +23,8 @@
 
 package org.projectforge.business.fibu
 
+import jakarta.annotation.PostConstruct
+import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotsService
 import org.projectforge.common.extensions.formatCurrency
 import org.projectforge.common.extensions.formatForUser
 import org.projectforge.common.extensions.formatFractionAsPercent
@@ -36,18 +38,36 @@ import org.projectforge.framework.time.PFDay
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
+import java.time.LocalDate
 
 @Service
 class ForecastOrderAnalysis {
     @Autowired
-    private lateinit var ordersCache: AuftragsCache
-
-    @Autowired
     private lateinit var auftragsRechnungCache: AuftragsRechnungCache
 
-    fun exportOrderAnalysis(orderId: Long?): List<ForecastOrderPosInfo>? {
-        val orderInfo = ordersCache.getOrderInfo(orderId)
-        val result = orderInfo?.infoPositions?.map { posInfo ->
+    @Autowired
+    private lateinit var auftragDao: AuftragDao
+
+    @Autowired
+    private lateinit var auftragsCache: AuftragsCache
+
+    @Autowired
+    private lateinit var orderbookSnapshotsService: OrderbookSnapshotsService
+
+    @PostConstruct
+    private fun postConstruct() {
+        instance = this
+    }
+
+    @JvmOverloads
+    fun exportOrderAnalysis(orderId: Long?, snapshotDate: LocalDate? = null): List<ForecastOrderPosInfo>? {
+        val orderInfo = loadOrder(orderId = orderId, snapshotDate = snapshotDate)
+        return exportOrderAnalysis(orderInfo)
+    }
+
+    private fun exportOrderAnalysis(orderInfo: OrderInfo?): List<ForecastOrderPosInfo>? {
+        orderInfo ?: return null
+        val result = orderInfo.infoPositions?.map { posInfo ->
             ForecastOrderPosInfo(orderInfo, posInfo).also {
                 it.calculate()
             }
@@ -67,13 +87,33 @@ class ForecastOrderAnalysis {
         return result
     }
 
-    fun htmlExportAsByteArray(orderId: Long?): ByteArray {
-        return htmlExport(orderId).toByteArray()
+    private fun loadOrder(orderId: Long? = null, orderNumber: Int? = null, snapshotDate: LocalDate?): OrderInfo? {
+        val closestSnapshotDate = snapshotDate?.let {
+            orderbookSnapshotsService.findClosestSnapshotDate(it)
+        }
+        val id = orderId ?: auftragsCache.findOrderInfoByNumber(orderNumber)?.id
+        val order = if (closestSnapshotDate == null) {
+            auftragDao.find(id)
+        } else {
+            orderbookSnapshotsService.readSnapshot(closestSnapshotDate)?.find { it.id == id }
+        }
+        return order?.info
     }
 
-    fun htmlExport(orderId: Long?): String {
-        val orderInfo = ordersCache.getOrderInfo(orderId) ?: return noAnalysis("Order with id $orderId not found.")
-        val list = exportOrderAnalysis(orderId)
+    @JvmOverloads
+    fun htmlExportAsByteArray(
+        orderId: Long? = null,
+        orderNumber: Int? = null,
+        snapshotDate: LocalDate? = null,
+    ): ByteArray {
+        return htmlExport(orderId = orderId, orderNumber = orderNumber, snapshotDate = snapshotDate).toByteArray()
+    }
+
+    fun htmlExport(orderId: Long? = null, orderNumber: Int? = null, snapshotDate: LocalDate? = null): String {
+        val orderInfo =
+            loadOrder(orderId = orderId, orderNumber = orderNumber, snapshotDate)
+                ?: return noAnalysis("Order with id $orderId or positions not found.")
+        val list = exportOrderAnalysis(orderInfo)
             ?: return noAnalysis("No order positions found for order #${orderInfo.nummer}.")
         val firstMonth = list.flatMap { it.months }.minByOrNull { it.date }?.date
         val lastMonth = list.flatMap { it.months }.maxByOrNull { it.date }?.date
@@ -96,6 +136,9 @@ class ForecastOrderAnalysis {
                 div.add(Html.Text("There is a lost-budget warning of ${lostBudget.formatCurrency(true)} (see positions below)."))
             })
         }
+        //
+        // Order information:
+        //
         html.add(HtmlTable().also { table ->
             addRow(table, translate("fibu.auftrag.nummer"), orderInfo.nummer.toString())
             addRow(table, translate("fibu.auftrag.angebot.datum"), orderInfo.angebotsDatum.formatForUser())
@@ -114,8 +157,10 @@ class ForecastOrderAnalysis {
             addRow(table, translate("fibu.notYetInvoiced"), orderInfo.notYetInvoicedSum)
             addRow(table, "Lost buget", lostBudget)
         })
-
-        html.add(Html.H2("${translate("fibu.auftrag.forecast")} all positions")) // Forecast for all positions
+        //
+        // Forecast for all positions
+        //
+        html.add(Html.H2("${translate("fibu.auftrag.forecast")} all positions"))
         html.add(HtmlTable().also { table ->
             val headRow = table.addHeadRow()
             headRow.addTH(translate("label.position.short"))
@@ -123,7 +168,9 @@ class ForecastOrderAnalysis {
             val totals = mutableListOf<BigDecimal>()
             list.forEach { fcPosInfo ->
                 rows.add(table.addRow().also {
-                    it.addTD("#${fcPosInfo.orderPosNumber}")
+                    it.addTD().also { td ->
+                        td.add(Html.A("#pos${fcPosInfo.orderPosNumber}", "#${fcPosInfo.orderPosNumber}"))
+                    }
                 })
             }
             var currentMonth: PFDay = firstMonth
@@ -152,15 +199,18 @@ class ForecastOrderAnalysis {
                 }
             }
         })
-
+        //
+        // Forecast for each position
+        //
         list.forEach { fcPosInfo ->
             val posInfo = fcPosInfo.orderPosInfo
-            html.add(Html.H2("${translate("fibu.auftrag.position")} #${posInfo.number}"))
+            html.add(Html.H2("${translate("fibu.auftrag.position")} #${posInfo.number}", id = "pos${posInfo.number}"))
             if (fcPosInfo.lostBudgetWarning) {
                 html.add(Html.Alert(Html.Alert.Type.DANGER).also { div ->
                     div.add(Html.Text("There is a lost-budget warning of ${fcPosInfo.lostBudget.formatCurrency(true)}"))
                 })
             }
+            // Position information:
             html.add(HtmlTable().also { table ->
                 addRow(table, translate("title"), posInfo.titel)
                 addRow(table, translate("comment"), posInfo.bemerkung)
@@ -186,6 +236,7 @@ class ForecastOrderAnalysis {
                     "${posInfo.periodOfPerformanceBegin.formatForUser()} - ${posInfo.periodOfPerformanceEnd.formatForUser()}"
                 )
             })
+            // Invoices:
             html.add(Html.H3(translate("fibu.rechnung.rechnungen")))
             html.add(HtmlTable().also { table ->
                 table.addHeadRow().also { tr ->
@@ -206,6 +257,7 @@ class ForecastOrderAnalysis {
                     }
                 }
             })
+            // Payment schedule:
             html.add(Html.H3(translate("fibu.auftrag.paymentschedule")))
             html.add(HtmlTable().also { table ->
                 table.addHeadRow().also { tr ->
@@ -223,6 +275,7 @@ class ForecastOrderAnalysis {
                     }
                 }
             })
+            // Forecast for position:
             html.add(Html.H3("${translate("fibu.auftrag.forecast")} #${posInfo.number}")) // Forecast current position
             html.add(HtmlTable().also { table ->
                 val headRow = table.addHeadRow()
@@ -264,5 +317,17 @@ class ForecastOrderAnalysis {
             if (amount == month.toBeInvoicedSum && amount.abs() >= BigDecimal.ONE) "color: blue;" else "color: green;"
         row.addTD(amount.formatCurrency(), cssClass).also { td -> td.attr("style", style) }
         return amount
+    }
+
+    companion object {
+        private lateinit var instance: ForecastOrderAnalysis
+
+        fun createAnalysisAsHtml(
+            orderId: Long? = null,
+            orderNumber: Int? = null,
+            snapshotDate: LocalDate? = null,
+        ): String {
+            return instance.htmlExport(orderId = orderId, orderNumber = orderNumber, snapshotDate)
+        }
     }
 }

@@ -108,6 +108,7 @@ internal class OrderConverterService {
             }
             info.kundeAsString = kundeAsString
             info.projektAsString = projektAsString
+            info.updatePaymentScheduleEntries(paymentSchedules)
         }
     }
 

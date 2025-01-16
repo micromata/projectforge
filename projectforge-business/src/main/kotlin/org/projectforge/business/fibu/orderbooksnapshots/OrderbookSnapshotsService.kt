@@ -189,7 +189,7 @@ class OrderbookSnapshotsService {
         return rawSnapshot
     }
 
-    fun selectClosestSnapshotDate(date: LocalDate?): LocalDate? {
+    fun findClosestSnapshotDate(date: LocalDate?): LocalDate? {
         date ?: return null
         selectMetas(onlyFullBackups = false).also { entries ->
             return entries.minByOrNull { abs((it.date?.toEpochDay() ?: 0L) - date.toEpochDay()) }?.date
