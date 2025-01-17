@@ -36,6 +36,7 @@ class ForecastOrderPosInfoTest {
     fun `test time and materials pos`() {
         OrderInfo().also { orderInfo -> // Order 6308
             orderInfo.status = AuftragsStatus.BEAUFTRAGT
+            orderInfo.snapshotDate = baseDate.localDate
             createPos(
                 AuftragsStatus.BEAUFTRAGT,
                 AuftragsPositionsPaymentType.TIME_AND_MATERIALS,
@@ -45,7 +46,7 @@ class ForecastOrderPosInfoTest {
                 netSum = BigDecimal("50000"), // 5 month
                 invoicedSum = BigDecimal("5000")
             ).also { pos ->
-                ForecastOrderPosInfo(orderInfo, pos, baseDate = baseDate).also { fcPosInfo ->
+                ForecastOrderPosInfo(orderInfo, pos).also { fcPosInfo ->
                     fcPosInfo.calculate()
                     Assertions.assertEquals(6, fcPosInfo.months.size)
                     for (i in 0..1) {
@@ -68,6 +69,7 @@ class ForecastOrderPosInfoTest {
         }
         OrderInfo().also { orderInfo -> // Order 6395
             orderInfo.status = AuftragsStatus.GELEGT
+            orderInfo.snapshotDate = baseDate.localDate
             orderInfo.probabilityOfOccurrence = 50
             orderInfo.periodOfPerformanceBegin = LocalDate.of(2025, Month.JANUARY, 1)
             orderInfo.periodOfPerformanceEnd = LocalDate.of(2025, Month.DECEMBER, 31)
@@ -75,7 +77,7 @@ class ForecastOrderPosInfoTest {
                 AuftragsStatus.GELEGT, AuftragsPositionsPaymentType.TIME_AND_MATERIALS,
                 PeriodOfPerformanceType.SEEABOVE, netSum = BigDecimal("1000000.00")
             ).also { pos ->
-                ForecastOrderPosInfo(orderInfo, pos, baseDate = baseDate).also { fcPosInfo ->
+                ForecastOrderPosInfo(orderInfo, pos).also { fcPosInfo ->
                     fcPosInfo.calculate()
                     Assertions.assertEquals(13, fcPosInfo.months.size)
                     Assertions.assertEquals(BigDecimal.ZERO, fcPosInfo.difference)
@@ -89,6 +91,7 @@ class ForecastOrderPosInfoTest {
         }
         OrderInfo().also { orderInfo ->  // Order 5850
             orderInfo.status = AuftragsStatus.ABGESCHLOSSEN
+            orderInfo.snapshotDate = baseDate.localDate
             orderInfo.periodOfPerformanceBegin = LocalDate.of(2024, Month.JANUARY, 2)
             orderInfo.periodOfPerformanceEnd = LocalDate.of(2024, Month.DECEMBER, 31)
             createPos(
@@ -96,7 +99,7 @@ class ForecastOrderPosInfoTest {
                 PeriodOfPerformanceType.SEEABOVE, netSum = BigDecimal("120000.00")
             ).also { pos ->
                 pos.invoicedSum = BigDecimal("120000.00")
-                ForecastOrderPosInfo(orderInfo, pos, baseDate = baseDate).also { fcPosInfo ->
+                ForecastOrderPosInfo(orderInfo, pos).also { fcPosInfo ->
                     fcPosInfo.calculate()
                     Assertions.assertEquals(13, fcPosInfo.months.size, "September -> March")
                     for (i in 0..12) {
@@ -113,6 +116,7 @@ class ForecastOrderPosInfoTest {
         // Test order with big loss of budget:
         OrderInfo().also { orderInfo ->  // Order 5575
             orderInfo.status = AuftragsStatus.BEAUFTRAGT
+            orderInfo.snapshotDate = baseDate.localDate
             orderInfo.periodOfPerformanceBegin = LocalDate.of(2024, Month.JANUARY, 7)
             orderInfo.periodOfPerformanceEnd = LocalDate.of(2025, Month.JUNE, 30)
             createPos(
@@ -120,7 +124,7 @@ class ForecastOrderPosInfoTest {
                 PeriodOfPerformanceType.SEEABOVE, netSum = BigDecimal(1_800_000)
             ).also { pos ->
                 // Nothing invoiced.
-                ForecastOrderPosInfo(orderInfo, pos, baseDate = baseDate).also { fcPosInfo ->
+                ForecastOrderPosInfo(orderInfo, pos).also { fcPosInfo ->
                     fcPosInfo.calculate()
                     Assertions.assertEquals(19, fcPosInfo.months.size, "Jan 24 -> Jul 25")
                     for (i in 0..11) {
@@ -154,6 +158,7 @@ class ForecastOrderPosInfoTest {
     fun `test fixed price orders`() {
         OrderInfo().also { orderInfo ->  // Order 6215
             orderInfo.status = AuftragsStatus.BEAUFTRAGT
+            orderInfo.snapshotDate = baseDate.localDate
             orderInfo.periodOfPerformanceBegin = LocalDate.of(2024, Month.SEPTEMBER, 2)
             orderInfo.periodOfPerformanceEnd = LocalDate.of(2025, Month.JANUARY, 31)
             addPaymentSchedule(orderInfo, LocalDate.of(2025, Month.JANUARY, 31), BigDecimal("21457.33"))
@@ -163,7 +168,7 @@ class ForecastOrderPosInfoTest {
                 AuftragsStatus.BEAUFTRAGT, AuftragsPositionsPaymentType.FESTPREISPAKET,
                 PeriodOfPerformanceType.SEEABOVE, netSum = BigDecimal("64372.00")
             ).also { pos ->
-                ForecastOrderPosInfo(orderInfo, pos, baseDate = baseDate).also { fcPosInfo ->
+                ForecastOrderPosInfo(orderInfo, pos).also { fcPosInfo ->
                     fcPosInfo.calculate()
                     Assertions.assertEquals(7, fcPosInfo.months.size, "September -> March")
                     for (i in 0..3) {

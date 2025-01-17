@@ -46,7 +46,6 @@ class ForecastOrderPosInfo(
     @JsonIgnore
     val orderInfo: OrderInfo,
     val orderPosInfo: OrderPositionInfo,
-    baseDate: PFDay = PFDay.now()
 ) {
     class MonthEntry(
         /** First day of month. */
@@ -69,8 +68,10 @@ class ForecastOrderPosInfo(
 
     class PaymentEntryInfo(val scheduleDate: LocalDate, val amount: BigDecimal)
 
-    var baseMonth = baseDate.beginOfMonth
-        private set
+    /**
+     * Snapshot date of the order or beginning of the current month.
+     */
+    val baseMonth = PFDay.fromOrNow(orderInfo.snapshotDate).beginOfMonth
     var orderNumber = orderInfo.nummer
         private set
     var orderPosNumber = orderPosInfo.number
@@ -81,9 +82,9 @@ class ForecastOrderPosInfo(
         private set
     lateinit var probability: BigDecimal
         private set
-    lateinit var probabilityNetSum: BigDecimal
+    lateinit var weightedNetSum: BigDecimal
         private set
-    lateinit var probabilityNetSumWithoutPaymentSchedule: BigDecimal
+    lateinit var weightedNetSumWithoutPaymentSchedule: BigDecimal
         private set
     val invoicedSum = orderPosInfo.invoicedSum
     lateinit var toBeInvoicedSum: BigDecimal
@@ -112,24 +113,24 @@ class ForecastOrderPosInfo(
 
     fun calculate() {
         probability = ForecastUtils.getProbabilityOfAccurence(orderInfo, orderPosInfo)
-        probabilityNetSum = ForecastUtils.computeProbabilityNetSum(orderInfo, orderPosInfo)
-        toBeInvoicedSum = if (probabilityNetSum > invoicedSum) probabilityNetSum - invoicedSum else BigDecimal.ZERO
+        weightedNetSum = ForecastUtils.computeProbabilityNetSum(orderInfo, orderPosInfo)
+        toBeInvoicedSum = if (weightedNetSum > invoicedSum) weightedNetSum - invoicedSum else BigDecimal.ZERO
         paymentSchedules = ForecastUtils.getPaymentSchedule(orderInfo, orderPosInfo)
         createMonths()
         val sumPaymentSchedule = ForecastUtils.computeProbabilityPaymentSchedule(orderInfo, orderPosInfo)
         // handle payment schedule
         handlePaymentSchedules()
         // compute diff, return if diff is empty
-        probabilityNetSumWithoutPaymentSchedule = probabilityNetSum - sumPaymentSchedule
-        if (probabilityNetSumWithoutPaymentSchedule.compareTo(BigDecimal.ZERO) != 0) {
+        weightedNetSumWithoutPaymentSchedule = weightedNetSum - sumPaymentSchedule
+        if (weightedNetSumWithoutPaymentSchedule.compareTo(BigDecimal.ZERO) != 0) {
             // handle diff
             when (orderPosInfo.paymentType) {
                 AuftragsPositionsPaymentType.FESTPREISPAKET -> { // fill rest at end of project time
                     val month = months.last()
-                    val value = if (probabilityNetSumWithoutPaymentSchedule > toBeInvoicedSum) {
+                    val value = if (weightedNetSumWithoutPaymentSchedule > toBeInvoicedSum) {
                         toBeInvoicedSum
                     } else {
-                        probabilityNetSumWithoutPaymentSchedule
+                        weightedNetSumWithoutPaymentSchedule
                     }
                     if (value.abs() > BigDecimal.ONE) { // Ignore rounding errors.
                         month.toBeInvoicedSum += value
@@ -215,7 +216,7 @@ class ForecastOrderPosInfo(
             return
         }
         val monthCount = firstMonth.monthsBetween(lastMonth) + 1 // Jan-Jan -> 1, Jan-Feb -> 2, ...
-        val partlyNetSum = probabilityNetSumWithoutPaymentSchedule.divide(
+        val partlyNetSum = weightedNetSumWithoutPaymentSchedule.divide(
             BigDecimal.valueOf(monthCount),
             RoundingMode.HALF_UP
         )
@@ -238,9 +239,9 @@ class ForecastOrderPosInfo(
                         if (futureInvoicesAmountRest > partlyNetSum) {
                             monthEntry.lostBudget = futureInvoicesAmountRest - partlyNetSum
                             monthEntry.lostBudgetPercent =
-                                if (probabilityNetSum > BigDecimal.ZERO) {
+                                if (weightedNetSum > BigDecimal.ZERO) {
                                     (monthEntry.lostBudget * BigDecimal(100)).divide(
-                                        probabilityNetSum,
+                                        weightedNetSum,
                                         RoundingMode.HALF_UP
                                     ).toInt()
                                 } else {

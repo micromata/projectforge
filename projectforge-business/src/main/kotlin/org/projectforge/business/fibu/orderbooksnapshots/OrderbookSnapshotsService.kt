@@ -67,6 +67,7 @@ class OrderbookSnapshotsService {
 
     @PostConstruct
     private fun postConstruct() {
+        instance = this
         OrderbookSnapshotsSanityCheck(this).let {
             cronSanityCheckJob.registerJob(it)
         }
@@ -199,7 +200,7 @@ class OrderbookSnapshotsService {
     fun readSnapshot(date: LocalDate): List<AuftragDO>? {
         val orderbook = mutableMapOf<Long, Order>()
         readSnapshot(date, orderbook)
-        return orderConverterService.convertFromOrder(orderbook.values).also {
+        return orderConverterService.convertFromOrder(orderbook.values, date).also {
             log.info { "${it?.size} orders restored from snapshot of $date." }
         }
     }
@@ -281,13 +282,12 @@ class OrderbookSnapshotsService {
 
     private fun gzip(str: String): ByteArray {
         val byteArrayOutputStream = ByteArrayOutputStream()
-        val gzipStream = object : GZIPOutputStream(byteArrayOutputStream) {
+        object : GZIPOutputStream(byteArrayOutputStream) {
             init {
                 def.setLevel(Deflater.BEST_COMPRESSION)
             }
-        }
-        gzipStream.use { gzipStream ->
-            gzipStream.write(str.toByteArray(Charsets.UTF_8))
+        }.use { gzipOutputStream ->
+            gzipOutputStream.write(str.toByteArray(Charsets.UTF_8))
         }
         return byteArrayOutputStream.toByteArray()
     }
@@ -297,5 +297,10 @@ class OrderbookSnapshotsService {
         GZIPInputStream(byteArrayInputStream).use { gzipStream ->
             return gzipStream.readBytes().toString(Charsets.UTF_8)
         }
+    }
+
+    companion object {
+        lateinit var instance: OrderbookSnapshotsService
+            private set
     }
 }
