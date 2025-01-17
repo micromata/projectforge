@@ -322,7 +322,7 @@ public class MonthlyEmployeeReport implements Serializable {
                         taskTotal.addMillis(entry.getMillis());
                     }
                     totalGrossDuration += entry.getMillis();
-                    totalNetDuration += entry.getMillis();
+                    totalNetDuration += entry.getWorkFractionMillis();
                 }
             }
         }

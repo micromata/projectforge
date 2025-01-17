@@ -261,7 +261,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
         /**
          * If no maximum number of results is defined, MAX_ROWS is used as max value.
          */
-        const val QUERY_FILTER_MAX_ROWS: Int = 10000
+        const val QUERY_FILTER_MAX_ROWS: Int = 50_000
 
         @JvmStatic
         fun isNull(field: String): DBPredicate.IsNull {

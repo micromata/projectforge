@@ -41,7 +41,7 @@ class RepoBackupTest {
     val repoDir = testUtils.deleteAndCreateTestFile("testBackupRepo")
     repoService.init(repoDir)
     repoBackupService.repoService = repoService
-    repoBackupService.jcrCheckSanityJob = JCRCheckSanityJob()
+    repoBackupService.jcrCheckSanityJob = JCRCheckSanityCheckJob()
     repoBackupService.jcrCheckSanityJob.repoService = repoService
   }
 
@@ -85,7 +85,7 @@ class RepoBackupTest {
     val repo2Dir = testUtils.deleteAndCreateTestFile("testBackupRepo2")
     repo2Service.init(repo2Dir)
     repo2BackupService.repoService = repo2Service
-    repo2BackupService.jcrCheckSanityJob = JCRCheckSanityJob()
+    repo2BackupService.jcrCheckSanityJob = JCRCheckSanityCheckJob()
     repo2BackupService.jcrCheckSanityJob.repoService = repo2Service
 
     ZipInputStream(FileInputStream(zipFile)).use {

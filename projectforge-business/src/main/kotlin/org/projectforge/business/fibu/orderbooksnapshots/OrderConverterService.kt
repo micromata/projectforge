@@ -28,6 +28,8 @@ import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
+import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
 
@@ -44,9 +46,9 @@ internal class OrderConverterService {
         return col.filterNotNull().map { from(it) }
     }
 
-    fun convertFromOrder(col: Collection<Order?>?): List<AuftragDO>? {
+    fun convertFromOrder(col: Collection<Order?>?, snapshotDate: LocalDate): List<AuftragDO>? {
         col ?: return null
-        return col.filterNotNull().map { from(it) }
+        return col.filterNotNull().map { from(it, snapshotDate) }
     }
 
     fun from(auftrag: AuftragDO): Order {
@@ -60,10 +62,12 @@ internal class OrderConverterService {
         return Order.from(auftrag)
     }
 
-    fun from(order: Order): AuftragDO {
+    fun from(order: Order, snapshotDate: LocalDate): AuftragDO {
         return AuftragDO().apply {
             id = order.id
+            lastUpdate = order.lastUpdate
             nummer = order.nummer
+            angebotsDatum = order.angebotsDatum
             positionen = order.positionen?.map { from(it) }?.toMutableList()
             status = order.status
             kunde = caches.getKunde(order.kundeId)
@@ -74,6 +78,10 @@ internal class OrderConverterService {
             periodOfPerformanceBegin = order.periodOfPerformanceBegin
             periodOfPerformanceEnd = order.periodOfPerformanceEnd
             probabilityOfOccurrence = order.probabilityOfOccurrence
+            // Write the fields also to the info object.
+            info.snapshotDate = snapshotDate
+            info.nummer = order.nummer
+            info.angebotsDatum = order.angebotsDatum
             info.netSum = order.netSum
             info.commissionedNetSum = order.commissionedNetSum
             info.akquiseSum = order.akquiseSum
@@ -86,6 +94,25 @@ internal class OrderConverterService {
             info.positionAbgeschlossenUndNichtVollstaendigFakturiert =
                 order.positionAbgeschlossenUndNichtVollstaendigFakturiert
             info.paymentSchedulesReached = order.paymentSchedulesReached
+            info.periodOfPerformanceBegin = order.periodOfPerformanceBegin
+            info.periodOfPerformanceEnd = order.periodOfPerformanceEnd
+            info.probabilityOfOccurrence = order.probabilityOfOccurrence
+            info.infoPositions = positionen?.map { OrderPositionInfo(it, info).also { it.snapshotVersion = true } }
+            info.infoPositions?.forEach { infoPos ->
+                order.positionen?.find { it.number == infoPos.number }?.let { pos ->
+                    infoPos.netSum = pos.netSum ?: BigDecimal.ZERO
+                    infoPos.invoicedSum = pos.invoicedSum ?: BigDecimal.ZERO
+                    infoPos.akquiseSum = pos.akquiseSum ?: BigDecimal.ZERO
+                    infoPos.commissionedNetSum = pos.commissionedNetSum ?: BigDecimal.ZERO
+                    infoPos.notYetInvoiced = pos.notYetInvoiced ?: BigDecimal.ZERO
+                    infoPos.toBeInvoicedSum = pos.toBeInvoicedSum ?: BigDecimal.ZERO
+                    infoPos.recalculateInvoicedSum(snapshotDate)
+                }
+            }
+            info.calculateInvoicedSum(info.infoPositions)
+            info.kundeAsString = kundeAsString
+            info.projektAsString = projektAsString
+            info.updatePaymentScheduleEntries(paymentSchedules)
         }
     }
 

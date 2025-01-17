@@ -66,7 +66,7 @@ open class TimesheetExport {
     log.info("Exporting timesheet list.")
     ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
       val sheet = workbook.createOrGetSheet(translate("timesheet.timesheets"))
-      val boldFont = workbook.createOrGetFont("bold", bold = true)
+      val boldFont = ExcelUtils.createFont(workbook, "bold", bold = true)
       val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
       val wrapTextStyle = workbook.createOrGetCellStyle("wrap")
       val timeFormat = workbook.ensureDateCellStyle("HH:mm")

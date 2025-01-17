@@ -67,7 +67,7 @@ object VacationExcelExporter {
       "monthSeparation",
       fillForegroundColor = IndexedColors.BLACK,
     )
-    val boldFont = workbook.createOrGetFont("bold", bold = true, heightInPoints = 18)
+    val boldFont = ExcelUtils.createFont(workbook, "bold", bold = true, heightInPoints = 18)
     val monthStyle =
       ExcelUtils.createCellStyle(workbook, "month", font = boldFont, alignment = HorizontalAlignment.CENTER)
     val standardStyle = ExcelUtils.createCellStyle(workbook, "standard", borderStyle = BorderStyle.THIN)

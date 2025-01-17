@@ -27,6 +27,7 @@ import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
 import org.projectforge.common.MaxFileSizeExceeded
 import org.projectforge.common.i18n.UserException
+import org.projectforge.common.logging.LogLevel
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.utils.ExceptionStackTracePrinter
@@ -38,11 +39,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
-import org.springframework.web.context.request.async.AsyncRequestNotUsableException
-import org.springframework.web.context.request.async.AsyncRequestTimeoutException
 import org.springframework.web.multipart.MaxUploadSizeExceededException
-import java.io.IOException
-import java.net.NoRouteToHostException
 
 private val log = KotlinLogging.logger {}
 
@@ -50,7 +47,7 @@ private val log = KotlinLogging.logger {}
 internal class GlobalDefaultExceptionHandler {
     @ExceptionHandler(value = [(Exception::class)])
     @Throws(Exception::class)
-    fun defaultErrorHandler(request: HttpServletRequest, ex: Exception): Any {
+    fun defaultErrorHandler(request: HttpServletRequest, ex: Throwable): Any {
         // If the exception is annotated with @ResponseStatus rethrow it and let
         // the framework handle it.
         if (AnnotationUtils.findAnnotation(ex.javaClass, ResponseStatus::class.java) != null) {
@@ -66,24 +63,6 @@ internal class GlobalDefaultExceptionHandler {
             log.error("${translateMsg(userEx)} ${userEx.logHintMessage}")
             return ResponseEntity.badRequest().body(UIToast.createExceptionToast(userEx))
         }
-        if (ex is IOException && isClientAbortException(ex)) {
-            log.info { ex::class.java.name }
-            return ex::class.java.name
-        }
-        if (ex is NoRouteToHostException) {
-            log.error("No route to host: ${ex.message}")
-            return ResponseEntity("No route to host.", HttpStatus.BAD_REQUEST)
-        }
-        if (ex is AsyncRequestNotUsableException || ex is AsyncRequestTimeoutException) {
-            // Occurs on SseEmitter.send() if the client has disconnected.
-            // log.error("Async request not usable: ${ex.message}")
-            log.info { "Asyn client connection lost (OK): ${ex.message}" }
-            return ResponseEntity("Async request not usable.", HttpStatus.BAD_REQUEST)
-        }
-        if (ex::class.qualifiedName?.contains("NoResourceFoundException") == true) {
-            log.error("Resource not found: ${ex.message}")
-            return ResponseEntity("Resource not found.", HttpStatus.NOT_FOUND)
-        }
         if (ex is UserException) {
             if (ex.logHintMessage.isNullOrBlank()) {
                 log.error(translateMsg(ex))
@@ -95,6 +74,9 @@ internal class GlobalDefaultExceptionHandler {
             } else {
                 ResponseEntity.badRequest().body(UIToast.createExceptionToast(ex))
             }
+        }
+        GlobalExceptionRegistry.findExInfo(ex)?.let {
+            return handleKnownException(ex, it)
         }
         val additionalExcptionMessage =
             if (ex is TechnicalException && ex.technicalMessage != null) " technical=${ex.technicalMessage}" else ""
@@ -113,13 +95,12 @@ internal class GlobalDefaultExceptionHandler {
         return ResponseEntity("Internal error.", HttpStatus.BAD_REQUEST)
     }
 
-    /**
-     * Checks if the exception is a client abort exception.
-     * @param exception The exception to check.
-     * @return True if the exception is a client abort exception.
-     */
-    private fun isClientAbortException(exception: IOException): Boolean {
-        val message = exception.message?.lowercase()
-        return message?.contains("broken pipe") == true || message?.contains("connection reset by peer") == true
+    private fun handleKnownException(ex: Throwable, exInfo: GlobalExceptionRegistry.ExInfo): Any {
+        val msg = if (exInfo.message.isNullOrBlank()) exInfo.message else "${exInfo.message}: ${ex.message}"
+        when (exInfo.logLevel) {
+            LogLevel.INFO -> log.info(msg)
+            else -> log.error(msg)
+        }
+        return ResponseEntity(msg, exInfo.status)
     }
 }

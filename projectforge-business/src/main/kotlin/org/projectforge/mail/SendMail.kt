@@ -127,7 +127,7 @@ open class SendMail {
    */
   fun send(
     composedMessage: Mail?,
-    attachments: Collection<MailAttachment>?
+    attachments: Collection<IMailAttachment>?
   ): Boolean {
     return send(composedMessage, null, attachments, true)
   }
@@ -144,7 +144,7 @@ open class SendMail {
   fun send(
     composedMessage: Mail?,
     icalContent: String? = null,
-    attachments: Collection<MailAttachment>? = null,
+    attachments: Collection<IMailAttachment>? = null,
     async: Boolean = true
   ): Boolean {
     if (composedMessage == null) {
@@ -208,7 +208,7 @@ open class SendMail {
 
   private fun sendIt(
     composedMessage: Mail, icalContent: String?,
-    attachments: Collection<MailAttachment>?
+    attachments: Collection<IMailAttachment>?
   ) {
     log.info("Start sending e-mail message: " + StringUtils.join(composedMessage.to, ", "))
     try {
@@ -270,7 +270,7 @@ open class SendMail {
   @Throws(MessagingException::class)
   private fun createMailAttachmentContent(
     message: MimeMessage, composedMessage: Mail, icalContent: String?,
-    attachments: Collection<MailAttachment>?,
+    attachments: Collection<IMailAttachment>?,
     charset: String
   ): MimeMultipart {
     // create and fill the first message part

@@ -36,6 +36,12 @@ internal class OrderPosition {
     var status: AuftragsStatus? = null
     var titel: String? = null
     var netSum: BigDecimal? = null
+    var invoicedSum: BigDecimal? = null
+    var akquiseSum: BigDecimal? = null
+    var commissionedNetSum: BigDecimal? = null
+    var dbNetSum: BigDecimal? = null
+    var notYetInvoiced: BigDecimal? = null
+    var toBeInvoicedSum: BigDecimal? = null
     var personDays: BigDecimal? = null
     var vollstaendigFakturiert: Boolean? = false
     var periodOfPerformanceType: PeriodOfPerformanceType? = PeriodOfPerformanceType.SEEABOVE
@@ -47,13 +53,19 @@ internal class OrderPosition {
         fun from(pos: OrderPositionInfo): OrderPosition {
             return OrderPosition().apply {
                 id = pos.id
-                number = pos.number
+                number = pos.number ?: 0
                 taskId = pos.taskId
                 art = pos.art
                 paymentType = pos.paymentType
                 status = pos.status
                 titel = Order.abbreviate(pos.titel)
                 netSum = pos.netSum
+                invoicedSum = pos.invoicedSum
+                akquiseSum = pos.akquiseSum
+                commissionedNetSum = pos.commissionedNetSum
+                dbNetSum = pos.dbNetSum
+                notYetInvoiced = pos.notYetInvoiced
+                toBeInvoicedSum = pos.toBeInvoicedSum
                 personDays = pos.personDays
                 vollstaendigFakturiert = pos.vollstaendigFakturiert
                 periodOfPerformanceType = pos.periodOfPerformanceType

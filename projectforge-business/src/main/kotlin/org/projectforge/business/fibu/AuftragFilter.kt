@@ -34,7 +34,8 @@ import java.time.LocalDate
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @XStreamAlias("AuftragFilter")
-class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPerformance {
+class AuftragFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) : BaseSearchFilter(filter),
+    Serializable, SearchFilterWithPeriodOfPerformance {
 
     var user: PFUserDO? = null
 
@@ -65,8 +66,102 @@ class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPe
 
     var projectList: Collection<ProjektDO>? = null
 
-    @JvmOverloads
-    constructor(filter: BaseSearchFilter? = null) : super(filter)
+    fun match(auftrag: AuftragDO): Boolean {
+        if (!matchUser(auftrag)) {
+            return false
+        }
+        auftrag.erfassungsDatum?.let { erfassungsDatum ->
+            startDate?.let {
+                if (erfassungsDatum < it) {
+                    return false
+                }
+            }
+            endDate?.let {
+                if (erfassungsDatum > it) {
+                    return false
+                }
+            }
+        }
+        periodOfPerformanceStartDate?.let {
+            auftrag.periodOfPerformanceEnd?.let { periodOfPerformanceEnd ->
+                if (periodOfPerformanceEnd.isBefore(it)) {
+                    return false
+                }
+            }
+        }
+        periodOfPerformanceEndDate?.let {
+            auftrag.periodOfPerformanceBegin?.let { periodOfPerformanceBegin ->
+                if (periodOfPerformanceBegin.isAfter(it)) {
+                    return false
+                }
+            }
+        }
+        if (!matchProjectList(auftrag)) {
+            return false
+        }
+        if (!matchAuftragsStatus(auftrag)) {
+            return false
+        }
+        if (!matchAuftragsPositionsArten(auftrag)) {
+            return false
+        }
+        return true
+    }
+
+    /**
+     * @return true if the given order matches the [user] of the filter.
+     *              If this filter setting is empty, true is returned.
+     */
+    fun matchUser(auftrag: AuftragDO): Boolean {
+        val uid = user?.id ?: return true
+        return (auftrag.projectManager?.id == uid ||
+                auftrag.headOfBusinessManager?.id == uid ||
+                auftrag.contactPerson?.id == uid ||
+                auftrag.salesManager?.id == uid
+                )
+    }
+
+    /**
+     * @return true if the given order matches the [projectList] of the filter.
+     *              If this filter setting is empty, true is returned.
+     */
+    fun matchProjectList(auftrag: AuftragDO): Boolean {
+        val list = projectList
+        if (list.isNullOrEmpty()) {
+            return true
+        }
+        return auftrag.projekt?.id?.let { projektId ->
+            list.any{ projektId == it.id }
+        } ?: false
+    }
+
+    /**
+     * @return true if the given order or any non-deleted order position matches the [auftragsStatuses] of the filter.
+     *              If this filter setting is empty, true is returned.
+     */
+    fun matchAuftragsStatus(auftrag: AuftragDO): Boolean {
+        if (auftragsStatuses.isEmpty()) {
+            return true
+        }
+        auftrag.status?.let { status ->
+            if (auftragsStatuses.contains(status)) {
+                return true
+            }
+        }
+        return auftrag.positionenExcludingDeleted.any { pos -> auftragsStatuses.contains(pos.status) }
+    }
+
+    /**
+     * @return true if any given non-deleted order position matches the [auftragsPositionsArten] of the filter.
+     *              If this filter setting is empty, true is returned.
+     */
+    fun matchAuftragsPositionsArten(auftrag: AuftragDO): Boolean {
+        return auftragsPositionsArten.isEmpty() || auftrag.positionenExcludingDeleted.any { pos ->
+            auftragsPositionsArten.contains(
+                pos.art
+            )
+        }
+    }
 
     override fun reset(): AuftragFilter {
         searchString = ""

@@ -445,9 +445,9 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO) :
   }
 
   private val erfassungsDatumProperties: FieldProperties<LocalDate>
-    get() = FieldProperties("fibu.auftrag.angebot.datum", PropertyModel(super.data, "angebotsDatum"))
-  private val angebotsDatumProperties: FieldProperties<LocalDate>
     get() = FieldProperties("fibu.auftrag.erfassung.datum", PropertyModel(super.data, "erfassungsDatum"))
+  private val angebotsDatumProperties: FieldProperties<LocalDate>
+    get() = FieldProperties("fibu.auftrag.angebot.datum", PropertyModel(super.data, "angebotsDatum"))
   private val entscheidungsDatumProperties: FieldProperties<LocalDate>
     get() = FieldProperties("fibu.auftrag.entscheidung.datum", PropertyModel(super.data, "entscheidungsDatum"))
   private val bindungsfristProperties: FieldProperties<LocalDate>
