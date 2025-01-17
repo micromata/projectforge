@@ -87,7 +87,7 @@ AuthorizedRoutes.propTypes = {
 
 const mapStateToProps = ({ authentication }) => ({
     alertMessage: authentication.alertMessage,
-    locale: authentication.user.locale,
+    locale: authentication.user?.locale,
 });
 
 export default connect(mapStateToProps)(AuthorizedRoutes);
