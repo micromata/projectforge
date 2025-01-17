@@ -1,9 +1,9 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { useLocation, useParams } from 'react-router';
 import { callAction, loadList } from '../../../actions';
 import DynamicLayout from '../../../components/base/dynamicLayout';
@@ -13,13 +13,18 @@ import styles from './ListPage.module.scss';
 
 function ListPage(
     {
-        category,
         onCallAction,
         onCategoryChange,
     },
 ) {
     const { category: paramsCategory } = useParams();
     const location = useLocation();
+
+    const { category } = useSelector(({ list }) => list.categories[paramsCategory]) || {};
+
+    useEffect(() => {
+        console.log({ category });
+    }, [category]);
 
     // Only reload the list when the category or search string changes.
     React.useEffect(
@@ -64,22 +69,9 @@ function ListPage(
 ListPage.propTypes = {
     onCallAction: PropTypes.func.isRequired,
     onCategoryChange: PropTypes.func.isRequired,
-    category: PropTypes.shape({
-        ui: PropTypes.shape({
-            title: PropTypes.string,
-            hideSearchFilter: PropTypes.bool,
-            pageMenu: PropTypes.arrayOf(PropTypes.shape({})),
-        }),
-        data: PropTypes.shape({
-            resultInfo: PropTypes.shape({}),
-        }),
-        variables: PropTypes.shape({ }),
-    }),
 };
 
-const mapStateToProps = ({ list }, { match }) => ({
-    category: list.categories[match.params.category],
-});
+const mapStateToProps = () => ({});
 
 const actions = {
     onCallAction: callAction,
