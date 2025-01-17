@@ -462,12 +462,16 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     @JvmOverloads
     open fun insertOrUpdate(obj: O, checkAccess: Boolean = true): Serializable? {
         var id: Serializable? = null
-        if (obj.id != null && obj.created != null) { // obj.created is needed for KundeDO (id isn't null for inserting new customers).
+        if (!isNew(obj)) {
             update(obj, checkAccess = checkAccess)
         } else {
             id = insert(obj, checkAccess = checkAccess)
         }
         return id
+    }
+
+    open fun isNew(obj: O): Boolean {
+        return obj.id == null
     }
 
     /**
