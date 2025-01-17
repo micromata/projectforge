@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Collapse } from 'reactstrap';
 import style from '../Navigation.module.scss';
 import MenuBadge from './MenuBadge';

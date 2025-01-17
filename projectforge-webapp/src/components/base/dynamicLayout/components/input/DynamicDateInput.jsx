@@ -1,7 +1,7 @@
 import 'moment/min/locales';
 import PropTypes from 'prop-types';
 import React from 'react';
-import 'react-day-picker/dist/style.css';
+import 'react-day-picker/src/style.css';
 import DateInput from '../../../../design/input/calendar/DateInput';
 import { DynamicLayoutContext } from '../../context';
 import DynamicValidationManager from './DynamicValidationManager';

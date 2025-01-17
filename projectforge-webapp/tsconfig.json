@@ -22,9 +22,12 @@
   },
   "include": [
     "src/**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.d.ts",
     "src/**/*.js",
     "src/**/*.jsx",
     "src/**/*.scss",
+    "src/react-app-env.d.ts"
   ],
   "exclude": [
     "node_modules"

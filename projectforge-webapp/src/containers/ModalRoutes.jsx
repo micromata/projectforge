@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { useLocation, useHistory } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import { Modal, ModalBody } from 'reactstrap';
 import { connect } from 'react-redux';
 import { callAction } from '../actions';
@@ -9,12 +9,11 @@ function ModalRoutes(props) {
     const { getRoutesWithLocation, onCallAction } = props;
     const location = useLocation();
     const realLocation = location.action ? location.location : location;
-    const history = useHistory();
     const { background } = realLocation.state || {};
 
     return (
         <>
-            {getRoutesWithLocation(background || realLocation)}
+            {getRoutesWithLocation(background)}
             <Modal
                 size="xl"
                 isOpen={!!background}

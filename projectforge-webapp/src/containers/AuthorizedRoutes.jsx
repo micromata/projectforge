@@ -2,39 +2,29 @@ import Helmet from 'react-helmet';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
-import { Route, Switch } from 'react-router-dom';
+import { Route, Routes } from 'react-router';
 import GlobalNavigation from '../components/base/navigation/GlobalNavigation';
 import { Alert, Container } from '../components/design';
 import prefix from '../utilities/prefix';
-import { getServiceURL } from '../utilities/rest';
 import CalendarPage from './page/calendar/CalendarPage';
 import FormPage from './page/form/FormPage';
 import IndexPage from './page/IndexPage';
 import ListPage from './page/list/ListPage';
 import TaskTreePage from './page/TaskTreePage';
 import ModalRoutes from './ModalRoutes';
+import RedirectToWicket from './RedirectToWicket';
 
 export const wicketRoute = (
     <Route
         path="/wa"
-        component={({ location }) => {
-            if (process.env.NODE_ENV !== 'development') {
-                window.location.reload();
-            }
-
-            return (
-                <a href={getServiceURL(`..${location.pathname}`)}>
-                    Redirect to Wicket
-                </a>
-            );
-        }}
+        element={<RedirectToWicket />}
     />
 );
 
 export const publicRoute = (
     <Route
-        path={`${prefix}public/:category/:type?/:id?`}
-        render={(props) => <FormPage {...props} isPublic />}
+        path={`${prefix}public/:category/:type?/:id?/:tab?`}
+        element={<FormPage isPublic />}
     />
 );
 
@@ -45,31 +35,31 @@ function AuthorizedRoutes(
     },
 ) {
     const getRoutesWithLocation = (location) => (
-        <Switch location={location}>
+        <Routes location={location}>
             {wicketRoute}
             {publicRoute}
             <Route
                 exact
                 path={prefix}
-                component={IndexPage}
+                element={<IndexPage />}
             />
             <Route
                 path={`${prefix}calendar`}
-                component={CalendarPage}
+                element={<CalendarPage />}
             />
             <Route
                 path={`${prefix}taskTree`}
-                component={TaskTreePage}
+                element={<TaskTreePage />}
             />
             <Route
-                path={`${prefix}:category/:type/:id?`}
-                component={FormPage}
+                path={`${prefix}:category/:type/:id?/:tab?`}
+                element={<FormPage />}
             />
             <Route
                 path={`${prefix}:category`}
-                component={ListPage}
+                element={<ListPage />}
             />
-        </Switch>
+        </Routes>
     );
 
     return (

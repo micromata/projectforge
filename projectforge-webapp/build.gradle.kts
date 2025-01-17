@@ -6,10 +6,10 @@ plugins {
 node {
     // Configure the Node.js and npm versions
     // version.set("22.11.0")
-    version.set("16.15.0") // Used by maven version (ProjectForge 7.5).
+    version.set("23.1.0") // Used by maven version (ProjectForge 7.5).
     // Version of npm to use
     // If specified, installs it in the npmWorkDir
-    npmVersion.set("8.5.4") // Used by maven version (ProjectForge 7.5).
+    npmVersion.set("10.9.0") // Used by maven version (ProjectForge 7.5).
     // npmVersion.set("") // If empty, the plugin will use the npm command bundled with Node.js
     download.set(true) // Downloads Node.js and npm instead of using a globally installed version
 
