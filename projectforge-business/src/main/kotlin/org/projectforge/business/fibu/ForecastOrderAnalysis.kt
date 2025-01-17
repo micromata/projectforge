@@ -74,8 +74,9 @@ class ForecastOrderAnalysis {
         }?.sortedBy { it.orderPosNumber }
         result?.forEach { fcPosInfo ->
             val posInfo = fcPosInfo.orderPosInfo
+            val snapshotDate = orderInfo.snapshotDate
             // Add all invoices:
-            auftragsRechnungCache.getRechnungsPosInfosByAuftragsPositionId(posInfo.id)?.forEach { invoicePosInfo ->
+            filterInvoices(posInfo, snapshotDate)?.forEach { invoicePosInfo ->
                 val invoiceInfo = invoicePosInfo.rechnungInfo
                 val date = invoiceInfo?.date
                 val netSum = invoicePosInfo.netSum
@@ -109,7 +110,15 @@ class ForecastOrderAnalysis {
         return htmlExport(orderId = orderId, orderNumber = orderNumber, snapshotDate = snapshotDate).toByteArray()
     }
 
-    fun htmlExport(orderId: Long? = null, orderNumber: Int? = null, snapshotDate: LocalDate? = null): String {
+    fun htmlExport(
+        orderId: Long? = null,
+        orderNumber: Int? = null,
+        snapshotDate: LocalDate? = null,
+        checkAccess: Boolean = true,
+    ): String {
+        if (checkAccess) {
+            auftragDao.find(orderId) // Throws AccessException if not allowed.
+        }
         val orderInfo =
             loadOrder(orderId = orderId, orderNumber = orderNumber, snapshotDate)
                 ?: return noAnalysis("Order with id $orderId or positions not found.")
@@ -120,9 +129,15 @@ class ForecastOrderAnalysis {
         if (firstMonth == null || lastMonth == null) {
             return noAnalysis("No order positions found for order with id ${orderId}.")
         }
-        val title = "Forecast Order Analysis for order #${orderInfo.nummer}, ${PFDateTime.now().format()}"
+        val title = "Forecast Order Analysis for order #${orderInfo.nummer}"
         val html = HtmlDocument(title)
         html.add(Html.H1(title))
+        html.add(Html.H2().also {
+            orderInfo.snapshotDate?.let { snapshotDate ->
+                it.add(Html.Span("Snapshot date: $snapshotDate, ", style = "color: red; font-weight: bold;"))
+            }
+            it.add(Html.Span("created: ${PFDateTime.now().format()}"))
+        })
         html.add(Html.Alert(Html.Alert.Type.INFO).also { div ->
             div.add(Html.Text("Forecast values are shown in "))
             div.add(Html.Span("blue,", style = "color: blue; font-weight: bold;"))
@@ -152,7 +167,13 @@ class ForecastOrderAnalysis {
                 translate("fibu.periodOfPerformance"),
                 "${orderInfo.periodOfPerformanceBegin.formatForUser()} - ${orderInfo.periodOfPerformanceEnd.formatForUser()}"
             )
+            addRow(table, translate("fibu.probabilityOfOccurrence"), "${orderInfo.probabilityOfOccurrence} %")
             addRow(table, translate("fibu.auftrag.nettoSumme"), orderInfo.netSum.formatCurrency(true))
+            addRow(
+                table,
+                translate("fibu.auftrag.nettoSumme.weighted"),
+                list.sumOf { it.weightedNetSum }.formatCurrency(true),
+            )
             addRow(table, translate("fibu.invoiced"), orderInfo.invoicedSum, suppressZero = false)
             addRow(table, translate("fibu.notYetInvoiced"), orderInfo.notYetInvoicedSum)
             addRow(table, "Lost buget", lostBudget)
@@ -223,6 +244,11 @@ class ForecastOrderAnalysis {
                 addRow(table, translate("fibu.auftrag.position.art"), translate(posInfo.art))
                 addRow(table, translate("fibu.auftrag.position.paymenttype"), translate(posInfo.paymentType))
                 addRow(table, translate("fibu.auftrag.nettoSumme"), posInfo.netSum.formatCurrency(true))
+                addRow(
+                    table,
+                    translate("fibu.auftrag.nettoSumme.weighted"),
+                    fcPosInfo.weightedNetSum.formatCurrency(true)
+                )
                 addRow(table, translate("fibu.invoiced"), posInfo.invoicedSum.formatCurrency(true))
                 addRow(table, translate("fibu.notYetInvoiced"), posInfo.notYetInvoiced)
                 addRow(table, translate("projectmanagement.personDays"), posInfo.personDays.formatForUser())
@@ -246,7 +272,7 @@ class ForecastOrderAnalysis {
                     tr.addTH(translate("fibu.rechnung.status.bezahlt"))
                     tr.addTH(translate("fibu.rechnung.text"), CssClass.EXPAND)
                 }
-                auftragsRechnungCache.getRechnungsPosInfosByAuftragsPositionId(posInfo.id)?.forEach { invoicePosInfo ->
+                filterInvoices(posInfo, orderInfo.snapshotDate)?.forEach { invoicePosInfo ->
                     val invoiceInfo = invoicePosInfo.rechnungInfo
                     table.addRow().also { row ->
                         row.addTD("${invoiceInfo?.nummer}#${invoicePosInfo.number}")
@@ -317,6 +343,15 @@ class ForecastOrderAnalysis {
             if (amount == month.toBeInvoicedSum && amount.abs() >= BigDecimal.ONE) "color: blue;" else "color: green;"
         row.addTD(amount.formatCurrency(), cssClass).also { td -> td.attr("style", style) }
         return amount
+    }
+
+    private fun filterInvoices(posInfo: OrderPositionInfo, snapshotDate: LocalDate?): Collection<RechnungPosInfo>? {
+        val invoicePositions = auftragsRechnungCache.getRechnungsPosInfosByAuftragsPositionId(posInfo.id)
+        return if (snapshotDate == null) {
+            invoicePositions
+        } else {
+            invoicePositions?.filter { (it.rechnungInfo?.date ?: LocalDate.MAX) <= snapshotDate }
+        }
     }
 
     companion object {
