@@ -26,7 +26,6 @@ package org.projectforge.business.fibu
 import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
 import mu.KotlinLogging
-import org.jetbrains.kotlin.cfg.pseudocode.or
 import org.projectforge.business.fibu.ForecastExportContext.*
 import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotsService
 import org.projectforge.business.scripting.ScriptLogger
@@ -430,7 +429,7 @@ open class ForecastExport { // open needed by Wicket.
         val posInfo = orderInfo?.getInfoPosition(pos.id)
         val netSum = pos.netSum ?: BigDecimal.ZERO
         val invoicedSum = posInfo?.invoicedSum ?: BigDecimal.ZERO
-        val forecastInfo = ForecastOrderPosInfo(order, pos, PFDay.fromOrNull(baseDate) ?: ctx.baseDate)
+        val forecastInfo = ForecastOrderPosInfo(order, pos)
         forecastInfo.calculate()
         sheet.setBigDecimalValue(row, ForecastCol.NETTOSUMME.header, netSum).cellStyle = ctx.currencyCellStyle
         if (invoicedSum.compareTo(BigDecimal.ZERO) != 0) {
@@ -488,7 +487,7 @@ open class ForecastExport { // open needed by Wicket.
         ).cellStyle =
             ctx.percentageCellStyle
 
-        sheet.setBigDecimalValue(row, ForecastCol.PROBABILITY_NETSUM.header, forecastInfo.probabilityNetSum).cellStyle =
+        sheet.setBigDecimalValue(row, ForecastCol.PROBABILITY_NETSUM.header, forecastInfo.weightedNetSum).cellStyle =
             ctx.currencyCellStyle
 
         sheet.setStringValue(row, ForecastCol.ANSPRECHPARTNER.header, order.contactPerson?.getFullname())
