@@ -225,6 +225,9 @@ class OrderbookSnapshotsService {
             readSnapshot(incrementalBasedOn, orderbook)
         }
         val serialized = entry.serializedOrderBook ?: return
+        if (serialized.isEmpty()) {
+            return
+        }
         readSnapshot(serialized, orderbook)
     }
 
