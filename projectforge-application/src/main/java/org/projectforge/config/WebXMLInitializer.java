@@ -30,6 +30,7 @@ import org.apache.wicket.protocol.http.WicketFilter;
 import org.apache.wicket.spring.SpringWebApplicationFactory;
 import org.projectforge.business.user.filter.WicketUserFilter;
 import org.projectforge.carddav.CardDavInit;
+import org.projectforge.framework.configuration.PFSpringConfiguration;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.config.LocaleFilter;
 import org.projectforge.rest.config.Rest;
@@ -63,11 +64,20 @@ public class WebXMLInitializer implements ServletContextInitializer {
     @Autowired
     private CardDavInit cardDavInit;
 
+    @Autowired
+    private PFSpringConfiguration pfSpringConfiguration;
+
     @Override
     public void onStartup(ServletContext sc) throws ServletException {
         final FilterRegistration securityHeaderFilter = sc.addFilter("SecurityHeaderFilter", SecurityHeaderFilter.class);
         securityHeaderFilter.addMappingForUrlPatterns(null, false, "/*");
         securityHeaderFilter.setInitParameter(SecurityHeaderFilter.PARAM_CSP_HEADER_VALUE, cspHeaderValue);
+
+        if (pfSpringConfiguration.getCorsFilterEnabled()) {
+            log.warn("************* Enabling CorsPreflightFilter for development. *************");
+            FilterRegistration.Dynamic corsPreflightFilter = sc.addFilter("CorsPreflightFilter", CorsPreflightFilter.class);
+            corsPreflightFilter.addMappingForUrlPatterns(null, false, "/*");
+        }
 
         /*
          * Redirect orphaned links from former versions of ProjectForge (e. g. if link in e-mails were changed due to migrations or refactoring.
