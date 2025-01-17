@@ -25,7 +25,8 @@ package org.projectforge.business.fibu
 
 enum class EmployeeValidSinceAttrType {
     ANNUAL_LEAVE,
-    STATUS;
+    STATUS,
+    WEEKLY_HOURS;
 
     companion object {
         fun safeValueOf(name: String?): EmployeeValidSinceAttrType? {

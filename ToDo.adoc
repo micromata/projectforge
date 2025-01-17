@@ -1,5 +1,6 @@
 ==== Aktuell:
-
+- History-Entries für EmployeeValidityAttrDO werden nicht ordentlich geschrieben.
+- JCR: Tool for removing or recovering orphaned nodes.
 - Favoriten bei Scriptausführung für Parameter.
 - KI-Anteil in Zeitberichten
 - Viewpage für user für non-admins.

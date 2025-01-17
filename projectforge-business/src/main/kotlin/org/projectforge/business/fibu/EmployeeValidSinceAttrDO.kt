@@ -110,6 +110,19 @@ open class EmployeeValidSinceAttrDO : Serializable, AbstractBaseDO<Long>(), Cand
     @CandHIgnore
     @get:JsonIgnore
     @get:Transient
+    var weeklyWorkingHours: BigDecimal?
+        get() {
+            checkType(EmployeeValidSinceAttrType.WEEKLY_HOURS)
+            return value?.let { runCatching { BigDecimal(it) }.getOrNull() }
+        }
+        set(value) {
+            checkType(EmployeeValidSinceAttrType.WEEKLY_HOURS)
+            this.value = value?.toString()
+        }
+
+    @CandHIgnore
+    @get:JsonIgnore
+    @get:Transient
     var status: EmployeeStatus?
         get() {
             checkType(EmployeeValidSinceAttrType.STATUS)
@@ -136,6 +149,9 @@ open class EmployeeValidSinceAttrDO : Serializable, AbstractBaseDO<Long>(), Cand
             if (type == EmployeeValidSinceAttrType.ANNUAL_LEAVE) {
                 attr.setPropertyTypeClass(BigDecimal::class)
                 attr.propertyName = buildPropertyName("annualLeave")
+            } else if (type == EmployeeValidSinceAttrType.WEEKLY_HOURS) {
+                attr.setPropertyTypeClass(BigDecimal::class)
+                attr.propertyName = buildPropertyName("weeklyWorkingHours")
             } else if (type == EmployeeValidSinceAttrType.STATUS) {
                 attr.setPropertyTypeClass(EmployeeStatus::class)
                 attr.propertyName = buildPropertyName("status")
