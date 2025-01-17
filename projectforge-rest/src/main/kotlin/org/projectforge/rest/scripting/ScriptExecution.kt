@@ -164,6 +164,10 @@ class ScriptExecution {
                 is ExportJson -> {
                     exportJson(request, result, scriptExecutionResult)
                 }
+
+                is ExportFile -> {
+                    exportFile(request, result, scriptExecutionResult)
+                }
             }
         }
         return scriptExecutionResult
@@ -224,6 +228,8 @@ class ScriptExecution {
     ) {
         workbook.use {
             val filename = createDownloadFilename(workbook.filename, workbook.filenameExtension)
+            // Evaluate all formulas before exporting:
+            workbook.pOIWorkbook.creationHelper.createFormulaEvaluator().evaluateAll()
             val xls = workbook.asByteArrayOutputStream.toByteArray()
             if (xls == null || xls.size == 0) {
                 scriptExecutionResult.scriptLogger.error("Oups, xls has zero size. Filename: $filename")
@@ -272,6 +278,24 @@ class ScriptExecution {
                 request,
                 filename,
                 JsonUtils.toJson(exportJson.result).toByteArray(StandardCharsets.UTF_8),
+                scriptExecutionResult,
+            )
+        } catch (ex: Exception) {
+            scriptExecutionResult.exception = ex
+            log.error(ex.message, ex)
+        }
+    }
+
+    private fun exportFile(
+        request: HttpServletRequest,
+        exportFile: ExportFile,
+        scriptExecutionResult: ScriptExecutionResult,
+    ) {
+        try {
+            storeDownloadFile(
+                request,
+                exportFile.filename,
+                exportFile.content ?: ByteArray(0),
                 scriptExecutionResult,
             )
         } catch (ex: Exception) {

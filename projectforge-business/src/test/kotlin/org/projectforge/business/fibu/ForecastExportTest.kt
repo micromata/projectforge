@@ -69,13 +69,13 @@ class ForecastExportTest : AbstractTestBase() {
 
         val filter = AuftragFilter()
         filter.periodOfPerformanceStartDate = baseDate.localDate
-        val ba = forecastExport.export(filter)
+        val ba = forecastExport.xlsExport(filter)
         val excelFile = WorkFileHelper.getWorkFile("forecast.xlsx")
         baseLog.info("Writing forecast Excel file to work directory: " + excelFile.absolutePath)
         FileUtils.writeByteArrayToFile(excelFile, ba)
 
         ExcelWorkbook(ByteArrayInputStream(ba), excelFile.name).use { workbook ->
-            val forecastSheet = workbook.getSheet(ForecastExport.Sheet.FORECAST.title)!!
+            val forecastSheet = workbook.getSheet(ForecastExportContext.Sheet.FORECAST.title)!!
             val monthCols = Array(12) {
                 forecastSheet.registerColumn(ForecastExport.formatMonthHeader(baseDate.plusMonths(it.toLong())))
             }

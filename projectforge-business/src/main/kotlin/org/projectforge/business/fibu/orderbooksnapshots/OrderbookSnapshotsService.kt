@@ -45,6 +45,7 @@ import java.util.*
 import java.util.zip.Deflater
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
+import kotlin.math.abs
 
 private val log = KotlinLogging.logger {}
 
@@ -66,6 +67,7 @@ class OrderbookSnapshotsService {
 
     @PostConstruct
     private fun postConstruct() {
+        instance = this
         OrderbookSnapshotsSanityCheck(this).let {
             cronSanityCheckJob.registerJob(it)
         }
@@ -84,7 +86,7 @@ class OrderbookSnapshotsService {
                 val today = LocalDate.now()
                 val entry = findEntry(today)
                 if (entry != null) {
-                    log.info { "Order book for today already exists. OK, nothing to do." }
+                    log.info { "Order book snapshot for today ($today UTC) already exists. OK, nothing to do." }
                     return@runInNewTransaction
                 }
                 var incrementalBasedOn: LocalDate? = null
@@ -188,10 +190,19 @@ class OrderbookSnapshotsService {
         return rawSnapshot
     }
 
+    fun findClosestSnapshotDate(date: LocalDate?): LocalDate? {
+        date ?: return null
+        selectMetas(onlyFullBackups = false).also { entries ->
+            return entries.minByOrNull { abs((it.date?.toEpochDay() ?: 0L) - date.toEpochDay()) }?.date
+        }
+    }
+
     fun readSnapshot(date: LocalDate): List<AuftragDO>? {
         val orderbook = mutableMapOf<Long, Order>()
         readSnapshot(date, orderbook)
-        return orderConverterService.convertFromOrder(orderbook.values)
+        return orderConverterService.convertFromOrder(orderbook.values, date).also {
+            log.info { "${it?.size} orders restored from snapshot of $date." }
+        }
     }
 
     private fun readSnapshot(date: LocalDate, orderbook: MutableMap<Long, Order>) {
@@ -214,6 +225,9 @@ class OrderbookSnapshotsService {
             readSnapshot(incrementalBasedOn, orderbook)
         }
         val serialized = entry.serializedOrderBook ?: return
+        if (serialized.isEmpty()) {
+            return
+        }
         readSnapshot(serialized, orderbook)
     }
 
@@ -271,21 +285,25 @@ class OrderbookSnapshotsService {
 
     private fun gzip(str: String): ByteArray {
         val byteArrayOutputStream = ByteArrayOutputStream()
-        val gzipStream = object : GZIPOutputStream(byteArrayOutputStream) {
+        object : GZIPOutputStream(byteArrayOutputStream) {
             init {
                 def.setLevel(Deflater.BEST_COMPRESSION)
             }
-        }
-        gzipStream.use { gzipStream ->
-            gzipStream.write(str.toByteArray(Charsets.UTF_8))
+        }.use { gzipOutputStream ->
+            gzipOutputStream.write(str.toByteArray(Charsets.UTF_8))
         }
         return byteArrayOutputStream.toByteArray()
     }
 
-    fun gunzip(compressed: ByteArray): String {
+    private fun gunzip(compressed: ByteArray): String {
         val byteArrayInputStream = ByteArrayInputStream(compressed)
         GZIPInputStream(byteArrayInputStream).use { gzipStream ->
             return gzipStream.readBytes().toString(Charsets.UTF_8)
         }
+    }
+
+    companion object {
+        lateinit var instance: OrderbookSnapshotsService
+            private set
     }
 }

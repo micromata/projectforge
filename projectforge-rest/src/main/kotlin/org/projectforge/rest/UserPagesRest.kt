@@ -169,9 +169,6 @@ class UserPagesRest
     return super.prepareClone(dto)
   }
 
-  override val classicsLinkListUrl: String
-    get() = "wa/userList"
-
   /**
    * LAYOUT List page
    */
@@ -858,7 +855,7 @@ class UserPagesRest
     val list = getObjectList(this, baseDao, filter)
     ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
       val sheet = workbook.createOrGetSheet(translate("plugins.skillmatrix.title.list"))
-      val boldFont = workbook.createOrGetFont("bold", bold = true)
+      val boldFont = ExcelUtils.createFont(workbook, "bold", bold = true)
       val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
       val wrapTextStyle = workbook.createOrGetCellStyle("wrap")
       wrapTextStyle.wrapText = true

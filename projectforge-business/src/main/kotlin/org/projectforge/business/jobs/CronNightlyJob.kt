@@ -23,10 +23,6 @@
 
 package org.projectforge.business.jobs
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import org.projectforge.common.extensions.formatMillis
 import org.projectforge.framework.persistence.search.HibernateSearchReindexer
@@ -47,14 +43,12 @@ class CronNightlyJob {
     @Autowired
     private lateinit var hibernateSearchReindexer: HibernateSearchReindexer
 
-    private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-
     //@Scheduled(cron = "0 30 2 * * *")
     @Scheduled(cron = "\${projectforge.cron.nightly}")
     fun execute() {
         val started = System.currentTimeMillis()
         log.info("Nightly job started.")
-        coroutineScope.launch {
+        Thread {
             try {
                 hibernateSearchReindexer.execute()
             } catch (ex: Throwable) {
@@ -62,6 +56,6 @@ class CronNightlyJob {
             } finally {
                 log.info("Nightly job job finished after ${(System.currentTimeMillis() - started).formatMillis()}.")
             }
-        }
+        }.start()
     }
 }

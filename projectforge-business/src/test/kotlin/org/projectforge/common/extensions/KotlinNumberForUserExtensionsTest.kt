@@ -26,7 +26,6 @@ package org.projectforge.common.extensions
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.utils.NumberFormatter.formatCurrency
 import java.math.BigDecimal
 import java.util.*
 
@@ -47,14 +46,15 @@ class KotlinNumberForUserExtensionsTest {
         ThreadLocalUserContext.clear() // Must be cleared, otherwise, the locale can't be set.
         Locale.setDefault(Locale.ENGLISH)
         ThreadLocalUserContext.locale = Locale.GERMAN
-        Assertions.assertEquals("", null.formatForUser())
+        val nullValue: Number? = null
+        Assertions.assertEquals("", nullValue.formatForUser())
         Assertions.assertEquals("1.234,57", 1234.5678.formatForUser(scale = 2))
         Assertions.assertEquals("1.234,00", 1234.formatForUser(scale = 2))
         Assertions.assertEquals("1.234", 1234.formatForUser())
 
         Locale.setDefault(Locale.GERMAN)
         ThreadLocalUserContext.locale = Locale.ENGLISH
-        Assertions.assertEquals("", null.formatForUser())
+        Assertions.assertEquals("", nullValue.formatForUser())
         Assertions.assertEquals("1,234.57", 1234.5678.formatForUser(scale = 2))
         Assertions.assertEquals("1,234.00", 1234.formatForUser(scale = 2))
         Assertions.assertEquals("1,234", 1234.formatForUser())
@@ -92,6 +92,10 @@ class KotlinNumberForUserExtensionsTest {
         Assertions.assertEquals("", null.formatCurrency())
         Assertions.assertEquals("10.00", BigDecimal.TEN.formatCurrency())
         Assertions.assertEquals("10.00 €", BigDecimal.TEN.formatCurrency(true))
+
+        Assertions.assertEquals("11", BigDecimal("10.5").formatCurrency(scale = 0))
+        Assertions.assertEquals("11 €", BigDecimal("10.5").formatCurrency(true, scale = 0))
+        Assertions.assertEquals("-11 €", BigDecimal("-10.5").formatCurrency(true, scale = 0))
     }
 
 

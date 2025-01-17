@@ -36,7 +36,6 @@ import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.json.IdOnlySerializer
-import org.projectforge.framework.json.IdsOnlySerializer
 import org.projectforge.framework.persistence.candh.CandHIgnore
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.history.NoHistory

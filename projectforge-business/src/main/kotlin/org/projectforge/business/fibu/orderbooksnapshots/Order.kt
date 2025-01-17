@@ -28,13 +28,16 @@ import org.projectforge.business.fibu.AuftragsStatus
 import org.projectforge.business.fibu.OrderInfo
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.Date
 
 /**
  * For storing serializing and deserializing orders.
  */
 internal class Order {
     var id: Long? = null
+    var lastUpdate: Date? = null
     var nummer: Int? = null
+    var angebotsDatum: LocalDate? = null
     var positionen: Collection<OrderPosition>? = null
     var status: AuftragsStatus? = null
     var kundeId: Long? = null
@@ -115,6 +118,7 @@ internal class Order {
             return Order().apply {
                 id = order.id
                 nummer = order.nummer
+                lastUpdate = order.lastUpdate
                 positionen = order.info.infoPositions?.map { OrderPosition.from(it) }
                 status = order.status
                 kundeId = order.kunde?.id

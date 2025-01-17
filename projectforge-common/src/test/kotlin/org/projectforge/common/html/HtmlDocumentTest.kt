@@ -21,15 +21,19 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.mail;
+package org.projectforge.common.html
 
-
-/**
- * @author Kai Reinhard (k.reinhard@micromata.de)
- */
-public interface MailAttachment
-{
-  public String getFilename();
-
-  public byte[] getContent();
+fun main() {
+    val doc = HtmlDocument("Title")
+    val table = HtmlTable()
+    val row = table.addRow()
+    row.addTH("Header 1")
+    row.addTH("Header 2")
+    val row2 = table.addRow()
+    row2.addTD("Cell 1")
+    row2.addTD("Cell 2")
+    doc.add(table)
+    doc.add(Html.Alert(Html.Alert.Type.INFO, "This is an info message."))
+    println(doc.toString())
 }
+

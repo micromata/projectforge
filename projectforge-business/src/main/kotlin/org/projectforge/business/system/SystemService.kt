@@ -23,10 +23,6 @@
 
 package org.projectforge.business.system
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import org.apache.commons.io.FileUtils
 import org.projectforge.business.address.BirthdayCache.Companion.instance
@@ -38,17 +34,18 @@ import org.projectforge.business.jobs.CronSanityCheckJob
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.extensions.formatMillis
+import org.projectforge.common.html.Html
+import org.projectforge.common.html.HtmlDocument
 import org.projectforge.datatransfer.DataTransferBridge
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.database.SchemaExport
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUser
-import org.projectforge.framework.time.DateHelper
+import org.projectforge.jobs.JobListExecutionContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.File
 import java.io.IOException
-import java.util.*
 
 private val log = KotlinLogging.logger {}
 
@@ -59,8 +56,6 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 class SystemService {
-    private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-
     @Autowired
     private lateinit var accessChecker: AccessChecker
 
@@ -116,7 +111,6 @@ class SystemService {
     /**
      * Search for abandoned tasks, corrupted JCR/Data transfer etc.
      * The result will also be written in the user's personal data transfer box, if plugin data-transfer is enabled.
-     *
      */
     fun checkSystemIntegrity(): String {
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
@@ -124,15 +118,13 @@ class SystemService {
             return internalCheckSystemIntegrity()
         }
         val user = requiredLoggedInUser
-        val userContext =
-            ThreadLocalUserContext.userContextAsContextElement // Must get thread-local user outside the coroutine!
-        coroutineScope.launch(userContext) {
+        Thread { // Can't run it in a Kotlin coroutine, because JCR code has something like runInSession.
             val start = System.currentTimeMillis()
             log.info { "Check system integrity started..." }
             try {
-                //ThreadLocalUserContext.setUser(user)
+                ThreadLocalUserContext.setUser(user)
                 val content = internalCheckSystemIntegrity()
-                val filename = "projectforge_sanity-check${DateHelper.getTimestampAsFilenameSuffix(Date())}.txt"
+                val filename = CronSanityCheckJob.FILENAME
                 val description = "System integrity check result"
                 dataTransferBridge.putFileInUsersInBox(
                     filename = filename,
@@ -141,16 +133,32 @@ class SystemService {
                     receiver = user,
                 )
             } finally {
-                //ThreadLocalUserContext.clear()
+                ThreadLocalUserContext.clear()
                 log.info("Checking of system integrity finished after ${(System.currentTimeMillis() - start).formatMillis()}")
             }
-        }
-        return "Checking of system integrity started.\n\nThe results will be in Your personal data transfer box in a few minutes (dependant on your ProjectForge installation)..."
+        }.start()
+        val html = HtmlDocument(JobListExecutionContext.title).add(Html.H1(JobListExecutionContext.title))
+            .add(Html.Alert(Html.Alert.Type.SUCCESS, "Checking of system integrity started."))
+            .add(
+                Html.Alert(type = Html.Alert.Type.INFO)
+                    .add(Html.P().also { p ->
+                        p.add(Html.Text("The results will be in Your "))
+                            .add(
+                                Html.A(
+                                    dataTransferBridge.getPersonalBoxOfUserLink() ?: "???",
+                                    "personal data transfer box"
+                                )
+                            )
+                            .add(Html.Text(" in a few minutes (dependant on your ProjectForge installation)..."))
+                    })
+            )
+            .add(Html.P("For large files in the data transfer boxes, it may take much more time (all checksums will be calculated)."))
+        return html.toString()
     }
 
     private fun internalCheckSystemIntegrity(): String {
         val context = cronSanityCheckJob.execute()
-        return context.getReportAsText()
+        return context.getReportAsHtml()
     }
 
     /**

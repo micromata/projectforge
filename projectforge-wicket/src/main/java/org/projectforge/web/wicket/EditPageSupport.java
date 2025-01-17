@@ -83,7 +83,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Long>, D extends BaseDao<O
                 log.info("Double click detection in " + editPage.getClass() + " create method. Do nothing.");
             } else {
                 editPage.setAlreadySubmitted(true);
-                if (editPage.getData().getId() != null) { // && editPage.getData() instanceof IManualIndex == false) {
+                if (!getBaseDao().isNew(editPage.getData())) { // && editPage.getData() instanceof IManualIndex == false) {
                     // User has used the back button?
                     log.info("User has used the back button in "
                             + editPage.getClass()

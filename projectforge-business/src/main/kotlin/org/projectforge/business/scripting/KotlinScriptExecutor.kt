@@ -53,7 +53,7 @@ class KotlinScriptExecutor(scriptLogger: ScriptLogger) : ScriptExecutor(scriptLo
         } else {
             Thread.currentThread().contextClassLoader
         }
-        val scriptingHost = CustomScriptingHost()
+        val scriptingHost = CustomScriptingHost(scriptLogger)
         val compilationConfiguration = ScriptCompilationConfiguration {
             jvm {
                 if (JarExtractor.classpathFiles != null) {

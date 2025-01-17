@@ -23,49 +23,54 @@
 
 package org.projectforge.business.fibu
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import mu.KotlinLogging
 import org.projectforge.common.extensions.abbreviate
 import java.io.Serializable
 import java.math.BigDecimal
+import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
 
 /**
  * Cached information about an order position.
+ * @param position The order position (not given e.g. for test cases if [OrderPositionInfo] is deserialized from json.
  */
-class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serializable {
-    val id = position.id
-    val deleted = position.deleted // Deleted positions shouldn't occur.
-    val number = position.number
-    val auftrag = order
-    val auftragId = order.id
-    val auftragNummer = order.nummer
-    val titel = position.titel
-    val status = position.status ?: AuftragsStatus.POTENZIAL //  default value shouldn't occur!
-    val paymentType = position.paymentType
-    val art = position.art
-    val personDays = position.personDays
-    val modeOfPaymentType = position.modeOfPaymentType
+class OrderPositionInfo(position: AuftragsPositionDO? = null, order: OrderInfo? = null) : Serializable {
+    var id = position?.id
+    var deleted = position?.deleted ?: false// Deleted positions shouldn't occur.
+    var number = position?.number
+
+    @JsonIgnore
+    var auftrag = order
+    var auftragId = order?.id
+    var auftragNummer = order?.nummer
+    var titel = position?.titel
+    var status = position?.status ?: AuftragsStatus.POTENZIAL //  default value shouldn't occur!
+    var paymentType = position?.paymentType
+    var art = position?.art
+    var personDays = position?.personDays
+    var modeOfPaymentType = position?.modeOfPaymentType
 
     /** netSum of the order position in database. */
-    val dbNetSum = position.nettoSumme ?: BigDecimal.ZERO
+    var dbNetSum = position?.nettoSumme ?: BigDecimal.ZERO
 
     /**
-     * For finished postio
+     * For finished positions. True if the position is fully invoiced and the status is [AuftragsStatus.ABGESCHLOSSEN].
      */
-    val vollstaendigFakturiert = position.vollstaendigFakturiert == true && status == AuftragsStatus.ABGESCHLOSSEN
-    val periodOfPerformanceType = position.periodOfPerformanceType
-    val periodOfPerformanceBegin = position.periodOfPerformanceBegin
-    val periodOfPerformanceEnd = position.periodOfPerformanceEnd
-    val taskId = position.task?.id
-    val bemerkung = position.bemerkung.abbreviate(30)
+    var vollstaendigFakturiert = position?.vollstaendigFakturiert == true && status == AuftragsStatus.ABGESCHLOSSEN
+    var periodOfPerformanceType = position?.periodOfPerformanceType
+    var periodOfPerformanceBegin = position?.periodOfPerformanceBegin
+    var periodOfPerformanceEnd = position?.periodOfPerformanceEnd
+    var taskId = position?.task?.id
+    var bemerkung = position?.bemerkung.abbreviate(30)
 
     /**
      * True if the position should be invoiced.
      * For lost positions [AuftragsOrderState.LOST] false.
      * For closed orders [AuftragsStatus.ABGESCHLOSSEN] and closed positions [AuftragsPositionsStatus.ABGESCHLOSSEN] true if not fully invoiced.
      * Otherwise, false.
-     * @see recalculate
+     * @see recalculateAll
      */
     var toBeInvoiced: Boolean = false
 
@@ -99,15 +104,23 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
      */
     var notYetInvoiced = BigDecimal.ZERO
 
+    /**
+     * If true, the order position was loaded from a snapshot. Therefore, no recalculation should be done.
+     */
+    var snapshotVersion: Boolean = false
+
     init {
         /*if (position.status == null) {
             log.info { "Position without status: $position shouldn't occur. Assuming POTENZIAL." }
         }*/
-        if (position.deleted) {
-            log.debug {"Position is deleted: $position"}
+        if (position?.deleted == true) {
+            log.debug { "Position is deleted: $position" }
             // Nothing to calculate.
-        } else {
-            recalculate(order)
+        } else if (snapshotVersion) {
+            log.debug { "Position is loaded from snapshot: $position" }
+            // Nothing to calculate.
+        } else if (order != null) {
+            recalculateAll(order)
         }
     }
 
@@ -116,7 +129,7 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
      * @param order The parent order. If the order is closed, the ordered position are considered as to be invoiced. This position will be marked
      * as to-be-invoiced if there is a payment schedule for this position marked as reached.
      */
-    fun recalculate(order: OrderInfo) {
+    fun recalculateAll(order: OrderInfo, snapshotDate: LocalDate? = null) {
         netSum = if (status.orderState != AuftragsOrderState.LOST) dbNetSum else BigDecimal.ZERO
         commissionedNetSum = if (status.orderState == AuftragsOrderState.COMMISSIONED) netSum else BigDecimal.ZERO
         toBeInvoiced = if (status.orderState == AuftragsOrderState.LOST) {
@@ -128,9 +141,20 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
         ) {
             !vollstaendigFakturiert
         } else false
+        akquiseSum = if (status.orderState == AuftragsOrderState.POTENTIAL) dbNetSum else BigDecimal.ZERO
+        recalculateInvoicedSum(snapshotDate)
+    }
+
+    fun recalculateInvoicedSum(snapshotDate: LocalDate? = null) {
         invoicedSum = BigDecimal.ZERO
         RechnungCache.instance.getRechnungsPosInfosByAuftragsPositionId(id)?.let { set ->
-            invoicedSum += RechnungDao.getNettoSumme(set)
+            val useSet = if (snapshotDate != null) {
+                // If a snapshot date is given, only consider invoices before this date.
+                set.filter { (it.rechnungInfo?.date ?: LocalDate.MAX) <= snapshotDate }
+            } else {
+                set
+            }
+            invoicedSum += RechnungDao.getNettoSumme(useSet)
         }
         toBeInvoicedSum = if (toBeInvoiced) netSum - invoicedSum else BigDecimal.ZERO
         notYetInvoiced = if (status.orderState == AuftragsOrderState.COMMISSIONED && !vollstaendigFakturiert) {
@@ -141,7 +165,10 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
         if (notYetInvoiced < BigDecimal.ZERO) {
             notYetInvoiced = BigDecimal.ZERO
         }
-        akquiseSum = if (status.orderState == AuftragsOrderState.POTENTIAL) dbNetSum else BigDecimal.ZERO
+        updateFieldsIfDeleted()
+    }
+
+    private fun updateFieldsIfDeleted() {
         if (deleted) {
             // Leave the values for invoicedSum untouched.
             netSum = BigDecimal.ZERO
@@ -150,8 +177,6 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
             toBeInvoicedSum = BigDecimal.ZERO
             notYetInvoiced = BigDecimal.ZERO
             akquiseSum = BigDecimal.ZERO
-            return
         }
-
     }
 }

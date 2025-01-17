@@ -27,5 +27,17 @@ package org.projectforge.jobs
  * A job using [JobExecutionContext] to report its status and messages.
  */
 abstract class AbstractJob(val title: String) {
-    abstract fun execute(jobContext: JobExecutionContext)
+    protected lateinit var jobExecutionContext: JobExecutionContext
+
+    fun executeJob(jobExecutionContext: JobExecutionContext) {
+        this.jobExecutionContext = jobExecutionContext
+        this.jobExecutionContext.started()
+        try {
+            executeJob()
+        } finally {
+            jobExecutionContext.finished()
+        }
+    }
+
+    protected abstract fun executeJob()
 }

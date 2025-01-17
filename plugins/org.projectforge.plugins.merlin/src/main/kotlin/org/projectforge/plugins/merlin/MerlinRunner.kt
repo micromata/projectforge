@@ -311,7 +311,7 @@ open class MerlinRunner {
                         ExcelUtils.registerColumn(sheet, LoggingEventData::class.java, "level", 6)
                         ExcelUtils.registerColumn(sheet, LoggingEventData::class.java, "message", 100)
                         ExcelUtils.registerColumn(sheet, LoggingEventData::class.java, "loggerName", 60)
-                        val boldFont = workbook.createOrGetFont("bold", bold = true)
+                        val boldFont = ExcelUtils.createFont(workbook, "bold", bold = true)
                         val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
                         val headRow = sheet.createRow() // second row as head row.
                         sheet.columnDefinitions.forEachIndexed { index, it ->

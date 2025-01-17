@@ -46,7 +46,7 @@ import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.persistence.database.DatabaseDao;
 import org.projectforge.framework.persistence.database.DatabaseInitTestDataService;
 import org.projectforge.framework.persistence.search.HibernateSearchReindexer;
-import org.projectforge.jcr.JCRCheckSanityJob;
+import org.projectforge.jcr.JCRCheckSanityCheckJob;
 import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.sms.SmsSenderConfig;
@@ -186,7 +186,7 @@ public class WicketSupport {
         registerBean(applicationContext.getBean(EmployeeSalaryDao.class));
         registerBean(applicationContext.getBean(GroupDao.class));
         registerBean(applicationContext.getBean(HibernateSearchReindexer.class));
-        registerBean(applicationContext.getBean(JCRCheckSanityJob.class));
+        registerBean(applicationContext.getBean(JCRCheckSanityCheckJob.class));
         registerBean(applicationContext.getBean(Kost1Dao.class));
         registerBean(applicationContext.getBean(Kost2Dao.class));
         registerBean(applicationContext.getBean(KostCache.class));

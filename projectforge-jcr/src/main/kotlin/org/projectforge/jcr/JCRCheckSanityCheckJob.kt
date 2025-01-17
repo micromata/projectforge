@@ -23,10 +23,6 @@
 
 package org.projectforge.jcr
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import org.projectforge.common.FormatterUtils
 import org.projectforge.common.extensions.format
@@ -42,11 +38,9 @@ import javax.jcr.Node
 private val log = KotlinLogging.logger {}
 
 @Component
-open class JCRCheckSanityJob : AbstractJob("JCR Check Sanity") {
+open class JCRCheckSanityCheckJob : AbstractJob("JCR Check Sanity") {
     @Autowired
     internal lateinit var repoService: RepoService
-
-    private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     class CheckResult(
         val errors: List<String>,
@@ -62,10 +56,10 @@ open class JCRCheckSanityJob : AbstractJob("JCR Check Sanity") {
         val started = System.currentTimeMillis()
         log.info("JCR sanity check job started.")
         val job = this
-        coroutineScope.launch {
+        Thread {
             try {
                 val jobContext = JobExecutionContext(job)
-                execute(jobContext)
+                executeJob(jobContext)
                 val numberOfVisitedNodes = jobContext.getAttributeAsInt(NUMBER_OF_VISITED_NODES)
                 val numberOfVisitedFiles = jobContext.getAttributeAsInt(NUMBER_OF_VISITED_FILES)
                 val msgPart1 =
@@ -80,13 +74,15 @@ open class JCRCheckSanityJob : AbstractJob("JCR Check Sanity") {
             } catch (ex: Throwable) {
                 log.error("While executing hibernate search re-index job: " + ex.message, ex)
             }
-        }
+        }.start()
     }
 
-    override fun execute(jobContext: JobExecutionContext) {
+    override fun executeJob() {
         var failedChecks = 0
+        var totalSizeOfFiles = 0L
         val walker = object : RepoTreeWalker(repoService) {
             override fun visitFile(fileNode: Node, fileObject: FileObject) {
+                totalSizeOfFiles += fileObject.size ?: 0
                 fileObject.checksum.let { repoChecksum ->
                     if (repoChecksum != null && repoChecksum.length > 10) {
                         val checksum =
@@ -100,13 +96,13 @@ open class JCRCheckSanityJob : AbstractJob("JCR Check Sanity") {
                                         repoChecksum
                                     )
                                 }'! ['${fileNode.path}']"
-                            jobContext.addError(msg)
+                            jobExecutionContext.addError(msg)
                             log.error { msg }
                         }
                     } else {
                         val msg =
                             "Checksum of file '${fileObject.fileName}' from repository not given (skipping checksum check). ['${fileNode.path}']"
-                        jobContext.addWarning(msg)
+                        jobExecutionContext.addWarning(msg)
                         log.error { msg }
                     }
                 }
@@ -125,7 +121,7 @@ open class JCRCheckSanityJob : AbstractJob("JCR Check Sanity") {
                     if (repoSize == null) {
                         val msg =
                             "Size of file '${fileObject.fileName}' from repository not given (skipping file size check). ['${fileNode.path}']"
-                        jobContext.addWarning(msg)
+                        jobExecutionContext.addWarning(msg)
                         log.info { msg }
                     } else {
                         val fileSize = repoService.getFileSize(fileNode, fileObject, true)
@@ -136,7 +132,7 @@ open class JCRCheckSanityJob : AbstractJob("JCR Check Sanity") {
                                         fileSize
                                     )
                                 } differs from repository value ${FormatterUtils.format(repoSize)}!"
-                            jobContext.addError(msg)
+                            jobExecutionContext.addError(msg)
                             log.error { msg }
                         }
                     }
@@ -144,21 +140,21 @@ open class JCRCheckSanityJob : AbstractJob("JCR Check Sanity") {
             }
         }
         walker.walk()
-        jobContext.setAttribute(NUMBER_OF_VISITED_NODES, walker.numberOfVisitedNodes)
-        jobContext.setAttribute(NUMBER_OF_VISITED_FILES, walker.numberOfVisitedFiles)
-        jobContext.addMessage(
+        jobExecutionContext.setAttribute(NUMBER_OF_VISITED_NODES, walker.numberOfVisitedNodes)
+        jobExecutionContext.setAttribute(NUMBER_OF_VISITED_FILES, walker.numberOfVisitedFiles)
+        jobExecutionContext.addMessage(
             "Checksums of ${walker.numberOfVisitedFiles.format()} files (${walker.numberOfVisitedNodes.format()} nodes) checked."
         )
         if (failedChecks > 0) {
-            jobContext.addError(
-                "Checksums of $failedChecks/${walker.numberOfVisitedFiles.format()} files (${walker.numberOfVisitedNodes.format()} nodes) failed."
+            jobExecutionContext.addError(
+                "Checksums of $failedChecks/${walker.numberOfVisitedFiles.format()} files (${totalSizeOfFiles.formatBytes()}, ${walker.numberOfVisitedNodes.format()} nodes) failed."
             )
         }
     }
 
     open fun execute(): CheckResult {
         val jobContext = JobExecutionContext(this)
-        execute(jobContext)
+        executeJob(jobContext)
         val errors = jobContext.errors.map { it.message }.toMutableList()
         val warnings = jobContext.warnings.map { it.message }.toMutableList()
         val numberOfVisitedNodes = jobContext.getAttributeAsInt(NUMBER_OF_VISITED_NODES)
@@ -188,5 +184,6 @@ open class JCRCheckSanityJob : AbstractJob("JCR Check Sanity") {
     companion object {
         const val NUMBER_OF_VISITED_NODES = "numberOfVisitedNodes"
         const val NUMBER_OF_VISITED_FILES = "numberOfVisitedFiles"
+
     }
 }

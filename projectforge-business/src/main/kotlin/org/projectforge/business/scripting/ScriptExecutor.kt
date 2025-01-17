@@ -26,6 +26,7 @@ package org.projectforge.business.scripting
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.ProjectForgeVersion
+import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.ForecastExport
 import org.projectforge.business.fibu.kost.reporting.ReportGeneratorList
 import org.projectforge.business.task.ScriptingTaskTree
@@ -94,6 +95,7 @@ abstract class ScriptExecutor(
         variables["log"] = scriptLogger
         variables["reportList"] = ReportGeneratorList()
         variables["i18n"] = I18n()
+        variables["caches"] = PfCaches.instance
         variables["forecastExport"] =
             ApplicationContextProvider.getApplicationContext().getBean(ForecastExport::class.java)
         for (entry in Registry.getInstance().orderedList) {
@@ -298,8 +300,9 @@ abstract class ScriptExecutor(
             "import de.micromata.merlin.I18n",
             "import org.projectforge.business.fibu.*",
             "import org.projectforge.business.fibu.kost.*",
-            "import org.projectforge.business.scripting.ExportZipArchive",
+            "import org.projectforge.business.scripting.ExportFile",
             "import org.projectforge.business.scripting.ExportJson",
+            "import org.projectforge.business.scripting.ExportZipArchive",
             "import org.projectforge.business.scripting.ScriptDO",
             "import org.projectforge.business.scripting.ScriptingDao",
             "import org.projectforge.business.scripting.support.*",

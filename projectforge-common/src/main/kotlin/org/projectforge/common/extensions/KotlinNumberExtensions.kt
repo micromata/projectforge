@@ -26,6 +26,7 @@ package org.projectforge.common.extensions
 import org.projectforge.common.FormatterUtils
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.math.RoundingMode
 import java.text.NumberFormat
 import java.util.*
 import kotlin.math.absoluteValue
@@ -42,14 +43,13 @@ fun Number?.format(locale: Locale? = null, scale: Int? = null): String {
     if (scale != null) {
         format.maximumFractionDigits = scale
         format.minimumFractionDigits = scale
+        format.roundingMode = RoundingMode.HALF_UP
     }
     return when (this) {
-        is BigDecimal -> format.format(this)
-        is BigInteger -> format.format(this)
-        is Double -> format.format(this)
-        is Float -> format.format(this)
-        is Int -> format.format(this)
-        is Long -> format.format(this)
+        is BigDecimal, is BigInteger, is Double, is Float, is Int, is Long -> {
+            format.format(this)
+        }
+
         else -> format.format(this.toDouble())
     }
 }
@@ -105,7 +105,7 @@ fun Number?.formatBytes(locale: Locale? = null): String {
 /**
  * Formats a number given in millis to a string in the format HH:mm:ss.SSS.
  */
-fun Number?.formatMillis(): String {
+fun Number?.formatMillis(showMillis: Boolean = true): String {
     this ?: return ""
     val millis = this.toLong()
     val hours = millis / (1000 * 60 * 60)
@@ -114,10 +114,18 @@ fun Number?.formatMillis(): String {
     val milliseconds = millis % 1000
 
     return when {
-        hours > 0 -> String.format("%d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds)
+        hours > 0 -> if (showMillis) {
+            String.format("%d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds)
+        } else {
+            String.format("%d:%02d:%02d", hours, minutes, seconds)
+        }
         // minutes > 0 -> String.format("%02d:%02d.%03d", minutes, seconds, milliseconds)
         // else -> String.format("%02d.%03d", seconds, milliseconds)
-        else -> String.format("%02d:%02d.%03d", minutes, seconds, milliseconds)
+        else -> if (showMillis) {
+            String.format("%02d:%02d.%03d", minutes, seconds, milliseconds)
+        } else {
+            String.format("%02d:%02d", minutes, seconds)
+        }
     }
 }
 
