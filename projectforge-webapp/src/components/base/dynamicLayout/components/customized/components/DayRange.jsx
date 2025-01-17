@@ -3,7 +3,7 @@ import 'moment/min/locales';
 import PropTypes from 'prop-types';
 import 'rc-time-picker/assets/index.css';
 import React from 'react';
-import 'react-day-picker/dist/style.css';
+import 'react-day-picker/src/style.css';
 import { connect } from 'react-redux';
 import AdditionalLabel from '../../../../../design/input/AdditionalLabel';
 import TimeRange from '../../../../../design/input/calendar/TimeRange';

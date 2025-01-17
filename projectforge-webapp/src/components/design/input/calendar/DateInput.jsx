@@ -2,8 +2,7 @@ import moment from 'moment';
 import 'moment/min/locales';
 import PropTypes from 'prop-types';
 import React from 'react';
-import DayPicker from 'react-day-picker';
-import MomentLocaleUtils from 'react-day-picker/moment';
+import { DayPicker } from 'react-day-picker';
 import { connect } from 'react-redux';
 import { colorPropType } from '../../../../utilities/propTypes';
 import AdvancedPopper from '../../popper/AdvancedPopper';
@@ -160,7 +159,6 @@ function DateInput(
                 onDayClick={handleDayPickerClick}
                 month={value}
                 locale={locale}
-                localeUtils={MomentLocaleUtils}
                 onTodayButtonClick={setDate}
                 todayButton={todayButton}
             />

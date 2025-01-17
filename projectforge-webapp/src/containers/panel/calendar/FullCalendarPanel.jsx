@@ -9,7 +9,7 @@ import listPlugin from '@fullcalendar/list';
 import bootstrapPlugin from '@fullcalendar/bootstrap';
 import { connect } from 'react-redux'; // a plugin!
 import { createPopper } from '@popperjs/core';
-import { Route } from 'react-router-dom';
+import { Route } from 'react-router';
 import LoadingContainer from '../../../components/design/loading-container';
 import { fetchJsonGet, fetchJsonPost } from '../../../utilities/rest';
 import CalendarEventTooltip from './CalendarEventTooltip';
@@ -476,7 +476,7 @@ function FullCalendarPanel(options) {
                 eventMouseLeave={closePopOver}
             />
             <Route
-                path={`${match.url}/:category/:type/:id?`}
+                path={`${match.url}/:category/:type/:id?/:tab?`}
                 render={(props) => <FormModal baseUrl={match.url} {...props} />}
             />
         </LoadingContainer>

@@ -4,9 +4,10 @@ import { fas } from '@fortawesome/free-solid-svg-icons';
 import React from 'react';
 import { Provider } from 'react-redux';
 import { applyMiddleware, compose, createStore } from 'redux';
-import thunk from 'redux-thunk';
+import { thunk } from 'redux-thunk';
 import './assets/style/projectforge.scss';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router';
 import ProjectForge from './containers/ProjectForge';
 import reducer from './reducers';
 import * as serviceWorker from './serviceWorker';
@@ -22,7 +23,9 @@ library.add(fas, far);
 createRoot(document.getElementById('root')).render(
     /* eslint-disable-next-line react/jsx-filename-extension */
     <Provider store={store}>
-        <ProjectForge />
+        <BrowserRouter>
+            <ProjectForge />
+        </BrowserRouter>
     </Provider>,
 );
 
