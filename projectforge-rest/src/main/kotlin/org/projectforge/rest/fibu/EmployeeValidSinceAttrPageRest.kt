@@ -28,9 +28,9 @@ import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.fibu.EmployeeStatus
 import org.projectforge.business.fibu.EmployeeValidSinceAttrDO
 import org.projectforge.business.fibu.EmployeeValidSinceAttrType
-import org.projectforge.framework.i18n.I18nKeyAndParams
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.math.BigDecimal
 
 /**
  * Dialog for registering a new token or modifying/deleting an existing one.
@@ -52,6 +53,7 @@ class EmployeeValidSinceAttrPageRest : AbstractDynamicPageRest() {
     class ResponseData(
         var annualLeaveEntries: List<EmployeeValidSinceAttr>? = null,
         var statusEntries: List<EmployeeValidSinceAttr>? = null,
+        var weeklyWorkingHoursEntries: List<EmployeeValidSinceAttr>? = null,
     )
 
     @Autowired
@@ -74,6 +76,8 @@ class EmployeeValidSinceAttrPageRest : AbstractDynamicPageRest() {
         }
         val title = if (type == EmployeeValidSinceAttrType.STATUS) {
             "fibu.employee.status"
+        } else if (type == EmployeeValidSinceAttrType.WEEKLY_HOURS) {
+            "fibu.employee.wochenstunden"
         } else {
             "fibu.employee.urlaubstage"
         }
@@ -91,6 +95,8 @@ class EmployeeValidSinceAttrPageRest : AbstractDynamicPageRest() {
                 )
             )
 
+        } else if (type == EmployeeValidSinceAttrType.WEEKLY_HOURS) {
+            layout.add(UIInput("value", dataType = UIDataType.DECIMAL, label = "fibu.employee.wochenstunden"))
         } else {
             layout.add(UIInput("value", dataType = UIDataType.INT, label = "fibu.employee.urlaubstage"))
         }
@@ -170,10 +176,14 @@ class EmployeeValidSinceAttrPageRest : AbstractDynamicPageRest() {
         if (dto.type == EmployeeValidSinceAttrType.STATUS) {
             val attrs = employeeService.selectStatusEntries(dto.employeeId!!).map { EmployeeValidSinceAttr(it) }
             responseAction.addVariable("data", ResponseData(statusEntries = attrs))
-        } else {
+        } else if (dto.type == EmployeeValidSinceAttrType.ANNUAL_LEAVE) {
             val attrs =
                 employeeService.selectAnnualLeaveDayEntries(dto.employeeId!!).map { EmployeeValidSinceAttr(it) }
             responseAction.addVariable("data", ResponseData(annualLeaveEntries = attrs))
+        } else if (dto.type == EmployeeValidSinceAttrType.WEEKLY_HOURS) {
+            val attrs =
+                employeeService.selectWeeklyWorkingHoursEntries(dto.employeeId!!).map { EmployeeValidSinceAttr(it) }
+            responseAction.addVariable("data", ResponseData(weeklyWorkingHoursEntries = attrs))
         }
         return ResponseEntity.ok().body(responseAction)
 
@@ -210,7 +220,7 @@ class EmployeeValidSinceAttrPageRest : AbstractDynamicPageRest() {
                     )
                 )
             }
-        } else {
+        } else if (dto.type == EmployeeValidSinceAttrType.ANNUAL_LEAVE) {
             val annualLeave = dto.value?.toIntOrNull()
             if (annualLeave == null) {
                 validationErrors.add(
@@ -221,6 +231,25 @@ class EmployeeValidSinceAttrPageRest : AbstractDynamicPageRest() {
                 )
             } else {
                 if (annualLeave < 0 || annualLeave > 100) {
+                    validationErrors.add(
+                        ValidationError(
+                            translateMsg("validation.error.range.integerOutOfRange", "0", "100"),
+                            fieldId = "value",
+                        )
+                    )
+                }
+            }
+        } else if (dto.type == EmployeeValidSinceAttrType.WEEKLY_HOURS) {
+            val weeklyWorkingHours = dto.value?.toBigDecimalOrNull()
+            if (weeklyWorkingHours == null) {
+                validationErrors.add(
+                    ValidationError.createFieldRequired(
+                        fieldId = "value",
+                        fieldName = translate("fibu.employee.wochenstunden")
+                    )
+                )
+            } else {
+                if (weeklyWorkingHours < BigDecimal.ZERO || weeklyWorkingHours > NumberHelper.HUNDRED) {
                     validationErrors.add(
                         ValidationError(
                             translateMsg("validation.error.range.integerOutOfRange", "0", "100"),
