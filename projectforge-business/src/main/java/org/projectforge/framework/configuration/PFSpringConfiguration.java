@@ -65,8 +65,15 @@ public class PFSpringConfiguration {
     @Value("${projectforge.web.development.enableCORSFilter}")
     private Boolean corsFilterEnabled;
 
+    @Value("${projectforge.web.development.enableCORSFilter.allowedOrigins}")
+    private String corsAllowedOrigins;
+
     public Boolean getCorsFilterEnabled() {
         return corsFilterEnabled;
+    }
+
+    public String getCorsAllowedOrigins() {
+        return corsAllowedOrigins;
     }
 
     @Autowired

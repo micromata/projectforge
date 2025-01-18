@@ -49,7 +49,8 @@ public class WebApplicationConfig implements WebMvcConfigurer {
            PFSpringConfiguration.logCorsFilterWarning(log);
             // Allow maximum access for development on localhost
             registry.addMapping("/**")
-                    .allowedOriginPatterns("*")  // Allow all origins (this is the most permissive)
+                    // '*' doesn't work for modern browsers, use 'http://localhost:3000' instead:
+                    .allowedOrigins(pfSpringConfiguration.getCorsAllowedOrigins())
                     .allowedMethods("*")  // Allow all HTTP methods (GET, POST, PUT, DELETE, OPTIONS, etc.)
                     .allowedHeaders("*")  // Allow all headers
                     .allowCredentials(true)  // Allow credentials (cookies, authorization headers)
