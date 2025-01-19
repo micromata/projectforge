@@ -152,26 +152,21 @@ open class EmployeeValidSinceAttrDO : Serializable, AbstractBaseDO<Long>(), Cand
             when (type) {
                 EmployeeValidSinceAttrType.ANNUAL_LEAVE -> {
                     attr.setPropertyTypeClass(BigDecimal::class)
-                    attr.propertyName = buildPropertyName("annualLeave")
                 }
+
                 EmployeeValidSinceAttrType.WEEKLY_HOURS -> {
                     attr.setPropertyTypeClass(BigDecimal::class)
-                    attr.propertyName = buildPropertyName("weeklyWorkingHours")
                 }
+
                 EmployeeValidSinceAttrType.STATUS -> {
                     attr.setPropertyTypeClass(EmployeeStatus::class)
-                    attr.propertyName = buildPropertyName("status")
                 }
+
                 else -> {
                     log.error("Unknown type: $type")
                 }
             }
         }
-    }
-
-    private fun buildPropertyName(propertyName: String): String {
-        validSince ?: return propertyName
-        return "$propertyName:$validSince"
     }
 
     private fun checkType(type: EmployeeValidSinceAttrType) {

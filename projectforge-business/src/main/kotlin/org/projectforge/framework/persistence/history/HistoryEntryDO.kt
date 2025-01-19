@@ -30,6 +30,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.IdObject
+import org.projectforge.framework.persistence.candh.CandHHistoryEntryICustomizer
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.util.*
 
@@ -150,6 +151,9 @@ class HistoryEntryDO : HistoryEntry {
             entry.entityOpType = entityOpType
             entry.modifiedBy = modifiedBy ?: "anon"
             entry.modifiedAt = Date()
+            if (entity is CandHHistoryEntryICustomizer) {
+                entity.customize(entry)
+            }
             return entry
         }
     }

@@ -114,8 +114,9 @@ public class PFSpringConfiguration {
                     .log("")
                     .log("Running in dev mode!")
                     .log("")
-                    .log("Don't deliver this app in dev mode due to security reasons!")
-                    .log("(cross origin allowed)")
+                    .log("Cross origin allowed for:")
+                    .log("  " + instance.getCorsAllowedOrigins())
+                    .log("(projectforge.web.development.enableCORSFilter.allowedOrigins)")
                     .logEnd();
         }
     }
