@@ -26,6 +26,7 @@ package org.projectforge.framework.persistence.history
 import org.projectforge.common.AnnotationsUtils
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.IdObject
+import org.projectforge.framework.persistence.candh.CandHHistoryEntryICustomizer
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import java.util.*
@@ -80,17 +81,14 @@ object HistoryBaseDaoAdapter {
         return entry
     }
 
-    fun insertHistoryEntry(
-        entity: IdObject<Long>, opType: EntityOpType, context: PfPersistenceContext,
-    ): HistoryEntryDO {
-        val historyEntry = createHistoryEntry(entity, opType)
-        return insertHistoryEntry(historyEntry, context)
-    }
-
-    fun insertHistoryEntry(
+    private fun insertHistoryEntry(
+        entity: Any,
         historyEntry: HistoryEntryDO,
         context: PfPersistenceContext,
     ): HistoryEntryDO {
+        if (entity is CandHHistoryEntryICustomizer) {
+            entity.customize(historyEntry)
+        }
         context.insert(historyEntry)
         return historyEntry
     }
@@ -110,7 +108,7 @@ object HistoryBaseDaoAdapter {
         val historyEntry = createHistoryUpdateEntryWithSingleAttribute(
             entity, propertyName, propertyTypeClass, oldValue, newValue,
         )
-        return insertHistoryEntry(historyEntry, context)
+        return insertHistoryEntry(entity, historyEntry, context)
     }
 
     fun inserted(obj: BaseDO<Long>, context: PfPersistenceContext) {
@@ -118,7 +116,8 @@ object HistoryBaseDaoAdapter {
             // not historizable
             return
         }
-        insertHistoryEntry(obj, EntityOpType.Insert, context)
+        val historyEntry = createHistoryEntry(obj, EntityOpType.Insert)
+        insertHistoryEntry(obj, historyEntry, context)
     }
 
     fun updated(
@@ -130,7 +129,7 @@ object HistoryBaseDaoAdapter {
             return
         }
         historyEntries.forEach { entry ->
-            insertHistoryEntry(entry, context)
+            insertHistoryEntry(obj, entry, context)
             /*entry.attributes?.forEach { attr ->
                 entry.add(attr)
                 attr.internalSerializeValueObjects()
