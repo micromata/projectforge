@@ -121,6 +121,15 @@ open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
     open var annualLeave: BigDecimal? = null
         internal set
 
+    /**
+     * Field will be set by EmployeeDao automatically from validity period attr.
+     * Field for convenience only. It's not persisted.
+     */
+    @PropertyInfo(i18nKey = "fibu.employee.wochenstunden")
+    @get:Transient
+    open var weeklyWorkingHours: BigDecimal? = null
+        internal set
+
     @PropertyInfo(i18nKey = "address.positionText")
     @FullTextField
     @get:Column(name = "position_text", length = 244)
@@ -146,11 +155,6 @@ open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
     @StringAlphanumericSort
     @get:Column(length = 255)
     open var staffNumber: String? = null
-
-    @PropertyInfo(i18nKey = "fibu.employee.wochenstunden")
-    @GenericField // was: @FullTextField(analyze = Analyze.NO)
-    @get:Column(name = "weekly_working_hours", scale = 5, precision = 10)
-    open var weeklyWorkingHours: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "comment")
     @FullTextField

@@ -77,7 +77,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
             EmployeeDO::class.java,
             Pair("userId", userId),
         )
-        employeeCache.setStatusAndAnnualLeave(employee)
+        employeeCache.setTimeDependentAttrs(employee)
         return employee
     }
 
@@ -110,7 +110,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
             Pair("firstname", firstname),
             Pair("lastname", lastname),
         )
-        employeeCache.setStatusAndAnnualLeave(employee)
+        employeeCache.setTimeDependentAttrs(employee)
         return employee
     }
 
@@ -161,7 +161,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
                 employeeService.isEmployeeActive(employee, showRecentlyLeavers)
             }
         }
-        employeeCache.setStatusAndAnnualLeave(employees)
+        employeeCache.setTimeDependentAttrs(employees)
         return employees
     }
 
@@ -172,7 +172,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         if (myFilter.isShowOnlyActiveEntries) {
             list = list.filter { it.active }
         }
-        employeeCache.setStatusAndAnnualLeave(list)
+        employeeCache.setTimeDependentAttrs(list)
         return list
     }
 
@@ -196,7 +196,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         } catch (ex: NoResultException) {
             log.warn("No employee found for staffnumber: $staffnumber: ${ex.message}", ex)
         }
-        employeeCache.setStatusAndAnnualLeave(result)
+        employeeCache.setTimeDependentAttrs(result)
         return result
     }
 

@@ -73,12 +73,6 @@ public class WebXMLInitializer implements ServletContextInitializer {
         securityHeaderFilter.addMappingForUrlPatterns(null, false, "/*");
         securityHeaderFilter.setInitParameter(SecurityHeaderFilter.PARAM_CSP_HEADER_VALUE, cspHeaderValue);
 
-        if (pfSpringConfiguration.getCorsFilterEnabled()) {
-            log.warn("************* Enabling CorsPreflightFilter for development. *************");
-            FilterRegistration.Dynamic corsPreflightFilter = sc.addFilter("CorsPreflightFilter", CorsPreflightFilter.class);
-            corsPreflightFilter.addMappingForUrlPatterns(null, false, "/*");
-        }
-
         /*
          * Redirect orphaned links from former versions of ProjectForge (e. g. if link in e-mails were changed due to migrations or refactoring.
          */
