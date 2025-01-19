@@ -26,6 +26,10 @@ package org.projectforge.framework.persistence.history
 class DisplayHistoryEntryAttr {
     var id: Long? = null
     var operationType: PropertyOpType? = null
+        set(value) {
+            field = value
+            operation = HistoryFormatService.translate(value)
+        }
     var operation: String? = null
     var propertyName: String? = null
     var displayPropertyName: String? = null
@@ -39,7 +43,6 @@ class DisplayHistoryEntryAttr {
             return DisplayHistoryEntryAttr().also {
                 it.id = attr.id
                 it.operationType = attr.opType
-                it.operation = HistoryFormatService.translate(attr.opType)
                 it.propertyName = HistoryFormatUtils.getPlainPropertyName(attr)
                 it.displayPropertyName = attr.displayPropertyName
                 if (it.displayPropertyName == null && entityClass != null) {

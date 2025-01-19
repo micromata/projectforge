@@ -52,11 +52,11 @@ class EmployeeValidSinceAttrHistoryAdapter : HistoryFormatAdapter() {
                     })
                 }
                 displayHistoryEntry.attributes.forEach { attr ->
-                    val displayPropname = attr.displayPropertyName ?: ""
-                    attr.displayPropertyName = if (attr.displayPropertyName.isNullOrEmpty()) {
+                    val displayPropname = attr.displayPropertyName
+                    attr.displayPropertyName = if (displayPropname.isNullOrEmpty()) {
                         prefix
                     } else {
-                        "$prefix.${attr.displayPropertyName}"
+                        "$prefix.$displayPropname"
                     }
                 }
             }
