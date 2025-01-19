@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityReference
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
+import mu.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.json.IdOnlySerializer
@@ -39,6 +40,8 @@ import org.projectforge.framework.persistence.history.WithHistory
 import java.io.Serializable
 import java.math.BigDecimal
 import java.time.LocalDate
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Represents timeable attributes of an employee (annual leave days and status).
@@ -146,15 +149,22 @@ open class EmployeeValidSinceAttrDO : Serializable, AbstractBaseDO<Long>(), Cand
 
     override fun customize(historyEntry: HistoryEntryDO) {
         historyEntry.attributes?.filter { it.propertyName == "value" }?.forEach { attr ->
-            if (type == EmployeeValidSinceAttrType.ANNUAL_LEAVE) {
-                attr.setPropertyTypeClass(BigDecimal::class)
-                attr.propertyName = buildPropertyName("annualLeave")
-            } else if (type == EmployeeValidSinceAttrType.WEEKLY_HOURS) {
-                attr.setPropertyTypeClass(BigDecimal::class)
-                attr.propertyName = buildPropertyName("weeklyWorkingHours")
-            } else if (type == EmployeeValidSinceAttrType.STATUS) {
-                attr.setPropertyTypeClass(EmployeeStatus::class)
-                attr.propertyName = buildPropertyName("status")
+            when (type) {
+                EmployeeValidSinceAttrType.ANNUAL_LEAVE -> {
+                    attr.setPropertyTypeClass(BigDecimal::class)
+                    attr.propertyName = buildPropertyName("annualLeave")
+                }
+                EmployeeValidSinceAttrType.WEEKLY_HOURS -> {
+                    attr.setPropertyTypeClass(BigDecimal::class)
+                    attr.propertyName = buildPropertyName("weeklyWorkingHours")
+                }
+                EmployeeValidSinceAttrType.STATUS -> {
+                    attr.setPropertyTypeClass(EmployeeStatus::class)
+                    attr.propertyName = buildPropertyName("status")
+                }
+                else -> {
+                    log.error("Unknown type: $type")
+                }
             }
         }
     }

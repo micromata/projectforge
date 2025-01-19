@@ -19,11 +19,7 @@ ALTER TABLE t_group_user ALTER COLUMN user_id TYPE bigint;
 ALTER TABLE t_group_user ALTER COLUMN group_id TYPE bigint;
 ALTER TABLE t_group_task_access_entry ALTER COLUMN group_task_access_fk TYPE bigint;
 ALTER TABLE t_plugin_poll ALTER COLUMN owner_fk TYPE bigint;
-ALTER TABLE t_plugin_skillmatrix_entry ALTER COLUMN owner_fk TYPE bigint;
 
-ALTER TABLE t_plugin_banking_account ALTER COLUMN pk TYPE bigint;
-ALTER TABLE t_plugin_banking_account_balance ALTER COLUMN banking_account_fk TYPE bigint;
-ALTER TABLE t_plugin_banking_account_record ALTER COLUMN banking_account_fk TYPE bigint;
 ALTER TABLE t_plugin_calendar_event_attendee ALTER COLUMN team_event_fk TYPE bigint;
 ALTER TABLE t_plugin_calendar_event_attendee ALTER COLUMN user_id TYPE bigint;
 
