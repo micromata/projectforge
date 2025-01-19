@@ -23,10 +23,12 @@
 
 package org.projectforge.business.fibu
 
-enum class EmployeeValidSinceAttrType {
-    ANNUAL_LEAVE,
-    STATUS,
-    WEEKLY_HOURS;
+import org.projectforge.common.i18n.I18nEnum
+
+enum class EmployeeValidSinceAttrType(override val i18nKey: String) : I18nEnum {
+    ANNUAL_LEAVE("fibu.employee.urlaubstage"),
+    STATUS("fibu.employee.status"),
+    WEEKLY_HOURS("fibu.employee.wochenstunden");
 
     companion object {
         fun safeValueOf(name: String?): EmployeeValidSinceAttrType? {

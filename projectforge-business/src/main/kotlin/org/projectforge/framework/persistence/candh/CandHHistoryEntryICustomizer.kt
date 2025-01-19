@@ -28,7 +28,7 @@ import org.projectforge.framework.persistence.history.HistoryEntryDO
 /**
  * Interface to customize history entries.
  * For example, the EmployeeValidSinceAttrDO class uses this interface to customize the propertyName and propertyTypeClass.
- * [customize] is called by [CandHHistoryEntryWrapper.prepareAndGetHistoryEntry]
+ * [customize] is called by [HistoryEntryDO.create]
  * @see org.projectforge.business.fibu.EmployeeValidSinceAttrDO
  */
 interface CandHHistoryEntryICustomizer {

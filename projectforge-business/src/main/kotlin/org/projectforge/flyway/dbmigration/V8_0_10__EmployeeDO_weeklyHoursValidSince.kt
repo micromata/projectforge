@@ -104,7 +104,7 @@ class V8_0_10__EmployeeDO_weeklyHoursValidSince : BaseJavaMigration() {
                             statement.setLong(5, id)
                             statement.setString(6, EmployeeValidSinceAttrType.WEEKLY_HOURS.name)
                             statement.setDate(7, java.sql.Date.valueOf(eintritt))
-                            statement.setBigDecimal(8, weeklyWorkingHours)
+                            statement.setBigDecimal(8, weeklyWorkingHours.stripTrailingZeros())
                             statement.executeUpdate()
                         }
                     } catch (ex: Exception) {

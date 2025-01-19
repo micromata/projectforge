@@ -31,6 +31,7 @@ import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFilter
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.EntityCopyStatus
+import org.projectforge.framework.persistence.history.HistoryFormatService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -57,11 +58,15 @@ class EmployeeService {
     private lateinit var employeeServiceSupport: EmployeeServiceSupport
 
     @Autowired
+    private lateinit var historyFormatService: HistoryFormatService
+
+    @Autowired
     private lateinit var timesheetDao: TimesheetDao
 
     @PostConstruct
     private fun postConstruct() {
         employeeDao.employeeService = this
+        historyFormatService.register(EmployeeValidSinceAttrDO::class.java, EmployeeValidSinceAttrHistoryAdapter())
     }
 
     fun findByUserId(userId: Long?): EmployeeDO? {
@@ -285,7 +290,7 @@ class EmployeeService {
         return employeeServiceSupport.insertValidSinceAttr(
             employee,
             validSince,
-            weeklyHours.toString(),
+            weeklyHours.stripTrailingZeros().toString(),
             EmployeeValidSinceAttrType.WEEKLY_HOURS,
             checkAccess = checkAccess,
         )
