@@ -74,31 +74,45 @@ class EmployeeValidSinceAttrPageRest : AbstractDynamicPageRest() {
         } else {
             EmployeeValidSinceAttr(employeeId = employeeId, type = type)
         }
-        val title = if (type == EmployeeValidSinceAttrType.STATUS) {
-            "fibu.employee.status"
-        } else if (type == EmployeeValidSinceAttrType.WEEKLY_HOURS) {
-            "fibu.employee.wochenstunden"
-        } else {
-            "fibu.employee.urlaubstage"
+        val title = when (type) {
+            EmployeeValidSinceAttrType.STATUS -> {
+                "fibu.employee.status"
+            }
+            EmployeeValidSinceAttrType.WEEKLY_HOURS -> {
+                "fibu.employee.wochenstunden"
+            }
+            EmployeeValidSinceAttrType.ANNUAL_LEAVE -> {
+                "fibu.employee.urlaubstage"
+            }
+            else -> {
+                throw IllegalArgumentException("Unknown type: $type")
+            }
         }
         val lc = LayoutContext(EmployeeValidSinceAttrDO::class.java)
         val layout = UILayout(title)
         layout.add(lc, "validSince")
-        if (type == EmployeeValidSinceAttrType.STATUS) {
-            layout.add(
-                UISelect<EmployeeStatus>(
-                    "value",
-                    label = "fibu.employee.status",
-                    required = false,
-                ).buildValues(
-                    EmployeeStatus::class.java
+        when (type) {
+            EmployeeValidSinceAttrType.STATUS -> {
+                layout.add(
+                    UISelect<EmployeeStatus>(
+                        "value",
+                        label = "fibu.employee.status",
+                        required = false,
+                    ).buildValues(
+                        EmployeeStatus::class.java
+                    )
                 )
-            )
 
-        } else if (type == EmployeeValidSinceAttrType.WEEKLY_HOURS) {
-            layout.add(UIInput("value", dataType = UIDataType.DECIMAL, label = "fibu.employee.wochenstunden"))
-        } else {
-            layout.add(UIInput("value", dataType = UIDataType.INT, label = "fibu.employee.urlaubstage"))
+            }
+            EmployeeValidSinceAttrType.WEEKLY_HOURS -> {
+                layout.add(UIInput("value", dataType = UIDataType.DECIMAL, label = "fibu.employee.wochenstunden"))
+            }
+            EmployeeValidSinceAttrType.ANNUAL_LEAVE -> {
+                layout.add(UIInput("value", dataType = UIDataType.INT, label = "fibu.employee.urlaubstage"))
+            }
+            else -> {
+                throw IllegalArgumentException("Unknown type: $type")
+            }
         }
         layout.add(lc, "comment")
         if (id < 0) {
@@ -173,17 +187,24 @@ class EmployeeValidSinceAttrPageRest : AbstractDynamicPageRest() {
 
     private fun closeModal(dto: EmployeeValidSinceAttr): ResponseEntity<ResponseAction> {
         val responseAction = ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
-        if (dto.type == EmployeeValidSinceAttrType.STATUS) {
-            val attrs = employeeService.selectStatusEntries(dto.employeeId!!).map { EmployeeValidSinceAttr(it) }
-            responseAction.addVariable("data", ResponseData(statusEntries = attrs))
-        } else if (dto.type == EmployeeValidSinceAttrType.ANNUAL_LEAVE) {
-            val attrs =
-                employeeService.selectAnnualLeaveDayEntries(dto.employeeId!!).map { EmployeeValidSinceAttr(it) }
-            responseAction.addVariable("data", ResponseData(annualLeaveEntries = attrs))
-        } else if (dto.type == EmployeeValidSinceAttrType.WEEKLY_HOURS) {
-            val attrs =
-                employeeService.selectWeeklyWorkingHoursEntries(dto.employeeId!!).map { EmployeeValidSinceAttr(it) }
-            responseAction.addVariable("data", ResponseData(weeklyWorkingHoursEntries = attrs))
+        when (dto.type) {
+            EmployeeValidSinceAttrType.STATUS -> {
+                val attrs = employeeService.selectStatusEntries(dto.employeeId!!).map { EmployeeValidSinceAttr(it) }
+                responseAction.addVariable("data", ResponseData(statusEntries = attrs))
+            }
+            EmployeeValidSinceAttrType.ANNUAL_LEAVE -> {
+                val attrs =
+                    employeeService.selectAnnualLeaveDayEntries(dto.employeeId!!).map { EmployeeValidSinceAttr(it) }
+                responseAction.addVariable("data", ResponseData(annualLeaveEntries = attrs))
+            }
+            EmployeeValidSinceAttrType.WEEKLY_HOURS -> {
+                val attrs =
+                    employeeService.selectWeeklyWorkingHoursEntries(dto.employeeId!!).map { EmployeeValidSinceAttr(it) }
+                responseAction.addVariable("data", ResponseData(weeklyWorkingHoursEntries = attrs))
+            }
+            else -> {
+                throw IllegalArgumentException("Unknown type: ${dto.type}")
+            }
         }
         return ResponseEntity.ok().body(responseAction)
 
@@ -210,53 +231,60 @@ class EmployeeValidSinceAttrPageRest : AbstractDynamicPageRest() {
 
     private fun validate(dto: EmployeeValidSinceAttr): ResponseEntity<ResponseAction>? {
         val validationErrors = mutableListOf<ValidationError>()
-        if (dto.type == EmployeeValidSinceAttrType.STATUS) {
-            val status = EmployeeStatus.safeValueOf(dto.value)
-            if (status == null) {
-                validationErrors.add(
-                    ValidationError.createFieldRequired(
-                        fieldId = "value",
-                        fieldName = translate("fibu.employee.status")
-                    )
-                )
-            }
-        } else if (dto.type == EmployeeValidSinceAttrType.ANNUAL_LEAVE) {
-            val annualLeave = dto.value?.toIntOrNull()
-            if (annualLeave == null) {
-                validationErrors.add(
-                    ValidationError.createFieldRequired(
-                        fieldId = "value",
-                        fieldName = translate("fibu.employee.urlaubstage")
-                    )
-                )
-            } else {
-                if (annualLeave < 0 || annualLeave > 100) {
+        when (dto.type) {
+            EmployeeValidSinceAttrType.STATUS -> {
+                val status = EmployeeStatus.safeValueOf(dto.value)
+                if (status == null) {
                     validationErrors.add(
-                        ValidationError(
-                            translateMsg("validation.error.range.integerOutOfRange", "0", "100"),
+                        ValidationError.createFieldRequired(
                             fieldId = "value",
+                            fieldName = translate("fibu.employee.status")
                         )
                     )
                 }
             }
-        } else if (dto.type == EmployeeValidSinceAttrType.WEEKLY_HOURS) {
-            val weeklyWorkingHours = dto.value?.toBigDecimalOrNull()
-            if (weeklyWorkingHours == null) {
-                validationErrors.add(
-                    ValidationError.createFieldRequired(
-                        fieldId = "value",
-                        fieldName = translate("fibu.employee.wochenstunden")
-                    )
-                )
-            } else {
-                if (weeklyWorkingHours < BigDecimal.ZERO || weeklyWorkingHours > NumberHelper.HUNDRED) {
+            EmployeeValidSinceAttrType.ANNUAL_LEAVE -> {
+                val annualLeave = dto.value?.toIntOrNull()
+                if (annualLeave == null) {
                     validationErrors.add(
-                        ValidationError(
-                            translateMsg("validation.error.range.integerOutOfRange", "0", "100"),
+                        ValidationError.createFieldRequired(
                             fieldId = "value",
+                            fieldName = translate("fibu.employee.urlaubstage")
                         )
                     )
+                } else {
+                    if (annualLeave < 0 || annualLeave > 100) {
+                        validationErrors.add(
+                            ValidationError(
+                                translateMsg("validation.error.range.integerOutOfRange", "0", "100"),
+                                fieldId = "value",
+                            )
+                        )
+                    }
                 }
+            }
+            EmployeeValidSinceAttrType.WEEKLY_HOURS -> {
+                val weeklyWorkingHours = dto.value?.toBigDecimalOrNull()
+                if (weeklyWorkingHours == null) {
+                    validationErrors.add(
+                        ValidationError.createFieldRequired(
+                            fieldId = "value",
+                            fieldName = translate("fibu.employee.wochenstunden")
+                        )
+                    )
+                } else {
+                    if (weeklyWorkingHours < BigDecimal.ZERO || weeklyWorkingHours > NumberHelper.HUNDRED) {
+                        validationErrors.add(
+                            ValidationError(
+                                translateMsg("validation.error.range.integerOutOfRange", "0", "100"),
+                                fieldId = "value",
+                            )
+                        )
+                    }
+                }
+            }
+            else -> {
+                throw IllegalArgumentException("Unknown type: ${dto.type}")
             }
         }
         if (dto.validSince == null) {
