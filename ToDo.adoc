@@ -1,12 +1,12 @@
-Aktuell:
+==== Aktuell:
+- JCR: Tool for removing or recovering orphaned nodes.
+- Favoriten bei Scriptausführung für Parameter.
 - KI-Anteil in Zeitberichten
 - Viewpage für user für non-admins.
 - Scripting: Ergebnis Unresolved reference 'memo', 'todo'.: line 94 to 94 (add only activated plugins)
 - Can't get value type from 'org.projectforge.business.timesheet.TimesheetPrefData'. Class not found (old incompatible ProjectForge version)?
-- Summen in DB-Exporten eintragen und serverseitig evaluieren.
 - Groovy-scripts: remove or fix.
 - AG-Grid: setColumnStates wird nicht in den UserPrefs gespeichert.
-- Wicket: Auftragsbuch: org.apache.wicket.core.request.mapper.StalePageException: A request to page '[Page class = org.projectforge.web.fibu.AuftragEditPage, id = 9, render count = 3]' has been made with stale 'renderCount'. The page will be re-rendered.
 - -XX:ReservedCodeCacheSize=100m
 - QueryFilter.sortAndLimitMaxRowsWhileSelect: not yet supported
 - Gradle-Version-Checker: Read lib.versions.toml und Vergleichen mit fatjar.
@@ -14,7 +14,6 @@ Aktuell:
 - Kalendereinträge und Subscriptions.
 - LoginProtection: Increases penalty time for DAV only after 5 tries.
 
-- Auftragsbuch nächtlich persistieren (als json-zip) für Forecast-Vergleiche.
 - Apple for Webauthn4j
 - Abwesenheiten
 - Fakturaquote Monatsbericht
@@ -35,40 +34,48 @@ History
 - ProjektEdit: History enthält keine neuen Kost2DOs/Arten (Einträge sind aber da).
 - CronReindexingHourlyJob ohne Effekt.
 - Reindizierung der letzten n einträge nicht migriert (sinnvoll?).
-- history-entries bei EmployeeValidityAttrDO nichtssagend.
-- HistoryEntry: EmployeeValidityAttrDO.insert muss sinnvoll für Anzeige formatiert werden.
 - PFHistoryMasterDO: Indexe setzen, wenn Einträge wieder gehen.
-- XML-Import für Testsystem
 - UserRightId: ClassBridge müsste eigentlich in die Felder der benutzenden DOs
 - reindexing settings implementieren. Aktuell wird nur komplett gemass-indexed.
 - History of AddressCampaignValueDO's (AddressCampaignValueDao.convertToDisplayHistoryEntries removed)
 
-Später
+==== Später
+
 - Fakturaquote
 - Suche-Seite hat veraltete Bereiche, AddressListPage läuft auf Fehler.
 - OrderExport: paymentSchedules werden gefetcht.
 
-Ganz später
+==== Ganz später
+
 - Kalenderlist ruft x-fach DB: FIND GroupDO resultClass=GroupDO auf.
 
-Rancher
+==== Rancher
 
+[source]
+----
 docker system df
 docker system prune -a --volumes
 docker system df
 docker volume ls
 docker volume rm <volume-name>
+----
 
+==== Postgresql-Dump-Imports bechleunigen:
 
-Postgresql-Dump-Imports bechleunigen:
-
+[source]
+----
 docker run --name projectforge-postgres -p 127.0.0.1:5432:5432 -e POSTGRES_PASSWORD=$PGPASSWORD -e POSTGRES_USER=projectforge -d postgres:13.18
 docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:13.18 psql -h postgres -U projectforge
 
 ALTER SYSTEM SET fsync = off;
 ALTER SYSTEM SET synchronous_commit = off;
 SET maintenance_work_mem = '512MB';
+----
 
+==== Postgresql-Orderbook-Snapshots-Imports:
+
+[source]
+----
 gunzip projectforge-*.sql.gz
 docker run -v ~/ProjectForgeBackup/pf.sql:/mnt/pf.sql -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:13.18 psql -h postgres -U projectforge -q -f /mnt/pf.sql
 
@@ -77,15 +84,20 @@ update t_pf_user_password SET password_hash='SHA{BC871652288E56E306CFA093BEFC3FF
 update t_pf_user SET password='SHA{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', password_salt=null, email='m.developer@localhost';
 update t_calendar set ext_subscription=false;
 insert into t_pf_user_password (pk,deleted,user_id,password_hash) values(2,false,2,'SHA{BC871652288E56E306CFA093BEFC3FFCD0ED8872}');
+----
 
 Orderbook-Export über die GUI Auftragsbuch -> Dev: export order book
 
+[source]
+----
 \c postgres;
 DROP DATABASE projectforge;
 CREATE DATABASE projectforge;
-
+----
 
 Orderbooks importieren:
+[source]
+----
 docker cp ~/ProjectForgeBackup/ProjectForge-Orderbook_*.gz projectforge-postgres:/tmp/
 
 \set file_path '/tmp/ProjectForge-Orderbook_2023-11-01.gz'
@@ -94,5 +106,4 @@ INSERT INTO t_fibu_orderbook_snapshots (date, created, serialized_orderbook, siz
 docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:13.18 pg_dump -h postgres -U projectforge --data-only --column-inserts  --table=t_fibu_orderbook_snapshots
 remove duplicates
 psql -f export.sql
-
-
+----

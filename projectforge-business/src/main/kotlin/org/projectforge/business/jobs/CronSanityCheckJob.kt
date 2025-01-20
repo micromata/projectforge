@@ -27,6 +27,7 @@ import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
 import org.projectforge.business.task.TaskDao
 import org.projectforge.common.extensions.formatMillis
+import org.projectforge.common.html.Html
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.time.DateHelper
@@ -84,20 +85,18 @@ class CronSanityCheckJob {
                         val msg = Mail()
                         msg.addTo(recipients)
                         msg.setProjectForgeSubject("Errors occurred on sanity check job.")
-                        val sb = StringBuilder()
-                        sb.appendLine(
-                            """
-                            |Please refer the attached log file for more information or simply
-                            |re-run system check on page Administration -> System -> check system integrity.
-                            |
-                            |Your ProjectForge system
-                            |
-                        """.trimMargin()
-                        )
-                        sb.appendLine(contextList.getReportAsText(showAllMessages = false))
-                        msg.content = sb.toString()
-                        msg.contentType = Mail.CONTENTTYPE_TEXT
-                        val attachments = listOf(MailAttachment(FILENAME, contextList.getReportAsText().toByteArray()))
+                        val intro = Html.Alert(Html.Alert.Type.DANGER).also {
+                            it.add(
+                                Html.P(
+                                    "Please refer the attached log file for more information or simply\n"
+                                            + "re-run system check on page Administration -> System -> check system integrity."
+                                )
+                            ).add(Html.BR())
+                                .add(Html.P("Your ProjectForge system"))
+                        }
+                        msg.content = contextList.getReportAsHtml(showAllMessages = false, intro)
+                        msg.contentType = Mail.CONTENTTYPE_HTML
+                        val attachments = listOf(MailAttachment(FILENAME, contextList.getReportAsHtml().toByteArray()))
                         sendMail.send(msg, null, attachments)
                     }
                 }

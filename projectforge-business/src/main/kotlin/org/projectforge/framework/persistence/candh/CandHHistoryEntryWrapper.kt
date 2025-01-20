@@ -64,9 +64,6 @@ internal class CandHHistoryEntryWrapper(private val historyEntry: HistoryEntryDO
         attributeWrappers?.forEach { attrWrapper ->
             attrWrapper.prepareAndGetAttr(historyEntry)
         }
-        if (entity is CandHHistoryEntryICustomizer) {
-            entity.customize(historyEntry)
-        }
         return historyEntry
     }
 

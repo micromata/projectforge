@@ -101,12 +101,13 @@ open class EmployeeCache : AbstractCache() {
         return userGroupCache.getUser(employee.user?.id)
     }
 
-    fun setStatusAndAnnualLeave(employee: EmployeeDO?) {
+    fun setTimeDependentAttrs(employee: EmployeeDO?) {
         employee ?: return
         checkRefresh()
         val cached = employeeMap[employee.id] ?: return
         employee.status = cached.status
         employee.annualLeave = cached.annualLeave
+        employee.weeklyWorkingHours = cached.weeklyWorkingHours
     }
 
     fun findByStaffNumber(staffNumber: Int?): EmployeeDO? {
@@ -119,8 +120,8 @@ open class EmployeeCache : AbstractCache() {
         return employeeMap.values.firstOrNull { it.staffNumber == staffNumber }
     }
 
-    fun setStatusAndAnnualLeave(employees: Collection<EmployeeDO>) {
-        employees.forEach { setStatusAndAnnualLeave(it) }
+    fun setTimeDependentAttrs(employees: Collection<EmployeeDO>) {
+        employees.forEach { setTimeDependentAttrs(it) }
     }
 
     /**
@@ -153,6 +154,16 @@ open class EmployeeCache : AbstractCache() {
                         map[employeeId]?.let { employee ->
                             employee.annualLeave = validSinceEntry.annualLeave
                             log.debug { "EmployeeCache.refresh: Set annualLeave=${validSinceEntry.annualLeave} for employeeId=$employeeId, userId=${employee.user?.id}" }
+                        }
+                    }
+                }
+            getLatestValidSinceEntries(EmployeeValidSinceAttrType.WEEKLY_HOURS)
+                .forEach { validSinceEntry ->
+                    log.debug { "EmployeeCache.refresh: Processing $validSinceEntry" }
+                    validSinceEntry.employee?.id?.let { employeeId ->
+                        map[employeeId]?.let { employee ->
+                            employee.weeklyWorkingHours = validSinceEntry.weeklyWorkingHours
+                            log.debug { "EmployeeCache.refresh: Set weeklyWorkingHours=${validSinceEntry.weeklyWorkingHours} for employeeId=$employeeId, userId=${employee.user?.id}" }
                         }
                     }
                 }

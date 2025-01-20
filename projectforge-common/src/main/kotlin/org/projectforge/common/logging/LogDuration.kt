@@ -61,7 +61,6 @@ class LogDuration() {
      * @see formatMillis
      */
     fun toString(timeUnit: TimeUnit): String {
-        val end = System.currentTimeMillis()
         return if (timeUnit == TimeUnit.SECONDS) toSeconds(2) else duration
     }
 

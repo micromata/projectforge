@@ -42,7 +42,6 @@ class Employee(
     var abteilung: String? = null,
     var staffNumber: String? = null,
     var urlaubstage: Int? = null,
-    var weeklyWorkingHours: BigDecimal? = null,
     var comment: String? = null,
 ) : BaseDTODisplayObject<EmployeeDO>(id, displayName = displayName) {
     /**
@@ -55,7 +54,13 @@ class Employee(
      */
     var status: EmployeeStatus? = null
 
+    /**
+     * Read-only field.
+     */
+    var weeklyWorkingHours: BigDecimal? = null
+
     var annualLeaveEntries: List<EmployeeValidSinceAttr>? = null
+    var weeklyWorkingHoursEntries: List<EmployeeValidSinceAttr>? = null
     var statusEntries: List<EmployeeValidSinceAttr>? = null
 
     companion object {

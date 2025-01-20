@@ -120,6 +120,7 @@ class ExportZipArchive {
   }
 
   fun add(filename: String, excelWorkbook: ExcelWorkbook?): ExportZipArchive {
+    excelWorkbook?.pOIWorkbook?.creationHelper?.createFormulaEvaluator()?.evaluateAll()
     zipFiles.add(ExportZipFile(filename, excelWorkbook))
     return this
   }

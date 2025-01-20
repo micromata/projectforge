@@ -31,6 +31,7 @@ import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFilter
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.EntityCopyStatus
+import org.projectforge.framework.persistence.history.HistoryFormatService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -57,11 +58,15 @@ class EmployeeService {
     private lateinit var employeeServiceSupport: EmployeeServiceSupport
 
     @Autowired
+    private lateinit var historyFormatService: HistoryFormatService
+
+    @Autowired
     private lateinit var timesheetDao: TimesheetDao
 
     @PostConstruct
     private fun postConstruct() {
         employeeDao.employeeService = this
+        historyFormatService.register(EmployeeValidSinceAttrDO::class.java, EmployeeValidSinceAttrHistoryAdapter())
     }
 
     fun findByUserId(userId: Long?): EmployeeDO? {
@@ -164,6 +169,14 @@ class EmployeeService {
         return employeeServiceSupport.getAnnualLeaveDays(employee, validAtDate, checkAccess = checkAccess)
     }
 
+    fun getWeeklyWorkingHours(employee: EmployeeDO?): BigDecimal? {
+        return getWeeklyWorkingHours(employee, LocalDate.now())
+    }
+
+    fun getWeeklyWorkingHours(employee: EmployeeDO?, validAtDate: LocalDate?, checkAccess: Boolean = true): BigDecimal? {
+        return employeeServiceSupport.getWeeklyWorkingHours(employee, validAtDate, checkAccess = checkAccess)
+    }
+
     internal fun findActiveEntry(
         entries: List<EmployeeValidSinceAttrDO>,
         validAtDate: LocalDate? = null,
@@ -207,6 +220,41 @@ class EmployeeService {
     }
 
     /**
+     * @param employeeId The employee (as id) to select the attribute for.
+     * @param deleted If true, only deleted attributes will be returned, if false, only not deleted attributes will be returned. If null, deleted and not deleted attributes will be returned.
+     * @param checkAccess If true, the logged-in user must have access to the employee.
+     */
+    fun selectWeeklyWorkingHoursEntries(
+        employeeId: Long,
+        deleted: Boolean? = false,
+        checkAccess: Boolean = true,
+    ): List<EmployeeValidSinceAttrDO> {
+        return employeeServiceSupport.selectWeeklyWorkingHoursEntries(
+            employeeId,
+            deleted = deleted,
+            checkAccess = checkAccess
+        )
+    }
+
+    /**
+     * @param employee The employee to select the attribute for.
+     * @param deleted If true, only deleted attributes will be returned, if false, only not deleted attributes will be returned. If null, deleted and not deleted attributes will be returned.
+     * @param checkAccess If true, the logged-in user must have access to the employee.
+     */
+    fun selectWeeklyWorkingHoursEntries(
+        employee: EmployeeDO,
+        deleted: Boolean? = false,
+        checkAccess: Boolean = true
+    ): List<EmployeeValidSinceAttrDO> {
+        return selectAllValidSinceAttrs(
+            employee,
+            EmployeeValidSinceAttrType.WEEKLY_HOURS,
+            deleted = deleted,
+            checkAccess = checkAccess
+        )
+    }
+
+    /**
      * @return Error message, if any. Null if given object can be modified or inserted.
      */
     fun validate(attr: EmployeeValidSinceAttrDO): String? {
@@ -229,6 +277,21 @@ class EmployeeService {
             validSince,
             annualLeaveDays.toString(),
             EmployeeValidSinceAttrType.ANNUAL_LEAVE,
+            checkAccess = checkAccess,
+        )
+    }
+
+    fun insertWeeklyHours(
+        employee: EmployeeDO,
+        validSince: LocalDate,
+        weeklyHours: BigDecimal,
+        checkAccess: Boolean = true,
+    ): EmployeeValidSinceAttrDO {
+        return employeeServiceSupport.insertValidSinceAttr(
+            employee,
+            validSince,
+            weeklyHours.stripTrailingZeros().toString(),
+            EmployeeValidSinceAttrType.WEEKLY_HOURS,
             checkAccess = checkAccess,
         )
     }

@@ -21,34 +21,12 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu
-
-import org.projectforge.common.i18n.I18nEnum
+package org.projectforge.framework.cache
 
 /**
- * Can't use LabelValueBean because XStream doesn't support generics (does it?).
- *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-enum class PaymentType(val key: String) : I18nEnum {
-    BANK_TRANSFER("bankTransfer"), DEBIT("debit"), CREDIT_CARD("creditCard"), CASH("cash"), SALARY("salary"), CREDIT("credit");
-
-    override val i18nKey: String?
-        get() = "fibu.payment.type.$key"
-
-    fun isIn(vararg type: PaymentType?): Boolean {
-        for (t in type) {
-            if (this == t) {
-                return true
-            }
-        }
-        return false
-    }
-
-    companion object {
-        fun safeValueOf(name: String?): PaymentType? {
-            name ?: return null
-            return PaymentType.entries.firstOrNull { it.name == name }
-        }
-    }
+interface CacheListener {
+    fun onBeforeCacheRefresh() {}
+    fun onAfterCacheRefresh() {}
 }

@@ -29,6 +29,7 @@ import org.projectforge.common.extensions.format
 import org.projectforge.common.logging.LogDuration
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
+import org.projectforge.framework.cache.CacheListener
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -68,9 +69,15 @@ class AuftragsRechnungCache : AbstractCache() {
 
     private var invoicePositionMapByRechnungId = mapOf<Long, MutableSet<RechnungPosInfo>>()
 
+    /**
+     * [AuftragsCache.refresh] uses this cache via [OrderPositionInfo] and vice versa. Both caches must run twice.
+     */
+    private var ready = false
+
     @PostConstruct
     private fun init() {
         rechnungDao.register(rechnungListener)
+        auftragsCache.register(auftragsCacheListener)
     }
 
     /**
@@ -134,6 +141,9 @@ class AuftragsRechnungCache : AbstractCache() {
         this.invoicePositionMapByAuftragId = mapByAuftragId
         this.invoicePositionMapByAuftragsPositionId = mapByAuftragsPositionId
         this.invoicePositionMapByRechnungId = mapByRechnungsPositionMapByRechnungId
+        if (!auftragsCache.initialized) {
+            log.info { "AuftragsCache not yet initialized. Must re-run this refresh after initialization of AuftragsCache." }
+        }
         log.info { "Initializing of AuftragsRechnungCache done: ${duration.toSeconds()}." }
     }
 
@@ -143,6 +153,19 @@ class AuftragsRechnungCache : AbstractCache() {
          */
         override fun afterInsertOrModify(obj: RechnungDO, operationType: OperationType) {
             setExpired()
+        }
+    }
+
+    private val auftragsCacheListener = object : CacheListener {
+        override fun onAfterCacheRefresh() {
+            if (!ready) {
+                ready = true
+                auftragsCache.unregister(this)
+                log.info { "Forcing to refresh." }
+                forceReload()
+                log.info { "Forcing AuftragsCache to refresh." }
+                auftragsCache.forceReload()
+            }
         }
     }
 }
