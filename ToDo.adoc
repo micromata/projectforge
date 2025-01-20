@@ -1,5 +1,4 @@
 ==== Aktuell:
-- History-Entries für EmployeeValidityAttrDO werden nicht ordentlich geschrieben.
 - JCR: Tool for removing or recovering orphaned nodes.
 - Favoriten bei Scriptausführung für Parameter.
 - KI-Anteil in Zeitberichten
@@ -15,7 +14,6 @@
 - Kalendereinträge und Subscriptions.
 - LoginProtection: Increases penalty time for DAV only after 5 tries.
 
-- Auftragsbuch nächtlich persistieren (als json-zip) für Forecast-Vergleiche.
 - Apple for Webauthn4j
 - Abwesenheiten
 - Fakturaquote Monatsbericht
@@ -36,10 +34,7 @@ History
 - ProjektEdit: History enthält keine neuen Kost2DOs/Arten (Einträge sind aber da).
 - CronReindexingHourlyJob ohne Effekt.
 - Reindizierung der letzten n einträge nicht migriert (sinnvoll?).
-- history-entries bei EmployeeValidityAttrDO nichtssagend.
-- HistoryEntry: EmployeeValidityAttrDO.insert muss sinnvoll für Anzeige formatiert werden.
 - PFHistoryMasterDO: Indexe setzen, wenn Einträge wieder gehen.
-- XML-Import für Testsystem
 - UserRightId: ClassBridge müsste eigentlich in die Felder der benutzenden DOs
 - reindexing settings implementieren. Aktuell wird nur komplett gemass-indexed.
 - History of AddressCampaignValueDO's (AddressCampaignValueDao.convertToDisplayHistoryEntries removed)
