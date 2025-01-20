@@ -95,7 +95,7 @@ class CronSanityCheckJob {
                                 .add(Html.P("Your ProjectForge system"))
                         }
                         msg.content = contextList.getReportAsHtml(showAllMessages = false, intro)
-                        msg.contentType = Mail.CONTENTTYPE_TEXT
+                        msg.contentType = Mail.CONTENTTYPE_HTML
                         val attachments = listOf(MailAttachment(FILENAME, contextList.getReportAsHtml().toByteArray()))
                         sendMail.send(msg, null, attachments)
                     }
