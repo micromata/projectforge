@@ -125,7 +125,7 @@ class EmployeeServiceSupportTest : AbstractTestBase() {
             // Property "value" was customized to "annualLeave:2024-01-01":
             HistoryTester.assertHistoryAttr(
                 entry,
-                "annualLeave:2024-01-01",
+                "value",
                 value = "29",
                 oldValue = "28",
                 propertyTypeClass = BigDecimal::class
@@ -171,7 +171,7 @@ class EmployeeServiceSupportTest : AbstractTestBase() {
             // Property "value" was customized to "annualLeave:2024-01-01":
             HistoryTester.assertHistoryAttr(
                 entry,
-                "annualLeave:2024-01-01",
+                "value",
                 value = "30",
                 oldValue = "28",
                 propertyTypeClass = BigDecimal::class

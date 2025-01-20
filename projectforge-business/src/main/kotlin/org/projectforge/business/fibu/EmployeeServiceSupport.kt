@@ -149,6 +149,16 @@ internal class EmployeeServiceSupport {
         )?.value?.toBigDecimal()
     }
 
+    fun getWeeklyWorkingHours(employee: EmployeeDO?, validAtDate: LocalDate?, checkAccess: Boolean = true): BigDecimal? {
+        if (employee == null || validAtDate == null) { // Should only occur in CallAllPagesTest (Wicket).
+            return null
+        }
+        return getActiveEntry(
+            selectWeeklyWorkingHoursEntries(employee, deleted = false, checkAccess = checkAccess),
+            validAtDate
+        )?.value?.toBigDecimal()
+    }
+
     private fun ensure(validAtDate: LocalDate?): LocalDate {
         return validAtDate ?: LocalDate.of(1970, Month.JANUARY, 1)
     }
@@ -202,6 +212,38 @@ internal class EmployeeServiceSupport {
         return selectAllValidSinceAttrs(
             employee,
             EmployeeValidSinceAttrType.ANNUAL_LEAVE,
+            deleted = deleted,
+            checkAccess = checkAccess
+        )
+    }
+
+    /**
+     * @param employeeId The employee (as id) to select the attribute for.
+     * @param deleted If true, only deleted attributes will be returned, if false, only not deleted attributes will be returned. If null, deleted and not deleted attributes will be returned.
+     * @param checkAccess If true, the logged-in user must have access to the employee.
+     */
+    fun selectWeeklyWorkingHoursEntries(
+        employeeId: Long,
+        deleted: Boolean? = false,
+        checkAccess: Boolean = true
+    ): List<EmployeeValidSinceAttrDO> {
+        val employee = employeeDao.find(employeeId)!!
+        return selectWeeklyWorkingHoursEntries(employee, deleted, checkAccess)
+    }
+
+    /**
+     * @param employee The employee to select the attribute for.
+     * @param deleted If true, only deleted attributes will be returned, if false, only not deleted attributes will be returned. If null, deleted and not deleted attributes will be returned.
+     * @param checkAccess If true, the logged-in user must have access to the employee.
+     */
+    private fun selectWeeklyWorkingHoursEntries(
+        employee: EmployeeDO,
+        deleted: Boolean? = false,
+        checkAccess: Boolean = true
+    ): List<EmployeeValidSinceAttrDO> {
+        return selectAllValidSinceAttrs(
+            employee,
+            EmployeeValidSinceAttrType.WEEKLY_HOURS,
             deleted = deleted,
             checkAccess = checkAccess
         )

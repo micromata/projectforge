@@ -25,10 +25,7 @@ package org.projectforge.jobs
 
 import org.projectforge.common.extensions.abbreviate
 import org.projectforge.common.extensions.formatMillis
-import org.projectforge.common.html.CssClass
-import org.projectforge.common.html.Html
-import org.projectforge.common.html.HtmlDocument
-import org.projectforge.common.html.HtmlTable
+import org.projectforge.common.html.*
 import org.projectforge.jobs.JobExecutionContext.Status
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -49,10 +46,14 @@ class JobListExecutionContext {
         return JobExecutionContext(job).also { jobs.add(it) }
     }
 
-    fun getReportAsHtml(showAllMessages: Boolean = true): String {
+    fun getReportAsHtml(showAllMessages: Boolean = true, intro: HtmlElement? = null): String {
         val html = HtmlDocument(title)
+        intro?.let {
+            html.add(it)
+        }
         html.add(Html.H1(title))
-        val time = "(Execution time in total: ${(System.currentTimeMillis() - startTime).formatMillis(showMillis = false)})"
+        val time =
+            "(Execution time in total: ${(System.currentTimeMillis() - startTime).formatMillis(showMillis = false)})"
         when (status) {
             Status.OK -> html.add(Html.Alert(Html.Alert.Type.SUCCESS, "All checks passed successfully. $time"))
             Status.WARNINGS -> html.add(Html.Alert(Html.Alert.Type.WARNING, "Some checks passed with warnings. $time"))

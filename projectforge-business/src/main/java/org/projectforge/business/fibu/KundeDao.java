@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu;
 
+import org.jetbrains.annotations.NotNull;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.access.OperationType;
@@ -103,6 +104,11 @@ public class KundeDao extends BaseDao<KundeDO> {
     @Override
     public KundeDO newInstance() {
         return new KundeDO();
+    }
+
+    @Override
+    public boolean isNew(@NotNull KundeDO obj) {
+        return obj.getCreated() == null; // id isn't null while inserting new customers
     }
 
     @Override

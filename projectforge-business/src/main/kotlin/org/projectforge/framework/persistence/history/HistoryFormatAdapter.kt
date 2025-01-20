@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.history
 
 /**
- * You may register history adapters for customizing conversion of history entries.
+ * You may register history adapters for customizing conversion of history entries before displaying.
  */
 open class HistoryFormatAdapter {
     /**

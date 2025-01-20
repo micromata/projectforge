@@ -30,6 +30,7 @@ import org.apache.wicket.protocol.http.WicketFilter;
 import org.apache.wicket.spring.SpringWebApplicationFactory;
 import org.projectforge.business.user.filter.WicketUserFilter;
 import org.projectforge.carddav.CardDavInit;
+import org.projectforge.framework.configuration.PFSpringConfiguration;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.config.LocaleFilter;
 import org.projectforge.rest.config.Rest;
@@ -62,6 +63,9 @@ public class WebXMLInitializer implements ServletContextInitializer {
 
     @Autowired
     private CardDavInit cardDavInit;
+
+    @Autowired
+    private PFSpringConfiguration pfSpringConfiguration;
 
     @Override
     public void onStartup(ServletContext sc) throws ServletException {

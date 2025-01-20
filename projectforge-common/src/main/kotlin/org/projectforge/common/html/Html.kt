@@ -45,7 +45,8 @@ class Html {
         }
     }
 
-    class P(content: String? = null, style: String? = null, id: String? = null) : HtmlElement("p", content = content, id = id) {
+    class P(content: String? = null, style: String? = null, id: String? = null) :
+        HtmlElement("p", content = content, id = id) {
         init {
             style?.let { attr("style", it) }
         }
@@ -62,10 +63,10 @@ class Html {
 
     class BR : HtmlElement("br", childrenAllowed = false)
 
-    class H1(content: String, id: String? = null) : HtmlElement("h1", content = content, id = id)
-    class H2(content: String, id: String? = null) : HtmlElement("h2", content = content, id = id)
-    class H3(content: String, id: String? = null) : HtmlElement("h3", content = content, id = id)
-    class H4(content: String, id: String? = null) : HtmlElement("h4", content = content, id = id)
+    class H1(content: String? = null, id: String? = null) : HtmlElement("h1", content = content, id = id)
+    class H2(content: String? = null, id: String? = null) : HtmlElement("h2", content = content, id = id)
+    class H3(content: String? = null, id: String? = null) : HtmlElement("h3", content = content, id = id)
+    class H4(content: String? = null, id: String? = null) : HtmlElement("h4", content = content, id = id)
 
     class A(href: String, content: String) : HtmlElement("a", content = content) {
         init {

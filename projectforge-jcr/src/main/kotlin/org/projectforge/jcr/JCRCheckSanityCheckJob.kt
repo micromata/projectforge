@@ -37,6 +37,10 @@ import javax.jcr.Node
 
 private val log = KotlinLogging.logger {}
 
+/**
+ * Checks the sanity of the JCR repository.
+ * This job is scheduled by the cron expression in the application.properties file.
+ */
 @Component
 open class JCRCheckSanityCheckJob : AbstractJob("JCR Check Sanity") {
     @Autowired

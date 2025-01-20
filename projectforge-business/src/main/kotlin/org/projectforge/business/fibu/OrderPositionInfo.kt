@@ -24,12 +24,11 @@
 package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import mu.KotlinLogging
 import org.projectforge.common.extensions.abbreviate
-import org.projectforge.framework.json.IdOnlySerializer
 import java.io.Serializable
 import java.math.BigDecimal
+import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
 
@@ -41,6 +40,7 @@ class OrderPositionInfo(position: AuftragsPositionDO? = null, order: OrderInfo? 
     var id = position?.id
     var deleted = position?.deleted ?: false// Deleted positions shouldn't occur.
     var number = position?.number
+
     @JsonIgnore
     var auftrag = order
     var auftragId = order?.id
@@ -70,7 +70,7 @@ class OrderPositionInfo(position: AuftragsPositionDO? = null, order: OrderInfo? 
      * For lost positions [AuftragsOrderState.LOST] false.
      * For closed orders [AuftragsStatus.ABGESCHLOSSEN] and closed positions [AuftragsPositionsStatus.ABGESCHLOSSEN] true if not fully invoiced.
      * Otherwise, false.
-     * @see recalculate
+     * @see recalculateAll
      */
     var toBeInvoiced: Boolean = false
 
@@ -106,7 +106,7 @@ class OrderPositionInfo(position: AuftragsPositionDO? = null, order: OrderInfo? 
 
     /**
      * If true, the order position was loaded from a snapshot. Therefore, no recalculation should be done.
-      */
+     */
     var snapshotVersion: Boolean = false
 
     init {
@@ -120,7 +120,7 @@ class OrderPositionInfo(position: AuftragsPositionDO? = null, order: OrderInfo? 
             log.debug { "Position is loaded from snapshot: $position" }
             // Nothing to calculate.
         } else if (order != null) {
-            recalculate(order)
+            recalculateAll(order)
         }
     }
 
@@ -129,7 +129,7 @@ class OrderPositionInfo(position: AuftragsPositionDO? = null, order: OrderInfo? 
      * @param order The parent order. If the order is closed, the ordered position are considered as to be invoiced. This position will be marked
      * as to-be-invoiced if there is a payment schedule for this position marked as reached.
      */
-    fun recalculate(order: OrderInfo) {
+    fun recalculateAll(order: OrderInfo, snapshotDate: LocalDate? = null) {
         netSum = if (status.orderState != AuftragsOrderState.LOST) dbNetSum else BigDecimal.ZERO
         commissionedNetSum = if (status.orderState == AuftragsOrderState.COMMISSIONED) netSum else BigDecimal.ZERO
         toBeInvoiced = if (status.orderState == AuftragsOrderState.LOST) {
@@ -141,9 +141,20 @@ class OrderPositionInfo(position: AuftragsPositionDO? = null, order: OrderInfo? 
         ) {
             !vollstaendigFakturiert
         } else false
+        akquiseSum = if (status.orderState == AuftragsOrderState.POTENTIAL) dbNetSum else BigDecimal.ZERO
+        recalculateInvoicedSum(snapshotDate)
+    }
+
+    fun recalculateInvoicedSum(snapshotDate: LocalDate? = null) {
         invoicedSum = BigDecimal.ZERO
         RechnungCache.instance.getRechnungsPosInfosByAuftragsPositionId(id)?.let { set ->
-            invoicedSum += RechnungDao.getNettoSumme(set)
+            val useSet = if (snapshotDate != null) {
+                // If a snapshot date is given, only consider invoices before this date.
+                set.filter { (it.rechnungInfo?.date ?: LocalDate.MAX) <= snapshotDate }
+            } else {
+                set
+            }
+            invoicedSum += RechnungDao.getNettoSumme(useSet)
         }
         toBeInvoicedSum = if (toBeInvoiced) netSum - invoicedSum else BigDecimal.ZERO
         notYetInvoiced = if (status.orderState == AuftragsOrderState.COMMISSIONED && !vollstaendigFakturiert) {
@@ -154,7 +165,10 @@ class OrderPositionInfo(position: AuftragsPositionDO? = null, order: OrderInfo? 
         if (notYetInvoiced < BigDecimal.ZERO) {
             notYetInvoiced = BigDecimal.ZERO
         }
-        akquiseSum = if (status.orderState == AuftragsOrderState.POTENTIAL) dbNetSum else BigDecimal.ZERO
+        updateFieldsIfDeleted()
+    }
+
+    private fun updateFieldsIfDeleted() {
         if (deleted) {
             // Leave the values for invoicedSum untouched.
             netSum = BigDecimal.ZERO

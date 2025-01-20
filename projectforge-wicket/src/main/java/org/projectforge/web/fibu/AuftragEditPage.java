@@ -23,6 +23,7 @@
 
 package org.projectforge.web.fibu;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.SystemStatus;
@@ -56,14 +57,23 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
             WicketSupport.get(AuftragDao.class).setContactPerson(getData(), getUser().getId());
         }
         if (!isNew()) {
-            ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-                    new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
+            Link<Void> newWindowLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
+                @Override
+                public void onClick() {
+                    PageParameters parameters = new PageParameters();
+                    parameters.add("dataId", getData().getId());
+                    setResponsePage(HtmlPreviewPage.class, parameters);
+                }
+            };
+            newWindowLink.add(new AttributeModifier("target", "_blank"));
+            ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(), newWindowLink, getString("fibu.auftrag.exportAnalysis"));
+            /*new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
                         @Override
                         public void onClick() {
                             byte[] html = WicketSupport.get(ForecastOrderAnalysis.class).htmlExportAsByteArray(getData().getId());
                             DownloadUtils.setDownloadTarget(html, "orderAnalysis-" + getData().getNummer() + ".html");
                         }
-                    }, getString("fibu.auftrag.exportAnalysis"));
+                    }*/
             addContentMenuEntry(menu);
             if (SystemStatus.isDevelopmentMode()) {
                 menu = new ContentMenuEntryPanel(getNewContentMenuChildId(),
