@@ -54,7 +54,6 @@ class HistoryFormatUserRightAdapter(
                 }
                 attr.newValue = if (valueI18nKey != null) translate(valueI18nKey) else right.value?.toString()
                 attr.operationType = propertyOpType
-                attr.operation = HistoryFormatService.translate(propertyOpType)
             }
         }
     }

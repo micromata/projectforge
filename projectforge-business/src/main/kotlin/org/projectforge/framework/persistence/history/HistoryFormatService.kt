@@ -105,7 +105,6 @@ class HistoryFormatService {
                 // Add the operation as attribute, if a propertyPrefix is given.
                 displayHistoryEntry.attributes.add(DisplayHistoryEntryAttr().also { attr ->
                     attr.operationType = PropertyOpType.Insert
-                    attr.operation = context.requiredDisplayHistoryEntry.operation
                     attr.displayPropertyName = propertyPrefix
                     attr.newValue = attr.operation
                 })
