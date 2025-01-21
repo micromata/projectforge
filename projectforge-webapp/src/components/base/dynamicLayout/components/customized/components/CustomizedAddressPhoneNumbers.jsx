@@ -42,6 +42,7 @@ function CustomizedAddressPhoneNumbers({ data }) {
                             smsEnabled={smsEnabled}
                             callerPage="addressList"
                             {...value}
+                            key={`phone-${address.id}-${value.key}`}
                         />
                     ))}
                 </>

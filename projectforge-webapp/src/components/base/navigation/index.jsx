@@ -16,8 +16,14 @@ function Navigation({ entries, className = 'ml-auto', right = false }) {
                 } else {
                     Tag = NavigationEntry;
                 }
-                // eslint-disable-next-line max-len
-                return <Tag key={entry.key || entry.id} {...entry} entryKey={entry.key} right={right} />;
+                return (
+                    <Tag
+                        {...entry}
+                        key={entry.key || entry.id}
+                        entryKey={entry.key}
+                        right={right}
+                    />
+                );
             })}
         </Nav>
     );

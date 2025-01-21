@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { UncontrolledTooltip } from 'reactstrap';
+import { Tooltip } from 'reactstrap';
 import { colorPropType } from '../../../utilities/propTypes';
 import TooltipIcon from '../TooltipIcon';
 import AdditionalLabel from './AdditionalLabel';
@@ -42,9 +42,9 @@ function CheckBox(
                 <AdditionalLabel title={additionalLabel} />
             </div>
             {tooltip && (
-                <UncontrolledTooltip placement="auto" target={`checkbox-label-${String.idify(id)}`}>
+                <Tooltip placement="auto" target={`checkbox-label-${String.idify(id)}`}>
                     {tooltip}
-                </UncontrolledTooltip>
+                </Tooltip>
             )}
         </>
     );
