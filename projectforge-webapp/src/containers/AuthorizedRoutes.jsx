@@ -16,7 +16,7 @@ import RedirectToWicket from './RedirectToWicket';
 
 export const wicketRoute = (
     <Route
-        path="/wa"
+        path="/wa/*"
         element={<RedirectToWicket />}
     />
 );
