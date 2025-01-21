@@ -32,6 +32,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.calendar.DurationUtils
 import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
@@ -77,6 +78,10 @@ import java.util.*
     )
 )
 open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
+    enum class TimeSavedByAIUnit(override val i18nKey: String) : I18nEnum {
+        PERCENTAGE("percent"),
+        HOURS("hours");
+    }
 
     @PropertyInfo(i18nKey = "task")
     @UserPrefParameter(i18nKey = "task", orderString = "2")
@@ -111,15 +116,18 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     @get:Column(name = "stop_time", nullable = false)
     open var stopTime: Date? = null
 
-    @PropertyInfo(i18nKey = "timesheet.ai.timeSavedByAIPercentage", tooltip = "timesheet.ai.timeSavedByAIPercentage.info")
-    @get:Column(name = "time_saved_by_ai_percentage")
-    open var timeSavedByAIPercentage: Int? = null
+    @PropertyInfo(i18nKey = "timesheet.ai.timeSavedByAI", tooltip = "timesheet.ai.timeSavedByAI.info")
+    @get:Column(name = "time_saved_by_ai")
+    open var timeSavedByAI: BigDecimal? = null
 
-    @PropertyInfo(i18nKey = "timesheet.ai.timeSavedByAIHours", tooltip = "timesheet.ai.timeSavedByAIHours.info")
-    @get:Column(name = "time_saved_by_ai_hours")
-    open var timeSavedByAIHours: BigDecimal? = null
+    @PropertyInfo(i18nKey = "timesheet.ai.timeSavedByAIUnit", tooltip = "timesheet.ai.timeSavedByAIUnit.info")
+    @get:Column(name = "time_saved_by_ai_unit")
+    open var timeSavedByAIUnit: TimeSavedByAIUnit? = null
 
-    @PropertyInfo(i18nKey = "timesheet.ai.timeSavedByAIDescription", tooltip = "timesheet.ai.timeSavedByAIDescription.info")
+    @PropertyInfo(
+        i18nKey = "timesheet.ai.timeSavedByAIDescription",
+        tooltip = "timesheet.ai.timeSavedByAIDescription.info"
+    )
     @get:Column(name = "time_saved_by_ai_description", length = 1000)
     open var timeSavedByAIDescription: String? = null
 

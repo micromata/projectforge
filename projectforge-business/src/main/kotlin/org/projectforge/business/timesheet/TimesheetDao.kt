@@ -36,6 +36,7 @@ import org.projectforge.business.task.TaskNode
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserDao
+import org.projectforge.common.extensions.isZeroOrNull
 import org.projectforge.common.i18n.MessageParam
 import org.projectforge.common.i18n.UserException
 import org.projectforge.common.task.TaskStatus
@@ -67,6 +68,7 @@ import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.projectforge.framework.utils.NumberHelper.isEqual
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -277,6 +279,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     override fun onInsertOrModify(obj: TimesheetDO, operationType: OperationType) {
         validateTimestamp(obj.startTime, "startTime")
         validateTimestamp(obj.stopTime, "stopTime")
+        validateTimeSavingsByAI(obj)?.let { throw UserException(it) }
         if (obj.duration < 60000) {
             throw UserException("timesheet.error.zeroDuration") // "Duration of time sheet must be at minimum 60s!
         }
@@ -338,6 +341,24 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         if (task != null && !Hibernate.isInitialized(task)) {
             obj.task = taskTree.getTaskById(task.id)
         }
+    }
+
+    fun validateTimeSavingsByAI(timesheet: TimesheetDO): String? {
+        return validateTimeSavingsByAI(timesheet.timeSavedByAI, timesheet.timeSavedByAIUnit)
+    }
+
+    fun validateTimeSavingsByAI(timeSavedByAI: BigDecimal?, unit: TimesheetDO.TimeSavedByAIUnit?): String? {
+        if (timeSavedByAI.isZeroOrNull()) {
+            return null
+        }
+        unit ?: return "timesheet.ai.timeSavedByAI.error.unitMissing"
+        if (unit == TimesheetDO.TimeSavedByAIUnit.PERCENTAGE) {
+            if (timeSavedByAI!! < BigDecimal.ZERO || timeSavedByAI > BigDecimal(99)) {
+                return "timesheet.ai.timeSavedByAI.error.invalidPercentage"
+            }
+        }
+        // All values (also negative ones) are allowed for hours.
+        return null
     }
 
     private fun validateTimestamp(date: Date?, name: String) {
