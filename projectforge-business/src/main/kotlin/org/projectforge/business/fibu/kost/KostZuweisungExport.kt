@@ -216,7 +216,7 @@ class KostZuweisungExport {
             }
             var konto: KontoDO? = null
             if (rechnung is RechnungDO) {
-                konto = kontoCache.getKontoIfNotInitialized(rechnung.konto)
+                konto = kontoCache.getKonto(rechnung)
             } else if (rechnung is EingangsrechnungDO) {
                 konto = kontoCache.getKontoIfNotInitialized(rechnung.konto)
             }

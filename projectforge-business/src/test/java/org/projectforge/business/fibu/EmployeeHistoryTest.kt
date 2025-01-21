@@ -66,7 +66,7 @@ class EmployeeHistoryTest : AbstractTestBase() {
         historyEntries[0].let { entry ->
             HistoryTester.assertHistoryAttr(
                 entry,
-                "status:2024-05-01",
+                "value",
                 value = EmployeeStatus.FREELANCER.name,
                 oldValue = EmployeeStatus.FEST_ANGESTELLTER.name,
                 opType = PropertyOpType.Update,
@@ -99,7 +99,7 @@ class EmployeeHistoryTest : AbstractTestBase() {
                 numberOfAttributes = 2,
             )
             HistoryTester.assertHistoryAttr(
-                entry, propertyName = "status:2024-05-01", value = EmployeeStatus.STUDENTISCHE_HILFSKRAFT.name,
+                entry, propertyName = "value", value = EmployeeStatus.STUDENTISCHE_HILFSKRAFT.name,
                 oldValue = EmployeeStatus.FREELANCER.name, propertyTypeClass = EmployeeStatus::class,
             )
             HistoryTester.assertHistoryAttr(
@@ -127,7 +127,7 @@ class EmployeeHistoryTest : AbstractTestBase() {
                 numberOfAttributes = 1,
             )
             HistoryTester.assertHistoryAttr(
-                entry, propertyName = "status:2024-05-01", value = EmployeeStatus.AZUBI.name,
+                entry, propertyName = "value", value = EmployeeStatus.AZUBI.name,
                 oldValue = EmployeeStatus.STUDENTISCHE_HILFSKRAFT.name, propertyTypeClass = EmployeeStatus::class,
             )
         }

@@ -23,12 +23,20 @@
 
 package org.projectforge.common.html
 
+/**
+ * Represents an HTML element.
+ * @param tag The tag of the element
+ * @param content The content of the element ('\n' will be replaced by '<br />').
+ * @param childrenAllowed Whether children are allowed for this element
+ * @param id The id of the element
+ */
 open class HtmlElement(
     val tag: String,
-    val content: String? = null,
+    content: String? = null,
     val childrenAllowed: Boolean = true,
-    val id: String? = null
+    val id: String? = null,
 ) {
+    val content: String? = content?.replace("\n", "\n<br/>\n")
     var children: MutableList<HtmlElement>? = null
     var attributes: MutableMap<String, String>? = null
     var classnames: MutableList<String>? = null
@@ -59,6 +67,13 @@ open class HtmlElement(
         children = children ?: mutableListOf()
         children!!.add(child)
         return this
+    }
+
+    /**
+     * Adds a text element to this element. Convenience method for adding text to an element.
+     */
+    fun addText(text: String): HtmlElement {
+        return add(Html.Text(text))
     }
 
     open fun append(sb: StringBuilder, indent: Int) {
