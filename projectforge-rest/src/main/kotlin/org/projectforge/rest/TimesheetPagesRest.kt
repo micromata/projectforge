@@ -24,6 +24,7 @@
 package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
 import org.projectforge.Constants
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.kost.KostCache
@@ -58,7 +59,6 @@ import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import java.util.*
-import jakarta.validation.Valid
 
 @RestController
 @RequestMapping("${Rest.URL}/timesheet")
@@ -336,6 +336,13 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         }
         row.add(UICol(md = 6).add(referenceField))
         layout.add(descriptionArea)
+            .add(
+                UIRow()
+                    .add(UICol(md = 3).add(lc, TimesheetDO::timeSavedByAIPercentage))
+                    .add(UICol(md = 3).add(lc, TimesheetDO::timeSavedByAIHours))
+                    .add(UICol(md = 6).add(lc, TimesheetDO::timeSavedByAIDescription))
+            )
+
         JiraSupport.createJiraElement(dto.description, descriptionArea)
             ?.let { layout.add(UIRow().add(UICol().add(it))) }
         Favorites.addTranslations(layout.translations)
