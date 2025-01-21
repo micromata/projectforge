@@ -111,9 +111,17 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     @get:Column(name = "stop_time", nullable = false)
     open var stopTime: Date? = null
 
-    @PropertyInfo(i18nKey = "timesheet.ai.minutesSavedByAI", tooltip = "timesheet.ai.minutesSavedByAI.info")
-    @get:Column(name = "minutes_saved_by_ai")
-    open var minutesSavedByAI: Int? = null
+    @PropertyInfo(i18nKey = "timesheet.ai.timeSavedByAIPercentage", tooltip = "timesheet.ai.timeSavedByAIPercentage.info")
+    @get:Column(name = "time_saved_by_ai_percentage")
+    open var timeSavedByAIPercentage: Int? = null
+
+    @PropertyInfo(i18nKey = "timesheet.ai.timeSavedByAIHours", tooltip = "timesheet.ai.timeSavedByAIHours.info")
+    @get:Column(name = "time_saved_by_ai_hours")
+    open var timeSavedByAIHours: BigDecimal? = null
+
+    @PropertyInfo(i18nKey = "timesheet.ai.timeSavedByAIDescription", tooltip = "timesheet.ai.timeSavedByAIDescription.info")
+    @get:Column(name = "time_saved_by_ai_description", length = 1000)
+    open var timeSavedByAIDescription: String? = null
 
     @PropertyInfo(i18nKey = "timesheet.location")
     @UserPrefParameter(i18nKey = "timesheet.location")

@@ -25,6 +25,7 @@ package org.projectforge.rest.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.projectforge.business.timesheet.TimesheetDO
+import java.math.BigDecimal
 import java.util.*
 
 @JsonIgnoreProperties(value = ["reminderDuration", "reminderDurationUnit"])
@@ -41,4 +42,8 @@ class Timesheet(var task: Task? = null,
                  * A counter (incremented by one for each recent entry) usable by React as key.
                  */
                 var counter: Int? = null
-) : BaseDTO<TimesheetDO>()
+) : BaseDTO<TimesheetDO>() {
+    var timeSavedByAIPercentage: Int? = null
+    var timeSavedByAIHours: BigDecimal? = null
+    var timeSavedByAIDescription: String? = null
+}
