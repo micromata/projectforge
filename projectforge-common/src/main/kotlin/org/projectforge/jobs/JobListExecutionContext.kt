@@ -57,7 +57,12 @@ class JobListExecutionContext {
         when (status) {
             Status.OK -> html.add(Html.Alert(Html.Alert.Type.SUCCESS, "All checks passed successfully. $time"))
             Status.WARNINGS -> html.add(Html.Alert(Html.Alert.Type.WARNING, "Some checks passed with warnings. $time"))
-            Status.ERRORS -> html.add(Html.Alert(Html.Alert.Type.DANGER, "Some errors occurred! $time"))
+            Status.ERRORS -> html.add(
+                Html.Alert(
+                    Html.Alert.Type.DANGER,
+                    "Some errors occurred! $time\n\nIt's recommended to re-run the checks for double-check."
+                )
+            )
         }
         html.add(HtmlTable().also { table ->
             table.addHeadRow().also { tr ->
