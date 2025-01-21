@@ -49,6 +49,17 @@ private val log = KotlinLogging.logger {}
  */
 object ExcelUtils {
     /**
+     * Sets the active sheet and deselects all other sheets.
+     */
+    @JvmStatic
+    fun setActiveSheet(workbook: ExcelWorkbook, activeSheetIndex: Int) {
+        for (i in 0..<workbook.numberOfSheets) {
+            workbook.getSheet(i).poiSheet.setSelected(i == activeSheetIndex)
+        }
+        workbook.setActiveSheet(activeSheetIndex)
+    }
+
+    /**
      * Should be used for workbook creation for every export.
      * @return workbook configured with date formats of the logged-in user and number formats.
      */
