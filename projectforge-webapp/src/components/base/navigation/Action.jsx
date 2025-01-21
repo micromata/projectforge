@@ -125,7 +125,8 @@ function NavigationAction({
                         id={id}
                         tag={Link}
                         to={{
-                            pathname: `/${url}`,
+                            pathname: `/${url.split('?')[0]}`,
+                            search: `?${url.split('?')[1] || ''}`,
                             state: {
                                 background: type === 'MODAL' ? history.location : undefined,
                             },

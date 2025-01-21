@@ -14,7 +14,7 @@ import TabNavigation from '../../../components/base/page/edit/TabNavigation';
 import { Alert, Container, TabContent, TabPane } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
 import { getTranslation } from '../../../utilities/layout';
-import { getObjectFromQuery, getServiceURL } from '../../../utilities/rest';
+import { baseURL, getObjectFromQuery, getServiceURL } from '../../../utilities/rest';
 import style from '../../ProjectForge.module.scss';
 import FormHistory from './history';
 
@@ -105,11 +105,12 @@ function FormPage(
         return <LoadingContainer loading />;
     }
 
+    const formBaseUrl = `/react/${currentCategory}/edit/${id}`;
     const tabs = [
         {
             id: 'form',
             title: ui.title,
-            link: '',
+            link: formBaseUrl,
         },
     ];
 
@@ -117,7 +118,7 @@ function FormPage(
         tabs.push({
             id: 'history',
             title: getTranslation('label.historyOfChanges', ui.translations),
-            link: 'history',
+            link: `${formBaseUrl}/history`,
         });
     }
 

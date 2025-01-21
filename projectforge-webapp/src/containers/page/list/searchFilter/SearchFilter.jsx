@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Button, Navbar } from 'reactstrap';
+import { useNavigate } from 'react-router';
 import {
     createListFavorite,
     deleteListFavorite,
@@ -13,7 +14,6 @@ import {
     fetchCurrentList,
     exportCurrentList,
     startMultiSelection,
-    openEditPage,
     renameListFavorite,
     selectListFavorite,
     updateListFavorite,
@@ -40,7 +40,6 @@ function SearchFilter(props) {
         onSearchStringBlur,
         onSearchStringChange,
         onSearchStringDelete,
-        onSelectQuickSelection,
         onSyncButtonClick,
         onExportButtonClick,
         onMultiSelectionButtonClick,
@@ -53,8 +52,13 @@ function SearchFilter(props) {
         isFetching,
         newlySwitched,
         quickSelectUrl,
+        standardEditPage,
         ui,
     } = category;
+
+    const navigate = useNavigate();
+
+    const onSelectQuickSelection = ({ id }) => navigate(`/${standardEditPage.replace(':id', id)}`);
 
     return (
         <>
@@ -188,6 +192,7 @@ SearchFilter.propTypes = {
         isFetching: PropTypes.bool,
         newlySwitched: PropTypes.bool,
         quickSelectUrl: PropTypes.string,
+        standardEditPage: PropTypes.string,
     }).isRequired,
     onErrorDismiss: PropTypes.func.isRequired,
     onFavoriteCreate: PropTypes.func.isRequired,
@@ -198,7 +203,6 @@ SearchFilter.propTypes = {
     onSearchStringBlur: PropTypes.func.isRequired,
     onSearchStringChange: PropTypes.func.isRequired,
     onSearchStringDelete: PropTypes.func.isRequired,
-    onSelectQuickSelection: PropTypes.func.isRequired,
     onSyncButtonClick: PropTypes.func.isRequired,
     onExportButtonClick: PropTypes.func.isRequired,
     onMultiSelectionButtonClick: PropTypes.func.isRequired,
@@ -225,7 +229,6 @@ const actions = (dispatch) => ({
     onSearchStringBlur: () => dispatch(fetchCurrentList()),
     onSearchStringChange: (completion) => dispatch(changeSearchString(completion)),
     onSearchStringDelete: () => dispatch(changeSearchString('')),
-    onSelectQuickSelection: ({ id }) => dispatch(openEditPage(id)),
     onSyncButtonClick: () => dispatch(fetchCurrentList(true)),
     onExportButtonClick: () => dispatch(exportCurrentList()),
     onMultiSelectionButtonClick: () => dispatch(startMultiSelection()),
