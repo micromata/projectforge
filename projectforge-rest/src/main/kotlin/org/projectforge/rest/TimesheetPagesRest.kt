@@ -30,6 +30,7 @@ import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.business.fibu.kost.ProjektCache
+import org.projectforge.business.scripting.ScriptParameterType
 import org.projectforge.business.system.SystemInfoCache
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.timesheet.*
@@ -182,6 +183,12 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             sheet.user = User.getUser(ThreadLocalUserContext.loggedInUserId) // Use current user.
         }
         return sheet
+    }
+
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: Timesheet) {
+        timesheetDao.validateTimeSavingsByAI(dto.timeSavedByAI, dto.timeSavedByAIUnit)?.let {
+            validationErrors.add(ValidationError(translate(it), fieldId = "timeSavedByAI"))
+        }
     }
 
     override fun onAfterEdit(obj: TimesheetDO, postData: PostData<Timesheet>, event: RestButtonEvent): ResponseAction {
@@ -338,8 +345,19 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         layout.add(descriptionArea)
             .add(
                 UIRow()
-                    .add(UICol(md = 3).add(lc, TimesheetDO::timeSavedByAIPercentage))
-                    .add(UICol(md = 3).add(lc, TimesheetDO::timeSavedByAIHours))
+                    .add(UICol(md = 3).add(lc, TimesheetDO::timeSavedByAI))
+                    .add(
+                        UICol(md = 3).add(
+                            UISelect<ScriptParameterType>(
+                                "timeSavedByAIUnit",
+                                required = true,
+                                label = "timesheet.ai.timeSavedByAIUnit",
+                                tooltip = "timesheet.ai.timeSavedByAIUnit.info",
+                            ).buildValues(
+                                TimesheetDO.TimeSavedByAIUnit::class.java
+                            )
+                        )
+                    )
                     .add(UICol(md = 6).add(lc, TimesheetDO::timeSavedByAIDescription))
             )
 
