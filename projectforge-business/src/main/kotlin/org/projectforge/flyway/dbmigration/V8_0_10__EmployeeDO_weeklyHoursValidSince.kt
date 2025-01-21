@@ -26,6 +26,8 @@ package org.projectforge.flyway.dbmigration
 import mu.KotlinLogging
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
+import org.projectforge.business.fibu.EmployeeValidSinceAttrType
+import org.projectforge.framework.persistence.database.JdbcUtils.getBigDecimal
 import org.projectforge.framework.persistence.database.JdbcUtils.getDate
 import org.projectforge.framework.persistence.database.JdbcUtils.getInt
 import org.projectforge.framework.persistence.database.JdbcUtils.getLocalDate
@@ -33,38 +35,43 @@ import org.projectforge.framework.persistence.database.JdbcUtils.getLong
 import org.springframework.jdbc.datasource.DriverManagerDataSource
 import java.io.File
 import java.sql.Connection
+import java.sql.Timestamp
 import java.time.LocalDate
-import java.time.Month
 import java.time.ZoneId
 import java.util.*
-import kotlin.math.absoluteValue
 
 private val log = KotlinLogging.logger {}
 
 /**
- * Due to a bug from 14.12.2016, the erfassungsDatum and angebotsDatum are stored switched.
+ * Adds the weekly working hours of employees as timed attribute.
+ *
+ * Rollback:
+ * ```
+ * delete from t_fibu_employee_valid_since_attr where type='WEEKLY_HOURS';
+ * ```
  */
 @Suppress("ClassName")
-class V8_0_7__FixOrder_Angebots_ErfassungsDatum : BaseJavaMigration() {
+class V8_0_10__EmployeeDO_weeklyHoursValidSince : BaseJavaMigration() {
     companion object {
-        private val SELECT_ORDERS = """
-            SELECT t.pk, t.created, t.nummer, t.angebots_datum, t.erfassungs_datum, t.nummer
-            FROM t_fibu_auftrag AS t
+        private val SELECT_EMPLOYEES = """
+            SELECT t.pk, t.created, eintritt, weekly_working_hours
+            FROM t_fibu_employee AS t
             ORDER BY t.pk DESC
             """.trimIndent()
-        private val UPDATE_ORDER = """
-            UPDATE t_fibu_auftrag set erfassungs_datum=?, angebots_datum=?
-            WHERE pk = ?
-        """.trimIndent()
+        private val INSERT_EMPLOYEE_WEEKLYHOURS = """
+            INSERT INTO t_fibu_employee_valid_since_attr
+                    (pk, created, last_update, deleted, employee_fk, type, valid_since, value)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """.trimIndent()
     }
 
     override fun migrate(context: Context) {
-        log.info { "Fixing bug since 14.12.2016 (erfassungsDatum and angebotsDatum from orders were switched)." }
+        log.info { "Adding weekly hours for employee's as timed attribute." }
         // JdbcTemplate can't be used, because autoCommit is set to false since PF 8.0 and JdbcTemplate doesn't support autoCommit.
         val connection = context.connection
         try {
             connection.autoCommit = true
-            fixOrders(connection)
+            setInitialWeeklyHours(connection)
         } catch (ex: Exception) {
             log.error(ex.message, ex)
             throw ex
@@ -73,46 +80,35 @@ class V8_0_7__FixOrder_Angebots_ErfassungsDatum : BaseJavaMigration() {
         }
     }
 
-    internal fun fixOrders(connection: Connection) {
+    internal fun setInitialWeeklyHours(connection: Connection) {
         connection.createStatement().use { statement ->
-            statement.executeQuery(SELECT_ORDERS).use { resultSet ->
+            statement.executeQuery(SELECT_EMPLOYEES).use { resultSet ->
                 while (resultSet.next()) {
                     val id = getLong(resultSet, "pk")!!
-                    val dbCreated = getDate(resultSet, "created") ?: continue // Ignore (old orders before 2007).
-                    val nummer = getInt(resultSet, "nummer")
-                    val dbAngebotsDatum = getLocalDate(resultSet, "angebots_datum")
-                    val dbErfassungsDatum = getLocalDate(resultSet, "erfassungs_datum")
+                    val created = getDate(resultSet, "created")
+                    val eintritt = getLocalDate(resultSet, "eintritt")
+                    val weeklyWorkingHours = getBigDecimal(resultSet, "weekly_working_hours") ?: continue
 
-                    val created = dbCreated
-                    val creationDay = convertToLocalDate(created)
-                    if (creationDay < LocalDate.of(2016, Month.DECEMBER, 14)) {
-                        continue
-                    }
-                    val erfassungsDatum = dbErfassungsDatum ?: creationDay
-                    val angebotsDatum = dbAngebotsDatum ?: dbErfassungsDatum ?: creationDay
-                    if ((creationDay.toEpochDay() - erfassungsDatum.toEpochDay()).absoluteValue < 1) {
-                        // Already fixed?
-                        println("Already fixed? $nummer, created=$dbCreated, angebotsDatum=$angebotsDatum, erfassungsDatum=$erfassungsDatum")
-                        continue
-                    }
-                    if ((creationDay.toEpochDay() - angebotsDatum.toEpochDay()).absoluteValue > 1) {
-                        // Ignore these orders (created date is not the same as angebotsDatum).
-                        println("Strange dates, leave it untouched: $nummer, created=$dbCreated, angebotsDatum=$angebotsDatum, erfassungsDatum=$erfassungsDatum")
-                        continue
-                    } else {
-                        try {
-                            val newErfassungsDatum = creationDay
-                            val newAngebotsDatum = erfassungsDatum
-                            log.info { "Fixed erfassungsDatum and angebotsDatum of order #$nummer, created=$dbCreated, angebotsDatum=$newAngebotsDatum (was $angebotsDatum), erfassungsDatum=$newErfassungsDatum (was $erfassungsDatum)" }
-                            connection.prepareStatement(UPDATE_ORDER).use { statement ->
-                                statement.setDate(1, java.sql.Date.valueOf(newErfassungsDatum))
-                                statement.setDate(2, java.sql.Date.valueOf(newAngebotsDatum))
-                                statement.setLong(3, id)
-                                statement.executeUpdate()
+                    try {
+                        log.info { "Creating weekly-hours entry id=$id, created=$created, eintritt=$eintritt: weeklyWorkingHours=$weeklyWorkingHours..." }
+                        connection.prepareStatement(INSERT_EMPLOYEE_WEEKLYHOURS).use { statement ->
+                            statement.setLong(1, id) // Simply use the same id.
+                            created?.getTime()?.let {
+                                statement.setTimestamp(2, Timestamp(it))
+                                statement.setTimestamp(3, Timestamp(it))
+                            } ?: run {
+                                statement.setTimestamp(2, null)
+                                statement.setTimestamp(3, null)
                             }
-                        } catch (ex: Exception) {
-                            log.info { "Oups, can't fix order: ex=${ex.message}" }
+                            statement.setBoolean(4, false)
+                            statement.setLong(5, id)
+                            statement.setString(6, EmployeeValidSinceAttrType.WEEKLY_HOURS.name)
+                            statement.setDate(7, java.sql.Date.valueOf(eintritt))
+                            statement.setBigDecimal(8, weeklyWorkingHours.stripTrailingZeros())
+                            statement.executeUpdate()
                         }
+                    } catch (ex: Exception) {
+                        log.info { "Oups, can't insert employee attr: ex=${ex.message}" }
                     }
                 }
             }
@@ -146,5 +142,5 @@ fun main() {
         this.password = password
     }
     val connection = dataSource.connection
-    V8_0_7__FixOrder_Angebots_ErfassungsDatum().fixOrders(connection)
+    V8_0_10__EmployeeDO_weeklyHoursValidSince().setInitialWeeklyHours(connection)
 }

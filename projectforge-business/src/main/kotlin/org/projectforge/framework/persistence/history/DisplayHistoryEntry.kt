@@ -40,6 +40,10 @@ class DisplayHistoryEntry {
     var modifiedByUserId: Long? = null
     var modifiedByUser: String? = null
     var operationType: EntityOpType? = null
+        set(value) {
+            field = value
+            operation = HistoryFormatService.translate(value)
+        }
     var operation: String? = null
     var attributes = mutableListOf<DisplayHistoryEntryAttr>()
 
@@ -53,7 +57,6 @@ class DisplayHistoryEntry {
                 entry.modifiedByUserId = modifiedByUser?.id
                 entry.modifiedByUser = modifiedByUser?.getFullname() ?: historyEntry.modifiedBy
                 entry.operationType = historyEntry.entityOpType
-                entry.operation = HistoryFormatService.translate(historyEntry.entityOpType)
             }
         }
     }

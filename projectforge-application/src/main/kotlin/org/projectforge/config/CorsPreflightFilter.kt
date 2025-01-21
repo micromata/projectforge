@@ -23,35 +23,24 @@
 
 package org.projectforge.config
 
-import jakarta.servlet.Filter
-import jakarta.servlet.FilterChain
-import jakarta.servlet.ServletException
-import jakarta.servlet.ServletRequest
-import jakarta.servlet.ServletResponse
+import jakarta.servlet.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.springframework.stereotype.Component
+import org.projectforge.framework.configuration.PFSpringConfiguration
 import java.io.IOException
 
 
-@Component
 class CorsPreflightFilter : Filter {
     @Throws(IOException::class, ServletException::class)
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
         val httpRequest = request as HttpServletRequest
         val httpResponse = response as HttpServletResponse
-
-        // Überprüfe den Origin-Header der Anfrage
-        val origin = httpRequest.getHeader("Origin")
-
-        // Nur Anfragen mit einem Origin behandeln
-        if (origin != null) {
-            httpResponse.setHeader("Access-Control-Allow-Origin", origin) // Setze den Origin der Anfrage
-            httpResponse.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-            httpResponse.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Requested-With")
-            httpResponse.setHeader("Access-Control-Allow-Credentials", "true") // Erlaubt Credentials
-            httpResponse.setHeader("Access-Control-Max-Age", "3600")
-        }
+        val allowedOrigins = PFSpringConfiguration.getInstance().corsAllowedOrigins
+        httpResponse.setHeader("Access-Control-Allow-Origin", allowedOrigins)
+        httpResponse.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+        httpResponse.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Requested-With")
+        httpResponse.setHeader("Access-Control-Allow-Credentials", "true") // Erlaubt Credentials
+        httpResponse.setHeader("Access-Control-Max-Age", "3600")
 
         // Preflight-Request (OPTIONS) direkt beantworten
         if ("OPTIONS".equals(httpRequest.method, ignoreCase = true)) {
