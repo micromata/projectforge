@@ -41,6 +41,7 @@ function DynamicListPageTableRow(
                                 id={id}
                                 dataType={dataType}
                                 {...column}
+                                key={column.key}
                             />
                         )}
                 </td>

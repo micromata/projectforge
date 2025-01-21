@@ -121,7 +121,7 @@ function DynamicTable(
                 </p>
             )}
         </div>
-    ), [entries, ui]);
+    ), [entries, ui, rowClickPostUrl]);
 }
 
 DynamicTable.propTypes = {

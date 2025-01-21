@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { useEffect } from 'react';
+import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -20,11 +20,7 @@ function ListPage(
     const { category: paramsCategory } = useParams();
     const location = useLocation();
 
-    const { category } = useSelector(({ list }) => list.categories[paramsCategory]) || {};
-
-    useEffect(() => {
-        console.log({ category });
-    }, [category]);
+    const category = useSelector(({ list }) => list.categories[paramsCategory]);
 
     // Only reload the list when the category or search string changes.
     React.useEffect(

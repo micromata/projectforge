@@ -47,7 +47,13 @@ export const loadUserStatus = () => (dispatch) => {
                 alertMessage,
             ));
         })
-        .catch(() => catchError(dispatch)({ message: undefined }));
+        .catch(() => {
+            if (!window.location.href.endsWith('/react/public/login')) {
+                window.location.href = '/react/public/login';
+            }
+
+            catchError(dispatch)({ message: undefined });
+        });
 };
 
 export const login = (username, password, keepSignedIn) => (dispatch) => {

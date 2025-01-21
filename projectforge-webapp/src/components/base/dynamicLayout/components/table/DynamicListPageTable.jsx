@@ -22,8 +22,8 @@ function DynamicListPageTable({ columns, id }) {
                     <tr>
                         {columns.map((column) => (
                             <DynamicTableHead
-                                key={`table-head-column-${column.id}`}
                                 {...column}
+                                key={`table-head-column-${column.id}`}
                             />
                         ))}
                     </tr>

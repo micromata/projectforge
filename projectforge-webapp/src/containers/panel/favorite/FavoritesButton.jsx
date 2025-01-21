@@ -58,7 +58,7 @@ FavoritesButton.propTypes = {
     favoriteButtonTooltip: PropTypes.string,
     isOpen: PropTypes.bool,
     translations: PropTypes.shape({
-        favorites: PropTypes.string.isRequired,
+        favorites: PropTypes.string,
     }),
 };
 

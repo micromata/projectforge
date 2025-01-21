@@ -56,7 +56,7 @@ function DynamicTableRow(
                 { [style.highlighted]: highlightRow === true },
                 { [style.deleted]: row.deleted === true },
             )}
-            onClick={rowClickPostUrl ? handleRowClick() : undefined}
+            onClick={rowClickPostUrl ? handleRowClick : undefined}
         >
             {columns.map((
                 {
@@ -79,7 +79,7 @@ function DynamicTableRow(
                 </td>
             ))}
         </tr>
-    ), [columns, setData, template]);
+    ), [columns, setData, template, rowClickPostUrl]);
 }
 
 DynamicTableRow.propTypes = {
