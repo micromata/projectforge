@@ -24,6 +24,7 @@
 package org.projectforge.rest.core
 
 import org.projectforge.common.logging.LogLevel
+import org.projectforge.framework.i18n.InternalErrorException
 import org.springframework.http.HttpStatus
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException
@@ -32,6 +33,11 @@ import java.io.IOException
 import java.net.ConnectException
 import java.net.NoRouteToHostException
 
+/**
+ * Registry for known exceptions. For known exceptions, the log level, status and message can be defined. You may
+ * also define a match function to match the exception as well as if an email should be sent to the developers.
+ * This class is thread-safe.
+ */
 object GlobalExceptionRegistry {
     open class ExInfo(
         val message: String? = null,
@@ -41,13 +47,15 @@ object GlobalExceptionRegistry {
         val knownExceptionName: String? = null,
         val knownExceptionMessagePart: String? = null,
         val sendMailToDevelopers: Boolean = false,
+        val match: ((ex: Throwable) -> Boolean)? = null
     ) {
         /**
          * @param ex The exception to check.
          * @return True if the exception matches this ExInfo (all given values: exception, exceptionName and messagePart, if given).
          */
         open fun match(ex: Throwable): Boolean {
-            return matchKnownException(ex) && matchKnownExceptionName(ex) && matchKnownExceptionMessagePart(ex)
+            return match?.invoke(ex)
+                ?: (matchKnownException(ex) && matchKnownExceptionName(ex) && matchKnownExceptionMessagePart(ex))
         }
 
         private fun matchKnownException(ex: Throwable): Boolean {
@@ -59,7 +67,10 @@ object GlobalExceptionRegistry {
         }
 
         private fun matchKnownExceptionMessagePart(ex: Throwable): Boolean {
-            return knownExceptionMessagePart == null || ex.message?.contains(knownExceptionMessagePart) == true
+            return knownExceptionMessagePart == null || ex.message?.contains(
+                knownExceptionMessagePart,
+                ignoreCase = true
+            ) == true
         }
     }
 
@@ -73,6 +84,7 @@ object GlobalExceptionRegistry {
         logLevel: LogLevel = LogLevel.ERROR,
         status: HttpStatus = HttpStatus.BAD_REQUEST,
         knownExceptionMessagePart: String? = null,
+        match: ((ex: Throwable) -> Boolean)? = null,
     ) {
         registerExInfo(
             ExInfo(
@@ -81,6 +93,7 @@ object GlobalExceptionRegistry {
                 status = status,
                 knownException = knownException,
                 knownExceptionMessagePart = knownExceptionMessagePart,
+                match = match,
             )
         )
     }
@@ -98,16 +111,17 @@ object GlobalExceptionRegistry {
         registerExInfo(AsyncRequestTimeoutException::class.java, "Asyn client connection lost (OK)", LogLevel.INFO)
         registerExInfo(java.lang.IllegalStateException::class.java, knownExceptionMessagePart = "Cannot start async")
         registerExInfo(NoResourceFoundException::class.java, "Resource not found", status = HttpStatus.NOT_FOUND)
-        registerExInfo(object : ExInfo(message = "Connection lost") {
-            override fun match(ex: Throwable): Boolean {
-                if (ex !is IOException) {
-                    return false
-                }
-                val message = ex.message?.lowercase()
-                return message?.contains("broken pipe") == true || message?.contains("connection reset by peer") == true
-                        // Die Verbindung wurde vom Kommunikationspartner zurückgesetzt
-                        || message?.contains("verbindung wurde vom kommunikationspartner") == true
-            }
+        registerExInfo(
+            InternalErrorException::class.java,
+            "Csrf error",
+            LogLevel.WARN,
+            knownExceptionMessagePart = "csrf"
+        )
+        registerExInfo(IOException::class.java, "Connection lost", LogLevel.INFO, match = { ex ->
+            val message = ex.message?.lowercase()
+            message?.contains("broken pipe") == true || message?.contains("connection reset by peer") == true
+                    // Die Verbindung wurde vom Kommunikationspartner zurückgesetzt
+                    || message?.contains("verbindung wurde vom kommunikationspartner") == true
         })
     }
 
