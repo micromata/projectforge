@@ -70,7 +70,7 @@ import java.util.*
     ),
     NamedQuery(
         name = TimesheetDO.SELECT_RECENT_USED_LOCATIONS_BY_USER_AND_LAST_UPDATE,
-        query = "select distinct location from TimesheetDO where deleted=false and user.id=:userId and lastUpdate>:lastUpdate and location!=null and location!='' order by location"
+        query = "select distinct location from TimesheetDO where deleted=false and user.id=:userId and lastUpdate>:lastUpdate and location!='' order by location"
     ),
     NamedQuery(
         name = TimesheetDO.SELECT_REFERENCES_BY_TASK_ID,
