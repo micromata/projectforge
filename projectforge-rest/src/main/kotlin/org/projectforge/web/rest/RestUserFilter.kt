@@ -55,8 +55,9 @@ class RestUserFilter : AbstractRestUserFilter(UserTokenType.REST_CLIENT) {
     val requestURI = authInfo.request.requestURI
     // Don't log error for userStatus (used by React client for checking weather the user is logged in or not).
     if (requestURI == null || requestURI != "/rs/userStatus") {
+      val method = authInfo.request.method
       val msg =
-        "Neither valid session-credentials (request.sessionId=${RequestLog.getTruncatedSessionId(authInfo.request)}), ${Authentication.AUTHENTICATION_USER_ID} nor ${Authentication.AUTHENTICATION_USERNAME}/${Authentication.AUTHENTICATION_TOKEN} is given for rest call: $requestURI. Rest call forbidden."
+        "Neither valid session-credentials (request.sessionId=${RequestLog.getTruncatedSessionId(authInfo.request)}), ${Authentication.AUTHENTICATION_USER_ID} nor ${Authentication.AUTHENTICATION_USERNAME}/${Authentication.AUTHENTICATION_TOKEN} is given for rest call: $method:$requestURI. Rest call forbidden."
       log.error(msg)
       SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "REST AUTHENTICATION FAILED", msg)
     }
