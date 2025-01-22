@@ -67,6 +67,7 @@ import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.projectforge.framework.utils.NumberHelper.isEqual
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.util.*
@@ -78,6 +79,10 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
+    @Value("\${projectforge.timesheets.timeSavingsByAI.enabled}")
+    var timeSavingsByAIEnabled = false
+        private set
+
     @Autowired
     private lateinit var userDao: UserDao
 

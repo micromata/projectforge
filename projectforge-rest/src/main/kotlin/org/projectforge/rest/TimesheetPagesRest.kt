@@ -27,9 +27,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.projectforge.Constants
 import org.projectforge.business.PfCaches
-import org.projectforge.business.fibu.kost.KostCache
-import org.projectforge.business.fibu.kost.KundeCache
-import org.projectforge.business.fibu.kost.ProjektCache
+import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.scripting.ScriptParameterType
 import org.projectforge.business.system.SystemInfoCache
 import org.projectforge.business.task.TaskTree
@@ -73,16 +71,10 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     private lateinit var caches: PfCaches
 
     @Autowired
+    private lateinit var configurationService: ConfigurationService
+
+    @Autowired
     private lateinit var userService: UserService
-
-    @Autowired
-    private lateinit var kostCache: KostCache
-
-    @Autowired
-    private lateinit var kundeCache: KundeCache
-
-    @Autowired
-    private lateinit var projektCache: ProjektCache
 
     @Autowired
     private lateinit var teamEventRest: TeamEventPagesRest
@@ -186,8 +178,10 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: Timesheet) {
-        timesheetDao.validateTimeSavingsByAI(dto.timeSavedByAI, dto.timeSavedByAIUnit)?.let {
-            validationErrors.add(ValidationError(translate(it), fieldId = "timeSavedByAI"))
+        if (baseDao.timeSavingsByAIEnabled) {
+            timesheetDao.validateTimeSavingsByAI(dto.timeSavedByAI, dto.timeSavedByAIUnit)?.let {
+                validationErrors.add(ValidationError(translate(it), fieldId = "timeSavedByAI"))
+            }
         }
     }
 
@@ -343,7 +337,8 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         }
         row.add(UICol(md = 6).add(referenceField))
         layout.add(descriptionArea)
-            .add(
+        if (baseDao.timeSavingsByAIEnabled) {
+            layout.add(
                 UIRow()
                     .add(UICol(md = 3).add(lc, TimesheetDO::timeSavedByAI))
                     .add(
@@ -360,6 +355,16 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                     )
                     .add(UICol(md = 6).add(lc, TimesheetDO::timeSavedByAIDescription))
             )
+        }
+        if (baseDao.timeSavingsByAIEnabled) {
+            configurationService.timesheetNoteSavingsByAI?.let { hint ->
+                if (hint.isNotBlank()) {
+                    layout.layoutBelowActions.add(
+                        UIAlert(hint, title = "timesheet.ai.timeSavedByAI", color = UIColor.SECONDARY, markdown = true)
+                    )
+                }
+            }
+        }
 
         JiraSupport.createJiraElement(dto.description, descriptionArea)
             ?.let { layout.add(UIRow().add(UICol().add(it))) }
@@ -395,7 +400,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     }
 
     /**
-     * @return The list of recent edited time sheets of the current logged in user.
+     * @return The list of recent edited time sheets of the current logged-in user.
      */
     @GetMapping("recentList")
     fun getRecentList(): RecentTimesheets {

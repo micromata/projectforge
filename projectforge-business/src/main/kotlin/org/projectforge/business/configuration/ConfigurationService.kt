@@ -401,6 +401,11 @@ open class ConfigurationService {
       }
     }
 
+  open val timesheetNoteSavingsByAI: String?
+    get() {
+      return configDao.getEntry(ConfigurationParam.TIMESHEET_NOTE_SAVINGS_BY_AI)?.stringValue
+    }
+
   /**
    * 31.03. of the given year, if not configured different. This date determine when vacation days of an employee
    * from the last year will be invalid, if not used.
