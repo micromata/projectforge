@@ -90,7 +90,6 @@ function ReactSelect(
 
     return (
         <div className="react-select">
-            {tooltipElement}
             <Tag
                 cache={{}}
                 className={classNames(
@@ -124,6 +123,8 @@ function ReactSelect(
                 value={value || null}
                 {...props}
             />
+            {tooltipElement}
+
             {additionalLabel && (
                 <span className="react-select__additional-label">{additionalLabel}</span>
             )}
