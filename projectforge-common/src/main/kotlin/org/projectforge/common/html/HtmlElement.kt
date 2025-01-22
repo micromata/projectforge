@@ -23,12 +23,35 @@
 
 package org.projectforge.common.html
 
+/**
+ * Represents an HTML element.
+ * @param tag The tag of the element
+ * @param content The content of the element ('\n' will be replaced by '<br />').
+ * @param childrenAllowed Whether children are allowed for this element
+ * @param id The id of the element
+ * @param replaceNewlinesByBr Whether newlines in the content should be replaced by '<br />'
+ */
 open class HtmlElement(
     val tag: String,
-    val content: String? = null,
+    content: String? = null,
     val childrenAllowed: Boolean = true,
-    val id: String? = null
+    val id: String? = null,
+    replaceNewlinesByBr: Boolean = false,
 ) {
+    val content: String? = if (content != null && childrenAllowed && replaceNewlinesByBr && content.contains('\n')) {
+        // Example: "Hello\nWorld" -> "Hello\n<br />\nWorld"
+        content.split('\n').forEachIndexed { index, s ->
+            if (index > 0) {
+                this.add(Html.BR())
+            }
+            if (s.isNotBlank()) {
+                add(Html.Text("$s\n", replaceNewlinesByBr = false))
+            }
+        }
+        null
+    } else {
+        content
+    }
     var children: MutableList<HtmlElement>? = null
     var attributes: MutableMap<String, String>? = null
     var classnames: MutableList<String>? = null
@@ -61,10 +84,21 @@ open class HtmlElement(
         return this
     }
 
+    /**
+     * Adds a text element to this element. Convenience method for adding text to an element.
+     */
+    fun addText(text: String): HtmlElement {
+        return add(Html.Text(text))
+    }
+
     open fun append(sb: StringBuilder, indent: Int) {
         if (this is Html.Text) {
             // Special case for text elements: Just append the content
-            sb.append(escape(content))
+            if (!content.isNullOrBlank()) {
+                indent(sb, indent)
+                sb.append(escape(content.trim()))
+                sb.append("\n")
+            }
             return
         }
         if (children.isNullOrEmpty() && content.isNullOrEmpty()) {

@@ -676,6 +676,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     /**
      * Get all locations of the user's time sheet (not deleted ones) with modification date within last year.
      */
+    @Deprecated("Used by deprecated Wicket pages.")
     open fun getLocationAutocompletion(searchString: String?): List<String> {
         checkLoggedInUserSelectAccess()
         val oneYearAgo = now().minusDays(365)
@@ -712,11 +713,11 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      */
     open fun getRecentLocation(sinceDate: Date?): Collection<String> {
         checkLoggedInUserSelectAccess()
-        log.info("Get recent locations from the database.")
+        log.debug { "Get recent locations from the database." }
         return persistenceService.executeNamedQuery(
             TimesheetDO.SELECT_RECENT_USED_LOCATIONS_BY_USER_AND_LAST_UPDATE,
             String::class.java,
-            Pair("userId", ThreadLocalUserContext.loggedInUserId),
+            Pair("userId", ThreadLocalUserContext.requiredLoggedInUserId),
             Pair("lastUpdate", sinceDate),
         )
     }
