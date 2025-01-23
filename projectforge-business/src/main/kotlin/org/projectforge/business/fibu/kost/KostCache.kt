@@ -26,13 +26,13 @@ package org.projectforge.business.fibu.kost
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.LockModeType
 import mu.KotlinLogging
-import org.hibernate.Hibernate
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.kost.KostHelper.parseKostString
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.utils.NumberHelper.greaterZero
 import org.projectforge.reporting.Kost2Art
@@ -101,7 +101,7 @@ class KostCache : AbstractCache() {
      */
     fun getKost2IfNotInitialized(kost2: Kost2DO?): Kost2DO? {
         kost2 ?: return null
-        if (Hibernate.isInitialized(kost2)) {
+        if (HibernateUtils.isFullyInitialized(kost2)) {
             return kost2
         }
         return getKost2(kost2.id)
@@ -152,7 +152,7 @@ class KostCache : AbstractCache() {
      */
     fun getKost1IfNotInitialized(kost1: Kost1DO?): Kost1DO? {
         kost1 ?: return null
-        if (Hibernate.isInitialized(kost1)) {
+        if (HibernateUtils.isFullyInitialized(kost1)) {
             return kost1
         }
         return getKost1(kost1.id)
@@ -187,7 +187,7 @@ class KostCache : AbstractCache() {
      */
     fun getKost2ArtIfNotInitialized(kost2Art: Kost2ArtDO?): Kost2ArtDO? {
         kost2Art ?: return null
-        if (Hibernate.isInitialized(kost2Art)) {
+        if (HibernateUtils.isFullyInitialized(kost2Art)) {
             return kost2Art
         }
         return getKost2Art(kost2Art.id)

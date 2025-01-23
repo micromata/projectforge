@@ -24,22 +24,22 @@
 package org.projectforge.framework.persistence.user.entities
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.hibernate.Hibernate
-import org.projectforge.common.StringHelper
-import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.DisplayNameCapable
-import org.projectforge.framework.persistence.api.AUserRightId
-import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import java.util.*
 import jakarta.persistence.*
+import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
+import org.projectforge.common.StringHelper
+import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.json.IdsOnlySerializer
+import org.projectforge.framework.persistence.api.AUserRightId
+import org.projectforge.framework.persistence.api.HibernateUtils
+import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import java.util.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -49,8 +49,9 @@ import org.projectforge.framework.json.IdsOnlySerializer
 @Table(name = "T_GROUP", uniqueConstraints = [UniqueConstraint(columnNames = ["name"])])
 @AUserRightId("ADMIN_CORE")
 @NamedQueries(
-        NamedQuery(name = GroupDO.FIND_BY_NAME, query = "from GroupDO where name=:name"),
-        NamedQuery(name = GroupDO.FIND_OTHER_GROUP_BY_NAME, query = "from GroupDO where name=:name and id<>:id"))
+    NamedQuery(name = GroupDO.FIND_BY_NAME, query = "from GroupDO where name=:name"),
+    NamedQuery(name = GroupDO.FIND_OTHER_GROUP_BY_NAME, query = "from GroupDO where name=:name and id<>:id")
+)
 open class GroupDO : DefaultBaseDO(), DisplayNameCapable {
 
     override val displayName: String
@@ -133,7 +134,15 @@ open class GroupDO : DefaultBaseDO(), DisplayNameCapable {
     @IndexedEmbedded(includeDepth = 1)
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToMany(targetEntity = PFUserDO::class, fetch = FetchType.LAZY)
-    @get:JoinTable(name = "T_GROUP_USER", joinColumns = [JoinColumn(name = "GROUP_ID")], inverseJoinColumns = [JoinColumn(name = "USER_ID")], indexes = [jakarta.persistence.Index(name = "idx_fk_t_group_user_group_id", columnList = "group_id"), jakarta.persistence.Index(name = "idx_fk_t_group_user_user_id", columnList = "user_id")])
+    @get:JoinTable(
+        name = "T_GROUP_USER",
+        joinColumns = [JoinColumn(name = "GROUP_ID")],
+        inverseJoinColumns = [JoinColumn(name = "USER_ID")],
+        indexes = [jakarta.persistence.Index(
+            name = "idx_fk_t_group_user_group_id",
+            columnList = "group_id"
+        ), jakarta.persistence.Index(name = "idx_fk_t_group_user_user_id", columnList = "user_id")]
+    )
     @JsonSerialize(using = IdsOnlySerializer::class)
     open var assignedUsers: MutableSet<PFUserDO>? = null
 
@@ -152,7 +161,7 @@ open class GroupDO : DefaultBaseDO(), DisplayNameCapable {
      */
     val safeAssignedUsers: Set<PFUserDO>?
         @Transient
-        get() = if (this.assignedUsers == null || !Hibernate.isInitialized(this.assignedUsers)) {
+        get() = if (this.assignedUsers == null || !HibernateUtils.isFullyInitialized(this.assignedUsers)) {
             null
         } else this.assignedUsers
 
@@ -205,6 +214,7 @@ open class GroupDO : DefaultBaseDO(), DisplayNameCapable {
         }
 
         internal const val FIND_BY_NAME = "GroupDO_FindByName"
+
         /**
          * For detecting other groups with same groupname.
          */
