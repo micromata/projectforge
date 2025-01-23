@@ -25,13 +25,12 @@ package org.projectforge.business.user
 
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
-import org.hibernate.Hibernate
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.login.Login
-import org.projectforge.business.task.TaskDO
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.jobs.JobHandler
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -116,7 +115,7 @@ open class UserGroupCache : AbstractCache() {
      */
     fun getGroupIfNotInitialized(group: GroupDO?): GroupDO? {
         group ?: return null
-        if (Hibernate.isInitialized(group)) {
+        if (HibernateUtils.isFullyInitialized(group)) {
             return group
         }
         return getGroup(group.id)
@@ -161,7 +160,7 @@ open class UserGroupCache : AbstractCache() {
      */
     fun getUserIfNotInitialized(user: PFUserDO?): PFUserDO? {
         user ?: return null
-        if (Hibernate.isInitialized(user)) {
+        if (HibernateUtils.isFullyInitialized(user)) {
             return user
         }
         return getUser(user.id)
