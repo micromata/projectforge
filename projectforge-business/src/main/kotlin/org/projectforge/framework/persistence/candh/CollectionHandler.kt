@@ -27,13 +27,13 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
 import jakarta.persistence.OneToMany
 import mu.KotlinLogging
-import org.hibernate.Hibernate
 import org.hibernate.collection.spi.PersistentList
 import org.hibernate.collection.spi.PersistentSet
 import org.projectforge.common.AnnotationsUtils
 import org.projectforge.common.KClassUtils
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.candh.CandHMaster.copyValues
 import org.projectforge.framework.persistence.candh.CandHMaster.propertyWasModified
 import org.projectforge.framework.persistence.history.*
@@ -289,7 +289,7 @@ open class CollectionHandler : CandHIHandler {
                     // No, we have to handle the child collections of all existing collection entries:
                     // Example: RechnungDO -> list of RechnungPositionDO -> list of KostZuweisungDO.
                     mergedCol.forEach { mergedEntry ->
-                        if (Hibernate.isInitialized(mergedEntry) && mergedEntry.id != null) {
+                        if (HibernateUtils.isFullyInitialized(mergedEntry) && mergedEntry.id != null) {
                             log.debug { "writeInsertHistoryEntriesForNewCollectionEntries: Check for history entries of child collections of (if any): ${mergedEntry::class.simpleName}:${mergedEntry.id}" }
                             // Historize only existing entries.
                             // If an entry is new, it's clear, that any existing child entry is also new.

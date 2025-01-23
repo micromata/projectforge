@@ -26,11 +26,10 @@ package org.projectforge.business.address
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.Tuple
 import mu.KotlinLogging
-import org.hibernate.Hibernate
-import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.database.TupleUtils.getLong
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
@@ -76,7 +75,7 @@ open class AddressbookCache : AbstractCache() {
      */
     fun getAddressbookIfNotInitialized(ab: AddressbookDO?): AddressbookDO? {
         ab ?: return null
-        if (Hibernate.isInitialized(ab)) {
+        if (HibernateUtils.isFullyInitialized(ab)) {
             return ab
         }
         return getAddressbook(ab.id)
