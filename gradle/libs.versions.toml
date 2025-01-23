@@ -152,6 +152,7 @@ org-apache-groovy-all = { module = "org.apache.groovy:groovy-all", version.ref =
 org-apache-httpcomponents-client5-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "org-apache-httpcomponents-client5-httpclient5" }
 org-apache-jackrabbit-oak-jcr = { module = "org.apache.jackrabbit:oak-jcr", version.ref = "org-apache-jackrabbit-oak" }
 org-apache-jackrabbit-oak-segment-tar = { module = "org.apache.jackrabbit:oak-segment-tar", version.ref = "org-apache-jackrabbit-oak" }
+org-apache-jackrabbit-oak-store-document = { module = "org.apache.jackrabbit:oak-store-document", version.ref = "org-apache-jackrabbit-oak" }
 org-apache-logging-log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "org-apache-logging-log4j" }
 org-apache-logging-log4j-to-slf4j = { module = "org.apache.logging.log4j:log4j-to-slf4j", version.ref = "org-apache-logging-log4j" }
 org-apache-poi = { module = "org.apache.poi:poi", version.ref = "org-apache-poi" }
