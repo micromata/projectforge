@@ -234,7 +234,7 @@ open class RepoBackupService {
           val content = zipIn.readBytes()
           val inputStream = ByteArrayInputStream(content)
           val bin: Binary = session.valueFactory.createBinary(inputStream)
-          fileNode.setProperty(RepoService.PROPERTY_FILECONTENT, session.valueFactory.createValue(bin))
+          fileNode.setProperty(OakStorage.PROPERTY_FILECONTENT, session.valueFactory.createValue(bin))
           session.save()
         }
         zipEntry = zipIn.nextEntry
@@ -255,15 +255,15 @@ open class RepoBackupService {
   }
 
   private fun getFilesPath(fileName: String): String? {
-    if (!fileName.contains(RepoService.NODENAME_FILES)) {
+    if (!fileName.contains(OakStorage.NODENAME_FILES)) {
       return null
     }
     var archiveName = fileName.substring(fileName.indexOf('/'))
     if (archiveName.startsWith("//")) {
       archiveName = archiveName.substring(1)
     }
-    archiveName = archiveName.substring(0, archiveName.indexOf(RepoService.NODENAME_FILES) - 1)
-    return "$archiveName/${RepoService.NODENAME_FILES}"
+    archiveName = archiveName.substring(0, archiveName.indexOf(OakStorage.NODENAME_FILES) - 1)
+    return "$archiveName/${OakStorage.NODENAME_FILES}"
   }
 
   private fun createZipEntry(archiveName: String, vararg path: String?): ZipEntry {
