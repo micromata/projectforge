@@ -112,7 +112,7 @@ public class MonthlyEmployeeReportWeek implements Serializable {
     }
     long duration = sheet.getDuration();
     entry.addMillis(duration);
-    totalDuration += entry.getWorkFractionMillis();
+    totalDuration += sheet.getWorkFractionDuration();
     totalGrossDuration += duration;
   }
 

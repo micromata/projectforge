@@ -28,7 +28,6 @@ import mu.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.Validate
 import org.apache.commons.lang3.builder.ToStringBuilder
-import org.hibernate.Hibernate
 import org.projectforge.business.common.AutoCompletionUtils
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
@@ -48,6 +47,7 @@ import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.and
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
@@ -339,11 +339,11 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
 
     override fun prepareHibernateSearch(obj: TimesheetDO, operationType: OperationType) {
         val user = obj.user
-        if (user != null && !Hibernate.isInitialized(user)) {
+        if (user != null && !HibernateUtils.isFullyInitialized(user)) {
             obj.user = userGroupCache.getUser(user.id)
         }
         val task = obj.task
-        if (task != null && !Hibernate.isInitialized(task)) {
+        if (task != null && !HibernateUtils.isFullyInitialized(task)) {
             obj.task = taskTree.getTaskById(task.id)
         }
     }
