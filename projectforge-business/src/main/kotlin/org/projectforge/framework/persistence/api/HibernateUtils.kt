@@ -110,6 +110,22 @@ object HibernateUtils {
         HibernateMetaModel.internalInit(sessionFactoryImplementor)
     }
 
+    /**
+     * Checks if the given object is loaded. If not, the object is not fully initialized and can't be used.
+     * Uses Hibernate.isInitialized(obj) and Hibernate.isInitialized(obj.hibernateLazyInitializer.implementation) for lazy proxies.
+     * @param obj
+     */
+    fun isFullyInitialized(obj: Any?): Boolean {
+        obj ?: return false
+        if (!Hibernate.isInitialized(obj)) {
+            return false
+        }
+        // Lazy-Proxy?
+        if (obj is HibernateProxy) {
+            return Hibernate.isInitialized(obj.hibernateLazyInitializer.implementation)
+        }
+        return true
+    }
 
     fun isEntity(entity: Class<*>): Boolean {
         return HibernateMetaModel.isEntity(entity)

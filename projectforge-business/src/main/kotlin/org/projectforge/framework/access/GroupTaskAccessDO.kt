@@ -27,7 +27,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.apache.commons.lang3.builder.ToStringBuilder
-import org.hibernate.Hibernate
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
@@ -38,6 +37,7 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.history.PersistenceBehavior
 import org.projectforge.framework.persistence.user.entities.GroupDO
@@ -233,7 +233,7 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
         tos.append("id", id)
         tos.append("task", taskId)
         tos.append("group", groupId)
-        if (Hibernate.isInitialized(this.accessEntries)) {
+        if (HibernateUtils.isFullyInitialized(this.accessEntries)) {
             tos.append("entries", this.accessEntries)
         } else {
             tos.append("entries", "LazyCollection")
