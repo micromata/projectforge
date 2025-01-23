@@ -35,7 +35,7 @@ function MagicFilterPill(
         } else {
             setTempValue(value);
         }
-    }, [value]);
+    }, []);
 
     const handleCancel = () => {
         setTempValue(value);
