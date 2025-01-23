@@ -26,7 +26,7 @@ package org.projectforge.framework.json
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
-import org.hibernate.Hibernate
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.IdObject
 import java.io.IOException
 
@@ -35,7 +35,7 @@ class IdsOnlySerializer : JsonSerializer<Collection<*>>() {
     override fun serialize(value: Collection<*>?, gen: JsonGenerator, serializers: SerializerProvider) {
         if (value == null) {
             gen.writeNull()
-        } else if (Hibernate.isInitialized(value)) {
+        } else if (HibernateUtils.isFullyInitialized(value)) {
             gen.writeStartArray()
             value.forEach { item ->
                 if (item is IdObject<*>) {
