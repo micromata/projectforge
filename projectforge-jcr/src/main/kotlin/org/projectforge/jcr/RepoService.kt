@@ -25,6 +25,7 @@ package org.projectforge.jcr
 
 import jakarta.annotation.PreDestroy
 import mu.KotlinLogging
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.io.File
 import java.io.InputStream
@@ -35,6 +36,22 @@ private val log = KotlinLogging.logger {}
 @Service
 open class RepoService {
     private var repoStore: OakStorage? = null
+
+    /**
+     * JDBC URL for RDB storage, e.g.: `jdbc:postgresql://localhost:5432/your_database`.
+     * If empty, the segmentTarStore will be used.
+     */
+    @Value("\${projectforge.jcr.rdb.jdbc.url:}")
+    var jdbcUrl: String? = null
+        private set
+
+    @Value("\${projectforge.jcr.rdb.jdbc.user:}")
+    var jdbcUser: String? = null
+        private set
+
+    @Value("\${projectforge.jcr.rdb.jdbc.password:}")
+    internal var jdbcPassword: String? = null
+        private set
 
     val mainNodeName: String?
         get() = repoStore?.mainNodeName

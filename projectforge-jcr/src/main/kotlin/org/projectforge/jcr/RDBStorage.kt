@@ -24,12 +24,10 @@
 package org.projectforge.jcr
 
 import mu.KotlinLogging
-import org.apache.jackrabbit.oak.Oak
+import org.apache.jackrabbit.oak.plugins.document.DocumentNodeStore
 import org.apache.jackrabbit.oak.plugins.document.rdb.RDBDataSourceFactory
 import org.apache.jackrabbit.oak.plugins.document.rdb.RDBDocumentNodeStoreBuilder
-import org.apache.jackrabbit.oak.spi.state.NodeStore
 import javax.sql.DataSource
-
 
 private val log = KotlinLogging.logger {}
 
@@ -37,47 +35,54 @@ private val log = KotlinLogging.logger {}
  * UNDER CONSTRUCTION!
  *
  * JCR repository with RDB storage (PostgreSQL is tested).
+ *
+ * #### Preparation of the database (PostgreSQL):
  * ```
  * CREATE DATABASE projectforge_jcr;
  * GRANT ALL PRIVILEGES ON DATABASE projectforge_jcr TO projectforge;
  * ```
+ *
+ * #### Important note:
+ * Any existing segment store will not be migrated when switching to RDB storage! You have to export and import the data manually.
+ *
  * @param mainNodeName The name of the top node.
  *
  */
 internal class RDBStorage(
     mainNodeName: String,
+    repoService: RepoService,
 ) : OakStorage(mainNodeName) {
-    override fun onLogout() {
-    }
+    private val dataSource: DataSource
+    private val jdbcUrl = repoService.jdbcUrl // For log messages, only.
 
-    override fun afterSessionClose() {
+    override fun afterSessionClosed() {
+        // Nothing to do.
     }
 
     override fun shutdown() {
-        log.info { "Shutting down jcr RDB repository '$mainNodeName'..." }
-        nodeStore.let {
-            //log.warn { "Method not yet implemented: ${it.javaClass}.dispose()" }
-            /*if (it is DocumentNodeStore) {
-              it.dispose()
-            }*/
+        log.info { "Shutting down jcr RDB repository '$mainNodeName' (database='$jdbcUrl')..." }
+        try {
+            (nodeStore as? DocumentNodeStore)?.dispose()
+            log.info { "Repository shutdown completed." }
+        } catch (e: Exception) {
+            log.error { "Error during repository shutdown: ${e.message}" }
         }
     }
 
     override fun cleanup() {
-        log.info { "Cleaning JCR repository up..." }
+        log.info { "Cleanup job invoked, no action required for RDB repository." }
     }
 
     init {
         if (mainNodeName.isBlank()) {
             throw IllegalArgumentException("Top node shouldn't be empty!")
         }
-        log.info { "Initializing JCR repository with main node '$mainNodeName'..." }
+        log.info { "Initializing JCR repository with main node '$mainNodeName' and database='${repoService.jdbcUrl}'..." }
 
-        /*        FileStoreBuilder.fileStoreBuilder(fileStoreLocation).build().let { fileStore ->
-                    this.fileStore = fileStore
-                    nodeStore = SegmentNodeStoreBuilders.builder(fileStore).build()
-                    repository = Jcr(Oak(nodeStore)).createRepository()
-                }*/
+        dataSource =
+            RDBDataSourceFactory.forJdbcUrl(repoService.jdbcUrl, repoService.jdbcUser, repoService.jdbcPassword)
+        nodeStore = RDBDocumentNodeStoreBuilder().setRDBConnection(dataSource).build()
+        initRepository()
 
         runInSession { session ->
             if (!session.rootNode.hasNode(mainNodeName)) {
@@ -86,42 +91,5 @@ internal class RDBStorage(
             }
             session.save()
         }
-    }
-
-    // Function to create a PostgreSQL DataSource
-    fun createPostgresDataSource(): DataSource {
-        // Configure the PostgreSQL DataSource
-        return RDBDataSourceFactory.forJdbcUrl(
-            "jdbc:postgresql://localhost:5432/your_database", // Replace with your DB URL
-            "your_user", // Replace with your DB user
-            "your_password" // Replace with your DB password
-        )
-    }
-
-    // Function to create a NodeStore with PostgreSQL
-    fun createPostgresNodeStore(): NodeStore {
-        // Create a PostgreSQL DataSource
-        val dataSource = createPostgresDataSource()
-
-        // Build the DocumentNodeStore for PostgreSQL
-        return RDBDocumentNodeStoreBuilder()//.newRDBDocumentNodeStoreBuilder()
-            .setRDBConnection(dataSource).build()
-    }
-
-    // Initialize the Oak repository with PostgreSQL
-    fun initializeOakWithPostgres(): Oak {
-        // Create a NodeStore using the PostgreSQL setup
-        val nodeStore = createPostgresNodeStore()
-
-        // Initialize Oak with the NodeStore
-        return Oak(nodeStore)
-    }
-
-    fun main() {
-        // Initialize Oak repository
-        val oak = initializeOakWithPostgres()
-
-        // Print a simple log message
-        println("Oak repository initialized with PostgreSQL")
     }
 }

@@ -60,12 +60,8 @@ internal class SegmentTarStorage(
 
     private var fileStore: FileStore? = null
 
-    override fun onLogout() {
+    override fun afterSessionClosed() {
         fileStore?.flush()
-    }
-
-    override fun afterSessionClose() {
-        fileStore?.close()
     }
 
     override fun shutdown() {
@@ -102,10 +98,9 @@ internal class SegmentTarStorage(
         System.setProperty("derby.stream.error.field", "${DerbyUtil::class.java.name}.DEV_NULL")
         log.info { "Initializing JCR repository with main node '$mainNodeName' in: ${fileStoreLocation.absolutePath}" }
 
-        FileStoreBuilder.fileStoreBuilder(fileStoreLocation).build().let { fileStore ->
-            this.fileStore = fileStore
-            nodeStore = SegmentNodeStoreBuilders.builder(fileStore).build()
-            repository = Jcr(Oak(nodeStore)).createRepository()
+        this.fileStore = FileStoreBuilder.fileStoreBuilder(fileStoreLocation).build().also {
+            nodeStore = SegmentNodeStoreBuilders.builder(it).build()
+            initRepository()
         }
 
         runInSession { session ->
