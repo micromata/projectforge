@@ -35,7 +35,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Handles close and clean-up. Thin wrapper for [Session]
  */
-open class SessionWrapper(private val repoStore: OakStorage) {
+open class SessionWrapper(repoStore: OakStorage) {
     val session: Session = repoStore.repository.login(credentials)
 
     val valueFactory: ValueFactory
@@ -57,7 +57,6 @@ open class SessionWrapper(private val repoStore: OakStorage) {
     }
 
     fun logout() {
-        repoStore.onLogout()
         session.save()
     }
 

@@ -25,6 +25,8 @@ package org.projectforge.jcr
 
 import mu.KotlinLogging
 import org.apache.commons.codec.digest.DigestUtils
+import org.apache.jackrabbit.oak.Oak
+import org.apache.jackrabbit.oak.jcr.Jcr
 import org.apache.jackrabbit.oak.spi.state.NodeStore
 import org.projectforge.common.CryptStreamUtils
 import org.projectforge.common.FormatterUtils
@@ -43,21 +45,14 @@ private val log = KotlinLogging.logger {}
  */
 abstract class OakStorage(val mainNodeName: String) {
     internal lateinit var repository: Repository
+        private set
 
     lateinit var nodeStore: NodeStore
         protected set
 
     abstract fun shutdown()
 
-    abstract fun onLogout()
-
-    abstract fun afterSessionClose()
-
-    internal open fun close(session: Session) {
-        session.save()
-        afterSessionClose()
-    }
-
+    abstract fun afterSessionClosed()
 
     /**
      * @param parentNodePath Path, nodes are separated by '/', e. g. "world/germany". The nodes of this path must already exist.
@@ -612,7 +607,12 @@ abstract class OakStorage(val mainNodeName: String) {
             return method(session)
         } finally {
             session.logout()
+            afterSessionClosed()
         }
+    }
+
+    protected fun initRepository() {
+        repository = Jcr(Oak(nodeStore)).createRepository()
     }
 
     companion object {
