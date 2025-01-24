@@ -31,8 +31,8 @@ class Html {
         }
     }
 
-    class Alert(type: Type, content: String? = null, id: String? = null) :
-        HtmlElement("div", content = content, id = id) {
+    class Alert(type: Type, content: String? = null, id: String? = null, replaceNewlinesByBr: Boolean = true) :
+        HtmlElement("div", content = content, id = id, replaceNewlinesByBr = replaceNewlinesByBr) {
         enum class Type(val cls: String) {
             INFO("alert-info"),
             SUCCESS("alert-success"),
@@ -45,21 +45,22 @@ class Html {
         }
     }
 
-    class P(content: String? = null, style: String? = null, id: String? = null) :
-        HtmlElement("p", content = content, id = id) {
+    class P(content: String? = null, style: String? = null, id: String? = null, replaceNewlinesByBr: Boolean = true) :
+        HtmlElement("p", content = content, id = id, replaceNewlinesByBr = replaceNewlinesByBr) {
         init {
             style?.let { attr("style", it) }
         }
     }
 
-    class Span(content: String, style: String? = null, id: String? = null) :
-        HtmlElement("span", content = content, id = id) {
+    class Span(content: String, style: String? = null, id: String? = null, replaceNewlinesByBr: Boolean = true) :
+        HtmlElement("span", content = content, id = id, replaceNewlinesByBr = replaceNewlinesByBr) {
         init {
             style?.let { attr("style", it) }
         }
     }
 
-    class Text(content: String) : HtmlElement("NOTAG", content = content, childrenAllowed = false)
+    class Text(content: String, replaceNewlinesByBr: Boolean = true) :
+        HtmlElement("NOTAG", content = content, childrenAllowed = false, replaceNewlinesByBr = replaceNewlinesByBr)
 
     class BR : HtmlElement("br", childrenAllowed = false)
 
