@@ -89,7 +89,11 @@ open class RepoService {
             if (mainNodeName.isBlank()) {
                 throw IllegalArgumentException("Top node shouldn't be empty!")
             }
-            repoStore = SegmentTarStorage(mainNodeName, repositoryDir)
+            if (jdbcUrl.isNullOrBlank()) {
+                repoStore = SegmentTarStorage(mainNodeName, repositoryDir)
+            } else {
+                repoStore = RDBStorage(mainNodeName, this)
+            }
         }
     }
 

@@ -79,8 +79,13 @@ internal class RDBStorage(
         }
         log.info { "Initializing JCR repository with main node '$mainNodeName' and database='${repoService.jdbcUrl}'..." }
 
-        dataSource =
-            RDBDataSourceFactory.forJdbcUrl(repoService.jdbcUrl, repoService.jdbcUser, repoService.jdbcPassword)
+        try {
+            dataSource =
+                RDBDataSourceFactory.forJdbcUrl(jdbcUrl, repoService.jdbcUser, repoService.jdbcPassword)
+        } catch (ex: Exception) {
+            log.error(ex) { "Can't establish jdbc connection to '${jdbcUrl}' with user '${repoService.jdbcUser} : ${ex.message}" }
+            throw ex
+        }
         nodeStore = RDBDocumentNodeStoreBuilder().setRDBConnection(dataSource).build()
         initRepository()
 
