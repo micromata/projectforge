@@ -23,11 +23,14 @@
 
 package org.projectforge.jcr
 
+import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
+import org.apache.jackrabbit.oak.Oak
+import org.apache.jackrabbit.oak.jcr.Jcr
 import org.apache.jackrabbit.oak.plugins.document.DocumentNodeStore
-import org.apache.jackrabbit.oak.plugins.document.rdb.RDBDataSourceFactory
 import org.apache.jackrabbit.oak.plugins.document.rdb.RDBDocumentNodeStoreBuilder
 import javax.sql.DataSource
+
 
 private val log = KotlinLogging.logger {}
 
@@ -50,22 +53,22 @@ private val log = KotlinLogging.logger {}
  */
 internal class RDBStorage(
     mainNodeName: String,
-    repoService: RepoService,
+    val dataSource: DataSource,
 ) : OakStorage(mainNodeName) {
-    private val dataSource: DataSource
-    private val jdbcUrl = repoService.jdbcUrl // For log messages, only.
-
     override fun afterSessionClosed() {
         // Nothing to do.
     }
 
     override fun shutdown() {
-        log.info { "Shutting down jcr RDB repository '$mainNodeName' (database='$jdbcUrl')..." }
+        log.info { "Shutting down jcr RDB repository '$mainNodeName'..." }
         try {
             (nodeStore as? DocumentNodeStore)?.dispose()
             log.info { "Repository shutdown completed." }
         } catch (e: Exception) {
             log.error { "Error during repository shutdown: ${e.message}" }
+        }
+        if (dataSource is HikariDataSource) {
+            dataSource.close()
         }
     }
 
@@ -73,28 +76,32 @@ internal class RDBStorage(
         log.info { "Cleanup job invoked, no action required for RDB repository." }
     }
 
+    internal val isRepositoryInitialized: Boolean
+        get() {
+            val connection = dataSource.connection ?: return false
+            try {
+                val stmt = connection.prepareStatement("SELECT ID FROM NODES WHERE ID like '%/jcr:system'")
+                val resultSet = stmt.executeQuery()
+                return resultSet.next()
+            } finally {
+                connection.close()
+            }
+        }
+
+
     init {
         if (mainNodeName.isBlank()) {
             throw IllegalArgumentException("Top node shouldn't be empty!")
         }
-        log.info { "Initializing JCR repository with main node '$mainNodeName' and database='${repoService.jdbcUrl}'..." }
+        log.info { "Initializing JCR repository with main node '$mainNodeName'..." }
 
-        try {
-            dataSource =
-                RDBDataSourceFactory.forJdbcUrl(jdbcUrl, repoService.jdbcUser, repoService.jdbcPassword)
-        } catch (ex: Exception) {
-            log.error(ex) { "Can't establish jdbc connection to '${jdbcUrl}' with user '${repoService.jdbcUser} : ${ex.message}" }
-            throw ex
-        }
-        nodeStore = RDBDocumentNodeStoreBuilder().setRDBConnection(dataSource).build()
+        nodeStore = RDBDocumentNodeStoreBuilder()
+            .setRDBConnection(dataSource)
+            //.setClusterId(1)
+            .build()
+        val oak = Oak(nodeStore)
+        val jcr = Jcr(oak)
+        repository = jcr.createRepository()
         initRepository()
-
-        runInSession { session ->
-            if (!session.rootNode.hasNode(mainNodeName)) {
-                log.info { "Creating top level node '$mainNodeName'." }
-                session.rootNode.addNode(mainNodeName)
-            }
-            session.save()
-        }
     }
 }

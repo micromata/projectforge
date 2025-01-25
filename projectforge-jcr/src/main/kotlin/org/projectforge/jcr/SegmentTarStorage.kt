@@ -100,16 +100,9 @@ internal class SegmentTarStorage(
 
         this.fileStore = FileStoreBuilder.fileStoreBuilder(fileStoreLocation).build().also {
             nodeStore = SegmentNodeStoreBuilders.builder(it).build()
-            initRepository()
+            repository = Jcr(Oak(nodeStore)).createRepository()
         }
-
-        runInSession { session ->
-            if (!session.rootNode.hasNode(mainNodeName)) {
-                log.info { "Creating top level node '$mainNodeName'." }
-                session.rootNode.addNode(mainNodeName)
-            }
-            session.save()
-        }
+        initRepository()
     }
 
     // https://stackoverflow.com/questions/1004327/getting-rid-of-derby-log
