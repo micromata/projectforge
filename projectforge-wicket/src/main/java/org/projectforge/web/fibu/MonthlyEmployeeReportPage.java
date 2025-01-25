@@ -286,14 +286,14 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
                 row.add(AttributeModifier.replace("class", "odd"));
             }
             final Kost2Row kost2Row = rowEntry.getValue();
-            final Kost2DO cost2 = kost2Row.getKost2();
-            addLabelCols(row, cost2, null, "kost2.nummer:" + cost2.getFormattedNumber() + "*", report.getUser(),
+            final Kost2DO cost2 = kost2Row.kost2;
+            addLabelCols(row, cost2, null, "kost2.nummer:" + cost2.getFormattedNumber() + "*", report.user,
                     report.getFromDate().getTime(), report
                             .getToDate().getTime());
             final RepeatingView colWeekRepeater = new RepeatingView("colWeekRepeater");
             row.add(colWeekRepeater);
             for (final MonthlyEmployeeReportWeek week : report.getWeeks()) {
-                final MonthlyEmployeeReportEntry entry = week.getKost2Entries().get(kost2Row.getKost2().getId());
+                final MonthlyEmployeeReportEntry entry = week.getKost2Entries().get(kost2Row.kost2.getId());
                 colWeekRepeater.add(new Label(colWeekRepeater.newChildId(), entry != null ? entry.getFormattedDuration() : ""));
             }
             row.add(new Label("sum", report.getKost2Durations().get(cost2.getId()).getFormattedDuration()));
@@ -308,7 +308,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
                 row.add(AttributeModifier.replace("class", "odd"));
             }
             final TaskDO task = rowEntry.getValue();
-            addLabelCols(row, null, task, null, report.getUser(), report.getFromDate().getTime(),
+            addLabelCols(row, null, task, null, report.user, report.getFromDate().getTime(),
                     report.getToDate().getTime());
             final RepeatingView colWeekRepeater = new RepeatingView("colWeekRepeater");
             row.add(colWeekRepeater);
@@ -327,7 +327,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
             } else {
                 row.add(AttributeModifier.replace("class", "odd"));
             }
-            addLabelCols(row, null, null, null, report.getUser(), report.getFromDate().getTime(),
+            addLabelCols(row, null, null, null, report.user, report.getFromDate().getTime(),
                     report.getToDate().getTime()).add(
                     AttributeModifier.replace("style", "text-align: right;"));
             final RepeatingView colWeekRepeater = new RepeatingView("colWeekRepeater");
