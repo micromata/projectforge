@@ -45,7 +45,6 @@ private val log = KotlinLogging.logger {}
  */
 abstract class OakStorage(val mainNodeName: String) {
     internal lateinit var repository: Repository
-        private set
 
     lateinit var nodeStore: NodeStore
         protected set
@@ -612,7 +611,13 @@ abstract class OakStorage(val mainNodeName: String) {
     }
 
     protected fun initRepository() {
-        repository = Jcr(Oak(nodeStore)).createRepository()
+        runInSession { session ->
+            if (!session.rootNode.hasNode(mainNodeName)) {
+                log.info { "Creating top level node '$mainNodeName'." }
+                session.rootNode.addNode(mainNodeName)
+            }
+            session.save()
+        }
     }
 
     companion object {

@@ -25,7 +25,7 @@ package org.projectforge.jcr
 
 import jakarta.annotation.PreDestroy
 import mu.KotlinLogging
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.File
 import java.io.InputStream
@@ -37,21 +37,8 @@ private val log = KotlinLogging.logger {}
 open class RepoService {
     private var repoStore: OakStorage? = null
 
-    /**
-     * JDBC URL for RDB storage, e.g.: `jdbc:postgresql://localhost:5432/your_database`.
-     * If empty, the segmentTarStore will be used.
-     */
-    @Value("\${projectforge.jcr.rdb.jdbc.url:}")
-    var jdbcUrl: String? = null
-        private set
-
-    @Value("\${projectforge.jcr.rdb.jdbc.user:}")
-    var jdbcUser: String? = null
-        private set
-
-    @Value("\${projectforge.jcr.rdb.jdbc.password:}")
-    internal var jdbcPassword: String? = null
-        private set
+    @Autowired
+    private lateinit var repoConfig: RepoConfig
 
     val mainNodeName: String?
         get() = repoStore?.mainNodeName
@@ -84,15 +71,20 @@ open class RepoService {
     fun init(repositoryDir: File, mainNodeName: String = "ProjectForge") {
         synchronized(this) {
             if (repoStore != null) {
-                throw IllegalArgumentException("Can't initialize segmentTarStore twice! segmentTarStore=$repoStore")
+                throw IllegalArgumentException("Can't initialize oak store twice! oak store=$repoStore")
             }
             if (mainNodeName.isBlank()) {
                 throw IllegalArgumentException("Top node shouldn't be empty!")
             }
-            if (jdbcUrl.isNullOrBlank()) {
-                repoStore = SegmentTarStorage(mainNodeName, repositoryDir)
+            if (repoConfig.dataSourceConfigured) {
+                val dataSource = repoConfig.dataSource
+                if (dataSource == null) {
+                    log.error { "No available data source for Oak!" }
+                    throw IllegalArgumentException("No available data source for Oak!")
+                }
+                repoStore = RDBStorage(mainNodeName, dataSource)
             } else {
-                repoStore = RDBStorage(mainNodeName, this)
+                repoStore = SegmentTarStorage(mainNodeName, repositoryDir)
             }
         }
     }

@@ -62,8 +62,6 @@ org-hibernate-validator = "8.0.2.Final"
 org-hsqldb-hsqldb = "2.7.4"
 org-jetbrains-kotlin = "2.0.21"
 org-jetbrains-kotlinx-coroutines-core = "1.9.0"
-org-jetbrains-kotlinx-coroutines-slf4j = "1.8.1"
-org-jetbrains-intellij-deps-trove4j = "1.0.20200330" # Needed by Kotlin scripting engine. Must match the version of the Kotlin compiler.
 org-jfree-jfreechart = "1.5.5"
 org-junit-jupiter = "5.10.3"
 org-junit-platform-launcher = "1.10.3"
@@ -74,7 +72,7 @@ org-mockito-kotlin = "5.4.0"
 org-mozilla-rhino = "1.7.15"
 org-postgresql = "42.7.4"
 org-reflections = "0.10.2"
-org-springframework-boot = "3.3.6"
+org-springframework-boot = "3.3.8"
 org-apache-tomcat-embed = "10.1.33" # must match spring-boot
 org-springframework-spring = "6.1.16"
 org-springframework-security = "6.4.1"
@@ -198,6 +196,7 @@ org-slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "org-slf4j" }
 org-slf4j-jul-to-slf4j = { module = "org.slf4j:jul-to-slf4j", version.ref = "org-slf4j" }
 org-slf4j-jcl-over-slf4j = { module = "org.slf4j:jcl-over-slf4j", version.ref = "org-slf4j" }
 org-springframework-boot = { module = "org.springframework.boot:spring-boot", version.ref = "org-springframework-boot" }
+org-springframework-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure", version.ref = "org-springframework-boot" }
 org-springframework-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "org-springframework-boot" }

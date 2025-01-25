@@ -197,6 +197,7 @@ dependencies {
     implementation(libs.org.postgresql)
     implementation(libs.org.reflections)
     implementation(libs.org.springframework.boot)
+    implementation(libs.org.springframework.boot.autoconfigure)
     implementation(libs.org.springframework.boot.dependencies)
     implementation(libs.org.springframework.boot.starter)
     implementation(libs.org.springframework.boot.starter.data.jpa)
