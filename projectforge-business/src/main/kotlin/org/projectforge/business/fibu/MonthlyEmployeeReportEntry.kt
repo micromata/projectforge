@@ -26,6 +26,9 @@ package org.projectforge.business.fibu
 import org.projectforge.business.PfCaches.Companion.instance
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
+import org.projectforge.business.timesheet.AITimeSavings
+import org.projectforge.business.timesheet.TimesheetDO
+import org.projectforge.common.extensions.isZeroOrNull
 import java.io.Serializable
 import java.math.BigDecimal
 
@@ -49,6 +52,9 @@ class MonthlyEmployeeReportEntry : Serializable {
     var millis: Long = 0
         private set
 
+    var timeimeSavedByAIMillis: Long = 0
+        private set
+
     constructor(kost2: Kost2DO?) {
         this.kost2 = kost2
     }
@@ -57,8 +63,14 @@ class MonthlyEmployeeReportEntry : Serializable {
         this.task = task
     }
 
-    fun addMillis(millis: Long) {
-        this.millis += millis
+    fun addMillis(entry: MonthlyEmployeeReportEntry) {
+        this.millis += entry.workFractionMillis
+        this.timeimeSavedByAIMillis += entry.timeimeSavedByAIMillis
+    }
+
+    fun addMillis(timesheetDO: TimesheetDO, duration: Long) {
+        this.millis += duration
+        this.timeimeSavedByAIMillis += AITimeSavings.getTimeSavedByAIMs(timesheetDO, duration)
     }
 
     /**
@@ -78,7 +90,15 @@ class MonthlyEmployeeReportEntry : Serializable {
         }
 
     val formattedDuration: String
-        get() = MonthlyEmployeeReport.getFormattedDuration(millis)
+        get() = if (workFraction.isZeroOrNull()) {
+            "(${MonthlyEmployeeReport.getFormattedDuration(millis)})" // Not working time.
+        } else {
+            MonthlyEmployeeReport.getFormattedDuration(millis)
+        }
+
+    val getFormattedTimeSavedByAI: String
+        get() = MonthlyEmployeeReport.getFormattedDuration(timeimeSavedByAIMillis)
+
 
     companion object {
         private const val serialVersionUID = 7290000602224467755L

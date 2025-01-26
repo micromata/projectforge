@@ -1,4 +1,6 @@
 ==== Aktuell:
+- Änderungskommentar bei Usern/Gruppen (JIRA-Nummern)
+- AI timesavings: Zeit bei Eingabe ausrechnen, recent ai texte als vorlage.
 - JCR: Tool for removing or recovering orphaned nodes.
 - Favoriten bei Scriptausführung für Parameter.
 - KI-Anteil in Zeitberichten
@@ -14,6 +16,7 @@
 - Kalendereinträge und Subscriptions.
 - LoginProtection: Increases penalty time for DAV only after 5 tries.
 
+- Admin für Datentransfer: show details of nodes, restore orphaned etc.
 - Apple for Webauthn4j
 - Abwesenheiten
 - Fakturaquote Monatsbericht
@@ -94,6 +97,7 @@ Orderbook-Export über die GUI Auftragsbuch -> Dev: export order book
 DROP DATABASE projectforge;
 CREATE DATABASE projectforge;
 ----
+
 
 Orderbooks importieren:
 [source]

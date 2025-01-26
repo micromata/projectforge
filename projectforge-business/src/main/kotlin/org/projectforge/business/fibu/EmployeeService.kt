@@ -410,7 +410,7 @@ class EmployeeService {
         return employeeServiceSupport.undeleteValidSinceAttr(employee, attr, checkAccess = checkAccess)
     }
 
-    fun getReportOfMonth(year: Int, month: Int?, user: PFUserDO): MonthlyEmployeeReport {
+    fun getReportOfMonth(year: Int, month: Int, user: PFUserDO): MonthlyEmployeeReport {
         val monthlyEmployeeReport = MonthlyEmployeeReport(user, year, month)
         monthlyEmployeeReport.init()
         val filter = TimesheetFilter()

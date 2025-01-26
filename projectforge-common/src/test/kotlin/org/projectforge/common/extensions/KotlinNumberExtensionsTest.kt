@@ -44,6 +44,12 @@ class KotlinNumberExtensionsTest {
         Assertions.assertEquals("00:01.123", (1123).formatMillis())
         Assertions.assertEquals("01:01.123", (61123).formatMillis())
         Assertions.assertEquals("12:21.123", (12 * 60000 + 21 * 1000 + 123).formatMillis())
+
+        Assertions.assertEquals("12:21", (12 * 60000 + 21 * 1000 + 123).formatMillis(showMillis = false))
+        Assertions.assertEquals("12:22", (12 * 60000 + 21 * 1000 + 500).formatMillis(showMillis = false), "Rounding up")
+        Assertions.assertEquals("00:12", (12 * 60000 + 21 * 1000 + 123).formatMillis(showSeconds = false))
+
+        Assertions.assertEquals("00:13", (12 * 60000 + 30 * 1000 + 500).formatMillis(showSeconds = false), "Rounding up")
     }
 
     @Test
