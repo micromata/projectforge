@@ -115,7 +115,10 @@ class MonthlyEmployeeReportWeek(date: PFDateTime) : Serializable {
         val duration = timesheet.duration
         entry?.addMillis(timesheet, duration)
         totalDuration += timesheet.workFractionDuration
-        totalGrossDuration += duration
+        if (timesheet.workFractionDuration > 0) {
+            // Don't add time sheets with zero working time fraction.
+            totalGrossDuration += duration
+        }
         totalTimeSavedByAI += AITimeSavings.getTimeSavedByAIMs(timesheet, duration)
     }
 
