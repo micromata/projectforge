@@ -24,11 +24,11 @@
 package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
 import org.projectforge.Constants
 import org.projectforge.business.PfCaches
-import org.projectforge.business.fibu.kost.KostCache
-import org.projectforge.business.fibu.kost.KundeCache
-import org.projectforge.business.fibu.kost.ProjektCache
+import org.projectforge.business.configuration.ConfigurationService
+import org.projectforge.business.scripting.ScriptParameterType
 import org.projectforge.business.system.SystemInfoCache
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.timesheet.*
@@ -58,7 +58,6 @@ import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import java.util.*
-import jakarta.validation.Valid
 
 @RestController
 @RequestMapping("${Rest.URL}/timesheet")
@@ -72,16 +71,10 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     private lateinit var caches: PfCaches
 
     @Autowired
+    private lateinit var configurationService: ConfigurationService
+
+    @Autowired
     private lateinit var userService: UserService
-
-    @Autowired
-    private lateinit var kostCache: KostCache
-
-    @Autowired
-    private lateinit var kundeCache: KundeCache
-
-    @Autowired
-    private lateinit var projektCache: ProjektCache
 
     @Autowired
     private lateinit var teamEventRest: TeamEventPagesRest
@@ -182,6 +175,14 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             sheet.user = User.getUser(ThreadLocalUserContext.loggedInUserId) // Use current user.
         }
         return sheet
+    }
+
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: Timesheet) {
+        if (baseDao.timeSavingsByAIEnabled) {
+            timesheetDao.validateTimeSavingsByAI(dto.timeSavedByAI, dto.timeSavedByAIUnit)?.let {
+                validationErrors.add(ValidationError(translate(it), fieldId = "timeSavedByAI"))
+            }
+        }
     }
 
     override fun onAfterEdit(obj: TimesheetDO, postData: PostData<Timesheet>, event: RestButtonEvent): ResponseAction {
@@ -336,6 +337,35 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         }
         row.add(UICol(md = 6).add(referenceField))
         layout.add(descriptionArea)
+        if (baseDao.timeSavingsByAIEnabled) {
+            layout.add(
+                UIRow()
+                    .add(UICol(md = 3).add(lc, TimesheetDO::timeSavedByAI))
+                    .add(
+                        UICol(md = 3).add(
+                            UISelect<ScriptParameterType>(
+                                "timeSavedByAIUnit",
+                                required = true,
+                                label = "timesheet.ai.timeSavedByAIUnit",
+                                tooltip = "timesheet.ai.timeSavedByAIUnit.info",
+                            ).buildValues(
+                                TimesheetDO.TimeSavedByAIUnit::class.java
+                            )
+                        )
+                    )
+                    .add(UICol(md = 6).add(lc, TimesheetDO::timeSavedByAIDescription))
+            )
+        }
+        if (baseDao.timeSavingsByAIEnabled) {
+            configurationService.timesheetNoteSavingsByAI?.let { hint ->
+                if (hint.isNotBlank()) {
+                    layout.layoutBelowActions.add(
+                        UIAlert(hint, title = "timesheet.ai.timeSavedByAI", color = UIColor.SECONDARY, markdown = true)
+                    )
+                }
+            }
+        }
+
         JiraSupport.createJiraElement(dto.description, descriptionArea)
             ?.let { layout.add(UIRow().add(UICol().add(it))) }
         Favorites.addTranslations(layout.translations)
@@ -370,7 +400,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     }
 
     /**
-     * @return The list of recent edited time sheets of the current logged in user.
+     * @return The list of recent edited time sheets of the current logged-in user.
      */
     @GetMapping("recentList")
     fun getRecentList(): RecentTimesheets {

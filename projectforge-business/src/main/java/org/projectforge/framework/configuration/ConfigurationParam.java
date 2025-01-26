@@ -72,6 +72,10 @@ public enum ConfigurationParam implements IConfigurationParam
    */
   COST_CONFIGURED("fibu.costConfigured", ConfigurationType.BOOLEAN), //
   /**
+   * Cost configured configuration param.
+   */
+  TIMESHEET_NOTE_SAVINGS_BY_AI("timesheet.noteSavingsByAI", ConfigurationType.STRING), //
+  /**
    * Default country phone prefix configuration param.
    */
   DEFAULT_COUNTRY_PHONE_PREFIX("countryPhonePrefix", ConfigurationType.STRING, "+49"), //
