@@ -34,6 +34,8 @@ import org.projectforge.business.task.TaskFormatter.Companion.getTaskPath
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.common.StringHelper
+import org.projectforge.common.extensions.formatPercent
+import org.projectforge.common.extensions.isZeroOrNull
 import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.calendar.MonthHolder
 import org.projectforge.framework.i18n.I18nHelper.getLocalizedMessage
@@ -143,6 +145,9 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
     var totalNetDuration: Long = 0
         private set
 
+    var totalTimeSavedByAI: Long = 0
+        private set
+
     private var vacationCount: BigDecimal? = BigDecimal.ZERO
 
     private var vacationPlannedCount: BigDecimal? = BigDecimal.ZERO
@@ -225,7 +230,7 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
     fun addTimesheet(sheet: TimesheetDO, hasSelectAccess: Boolean) {
         val day = from(sheet.startTime!!) // not null
         bookedDays.add(day.dayOfMonth)
-        for (week in weeks!!) {
+        for (week in weeks) {
             if (week.matchWeek(sheet)) {
                 week.addEntry(sheet, hasSelectAccess)
                 return
@@ -252,16 +257,19 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
                     var kost2Total = kost2Durations.get(entry.kost2!!.id)
                     if (kost2Total == null) {
                         kost2Total = MonthlyEmployeeReportEntry(entry.kost2)
-                        kost2Total.addMillis(entry.workFractionMillis)
+                        kost2Total.addMillis(entry)
                         entry.kost2?.id?.let { id ->
                             kost2Durations[id] = kost2Total
                         }
                     } else {
-                        kost2Total.addMillis(entry.workFractionMillis)
+                        kost2Total.addMillis(entry)
                     }
                     // Travelling times etc. (see cost 2 type factor):
-                    totalGrossDuration += entry.millis
+                    if (!entry.workFraction.isZeroOrNull()) {
+                        totalGrossDuration += entry.millis
+                    }
                     totalNetDuration += entry.workFractionMillis
+                    totalTimeSavedByAI += entry.timeimeSavedByAIMillis
                 }
             }
             if (MapUtils.isNotEmpty(week.taskEntries)) {
@@ -281,15 +289,16 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
                     var taskTotal = taskDurations.get(entry.task!!.id)
                     if (taskTotal == null) {
                         taskTotal = MonthlyEmployeeReportEntry(entry.task)
-                        taskTotal.addMillis(entry.millis)
+                        taskTotal.addMillis(entry)
                         entry.task?.id?.let { id ->
                             taskDurations[id] = taskTotal
                         }
                     } else {
-                        taskTotal.addMillis(entry.millis)
+                        taskTotal.addMillis(entry)
                     }
                     totalGrossDuration += entry.millis
                     totalNetDuration += entry.workFractionMillis
+                    totalTimeSavedByAI += entry.timeimeSavedByAIMillis
                 }
             }
         }
@@ -375,6 +384,21 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
 
     val formattedTotalNetDuration: String
         get() = getFormattedDuration(totalNetDuration)
+
+    val formattedTotalTimeSavedByAI: String
+        get() = getFormattedDuration(totalTimeSavedByAI)
+
+    val formattedTimeSavedByAIPercentage: String
+        get() {
+            if (totalGrossDuration == 0L) {
+                return "0 %"
+            }
+            val percentage = BigDecimal(totalTimeSavedByAI).multiply(BigDecimal(100)).divide(
+                BigDecimal(totalGrossDuration), 0,
+                RoundingMode.HALF_UP
+            )
+            return percentage.formatPercent(true)
+        }
 
     companion object {
         private const val serialVersionUID = -4636357379552246075L

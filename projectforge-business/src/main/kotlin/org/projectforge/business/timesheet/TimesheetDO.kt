@@ -131,6 +131,10 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     @get:Column(name = "time_saved_by_ai_description", length = 1000)
     open var timeSavedByAIDescription: String? = null
 
+    @get:Transient
+    val timeSavedByAIMillis: Long
+        get() = AITimeSavings.getTimeSavedByAIMs(this)
+
     @PropertyInfo(i18nKey = "timesheet.location")
     @UserPrefParameter(i18nKey = "timesheet.location")
     @FullTextField
