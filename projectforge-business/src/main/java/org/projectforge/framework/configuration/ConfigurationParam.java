@@ -74,7 +74,7 @@ public enum ConfigurationParam implements IConfigurationParam
   /**
    * Cost configured configuration param.
    */
-  TIMESHEET_NOTE_SAVINGS_BY_AI("timesheet.noteSavingsByAI", ConfigurationType.STRING), //
+  TIMESHEET_NOTE_SAVINGS_BY_AI("timesheet.noteSavingsByAI", ConfigurationType.TEXT), //
   /**
    * Default country phone prefix configuration param.
    */
