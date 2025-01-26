@@ -25,6 +25,7 @@ package org.projectforge.business.fibu
 
 import org.projectforge.business.fibu.MonthlyEmployeeReport.Companion.createPseudoTask
 import org.projectforge.business.fibu.MonthlyEmployeeReport.Companion.getFormattedDuration
+import org.projectforge.business.timesheet.AITimeSavings
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.time.PFDateTime
@@ -44,6 +45,9 @@ class MonthlyEmployeeReportWeek(date: PFDateTime) : Serializable {
      * Summe aller Stunden der Woche in Millis.
      */
     var totalDuration: Long = 0
+        private set
+
+    var totalTimeSavedByAI: Long = 0
         private set
 
     private var totalGrossDuration: Long = 0
@@ -82,8 +86,8 @@ class MonthlyEmployeeReportWeek(date: PFDateTime) : Serializable {
         return !sheet.startTime!!.before(fromDate.utilDate) && sheet.startTime!!.before(toDate.utilDate)
     }
 
-    fun addEntry(sheet: TimesheetDO, hasSelectAccess: Boolean) {
-        if (!matchWeek(sheet)) {
+    fun addEntry(timesheet: TimesheetDO, hasSelectAccess: Boolean) {
+        if (!matchWeek(timesheet)) {
             throw RuntimeException("Oups, given time sheet is not inside the week represented by this week object.")
         }
         var entry: MonthlyEmployeeReportEntry? = null
@@ -93,25 +97,26 @@ class MonthlyEmployeeReportWeek(date: PFDateTime) : Serializable {
                 entry = MonthlyEmployeeReportEntry(createPseudoTask())
                 taskEntries[MonthlyEmployeeReport.MAGIC_PSEUDO_TASK_ID] = entry
             }
-        } else if (sheet.kost2Id != null) {
-            entry = kost2Entries[sheet.kost2Id]
+        } else if (timesheet.kost2Id != null) {
+            entry = kost2Entries[timesheet.kost2Id]
             if (entry == null) {
-                entry = MonthlyEmployeeReportEntry(sheet.kost2)
-                kost2Entries[sheet.kost2Id!!] = entry
+                entry = MonthlyEmployeeReportEntry(timesheet.kost2)
+                kost2Entries[timesheet.kost2Id!!] = entry
             }
         } else {
-            sheet.taskId?.let { taskId ->
+            timesheet.taskId?.let { taskId ->
                 entry = taskEntries[taskId]
                 if (entry == null) {
-                    entry = MonthlyEmployeeReportEntry(sheet.task)
+                    entry = MonthlyEmployeeReportEntry(timesheet.task)
                     taskEntries[taskId] = entry!!
                 }
             }
         }
-        val duration = sheet.duration
-        entry?.addMillis(duration)
-        totalDuration += sheet.workFractionDuration
+        val duration = timesheet.duration
+        entry?.addMillis(timesheet, duration)
+        totalDuration += timesheet.workFractionDuration
         totalGrossDuration += duration
+        totalTimeSavedByAI += AITimeSavings.getTimeSavedByAIMs(timesheet, duration)
     }
 
     val formattedFromDayOfMonth: String
@@ -125,6 +130,9 @@ class MonthlyEmployeeReportWeek(date: PFDateTime) : Serializable {
 
     val formattedGrossDuration: String
         get() = getFormattedDuration(totalGrossDuration)
+
+    val formattedTotalTimeSavedByAI: String
+        get() = getFormattedDuration(totalTimeSavedByAI)
 
     companion object {
         private const val serialVersionUID = 6075755848054540114L
