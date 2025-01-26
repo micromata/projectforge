@@ -89,4 +89,12 @@ internal open class RepoConfig {
             log.error(e) { "Error during data source creation: ${e.message}" }
         }
     }
+
+    companion object {
+        internal fun createForTests(): RepoConfig {
+            return RepoConfig().also {
+                it.dataSourceUrl = ""
+            }
+        }
+    }
 }
