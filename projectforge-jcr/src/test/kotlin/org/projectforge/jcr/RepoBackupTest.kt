@@ -39,6 +39,7 @@ class RepoBackupTest {
 
   init {
     val repoDir = testUtils.deleteAndCreateTestFile("testBackupRepo")
+    repoService.repoConfig = RepoConfig.createForTests()
     repoService.init(repoDir)
     repoBackupService.repoService = repoService
     repoBackupService.jcrCheckSanityJob = JCRCheckSanityCheckJob()
@@ -81,6 +82,7 @@ class RepoBackupTest {
     }
 
     val repo2Service = RepoService()
+    repo2Service.repoConfig = RepoConfig.createForTests()
     val repo2BackupService = RepoBackupService()
     val repo2Dir = testUtils.deleteAndCreateTestFile("testBackupRepo2")
     repo2Service.init(repo2Dir)

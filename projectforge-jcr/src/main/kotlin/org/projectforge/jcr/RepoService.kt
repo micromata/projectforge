@@ -38,7 +38,7 @@ open class RepoService {
     private var repoStore: OakStorage? = null
 
     @Autowired
-    private lateinit var repoConfig: RepoConfig
+    internal lateinit var repoConfig: RepoConfig
 
     val mainNodeName: String?
         get() = repoStore?.mainNodeName
