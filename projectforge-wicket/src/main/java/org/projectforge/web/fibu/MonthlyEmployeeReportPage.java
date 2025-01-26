@@ -276,7 +276,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
                     + week.getFormattedToDayOfMonth()
                     + "."));
         }
-        table.add(new Label("timeSavedByAI" , getString("timesheet.ai.timeSavedByAI")).setVisible(timeSavingsByAIEnabled));
+        table.add(new Label("timeSavedByAI", getString("timesheet.ai.timeSavedByAI")).setVisible(timeSavingsByAIEnabled));
         final RepeatingView rowRepeater = new RepeatingView("rowRepeater");
         table.add(rowRepeater);
         int rowCounter = 0;
@@ -361,7 +361,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
                     "font-weight: bold; text-align: right;")));
             row.add(new Label("aiTimeSavings", report.getFormattedTotalTimeSavedByAI()).setVisible(timeSavingsByAIEnabled));
         }
-        if (timeSavingsByAIEnabled){
+        if (timeSavingsByAIEnabled) {
             // Sum row time saved by AI.
             final WebMarkupContainer row = new WebMarkupContainer(rowRepeater.newChildId());
             rowRepeater.add(row);
@@ -370,16 +370,20 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
             row.add(new Label("customer", "").setVisible(false));
             row.add(new Label("project", "").setVisible(false));
             final Label title = addCostType(row, getString("timesheet.ai.timeSavedByAI"));
+            title.add(AttributeModifier.replace("style", "text-align: right; color:purple;"));
             final WebMarkupContainer tdContainer = title.findParent(WebMarkupContainer.class);
             tdContainer.add(AttributeModifier.replace("colspan", "4"));
-            tdContainer.add(AttributeModifier.replace("style", "font-weight: bold; text-align: right;"));
+            tdContainer.add(AttributeModifier.replace("style", "text-align: right;"));
             final RepeatingView colWeekRepeater = prepareSumRow(row, rowCounter++);
             for (@SuppressWarnings("unused") final MonthlyEmployeeReportWeek week : report.getWeeks()) {
-                colWeekRepeater.add(new Label(colWeekRepeater.newChildId(), week.getFormattedTotalTimeSavedByAI()));
+                colWeekRepeater.add(new Label(colWeekRepeater.newChildId(), week.getFormattedTotalTimeSavedByAI())
+                        .add(AttributeModifier.replace("style",
+                                "text-align: right; color:purple;")));
             }
             row.add(new Label("sum", report.getFormattedTotalTimeSavedByAI()).add(AttributeModifier.replace("style",
-                    "font-weight: bold; text-align: right;")));
-            row.add(new Label("aiTimeSavings", report.getFormattedTimeSavedByAIPercentage()));
+                    "font-weight: bold; color:purple; text-align: right;")));
+            row.add(new Label("aiTimeSavings", report.getFormattedTimeSavedByAIPercentage()).add(AttributeModifier.replace("style",
+                    "font-weight: bold; color:purple; text-align: right;")));
         }
     }
 
