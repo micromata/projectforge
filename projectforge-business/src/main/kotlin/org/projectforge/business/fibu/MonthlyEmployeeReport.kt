@@ -31,6 +31,7 @@ import org.projectforge.business.common.OutputType
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskFormatter.Companion.getTaskPath
+import org.projectforge.business.timesheet.AITimeSavings
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.common.StringHelper
@@ -389,16 +390,7 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
         get() = getFormattedDuration(totalTimeSavedByAI)
 
     val formattedTimeSavedByAIPercentage: String
-        get() {
-            if (totalGrossDuration == 0L) {
-                return "0 %"
-            }
-            val percentage = BigDecimal(totalTimeSavedByAI).multiply(BigDecimal(100)).divide(
-                BigDecimal(totalGrossDuration), 0,
-                RoundingMode.HALF_UP
-            )
-            return percentage.formatPercent(true)
-        }
+        get() = AITimeSavings.getFormattedPercentage(totalGrossDuration, totalTimeSavedByAI)
 
     companion object {
         private const val serialVersionUID = -4636357379552246075L

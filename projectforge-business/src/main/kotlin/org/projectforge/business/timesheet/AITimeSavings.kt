@@ -24,21 +24,54 @@
 package org.projectforge.business.timesheet
 
 import org.projectforge.Constants
+import org.projectforge.common.extensions.formatPercent
+import org.projectforge.common.extensions.isZeroOrNull
+import org.projectforge.framework.time.DateTimeFormatter
+import org.projectforge.framework.utils.NumberHelper
+import java.math.BigDecimal
 
 object AITimeSavings {
     class Stats {
         var totalDurationMillis: Long = 0
         var totalTimeSavedByAIMillis: Long = 0
+        val percentageString: String
+            get() {
+                return getFormattedPercentage(totalDurationMillis, totalTimeSavedByAIMillis)
+            }
+
         fun add(timesheet: TimesheetDO) {
             val duration = timesheet.duration
             totalDurationMillis += duration
-            totalTimeSavedByAIMillis += getTimeSavedByAIMs(timesheet, duration)
+            totalTimeSavedByAIMillis += getTimeSavedByAIMillis(timesheet, duration)
         }
     }
 
+    fun getFormattedPercentage(total: Number, part: Number): String {
+        val percent = NumberHelper.getPercent(total, part)
+        return getFormattedPercentage(percent)
+    }
+
+    fun getFormattedPercentage(percent: BigDecimal?): String {
+        if (percent.isZeroOrNull()) {
+            return "0 %"
+        }
+        val scale = if (percent!!.abs() < BigDecimal.TEN) 1 else 0
+        return percent.formatPercent(true, scale = scale)
+    }
+
     @JvmStatic
-    fun getTimeSavedByAIMs(timesheet: TimesheetDO): Long {
-        return getTimeSavedByAIMs(timesheet, timesheet.duration)
+    @JvmOverloads
+    fun getFormattedTimeSavedByAI(timesheet: TimesheetDO, emptyStringIfNull: Boolean = true): String {
+        val ms = getTimeSavedByAIMillisOrNull(timesheet, timesheet.duration)
+        if (ms == null && emptyStringIfNull) {
+            return ""
+        }
+        return "${DateTimeFormatter.instance().getFormattedDuration(ms ?: 0L)}, ${getFormattedPercentage(timesheet.duration, ms ?: 0L)}"
+    }
+
+    @JvmStatic
+    fun getTimeSavedByAIMillis(timesheet: TimesheetDO): Long {
+        return getTimeSavedByAIMillis(timesheet, timesheet.duration)
     }
 
     /**
@@ -46,7 +79,26 @@ object AITimeSavings {
      * @param timesheet
      * @param duration The duration of the timesheet in milliseconds.
      */
-    fun getTimeSavedByAIMs(timesheet: TimesheetDO, duration: Long): Long {
+    fun getTimeSavedByAIMillis(timesheet: TimesheetDO, duration: Long): Long {
+        return getTimeSavedByAIMillisOrNull(timesheet, duration) ?: 0L
+    }
+
+    /**
+     * Only for avoiding calculation of duration again.
+     * @param timesheet
+     * @param duration The duration of the timesheet in milliseconds.
+     */
+    @JvmStatic
+    fun getTimeSavedByAIMillisOrNull(timesheet: TimesheetDO): Long? {
+        return getTimeSavedByAIMillisOrNull(timesheet, timesheet.duration)
+    }
+
+    /**
+     * Only for avoiding calculation of duration again.
+     * @param timesheet
+     * @param duration The duration of the timesheet in milliseconds.
+     */
+    fun getTimeSavedByAIMillisOrNull(timesheet: TimesheetDO, duration: Long): Long? {
         timesheet.timeSavedByAI?.let {
             return when (timesheet.timeSavedByAIUnit) {
                 TimesheetDO.TimeSavedByAIUnit.HOURS -> it.toLong() * Constants.MILLIS_PER_HOUR
@@ -54,12 +106,13 @@ object AITimeSavings {
                 else -> 0 // nothing. Shouldn't happen.
             }
         }
-        return 0L
+        return null
     }
 
-    fun buildStats(timesheets: Collection<TimesheetDO>): Stats {
+    @JvmStatic
+    fun buildStats(timesheets: Collection<TimesheetDO>?): Stats {
         val stats = Stats()
-        timesheets.forEach { stats.add(it) }
+        timesheets?.forEach { stats.add(it) }
         return stats
     }
 }

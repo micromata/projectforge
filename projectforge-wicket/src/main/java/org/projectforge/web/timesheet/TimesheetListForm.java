@@ -32,7 +32,9 @@ import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.task.TaskTreeHelper;
+import org.projectforge.business.timesheet.AITimeSavings;
 import org.projectforge.business.timesheet.TimesheetDO;
+import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -44,10 +46,7 @@ import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.TimePeriodPanel;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 
 import java.util.Date;
@@ -141,6 +140,15 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
                     return WicketSupport.get(DateTimeFormatter.class).getPrettyFormattedDuration(duration);
                 }
             }));
+            if (WicketSupport.get(TimesheetDao.class).getTimeSavingsByAIEnabled()) {
+                fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
+                    @Override
+                    public String getObject() {
+                        AITimeSavings.Stats stats = AITimeSavings.buildStats(parentPage.getList());
+                        return getString("timesheet.ai.short") + ": " + stats.getPercentageString();
+                    }
+                }, TextStyle.PURPLE));
+            }
 
             add(new IFormValidator() {
                 final FormComponent<?>[] dependentFormComponents = new FormComponent<?>[]{timePeriodPanel};

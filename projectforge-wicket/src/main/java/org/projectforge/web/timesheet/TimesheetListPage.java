@@ -317,7 +317,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
                 public void populateItem(final Item<ICellPopulator<TimesheetDO>> item, final String componentId,
                                          final IModel<TimesheetDO> rowModel) {
                     final TimesheetDO timesheet = rowModel.getObject();
-                    final Label label = new Label(componentId, WicketSupport.get(HtmlDateTimeFormatter.class).getFormattedDuration(AITimeSavings.getTimeSavedByAIMs(timesheet)));
+                    final Label label = new Label(componentId, AITimeSavings.getFormattedTimeSavedByAI(timesheet, true));
                     cellItemListener.populateItem(item, componentId, rowModel);
                     item.add(label);
                 }

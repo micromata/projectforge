@@ -102,6 +102,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         val dayName: String,
         val timePeriod: String,
         val duration: String,
+        val aiTimeSavings: String,
         val deleted: Boolean? = null,
     )
 
@@ -208,6 +209,9 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                 dayName = day?.dayOfWeekAsShortString ?: "??",
                 timePeriod = dateTimeFormatter.getFormattedTimePeriodOfDay(it.timePeriod),
                 duration = dateTimeFormatter.getFormattedDuration(it.timePeriod),
+                aiTimeSavings = if (baseDao.timeSavingsByAIEnabled) {
+                    AITimeSavings.getFormattedTimeSavedByAI(it)
+                } else "",
                 deleted = timesheet.deleted,
             )
         }
@@ -295,7 +299,10 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             .add("dayName", headerName = "calendar.dayOfWeekShortLabel", width = 30)
             .add("timePeriod", headerName = "timePeriod", width = 140)
             .add("duration", headerName = "timesheet.duration", width = 50)
-            .add(lc, "location", "reference")
+        if (baseDao.timeSavingsByAIEnabled) {
+            table.add("aiTimeSavings", headerName = "timesheet.ai.timeSavedByAI", width = 50)
+        }
+        table.add(lc, "location", "reference")
             .withMultiRowSelection(request, magicFilter)
         if (!baseDao.getTags().isNullOrEmpty()) {
             table.add(lc, "tag", width = 100)
@@ -417,6 +424,9 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                 ts.task = Task()
                 ts.task!!.copyFromMinimal(task)
             }
+            ts.timeSavedByAI = it.timeSavedByAI
+            ts.timeSavedByAIUnit = it.timeSavedByAIUnit
+            ts.timeSavedByAIDescription = it.timeSavedByAIDescription
             val user = userService.getUser(it.userId)
             if (user != null) {
                 ts.user = User()

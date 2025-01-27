@@ -4,7 +4,7 @@
 [versions]
 org-projectforge = "8.0.0-SNAPSHOT"
 
-com-fasterxml-jackson = "2.17.2"
+com-fasterxml-jackson = "2.18.2"
 com-google-zxing-core = "3.5.3"
 com-google-zxing-javase = "3.5.3"
 com-googlecode-ez-vcard = "0.12.1"
@@ -49,7 +49,7 @@ org-apache-wicket-myextensions = "10.3.0"
 org-apache-wicket-spring = "10.3.0"
 org-apache-wicket-tester = "10.3.0"
 org-apache-xmlgraphics-batik = "1.17"
-org-apache-xmlgraphics-fop = "2.9"
+org-apache-xmlgraphics-fop = "2.10"
 org-apache-xmlgraphics-commons = "2.9"
 org-aspectj-aspectjtools = "1.9.22.1"
 org-bouncycastle-bcprov-jdk18on = "1.79"
@@ -110,6 +110,7 @@ com-fasterxml-jackson-core-annotations = { module = "com.fasterxml.jackson.core:
 com-fasterxml-jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "com-fasterxml-jackson" }
 com-fasterxml-jackson-core-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "com-fasterxml-jackson" }
 com-fasterxml-jackson-dataformat-cbor = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-cbor", version.ref = "com-fasterxml-jackson" }
+com-fasterxml-jackson-datatype-hibernate6 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-hibernate6", version.ref = "com-fasterxml-jackson" }
 com-fasterxml-jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "com-fasterxml-jackson" }
 com-fasterxml-jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "com-fasterxml-jackson" }
 com-googlecode-gson = { module = "com.google.code.gson:gson", version.ref = "com-googlecode-gson" }
