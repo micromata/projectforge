@@ -52,6 +52,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import java.io.Serializable
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.common.extensions.capitalize
+import org.projectforge.datatransfer.DataTransferBridge
 import kotlin.reflect.KMutableProperty
 
 private val log = KotlinLogging.logger {}
@@ -62,6 +63,9 @@ private val log = KotlinLogging.logger {}
 abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     @Autowired
     protected lateinit var userService: UserService
+
+    @Autowired
+    private lateinit var dataTransferBridge: DataTransferBridge
 
     class MultiSelection {
         var selectedIds: Collection<Serializable>? = null
@@ -129,6 +133,8 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
         val filename =
             ReplaceUtils.encodeFilename("${translate(getTitleKey())}_${PFDateTime.now().format4Filenames()}.xlsx", true)
         downloadFileSupport.storeDownloadFile(request, filename, excel)
+        // Put the changes also in the user's personal data-transfer box (if service is available):
+        dataTransferBridge.putFileInUsersInBox(filename, excel)
         val variables = mutableMapOf<String, Any>()
 
         val massUpdateData = postData.data.toMutableMap()
@@ -468,6 +474,9 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
             el.required = false //
         } else if (el is IUIId) {
             el.id = "$field.textValue"
+        }
+        if (el is UILabelledElement) {
+            el.tooltip = null
         }
         val elementInfo = ElementsRegistry.getElementInfo(lc, field)
         return createInputFieldRow(field, el, massUpdateData, showDeleteOption = elementInfo?.required != true)

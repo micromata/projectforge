@@ -182,6 +182,16 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
             "description",
             minLengthOfTextArea = 1001, // reference has length 1.000 and description 4.000
         )
+        if (timesheetDao.timeSavingsByAIEnabled) {
+            createAndAddFields(
+                layoutContext,
+                massUpdateData,
+                layout,
+                "timeSavedByAI",
+                "timeSavedByAIUnit",
+                "timeSavedByAIDescription",
+            )
+        }
         if (Configuration.instance.isCostConfigured) {
             layout.add(UIAlert(message = "timesheet.massupdate.kost.info", color = UIColor.INFO))
         }
@@ -240,6 +250,23 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
             TextFieldModification.processTextParameter(timesheet, "description", params)
             TextFieldModification.processTextParameter(timesheet, "location", params)
             TextFieldModification.processTextParameter(timesheet, "tag", params)
+            params["timeSavedByAI"]?.let { param ->
+                if (param.delete == true) {
+                    timesheet.timeSavedByAI = null
+                } else {
+                    param.decimalValue?.let { timesheet.timeSavedByAI = it }
+                }
+            }
+            params["timeSavedByAIUnit"]?.let { param ->
+                if (param.delete == true) {
+                    timesheet.timeSavedByAIUnit = null
+                } else {
+                    param.textValue?.let { textValue ->
+                        timesheet.timeSavedByAIUnit = TimesheetDO.TimeSavedByAIUnit.valueOf(textValue)
+                    }
+                }
+            }
+            TextFieldModification.processTextParameter(timesheet, "timeSavedByAIDescription", params)
             params["taskAndKost2"]?.let { param ->
                 if (param.change == true) {
                     if (taskId != null) {
