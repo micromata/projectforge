@@ -25,6 +25,7 @@ package org.projectforge.business.timesheet
 
 import com.thoughtworks.xstream.annotations.XStreamAlias
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute
+import java.math.BigDecimal
 
 /**
  *
@@ -47,7 +48,14 @@ constructor(
         @XStreamAsAttribute
         var tag: String? = null,
         @XStreamAsAttribute
-        var description: String? = null) {
+        var description: String? = null,
+        @XStreamAsAttribute
+        var timeSavedByAI: BigDecimal? = null,
+        @XStreamAsAttribute
+        var timeSavedByAIUnit: TimesheetDO.TimeSavedByAIUnit? = null,
+        @XStreamAsAttribute
+        var timeSavedByAIDescription: String? = null,
+        ) {
 
     constructor(timesheet: TimesheetDO) : this(
             taskId = timesheet.taskId,
@@ -56,5 +64,8 @@ constructor(
             location = timesheet.location,
             reference = timesheet.reference,
             tag = timesheet.tag,
-            description = timesheet.description)
+            description = timesheet.description,
+            timeSavedByAI = timesheet.timeSavedByAI,
+            timeSavedByAIUnit = timesheet.timeSavedByAIUnit,
+            timeSavedByAIDescription = timesheet.timeSavedByAIDescription)
 }

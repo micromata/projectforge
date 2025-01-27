@@ -41,13 +41,14 @@ class IdsOnlySerializer : JsonSerializer<Collection<*>>() {
                 if (item is IdObject<*>) {
                     IdOnlySerializer.writeObject(item, gen, serializers)
                 } else {
-                    // Let Jackson serialize the value:
-                    serializers.defaultSerializeValue(value, gen)
+                    // Serialize individual items explicitly:
+                    serializers.defaultSerializeValue(item, gen)
                 }
             }
             gen.writeEndArray()
         } else {
-            // Do nothing, collection not available. Don't fetch it.
+            // Write a null if the collection is not initialized (to avoid fetching it)
+            gen.writeNull()
         }
     }
 }

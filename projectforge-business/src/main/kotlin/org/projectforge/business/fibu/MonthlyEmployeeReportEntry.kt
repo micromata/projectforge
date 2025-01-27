@@ -70,7 +70,7 @@ class MonthlyEmployeeReportEntry : Serializable {
 
     fun addMillis(timesheetDO: TimesheetDO, duration: Long) {
         this.millis += duration
-        this.timeimeSavedByAIMillis += AITimeSavings.getTimeSavedByAIMs(timesheetDO, duration)
+        this.timeimeSavedByAIMillis += AITimeSavings.getTimeSavedByAIMillis(timesheetDO, duration)
     }
 
     /**

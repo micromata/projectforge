@@ -133,7 +133,7 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
 
     @get:Transient
     val timeSavedByAIMillis: Long
-        get() = AITimeSavings.getTimeSavedByAIMs(this)
+        get() = AITimeSavings.getTimeSavedByAIMillis(this)
 
     @PropertyInfo(i18nKey = "timesheet.location")
     @UserPrefParameter(i18nKey = "timesheet.location")

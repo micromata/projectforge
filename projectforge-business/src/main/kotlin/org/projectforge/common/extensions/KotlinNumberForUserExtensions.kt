@@ -63,9 +63,9 @@ fun Number?.formatCurrency(withCurrencySymbol: Boolean = false, scale: Int = 2):
 /**
  * Formats a number (is already percent value) for the user by using the locale of [ThreadLocalUserContext].
  */
-fun Number?.formatPercent(withSymbol: Boolean = false): String {
+fun Number?.formatPercent(withSymbol: Boolean = false, scale: Int = 0): String {
     this ?: return ""
-    val amount = this.formatForUser(0)
+    val amount = this.formatForUser(scale)
     return if (withSymbol) {
         "$amount %"
     } else {

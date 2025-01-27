@@ -25,6 +25,7 @@ package org.projectforge.web.timesheet;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.form.*;
@@ -68,6 +69,7 @@ import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 
+import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -397,9 +399,32 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
             fs.add(descriptionArea = new MaxLengthTextArea(TextAreaPanel.WICKET_ID, model)).setAutogrow();
             fs.addJIRAField(model);
         }
-        {
+        final boolean timeSavingsByAIEnabled = WicketSupport.get(TimesheetDao.class).getTimeSavingsByAIEnabled();
+        if (timeSavingsByAIEnabled) {
+            // AI time savings.
+            FieldsetPanel fs = gridBuilder.newFieldset(getString("timesheet.ai.timeSavedByAI"));
+            fs.addHelpIcon(getString("timesheet.ai.timeSavedByAI.info"));
+            final TextField<BigDecimal> timeSavedByAITextField = new TextField<>(InputPanel.WICKET_ID,
+                    new PropertyModel<>(data, "timeSavedByAI"));
+            timeSavedByAITextField.add(AttributeModifier.append("style", "width: 6em !important;"));
+            fs.add(timeSavedByAITextField);
+            // Unit
+            final LabelValueChoiceRenderer<TimesheetDO.TimeSavedByAIUnit> unitChoiceRenderer = new LabelValueChoiceRenderer<TimesheetDO.TimeSavedByAIUnit>(
+                    this,
+                    TimesheetDO.TimeSavedByAIUnit.values());
+            final DropDownChoice<TimesheetDO.TimeSavedByAIUnit> unitChoice = new DropDownChoice<>(fs.getDropDownChoiceId(), new PropertyModel<>(data, "timeSavedByAIUnit"),
+                    unitChoiceRenderer.getValues(), unitChoiceRenderer);
+            unitChoice.setNullValid(false);
+            fs.add(unitChoice);
+
+            // Description AI savings:
+            fs = gridBuilder.newFieldset(getString("timesheet.ai.timeSavedByAIDescription"));
+            fs.addHelpIcon(getString("timesheet.ai.timeSavedByAIDescription.info"));
+            final IModel<String> model = new PropertyModel<>(data, "timeSavedByAIDescription");
+            fs.add(descriptionArea = new MaxLengthTextArea(TextAreaPanel.WICKET_ID, model)).setAutogrow();
+
             // Save as template checkbox:
-            final FieldsetPanel fs = gridBuilder.newFieldset("").suppressLabelForWarning();
+            fs = gridBuilder.newFieldset("").suppressLabelForWarning();
             fs.addCheckBox(new PropertyModel<Boolean>(this, "saveAsTemplate"), getString("userPref.saveAsTemplate"));
         }
         addCloneButton();

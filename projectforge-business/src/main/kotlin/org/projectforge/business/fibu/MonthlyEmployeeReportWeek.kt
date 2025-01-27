@@ -119,7 +119,7 @@ class MonthlyEmployeeReportWeek(date: PFDateTime) : Serializable {
             // Don't add time sheets with zero working time fraction.
             totalGrossDuration += duration
         }
-        totalTimeSavedByAI += AITimeSavings.getTimeSavedByAIMs(timesheet, duration)
+        totalTimeSavedByAI += AITimeSavings.getTimeSavedByAIMillis(timesheet, duration)
     }
 
     val formattedFromDayOfMonth: String

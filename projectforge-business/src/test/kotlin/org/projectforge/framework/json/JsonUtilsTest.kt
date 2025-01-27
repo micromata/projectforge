@@ -21,23 +21,19 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web.wicket.flowlayout;
+package org.projectforge.framework.json
 
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.behavior.Behavior;
+import org.junit.jupiter.api.Test
+import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 
-/**
- * Styles as behavior for TextPanels.
- * @author Kai Reinhard (k.reinhard@micromata.de)
- *
- */
-public class TextStyle
-{
-  public static final Behavior RED = AttributeModifier.append("style", "color: #DA202C;");
-
-  public static final Behavior BLUE = AttributeModifier.append("style", "color: blue;");
-
-  public static final Behavior PURPLE = AttributeModifier.append("style", "color: purple;");
-
-  public static final Behavior FORM_TEXT = AttributeModifier.append("class", "text");
+class JsonUtilsTest : AbstractTestBase() {
+    @Test
+    fun test() {
+        val userList = persistenceService.runIsolatedReadOnly { context ->
+            val em = context.em
+            em.createQuery("SELECT u FROM PFUserDO u", PFUserDO::class.java).resultList
+        }
+        JsonUtils.toJson(userList) // Shouldn't throw exception as it did before fixing the IdsOnlySerializer.
+    }
 }
