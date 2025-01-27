@@ -30,6 +30,7 @@ import org.projectforge.business.login.Login
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.jobs.JobHandler
+import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
@@ -52,7 +53,7 @@ private val log = KotlinLogging.logger {}
 open class UserGroupCache : AbstractCache() {
 
     @Autowired
-    private lateinit var userRights: UserRightService
+    private lateinit var userRightService: UserRightService
 
     @Autowired
     private lateinit var userRightDao: UserRightDao
@@ -482,8 +483,8 @@ open class UserGroupCache : AbstractCache() {
                         rMap[userId] = list
                     }
                 }
-                if (userRights.getRight(right.rightIdString) != null
-                    && userRights.getRight(right.rightIdString).isAvailable(right.user, getUserGroupDOs(right.user))
+                if (userRightService.getRight(right.rightIdString) != null
+                    && userRightService.getRight(right.rightIdString).isAvailable(right.user, getUserGroupDOs(right.user))
                 ) {
                     list!!.add(right)
                 }
@@ -497,8 +498,33 @@ open class UserGroupCache : AbstractCache() {
         }.start()
     }
 
+    fun internalGetCopyOfUserMap(): Map<Long, PFUserDO> {
+        checkRefresh()
+        synchronized(userMap) {
+            return userMap.toMap()
+        }
+    }
+
+    fun internalGetStateAsJson(): String {
+        val clone = UserGroupCache()
+        clone.hrUsers = this.hrUsers
+        clone.userGroupIdMap = this.userGroupIdMap
+        clone.groupMap = this.groupMap
+        synchronized(this.userMap) {
+            clone.userMap = this.userMap.toMutableMap() // Copy.
+        }
+        clone.adminUsers = this.adminUsers
+        clone.financeUsers = this.financeUsers
+        clone.controllingUsers = this.controllingUsers
+        clone.projectManagers = this.projectManagers
+        clone.projectAssistants = this.projectAssistants
+        clone.orgaUsers = this.orgaUsers
+        clone.marketingUsers = this.marketingUsers
+        clone.rightMap = this.rightMap
+        return JsonUtils.toJson(clone)
+    }
+
     companion object {
-        private const val serialVersionUID = -6501106088529363341L
         private var INSTANCE: UserGroupCache? = null
 
         @JvmStatic
@@ -519,9 +545,5 @@ open class UserGroupCache : AbstractCache() {
             }
             return false
         }
-    }
-
-    init {
-        setExpireTimeInHours(1)
     }
 }
