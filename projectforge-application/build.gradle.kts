@@ -119,6 +119,7 @@ dependencies {
     implementation(libs.com.fasterxml.jackson.core)
     implementation(libs.com.fasterxml.jackson.core.databind)
     implementation(libs.com.fasterxml.jackson.dataformat.cbor)
+    implementation(libs.com.fasterxml.jackson.datatype.hibernate6)
     implementation(libs.com.fasterxml.jackson.datatype.jsr310)
     implementation(libs.com.fasterxml.jackson.module.kotlin)
     implementation(libs.com.google.zxing.core)
