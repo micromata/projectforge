@@ -108,7 +108,7 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
     if (invoices.isNullOrEmpty()) {
       return null
     }
-    val params = massUpdateContext.massUpdateData
+    val params = massUpdateContext.massUpdateParams
     invoices.forEach { invoice ->
       massUpdateContext.startUpdate(invoice)
       processTextParameter(invoice, "bemerkung", params)
