@@ -23,6 +23,7 @@
 
 package org.projectforge.business.user.service;
 
+import jakarta.annotation.PostConstruct;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -58,6 +59,9 @@ public class UserService {
     private static final String MESSAGE_KEY_OLD_PASSWORD_WRONG = "user.changePassword.error.oldPasswordWrong";
 
     private static final String MESSAGE_KEY_LOGIN_PASSWORD_WRONG = "user.changeWlanPassword.error.loginPasswordWrong";
+
+    private static UserService instance;
+
     private final UsersComparator usersComparator = new UsersComparator();
     private UserGroupCache userGroupCache;
     private ConfigurationService configurationService;
@@ -71,6 +75,11 @@ public class UserService {
      * Needed by Wicket for proxying.
      */
     public UserService() {
+    }
+
+    @PostConstruct
+    private void postConstruct() {
+        instance = this;
     }
 
     @Autowired
@@ -524,5 +533,9 @@ public class UserService {
      */
     public String decrypt(String encrypted, Long userId) {
         return userDao.decrypt(encrypted, userId);
+    }
+
+    public static UserService getInstance() {
+        return instance;
     }
 }

@@ -142,11 +142,11 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
         )
 
         kost2Id?.let {
-            ensureMassUpdateParam(massUpdateData, "kost2").id = it
+            ensureMassUpdateParam(massUpdateData, "kost2", "fibu.kost2").id = it
         }
         taskNode?.id?.let { taskId ->
             TaskServicesRest.createTask(taskId)?.let { task ->
-                ensureMassUpdateParam(massUpdateData, "task").id = taskId
+                ensureMassUpdateParam(massUpdateData, "task", "task").id = taskId
                 variables["task"] = if (taskNode.isRootNode) {
                     // Don't show. If task is null, the React page will not be updated from time to time (workaround)
                     TaskServicesRest.Task("")
@@ -168,6 +168,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
                 UICustomized("timesheet.edit.taskAndKost2", values = mutableMapOf("id" to "kost2.id")),
                 massUpdateData,
                 myOptions = myOptions,
+                displayName = "task"
             )
         )
         timesheetPagesRest.createTagUISelect(id = "tag.textValue")?.let { select ->
@@ -201,7 +202,6 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
         params: Map<String, MassUpdateParameter>,
         param: MassUpdateParameter,
         field: String,
-        validationErrors: MutableList<ValidationError>
     ): Boolean {
         if (field == "kost2" || field == "task") {
             // No check here, action is checked on field taskAndKost2.
@@ -210,14 +210,14 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
         if (field == "taskAndKost2") {
             return param.change == true && (params["task"]?.id != null || params["kost2"]?.id != null)
         }
-        return super.checkParamHasAction(params, param, field, validationErrors)
+        return super.checkParamHasAction(params, param, field)
     }
 
     override fun handleClientMassUpdateCall(
         request: HttpServletRequest,
         massUpdateContext: MassUpdateContext<TimesheetDO>
     ) {
-        val params = massUpdateContext.massUpdateData
+        val params = massUpdateContext.massUpdateParams
         val kost2Id = params["kost2"]?.id
         val taskId = params["task"]?.id
         val availableKost2s = taskTree.getKost2List(taskId)
@@ -237,7 +237,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
         if (timesheets.isNullOrEmpty()) {
             return null
         }
-        val params = massUpdateContext.massUpdateData
+        val params = massUpdateContext.massUpdateParams
         val taskId = params["task"]?.id
         val project = taskTree.getProjekt(taskId)
         val availableKost2s = taskTree.getKost2List(taskId)

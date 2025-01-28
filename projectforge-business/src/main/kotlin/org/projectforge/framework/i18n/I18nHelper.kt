@@ -83,7 +83,7 @@ object I18nHelper {
       return localized
     }
     return if (localized.startsWith("???")) {
-      // I18n-key not found (e. g. in test cases).
+      // I18n-key not found (e.g. in test cases).
       "$localized (${params.joinToString { it.toString() }})???"
     } else MessageFormat.format(localized, *params)
   }

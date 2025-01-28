@@ -65,6 +65,7 @@ class EmployeeService {
 
     @PostConstruct
     private fun postConstruct() {
+        instance = this
         employeeDao.employeeService = this
         historyFormatService.register(EmployeeValidSinceAttrDO::class.java, EmployeeValidSinceAttrHistoryAdapter())
     }
@@ -100,7 +101,7 @@ class EmployeeService {
      * Returns all active employees.
      * An employee is active if the austrittsdatum is not set or if the austrittsdatum is in the future.
      * If showRecentLeft is true, the employee is also active if the austrittsdatum is within the last 3 months.
-     * @param checkAccess If true, the logged in user must have access to the employee.
+     * @param checkAccess If true, the logged-in user must have access to the employee.
      * @param showRecentLeft If true, the employee is also active if the austrittsdatum is within the last 3 months.
      * @return List of active employees.
      */
@@ -111,6 +112,7 @@ class EmployeeService {
             employeeDao.selectAll(checkAccess = false)
         }
         return employeeList.filter { employee -> isEmployeeActive(employee, showRecentLeft) }
+            .sortedBy { it.displayName }
     }
 
     fun findByStaffnumber(staffnumber: Int?): EmployeeDO? {
@@ -173,7 +175,11 @@ class EmployeeService {
         return getWeeklyWorkingHours(employee, LocalDate.now())
     }
 
-    fun getWeeklyWorkingHours(employee: EmployeeDO?, validAtDate: LocalDate?, checkAccess: Boolean = true): BigDecimal? {
+    fun getWeeklyWorkingHours(
+        employee: EmployeeDO?,
+        validAtDate: LocalDate?,
+        checkAccess: Boolean = true
+    ): BigDecimal? {
         return employeeServiceSupport.getWeeklyWorkingHours(employee, validAtDate, checkAccess = checkAccess)
     }
 
@@ -430,5 +436,10 @@ class EmployeeService {
         }
         monthlyEmployeeReport.calculate()
         return monthlyEmployeeReport
+    }
+
+    companion object {
+        lateinit var instance: EmployeeService
+            private set
     }
 }
