@@ -424,9 +424,10 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                 ts.task = Task()
                 ts.task!!.copyFromMinimal(task)
             }
-            ts.timeSavedByAI = it.timeSavedByAI
-            ts.timeSavedByAIUnit = it.timeSavedByAIUnit
-            ts.timeSavedByAIDescription = it.timeSavedByAIDescription
+            // Don't copy these values to the timesheet. The user should enter them manually.
+            // ts.timeSavedByAI = it.timeSavedByAI
+            // ts.timeSavedByAIUnit = it.timeSavedByAIUnit
+            // ts.timeSavedByAIDescription = it.timeSavedByAIDescription
             val user = userService.getUser(it.userId)
             if (user != null) {
                 ts.user = User()
