@@ -27,7 +27,6 @@ import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeStatus
 import org.projectforge.business.user.service.UserService
-import org.projectforge.framework.configuration.ApplicationContextProvider
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -64,8 +63,7 @@ class Employee(
     var statusEntries: List<EmployeeValidSinceAttr>? = null
 
     companion object {
-        private val employeeCache =
-            ApplicationContextProvider.getApplicationContext().getBean(EmployeeCache::class.java)
+        private val employeeCache by lazy { EmployeeCache.instance }
 
         /**
          * Set display names of any existing user in the given list.
