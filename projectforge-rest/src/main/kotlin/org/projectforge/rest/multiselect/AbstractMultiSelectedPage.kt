@@ -25,9 +25,12 @@ package org.projectforge.rest.multiselect
 
 import de.micromata.merlin.excel.ExcelCell
 import de.micromata.merlin.utils.ReplaceUtils
+import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
 import org.projectforge.business.user.service.UserService
+import org.projectforge.common.extensions.capitalize
 import org.projectforge.common.logging.LogSubscription
+import org.projectforge.datatransfer.DataTransferBridge
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao
@@ -50,9 +53,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import java.io.Serializable
-import jakarta.servlet.http.HttpServletRequest
-import org.projectforge.common.extensions.capitalize
-import org.projectforge.datatransfer.DataTransferBridge
 import kotlin.reflect.KMutableProperty
 
 private val log = KotlinLogging.logger {}
@@ -134,7 +134,14 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
             ReplaceUtils.encodeFilename("${translate(getTitleKey())}_${PFDateTime.now().format4Filenames()}.xlsx", true)
         downloadFileSupport.storeDownloadFile(request, filename, excel)
         // Put the changes also in the user's personal data-transfer box (if service is available):
-        dataTransferBridge.putFileInUsersInBox(filename, excel)
+        val message = StringBuilder()
+        message.appendLine(massUpdateContext.resultMessage)
+        message.append(translate("massUpdate.fields.changed"))
+            .append(": ")
+        val massUpdateParams = massUpdateContext.massUpdateParams
+        message.append(massUpdateParams.filter { checkParamHasAction(massUpdateParams, it.value, it.key) }
+            .values.joinToString { translate(it.displayName) })
+        dataTransferBridge.putFileInUsersInBox(filename, excel, description = message.toString())
         val variables = mutableMapOf<String, Any>()
 
         val massUpdateData = postData.data.toMutableMap()
@@ -235,7 +242,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
                 )
             )
         }
-        val massUpdateData = massUpdateContext.massUpdateData
+        val massUpdateData = massUpdateContext.massUpdateParams
         var nothingToDo = true
         val validationErrors = mutableListOf<ValidationError>()
         massUpdateData.forEach { (field, param) ->
@@ -259,10 +266,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
         return null
     }
 
-    /**
-     * @params Supply all params for complexer checks (e. g. taskAndKost2 has to look at parameter task and kost2).
-     */
-    protected open fun checkParamHasAction(
+    protected fun checkParamHasAction(
         params: Map<String, MassUpdateParameter>,
         param: MassUpdateParameter,
         field: String,
@@ -273,6 +277,17 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
             validationErrors.add(ValidationError("${translate(message)}: $field"))
             return false
         }
+        return checkParamHasAction(params, param, field)
+    }
+
+    /**
+     * @params Supply all params for complexer checks (e.g. taskAndKost2 has to look at parameter task and kost2).
+     */
+    protected open fun checkParamHasAction(
+        params: Map<String, MassUpdateParameter>,
+        param: MassUpdateParameter,
+        field: String,
+    ): Boolean {
         return param.hasAction
     }
 
@@ -479,7 +494,12 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
             el.tooltip = null
         }
         val elementInfo = ElementsRegistry.getElementInfo(lc, field)
-        return createInputFieldRow(field, el, massUpdateData, showDeleteOption = elementInfo?.required != true)
+        return createInputFieldRow(
+            field,
+            el,
+            massUpdateData,
+            showDeleteOption = elementInfo?.required != true,
+        )
     }
 
     protected fun createInputFieldRow(
@@ -488,8 +508,10 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
         massUpdateData: MutableMap<String, MassUpdateParameter>,
         showDeleteOption: Boolean = false,
         myOptions: List<UIElement>? = null,
+        displayName: String? = null,
     ): UIRow {
-        val param = massUpdateData[field] ?: MassUpdateParameter()
+        val useDisplayName = displayName ?: if (el is UILabelledElement) el.label ?: field else field
+        val param = massUpdateData[field] ?: MassUpdateParameter(field, useDisplayName)
         param.delete = false
         massUpdateData[field] = param
         UIRow().let { row ->
@@ -550,7 +572,8 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     ) {
         fields.forEach { field ->
             if (massUpdateData[field] == null && append == true) { // Only preset for initial call:
-                ensureMassUpdateParam(massUpdateData, field).append = true
+                val displayName = ElementsRegistry.getElementInfo(lc, field)?.i18nKey ?: field
+                ensureMassUpdateParam(massUpdateData, field, displayName).append = true
             }
             container.add(createInputFieldRow(lc, field, massUpdateData, minLengthOfTextArea))
         }
@@ -570,10 +593,11 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
 
         fun ensureMassUpdateParam(
             massUpdateData: MutableMap<String, MassUpdateParameter>,
-            name: String
+            name: String,
+            displayName: String,
         ): MassUpdateParameter {
             massUpdateData[name]?.let { return it }
-            MassUpdateParameter().let {
+            MassUpdateParameter(name, displayName = displayName).let {
                 massUpdateData[name] = it
                 return it
             }

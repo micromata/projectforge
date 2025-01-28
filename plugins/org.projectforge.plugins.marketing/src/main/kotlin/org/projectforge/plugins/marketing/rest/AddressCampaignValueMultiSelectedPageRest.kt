@@ -112,7 +112,7 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
     selectedIds: Collection<Serializable>,
     massUpdateContext: MassUpdateContext<AddressCampaignValue>,
   ): ResponseEntity<*>? {
-    val params = massUpdateContext.massUpdateData
+    val params = massUpdateContext.massUpdateParams
     val addressCampaign = addressCampaignValuePagesRest.getAddressCampaign(request)
     params["value"]?.let { param ->
       param.textValue?.let { value ->

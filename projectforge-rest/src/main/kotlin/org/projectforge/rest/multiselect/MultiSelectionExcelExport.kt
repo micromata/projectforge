@@ -85,7 +85,7 @@ object MultiSelectionExcelExport {
         sheet.registerColumns(head)
       }
       headRow.fillHeadRow()
-      massUpdateContext.massUpdateData.forEach { (field, _) ->
+      massUpdateContext.massUpdateParams.forEach { (field, _) ->
         if (modifiedFields.contains(field)) {
           val colNumber = firstRow.createCell().setCellValue(multiSelectedPage.getFieldTranslation(field)).colNumber
           firstRow.createCell()
