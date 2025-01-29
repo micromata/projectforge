@@ -26,6 +26,8 @@ package org.projectforge.business.user
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.business.test.TestConfiguration
+import org.projectforge.business.test.TestSetup
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -38,6 +40,8 @@ fun main(args: Array<String>) {
         println("Usage: UserGroupCacheTest </path/userGroupCache1.json> </path/userGroupCache2.json>")
         System.exit(1)
     }
+    TestSetup.init()
+    println("Working directory: ${File(".").absolutePath}")
     val file1 = UserGroupCacheTest.getFile(args[0])
     val file2 = UserGroupCacheTest.getFile(args[1])
     if (file1 == null || file2 == null) {
@@ -45,9 +49,17 @@ fun main(args: Array<String>) {
     }
     val json1 = file1!!.readText()
     val json2 = file2!!.readText()
-    val userGroupCache1 = JsonUtils.fromJson(json1, UserGroupCache::class.java)
-    val userGroupCache2 = JsonUtils.fromJson(json2, UserGroupCache::class.java)
-    println("To be implemented: compare userGroupCache1 and userGroupCache2")
+    val userGroupCache1 = JsonUtils.fromJson(json1, UserGroupCacheDebug.Data::class.java)
+    val userGroupCache2 = JsonUtils.fromJson(json2, UserGroupCacheDebug.Data::class.java)
+    if (userGroupCache1 == null) {
+        println("Error: userGroupCache1 is null in file: $file1")
+        System.exit(1)
+    }
+    if (userGroupCache2 == null) {
+        println("Error: userGroupCache2 is null in file: $file1")
+        System.exit(1)
+    }
+    println(UserGroupCacheDebug.internalCompareWith(userGroupCache1!!, userGroupCache2!!))
 }
 
 class UserGroupCacheTest : AbstractTestBase() {
