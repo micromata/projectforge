@@ -343,7 +343,9 @@ open class VacationService {
                 2,
                 RoundingMode.HALF_UP
             )
-            result.workingDays += reportOfMonth.numberOfWorkingDays
+            reportOfMonth.numberOfWorkingDays?.let {
+                result.workingDays += it
+            }
             currentMonth = currentMonth.plusMonths(1)
             if (currentMonth > toMonth) {
                 break // here the loop should be ended (not via paranoia setting).

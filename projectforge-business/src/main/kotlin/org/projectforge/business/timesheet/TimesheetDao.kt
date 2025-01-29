@@ -28,7 +28,6 @@ import mu.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.Validate
 import org.apache.commons.lang3.builder.ToStringBuilder
-import org.hibernate.Hibernate
 import org.projectforge.business.common.AutoCompletionUtils
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
@@ -36,6 +35,7 @@ import org.projectforge.business.task.TaskNode
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserDao
+import org.projectforge.common.extensions.isZeroOrNull
 import org.projectforge.common.i18n.MessageParam
 import org.projectforge.common.i18n.UserException
 import org.projectforge.common.task.TaskStatus
@@ -47,6 +47,7 @@ import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.and
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
@@ -66,7 +67,9 @@ import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.projectforge.framework.utils.NumberHelper.isEqual
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -76,6 +79,10 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
+    @Value("\${projectforge.timesheets.timeSavingsByAI.enabled}")
+    var timeSavingsByAIEnabled = false
+        private set
+
     @Autowired
     private lateinit var userDao: UserDao
 
@@ -277,6 +284,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     override fun onInsertOrModify(obj: TimesheetDO, operationType: OperationType) {
         validateTimestamp(obj.startTime, "startTime")
         validateTimestamp(obj.stopTime, "stopTime")
+        validateTimeSavingsByAI(obj)?.let { throw UserException(it) }
         if (obj.duration < 60000) {
             throw UserException("timesheet.error.zeroDuration") // "Duration of time sheet must be at minimum 60s!
         }
@@ -331,13 +339,31 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
 
     override fun prepareHibernateSearch(obj: TimesheetDO, operationType: OperationType) {
         val user = obj.user
-        if (user != null && !Hibernate.isInitialized(user)) {
+        if (user != null && !HibernateUtils.isFullyInitialized(user)) {
             obj.user = userGroupCache.getUser(user.id)
         }
         val task = obj.task
-        if (task != null && !Hibernate.isInitialized(task)) {
+        if (task != null && !HibernateUtils.isFullyInitialized(task)) {
             obj.task = taskTree.getTaskById(task.id)
         }
+    }
+
+    fun validateTimeSavingsByAI(timesheet: TimesheetDO): String? {
+        return validateTimeSavingsByAI(timesheet.timeSavedByAI, timesheet.timeSavedByAIUnit)
+    }
+
+    fun validateTimeSavingsByAI(timeSavedByAI: BigDecimal?, unit: TimesheetDO.TimeSavedByAIUnit?): String? {
+        if (timeSavedByAI.isZeroOrNull()) {
+            return null
+        }
+        unit ?: return "timesheet.ai.timeSavedByAI.error.unitMissing"
+        if (unit == TimesheetDO.TimeSavedByAIUnit.PERCENTAGE) {
+            if (timeSavedByAI!! < BigDecimal.ZERO || timeSavedByAI > BigDecimal(99)) {
+                return "timesheet.ai.timeSavedByAI.error.invalidPercentage"
+            }
+        }
+        // All values (also negative ones) are allowed for hours.
+        return null
     }
 
     private fun validateTimestamp(date: Date?, name: String) {
@@ -676,6 +702,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     /**
      * Get all locations of the user's time sheet (not deleted ones) with modification date within last year.
      */
+    @Deprecated("Used by deprecated Wicket pages.")
     open fun getLocationAutocompletion(searchString: String?): List<String> {
         checkLoggedInUserSelectAccess()
         val oneYearAgo = now().minusDays(365)
@@ -712,11 +739,11 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      */
     open fun getRecentLocation(sinceDate: Date?): Collection<String> {
         checkLoggedInUserSelectAccess()
-        log.info("Get recent locations from the database.")
+        log.debug { "Get recent locations from the database." }
         return persistenceService.executeNamedQuery(
             TimesheetDO.SELECT_RECENT_USED_LOCATIONS_BY_USER_AND_LAST_UPDATE,
             String::class.java,
-            Pair("userId", ThreadLocalUserContext.loggedInUserId),
+            Pair("userId", ThreadLocalUserContext.requiredLoggedInUserId),
             Pair("lastUpdate", sinceDate),
         )
     }

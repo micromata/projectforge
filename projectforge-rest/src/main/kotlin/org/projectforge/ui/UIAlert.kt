@@ -28,7 +28,7 @@ package org.projectforge.ui
  */
 data class UIAlert(
         /**
-         * message to display (static). For non static messages, please use id instead.
+         * message to display (static). For non-static messages, please use id instead.
          */
         var message: String? = null,
         var title: String? = null,

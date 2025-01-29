@@ -105,26 +105,35 @@ fun Number?.formatBytes(locale: Locale? = null): String {
 /**
  * Formats a number given in millis to a string in the format HH:mm:ss.SSS.
  */
-fun Number?.formatMillis(showMillis: Boolean = true): String {
+fun Number?.formatMillis(showMillis: Boolean = true, showSeconds: Boolean = true): String {
     this ?: return ""
     val millis = this.toLong()
     val hours = millis / (1000 * 60 * 60)
-    val minutes = (millis / (1000 * 60)) % 60
-    val seconds = (millis / 1000) % 60
+    var minutes = (millis / (1000 * 60)) % 60
+    var seconds = (millis / 1000) % 60
     val milliseconds = millis % 1000
-
+    if (!showMillis && milliseconds >= 500) {
+        ++seconds // Round up.
+    }
+    if (!showSeconds && seconds >= 30) {
+        ++minutes // Round up.
+    }
     return when {
-        hours > 0 -> if (showMillis) {
+        hours > 0 || !showSeconds -> if (showMillis && showSeconds) {
             String.format("%d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds)
-        } else {
+        } else if (showSeconds) {
             String.format("%d:%02d:%02d", hours, minutes, seconds)
+        } else {
+            String.format("%02d:%02d", hours, minutes)
         }
         // minutes > 0 -> String.format("%02d:%02d.%03d", minutes, seconds, milliseconds)
         // else -> String.format("%02d.%03d", seconds, milliseconds)
-        else -> if (showMillis) {
+        else -> if (showMillis && showSeconds) {
             String.format("%02d:%02d.%03d", minutes, seconds, milliseconds)
-        } else {
+        } else if (showSeconds) {
             String.format("%02d:%02d", minutes, seconds)
+        } else {
+            String.format("%02d", minutes)
         }
     }
 }

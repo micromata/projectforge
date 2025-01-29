@@ -27,6 +27,7 @@ import mu.KotlinLogging
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.jcr.OakStorage
 import org.projectforge.jcr.RepoService
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
@@ -124,7 +125,7 @@ class DataTransferJCRCleanUpJob {
                 val files = mutableListOf<String>()
                 child.findDescendant(
                     AttachmentsService.DEFAULT_NODE,
-                    RepoService.NODENAME_FILES
+                    OakStorage.NODENAME_FILES
                 )?.children?.forEach {
                     deletedCounter++
                     deletedSize += it.getProperty("size")?.value?.long ?: 0
