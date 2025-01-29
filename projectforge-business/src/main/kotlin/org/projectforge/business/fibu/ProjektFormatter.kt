@@ -24,13 +24,12 @@
 package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
-import org.hibernate.Hibernate
 import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.utils.BaseFormatter
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.lang.StringBuilder
 
 @Service
 class ProjektFormatter : BaseFormatter() {
@@ -60,7 +59,7 @@ class ProjektFormatter : BaseFormatter() {
      */
     fun format(projekt: ProjektDO?, showOnlyNumber: Boolean): String? {
         var useProjekt = projekt
-        if (projekt?.id != null && !Hibernate.isInitialized(projekt)) {
+        if (projekt?.id != null && !HibernateUtils.isFullyInitialized(projekt)) {
             useProjekt = projektCache.getProjekt(projekt.id)
         }
         if (useProjekt == null) {
@@ -94,7 +93,7 @@ class ProjektFormatter : BaseFormatter() {
         @JvmOverloads
         fun formatProjektKundeAsString(projekt: ProjektDO?, kunde: KundeDO? = null, kundeText: String? = null): String {
             val useProjekt = instance.projektCache.getProjektIfNotInitialized(projekt)
-            val projektKunde  = instance.kundeCache.getKundeIfNotInitialized(useProjekt?.kunde)
+            val projektKunde = instance.kundeCache.getKundeIfNotInitialized(useProjekt?.kunde)
             val useKunde = instance.kundeCache.getKundeIfNotInitialized(kunde)
             return formatProjektKundeAsStringWithoutCache(useProjekt, projektKunde, useKunde, kundeText)
         }

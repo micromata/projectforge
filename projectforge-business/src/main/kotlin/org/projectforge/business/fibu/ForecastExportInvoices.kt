@@ -23,15 +23,12 @@
 
 package org.projectforge.business.fibu
 
+import de.micromata.merlin.excel.ExcelSheet
 import mu.KotlinLogging
 import org.projectforge.business.fibu.kost.ProjektCache
-import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotsService
-import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.time.PFDay
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
-import java.util.*
 
 private val log = KotlinLogging.logger {}
 
@@ -87,66 +84,90 @@ internal class ForecastExportInvoices { // open needed by Wicket.
                 if (monthIndex !in -12..11) {
                     return@forEach // continue
                 }
-                val sheet = if (monthIndex < 0) ctx.invoicesPrevYearSheet else ctx.invoicesSheet
-                if (monthIndex < 0) {
+                if (monthIndex >= 0) {
+                    insertIntoSheet(ctx, ctx.invoicesSheet, invoice, pos, order, orderPosId, firstMonthCol, monthIndex)
+                    ctx.planningDate?.let { planningDate ->
+                        if (invoice.datum!! < planningDate) {
+                            // Planning date is given, so add the invoice to the planning sheet.
+                            insertIntoSheet(
+                                ctx,
+                                ctx.planningInvoicesSheet,
+                                invoice,
+                                pos,
+                                order,
+                                orderPosId,
+                                firstMonthCol,
+                                monthIndex
+                            )
+                        }
+                    }
+                } else {
                     monthIndex += 12
+                    insertIntoSheet(ctx, ctx.invoicesPrevYearSheet, invoice, pos, order, orderPosId, firstMonthCol, monthIndex)
                 }
-                val rowNumber = sheet.createRow().rowNum
-                sheet.setIntValue(rowNumber, ForecastExportContext.InvoicesCol.INVOICE_NR.header, invoice.nummer)
-                sheet.setStringValue(rowNumber, ForecastExportContext.InvoicesCol.POS_NR.header, "#${pos.number}")
-                sheet.setDateValue(
-                    rowNumber,
-                    ForecastExportContext.InvoicesCol.DATE.header,
-                    PFDay(invoice.datum!!).localDate,
-                    ctx.excelDateFormat
-                )
-                val projekt = projektCache.getProjektIfNotInitialized(invoice.projekt)
-                sheet.setStringValue(
-                    rowNumber,
-                    ForecastExportContext.InvoicesCol.CUSTOMER.header,
-                    invoice.kundeAsString
-                )
-                sheet.setStringValue(rowNumber, ForecastExportContext.InvoicesCol.PROJECT.header, projekt?.name)
-                sheet.setStringValue(rowNumber, ForecastExportContext.InvoicesCol.SUBJECT.header, invoice.betreff)
-                sheet.setStringValue(rowNumber, ForecastExportContext.InvoicesCol.POS_TEXT.header, pos.text)
-                invoice.bezahlDatum?.let {
-                    sheet.setDateValue(
-                        rowNumber,
-                        ForecastExportContext.InvoicesCol.DATE_OF_PAYMENT.header,
-                        PFDay(it).localDate,
-                        ctx.excelDateFormat
-                    )
-                }
-                val leistungsZeitraumColDef =
-                    sheet.getColumnDef(ForecastExportContext.InvoicesCol.LEISTUNGSZEITRAUM.header)
-                invoice.periodOfPerformanceBegin?.let {
-                    sheet.setDateValue(rowNumber, leistungsZeitraumColDef, PFDay(it).localDate, ctx.excelDateFormat)
-                }
-                invoice.periodOfPerformanceEnd?.let {
-                    sheet.setDateValue(
-                        rowNumber,
-                        leistungsZeitraumColDef!!.columnNumber + 1,
-                        PFDay(it).localDate,
-                        ctx.excelDateFormat
-                    )
-                }
-                if (order != null && orderPosId != null) {
-                    sheet.setStringValue(
-                        rowNumber,
-                        ForecastExportContext.InvoicesCol.ORDER.header,
-                        "${order.nummer}.${pos.auftragsPositionNummer}"
-                    )
-                }
-                sheet.setBigDecimalValue(
-                    rowNumber,
-                    ForecastExportContext.InvoicesCol.NETSUM.header,
-                    pos.netSum
-                ).cellStyle =
-                    ctx.currencyCellStyle
-                sheet.setBigDecimalValue(rowNumber, firstMonthCol + monthIndex, pos.netSum).cellStyle =
-                    ctx.currencyCellStyle
             }
         }
+    }
+
+    private fun insertIntoSheet(
+        ctx: ForecastExportContext, sheet: ExcelSheet, invoice: RechnungDO, pos: RechnungPosInfo,
+        order: OrderInfo?, orderPosId: Long?, firstMonthCol: Int, monthIndex: Int,
+    ) {
+        val rowNumber = sheet.createRow().rowNum
+        sheet.setIntValue(rowNumber, ForecastExportContext.InvoicesCol.INVOICE_NR.header, invoice.nummer)
+        sheet.setStringValue(rowNumber, ForecastExportContext.InvoicesCol.POS_NR.header, "#${pos.number}")
+        sheet.setDateValue(
+            rowNumber,
+            ForecastExportContext.InvoicesCol.DATE.header,
+            PFDay(invoice.datum!!).localDate,
+            ctx.excelDateFormat
+        )
+        val projekt = projektCache.getProjektIfNotInitialized(invoice.projekt)
+        sheet.setStringValue(
+            rowNumber,
+            ForecastExportContext.InvoicesCol.CUSTOMER.header,
+            invoice.kundeAsString
+        )
+        sheet.setStringValue(rowNumber, ForecastExportContext.InvoicesCol.PROJECT.header, projekt?.name)
+        sheet.setStringValue(rowNumber, ForecastExportContext.InvoicesCol.SUBJECT.header, invoice.betreff)
+        sheet.setStringValue(rowNumber, ForecastExportContext.InvoicesCol.POS_TEXT.header, pos.text)
+        invoice.bezahlDatum?.let {
+            sheet.setDateValue(
+                rowNumber,
+                ForecastExportContext.InvoicesCol.DATE_OF_PAYMENT.header,
+                PFDay(it).localDate,
+                ctx.excelDateFormat
+            )
+        }
+        val leistungsZeitraumColDef =
+            sheet.getColumnDef(ForecastExportContext.InvoicesCol.LEISTUNGSZEITRAUM.header)
+        invoice.periodOfPerformanceBegin?.let {
+            sheet.setDateValue(rowNumber, leistungsZeitraumColDef, PFDay(it).localDate, ctx.excelDateFormat)
+        }
+        invoice.periodOfPerformanceEnd?.let {
+            sheet.setDateValue(
+                rowNumber,
+                leistungsZeitraumColDef!!.columnNumber + 1,
+                PFDay(it).localDate,
+                ctx.excelDateFormat
+            )
+        }
+        if (order != null && orderPosId != null) {
+            sheet.setStringValue(
+                rowNumber,
+                ForecastExportContext.InvoicesCol.ORDER.header,
+                "${order.nummer}.${pos.auftragsPositionNummer}"
+            )
+        }
+        sheet.setBigDecimalValue(
+            rowNumber,
+            ForecastExportContext.InvoicesCol.NETSUM.header,
+            pos.netSum
+        ).cellStyle =
+            ctx.currencyCellStyle
+        sheet.setBigDecimalValue(rowNumber, firstMonthCol + monthIndex, pos.netSum).cellStyle =
+            ctx.currencyCellStyle
+
     }
 
     private fun getMonthIndex(ctx: ForecastExportContext, date: PFDay): Int {

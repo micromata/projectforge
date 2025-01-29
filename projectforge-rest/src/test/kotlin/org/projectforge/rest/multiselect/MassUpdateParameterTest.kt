@@ -97,7 +97,7 @@ class MassUpdateParameterTest {
     error: String? = null,
     msg: String? = null,
   ) {
-    val param = MassUpdateParameter()
+    val param = MassUpdateParameter("test", "test")
     param.textValue = textValue
     param.localDateValue = localeDateValue
     param.replaceText = replaceText

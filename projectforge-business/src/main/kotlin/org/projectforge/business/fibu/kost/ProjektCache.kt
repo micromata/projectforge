@@ -26,11 +26,12 @@ package org.projectforge.business.fibu.kost
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.LockModeType
 import mu.KotlinLogging
-import org.hibernate.Hibernate
-import org.projectforge.business.fibu.*
+import org.projectforge.business.fibu.ProjektDO
+import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -79,7 +80,7 @@ class ProjektCache : AbstractCache() {
      */
     fun getProjektIfNotInitialized(projekt: ProjektDO?): ProjektDO? {
         projekt ?: return null
-        if (Hibernate.isInitialized(projekt)) {
+        if (HibernateUtils.isFullyInitialized(projekt)) {
             return projekt
         }
         return getProjekt(projekt.id)

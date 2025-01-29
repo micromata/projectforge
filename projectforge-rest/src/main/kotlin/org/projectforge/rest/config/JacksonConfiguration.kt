@@ -174,6 +174,9 @@ open class JacksonConfiguration {
       registerAllowedUnknownProperties(StyledTeamCalendar::class.java, "label", "filterType")
 
       registeredDelegatingDeserializer(
+        Employee::class.java,
+        User::class.java,
+        Group::class.java,
         Customer::class.java,
         Konto::class.java,
         Kost1::class.java,

@@ -40,6 +40,9 @@ object Constants {
   @JvmField
   val TEN_BILLION_NEGATIVE = BigDecimal("-10000000000")
 
+  @JvmField
+  val HUNDRED_BD = BigDecimal(100)
+
   const val KB = 1024
 
   val KB_BD = BigDecimal(KB)

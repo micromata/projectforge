@@ -32,88 +32,93 @@ import java.util.*
 /**
  * Contains a field for mass update (string, long, number, date, task, user etc.) and the checkbox
  * either the field should be changed or not.
+ * @param name The name of the field. Only for information purposes.
+ * @param displayName The display name of the field. Is used for the description of generated Excel file, stored in the user's data transfer box.
  */
-class MassUpdateParameter: DisplayNameCapable {
-  /**
-   * If true, the value should be deleted (if delete option is used).
-   */
-  var delete: Boolean? = null
+class MassUpdateParameter(
+    var name: String? = null,
+    override var displayName: String? = name,
+) : DisplayNameCapable {
 
-  /**
-   * If true, the value should be changed by the given value (if change option is used).
-   */
-  var change: Boolean? = null
+    /**
+     * If true, the value should be deleted (if delete option is used).
+     */
+    var delete: Boolean? = null
 
-  /**
-   * If true, the value of the text field should be appended.
-   */
-  var append: Boolean? = null
+    /**
+     * If true, the value should be changed by the given value (if change option is used).
+     */
+    var change: Boolean? = null
 
-  /**
-   * The given textValue should be replaced by this string (for text fields)
-   */
-  var replaceText: String? = null
+    /**
+     * If true, the value of the text field should be appended.
+     */
+    var append: Boolean? = null
 
-  /**
-   * Number of actions (delete, append and replace). More than 1 will normally result in an error and 0 means nothing to-do.
-   */
-  val actionCounter: Int
-    get() {
-      var actionCounter = 0
-      if (delete == true) ++actionCounter
-      if (!replaceText.isNullOrEmpty()) ++actionCounter // Replace text is given, covered by !isEmpty
-      if (append == true && (actionCounter > 0 || !textValue.isNullOrBlank())) ++actionCounter // Given text should be appended
-      if (!isEmpty()) {
-        if (textValue.isNullOrBlank()) {
-          actionCounter++
-        } else {
-          // Text modification
-          if (actionCounter == 0) {
-            ++actionCounter // Only if not combined with a previous action.
-          }
+    /**
+     * The given textValue should be replaced by this string (for text fields)
+     */
+    var replaceText: String? = null
+
+    /**
+     * Number of actions (delete, append and replace). More than 1 will normally result in an error and 0 means nothing to-do.
+     */
+    val actionCounter: Int
+        get() {
+            var actionCounter = 0
+            if (delete == true) ++actionCounter
+            if (!replaceText.isNullOrEmpty()) ++actionCounter // Replace text is given, covered by !isEmpty
+            if (append == true && (actionCounter > 0 || !textValue.isNullOrBlank())) ++actionCounter // Given text should be appended
+            if (!isEmpty()) {
+                if (textValue.isNullOrBlank()) {
+                    actionCounter++
+                } else {
+                    // Text modification
+                    if (actionCounter == 0) {
+                        ++actionCounter // Only if not combined with a previous action.
+                    }
+                }
+            }
+            return actionCounter
         }
-      }
-      return actionCounter
+
+    val hasAction: Boolean
+        get() = actionCounter == 1
+
+    val error: String?
+        get() {
+            if (actionCounter > 1) {
+                // Can't only proceed with one of the action (delete, or append or replace).
+                return "massUpdate.error.invalidOptionMix"
+            }
+            if (!replaceText.isNullOrBlank() && textValue.isNullOrBlank()) {
+                return "massUpdate.error.textValueToReplaceMissed"
+            }
+            return null
+        }
+
+    val hasError: Boolean
+        get() = error != null
+
+    /**
+     * E.g. for tasks, the id of the selected task is set.
+     */
+    var id: Long? = null
+    var textValue: String? = null
+    var longValue: Int? = null
+    var decimalValue: BigDecimal? = null
+    var localDateValue: LocalDate? = null
+    var timestampValue: Date? = null
+    var timeValue: LocalTime? = null
+    var booleanValue: Boolean? = null
+
+    fun isEmpty(): Boolean {
+        return textValue.isNullOrBlank() &&
+                longValue == null &&
+                decimalValue == null &&
+                localDateValue == null &&
+                timestampValue == null &&
+                timeValue == null &&
+                booleanValue == null
     }
-
-  val hasAction: Boolean
-    get() = actionCounter == 1
-
-  val error: String?
-    get() {
-      if (actionCounter > 1) {
-        // Can't only proceed with one of the action (delete, or append or replace).
-        return "massUpdate.error.invalidOptionMix"
-      }
-      if (!replaceText.isNullOrBlank() && textValue.isNullOrBlank()) {
-        return "massUpdate.error.textValueToReplaceMissed"
-      }
-      return null
-    }
-
-  val hasError: Boolean
-    get() = error != null
-
-  /**
-   * E. g. for tasks, the id of the selected task is set.
-   */
-  var id: Long? = null
-  var textValue: String? = null
-  var longValue: Int? = null
-  var decimalValue: BigDecimal? = null
-  var localDateValue: LocalDate? = null
-  var timestampValue: Date? = null
-  var timeValue: LocalTime? = null
-  var booleanValue: Boolean? = null
-  override var displayName: String? = null
-
-  fun isEmpty(): Boolean {
-    return textValue.isNullOrBlank() &&
-        longValue == null &&
-        decimalValue == null &&
-        localDateValue == null &&
-        timestampValue == null &&
-        timeValue == null &&
-        booleanValue == null
-  }
 }
