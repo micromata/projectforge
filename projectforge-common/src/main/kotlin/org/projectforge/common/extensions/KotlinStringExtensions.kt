@@ -43,6 +43,16 @@ fun String?.abbreviate(maxLength: Int): String {
     }
 }
 
+fun String?.shortenMiddle(maxLength: Int = 10): String {
+    this ?: return ""
+    if (this.length <= maxLength) return this  // If text is already shorter than maxLength, return it unchanged
+    val lastPartLength = (maxLength - 3) / 2  // "-3" for "..."
+    val firstPartLength = maxLength - lastPartLength - 3
+    val start = this.take(firstPartLength)  // First part of the text
+    val end = this.takeLast(lastPartLength) // Last part of the text
+    return "$start...$end"
+}
+
 /**
  * Capitalizes the first character of a string.
  * If the first character is a lower case letter, it is replaced by the corresponding upper case letter.
