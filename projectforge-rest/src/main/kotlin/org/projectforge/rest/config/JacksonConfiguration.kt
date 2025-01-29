@@ -176,6 +176,7 @@ open class JacksonConfiguration {
       registeredDelegatingDeserializer(
         Employee::class.java,
         User::class.java,
+        Group::class.java,
         Customer::class.java,
         Konto::class.java,
         Kost1::class.java,

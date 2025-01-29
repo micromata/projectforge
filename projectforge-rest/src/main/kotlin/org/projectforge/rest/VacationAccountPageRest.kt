@@ -166,7 +166,7 @@ class VacationAccountPageRest {
     val responseAction = ResponseAction(
       PagesResolver.getEditPageUrl(
         VacationPagesRest::class.java,
-        params = mapOf("employee" to employeeId),
+        params = mapOf("employee" to employeeId, "returnToCaller" to "account"),
         absolute = true
       ), targetType = TargetType.REDIRECT
     )

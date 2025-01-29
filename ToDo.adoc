@@ -1,9 +1,9 @@
 ==== Aktuell:
+- History User/Gruppen z. B. ScriptDO: DisplayName anstelle von Ids.
 - Änderungskommentar bei Usern/Gruppen (JIRA-Nummern)
 - AI timesavings: Zeit bei Eingabe ausrechnen, recent ai texte als vorlage.
 - JCR: Tool for removing or recovering orphaned nodes.
 - Favoriten bei Scriptausführung für Parameter.
-- KI-Anteil in Zeitberichten
 - Viewpage für user für non-admins.
 - Scripting: Ergebnis Unresolved reference 'memo', 'todo'.: line 94 to 94 (add only activated plugins)
 - Can't get value type from 'org.projectforge.business.timesheet.TimesheetPrefData'. Class not found (old incompatible ProjectForge version)?
