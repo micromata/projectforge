@@ -75,7 +75,12 @@ class TimePeriodTest {
     assertResultArray(intArrayOf(3, 0, 0), timePeriod.getDurationFields(8))
     assertResultArray(intArrayOf(0, 24, 0), timePeriod.getDurationFields(8, 25))
     assertResultArray(intArrayOf(3, 0, 0), timePeriod.getDurationFields(8, 24))
-    dateTime2 = dateTime2.withDayOfMonth(21).withHour(23).withMinute(59).withSecond(59)
+    // 30 seconds: round up to next minute:
+    dateTime2 = dateTime2.withDayOfMonth(21).withHour(23).withMinute(59).withSecond(30)
+    timePeriod = TimePeriod(dateTime1.utilDate, dateTime2.utilDate)
+    assertResultArray(intArrayOf(1, 0, 0), timePeriod.durationFields)
+    // 29 seconds: no round up:
+    dateTime2 = dateTime2.withDayOfMonth(21).withHour(23).withMinute(59).withSecond(29)
     timePeriod = TimePeriod(dateTime1.utilDate, dateTime2.utilDate)
     assertResultArray(intArrayOf(0, 23, 59), timePeriod.durationFields)
     assertResultArray(intArrayOf(2, 7, 59), timePeriod.getDurationFields(8))

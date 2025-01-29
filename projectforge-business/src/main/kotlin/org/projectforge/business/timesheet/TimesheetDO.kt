@@ -79,7 +79,7 @@ import java.util.*
 )
 open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     enum class TimeSavedByAIUnit(override val i18nKey: String) : I18nEnum {
-        PERCENTAGE("percent"),
+        PERCENTAGE("percentage"),
         HOURS("hours");
     }
 
@@ -121,6 +121,7 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     open var timeSavedByAI: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "timesheet.ai.timeSavedByAIUnit", tooltip = "timesheet.ai.timeSavedByAIUnit.info")
+    @get:Enumerated(EnumType.STRING)
     @get:Column(name = "time_saved_by_ai_unit")
     open var timeSavedByAIUnit: TimeSavedByAIUnit? = null
 
