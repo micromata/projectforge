@@ -14,7 +14,7 @@ import TabNavigation from '../../../components/base/page/edit/TabNavigation';
 import { Alert, Container, TabContent, TabPane } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
 import { getTranslation } from '../../../utilities/layout';
-import { baseURL, getObjectFromQuery, getServiceURL } from '../../../utilities/rest';
+import { getServiceURL } from '../../../utilities/rest';
 import style from '../../ProjectForge.module.scss';
 import FormHistory from './history';
 
@@ -44,7 +44,6 @@ function FormPage(
     } = category;
     const location = useLocation();
     const [searchParams] = useSearchParams();
-    const search = searchParams.toString();
 
     React.useEffect(
         () => {
@@ -63,7 +62,7 @@ function FormPage(
                 getServiceURL(
                     `${isPublic ? '/rsPublic/' : ''}${currentCategory}/${type || 'dynamic'}`,
                     {
-                        ...getObjectFromQuery(search || ''),
+                        ...Object.fromEntries(searchParams.entries()),
                         id,
                     },
                 ),

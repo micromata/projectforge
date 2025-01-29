@@ -13,6 +13,7 @@ import ListPage from './page/list/ListPage';
 import TaskTreePage from './page/TaskTreePage';
 import ModalRoutes from './ModalRoutes';
 import RedirectToWicket from './RedirectToWicket';
+import FormModal from './page/form/FormModal';
 
 export const wicketRoute = (
     <Route
@@ -46,7 +47,12 @@ function AuthorizedRoutes(
             <Route
                 path={`${prefix}calendar`}
                 element={<CalendarPage />}
-            />
+            >
+                <Route
+                    path={`${prefix}calendar/:category/:type/:id?/:tab?`}
+                    element={<FormModal />}
+                />
+            </Route>
             <Route
                 path={`${prefix}taskTree`}
                 element={<TaskTreePage />}

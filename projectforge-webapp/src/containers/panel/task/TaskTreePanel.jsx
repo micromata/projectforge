@@ -6,6 +6,7 @@ import LoadingContainer from '../../../components/design/loading-container';
 import { debouncedWaitTime, getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import TaskTreeTable from './TaskTreeTable';
 import TaskFilter from './TaskFilter';
+import styles from './TaskTreePanel.module.scss';
 import TaskTreeContext, { taskTreeContextDefaultValues } from './TaskTreeContext';
 
 const loadTasksBounced = (
@@ -184,7 +185,7 @@ function TaskTreePanel(
     return (
         <LoadingContainer loading={loading}>
             <Card>
-                <CardBody>
+                <CardBody className={styles.treePanelBody}>
                     <TaskTreeContext.Provider
                         /* eslint-disable-next-line react/jsx-no-constructed-context-values */
                         value={{

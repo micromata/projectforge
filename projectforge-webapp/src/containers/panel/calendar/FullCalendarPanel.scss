@@ -1,0 +1,41 @@
+.fc-view {
+  .fc .fc-scrollgrid-liquid {
+    height: calc(100% + 2px);
+  }
+
+  table {
+    border-color: #dee2e6;
+
+    > * > * th, > * > * tr {
+      border-width: 0;
+    }
+
+    &.fc-col-header {
+      border-style: solid;
+      border-width: 1px 1px 1px 1px;
+    }
+  }
+
+  .fc-daygrid-body {
+    border-style: solid;
+    border-color: #dee2e6;
+    border-width: 0 1px 1px 1px;
+    overflow: visible;
+
+    .fc-daygrid-day {
+      border-width: 1px;
+      border-style: solid;
+      border-color: #dee2e6;
+
+      .fc-event-main {
+        padding: 0 4px;
+      }
+    }
+  }
+
+  &.fc-timeGridWeek-view {
+    .fc-timegrid-col {
+      border-width: 1px;
+    }
+  }
+}

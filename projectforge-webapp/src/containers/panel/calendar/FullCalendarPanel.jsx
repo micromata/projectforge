@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import PropTypes from 'prop-types';
 import FullCalendar from '@fullcalendar/react';
 import '@fortawesome/fontawesome-free/css/all.css';
 import deLocale from '@fullcalendar/core/locales/de';
@@ -8,25 +9,36 @@ import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
 import bootstrapPlugin from '@fullcalendar/bootstrap';
 import { connect } from 'react-redux'; // a plugin!
+import classNames from 'classnames';
 import { createPopper } from '@popperjs/core';
-import { Route } from 'react-router';
+import { Outlet, useNavigate } from 'react-router';
 import LoadingContainer from '../../../components/design/loading-container';
 import { fetchJsonGet, fetchJsonPost } from '../../../utilities/rest';
 import CalendarEventTooltip from './CalendarEventTooltip';
-import history from '../../../utilities/history';
-import FormModal from '../../page/form/FormModal';
+import './FullCalendarPanel.scss';
 
 /*
 TODO:
  - Handling of recurring events.
 */
 
-function FullCalendarPanel(options) {
-    const {
-        activeCalendars, timesheetUserId, showBreaks, locale, firstDayOfWeek,
-        defaultDate, defaultView, match, translations, gridSize, firstHour,
-        timeNotation, vacationGroups, vacationUsers, topHeight, alternateHoursBackground,
-    } = options;
+function FullCalendarPanel({
+    activeCalendars,
+    timesheetUserId = null,
+    showBreaks = false,
+    locale = 'en',
+    firstDayOfWeek = 0,
+    defaultDate = null,
+    defaultView = 'timeGridWeek',
+    translations,
+    gridSize = 30,
+    firstHour = 8,
+    timeNotation = 'H24',
+    vacationGroups = [],
+    vacationUsers = [],
+    topHeight = '0px',
+    alternateHoursBackground = true,
+}) {
     const [queryString] = useState(window.location.search);
     const [currentHoverEvent, setCurrentHoverEvent] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -51,9 +63,7 @@ function FullCalendarPanel(options) {
 
     const calendarRef = useRef();
 
-    useEffect(() => {
-        // onComponentDidMount
-    }, []);
+    const navigate = useNavigate();
 
     const refetch = (currentApi) => {
         if (!currentApi) {
@@ -208,7 +218,7 @@ function FullCalendarPanel(options) {
             },
             (json) => {
                 const { url } = json;
-                history.push(`${match.url}${url}`);
+                navigate(`/react/calendar${url}`);
             },
         );
     };
@@ -230,18 +240,17 @@ function FullCalendarPanel(options) {
         const id = event.extendedProps?.uid || event.extendedProps?.dbId;
         const category = event.extendedProps?.category;
         if (category === 'timesheet-break') {
-            history.push(`${match.url}/timesheet/edit?startDate=${event.start.getTime() / 1000}&endDate=${event.end.getTime() / 1000}`);
+            navigate(`/react/calendar/timesheet/edit?startDate=${event.start.getTime() / 1000}&endDate=${event.end.getTime() / 1000}`);
         } else if (category === 'timesheet-stats') {
             // Do nothing
         } else if (category === 'vaction') {
-            history.push(`${match.url}/vacation/edit/${id}?returnToCaller=%2Freact%2Fcalendar`);
+            navigate(`/react/calendar/vacation/edit/${id}?returnToCaller=%2Freact%2Fcalendar`);
         } else if (category === 'address') {
             // start date is send to the server and is needed for series events to detect the
             // current selected event of a series.
-            // eslint-disable-next-line max-len
-            history.push(`${match.url}/addressView/dynamic/${id}?returnToCaller=%2Freact%2Fcalendar`);
+            navigate(`/react/calendar/addressView/dynamic/${id}?returnToCaller=%2Freact%2Fcalendar`);
         } else {
-            history.push(`${match.url}/${category}/edit/${id}?startDate=${event.start.getTime() / 1000}&endDate=${event.end.getTime() / 1000}`);
+            navigate(`/react/calendar/${category}/edit/${id}?startDate=${event.start.getTime() / 1000}&endDate=${event.end.getTime() / 1000}`);
         }
     };
 
@@ -279,7 +288,7 @@ function FullCalendarPanel(options) {
         }
     };
 
-    const setView = (view, event) => {
+    const setView = (view) => {
         calendarRef?.current?.getApi()?.changeView(view);
     };
 
@@ -287,25 +296,33 @@ function FullCalendarPanel(options) {
         const { event } = eventInfo;
         const { extendedProps } = event;
         const view = eventInfo.view?.type;
-        // console.log('renderEventContent', eventInfo, view);
-        if (view === 'dayGridWeek' || view === 'dayGridMonth' || view === 'dayGridWorkingMonth') {
-            return undefined;
-        }
-        return (
-            <div className="fc-event-main-frame">
-                <div className="fc-event-time">{eventInfo.timeText}</div>
-                <div className="fc-event-title-container">
-                    <div className="fc-event-title fc-sticky">
-                        {event.title}
-                        {extendedProps.description && (
-                            <div style={{ whiteSpace: 'pre-wrap' }}>
-                                {extendedProps.description}
+        switch (view) {
+            case 'dayGridMonth':
+                return (
+                    <>
+                        {!event.allDay
+                        && <div className="fc-daygrid-event-dot" style={{ borderColor: eventInfo.borderColor }} />}
+                        {eventInfo.timeText && <div className="fc-event-time">{eventInfo.timeText}</div>}
+                        <div className="fc-event-title">{event.title}</div>
+                    </>
+                );
+            default:
+                return (
+                    <div className="fc-event-main-frame">
+                        <div className="fc-event-time">{eventInfo.timeText}</div>
+                        <div className="fc-event-title-container">
+                            <div className="fc-event-title fc-sticky">
+                                {event.title}
+                                {extendedProps.description && (
+                                    <div style={{ whiteSpace: 'pre-wrap' }}>
+                                        {extendedProps.description}
+                                    </div>
+                                )}
                             </div>
-                        )}
+                        </div>
                     </div>
-                </div>
-            </div>
-        );
+                );
+        }
     };
 
     const fetchEvents = (info, successCallback) => {
@@ -475,13 +492,32 @@ function FullCalendarPanel(options) {
                 eventMouseEnter={handleEventMouseEnter}
                 eventMouseLeave={closePopOver}
             />
-            <Route
-                path={`${match.url}/:category/:type/:id?/:tab?`}
-                render={(props) => <FormModal baseUrl={match.url} {...props} />}
-            />
+            <Outlet />
         </LoadingContainer>
     );
 }
+
+FullCalendarPanel.propTypes = {
+    activeCalendars: PropTypes.arrayOf(PropTypes.shape({
+        style: PropTypes.string,
+        visible: PropTypes.bool,
+        id: PropTypes.string.isRequired,
+    })).isRequired,
+    timesheetUserId: PropTypes.number,
+    showBreaks: PropTypes.bool,
+    locale: PropTypes.string,
+    firstDayOfWeek: PropTypes.number,
+    defaultDate: PropTypes.string,
+    defaultView: PropTypes.string,
+    translations: PropTypes.objectOf(PropTypes.string).isRequired,
+    gridSize: PropTypes.number,
+    firstHour: PropTypes.number,
+    timeNotation: PropTypes.string,
+    vacationGroups: PropTypes.arrayOf(PropTypes.shape()),
+    vacationUsers: PropTypes.arrayOf(PropTypes.shape()),
+    topHeight: PropTypes.string,
+    alternateHoursBackground: PropTypes.bool,
+};
 
 const mapStateToProps = ({ authentication }) => ({
     firstDayOfWeek: authentication.user.firstDayOfWeekSunday0,
