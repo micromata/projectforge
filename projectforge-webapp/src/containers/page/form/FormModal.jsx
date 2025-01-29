@@ -6,7 +6,7 @@ import FormPage from './FormPage';
 import { callAction } from '../../../actions';
 
 function FormModal(props) {
-    const { baseUrl, onCallAction } = props;
+    const { onCallAction } = props;
 
     return (
         <Modal
@@ -22,7 +22,6 @@ function FormModal(props) {
 }
 
 FormModal.propTypes = {
-    baseUrl: PropTypes.string.isRequired,
     onCallAction: PropTypes.func.isRequired,
 };
 

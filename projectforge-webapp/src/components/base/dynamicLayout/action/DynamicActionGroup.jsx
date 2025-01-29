@@ -26,8 +26,8 @@ function DynamicActionGroup({ actions = [] }) {
                 <ButtonGroup>
                     {actions.map((action) => (
                         <DynamicButton
-                            key={`dynamic-action-button-${action.id}-${action.key}`}
                             {...action}
+                            key={`dynamic-action-button-${action.id}-${action.key}`}
                         />
                     ))}
                 </ButtonGroup>

@@ -236,7 +236,7 @@ function CalendarFilterSettings({
                                 {translations.more}
                             </UncontrolledTooltip>
                         </DropdownToggle>
-                        <DropdownMenu right>
+                        <DropdownMenu end>
                             <DropdownItem
                                 key="entry-item-calendar-settings"
                             >
