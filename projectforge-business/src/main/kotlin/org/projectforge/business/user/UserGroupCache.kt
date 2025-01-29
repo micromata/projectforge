@@ -38,6 +38,8 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
+import org.projectforge.framework.persistence.utils.CollectionDebugUtils
+import org.projectforge.framework.persistence.utils.CollectionUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -77,33 +79,33 @@ open class UserGroupCache : AbstractCache() {
      * The key is the user id and the value is a list of assigned groups.
      * Mustn't be synchronized because it is only read by the cache.
      */
-    private var userGroupIdMap = mapOf<Long, Set<Long>>()
+    internal var userGroupIdMap = mapOf<Long, Set<Long>>()
 
     /**
      * The key is the group id.
      * Mustn't be synchronized because it is only read by the cache.
      */
-    private var groupMap = mapOf<Long, GroupDO>()
+    internal var groupMap = mapOf<Long, GroupDO>()
 
     /**
      * List of all rights (value) defined for the user ids (key).
      * Mustn't be synchronized because it is only read by the cache.
      */
-    private var rightMap = mapOf<Long, List<UserRightDO>>()
+    internal var rightMap = mapOf<Long, List<UserRightDO>>()
 
     /**
      * Must be synchronized because it is mutable.
      */
     private var userMap = mutableMapOf<Long, PFUserDO>()
 
-    private var adminUsers = setOf<Long>()
-    private var financeUsers = setOf<Long>()
-    private var controllingUsers = setOf<Long>()
-    private var projectManagers = setOf<Long>()
-    private var projectAssistants = setOf<Long>()
-    private var marketingUsers = setOf<Long>()
-    private var orgaUsers = setOf<Long>()
-    private var hrUsers = setOf<Long>()
+    internal var adminUsers = setOf<Long>()
+    internal var financeUsers = setOf<Long>()
+    internal var controllingUsers = setOf<Long>()
+    internal var projectManagers = setOf<Long>()
+    internal var projectAssistants = setOf<Long>()
+    internal var marketingUsers = setOf<Long>()
+    internal var orgaUsers = setOf<Long>()
+    internal var hrUsers = setOf<Long>()
 
     fun getGroup(group: ProjectForgeGroup): GroupDO? {
         checkRefresh()
@@ -484,7 +486,8 @@ open class UserGroupCache : AbstractCache() {
                     }
                 }
                 if (userRightService.getRight(right.rightIdString) != null
-                    && userRightService.getRight(right.rightIdString).isAvailable(right.user, getUserGroupDOs(right.user))
+                    && userRightService.getRight(right.rightIdString)
+                        .isAvailable(right.user, getUserGroupDOs(right.user))
                 ) {
                     list!!.add(right)
                 }
@@ -506,22 +509,7 @@ open class UserGroupCache : AbstractCache() {
     }
 
     fun internalGetStateAsJson(): String {
-        val clone = UserGroupCache()
-        clone.hrUsers = this.hrUsers
-        clone.userGroupIdMap = this.userGroupIdMap
-        clone.groupMap = this.groupMap
-        synchronized(this.userMap) {
-            clone.userMap = this.userMap.toMutableMap() // Copy.
-        }
-        clone.adminUsers = this.adminUsers
-        clone.financeUsers = this.financeUsers
-        clone.controllingUsers = this.controllingUsers
-        clone.projectManagers = this.projectManagers
-        clone.projectAssistants = this.projectAssistants
-        clone.orgaUsers = this.orgaUsers
-        clone.marketingUsers = this.marketingUsers
-        clone.rightMap = this.rightMap
-        return JsonUtils.toJson(clone)
+        return UserGroupCacheDebug.internalGetStateAsJson(this)
     }
 
     companion object {

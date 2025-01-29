@@ -46,8 +46,9 @@ object AITimeSavings {
         }
     }
 
-    fun getFormattedPercentage(total: Number, part: Number): String {
-        val percent = NumberHelper.getPercent(total, part)
+    fun getFormattedPercentage(duration: Number, timeSavedByAI: Number): String {
+        val savedByAI = timeSavedByAI.toLong()
+        val percent = NumberHelper.getPercent(duration.toLong() + savedByAI, savedByAI)
         return getFormattedPercentage(percent)
     }
 
@@ -66,7 +67,9 @@ object AITimeSavings {
         if (ms == null && emptyStringIfNull) {
             return ""
         }
-        return "${DateTimeFormatter.instance().getFormattedDuration(ms ?: 0L)}, ${getFormattedPercentage(timesheet.duration, ms ?: 0L)}"
+        return "${
+            DateTimeFormatter.instance().getFormattedDuration(ms ?: 0L)
+        }, ${getFormattedPercentage(timesheet.duration, ms ?: 0L)}"
     }
 
     @JvmStatic
@@ -99,10 +102,18 @@ object AITimeSavings {
      * @param duration The duration of the timesheet in milliseconds.
      */
     fun getTimeSavedByAIMillisOrNull(timesheet: TimesheetDO, duration: Long): Long? {
-        timesheet.timeSavedByAI?.let {
+        timesheet.timeSavedByAI?.let { value ->
             return when (timesheet.timeSavedByAIUnit) {
-                TimesheetDO.TimeSavedByAIUnit.HOURS -> it.toLong() * Constants.MILLIS_PER_HOUR
-                TimesheetDO.TimeSavedByAIUnit.PERCENTAGE -> it.toLong() * duration / 100
+                TimesheetDO.TimeSavedByAIUnit.HOURS -> value.toLong() * Constants.MILLIS_PER_HOUR
+                TimesheetDO.TimeSavedByAIUnit.PERCENTAGE -> {
+                    val percentage = value.toLong()
+                    if (percentage >= 100) {
+                        0L
+                    } else {
+                        (percentage * duration) / (100 - percentage)
+                    }
+                }
+
                 else -> 0 // nothing. Shouldn't happen.
             }
         }
