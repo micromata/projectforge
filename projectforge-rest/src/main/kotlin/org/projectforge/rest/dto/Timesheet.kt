@@ -25,7 +25,6 @@ package org.projectforge.rest.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.projectforge.business.timesheet.TimesheetDO
-import org.projectforge.common.i18n.I18nEnum
 import java.math.BigDecimal
 import java.util.*
 

@@ -38,6 +38,15 @@ class KotlinStringExtensionsTest {
     }
 
     @Test
+    fun `test shortenMiddle method`() {
+        assertEquals("", null.shortenMiddle())
+        assertEquals("", "".shortenMiddle())
+        assertEquals("1234567890", "1234567890".shortenMiddle())
+        assertEquals("1234...90a", "1234567890a".shortenMiddle())
+        assertEquals("1234...0ab", "1234567890ab".shortenMiddle())
+    }
+
+    @Test
     fun `test capitalize method`() {
         assertEquals("", "".capitalize())
         assertEquals(" a", " a".capitalize())
