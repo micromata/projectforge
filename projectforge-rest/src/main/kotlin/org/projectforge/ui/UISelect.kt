@@ -26,6 +26,7 @@ package org.projectforge.ui
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import mu.KotlinLogging
 import org.projectforge.business.fibu.EmployeeService
+import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.i18n.translate
@@ -147,9 +148,11 @@ class UISelect<T>(
             return UISelect(
                 id,
                 lc,
+                values = GroupService.getInstance().getSortedGroups().map { UISelectValue(it.id!!, it.displayName) },
                 multi = multi,
                 label = label ?: ElementsRegistry.getElementInfo(lc, id)?.i18nKey,
                 additionalLabel = additionalLabel ?: ElementsRegistry.getElementInfo(lc, id)?.additionalI18nKey,
+                autoCompletion = AutoCompletion.getAutoCompletion4Groups().also { it.minChars = 1 },
                 tooltip = tooltip ?: ElementsRegistry.getElementInfo(lc, id)?.tooltipI18nKey
             )
         }
