@@ -34,6 +34,7 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.json.IdsOnlySerializer
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.history.NoHistory
@@ -412,17 +413,16 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
         return this
     }
 
+    /**
+     * Attention: rights may not be fully initialized!
+     */
     @Transient
     fun getRight(rightId: IUserRightId): UserRightDO? {
-        if (this.rights == null) {
-            return null
+        return if (HibernateUtils.isFullyInitialized(this.rights)) {
+            this.rights?.find { it.rightIdString == rightId.id }
+        } else {
+            null
         }
-        for (right in this.rights!!) {
-            if (right.rightIdString == rightId.id) {
-                return right
-            }
-        }
-        return null
     }
 
     /**
