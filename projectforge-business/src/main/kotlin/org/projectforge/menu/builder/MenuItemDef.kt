@@ -52,7 +52,6 @@ constructor(
   var checkAccess: (() -> Boolean)? = null,
   var visibleForRestrictedUsers: Boolean = false,
   var requiredUserRightId: IUserRightId? = null,
-  var requiredUserRight: UserRight? = null,
   var requiredUserRightValues: Array<UserRightValue>? = null,
   vararg requiredGroups: ProjectForgeGroup
 ) {
@@ -78,7 +77,6 @@ constructor(
     checkAccess: (() -> Boolean)? = null,
     visibleForRestrictedUsers: Boolean = false,
     requiredUserRightId: IUserRightId? = null,
-    requiredUserRight: UserRight? = null,
     requiredUserRightValues: Array<UserRightValue>? = null,
     vararg requiredGroups: ProjectForgeGroup
   )
@@ -91,7 +89,6 @@ constructor(
     visibleForRestrictedUsers = visibleForRestrictedUsers,
     checkAccess = checkAccess,
     requiredUserRightId = requiredUserRightId,
-    requiredUserRight = requiredUserRight,
     requiredUserRightValues = requiredUserRightValues,
     requiredGroups = *requiredGroups
   )
