@@ -52,7 +52,7 @@ class RechnungCache(rechnungJdbcService: RechnungJdbcService) :
         RechnungCalculator.auftragsCache = auftragsCache
     }
 
-    fun getOrderPositionInfos(rechnungId: Long?): Set<OrderPositionInfo>? {
+    fun getOrderPositionInfosOfInvoice(rechnungId: Long?): Set<OrderPositionInfo>? {
         rechnungId ?: return null
         val info = getRechnungInfo(rechnungId) ?: return null
         val set = mutableSetOf<OrderPositionInfo>()
@@ -64,6 +64,12 @@ class RechnungCache(rechnungJdbcService: RechnungJdbcService) :
             }
         }
         return set
+    }
+
+    fun getOrderPositionInfoOfInvoicePos(rechnungPosId: Long?): OrderPositionInfo? {
+        rechnungPosId ?: return null
+        val posInfo = getRechnungPosInfo(rechnungPosId) ?: return null
+        return auftragsCache.getOrderPositionInfo(posInfo.auftragsPositionId)
     }
 
     fun getRechnungsPosInfosByAuftragId(auftragId: Long?): List<RechnungPosInfo>? {
