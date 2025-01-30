@@ -78,11 +78,11 @@ open class VisitorbookDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "orga.visitorbook.contactPersons")
     @IndexedEmbedded(includeDepth = 2, includePaths = ["user.firstname", "user.lastname"])
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-    @get:ManyToMany(targetEntity = EmployeeDO::class, fetch = FetchType.LAZY)
+    @get:ManyToMany(fetch = FetchType.LAZY)
     @get:JoinTable(
         name = "T_ORGA_VISITORBOOK_EMPLOYEE",
-        joinColumns = [JoinColumn(name = "VISITORBOOK_ID")],
-        inverseJoinColumns = [JoinColumn(name = "EMPLOYEE_ID")],
+        joinColumns = [JoinColumn(name = "VISITORBOOK_ID", referencedColumnName = "PK")],
+        inverseJoinColumns = [JoinColumn(name = "EMPLOYEE_ID", referencedColumnName = "PK")],
         indexes = [jakarta.persistence.Index(
             name = "idx_fk_t_orga_visitorbook_employee_id",
             columnList = "visitorbook_id"
