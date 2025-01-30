@@ -250,7 +250,7 @@ class CandHHistoryTest : AbstractTestBase() {
         }
 
         user.addRight(UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.PARTLYREADWRITE))
-        user.getRight(UserRightId.ORGA_OUTGOING_MAIL).let { right ->
+        user.rights?.find { it.rightIdString == UserRightId.ORGA_OUTGOING_MAIL.id }.let { right ->
             right!!.value = UserRightValue.READONLY
         }
         userRightDao.insertOrUpdate(user.rights!!, checkAccess = false)
