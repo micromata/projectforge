@@ -27,6 +27,7 @@ import mu.KotlinLogging
 import org.apache.commons.io.FileUtils
 import org.projectforge.business.address.BirthdayCache.Companion.instance
 import org.projectforge.business.fibu.AuftragsCache
+import org.projectforge.business.fibu.AuftragsRechnungCache
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.RechnungCache
 import org.projectforge.business.fibu.kost.KostCache
@@ -61,6 +62,9 @@ class SystemService {
 
     @Autowired
     private lateinit var auftragsCache: AuftragsCache
+
+    @Autowired
+    private lateinit var auftragsRechnungCache: AuftragsRechnungCache
 
     @Autowired
     private lateinit var cronSanityCheckJob: CronSanityCheckJob
@@ -173,8 +177,9 @@ class SystemService {
         kostCache.forceReload()
         rechnungCache.forceReload()
         auftragsCache.forceReload()
+        auftragsRechnungCache.forceReload()
         systemInfoCache.forceReload()
         instance.forceReload()
-        return "UserGroupCache, TaskTree, KontoCache, KostCache, RechnungCache, AuftragsCache, SystemInfoCache, BirthdayCache"
+        return "UserGroupCache, TaskTree, KontoCache, KostCache, RechnungCache, AuftragsCache, AuftragsRechnungCache, SystemInfoCache, BirthdayCache"
     }
 }
