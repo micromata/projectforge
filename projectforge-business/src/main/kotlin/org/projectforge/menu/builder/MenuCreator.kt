@@ -584,8 +584,6 @@ open class MenuCreator {
             return false
         }
         var userRightId = menuItemDef.requiredUserRightId
-        if (userRightId == null && menuItemDef.requiredUserRight != null)
-            userRightId = menuItemDef.requiredUserRight?.id
         if (userRightId != null && !hasRight(menuBuilderContext, userRightId, menuItemDef.requiredUserRightValues)) {
             return false
         }
