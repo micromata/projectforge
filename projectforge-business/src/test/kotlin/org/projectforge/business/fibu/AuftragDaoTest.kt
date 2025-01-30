@@ -25,6 +25,7 @@ package org.projectforge.business.fibu
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.user.GroupDao
 import org.projectforge.business.user.UserRightDao
 import org.projectforge.business.user.UserRightId
@@ -36,7 +37,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.framework.time.PFDay.Companion.now
 import org.projectforge.framework.time.PFDay.Companion.withDate
-import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.Serializable
 import java.math.BigDecimal
@@ -280,10 +280,11 @@ class AuftragDaoTest : AbstractTestBase() {
             }
         }
         persistenceService.runInTransaction { _ ->
-            val user = logonUser!!
+            user = logonUser!!
             logon(TEST_ADMIN_USER)
-            val right = user.getRight(UserRightId.PM_ORDER_BOOK)!!
-            right.value = UserRightValue.READWRITE // Full access
+
+            val right = user.rights?.find { it.rightIdString == UserRightId.PM_ORDER_BOOK.id }
+            right!!.value = UserRightValue.READWRITE // Full access
             userRightDao.update(right)
             logon(user)
             auftragDao.find(auftragId, attached = true) // Attached is important, otherwise deadlock.
