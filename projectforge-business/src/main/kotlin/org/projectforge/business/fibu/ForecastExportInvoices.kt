@@ -56,14 +56,10 @@ internal class ForecastExportInvoices { // open needed by Wicket.
                 continue // Ignoriere stornierte oder geplante Rechnungen.
             }
             rechnungCache.getRechnungInfo(invoice.id)?.positions?.forEach { pos ->
-                // for (pos in rechnungCache.getRechnungsPositionVOSetByRechnungId(invoice.id) ?: continue) {
-                val orderPosId = pos.auftragsPositionId
+                val orderPosInfo = rechnungCache.getOrderPositionInfoOfInvoicePos(pos.id)
+                val orderPosId = orderPosInfo?.id
                 val orderPositionFound = orderPosId != null && ctx.orderPositionMap.containsKey(orderPosId)
-                // val invoiceProjektId = invoice.projektId
-                // val orderProjectId = orderPos?.auftrag?.projektId // may differ from invoiceProjektId
-                // val projectFound = invoiceProjektId != null && ctx.projectIds.contains(invoiceProjektId) ||
-                //     orderProjectId != null && ctx.projectIds.contains(orderProjectId)
-                if (!ctx.showAll && !orderPositionFound) { // !projectFound && !orderPositionFound) {
+                if (!ctx.showAll && !orderPositionFound) {
                     return@forEach // Ignore invoices referring an order position or project which isn't part of the order list filtered by the user.
                 }
                 var order = if (orderPosId != null) {
