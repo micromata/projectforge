@@ -1,0 +1,64 @@
+==== Testinstanz installieren
+
+Die aktuellste Version dieser Datei befindet sich https://github.com/micromata/projectforge/blob/develop/doc/Testinstallation-deutsch.adoc[hier].
+
+===== Download
+
+`projectforge-application-8.1-xxx.jar` herunterladen
+
+===== Java 17 installieren
+Open-JDK 17 installieren bzw. entsprechendes Docker-Image verwenden.
+
+==== Erststart
+
+Starten über `java -jar projectforge-application-8.1-xxx.jar`
+
+. (2) Console based wizard wählen (falls GUI nicht erreichbar ist, sonst kann auch der grafische gewählt werden).
+    .. Homeverzeichnis auswählen (z. B. `~/projectforge`), RETURN DRÜCKEN
+    .. Parameter unverändert übernehmen.
+    .. Finish wählen und Start abwarten.
+
+Es wird standardmäßig eine Embedded-Database verwendet. Alternativ kann eine Postgres-Datenbank verwendet werden.
+
+Browser öffnen: `http://localhost:8080` öffnen
+
+. `Testsystem` auswählen (es wird eine Datenbank mit Testdaten erstellt.)
+. Passwort festlegen
+. E-Mail Adresse eingeben, z. B. `egal@localhost` (für 2. Faktor)
+. Fertig stellen klicken.
+
+===== System herunterfahren
+Einfach `CTRL-C` drücken.
+
+===== Anpassungen
+Anpassungen in der Konfiguration können hier durchgeführt werden:
+
+Anpassen in `~/ProjectForge/projectforge.properties`:
+
+[source]
+----
+# Im development.mode wird der 2FA-Code, der sonst per SMS versendet wird auch in den Logs ausgegeben:
+projectforge.development.mode=true
+# ProjectForge denkt hiermit, es wäre ein SMS-Gateway aktiviert:
+projectforge.sms.url=http://smsgw.localhost/api.php
+----
+
+===== Wiederstart
+
+Starten über `java -jar projectforge-application-8.1-xxx.jar`
+
+
+===== Weitere Konfigmöglichkeiten
+
+Hier ist die Datei mit allen Konfigurationsmöglichkeiten:
+
+https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/application.properties[application.properties]
+
+===== Reset
+Einfach herunterfahren, `~/ProjectForge` löschen und von vorn beginnen.
+
+===== Doku
+Doku liegt unter
+
+. https://github.com/micromata/projectforge[Github]
+. https://www.projectforge.org/[www.projectforge.org]

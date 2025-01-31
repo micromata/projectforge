@@ -46,12 +46,25 @@ object AITimeSavings {
         }
     }
 
+    /**
+     * Returns the formatted percentage.
+     * Example: "10 %"
+     * @param duration
+     * @param timeSavedByAI
+     * @return The formatted percentage.
+     */
     fun getFormattedPercentage(duration: Number, timeSavedByAI: Number): String {
         val savedByAI = timeSavedByAI.toLong()
         val percent = NumberHelper.getPercent(duration.toLong() + savedByAI, savedByAI)
         return getFormattedPercentage(percent)
     }
 
+    /**
+     * Returns the formatted percentage.
+     * Example: "10 %"
+     * @param percent
+     * @return The formatted percentage. If the percent is null, "0 %" is returned.
+     */
     fun getFormattedPercentage(percent: BigDecimal?): String {
         if (percent.isZeroOrNull()) {
             return "0 %"
@@ -60,6 +73,13 @@ object AITimeSavings {
         return percent.formatPercent(true, scale = scale)
     }
 
+    /**
+     * Returns the formatted time saved by AI.
+     * Example: "1:30h, 10 %"
+     * @param timesheet
+     * @param emptyStringIfNull If true, an empty string is returned if the time saved by AI is null.
+     * @return The formatted time saved by AI.
+     */
     @JvmStatic
     @JvmOverloads
     fun getFormattedTimeSavedByAI(timesheet: TimesheetDO, emptyStringIfNull: Boolean = true): String {
@@ -87,9 +107,9 @@ object AITimeSavings {
     }
 
     /**
-     * Only for avoiding calculation of duration again.
+     * Returns the time saved by AI in milliseconds.
      * @param timesheet
-     * @param duration The duration of the timesheet in milliseconds.
+     * @return The time saved by AI in milliseconds. If the time saved by AI is null, 0 is returned.
      */
     @JvmStatic
     fun getTimeSavedByAIMillisOrNull(timesheet: TimesheetDO): Long? {
@@ -97,14 +117,15 @@ object AITimeSavings {
     }
 
     /**
-     * Only for avoiding calculation of duration again.
+     * Returns the time saved by AI in milliseconds.
      * @param timesheet
-     * @param duration The duration of the timesheet in milliseconds.
+     * @param duration The duration of the timesheet in milliseconds. Only for avoiding calculation of duration again.
+     * @return The time saved by AI in milliseconds. If the time saved by AI is null, 0 is returned.
      */
     fun getTimeSavedByAIMillisOrNull(timesheet: TimesheetDO, duration: Long): Long? {
         timesheet.timeSavedByAI?.let { value ->
             return when (timesheet.timeSavedByAIUnit) {
-                TimesheetDO.TimeSavedByAIUnit.HOURS -> value.toLong() * Constants.MILLIS_PER_HOUR
+                TimesheetDO.TimeSavedByAIUnit.HOURS -> value.multiply(Constants.MILLIS_PER_HOUR_BD).toLong()
                 TimesheetDO.TimeSavedByAIUnit.PERCENTAGE -> {
                     val percentage = value.toLong()
                     if (percentage >= 100) {
