@@ -105,16 +105,10 @@ class KostZuweisungExport {
         rechnungService.fetchPositionen(list)
         val kostZuweisungenMap = rechnungService.selectKostzuweisungen(list).groupBy { it.rechnungsPosition?.id }
         val kostZuweisungen = mutableListOf<KostZuweisungDO>()
-        list.forEach { rechnung ->
+        list.filter { it.isValid }.forEach { rechnung ->
             rechnung.abstractPositionen?.forEach { position ->
                 val zuweisungen = kostZuweisungenMap[position.id]
-                if (zuweisungen.isNullOrEmpty() || zuweisungen.all { it.netto.isZeroOrNull() }) {
-                    kostZuweisungen.add(KostZuweisungDO().also { // Empty kostzuweisung:
-                        it.rechnungsPosition = position as RechnungsPositionDO
-                    })
-                } else {
-                    kostZuweisungen.addAll(zuweisungen.filter { !it.netto.isZeroOrNull() })
-                }
+                zuweisungen?.filter { !it.netto.isZeroOrNull() }?.forEach { kostZuweisungen.add(it) }
             }
         }
         return export(list, kostZuweisungen, sheetTitle)

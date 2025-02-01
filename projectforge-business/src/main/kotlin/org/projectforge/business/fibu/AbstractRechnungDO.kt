@@ -128,6 +128,12 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
     abstract val abstractPositionen: List<AbstractRechnungsPositionDO>?
 
     /**
+     * True, if invoice is issued and not canceled, deleted or only planned.
+     */
+    @get:Transient
+    abstract val isValid: Boolean
+
+    /**
      * The user interface status of an invoice. The [RechnungUIStatus] is stored as XML.
      */
     @NoHistory
