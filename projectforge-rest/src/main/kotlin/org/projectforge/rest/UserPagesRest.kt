@@ -187,9 +187,9 @@ class UserPagesRest
             this,
             userAccess = userAccess,
         )
+            .add(lc, PFUserDO::username)
         if (adminAccess) {
             agGrid
-                .add(lc, PFUserDO::username)
                 .add(
                     UIAgGridColumnDef.createCol(
                         PFUserDO::deactivated,

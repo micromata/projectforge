@@ -120,15 +120,16 @@ class User(
 
     override fun copyFromMinimal(src: PFUserDO) {
         this.displayName = src.displayName
+        this.username = src.username
         if (userGroupCache.isUserMemberOfAdminGroup) {
             super.copyFromMinimal(src)
-            this.username = src.username
         }
     }
 
     override fun copyFrom(src: PFUserDO) {
         val user = PfCaches.instance.getUserIfNotInitialized(src)!!
         // Visible for non-admin user's (if in any same group)
+        copyFromMinimal(user)
         timeZone = user.timeZoneString
         gpgPublicKey = user.gpgPublicKey
         sshPublicKey = user.sshPublicKey
