@@ -49,6 +49,7 @@ import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.api.UserRightService.*
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.Menu
+import org.projectforge.menu.MenuConfiguration
 import org.projectforge.menu.MenuItem
 import org.projectforge.sms.SmsSenderConfig
 import org.springframework.beans.factory.annotation.Autowired
@@ -104,9 +105,6 @@ open class MenuCreator {
 
     @Autowired
     private lateinit var conflictingVacationsCache: ConflictingVacationsCache
-
-    @Autowired
-    private lateinit var auftragDao: AuftragDao
 
     private var initialized = false
 
@@ -221,7 +219,7 @@ open class MenuCreator {
         //
         val commonMenu = menuItemDefHolder.add(MenuItemDef(MenuItemDefId.COMMON))
             .add(MenuItemDef(MenuItemDefId.CALENDAR))
-            .add(MenuItemDef(MenuItemDefId.TEAMCALENDAR))
+            .add(MenuItemDef(MenuItemDefId.CALENDAR_LIST))
             .add(
                 MenuItemDef(MenuItemDefId.VACATION,
                     badgeCounter = { vacationMenuCounterCache.getOpenLeaveApplicationsForUser(ThreadLocalUserContext.loggedInUser) })
@@ -560,6 +558,10 @@ open class MenuCreator {
     }
 
     private fun build(parent: MenuItem?, menuItemDef: MenuItemDef, menuCreatorContext: MenuCreatorContext): MenuItem? {
+        if (!MenuConfiguration.instance.isVisible(menuItemDef)) {
+            // Not visible for the user (groups customized in projectforge.properties).
+            return null
+        }
         if (!checkAccess(menuCreatorContext, menuItemDef))
             return null // No access
         val menuItem = menuItemDef.createMenu(parent, menuCreatorContext)
