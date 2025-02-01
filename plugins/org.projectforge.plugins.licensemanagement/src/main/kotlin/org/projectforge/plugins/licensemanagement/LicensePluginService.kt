@@ -25,8 +25,8 @@ package org.projectforge.plugins.licensemanagement
 
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
-import org.projectforge.business.user.UserGroupCache
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.menu.MenuConfiguration
+import org.projectforge.menu.MenuVisibility
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -35,85 +35,24 @@ private val log = KotlinLogging.logger {}
 
 @Service
 class LicensePluginService {
-    /**
-     * List of groups that are allowed to manage and see licenses.
-     * ALL for all users, empty/NONE for no user, or csv list of group pk's or group names.
-     */
-    @Value("\${projectforge.plugins.license.allowedGroups}")
-    var allowedGroups: String? = null
-
     @Autowired
-    private lateinit var userGroupCache: UserGroupCache
+    private lateinit var menuConfiguration: MenuConfiguration
 
-    private var allowedGroupIds = emptyList<Long>()
-
-    private var allUsersAllowed = false
+    private var menuVisibility: MenuVisibility? = null
 
     @PostConstruct
     fun postConstruct() {
         instance = this
-        run {
-            allowedGroups?.split(",;")?.forEach { entry ->
-                val trimmed = entry.trim()
-                if (trimmed.isEmpty()) {
-                    return@forEach
-                } else if (trimmed.equals("ALL", ignoreCase = true)) {
-                    allowedGroupIds = emptyList()
-                    allUsersAllowed = true
-                    return@run // No need to continue. break
-                } else if (trimmed.equals("NONE", ignoreCase = true)) {
-                    allowedGroupIds = emptyList()
-                    return@run // No need to continue. break
-                }
-                val groupId = trimmed.toLongOrNull()
-                if (groupId != null) {
-                    userGroupCache.getGroup(groupId)?.id.let { id ->
-                        if (id != null) {
-                            allowedGroupIds += id
-                        } else {
-                            log.warn("No group with id $groupId found for license management in projectforge.properties:projectforge.plugins.license.allowedGroups=$allowedGroups")
-                        }
-                    }
-                    allowedGroupIds += groupId
-                } else {
-                    userGroupCache.getGroupByName(trimmed)?.id.let { id ->
-                        if (id != null) {
-                            allowedGroupIds += id
-                        } else {
-                            log.warn("No group with name '$trimmed' found for license management in projectforge.properties:projectforge.plugins.license.allowedGroups=$allowedGroups")
-                        }
-                    }
-                }
-            }
-        }
-        if (allUsersAllowed) {
-            log.info { "Allowed groups for license management: ALL users." }
-        } else if (allowedGroupIds.isEmpty()) {
-            log.info { "No groups allowed for license management (not visible and usable for any user)." }
-        } else {
-            log.info {
-                "Allowed groups for license management: ${
-                    allowedGroupIds.joinToString {
-                        userGroupCache.getGroup(
-                            it
-                        )?.name ?: "???"
-                    }
-                }"
-            }
+        menuVisibility = menuConfiguration.getMenuVisibility(LicenseManagementPlugin.ID)
+        if (menuVisibility == null) {
+            log.error { "Development error: No menu visibility found for plugin ${LicenseManagementPlugin.ID}" }
         }
     }
 
     fun hasAccess(): Boolean {
-        if (allUsersAllowed) {
-            return true
-        }
-        userGroupCache.getUserGroups(ThreadLocalUserContext.requiredLoggedInUser)?.forEach { groupId ->
-            if (allowedGroupIds.contains(groupId)) {
-                return true
-            }
-        }
-        return false
+        return menuVisibility?.isVisible() == true
     }
+
 
     companion object {
         @JvmStatic

@@ -67,14 +67,9 @@ class LicenseManagementPlugin : AbstractPlugin(
             LicenseEditPage::class.java
         )
 
-        val menuItemDef = MenuItemDef(
-            ID, "plugins.licensemanagement.menu",
-            checkAccess = {
-                LicensePluginService.instance.hasAccess()
-            })
         // Register the menu entry as sub menu entry of the misc menu:
         pluginWicketRegistrationService.registerMenuItem(
-            MenuItemDefId.MISC, menuItemDef,
+            MenuItemDefId.MISC, MenuItemDef(ID, "plugins.licensemanagement.menu"),
             LicenseListPage::class.java
         )
 

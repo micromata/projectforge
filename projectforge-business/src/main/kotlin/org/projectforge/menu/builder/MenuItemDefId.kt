@@ -50,11 +50,10 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     BIRTHDAY_BUTLER("menu.birthdayButler", getReactDynamicPageUrl("birthdayButler")), //
     BOOK_LIST("menu.bookList", getReactListUrl("book")), //
     CALENDAR("menu.calendar", getReactListUrl("calendar")), //
-    TEAMCALENDAR("menu.plugins.teamcal", getReactListUrl("teamCal")), //
+    CALENDAR_LIST("menu.plugins.teamcal", getReactListUrl("teamCal")), //
     CHANGE_PASSWORD("menu.changePassword", getReactDynamicPageUrl("changePassword")), //
     CHANGE_WLAN_PASSWORD("menu.changeWlanPassword", getReactDynamicPageUrl("changeWlanPassword")), //
     CONFIGURATION("menu.configuration", "wa/configuration"), //
-    CONTACT_LIST("menu.contactList"), //
     CONTRACTS("menu.contracts", getReactListUrl("contract")), //
     COST1_LIST("menu.fibu.kost1", getReactListUrl("cost1")), //
     COST2_LIST("menu.fibu.kost2", "wa/cost2List"), //
@@ -63,7 +62,6 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     //CUSTOMER_LIST("menu.fibu.kunden", getReactListUrl("customer")), // Doesn't work yet
 
     DATEV_IMPORT("menu.fibu.datevImport", "wa/datevImport"), //
-    DOCUMENTATION("menu.documentation"), //
     DVELOP("menu.dvelop", getReactDynamicPageUrl("dvelop")), //
     EMPLOYEE_LIST("menu.fibu.employees", getReactListUrl("employee")), //
     EMPLOYEE_SALARY_LIST("menu.fibu.employeeSalaries", "wa/employeeSalaryList"), //
@@ -74,7 +72,6 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     GROUP_LIST("menu.groupList", getReactListUrl("group")), //
     HR_PLANNING_LIST("menu.hrPlanningList", "wa/hrPlanningList"), //
     HR_VIEW("menu.hrList", "wa/hrList"), //
-    IMAGE_CROPPER("menu.imageCropper"), //
     INBOX_LIST("menu.orga.posteingang", getReactListUrl("incomingMail")), //
     INCOMING_INVOICE_LIST("menu.fibu.eingangsrechnungen", "wa/incomingInvoiceList"), //
     JOB_MONITOR("jobs.monitor.title", getReactDynamicPageUrl("jobsMonitor")), //
@@ -103,7 +100,6 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     VACATION_ACCOUNT("menu.vacation.leaveaccount", getReactDynamicPageUrl("vacationAccount")), //
     VISITORBOOK("menu.orga.visitorbook", getReactListUrl("visitorbook")), //
 
-    SPACE_LIST("menu.spaceList"), //
     PLUGIN_ADMIN("menu.pluginAdmin", "wa/wicket/bookmarkable/org.projectforge.web.admin.PluginListPage"), //
     SYSTEM("menu.system", "wa/admin"), //
     SYSTEM_STATISTICS("menu.systemStatistics", getReactDynamicPageUrl("systemStatistics"));

@@ -37,7 +37,7 @@ Anpassen in `~/ProjectForge/projectforge.properties`:
 
 [source]
 ----
-# Im development.mode wird der 2FA-Code, der sonst per SMS versendet wird auch in den Logs ausgegeben:
+# Im development.mode wird der 2FA-Code, der sonst per SMS versendet wird auch in den Logs ausgegeben. Außerdem ist das Logfile viel "gesprächiger".
 projectforge.development.mode=true
 # ProjectForge denkt hiermit, es wäre ein SMS-Gateway aktiviert:
 projectforge.sms.url=http://smsgw.localhost/api.php
