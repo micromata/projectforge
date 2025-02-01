@@ -51,6 +51,10 @@ enum class RechnungStatus(key: String) : I18nEnum {
     override val i18nKey: String?
         get() = "fibu.rechnung.status." + key
 
+    fun isIn(vararg status: RechnungStatus): Boolean {
+        return status.any { it == this }
+    }
+
     init {
         this.key = key
     }
