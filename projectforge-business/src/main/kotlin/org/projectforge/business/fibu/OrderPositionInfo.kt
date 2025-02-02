@@ -48,6 +48,7 @@ class OrderPositionInfo(position: AuftragsPositionDO? = null, order: OrderInfo? 
     var titel = position?.titel
     var status = position?.status ?: AuftragsStatus.POTENZIAL //  default value shouldn't occur!
     var paymentType = position?.paymentType
+    var forecastType = position?.forecastType
     var art = position?.art
     var personDays = position?.personDays
     var modeOfPaymentType = position?.modeOfPaymentType

@@ -37,11 +37,17 @@ import org.projectforge.web.wicket.AbstractStandardFormPage;
 
 public class TaskWizardPage extends AbstractStandardFormPage implements ISelectCallerPage, WizardPage
 {
+  enum GroupType{ MANAGER("managerGroup"), TEAM("team"), EXTERNAL("externalGroup");
+    final String key;
+    GroupType(final String key) {
+      this.key = key;
+    }
+  }
   private static final long serialVersionUID = -297781176304100445L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TaskWizardPage.class);
 
-  boolean managerGroupCreated;
+  GroupType createdGroup;
 
   private final TaskWizardForm form;
 
@@ -60,12 +66,13 @@ public class TaskWizardPage extends AbstractStandardFormPage implements ISelectC
       return;
     }
     final TaskNode taskNode = WicketSupport.getTaskDao().getTaskTree().getTaskNodeById(form.task.getId());
-    createAccessRights(taskNode, form.managerGroup, true, true);
-    createAccessRights(taskNode, form.team, false, true);
-    setResponsePage(TaskTreePage.class);
+    createAccessRights(taskNode, form.managerGroup, GroupType.MANAGER, true);
+    createAccessRights(taskNode, form.externalGroup, GroupType.EXTERNAL, true);
+    createAccessRights(taskNode, form.team, GroupType.TEAM, true);
+    setResponsePage(getReturnToPage());
   }
 
-  private void createAccessRights(final TaskNode taskNode, final GroupDO group, final boolean isManagerGroup,
+  private void createAccessRights(final TaskNode taskNode, final GroupDO group, final GroupType groupType,
       final boolean isLeaf)
   {
     if (taskNode == null || group == null || taskNode.getId() == null || group.getId() == null) {
@@ -88,15 +95,22 @@ public class TaskWizardPage extends AbstractStandardFormPage implements ISelectC
     if (isLeaf == false) {
       access.guest();
       access.setRecursive(false);
-    } else if (isManagerGroup) {
+    } else if (groupType == GroupType.MANAGER) {
       access.leader();
       access.setRecursive(true);
-    } else {
+    } else if (groupType == GroupType.EXTERNAL) {
+      access.external();
+      access.setRecursive(true);
+    } else if (groupType == GroupType.TEAM) {
       access.employee();
       access.setRecursive(true);
+    } else {
+        log.error("Unknown group type: " + groupType);
+        return;
     }
     accessDao.insertOrUpdate(access);
-    createAccessRights(taskNode.getParent(), group, isManagerGroup, false);
+    // Set minimal access rights for parent task up to the root task.
+    createAccessRights(taskNode.getParent(), group, groupType, false);
   }
 
   /**
@@ -124,6 +138,9 @@ public class TaskWizardPage extends AbstractStandardFormPage implements ISelectC
     } else if ("teamId".equals(property) == true) {
       form.team = groupDao.find((Long) selectedValue);
       form.groupSelectPanelTeam.getTextField().modelChanged();
+    } else if ("externalGroupId".equals(property) == true) {
+      form.externalGroup = groupDao.find((Long) selectedValue);
+      form.groupSelectPanelExternal.getTextField().modelChanged();
     } else {
       log.error("Property '" + property + "' not supported for selection.");
     }
@@ -140,6 +157,9 @@ public class TaskWizardPage extends AbstractStandardFormPage implements ISelectC
     } else if ("teamId".equals(property) == true) {
       form.team = null;
       form.groupSelectPanelTeam.getTextField().modelChanged();
+    } else if ("externalGroupId".equals(property) == true) {
+      form.externalGroup = null;
+      form.groupSelectPanelExternal.getTextField().modelChanged();
     } else {
       log.error("Property '" + property + "' not supported for deselection.");
     }
@@ -159,8 +179,10 @@ public class TaskWizardPage extends AbstractStandardFormPage implements ISelectC
     } else if (createdObject instanceof TaskDO) {
       form.task = (TaskDO) createdObject;
     } else if (createdObject instanceof GroupDO) {
-      if (managerGroupCreated == true) {
+      if (createdGroup == GroupType.MANAGER) {
         form.managerGroup = (GroupDO) createdObject;
+      } else if (createdObject == GroupType.EXTERNAL) {
+        form.externalGroup = (GroupDO) createdObject;
       } else {
         form.team = (GroupDO) createdObject;
       }

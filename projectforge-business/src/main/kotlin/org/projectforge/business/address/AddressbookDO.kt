@@ -61,7 +61,7 @@ open class AddressbookDO : BaseUserGroupRightsDO(), DisplayNameCapable {
 
     @PropertyInfo(i18nKey = "addressbook.owner")
     @IndexedEmbedded(includeDepth = 1)
-    @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:ManyToOne(fetch = FetchType.EAGER)
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "owner_fk")
     @JsonSerialize(using = IdOnlySerializer::class)

@@ -29,6 +29,7 @@ import org.projectforge.business.user.service.UserXmlPreferencesService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.Menu
+import org.projectforge.menu.MenuConfiguration
 import org.projectforge.menu.MenuItem
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.core.PluginsRegistry
@@ -59,6 +60,7 @@ open class FavoritesMenuCreator {
         PluginsRegistry.instance().plugins.forEach {activePlugin ->
             activePlugin.handleFavoriteMenu(menu, menu.getAllDescendants())
         }
+        menu.menuItems.removeIf { !MenuConfiguration.instance.isVisible(it.menuItemDef) }
         menu.postProcess() // Build badges of top menus.
         return menu
     }
