@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu.orderbooksnapshots
 
 import org.projectforge.business.fibu.AuftragDO
+import org.projectforge.business.fibu.AuftragForecastType
 import org.projectforge.business.fibu.AuftragsStatus
 import org.projectforge.business.fibu.OrderInfo
 import java.math.BigDecimal
@@ -48,6 +49,7 @@ internal class Order {
     var periodOfPerformanceBegin: LocalDate? = null
     var periodOfPerformanceEnd: LocalDate? = null
     var probabilityOfOccurrence: Int? = null
+    var forecastType: AuftragForecastType? = null
 
     /**
      * [OrderInfo.netSum]
@@ -129,6 +131,7 @@ internal class Order {
                 periodOfPerformanceBegin = order.periodOfPerformanceBegin
                 periodOfPerformanceEnd = order.periodOfPerformanceEnd
                 probabilityOfOccurrence = order.probabilityOfOccurrence
+                forecastType = order.forecastType
 
                 val info = order.info
                 netSum = info.netSum

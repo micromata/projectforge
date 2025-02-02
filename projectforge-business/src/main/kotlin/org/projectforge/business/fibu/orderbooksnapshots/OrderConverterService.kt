@@ -78,6 +78,7 @@ internal class OrderConverterService {
             periodOfPerformanceBegin = order.periodOfPerformanceBegin
             periodOfPerformanceEnd = order.periodOfPerformanceEnd
             probabilityOfOccurrence = order.probabilityOfOccurrence
+            forecastType = order.forecastType
             // Write the fields also to the info object.
             info.snapshotDate = snapshotDate
             info.nummer = order.nummer
@@ -97,6 +98,7 @@ internal class OrderConverterService {
             info.periodOfPerformanceBegin = order.periodOfPerformanceBegin
             info.periodOfPerformanceEnd = order.periodOfPerformanceEnd
             info.probabilityOfOccurrence = order.probabilityOfOccurrence
+            info.forecastType = order.forecastType
             info.infoPositions = positionen?.map { OrderPositionInfo(it, info).also { it.snapshotVersion = true } }
             info.infoPositions?.forEach { infoPos ->
                 order.positionen?.find { it.number == infoPos.number }?.let { pos ->
@@ -123,6 +125,7 @@ internal class OrderConverterService {
             task = caches.getTask(pos.taskId)
             art = pos.art
             paymentType = pos.paymentType
+            forecastType = pos.forecastType
             status = pos.status
             titel = pos.titel
             nettoSumme = pos.netSum
