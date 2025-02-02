@@ -23,9 +23,11 @@
 
 package org.projectforge.web.wicket;
 
+import org.apache.wicket.request.IRequestCycle;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.handler.resource.ResourceStreamRequestHandler;
+import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.resource.ContentDisposition;
 import org.apache.wicket.util.resource.IResourceStream;
 import org.projectforge.common.MimeType;
@@ -80,18 +82,21 @@ public class DownloadUtils {
     } else {
       byteArrayResourceStream = new ByteArrayResourceStream(content, filename);
     }
-    final ResourceStreamRequestHandler handler = new ResourceStreamRequestHandler(byteArrayResourceStream);
+    final ResourceStreamRequestHandler handler = new ResourceStreamRequestHandler(byteArrayResourceStream) {
+      @Override
+      public void respond(IRequestCycle requestCycle) {
+        WebResponse response = (WebResponse) requestCycle.getResponse();
+        response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+        response.setHeader("Pragma", "no-cache");
+        response.setHeader("Expires", "0");
+
+        super.respond(requestCycle);
+      }
+    };
     handler.setFileName(filename).setContentDisposition(ContentDisposition.ATTACHMENT);
-    handler.setCacheDuration(Duration.ofSeconds(1));
+    handler.setCacheDuration(Duration.ZERO);
     RequestCycle.get().scheduleRequestHandlerAfterCurrent(handler);
     log.info("Starting download for file. filename:" + filename + ", content-type:" + byteArrayResourceStream.getContentType());
-  }
-
-  public static void setDownloadTarget(final String filename, final IResourceStream resourceStream) {
-    final ResourceStreamRequestHandler handler = new ResourceStreamRequestHandler(resourceStream);
-    handler.setFileName(filename).setContentDisposition(ContentDisposition.ATTACHMENT);
-    RequestCycle.get().scheduleRequestHandlerAfterCurrent(handler);
-    log.info("Starting download for file. filename:" + filename + ", content-type:" + resourceStream.getContentType());
   }
 
   /**
