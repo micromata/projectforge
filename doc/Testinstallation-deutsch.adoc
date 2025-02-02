@@ -28,12 +28,12 @@ Browser öffnen: `http://localhost:8080` öffnen
 . Fertig stellen klicken.
 
 ===== System herunterfahren
-Einfach `CTRL-C` drücken.
+Einfach `CTRL-C` im Terminal drücken.
 
 ===== Anpassungen
 Anpassungen in der Konfiguration können hier durchgeführt werden:
 
-Anpassen in `~/ProjectForge/projectforge.properties`:
+Anpassen in `~/ProjectForge/projectforge.properties` (irgendwo hinzufügen):
 
 [source]
 ----
@@ -47,6 +47,14 @@ projectforge.sms.url=http://smsgw.localhost/api.php
 
 Starten über `java -jar projectforge-application-8.1-xxx.jar`
 
+===== 2. Faktor (ohne Mailserver und SMS-Gateway) simulieren:
+- Als admin/**** anmelden.
+- Unter *Administration* -> *Users* -> User *admin* auswählen.
+- Mobilfunknummer '123456789' eintragen.
+
+Nun kann der 2. Faktor per SMS versendet werden. Es gibt eine Fehlermeldung, aber aufgrund der obigen Einstellung `projectforge.development.mode=true` in `~/ProjectForge/projectforge.properties` wird der 2. Faktor in den Logs zu Debug-Zwecken ausgegeben.
+
+Anschließend kann Yubikey, Google Authenticator oder andere 2FA-Methoden konfiguruiert werden.
 
 ===== Weitere Konfigmöglichkeiten
 
@@ -55,7 +63,7 @@ Hier ist die Datei mit allen Konfigurationsmöglichkeiten:
 https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/application.properties[application.properties]
 
 ===== Reset
-Einfach herunterfahren, `~/ProjectForge` löschen und von vorn beginnen.
+Einfach herunterfahren, `~/ProjectForge` löschen (Datenbank ist dann gelöscht) und von vorn beginnen.
 
 ===== Doku
 Doku liegt unter
