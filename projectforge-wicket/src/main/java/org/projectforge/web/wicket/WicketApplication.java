@@ -30,11 +30,13 @@ import org.apache.wicket.core.request.handler.PageProvider;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.protocol.http.WebApplication;
+import org.apache.wicket.request.IRequestCycle;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.request.cycle.IRequestCycleListener;
 import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.resource.loader.BundleStringResourceLoader;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
@@ -253,7 +255,17 @@ public class WicketApplication extends WebApplication implements WicketApplicati
                 }
             }
         });
-
+        // Set Cache-Control Header for all pages.
+        getRequestCycleListeners().add(new IRequestCycleListener() {
+            @Override
+            public void onRequestHandlerResolved(RequestCycle cycle, IRequestHandler handler) {
+                if (cycle.getResponse() instanceof WebResponse response) {
+                    response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+                    response.setHeader("Pragma", "no-cache");
+                    response.setHeader("Expires", "0");
+                }
+            }
+        });
         getApplicationSettings().setDefaultMaximumUploadSize(Bytes.megabytes(100));
         getMarkupSettings().setDefaultMarkupEncoding("utf-8");
         final MyAuthorizationStrategy authStrategy = new MyAuthorizationStrategy();
