@@ -168,6 +168,11 @@ class ForecastOrderAnalysis {
                 "${orderInfo.periodOfPerformanceBegin.formatForUser()} - ${orderInfo.periodOfPerformanceEnd.formatForUser()}"
             )
             addRow(table, translate("fibu.probabilityOfOccurrence"), "${orderInfo.probabilityOfOccurrence} %")
+            addRow(
+                table,
+                translate("fibu.auftrag.forecastType"),
+                "${translate(ForecastUtils.getForecastType(orderInfo).i18nKey)}: ${translate("fibu.auftrag.forecastType.info")}"
+            )
             addRow(table, translate("fibu.auftrag.nettoSumme"), orderInfo.netSum.formatCurrency(true))
             addRow(
                 table,
