@@ -26,14 +26,7 @@ package org.projectforge.business.fibu
 import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.ObjectPath
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyValue
-import org.projectforge.business.fibu.kost.Kost1DO
-import org.projectforge.business.fibu.kost.Kost2DO
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
 import org.projectforge.framework.persistence.candh.CandHIgnore
@@ -196,7 +189,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
         addPositionWithoutCheck(position)
     }
 
-    abstract protected fun addPositionWithoutCheck(position: AbstractRechnungsPositionDO)
+    protected abstract fun addPositionWithoutCheck(position: AbstractRechnungsPositionDO)
 
     abstract fun setAbstractRechnung(position: AbstractRechnungsPositionDO)
 
