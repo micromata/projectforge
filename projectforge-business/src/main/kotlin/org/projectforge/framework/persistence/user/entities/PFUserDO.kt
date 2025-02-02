@@ -34,7 +34,6 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.json.IdsOnlySerializer
-import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.time.PFDateTime
@@ -410,19 +409,6 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
         this.rights!!.add(right)
         right.user = this
         return this
-    }
-
-    @Transient
-    fun getRight(rightId: IUserRightId): UserRightDO? {
-        if (this.rights == null) {
-            return null
-        }
-        for (right in this.rights!!) {
-            if (right.rightIdString == rightId.id) {
-                return right
-            }
-        }
-        return null
     }
 
     /**

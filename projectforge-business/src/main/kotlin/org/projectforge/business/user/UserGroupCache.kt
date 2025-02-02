@@ -30,16 +30,14 @@ import org.projectforge.business.login.Login
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.jobs.JobHandler
-import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.api.HibernateUtils
+import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
-import org.projectforge.framework.persistence.utils.CollectionDebugUtils
-import org.projectforge.framework.persistence.utils.CollectionUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -91,7 +89,7 @@ open class UserGroupCache : AbstractCache() {
      * List of all rights (value) defined for the user ids (key).
      * Mustn't be synchronized because it is only read by the cache.
      */
-    internal var rightMap = mapOf<Long, List<UserRightDO>>()
+    internal var rightMap = mapOf<Long, Set<UserRightDO>>()
 
     /**
      * Must be synchronized because it is mutable.
@@ -106,6 +104,11 @@ open class UserGroupCache : AbstractCache() {
     internal var marketingUsers = setOf<Long>()
     internal var orgaUsers = setOf<Long>()
     internal var hrUsers = setOf<Long>()
+
+    fun getGroupByName(name: String): GroupDO? {
+        checkRefresh()
+        return groupMap.values.find { name == it.name }
+    }
 
     fun getGroup(group: ProjectForgeGroup): GroupDO? {
         checkRefresh()
@@ -354,9 +357,13 @@ open class UserGroupCache : AbstractCache() {
         return false
     }
 
-    fun getUserRights(userId: Long?): List<UserRightDO>? {
+    fun getUserRights(userId: Long?): Collection<UserRightDO>? {
         checkRefresh()
         return rightMap[userId]
+    }
+
+    fun getUserRight(userId: Long?, rightId: IUserRightId): UserRightDO? {
+        return getUserRights(userId)?.find { it.rightIdString == rightId.id }
     }
 
     /**
@@ -460,7 +467,7 @@ open class UserGroupCache : AbstractCache() {
             this.orgaUsers = nOrgaUsers
             this.hrUsers = nhrUsers
             this.userGroupIdMap = ugIdMap
-            val rMap = mutableMapOf<Long, List<UserRightDO>>()
+            val rMap = mutableMapOf<Long, Set<UserRightDO>>()
             val rights = try {
                 userRightDao.selectAllOrdered()
             } catch (ex: Exception) {
@@ -471,7 +478,7 @@ open class UserGroupCache : AbstractCache() {
                 )
                 ArrayList()
             }
-            var list: MutableList<UserRightDO>? = null
+            var set: MutableSet<UserRightDO>? = null
             var userId: Long? = null
             for (right in rights) {
                 if (right.userId == null) {
@@ -479,17 +486,20 @@ open class UserGroupCache : AbstractCache() {
                     continue
                 }
                 if (right.userId != userId) {
-                    list = ArrayList()
+                    // New user:
+                    set = mutableSetOf()
                     userId = right.userId
                     if (userId != null) {
-                        rMap[userId] = list
+                        rMap[userId] = set
+                        uMap[userId]?.rights =
+                            set // Set also the rights of the user (wasn't fetched from the database).
                     }
                 }
                 if (userRightService.getRight(right.rightIdString) != null
                     && userRightService.getRight(right.rightIdString)
                         .isAvailable(right.user, getUserGroupDOs(right.user))
                 ) {
-                    list!!.add(right)
+                    set!!.add(right)
                 }
             }
             this.rightMap = rMap

@@ -28,7 +28,6 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.projectforge.Constants
 import org.projectforge.business.test.TestSetup
-import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.time.Month
 import java.time.ZoneId
@@ -38,11 +37,11 @@ class AITimeSavingsTest {
     @Test
     fun testBuildStats() {
         val timesheets = listOf(
-            createTimesheet(120, 1, TimesheetDO.TimeSavedByAIUnit.HOURS),      // 1 hour saved by AI.
-            createTimesheet(60, 50, TimesheetDO.TimeSavedByAIUnit.PERCENTAGE), // 1 hour saved by AI.
-            createTimesheet(60, 0, TimesheetDO.TimeSavedByAIUnit.PERCENTAGE), // No AI time saved.
-            createTimesheet(60, 0, TimesheetDO.TimeSavedByAIUnit.HOURS), // No AI time saved.
-            createTimesheet(60, 50, null), // No unit specified (shouldn't happen).
+            createTimesheet(120, "1", TimesheetDO.TimeSavedByAIUnit.HOURS),      // 1 hour saved by AI.
+            createTimesheet(60, "50", TimesheetDO.TimeSavedByAIUnit.PERCENTAGE), // 1 hour saved by AI.
+            createTimesheet(60, "0", TimesheetDO.TimeSavedByAIUnit.PERCENTAGE), // No AI time saved.
+            createTimesheet(60, "0", TimesheetDO.TimeSavedByAIUnit.HOURS), // No AI time saved.
+            createTimesheet(60, "50", null), // No unit specified (shouldn't happen).
             createTimesheet(60, null, TimesheetDO.TimeSavedByAIUnit.HOURS), // No AI time saved.
             createTimesheet(60, null, TimesheetDO.TimeSavedByAIUnit.PERCENTAGE), // No AI time saved.
         )
@@ -57,22 +56,25 @@ class AITimeSavingsTest {
 
     @Test
     fun `test getTimeSavedByAIMillis`() {
-        createTimesheet(120, 1, TimesheetDO.TimeSavedByAIUnit.HOURS).also {
+        createTimesheet(120, "1", TimesheetDO.TimeSavedByAIUnit.HOURS).also {
             Assertions.assertEquals(Constants.MILLIS_PER_HOUR, AITimeSavings.getTimeSavedByAIMillis(it))
         }
-        createTimesheet(9 * 60, 10, TimesheetDO.TimeSavedByAIUnit.PERCENTAGE).also {
+        createTimesheet(120, ".5", TimesheetDO.TimeSavedByAIUnit.HOURS).also {
+            Assertions.assertEquals(Constants.MILLIS_PER_HOUR / 2, AITimeSavings.getTimeSavedByAIMillis(it))
+        }
+        createTimesheet(9 * 60, "10", TimesheetDO.TimeSavedByAIUnit.PERCENTAGE).also {
             Assertions.assertEquals(Constants.MILLIS_PER_HOUR, AITimeSavings.getTimeSavedByAIMillis(it))
         }
-        createTimesheet(60, 50, TimesheetDO.TimeSavedByAIUnit.PERCENTAGE).also {
+        createTimesheet(60, "50", TimesheetDO.TimeSavedByAIUnit.PERCENTAGE).also {
             Assertions.assertEquals(Constants.MILLIS_PER_HOUR, AITimeSavings.getTimeSavedByAIMillis(it))
         }
-        createTimesheet(60, 0, TimesheetDO.TimeSavedByAIUnit.PERCENTAGE).also {
+        createTimesheet(60, "0", TimesheetDO.TimeSavedByAIUnit.PERCENTAGE).also {
             Assertions.assertEquals(0, AITimeSavings.getTimeSavedByAIMillis(it))
         }
-        createTimesheet(60, 0, TimesheetDO.TimeSavedByAIUnit.HOURS).also {
+        createTimesheet(60, "0", TimesheetDO.TimeSavedByAIUnit.HOURS).also {
             Assertions.assertEquals(0, AITimeSavings.getTimeSavedByAIMillis(it))
         }
-        createTimesheet(60, 50, null).also {
+        createTimesheet(60, "50", null).also {
             Assertions.assertEquals(0, AITimeSavings.getTimeSavedByAIMillis(it))
         }
         createTimesheet(60, null, TimesheetDO.TimeSavedByAIUnit.HOURS).also {
@@ -85,17 +87,17 @@ class AITimeSavingsTest {
 
     @Test
     fun `test formatting of duration and time savings`() {
-        createTimesheet(120, 1, TimesheetDO.TimeSavedByAIUnit.HOURS).also {
+        createTimesheet(120, "1", TimesheetDO.TimeSavedByAIUnit.HOURS).also {
             Assertions.assertEquals("1:00h, 33 %", AITimeSavings.getFormattedTimeSavedByAI(it))
         }
-        createTimesheet(120, 10, TimesheetDO.TimeSavedByAIUnit.PERCENTAGE).also {
+        createTimesheet(120, "10", TimesheetDO.TimeSavedByAIUnit.PERCENTAGE).also {
             Assertions.assertEquals("0:13h, 10 %", AITimeSavings.getFormattedTimeSavedByAI(it))
         }
-        createTimesheet(120, 12, TimesheetDO.TimeSavedByAIUnit.PERCENTAGE).also {
+        createTimesheet(120, "12", TimesheetDO.TimeSavedByAIUnit.PERCENTAGE).also {
             // 15,84 minutes -> 16 minutes (half round up)
             Assertions.assertEquals("0:16h, 12 %", AITimeSavings.getFormattedTimeSavedByAI(it))
         }
-        createTimesheet(7*60, 3, TimesheetDO.TimeSavedByAIUnit.PERCENTAGE).also {
+        createTimesheet(7 * 60, "3", TimesheetDO.TimeSavedByAIUnit.PERCENTAGE).also {
             // 12,98 minutes n-> 13 minutes (half round up)
             Assertions.assertEquals("0:13h, 3,0 %", AITimeSavings.getFormattedTimeSavedByAI(it))
         }
@@ -103,13 +105,14 @@ class AITimeSavingsTest {
 
     private fun createTimesheet(
         durationMinutes: Long,
-        timeSavedByAI: Long?,
+        timeSavedByAIString: String?,
         timeSavedByAIUnit: TimesheetDO.TimeSavedByAIUnit?
     ): TimesheetDO {
+        val timeSavedByAI = timeSavedByAIString?.toBigDecimalOrNull()
         return TimesheetDO().also {
             it.startTime = START_TIME
             it.stopTime = Date(START_TIME.time + durationMinutes * Constants.MILLIS_PER_MINUTE)
-            it.timeSavedByAI = if (timeSavedByAI != null) BigDecimal(timeSavedByAI) else null
+            it.timeSavedByAI = timeSavedByAI
             it.timeSavedByAIUnit = timeSavedByAIUnit
         }
     }

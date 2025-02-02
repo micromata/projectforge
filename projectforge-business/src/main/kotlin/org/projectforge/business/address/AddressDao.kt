@@ -29,7 +29,6 @@ import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.ArrayUtils
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.teamcal.event.TeamEventDao
-import org.projectforge.business.user.UserRightId
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
@@ -41,7 +40,6 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
-import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -72,11 +70,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
     @Autowired
     private lateinit var addressbookCache: AddressbookCache
 
-    @Autowired
-    private lateinit var userRights: UserRightService
-
-    @Transient
-    private var addressbookRight: AddressbookRight? = null
+    private val addressbookRight = AddressbookRight()
 
     @Autowired
     private lateinit var personalAddressDao: PersonalAddressDao
@@ -254,11 +248,8 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
             //Global addressbook is selectable for every one
             abIdList.add(AddressbookDao.GLOBAL_ADDRESSBOOK_ID)
             //Get all addressbooks for user
-            if (addressbookRight == null) {
-                addressbookRight = userRights.getRight(UserRightId.MISC_ADDRESSBOOK) as AddressbookRight
-            }
             for (ab in addressbookDao.selectAllNotDeleted(checkAccess = false)) {
-                if (!ab.deleted && addressbookRight!!.hasSelectAccess(loggedInUser, ab)) {
+                if (!ab.deleted && addressbookRight.hasSelectAccess(loggedInUser, ab)) {
                     ab.id?.let {
                         abIdList.add(it)
                     }
@@ -275,30 +266,25 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         operationType: OperationType,
         throwException: Boolean
     ): Boolean {
-        if (addressbookRight == null) {
-            addressbookRight = userRights.getRight(UserRightId.MISC_ADDRESSBOOK) as AddressbookRight
-        }
         val addressbookList = addressbookCache.getAddressbooksForAddress(obj) ?: obj?.addressbookList
         if (addressbookList.isNullOrEmpty()) {
             return true
         }
-        when (operationType) {
-            OperationType.SELECT -> {
-                addressbookList.forEach { ab ->
-                    if (addressbookRight!!.checkGlobal(ab) || addressbookRight!!.getAccessType(ab, user.id)
-                            .hasAnyAccess()
-                    ) {
+        addressbookList.forEach { ab ->
+            val addressBook = addressbookCache.getAddressbook(ab)
+            if (addressBook == null) {
+                log.error("Addressbook not found: $ab")
+                return@forEach // Skip this addressbook.
+            }
+            when (operationType) {
+                OperationType.SELECT -> {
+                    if (addressbookRight.getAccessType(addressBook, user.id).hasAnyAccess()) {
                         return true
                     }
                 }
-            }
 
-            else -> {
-                for (ab in addressbookList) {
-                    if (addressbookRight!!.checkGlobal(ab) || addressbookRight!!.hasFullAccess(
-                            addressbookCache.getAddressbook(ab), user.id
-                        )
-                    ) {
+                else -> {
+                    if (addressbookRight.hasFullAccess(addressBook, user.id)) {
                         return true
                     }
                 }
@@ -319,7 +305,6 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         } else {
             //Check addressbook changes
             val dbAddress = find(obj.id, checkAccess = false)!!
-            val addressbookRight = userRights.getRight(UserRightId.MISC_ADDRESSBOOK) as AddressbookRight
             dbAddress.addressbookList?.forEach { dbAddressbook ->
                 //If user has no right for assigned addressbook, it could not be removed
                 if (!addressbookRight.hasSelectAccess(loggedInUser, dbAddressbook)

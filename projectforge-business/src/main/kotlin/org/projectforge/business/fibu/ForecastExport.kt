@@ -500,6 +500,7 @@ open class ForecastExport { // open needed by Wicket.
             ForecastCol.ANZAHL_MONATE.header,
             ForecastUtils.getMonthCountForOrderPosition(order, pos)
         )
+        sheet.setStringValue(row, ForecastCol.FORECAST_TYPE.header, translate(ForecastUtils.getForecastType(order, pos).i18nKey))
         val remaining = forecastInfo.getRemainingForecastSumAfter(ctx.endDate)
         if (remaining.compareTo(BigDecimal.ZERO) != 0) {
             sheet.setBigDecimalValue(row, ForecastCol.REMAINING.header, remaining).cellStyle =

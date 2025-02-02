@@ -75,6 +75,7 @@ class OrderInfo : Serializable {
     var projektId: Long? = null
     var projektAsString: String? = null
     var probabilityOfOccurrence: Int? = null
+    var forecastType: AuftragForecastType? = null
     var periodOfPerformanceBegin: LocalDate? = null
     var periodOfPerformanceEnd: LocalDate? = null
 
@@ -125,6 +126,7 @@ class OrderInfo : Serializable {
         projektId = order.projekt?.id
         projektAsString = order.projektAsString
         probabilityOfOccurrence = order.probabilityOfOccurrence
+        forecastType = order.forecastType
         periodOfPerformanceBegin = order.periodOfPerformanceBegin
         periodOfPerformanceEnd = order.periodOfPerformanceEnd
         contactPerson = order.contactPerson
