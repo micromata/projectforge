@@ -23,6 +23,8 @@
 
 package org.projectforge.plugins.marketing;
 
+import org.projectforge.business.address.AddressbookDao;
+import org.projectforge.business.address.AddressbookRight;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserRightAccessCheck;
 import org.projectforge.business.user.UserRightCategory;
@@ -38,6 +40,8 @@ import org.projectforge.web.WicketSupport;
 public class AddressCampaignRight extends UserRightAccessCheck<AddressCampaignDO> {
   private static final long serialVersionUID = 4021610615575404717L;
 
+  private AddressbookRight addressbookRight = new AddressbookRight();
+
   public AddressCampaignRight() {
     super(MarketingPluginUserRightId.PLUGIN_MARKETING_ADDRESS_CAMPAIGN,
         UserRightCategory.PLUGINS,
@@ -51,7 +55,12 @@ public class AddressCampaignRight extends UserRightAccessCheck<AddressCampaignDO
   public boolean hasAccess(final PFUserDO user, final AddressCampaignDO obj, final AddressCampaignDO oldObj,
                            final OperationType operationType) {
     var accessChecker = WicketSupport.getAccessChecker();
-    return operationType == OperationType.SELECT == true || accessChecker.isUserMemberOfAdminGroup(user) ||
-        accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.MARKETING_GROUP);
+    if (accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.MARKETING_GROUP)) {
+      return true;
+    }
+    if (operationType != OperationType.SELECT) {
+      return false;
+    }
+    return WicketSupport.get(AddressbookDao.class).hasAccessToGlobalAddressBook(user);
   }
 }

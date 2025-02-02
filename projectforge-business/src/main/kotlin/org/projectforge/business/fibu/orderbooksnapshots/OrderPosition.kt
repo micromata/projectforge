@@ -27,12 +27,16 @@ import org.projectforge.business.fibu.*
 import java.math.BigDecimal
 import java.time.LocalDate
 
+/**
+ * For storing serializing and deserializing orders.
+ */
 internal class OrderPosition {
     var id: Long? = null
     var number: Short = 0
     var taskId: Long? = null
     var art: AuftragsPositionsArt? = null
     var paymentType: AuftragsPositionsPaymentType? = null
+    var forecastType: AuftragForecastType? = null
     var status: AuftragsStatus? = null
     var titel: String? = null
     var netSum: BigDecimal? = null
@@ -57,6 +61,7 @@ internal class OrderPosition {
                 taskId = pos.taskId
                 art = pos.art
                 paymentType = pos.paymentType
+                forecastType = pos.forecastType
                 status = pos.status
                 titel = Order.abbreviate(pos.titel)
                 netSum = pos.netSum

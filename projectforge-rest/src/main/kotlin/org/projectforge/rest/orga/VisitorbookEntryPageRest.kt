@@ -74,7 +74,7 @@ class VisitorbookEntryPageRest : AbstractDynamicPageRest() {
         }
         val lc = LayoutContext(VisitorbookEntryDO::class.java)
         val layout = UILayout("orga.visitorbook.timeofvisit")
-        layout.add(lc, "dateOfVisit", "arrived", "departed", "contactPerson", "comment")
+        layout.add(lc, "dateOfVisit", "arrived", "departed", "comment")
         layout.addAction(UIButton.createCancelButton(responseAction = ResponseAction(targetType = TargetType.CLOSE_MODAL)))
         if (id < 0) {
             // New entry

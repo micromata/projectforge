@@ -26,43 +26,27 @@ package org.projectforge.business.fibu
 import org.projectforge.common.i18n.I18nEnum
 
 /**
- *
+ * When sales of an order are distributed, this can be used to determine, for example, whether sales are
+ * invoiced/forecast in the current month or in the following month.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-enum class RechnungStatus(key: String) : I18nEnum {
-    GEPLANT("geplant"), GESTELLT("gestellt"), ZAHLUNGSERINNERUNG1("zahlungserinnerung1"), ZAHLUNGSERINNERUNG2("zahlungserinnerung2"), GEMAHNT(
-        "gemahnt"
-    ),
-    STORNIERT("storniert"), BEZAHLT("bezahlt");
-
-    private val key: String
+enum class AuftragForecastType(val key: String) : I18nEnum {
+    CURRENT_MONTH("currentMonth"),
 
     /**
-     * The key will be used e. g. for i18n.
-     * @return
+     * Sales are invoiced/forecast in the following month. This is the default.
      */
-    fun getKey(): String {
-        return key
-    }
+    FOLLOWING_MONTH("followingMonth");
 
     /**
-     * @return The full i18n key including the i18n prefix "fibu.rechnung.status.".
+     * @return The full i18n key including the i18n prefix "book.type.".
      */
-    override val i18nKey: String?
-        get() = "fibu.rechnung.status." + key
-
-    fun isIn(vararg status: RechnungStatus): Boolean {
-        return status.any { it == this }
-    }
-
-    init {
-        this.key = key
-    }
+    override val i18nKey: String
+        get() = "$baseKey.$key"
 
     companion object {
-        fun safeValueOf(name: String?): RechnungStatus? {
-            name ?: return null
-            return RechnungStatus.entries.firstOrNull { it.name == name }
-        }
+        val default = FOLLOWING_MONTH
+        @JvmStatic
+        val baseKey = "fibu.auftrag.forecastType"
     }
 }

@@ -131,7 +131,7 @@ class UISelect<T>(
                 multi = multi,
                 label = label ?: ElementsRegistry.getElementInfo(lc, id)?.i18nKey,
                 additionalLabel = additionalLabel ?: ElementsRegistry.getElementInfo(lc, id)?.additionalI18nKey,
-                autoCompletion = null,
+                autoCompletion = AutoCompletion.getAutoCompletion4Employees(showOnlyActiveEmployees),
                 tooltip = tooltip ?: ElementsRegistry.getElementInfo(lc, id)?.tooltipI18nKey,
                 required = required,
             )

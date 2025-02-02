@@ -99,6 +99,17 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   @get:Column(name = "paymentType", length = 30)
   open var paymentType: AuftragsPositionsPaymentType? = null
 
+  /**
+   * When sales of an order are distributed, this can be used to determine, for example, whether sales are
+   * invoiced/forecast in the current month or in the following month.
+   * Default is [AuftragDO.forecastType].
+   */
+  @PropertyInfo(i18nKey = "fibu.auftrag.forecastType", tooltip = "fibu.auftrag.forecastType.info")
+  @FullTextField
+  @get:Enumerated(EnumType.STRING)
+  @get:Column(name = "forecast_type", length = 20)
+  open var forecastType: AuftragForecastType? = null
+
   @PropertyInfo(i18nKey = "fibu.auftrag.position.status")
   @FullTextField
   @get:Enumerated(EnumType.STRING)

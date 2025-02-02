@@ -357,7 +357,9 @@ class TaskServicesRest {
             val children = taskNode.children.toMutableList()
             children.sortBy { it.task.title }
             children.forEach { node ->
-                if (ctx.taskFilter.match(node, taskDao, ctx.user)) {
+                if (ctx.taskFilter.match(node, taskDao, ctx.user) &&
+                    taskDao.hasUserSelectAccess(ctx.user, node.getTask(), false)
+                ) {
                     val child = Task(node)
                     addKost2List(child, false)
                     child.consumption = Consumption.create(node)

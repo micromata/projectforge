@@ -210,7 +210,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
             public void populateItem(final Item<ICellPopulator<RechnungDO>> item, final String componentId,
                                      final IModel<RechnungDO> rowModel) {
                 RechnungDO invoice = rowModel.getObject();
-                final Set<OrderPositionInfo> orderPositions = RechnungCache.getInstance().getOrderPositionInfos(invoice.getId());
+                final Set<OrderPositionInfo> orderPositions = RechnungCache.getInstance().getOrderPositionInfosOfInvoice(invoice.getId());
                 if (CollectionUtils.isEmpty(orderPositions) == true) {
                     item.add(AbstractUnsecureBasePage.createInvisibleDummyComponent(componentId));
                 } else {

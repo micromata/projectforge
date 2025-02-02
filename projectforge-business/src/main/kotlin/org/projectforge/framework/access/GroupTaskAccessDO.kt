@@ -278,7 +278,7 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
     }
 
     /**
-     * This template is used as default for employees. The have read access to the access management, full access to tasks
+     * This template is used as default for employees. They have read access to the access management, full access to tasks
      * and own time sheets and only read-access to foreign time sheets.
      */
     fun employee() {
@@ -286,6 +286,17 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
         ensureAndGetTasksEntry().setAccess(true, true, true, true)
         ensureAndGetOwnTimesheetsEntry().setAccess(true, true, true, true)
         ensureAndGetTimesheetsEntry().setAccess(true, false, false, false)
+    }
+
+    /**
+     * This template is used as default for external stuff. They have no access to the access management, read access to tasks
+     * and own time sheets and no access to foreign time sheets.
+     */
+    fun external() {
+        ensureAndGetAccessManagementEntry().setAccess(false, false, false, false)
+        ensureAndGetTasksEntry().setAccess(true, false, false, false)
+        ensureAndGetOwnTimesheetsEntry().setAccess(true, true, true, true)
+        ensureAndGetTimesheetsEntry().setAccess(false, false, false, false)
     }
 
     /**
