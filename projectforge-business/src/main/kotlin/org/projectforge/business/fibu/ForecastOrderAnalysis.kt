@@ -248,6 +248,11 @@ class ForecastOrderAnalysis {
                 )
                 addRow(table, translate("fibu.auftrag.position.art"), translate(posInfo.art))
                 addRow(table, translate("fibu.auftrag.position.paymenttype"), translate(posInfo.paymentType))
+                addRow(
+                    table,
+                    translate("fibu.auftrag.forecastType"),
+                    "${translate(ForecastUtils.getForecastType(orderInfo, posInfo).i18nKey)}: ${translate("fibu.auftrag.forecastType.info")}"
+                )
                 addRow(table, translate("fibu.auftrag.nettoSumme"), posInfo.netSum.formatCurrency(true))
                 addRow(
                     table,
