@@ -316,6 +316,6 @@ class ForecastOrderPosInfo(
          * If true, unused budget will be added to the last distributed month.
          * If false, this budget will be added to the difference sum.
          */
-        internal val DISTRIBUTE_UNUSED_BUDGET = true
+        internal var DISTRIBUTE_UNUSED_BUDGET = true
     }
 }
