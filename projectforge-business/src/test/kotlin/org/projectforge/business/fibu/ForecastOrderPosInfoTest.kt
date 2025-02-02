@@ -92,25 +92,30 @@ class ForecastOrderPosInfoTest {
                 netSum = BigDecimal("50000"), // 5 month
                 invoicedSum = BigDecimal("5000")
             ).also { pos ->
-                ForecastOrderPosInfo(orderInfo, pos).also { fcPosInfo ->
-                    fcPosInfo.calculate()
-                    Assertions.assertEquals(6, fcPosInfo.months.size)
-                    for (i in 0..1) {
-                        Assertions.assertEquals(BigDecimal.ZERO, fcPosInfo.months[i].toBeInvoicedSum)
-                    }
-                    if (ForecastOrderPosInfo.DISTRIBUTE_UNUSED_BUDGET) {
-                        for (i in 2..4) {
-                            assertSame("10000", fcPosInfo.months[i].toBeInvoicedSum, "month(i)=$i")
-                        }
-                        assertSame("15000", fcPosInfo.months[5].toBeInvoicedSum)
-                        Assertions.assertEquals(BigDecimal.ZERO, fcPosInfo.difference)
-                    } else {
-                        for (i in 2..5) {
-                            assertSame("10000", fcPosInfo.months[i].toBeInvoicedSum)
-                        }
-                        assertSame("-5000", fcPosInfo.difference)
-                    }
-                }
+                calculateAndAssert(
+                    orderInfo,
+                    pos,
+                    "0",
+                    "0",
+                    "0",
+                    "10000",
+                    "10000",
+                    "10000",
+                    "15000",
+                    distributeUnused = true
+                )
+                calculateAndAssert(
+                    orderInfo,
+                    pos,
+                    "-5000",
+                    "0",
+                    "0",
+                    "10000",
+                    "10000",
+                    "10000",
+                    "10000",
+                    distributeUnused = false
+                )
             }
         }
         OrderInfo().also { orderInfo -> // Order 6395
@@ -123,14 +128,11 @@ class ForecastOrderPosInfoTest {
                 AuftragsStatus.GELEGT, AuftragsPositionsPaymentType.TIME_AND_MATERIALS,
                 PeriodOfPerformanceType.SEEABOVE, netSum = BigDecimal("1000000.00")
             ).also { pos ->
-                ForecastOrderPosInfo(orderInfo, pos).also { fcPosInfo ->
-                    fcPosInfo.calculate()
-                    Assertions.assertEquals(13, fcPosInfo.months.size)
-                    Assertions.assertEquals(BigDecimal.ZERO, fcPosInfo.difference)
+                calculateAndAssert(
+                    orderInfo,
+                    pos,
+                    months = buildList { add("0"); repeat(12) { add("41666.6667") } }).let { fcPosInfo ->
                     Assertions.assertEquals(BigDecimal.ZERO, fcPosInfo.months[0].toBeInvoicedSum)
-                    for (i in 1..12) {
-                        assertSame("41666.6667", fcPosInfo.months[i].toBeInvoicedSum)
-                    }
                     assertSame("125000.00", fcPosInfo.getRemainingForecastSumAfter(PFDay.of(2025, Month.OCTOBER, 31)))
                 }
             }
@@ -214,25 +216,13 @@ class ForecastOrderPosInfoTest {
                 AuftragsStatus.BEAUFTRAGT, AuftragsPositionsPaymentType.FESTPREISPAKET,
                 PeriodOfPerformanceType.SEEABOVE, netSum = BigDecimal("64372.00")
             ).also { pos ->
-                ForecastOrderPosInfo(orderInfo, pos).also { fcPosInfo ->
-                    fcPosInfo.calculate()
-                    Assertions.assertEquals(7, fcPosInfo.months.size, "September -> March")
-                    for (i in 0..3) {
-                        // December payment is before baseDate.
-                        Assertions.assertEquals(
-                            BigDecimal.ZERO,
-                            fcPosInfo.months[i].toBeInvoicedSum,
-                            "September - December no payments (all in the past)"
-                        )
-                    }
-                    for (i in 4..6) {
-                        Assertions.assertEquals(
-                            "21457.33",
-                            fcPosInfo.months[i].toBeInvoicedSum.toString(),
-                            "payments in January, February and March"
-                        )
-                    }
-                }
+                calculateAndAssert(
+                    orderInfo,
+                    pos,
+                    // September - December no payments (all in the past)
+                    // payments in January, February and March
+                    "0", "0", "0", "0", "0", "21457.33", "21457.33", "21457.33"
+                )
             }
         }
     }
@@ -271,13 +261,46 @@ class ForecastOrderPosInfoTest {
     }
 
     companion object {
+        private fun calculateAndAssert(
+            orderInfo: OrderInfo,
+            pos: OrderPositionInfo,
+            expectedDifference: String,
+            vararg months: String,
+            distributeUnused: Boolean = ForecastOrderPosInfo.DISTRIBUTE_UNUSED_BUDGET,
+        ): ForecastOrderPosInfo {
+            return calculateAndAssert(orderInfo, pos, expectedDifference, months.toList(), distributeUnused)
+        }
+
+        private fun calculateAndAssert(
+            orderInfo: OrderInfo,
+            pos: OrderPositionInfo,
+            expectedDifference: String = "0",
+            months: List<String>,
+            distributeUnused: Boolean = ForecastOrderPosInfo.DISTRIBUTE_UNUSED_BUDGET,
+        ): ForecastOrderPosInfo {
+            ForecastOrderPosInfo(orderInfo, pos).also { fcPosInfo ->
+                val saveDefault = ForecastOrderPosInfo.DISTRIBUTE_UNUSED_BUDGET
+                ForecastOrderPosInfo.DISTRIBUTE_UNUSED_BUDGET = distributeUnused
+                fcPosInfo.calculate()
+                assertMonths(fcPosInfo, months)
+                assertSame(expectedDifference, fcPosInfo.difference)
+                ForecastOrderPosInfo.DISTRIBUTE_UNUSED_BUDGET = saveDefault
+                return fcPosInfo
+            }
+        }
+
         private fun assertMonths(fcPosInfo: ForecastOrderPosInfo, vararg months: String) {
-            Assertions.assertEquals(months.size, fcPosInfo.months.size)
+            assertMonths(fcPosInfo, months.toList())
+        }
+
+        private fun assertMonths(fcPosInfo: ForecastOrderPosInfo, months: List<String>) {
+            val debug = "months=[${fcPosInfo.months.joinToString { "${it.date}=${it.toBeInvoicedSum}" }}"
+            Assertions.assertEquals(months.size, fcPosInfo.months.size, debug)
             for (i in months.indices) {
                 assertSame(
                     months[i],
                     fcPosInfo.months[i].toBeInvoicedSum,
-                    "month(i)=$i, months=[${fcPosInfo.months.joinToString { "${it.date}=${it.toBeInvoicedSum}" }}]"
+                    "month(i)=$i, $debug]"
                 )
             }
         }
