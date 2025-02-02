@@ -33,6 +33,52 @@ import java.time.Month
 
 class ForecastOrderPosInfoTest {
     @Test
+    fun `distribute revenue`() {
+        OrderInfo().also { order ->
+            order.status = AuftragsStatus.BEAUFTRAGT
+            order.snapshotDate = baseDate.localDate
+            createPos(
+                AuftragsStatus.BEAUFTRAGT,
+                AuftragsPositionsPaymentType.TIME_AND_MATERIALS,
+                PeriodOfPerformanceType.OWN,
+                periodOfPerformanceBegin = LocalDate.of(2025, Month.JANUARY, 1),
+                periodOfPerformanceEnd = LocalDate.of(2025, Month.MAY, 31),
+                netSum = BigDecimal("50000"), // 5 month
+            ).also { pos ->
+                ForecastOrderPosInfo(order, pos).also { fcPosInfo ->
+                    fcPosInfo.calculate()
+                    // January - June (6 month, forecast in following month)
+                    assertMonths(fcPosInfo, "0", "10000", "10000", "10000", "10000", "10000")
+                }
+                pos.forecastType = AuftragForecastType.CURRENT_MONTH
+                ForecastOrderPosInfo(order, pos).also { fcPosInfo ->
+                    fcPosInfo.calculate()
+                    // January - May (5 month, forecast in current month)
+                    assertMonths(fcPosInfo, "10000", "10000", "10000", "10000", "10000")
+                }
+            }
+            createPos(
+                AuftragsStatus.BEAUFTRAGT,
+                AuftragsPositionsPaymentType.FESTPREISPAKET,
+                PeriodOfPerformanceType.OWN,
+                periodOfPerformanceBegin = LocalDate.of(2025, Month.JANUARY, 1),
+                periodOfPerformanceEnd = LocalDate.of(2025, Month.MAY, 31),
+                netSum = BigDecimal("50000"), // 5 month
+            ).also { pos ->
+                ForecastOrderPosInfo(order, pos).also { fcPosInfo ->
+                    fcPosInfo.calculate()
+                    assertMonths(fcPosInfo, "0", "0", "0", "0", "0", "50000")
+                }
+                pos.forecastType = AuftragForecastType.CURRENT_MONTH
+                ForecastOrderPosInfo(order, pos).also { fcPosInfo ->
+                    fcPosInfo.calculate()
+                    assertMonths(fcPosInfo, "0", "0", "0", "0", "50000")
+                }
+            }
+        }
+    }
+
+    @Test
     fun `test time and materials pos`() {
         OrderInfo().also { orderInfo -> // Order 6308
             orderInfo.status = AuftragsStatus.BEAUFTRAGT
@@ -54,7 +100,7 @@ class ForecastOrderPosInfoTest {
                     }
                     if (ForecastOrderPosInfo.DISTRIBUTE_UNUSED_BUDGET) {
                         for (i in 2..4) {
-                            assertSame("10000", fcPosInfo.months[i].toBeInvoicedSum)
+                            assertSame("10000", fcPosInfo.months[i].toBeInvoicedSum, "month(i)=$i")
                         }
                         assertSame("15000", fcPosInfo.months[5].toBeInvoicedSum)
                         Assertions.assertEquals(BigDecimal.ZERO, fcPosInfo.difference)
@@ -148,7 +194,7 @@ class ForecastOrderPosInfoTest {
                     } else {
                         BigDecimal(100_000)
                     }
-                    Assertions.assertEquals(remaining, fcPosInfo.months[18].toBeInvoicedSum,"remaining in Jul 2025")
+                    Assertions.assertEquals(remaining, fcPosInfo.months[18].toBeInvoicedSum, "remaining in Jul 2025")
                 }
             }
         }
@@ -225,8 +271,19 @@ class ForecastOrderPosInfoTest {
     }
 
     companion object {
-        private fun assertSame(expected: String, actual: Number?) {
-            TestUtils.assertSame(expected, actual, BigDecimal("0.01"))
+        private fun assertMonths(fcPosInfo: ForecastOrderPosInfo, vararg months: String) {
+            Assertions.assertEquals(months.size, fcPosInfo.months.size)
+            for (i in months.indices) {
+                assertSame(
+                    months[i],
+                    fcPosInfo.months[i].toBeInvoicedSum,
+                    "month(i)=$i, months=[${fcPosInfo.months.joinToString { "${it.date}=${it.toBeInvoicedSum}" }}]"
+                )
+            }
+        }
+
+        private fun assertSame(expected: String, actual: Number?, msg: String? = null) {
+            TestUtils.assertSame(expected, actual, BigDecimal("0.01"), msg)
         }
 
         private val baseDate = PFDay.of(2025, Month.JANUARY, 8)
