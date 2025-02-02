@@ -97,17 +97,17 @@ class ForecastOrderPosInfoTest {
                     pos,
                     "0",
                     "0",
-                    "0",
                     "10000",
                     "10000",
                     "10000",
                     "15000",
                     distributeUnused = true
-                )
+                ).also {
+                    assertSame("0", it.difference)
+                }
                 calculateAndAssert(
                     orderInfo,
                     pos,
-                    "-5000",
                     "0",
                     "0",
                     "10000",
@@ -115,7 +115,9 @@ class ForecastOrderPosInfoTest {
                     "10000",
                     "10000",
                     distributeUnused = false
-                )
+                ).also {
+                    assertSame("-5000", it.difference)
+                }
             }
         }
         OrderInfo().also { orderInfo -> // Order 6395
@@ -221,8 +223,10 @@ class ForecastOrderPosInfoTest {
                     pos,
                     // September - December no payments (all in the past)
                     // payments in January, February and March
-                    "0", "0", "0", "0", "0", "21457.33", "21457.33", "21457.33"
-                )
+                    "0", "0", "0", "0", "21457.33", "21457.33", "21457.33"
+                ).also {
+                    assertSame("0", it.difference)
+                }
             }
         }
     }
@@ -264,17 +268,15 @@ class ForecastOrderPosInfoTest {
         private fun calculateAndAssert(
             orderInfo: OrderInfo,
             pos: OrderPositionInfo,
-            expectedDifference: String,
             vararg months: String,
             distributeUnused: Boolean = ForecastOrderPosInfo.DISTRIBUTE_UNUSED_BUDGET,
         ): ForecastOrderPosInfo {
-            return calculateAndAssert(orderInfo, pos, expectedDifference, months.toList(), distributeUnused)
+            return calculateAndAssert(orderInfo, pos, months.toList(), distributeUnused)
         }
 
         private fun calculateAndAssert(
             orderInfo: OrderInfo,
             pos: OrderPositionInfo,
-            expectedDifference: String = "0",
             months: List<String>,
             distributeUnused: Boolean = ForecastOrderPosInfo.DISTRIBUTE_UNUSED_BUDGET,
         ): ForecastOrderPosInfo {
@@ -283,7 +285,6 @@ class ForecastOrderPosInfoTest {
                 ForecastOrderPosInfo.DISTRIBUTE_UNUSED_BUDGET = distributeUnused
                 fcPosInfo.calculate()
                 assertMonths(fcPosInfo, months)
-                assertSame(expectedDifference, fcPosInfo.difference)
                 ForecastOrderPosInfo.DISTRIBUTE_UNUSED_BUDGET = saveDefault
                 return fcPosInfo
             }
