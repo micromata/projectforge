@@ -25,7 +25,7 @@ package org.projectforge.menu
 
 import org.projectforge.menu.builder.MenuItemDef
 
-class Menu() {
+class Menu {
     val menuItems = mutableListOf<MenuItem>()
     var badge: MenuBadge? = null
 
@@ -42,7 +42,7 @@ class Menu() {
         menuItems.removeIf { !it.isLeaf() && it.subMenu.isNullOrEmpty() }
         var badgeCounter = 0
         menuItems.forEach {
-            if (it.badge?.counter ?: -1 > 0)
+            if ((it.badge?.counter ?: -1) > 0)
                 badgeCounter += it.badge?.counter ?: 0
         }
         if (badgeCounter > 0)

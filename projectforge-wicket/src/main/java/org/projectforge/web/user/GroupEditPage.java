@@ -27,6 +27,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.ldap.GroupDOConverter;
 import org.projectforge.business.user.GroupDao;
+import org.projectforge.business.user.UserGroupCache;
+import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
@@ -57,6 +59,9 @@ public class GroupEditPage extends AbstractEditPage<GroupDO, GroupEditForm, Grou
   public GroupEditPage(final PageParameters parameters, final String selectProperty)
   {
     super(parameters, "group");
+    if (!UserGroupCache.getInstance().isUserMemberOfAdminGroup()) {
+      throw new AccessException("You are not allowed to access this page.");
+    }
     this.selectProperty = selectProperty;
     super.init();
     final String groupName = WicketUtils.getAsString(parameters, PARAM_GROUP_NAME);

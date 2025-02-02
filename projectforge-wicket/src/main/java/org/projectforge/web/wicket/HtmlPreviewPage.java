@@ -36,12 +36,17 @@ import org.projectforge.web.WicketSupport;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 
-public class HtmlPreviewPage extends WebPage {
+public class HtmlPreviewPage extends AbstractSecuredPage {
+    @Override
+    protected String getTitle() {
+        return "Forecast Order Analysis";
+    }
+
     public HtmlPreviewPage(PageParameters parameters) {
         super(parameters);
-
-        // Lade den HTML-Inhalt
+        // Load HTML content
         long dataId = parameters.get("dataId").toLong();
         byte[] htmlContent = WicketSupport.get(ForecastOrderAnalysis.class).htmlExportAsByteArray(dataId);
 
@@ -62,17 +67,19 @@ public class HtmlPreviewPage extends WebPage {
             }
         };
 
-        // Antwort an den Browser senden
-        getRequestCycle().scheduleRequestHandlerAfterCurrent(
-                new ResourceStreamRequestHandler(resourceStream) {
-                    @Override
-                    public void respond(IRequestCycle requestCycle) {
-                        // Setze den Content-Disposition-Header explizit auf inline
-                        WebResponse response = (WebResponse) requestCycle.getResponse();
-                        response.setHeader("Content-Disposition", "inline"); // Rendern statt Download
-                        super.respond(requestCycle);
-                    }
-                }
-        );
-    }
+        // Send response to browser with No-Cache
+        ResourceStreamRequestHandler handler = new ResourceStreamRequestHandler(resourceStream) {
+            @Override
+            public void respond(IRequestCycle requestCycle) {
+                WebResponse response = (WebResponse) requestCycle.getResponse();
+                response.setHeader("Content-Disposition", "inline"); // Rendern statt Download
+                response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+                response.setHeader("Pragma", "no-cache");
+                response.setHeader("Expires", "0");
+
+                super.respond(requestCycle);
+            }
+        };
+        handler.setCacheDuration(Duration.ZERO); // Important: disable caching
+        getRequestCycle().scheduleRequestHandlerAfterCurrent(handler);    }
 }

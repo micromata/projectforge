@@ -29,6 +29,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -39,7 +40,10 @@ import org.projectforge.framework.access.AccessDao;
 import org.projectforge.framework.access.AccessEntryDO;
 import org.projectforge.framework.access.GroupTaskAccessDO;
 import org.projectforge.web.WicketSupport;
+import org.projectforge.web.admin.TaskWizardPage;
+import org.projectforge.web.task.TaskTreePage;
 import org.projectforge.web.wicket.*;
+import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.flowlayout.IconPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
 
@@ -154,6 +158,20 @@ public class AccessListPage extends AbstractListPage<AccessListForm, AccessDao, 
 
     @Override
     protected void init() {
+        if (getAccessChecker().isLoggedInUserMemberOfAdminGroup() == true) {
+            ContentMenuEntryPanel menuEntry = new ContentMenuEntryPanel(getNewContentMenuChildId(), new Link<Object>("link") {
+                @Override
+                public void onClick() {
+                    final PageParameters params = new PageParameters();
+                    final TaskWizardPage wizardPage = new TaskWizardPage(params);
+                    wizardPage.setReturnToPage(AccessListPage.this);
+                    setResponsePage(wizardPage);
+                }
+
+                ;
+            }, getString("wizard"));
+            addContentMenuEntry(menuEntry);
+        }
         dataTable = createDataTable(createColumns(this, true), "group.name", SortOrder.ASCENDING);
         form.add(dataTable);
     }

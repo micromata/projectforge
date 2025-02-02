@@ -61,9 +61,6 @@ public class OrderExport {
     private RechnungCache rechnungCache;
 
     @Autowired
-    private AuftragDao auftragDao;
-
-    @Autowired
     private AuftragsCache auftragsCache;
 
     @Autowired
@@ -93,6 +90,7 @@ public class OrderExport {
                 new I18nExportColumn(OrderCol.PERIOD_OF_PERFORMANCE_BEGIN, "fibu.periodOfPerformance.from", MyXlsContentProvider.LENGTH_DATE),
                 new I18nExportColumn(OrderCol.PERIOD_OF_PERFORMANCE_END, "fibu.periodOfPerformance.to", MyXlsContentProvider.LENGTH_DATE),
                 new I18nExportColumn(OrderCol.PROBABILITY_OF_OCCURRENCE, "fibu.probabilityOfOccurrence", MyXlsContentProvider.LENGTH_PERCENT),
+                new I18nExportColumn(OrderCol.FORECAST_TYPE, AuftragForecastType.getBaseKey(), MyXlsContentProvider.LENGTH_PERCENT),
                 new I18nExportColumn(OrderCol.CONTACT_PERSON, "contactPerson", MyXlsContentProvider.LENGTH_STD),
                 new I18nExportColumn(OrderCol.REFERENCE, "fibu.common.reference", MyXlsContentProvider.LENGTH_STD),
                 new I18nExportColumn(OrderCol.COMMENT, "comment", MyXlsContentProvider.LENGTH_COMMENT)
@@ -134,6 +132,7 @@ public class OrderExport {
         mapping.add(OrderCol.PERIOD_OF_PERFORMANCE_BEGIN, order.getPeriodOfPerformanceBegin());
         mapping.add(OrderCol.PERIOD_OF_PERFORMANCE_END, order.getPeriodOfPerformanceEnd());
         mapping.add(OrderCol.PROBABILITY_OF_OCCURRENCE, order.getProbabilityOfOccurrence());
+        mapping.add(OrderCol.FORECAST_TYPE, order.getForecastType());
 
         final PFUserDO contactPerson = UserGroupCache.getInstance().getUserIfNotInitialized(order.getContactPerson());
         mapping.add(OrderCol.CONTACT_PERSON, contactPerson != null ? contactPerson.getFullname() : "");
@@ -164,6 +163,7 @@ public class OrderExport {
                 new I18nExportColumn(PosCol.PERIOD_OF_PERFORMANCE_BEGIN, null, MyXlsContentProvider.LENGTH_DATE),
                 new I18nExportColumn(PosCol.PERIOD_OF_PERFORMANCE_END, null, MyXlsContentProvider.LENGTH_DATE),
                 new I18nExportColumn(OrderCol.PROBABILITY_OF_OCCURRENCE, "fibu.probabilityOfOccurrence", MyXlsContentProvider.LENGTH_PERCENT),
+                new I18nExportColumn(OrderCol.FORECAST_TYPE, AuftragForecastType.getBaseKey(), MyXlsContentProvider.LENGTH_PERCENT),
                 new I18nExportColumn(OrderCol.CONTACT_PERSON, "contactPerson", 30),
                 new I18nExportColumn(PosCol.TASK, "task", MyXlsContentProvider.LENGTH_STD),
                 new I18nExportColumn(PosCol.COMMENT, "comment", MyXlsContentProvider.LENGTH_COMMENT)};
@@ -214,6 +214,7 @@ public class OrderExport {
             mapping.add(PosCol.PERIOD_OF_PERFORMANCE_END, order.getPeriodOfPerformanceEnd());
         }
         mapping.add(OrderCol.PROBABILITY_OF_OCCURRENCE, order.getProbabilityOfOccurrence());
+        mapping.add(OrderCol.FORECAST_TYPE, ForecastUtils.getForecastType(order, pos));
         mapping.add(OrderCol.CONTACT_PERSON, order.getContactPerson() != null ? order.getContactPerson().getFullname() : "");
         final TaskDO task = pos.getTask();
         final TaskNode node = task != null ? taskTree.getTaskNodeById(task.getId()) : null;
@@ -357,7 +358,7 @@ public class OrderExport {
     }
 
     private enum OrderCol {
-        NUMMER, NUMBER_OF_POSITIONS, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, ORDER_DATE, STATUS, STATUS_COMMENT, PROJECT, PROJECT_CUSTOMER, TITLE, PROJECTMANAGER, HEADOFBUSINESSMANAGER, SALESMANAGER, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, PROBABILITY_OF_OCCURRENCE, CONTACT_PERSON, REFERENCE, COMMENT
+        NUMMER, NUMBER_OF_POSITIONS, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, ORDER_DATE, STATUS, STATUS_COMMENT, PROJECT, PROJECT_CUSTOMER, TITLE, PROJECTMANAGER, HEADOFBUSINESSMANAGER, SALESMANAGER, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, PROBABILITY_OF_OCCURRENCE, FORECAST_TYPE, CONTACT_PERSON, REFERENCE, COMMENT
     }
 
     private enum PosCol {

@@ -30,6 +30,8 @@ import org.projectforge.business.excel.ExcelDateFormats
 import org.projectforge.business.excel.XlsContentProvider
 import org.projectforge.common.DateFormatType
 import org.projectforge.excel.ExcelUtils
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.PFDay
@@ -72,7 +74,7 @@ internal class ForecastExportContext(
         DEBITOREN_RECHNUNGEN("Debitorenrechnungen"), LEISTUNGSZEITRAUM("Leistungszeitraum"),
         EINTRITTSWAHRSCHEINLICHKEIT("Eintrittswahrsch. in %"), ANSPRECHPARTNER("Ansprechpartner"),
         STRUKTUR_ELEMENT("Strukturelement"), BEMERKUNG("Bemerkung"), PROBABILITY_NETSUM("gewichtete Nettosumme"),
-        ANZAHL_MONATE("Anzahl Monate"), PAYMENT_SCHEDULE("Zahlplan"),
+        ANZAHL_MONATE("Anzahl Monate"), FORECAST_TYPE("Forecasttyp"), PAYMENT_SCHEDULE("Zahlplan"),
         REMAINING("Rest"), DIFFERENCE("Abweichung"), WARNING("Warnung")
     }
 
