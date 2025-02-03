@@ -57,6 +57,12 @@ import kotlin.reflect.KMutableProperty1
  *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
+@NamedQueries(
+    NamedQuery(
+        name = HistoryEntryAttrDO.DELETE_HISTORY_ENTRY_ATTR_BY_PARENT_ID,
+        query = "delete from HistoryEntryAttrDO where parent.id=:parentId"
+    )
+)
 @Entity
 @Table(
     name = "t_pf_history_attr",
@@ -161,6 +167,8 @@ class HistoryEntryAttrDO : HistoryEntryAttr {
     }
 
     companion object {
+        internal const val DELETE_HISTORY_ENTRY_ATTR_BY_PARENT_ID = "HistoryEntryAttrDO_Delete"
+
         /**
          * Creates a new HistoryEntryAttrDO. Referenced parent is set by [HistoryEntryDO.add].
          * The old and new value will be serialized to a string by using [HistoryValueHandlerRegistry].
