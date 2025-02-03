@@ -44,6 +44,9 @@ class ScriptUser internal constructor() {
     user.copyFrom(loggedInUser)
   }
 
+  val id
+    get() = user.id
+
   /**
    * Convenient field.
    * @return [User.username]
