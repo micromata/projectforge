@@ -59,6 +59,10 @@ import java.util.*
         name = HistoryEntryDO.SELECT_HISTORY_BY_ENTITY_IDS,
         query = "from HistoryEntryDO as m left join fetch m.attributes where m.entityId in :entityIds and m.entityName=:entityName order by m.id desc"
     ),
+    NamedQuery(
+        name = HistoryEntryDO.DELETE_HISTORY_ENTRY,
+        query = "delete from HistoryEntryDO where id=:id"
+    ),
 )
 @Entity
 @Table(
@@ -132,6 +136,7 @@ class HistoryEntryDO : HistoryEntry {
     companion object {
         internal const val SELECT_HISTORY_FOR_BASEDO = "HistoryEntryDO_SelectForBaseDO"
         internal const val SELECT_HISTORY_BY_ENTITY_IDS = "HistoryEntryDO_SelectByEntityIds"
+        internal const val DELETE_HISTORY_ENTRY = "HistoryEntryDO_Delete"
 
         fun asEntityName(obj: Any): String {
             return HibernateUtils.getRealClass(obj).name
