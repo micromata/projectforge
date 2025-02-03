@@ -28,6 +28,7 @@ import jakarta.persistence.criteria.CriteriaBuilder
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.ArrayUtils
 import org.apache.commons.lang3.StringUtils
+import org.projectforge.business.sipgate.SipgateDeleteContactService
 import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.access.AccessException
@@ -74,6 +75,9 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
 
     @Autowired
     private lateinit var personalAddressDao: PersonalAddressDao
+
+    @Autowired
+    private lateinit var sipgateDeleteContactService: SipgateDeleteContactService
 
     @Autowired
     private lateinit var teamEventDao: TeamEventDao
@@ -324,6 +328,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         persistenceService.runInTransaction { context ->
             personalAddressDao.internalDeleteAll(obj)
             teamEventDao.removeAttendeeByAddressIdFromAllEvents(obj)
+            sipgateDeleteContactService.deleteContact(obj.id!!)
             val counter = context.executeNamedUpdate(
                 AddressImageDO.DELETE_ALL_IMAGES_BY_ADDRESS_ID,
                 Pair("addressId", obj.id)

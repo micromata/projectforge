@@ -68,7 +68,6 @@ class HistoryLoadContext(
     val sortedEntries: List<HistoryEntryDO>
         get() = historyEntries.sortedByDescending { it.id }
 
-    var historyEntryMap = mutableMapOf<Long, HistoryEntryMap>()
     var historyEntryAttrMap = mutableMapOf<Long, HistoryEntryAttrMap>()
 
     internal val userGroupCache = UserGroupCache.getInstance()
