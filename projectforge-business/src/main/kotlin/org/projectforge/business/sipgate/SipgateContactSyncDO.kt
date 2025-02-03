@@ -48,6 +48,10 @@ import org.projectforge.framework.json.IdOnlySerializer
 )
 @NamedQueries(
   NamedQuery(
+    name = SipgateContactSyncDO.DELETE_BY_ADDRESS_ID,
+    query = "delete from SipgateContactSyncDO where address.id = :addressId"
+  ),
+  NamedQuery(
     name = SipgateContactSyncDO.FIND_BY_ADDRESS_ID,
     query = "from SipgateContactSyncDO where address.id = :addressId"
   ),
@@ -235,6 +239,7 @@ open class SipgateContactSyncDO {
       return sb.toString().trim()
     }
 
+    const val DELETE_BY_ADDRESS_ID = "SipgateContactSyncDO_deleteByAddressId"
     const val FIND_BY_CONTACT_AND_ADDRESS_ID = "SipgateContactSyncDO_findByContactAndAddressId"
     const val FIND_BY_ADDRESS_ID = "SipgateContactSyncDO_findByAddressId"
     const val LOAD_ALL = "SipgateContactSyncDO_loadAll"

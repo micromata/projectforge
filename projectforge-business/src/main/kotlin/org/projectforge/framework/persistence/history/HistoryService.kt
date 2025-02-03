@@ -142,6 +142,21 @@ class HistoryService {
         }
     }
 
+    /**
+     * Forces to delete this history entry and all attributes. Used by force deletion of entities.
+     */
+    fun forceDeletion(historyEntry: HistoryEntryDO) {
+        persistenceService.runInTransaction { context ->
+            val attrs = context.executeNamedUpdate(
+                HistoryEntryAttrDO.DELETE_HISTORY_ENTRY_ATTR_BY_PARENT_ID,
+                "parentId" to historyEntry.id,
+            )
+            context.executeNamedUpdate(HistoryEntryDO.DELETE_HISTORY_ENTRY, "id" to historyEntry.id)
+            log.info { "forceDeletion of history-entry for ${historyEntry.entityName}.${historyEntry.entityId}, number of deleted attrs=$attrs" }
+        }
+
+    }
+
     private fun loadAndMergeHistory(
         entityClass: Class<out IdObject<Long>>,
         entityIds: Collection<Long>,

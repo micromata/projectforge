@@ -24,21 +24,19 @@
 package org.projectforge.business.teamcal.admin
 
 import org.apache.commons.lang3.StringUtils
-import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.teamcal.admin.right.TeamCalRight
 import org.projectforge.business.teamcal.externalsubscription.SubscriptionUpdateInterval
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserRightId
-import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
-import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.history.HistoryFormatUtils
+import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -54,9 +52,6 @@ class TeamCalDao : BaseDao<TeamCalDO>(TeamCalDO::class.java) {
     private lateinit var applicationContext: ApplicationContext
 
     @Autowired
-    private lateinit var groupService: GroupService
-
-    @Autowired
     private lateinit var historyFormatUtils: HistoryFormatUtils
 
     @Autowired
@@ -64,9 +59,6 @@ class TeamCalDao : BaseDao<TeamCalDO>(TeamCalDO::class.java) {
 
     @Autowired
     private lateinit var userDao: UserDao
-
-    @Autowired
-    private lateinit var userService: UserService
 
     init {
         userRightId = UserRightId.PLUGIN_CALENDAR
