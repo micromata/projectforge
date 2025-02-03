@@ -223,6 +223,9 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
         val result = scriptExecution.execute(request, script, parameters, scriptDao, pagesRest, scriptLogger)
         val output = StringBuilder()
         output.append("'") // ProjectForge shouldn't try to find i18n-key.
+        if (result.exception == null && result.result is Exception) {
+            result.exception = result.result as? Exception
+        }
         result.exception?.let { ex ->
             output.appendLine("---") // Horizontal rule
             output.appendLine("${ex::class.java.name}:")
