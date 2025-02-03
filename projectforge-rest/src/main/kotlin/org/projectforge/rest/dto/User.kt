@@ -121,6 +121,7 @@ class User(
     override fun copyFromMinimal(src: PFUserDO) {
         this.displayName = src.displayName
         this.username = src.username
+        this.id = src.id
         if (userGroupCache.isUserMemberOfAdminGroup) {
             super.copyFromMinimal(src)
         }
