@@ -28,8 +28,11 @@ import mu.KotlinLogging
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.configuration.ConfigXml
+import org.projectforge.framework.persistence.history.HistoryFormatUtils
+import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime.Companion.now
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.File
 import java.io.FilenameFilter
@@ -43,6 +46,9 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 open class ScriptDao : AbstractScriptDao() {
+    @Autowired
+    private lateinit var historyFormatUtils: HistoryFormatUtils
+
     /**
      * Copy old script as script backup if modified.
      *
@@ -113,5 +119,9 @@ open class ScriptDao : AbstractScriptDao() {
             user, throwException, ProjectForgeGroup.CONTROLLING_GROUP,
             ProjectForgeGroup.FINANCE_GROUP
         )
+    }
+
+    override fun customizeDisplayHistoryEntry(context: HistoryLoadContext) {
+        historyFormatUtils.replaceGroupAndUserIdsValues(context.requiredDisplayHistoryEntry)
     }
 }
