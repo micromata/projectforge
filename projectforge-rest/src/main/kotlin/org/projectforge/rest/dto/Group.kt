@@ -45,13 +45,14 @@ class Group(
     override fun copyFromMinimal(src: GroupDO) {
         name = src.name
         displayName = src.displayName
+        id = src.id
         if (userGroupCache.isUserMemberOfAdminGroup) {
             super.copyFromMinimal(src)
         }
     }
 
     override fun copyFrom(src: GroupDO) {
-        name = src.name
+        copyFromMinimal(src)
         if (userGroupCache.isUserMemberOfAdminGroup) {
             super.copyFrom(src)
         }
@@ -82,6 +83,7 @@ class Group(
 
     companion object {
         private val userGroupCache: UserGroupCache by lazy { UserGroupCache.getInstance() }
+
         /**
          * Converts csv of group ids to list of groups (only with id and displayName = "???", no other content).
          */
