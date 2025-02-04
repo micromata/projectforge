@@ -135,15 +135,20 @@ open class ForecastExport { // open needed by Wicket.
         ) &&
                 filter.searchString.isNullOrBlank() &&
                 filter.projectList.isNullOrEmpty()
-        return xlsExport(
-            orderList,
-            startDate = startDate,
-            planningDate = closestPlanningDate,
-            snapshotDate = closestSnapshotDate,
-            showAll = showAll,
-            auftragFilter = filter,
-            scriptLogger = scriptLogger
-        )
+        try {
+            return xlsExport(
+                orderList,
+                startDate = startDate,
+                planningDate = closestPlanningDate,
+                snapshotDate = closestSnapshotDate,
+                showAll = showAll,
+                auftragFilter = filter,
+                scriptLogger = scriptLogger
+            )
+        } catch (ex: Exception) {
+            log.error(ex) { "Error exporting forecast: $ex" }
+            throw ex
+        }
     }
 
     private fun getStartDate(origFilter: AuftragFilter): PFDay {
