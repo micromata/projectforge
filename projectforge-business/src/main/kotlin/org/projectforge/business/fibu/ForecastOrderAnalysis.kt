@@ -119,6 +119,11 @@ class ForecastOrderAnalysis {
         val orderInfo =
             loadOrder(orderId = orderId, orderNumber = orderNumber, snapshotDate)
                 ?: return noAnalysis("Order with id $orderId or positions not found.")
+        return htmlExport(orderInfo)
+    }
+
+    fun htmlExport(orderInfo: OrderInfo, ): String {
+        val orderId = orderInfo.id
         val list = exportOrderAnalysis(orderInfo)
             ?: return noAnalysis("No order positions found for order #${orderInfo.nummer}.")
         val firstMonth = list.flatMap { it.months }.minByOrNull { it.date }?.date

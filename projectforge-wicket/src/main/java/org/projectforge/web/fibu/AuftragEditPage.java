@@ -1,4 +1,4 @@
-/////////////////////////////////////////////////////////////////////////////
+/// //////////////////////////////////////////////////////////////////////////
 //
 // Project ProjectForge Community Edition
 //         www.projectforge.org
@@ -19,11 +19,12 @@
 // You should have received a copy of the GNU General Public License along
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
-/////////////////////////////////////////////////////////////////////////////
+/// //////////////////////////////////////////////////////////////////////////
 
 package org.projectforge.web.fibu;
 
-import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.SystemStatus;
@@ -36,6 +37,7 @@ import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.WicketSupport;
+import org.projectforge.web.core.NavTopPanel;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.slf4j.Logger;
@@ -50,30 +52,33 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
 
     private static final long serialVersionUID = -8192471994161712577L;
 
+    private HtmlPreviewModalDialog htmlPreviewModalDialog;
+
     public AuftragEditPage(final PageParameters parameters) {
         super(parameters, "fibu.auftrag");
         init();
         if (isNew() && getData().getContactPerson() == null) {
             WicketSupport.get(AuftragDao.class).setContactPerson(getData(), getUser().getId());
         }
-        if (!isNew()) {
-            Link<Void> newWindowLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
+        Long orderId = getData().getId();
+        if (orderId != null ) {
+            htmlPreviewModalDialog = new HtmlPreviewModalDialog(this.newModalDialogId());
+            htmlPreviewModalDialog.setOutputMarkupId(true);
+            add(htmlPreviewModalDialog);
+            htmlPreviewModalDialog.init();
+            AjaxSubmitLink newWindowLink = new AjaxSubmitLink(ContentMenuEntryPanel.LINK_ID, this.form) {
                 @Override
-                public void onClick() {
-                    PageParameters parameters = new PageParameters();
-                    parameters.add("dataId", getData().getId());
-                    setResponsePage(HtmlPreviewPage.class, parameters);
+                protected void onSubmit(AjaxRequestTarget target) {
+                    htmlPreviewModalDialog.open(target);
+                    // Redraw the content:
+                    htmlPreviewModalDialog.redraw(getData()).addContent(target);
+                }
+
+                @Override
+                protected void onError(AjaxRequestTarget target) {
                 }
             };
-            newWindowLink.add(new AttributeModifier("target", "_blank"));
             ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(), newWindowLink, getString("fibu.auftrag.exportAnalysis"));
-            /*new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
-                        @Override
-                        public void onClick() {
-                            byte[] html = WicketSupport.get(ForecastOrderAnalysis.class).htmlExportAsByteArray(getData().getId());
-                            DownloadUtils.setDownloadTarget(html, "orderAnalysis-" + getData().getNummer() + ".html");
-                        }
-                    }*/
             addContentMenuEntry(menu);
             if (SystemStatus.isDevelopmentMode()) {
                 menu = new ContentMenuEntryPanel(getNewContentMenuChildId(),
