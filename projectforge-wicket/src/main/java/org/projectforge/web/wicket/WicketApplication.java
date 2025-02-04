@@ -179,11 +179,6 @@ public class WicketApplication extends WebApplication implements WicketApplicati
         return startTime;
     }
 
-    @Value("${projectforge.wicket.developmentMode}")
-    public void setDevelopmentMode(Boolean developmentMode) {
-        WicketApplication.developmentMode = developmentMode;
-    }
-
     /**
      * Own solution: uses development parameter of servlet context init parameter (see context.xml or server.xml).
      *
@@ -215,8 +210,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
     protected void init() {
         super.init();
         getCspSettings().blocking().disabled(); // Configuring new Content Security Policy (CSP) settings.
-        getComponentInstantiationListeners().add(
-                new SpringComponentInjector(this, applicationContext));
+        getComponentInstantiationListeners().add(new SpringComponentInjector(this, applicationContext));
         // Wicket workaround for not be able to proxy Kotlin base SpringBeans:
         WicketSupport.register(applicationContext);
         WebRegistry.getInstance().init();
@@ -278,7 +272,6 @@ public class WicketApplication extends WebApplication implements WicketApplicati
         }
         getApplicationSettings().setPageExpiredErrorPage(PageExpiredPage.class); // Don't show expired page.
         // getSessionSettings().setMaxPageMaps(20); // Map up to 20 pages per session (default is 5).
-        getComponentInstantiationListeners().add(new SpringComponentInjector(this));
         getApplicationSettings().setInternalErrorPage(ErrorPage.class);
         getRequestCycleSettings().setTimeout(Duration.ofMinutes(Constants.WICKET_REQUEST_TIMEOUT_MINUTES));
         // getRequestCycleSettings().setRenderStrategy(RequestCycleSettings.RenderStrategy.ONE_PASS_RENDER);

@@ -124,7 +124,7 @@ class OrderInfo : Serializable {
         kundeId = order.kunde?.id
         kundeAsString = order.kundeAsString
         projektId = order.projekt?.id
-        projektAsString = order.projektAsString
+        projektAsString = order.projekt?.name
         probabilityOfOccurrence = order.probabilityOfOccurrence
         forecastType = order.forecastType
         periodOfPerformanceBegin = order.periodOfPerformanceBegin

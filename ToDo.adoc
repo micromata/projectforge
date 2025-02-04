@@ -1,5 +1,4 @@
 ==== Aktuell:
-- History User/Gruppen z. B. ScriptDO: DisplayName anstelle von Ids.
 - Änderungskommentar bei Usern/Gruppen (JIRA-Nummern)
 - AI timesavings: Zeit bei Eingabe ausrechnen, recent ai texte als vorlage.
 - JCR: Tool for removing or recovering orphaned nodes.
