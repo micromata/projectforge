@@ -542,7 +542,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
             }
             return false;
         }
-        final UserRightDO rightDO = user.getRight(rightId);
+        final UserRightDO rightDO = userGroupCache.getUserRight(user.getId(), rightId);
         final UserRight right = userRights.getRight(rightId);
         final Collection<GroupDO> userGroups = userGroupCache.getUserGroupDOs(user);
         for (final UserRightValue value : values) {

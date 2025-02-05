@@ -34,6 +34,7 @@ import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Visitorbook
 import org.projectforge.rest.dto.VisitorbookEntry
@@ -73,6 +74,7 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
                 visitorbook.numberOfVisits = info.numberOfVisits
             }
         }
+        Employee.restoreDisplayNames(visitorbook.contactPersons)
         return visitorbook
     }
 
@@ -142,7 +144,6 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
                                     lc,
                                     "contactPersons",
                                     true,
-                                    "orga.visitorbook.contactPersons"
                                 )
                             )
                     )

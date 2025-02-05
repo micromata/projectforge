@@ -44,6 +44,7 @@ class RepoTest {
 
   init {
     val repoDir = testUtils.deleteAndCreateTestFile("testRepo")
+    repoService.repoConfig = RepoConfig.createForTests()
     repoService.init(repoDir)
   }
 

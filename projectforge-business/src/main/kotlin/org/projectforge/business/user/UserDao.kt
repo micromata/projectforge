@@ -113,7 +113,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         return list
     }
 
-    fun getUserRights(userId: Long?): List<UserRightDO>? {
+    fun getUserRights(userId: Long?): Collection<UserRightDO>? {
         return userGroupCache.getUserRights(userId)
     }
 

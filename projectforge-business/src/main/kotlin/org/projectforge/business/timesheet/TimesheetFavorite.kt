@@ -29,58 +29,75 @@ import org.projectforge.favorites.AbstractFavorite
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 class TimesheetFavorite(
-  name: String? = null,
-  id: Long = 0,
-  var taskId: Long? = null,
-  var userId: Long? = null,
-  var location: String? = null,
-  var tag: String? = null,
-  var reference: String? = null,
-  var description: String? = null,
-  var cost2Id: Long? = null
+    name: String? = null,
+    id: Long = 0,
+    var taskId: Long? = null,
+    var userId: Long? = null,
+    var location: String? = null,
+    var tag: String? = null,
+    var reference: String? = null,
+    var description: String? = null,
+    var cost2Id: Long? = null,
+    // Don't copy these values to the timesheet. The user should enter them manually.
+    // var timeSavedByAI: BigDecimal? = null,
+    // var timeSavedByAIUnit: TimesheetDO.TimeSavedByAIUnit? = null,
+    // var timeSavedByAIDescription: String? = null,
 ) : AbstractFavorite(name, id) {
 
-  fun fillFromTimesheet(timesheet: TimesheetDO) {
-    if (timesheet.taskId != null) {
-      taskId = timesheet.taskId
+    fun fillFromTimesheet(timesheet: TimesheetDO) {
+        if (timesheet.taskId != null) {
+            taskId = timesheet.taskId
+        }
+        if (timesheet.userId != null) {
+            userId = timesheet.userId
+        }
+        if (!timesheet.location.isNullOrBlank()) {
+            location = timesheet.location
+        }
+        tag = timesheet.tag
+        if (!timesheet.reference.isNullOrBlank()) {
+            reference = timesheet.reference
+        }
+        if (!timesheet.description.isNullOrBlank()) {
+            description = timesheet.description
+        }
+        if (timesheet.kost2Id != null) {
+            cost2Id = timesheet.kost2Id
+        }
+        // Don't copy these values to the timesheet. The user should enter them manually.
+        /*if (timesheet.timeSavedByAI != null) {
+            timeSavedByAI = timesheet.timeSavedByAI
+        }
+        if (timesheet.timeSavedByAIUnit != null) {
+          timeSavedByAIUnit = timesheet.timeSavedByAIUnit
+        }
+        if (!timesheet.timeSavedByAIDescription.isNullOrBlank()) {
+          timeSavedByAIDescription = timesheet.timeSavedByAIDescription
+        }*/
     }
-    if (timesheet.userId != null) {
-      userId = timesheet.userId
-    }
-    if (!timesheet.location.isNullOrBlank()) {
-      location = timesheet.location
-    }
-    tag = timesheet.tag
-    if (!timesheet.reference.isNullOrBlank()) {
-      reference = timesheet.reference
-    }
-    if (!timesheet.description.isNullOrBlank()) {
-      description = timesheet.description
-    }
-    if (timesheet.kost2Id != null) {
-      cost2Id = timesheet.kost2Id
-    }
-  }
 
-  fun copyToTimesheet(timesheet: TimesheetDO) {
-    if (taskId != null) {
-      val task = TaskDO()
-      task.id = taskId
-      timesheet.task = task
+    fun copyToTimesheet(timesheet: TimesheetDO) {
+        if (taskId != null) {
+            val task = TaskDO()
+            task.id = taskId
+            timesheet.task = task
+        }
+        if (userId != null) {
+            val user = PFUserDO()
+            user.id = userId
+            timesheet.user = user
+        }
+        timesheet.location = location ?: ""
+        timesheet.tag = tag ?: "" // Overwrite client's value.
+        timesheet.reference = reference ?: ""
+        timesheet.description = description ?: ""
+        // timesheet.timeSavedByAI = timeSavedByAI
+        // timesheet.timeSavedByAIUnit = timeSavedByAIUnit
+        // timesheet.timeSavedByAIDescription = timeSavedByAIDescription ?: ""
+        if (cost2Id != null) {
+            val cost2 = Kost2DO()
+            cost2.id = cost2Id
+            timesheet.kost2 = cost2
+        }
     }
-    if (userId != null) {
-      val user = PFUserDO()
-      user.id = userId
-      timesheet.user = user
-    }
-    timesheet.location = location ?: ""
-    timesheet.tag = tag ?: "" // Overwrite client's value.
-    timesheet.reference = reference ?: ""
-    timesheet.description = description ?: ""
-    if (cost2Id != null) {
-      val cost2 = Kost2DO()
-      cost2.id = cost2Id
-      timesheet.kost2 = cost2
-    }
-  }
 }

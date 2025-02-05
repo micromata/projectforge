@@ -168,6 +168,26 @@ object ForecastUtils { // open needed by Wicket.
         return BigDecimal(propability).divide(NumberHelper.HUNDRED, 2, RoundingMode.HALF_UP)
     }
 
+    /**
+     * Returns the forecast type of the order position. If the order position has a forecast type, this is returned.
+     * Otherwise, the forecast type of the order is returned. If the order has no forecast type, the default forecast type
+     * is returned.
+     */
+    @JvmStatic
+    fun getForecastType(order: OrderInfo, pos: OrderPositionInfo? = null): AuftragForecastType {
+        return pos?.forecastType ?: order.forecastType ?: AuftragForecastType.default
+    }
+
+    /**
+     * Returns the forecast type of the order position. If the order position has a forecast type, this is returned.
+     * Otherwise, the forecast type of the order is returned. If the order has no forecast type, the default forecast type
+     * is returned.
+     */
+    @JvmStatic
+    fun getForecastType(order: AuftragDO, pos: AuftragsPositionDO? = null): AuftragForecastType {
+        return pos?.forecastType ?: order.forecastType ?: AuftragForecastType.default
+    }
+
     @JvmStatic
     fun getStartLeistungszeitraum(order: OrderInfo, pos: OrderPositionInfo): PFDay {
         return getLeistungszeitraumDate(pos, order.periodOfPerformanceBegin, pos.periodOfPerformanceBegin)

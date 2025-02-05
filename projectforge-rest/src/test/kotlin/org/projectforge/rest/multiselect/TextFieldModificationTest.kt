@@ -88,7 +88,7 @@ class TextFieldModificationTest {
     append: Boolean? = null,
     replaceText: String? = null,
   ) {
-    val param = MassUpdateParameter()
+    val param = MassUpdateParameter("param", "displayName")
     param.textValue = newValue
     param.delete = delete
     param.append = append

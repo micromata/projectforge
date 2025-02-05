@@ -44,6 +44,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.protocol.http.RequestUtils;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
+import org.apache.wicket.request.Url;
 import org.apache.wicket.request.UrlUtils;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.flow.RedirectToUrlException;
@@ -256,8 +257,15 @@ public class WicketUtils {
      * @return path itself if not starts with '/' otherwise "/ProjectForge" + path with session id and params.
      */
     public static String getUrl(final RequestCycle requestCycle, final String path, final boolean encodeUrl) {
-        String url = UrlUtils.rewriteToContextRelative(path, requestCycle);
-        if (encodeUrl == true) {
+        String url;
+        if (path.contains("wa/")) {
+            url = UrlUtils.rewriteToContextRelative(path, requestCycle);
+        } else if (path.startsWith("/")) {
+            url = RequestCycle.get().getUrlRenderer().renderFullUrl(Url.parse(path));
+        } else {
+            url = RequestCycle.get().getUrlRenderer().renderFullUrl(Url.parse("/" + path));
+        }
+        if (encodeUrl) {
             url = requestCycle.getResponse().encodeURL(url);
         }
         return url;

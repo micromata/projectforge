@@ -29,13 +29,15 @@ import org.apache.wicket.behavior.Behavior;
 /**
  * Styles as behavior for TextPanels.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class TextStyle
 {
   public static final Behavior RED = AttributeModifier.append("style", "color: #DA202C;");
 
   public static final Behavior BLUE = AttributeModifier.append("style", "color: blue;");
+
+  public static final Behavior PURPLE = AttributeModifier.append("style", "color: purple;");
 
   public static final Behavior FORM_TEXT = AttributeModifier.append("class", "text");
 }

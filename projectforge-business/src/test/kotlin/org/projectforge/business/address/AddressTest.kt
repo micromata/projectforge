@@ -23,6 +23,7 @@
 
 package org.projectforge.business.address
 
+import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.test.AbstractTestBase
@@ -32,9 +33,9 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+
+private val log = KotlinLogging.logger {}
 
 class AddressTest : AbstractTestBase() {
     @Autowired
@@ -42,6 +43,30 @@ class AddressTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var addressbookDao: AddressbookDao
+
+    companion object {
+        private val addressbookSet = mutableSetOf<AddressbookDO>()
+        private val addressbookWithUserAccess = AddressbookDO()
+    }
+
+    override fun beforeAll() {
+        logon(ADMIN_USER)
+        val globalAddressbook = addressbookDao.globalAddressbook
+        globalAddressbook.fullAccessUserIds = "" + getUser(TEST_USER).id
+        addressbookDao.update(globalAddressbook, checkAccess = false)
+
+        val testUser = getUser(TEST_USER)
+        addressbookWithUserAccess.title = "address book with user access"
+        addressbookWithUserAccess.fullAccessUserIds = "" + testUser.id
+        addressbookDao.insert(addressbookWithUserAccess)
+
+        val addressbookWithoutUserAccess = AddressbookDO()
+        addressbookWithoutUserAccess.title = "address book without user access"
+        addressbookDao.insert(addressbookWithoutUserAccess)
+
+        addressbookSet.add(addressbookWithUserAccess)
+        addressbookSet.add(addressbookWithoutUserAccess)
+    }
 
     @Test
     fun testSaveAndUpdate() {
@@ -85,6 +110,7 @@ class AddressTest : AbstractTestBase() {
     }
 
     fun testDelete() {
+        logon(ADMIN)
         Assertions.assertThrows(
             RuntimeException::class.java
         ) {
@@ -99,15 +125,12 @@ class AddressTest : AbstractTestBase() {
 
     @Test
     fun checkStandardAccess() {
+        logon(ADMIN)
         val testAddressbook = AddressbookDO()
         testAddressbook.title = "testAddressbook"
         addressbookDao.insert(testAddressbook, checkAccess = false)
         val addressbookSet: MutableSet<AddressbookDO> = HashSet()
         addressbookSet.add(testAddressbook)
-
-        val globalAddressbook = addressbookDao.globalAddressbook
-        globalAddressbook.fullAccessUserIds = "" + getUser(TEST_USER).id
-        addressbookDao.update(globalAddressbook, checkAccess = false)
 
         val a1 = AddressDO()
         a1.name = "testa1"
@@ -216,21 +239,7 @@ class AddressTest : AbstractTestBase() {
      */
     @Test
     fun preserveAddressbooksTest() {
-        logon(TEST_ADMIN_USER)
         val testUser = getUser(TEST_USER)
-        val addressbookWithUserAccess = AddressbookDO()
-        addressbookWithUserAccess.title = "address book with user access"
-        addressbookWithUserAccess.fullAccessUserIds = "" + testUser.id
-        addressbookDao.insert(addressbookWithUserAccess)
-
-        val addressbookWithoutUserAccess = AddressbookDO()
-        addressbookWithoutUserAccess.title = "address book without user access"
-        addressbookDao.insert(addressbookWithoutUserAccess)
-
-        val addressbookSet: MutableSet<AddressbookDO> = HashSet()
-        addressbookSet.add(addressbookWithUserAccess)
-        addressbookSet.add(addressbookWithoutUserAccess)
-
         logon(testUser)
         var address = AddressDO()
         address.name = "Kai Reinhard"
@@ -258,6 +267,7 @@ class AddressTest : AbstractTestBase() {
     @Test
     @Throws(Exception::class)
     fun testInstantMessagingField() {
+        logon(ADMIN)
         val address = AddressDO()
         Assertions.assertNull(address.instantMessaging4DB)
         address.setInstantMessaging(InstantMessagingType.SKYPE, "skype-name")
@@ -352,8 +362,4 @@ class AddressTest : AbstractTestBase() {
     //    assertEquals(5, list.size());
     //    assertEquals(date, a1.getLastUpdate()); // Fails: Fix AbstractBaseDO.copyDeclaredFields: Objects.equals(Boolean, boolean) etc.
     //  }
-
-    companion object {
-        private val log: Logger = LoggerFactory.getLogger(AddressTest::class.java)
-    }
 }

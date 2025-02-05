@@ -210,12 +210,19 @@ class ForecastOrderPosInfo(
     private fun distributeMonthlyValues(
         distributionStartDay: PFDay,
     ) {
-        val firstMonth = distributionStartDay.beginOfMonth
+        val monthCount = distributionStartDay.monthsBetween(periodOfPerformanceEnd) + 1 // Jan-Jan -> 1, Jan-Feb -> 2, ...
+        val firstMonth =
+            if (ForecastUtils.getForecastType(orderInfo, orderPosInfo) == AuftragForecastType.CURRENT_MONTH) {
+                // Start distribution in the current month:
+                distributionStartDay.beginOfMonth
+            } else {
+                // Start distribution in the following month:
+                distributionStartDay.beginOfMonth.plusMonths(1)
+            }
         val lastMonth = periodOfPerformanceEnd
         if (lastMonth < firstMonth) { // should not happen
             return
         }
-        val monthCount = firstMonth.monthsBetween(lastMonth) + 1 // Jan-Jan -> 1, Jan-Feb -> 2, ...
         val partlyNetSum = weightedNetSumWithoutPaymentSchedule.divide(
             BigDecimal.valueOf(monthCount),
             RoundingMode.HALF_UP
@@ -223,7 +230,7 @@ class ForecastOrderPosInfo(
         futureInvoicesAmountRest = toBeInvoicedSum
         months.forEachIndexed { index, monthEntry ->
             val month = monthEntry.date
-            if (month > firstMonth) { // Start distribution one month after firstMonth (invoice one month later)
+            if (month >= firstMonth) { // Start distribution not before firstMonth.
                 if (month >= baseMonth) {
                     // Distribute payments only in future (after base month).
                     var value = partlyNetSum
@@ -281,8 +288,11 @@ class ForecastOrderPosInfo(
 
     private fun createMonths() {
         var month = periodOfPerformanceBegin.beginOfMonth
-        var monthUntil =
-            periodOfPerformanceEnd.beginOfMonth.plusMonths(1) // Add one month after end of performance period.
+        var monthUntil = periodOfPerformanceEnd.beginOfMonth
+        if (ForecastUtils.getForecastType(orderInfo, orderPosInfo) != AuftragForecastType.CURRENT_MONTH) {
+            // Add one more month, because the forecast revenue is in the following month, so one month after end of performance period.
+            monthUntil = monthUntil.plusMonths(1)
+        }
         val lastScheduleDate = PFDay.fromOrNull(paymentSchedules.maxOfOrNull { it.scheduleDate ?: LocalDate.MIN })
         if (lastScheduleDate != null && lastScheduleDate > monthUntil) {
             monthUntil = lastScheduleDate
@@ -306,6 +316,6 @@ class ForecastOrderPosInfo(
          * If true, unused budget will be added to the last distributed month.
          * If false, this budget will be added to the difference sum.
          */
-        internal val DISTRIBUTE_UNUSED_BUDGET = true
+        internal var DISTRIBUTE_UNUSED_BUDGET = true
     }
 }

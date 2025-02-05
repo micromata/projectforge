@@ -148,6 +148,13 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
         @Transient
         get() = positionen
 
+    /**
+     *  @return true if the invoice is valid: isn't deleted and status is not GEPLANT or STORNIERT
+     */
+    override val isValid: Boolean
+        @Transient
+        get() = !deleted && status?.isIn(RechnungStatus.GEPLANT, RechnungStatus.STORNIERT) == false
+
     override fun ensureAndGetPositionen(): MutableList<out AbstractRechnungsPositionDO> {
         if (this.positionen == null) {
             positionen = mutableListOf()
