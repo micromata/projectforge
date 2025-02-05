@@ -60,11 +60,11 @@ open class EingangsrechnungsPositionDO : AbstractRechnungsPositionDO() {
 
     @PersistenceBehavior(autoUpdateCollectionEntries = true)
     @get:OneToMany(
+        mappedBy = "eingangsrechnungsPosition",
         cascade = [CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH],
         orphanRemoval = false,
         fetch = FetchType.LAZY,
     )
-    @get:JoinColumn(name = "eingangsrechnungs_pos_fk")
     @get:OrderColumn(name = "index")
     @JsonManagedReference
     override var kostZuweisungen: MutableList<KostZuweisungDO>? = null

@@ -58,7 +58,7 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
 
   private static final String USER_PREF_KEY_RECENT_GROUPS = "GroupSelectPanel:recentGroups";
 
-  private static final String[] SEARCH_FIELDS = { "id", "name" };
+  private static final String[] SEARCH_FIELDS = { "name" };
 
   private boolean defaultFormProcessing = false;
 

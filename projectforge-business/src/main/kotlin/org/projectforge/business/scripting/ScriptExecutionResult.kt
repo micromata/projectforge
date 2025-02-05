@@ -30,7 +30,7 @@ class ScriptExecutionResult(val scriptLogger: ScriptLogger) : Serializable {
     @Transient
     var result: Any? = null
     @Transient
-    var exception: Exception? = null
+    var exception: Throwable? = null
     var output: String? = null
     /**
      * The effective script (including any auto-imports and bindings).
@@ -59,7 +59,7 @@ class ScriptExecutionResult(val scriptLogger: ScriptLogger) : Serializable {
         } else HtmlHelper.escapeHtml(result.toString(), true)
 
     fun hasException(): Boolean {
-        return exception != null
+        return exception != null || result is Throwable
     }
 
     companion object {

@@ -79,7 +79,7 @@ class ForecastExportTest : AbstractTestBase() {
             val monthCols = Array(12) {
                 forecastSheet.registerColumn(ForecastExport.formatMonthHeader(baseDate.plusMonths(it.toLong())))
             }
-            val firstRow = 9
+            val firstRow = 10
             forecastSheet.headRow // Enforce analyzing the column definitions.
 
             // order 1

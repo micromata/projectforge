@@ -34,6 +34,7 @@ fun main() {
     row2.addTD("Cell 2")
     doc.add(table)
     doc.add(Html.Alert(Html.Alert.Type.INFO, "This is an info message."))
+    doc.add("Hello ").add(" big, big ").add("world", bold = true).add("!\nWelcome to the show.")
+    doc.add(HtmlList().also { list -> list.addItem("Item 1").addItem("Item 2") })
     println(doc.toString())
 }
-

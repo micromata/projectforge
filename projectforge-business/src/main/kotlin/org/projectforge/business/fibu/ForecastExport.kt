@@ -34,6 +34,7 @@ import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.common.extensions.format2Digits
 import org.projectforge.common.extensions.formatCurrency
+import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -135,15 +136,20 @@ open class ForecastExport { // open needed by Wicket.
         ) &&
                 filter.searchString.isNullOrBlank() &&
                 filter.projectList.isNullOrEmpty()
-        return xlsExport(
-            orderList,
-            startDate = startDate,
-            planningDate = closestPlanningDate,
-            snapshotDate = closestSnapshotDate,
-            showAll = showAll,
-            auftragFilter = filter,
-            scriptLogger = scriptLogger
-        )
+        try {
+            return xlsExport(
+                orderList,
+                startDate = startDate,
+                planningDate = closestPlanningDate,
+                snapshotDate = closestSnapshotDate,
+                showAll = showAll,
+                auftragFilter = filter,
+                scriptLogger = scriptLogger
+            )
+        } catch (ex: Exception) {
+            log.error(ex) { "Error exporting forecast: $ex" }
+            throw ex
+        }
     }
 
     private fun getStartDate(origFilter: AuftragFilter): PFDay {
@@ -294,14 +300,16 @@ open class ForecastExport { // open needed by Wicket.
                 return null
             }
             forecastExportInvoices.fillInvoices(ctx)
-            replaceMonthDatesInHeaderRow(forecastSheet, startDate)
-            replaceMonthDatesInHeaderRow(planningSheet, startDate)
+            replaceMonthDatesInHeaderRow(forecastSheet, startDate, true)
+            replaceMonthDatesInHeaderRow(planningSheet, startDate, true)
             replaceMonthDatesInHeaderRow(invoicesSheet, startDate)
             replaceMonthDatesInHeaderRow(invoicesPrevYearSheet, prevYearBaseDate)
             replaceMonthDatesInHeaderRow(planningInvoicesSheet, startDate)
-            forecastSheet.setAutoFilter()
+            ExcelUtils.setAutoFilter(forecastSheet, FORECAST_HEAD_ROW, 0, FORECAST_NUMBER_OF_COLS)
             invoicesSheet.setAutoFilter()
             invoicesPrevYearSheet.setAutoFilter()
+            ExcelUtils.setAutoFilter(planningSheet, FORECAST_HEAD_ROW, 0, FORECAST_NUMBER_OF_COLS)
+            planningInvoicesSheet.setAutoFilter()
 
             fillPlanningForecast(planningDate, auftragFilter, ctx)
             workbook.pOIWorkbook.creationHelper.createFormulaEvaluator().evaluateAll()
@@ -327,7 +335,8 @@ open class ForecastExport { // open needed by Wicket.
     ): Boolean {
         // Set the date in the upper left corner (red and bold) for showing date of snapshot/orderbook.
         sheet.getCell(1, 0)?.setCellValue(baseDate ?: ctx.baseDate.localDate)
-        var currentRow = 9
+        sheet.getRow(FORECAST_HEAD_ROW)
+        var currentRow = FORECAST_FISRT_ORDER_ROW
         var orderPositionFound = false
         for (auftragDO in orderList) {
             auftragDO.projekt?.id?.let { projektId ->
@@ -371,12 +380,29 @@ open class ForecastExport { // open needed by Wicket.
         fillOrderPositions(orderList, ctx, ctx.planningSheet, baseDate = planningDate, useAuftragsCache = false)
     }
 
-    private fun replaceMonthDatesInHeaderRow(sheet: ExcelSheet, baseDate: PFDay) { // Adding month columns
+    private fun replaceMonthDatesInHeaderRow(
+        sheet: ExcelSheet,
+        baseDate: PFDay,
+        planningSheet: Boolean = false
+    ) { // Adding month columns
         var currentMonth = baseDate
         MonthCol.entries.forEach {
-            val cell = sheet.headRow!!.getCell(sheet.getColumnDef(it.header)!!)
-            cell.setCellValue(formatMonthHeader(currentMonth))
+            sheet.headRow!!.getCell(sheet.getColumnDef(it.header)!!).also { cell ->
+                cell.setCellValue(formatMonthHeader(currentMonth))
+            }
+            if (planningSheet) {
+                // Second head row for planning sheet:
+                sheet.getRow(FORECAST_HEAD_ROW).getCell(sheet.getColumnDef(it.header)!!)
+                    .setCellValue(formatMonthHeader(currentMonth))
+            }
             currentMonth = currentMonth.plusMonths(1)
+        }
+        if (planningSheet) {
+            // Clear first heading row for planning sheet:
+            sheet.headRow?.let { row ->
+                ExcelUtils.clearCells(row, 0, 26)
+                ExcelUtils.clearCells(row, 39, FORECAST_NUMBER_OF_COLS)
+            }
         }
     }
 
@@ -500,7 +526,11 @@ open class ForecastExport { // open needed by Wicket.
             ForecastCol.ANZAHL_MONATE.header,
             ForecastUtils.getMonthCountForOrderPosition(order, pos)
         )
-        sheet.setStringValue(row, ForecastCol.FORECAST_TYPE.header, translate(ForecastUtils.getForecastType(order, pos).i18nKey))
+        sheet.setStringValue(
+            row,
+            ForecastCol.FORECAST_TYPE.header,
+            translate(ForecastUtils.getForecastType(order, pos).i18nKey)
+        )
         val remaining = forecastInfo.getRemainingForecastSumAfter(ctx.endDate)
         if (remaining.compareTo(BigDecimal.ZERO) != 0) {
             sheet.setBigDecimalValue(row, ForecastCol.REMAINING.header, remaining).cellStyle =
@@ -558,12 +588,16 @@ open class ForecastExport { // open needed by Wicket.
     }
 
     private fun readSnapshot(date: LocalDate, filter: AuftragFilter): List<AuftragDO> {
-       return orderbookSnapshotsService.readSnapshot(date)?.filter { filter.match(it) }
+        return orderbookSnapshotsService.readSnapshot(date)?.filter { filter.match(it) }
             ?.sortedByDescending { it.nummer } ?: emptyList()
     }
 
     companion object {
         private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM yyyy")
+
+        private const val FORECAST_HEAD_ROW = 9
+        private const val FORECAST_FISRT_ORDER_ROW = FORECAST_HEAD_ROW + 1
+        private const val FORECAST_NUMBER_OF_COLS = 45
 
         fun formatMonthHeader(date: PFDay): String {
             return date.format(formatter)

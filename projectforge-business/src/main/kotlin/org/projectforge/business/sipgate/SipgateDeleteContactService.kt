@@ -21,24 +21,27 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.entities
+package org.projectforge.business.sipgate
 
-import jakarta.persistence.*
-import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Service
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * Used by AddressDao if addresses are forced to be deleted.
+ * @author K. Reinhard (k.reinhard@micromata.de)
  */
-@MappedSuperclass
-//@Analyzer(impl = ClassicAnalyzer::class)
-open class DefaultBaseDO : AbstractHistorizableBaseDO<Long>() {
-    @get:Column(name = "pk")
-    @get:GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
-    @get:Id
-    @PropertyInfo(i18nKey = "id")
-    override var id: Long? = null
+@Service
+class SipgateDeleteContactService {
+    @Autowired
+    private lateinit var persistenceService: PfPersistenceService
 
-    companion object {
-        private const val serialVersionUID = 659687830219996653L
+    fun deleteContact(addressId: Long) {
+        persistenceService.runInTransaction { ctx ->
+            ctx.executeNamedUpdate(
+                SipgateContactSyncDO.DELETE_BY_ADDRESS_ID,
+                Pair("addressId", addressId),
+            )
+        }
     }
 }

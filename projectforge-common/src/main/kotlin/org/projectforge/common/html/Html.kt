@@ -60,7 +60,7 @@ class Html {
     }
 
     class Text(content: String, replaceNewlinesByBr: Boolean = true) :
-        HtmlElement("NOTAG", content = content, childrenAllowed = false, replaceNewlinesByBr = replaceNewlinesByBr)
+        HtmlElement("NOTAG", content = content, childrenAllowed = true, replaceNewlinesByBr = replaceNewlinesByBr)
 
     class BR : HtmlElement("br", childrenAllowed = false)
 

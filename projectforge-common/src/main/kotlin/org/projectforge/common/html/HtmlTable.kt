@@ -30,14 +30,14 @@ class HtmlTable : HtmlElement("table") {
         fun addTH(content: String? = null, cssClass: CssClass? = null): TH {
             return TH(content).also { th ->
                 add(th)
-                th.addClasses(cssClass)
+                th.add(cssClass)
             }
         }
 
         fun addTD(content: String? = null, cssClass: CssClass? = null): TD {
             return TD(content).also { td ->
                 add(td)
-                td.addClasses(cssClass)
+                td.add(cssClass)
             }
         }
     }
@@ -57,7 +57,7 @@ class HtmlTable : HtmlElement("table") {
     fun addRow(cssClass: CssClass? = null): TR {
         return TR().also { tr ->
             tbody.add(tr)
-            tr.addClasses(cssClass)
+            tr.add(cssClass)
         }
     }
 }
