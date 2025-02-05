@@ -124,6 +124,19 @@ object ClassUtils {
         return clazz.annotations.any { it.annotationClass.simpleName == "Metadata" }
     }
 
+    /**
+     * Sets a private field of an instance.
+     *
+     * @param instance The instance.
+     * @param fieldName The field name.
+     * @param value The value to set.
+     */
+    fun setPrivateField(instance: Any, fieldName: String, value: Any?) {
+        val field: Field = instance::class.java.getDeclaredField(fieldName)
+        field.isAccessible = true
+        field.set(instance, value)
+    }
+
     class Info(
         /**
          * The parent class of the field.
