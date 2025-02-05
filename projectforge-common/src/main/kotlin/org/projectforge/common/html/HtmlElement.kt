@@ -38,31 +38,30 @@ open class HtmlElement(
     val id: String? = null,
     replaceNewlinesByBr: Boolean = false,
 ) {
-    val content: String? = if (content != null && childrenAllowed && replaceNewlinesByBr && content.contains('\n')) {
-        // Example: "Hello\nWorld" -> "Hello\n<br />\nWorld"
-        content.split('\n').forEachIndexed { index, s ->
-            if (index > 0) {
-                this.add(Html.BR())
-            }
-            if (s.isNotBlank()) {
-                add(Html.Text("$s\n", replaceNewlinesByBr = false))
-            }
-        }
-        null
-    } else {
-        content
-    }
+    val content: String? = appendContent(this, content, replaceNewlinesByBr)
     var children: MutableList<HtmlElement>? = null
     var attributes: MutableMap<String, String>? = null
     var classnames: MutableList<String>? = null
 
-    fun addClasses(vararg cssClass: CssClass?) {
-        cssClass.forEach { it?.let { addClassname((it.cls)) } }
+    /**
+     * Adds the given CSS classes to this element.
+     * @param cssClasses The CSS classes to add
+     * @return This element for chaining.
+     */
+    fun add(vararg cssClasses: CssClass?): HtmlElement {
+        cssClasses.forEach { it?.let { addClassname((it.cls)) } }
+        return this
     }
 
-    fun addClassname(classname: String) {
+    /**
+     * Adds the given CSS classes to this element.
+     * @param classname The CSS classes to add
+     * @return This element for chaining.
+     */
+    fun addClassname(classname: String): HtmlElement {
         classnames = classnames ?: mutableListOf()
         classnames!!.add(classname)
+        return this
     }
 
     fun attr(name: String, value: String) {
@@ -87,8 +86,23 @@ open class HtmlElement(
     /**
      * Adds a text element to this element. Convenience method for adding text to an element.
      */
-    fun addText(text: String): HtmlElement {
-        return add(Html.Text(text))
+    open fun add(
+        text: String,
+        bold: Boolean = false,
+        replaceNewlinesByBr: Boolean = true,
+        vararg cssClasses: CssClass
+    ): HtmlElement {
+        if (bold || cssClasses.isNotEmpty()) {
+            add(Html.Span(text, replaceNewlinesByBr = replaceNewlinesByBr).also { span ->
+                span.add(cssClasses = cssClasses)
+                span.add(CssClass.BOLD)
+            })
+        } else {
+            appendContent(this, text, replaceNewlinesByBr)?.let { content ->
+                add(Html.Text(content, replaceNewlinesByBr = false))
+            }
+        }
+        return this
     }
 
     open fun append(sb: StringBuilder, indent: Int) {
@@ -97,6 +111,7 @@ open class HtmlElement(
             if (!content.isNullOrBlank()) {
                 indent(sb, indent)
                 sb.append(escape(content.trim()))
+                children?.forEach { it.append(sb, indent + 1) }
                 sb.append("\n")
             }
             return
@@ -144,6 +159,32 @@ open class HtmlElement(
         private fun indent(sb: StringBuilder, indent: Int) {
             for (i in 0 until indent) {
                 sb.append("  ")
+            }
+        }
+
+        /**
+         * Appends the given [content] to the [parent] element.
+         * If [replaceNewlinesByBr] is true and the content contains newlines, the content will be split by newlines and
+         * each part will be added as a text element with a '<br />' element in between.
+         * @param parent The parent element to append the content to
+         * @param content The content to append
+         * @param replaceNewlinesByBr Whether to replace newlines by '<br />' elements
+         * @return The content if it was not added to the parent, otherwise null.
+         */
+        internal fun appendContent(parent: HtmlElement, content: String?, replaceNewlinesByBr: Boolean): String? {
+            return if (content != null && replaceNewlinesByBr && content.contains('\n')) {
+                // Example: "Hello\nWorld" -> "Hello\n<br />\nWorld"
+                content.split('\n').forEachIndexed { index, s ->
+                    if (index > 0) {
+                        parent.add(Html.BR())
+                    }
+                    if (s.isNotBlank()) {
+                        parent.add(Html.Text("$s\n", replaceNewlinesByBr = false))
+                    }
+                }
+                null
+            } else {
+                content
             }
         }
 

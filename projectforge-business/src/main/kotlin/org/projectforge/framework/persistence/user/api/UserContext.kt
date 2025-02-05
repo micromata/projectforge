@@ -34,11 +34,13 @@ import java.io.Serializable
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class UserContext() : Serializable {
-    /**
-     * @return the user
-     */
-    var user: PFUserDO? = null
+class UserContext(var user: PFUserDO?) : Serializable {
+    init {
+        if (user != null) {
+            refreshUser()
+        }
+    }
+
     val employeeId: Long?
         get() = EmployeeCache.instance.getEmployeeIdByUserId(user?.id)
 
@@ -70,15 +72,6 @@ class UserContext() : Serializable {
      * See RestAuthenticationInfo of ProjectForge's rest module.
      */
     var loggedInByAuthenticationToken = false
-
-    /**
-     * Stores the given user in the context.
-     *
-     * @param user
-     */
-    constructor(user: PFUserDO) : this() {
-        this.user = user
-    }
 
     /**
      * Clear all fields (user etc.).
@@ -123,9 +116,7 @@ class UserContext() : Serializable {
 
         @JvmStatic
         fun createTestInstance(user: PFUserDO): UserContext {
-            val ctx = UserContext()
-            ctx.user = user
-            return ctx
+            return UserContext(user)
         }
     }
 }

@@ -113,7 +113,7 @@ internal class OrderConverterService {
             }
             info.calculateInvoicedSum(info.infoPositions)
             info.kundeAsString = kundeAsString
-            info.projektAsString = projektAsString
+            info.projektAsString = projekt?.name
             info.updatePaymentScheduleEntries(paymentSchedules)
         }
     }

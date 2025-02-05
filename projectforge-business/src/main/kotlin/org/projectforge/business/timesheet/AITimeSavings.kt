@@ -30,6 +30,9 @@ import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.utils.NumberHelper
 import java.math.BigDecimal
 
+/**
+ * Central functions for calculating and formatting AI time savings.
+ */
 object AITimeSavings {
     class Stats {
         var totalDurationMillis: Long = 0
@@ -60,8 +63,8 @@ object AITimeSavings {
     }
 
     /**
-     * Returns the formatted percentage.
-     * Example: "10 %"
+     * Returns the formatted percentage (scale = 1 for <10 %. Otherwise, scale = 0).
+     * Example: "3,6 %", "10 %", etc.
      * @param percent
      * @return The formatted percentage. If the percent is null, "0 %" is returned.
      */
@@ -75,7 +78,7 @@ object AITimeSavings {
 
     /**
      * Returns the formatted time saved by AI.
-     * Example: "1:30h, 10 %"
+     * Example: "0:30h, 5,7 %", "1:30h, 10 %", etc.
      * @param timesheet
      * @param emptyStringIfNull If true, an empty string is returned if the time saved by AI is null.
      * @return The formatted time saved by AI.

@@ -325,6 +325,7 @@ open class RestAuthenticationUtils {
     var userContext = LoginService.getUserContext(request)
     if (userContext != null) {
       userContext.user = user // Replace by fresh user from authentication.
+      userContext.refreshUser()
       ThreadLocalUserContext.userContext = userContext
     } else {
       userContext = ThreadLocalUserContext.setUser(user)!!
