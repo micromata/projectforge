@@ -42,15 +42,11 @@ private val log = KotlinLogging.logger {}
  * Caches the csrf token per session id's of the clients (for up to 4 Hours). Every hour, expired csrf tokens will be removed.
  */
 @Service
-open class SessionCsrfService
-  : AbstractSessionCache<String>(
-  expireTimeInMillis = 4 * TICKS_PER_HOUR,
-  clearEntriesIntervalInMillis = TICKS_PER_HOUR
-) {
+open class SessionCsrfService {
 
   /**
    * Checks the CSRF token. If the user is logged in by an authenticationToken [RestAuthenticationInfo.loggedInByAuthenticationToken] and the CSRF token is missed no check will be done.
-   * Therefore pure Rest clients may not care about the CSRF token.
+   * Thereforee pure Rest clients may not care about the CSRF token.
    *
    * If null is returned, the caller may proceed. If not, the caller should simply return the ResponseAction. The
    * user will get an updaten CSRF token and should redo his last action.
@@ -74,7 +70,6 @@ open class SessionCsrfService
       // Check OK.
       return null
     }
-    log.warn("Check of CSRF token failed, a validation error will be shown. $logAction of data declined: ${postData.data}. Expected token='${super.getSessionData(request)}', given token='$csrfToken'")
     val validationErrors = mutableListOf<ValidationError>()
     validationErrors.add(ValidationError.create("errorpage.csrfError"))
     postData.serverData = createServerData(request)
@@ -105,21 +100,19 @@ open class SessionCsrfService
   }
 
   private fun ensureAndGetToken(request: HttpServletRequest): String {
-    var token = super.getSessionData(request)
+    val session = request.getSession(false) ?: throw IllegalStateException("No session found.")
+    var token = session.getAttribute(SESSION_ATTRIBUTE_CSRF_TOKEN) as String?
     if (token != null && token.length == TOKEN_LENGTH) {
       return token
     }
     token = NumberHelper.getSecureRandomAlphanumeric(TOKEN_LENGTH)
     log.debug { "No valid csrf token found in AbstractSessionCache, creating '$token' for session id '${RequestLog.getTruncatedSessionId(request)}'" }
-    super.registerSessionData(request, token)
+    session.setAttribute(SESSION_ATTRIBUTE_CSRF_TOKEN, token)
     return token
   }
 
-  override fun entryAsString(entry: String): String {
-    return "'${entry.substring(0..5)}...'"
-  }
-
   companion object {
+    private const val SESSION_ATTRIBUTE_CSRF_TOKEN = "SessionCsrfService:csrfToken"
     const val TOKEN_LENGTH = 30
   }
 }
