@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import useInterval from '@use-hooks/interval';
 import { Table } from '../../../../design';
 import { DynamicLayoutContext } from '../../context';
 import { fetchJsonGet, fetchJsonPost } from '../../../../../utilities/rest';
