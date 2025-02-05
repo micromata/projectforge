@@ -26,7 +26,9 @@ package org.projectforge.excel
 import de.micromata.merlin.excel.*
 import mu.KotlinLogging
 import org.apache.poi.ss.usermodel.*
+import org.apache.poi.ss.util.CellRangeAddress
 import org.projectforge.common.BeanHelper
+import org.projectforge.common.ClassUtils
 import org.projectforge.common.DateFormatType
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
@@ -57,6 +59,79 @@ object ExcelUtils {
             workbook.getSheet(i).poiSheet.setSelected(i == activeSheetIndex)
         }
         workbook.setActiveSheet(activeSheetIndex)
+    }
+
+    /**
+     * Sets the head row of the sheet.
+     * @param sheet the sheet.
+     * @param rowNum the row number of the head row (0-based).
+     */
+    fun setHeadRow(sheet: ExcelSheet, rowNum: Int) {
+        setHeadRow(sheet, sheet.getRow(rowNum));
+    }
+
+    fun setHeadRow(sheet: ExcelSheet, row: ExcelRow) {
+        ClassUtils.setPrivateField(sheet, "_headRow", row);
+    }
+
+    /**
+     * Sets the auto filter for the given row.
+     * @param sheet the sheet.
+     * @param rowNum the row number of the row to set the auto filter.
+     * @param fromColIndex the column index to start the auto filter.
+     * @param toColIndex the column index to end the auto filter. If null, the last column is used.
+     */
+    fun setAutoFilter(sheet: ExcelSheet, rowNum: Int, fromColIndex: Int = 0, toColIndex: Int? = null) {
+        val row = sheet.getRow(rowNum)
+        val lastCol = toColIndex ?: row.lastCellNum.toInt()
+        val range = CellRangeAddress(rowNum, rowNum, fromColIndex, lastCol - 1)
+        sheet.poiSheet.setAutoFilter(range)
+    }
+
+    fun clearCells(row: ExcelRow, fromColIndex: Int = 0, toColIndex: Int? = null) {
+        val lastCol = toColIndex ?: row.lastCellNum.toInt()
+        for (i in fromColIndex until lastCol) {
+            row.getCell(i).setBlank()
+        }
+    }
+
+    /**
+     * Moves a row to another position.
+     * @param sheet the sheet.
+     * @param fromRowIndex the row index to move.
+     * @param toRowIndex the target row index.
+     * @param shiftRows if true, the rows below the moved row are shifted up.
+     */
+    fun moveRow(sheet: ExcelSheet, fromRowIndex: Int, toRowIndex: Int, shiftRows: Boolean = true) {
+        val fromRow = sheet.getRow(fromRowIndex).row
+        var toRow = sheet.getRow(toRowIndex).row
+        val poiSheet = sheet.poiSheet
+        // Remove the target row first
+        poiSheet.removeRow(toRow)
+        // Create a new row at the target index
+        toRow = poiSheet.createRow(toRowIndex)
+        // Copy all cells from the source row to the target row
+        for (i in 0 until fromRow.lastCellNum) {
+            val oldCell = fromRow.getCell(i) ?: continue // Skip null cells
+            val newCell = toRow.createCell(i, oldCell.cellType)
+            // Copy cell style
+            newCell.cellStyle = oldCell.cellStyle
+            // Copy cell value based on its type
+            when (oldCell.cellType) {
+                CellType.STRING -> newCell.setCellValue(oldCell.stringCellValue)
+                CellType.NUMERIC -> newCell.setCellValue(oldCell.numericCellValue)
+                CellType.BOOLEAN -> newCell.setCellValue(oldCell.booleanCellValue)
+                CellType.FORMULA -> newCell.cellFormula = oldCell.cellFormula
+                CellType.BLANK -> newCell.setBlank()
+                else -> {} // No action for unsupported types
+            }
+        }
+        // Remove the original row after copying
+        poiSheet.removeRow(fromRow)
+        if (shiftRows) {
+            // Shift rows up to fill the gap
+            sheet.shiftRows(fromRowIndex + 1, sheet.poiSheet.lastRowNum, -1)
+        }
     }
 
     /**
