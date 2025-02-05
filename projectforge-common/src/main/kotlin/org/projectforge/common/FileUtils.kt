@@ -26,6 +26,22 @@ package org.projectforge.common
 import java.io.File
 
 object FileUtils {
+    /**
+     * Return the given path itself if it is already absolute, otherwise absolute path of given path relative to given parent.
+     * @param parent
+     * @param path
+     * @return
+     */
+    @JvmStatic
+    fun getAbsolutePath(parent: String, path: String): String {
+        var file = File(path)
+        if (file.isAbsolute) {
+            return path
+        }
+        file = File(parent, path)
+        return file.absolutePath
+    }
+
     fun createFile(vararg path: String): File {
         if (path.isEmpty()) {
             return File("")
