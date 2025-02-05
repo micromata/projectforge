@@ -91,7 +91,7 @@ open class JCRCheckSanityCheckJob : AbstractJob("JCR Check Sanity") {
                     if (repoChecksum != null && repoChecksum.length > 10) {
                         val checksum =
                             repoService.getFileInputStream(fileNode, fileObject, true, useEncryptedFile = true)
-                                .use { istream -> RepoService.checksum(istream) }
+                                .use { istream -> OakStorage.checksum(istream) }
                         if (!validateChecksum(checksum, repoChecksum)) {
                             ++failedChecks
                             val msg =
@@ -117,7 +117,7 @@ open class JCRCheckSanityCheckJob : AbstractJob("JCR Check Sanity") {
                             repoService.getFileInputStream(fileNode, fileObject, true, useEncryptedFile = true)
                                 .use { istream -> ZipUtils.determineZipMode(istream) }
                         if (newZipMode != null) {
-                            fileNode.setProperty(RepoService.PROPERTY_ZIP_MODE, newZipMode.name)
+                            fileNode.setProperty(OakStorage.PROPERTY_ZIP_MODE, newZipMode.name)
                         }
                     }
                 }

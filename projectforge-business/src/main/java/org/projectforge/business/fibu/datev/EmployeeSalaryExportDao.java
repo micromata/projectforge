@@ -183,7 +183,7 @@ public class EmployeeSalaryExportDao {
       BigDecimal sum = BigDecimal.ZERO;
       int j = rows.size();
       for (final Kost2Row row : rows.values()) {
-        final Kost2DO kost2 = row.getKost2();
+        final Kost2DO kost2 = row.kost2;
         final MonthlyEmployeeReportEntry entry = report.getKost2Durations().get(kost2.getId());
         mapping.add(ExcelColumn.KOST1, kost1.getNummer());
         mapping.add(ExcelColumn.MITARBEITER, user.getFullname());

@@ -25,9 +25,9 @@ package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
-import org.hibernate.Hibernate
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.cache.AbstractCache
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -70,7 +70,7 @@ open class EmployeeCache : AbstractCache() {
      */
     fun getEmployeeIfNotInitialized(employee: EmployeeDO?): EmployeeDO? {
         employee ?: return null
-        if (Hibernate.isInitialized(employee) && employee.user != null) {
+        if (HibernateUtils.isFullyInitialized(employee) && employee.user != null) {
             return employee
         }
         return getEmployee(employee.id)

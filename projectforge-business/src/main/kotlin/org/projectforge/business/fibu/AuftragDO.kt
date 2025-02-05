@@ -240,6 +240,17 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @get:ListIndexBase(1)
     open var paymentSchedules: MutableList<PaymentScheduleDO>? = null
 
+    /**
+     * When sales of an order are distributed, this can be used to determine, for example, whether sales are
+     * invoiced/forecast in the current month or in the following month.
+     * Default is [AuftragForecastType.FOLLOWING_MONTH].
+     */
+    @PropertyInfo(i18nKey = "fibu.auftrag.forecastType", tooltip = "fibu.auftrag.forecastType.info")
+    @FullTextField
+    @get:Enumerated(EnumType.STRING)
+    @get:Column(name = "forecast_type", length = 20)
+    open var forecastType: AuftragForecastType? = null
+
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.from")
     @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(name = "period_of_performance_begin")

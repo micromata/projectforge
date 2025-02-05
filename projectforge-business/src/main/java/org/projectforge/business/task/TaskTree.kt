@@ -42,6 +42,7 @@ import org.projectforge.framework.access.GroupTaskAccessDO
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.i18n.InternalErrorException
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.utils.NumberHelper.greaterZero
@@ -273,7 +274,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
      */
     fun getTaskIfNotInitialized(task: TaskDO?): TaskDO? {
         task ?: return null
-        if (Hibernate.isInitialized(task)) {
+        if (HibernateUtils.isFullyInitialized(task)) {
             return task
         }
         return getTaskById(task.id)
@@ -570,7 +571,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
         get() {
             synchronized(this) {
                 if (this.orderPositionReferencesDirty) {
-                    log.info{"TaskTree: refreshing order position references..."}
+                    log.info { "TaskTree: refreshing order position references..." }
                     val duration = LogDuration()
                     val references = mutableMapOf<Long, MutableSet<OrderPositionInfo>>()
                     persistenceService.runIsolatedReadOnly { context ->
@@ -600,7 +601,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
                     }
                     this.orderPositionReferences = references
                     this.orderPositionReferencesDirty = false
-                    log.info{"TaskTree: refreshing order position references done: $duration"}
+                    log.info { "TaskTree: refreshing order position references done: $duration" }
                 }
                 return this.orderPositionReferences
             }

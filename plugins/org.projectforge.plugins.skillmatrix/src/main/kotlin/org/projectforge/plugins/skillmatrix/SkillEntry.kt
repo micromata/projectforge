@@ -21,19 +21,15 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.jcr
+package org.projectforge.rest.dto
 
-import org.projectforge.common.FormatterUtils
+import org.projectforge.plugins.skillmatrix.SkillEntryDO
 
-/**
- * For information.
- */
-class FileStoreInfo(repoService: RepoService) {
-  val approximateSize = FormatterUtils.formatBytes(repoService.fileStore?.stats?.approximateSize)
-  val tarFileCount = repoService.fileStore?.stats?.tarFileCount
-  val location = repoService.fileStoreLocation?.absolutePath
-
-  override fun toString(): String {
-    return PFJcrUtils.toJson(this)
-  }
-}
+class SkillEntry(
+    id: Long? = null,
+    var skill: String? = null,
+    var owner: User? = null,
+    var rating: Int? = null,
+    var interest: Int? = null,
+    var comment: String? = null,
+) : BaseDTODisplayObject<SkillEntryDO>(id = id)

@@ -103,6 +103,7 @@ class UIAttachmentList(
           cellRenderer = "filename",
           headerCheckboxSelection = true,
           filter = true,
+          wrapText = true,
         )
       )
         .add(
@@ -130,6 +131,7 @@ class UIAttachmentList(
             sortable = true,
             width = UIAgGridColumnDef.DESCRIPTION_WIDTH,
             filter = true,
+            wrapText = true,
           )
         )
       if (showExpiryInfo == true) {
