@@ -189,7 +189,7 @@ function DynamicAgGrid(props) {
             // Can't detect id.
             return;
         }
-        history.push(modifyRedirectUrl(rowClickRedirectUrl));
+        history.push(modifyRedirectUrl(rowClickRedirectUrl, firstSelectedRowId));
     };
 
     const postColumnStates = (event) => {
