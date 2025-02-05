@@ -34,9 +34,9 @@ import java.io.Serializable
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class UserContext(var user: PFUserDO?) : Serializable {
+class UserContext @JvmOverloads constructor(var user: PFUserDO?, nofresh: Boolean = false) : Serializable {
     init {
-        if (user != null) {
+        if (user != null && !nofresh) {
             refreshUser()
         }
     }
@@ -116,7 +116,7 @@ class UserContext(var user: PFUserDO?) : Serializable {
 
         @JvmStatic
         fun createTestInstance(user: PFUserDO): UserContext {
-            return UserContext(user)
+            return UserContext(user, nofresh = true)
         }
     }
 }

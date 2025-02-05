@@ -32,6 +32,7 @@ import org.projectforge.business.scripting.ScriptLogger
 import org.projectforge.business.scripting.ThreadLocalScriptingContext
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.common.FilenameUtils
 import org.projectforge.common.extensions.format2Digits
 import org.projectforge.common.extensions.formatCurrency
 import org.projectforge.excel.ExcelUtils
@@ -117,7 +118,7 @@ open class ForecastExport { // open needed by Wicket.
         if (!filter.searchString.isNullOrBlank()) {
             msgSB.append(" with filter: str='${filter.searchString}'")
         }
-        scriptLogger?.info { msgSB } ?: log.info { msgSB }
+        // scriptLogger?.info { msgSB } ?: log.info { msgSB }
         val orderList = if (closestSnapshotDate != null) {
             readSnapshot(closestSnapshotDate, filter)
         } else {
@@ -186,16 +187,13 @@ open class ForecastExport { // open needed by Wicket.
         snapshot: LocalDate? = null
     ): String {
         val startDateString = "-start_${startDate.year}-${startDate.monthValue.format2Digits()}"
-        val partString = if (part.isNullOrBlank()) "" else "-$part"
+        val partString = if (part.isNullOrBlank()) "" else "-${FilenameUtils.escapeFilename(part)}"
         val usePlanningDate = orderbookSnapshotsService.findClosestSnapshotDate(planningDate)
-        val planningDateString = if (planningDate != null) "-planning_${usePlanningDate}" else ""
+        val planningDateString = if (planningDate != null) "-plan_${usePlanningDate}" else ""
         val useSnapshot = orderbookSnapshotsService.findClosestSnapshotDate(snapshot)
         val snapshotString = if (useSnapshot != null) "-snapshot_${useSnapshot}" else ""
-        return "Forecast$partString$planningDateString$snapshotString${startDateString}-created_${
-            DateHelper.getDateAsFilenameSuffix(
-                Date()
-            )
-        }${extension ?: ""}"
+        val created = DateHelper.getDateAsFilenameSuffix()
+        return "${created}_Forecast$partString$planningDateString$snapshotString${startDateString}${extension ?: ""}"
     }
 
     /**
