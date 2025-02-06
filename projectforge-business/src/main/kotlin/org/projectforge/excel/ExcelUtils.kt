@@ -51,6 +51,7 @@ private val log = KotlinLogging.logger {}
  */
 object ExcelUtils {
     /**
+     * Should be part of Merlin in the next release.
      * Sets the active sheet and deselects all other sheets.
      */
     @JvmStatic
@@ -62,6 +63,7 @@ object ExcelUtils {
     }
 
     /**
+     * Should be part of Merlin in the next release.
      * Sets the head row of the sheet.
      * @param sheet the sheet.
      * @param rowNum the row number of the head row (0-based).
@@ -70,11 +72,15 @@ object ExcelUtils {
         setHeadRow(sheet, sheet.getRow(rowNum));
     }
 
+    /**
+     * Should be part of Merlin in the next release.
+     */
     fun setHeadRow(sheet: ExcelSheet, row: ExcelRow) {
         ClassUtils.setPrivateField(sheet, "_headRow", row);
     }
 
     /**
+     * Should be part of Merlin in the next release.
      * Sets the auto filter for the given row.
      * @param sheet the sheet.
      * @param rowNum the row number of the row to set the auto filter.
@@ -88,6 +94,10 @@ object ExcelUtils {
         sheet.poiSheet.setAutoFilter(range)
     }
 
+    /**
+     * Should be part of Merlin in the next release.
+     * Clears all cells of the given row.
+     */
     fun clearCells(row: ExcelRow, fromColIndex: Int = 0, toColIndex: Int? = null) {
         val lastCol = toColIndex ?: row.lastCellNum.toInt()
         for (i in fromColIndex until lastCol) {
@@ -96,6 +106,89 @@ object ExcelUtils {
     }
 
     /**
+     * Should be part of Merlin in the next release.
+     * Sets the column width of the given column.
+     * @param sheet the sheet.
+     * @param columnHeader the column by header.
+     */
+    fun setColumnHidden(sheet: ExcelSheet, columnHeader: String, hidden: Boolean) {
+        setColumnHidden(sheet, sheet.getColumnDef(columnHeader)!!, hidden)
+    }
+
+    /**
+     * Should be part of Merlin in the next release.
+     * Sets the column width of the given column.
+     * @param sheet the sheet.
+     * @param columnDef the column by header.
+     */
+    fun setColumnHidden(sheet: ExcelSheet, columnDef: ExcelColumnDef, hidden: Boolean) {
+        setColumnHidden(sheet, columnDef.columnNumber, hidden)
+    }
+
+    /**
+     * Should be part of Merlin in the next release.
+     * Sets the column width of the given column.
+     * @param sheet the sheet.
+     * @param col the column number (0-based).
+     */
+    fun setColumnHidden(sheet: ExcelSheet, col: Int, hidden: Boolean) {
+        sheet.poiSheet.setColumnHidden(col, hidden)
+    }
+
+
+    /**
+     * Should be part of Merlin in the next release.
+     */
+    fun setLongValue(sheet: ExcelSheet, row: Int, columnHeader: String, value: Long?): Cell {
+        return setLongValue(sheet, row, sheet.getColumnDef(columnHeader)!!, value)
+    }
+
+    /**
+     * Should be part of Merlin in the next release.
+     */
+    fun setLongValue(sheet: ExcelSheet, row: Int, col: ExcelColumnDef, value: Long?): Cell {
+        return setLongValue(sheet, row, col.columnNumber, value)
+    }
+
+    /**
+     * Should be part of Merlin in the next release.
+     */
+    fun setLongValue(sheet: ExcelSheet, row: Int, col: Int, value: Long?): Cell {
+        val cell = sheet.getCell(row, col, true)!!
+        if (value == null) cell.setBlank() else {
+            cell.setCellValue(value.toDouble())
+            cell.cellStyle = sheet.excelWorkbook.ensureCellStyle(ExcelCellStandardFormat.INT)
+        }
+        return cell
+    }
+
+    /**
+     * Should be part of Merlin in the next release.
+     */
+    fun setCellFormula(sheet: ExcelSheet, row: Int, columnHeader: String, formula: String?): Cell {
+        return setCellFormula(sheet, row, sheet.getColumnDef(columnHeader)!!, formula)
+    }
+
+    /**
+     * Should be part of Merlin in the next release.
+     */
+    fun setCellFormula(sheet: ExcelSheet, row: Int, col: ExcelColumnDef, formula: String?): Cell {
+        return setCellFormula(sheet, row, col.columnNumber, formula)
+    }
+
+    /**
+     * Should be part of Merlin in the next release.
+     */
+    fun setCellFormula(sheet: ExcelSheet, row: Int, col: Int, formula: String?): Cell {
+        val cell = sheet.getCell(row, col, true)!!
+        if (formula == null) cell.setBlank() else {
+            cell.cellFormula = formula
+        }
+        return cell
+    }
+
+    /**
+     * Should be part of Merlin in the next release.
      * Moves a row to another position.
      * @param sheet the sheet.
      * @param fromRowIndex the row index to move.
@@ -166,7 +259,7 @@ object ExcelUtils {
     }
 
     /**
-     * Registers an excel column by using the translated i18n-key of the given property as column head and the
+     * Registers an Excel column by using the translated i18n-key of the given property as column head and the
      * property name as alias (for referring and [de.micromata.merlin.excel.ExcelRow.autoFillFromObject].
      * @param size approx no of characters
      */
@@ -253,6 +346,7 @@ object ExcelUtils {
     }
 
     /**
+     * Should be part of Merlin in the next release.
      * Clones the font and returns the new font.
      * @param bold if null, the original font's bold is used.
      * @param heightInPoints if null, the original font's heightInPoints is used.
@@ -282,6 +376,7 @@ object ExcelUtils {
     }
 
     /**
+     * Should be part of Merlin in the next release.
      * Clones the cell style and returns the new cell style.
      * @param font if null, the original cell style's font is used.
      * @param alignment if null, the original cell style's alignment is used.
