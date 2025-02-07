@@ -278,7 +278,7 @@ function DynamicAgGrid(props) {
     return (
         <div
             className="ag-theme-alpine"
-            style={{ width: '100%', height }}
+            style={{ minWidth: '100%', height }}
         >
             <AgGridReact
                 ref={gridRef}
@@ -287,7 +287,6 @@ function DynamicAgGrid(props) {
                 columnDefs={columnDefs}
                 rowSelection={rowSelection}
                 rowMultiSelectWithClick={rowMultiSelectWithClick}
-                defaultColDef={{ flex: 1 }}
                 onGridReady={onGridReady}
                 onSelectionChanged={onSelectionChanged}
                 onSortChanged={onSortChanged}
@@ -300,6 +299,7 @@ function DynamicAgGrid(props) {
                 paginationPageSize={paginationPageSize}
                 rowClass={rowClass}
                 getRowClass={usedGetRowClass}
+                suppressHorizontalScroll={false}
                 accentedSort
                 enableRangeSelection
                 suppressRowClickSelection={suppressRowClickSelection}
