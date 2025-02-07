@@ -10,7 +10,7 @@
 tbody tr.clickable {
   cursor: pointer;
 
-  &.highlighted {
+  &.highlighted > td {
     background-color: #f4d5cb;
   }
 
