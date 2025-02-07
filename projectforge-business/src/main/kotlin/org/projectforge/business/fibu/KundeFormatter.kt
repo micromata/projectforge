@@ -80,7 +80,7 @@ class KundeFormatter {
          * @return
          */
         @JvmStatic
-        fun formatKundeAsString(kunde: KundeDO?, kundeText: String?): String {
+        fun formatKundeAsString(kunde: KundeDO?, kundeText: String? = null): String {
             return internalFormatKundeAsString(instance.kundeCache.getKundeIfNotInitialized(kunde), kundeText)
         }
 
