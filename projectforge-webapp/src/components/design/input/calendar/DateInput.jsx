@@ -1,7 +1,7 @@
 import moment from 'moment';
 import 'moment/min/locales';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { DayPicker } from 'react-day-picker';
 import { connect } from 'react-redux';
 import { colorPropType } from '../../../../utilities/propTypes';
@@ -27,6 +27,7 @@ function DateInput(
     const [inputValue, setInputValue] = React.useState('');
     const [isActive, setIsActive] = React.useState(false);
     const [isOpen, setIsOpen] = React.useState(false);
+    const [selectedMonth, setSelectedMonth] = React.useState(value);
     const inputRef = React.useRef(null);
     const Tag = noInputContainer ? React.Fragment : InputContainer;
 
@@ -157,7 +158,8 @@ function DateInput(
             <DayPicker
                 selectedDays={value}
                 onDayClick={handleDayPickerClick}
-                month={value}
+                month={selectedMonth}
+                onMonthChange={setSelectedMonth}
                 locale={locale}
                 onTodayButtonClick={setDate}
                 todayButton={todayButton}
