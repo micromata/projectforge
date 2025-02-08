@@ -45,6 +45,7 @@ import org.projectforge.business.vacation.service.VacationMenuCounterCache
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.api.UserRightService.*
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -194,6 +195,30 @@ open class MenuCreator {
             if (it.id == id)
                 return it
             val menuItemDef = findById(it, id)
+            if (menuItemDef != null)
+                return menuItemDef
+        }
+        return null
+    }
+
+    fun findByNameOrId(str: String?): MenuItemDef? {
+        str ?: return null
+        initialize()
+        menuItemDefHolder.menuItems.forEach {
+            if (it.id == str || translate(it.i18nKey) == str)
+                return it
+            val menuItemDef = findByNameOrId(it, str)
+            if (menuItemDef != null)
+                return menuItemDef
+        }
+        return null
+    }
+
+    private fun findByNameOrId(parent: MenuItemDef, id: String): MenuItemDef? {
+        parent.children?.forEach {
+            if (it.id == id)
+                return it
+            val menuItemDef = findByNameOrId(it, id)
             if (menuItemDef != null)
                 return menuItemDef
         }
@@ -486,6 +511,7 @@ open class MenuCreator {
             menuItemDefHolder.add(MenuItemDef(MenuItemDefId.ADMINISTRATION, visibleForRestrictedUsers = true))
         adminMenu
             .add(MenuItemDef(MenuItemDefId.MY_ACCOUNT))
+            .add(MenuItemDef(MenuItemDefId.MY_MENU))
             .add(MenuItemDef(MenuItemDefId.MY_2FA_SETUP))
             .add(MenuItemDef(MenuItemDefId.MY_PREFERENCES))
             .add(

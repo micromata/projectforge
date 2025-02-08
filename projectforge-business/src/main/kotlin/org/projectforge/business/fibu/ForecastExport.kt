@@ -27,6 +27,7 @@ import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
 import mu.KotlinLogging
 import org.projectforge.business.fibu.ForecastExportContext.*
+import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotsService
 import org.projectforge.business.scripting.ScriptLogger
 import org.projectforge.business.scripting.ThreadLocalScriptingContext
@@ -64,6 +65,7 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 open class ForecastExport { // open needed by Wicket.
+
     @Autowired
     private lateinit var accessChecker: AccessChecker
 
@@ -80,6 +82,9 @@ open class ForecastExport { // open needed by Wicket.
     private lateinit var ordersCache: AuftragsCache
 
     @Autowired
+    private lateinit var projectCache: ProjektCache
+
+    @Autowired
     private lateinit var rechnungCache: RechnungCache
 
     @Autowired
@@ -88,12 +93,20 @@ open class ForecastExport { // open needed by Wicket.
     @Autowired
     private lateinit var applicationContext: ApplicationContext
 
+    /**
+     * Export the forecast sheet.
+     * @param origFilter The filter for the orders to export.
+     * @param planningDate If given, the monthly forecast will be calculated with the specified date and inserted as plan data.
+     * @param snapshotDate Today (null) or, the day of the snapshot, if the orderList is loaded from order book snapshots.
+     * @param fillUnitCol The function to get the unit of the order to show in the unit column.
+     */
     @JvmOverloads
     @Throws(IOException::class)
     open fun xlsExport(
         origFilter: AuftragFilter,
         planningDate: LocalDate? = null,
-        snapshotDate: LocalDate? = null
+        snapshotDate: LocalDate? = null,
+        fillUnitCol: ((orderInfo: OrderInfo) -> String)? = null,
     ): ByteArray? {
         val startDateParam = origFilter.periodOfPerformanceStartDate
         val startDate = if (startDateParam != null) PFDay.from(startDateParam).beginOfMonth else PFDay.now().beginOfYear
@@ -145,7 +158,8 @@ open class ForecastExport { // open needed by Wicket.
                 snapshotDate = closestSnapshotDate,
                 showAll = showAll,
                 auftragFilter = filter,
-                scriptLogger = scriptLogger
+                scriptLogger = scriptLogger,
+                fillUnitCol = fillUnitCol,
             )
         } catch (ex: Exception) {
             log.error(ex) { "Error exporting forecast: $ex" }
@@ -216,6 +230,7 @@ open class ForecastExport { // open needed by Wicket.
         snapshotDate: LocalDate?,
         auftragFilter: AuftragFilter,
         scriptLogger: ScriptLogger?,
+        fillUnitCol: ((orderInfo: OrderInfo) -> String)?,
     ): ByteArray? {
         if (orderList.isEmpty()) {
             val msg = "No orders found for export."
@@ -280,6 +295,7 @@ open class ForecastExport { // open needed by Wicket.
                 baseDate = PFDay.fromOrNow(snapshotDate),
                 planningDate = planningDate,
                 snapshot = snapshotDate != null,
+                fillUnitCol = fillUnitCol,
             )
             ctx.showAll = showAll
 
@@ -289,24 +305,34 @@ open class ForecastExport { // open needed by Wicket.
             snapshotDate?.let { infoSheet.setDateValue(2, 1, it, ctx.excelDateFormat) }
             log.debug { "info sheet: $infoSheet" }
 
+            forecastExportInvoices.fillInvoices(ctx)
             val orderPositionsFound =
-                fillOrderPositions(orderList, ctx, ctx.forecastSheet, baseDate = snapshotDate, useAuftragsCache)
-            if (!orderPositionsFound) {
-                val msg = "No orders positions found for export."
+                fillOrderPositions(
+                    orderList,
+                    ctx,
+                    ctx.forecastSheet,
+                    baseDate = snapshotDate,
+                    useAuftragsCache,
+                )
+            if (!orderPositionsFound && ctx.invoicedProjectIds.isEmpty()) {
+                val msg = "Neither orders positions nor invoices found for export."
                 scriptLogger?.info { msg } ?: log.info { msg } // scriptLogger does also log.info
                 // No order positions found, so we don't need the forecast sheet.
                 return null
             }
-            forecastExportInvoices.fillInvoices(ctx)
             replaceMonthDatesInHeaderRow(forecastSheet, startDate, true)
             replaceMonthDatesInHeaderRow(planningSheet, startDate, true)
             replaceMonthDatesInHeaderRow(invoicesSheet, startDate)
             replaceMonthDatesInHeaderRow(invoicesPrevYearSheet, prevYearBaseDate)
             replaceMonthDatesInHeaderRow(planningInvoicesSheet, startDate)
-            ExcelUtils.setAutoFilter(forecastSheet, FORECAST_HEAD_ROW, 0, FORECAST_NUMBER_OF_COLS)
+            if (!ctx.hasUnitColEntries) {
+                ExcelUtils.setColumnHidden(forecastSheet, ForecastCol.UNIT.header, true)
+                ExcelUtils.setColumnHidden(planningSheet, ForecastCol.UNIT.header, true)
+            }
+            ExcelUtils.setAutoFilter(forecastSheet, FORECAST_HEAD_ROW, 0, FORECAST_NUMBER_OF_COLS_AUTOFILTER)
             invoicesSheet.setAutoFilter()
             invoicesPrevYearSheet.setAutoFilter()
-            ExcelUtils.setAutoFilter(planningSheet, FORECAST_HEAD_ROW, 0, FORECAST_NUMBER_OF_COLS)
+            ExcelUtils.setAutoFilter(planningSheet, FORECAST_HEAD_ROW, 0, FORECAST_NUMBER_OF_COLS_AUTOFILTER)
             planningInvoicesSheet.setAutoFilter()
 
             fillPlanningForecast(planningDate, auftragFilter, ctx)
@@ -369,13 +395,47 @@ open class ForecastExport { // open needed by Wicket.
                 }
             }
         }
+        if (sheet == ctx.forecastSheet) {
+            val missedProjectIds = ctx.invoicedProjectIds - ctx.orderProjectIds
+            missedProjectIds.forEach { projectId ->
+                // For all projects that have been invoiced but for which no
+                // order is included in the forecast, pseudo orders are entered in the forecast in order to have all projects
+                // visible in the forecast.
+                val project = projectCache.getProjekt(projectId)
+                OrderInfo().let { orderInfo ->
+                    orderInfo.nummer = 0
+                    orderInfo.projektId = projectId
+                    orderInfo.status = AuftragsStatus.IN_ERSTELLUNG
+                    orderInfo.angebotsDatum = baseDate
+                    orderInfo.titel = "Pseudo order for project $projectId, because this project was invoiced."
+                    orderInfo.kundeAsString = project?.kundeAsString
+                    orderInfo.projektAsString = project?.name
+                    OrderPositionInfo().let { posInfo ->
+                        posInfo.auftrag = orderInfo
+                        posInfo.status = AuftragsStatus.IN_ERSTELLUNG
+                        posInfo.titel = orderInfo.titel
+                        posInfo.number = 0
+                        addOrderPosition(
+                            ctx, sheet, currentRow++, orderInfo, posInfo, baseDate = baseDate,
+                            useAuftragsCache = useAuftragsCache
+                        )
+                    }
+                }
+            }
+        }
         return orderPositionFound
     }
 
     private fun fillPlanningForecast(planningDate: LocalDate?, auftragFilter: AuftragFilter, ctx: Context) {
         planningDate ?: return
-        val orderList = readSnapshot(planningDate, auftragFilter) ?: return
-        fillOrderPositions(orderList, ctx, ctx.planningSheet, baseDate = planningDate, useAuftragsCache = false)
+        val orderList = readSnapshot(planningDate, auftragFilter)
+        fillOrderPositions(
+            orderList,
+            ctx,
+            ctx.planningSheet,
+            baseDate = planningDate,
+            useAuftragsCache = false,
+        )
     }
 
     private fun replaceMonthDatesInHeaderRow(
@@ -413,8 +473,35 @@ open class ForecastExport { // open needed by Wicket.
         baseDate: LocalDate?,
         useAuftragsCache: Boolean,
     ) {
+        order.projektId?.let { ctx.orderProjectIds.add(it) }
+        val isPlanningSheet = ctx.planningSheet == sheet
         sheet.setIntValue(row, ForecastCol.ORDER_NR.header, order.nummer)
         sheet.setStringValue(row, ForecastCol.POS_NR.header, "#${pos.number}")
+        ExcelUtils.setLongValue(sheet, row, ForecastCol.PROJECT_ID.header, order.projektId)
+        val excelRow = row + 1 // Excel row number for formulas, 1-based.
+        if (isPlanningSheet) {
+            // Planning sheet: visible column is true, if the project is visible in the forecast sheet.
+            val visibleProjectIdCol =
+                ctx.forecastSheet.getColumnDef(ForecastCol.VISIBLE_PROJECT_ID.header)?.columnNumberAsLetters
+            val projectIdCol = ctx.forecastSheet.getColumnDef(ForecastCol.PROJECT_ID.header)?.columnNumberAsLetters
+            ExcelUtils.setCellFormula(
+                sheet,
+                row,
+                ForecastCol.VISIBLE.header,
+                "COUNTIF(Forecast_Data!$visibleProjectIdCol$11:$visibleProjectIdCol$100000, $projectIdCol$excelRow) > 0"
+            )
+        } else {
+            // Visible cell is 1, if row is visible (by filter), otherwise, 0.
+            ExcelUtils.setCellFormula(sheet, row, ForecastCol.VISIBLE.header, "SUBTOTAL(3, A$excelRow)")
+            val visibleCol = ctx.forecastSheet.getColumnDef(ForecastCol.VISIBLE.header)?.columnNumberAsLetters
+            val projectIdCol = ctx.forecastSheet.getColumnDef(ForecastCol.PROJECT_ID.header)?.columnNumberAsLetters
+            ExcelUtils.setCellFormula(
+                sheet,
+                row,
+                ForecastCol.VISIBLE_PROJECT_ID.header,
+                "IF($visibleCol$excelRow=1, $projectIdCol$excelRow, \"\")"
+            )
+        }
         order.angebotsDatum?.let {
             sheet.setDateValue(row, ForecastCol.DATE_OF_OFFER.header, PFDay(it).localDate, ctx.excelDateFormat)
         }
@@ -423,6 +510,12 @@ open class ForecastExport { // open needed by Wicket.
         }
         order.entscheidungsDatum?.let {
             sheet.setDateValue(row, ForecastCol.DATE_OF_DECISION.header, PFDay(it).localDate, ctx.excelDateFormat)
+        }
+        ctx.fillUnitCol?.invoke(order)?.let {
+            if (it.isNotBlank()) {
+                ctx.hasUnitColEntries = true
+            }
+            sheet.setStringValue(row, ForecastCol.UNIT.header, it)
         }
         sheet.setStringValue(row, ForecastCol.CUSTOMER.header, order.kundeAsString)
         sheet.setStringValue(row, ForecastCol.PROJECT.header, order.projektAsString)
@@ -595,7 +688,10 @@ open class ForecastExport { // open needed by Wicket.
 
         private const val FORECAST_HEAD_ROW = 9
         private const val FORECAST_FISRT_ORDER_ROW = FORECAST_HEAD_ROW + 1
-        private const val FORECAST_NUMBER_OF_COLS = 45
+        private const val FORECAST_NUMBER_OF_COLS_AUTOFILTER = 47
+
+        // Two more technical cols: ProjectID, visible and visibleID
+        private const val FORECAST_NUMBER_OF_COLS = FORECAST_NUMBER_OF_COLS_AUTOFILTER + 3
 
         fun formatMonthHeader(date: PFDay): String {
             return date.format(formatter)

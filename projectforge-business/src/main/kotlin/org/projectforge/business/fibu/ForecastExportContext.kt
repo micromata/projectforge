@@ -30,8 +30,6 @@ import org.projectforge.business.excel.ExcelDateFormats
 import org.projectforge.business.excel.XlsContentProvider
 import org.projectforge.common.DateFormatType
 import org.projectforge.excel.ExcelUtils
-import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.PFDay
@@ -54,6 +52,7 @@ internal class ForecastExportContext(
     val baseDate: PFDay = PFDay.now(),
     val planningDate: LocalDate? = null,
     val snapshot: Boolean = false,
+    val fillUnitCol: ((orderInfo: OrderInfo) -> String)? = null,
 ) {
     enum class Sheet(val title: String) {
         FORECAST("Forecast_Data"),
@@ -66,7 +65,7 @@ internal class ForecastExportContext(
 
     enum class ForecastCol(val header: String) {
         ORDER_NR("Nr."), POS_NR("Pos."), DATE_OF_OFFER("Angebotsdatum"), DATE("Erfassungsdatum"),
-        DATE_OF_DECISION("Entscheidungsdatum"), CUSTOMER("Kunde"), PROJECT("Projekt"),
+        DATE_OF_DECISION("Entscheidungsdatum"), UNIT("Unit"), CUSTOMER("Kunde"), PROJECT("Projekt"),
         TITEL("Titel"), POS_TITLE("Pos.-Titel"), ART("Art"), ABRECHNUNGSART("Abrechnungsart"),
         AUFTRAG_STATUS("Auftrag Status"), POSITION_STATUS("Position Status"),
         PT("PT"), NETTOSUMME("Nettosumme"), FAKTURIERT("fakturiert"),
@@ -75,13 +74,15 @@ internal class ForecastExportContext(
         EINTRITTSWAHRSCHEINLICHKEIT("Eintrittswahrsch. in %"), ANSPRECHPARTNER("Ansprechpartner"),
         STRUKTUR_ELEMENT("Strukturelement"), BEMERKUNG("Bemerkung"), PROBABILITY_NETSUM("gewichtete Nettosumme"),
         ANZAHL_MONATE("Anzahl Monate"), FORECAST_TYPE("Forecasttyp"), PAYMENT_SCHEDULE("Zahlplan"),
-        REMAINING("Rest"), DIFFERENCE("Abweichung"), WARNING("Warnung")
+        REMAINING("Rest"), DIFFERENCE("Abweichung"), WARNING("Warnung"),
+        PROJECT_ID("ProjectID"), VISIBLE("visible"), VISIBLE_PROJECT_ID("visibleID")
     }
 
     enum class InvoicesCol(val header: String) {
         INVOICE_NR("Nr."), POS_NR("Pos."), DATE("Datum"), CUSTOMER("Kunde"), PROJECT("Projekt"),
         SUBJECT("Betreff"), POS_TEXT("Positionstext"), DATE_OF_PAYMENT("Bezahldatum"),
-        LEISTUNGSZEITRAUM("Leistungszeitraum"), ORDER("Auftrag"), NETSUM("Netto")
+        LEISTUNGSZEITRAUM("Leistungszeitraum"), ORDER("Auftrag"), NETSUM("Netto"),
+        PROJECT_ID("ProjectID"), VISIBLE("visible")
     }
 
     enum class MonthCol(val header: String) {
@@ -140,8 +141,17 @@ internal class ForecastExportContext(
 
     // All projects of the user used in the orders to show also invoices without order, but with assigned project:
     val projectIds = mutableSetOf<Long>()
+    // All projects for which invoices have been issued.
+    val invoicedProjectIds = mutableSetOf<Long>()
+    // All projects with orders in the forecast.
+    // For all projects that have been invoiced but for which no
+    // order is included in the forecast, pseudo orders are entered in the forecast in order to have all projects
+    // visible in the forecast.
+    val orderProjectIds = mutableSetOf<Long>()
     var showAll: Boolean =
         false // showAll is true, if no filter is given and for financial and controlling staff only.
     val orderPositionMap = mutableMapOf<Long, OrderPositionInfo>()
     val orderMapByPositionId = mutableMapOf<Long, OrderInfo>()
+
+    var hasUnitColEntries = false
 }

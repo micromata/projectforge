@@ -24,9 +24,7 @@
 package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
 import org.projectforge.Constants
-import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.login.Login
 import org.projectforge.business.user.UserAuthenticationsDao
@@ -55,16 +53,11 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
 
-private val log = KotlinLogging.logger {}
-
 @RestController
 @RequestMapping("${Rest.URL}/myAccount")
 class MyAccountPageRest : AbstractDynamicPageRest() {
     @Autowired
     private lateinit var authenticationsService: UserAuthenticationsService
-
-    @Autowired
-    private lateinit var employeeService: EmployeeService
 
     @Autowired
     private lateinit var groupService: GroupService
