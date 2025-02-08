@@ -89,13 +89,13 @@ class PFDayTest {
     @Test
     fun weekOfTest() {
         ConfigurationServiceAccessor.internalSetMinimalDaysInFirstWeekForJunitTests(4)
-        PFDay._weekFields = null // Force recalculation of weekFields
+        PFDay.resetWeekFieldsForTest() // Force recalculation of weekFields
 
         val date = PFDay.withDate(2020, Month.OCTOBER, 4)
         assertEquals(40, date.weekOfYear)
 
         ConfigurationServiceAccessor.internalSetMinimalDaysInFirstWeekForJunitTests(null)
-        PFDay._weekFields = null // Force recalculation of weekFields
+        PFDay.resetWeekFieldsForTest() // Force recalculation of weekFields
     }
 
     private fun checkDate(date: LocalDate, year: Int, month: Month, dayOfMonth: Int) {
