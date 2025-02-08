@@ -109,10 +109,13 @@ object ExcelUtils {
     /**
      * Should be part of Merlin in the next release.
      * Clears all cells of the given row.
+     * @param row the row (0-based).
+     * @param fromColIndex the column index to start clearing (0-based). If null, the first column is used.
+     * @param toColIndex the column index to end clearing. If null, the last column is used (0-based).
      */
     fun clearCells(row: ExcelRow, fromColIndex: Int = 0, toColIndex: Int? = null) {
-        val lastCol = toColIndex ?: row.lastCellNum.toInt()
-        for (i in fromColIndex until lastCol) {
+        val lastCol = toColIndex ?: (row.lastCellNum.toInt() - 1)
+        for (i in fromColIndex..lastCol) {
             row.getCell(i).setBlank()
         }
     }

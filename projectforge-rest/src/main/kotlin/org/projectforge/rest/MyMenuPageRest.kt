@@ -29,6 +29,7 @@ import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.Row
+import org.apache.poi.ss.usermodel.VerticalAlignment
 import org.projectforge.Constants
 import org.projectforge.common.FormatterUtils
 import org.projectforge.excel.ExcelUtils
@@ -89,8 +90,9 @@ class MyMenuPageRest : AbstractDynamicPageRest() {
                     uploadUrl = RestResolver.getRestUrl(MyMenuPageRest::class.java, "import")
                 )
             )
-        val error = importData?.hasErrors ?: hasError
         val markdown = importData?.asMarkDown() ?: result
+        val error =
+            importData?.hasErrors ?: hasError // Must be placed after asMarkDown()! asMarkDown sets error type as well.
         if (markdown != null) {
             layout.add(UIAlert(markdown, markdown = true, color = if (error) UIColor.DANGER else UIColor.SUCCESS))
         }
@@ -144,16 +146,33 @@ class MyMenuPageRest : AbstractDynamicPageRest() {
         log.info { "Exporting Excel sheet for customizing the personal menu." }
         val mainMenu = menuCreator.build(MenuCreatorContext(ThreadLocalUserContext.requiredLoggedInUser))
         val favoritesMenu = favoritesMenuCreator.getFavoriteMenu()
-        val excel = ExcelUtils.prepareWorkbook()
-        createSheet(excel, translate("user.myMenu.excel.sheet.favorites"), favoritesMenu)
-        createSheet(excel, translate("user.myMenu.excel.sheet.mainMenu"), mainMenu)
+        val workbook = ExcelUtils.prepareWorkbook()
+        val wrapTextStyle = workbook.createOrGetCellStyle("wrap")
+        workbook.createOrGetCellStyle(ExcelUtils.HEAD_ROW_STYLE).verticalAlignment = VerticalAlignment.CENTER
+        wrapTextStyle.wrapText = true
         createSheet(
-            excel,
-            translate("user.myMenu.excel.sheet.default"),
-            favoritesMenuCreator.createDefaultFavoriteMenu()
+            workbook,
+            translate("user.myMenu.excel.sheet.favorites"),
+            favoritesMenu,
+            "user.myMenu.excel.sheet.favorites.info",
         )
-        createSheet(excel, translate("user.myMenu.excel.sheet.backup"), favoritesMenu)
-        val ba = ExcelUtils.exportExcel(excel)
+        createSheet(
+            workbook, translate("user.myMenu.excel.sheet.mainMenu"), mainMenu,
+            "user.myMenu.excel.sheet.mainMenu.info",
+        )
+        createSheet(
+            workbook,
+            translate("user.myMenu.excel.sheet.default"),
+            favoritesMenuCreator.createDefaultFavoriteMenu(),
+            "user.myMenu.excel.sheet.default.info",
+        )
+        createSheet(
+            workbook,
+            translate("user.myMenu.excel.sheet.backup"),
+            favoritesMenu,
+            "user.myMenu.excel.sheet.backup.info",
+        )
+        val ba = ExcelUtils.exportExcel(workbook)
         return RestUtils.downloadFile("MyMenu-${PFDateTime.now().format4Filenames()}.xlsx", ba)
     }
 
@@ -346,12 +365,18 @@ class MyMenuPageRest : AbstractDynamicPageRest() {
         }
     }
 
-    private fun createSheet(excel: ExcelWorkbook, title: String, menu: Menu): ExcelSheet {
-        val boldStyle = excel.createOrGetCellStyle(ExcelUtils.BOLD_STYLE)
-        excel.createOrGetSheet(title).let { sheet ->
+    private fun createSheet(workbook: ExcelWorkbook, title: String, menu: Menu, info: String? = null): ExcelSheet {
+        val headStyle = workbook.createOrGetCellStyle(ExcelUtils.HEAD_ROW_STYLE)
+        workbook.createOrGetSheet(title).let { sheet ->
             sheet.setColumnWidth(0, 5 * 256)
             sheet.setColumnWidth(1, 35 * 256)
-            sheet.createRow().getCell(0).setCellValue("ProjectForge").setCellStyle(boldStyle)
+            sheet.setColumnWidth(2, 100 * 256)
+            sheet.createRow().let { row ->
+                sheet.setMergedRegion(0, 0, 0, 1, "ProjectForge").setCellStyle(headStyle)
+                if (info != null) {
+                    row.getCell(2).setCellValue(translate(info)).setCellStyle(workbook.createOrGetCellStyle("wrap"))
+                }
+            }
             menu.menuItems.forEach { item ->
                 sheet.createRow().getCell(0).setCellValue(item.title)
                 item.subMenu?.forEach { subItem ->
