@@ -25,7 +25,9 @@ package org.projectforge.business.fibu
 
 import de.micromata.merlin.excel.ExcelSheet
 import mu.KotlinLogging
+import org.projectforge.business.fibu.ForecastExportContext.ForecastCol
 import org.projectforge.business.fibu.kost.ProjektCache
+import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.time.PFDay
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -99,7 +101,16 @@ internal class ForecastExportInvoices { // open needed by Wicket.
                     }
                 } else {
                     monthIndex += 12
-                    insertIntoSheet(ctx, ctx.invoicesPrevYearSheet, invoice, pos, order, orderPosId, firstMonthCol, monthIndex)
+                    insertIntoSheet(
+                        ctx,
+                        ctx.invoicesPrevYearSheet,
+                        invoice,
+                        pos,
+                        order,
+                        orderPosId,
+                        firstMonthCol,
+                        monthIndex
+                    )
                 }
             }
         }
@@ -109,9 +120,31 @@ internal class ForecastExportInvoices { // open needed by Wicket.
         ctx: ForecastExportContext, sheet: ExcelSheet, invoice: RechnungDO, pos: RechnungPosInfo,
         order: OrderInfo?, orderPosId: Long?, firstMonthCol: Int, monthIndex: Int,
     ) {
+        invoice.projekt?.id?.let {
+            ctx.invoicedProjectIds.add(it)
+        }
+        order?.projektId?.let {
+            ctx.invoicedProjectIds.add(it)
+        }
         val rowNumber = sheet.createRow().rowNum
+        val excelRowNumber = rowNumber + 1  // Excel row numbers start with 1.
         sheet.setIntValue(rowNumber, ForecastExportContext.InvoicesCol.INVOICE_NR.header, invoice.nummer)
+        ExcelUtils.setLongValue(
+            sheet,
+            rowNumber,
+            ForecastExportContext.InvoicesCol.PROJECT_ID.header,
+            invoice.projekt?.id
+        )
         sheet.setStringValue(rowNumber, ForecastExportContext.InvoicesCol.POS_NR.header, "#${pos.number}")
+        val visibleProjectIdCol =
+            ctx.forecastSheet.getColumnDef(ForecastCol.VISIBLE_PROJECT_ID.header)?.columnNumberAsLetters
+        val projectIdCol = ctx.invoicesSheet.getColumnDef(ForecastExportContext.InvoicesCol.PROJECT_ID.header)?.columnNumberAsLetters
+        ExcelUtils.setCellFormula(
+            sheet,
+            rowNumber,
+            ForecastExportContext.InvoicesCol.VISIBLE.header,
+            "COUNTIF(Forecast_Data!$visibleProjectIdCol$11:$visibleProjectIdCol$100000, $projectIdCol$excelRowNumber) > 0"
+        )
         sheet.setDateValue(
             rowNumber,
             ForecastExportContext.InvoicesCol.DATE.header,

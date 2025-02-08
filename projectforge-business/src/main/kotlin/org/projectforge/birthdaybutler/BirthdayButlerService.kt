@@ -204,12 +204,13 @@ class BirthdayButlerService {
                 variables.put("month", translateMonth(month, locale = locale))
                 val birthdayButlerTemplate = configurationService.getOfficeTemplateFile("BirthdayButlerTemplate.docx")
                 check(birthdayButlerTemplate != null) { "BirthdayButlerTemplate.docx not found" }
-                val wordDocument =
-                    WordDocument(birthdayButlerTemplate.inputStream, birthdayButlerTemplate.file.name).use { document ->
+                val wordDocument = birthdayButlerTemplate.inputStream.use {
+                    WordDocument(it, birthdayButlerTemplate.file.name).use { document ->
                         generateBirthdayTableRows(document.document, birthdayList)
                         document.process(variables)
                         document.asByteArrayOutputStream
                     }
+                }
                 log.info { "Birthday list created" }
                 return wordDocument
             } else {
