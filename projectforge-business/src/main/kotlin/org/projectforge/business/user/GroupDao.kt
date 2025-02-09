@@ -131,6 +131,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         // Create history entry of PFUserDO for all assigned users:
         persistenceService.runInTransaction { _ -> // Assure a transaction is running.
             obj.assignedUsers?.forEach { user ->
+                user.historyUserComment = obj.historyUserComment // Set the history comment also for the user.
                 insertHistoryEntry(user, assignedList = groupList, unassignedList = null)
             }
         }
@@ -142,9 +143,11 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         }
         CollectionUtils.compareCollections(obj.assignedUsers, dbObj?.assignedUsers).let { result ->
             result.added?.forEach { user ->
+                user.historyUserComment = obj.historyUserComment // Set the history comment also for the user.
                 insertHistoryEntry(user, assignedList = listOf(obj), unassignedList = null)
             }
             result.removed?.forEach { user ->
+                user.historyUserComment = obj.historyUserComment // Set the history comment also for the user.
                 insertHistoryEntry(user, assignedList = null, unassignedList = listOf(obj))
             }
         }
@@ -180,7 +183,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
                         assignedUsers.add(dbUser) // dbGroup is attached! Change is saved automatically by Hibernate on transaction commit.
                         dbGroup.setLastUpdate()   // Last update of group isn't set automatically without calling groupDao.saveOrUpdate.
                         assignedGroups = assignedGroups ?: mutableListOf()
-                        assignedGroups.add(dbGroup)
+                        assignedGroups!!.add(dbGroup)
                     } else {
                         log.info("User '" + dbUser.username + "' already assigned to group '" + dbGroup.name + "'.")
                     }
@@ -195,7 +198,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
                         assignedUsers.remove(dbUser) // dbGroup is attached! Change is saved automatically by Hibernate on transaction commit.
                         dbGroup.setLastUpdate()      // Last update of group isn't set automatically without calling groupDao.saveOrUpdate.
                         unassignedGroups = unassignedGroups ?: mutableListOf()
-                        unassignedGroups.add(dbGroup)
+                        unassignedGroups!!.add(dbGroup)
                     } else {
                         log.info("User '" + dbUser.username + "' is not assigned to group '" + dbGroup.name + "' (can't unassign).")
                     }
@@ -204,9 +207,11 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
 
             // Now, write history entries:
             assignedGroups?.forEach { group ->
+                group.historyUserComment = user.historyUserComment // Set the history comment also for the group.
                 insertHistoryEntry(group, unassignedList = null, assignedList = listOf(user))
             }
             unassignedGroups?.forEach { group ->
+                group.historyUserComment = user.historyUserComment // Set the history comment also for the group.
                 insertHistoryEntry(group, unassignedList = listOf(user), assignedList = null)
             }
             insertHistoryEntry(user, assignedList = assignedGroups, unassignedList = unassignedGroups)

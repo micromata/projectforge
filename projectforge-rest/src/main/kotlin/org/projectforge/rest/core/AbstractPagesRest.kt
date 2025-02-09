@@ -741,7 +741,7 @@ constructor(
      * a group with a separate label and input field will be generated.
      * layout will be also included if the id is not given.
      * @param returnToCaller This optional parameter defines the caller page of this service to put in server data. After processing this page
-     * the user will be redirect to this given returnToCaller.
+     * the user will be redirected to this given returnToCaller.
      */
     @GetMapping(RestPaths.EDIT)
     fun getItemAndLayout(
@@ -785,7 +785,7 @@ constructor(
         userAccess: UILayout.UserAccess
     ): FormLayoutData {
         val ui = createEditLayout(dto, userAccess)
-        ui.addTranslations("changes", "history.userComment", "tooltip.selectMe")
+        ui.addTranslations("changes", "history.userComment.edit", "tooltip.selectMe")
         val serverData = sessionCsrfService.createServerData(request)
         val result = FormLayoutData(dto, ui, serverData)
         onGetItemAndLayout(request, dto, result)
@@ -797,7 +797,7 @@ constructor(
 
     /**
      * Will be called after getting the item from the database before creating the layout data. Overwrite this for
-     * e. g. parsing the request and preset the item values.
+     * e.g. parsing the request and preset the item values.
      */
     protected open fun onGetItemAndLayout(request: HttpServletRequest, dto: DTO, formLayoutData: FormLayoutData) {
     }
