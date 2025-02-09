@@ -397,73 +397,35 @@ open class PFDateTime internal constructor(
         return isoString
     }
 
-    private var _utilDate: Date? = null
+    /**
+     * @return The date as java.util.Date. java.util.Date is only calculated, if this getter is called and it
+     * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
+     */
+    override val utilDate: Date by lazy { Date.from(dateTime.toInstant()) }
 
     /**
      * @return The date as java.util.Date. java.util.Date is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
      */
-    override val utilDate: Date
-        get() {
-            if (_utilDate == null)
-                _utilDate = Date.from(dateTime.toInstant())
-            return _utilDate!!
-        }
-
-    private var _calendar: Calendar? = null
-
-    /**
-     * @return The date as java.util.Date. java.util.Date is only calculated, if this getter is called and it
-     * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
-     */
-    val calendar: Calendar
-        get() {
-            if (_calendar == null) {
-                _calendar = Calendar.getInstance(timeZone, locale)
-                _calendar!!.time = utilDate
-            }
-            return _calendar!!
-        }
-
-    private var _sqlTimestamp: java.sql.Timestamp? = null
+    val calendar: Calendar by lazy { Calendar.getInstance(timeZone, locale).also { it.time = utilDate } }
 
     /**
      * @return The date as java.sql.Timestamp. java.sql.Timestamp is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
      */
-    val sqlTimestamp: java.sql.Timestamp
-        get() {
-            if (_sqlTimestamp == null)
-                _sqlTimestamp = java.sql.Timestamp.from(dateTime.toInstant())
-            return _sqlTimestamp!!
-        }
-
-    private var _sqlDate: java.sql.Date? = null
+    val sqlTimestamp: java.sql.Timestamp by lazy { java.sql.Timestamp.from(dateTime.toInstant()) }
 
     /**
      * @return The date as java.sql.Date. java.sql.Date is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
      */
-    override val sqlDate: java.sql.Date
-        get() {
-            if (_sqlDate == null) {
-                _sqlDate = PFDay.from(this).sqlDate
-            }
-            return _sqlDate!!
-        }
-
-    private var _localDate: LocalDate? = null
+    override val sqlDate: java.sql.Date by lazy { PFDay.from(this).sqlDate }
 
     /**
      * @return The date as LocalDate. LocalDate is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
      */
-    override val localDate: LocalDate
-        get() {
-            if (_localDate == null)
-                _localDate = dateTime.toLocalDate()
-            return _localDate!!
-        }
+    override val localDate: LocalDate by lazy { dateTime.toLocalDate() }
 
     val localDateTime: LocalDateTime
         get() = dateTime.toLocalDateTime()

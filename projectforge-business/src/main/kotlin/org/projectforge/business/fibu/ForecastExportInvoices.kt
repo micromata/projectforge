@@ -120,6 +120,12 @@ internal class ForecastExportInvoices { // open needed by Wicket.
         ctx: ForecastExportContext, sheet: ExcelSheet, invoice: RechnungDO, pos: RechnungPosInfo,
         order: OrderInfo?, orderPosId: Long?, firstMonthCol: Int, monthIndex: Int,
     ) {
+        invoice.projekt?.id?.let {
+            ctx.invoicedProjectIds.add(it)
+        }
+        order?.projektId?.let {
+            ctx.invoicedProjectIds.add(it)
+        }
         val rowNumber = sheet.createRow().rowNum
         val excelRowNumber = rowNumber + 1  // Excel row numbers start with 1.
         sheet.setIntValue(rowNumber, ForecastExportContext.InvoicesCol.INVOICE_NR.header, invoice.nummer)

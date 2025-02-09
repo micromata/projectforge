@@ -73,4 +73,9 @@ interface HistoryEntry : IdObject<Long> {
      * @return the entity id
      */
     val entityId: Long?
+
+    /**
+     * Optional comment by user for the modification.
+     */
+    val userComment: String?
 }

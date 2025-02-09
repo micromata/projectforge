@@ -31,14 +31,18 @@ import org.projectforge.common.StringHelper2
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.metamodel.HibernateMetaModel
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUser
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.registry.Registry
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.io.Serializable
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -47,6 +51,15 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 class HistoryService {
+    class EntryInfo {
+        var entry: HistoryEntryDO? = null
+        var entityClass: Class<out BaseDO<*>>? = null
+        var baseDao: BaseDao<*>? = null
+        var entity: BaseDO<*>? = null
+        var readAccess: Boolean = false
+        var writeAccess: Boolean = false
+    }
+
     @Autowired
     protected lateinit var accessChecker: AccessChecker
 
@@ -62,6 +75,60 @@ class HistoryService {
      */
     fun mergeHistoryEntries(loadContext: HistoryLoadContext, entries: List<HistoryEntryDO>) {
         loadContext.merge(entries)
+    }
+
+    /**
+     * Loads a history entry by id. If checkAccess is true, the access rights of the logged-in user are checked.
+     * The access check is done by [BaseDao.checkLoggedInUserSelectAccess].
+     * The entity is loaded by the [BaseDao.find] method (with checkAccess). If the entity is not found, an exception is thrown.
+     * @param id The id of the history entry.
+     * @param checkAccess If true, the access rights of the logged-in user are checked.
+     * @return The entry and the entity.
+     */
+    fun findEntryAndEntityById(id: Serializable?, checkAccess: Boolean = true): EntryInfo? {
+        id ?: return null
+        val info = EntryInfo()
+        persistenceService.runReadOnly { context ->
+            val hist = context.find(HistoryEntryDO::class.java, id, attached = false).also {
+                info.entry = it
+            }
+            if (hist == null) {
+                log.error { "Can't load object of type HistoryEntryDO. Object with given id #$id not found." }
+                throw IllegalArgumentException("Can't load object of type HistoryEntryDO.")
+            }
+            val entityClass = ClassUtils.forNameOrNull(hist.entityName)
+                ?: throw IllegalArgumentException("Can't load object of type HistoryEntryDO.")
+            try {
+                @Suppress("UNCHECKED_CAST")
+                entityClass as Class<out BaseDO<*>>
+            } catch (ex: ClassCastException) {
+                log.error(ex) { "Can't cast entityClass to BaseDO: ${entityClass.name}" }
+                throw IllegalArgumentException("Can't load object of type HistoryEntryDO.")
+            }
+            info.entityClass = entityClass
+            val baseDao = Registry.instance.getEntryByDO(entityClass)?.dao!!.also {
+                info.baseDao = it
+            }
+            info.readAccess = baseDao.hasLoggedInUserHistoryAccess(checkAccess)
+            if (checkAccess) {
+                baseDao.checkLoggedInUserSelectAccess()
+            }
+            info.entity = baseDao.find(hist.entityId, checkAccess = checkAccess)?.also {
+                try {
+                    val method = baseDao::class.java.getMethod(
+                        "hasUpdateAccess",
+                        PFUserDO::class.java,
+                        ExtendedBaseDO::class.java,
+                        ExtendedBaseDO::class.java,
+                        Boolean::class.java
+                    )
+                    info.writeAccess = method.invoke(baseDao, requiredLoggedInUser, it, null, false) as Boolean
+                } catch (ex: Exception) {
+                    log.error(ex) { "Can't check write access for entity: ${entityClass.name}: ${ex.message}" }
+                }
+            }
+        }
+        return info
     }
 
     /**
@@ -223,18 +290,18 @@ class HistoryService {
                             oneToManyProps.find { it.propertyName == propertyName } ?: return@attributes
                             attr.propertyTypeClass?.let { propertyTypeClass ->
                                 // oneToMany.targetEntity not always given, using propertyName instead:
-                                val entityIds = mutableSetOf<Long>()
+                                val setOfIds = mutableSetOf<Long>()
                                 // Ids are part of value if added to list, such as 1234,5678,9012
                                 val ids1 = StringHelper2.splitToListOfLongValues(attr.value)
                                 // Ids are part of oldValue if removed from list, such as 1234,5678,9012
                                 val ids2 = StringHelper2.splitToListOfLongValues(attr.oldValue)
-                                entityIds.addAll(ids1)
-                                entityIds.addAll(ids2)
-                                entityIds.forEach { entityId ->
+                                setOfIds.addAll(ids1)
+                                setOfIds.addAll(ids2)
+                                setOfIds.forEach { entityId ->
                                     embeddedObjectsMap.computeIfAbsent(propertyTypeClass) { mutableSetOf() }
                                         .add(entityId)
                                 }
-                                log.debug { "${entityClass}: entity ids added: '$propertyTypeClass': ${entityIds.joinToString()}" }
+                                log.debug { "${entityClass}: entity ids added: '$propertyTypeClass': ${setOfIds.joinToString()}" }
                             }
                         }
                     }
@@ -308,7 +375,7 @@ class HistoryService {
         historyEntry: HistoryEntryDO,
         attrs: Collection<HistoryEntryAttrDO>? = null
     ): Long? {
-        historyEntry.modifiedBy = ThreadLocalUserContext.loggedInUser?.id?.toString() ?: "anon"
+        historyEntry.modifiedBy = loggedInUser?.id?.toString() ?: "anon"
         historyEntry.modifiedAt = Date()
         em.persist(historyEntry)
         log.info { "Saving history: $historyEntry" }

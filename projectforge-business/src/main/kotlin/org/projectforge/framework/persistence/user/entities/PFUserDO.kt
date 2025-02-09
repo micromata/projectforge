@@ -35,6 +35,7 @@ import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.json.IdsOnlySerializer
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.entities.HistoryUserCommentSupport
 import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDayUtils
@@ -58,7 +59,7 @@ import java.util.*
         query = "from PFUserDO where username=:username and id<>:id"
     )
 )
-open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
+open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSupport {
 
     override val displayName: String
         @Transient

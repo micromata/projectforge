@@ -40,6 +40,7 @@ import org.projectforge.framework.persistence.api.impl.DBQuery
 import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta
 import org.projectforge.framework.persistence.database.DatabaseDao
 import org.projectforge.framework.persistence.database.DatabaseDao.Companion.createReindexSettings
+import org.projectforge.framework.persistence.entities.HistoryUserCommentSupport
 import org.projectforge.framework.persistence.history.*
 import org.projectforge.framework.persistence.jpa.PersistenceCallsRecorder
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
@@ -64,26 +65,22 @@ abstract class BaseDao<O : ExtendedBaseDO<Long>>
 protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceListener<O> {
     protected val baseDOChangedRegistry = BaseDOChangedRegistry<O>(this)
 
+    /**
+     * If true, the user is able to enter a comment in the edit pages: This comment is attached to the history entry.
+     * Please refer [PFUserDO] as an example.
+     * You may also check the support by `obj is HistoryUserCommentSupport`.
+     */
+    val supportsHistoryUserComments: Boolean
+        get() = HistoryUserCommentSupport::class.java.isAssignableFrom(doClass)
+
     internal val changedRegistry = baseDOChangedRegistry
 
-    var identifier: String? = null
-        /**
-         * Identifier should be unique in application (including all plugins). This identifier is also used as category in rest services
-         * or in React pages.
-         * At default, it's the simple name of the DO clazz without extension "DO".
-         */
-        get() {
-            if (field == null) {
-                field = StringUtils.uncapitalize(
-                    StringUtils.removeEnd(
-                        doClass.simpleName,
-                        "DO"
-                    )
-                )
-            }
-            return field
-        }
-        private set
+    /**
+     * Identifier should be unique in application (including all plugins). This identifier is also used as category in rest services
+     * or in React pages.
+     * At default, it's the simple name of the DO clazz without extension "DO".
+     */
+    val identifier: String by lazy { StringUtils.uncapitalize(StringUtils.removeEnd(doClass.simpleName, "DO")) }
 
     @JvmField
     var logDatabaseActions: Boolean = true

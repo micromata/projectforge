@@ -45,69 +45,54 @@ private val log = KotlinLogging.logger {}
 @RestController
 @RequestMapping(Rest.PUBLIC_URL)
 class LogoServiceRest {
-  @GetMapping(value = arrayOf("logo.jpg"), produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
-  @ResponseBody
-  @Throws(IOException::class)
-  fun getJpgLogo(): ByteArray {
-    return getLogo()
-  }
-
-  @GetMapping(value = arrayOf("logo.png"), produces = arrayOf(MediaType.IMAGE_PNG_VALUE))
-  @ResponseBody
-  @Throws(IOException::class)
-  fun getPngLogo(): ByteArray {
-    return getLogo()
-  }
-
-  @GetMapping(value = arrayOf("logo.gif"), produces = arrayOf(MediaType.IMAGE_GIF_VALUE))
-  @ResponseBody
-  @Throws(IOException::class)
-  fun getGifLogo(): ByteArray {
-    return getLogo()
-  }
-
-  private fun getLogo(): ByteArray {
-    if (logoFile == null) {
-      log.error("Logo not configured. Can't download logo. You may configure a logo in projectforge.properties via projectforge.logoFile=logo.png.")
-      throw IOException("Logo not configured. Refer log files for further information.")
+    @GetMapping(value = arrayOf("logo.jpg"), produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
+    @ResponseBody
+    @Throws(IOException::class)
+    fun getJpgLogo(): ByteArray {
+        return getLogo()
     }
-    try {
-      return FileUtils.readFileToByteArray(logoFile)
-    } catch (ex: IOException) {
-      log.error("Error while reading logo file '${CanonicalFileUtils.absolutePath(logoFile)}': ${ex.message}")
-      throw ex
+
+    @GetMapping(value = arrayOf("logo.png"), produces = arrayOf(MediaType.IMAGE_PNG_VALUE))
+    @ResponseBody
+    @Throws(IOException::class)
+    fun getPngLogo(): ByteArray {
+        return getLogo()
     }
-  }
 
-  companion object {
-    private var logoUrlInitialized = false
-    private var _logoUrl: String? = null
-    @JvmStatic
-    val logoUrl: String? // Rest url for downloading the logo if configured.
-      get() {
-        val configurationService =
-          ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java)
-        if (!logoUrlInitialized) {
-          _logoUrl = configurationService.syntheticLogoName
-          if (!_logoUrl.isNullOrBlank() && !configurationService.isLogoFileValid) {
-            log.error("Logo file configured but not readable: '${CanonicalFileUtils.absolutePath(logoFile)}'.")
-          }
-          logoUrlInitialized = true
-        }
-        return if (configurationService.isLogoFileValid) _logoUrl else null
-      }
+    @GetMapping(value = arrayOf("logo.gif"), produces = arrayOf(MediaType.IMAGE_GIF_VALUE))
+    @ResponseBody
+    @Throws(IOException::class)
+    fun getGifLogo(): ByteArray {
+        return getLogo()
+    }
 
-    private var logoFileInitialized = false
-    private var _logoFile: File? = null
-    private val logoFile: File?
-      get() {
-        if (!logoFileInitialized) {
-          val configurationService =
-            ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java)
-          _logoFile = configurationService.logoFileObject
-          logoFileInitialized = true
+    private fun getLogo(): ByteArray {
+        if (logoFile == null) {
+            log.error("Logo not configured. Can't download logo. You may configure a logo in projectforge.properties via projectforge.logoFile=logo.png.")
+            throw IOException("Logo not configured. Refer log files for further information.")
         }
-        return _logoFile
-      }
-  }
+        try {
+            return FileUtils.readFileToByteArray(logoFile)
+        } catch (ex: IOException) {
+            log.error("Error while reading logo file '${CanonicalFileUtils.absolutePath(logoFile)}': ${ex.message}")
+            throw ex
+        }
+    }
+
+    companion object {
+        @JvmStatic
+        val logoUrl: String? by lazy {// Rest url for downloading the logo if configured.
+            val configurationService =
+                ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java)
+            configurationService.syntheticLogoName.also { url ->
+                if (url.isNullOrBlank() && !configurationService.isLogoFileValid) {
+                    log.error("Logo file configured but not readable: '${CanonicalFileUtils.absolutePath(logoFile)}'.")
+                }
+            }
+        }
+
+        private val logoFile: File? by lazy {
+            ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java).logoFileObject
+        }
+    }
 }
