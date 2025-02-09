@@ -30,6 +30,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.IdObject
+import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.util.*
 
@@ -113,6 +114,13 @@ class HistoryEntryDO : HistoryEntry {
     //@GenericField
     override var modifiedAt: Date? = null
 
+    /**
+     * Optional comment by user (if supported by entity). This comment is stored in the history entry, for information only.
+     */
+    @get:Column(name = "user_comment", length = 2000)
+    @GenericField // was @Field(analyze = Analyze.NO, store = Store.NO)
+    override var userComment: String? = null
+
     @JsonManagedReference
     @get:OneToMany(
         cascade = [CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.DETACH], // Write-only
@@ -155,6 +163,9 @@ class HistoryEntryDO : HistoryEntry {
             entry.entityOpType = entityOpType
             entry.modifiedBy = modifiedBy ?: "anon"
             entry.modifiedAt = Date()
+            if (entity is AbstractHistorizableBaseDO<*>) {
+                entry.userComment = entity.historyUserComment
+            }
             return entry
         }
     }
