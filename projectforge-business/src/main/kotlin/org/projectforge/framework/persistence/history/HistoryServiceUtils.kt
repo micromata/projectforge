@@ -37,6 +37,13 @@ class HistoryServiceUtils private constructor() {
         return getNoHistoryProperties(entityClass).contains(propertyName)
     }
 
+    /**
+     * Returns the set of property names which are marked as NoHistory for the given entity class.
+     * The result is cached.
+     * @param entityClass the entity class
+     * @return the set of property names which are marked as NoHistory
+     * @see NoHistory
+     */
     fun getNoHistoryProperties(entityClass: Class<*>): Set<String> {
         synchronized(noHistoryPropertiesByClass) {
             noHistoryPropertiesByClass[entityClass]?.let { return it }

@@ -190,33 +190,6 @@ open class CollectionHandler : CandHIHandler {
         return true
     }
 
-    /**
-     * If collection is declared as OneToMany and not marked as @NoHistory, the collection is managed by the source class.
-     */
-    private fun collectionManagedBySrcClazz(property: KMutableProperty1<*, *>): Boolean {
-        val annotations = AnnotationsUtils.getAnnotations(property)
-        if (annotations.any { it.annotationClass == NoHistory::class }) {
-            log.debug { "collectionManagedBySrcClazz: Collection is marked as NoHistory, so nothing to do." }
-            // No history for this collection, so nothing to do by this src class.
-            return false
-        }
-        if (annotations.any { it.annotationClass == JoinColumn::class } ||
-            annotations.any { it.annotationClass == JoinTable::class }
-        ) {
-            log.debug { "collectionManagedBySrcClazz: Collection is managed by this class." }
-            // There is a join table or column for this entity, so we're assuming to manage this collection.
-            return true
-        }
-        annotations.firstOrNull { it.annotationClass == OneToMany::class }?.let { annotation ->
-            annotation as OneToMany
-            val mappedBy = annotation.mappedBy
-            log.debug { "collectionManagedBySrcClazz: Collection mappedBy='$mappedBy' -> managed by this=${mappedBy.isNotEmpty()}" }
-            // There is a mappedBy column for this entity, so we're assuming to manage this collection.
-            return mappedBy.isNotEmpty()
-        }
-        return false
-    }
-
     private fun createCollectionInstance(
         srcCollection: Any
     ): MutableCollection<Any?> {
@@ -234,6 +207,33 @@ open class CollectionHandler : CandHIHandler {
     }
 
     companion object {
+        /**
+         * If collection is declared as OneToMany and not marked as @NoHistory, the collection is managed by the source class.
+         */
+        private fun collectionManagedBySrcClazz(property: KMutableProperty1<*, *>): Boolean {
+            val annotations = AnnotationsUtils.getAnnotations(property)
+            if (annotations.any { it.annotationClass == NoHistory::class }) {
+                log.debug { "collectionManagedBySrcClazz: Collection is marked as NoHistory, so nothing to do." }
+                // No history for this collection, so nothing to do by this src class.
+                return false
+            }
+            if (annotations.any { it.annotationClass == JoinColumn::class } ||
+                annotations.any { it.annotationClass == JoinTable::class }
+            ) {
+                log.debug { "collectionManagedBySrcClazz: Collection is managed by this class." }
+                // There is a join table or column for this entity, so we're assuming to manage this collection.
+                return true
+            }
+            annotations.firstOrNull { it.annotationClass == OneToMany::class }?.let { annotation ->
+                annotation as OneToMany
+                val mappedBy = annotation.mappedBy
+                log.debug { "collectionManagedBySrcClazz: Collection mappedBy='$mappedBy' -> managed by this=${mappedBy.isNotEmpty()}" }
+                // There is a mappedBy column for this entity, so we're assuming to manage this collection.
+                return mappedBy.isNotEmpty()
+            }
+            return false
+        }
+
         /*
          * This is necessary, because the id values of the new collection entries are null after persisting the merged object.
          * @param mergedObj The merged object.
@@ -253,8 +253,8 @@ open class CollectionHandler : CandHIHandler {
             KClassUtils.filterPublicMutableProperties(mergedObj::class).forEach { property ->
                 @Suppress("UNCHECKED_CAST")
                 property as KMutableProperty1<BaseDO<*>, Any?>
-                if (!CollectionUtils.isCollection(property)) {
-                    // No collection, continue.
+                if (!CollectionUtils.isCollection(property) || !collectionManagedBySrcClazz(property)) {
+                    // No collection or not managed by us, continue.
                     return@forEach
                 }
                 val mergedCol = property.get(mergedObj) as Collection<*>?
