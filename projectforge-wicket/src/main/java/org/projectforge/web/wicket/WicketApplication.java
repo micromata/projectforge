@@ -30,7 +30,6 @@ import org.apache.wicket.core.request.handler.PageProvider;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.protocol.http.WebApplication;
-import org.apache.wicket.request.IRequestCycle;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
@@ -39,6 +38,7 @@ import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.resource.loader.BundleStringResourceLoader;
+import org.apache.wicket.settings.DebugSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.apache.wicket.util.lang.Bytes;
 import org.projectforge.Constants;
@@ -313,7 +313,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
                 log.info("Strip Wicket tags also in development mode at default (see context.xml).");
                 Application.get().getMarkupSettings().setStripWicketTags(true);
             }
-            getDebugSettings().setOutputMarkupContainerClassName(true);
+            getDebugSettings().setOutputMarkupContainerClassNameStrategy(DebugSettings.ClassOutputStrategy.HTML_COMMENT);
 
             // For getting more information of deserialization issues: use jvm parameter --add-opens java.base/java.io=ALL-UNNAMED
         }
