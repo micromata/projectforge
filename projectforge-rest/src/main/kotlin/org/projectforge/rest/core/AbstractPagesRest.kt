@@ -28,7 +28,6 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import mu.KotlinLogging
 import org.projectforge.Constants
-import org.projectforge.business.orga.VisitorbookDO
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.NestedNullException
 import org.projectforge.common.PropertyUtils
@@ -84,7 +83,7 @@ abstract class AbstractPagesRest<
 constructor(
     private val baseDaoClazz: Class<B>,
     private val i18nKeyPrefix: String,
-    val cloneSupport: CloneSupport = CloneSupport.NONE
+    val cloneSupport: CloneSupport = CloneSupport.NONE,
 ) {
     enum class CloneSupport {
         /** No clone support. */
@@ -107,7 +106,7 @@ constructor(
      */
     open val autoCompleteSearchFields: Array<String>? = null
 
-    open val addNewEntryUrl = "${Constants.REACT_APP_PATH}$category/edit"
+    open val addNewEntryUrl: String by lazy { "${Constants.REACT_APP_PATH}$category/edit" }
 
     @PostConstruct
     private fun postConstruct() {
@@ -148,33 +147,17 @@ constructor(
 
     private var initialized = false
 
-    private var _baseDao: B? = null
-
-    private var _category: String? = null
-
     /**
-     * Category should be unique and is e. g. used as react path. At default it's the dir of the url defined in class annotation [RequestMapping].
+     * Category should be unique and is e. g. used as react path. At default, it's the dir of the url defined in class annotation [RequestMapping].
      */
-    open val category: String // open needed by Wicket's SpringBean for proxying.
-        get() {
-            if (_category == null) {
-                _category = getRestPath().removePrefix("${Rest.URL}/")
-            }
-            return _category!!
-        }
+    open val category: String by lazy { getRestPath().removePrefix("${Rest.URL}/") } // open needed by Wicket's SpringBean for proxying.
 
     /**
      * The layout context is needed to examine the data objects for maxLength, nullable, dataType etc.
      */
     protected lateinit var lc: LayoutContext
 
-    val baseDao: B
-        get() {
-            if (_baseDao == null) {
-                _baseDao = applicationContext.getBean(baseDaoClazz)
-            }
-            return _baseDao ?: throw AssertionError("Set to null by another thread")
-        }
+    val baseDao: B by lazy { applicationContext.getBean(baseDaoClazz) }
 
     @Autowired
     private lateinit var accessChecker: AccessChecker
@@ -802,7 +785,7 @@ constructor(
         userAccess: UILayout.UserAccess
     ): FormLayoutData {
         val ui = createEditLayout(dto, userAccess)
-        ui.addTranslations("changes", "tooltip.selectMe")
+        ui.addTranslations("changes", "history.userComment", "tooltip.selectMe")
         val serverData = sessionCsrfService.createServerData(request)
         val result = FormLayoutData(dto, ui, serverData)
         onGetItemAndLayout(request, dto, result)
