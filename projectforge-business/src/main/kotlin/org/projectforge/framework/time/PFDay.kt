@@ -399,9 +399,22 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
 
         internal val isoDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
-        internal val weekFields: WeekFields by lazy {
+        private var _weekFields: WeekFields? = null
+
+        internal val weekFields: WeekFields
+            get() = _weekFields ?: run {
+                val newValue = calculateWeekFields()
+                _weekFields = newValue
+                newValue
+            }
+
+        fun resetWeekFieldsForTest() {
+            _weekFields = null
+        }
+
+        private fun calculateWeekFields(): WeekFields {
             val minimalDaysInFirstWeek = ConfigurationServiceAccessor.get().minimalDaysInFirstWeek
-            if (minimalDaysInFirstWeek == null) {
+            return if (minimalDaysInFirstWeek == null) {
                 val systemLocale = ConfigurationServiceAccessor.get().defaultLocale
                 WeekFields.of(systemLocale)
             } else {
