@@ -26,6 +26,7 @@ function HistoryEntry(
         entry: {
             id: masterId,
             attributes,
+            userComment,
             timeAgo,
             modifiedAt,
             modifiedByUser,
@@ -103,6 +104,17 @@ function HistoryEntry(
             </Row>
             <Collapse isOpen={active}>
                 <Container fluid className={style.details}>
+                    {userComment && (
+                        <>
+                            <h5>
+                                <strong>
+                                    {getTranslation('history.userComment', translations)}
+                                    :
+                                </strong>
+                            </h5>
+                            <pre>{userComment}</pre>
+                        </>
+                    )}
                     <h5>
                         <strong>
                             {getTranslation('changes', translations)}
@@ -172,6 +184,7 @@ HistoryEntry.propTypes = {
         id: PropTypes.number,
         modifiedAt: PropTypes.string,
         modifiedByUser: PropTypes.string,
+        userComment: PropTypes.string,
         modifiedByUserId: PropTypes.number,
         operation: PropTypes.string,
         operationType: PropTypes.string,
@@ -179,6 +192,9 @@ HistoryEntry.propTypes = {
     }).isRequired,
     translations: PropTypes.shape({
         changes: PropTypes.string,
+        history: PropTypes.arrayOf(PropTypes.shape({
+            userComment: PropTypes.string,
+        })),
     }),
 };
 

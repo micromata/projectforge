@@ -94,7 +94,6 @@ class UserPagesRest
     @Autowired
     private lateinit var ldapSambaAccountsUtils: LdapSambaAccountsUtils
 
-
     @Autowired
     private lateinit var ldapService: LdapService
 
@@ -115,7 +114,6 @@ class UserPagesRest
 
     @Autowired
     private lateinit var userRightsHandler: UserRightsHandler
-
 
     @Autowired
     private lateinit var userService: UserService
@@ -199,6 +197,7 @@ class UserPagesRest
                     )
                 )
             agGrid.add("lastLoginTimeAgo", headerName = "login.lastLogin")
+            agGrid.add("lastUpdate", headerName = "lastUpdate")
         }
         agGrid.add(lc, PFUserDO::lastname, PFUserDO::firstname)
         if (adminAccess) {

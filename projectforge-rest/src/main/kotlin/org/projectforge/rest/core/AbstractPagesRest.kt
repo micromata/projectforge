@@ -83,7 +83,7 @@ abstract class AbstractPagesRest<
 constructor(
     private val baseDaoClazz: Class<B>,
     private val i18nKeyPrefix: String,
-    val cloneSupport: CloneSupport = CloneSupport.NONE
+    val cloneSupport: CloneSupport = CloneSupport.NONE,
 ) {
     enum class CloneSupport {
         /** No clone support. */
@@ -785,7 +785,7 @@ constructor(
         userAccess: UILayout.UserAccess
     ): FormLayoutData {
         val ui = createEditLayout(dto, userAccess)
-        ui.addTranslations("changes", "tooltip.selectMe")
+        ui.addTranslations("changes", "history.userComment", "tooltip.selectMe")
         val serverData = sessionCsrfService.createServerData(request)
         val result = FormLayoutData(dto, ui, serverData)
         onGetItemAndLayout(request, dto, result)
