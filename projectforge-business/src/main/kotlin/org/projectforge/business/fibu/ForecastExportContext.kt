@@ -141,6 +141,13 @@ internal class ForecastExportContext(
 
     // All projects of the user used in the orders to show also invoices without order, but with assigned project:
     val projectIds = mutableSetOf<Long>()
+    // All projects for which invoices have been issued.
+    val invoicedProjectIds = mutableSetOf<Long>()
+    // All projects with orders in the forecast.
+    // For all projects that have been invoiced but for which no
+    // order is included in the forecast, pseudo orders are entered in the forecast in order to have all projects
+    // visible in the forecast.
+    val orderProjectIds = mutableSetOf<Long>()
     var showAll: Boolean =
         false // showAll is true, if no filter is given and for financial and controlling staff only.
     val orderPositionMap = mutableMapOf<Long, OrderPositionInfo>()

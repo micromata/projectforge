@@ -39,6 +39,7 @@ import org.projectforge.framework.json.IdsOnlySerializer
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.entities.HistoryUserCommentSupport
 import java.util.*
 
 /**
@@ -52,7 +53,7 @@ import java.util.*
     NamedQuery(name = GroupDO.FIND_BY_NAME, query = "from GroupDO where name=:name"),
     NamedQuery(name = GroupDO.FIND_OTHER_GROUP_BY_NAME, query = "from GroupDO where name=:name and id<>:id")
 )
-open class GroupDO : DefaultBaseDO(), DisplayNameCapable {
+open class GroupDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSupport {
 
     override val displayName: String
         @Transient
@@ -184,9 +185,7 @@ open class GroupDO : DefaultBaseDO(), DisplayNameCapable {
     }
 
     fun addUser(user: PFUserDO) {
-        if (this.assignedUsers == null) {
-            this.assignedUsers = HashSet()
-        }
+        this.assignedUsers = this.assignedUsers ?: mutableSetOf()
         this.assignedUsers!!.add(user)
         this.usernames = null
     }

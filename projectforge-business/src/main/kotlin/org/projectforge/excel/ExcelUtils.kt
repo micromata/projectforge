@@ -50,6 +50,18 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 object ExcelUtils {
+    const val BOLD_STYLE = "hr"
+    const val HEAD_ROW_STYLE = "hr"
+
+    /**
+     * Should be part of Merlin in the next release.
+     */
+    fun exportExcel(workbook: ExcelWorkbook): ByteArray {
+        workbook.use {
+            return it.asByteArrayOutputStream.toByteArray()
+        }
+    }
+
     /**
      * Should be part of Merlin in the next release.
      * Sets the active sheet and deselects all other sheets.
@@ -97,10 +109,13 @@ object ExcelUtils {
     /**
      * Should be part of Merlin in the next release.
      * Clears all cells of the given row.
+     * @param row the row (0-based).
+     * @param fromColIndex the column index to start clearing (0-based). If null, the first column is used.
+     * @param toColIndex the column index to end clearing. If null, the last column is used (0-based).
      */
     fun clearCells(row: ExcelRow, fromColIndex: Int = 0, toColIndex: Int? = null) {
-        val lastCol = toColIndex ?: row.lastCellNum.toInt()
-        for (i in fromColIndex until lastCol) {
+        val lastCol = toColIndex ?: (row.lastCellNum.toInt() - 1)
+        for (i in fromColIndex..lastCol) {
             row.getCell(i).setBlank()
         }
     }
@@ -242,15 +257,18 @@ object ExcelUtils {
             )
             cfg.intFormat = "#,##0"
             cfg.floatFormat = "#,##0.#"
+            val boldFont = createFont(workbook, "bold", bold = true)
+            workbook.createOrGetCellStyle(BOLD_STYLE, font = boldFont)
             return workbook
         }
     }
 
     fun addHeadRow(sheet: ExcelSheet, style: CellStyle? = null) {
         val headRow = sheet.createRow() // second row as head row.
+        val useStyle = style ?: sheet.excelWorkbook.createOrGetCellStyle(HEAD_ROW_STYLE)
         sheet.columnDefinitions.forEachIndexed { index, it ->
             val cell = headRow.getCell(index).setCellValue(it.columnHeadname)
-            style?.let { cell.setCellStyle(it) }
+            cell.setCellStyle(useStyle)
         }
     }
 

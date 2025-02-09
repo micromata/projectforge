@@ -36,6 +36,16 @@ private val log = KotlinLogging.logger {}
  */
 object ClassUtils {
 
+    fun forNameOrNull(clazz: String?): Class<*>? {
+        clazz ?: return null
+        return try {
+            Class.forName(clazz)
+        } catch (e: ClassNotFoundException) {
+            log.error(e) { "Class not found: $clazz" }
+            null
+        }
+    }
+
     fun getProxiedClass(clazz: Class<*>): Class<*> {
         if (clazz.name.contains("$$")) {
             val superclass = clazz.superclass

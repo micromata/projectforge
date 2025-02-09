@@ -26,9 +26,6 @@ package org.projectforge.business.user
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
-import org.projectforge.framework.persistence.api.QueryFilter
-import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
-import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
@@ -89,11 +86,12 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
             // evict all entities from the session cache to avoid that the update is already done in the copy method
             val userGroupCache = userGroupCache
             val userGroups = userGroupCache.getUserGroupDOs(user)
+            val historyUserComment = user.historyUserComment // Save the history user comment also for the rights.
             list.forEach { rightVO ->
                 var rightDO: UserRightDO? = null
                 dbList.forEach { dbItem ->
-                    val rightid = userRightService.getRightId(dbItem.rightIdString)
-                    if (rightid == rightVO.right.id) {
+                    val rightId = userRightService.getRightId(dbItem.rightIdString)
+                    if (rightId == rightVO.right.id) {
                         rightDO = dbItem
                     }
                 }
@@ -105,14 +103,14 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
                         // Do nothing.
                     } else {
                         // Create new right instead of updating an existing one.
-                        rightDO = UserRightDO(user, rightVO.right.id).withUser(user)
-                        rightDO.let {
+                        rightDO = UserRightDO(user, rightVO.right.id).withUser(user).also {
                             copy(it, rightVO)
+                            it.historyUserComment = historyUserComment // Save the history user comment also for the rights.
                             insert(it)
                         }
                     }
                 } else {
-                    rightDO.let {
+                    rightDO!!.let {
                         copy(it, rightVO)
                         val rightId = userRightService.getRightId(it.rightIdString)
                         val right = userRightService.getRight(rightId)
@@ -121,6 +119,7 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
                         ) {
                             it.value = null
                         }
+                        it.historyUserComment = historyUserComment // Save the history user comment also for the rights.
                         update(it)
                     }
                 }
@@ -134,6 +133,7 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
                                 || !right.isAvailable(user, userGroups, it.value))
                     ) {
                         it.value = null
+                        it.historyUserComment = historyUserComment // Save the history user comment also for the rights.
                         update(it)
                     }
                 }

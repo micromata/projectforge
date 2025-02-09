@@ -51,6 +51,8 @@ open class FlatDisplayHistoryEntry : Serializable {
 
     var user: PFUserDO? = null
 
+    var userComment: String? = null
+
     /**
      * @return the entryType
      */
@@ -168,6 +170,7 @@ open class FlatDisplayHistoryEntry : Serializable {
                 it.historyEntryId = entry.id
                 it.opType = entry.operationType
                 it.timestamp = entry.modifiedAt
+                it.userComment = entry.userComment
                 it.attributeId = attr?.id
                 it.user = UserGroupCache.getInstance().getUser(entry.modifiedByUserId)
                 it.propertyName = attr?.propertyName

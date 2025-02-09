@@ -116,6 +116,13 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
     open var kunde: KundeDO? = null
 
     /**
+     * @see KundeFormatter.formatKundeAsString
+     */
+    val kundeAsString: String
+        @Transient
+        get() = KundeFormatter.formatKundeAsString(this.kunde)
+
+    /**
      * Nur bei internen Projekten ohne Kundennummer, stellt diese Nummer die Ziffern 2-4 aus 4.* dar.
      */
     @PropertyInfo(i18nKey = "fibu.projekt.internKost2_4")
