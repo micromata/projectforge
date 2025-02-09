@@ -185,9 +185,7 @@ open class GroupDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSupp
     }
 
     fun addUser(user: PFUserDO) {
-        if (this.assignedUsers == null) {
-            this.assignedUsers = HashSet()
-        }
+        this.assignedUsers = this.assignedUsers ?: mutableSetOf()
         this.assignedUsers!!.add(user)
         this.usernames = null
     }
