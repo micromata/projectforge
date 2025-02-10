@@ -3,31 +3,8 @@
 @import '~bootstrap/scss/bootstrap';
 @import '@fortawesome/fontawesome-free/scss/solid';
 
-.ag-theme-alpine .ag-row {
-  font-size: 12px !important;
-}
-
-.ag-theme-alpine {
-  font-size: 12px !important;
-}
-
-.ag-theme-alpine .ag-cell, .ag-theme-alpine .ag-full-width-row .ag-cell-wrapper.ag-row-group {
-  padding-left: 5px !important;
-  padding-right: 5px !important;
-  line-height: min(var(--ag-row-height, 20px), 20px) !important;
-}
-
-.ag-theme-alpine .ag-row > .ag-cell-wrapper {
-  padding-left: 5px !important;
-  padding-right: 5px !important;
-}
-
-.ag-theme-alpine .ag-header-cell, .ag-theme-alpine .ag-header-group-cell {
-  padding-left: 6px !important;
-  padding-right: 6px !important;
-}
-
-.ag-row-standard {
+:root {
+  --ag-icon-font-family: "agGridAlpine";
 }
 
 .ag-row-red {
