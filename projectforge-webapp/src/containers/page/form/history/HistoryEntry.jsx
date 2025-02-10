@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React, { useCallback } from 'react';
+import { Button } from 'reactstrap';
 import { Col, Collapse, Container, Row, UncontrolledTooltip } from '../../../../components/design';
 import DiffText from '../../../../components/design/DiffText';
 import { getTranslation } from '../../../../utilities/layout';
@@ -44,19 +45,10 @@ function HistoryEntry(
 
     const editComment = useCallback(() => callAction({
         responseAction: {
-            targetType: 'REDIRECT',
+            targetType: 'MODAL',
             url: evalServiceURL(`/react/historyEntries/edit/${masterId}`),
         },
     }), [callAction, masterId]);
-    /*
-        <Button
-        type="button"
-        className={style.editComment}
-        onClick={editComment}
-    >
-        {getTranslation('history.userComment.edit', translations)}
-    </Button>;
- */
 
     attributes.forEach(({ operation, operationType }) => {
         let diff = diffSummary[operationType];
@@ -128,6 +120,14 @@ function HistoryEntry(
                     {userComment && (
                         <pre className={style.comment}>{userComment}</pre>
                     )}
+                    <Button
+                        type="button"
+                        color="link"
+                        className={style.editComment}
+                        onClick={editComment}
+                    >
+                        {getTranslation('history.userComment.edit', translations)}
+                    </Button>
                     <h5>
                         <strong>
                             {getTranslation('changes', translations)}
