@@ -137,6 +137,8 @@ internal class ForecastExportContext(
             fillForegroundColor = IndexedColors.LIGHT_YELLOW,
             origStyle = currencyCellStyle,
         )
+    var planningOrderList: List<AuftragDO>? = null
+
     val orderMap = mutableMapOf<Long, OrderInfo>()
 
     // All projects of the user used in the orders to show also invoices without order, but with assigned project:
