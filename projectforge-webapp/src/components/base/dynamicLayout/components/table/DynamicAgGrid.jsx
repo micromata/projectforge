@@ -1,8 +1,14 @@
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import PropTypes from 'prop-types';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
-import { AllCommunityModule, AllEnterpriseModule, LicenseManager, ModuleRegistry } from 'ag-grid-enterprise';
+import {
+    AllCommunityModule,
+    AllEnterpriseModule,
+    LicenseManager,
+    ModuleRegistry,
+    themeAlpine,
+} from 'ag-grid-enterprise';
 import 'ag-grid-enterprise/styles/ag-grid.css';
 import 'ag-grid-enterprise/styles/ag-theme-alpine.css';
 import { connect } from 'react-redux';
@@ -16,6 +22,12 @@ import DynamicAgGridDiffCell from './DynamicAgGridDiffCell';
 
 LicenseManager.setLicenseKey('Using_this_{AG_Grid}_Enterprise_key_{AG-059988}_in_excess_of_the_licence_granted_is_not_permitted___Please_report_misuse_to_legal@ag-grid.com___For_help_with_changing_this_key_please_contact_info@ag-grid.com___{Micromata_GmbH}_is_granted_a_{Single_Application}_Developer_License_for_the_application_{ProjectForge}_only_for_{2}_Front-End_JavaScript_developers___All_Front-End_JavaScript_developers_working_on_{ProjectForge}_need_to_be_licensed___{ProjectForge}_has_not_been_granted_a_Deployment_License_Add-on___This_key_works_with_{AG_Grid}_Enterprise_versions_released_before_{14_July_2025}____[v3]_[01]_MTc1MjQ0NzYwMDAwMA==2c2e5c05a1f3b34a534c11405051440a');
 ModuleRegistry.registerModules([AllCommunityModule, AllEnterpriseModule]);
+
+const agTheme = themeAlpine
+    .withParams({
+        iconSize: '24px',
+        panelBackgroundColor: '#fff',
+    });
 
 function DynamicAgGrid(props) {
     const {
@@ -277,10 +289,10 @@ function DynamicAgGrid(props) {
 
     return (
         <div
-            className="ag-theme-alpine"
             style={{ minWidth: '100%', height }}
         >
             <AgGridReact
+                theme={agTheme}
                 ref={gridRef}
                 rowData={rowData}
                 components={allComponents}
