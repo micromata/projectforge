@@ -88,7 +88,6 @@ class HistoryEntryUserCommentModalRest {
         }
         val id = dto.id ?: return ResponseEntity(HttpStatus.NOT_FOUND)
         historyService.appendUserComment(id, dto.appendComment)
-
         return ResponseEntity.ok().body(ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true))
     }
 
