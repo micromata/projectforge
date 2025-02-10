@@ -3,13 +3,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { connect } from 'react-redux';
 import { Col, Collapse, Container, Row, UncontrolledTooltip } from '../../../../components/design';
 import DiffText from '../../../../components/design/DiffText';
 import { getTranslation } from '../../../../utilities/layout';
 import style from './History.module.scss';
-// import { DynamicLayoutContext } from '../../../../components/base/dynamicLayout/context';
-// import { evalServiceURL } from '../../../../utilities/rest';
 
 function getTypeSymbol(type) {
     switch (type) {
@@ -39,26 +36,6 @@ function HistoryEntry(
 ) {
     const [active, setActive] = React.useState(false);
     const diffSummary = {};
-
-    /*
-    const { callAction } = React.useContext(DynamicLayoutContext);
-
-    const editComment = () => callAction({
-        responseAction: {
-            targetType: 'TARGET',
-            url: evalServiceURL(`/react/historyEntries/edit/${masterId}`),
-        },
-    });
-
-                        <Button
-                        type="button"
-                        className={style.editComment}
-                        onClick={() => editComment()}
-                    >
-                        {getTranslation('history.userComment.edit', translations)}
-                    </Button>
-
-     */
 
     attributes.forEach(({ operation, operationType }) => {
         let diff = diffSummary[operationType];
@@ -219,4 +196,4 @@ HistoryEntry.defaultProps = {
     translations: undefined,
 };
 
-export default connect()(HistoryEntry);
+export default HistoryEntry;
