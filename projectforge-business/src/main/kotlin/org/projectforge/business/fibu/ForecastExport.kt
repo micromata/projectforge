@@ -305,6 +305,8 @@ open class ForecastExport { // open needed by Wicket.
             snapshotDate?.let { infoSheet.setDateValue(2, 1, it, ctx.excelDateFormat) }
             log.debug { "info sheet: $infoSheet" }
 
+            analyzeOrderPositions(orderList, ctx, useAuftragsCache)
+            analyzePlanningForecast(planningDate, auftragFilter, ctx)
             forecastExportInvoices.fillInvoices(ctx)
             val orderPositionsFound =
                 fillOrderPositions(
@@ -341,6 +343,33 @@ open class ForecastExport { // open needed by Wicket.
         }
     }
 
+    private fun analyzeOrderPositions(
+        orderList: Collection<AuftragDO>,
+        ctx: Context,
+        useAuftragsCache: Boolean,
+    ) {
+        for (auftragDO in orderList) {
+            auftragDO.projekt?.id?.let { projektId ->
+                ctx.projectIds.add(projektId)
+            }
+            val orderInfo = if (useAuftragsCache) ordersCache.getOrderInfo(auftragDO) else auftragDO.info
+            auftragDO.id?.let { ctx.orderMap[it] = orderInfo }
+            orderInfo.infoPositions?.forEach { pos ->
+                pos.id?.let {
+                    ctx.orderPositionMap[it] = pos // Register all order positions for invoice handling.
+                    ctx.orderMapByPositionId[it] = orderInfo
+                }
+            }
+        }
+    }
+
+    private fun analyzePlanningForecast(planningDate: LocalDate?, auftragFilter: AuftragFilter, ctx: Context) {
+        planningDate ?: return
+        val orderList = readSnapshot(planningDate, auftragFilter)
+        analyzeOrderPositions(orderList, ctx, useAuftragsCache = false)
+        ctx.planningOrderList = orderList
+    }
+
     /**
      * Fill the forecast data of order positions.
      * @param orderList The list of orders to export.
@@ -363,21 +392,14 @@ open class ForecastExport { // open needed by Wicket.
         var currentRow = FORECAST_FISRT_ORDER_ROW
         var orderPositionFound = false
         for (auftragDO in orderList) {
-            auftragDO.projekt?.id?.let { projektId ->
-                ctx.projectIds.add(projektId)
-            }
-            val orderInfo = if (useAuftragsCache) ordersCache.getOrderInfo(auftragDO) else auftragDO.info
-            auftragDO.id?.let { ctx.orderMap[it] = orderInfo }
-            orderInfo.infoPositions?.forEach { pos ->
-                pos.id?.let {
-                    ctx.orderPositionMap[it] = pos // Register all order positions for invoice handling.
-                    ctx.orderMapByPositionId[it] = orderInfo
-                }
+            val orderInfo = ctx.orderMap[auftragDO.id] // Must be set by analyzeOrderPositions.
+            if (orderInfo == null) {
+                log.error { "Shouldn't occur: orderInfo not found for order: $auftragDO" }
+                continue
             }
             if (auftragDO.deleted || orderInfo.infoPositions.isNullOrEmpty()) {
                 continue
             }
-
             if (ForecastUtils.auftragsStatusToShow.contains(auftragDO.status)) {
                 orderInfo.infoPositions?.forEach { pos ->
                     if (pos.status in ForecastUtils.auftragsPositionsStatusToShow) {
@@ -428,7 +450,7 @@ open class ForecastExport { // open needed by Wicket.
 
     private fun fillPlanningForecast(planningDate: LocalDate?, auftragFilter: AuftragFilter, ctx: Context) {
         planningDate ?: return
-        val orderList = readSnapshot(planningDate, auftragFilter)
+        val orderList = ctx.planningOrderList ?: return
         fillOrderPositions(
             orderList,
             ctx,
@@ -550,7 +572,8 @@ open class ForecastExport { // open needed by Wicket.
         forecastInfo.calculate()
         sheet.setBigDecimalValue(row, ForecastCol.NETTOSUMME.header, netSum).cellStyle = ctx.currencyCellStyle
         if (invoicedSum.compareTo(BigDecimal.ZERO) != 0) {
-            sheet.setBigDecimalValue(row, ForecastCol.FAKTURIERT.header, invoicedSum).cellStyle = ctx.currencyCellStyle
+            sheet.setBigDecimalValue(row, ForecastCol.FAKTURIERT.header, invoicedSum).cellStyle =
+                ctx.currencyCellStyle
         }
         val toBeInvoicedSum = forecastInfo.toBeInvoicedSum
         if (toBeInvoicedSum.compareTo(BigDecimal.ZERO) != 0) {
@@ -567,7 +590,11 @@ open class ForecastExport { // open needed by Wicket.
             // Don't load invoices later than snapshotDate or planningDate (baseDate):
             baseDate == null || (it.rechnungInfo?.date ?: LocalDate.MAX) <= baseDate
         }
-        sheet.setStringValue(row, ForecastCol.DEBITOREN_RECHNUNGEN.header, ForecastUtils.getInvoices(invoicePositions))
+        sheet.setStringValue(
+            row,
+            ForecastCol.DEBITOREN_RECHNUNGEN.header,
+            ForecastUtils.getInvoices(invoicePositions)
+        )
         val leistungsZeitraumColDef = sheet.getColumnDef(ForecastCol.LEISTUNGSZEITRAUM.header)!!
         if (PeriodOfPerformanceType.OWN == pos.periodOfPerformanceType) { // use "own" period -> from pos
             sheet.setDateValue(
@@ -604,7 +631,11 @@ open class ForecastExport { // open needed by Wicket.
         ).cellStyle =
             ctx.percentageCellStyle
 
-        sheet.setBigDecimalValue(row, ForecastCol.PROBABILITY_NETSUM.header, forecastInfo.weightedNetSum).cellStyle =
+        sheet.setBigDecimalValue(
+            row,
+            ForecastCol.PROBABILITY_NETSUM.header,
+            forecastInfo.weightedNetSum
+        ).cellStyle =
             ctx.currencyCellStyle
 
         sheet.setStringValue(row, ForecastCol.ANSPRECHPARTNER.header, order.contactPerson?.getFullname())
