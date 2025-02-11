@@ -141,6 +141,8 @@ internal class ForecastExportContext(
 
     val orderMap = mutableMapOf<Long, OrderInfo>()
 
+    val planningOrderMap = mutableMapOf<Long, OrderInfo>()
+
     // All projects of the user used in the orders to show also invoices without order, but with assigned project:
     val projectIds = mutableSetOf<Long>()
     // All projects for which invoices have been issued.
