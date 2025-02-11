@@ -47,9 +47,13 @@ class OrderbookSnapshotsSanityCheck(val orderbookSnapshotsService: OrderbookSnap
             }
             try {
                 val orders = orderbookSnapshotsService.readSnapshot(date)
-                val lastUpdate = orders?.maxOf { it.lastUpdate ?: Date(0L) }
-                val highestOrderNumber = orders?.maxOf { it.nummer ?: -1 }
-                jobExecutionContext.addMessage("Snapshot for date $date (${it.size.formatBytes()}) is readable: ${orders?.size?.format()} orders, highest order number=${highestOrderNumber.format()}, last update of any order=${lastUpdate.isoString()}.")
+                if (orders.isNullOrEmpty()) {
+                    jobExecutionContext.addMessage("Snapshot for date $date (${it.size.formatBytes()}) has no entries (orders).")
+                } else {
+                    val lastUpdate = orders?.maxOf { it.lastUpdate ?: Date(0L) }
+                    val highestOrderNumber = orders?.maxOf { it.nummer ?: -1 }
+                    jobExecutionContext.addMessage("Snapshot for date $date (${it.size.formatBytes()}) is readable: ${orders?.size?.format()} orders, highest order number=${highestOrderNumber.format()}, last update of any order=${lastUpdate.isoString()}.")
+                }
             } catch (e: Exception) {
                 jobExecutionContext.addError("Error reading snapshot for date $date: $e")
             }
