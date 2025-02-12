@@ -48,7 +48,11 @@ export const loadUserStatus = () => (dispatch) => {
             ));
         })
         .catch(() => {
-            if (!window.location.href.endsWith('/react/public/login')) {
+            const { href } = window.location;
+            if (!href.endsWith('/react/public/login')
+                // /react/public/datatransfer/ is a special case where the user is not logged in.
+                // Login form is returned by data transfer.
+                && href.indexOf('/react/public/datatransfer/') < 0) {
                 window.location.href = '/react/public/login';
             }
 
