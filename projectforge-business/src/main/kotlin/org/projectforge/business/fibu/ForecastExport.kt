@@ -123,10 +123,10 @@ open class ForecastExport { // open needed by Wicket.
         val closestSnapshotDate = getClosestSnapshotDate(snapshotDate, scriptLogger, "snapshot")
         val msgSB = StringBuilder("Exporting forecast script with start date ${startDate.isoString}")
         if (closestPlanningDate != null) {
-            msgSB.append(" with planningDate ${closestPlanningDate}")
+            msgSB.append(" with planningDate $closestPlanningDate")
         }
         if (closestSnapshotDate != null) {
-            msgSB.append(" with snapshotDate ${closestSnapshotDate}")
+            msgSB.append(" with snapshotDate $closestSnapshotDate")
         }
         if (!filter.searchString.isNullOrBlank()) {
             msgSB.append(" with filter: str='${filter.searchString}'")
@@ -140,7 +140,7 @@ open class ForecastExport { // open needed by Wicket.
         if (!filter.projectList.isNullOrEmpty()) {
             log.info {
                 "$msgSB, projects=${
-                    filter.projectList?.sortedBy { it.name }?.joinToString() { it.name ?: "???" }
+                    filter.projectList?.sortedBy { it.name }?.joinToString { it.name ?: "???" }
                 }"
             }
         }
@@ -305,7 +305,7 @@ open class ForecastExport { // open needed by Wicket.
             snapshotDate?.let { infoSheet.setDateValue(2, 1, it, ctx.excelDateFormat) }
             log.debug { "info sheet: $infoSheet" }
 
-            analyzeOrderPositions(orderList, ctx, useAuftragsCache)
+            analyzeOrderPositions(orderList, ctx, planningData = false)
             analyzePlanningForecast(planningDate, auftragFilter, ctx)
             forecastExportInvoices.fillInvoices(ctx)
             val orderPositionsFound =
@@ -337,7 +337,7 @@ open class ForecastExport { // open needed by Wicket.
             ExcelUtils.setAutoFilter(planningSheet, FORECAST_HEAD_ROW, 0, FORECAST_NUMBER_OF_COLS_AUTOFILTER)
             planningInvoicesSheet.setAutoFilter()
 
-            fillPlanningForecast(planningDate, auftragFilter, ctx)
+            fillPlanningForecast(planningDate, ctx)
             workbook.pOIWorkbook.creationHelper.createFormulaEvaluator().evaluateAll()
             return workbook.asByteArrayOutputStream.toByteArray()
         }
@@ -346,14 +346,24 @@ open class ForecastExport { // open needed by Wicket.
     private fun analyzeOrderPositions(
         orderList: Collection<AuftragDO>,
         ctx: Context,
-        useAuftragsCache: Boolean,
+        planningData: Boolean,
     ) {
         for (auftragDO in orderList) {
             auftragDO.projekt?.id?.let { projektId ->
                 ctx.projectIds.add(projektId)
             }
-            val orderInfo = if (useAuftragsCache) ordersCache.getOrderInfo(auftragDO) else auftragDO.info
-            auftragDO.id?.let { ctx.orderMap[it] = orderInfo }
+            val orderInfo = if (planningData) {
+                auftragDO.info // Can't load planning data from cache (it's read from snapshots).
+            } else {
+                ordersCache.getOrderInfo(auftragDO)
+            }
+            auftragDO.id?.let { id ->
+                if (planningData) {
+                    ctx.planningOrderMap[id] = orderInfo
+                } else {
+                    ctx.orderMap[id] = orderInfo
+                }
+            }
             orderInfo.infoPositions?.forEach { pos ->
                 pos.id?.let {
                     ctx.orderPositionMap[it] = pos // Register all order positions for invoice handling.
@@ -366,7 +376,7 @@ open class ForecastExport { // open needed by Wicket.
     private fun analyzePlanningForecast(planningDate: LocalDate?, auftragFilter: AuftragFilter, ctx: Context) {
         planningDate ?: return
         val orderList = readSnapshot(planningDate, auftragFilter)
-        analyzeOrderPositions(orderList, ctx, useAuftragsCache = false)
+        analyzeOrderPositions(orderList, ctx, planningData = true)
         ctx.planningOrderList = orderList
     }
 
@@ -386,13 +396,18 @@ open class ForecastExport { // open needed by Wicket.
         baseDate: LocalDate?,
         useAuftragsCache: Boolean,
     ): Boolean {
+        val planning = (sheet == ctx.planningSheet)
         // Set the date in the upper left corner (red and bold) for showing date of snapshot/orderbook.
         sheet.getCell(1, 0)?.setCellValue(baseDate ?: ctx.baseDate.localDate)
         sheet.getRow(FORECAST_HEAD_ROW)
         var currentRow = FORECAST_FISRT_ORDER_ROW
         var orderPositionFound = false
         for (auftragDO in orderList) {
-            val orderInfo = ctx.orderMap[auftragDO.id] // Must be set by analyzeOrderPositions.
+            val orderInfo = if (planning) {
+                ctx.planningOrderMap[auftragDO.id] // Must be set by analyzeOrderPositions.
+            } else {
+                ctx.orderMap[auftragDO.id] // Must be set by analyzeOrderPositions.
+            }
             if (orderInfo == null) {
                 log.error { "Shouldn't occur: orderInfo not found for order: $auftragDO" }
                 continue
@@ -448,7 +463,7 @@ open class ForecastExport { // open needed by Wicket.
         return orderPositionFound
     }
 
-    private fun fillPlanningForecast(planningDate: LocalDate?, auftragFilter: AuftragFilter, ctx: Context) {
+    private fun fillPlanningForecast(planningDate: LocalDate?, ctx: Context) {
         planningDate ?: return
         val orderList = ctx.planningOrderList ?: return
         fillOrderPositions(
