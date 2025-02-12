@@ -196,14 +196,6 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
     formCol
       .add(
         UIInput(
-          "externalAccessToken",
-          required = true,
-          label = "plugins.datatransfer.external.accessToken",
-          autoComplete = UIInput.AutoCompleteType.USERNAME
-        )
-      )
-      .add(
-        UIInput(
           "externalPassword",
           required = true,
           label = "password",
