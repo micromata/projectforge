@@ -519,6 +519,10 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
 
     fun deserizalizeValueObject(userPref: UserPrefDO?): Any? {
         userPref ?: return null
+        if (UNSUPPORTED_OLD_CLASSES.any { it == userPref.valueTypeString}) {
+            log.debug { "Unsupported old user pref class: ${userPref.valueTypeString}" }
+            return null
+        }
         val valueType = userPref.valueType ?: return null
         val valueString = userPref.serializedValue ?: return null
         if (userPref.valueType == null) return null
@@ -740,5 +744,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
                 content
             }
         }
+
+        private val UNSUPPORTED_OLD_CLASSES = arrayOf("org.projectforge.business.timesheet.TimesheetPrefData")
     }
 }

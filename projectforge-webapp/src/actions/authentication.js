@@ -48,12 +48,14 @@ export const loadUserStatus = () => (dispatch) => {
             ));
         })
         .catch(() => {
-            const { href } = window.location;
-            if (!href.endsWith('/react/public/login')
+            const { pathname, search } = window.location;
+            const href = pathname + search;
+            if (!pathname.startsWith('/react/public/login')
                 // /react/public/datatransfer/ is a special case where the user is not logged in.
                 // Login form is returned by data transfer.
-                && href.indexOf('/react/public/datatransfer/') < 0) {
-                window.location.href = '/react/public/login';
+                && !pathname.startsWith('/react/public/datatransfer/')) {
+                // set the URL to redirect to after login:
+                window.location.href = `/react/public/login?url=${encodeURIComponent(href)}`;
             }
 
             catchError(dispatch)({ message: undefined });
