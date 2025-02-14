@@ -26,6 +26,7 @@ package org.projectforge.rest.my2fa
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import jakarta.validation.Valid
 import mu.KotlinLogging
 import org.apache.commons.codec.binary.Base64
 import org.projectforge.business.user.filter.CookieService
@@ -39,7 +40,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.PostData
-import org.projectforge.rest.pub.LoginPageRest
+import org.projectforge.rest.pub.LoginServiceRest
 import org.projectforge.rest.pub.My2FAPublicServicesRest
 import org.projectforge.rest.pub.PasswordResetPageRest
 import org.projectforge.security.My2FAData
@@ -56,7 +57,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.nio.charset.StandardCharsets
-import jakarta.validation.Valid
 
 private val log = KotlinLogging.logger {}
 
@@ -220,7 +220,7 @@ class My2FAServicesRest {
         afterLogin: Boolean,
     ): ResponseEntity<ResponseAction> {
         if (afterLogin) {
-            val redirectUrl = LoginPageRest.getRedirectUrl(request, postData.serverData)
+            val redirectUrl = LoginServiceRest.getRedirectUrl(request, postData.serverData)
             return ResponseEntity(
                 ResponseAction(targetType = TargetType.CHECK_AUTHENTICATION, url = redirectUrl),
                 HttpStatus.OK

@@ -23,8 +23,8 @@
 
 package org.projectforge.rest.pub
 
-import mu.KotlinLogging
-import org.projectforge.Constants
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
@@ -44,11 +44,6 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
-import java.net.URLDecoder
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
-
-private val log = KotlinLogging.logger {}
 
 /**
  * This rest service should be available without login (public).
@@ -56,155 +51,149 @@ private val log = KotlinLogging.logger {}
 @RestController
 @RequestMapping("${Rest.PUBLIC_URL}/login")
 open class LoginPageRest {
-  @Autowired
-  private lateinit var loginService: LoginService
+    @Autowired
+    private lateinit var loginService: LoginService
 
-  @Autowired
-  private lateinit var my2FAServicesRest: My2FAServicesRest
+    @Autowired
+    private lateinit var my2FAServicesRest: My2FAServicesRest
 
-  /**
-   * @param url the caller can modify the url to redirect after login (used by WicketUtils).
-   */
-  @GetMapping("dynamic")
-  fun getForm(
-    request: HttpServletRequest,
-    @RequestParam url: String? = null
-  ): FormLayoutData {
-    val userContext = LoginService.getUserContext(request)
-    val form = if (userContext != null) {
-      if (userContext.new2FARequired) {
-        return get2FALayout(request, userContext, url)
-      }
-      // User is already logged-in:
-      UILayout("login.title")
-        .add(
-          UIAlert(
-            translate(ThreadLocalUserContext.locale, "login.successful"),
-            color = UIColor.INFO,
-            icon = UIIconType.INFO
-          )
-        )
-      // Translation can't be done automatically, because the user isn't set here in ThreadLocalUserContext, because this
-      // is a public page!
-      // (The thread local user isn't set, but the locale should be set by LocaleFilter in ThreadUserLocalContext.)
-    } else {
-      this.getLoginLayout()
-    }
-    return FormLayoutData(null, form, ServerData(returnToCaller = url))
-  }
-
-  @PostMapping
-  fun login(
-    request: HttpServletRequest,
-    response: HttpServletResponse,
-    @RequestBody postData: PostData<LoginData>
-  )
-      : ResponseAction {
-    val loginResultStatus = loginService.authenticate(request, response, postData.data)
-
-    if (loginResultStatus == LoginResultStatus.SUCCESS) {
-      val redirectUrl = getRedirectUrl(request, postData.serverData)
-      return ResponseAction(targetType = TargetType.CHECK_AUTHENTICATION, url = redirectUrl)
+    /**
+     * @param url the caller can modify the url to redirect after login (used by WicketUtils).
+     */
+    @GetMapping("dynamic")
+    fun getForm(
+        request: HttpServletRequest,
+        @RequestParam url: String? = null
+    ): FormLayoutData {
+        val userContext = LoginService.getUserContext(request)
+        LoginServiceRest.storeOriginUrl(request, url)
+        val form = if (userContext != null) {
+            if (userContext.new2FARequired) {
+                return get2FALayout(userContext, url)
+            }
+            // User is already logged-in:
+            UILayout("login.title")
+                .add(
+                    UIAlert(
+                        translate(ThreadLocalUserContext.locale, "login.successful"),
+                        color = UIColor.INFO,
+                        icon = UIIconType.INFO
+                    )
+                )
+            // Translation can't be done automatically, because the user isn't set here in ThreadLocalUserContext, because this
+            // is a public page!
+            // (The thread local user isn't set, but the locale should be set by LocaleFilter in ThreadUserLocalContext.)
+        } else {
+            this.getLoginLayout()
+        }
+        return FormLayoutData(null, form, ServerData(returnToCaller = url))
     }
 
-    response.status = HttpStatus.BAD_REQUEST.value()
-    return ResponseAction(targetType = TargetType.UPDATE)
-      .addVariable("ui", getLoginLayout(loginResultStatus))
-  }
-
-  private fun getLoginLayout(loginResultStatus: LoginResultStatus? = null): UILayout {
-    val motd = Configuration.instance.getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
-    val responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST)
-
-    val formCol = UICol(
-      length = UILength(12, md = 6, lg = 4),
-      offset = UILength(0, md = 3, lg = 4)
+    @PostMapping
+    fun login(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        @RequestBody postData: PostData<LoginData>
     )
-      .add(UIAlert("'$motd", color = UIColor.INFO, icon = UIIconType.INFO))
+            : ResponseAction {
+        val loginResultStatus = loginService.authenticate(request, response, postData.data)
 
-    if (loginResultStatus != null) {
-      formCol.add(
-        UIAlert(
-          "'${loginResultStatus.localizedMessage}",
-          color = UIColor.DANGER,
-          icon = UIIconType.USER_LOCK
-        )
-      )
+        if (loginResultStatus == LoginResultStatus.SUCCESS) {
+            val userContext = ThreadLocalUserContext.userContext
+            val redirectUrl = if (userContext == null) {
+                // No redirect, because the 2FA form will be shown (login incomplete).
+                null
+            } else {
+                // Redirect to the origin url:
+                LoginServiceRest.getRedirectUrl(request, postData.serverData)
+            }
+            return ResponseAction(targetType = TargetType.CHECK_AUTHENTICATION, url = redirectUrl)
+        }
+
+        response.status = HttpStatus.BAD_REQUEST.value()
+        return ResponseAction(targetType = TargetType.UPDATE)
+            .addVariable("ui", getLoginLayout(loginResultStatus))
     }
 
-    formCol
-      .add(
-        UIInput(
-          "username",
-          required = true,
-          label = "username",
-          focus = true,
-          autoComplete = UIInput.AutoCompleteType.USERNAME
+    private fun getLoginLayout(loginResultStatus: LoginResultStatus? = null): UILayout {
+        val motd = Configuration.instance.getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
+        val responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST)
+
+        val formCol = UICol(
+            length = UILength(12, md = 6, lg = 4),
+            offset = UILength(0, md = 3, lg = 4)
         )
-      )
-      .add(
-        UIInput(
-          "password",
-          required = true,
-          label = "password",
-          dataType = UIDataType.PASSWORD,
-          autoComplete = UIInput.AutoCompleteType.CURRENT_PASSWORD
-        )
-      )
-      .add(
-        UICheckbox(
-          "stayLoggedIn",
-          label = "login.stayLoggedIn",
-          tooltip = "login.stayLoggedIn.tooltip"
-        )
-      )
-      .add(
-        UIButton.createDefaultButton("login", responseAction = responseAction)
-      )
-      .add(
-        UIButton.createLinkButton(
-          id ="passwordForgotten",
-          title ="password.forgotten.link",
-          responseAction = ResponseAction(
-            PagesResolver.getDynamicPageUrl(
-              PasswordForgottenPageRest::
-              class.java, absolute = true
-            ),
-            targetType = TargetType.REDIRECT
-          ),
-        )
-      )
+            .add(UIAlert("'$motd", color = UIColor.INFO, icon = UIIconType.INFO))
 
-    val layout = UILayout("login.title")
-      .add(
-        UIRow()
-          .add(formCol)
-      )
+        if (loginResultStatus != null) {
+            formCol.add(
+                UIAlert(
+                    "'${loginResultStatus.localizedMessage}",
+                    color = UIColor.DANGER,
+                    icon = UIIconType.USER_LOCK
+                )
+            )
+        }
 
-    LayoutUtils.process(layout)
+        formCol
+            .add(
+                UIInput(
+                    "username",
+                    required = true,
+                    label = "username",
+                    focus = true,
+                    autoComplete = UIInput.AutoCompleteType.USERNAME
+                )
+            )
+            .add(
+                UIInput(
+                    "password",
+                    required = true,
+                    label = "password",
+                    dataType = UIDataType.PASSWORD,
+                    autoComplete = UIInput.AutoCompleteType.CURRENT_PASSWORD
+                )
+            )
+            .add(
+                UICheckbox(
+                    "stayLoggedIn",
+                    label = "login.stayLoggedIn",
+                    tooltip = "login.stayLoggedIn.tooltip"
+                )
+            )
+            .add(
+                UIButton.createDefaultButton("login", responseAction = responseAction)
+            )
+            .add(
+                UIButton.createLinkButton(
+                    id = "passwordForgotten",
+                    title = "password.forgotten.link",
+                    responseAction = ResponseAction(
+                        PagesResolver.getDynamicPageUrl(
+                            PasswordForgottenPageRest::
+                            class.java, absolute = true
+                        ),
+                        targetType = TargetType.REDIRECT
+                    ),
+                )
+            )
 
-    return layout
-  }
+        val layout = UILayout("login.title")
+            .add(
+                UIRow()
+                    .add(formCol)
+            )
 
-  private fun get2FALayout(request: HttpServletRequest, userContext: UserContext, url: String?): FormLayoutData {
-    val layout = UILayout("login.title")
-    val data = LoginData()
-    my2FAServicesRest.fillLayout4PublicPage(layout, userContext, redirectUrl = url)
-    LayoutUtils.process(layout)
-    return FormLayoutData(data, layout, ServerData(returnToCaller = url))
-  }
+        LayoutUtils.process(layout)
 
-  companion object {
-    fun getRedirectUrl(request: HttpServletRequest, serverData: ServerData?): String? {
-      var redirect: String? = null
-      val returnToCaller = serverData?.returnToCaller
-      if (!returnToCaller.isNullOrBlank()) {
-        redirect = URLDecoder.decode(returnToCaller, "UTF-8")
-      } else if (request.getHeader("Referer")?.contains("/public/login") == true) {
-        redirect = "/${Constants.REACT_APP_PATH}calendar"
-      }
-      // redirect might be "null" (string):
-      return if (redirect.isNullOrBlank() || redirect == "null") null else redirect
+        return layout
     }
-  }
+
+    private fun get2FALayout(userContext: UserContext, url: String?): FormLayoutData {
+        val layout = UILayout("login.title")
+        val data = LoginData()
+        my2FAServicesRest.fillLayout4PublicPage(layout, userContext, redirectUrl = url)
+        LayoutUtils.process(layout)
+        return FormLayoutData(data, layout, ServerData(returnToCaller = url))
+    }
 }

@@ -23,11 +23,14 @@
 
 package org.projectforge.rest.pub
 
-import org.projectforge.business.user.filter.CookieService
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
+import jakarta.validation.Valid
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.my2fa.My2FAServicesRest
 import org.projectforge.rest.my2fa.My2FAType
@@ -36,13 +39,11 @@ import org.projectforge.security.RegisterUser4Thread
 import org.projectforge.security.SecurityLogging
 import org.projectforge.security.WebAuthnServicesRest
 import org.projectforge.ui.ResponseAction
+import org.projectforge.ui.TargetType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
-import jakarta.validation.Valid
 
 /**
  * This rest service should be available without login (public). It's only available direct after login if the
@@ -51,123 +52,121 @@ import jakarta.validation.Valid
 @RestController
 @RequestMapping("${Rest.PUBLIC_URL}/2FA")
 open class My2FAPublicServicesRest {
-  @Autowired
-  private lateinit var cookieService: CookieService
+    @Autowired
+    private lateinit var loginServiceRest: LoginServiceRest
 
-  @Autowired
-  private lateinit var my2FAServicesRest: My2FAServicesRest
+    @Autowired
+    private lateinit var my2FAServicesRest: My2FAServicesRest
 
-  @Autowired
-  private lateinit var webAuthnServicesRest: WebAuthnServicesRest
+    @Autowired
+    private lateinit var webAuthnServicesRest: WebAuthnServicesRest
 
-  /**
-   * For validating the Authenticator's OTP, or OTP sent by sms or e-mail. The user must be pre-logged-in before by username/password.
-   * This is called by the login page after password check, if a 2FA is required after login.
-   */
-  @PostMapping("checkOTP")
-  fun checkOTP(
-    request: HttpServletRequest,
-    response: HttpServletResponse,
-    @Valid @RequestBody postData: PostData<My2FAData>,
-  ): ResponseEntity<*> {
-    val result = securityCheck(request)
-    result.badRequestResponseEntity?.let { return it }
-    try {
-      RegisterUser4Thread.registerUser(result.userContext!!)
-      return my2FAServicesRest.checkOTP(request, response, postData, afterLogin = true)
-    } finally {
-      RegisterUser4Thread.unregister()
+    /**
+     * For validating the Authenticator's OTP, or OTP sent by sms or e-mail. The user must be pre-logged-in before by username/password.
+     * This is called by the login page after password check, if a 2FA is required after login.
+     */
+    @PostMapping("checkOTP")
+    fun checkOTP(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        @Valid @RequestBody postData: PostData<My2FAData>,
+    ): ResponseEntity<*> {
+        val result = securityCheck(request)
+        result.badRequestResponseEntity?.let { return it }
+        try {
+            RegisterUser4Thread.registerUser(result.userContext!!)
+            return my2FAServicesRest.checkOTP(request, response, postData, afterLogin = true)
+        } finally {
+            RegisterUser4Thread.unregister()
+        }
     }
-  }
 
-  @GetMapping("webAuthn")
-  fun webAuthn(request: HttpServletRequest): ResponseEntity<*> {
-    val result = securityCheck(request)
-    result.badRequestResponseEntity?.let { return it }
-    try {
-      RegisterUser4Thread.registerUser(result.userContext!!)
-      return webAuthnServicesRest.webAuthn(request)
-    } finally {
-      RegisterUser4Thread.unregister()
+    @GetMapping("webAuthn")
+    fun webAuthn(request: HttpServletRequest): ResponseEntity<*> {
+        val result = securityCheck(request)
+        result.badRequestResponseEntity?.let { return it }
+        try {
+            RegisterUser4Thread.registerUser(result.userContext!!)
+            return webAuthnServicesRest.webAuthn(request)
+        } finally {
+            RegisterUser4Thread.unregister()
+        }
     }
-  }
 
-  @PostMapping("webAuthnFinish")
-  fun webAuthnFinish(
-    request: HttpServletRequest,
-    httpResponse: HttpServletResponse,
-    @RequestBody postData: PostData<My2FAServicesRest.My2FAWebAuthnData>,
-  ): ResponseEntity<*> {
-    val result = securityCheck(request)
-    result.badRequestResponseEntity?.let { return it }
-    try {
-      RegisterUser4Thread.registerUser(result.userContext!!)
-      return my2FAServicesRest.webAuthnFinish(request, httpResponse, postData, afterLogin = true)
-    } finally {
-      RegisterUser4Thread.unregister()
+    @PostMapping("webAuthnFinish")
+    fun webAuthnFinish(
+        request: HttpServletRequest,
+        httpResponse: HttpServletResponse,
+        @RequestBody postData: PostData<My2FAServicesRest.My2FAWebAuthnData>,
+    ): ResponseEntity<*> {
+        val result = securityCheck(request)
+        result.badRequestResponseEntity?.let { return it }
+        try {
+            RegisterUser4Thread.registerUser(result.userContext!!)
+            return my2FAServicesRest.webAuthnFinish(request, httpResponse, postData, afterLogin = true)
+        } finally {
+            RegisterUser4Thread.unregister()
+        }
     }
-  }
 
-  /**
-   * Sends a OTP as code (text to mobile phone of logged-in user).
-   */
-  @GetMapping("sendSmsCode")
-  fun sendSmsCode(request: HttpServletRequest): ResponseEntity<*> {
-    val result = securityCheck(request, My2FAType.SMS)
-    result.badRequestResponseEntity?.let { return it }
-    try {
-      RegisterUser4Thread.registerUser(result.userContext!!)
-      return my2FAServicesRest.sendSmsCode(request)
-    } finally {
-      RegisterUser4Thread.unregister()
+    /**
+     * Sends a OTP as code (text to mobile phone of logged-in user).
+     */
+    @GetMapping("sendSmsCode")
+    fun sendSmsCode(request: HttpServletRequest): ResponseEntity<*> {
+        val result = securityCheck(request, My2FAType.SMS)
+        result.badRequestResponseEntity?.let { return it }
+        try {
+            RegisterUser4Thread.registerUser(result.userContext!!)
+            return my2FAServicesRest.sendSmsCode(request)
+        } finally {
+            RegisterUser4Thread.unregister()
+        }
     }
-  }
 
-  /**
-   * Sends a OTP as code vial mail.
-   */
-  @GetMapping("sendMailCode")
-  fun sendMailCode(request: HttpServletRequest): ResponseEntity<*> {
-    val result = securityCheck(request, My2FAType.MAIL)
-    result.badRequestResponseEntity?.let { return it }
-    try {
-      // Don't use user from security check. For mail, the user must be given in LoginService.getUserContext()!!! (Just to be sure...)
-      RegisterUser4Thread.registerUser(LoginService.getUserContext(request)!!)
-      return my2FAServicesRest.sendMailCode(request)
-    } finally {
-      RegisterUser4Thread.unregister()
+    /**
+     * Sends a OTP as code vial mail.
+     */
+    @GetMapping("sendMailCode")
+    fun sendMailCode(request: HttpServletRequest): ResponseEntity<*> {
+        val result = securityCheck(request, My2FAType.MAIL)
+        result.badRequestResponseEntity?.let { return it }
+        try {
+            // Don't use user from security check. For mail, the user must be given in LoginService.getUserContext()!!! (Just to be sure...)
+            RegisterUser4Thread.registerUser(LoginService.getUserContext(request)!!)
+            return my2FAServicesRest.sendMailCode(request)
+        } finally {
+            RegisterUser4Thread.unregister()
+        }
     }
-  }
 
-  /**
-   * Cancel the login process (clears the user's session) as well as the stay-logged-in cookie.
-   */
-  @GetMapping("cancel")
-  fun cancel(request: HttpServletRequest, response: HttpServletResponse): ResponseAction {
-    request.getSession(false)?.invalidate()
-    cookieService.clearAllCookies(request, response)
-    return RestUtils.getRedirectToDefaultPageAction()
-  }
-
-  /**
-   * User must be pre-logged-in by password (UserContext must be given in user's http session), or
-   * user must be registered via [registerUserForPublic2FA].
-   * @param type OTP per mail is not allowed for non-context-users (especially for password reset).
-   */
-  private fun securityCheck(request: HttpServletRequest, type: My2FAType? = null): SecurityCheckResult {
-    LoginService.getUserContext(request)?.let { userContxt ->
-      return SecurityCheckResult(userContxt)
+    /**
+     * Cancel the login process (clears the user's session) as well as the stay-logged-in cookie.
+     */
+    @GetMapping("cancel")
+    fun cancel(request: HttpServletRequest, response: HttpServletResponse): ResponseAction {
+        return loginServiceRest.logout(request, response)
     }
-    SecurityLogging.logSecurityWarn(
-      request,
-      this::class.java,
-      "Not logged-in user tried to do call checkOTP (denied)"
+
+    /**
+     * User must be pre-logged-in by password (UserContext must be given in user's http session), or
+     * user must be registered via [registerUserForPublic2FA].
+     * @param type OTP per mail is not allowed for non-context-users (especially for password reset).
+     */
+    private fun securityCheck(request: HttpServletRequest, type: My2FAType? = null): SecurityCheckResult {
+        LoginService.getUserContext(request)?.let { userContxt ->
+            return SecurityCheckResult(userContxt)
+        }
+        SecurityLogging.logSecurityWarn(
+            request,
+            this::class.java,
+            "Not logged-in user tried to do call checkOTP (denied)"
+        )
+        return SecurityCheckResult(badRequestResponseEntity = ResponseEntity<Any>(HttpStatus.BAD_REQUEST))
+    }
+
+    internal class SecurityCheckResult(
+        val userContext: UserContext? = null,
+        val badRequestResponseEntity: ResponseEntity<*>? = null
     )
-    return SecurityCheckResult(badRequestResponseEntity = ResponseEntity<Any>(HttpStatus.BAD_REQUEST))
-  }
-
-  internal class SecurityCheckResult(
-    val userContext: UserContext? = null,
-    val badRequestResponseEntity: ResponseEntity<*>? = null
-  )
 }
