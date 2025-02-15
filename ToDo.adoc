@@ -1,5 +1,5 @@
 ==== Aktuell:
-- I18 for AI grid.
+- I18n for AI grid.
 - JCR: Tool for removing or recovering orphaned nodes.
 - Favoriten bei Scriptausführung für Parameter.
 - Viewpage für user für non-admins.

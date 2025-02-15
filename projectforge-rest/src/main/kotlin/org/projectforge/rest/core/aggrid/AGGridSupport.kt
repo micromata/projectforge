@@ -49,7 +49,8 @@ class AGGridSupport {
 
     fun storeColumnState(category: String, columnState: List<AGColumnState>) {
         val gridState = userPrefService.ensureEntry(category, USER_PREF_PARAM_GRID_STATE, GridState())
-        gridState.columnState = columnState.map { ColumnStateEntry(it.colId, it.hide, it.width) }
+        gridState.columnState =
+            columnState.map { ColumnStateEntry(colId = it.colId, hide = it.hide, width = it.width, pinned = it.pinned) }
         val newSortModel = mutableListOf<SortModelEntry>()
         columnState.forEach { entry ->
             val colId = entry.colId
@@ -62,15 +63,11 @@ class AGGridSupport {
         gridState.sortModel = newSortModel
     }
 
-    fun storeGridState(category: String, gridState: GridState) {
-        userPrefService.putEntry(category, USER_PREF_PARAM_GRID_STATE, gridState, true)
-    }
-
-    fun getColumnState(category: String): List<ColumnStateEntry>? {
+    private fun getColumnState(category: String): List<ColumnStateEntry>? {
         return userPrefService.getEntry(category, USER_PREF_PARAM_GRID_STATE, GridState::class.java)?.columnState
     }
 
-    fun getSortModel(category: String): List<SortModelEntry>? {
+    private fun getSortModel(category: String): List<SortModelEntry>? {
         return userPrefService.getEntry(category, USER_PREF_PARAM_GRID_STATE, GridState::class.java)?.sortModel
     }
 
@@ -175,6 +172,7 @@ class AGGridSupport {
                 columnStates.find { it.colId == colDef.field }?.let { columnState ->
                     colDef.width = columnState.width
                     colDef.hide = columnState.hide
+                    colDef.pinned = columnState.pinned
                 }
             }
         }
