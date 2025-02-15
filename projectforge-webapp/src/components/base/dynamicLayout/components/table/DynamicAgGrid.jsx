@@ -2,13 +2,7 @@ import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import PropTypes from 'prop-types';
 import React, { useMemo, useRef, useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
-import {
-    AllCommunityModule,
-    AllEnterpriseModule,
-    LicenseManager,
-    ModuleRegistry,
-    themeBalham,
-} from 'ag-grid-enterprise';
+import { LicenseManager, ModuleRegistry, AllEnterpriseModule, themeBalham } from 'ag-grid-enterprise';
 import { connect } from 'react-redux';
 import { DynamicLayoutContext } from '../../context';
 import Formatter from '../../../Formatter';
@@ -19,7 +13,7 @@ import formatterFormat from '../../../FormatterFormat';
 import DynamicAgGridDiffCell from './DynamicAgGridDiffCell';
 
 LicenseManager.setLicenseKey('Using_this_{AG_Grid}_Enterprise_key_{AG-059988}_in_excess_of_the_licence_granted_is_not_permitted___Please_report_misuse_to_legal@ag-grid.com___For_help_with_changing_this_key_please_contact_info@ag-grid.com___{Micromata_GmbH}_is_granted_a_{Single_Application}_Developer_License_for_the_application_{ProjectForge}_only_for_{2}_Front-End_JavaScript_developers___All_Front-End_JavaScript_developers_working_on_{ProjectForge}_need_to_be_licensed___{ProjectForge}_has_not_been_granted_a_Deployment_License_Add-on___This_key_works_with_{AG_Grid}_Enterprise_versions_released_before_{14_July_2025}____[v3]_[01]_MTc1MjQ0NzYwMDAwMA==2c2e5c05a1f3b34a534c11405051440a');
-ModuleRegistry.registerModules([AllCommunityModule, AllEnterpriseModule]);
+ModuleRegistry.registerModules([AllEnterpriseModule]);
 
 const agTheme = themeBalham
     .withParams({
@@ -28,11 +22,11 @@ const agTheme = themeBalham
 function DynamicAgGrid(props) {
     const {
         columnDefs,
+        selectionColumnDef,
         id, // If given, data.id is used as entries
         entries, // own entries (not data.id)
         sortModel,
         rowSelection,
-        rowMultiSelectWithClick,
         rowClickRedirectUrl,
         rowClickFunction,
         rowClickOpenModal,
@@ -41,8 +35,8 @@ function DynamicAgGrid(props) {
         onGridApiReady,
         pagination,
         paginationPageSize,
+        paginationPageSizeSelector,
         getRowClass,
-        suppressRowClickSelection,
         components,
         // If not usable from locale from authentication, e. g. in public pages:
         locale,
@@ -282,44 +276,74 @@ function DynamicAgGrid(props) {
         }
         return myClass;
     }, [data.highlightRowId, highlightId, getRowClass]);
-
-    return (
-        <div
-            style={{ minWidth: '100%', height }}
-        >
-            <AgGridReact
-                theme={agTheme}
-                ref={gridRef}
-                rowData={rowData}
-                components={allComponents}
-                columnDefs={columnDefs}
-                rowSelection={rowSelection}
-                rowMultiSelectWithClick={rowMultiSelectWithClick}
-                onGridReady={onGridReady}
-                onSelectionChanged={onSelectionChanged}
-                onSortChanged={onSortChanged}
-                onColumnMoved={onColumnMoved}
-                onColumnResized={onColumnResized}
-                onColumnVisible={onColumnVisible}
-                onRowClicked={onRowClicked}
-                onCellClicked={onCellClicked}
-                pagination={pagination}
-                paginationPageSize={paginationPageSize}
-                rowClass={rowClass}
-                getRowClass={usedGetRowClass}
-                suppressHorizontalScroll={false}
-                accentedSort
-                enableRangeSelection
-                suppressRowClickSelection={suppressRowClickSelection}
-                getLocaleText={getLocaleText}
-                processCellForClipboard={processCellForClipboard}
-                // processCellCallback={processCellCallback}
-                tooltipShowDelay={0}
-                suppressScrollOnNewData
-                // onFirstDataRendered={onFirstDataRendered}
-                domLayout="autoHeight"
-            />
-        </div>
+    return React.useMemo(
+        () => (
+            <div
+                style={{ minWidth: '100%', height }}
+            >
+                <AgGridReact
+                    // Show popup (e.g. for choosing columns) in body, not in grid.
+                    // Otherwise, scrolling required.
+                    popupParent={document.body}
+                    theme={agTheme}
+                    ref={gridRef}
+                    rowData={rowData}
+                    components={allComponents}
+                    columnDefs={columnDefs}
+                    selectionColumnDef={selectionColumnDef}
+                    rowSelection={rowSelection}
+                    onGridReady={onGridReady}
+                    onSelectionChanged={onSelectionChanged}
+                    onSortChanged={onSortChanged}
+                    onColumnMoved={onColumnMoved}
+                    onColumnResized={onColumnResized}
+                    onColumnVisible={onColumnVisible}
+                    onRowClicked={onRowClicked}
+                    onCellClicked={onCellClicked}
+                    pagination={pagination}
+                    paginationPageSize={data.paginationPageSize || paginationPageSize}
+                    paginationPageSizeSelector={paginationPageSizeSelector}
+                    rowClass={rowClass}
+                    getRowClass={usedGetRowClass}
+                    suppressHorizontalScroll={false}
+                    accentedSort
+                    cellSelection
+                    getLocaleText={getLocaleText}
+                    processCellForClipboard={processCellForClipboard}
+                    // processCellCallback={processCellCallback}
+                    tooltipShowDelay={0}
+                    suppressScrollOnNewData
+                    // onFirstDataRendered={onFirstDataRendered}
+                    domLayout="autoHeight"
+                    sideBar={{
+                        toolPanels: [
+                            {
+                                id: 'columns',
+                                labelDefault: 'Choose Columns',
+                                labelKey: 'columns',
+                                iconKey: 'columns',
+                                toolPanel: 'agColumnsToolPanel',
+                                toolPanelParams: {
+                                    suppressSyncLayoutWithGrid: false,
+                                    suppressColumnFilter: false,
+                                    suppressColumnSelectAll: false,
+                                    suppressColumnExpandAll: false,
+                                },
+                            },
+                        ],
+                        defaultToolPanel: null,
+                    }}
+                />
+            </div>
+        ),
+        [
+            columnDefs,
+            data,
+            selectionColumnDef,
+            sortModel,
+            rowSelection,
+            paginationPageSize,
+        ],
     );
 }
 
@@ -329,6 +353,12 @@ DynamicAgGrid.propTypes = {
         title: PropTypes.string,
         titleIcon: PropTypes.arrayOf(PropTypes.string),
     })).isRequired,
+    selectionColumnDef: PropTypes.arrayOf(PropTypes.shape({
+        pinned: PropTypes.string,
+        resizable: PropTypes.bool,
+        sortable: PropTypes.bool,
+        filter: PropTypes.bool,
+    })),
     id: PropTypes.string,
     entries: PropTypes.arrayOf(PropTypes.shape()),
     sortModel: PropTypes.arrayOf(PropTypes.shape({
@@ -336,19 +366,22 @@ DynamicAgGrid.propTypes = {
         sort: PropTypes.string,
         sortIndex: PropTypes.number,
     })),
-    rowSelection: PropTypes.string,
-    rowMultiSelectWithClick: PropTypes.bool,
+    rowSelection: PropTypes.shape({
+        mode: PropTypes.string,
+        enableClickSelection: PropTypes.bool,
+        enableSelectionWithoutKeys: PropTypes.bool,
+    }),
     rowClickRedirectUrl: PropTypes.string,
     rowClickOpenModal: PropTypes.bool,
     rowClickFunction: PropTypes.func,
     onColumnStatesChangedUrl: PropTypes.string,
     pagination: PropTypes.bool,
     paginationPageSize: PropTypes.number,
+    paginationPageSizeSelector: PropTypes.arrayOf(PropTypes.number),
     getRowClass: PropTypes.oneOfType([
         PropTypes.shape({}),
         PropTypes.string,
     ]),
-    suppressRowClickSelection: PropTypes.bool,
     components: PropTypes.oneOfType([
         PropTypes.string,
         PropTypes.any,
