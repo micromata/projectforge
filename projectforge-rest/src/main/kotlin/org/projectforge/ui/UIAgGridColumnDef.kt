@@ -37,15 +37,16 @@ import kotlin.reflect.KProperty
  * Column def AgGrid
  */
 open class UIAgGridColumnDef(
-    var field: String,
+    var field: String? = null,
     var headerName: String? = null,
     var headerTooltip: String? = null,
     var sortable: Boolean = false,
+    /**
+     * If false, no auto-filter is shown.
+     */
     var filter: Boolean = true,
     var valueGetter: String? = null,
     var type: String? = null,
-    var checkboxSelection: Boolean? = null,
-    var headerCheckboxSelection: Boolean? = null,
     var minWidth: Int? = null,
     var maxWidth: Int? = null,
     /**

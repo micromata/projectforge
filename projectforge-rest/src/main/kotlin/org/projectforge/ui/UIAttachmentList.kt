@@ -99,9 +99,7 @@ class UIAttachmentList(
           translate("attachment.fileName"),
           sortable = true,
           width = 300,
-          checkboxSelection = true,
           cellRenderer = "filename",
-          headerCheckboxSelection = true,
           filter = true,
           wrapText = true,
         )

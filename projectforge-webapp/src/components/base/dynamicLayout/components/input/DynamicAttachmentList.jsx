@@ -84,9 +84,9 @@ function DynamicAttachmentList({
             <>
                 {`${entry.name} `}
                 {entry.encrypted
-                        && (
-                            <FontAwesomeIcon icon={faLock} />
-                        )}
+                    && (
+                        <FontAwesomeIcon icon={faLock} />
+                    )}
             </>
         );
     }
@@ -159,8 +159,11 @@ function DynamicAttachmentList({
                 columnDefs={agGrid.columnDefs}
                 id="attachments"
                 rowClickFunction={handleRowClick}
-                rowSelection="multiple"
-                suppressRowClickSelection
+                rowSelection={{
+                    mode: 'multiRow',
+                    enableClickSelection: true,
+                    enableSelectionWithoutKeys: true,
+                }}
                 components={{
                     action: Action,
                     filename: Filename,

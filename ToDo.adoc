@@ -1,12 +1,10 @@
 ==== Aktuell:
-- Fixieren von AG-Grid-Spalten: Massenänderung Zeitberichte: Suchfeld oben raus und Spalten testen (Sortierung etc.)
-- AI timesavings: Zeit bei Eingabe ausrechnen, recent ai texte als vorlage.
+- I18 for AI grid.
 - JCR: Tool for removing or recovering orphaned nodes.
 - Favoriten bei Scriptausführung für Parameter.
 - Viewpage für user für non-admins.
 - Scripting: Ergebnis Unresolved reference 'memo', 'todo'.: line 94 to 94 (add only activated plugins)
 - Groovy-scripts: remove or fix.
-- AG-Grid: setColumnStates wird nicht in den UserPrefs gespeichert.
 - -XX:ReservedCodeCacheSize=100m
 - QueryFilter.sortAndLimitMaxRowsWhileSelect: not yet supported
 - Gradle-Version-Checker: Read lib.versions.toml und Vergleichen mit fatjar.
