@@ -222,6 +222,10 @@ function DynamicAgGrid(props) {
         await postColumnStatesDebounced(event);
     };
 
+    const onColumnPinned = async (event) => {
+        await postColumnStatesDebounced(event);
+    };
+
     const onColumnMoved = async (event) => {
         await postColumnStatesDebounced(event);
     };
@@ -298,6 +302,7 @@ function DynamicAgGrid(props) {
                     onColumnMoved={onColumnMoved}
                     onColumnResized={onColumnResized}
                     onColumnVisible={onColumnVisible}
+                    onColumnPinned={onColumnPinned}
                     onRowClicked={onRowClicked}
                     onCellClicked={onCellClicked}
                     pagination={pagination}

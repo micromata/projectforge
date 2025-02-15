@@ -157,6 +157,13 @@ function DynamicAttachmentList({
                 {...agGrid}
                 onGridApiReady={onGridApiReady}
                 columnDefs={agGrid.columnDefs}
+                selectionColumnDef={{
+                    pinned: 'left',
+                    resizable: false,
+                    sortable: false,
+                    filter: false,
+                    width: 10,
+                }}
                 id="attachments"
                 rowClickFunction={handleRowClick}
                 rowSelection={{

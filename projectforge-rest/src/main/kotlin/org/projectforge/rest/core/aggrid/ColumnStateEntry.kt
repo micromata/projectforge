@@ -30,4 +30,5 @@ class ColumnStateEntry(
   var colId: String? = null,
   var hide: Boolean? = null,
   var width: Int? = null,
+  var pinned: String? = null,
 )
