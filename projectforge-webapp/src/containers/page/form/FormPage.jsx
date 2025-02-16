@@ -44,6 +44,7 @@ function FormPage(
     } = category;
     const location = useLocation();
     const [searchParams] = useSearchParams();
+    const { userAccess } = ui || {};
 
     React.useEffect(
         () => {
@@ -164,6 +165,7 @@ function FormPage(
                                     id={id}
                                     translations={ui.translations}
                                     visible={tab === 'history'}
+                                    userAccess={userAccess}
                                 />
                             </Container>
                         </TabPane>

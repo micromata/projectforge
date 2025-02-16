@@ -10,6 +10,7 @@ function FormHistory({
     id,
     visible = false,
     translations,
+    userAccess,
 }) {
     const [loading, setLoading] = useState(true);
     const [history, setHistory] = useState([]);
@@ -62,6 +63,7 @@ function FormHistory({
                     key={`history-entry-at-${entry.modifiedAt}`}
                     entry={entry}
                     translations={translations}
+                    userAccess={userAccess}
                 />
             ))}
         </LoadingContainer>
@@ -74,6 +76,9 @@ FormHistory.propTypes = {
     visible: PropTypes.bool,
     translations: PropTypes.shape({
         changes: PropTypes.string,
+    }),
+    userAccess: PropTypes.shape({
+        editHistoryComments: PropTypes.bool,
     }),
 };
 

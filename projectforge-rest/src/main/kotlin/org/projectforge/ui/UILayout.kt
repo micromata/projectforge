@@ -40,6 +40,11 @@ class UILayout(
      */
     var history: Boolean? = null,
     /**
+     * Is the edit user-comment button visible?
+     * @see [org.projectforge.framework.persistence.api.BaseDao.supportsHistoryUserComments]
+     */
+    var editHistoryComments: Boolean? = null,
+    /**
      * The user has access to insert new objects.
      */
     var insert: Boolean? = null,
@@ -56,6 +61,7 @@ class UILayout(
       this.update = userAccess?.update
       this.delete = userAccess?.delete
       this.cancel = userAccess?.cancel ?: true
+      this.editHistoryComments = userAccess?.editHistoryComments
     }
 
     fun onlySelectAccess(): Boolean {
