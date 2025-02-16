@@ -42,9 +42,10 @@ open class UIAgGridColumnDef(
     var headerTooltip: String? = null,
     var sortable: Boolean = false,
     /**
-     * If false, no auto-filter is shown.
+     * If true, auto-filter is shown, if false, no auto-filter is shown. AG grid supports also string values
+     * such as "agNumberColumnFilter" or "agSetColumnFilter".
      */
-    var filter: Boolean = true,
+    var filter: Any? = true,
     var valueGetter: String? = null,
     var type: String? = null,
     var minWidth: Int? = null,
@@ -67,6 +68,12 @@ open class UIAgGridColumnDef(
     var wrapText: Boolean? = null,
     var autoHeight: Boolean? = wrapText,
 ) {
+    enum class Type {
+        NUMBER
+    }
+    class FilterParams {
+        var buttons: Array<String>? = null
+    }
 
     var pinned: String? = null
 
@@ -80,6 +87,8 @@ open class UIAgGridColumnDef(
     var tooltipField: String? = null
 
     var suppressSizeToFit: Boolean? = null
+
+    var filterParams: FilterParams? = null
 
     /**
      * https://www.ag-grid.com/react-data-grid/column-definitions/#right-aligned-and-numeric-columns
@@ -147,6 +156,13 @@ open class UIAgGridColumnDef(
     fun withTooltipField(tooltipField: String): UIAgGridColumnDef {
         this.tooltipField = tooltipField
         return this
+    }
+
+    fun setApplyAndResetButton(): FilterParams {
+        filterParams = filterParams ?: FilterParams()
+        return filterParams!!.also {
+            it.buttons = arrayOf("apply", "reset")
+        }
     }
 
     companion object {
@@ -265,6 +281,7 @@ open class UIAgGridColumnDef(
             autoHeight: Boolean? = wrapText,
             valueIconMap: Map<Any, UIIconType?>? = null,
             tooltipField: String? = null,
+            type: Type? = null,
         ): UIAgGridColumnDef {
             val col = UIAgGridColumnDef(field, sortable = sortable, wrapText = wrapText, autoHeight = autoHeight)
             lc?.idPrefix?.let {
@@ -285,7 +302,7 @@ open class UIAgGridColumnDef(
                 if (col.headerName == null) {
                     col.headerName = translate(elementInfo.i18nKey)
                 }
-                if (useFormatter == null) {
+                if (type == null && useFormatter == null) {
                     // Try to determine formatter by type and propertyInfo (defined on DO-field):
                     if (Number::class.java.isAssignableFrom(elementInfo.propertyClass)) {
                         if (elementInfo.propertyType == PropertyType.CURRENCY) {
@@ -294,7 +311,11 @@ open class UIAgGridColumnDef(
                             useFormatter = Formatter.NUMBER
                         }
                     } else if (elementInfo.propertyClass == LocalDate::class.java) {
-                        useFormatter = Formatter.DATE
+                        if (width == null) {
+                            col.width = DATE_WIDTH
+                        }
+                        col.filter = "agDateColumnFilter"
+                        col.setApplyAndResetButton()
                     } else if (java.util.Date::class.java == elementInfo.propertyClass) {
                         if (field in arrayOf("created", "lastUpdate")) {
                             useFormatter = Formatter.DATE
@@ -326,6 +347,18 @@ open class UIAgGridColumnDef(
                     col.valueGetter = "data?.${col.field}?.displayName"
                 }
             }
+            if (type != null) {
+                when (type) {
+                    Type.NUMBER -> {
+                        if (width == null) {
+                            col.width = NUMBER_WIDTH
+                        }
+                        col.type = AG_TYPE.NUMERIC_COLUMN.agType
+                        col.filter = "agNumberColumnFilter"
+                        col.setApplyAndResetButton()
+                    }
+                }
+            }
             if (width != null) {
                 col.width = width
             }
@@ -334,27 +367,38 @@ open class UIAgGridColumnDef(
                     Formatter.CURRENCY -> {
                         if (width == null) {
                             col.width = CURRENCY_WIDTH
-                            col.type = AG_TYPE.NUMERIC_COLUMN.agType
                         }
+                        col.type = AG_TYPE.NUMERIC_COLUMN.agType
+                        col.filter = "agNumberColumnFilter"
                     }
 
                     Formatter.NUMBER -> {
                         if (width == null) {
                             col.width = NUMBER_WIDTH
-                            col.type = AG_TYPE.NUMERIC_COLUMN.agType
                         }
-                    }
-
-                    Formatter.DATE -> {
-                        col.width = DATE_WIDTH
+                        col.type = AG_TYPE.NUMERIC_COLUMN.agType
+                        col.filter = "agNumberColumnFilter"
+                        col.setApplyAndResetButton()
                     }
 
                     Formatter.CONSUMPTION -> {
-                        col.width = 80
+                        if (width == null) {
+                            col.width = 80
+                        } else {
+                        }
                     }
 
-                    else -> {}
+                    else -> {
+                    }
                 }
+            }
+            if (useFormatter == null
+                && elementInfo?.propertyType?.isIn(PropertyType.INPUT, PropertyType.UNSPECIFIED) == true
+                && (elementInfo.maxLength ?: 0) > 256
+            ) {
+                // Use text filter for long texts.
+                col.filter = "agTextColumnFilter"
+                col.setApplyAndResetButton()
             }
             valueGetter?.let { col.valueGetter = it }
             var myParams: MutableMap<String, Any>? = null
