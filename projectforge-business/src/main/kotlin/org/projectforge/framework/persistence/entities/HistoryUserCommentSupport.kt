@@ -29,5 +29,4 @@ package org.projectforge.framework.persistence.entities
  * Please refer UserPagesRest as an example.
  * @see org.projectforge.framework.persistence.history.HistoryEntryDO.userComment
  */
-interface HistoryUserCommentSupport {
-}
+interface HistoryUserCommentSupport

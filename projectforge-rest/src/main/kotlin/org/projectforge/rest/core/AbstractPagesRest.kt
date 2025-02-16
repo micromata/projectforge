@@ -764,6 +764,7 @@ constructor(
             newBaseDTO(request)
         })
             ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+        userAccess.editHistoryComments = baseDao.supportsHistoryUserComments
         onBeforeGetItemAndLayout(request, item, userAccess)
         val formLayoutData = getItemAndLayout(request, item, userAccess)
         returnToCaller?.let {

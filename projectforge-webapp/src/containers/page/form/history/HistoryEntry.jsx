@@ -34,12 +34,13 @@ function HistoryEntry(
             timeAgo,
             modifiedAt,
             modifiedByUser,
+            diffSummary,
         },
+        userAccess,
         translations,
     },
 ) {
     const [active, setActive] = React.useState(false);
-    const diffSummary = {};
 
     const callAction = useActions(callActionHandler);
 
@@ -50,23 +51,12 @@ function HistoryEntry(
         },
     }), [callAction, masterId]);
 
-    attributes.forEach(({ operation, operationType }) => {
-        let diff = diffSummary[operationType];
-
-        if (!diff) {
-            diff = {
-                operation,
-                amount: 1,
-            };
-        } else {
-            diff.amount += 1;
-        }
-
-        diffSummary[operationType] = diff;
-    });
-
     const idifiedDate = String.idify(modifiedAt);
     const dateId = `history-date-${idifiedDate}`;
+
+    const { editHistoryComments } = userAccess;
+
+    console.log(userAccess);
 
     return (
         <div
@@ -83,13 +73,13 @@ function HistoryEntry(
                 </Col>
                 <Col>
                     <span className={style.changesAmount}>
-                        {Object.keys(diffSummary)
-                            .map((diffType) => (
+                        {diffSummary
+                            .map((diff) => (
                                 <span
-                                    className={style[diffType]}
+                                    className={style[diff.type]}
                                     key={`history-diff-summary-${masterId}`}
                                 >
-                                    {`${diffSummary[diffType].amount} ${diffSummary[diffType].operation}`}
+                                    {`${diff.count} ${diff.operation}`}
                                 </span>
                             ))}
                     </span>
@@ -120,14 +110,16 @@ function HistoryEntry(
                     {userComment && (
                         <pre className={style.comment}>{userComment}</pre>
                     )}
-                    <Button
-                        type="button"
-                        color="link"
-                        className={style.editComment}
-                        onClick={editComment}
-                    >
-                        {getTranslation('history.userComment.edit', translations)}
-                    </Button>
+                    {editHistoryComments && (
+                        <Button
+                            type="button"
+                            color="link"
+                            className={style.editComment}
+                            onClick={editComment}
+                        >
+                            {getTranslation('history.userComment.edit', translations)}
+                        </Button>
+                    )}
                     <h5>
                         <strong>
                             {getTranslation('changes', translations)}
@@ -136,7 +128,7 @@ function HistoryEntry(
                     </h5>
                     {attributes.map((
                         {
-                            operationType,
+                            operationType: attrOperationType,
                             displayPropertyName,
                             oldValue,
                             newValue,
@@ -144,7 +136,7 @@ function HistoryEntry(
                     ) => {
                         let diff;
 
-                        switch (operationType) {
+                        switch (attrOperationType) {
                             case 'Insert':
                                 diff = `${newValue}`;
                                 break;
@@ -168,8 +160,8 @@ function HistoryEntry(
                                 key={`history-diff-${masterId}`}
                                 className={style.detail}
                             >
-                                <span className={style[operationType]}>
-                                    {getTypeSymbol(operationType)}
+                                <span className={style[attrOperationType]}>
+                                    {getTypeSymbol(attrOperationType)}
                                     {' '}
                                     {displayPropertyName}
                                     {': '}
@@ -197,12 +189,18 @@ HistoryEntry.propTypes = {
         id: PropTypes.number,
         modifiedAt: PropTypes.string,
         modifiedByUser: PropTypes.string,
+        diffSummary: PropTypes.arrayOf(PropTypes.shape({
+            type: PropTypes.string,
+            count: PropTypes.number,
+            operation: PropTypes.string,
+        })),
         userComment: PropTypes.string,
         modifiedByUserId: PropTypes.number,
-        operation: PropTypes.string,
-        operationType: PropTypes.string,
         timeAgo: PropTypes.string,
     }).isRequired,
+    userAccess: PropTypes.shape({
+        editHistoryComments: PropTypes.bool,
+    }),
     translations: PropTypes.shape({
         changes: PropTypes.string,
         history: PropTypes.arrayOf(PropTypes.shape({
