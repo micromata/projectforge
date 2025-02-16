@@ -115,7 +115,7 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
             .add("lastDateOfVisit", headerName = "orga.visitorbook.lastVisit")
             .add("latestArrived", headerName = "orga.visitorbook.lastVisit.arrived")
             .add("latestDeparted", headerName = "orga.visitorbook.lastVisit.departed")
-            .add("numberOfVisits", headerName = "orga.visitorbook.numberOfVisits")
+            .add("numberOfVisits", headerName = "orga.visitorbook.numberOfVisits", type = UIAgGridColumnDef.Type.NUMBER)
             .add("contactPersonsAsString", headerName = "orga.visitorbook.contactPersons")
             .add(lc, "comment")
     }

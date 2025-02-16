@@ -166,6 +166,7 @@ open class UIAgGrid(
         wrapText: Boolean? = null,
         autoHeight: Boolean? = wrapText,
         tooltipField: String? = null,
+        type: UIAgGridColumnDef.Type? = null,
     ): UIAgGrid {
         add(
             UIAgGridColumnDef.createCol(
@@ -179,6 +180,7 @@ open class UIAgGrid(
                 wrapText = wrapText,
                 autoHeight = autoHeight,
                 tooltipField = tooltipField,
+                type = type,
             )
         )
         return this
@@ -201,6 +203,7 @@ open class UIAgGrid(
         lcField: String? = null,
         wrapText: Boolean? = null,
         autoHeight: Boolean? = wrapText,
+        type: UIAgGridColumnDef.Type? = null,
     ): UIAgGrid {
         columnIds.forEach {
             add(
@@ -215,6 +218,7 @@ open class UIAgGrid(
                     lcField = lcField ?: it,
                     wrapText = wrapText,
                     autoHeight = autoHeight,
+                    type = type
                 )
             )
         }

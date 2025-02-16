@@ -1,6 +1,6 @@
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import PropTypes from 'prop-types';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useEffect, useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { LicenseManager, ModuleRegistry, AllEnterpriseModule, themeBalham } from 'ag-grid-enterprise';
 import { connect } from 'react-redux';
@@ -64,6 +64,7 @@ function DynamicAgGrid(props) {
     const [gridApi, setGridApi] = useState();
     const gridRef = useRef();
     // const gridStyle = React.useMemo(() => ({ width: '100%' }), []);
+    const [processedColumnDefs, setProcessedColumnDefs] = useState([]);
     const rowData = entries || Object.getByString(data, id) || Object.getByString(variables, id) || '';
     const { selectedEntityIds } = data;
     /*
@@ -116,6 +117,35 @@ function DynamicAgGrid(props) {
         }
     }, [gridApi, data.highlightRowId, highlightId]);
 
+    useEffect(() => {
+        // Gehe durch alle columnDefs und setze den comparator für agDateColumnFilter
+        const updatedColumnDefs = columnDefs.map((col) => {
+            if (col.filter === 'agDateColumnFilter') {
+                return {
+                    ...col,
+                    filterParams: {
+                        ...col.filterParams,
+                        comparator: (filterLocalDateAtMidnight, cellValue) => {
+                            if (!cellValue) return -1;
+
+                            // Wandelt "YYYY-MM-DD" in ein JS Date-Objekt um
+                            const [year, month, day] = cellValue.split('-');
+                            const cellDate = new Date(Number(year), Number(month) - 1, Number(day));
+
+                            if (filterLocalDateAtMidnight.getTime() === cellDate.getTime()) {
+                                return 0;
+                            }
+                            return cellDate < filterLocalDateAtMidnight ? -1 : 1;
+                        },
+                    },
+                };
+            }
+            return col;
+        });
+
+        setProcessedColumnDefs(updatedColumnDefs);
+    }, [columnDefs]);
+
     /*
     React.useEffect(() => {
         showHighlightedRow();
@@ -157,10 +187,6 @@ function DynamicAgGrid(props) {
         }
         const redirectUrl = modifyRedirectUrl(rowClickRedirectUrl, event.data.id);
         if (rowClickOpenModal) {
-            // const historyState = { serverData: action.variables };
-            // TODO: Fin, wie bekomme ich action.variables hier? Wenn das Modal geschlossen wird,
-            // kann ich nicht mehr das Formular ändern.
-            // Ich wollte das von hier kopieren: form.js:121
             const historyState = { };
 
             historyState.background = history.location;
@@ -170,11 +196,6 @@ function DynamicAgGrid(props) {
             history.push(redirectUrl);
         }
     };
-
-    /*
-    const onFirstDataRendered = () => {
-        showHighlightedRow();
-    }; */
 
     const onSelectionChanged = () => {
         if (!rowClickRedirectUrl) {
@@ -293,7 +314,7 @@ function DynamicAgGrid(props) {
                     ref={gridRef}
                     rowData={rowData}
                     components={allComponents}
-                    columnDefs={columnDefs}
+                    columnDefs={processedColumnDefs}
                     selectionColumnDef={selectionColumnDef}
                     rowSelection={rowSelection}
                     onGridReady={onGridReady}
@@ -342,7 +363,7 @@ function DynamicAgGrid(props) {
             </div>
         ),
         [
-            columnDefs,
+            processedColumnDefs,
             data,
             selectionColumnDef,
             sortModel,
@@ -362,7 +383,6 @@ DynamicAgGrid.propTypes = {
         pinned: PropTypes.string,
         resizable: PropTypes.bool,
         sortable: PropTypes.bool,
-        filter: PropTypes.bool,
     })),
     id: PropTypes.string,
     entries: PropTypes.arrayOf(PropTypes.shape()),

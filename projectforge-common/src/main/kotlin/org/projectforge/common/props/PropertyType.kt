@@ -21,18 +21,22 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.common.props;
+package org.projectforge.common.props
 
 /**
  * If the type of a field isn't represented by the Java type it may be defined in more detail by this enum. For example a BigDecimal may
  * represent a currency value.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public enum PropertyType
-{
-  CURRENCY, DATE, DATE_TIME, DATE_TIME_SECONDS, DATE_TIME_MILLIS,
-  /**
-   * Use INPUT for long text fields if you wish to use input fields instead of text areas.
-   */
-  INPUT, TIME, TIME_SECONDS, TIME_MILLIS, UNSPECIFIED;
+enum class PropertyType {
+    CURRENCY, DATE, DATE_TIME, DATE_TIME_SECONDS, DATE_TIME_MILLIS,
+
+    /**
+     * Use INPUT for long text fields if you wish to use input fields instead of text areas.
+     */
+    INPUT, TIME, TIME_SECONDS, TIME_MILLIS, UNSPECIFIED;
+
+    fun isIn(vararg types: PropertyType): Boolean {
+        return types.any { it == this }
+    }
 }

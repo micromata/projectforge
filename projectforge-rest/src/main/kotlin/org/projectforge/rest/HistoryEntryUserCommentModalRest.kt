@@ -109,7 +109,7 @@ class HistoryEntryUserCommentModalRest {
         val historyEntry = item.entry ?: return ResponseEntity(HttpStatus.NOT_FOUND)
         val dto = HistoryData(historyFormatService.convert(entity, historyEntry, HistoryLoadContext(item.baseDao)))
         val titleKey = "history.entry"
-        val ui = UILayout(titleKey, RestResolver.getRestUrl(this::class.java, withoutPrefix = true))
+        val ui = UILayout(titleKey)
         ui.userAccess.update = item.writeAccess
         ui.userAccess.history = item.readAccess
         ui.add(UIReadOnlyField("timeAgo", label = "modified"))
