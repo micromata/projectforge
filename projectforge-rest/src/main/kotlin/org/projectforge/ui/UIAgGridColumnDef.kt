@@ -71,6 +71,7 @@ open class UIAgGridColumnDef(
     enum class Type {
         NUMBER
     }
+
     class FilterParams {
         var buttons: Array<String>? = null
     }
@@ -210,6 +211,7 @@ open class UIAgGridColumnDef(
             autoHeight: Boolean? = wrapText,
             valueIconMap: Map<Any, UIIconType?>? = null,
             tooltipField: String? = null,
+            filter: Any? = null,
         ): UIAgGridColumnDef {
             return createCol(
                 null,
@@ -224,11 +226,12 @@ open class UIAgGridColumnDef(
                 autoHeight = autoHeight,
                 valueIconMap = valueIconMap,
                 tooltipField = tooltipField,
+                filter = filter,
             )
         }
 
         /**
-         * @param lcField If field name of dto differs from do (e. g. kost2.project vs. kost2.projekt)
+         * @param lcField If field name of dto differs from do (e.g. kost2.project vs. kost2.projekt)
          * @param width Column width in pixel.
          */
         fun createCol(
@@ -282,8 +285,15 @@ open class UIAgGridColumnDef(
             valueIconMap: Map<Any, UIIconType?>? = null,
             tooltipField: String? = null,
             type: Type? = null,
+            filter: Any? = null,
         ): UIAgGridColumnDef {
-            val col = UIAgGridColumnDef(field, sortable = sortable, wrapText = wrapText, autoHeight = autoHeight)
+            val col = UIAgGridColumnDef(
+                field,
+                sortable = sortable,
+                wrapText = wrapText,
+                autoHeight = autoHeight,
+                filter = filter,
+            )
             lc?.idPrefix?.let {
                 col.field = "${it}${col.field}"
             }
