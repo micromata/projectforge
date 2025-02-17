@@ -365,6 +365,7 @@ function DynamicAgGrid(props) {
         [
             processedColumnDefs,
             data,
+            entries,
             selectionColumnDef,
             sortModel,
             rowSelection,
