@@ -93,9 +93,4 @@ DynamicDropArea.propTypes = {
     tooltip: PropTypes.string,
 };
 
-DynamicDropArea.defaultProps = {
-    id: undefined,
-    tooltip: undefined,
-};
-
 export default DynamicDropArea;

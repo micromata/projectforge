@@ -131,15 +131,15 @@ export const callAction = (
             if (history.location.state && history.location.state.background) {
                 const backgroundCategory = history.location.state.background.pathname.split('/')[2];
 
-                history.push({
-                    ...history.location.state.background,
-                    state: {
+                history.push(
+                    history.location.state.background,
+                    {
                         ...history.location.state.background.state,
                         noReload: true,
                         newVariables: action.variables,
                         merge: action.merge,
                     },
-                });
+                );
 
                 // switch to category to make category reactive again
                 switchFromCurrentCategory(

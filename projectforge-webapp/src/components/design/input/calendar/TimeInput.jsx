@@ -10,7 +10,7 @@ function TimeInput({
     id,
     value,
     onChange,
-    precision,
+    precision = 5,
 }) {
     const [isOpen, setIsOpen] = React.useState(false);
 
@@ -138,11 +138,6 @@ TimeInput.propTypes = {
     value: PropTypes.arrayOf(PropTypes.number).isRequired,
     onChange: PropTypes.func.isRequired,
     precision: PrecisionType,
-};
-
-TimeInput.defaultProps = {
-    id: undefined,
-    precision: 5,
 };
 
 export default TimeInput;

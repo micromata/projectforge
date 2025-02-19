@@ -22,8 +22,8 @@ function DynamicListPageTable({ columns, id }) {
                     <tr>
                         {columns.map((column) => (
                             <DynamicTableHead
-                                key={`table-head-column-${column.id}`}
                                 {...column}
+                                key={`table-head-column-${column.id}`}
                             />
                         ))}
                     </tr>
@@ -55,10 +55,6 @@ DynamicListPageTable.propTypes = {
         titleIcon: PropTypes.arrayOf(PropTypes.string),
     })).isRequired,
     id: PropTypes.string,
-};
-
-DynamicListPageTable.defaultProps = {
-    id: undefined,
 };
 
 export default DynamicListPageTable;

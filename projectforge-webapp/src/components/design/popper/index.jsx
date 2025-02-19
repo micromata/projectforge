@@ -9,8 +9,8 @@ function Popper(
     {
         className,
         children,
-        direction,
-        isOpen,
+        direction = 'auto',
+        isOpen = false,
         target,
         ...props
     },
@@ -56,12 +56,6 @@ Popper.propTypes = {
     className: PropTypes.string,
     direction: PropTypes.string,
     isOpen: PropTypes.bool,
-};
-
-Popper.defaultProps = {
-    className: undefined,
-    direction: 'auto',
-    isOpen: false,
 };
 
 export default Popper;

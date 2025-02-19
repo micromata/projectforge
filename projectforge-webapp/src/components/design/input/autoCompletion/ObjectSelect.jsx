@@ -97,13 +97,6 @@ ObjectSelect.propTypes = {
     }),
 };
 
-ObjectSelect.defaultProps = {
-    translations: undefined,
-    url: undefined,
-    user: undefined,
-    value: undefined,
-};
-
 const mapStateToProps = ({ authentication }) => {
     if (authentication.user) {
         return {

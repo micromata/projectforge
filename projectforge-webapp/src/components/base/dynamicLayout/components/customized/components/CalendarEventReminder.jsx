@@ -107,6 +107,4 @@ function CalendarEventReminder() {
 
 CalendarEventReminder.propTypes = {};
 
-CalendarEventReminder.defaultProps = {};
-
 export default CalendarEventReminder;

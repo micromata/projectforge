@@ -9,8 +9,8 @@ function TextAutoCompletion(
         inputProps,
         onChange,
         onSelect,
-        value,
-        focus,
+        value = '',
+        focus = false,
         ...props
     },
 ) {
@@ -51,13 +51,6 @@ TextAutoCompletion.propTypes = {
     onSelect: PropTypes.func,
     value: PropTypes.string,
     focus: PropTypes.bool,
-};
-
-TextAutoCompletion.defaultProps = {
-    inputProps: undefined,
-    onSelect: undefined,
-    value: '',
-    focus: false,
 };
 
 export default TextAutoCompletion;

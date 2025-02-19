@@ -10,7 +10,7 @@ function MagicTimeStampInput(
         id,
         onChange,
         selectors,
-        translations,
+        translations = {},
         value,
     },
 ) {
@@ -74,11 +74,6 @@ MagicTimeStampInput.propTypes = {
     }).isRequired,
     selectors: PropTypes.arrayOf(PropTypes.string),
     translations: PropTypes.shape({}),
-};
-
-MagicTimeStampInput.defaultProps = {
-    selectors: undefined,
-    translations: {},
 };
 
 MagicTimeStampInput.isEmpty = ({ from, to }) => !(from || to);

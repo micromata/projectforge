@@ -289,6 +289,7 @@ class TaskServicesRest {
                     valueFormatter = UIAgGridColumnDef.Formatter.TREE_NAVIGATION,
                     sortable = false,
                     width = UIAgGridColumnDef.DESCRIPTION_WIDTH,
+                    filter = false,
                 )
                     .withPinnedLeft()
             )
@@ -298,6 +299,7 @@ class TaskServicesRest {
                     headerName = translate("task.consumption"),
                     valueFormatter = UIAgGridColumnDef.Formatter.CONSUMPTION,
                     sortable = false,
+                    filter = false,
                 )
             )
             if (kost2Visible) {
@@ -307,18 +309,26 @@ class TaskServicesRest {
                         headerName = translate("fibu.kost2"),
                         sortable = false,
                         width = 80,
+                        filter = false,
                     )
                         .withTooltipField("kost2ListAsLines")
                 )
             }
             result.columnDefs.add(
-                UIAgGridColumnDef.createCol(lc, "statusAsString", lcField = "status", sortable = false, width = 100)
+                UIAgGridColumnDef.createCol(
+                    lc,
+                    "statusAsString",
+                    lcField = "status",
+                    sortable = false,
+                    width = 100,
+                    filter = false,
+                )
             )
             result.columnDefs.add(
-                UIAgGridColumnDef.createCol(lc, "shortDescription", sortable = false)
+                UIAgGridColumnDef.createCol(lc, "shortDescription", sortable = false, filter = false)
             )
             result.columnDefs.add(
-                UIAgGridColumnDef.createCol(lc, "responsibleUser", sortable = false)
+                UIAgGridColumnDef.createCol(lc, "responsibleUser", sortable = false, filter = false)
             )
             result.initFilter = filter
             result.translations = addTranslations(

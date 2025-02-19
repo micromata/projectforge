@@ -121,9 +121,9 @@ function MagicFilters(
                 .filter((filter) => filter.defaultFilter)
                 .map((filter) => (
                     <MagicFilterPill
-                        key={`magic-filter-default-${filter.id}`}
                         {...Array.findByField(filterEntries, 'field', filter.id)}
                         {...filter}
+                        key={`magic-filter-default-${filter.id}`}
                     />
                 ))}
             {filterEntries
@@ -134,9 +134,9 @@ function MagicFilters(
                 .filter(({ id, defaultFilter }) => id !== undefined && !defaultFilter)
                 .map((entry) => (
                     <MagicFilterPill
-                        key={`magic-filter-${entry.id}`}
                         {...entry}
                         isRemovable
+                        key={`magic-filter-${entry.id}`}
                     />
                 ))}
         </div>
@@ -160,11 +160,6 @@ MagicFilters.propTypes = {
             PropTypes.arrayOf(PropTypes.shape({}))]),
     }),
     searchString: PropTypes.string,
-};
-
-MagicFilters.defaultProps = {
-    searchFilter: undefined,
-    searchString: undefined,
 };
 
 const mapStateToProps = ({ list }) => {

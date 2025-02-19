@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
-import { Route, Router, Switch } from 'react-router-dom';
+import { Route, Routes } from 'react-router';
 import { loadUserStatus } from '../actions';
 import Footer from '../components/base/footer';
 import Toasts from '../components/base/Toasts';
@@ -53,29 +53,14 @@ function ProjectForge(
         );
     } else {
         const getRoutesWithLocation = (switchLocation) => (
-            <Switch location={switchLocation}>
+            <Routes location={switchLocation}>
                 {wicketRoute}
                 {publicRoute}
                 <Route
-                    path={prefix}
-                    render={({ match, location, ...props }) => (
-                        <FormPage
-                            {...props}
-                            location={location}
-                            isPublic
-                            match={{
-                                ...match,
-                                // Disable FormPage Tabs
-                                url: location.pathname,
-                                // Set Category to login
-                                params: {
-                                    category: 'login',
-                                },
-                            }}
-                        />
-                    )}
+                    path={`${prefix}/:tab?`}
+                    element={<FormPage isPublic />}
                 />
-            </Switch>
+            </Routes>
         );
 
         content = <ModalRoutes getRoutesWithLocation={getRoutesWithLocation} />;
@@ -90,9 +75,7 @@ function ProjectForge(
             }}
         >
             <TopBar />
-            <Router history={history}>
-                {content}
-            </Router>
+            {content}
             <Footer />
             <Toasts />
         </SystemStatusContext.Provider>
@@ -103,10 +86,6 @@ ProjectForge.propTypes = {
     loadUserStatus: PropTypes.func.isRequired,
     loginInProgress: PropTypes.bool.isRequired,
     user: PropTypes.shape({}),
-};
-
-ProjectForge.defaultProps = {
-    user: undefined,
 };
 
 const mapStateToProps = (state) => ({

@@ -2,7 +2,7 @@ import 'moment/min/locales';
 import PropTypes from 'prop-types';
 import 'rc-time-picker/assets/index.css';
 import React from 'react';
-import 'react-day-picker/lib/style.css';
+import 'react-day-picker/src/style.css';
 import { Col, FormGroup, Row } from '../../../../../../design';
 import { DynamicLayoutContext } from '../../../../context';
 import DynamicReactSelect from '../../../select/DynamicReactSelect';
@@ -64,7 +64,5 @@ function TimesheetEditTaskAndKost2({ values }) {
 TimesheetEditTaskAndKost2.propTypes = {
     values: PropTypes.shape({}).isRequired,
 };
-
-TimesheetEditTaskAndKost2.defaultProps = {};
 
 export default TimesheetEditTaskAndKost2;

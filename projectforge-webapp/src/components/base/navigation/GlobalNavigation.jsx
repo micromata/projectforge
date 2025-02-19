@@ -49,7 +49,7 @@ class GlobalNavigation extends React.Component {
                         ? <CategoriesDropdown categories={mainMenu} badge={badge} />
                         : undefined}
                     {favoritesMenu && favoritesMenu.length > 0
-                        ? <Navigation entries={favoritesMenu} className="mr-auto" />
+                        ? <Navigation entries={favoritesMenu} className="me-auto" />
                         : undefined}
                     {myAccountMenu && myAccountMenu.length > 0
                         ? (
@@ -72,10 +72,6 @@ GlobalNavigation.propTypes = {
     mainMenu: PropTypes.arrayOf(menuItemPropType).isRequired,
     myAccountMenu: PropTypes.arrayOf(menuItemPropType).isRequired,
     badge: badgePropType,
-};
-
-GlobalNavigation.defaultProps = {
-    badge: undefined,
 };
 
 const mapStateToProps = (state) => ({ ...state.menu });

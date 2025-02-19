@@ -37,16 +37,18 @@ function TaskTreeTable({
     } = React.useContext(TaskTreeContext);
 
     return (
-        <div className="table-responsive">
-            <DynamicAgGrid
-                onGridApiReady={onGridApiReady}
-                columnDefs={columnDefs}
-                entries={nodes}
-                height={400}
-                onCellClicked={onCellClicked}
-                highlightId={highlightTaskId}
-                // visible={visible}
-            />
+        <div>
+            <div className="table-responsive">
+                <DynamicAgGrid
+                    onGridApiReady={onGridApiReady}
+                    columnDefs={columnDefs}
+                    entries={nodes}
+                    height={400}
+                    onCellClicked={onCellClicked}
+                    highlightId={highlightTaskId}
+                    // visible={visible}
+                />
+            </div>
             <Alert color="light">
                 {translations['task.selectPanel.info']}
             </Alert>
@@ -63,10 +65,6 @@ TaskTreeTable.propTypes = {
     nodes: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
     selectTask: PropTypes.func.isRequired,
     // visible: PropTypes.bool,
-};
-
-TaskTreeTable.defaultProps = {
-    // visible: undefined,
 };
 
 export default TaskTreeTable;

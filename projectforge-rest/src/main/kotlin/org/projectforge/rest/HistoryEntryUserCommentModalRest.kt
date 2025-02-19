@@ -26,17 +26,13 @@ package org.projectforge.rest
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import mu.KotlinLogging
-import org.projectforge.framework.DisplayNameCapable
-import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.history.HistoryFormatService
 import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.history.HistoryService
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractPagesRest.InitialListData
 import org.projectforge.rest.core.RestResolver
-import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.core.SessionCsrfService
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
@@ -49,17 +45,15 @@ import org.springframework.web.bind.annotation.*
 private val log = KotlinLogging.logger {}
 
 /**
- * Under construction.
+ * For editing user comments in history entries. This is a modal dialog.
  */
 @RestController
 @RequestMapping("${Rest.URL}/historyEntries")
-class HistoryEntriesPagesRest {
+class HistoryEntryUserCommentModalRest {
     class HistoryData(entry: DisplayHistoryEntry? = null) {
         var id: Long? = entry?.id
-        var entity: String? = null
         var userComment: String? = entry?.userComment
         var timeAgo: String? = entry?.timeAgo
-        var operation: String? = entry?.operation
         var modifiedByUser: String? = entry?.modifiedByUser
         var appendComment: String? = null
     }
@@ -73,21 +67,6 @@ class HistoryEntriesPagesRest {
     @Autowired
     private lateinit var historyFormatService: HistoryFormatService
 
-    /**
-     * Get the current filter from the server, all matching items and the layout of the list page.
-     */
-    @GetMapping("initialList")
-    fun requestInitialList(request: HttpServletRequest): InitialListData? {
-        log.debug { "requestInitialList" }
-        return null
-    }
-
-    @RequestMapping(RestPaths.LIST)
-    fun getList(request: HttpServletRequest, @RequestBody filter: MagicFilter): ResultSet<*>? {
-        log.debug { "getList" }
-        return null
-    }
-
     @GetMapping("{id}")
     fun getItem(@PathVariable("id") id: Long?): ResponseEntity<Any> {
         val item = historyService.findEntryAndEntityById(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
@@ -100,10 +79,24 @@ class HistoryEntriesPagesRest {
     @PutMapping("append")
     fun append(
         request: HttpServletRequest,
-        @Valid @RequestBody postData: PostData<HistoryData>
+        @Valid @RequestBody postData: PostData<HistoryData>,
     ): ResponseEntity<ResponseAction> {
         sessionCsrfService.validateCsrfToken(request, postData, "Upsert")?.let { return it }
-        throw UnsupportedOperationException("Not implemented yet.")
+        val dto = postData.data
+        if (dto.userComment.isNullOrBlank()) {
+            return ResponseEntity.ok().body(ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true))
+        }
+        val id = dto.id ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+        historyService.appendUserComment(id, dto.appendComment)
+        return ResponseEntity.ok().body(ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true))
+    }
+
+    /**
+     * Use this service for adding new items as well as updating existing items (id isn't null).
+     */
+    @PostMapping("cancel")
+    fun cancel(): ResponseEntity<ResponseAction> {
+        return ResponseEntity.ok().body(ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true))
     }
 
     @GetMapping(RestPaths.EDIT)
@@ -115,30 +108,30 @@ class HistoryEntriesPagesRest {
         val entity = item.entity ?: return ResponseEntity(HttpStatus.NOT_FOUND)
         val historyEntry = item.entry ?: return ResponseEntity(HttpStatus.NOT_FOUND)
         val dto = HistoryData(historyFormatService.convert(entity, historyEntry, HistoryLoadContext(item.baseDao)))
-        dto.entity = if (entity is DisplayNameCapable) {
-            entity.displayName
-        } else {
-            entity.javaClass.simpleName
-        }
         val titleKey = "history.entry"
-        val ui = UILayout(titleKey, RestResolver.getRestUrl(this::class.java, withoutPrefix = true))
+        val ui = UILayout(titleKey)
         ui.userAccess.update = item.writeAccess
         ui.userAccess.history = item.readAccess
         ui.add(UIReadOnlyField("timeAgo", label = "modified"))
-        ui.add(UIReadOnlyField("entity", label = "history.userComment"))
         ui.add(UIReadOnlyField("userComment", label = "history.userComment"))
-        ui.add(UIReadOnlyField("operation", label = "operation"))
         ui.add(UIReadOnlyField("modifiedByUser", label = "user"))
         ui.add(UITextArea("appendComment", label = "history.userComment"))
-        ui.addAction(
-            UIButton.createDefaultButton(
-                "append", title = "append", responseAction = ResponseAction(
-                    RestResolver.getRestUrl(this::class.java, "append"), targetType = TargetType.POST
+        ui
+            .addAction(
+                UIButton.createCancelButton(
+                    responseAction = ResponseAction(
+                        RestResolver.getRestUrl(this::class.java, "cancel"), targetType = TargetType.POST
+                    )
                 )
             )
-        )
+            .addAction(
+                UIButton.createDefaultButton(
+                    "append", title = "append", responseAction = ResponseAction(
+                        RestResolver.getRestUrl(this::class.java, "append"), targetType = TargetType.PUT
+                    )
+                )
+            )
         LayoutUtils.process(ui)
-        // ui.addTranslations("changes", "history.userComment.edit", "tooltip.selectMe")
         val serverData = sessionCsrfService.createServerData(request)
         val result = FormLayoutData(dto, ui, serverData)
         return ResponseEntity(result, HttpStatus.OK)

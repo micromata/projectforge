@@ -48,8 +48,4 @@ VacationLeaveAccountTable.propTypes = {
     })),
 };
 
-VacationLeaveAccountTable.defaultProps = {
-    entries: undefined,
-};
-
 export default VacationLeaveAccountTable;

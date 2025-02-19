@@ -91,10 +91,4 @@ CustomizedJobsMonitor.propTypes = {
     fetchUpdateInterval: PropTypes.number,
 };
 
-CustomizedJobsMonitor.defaultProps = {
-    jobId: undefined,
-    all: undefined,
-    fetchUpdateInterval: undefined,
-};
-
 export default CustomizedJobsMonitor;

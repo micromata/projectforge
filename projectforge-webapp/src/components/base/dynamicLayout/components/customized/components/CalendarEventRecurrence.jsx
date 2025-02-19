@@ -125,10 +125,6 @@ CalendarEventRecurrence.propTypes = {
     locale: PropTypes.string,
 };
 
-CalendarEventRecurrence.defaultProps = {
-    locale: undefined,
-};
-
 const mapStateToProps = ({ authentication }) => ({
     locale: authentication.user.locale,
 });

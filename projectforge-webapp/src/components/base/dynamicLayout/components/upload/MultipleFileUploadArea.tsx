@@ -60,11 +60,23 @@ export function MultipleFileUploadArea(
     // const classes = useStyles();
     const [files, setFiles] = useState<UploadableFile[]>([]);
     const onDrop = useCallback((accFiles: File[], rejFiles: FileRejection[]) => {
-        const mappedAcc = accFiles.map((file) => ({ file, errors: [], id: getNewId() }));
-        const mappedRej = rejFiles.map((r) => ({ ...r, id: getNewId() }));
-        // Delete old errors:
-        setFiles((curr) => curr.filter((fw) => fw.errors.length === 0));
-        setFiles((curr) => [...curr, ...mappedAcc, ...mappedRej]);
+        const mappedAcc = accFiles.map((file) => ({
+            file,
+            errors: [],
+            id: getNewId(),
+        }));
+
+        const mappedRej = rejFiles.map((r) => ({
+            file: r.file,
+            errors: [...r.errors],
+            id: getNewId(),
+        }));
+
+        setFiles((curr) => [
+            ...curr.filter((fw) => fw.errors.length === 0),
+            ...mappedAcc,
+            ...mappedRej,
+        ]);
     }, []);
 
     /* useEffect(() => {

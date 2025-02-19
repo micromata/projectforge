@@ -38,7 +38,9 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.metamodel.HibernateMetaModel
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUser
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUserId
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.registry.Registry
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -127,6 +129,36 @@ class HistoryService {
                     log.error(ex) { "Can't check write access for entity: ${entityClass.name}: ${ex.message}" }
                 }
             }
+        }
+        return info
+    }
+
+    /**
+     * Appends the given user comment to the history entry with the given id.
+     * If checkAccess is true, the access rights of the logged-in user are checked.
+     * The access check is done by [BaseDao.checkLoggedInUserSelectAccess].
+     * @param id The id of the history entry.
+     * @param userComment The user comment to append.
+     * @param checkAccess If true, the access rights of the logged-in user are checked.
+     * @return The entry info.
+     */
+    fun appendUserComment(id: Serializable?, userComment: String?, checkAccess: Boolean = true): EntryInfo? {
+        id ?: return null
+        if (userComment.isNullOrBlank()) {
+            return null
+        }
+        val info = findEntryAndEntityById(id, checkAccess) ?: return null
+        log.info { "Appending user comment to history entry #$id of entity ${info.entity?.javaClass?.name}#${info.entity?.id}: $userComment" }
+        persistenceService.runInTransaction { context ->
+            val entry = info.entry!!
+            val loggedInUserId = requiredLoggedInUserId
+            val userString = if (entry.modifiedBy != loggedInUserId.toString()) {
+                " (${requiredLoggedInUser.username})"
+            } else {
+                ""
+            }
+            entry.userComment = "${entry.userComment}\n${PFDateTime.now().isoString}Z$userString: $userComment"
+            context.em.merge(entry)
         }
         return info
     }

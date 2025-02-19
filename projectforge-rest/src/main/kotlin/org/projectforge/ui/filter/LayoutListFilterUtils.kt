@@ -36,7 +36,7 @@ import org.projectforge.ui.*
 
 private val log = KotlinLogging.logger {}
 
-private val PAGE_SIZES = intArrayOf(25, 50, 100, 250, 500, 1000)
+val PAGINATION_PAGE_SIZES = intArrayOf(25, 50, 100, 200, 500, 1000)
 
 /**
  * Utils for the Layout classes for handling filter settings in list views.
@@ -141,5 +141,5 @@ object LayoutListFilterUtils {
     }
   }
 
-  private val pageValues = PAGE_SIZES.map { UISelectValue("$it", NumberFormatter.format(it)) }
+  private val pageValues = PAGINATION_PAGE_SIZES.map { UISelectValue("$it", NumberFormatter.format(it)) }
 }

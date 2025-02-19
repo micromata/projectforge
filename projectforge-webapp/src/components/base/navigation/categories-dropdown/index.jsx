@@ -144,8 +144,4 @@ CategoriesDropdown.propTypes = {
     }),
 };
 
-CategoriesDropdown.defaultProps = {
-    badge: undefined,
-};
-
 export default CategoriesDropdown;

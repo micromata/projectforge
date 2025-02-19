@@ -58,10 +58,4 @@ FormattedTimeRange.propTypes = {
     setTo: PropTypes.func,
 };
 
-FormattedTimeRange.defaultProps = {
-    children: undefined,
-    setFrom: undefined,
-    setTo: undefined,
-};
-
 export default FormattedTimeRange;

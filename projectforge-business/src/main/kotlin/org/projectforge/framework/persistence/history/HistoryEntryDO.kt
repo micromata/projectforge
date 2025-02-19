@@ -117,7 +117,7 @@ class HistoryEntryDO : HistoryEntry {
     /**
      * Optional comment by user (if supported by entity). This comment is stored in the history entry, for information only.
      */
-    @get:Column(name = "user_comment", length = 2000)
+    @get:Column(name = "user_comment", length = 10_000)
     @GenericField // was @Field(analyze = Analyze.NO, store = Store.NO)
     override var userComment: String? = null
 

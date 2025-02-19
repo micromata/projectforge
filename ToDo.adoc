@@ -1,13 +1,10 @@
 ==== Aktuell:
-- Änderungskommentar bei Usern/Gruppen (JIRA-Nummern)
-- AI timesavings: Zeit bei Eingabe ausrechnen, recent ai texte als vorlage.
+- Schedule-Task für Sipgate-Sync
 - JCR: Tool for removing or recovering orphaned nodes.
 - Favoriten bei Scriptausführung für Parameter.
 - Viewpage für user für non-admins.
 - Scripting: Ergebnis Unresolved reference 'memo', 'todo'.: line 94 to 94 (add only activated plugins)
-- Can't get value type from 'org.projectforge.business.timesheet.TimesheetPrefData'. Class not found (old incompatible ProjectForge version)?
 - Groovy-scripts: remove or fix.
-- AG-Grid: setColumnStates wird nicht in den UserPrefs gespeichert.
 - -XX:ReservedCodeCacheSize=100m
 - QueryFilter.sortAndLimitMaxRowsWhileSelect: not yet supported
 - Gradle-Version-Checker: Read lib.versions.toml und Vergleichen mit fatjar.
@@ -21,6 +18,7 @@
 - Fakturaquote Monatsbericht
 - Google-Calendar-Integration
 
+- Ausblenden/Ändern von Spalten bei AG-Grid wird nicht immer übernommen: Ändern, Klick auf anderen Menüpunkt und Klick zurück auf aktuelle Liste.
 - Pagination of selects: Aktuell wird nicht DB-seitig paginiert, sondern immer die ganze Liste gefetched.
 - remove all BaseDO.xxxId (lazy fetch) and replace callee by baseDO?.id
 - Entitygraphen nutzen: ConflictVacationCache, AuftragCache etc.

@@ -3,7 +3,7 @@ import { faMobileAlt, faPhone } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import styles from './PhoneNumber.module.scss';
 
 function PhoneNumber(
@@ -12,7 +12,7 @@ function PhoneNumber(
         number,
         phoneCallEnabled,
         phoneType,
-        sms,
+        sms = false,
         smsEnabled,
         callerPage,
     },
@@ -57,10 +57,6 @@ PhoneNumber.propTypes = {
     smsEnabled: PropTypes.bool.isRequired,
     callerPage: PropTypes.string.isRequired,
     sms: PropTypes.bool,
-};
-
-PhoneNumber.defaultProps = {
-    sms: false,
 };
 
 export default PhoneNumber;

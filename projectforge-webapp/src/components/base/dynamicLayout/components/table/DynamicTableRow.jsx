@@ -12,7 +12,7 @@ function DynamicTableRow(
     {
         columns,
         row,
-        highlightRow,
+        highlightRow = false,
         rowClickPostUrl,
     },
 ) {
@@ -24,7 +24,7 @@ function DynamicTableRow(
 
     const { template } = data;
 
-    const handleRowClick = () => (event) => {
+    const handleRowClick = (event) => {
         event.stopPropagation();
         fetch(
             getServiceURL(`${rowClickPostUrl}/${row.id}`),
@@ -56,7 +56,7 @@ function DynamicTableRow(
                 { [style.highlighted]: highlightRow === true },
                 { [style.deleted]: row.deleted === true },
             )}
-            onClick={rowClickPostUrl ? handleRowClick() : undefined}
+            onClick={rowClickPostUrl ? handleRowClick : undefined}
         >
             {columns.map((
                 {
@@ -79,7 +79,7 @@ function DynamicTableRow(
                 </td>
             ))}
         </tr>
-    ), [columns, setData, template]);
+    ), [columns, setData, template, rowClickPostUrl]);
 }
 
 DynamicTableRow.propTypes = {
@@ -90,11 +90,6 @@ DynamicTableRow.propTypes = {
     }).isRequired,
     highlightRow: PropTypes.bool,
     rowClickPostUrl: PropTypes.string,
-};
-
-DynamicTableRow.defaultProps = {
-    highlightRow: false,
-    rowClickPostUrl: undefined,
 };
 
 export default DynamicTableRow;

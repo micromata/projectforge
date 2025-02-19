@@ -6,6 +6,7 @@ import LoadingContainer from '../../../components/design/loading-container';
 import { debouncedWaitTime, getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import TaskTreeTable from './TaskTreeTable';
 import TaskFilter from './TaskFilter';
+import styles from './TaskTreePanel.module.scss';
 import TaskTreeContext, { taskTreeContextDefaultValues } from './TaskTreeContext';
 
 const loadTasksBounced = (
@@ -81,10 +82,10 @@ function TaskTreePanel(
     {
         highlightTaskId,
         onTaskSelect: selectTask,
-        shortForm,
-        showRootForAdmins,
+        shortForm = false,
+        showRootForAdmins = false,
         visible,
-        consumptionBarClickable,
+        consumptionBarClickable = true,
     },
 ) {
     const [loading, setLoading] = React.useState(false);
@@ -184,7 +185,7 @@ function TaskTreePanel(
     return (
         <LoadingContainer loading={loading}>
             <Card>
-                <CardBody>
+                <CardBody className={styles.treePanelBody}>
                     <TaskTreeContext.Provider
                         /* eslint-disable-next-line react/jsx-no-constructed-context-values */
                         value={{
@@ -222,14 +223,6 @@ TaskTreePanel.propTypes = {
     shortForm: PropTypes.bool,
     consumptionBarClickable: PropTypes.bool,
     showRootForAdmins: PropTypes.bool,
-};
-
-TaskTreePanel.defaultProps = {
-    highlightTaskId: undefined,
-    onTaskSelect: undefined,
-    shortForm: false,
-    showRootForAdmins: false,
-    consumptionBarClickable: true,
 };
 
 export default TaskTreePanel;

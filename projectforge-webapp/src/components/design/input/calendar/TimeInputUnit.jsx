@@ -6,8 +6,8 @@ function TimeInputUnit(
     {
         children,
         onClick,
-        precision,
-        selected,
+        precision = 1,
+        selected = -1,
         ...props
     },
 ) {
@@ -45,11 +45,6 @@ TimeInputUnit.propTypes = {
     onClick: PropTypes.func.isRequired,
     precision: PropTypes.number,
     selected: PropTypes.number,
-};
-
-TimeInputUnit.defaultProps = {
-    precision: 1,
-    selected: -1,
 };
 
 export default TimeInputUnit;

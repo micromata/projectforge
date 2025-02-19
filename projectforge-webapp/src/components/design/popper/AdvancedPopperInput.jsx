@@ -7,7 +7,7 @@ import styles from './Popper.module.scss';
 function AdvancedPopperInput(
     {
         children,
-        dark,
+        dark = false,
         // Extract 'dispatch' so it's not passed to the input tag
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         dispatch,
@@ -55,18 +55,6 @@ AdvancedPopperInput.propTypes = {
     onKeyDown: PropTypes.func,
     placeholder: PropTypes.string,
     value: PropTypes.string,
-};
-
-AdvancedPopperInput.defaultProps = {
-    children: undefined,
-    dark: false,
-    dispatch: undefined,
-    forwardRef: undefined,
-    icon: undefined,
-    onCancel: undefined,
-    onKeyDown: undefined,
-    placeholder: '',
-    value: '',
 };
 
 export default AdvancedPopperInput;

@@ -9,7 +9,7 @@ import style from './DynamicTable.module.scss';
 function DynamicListPageTableHead(
     {
         id,
-        sortable,
+        sortable = false,
         direction,
         dispatchSort,
         title,
@@ -39,13 +39,6 @@ DynamicListPageTableHead.propTypes = {
     titleIcon: PropTypes.arrayOf(PropTypes.string),
     direction: PropTypes.string,
     sortable: PropTypes.bool,
-};
-
-DynamicListPageTableHead.defaultProps = {
-    sortable: false,
-    direction: undefined,
-    title: undefined,
-    titleIcon: undefined,
 };
 
 const mapStateToProps = ({ list }, { id }) => ({

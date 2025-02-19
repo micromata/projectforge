@@ -18,8 +18,4 @@ AdditionalLabel.propTypes = {
     title: PropTypes.string,
 };
 
-AdditionalLabel.defaultProps = {
-    title: undefined,
-};
-
 export default AdditionalLabel;

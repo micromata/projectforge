@@ -11,7 +11,7 @@ function ObjectAutoCompletion(
         inputId,
         inputProps,
         onSelect,
-        value,
+        value = {},
         ...props
     },
 ) {
@@ -79,12 +79,6 @@ ObjectAutoCompletion.propTypes = {
     value: PropTypes.shape({
         displayName: PropTypes.string,
     }),
-};
-
-ObjectAutoCompletion.defaultProps = {
-    icon: undefined,
-    inputProps: undefined,
-    value: {},
 };
 
 export default ObjectAutoCompletion;

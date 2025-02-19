@@ -3,8 +3,7 @@ import moment from 'moment';
 import 'moment/min/locales';
 import PropTypes from 'prop-types';
 import React from 'react';
-import DayPicker from 'react-day-picker';
-import MomentLocaleUtils from 'react-day-picker/moment';
+import { DayPicker } from 'react-day-picker';
 import { connect } from 'react-redux';
 import { Col, Row } from '../..';
 import { getTranslation } from '../../../../utilities/layout';
@@ -13,16 +12,17 @@ import TimeRange from './TimeRange';
 
 function DateTimeRange(
     {
-        firstDayOfWeek,
+        firstDayOfWeek = 1,
         from,
-        hideTimeInput,
+        hideTimeInput = false,
         id,
-        locale,
+        locale = 'en',
         onChange,
         selectors,
         setFrom,
         setTo,
-        translations,
+        timeNotation = 'H24',
+        translations = {},
         to,
         ...props
     },
@@ -234,7 +234,6 @@ function DateTimeRange(
                     className="range"
                     firstDayOfWeek={firstDayOfWeek}
                     locale={locale}
-                    localeUtils={MomentLocaleUtils}
                     modifiers={{
                         start: from,
                         end: to,
@@ -248,6 +247,7 @@ function DateTimeRange(
                         from,
                         to,
                     }]}
+                    timeNotation={timeNotation}
                     {...props}
                 />
             </Col>
@@ -268,19 +268,6 @@ DateTimeRange.propTypes = {
     timeNotation: PropTypes.string,
     translations: PropTypes.shape({}),
     to: PropTypes.instanceOf(Date),
-};
-
-DateTimeRange.defaultProps = {
-    hideTimeInput: false,
-    firstDayOfWeek: 1,
-    from: undefined,
-    locale: 'en',
-    setFrom: undefined,
-    setTo: undefined,
-    selectors: undefined,
-    timeNotation: 'H24',
-    translations: {},
-    to: undefined,
 };
 
 const mapStateToProps = ({ authentication }) => ({

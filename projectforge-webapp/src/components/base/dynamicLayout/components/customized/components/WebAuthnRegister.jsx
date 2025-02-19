@@ -45,7 +45,4 @@ WebAuthnRegister.propTypes = {
     }).isRequired,
 };
 
-WebAuthnRegister.defaultProps = {
-};
-
 export default WebAuthnRegister;

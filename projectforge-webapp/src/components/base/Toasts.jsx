@@ -49,8 +49,6 @@ Toasts.propTypes = {
     })).isRequired,
 };
 
-Toasts.defaultProps = {};
-
 const mapStateToProps = ({ toasts }) => ({ toasts });
 
 const actions = {

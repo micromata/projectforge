@@ -9,11 +9,11 @@ import FavoritesButton from './FavoritesButton';
 
 function FavoritesPanel(
     {
-        closeOnSelect,
-        currentFavoriteId,
-        htmlId,
-        isModified,
-        favorites,
+        closeOnSelect = true,
+        currentFavoriteId = -1,
+        htmlId = 'favoritesPopover',
+        isModified = false,
+        favorites = [],
         favoriteButtonText,
         favoriteButtonTooltip,
         onFavoriteCreate,
@@ -21,9 +21,9 @@ function FavoritesPanel(
         onFavoriteRename,
         onFavoriteSelect,
         onFavoriteUpdate,
-        newFavoriteI18nKey,
+        newFavoriteI18nKey = 'favorite.addNew',
         newFavoriteTooltipI18nKey,
-        translations,
+        translations = {},
     },
 ) {
     const [open, setOpen] = React.useState(false);
@@ -136,23 +136,6 @@ FavoritesPanel.propTypes = {
     translations: PropTypes.shape({
         'favorite.untitled': PropTypes.string,
     }),
-};
-
-FavoritesPanel.defaultProps = {
-    closeOnSelect: true,
-    currentFavoriteId: -1,
-    favoriteButtonText: undefined,
-    favoriteButtonTooltip: undefined,
-    favorites: [],
-    htmlId: 'favoritesPopover',
-    isModified: false,
-    onFavoriteCreate: undefined,
-    onFavoriteDelete: undefined,
-    onFavoriteRename: undefined,
-    onFavoriteUpdate: undefined,
-    newFavoriteI18nKey: 'favorite.addNew',
-    newFavoriteTooltipI18nKey: undefined,
-    translations: {},
 };
 
 export default FavoritesPanel;

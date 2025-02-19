@@ -132,6 +132,4 @@ function CustomizedAddressImage() {
 
 CustomizedAddressImage.propTypes = {};
 
-CustomizedAddressImage.defaultProps = {};
-
 export default CustomizedAddressImage;

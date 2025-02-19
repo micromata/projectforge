@@ -3,7 +3,8 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
+import { useLocation, useParams } from 'react-router';
 import { callAction, loadList } from '../../../actions';
 import DynamicLayout from '../../../components/base/dynamicLayout';
 import { Card, Container } from '../../../components/design';
@@ -12,19 +13,21 @@ import styles from './ListPage.module.scss';
 
 function ListPage(
     {
-        category,
-        location,
-        match,
         onCallAction,
         onCategoryChange,
     },
 ) {
+    const { category: paramsCategory } = useParams();
+    const location = useLocation();
+
+    const category = useSelector(({ list }) => list.categories[paramsCategory]);
+
     // Only reload the list when the category or search string changes.
     React.useEffect(
         () => {
-            onCategoryChange(match.params.category, true, (location.state || {}).variables);
+            onCategoryChange(paramsCategory, true, (location.state || {}).variables);
         },
-        [match.params.category, location.search, location.state],
+        [paramsCategory, location.search, location.state],
     );
 
     // TODO ADD ERROR HANDLING
@@ -60,39 +63,11 @@ function ListPage(
 }
 
 ListPage.propTypes = {
-    location: PropTypes.shape({
-        search: PropTypes.string,
-        state: PropTypes.shape({
-            id: PropTypes.number,
-        }),
-    }).isRequired,
-    match: PropTypes.shape({
-        params: PropTypes.shape({
-            category: PropTypes.string.isRequired,
-        }).isRequired,
-    }).isRequired,
     onCallAction: PropTypes.func.isRequired,
     onCategoryChange: PropTypes.func.isRequired,
-    category: PropTypes.shape({
-        ui: PropTypes.shape({
-            title: PropTypes.string,
-            hideSearchFilter: PropTypes.bool,
-            pageMenu: PropTypes.arrayOf(PropTypes.shape({})),
-        }),
-        data: PropTypes.shape({
-            resultInfo: PropTypes.shape({}),
-        }),
-        variables: PropTypes.shape({ }),
-    }),
 };
 
-ListPage.defaultProps = {
-    category: undefined,
-};
-
-const mapStateToProps = ({ list }, { match }) => ({
-    category: list.categories[match.params.category],
-});
+const mapStateToProps = () => ({});
 
 const actions = {
     onCallAction: callAction,

@@ -1,11 +1,11 @@
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Nav, NavItem, NavLink } from '../../../design';
 import style from '../Page.module.scss';
 
-function TabNavigation({ tabs, activeTab, ...props }) {
+function TabNavigation({ tabs = [], activeTab, ...props }) {
     return (
         <Nav tabs {...props}>
             {tabs.map((tab) => (
@@ -34,11 +34,6 @@ TabNavigation.propTypes = {
         link: PropTypes.string,
     })),
     activeTab: PropTypes.string,
-};
-
-TabNavigation.defaultProps = {
-    tabs: [],
-    activeTab: undefined,
 };
 
 export default TabNavigation;

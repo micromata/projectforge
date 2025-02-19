@@ -32,6 +32,7 @@ import kotlin.reflect.KProperty
 class UILayout(
   title: String,
   /** restBaseUrl is needed, if [UIAttachmentList] is used. */
+  @Suppress("unused") // Needed by React frontend.
   var restBaseUrl: String? = null,
 ) : IUIContainer {
   class UserAccess(
@@ -49,6 +50,11 @@ class UILayout(
      * Cancel button is visible for all users at default.
      */
     var cancel: Boolean? = true,
+    /**
+     * Is the edit user-comment button visible?
+     * @see [org.projectforge.framework.persistence.api.BaseDao.supportsHistoryUserComments]
+     */
+    var editHistoryComments: Boolean? = null,
   ) {
     fun copyFrom(userAccess: UserAccess?) {
       this.history = userAccess?.history
@@ -56,6 +62,7 @@ class UILayout(
       this.update = userAccess?.update
       this.delete = userAccess?.delete
       this.cancel = userAccess?.cancel ?: true
+      this.editHistoryComments = userAccess?.editHistoryComments
     }
 
     fun onlySelectAccess(): Boolean {

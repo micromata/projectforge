@@ -50,6 +50,4 @@ function VacationTable() {
 
 VacationTable.propTypes = {};
 
-VacationTable.defaultProps = {};
-
 export default VacationTable;
