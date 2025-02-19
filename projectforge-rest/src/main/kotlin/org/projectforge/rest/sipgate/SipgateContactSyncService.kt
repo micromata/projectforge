@@ -767,7 +767,12 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
 
     internal open fun delete(entry: SipgateContactSyncDO, em: EntityManager) {
         log.info { "Deleting syncObj: $entry" }
-        em.remove(entry)
+        val managedEntry = em.find(SipgateContactSyncDO::class.java, entry.sipgateContactId)
+        if (managedEntry == null) {
+            log.error { "Oups, shouldn't occur. Can't find syncObj for contact id '${entry.sipgateContactId}'. Can't remove it (skipping)" }
+            return
+        }
+        em.remove(managedEntry)
         em.flush()
     }
 
