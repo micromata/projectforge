@@ -1,5 +1,5 @@
 ==== Aktuell:
-- Doppelter E-Mailversand bei Urlaubseinträgen (deutsch und englisch).
+- Schedule-Task für Sipgate-Sync
 - JCR: Tool for removing or recovering orphaned nodes.
 - Favoriten bei Scriptausführung für Parameter.
 - Viewpage für user für non-admins.
