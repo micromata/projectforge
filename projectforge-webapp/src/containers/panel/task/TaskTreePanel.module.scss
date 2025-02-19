@@ -33,3 +33,8 @@ $transitionTime: .3s;
   color: #009BA3;
 }
 
+.treePanelBody {
+  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+}

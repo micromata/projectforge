@@ -19,8 +19,8 @@ function ReadonlyField(
     {
         dataType,
         additionalLabel,
-        canCopy,
-        coverUp,
+        canCopy = false,
+        coverUp = false,
         id,
         label,
         tooltip,
@@ -126,15 +126,6 @@ ReadonlyField.propTypes = {
     tooltip: PropTypes.string,
     dataType: PropTypes.string,
     value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-};
-
-ReadonlyField.defaultProps = {
-    dataType: undefined,
-    additionalLabel: undefined,
-    canCopy: false,
-    coverUp: false,
-    tooltip: undefined,
-    value: undefined,
 };
 
 export default ReadonlyField;

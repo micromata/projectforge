@@ -1,9 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 
-function DynamicSpacer(props) {
-    const { width } = props;
-
+function DynamicSpacer({ width = 1 }) {
     return (
         <div style={{ width: `${width}em` }}>&nbsp;</div>
     );
@@ -11,10 +9,6 @@ function DynamicSpacer(props) {
 
 DynamicSpacer.propTypes = {
     width: PropTypes.number,
-};
-
-DynamicSpacer.defaultProps = {
-    width: 1,
 };
 
 export default DynamicSpacer;

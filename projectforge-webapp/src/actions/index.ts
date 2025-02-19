@@ -25,7 +25,6 @@ export {
     fetchCurrentList,
     exportCurrentList,
     startMultiSelection,
-    openEditPage,
 } from './list';
 
 export {

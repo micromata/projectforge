@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
-import UncontrolledTooltip from 'reactstrap/lib/UncontrolledTooltip';
+import { UncontrolledTooltip } from 'reactstrap';
 import { colorPropType } from '../../../utilities/propTypes';
 import TooltipIcon from '../TooltipIcon';
 import AdditionalLabel from './AdditionalLabel';
@@ -21,7 +21,7 @@ function TextArea(
         maxRows,
         onChange,
         onKeyDown,
-        rows,
+        rows = 3,
         tooltip,
         value,
         ...props
@@ -112,19 +112,6 @@ TextArea.propTypes = {
     rows: PropTypes.number,
     tooltip: PropTypes.string,
     value: PropTypes.string,
-};
-
-TextArea.defaultProps = {
-    additionalLabel: undefined,
-    className: undefined,
-    color: undefined,
-    cssClass: undefined,
-    maxRows: undefined,
-    onChange: undefined,
-    onKeyDown: undefined,
-    rows: 3,
-    tooltip: undefined,
-    value: undefined,
 };
 
 export default TextArea;

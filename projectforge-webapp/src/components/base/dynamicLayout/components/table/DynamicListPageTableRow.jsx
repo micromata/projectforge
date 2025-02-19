@@ -1,8 +1,8 @@
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { connect } from 'react-redux';
-import { openEditPage } from '../../../../../actions';
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router';
 import { tableColumnsPropType } from '../../../../../utilities/propTypes';
 import Formatter from '../../../Formatter';
 import DynamicCustomized from '../customized';
@@ -12,10 +12,14 @@ function DynamicListPageTableRow(
     {
         columns,
         row,
-        highlightRow,
-        handleRowClick,
+        highlightRow = false,
     },
 ) {
+    const list = useSelector((state) => state.list);
+    const navigate = useNavigate();
+
+    const handleRowClick = () => navigate(`/${list.categories[list.currentCategory].standardEditPage.replace(':id', row.id)}`);
+
     return (
         <tr
             onClick={handleRowClick}
@@ -41,6 +45,7 @@ function DynamicListPageTableRow(
                                 id={id}
                                 dataType={dataType}
                                 {...column}
+                                key={column.key}
                             />
                         )}
                 </td>
@@ -51,7 +56,6 @@ function DynamicListPageTableRow(
 
 DynamicListPageTableRow.propTypes = {
     columns: tableColumnsPropType.isRequired,
-    handleRowClick: PropTypes.func.isRequired,
     row: PropTypes.shape({
         id: PropTypes.number.isRequired,
         deleted: PropTypes.bool,
@@ -59,14 +63,4 @@ DynamicListPageTableRow.propTypes = {
     highlightRow: PropTypes.bool,
 };
 
-DynamicListPageTableRow.defaultProps = {
-    highlightRow: false,
-};
-
-const mapStateToProps = undefined;
-
-const actions = (dispatch, { row }) => ({
-    handleRowClick: () => dispatch(openEditPage(row.id)),
-});
-
-export default connect(mapStateToProps, actions)(DynamicListPageTableRow);
+export default DynamicListPageTableRow;

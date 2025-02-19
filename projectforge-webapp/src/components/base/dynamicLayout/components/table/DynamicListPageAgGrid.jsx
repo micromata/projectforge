@@ -8,6 +8,7 @@ import DynamicButton from '../DynamicButton';
 
 function DynamicListPageAgGrid({
     columnDefs,
+    selectionColumnDef,
     id,
     sortModel,
     rowSelection,
@@ -20,6 +21,7 @@ function DynamicListPageAgGrid({
     handleCancelUrl,
     pagination,
     paginationPageSize,
+    paginationPageSizeSelector,
     getRowClass,
 }) {
     const [gridApi, setGridApi] = useState();
@@ -92,14 +94,15 @@ function DynamicListPageAgGrid({
                 <DynamicAgGrid
                     onGridApiReady={onGridApiReady}
                     columnDefs={columnDefs}
+                    selectionColumnDef={selectionColumnDef}
                     id={id}
                     sortModel={sortModel}
                     rowSelection={rowSelection}
-                    rowMultiSelectWithClick={rowMultiSelectWithClick}
                     rowClickRedirectUrl={rowClickRedirectUrl}
                     onColumnStatesChangedUrl={onColumnStatesChangedUrl}
                     pagination={pagination}
                     paginationPageSize={paginationPageSize}
+                    paginationPageSizeSelector={paginationPageSizeSelector}
                     getRowClass={getRowClass}
                 />
             </div>
@@ -109,9 +112,11 @@ function DynamicListPageAgGrid({
             multiSelectButtonTitle,
             multiSelectButtonConfirmMessage,
             columnDefs,
+            selectionColumnDef,
             sortModel,
             rowSelection,
             rowMultiSelectWithClick,
+            paginationPageSize,
             ui,
         ],
     );
@@ -123,14 +128,23 @@ DynamicListPageAgGrid.propTypes = {
         title: PropTypes.string,
         titleIcon: PropTypes.arrayOf(PropTypes.string),
     })).isRequired,
+    selectionColumnDef: PropTypes.arrayOf(PropTypes.shape({
+        pinned: PropTypes.string,
+        resizable: PropTypes.bool,
+        sortable: PropTypes.bool,
+        filter: PropTypes.bool,
+    })),
     id: PropTypes.string,
     sortModel: PropTypes.arrayOf(PropTypes.shape({
         colId: PropTypes.string.isRequired,
         sort: PropTypes.string,
         sortIndex: PropTypes.number,
     })),
-    rowSelection: PropTypes.string,
-    rowMultiSelectWithClick: PropTypes.bool,
+    rowSelection: PropTypes.shape({
+        mode: PropTypes.string,
+        enableClickSelection: PropTypes.bool,
+        enableSelectionWithoutKeys: PropTypes.bool,
+    }),
     rowClickRedirectUrl: PropTypes.string,
     onColumnStatesChangedUrl: PropTypes.string,
     multiSelectButtonTitle: PropTypes.string,
@@ -139,12 +153,8 @@ DynamicListPageAgGrid.propTypes = {
     handleCancelUrl: PropTypes.string,
     pagination: PropTypes.bool,
     paginationPageSize: PropTypes.number,
+    paginationPageSizeSelector: PropTypes.arrayOf(PropTypes.number),
     getRowClass: PropTypes.string,
-};
-
-DynamicListPageAgGrid.defaultProps = {
-    id: undefined,
-    getRowClass: undefined,
 };
 
 export default DynamicListPageAgGrid;

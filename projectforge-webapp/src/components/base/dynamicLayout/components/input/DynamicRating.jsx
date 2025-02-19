@@ -31,6 +31,4 @@ DynamicRating.propTypes = {
     label: PropTypes.string.isRequired,
 };
 
-DynamicRating.defaultProps = {};
-
 export default DynamicRating;

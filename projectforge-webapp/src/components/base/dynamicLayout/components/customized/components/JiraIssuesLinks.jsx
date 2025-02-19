@@ -6,7 +6,7 @@ import React from 'react';
  */
 function JiraIssuesLinks(
     {
-        values,
+        values = null,
     },
 ) {
     let jiraIssuesMap;
@@ -32,10 +32,6 @@ function JiraIssuesLinks(
 JiraIssuesLinks.propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     values: PropTypes.any,
-};
-
-JiraIssuesLinks.defaultProps = {
-    values: null,
 };
 
 export default JiraIssuesLinks;

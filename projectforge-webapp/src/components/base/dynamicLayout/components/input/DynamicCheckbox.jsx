@@ -31,6 +31,4 @@ DynamicCheckbox.propTypes = {
     label: PropTypes.string.isRequired,
 };
 
-DynamicCheckbox.defaultProps = {};
-
 export default DynamicCheckbox;

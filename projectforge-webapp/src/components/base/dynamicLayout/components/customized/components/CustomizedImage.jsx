@@ -28,6 +28,4 @@ CustomizedImage.propTypes = {
     }).isRequired,
 };
 
-CustomizedImage.defaultProps = {};
-
 export default CustomizedImage;

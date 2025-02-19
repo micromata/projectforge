@@ -38,6 +38,4 @@ CustomizedAddressView.propTypes = {
     }).isRequired,
 };
 
-CustomizedAddressView.defaultProps = {};
-
 export default CustomizedAddressView;

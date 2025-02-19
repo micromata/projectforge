@@ -38,10 +38,4 @@ DynamicFieldset.propTypes = {
     offset: lengthPropType,
 };
 
-DynamicFieldset.defaultProps = {
-    title: undefined,
-    length: undefined,
-    offset: undefined,
-};
-
 export default DynamicFieldset;

@@ -26,7 +26,7 @@ const filterRecent = (
 function TimesheetRecentEntry(
     {
         callback,
-        cost2Visible,
+        cost2Visible = false,
         recent,
     },
 ) {
@@ -96,10 +96,6 @@ TimesheetRecentEntry.propTypes = {
         description: PropTypes.string,
     }).isRequired,
     cost2Visible: PropTypes.bool,
-};
-
-TimesheetRecentEntry.defaultProps = {
-    cost2Visible: false,
 };
 
 export { filterRecent };

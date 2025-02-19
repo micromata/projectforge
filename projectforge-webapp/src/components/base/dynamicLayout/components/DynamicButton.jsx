@@ -7,13 +7,13 @@ import { DynamicLayoutContext } from '../context';
 function DynamicButton(props) {
     const {
         confirmMessage,
-        default: isDefault,
+        default: isDefault = false,
         id,
         title,
         tooltip,
         disabled,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        responseAction,
+        responseAction = {},
         handleButtonClick,
         ...stylingProps
     } = props;
@@ -118,16 +118,6 @@ DynamicButton.propTypes = {
     tooltip: PropTypes.string,
     disabled: PropTypes.bool,
     handleButtonClick: PropTypes.func,
-};
-
-DynamicButton.defaultProps = {
-    confirmMessage: undefined,
-    default: false,
-    id: undefined,
-    responseAction: {},
-    tooltip: undefined,
-    disabled: undefined,
-    handleButtonClick: undefined,
 };
 
 export default DynamicButton;

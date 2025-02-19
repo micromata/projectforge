@@ -140,8 +140,4 @@ TaskFilter.propTypes = {
     }),
 };
 
-TaskFilter.defaultProps = {
-    translations: {},
-};
-
 export default TaskFilter;

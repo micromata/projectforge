@@ -28,7 +28,6 @@ export {
     Form,
     FormGroup,
     InputGroup,
-    InputGroupAddon,
     Label,
     Modal,
     ModalBody,

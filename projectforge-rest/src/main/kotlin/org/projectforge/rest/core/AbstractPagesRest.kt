@@ -205,39 +205,40 @@ constructor(
         checkUserAccess(null, userAccess)
         userAccess.update = true // Assume that the user has general update access (change this, see GroupPagesRest)
         val layout = UILayout("$i18nKeyPrefix.list")
-        val gearMenu = layout.ensureGearMenu()
-        gearMenu.add(
-            MenuItem(
-                "reindexNewestDatabaseEntries",
-                i18nKey = "menu.reindexNewestDatabaseEntries",
-                tooltip = "menu.reindexNewestDatabaseEntries.tooltip.content",
-                tooltipTitle = "menu.reindexNewestDatabaseEntries.tooltip.title",
-                url = getRestPath("reindexNewest"),
-                type = MenuItemTargetType.RESTCALL
-            )
-        )
-        if (accessChecker.isLoggedInUserMemberOfAdminGroup)
+        if (!isMultiSelectionMode(request, magicFilter)) {
+            val gearMenu = layout.ensureGearMenu()
             gearMenu.add(
                 MenuItem(
-                    "reindexAllDatabaseEntries",
-                    i18nKey = "menu.reindexAllDatabaseEntries",
-                    tooltip = "menu.reindexAllDatabaseEntries.tooltip.content",
-                    tooltipTitle = "menu.reindexAllDatabaseEntries.tooltip.title",
-                    url = getRestPath("reindexFull"),
+                    "reindexNewestDatabaseEntries",
+                    i18nKey = "menu.reindexNewestDatabaseEntries",
+                    tooltip = "menu.reindexNewestDatabaseEntries.tooltip.content",
+                    tooltipTitle = "menu.reindexNewestDatabaseEntries.tooltip.title",
+                    url = getRestPath("reindexNewest"),
                     type = MenuItemTargetType.RESTCALL
                 )
             )
-        gearMenu.add(
-            MenuItem(
-                "resetFilter",
-                i18nKey = "menu.resetFilter",
-                tooltip = "menu.resetFilter.info",
-                tooltipTitle = "menu.resetFilter",
-                url = getRestPath("filter/reset"),
-                type = MenuItemTargetType.RESTCALL
+            if (accessChecker.isLoggedInUserMemberOfAdminGroup)
+                gearMenu.add(
+                    MenuItem(
+                        "reindexAllDatabaseEntries",
+                        i18nKey = "menu.reindexAllDatabaseEntries",
+                        tooltip = "menu.reindexAllDatabaseEntries.tooltip.content",
+                        tooltipTitle = "menu.reindexAllDatabaseEntries.tooltip.title",
+                        url = getRestPath("reindexFull"),
+                        type = MenuItemTargetType.RESTCALL
+                    )
+                )
+            gearMenu.add(
+                MenuItem(
+                    "resetFilter",
+                    i18nKey = "menu.resetFilter",
+                    tooltip = "menu.resetFilter.info",
+                    tooltipTitle = "menu.resetFilter",
+                    url = getRestPath("filter/reset"),
+                    type = MenuItemTargetType.RESTCALL
+                )
             )
-        )
-
+        }
         layout.addTranslations(
             "reset", "datatable.no-records-found", "date.begin", "date.end", "exportAsXls",
             "search.lastMinute", "search.lastHour", "calendar.today", "search.sinceYesterday",
@@ -405,29 +406,34 @@ constructor(
                 "searchFilter",
                 "nothingFound"
             )
-        val searchFilterContainer = LayoutListFilterUtils.createNamedSearchFilterContainer(this, lc)
-        val filterEntries = mutableSetOf<String>()
-        searchFilterContainer.content.forEach {
-            if (it is UIFilterElement) {
-                filterEntries.add(it.id)
+        if (isMultiSelectionMode(request, filter)) {
+            // Don't show search filter in multi selection mode (it isn't supported). The user
+            // should use the AG-Grid filter instead.
+            ui.hideSearchFilter = true
+        } else {
+            val searchFilterContainer = LayoutListFilterUtils.createNamedSearchFilterContainer(this, lc)
+            val filterEntries = mutableSetOf<String>()
+            searchFilterContainer.content.forEach {
+                if (it is UIFilterElement) {
+                    filterEntries.add(it.id)
+                }
+            }
+            removeUnknownFilterEntries(filter, filterEntries)
+            ui.add(searchFilterContainer)
+            if (classicsLinkListUrl != null) {
+                ui.add(
+                    MenuItem(
+                        CLASSIC_VERSION_MENU,
+                        title = "*",
+                        url = classicsLinkListUrl,
+                        tooltip = translate("goreact.menu.classics")
+                    ), 0
+                )
+            }
+            if (ui.userAccess.insert != false) {
+                ui.add(MenuItem(CREATE_MENU, title = translate("add"), url = addNewEntryUrl))
             }
         }
-        removeUnknownFilterEntries(filter, filterEntries)
-        ui.add(searchFilterContainer)
-        if (classicsLinkListUrl != null) {
-            ui.add(
-                MenuItem(
-                    CLASSIC_VERSION_MENU,
-                    title = "*",
-                    url = classicsLinkListUrl,
-                    tooltip = translate("goreact.menu.classics")
-                ), 0
-            )
-        }
-        if (ui.userAccess.insert != false) {
-            ui.add(MenuItem(CREATE_MENU, title = translate("add"), url = addNewEntryUrl))
-        }
-
         return InitialListData(
             ui = ui,
             standardEditPage = getStandardEditPage(),
@@ -758,6 +764,7 @@ constructor(
             newBaseDTO(request)
         })
             ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+        userAccess.editHistoryComments = baseDao.supportsHistoryUserComments
         onBeforeGetItemAndLayout(request, item, userAccess)
         val formLayoutData = getItemAndLayout(request, item, userAccess)
         returnToCaller?.let {
@@ -1341,6 +1348,12 @@ constructor(
         return action
     }
 
+    /**
+     * Is this list page currentyl in multi selection mode?
+     */
+    fun isMultiSelectionMode(request: HttpServletRequest, magicFilter: MagicFilter): Boolean {
+        return MultiSelectionSupport.isMultiSelection(request, magicFilter)
+    }
 
     /**
      * Might be initialized by [enableJcr] with default dao access checker.

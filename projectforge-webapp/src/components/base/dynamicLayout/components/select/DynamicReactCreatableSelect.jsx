@@ -15,11 +15,17 @@ export const extractDataValue = (
     return dataValue;
 };
 
-function DynamicReactSelect(props) {
+function DynamicReactSelect({
+    id,
+    required = false,
+    ...restProps
+}) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
-    const {
+    const props = {
         id,
-    } = props;
+        required,
+        ...restProps,
+    };
 
     const valueStringArray = extractDataValue({ data, ...props });
     let value;
@@ -54,12 +60,6 @@ DynamicReactSelect.propTypes = {
     label: PropTypes.string.isRequired,
     additionalLabel: PropTypes.string,
     required: PropTypes.bool,
-};
-
-DynamicReactSelect.defaultProps = {
-    value: undefined,
-    additionalLabel: undefined,
-    required: false,
 };
 
 export default DynamicReactSelect;

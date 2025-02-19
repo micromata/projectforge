@@ -1,9 +1,8 @@
 import moment from 'moment';
 import 'moment/min/locales';
 import PropTypes from 'prop-types';
-import React from 'react';
-import DayPicker from 'react-day-picker';
-import MomentLocaleUtils from 'react-day-picker/moment';
+import React, { useCallback } from 'react';
+import { DayPicker } from 'react-day-picker';
 import { connect } from 'react-redux';
 import { colorPropType } from '../../../../utilities/propTypes';
 import AdvancedPopper from '../../popper/AdvancedPopper';
@@ -15,11 +14,11 @@ function DateInput(
     {
         additionalLabel,
         color,
-        hideDayPicker,
+        hideDayPicker = false,
         jsDateFormat,
         label,
-        locale,
-        noInputContainer,
+        locale = 'en',
+        noInputContainer = false,
         setDate,
         todayButton,
         value,
@@ -28,6 +27,7 @@ function DateInput(
     const [inputValue, setInputValue] = React.useState('');
     const [isActive, setIsActive] = React.useState(false);
     const [isOpen, setIsOpen] = React.useState(false);
+    const [selectedMonth, setSelectedMonth] = React.useState(value);
     const inputRef = React.useRef(null);
     const Tag = noInputContainer ? React.Fragment : InputContainer;
 
@@ -158,9 +158,9 @@ function DateInput(
             <DayPicker
                 selectedDays={value}
                 onDayClick={handleDayPickerClick}
-                month={value}
+                month={selectedMonth}
+                onMonthChange={setSelectedMonth}
                 locale={locale}
-                localeUtils={MomentLocaleUtils}
                 onTodayButtonClick={setDate}
                 todayButton={todayButton}
             />
@@ -179,17 +179,6 @@ DateInput.propTypes = {
     noInputContainer: PropTypes.bool,
     todayButton: PropTypes.string,
     value: PropTypes.instanceOf(Date),
-};
-
-DateInput.defaultProps = {
-    additionalLabel: undefined,
-    color: undefined,
-    hideDayPicker: false,
-    label: undefined,
-    locale: 'en',
-    noInputContainer: false,
-    todayButton: undefined,
-    value: undefined,
 };
 
 const mapStateToProps = ({ authentication }) => ({

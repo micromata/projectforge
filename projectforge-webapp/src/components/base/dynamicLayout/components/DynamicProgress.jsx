@@ -12,7 +12,7 @@ function DynamicProgress(props) {
         title,
         color,
         id,
-        value,
+        value = 0,
         info,
         infoColor,
         cancelId,
@@ -86,19 +86,6 @@ DynamicProgress.propTypes = {
     cancelConfirmMessage: PropTypes.string,
     onCancelClick: PropTypes.func,
     animated: PropTypes.bool,
-};
-
-DynamicProgress.defaultProps = {
-    title: undefined,
-    id: undefined,
-    color: undefined,
-    value: 0,
-    info: undefined,
-    infoColor: undefined,
-    cancelId: undefined,
-    cancelConfirmMessage: undefined,
-    onCancelClick: undefined,
-    animated: undefined,
 };
 
 export default DynamicProgress;

@@ -9,11 +9,11 @@ import style from '../../../components/design/input/Input.module.scss';
 function FavoritesButton(
     {
         id,
-        isOpen,
+        isOpen = false,
         toggle,
         favoriteButtonText,
         favoriteButtonTooltip,
-        translations,
+        translations = {},
     },
 ) {
     const [hover, setHover] = React.useState(false);
@@ -58,15 +58,8 @@ FavoritesButton.propTypes = {
     favoriteButtonTooltip: PropTypes.string,
     isOpen: PropTypes.bool,
     translations: PropTypes.shape({
-        favorites: PropTypes.string.isRequired,
+        favorites: PropTypes.string,
     }),
-};
-
-FavoritesButton.defaultProps = {
-    favoriteButtonText: undefined,
-    favoriteButtonTooltip: undefined,
-    isOpen: false,
-    translations: {},
 };
 
 export default FavoritesButton;

@@ -42,6 +42,7 @@ function CustomizedAddressPhoneNumbers({ data }) {
                             smsEnabled={smsEnabled}
                             callerPage="addressList"
                             {...value}
+                            key={`phone-${address.id}-${value.key}`}
                         />
                     ))}
                 </>
@@ -62,7 +63,5 @@ CustomizedAddressPhoneNumbers.propTypes = {
     }).isRequired,
 
 };
-
-CustomizedAddressPhoneNumbers.defaultProps = {};
 
 export default CustomizedAddressPhoneNumbers;

@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import useInterval from '@use-hooks/interval';
 import { Table } from '../../../../design';
 import { DynamicLayoutContext } from '../../context';
 import { fetchJsonGet, fetchJsonPost } from '../../../../../utilities/rest';
@@ -14,7 +13,7 @@ function DynamicTable(
         rowClickPostUrl,
         refreshUrl,
         refreshMethod,
-        refreshIntervalSeconds,
+        refreshIntervalSeconds = 10,
         autoRefreshFlag,
     },
 ) {
@@ -121,7 +120,7 @@ function DynamicTable(
                 </p>
             )}
         </div>
-    ), [entries, ui]);
+    ), [entries, ui, rowClickPostUrl]);
 }
 
 DynamicTable.propTypes = {
@@ -135,15 +134,6 @@ DynamicTable.propTypes = {
     refreshUrl: PropTypes.string,
     refreshIntervalSeconds: PropTypes.number,
     autoRefreshFlag: PropTypes.string,
-};
-
-DynamicTable.defaultProps = {
-    id: undefined,
-    rowClickPostUrl: undefined,
-    refreshUrl: undefined,
-    refreshMethod: undefined,
-    refreshIntervalSeconds: 10, // 10 seconds as default intervall.
-    autoRefreshFlag: undefined,
 };
 
 export default DynamicTable;

@@ -80,6 +80,4 @@ DynamicList.propTypes = {
     positionLabel: PropTypes.string.isRequired,
 };
 
-DynamicList.defaultProps = {};
-
 export default DynamicList;

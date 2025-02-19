@@ -45,9 +45,4 @@ DynamicPageMenu.propTypes = {
     title: PropTypes.string,
 };
 
-DynamicPageMenu.defaultProps = {
-    menu: undefined,
-    title: undefined,
-};
-
 export default DynamicPageMenu;

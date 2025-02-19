@@ -190,8 +190,3 @@ export const startMultiSelection = () => (dispatch, getState) => {
         },
     );
 };
-
-export const openEditPage = (id) => (_, getState) => {
-    const state = getState().list;
-    history.push(`/${state.categories[state.currentCategory].standardEditPage.replace(':id', id)}`);
-};

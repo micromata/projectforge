@@ -25,7 +25,7 @@ const formatterFormat = (
         case 'KONTO':
         case 'PROJECT':
         case 'EMPLOYEE':
-            return value?.displayName ?? '???';
+            return value?.displayName || value || '???';
         case 'SHOW_LIST_OF_DISPLAYNAMES':
             if (value && Array.isArray(value)) {
                 return value.map((obj) => obj.displayName).join(', ');
@@ -40,13 +40,13 @@ const formatterFormat = (
             return moment(value).format(dateFormat);
         case 'TASK':
         case 'TASK_PATH':
-            return value.title;
+            return value.title || value || '???';
         case 'TIMESTAMP':
             return moment(value).format(timestampFormatSeconds);
         case 'TIMESTAMP_MINUTES':
             return moment(value).format(timestampFormatMinutes);
         case 'USER':
-            return value.displayName || value.fullname || value.username;
+            return value.displayName || value.fullname || value.username || value || '???';
         case 'AUFTRAGPOSITION':
             return value.number;
         case 'GROUP':

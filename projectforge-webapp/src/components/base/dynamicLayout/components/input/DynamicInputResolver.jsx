@@ -104,9 +104,4 @@ DynamicInputResolver.propTypes = {
     autoCompletionUrlParams: PropTypes.shape({}),
 };
 
-DynamicInputResolver.defaultProps = {
-    autoCompletionUrl: undefined,
-    autoCompletionUrlParams: undefined,
-};
-
 export default DynamicInputResolver;

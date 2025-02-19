@@ -15,7 +15,13 @@ function DynamicLayout(
     {
         children,
         ui,
-        options,
+        callAction = dynamicLayoutContextDefaultValues.callAction,
+        data = {},
+        options = dynamicLayoutContextDefaultValues.options,
+        setData = dynamicLayoutContextDefaultValues.setData,
+        setVariables = dynamicLayoutContextDefaultValues.setVariables,
+        validationErrors = [],
+        variables = {},
         ...props
     },
 ) {
@@ -71,6 +77,12 @@ function DynamicLayout(
                 ui,
                 options,
                 renderLayout,
+                callAction,
+                data,
+                setData,
+                setVariables,
+                validationErrors,
+                variables,
                 ...props,
             }}
         >
@@ -120,17 +132,6 @@ DynamicLayout.propTypes = {
         fieldId: PropTypes.string,
     })),
     variables: PropTypes.shape({}),
-};
-
-DynamicLayout.defaultProps = {
-    callAction: dynamicLayoutContextDefaultValues.callAction,
-    children: undefined,
-    data: {},
-    options: dynamicLayoutContextDefaultValues.options,
-    setData: dynamicLayoutContextDefaultValues.setData,
-    setVariables: dynamicLayoutContextDefaultValues.setVariables,
-    validationErrors: [],
-    variables: {},
 };
 
 export default DynamicLayout;

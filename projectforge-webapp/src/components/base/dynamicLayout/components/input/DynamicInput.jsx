@@ -4,7 +4,7 @@ import Input from '../../../../design/input';
 import { DynamicLayoutContext } from '../../context';
 import DynamicValidationManager from './DynamicValidationManager';
 
-function DynamicInput({ id, focus, ...props }) {
+function DynamicInput({ id, focus = false, ...props }) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
     let value = Object.getByString(data, id);
@@ -36,10 +36,6 @@ function DynamicInput({ id, focus, ...props }) {
 DynamicInput.propTypes = {
     id: PropTypes.string.isRequired,
     focus: PropTypes.bool,
-};
-
-DynamicInput.defaultProps = {
-    focus: false,
 };
 
 export default DynamicInput;
