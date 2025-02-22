@@ -40,41 +40,45 @@ private val log = KotlinLogging.logger {}
  */
 @Component
 class DatatransferAuditJob {
-  @Autowired
-  private lateinit var dataTransferAreaDao: DataTransferAreaDao
+    @Autowired
+    private lateinit var dataTransferAreaDao: DataTransferAreaDao
 
-  @Autowired
-  private lateinit var dataTransferAuditDao: DataTransferAuditDao
+    @Autowired
+    private lateinit var dataTransferAuditDao: DataTransferAuditDao
 
-  @Autowired
-  private lateinit var dataTransferNotificationMailService: DataTransferNotificationMailService
+    @Autowired
+    private lateinit var dataTransferNotificationMailService: DataTransferNotificationMailService
 
-  @Autowired
-  private lateinit var pluginAdminService: PluginAdminService
+    @Autowired
+    private lateinit var pluginAdminService: PluginAdminService
 
-  // Every 5 minutes, starting 5 minutes after starting.
-  @Scheduled(fixedDelay = 5 * Constants.MILLIS_PER_MINUTE, initialDelay = 5 * Constants.MILLIS_PER_MINUTE)
-  fun execute() {
-    if (!pluginAdminService.activePlugins.any { it.id == DataTransferPlugin.ID }) {
-      log.info("Plugin data transfer not activated. Don't need to send any notification.")
-      return
+    // Every 5 minutes, starting 5 minutes after starting.
+    @Scheduled(fixedDelay = 5 * Constants.MILLIS_PER_MINUTE, initialDelay = 5 * Constants.MILLIS_PER_MINUTE)
+    fun execute() {
+        if (!pluginAdminService.activePlugins.any { it.id == DataTransferPlugin.ID }) {
+            log.info("Plugin data transfer not activated. Don't need to send any notification.")
+            return
+        }
+        Thread {
+            log.info("Data transfer audit job started.")
+            val startTimeInMillis = System.currentTimeMillis()
+
+            var sentMailCounter = 0
+            val areas = dataTransferAreaDao.selectAll(checkAccess = false)
+            areas.forEach { area ->
+                val auditEntries = dataTransferAuditDao.internalGetQueuedEntriesByAreaId(area.id)
+                val downloadAuditEntries = dataTransferAuditDao.internalGetDownloadEntriesByAreaId(area.id)
+                if (!auditEntries.isNullOrEmpty()) {
+                    dataTransferNotificationMailService.sendMails(area, auditEntries, downloadAuditEntries)
+                    ++sentMailCounter
+                    dataTransferAuditDao.removeFromQueue(auditEntries)
+                }
+            }
+            dataTransferAuditDao.deleteOldEntries(
+                PFDateTime.now().minusDays(30)
+            ) // If you change this, you should change:
+            // i18n: plugins.datatransfer.audit.events, plugins.datatransfer.audit.downloadEvents
+            log.info("DataTransfer audit job finished after ${(System.currentTimeMillis() - startTimeInMillis) / 1000} seconds. Number of sent mails: $sentMailCounter.")
+        }.start()
     }
-    log.info("Data transfer audit job started.")
-    val startTimeInMillis = System.currentTimeMillis()
-
-    var sentMailCounter = 0
-    val areas = dataTransferAreaDao.selectAll(checkAccess = false)
-    areas.forEach { area ->
-      val auditEntries = dataTransferAuditDao.internalGetQueuedEntriesByAreaId(area.id)
-      val downloadAuditEntries = dataTransferAuditDao.internalGetDownloadEntriesByAreaId(area.id)
-      if (!auditEntries.isNullOrEmpty()) {
-        dataTransferNotificationMailService.sendMails(area, auditEntries, downloadAuditEntries)
-        ++sentMailCounter
-        dataTransferAuditDao.removeFromQueue(auditEntries)
-      }
-    }
-    dataTransferAuditDao.deleteOldEntries(PFDateTime.now().minusDays(30)) // If you change this, you should change:
-    // i18n: plugins.datatransfer.audit.events, plugins.datatransfer.audit.downloadEvents
-    log.info("DataTransfer audit job finished after ${(System.currentTimeMillis() - startTimeInMillis) / 1000} seconds. Number of sent mails: $sentMailCounter.")
-  }
 }

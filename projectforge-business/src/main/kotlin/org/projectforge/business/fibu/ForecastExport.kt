@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import de.micromata.merlin.excel.ExcelCell
 import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
 import mu.KotlinLogging
@@ -481,8 +482,14 @@ open class ForecastExport { // open needed by Wicket.
         planningSheet: Boolean = false
     ) { // Adding month columns
         var currentMonth = baseDate
+        var firstMonthCell: ExcelCell? = null
+        var lastMonthCell: ExcelCell? = null
         MonthCol.entries.forEach {
             sheet.headRow!!.getCell(sheet.getColumnDef(it.header)!!).also { cell ->
+                if (firstMonthCell == null) {
+                    firstMonthCell = cell
+                }
+                lastMonthCell = cell
                 cell.setCellValue(formatMonthHeader(currentMonth))
             }
             if (planningSheet) {
@@ -495,8 +502,8 @@ open class ForecastExport { // open needed by Wicket.
         if (planningSheet) {
             // Clear first heading row for planning sheet:
             sheet.headRow?.let { row ->
-                ExcelUtils.clearCells(row, 0, 26)
-                ExcelUtils.clearCells(row, 39, FORECAST_NUMBER_OF_COLS)
+                ExcelUtils.clearCells(row, 0, firstMonthCell!!.colNumber - 1)
+                ExcelUtils.clearCells(row, lastMonthCell!!.colNumber + 1, FORECAST_NUMBER_OF_COLS)
             }
         }
     }

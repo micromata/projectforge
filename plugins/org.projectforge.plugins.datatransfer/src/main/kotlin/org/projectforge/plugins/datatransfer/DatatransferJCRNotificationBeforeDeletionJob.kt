@@ -44,86 +44,97 @@ private val log = KotlinLogging.logger {}
  */
 @Component
 class DatatransferJCRNotificationBeforeDeletionJob {
-  @Autowired
-  private lateinit var dataTransferAreaDao: DataTransferAreaDao
+    @Autowired
+    private lateinit var dataTransferAreaDao: DataTransferAreaDao
 
-  @Autowired
-  private lateinit var attachmentsService: AttachmentsService
+    @Autowired
+    private lateinit var attachmentsService: AttachmentsService
 
-  @Autowired
-  private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
+    @Autowired
+    private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
 
-  @Autowired
-  private lateinit var dataTransferNotificationMailService: DataTransferNotificationMailService
+    @Autowired
+    private lateinit var dataTransferNotificationMailService: DataTransferNotificationMailService
 
-  @Autowired
-  private lateinit var pluginAdminService: PluginAdminService
+    @Autowired
+    private lateinit var pluginAdminService: PluginAdminService
 
-  /**
-   * Runs nightly at 4:30
-   * second, minute, hour
-   */
-  @Scheduled(cron = "0 30 4 * * *")
-  fun execute() {
-    if (!pluginAdminService.activePlugins.any { it.id == DataTransferPlugin.ID }) {
-      log.info("Plugin data transfer not activated. Don't need notification job.")
-      return
-    }
-    if (PFDay.now().isHolidayOrWeekend()) {
-      log.info("Don't send notifications on files being deleted on holidays and weekends.")
-      return
-    }
-    // key is the user id of the observer and the value is the list of observed attachments (including data transfer
-    // area which will being deleted by the system.
-    val notificationInfoByObserver = mutableMapOf<Long, MutableList<DataTransferNotificationMailService.AttachmentNotificationInfo>>()
-    log.info("Data transfer notification job started.")
-    val startTimeInMillis = System.currentTimeMillis()
-
-    // First of all, try to check all attachments of active areas:
-    dataTransferAreaDao.selectAll(checkAccess = false).forEach { dbo ->
-      dbo.id?.let { id ->
-        val expiryDays = dbo.expiryDays ?: 30
-        val notifyDaysBeforeDeletion = getNotificationDaysBeforeDeletion(expiryDays)
-        val expiryMillis = expiryDays.toLong() * DataTransferJCRCleanUpJob.MILLIS_PER_DAY
-        val attachments = attachmentsService.internalGetAttachments(
-          dataTransferAreaPagesRest.jcrPath!!,
-          id
-        )
-        val observers = StringHelper.splitToLongs(dbo.observerIds, ",")
-        attachments.forEach { attachment ->
-          val time = attachment.lastUpdate?.time ?: attachment.created?.time
-          if (time != null && startTimeInMillis - time + notifyDaysBeforeDeletion > expiryMillis) {
-            val expiresInMillis = time + expiryMillis - startTimeInMillis
-            val date = Date(time + expiryMillis)
-            observers.forEach { userId ->
-              val user = UserGroupCache.getInstance().getUser(userId)
-              val locale = UserLocale.determineUserLocale(user)
-              var observerAttachments = notificationInfoByObserver[userId]
-              if (observerAttachments == null) {
-                observerAttachments = mutableListOf()
-                notificationInfoByObserver[userId] = observerAttachments
-              }
-              observerAttachments.add(DataTransferNotificationMailService.AttachmentNotificationInfo(attachment, dbo, date, expiresInMillis, locale))
-            }
-          }
+    /**
+     * Runs nightly at 4:30
+     * second, minute, hour
+     */
+    @Scheduled(cron = "0 30 4 * * *")
+    fun execute() {
+        if (!pluginAdminService.activePlugins.any { it.id == DataTransferPlugin.ID }) {
+            log.info("Plugin data transfer not activated. Don't need notification job.")
+            return
         }
-      }
-    }
-    notificationInfoByObserver.forEach { (userId, attachments) ->
-      dataTransferNotificationMailService.sendNotificationMail(userId, attachments)
-    }
-    log.info(
-      "JCR notification job finished after ${(System.currentTimeMillis() - startTimeInMillis) / 1000} seconds. Number of notification mails: ${notificationInfoByObserver.size}"
-    )
-  }
+        if (PFDay.now().isHolidayOrWeekend()) {
+            log.info("Don't send notifications on files being deleted on holidays and weekends.")
+            return
+        }
+        Thread {
+            // key is the user id of the observer and the value is the list of observed attachments (including data transfer
+            // area which will being deleted by the system.
+            val notificationInfoByObserver =
+                mutableMapOf<Long, MutableList<DataTransferNotificationMailService.AttachmentNotificationInfo>>()
+            log.info("Data transfer notification job started.")
+            val startTimeInMillis = System.currentTimeMillis()
 
-  private fun getNotificationDaysBeforeDeletion(expiryDays: Int): Long {
-    val notificationDays = when {
-      expiryDays <= 10 -> -1 // Don't notify.
-      expiryDays <= 30 -> 7  // Notify 7 days before being deleted.
-      expiryDays <= 90 -> 14 // Notify 14 days before being deleted.
-      else -> 30             // Notify 30 days before being deleted.
+            // First of all, try to check all attachments of active areas:
+            dataTransferAreaDao.selectAll(checkAccess = false).forEach { dbo ->
+                dbo.id?.let { id ->
+                    val expiryDays = dbo.expiryDays ?: 30
+                    val notifyDaysBeforeDeletion = getNotificationDaysBeforeDeletion(expiryDays)
+                    val expiryMillis = expiryDays.toLong() * DataTransferJCRCleanUpJob.MILLIS_PER_DAY
+                    val attachments = attachmentsService.internalGetAttachments(
+                        dataTransferAreaPagesRest.jcrPath!!,
+                        id
+                    )
+                    val observers = StringHelper.splitToLongs(dbo.observerIds, ",")
+                    attachments.forEach { attachment ->
+                        val time = attachment.lastUpdate?.time ?: attachment.created?.time
+                        if (time != null && startTimeInMillis - time + notifyDaysBeforeDeletion > expiryMillis) {
+                            val expiresInMillis = time + expiryMillis - startTimeInMillis
+                            val date = Date(time + expiryMillis)
+                            observers.forEach { userId ->
+                                val user = UserGroupCache.getInstance().getUser(userId)
+                                val locale = UserLocale.determineUserLocale(user)
+                                var observerAttachments = notificationInfoByObserver[userId]
+                                if (observerAttachments == null) {
+                                    observerAttachments = mutableListOf()
+                                    notificationInfoByObserver[userId] = observerAttachments
+                                }
+                                observerAttachments.add(
+                                    DataTransferNotificationMailService.AttachmentNotificationInfo(
+                                        attachment,
+                                        dbo,
+                                        date,
+                                        expiresInMillis,
+                                        locale
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            notificationInfoByObserver.forEach { (userId, attachments) ->
+                dataTransferNotificationMailService.sendNotificationMail(userId, attachments)
+            }
+            log.info(
+                "JCR notification job finished after ${(System.currentTimeMillis() - startTimeInMillis) / 1000} seconds. Number of notification mails: ${notificationInfoByObserver.size}"
+            )
+        }.start()
     }
-    return notificationDays * DataTransferJCRCleanUpJob.MILLIS_PER_DAY
-  }
+
+    private fun getNotificationDaysBeforeDeletion(expiryDays: Int): Long {
+        val notificationDays = when {
+            expiryDays <= 10 -> -1 // Don't notify.
+            expiryDays <= 30 -> 7  // Notify 7 days before being deleted.
+            expiryDays <= 90 -> 14 // Notify 14 days before being deleted.
+            else -> 30             // Notify 30 days before being deleted.
+        }
+        return notificationDays * DataTransferJCRCleanUpJob.MILLIS_PER_DAY
+    }
 }

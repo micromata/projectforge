@@ -79,6 +79,11 @@ open class SipgateConfiguration {
   @Value("\${projectforge.sipgate.updateSipgateContacts}")
   open var updateSipgateContacts: Boolean = true
 
+  /**
+   * If true, the scheduler for syncing address with sipgate is active. Default is false.
+   */
+  @Value("\${projectforge.sipgate.cron.sync.active}")
+  open var cronActive: Boolean = false
 
   fun isConfigured(): Boolean {
     return baseUri.isNotBlank() && token.isNotBlank() && tokenId.isNotBlank()
