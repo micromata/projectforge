@@ -59,6 +59,12 @@ class DataTransferJCRCleanUpJob {
      */
     // Every hour, starting 10 minutes after starting.
     @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 600 * 1000)
+    fun cron() {
+        Thread {
+            execute()
+        }.start()
+    }
+
     fun execute(): Int {
         if (!pluginAdminService.activePlugins.any { it.id == DataTransferPlugin.ID }) {
             log.info("Plugin data transfer not activated. Don't need clean-up job.")

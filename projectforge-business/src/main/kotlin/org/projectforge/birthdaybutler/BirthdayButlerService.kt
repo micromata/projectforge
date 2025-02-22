@@ -94,31 +94,33 @@ class BirthdayButlerService {
     @Scheduled(cron = "0 0 8 L-2 * ?")
     // For testing: @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 10 * 1000)
     fun sendBirthdayButlerJob() {
-        var locale = ThreadLocalUserContext.getLocale(null)
-        birthdayButlerConfiguration.locale?.let {
-            if (it.isNotBlank()) {
-                locale = Locale(it)
+        Thread {
+            var locale = ThreadLocalUserContext.getLocale(null)
+            birthdayButlerConfiguration.locale?.let {
+                if (it.isNotBlank()) {
+                    locale = Locale(it)
+                }
             }
-        }
-        val month = PFDateTime.now().plusMonths(1).month // Use next month.
-        log.info { "BirthdayButlerJob started: using locale '${locale.language}' and month '${month.name}'..." }
-        val response = createWord(month, locale)
-        val error = response.errorMessage
-        if (error != null) {
-            log.error { "BirthdayButlerJob aborted: ${translate(error)} + $error" }
-            sendMail(month, content = error, locale = locale)
-            return
-        }
-        val word = response.wordDocument
-        if (word != null) {
-            val attachment = MailAttachment(createFilename(month, locale), word)
-            val list = mutableListOf<MailAttachment>()
-            list.add(attachment)
-            sendMail(month, content = "birthdayButler.email.content", mailAttachments = list, locale = locale)
-        } else {
-            sendMail(month, content = "birthdayButler.wordDocument.error", locale = locale)
-        }
-        log.info("BirthdayButlerJob finished.")
+            val month = PFDateTime.now().plusMonths(1).month // Use next month.
+            log.info { "BirthdayButlerJob started: using locale '${locale.language}' and month '${month.name}'..." }
+            val response = createWord(month, locale)
+            val error = response.errorMessage
+            if (error != null) {
+                log.error { "BirthdayButlerJob aborted: ${translate(error)} + $error" }
+                sendMail(month, content = error, locale = locale)
+            } else {
+                val word = response.wordDocument
+                if (word != null) {
+                    val attachment = MailAttachment(createFilename(month, locale), word)
+                    val list = mutableListOf<MailAttachment>()
+                    list.add(attachment)
+                    sendMail(month, content = "birthdayButler.email.content", mailAttachments = list, locale = locale)
+                } else {
+                    sendMail(month, content = "birthdayButler.wordDocument.error", locale = locale)
+                }
+                log.info("BirthdayButlerJob finished.")
+            }
+        }.start()
     }
 
     fun createFilename(month: Month, locale: Locale? = null): String {

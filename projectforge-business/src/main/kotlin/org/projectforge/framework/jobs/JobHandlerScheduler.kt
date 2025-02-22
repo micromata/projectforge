@@ -36,6 +36,8 @@ class JobHandlerScheduler {
   // Runs every minute
   @Scheduled(fixedDelay = Constants.MILLIS_PER_MINUTE, initialDelay = Constants.MILLIS_PER_MINUTE)
   fun execute() {
-    jobHandler.tidyUp()
+    Thread {
+      jobHandler.tidyUp()
+    }.start()
   }
 }

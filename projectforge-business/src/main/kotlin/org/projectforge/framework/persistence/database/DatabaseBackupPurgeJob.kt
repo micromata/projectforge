@@ -61,10 +61,12 @@ class DatabaseBackupPurgeJob {
             log.error { "Configured backup dir '$dbBackupDir' isn't a directory. Can't clean up old backups from this directory." }
             return
         }
-        log.info { "Starting job for cleaning daily backup files older than 30 days, but monthly backups will be kept." }
-        BackupFilesPurging.purgeDirectory(backupDir,
-            filePrefix = dbBackupFilesPrefix,
-            keepDailyBackups = dbBackupKeepDailyBackups ?: 8,
-            keepWeeklyBackups = dbBackupKeepWeeklyBackups ?: 4)
+        Thread {
+            log.info { "Starting job for cleaning daily backup files older than 30 days, but monthly backups will be kept." }
+            BackupFilesPurging.purgeDirectory(backupDir,
+                filePrefix = dbBackupFilesPrefix,
+                keepDailyBackups = dbBackupKeepDailyBackups ?: 8,
+                keepWeeklyBackups = dbBackupKeepWeeklyBackups ?: 4)
+        }.start()
     }
 }
