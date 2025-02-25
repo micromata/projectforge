@@ -197,7 +197,11 @@ public class AccountingRecordListPage
             public void populateItem(Item<ICellPopulator<BuchungssatzDO>> item, String componentId, IModel<BuchungssatzDO> rowModel) {
                 final BuchungssatzDO satz = rowModel.getObject();
                 final KontoDO konto = WicketSupport.get(PfCaches.class).getKontoIfNotInitialized(satz.getKonto());
-                item.add(new Label(componentId, konto.getDisplayName()));
+                String displayName = "";
+                if (konto != null) {
+                    displayName = konto.getDisplayName();
+                }
+                item.add(new Label(componentId, displayName));
                 cellItemListener.populateItem(item, componentId, rowModel);
             }
 
@@ -218,7 +222,11 @@ public class AccountingRecordListPage
                     public void populateItem(Item<ICellPopulator<BuchungssatzDO>> item, String componentId, IModel<BuchungssatzDO> rowModel) {
                         final BuchungssatzDO satz = rowModel.getObject();
                         final KontoDO konto = WicketSupport.get(PfCaches.class).getKontoIfNotInitialized(satz.getGegenKonto());
-                        item.add(new Label(componentId, konto.getDisplayName()));
+                        String displayName = "";
+                        if (konto != null) {
+                            displayName = konto.getDisplayName();
+                        }
+                        item.add(new Label(componentId, displayName));
                         cellItemListener.populateItem(item, componentId, rowModel);
 
                     }
