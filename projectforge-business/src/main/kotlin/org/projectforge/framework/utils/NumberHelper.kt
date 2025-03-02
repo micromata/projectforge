@@ -68,13 +68,17 @@ object NumberHelper {
         return getNumberFraction2Format(locale)
     }
 
-    fun getPercent(total: Number, part: Number, scale: Int = 2): BigDecimal {
+    fun getPercent(part: Number, total: Number, scale: Int = 2): BigDecimal {
+        return getFraction(part.asBigDecimal().multiply(HUNDRED), total, scale)
+    }
+
+    fun getFraction(part: Number, total: Number, scale: Int = 2): BigDecimal {
         val totalValue = total.asBigDecimal()
         if (totalValue.isZeroOrNull()) {
             return BigDecimal.ZERO
         }
         val partValue = part.asBigDecimal()
-        return partValue.multiply(HUNDRED).divide(totalValue, scale, RoundingMode.HALF_UP)
+        return partValue.divide(totalValue, scale, RoundingMode.HALF_UP)
     }
 
     @JvmStatic
