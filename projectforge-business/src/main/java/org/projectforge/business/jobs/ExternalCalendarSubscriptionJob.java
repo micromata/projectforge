@@ -1,4 +1,4 @@
-/////////////////////////////////////////////////////////////////////////////
+/// //////////////////////////////////////////////////////////////////////////
 //
 // Project ProjectForge Community Edition
 //         www.projectforge.org
@@ -29,25 +29,25 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ExternalCalendarSubscriptionJob
-{
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
-      .getLogger(ExternalCalendarSubscriptionJob.class);
+public class ExternalCalendarSubscriptionJob {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
+            .getLogger(ExternalCalendarSubscriptionJob.class);
 
-  @Autowired
-  private TeamEventExternalSubscriptionCache teamEventExternalSubscriptionCache;
+    @Autowired
+    private TeamEventExternalSubscriptionCache teamEventExternalSubscriptionCache;
 
-  //@Scheduled(cron = "0 */15 * * * *")
-  @Scheduled(cron = "${projectforge.cron.externalCalendar}")
-  public void execute()
-  {
-    log.info("External calendar subscriptions job started.");
-    try {
-      teamEventExternalSubscriptionCache.updateCache();
-    } catch (final Throwable ex) {
-      log.error("Exception while executing ExternalCalendarSubscriptionJob: " + ex.getMessage());
+    //@Scheduled(cron = "0 */15 * * * *")
+    @Scheduled(cron = "${projectforge.cron.externalCalendar}")
+    public void execute() {
+        new Thread(() -> {
+            log.info("External calendar subscriptions job started.");
+            try {
+                teamEventExternalSubscriptionCache.updateCache();
+            } catch (final Throwable ex) {
+                log.error("Exception while executing ExternalCalendarSubscriptionJob: " + ex.getMessage());
+            }
+            log.info("External calendar subscriptions job finished.");
+        }).start();
     }
-    log.info("External calendar subscriptions job finished.");
-  }
 
 }

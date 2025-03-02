@@ -80,41 +80,43 @@ class OrderbookSnapshotsService {
      */
     @Scheduled(fixedDelay = 1 * Constants.MILLIS_PER_HOUR, initialDelay = 2 * Constants.MILLIS_PER_MINUTE)
     fun createDailySnapshots() {
-        try {
-            log.info { "Checking daily snapshots..." }
-            persistenceService.runInNewTransaction(recordCallStats = true) { context ->
-                val today = LocalDate.now()
-                val entry = findEntry(today)
-                if (entry != null) {
-                    log.info { "Order book snapshot for today ($today UTC) already exists. OK, nothing to do." }
-                    return@runInNewTransaction
-                }
-                var incrementalBasedOn: LocalDate? = null
-                if (today.dayOfMonth != 1) {
-                    // For the first day of month, full backup is created. So handle all other days as incremental:
-                    // Find the last full backup:
-                    selectRecentFullBackup()?.let {
-                        log.debug { "Found recent full backup: ${it.date}" }
-                        it.date?.let { snapshotDate ->
-                            if (snapshotDate.month == today.month) {
-                                log.info { "Full backup found in the current month: ${it.date}, so store an incremental snapshot..." }
-                                try {
-                                    // Checking for sanity:
-                                    readSnapshot(snapshotDate)
-                                    incrementalBasedOn = it.date
-                                } catch (e: Exception) {
-                                    log.error { "Recent full backup seems to be corrupted. Creating a full backup again: ${e.message}" }
+        Thread {
+            try {
+                log.info { "Checking daily snapshots..." }
+                persistenceService.runInNewTransaction(recordCallStats = true) { context ->
+                    val today = LocalDate.now()
+                    val entry = findEntry(today)
+                    if (entry != null) {
+                        log.info { "Order book snapshot for today ($today UTC) already exists. OK, nothing to do." }
+                        return@runInNewTransaction
+                    }
+                    var incrementalBasedOn: LocalDate? = null
+                    if (today.dayOfMonth != 1) {
+                        // For the first day of month, full backup is created. So handle all other days as incremental:
+                        // Find the last full backup:
+                        selectRecentFullBackup()?.let {
+                            log.debug { "Found recent full backup: ${it.date}" }
+                            it.date?.let { snapshotDate ->
+                                if (snapshotDate.month == today.month) {
+                                    log.info { "Full backup found in the current month: ${it.date}, so store an incremental snapshot..." }
+                                    try {
+                                        // Checking for sanity:
+                                        readSnapshot(snapshotDate)
+                                        incrementalBasedOn = it.date
+                                    } catch (e: Exception) {
+                                        log.error { "Recent full backup seems to be corrupted. Creating a full backup again: ${e.message}" }
+                                    }
                                 }
                             }
                         }
                     }
+                    storeOrderbookSnapshot(incrementalBasedOn = incrementalBasedOn, date = today)
+                    log.info { "Checking daily snapshots done. ${context.formatStats()}" }
                 }
-                storeOrderbookSnapshot(incrementalBasedOn = incrementalBasedOn, date = today)
-                log.info { "Checking daily snapshots done. ${context.formatStats()}" }
+            } catch (e: Exception) {
+                log.error(e) { "Error in createDailySnapshots: ${e.message}" }
             }
-        } catch (e: Exception) {
-            log.error(e) { "Error in createDailySnapshots: ${e.message}" }
-        }
+        }.start()
     }
 
     /**

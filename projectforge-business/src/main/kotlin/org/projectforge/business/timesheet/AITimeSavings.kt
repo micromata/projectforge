@@ -57,8 +57,7 @@ object AITimeSavings {
      * @return The formatted percentage.
      */
     fun getFormattedPercentage(duration: Number, timeSavedByAI: Number): String {
-        val savedByAI = timeSavedByAI.toLong()
-        val percent = NumberHelper.getPercent(duration.toLong() + savedByAI, savedByAI)
+        val percent = getPercentage(duration, timeSavedByAI)
         return getFormattedPercentage(percent)
     }
 
@@ -74,6 +73,29 @@ object AITimeSavings {
         }
         val scale = if (percent!!.abs() < BigDecimal.TEN) 1 else 0
         return percent.formatPercent(true, scale = scale)
+    }
+
+    /**
+     * Returns the percentage: Sum of duration and time saved by AI divided by time saved by AI.
+     * @param duration
+     * @param timeSavedByAI
+     * @return The percentage.
+     * @see NumberHelper.getPercent
+     */
+    fun getPercentage(duration: Number, timeSavedByAI: Number): BigDecimal {
+        val savedByAI = timeSavedByAI.toLong()
+        return NumberHelper.getPercent(part = savedByAI, total = duration.toLong() + savedByAI)
+    }
+
+    /**
+     * Returns the faction: Sum of duration and time saved by AI divided by time saved by AI.
+     * @param duration
+     * @param timeSavedByAI
+     * @return The percentage.
+     * @see NumberHelper.getPercent
+     */
+    fun getFraction(timeSavedByAI: Number, duration: Number): BigDecimal {
+        return NumberHelper.getFraction(timeSavedByAI, duration.toLong() + timeSavedByAI.toLong())
     }
 
     /**
