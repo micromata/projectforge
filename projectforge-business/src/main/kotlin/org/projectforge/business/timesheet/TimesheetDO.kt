@@ -116,6 +116,9 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     @get:Column(name = "stop_time", nullable = false)
     open var stopTime: Date? = null
 
+    /**
+     * Don't use this field for calculations etc. Please use [AITimeSavings.getTimeSavedByAIMillis] instead!
+     */
     @PropertyInfo(i18nKey = "timesheet.ai.timeSavedByAI", tooltip = "timesheet.ai.timeSavedByAI.info")
     @get:Column(name = "time_saved_by_ai")
     open var timeSavedByAI: BigDecimal? = null

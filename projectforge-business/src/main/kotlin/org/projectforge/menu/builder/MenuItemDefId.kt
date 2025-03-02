@@ -55,7 +55,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     CHANGE_WLAN_PASSWORD("menu.changeWlanPassword", getReactDynamicPageUrl("changeWlanPassword")), //
     CONFIGURATION("menu.configuration", "wa/configuration"), //
     CONTRACTS("menu.contracts", getReactListUrl("contract")), //
-    COST1_LIST("menu.fibu.kost1", getReactListUrl("cost1")), //
+    COST1_LIST("menu.fibu.kost1", "wa/cost1List"), // getReactListUrl("cost1")), //
     COST2_LIST("menu.fibu.kost2", "wa/cost2List"), //
     COST2_TYPE_LIST("menu.fibu.kost2arten", "wa/cost2TypeList"), //
     CUSTOMER_LIST("menu.fibu.kunden", "wa/customerList"), //
