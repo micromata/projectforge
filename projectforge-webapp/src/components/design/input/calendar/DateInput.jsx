@@ -3,6 +3,7 @@ import 'moment/min/locales';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { DayPicker } from 'react-day-picker';
+import { de } from 'react-day-picker/locale';
 import { connect } from 'react-redux';
 import { colorPropType } from '../../../../utilities/propTypes';
 import AdvancedPopper from '../../popper/AdvancedPopper';
@@ -162,7 +163,7 @@ function DateInput(
                 onDayClick={handleDayPickerClick}
                 month={selectedMonth}
                 onMonthChange={setSelectedMonth}
-                locale={locale}
+                locale={locale === 'de' ? de : 'en'}
                 onTodayButtonClick={setDate}
                 todayButton={todayButton}
                 weekStartsOn={weekStartsOn}
