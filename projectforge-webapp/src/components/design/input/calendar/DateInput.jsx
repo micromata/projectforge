@@ -1,7 +1,7 @@
 import moment from 'moment';
 import 'moment/min/locales';
 import PropTypes from 'prop-types';
-import React, { useCallback } from 'react';
+import React from 'react';
 import { DayPicker } from 'react-day-picker';
 import { connect } from 'react-redux';
 import { colorPropType } from '../../../../utilities/propTypes';
@@ -22,6 +22,7 @@ function DateInput(
         setDate,
         todayButton,
         value,
+        weekStartsOn,
     },
 ) {
     const [inputValue, setInputValue] = React.useState('');
@@ -154,6 +155,7 @@ function DateInput(
             setIsOpen={setIsOpen}
             isOpen={isOpen}
             withInput
+            additionalClassName={styles.dayPickerContainer}
         >
             <DayPicker
                 selectedDays={value}
@@ -163,6 +165,7 @@ function DateInput(
                 locale={locale}
                 onTodayButtonClick={setDate}
                 todayButton={todayButton}
+                weekStartsOn={weekStartsOn}
             />
         </AdvancedPopper>
     );
@@ -179,11 +182,13 @@ DateInput.propTypes = {
     noInputContainer: PropTypes.bool,
     todayButton: PropTypes.string,
     value: PropTypes.instanceOf(Date),
+    weekStartsOn: PropTypes.number,
 };
 
 const mapStateToProps = ({ authentication }) => ({
     jsDateFormat: authentication.user.jsDateFormat,
     locale: authentication.user.locale,
+    weekStartsOn: authentication.user.firstDayOfWeekSunday0,
 });
 
 export default connect(mapStateToProps)(DateInput);
