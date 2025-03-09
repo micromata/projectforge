@@ -127,9 +127,9 @@ open class TimesheetRecentService {
                 tag = timesheet.tag,
                 reference = timesheet.reference,
                 description = timesheet.description,
+                timeSavedByAIUnit = timesheet.timeSavedByAIUnit,
                 // Don't copy these values to the timesheet. The user should enter them manually.
                 // timeSavedByAI = timesheet.timeSavedByAI,
-                // timeSavedByAIUnit = timesheet.timeSavedByAIUnit,
                 // timeSavedByAIDescription = timesheet.timeSavedByAIDescription,
             )
             if (!added.contains(entry)) {
