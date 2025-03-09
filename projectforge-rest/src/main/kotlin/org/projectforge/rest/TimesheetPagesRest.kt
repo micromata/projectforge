@@ -168,6 +168,9 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             sheet.reference = recentEntry.reference
             sheet.tag = recentEntry.tag
             sheet.description = recentEntry.description
+            recentEntry.timeSavedByAIUnit?.let {
+                sheet.timeSavedByAIUnit = it
+            }
             if (sheet.user == null && recentEntry.userId != null) {
                 sheet.user = User.getUser(recentEntry.userId)
             }
@@ -424,9 +427,11 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                 ts.task = Task()
                 ts.task!!.copyFromMinimal(task)
             }
+            it.timeSavedByAIUnit?.let {
+                ts.timeSavedByAIUnit = it
+            }
             // Don't copy these values to the timesheet. The user should enter them manually.
             // ts.timeSavedByAI = it.timeSavedByAI
-            // ts.timeSavedByAIUnit = it.timeSavedByAIUnit
             // ts.timeSavedByAIDescription = it.timeSavedByAIDescription
             val user = userService.getUser(it.userId)
             if (user != null) {
@@ -439,6 +444,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                     val kost2 = Kost2()
                     ts.kost2 = kost2
                     kost2.copyFromMinimal(kost2DO)
+                    kost2.formattedNumber = kost2DO.formattedNumber
                     kost2DO.projekt?.let { projektDO ->
                         val projekt = Project(projektDO.id, name = projektDO.name)
                         kost2.project = projekt

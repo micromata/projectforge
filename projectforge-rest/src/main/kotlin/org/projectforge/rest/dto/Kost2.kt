@@ -38,6 +38,7 @@ class Kost2(
   var endziffer: Int = 0,
   var kostentraegerStatus: KostentraegerStatus? = null,
   var description: String? = null,
+  var formattedNumber: String? = null,
   var project: Project? = null,
   var kost2Art: Kost2Art? = null,
 ) : BaseDTODisplayObject<Kost2DO>(id, displayName = displayName) {
@@ -67,10 +68,12 @@ class Kost2(
   override fun copyFrom(src: Kost2DO) {
     super.copyFrom(src)
     endziffer = src.kost2Art?.id?.toInt() ?: 0
+    formattedNumber = src.formattedNumber
     displayName = KostFormatter.instance.formatKost2(src, KostFormatter.FormatType.TEXT)
     this.project = src.projekt?.let {
       val project = Project()
       project.copyFromMinimal(it)
+      project.name = it.name
       project
     }
   }

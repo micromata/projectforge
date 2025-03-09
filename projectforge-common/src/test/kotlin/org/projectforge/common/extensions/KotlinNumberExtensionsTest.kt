@@ -87,6 +87,20 @@ class KotlinNumberExtensionsTest {
         formatBytesTest(scale, "TB")
     }
 
+    @Test
+    fun `test millis as hours`() {
+        Assertions.assertEquals("0.00", 0.millisAsHours().toString())
+        Assertions.assertEquals("0.00", 1.millisAsHours().toString())
+        Assertions.assertEquals("0.00", 17_999.millisAsHours().toString())
+        Assertions.assertEquals("0.01", 18_000.millisAsHours().toString())
+        Assertions.assertEquals("0.01", 36_000.millisAsHours().toString())
+        Assertions.assertEquals("0.09", 341_999.millisAsHours().toString())
+        Assertions.assertEquals("0.10", 342_000.millisAsHours().toString())
+        Assertions.assertEquals("0.10", 360_000.millisAsHours().toString())
+        Assertions.assertEquals("1.00", 3_600_000.millisAsHours().toString())
+        Assertions.assertEquals("1000.00", 3_600_000_000.millisAsHours().toString())
+    }
+
     private fun formatBytesTest(scale: Long, unit: String) {
         Locale.setDefault(Locale.ENGLISH)
         Assertions.assertEquals("1$unit", scale.formatBytes())

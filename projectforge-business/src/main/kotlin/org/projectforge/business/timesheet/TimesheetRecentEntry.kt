@@ -67,9 +67,9 @@ constructor(
         reference = timesheet.reference,
         tag = timesheet.tag,
         description = timesheet.description,
+        timeSavedByAIUnit = timesheet.timeSavedByAIUnit,
         // Don't copy these values to the timesheet. The user should enter them manually.
         // timeSavedByAI = timesheet.timeSavedByAI,
-        // timeSavedByAIUnit = timesheet.timeSavedByAIUnit,
         // timeSavedByAIDescription = timesheet.timeSavedByAIDescription,
     )
 }

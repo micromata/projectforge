@@ -165,3 +165,18 @@ fun Number?.isZeroOrNull(): Boolean {
     }
 }
 
+private val MILLIS_PER_HOUR = BigDecimal(1000 * 60 * 60)
+
+private val MILLIS_PER_24H = BigDecimal(1000 * 60 * 60 * 24)
+
+fun Number.millisAsHours(): BigDecimal {
+    return this.asBigDecimal().divide(MILLIS_PER_HOUR, 2, RoundingMode.HALF_UP)
+}
+
+/**
+ * Returns the given number as a fraction of 24 hours. This format is useful for Excel.
+ * @return The fraction of 24 hours.
+ */
+fun Number.millisAsFractionOf24h(): BigDecimal {
+    return this.asBigDecimal().divide(MILLIS_PER_24H, 8, RoundingMode.HALF_UP)
+}
