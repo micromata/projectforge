@@ -50,6 +50,12 @@ object AITimeSavings {
     }
 
     /**
+     * Set by TimesheetDao.
+     */
+    var timeSavingsByAIEnabled = false
+        internal set
+
+    /**
      * Returns the formatted percentage.
      * Example: "10 %"
      * @param duration
@@ -94,7 +100,7 @@ object AITimeSavings {
      * @return The percentage.
      * @see NumberHelper.getPercent
      */
-    fun getFraction(timeSavedByAI: Number, duration: Number): BigDecimal {
+    fun getFraction(duration: Number, timeSavedByAI: Number): BigDecimal {
         return NumberHelper.getFraction(timeSavedByAI, duration.toLong() + timeSavedByAI.toLong())
     }
 

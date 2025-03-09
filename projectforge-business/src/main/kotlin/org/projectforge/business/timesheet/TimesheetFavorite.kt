@@ -38,9 +38,9 @@ class TimesheetFavorite(
     var reference: String? = null,
     var description: String? = null,
     var cost2Id: Long? = null,
+    var timeSavedByAIUnit: TimesheetDO.TimeSavedByAIUnit? = null,
     // Don't copy these values to the timesheet. The user should enter them manually.
     // var timeSavedByAI: BigDecimal? = null,
-    // var timeSavedByAIUnit: TimesheetDO.TimeSavedByAIUnit? = null,
     // var timeSavedByAIDescription: String? = null,
 ) : AbstractFavorite(name, id) {
 
@@ -64,12 +64,12 @@ class TimesheetFavorite(
         if (timesheet.kost2Id != null) {
             cost2Id = timesheet.kost2Id
         }
+        if (timesheet.timeSavedByAIUnit != null) {
+            timeSavedByAIUnit = timesheet.timeSavedByAIUnit
+        }
         // Don't copy these values to the timesheet. The user should enter them manually.
         /*if (timesheet.timeSavedByAI != null) {
             timeSavedByAI = timesheet.timeSavedByAI
-        }
-        if (timesheet.timeSavedByAIUnit != null) {
-          timeSavedByAIUnit = timesheet.timeSavedByAIUnit
         }
         if (!timesheet.timeSavedByAIDescription.isNullOrBlank()) {
           timeSavedByAIDescription = timesheet.timeSavedByAIDescription
@@ -91,8 +91,8 @@ class TimesheetFavorite(
         timesheet.tag = tag ?: "" // Overwrite client's value.
         timesheet.reference = reference ?: ""
         timesheet.description = description ?: ""
+        timesheet.timeSavedByAIUnit = timeSavedByAIUnit
         // timesheet.timeSavedByAI = timeSavedByAI
-        // timesheet.timeSavedByAIUnit = timeSavedByAIUnit
         // timesheet.timeSavedByAIDescription = timeSavedByAIDescription ?: ""
         if (cost2Id != null) {
             val cost2 = Kost2DO()

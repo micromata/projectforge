@@ -23,6 +23,7 @@
 
 package org.projectforge.business.timesheet
 
+import jakarta.annotation.PostConstruct
 import jakarta.persistence.Tuple
 import mu.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
@@ -91,6 +92,11 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
 
     @Autowired
     private lateinit var taskTree: TaskTree
+
+    @PostConstruct
+    fun init() {
+        AITimeSavings.timeSavingsByAIEnabled = timeSavingsByAIEnabled
+    }
 
     /**
      * Return list of configured tags including any already given tag in time sheet.
