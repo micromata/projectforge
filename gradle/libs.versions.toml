@@ -74,9 +74,9 @@ org-mockito-kotlin = "5.4.0"
 org-mozilla-rhino = "1.7.15"
 org-postgresql = "42.7.4"
 org-reflections = "0.10.2"
-org-springframework-boot = "3.3.8"
-org-apache-tomcat-embed = "10.1.33" # must match spring-boot
-org-springframework-spring = "6.1.16"
+org-springframework-boot = "3.3.10"
+org-apache-tomcat-embed = "10.1.39" # must match spring-boot
+org-springframework-spring = "6.1.18"
 org-springframework-security = "6.4.1"
 se-sawano-java-alphanumeric-comparator = "1.4.1"
 
