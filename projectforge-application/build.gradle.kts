@@ -169,6 +169,7 @@ dependencies {
     implementation(libs.org.apache.jackrabbit.oak.store.document)
     implementation(libs.org.apache.tomcat.embed.core)
     implementation(libs.org.apache.tomcat.embed.websocket)
+    implementation(libs.org.apache.tomcat.embed.el)
     implementation(libs.org.apache.poi)
     implementation(libs.org.apache.poi.ooxml)
     implementation(libs.org.apache.wicket.myextensions)
