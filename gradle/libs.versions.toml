@@ -158,6 +158,7 @@ org-apache-poi = { module = "org.apache.poi:poi", version.ref = "org-apache-poi"
 org-apache-poi-ooxml = { module = "org.apache.poi:poi-ooxml", version.ref = "org-apache-poi-ooxml" }
 org-apache-tomcat-embed-core = { module = "org.apache.tomcat.embed:tomcat-embed-core", version.ref = "org-apache-tomcat-embed" }
 org-apache-tomcat-embed-websocket = { module = "org.apache.tomcat.embed:tomcat-embed-websocket", version.ref = "org-apache-tomcat-embed" }
+org-apache-tomcat-embed-el = { module = "org.apache.tomcat.embed:tomcat-embed-el", version.ref = "org-apache-tomcat-embed" }
 org-apache-wicket-myextensions = { module = "org.apache.wicket:wicket-extensions", version.ref = "org-apache-wicket-myextensions" }
 org-apache-wicket-spring = { module = "org.apache.wicket:wicket-spring", version.ref = "org-apache-wicket-spring" }
 org-apache-xmlgraphics-batik-codec = { module = "org.apache.xmlgraphics:batik-codec", version.ref = "org-apache-xmlgraphics-batik" }
