@@ -31,8 +31,8 @@ class RechnungsPosition(
         var text: String? = null,
         override var menge: BigDecimal? = null,
         override var einzelNetto: BigDecimal? = null,
-        override var vat: BigDecimal? = null
-
+        override var vat: BigDecimal? = null,
+        var number: Short = 0,
 ) : BaseDTO<RechnungsPositionDO>(), IRechnungsPosition {
 
     var kostZuweisungen: MutableList<KostZuweisung>? = null
@@ -46,6 +46,9 @@ class RechnungsPosition(
 
     override fun copyFrom(src: RechnungsPositionDO) {
         super.copyFrom(src)
+        // Explicitly copy the number field
+        this.number = src.number
+
         val list = kostZuweisungen ?: mutableListOf()
         src.kostZuweisungen?.forEach {
             val pos = KostZuweisung()
@@ -57,6 +60,9 @@ class RechnungsPosition(
 
     override fun copyTo(dest: RechnungsPositionDO) {
         super.copyTo(dest)
+        // Explicitly set the number field
+        dest.number = this.number
+
         val list = dest.kostZuweisungen ?: mutableListOf()
         kostZuweisungen?.forEach {
             val pos = KostZuweisungDO()

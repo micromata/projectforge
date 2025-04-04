@@ -224,9 +224,9 @@ sourceSets {
 }
 
 val kotlinCompilerDependencyFiles = kotlinCompilerDependency.map { it.name }
-tasks.named("processResources") {
+/*tasks.named("processResources") {
     dependsOn(":projectforge-webapp:npmBuild", ":projectforge-webapp:copyReactBuild")
-}
+}*/
 
 tasks.named<BootJar>("bootJar") {
     dependsOn(":projectforge-webapp:webAppJar")

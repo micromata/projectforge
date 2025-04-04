@@ -1,0 +1,580 @@
+{
+  "ui": {
+    "title": "Book list",
+    "userAccess": {
+      "cancel": true
+    },
+    "layout": [
+      {
+        "id": "resultSet",
+        "columnDefs": [
+          {
+            "field": "created",
+            "headerName": "created",
+            "sortable": true,
+            "resizable": true,
+            "cellRenderer": "formatter",
+            "cellRendererParams": {
+              "dataType": "DATE",
+              "dateFormat": "dd/MM/yyyy"
+            }
+          },
+          {
+            "field": "yearOfPublishing",
+            "headerName": "Year of Publishing",
+            "sortable": true,
+            "resizable": true
+          },
+          {
+            "field": "signature",
+            "headerName": "Signature",
+            "sortable": true,
+            "resizable": true
+          },
+          {
+            "field": "authors",
+            "headerName": "Authors",
+            "sortable": true,
+            "filter": "agTextColumnFilter",
+            "resizable": true,
+            "filterParams": {
+              "buttons": [
+                "apply",
+                "reset"
+              ]
+            }
+          },
+          {
+            "field": "title",
+            "headerName": "Title",
+            "sortable": true,
+            "resizable": true
+          },
+          {
+            "field": "keywords",
+            "headerName": "Keywords",
+            "sortable": true,
+            "filter": "agTextColumnFilter",
+            "width": 500,
+            "resizable": true,
+            "filterParams": {
+              "buttons": [
+                "apply",
+                "reset"
+              ]
+            }
+          },
+          {
+            "field": "lendOutBy",
+            "headerName": "Lend out by",
+            "sortable": true,
+            "valueGetter": "data?.lendOutBy?.displayName",
+            "resizable": true
+          },
+          {
+            "field": "attachmentsSizeFormatted",
+            "headerName": "",
+            "headerTooltip": "Attachments",
+            "sortable": true,
+            "width": 30,
+            "resizable": true,
+            "headerClass": [
+              "icon",
+              "icon-solid",
+              "icon-paperclip"
+            ]
+          }
+        ],
+        "listPageTable": true,
+        "type": "AG_GRID_LIST_PAGE",
+        "key": "el-1",
+        "rowClickRedirectUrl": "/react/book/edit/id",
+        "rowClickOpenModal": false,
+        "pagination": true,
+        "paginationPageSize": 50,
+        "paginationPageSizeSelector": [
+          25,
+          50,
+          100,
+          200,
+          500,
+          1000
+        ],
+        "onColumnStatesChangedUrl": "/rs/book/setColumnStates",
+        "getRowClass": "if (params.node.data?.deleted) { return 'ag-row-deleted'; }",
+        "locale": "en",
+        "dateFormat": "DD/MM/YYYY",
+        "timestampFormatSeconds": "DD/MM/YYYY HH:mm:ss",
+        "timestampFormatMinutes": "DD/MM/YYYY HH:mm",
+        "thousandSeparator": ",",
+        "decimalSeparator": ".",
+        "currency": "â¬"
+      },
+      {
+        "message": "* You may sort multiple columns by pressing shift-key while clicking column heads. You may also re-order columns and change the width of the columns.\n* <span style=\"color:red;\">Please note:</span> The table may be wider than the display. Please scroll to the right to see all columns.",
+        "color": "info",
+        "markdown": true,
+        "type": "ALERT",
+        "key": "el-2"
+      }
+    ],
+    "namedContainers": [
+      {
+        "id": "searchFilter",
+        "content": [
+          {
+            "id": "attachmentsIds",
+            "filterType": "STRING",
+            "label": "attachmentsIds",
+            "type": "FILTER_ELEMENT",
+            "key": "attachmentsIds"
+          },
+          {
+            "id": "attachmentsNames",
+            "filterType": "STRING",
+            "label": "attachmentsNames",
+            "type": "FILTER_ELEMENT",
+            "key": "attachmentsNames"
+          },
+          {
+            "id": "authors",
+            "filterType": "STRING",
+            "label": "Authors",
+            "type": "FILTER_ELEMENT",
+            "key": "authors"
+          },
+          {
+            "id": "comment",
+            "filterType": "STRING",
+            "label": "Comment",
+            "type": "FILTER_ELEMENT",
+            "key": "comment"
+          },
+          {
+            "id": "lendOutDate",
+            "filterType": "DATE",
+            "label": "date",
+            "type": "FILTER_ELEMENT",
+            "key": "lendOutDate"
+          },
+          {
+            "id": "deleted",
+            "filterType": "BOOLEAN",
+            "label": "deleted",
+            "type": "FILTER_ELEMENT",
+            "key": "deleted"
+          },
+          {
+            "id": "editor",
+            "filterType": "STRING",
+            "label": "Editor",
+            "type": "FILTER_ELEMENT",
+            "key": "editor"
+          },
+          {
+            "id": "historySearch",
+            "filterType": "STRING",
+            "label": "history value of modification",
+            "type": "FILTER_ELEMENT",
+            "key": "historySearch"
+          },
+          {
+            "id": "isbn",
+            "filterType": "STRING",
+            "label": "ISBN",
+            "type": "FILTER_ELEMENT",
+            "key": "isbn"
+          },
+          {
+            "id": "keywords",
+            "filterType": "STRING",
+            "label": "Keywords",
+            "type": "FILTER_ELEMENT",
+            "key": "keywords"
+          },
+          {
+            "id": "lendOutComment",
+            "filterType": "STRING",
+            "label": "Lending note (optional)",
+            "type": "FILTER_ELEMENT",
+            "key": "lendOutComment"
+          },
+          {
+            "id": "lendOutBy.firstname",
+            "filterType": "STRING",
+            "label": "Lend out by - First name",
+            "type": "FILTER_ELEMENT",
+            "key": "lendOutBy.firstname"
+          },
+          {
+            "id": "lendOutBy.lastname",
+            "filterType": "STRING",
+            "label": "Lend out by - Name",
+            "type": "FILTER_ELEMENT",
+            "key": "lendOutBy.lastname"
+          },
+          {
+            "id": "lendOutBy.username",
+            "filterType": "STRING",
+            "label": "Lend out by - User name",
+            "type": "FILTER_ELEMENT",
+            "key": "lendOutBy.username"
+          },
+          {
+            "id": "modifiedByUser",
+            "label": "modified by",
+            "autoCompletion": {
+              "minChars": 2,
+              "type": "USER",
+              "url": "user/autosearch?search=:search"
+            },
+            "type": "FILTER_ELEMENT",
+            "key": "modifiedByUser",
+            "filterType": "OBJECT"
+          },
+          {
+            "id": "paginationPageSize",
+            "values": [
+              {
+                "id": "25",
+                "displayName": "25"
+              },
+              {
+                "id": "50",
+                "displayName": "50"
+              },
+              {
+                "id": "100",
+                "displayName": "100"
+              },
+              {
+                "id": "200",
+                "displayName": "200"
+              },
+              {
+                "id": "500",
+                "displayName": "500"
+              },
+              {
+                "id": "1000",
+                "displayName": "1,000"
+              }
+            ],
+            "label": "Paging size",
+            "multi": false,
+            "defaultFilter": true,
+            "type": "FILTER_ELEMENT",
+            "key": "paginationPageSize",
+            "filterType": "LIST"
+          },
+          {
+            "id": "publisher",
+            "filterType": "STRING",
+            "label": "Publisher",
+            "type": "FILTER_ELEMENT",
+            "key": "publisher"
+          },
+          {
+            "id": "signature",
+            "filterType": "STRING",
+            "label": "Signature",
+            "type": "FILTER_ELEMENT",
+            "key": "signature"
+          },
+          {
+            "id": "status",
+            "values": [
+              {
+                "id": "PRESENT",
+                "displayName": "present"
+              },
+              {
+                "id": "MISSED",
+                "displayName": "missed"
+              },
+              {
+                "id": "DISPOSED",
+                "displayName": "disposed"
+              },
+              {
+                "id": "UNKNOWN",
+                "displayName": "unknown"
+              }
+            ],
+            "label": "Status",
+            "multi": true,
+            "type": "FILTER_ELEMENT",
+            "key": "status",
+            "filterType": "LIST"
+          },
+          {
+            "id": "modifiedInterval",
+            "label": "Time of modification",
+            "openInterval": true,
+            "selectors": [
+              "YEAR",
+              "MONTH",
+              "WEEK",
+              "DAY",
+              "UNTIL_NOW"
+            ],
+            "type": "FILTER_ELEMENT",
+            "key": "modifiedInterval",
+            "filterType": "TIMESTAMP"
+          },
+          {
+            "id": "title",
+            "filterType": "STRING",
+            "label": "Title",
+            "type": "FILTER_ELEMENT",
+            "key": "title"
+          },
+          {
+            "id": "type",
+            "values": [
+              {
+                "id": "AUDIO_BOOK",
+                "displayName": "audio book"
+              },
+              {
+                "id": "BOOK",
+                "displayName": "Book"
+              },
+              {
+                "id": "EBOOK",
+                "displayName": "e-book"
+              },
+              {
+                "id": "MAGAZINE",
+                "displayName": "Magazine"
+              },
+              {
+                "id": "ARTICLE",
+                "displayName": "Article"
+              },
+              {
+                "id": "NEWSPAPER",
+                "displayName": "Newspaper"
+              },
+              {
+                "id": "PERIODICAL",
+                "displayName": "Periodical"
+              },
+              {
+                "id": "FILM",
+                "displayName": "Film (data medium)"
+              },
+              {
+                "id": "SOFTWARE",
+                "displayName": "Software (data medium)"
+              },
+              {
+                "id": "THESIS",
+                "displayName": "Thesis"
+              },
+              {
+                "id": "MISC",
+                "displayName": "Misc"
+              }
+            ],
+            "label": "Type",
+            "multi": true,
+            "type": "FILTER_ELEMENT",
+            "key": "type",
+            "filterType": "LIST"
+          }
+        ],
+        "type": "NAMED_CONTAINER"
+      }
+    ],
+    "layoutBelowActions": [],
+    "actions": [
+      {
+        "id": "reset",
+        "title": "Reset",
+        "color": "secondary",
+        "outline": true,
+        "responseAction": {
+          "url": "book/filterReset",
+          "targetType": "GET"
+        },
+        "disabled": false,
+        "type": "BUTTON",
+        "key": "el-3"
+      },
+      {
+        "id": "search",
+        "title": "Search",
+        "color": "primary",
+        "outline": true,
+        "responseAction": {
+          "url": "book/list",
+          "targetType": "POST",
+          "merge": true
+        },
+        "disabled": false,
+        "type": "BUTTON",
+        "key": "el-4"
+      }
+    ],
+    "pageMenu": [
+      {
+        "id": "GEAR",
+        "title": "*",
+        "subMenu": [
+          {
+            "id": "reindexNewestDatabaseEntries",
+            "title": "Re-build search index",
+            "i18nKey": "menu.reindexNewestDatabaseEntries",
+            "tooltip": "All entries modified since yesterday, 1.000 at maximum, will be re-indexed (duration less than 1 second).",
+            "tooltipTitle": "Re-build search index",
+            "url": "book/reindexNewest",
+            "type": "RESTCALL"
+          },
+          {
+            "id": "reindexAllDatabaseEntries",
+            "title": "Re-build whole search index",
+            "i18nKey": "menu.reindexAllDatabaseEntries",
+            "tooltip": "The whole index will be rebuilt. This may take a while (several minute for e. g. 100.000 entries) and the system performance is affected. Therefore this feature is only enabled for administrators.",
+            "tooltipTitle": "Re-build whole search index",
+            "url": "book/reindexFull",
+            "type": "RESTCALL"
+          },
+          {
+            "id": "resetFilter",
+            "title": "Reset filter",
+            "i18nKey": "menu.resetFilter",
+            "tooltip": "Resets the current filter if you have any trouble with the given search function.",
+            "tooltipTitle": "Reset filter",
+            "url": "book/filter/reset",
+            "type": "RESTCALL"
+          }
+        ]
+      },
+      {
+        "id": "CREATE",
+        "title": "Add",
+        "url": "react/book/edit"
+      }
+    ],
+    "excelExportSupported": false,
+    "multiSelectionSupported": false,
+    "watchFields": [],
+    "uid": "layout1743770506912",
+    "translations": {
+      "reset": "Reset",
+      "datatable.no-records-found": "No records found.",
+      "date.begin": "Start date",
+      "date.end": "End date",
+      "exportAsXls": "Excel export",
+      "search.lastMinute": "Last minute",
+      "search.lastHour": "Last hour",
+      "calendar.today": "Today",
+      "search.sinceYesterday": "Since yesterday",
+      "multiselection.button": "Multi selection",
+      "search.lastMinutes.10": "Last 10 minutes",
+      "search.lastMinutes.30": "Last 30 minutes",
+      "search.lastHours.4": "Last 4 hours",
+      "search.lastDays.3": "Last 3 days.",
+      "search.lastDays.7": "Last 7 days.",
+      "search.lastDays.30": "Last 30 days.",
+      "search.lastDays.90": "Last 90 days.",
+      "cancel": "Cancel",
+      "finish": "Finish",
+      "save": "Save",
+      "select.placeholder": "Select...",
+      "yes": "Yes",
+      "search": "Search",
+      "favorite.filter.addNew": "New Filter",
+      "favorites": "Favorites",
+      "delete": "Delete",
+      "rename": "rename",
+      "favorite.addNew": "New favorite",
+      "favorite.untitled": "untitled",
+      "favorites.saveModification": "Save modification",
+      "uptodate": "up-to-date",
+      "table.showing": "Showing",
+      "searchFilter": "Search filter",
+      "nothingFound": "Nothing found."
+    }
+  },
+  "standardEditPage": "react/book/edit/:id",
+  "data": {
+    "resultSet": [
+      {
+        "id": 168,
+        "title": "eBay API",
+        "yearOfPublishing": "2007",
+        "authors": "Harnisch, Carsten",
+        "status": "PRESENT",
+        "type": "BOOK",
+        "deleted": false,
+        "created": "2008-01-10T08:27:53.675Z",
+        "lastUpdate": "2011-01-23T17:23:34.283Z",
+        "typeAsString": "Book",
+        "statusAsString": "present",
+        "attachmentsSizeFormatted": "-"
+      },
+      {
+        "id": 169,
+        "title": "Oracle Database 10g RMAN Backup & Recovery",
+        "publisher": "OraclePress",
+        "yearOfPublishing": "2007",
+        "authors": "Hart, Matthew u. Freeman, Robert G.",
+        "status": "PRESENT",
+        "type": "BOOK",
+        "deleted": false,
+        "created": "2008-01-10T08:44:59.304Z",
+        "lastUpdate": "2011-01-23T17:23:29.555Z",
+        "typeAsString": "Book",
+        "statusAsString": "present",
+        "attachmentsSizeFormatted": "-"
+      },
+      {
+        "id": 170,
+        "title": "Java EE5, Patterns und Idiome",
+        "keywords": "Java EE5",
+        "isbn": "978-3-939084-24-2",
+        "publisher": "entwickler.press",
+        "yearOfPublishing": "2007",
+        "authors": "Bien, Adam",
+        "status": "PRESENT",
+        "type": "BOOK",
+        "deleted": false,
+        "created": "2011-02-07T21:18:40.005Z",
+        "lastUpdate": "2011-02-07T21:18:40.005Z",
+        "typeAsString": "Book",
+        "statusAsString": "present",
+        "attachmentsSizeFormatted": "-"
+      },
+      {
+        "id": 171,
+        "title": "Enterprise Architekturen. Leitfaden für effiziente Software-Entwicklung",
+        "isbn": "3-935042-99-X",
+        "publisher": "entwickler.press",
+        "yearOfPublishing": "2006",
+        "authors": "Bien, Adam",
+        "status": "PRESENT",
+        "type": "BOOK",
+        "deleted": false,
+        "created": "2011-02-07T21:19:47.902Z",
+        "lastUpdate": "2011-02-07T21:19:47.902Z",
+        "typeAsString": "Book",
+        "statusAsString": "present",
+        "attachmentsSizeFormatted": "-"
+      }
+    ],
+    "totalSize": 4,
+    "size": 4
+  },
+  "filterFavorites": [],
+  "filter": {
+    "entries": [],
+    "sortAndLimitMaxRowsWhileSelect": true,
+    "maxRows": 50000,
+    "deleted": false,
+    "autoWildcardSearch": false,
+    "extended": {},
+    "sortProperties": []
+  }
+}
