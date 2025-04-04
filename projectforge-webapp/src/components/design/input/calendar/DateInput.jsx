@@ -29,7 +29,6 @@ function DateInput(
     const [inputValue, setInputValue] = React.useState('');
     const [isActive, setIsActive] = React.useState(false);
     const [isOpen, setIsOpen] = React.useState(false);
-    const [selectedMonth, setSelectedMonth] = React.useState(value);
     const inputRef = React.useRef(null);
     const Tag = noInputContainer ? React.Fragment : InputContainer;
 
@@ -159,10 +158,9 @@ function DateInput(
             additionalClassName={styles.dayPickerContainer}
         >
             <DayPicker
+                defaultMonth={value}
                 selectedDays={value}
                 onDayClick={handleDayPickerClick}
-                month={selectedMonth}
-                onMonthChange={setSelectedMonth}
                 locale={locale === 'de' ? de : 'en'}
                 onTodayButtonClick={setDate}
                 todayButton={todayButton}
