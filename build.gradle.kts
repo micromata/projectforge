@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version libs.versions.org.jetbrains.kotlin.get() apply false
+    id("org.sonarqube") version "5.1.0.4882"
 }
 
 allprojects {
