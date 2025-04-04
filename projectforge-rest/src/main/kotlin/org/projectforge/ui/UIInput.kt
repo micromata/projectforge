@@ -47,7 +47,15 @@ data class UIInput(
   /**
    * AutoComplete Types for HTML Input fields.
    */
-  val autoComplete: AutoCompleteType? = null
+  val autoComplete: AutoCompleteType? = null,
+  /**
+   * Input modes for HTML Input fields (e. g. inputmode="numeric").
+   */
+  val inputMode: InputMode? = null,
+  /**
+   * Pattern for HTML Input fields (e. g. pattern="\d*").
+   */
+  val pattern: String? = null,
 ) : UIElement(UIElementType.INPUT), UILabelledElement, IUIId {
   var autoCompletionUrl: String? = null
 
@@ -67,6 +75,14 @@ data class UIInput(
     CURRENT_PASSWORD("current-password"),
     NEW_PASSWORD("new-password"),
     OFF("off"),
+    ONE_TIME_CODE("one-time-code"),
+  }
+
+  /**
+   * inputmode Types for HTML Input fields.
+   */
+  enum class InputMode(@JsonValue val htmlName: String) {
+    NUMERIC("numeric"),
   }
 
   /**
