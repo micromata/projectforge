@@ -160,7 +160,7 @@ class CalendarServicesRest {
      * @param startDateParam startDate timestamp of event (after resize or drag&drop)
      * @param endDateParam endDate timestamp of event (after resize or drag&drop)
      * @param categoryParam calEvent, teamEvent or timesheet.
-     * @param dbIdParam Data base id of timesheet or team event.
+     * @param dbIdParam Database id of timesheet or team event.
      * @param uidParam Uid of event, if given.
      * @param origStartDateParam For resizing or moving events of series, the origin startDate date is required.
      * @param origEndDateParam For resizing or moving events of series, the origin endDate date is required.
