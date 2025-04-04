@@ -147,6 +147,8 @@ export const callAction = (
                     action.variables || {},
                     true,
                 )(dispatch, getState);
+            } else if (history.location.pathname.startsWith('/react/calendar')) {
+                history.push('/react/calendar');
             }
             break;
         case 'UPDATE':
