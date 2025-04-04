@@ -1,0 +1,470 @@
+{
+  "data": {
+    "id": 168,
+    "title": "eBay API",
+    "yearOfPublishing": "2007",
+    "authors": "Harnisch, Carsten",
+    "status": "PRESENT",
+    "type": "BOOK",
+    "attachments": [],
+    "deleted": false,
+    "created": "2008-01-10T08:27:53.675Z",
+    "lastUpdate": "2011-01-23T17:23:34.283Z",
+    "layoutUid": "layout1743771074340",
+    "typeAsString": "Book",
+    "statusAsString": "present",
+    "attachmentsSizeFormatted": "-"
+  },
+  "ui": {
+    "title": "Edit book",
+    "restBaseUrl": "book",
+    "userAccess": {
+      "history": true,
+      "insert": true,
+      "update": true,
+      "delete": true,
+      "cancel": true,
+      "editHistoryComments": false
+    },
+    "showHistory": true,
+    "layout": [
+      {
+        "id": "title",
+        "maxLength": 255,
+        "required": true,
+        "focus": true,
+        "dataType": "STRING",
+        "label": "Title",
+        "type": "INPUT",
+        "key": "el-1"
+      },
+      {
+        "id": "authors",
+        "maxLength": 1000,
+        "rows": 1,
+        "maxRows": 10,
+        "label": "Authors",
+        "type": "TEXTAREA",
+        "key": "el-2"
+      },
+      {
+        "content": [
+          {
+            "length": {
+              "xs": 6
+            },
+            "content": [
+              {
+                "content": [
+                  {
+                    "length": {
+                      "xs": 6
+                    },
+                    "content": [
+                      {
+                        "id": "type",
+                        "type": "SELECT",
+                        "key": "el-7",
+                        "label": "Type",
+                        "labelProperty": "displayName",
+                        "valueProperty": "id",
+                        "values": [
+                          {
+                            "id": "AUDIO_BOOK",
+                            "displayName": "audio book"
+                          },
+                          {
+                            "id": "BOOK",
+                            "displayName": "Book"
+                          },
+                          {
+                            "id": "EBOOK",
+                            "displayName": "e-book"
+                          },
+                          {
+                            "id": "MAGAZINE",
+                            "displayName": "Magazine"
+                          },
+                          {
+                            "id": "ARTICLE",
+                            "displayName": "Article"
+                          },
+                          {
+                            "id": "NEWSPAPER",
+                            "displayName": "Newspaper"
+                          },
+                          {
+                            "id": "PERIODICAL",
+                            "displayName": "Periodical"
+                          },
+                          {
+                            "id": "FILM",
+                            "displayName": "Film (data medium)"
+                          },
+                          {
+                            "id": "SOFTWARE",
+                            "displayName": "Software (data medium)"
+                          },
+                          {
+                            "id": "THESIS",
+                            "displayName": "Thesis"
+                          },
+                          {
+                            "id": "MISC",
+                            "displayName": "Misc"
+                          }
+                        ]
+                      }
+                    ],
+                    "type": "COL",
+                    "key": "el-6"
+                  },
+                  {
+                    "length": {
+                      "xs": 6
+                    },
+                    "content": [
+                      {
+                        "id": "status",
+                        "type": "SELECT",
+                        "key": "el-9",
+                        "required": true,
+                        "label": "Status",
+                        "labelProperty": "displayName",
+                        "valueProperty": "id",
+                        "values": [
+                          {
+                            "id": "PRESENT",
+                            "displayName": "present"
+                          },
+                          {
+                            "id": "MISSED",
+                            "displayName": "missed"
+                          },
+                          {
+                            "id": "DISPOSED",
+                            "displayName": "disposed"
+                          },
+                          {
+                            "id": "UNKNOWN",
+                            "displayName": "unknown"
+                          }
+                        ]
+                      }
+                    ],
+                    "type": "COL",
+                    "key": "el-8"
+                  }
+                ],
+                "type": "ROW",
+                "key": "el-5"
+              },
+              {
+                "id": "yearOfPublishing",
+                "maxLength": 4,
+                "dataType": "STRING",
+                "label": "Year of Publishing",
+                "type": "INPUT",
+                "key": "el-10"
+              },
+              {
+                "id": "signature",
+                "maxLength": 255,
+                "dataType": "STRING",
+                "label": "Signature",
+                "type": "INPUT",
+                "key": "el-11"
+              }
+            ],
+            "type": "COL",
+            "key": "el-4"
+          },
+          {
+            "length": {
+              "xs": 6
+            },
+            "content": [
+              {
+                "id": "isbn",
+                "maxLength": 255,
+                "dataType": "STRING",
+                "label": "ISBN",
+                "type": "INPUT",
+                "key": "el-13"
+              },
+              {
+                "id": "publisher",
+                "maxLength": 255,
+                "dataType": "STRING",
+                "label": "Publisher",
+                "type": "INPUT",
+                "key": "el-14"
+              },
+              {
+                "id": "editor",
+                "maxLength": 255,
+                "dataType": "STRING",
+                "label": "Editor",
+                "type": "INPUT",
+                "key": "el-15"
+              }
+            ],
+            "type": "COL",
+            "key": "el-12"
+          }
+        ],
+        "type": "ROW",
+        "key": "el-3"
+      },
+      {
+        "id": "keywords",
+        "maxLength": 1024,
+        "rows": 3,
+        "maxRows": 10,
+        "label": "Keywords",
+        "type": "TEXTAREA",
+        "key": "el-16"
+      },
+      {
+        "length": {},
+        "title": "Lending",
+        "type": "FIELDSET",
+        "key": "el-17",
+        "content": [
+          {
+            "id": "book.lendOutComponent",
+            "type": "CUSTOMIZED",
+            "key": "el-18"
+          },
+          {
+            "id": "lendOutComment",
+            "maxLength": 1024,
+            "rows": 3,
+            "maxRows": 10,
+            "label": "Lending note (optional)",
+            "type": "TEXTAREA",
+            "key": "el-19"
+          }
+        ]
+      },
+      {
+        "length": {},
+        "title": "List of attachments",
+        "type": "FIELDSET",
+        "key": "el-20",
+        "content": [
+          {
+            "category": "book",
+            "id": 168,
+            "listId": "attachments",
+            "maxSizeInKB": 102400,
+            "readOnly": false,
+            "type": "ATTACHMENT_LIST",
+            "key": "el-21",
+            "agGrid": {
+              "id": "attachments",
+              "columnDefs": [
+                {
+                  "field": "name",
+                  "headerName": "Filename",
+                  "sortable": true,
+                  "filter": true,
+                  "width": 300,
+                  "resizable": true,
+                  "cellRenderer": "filename",
+                  "wrapText": true,
+                  "autoHeight": true
+                },
+                {
+                  "field": "action",
+                  "headerName": "",
+                  "sortable": false,
+                  "filter": true,
+                  "width": 50,
+                  "resizable": true,
+                  "cellRenderer": "action"
+                },
+                {
+                  "field": "size",
+                  "headerName": "File size",
+                  "sortable": true,
+                  "filter": true,
+                  "width": 80,
+                  "resizable": true,
+                  "valueFormatter": "data.sizeHumanReadable"
+                },
+                {
+                  "field": "description",
+                  "headerName": "Description",
+                  "sortable": true,
+                  "filter": true,
+                  "width": 300,
+                  "resizable": true,
+                  "wrapText": true,
+                  "autoHeight": true
+                },
+                {
+                  "field": "created",
+                  "headerName": "created",
+                  "sortable": true,
+                  "filter": true,
+                  "width": 120,
+                  "resizable": true,
+                  "valueFormatter": "data.createdFormatted"
+                },
+                {
+                  "field": "createdByUser",
+                  "headerName": "created by",
+                  "sortable": true,
+                  "filter": true,
+                  "width": 100,
+                  "resizable": true
+                },
+                {
+                  "field": "lastUpdate",
+                  "headerName": "modified",
+                  "sortable": true,
+                  "filter": true,
+                  "width": 100,
+                  "resizable": true,
+                  "valueFormatter": "data.lastUpdateTimeAgo"
+                },
+                {
+                  "field": "lastUpdateByUser",
+                  "headerName": "modified by",
+                  "sortable": true,
+                  "filter": true,
+                  "width": 100,
+                  "resizable": true
+                }
+              ],
+              "listPageTable": false,
+              "type": "AG_GRID",
+              "paginationPageSizeSelector": [
+                25,
+                50,
+                100,
+                200,
+                500,
+                1000
+              ],
+              "getRowClass": "if (params.node.data?.deleted) { return 'ag-row-deleted'; }",
+              "locale": "en",
+              "dateFormat": "DD/MM/YYYY",
+              "timestampFormatSeconds": "DD/MM/YYYY HH:mm:ss",
+              "timestampFormatMinutes": "DD/MM/YYYY HH:mm",
+              "thousandSeparator": ",",
+              "decimalSeparator": ".",
+              "currency": "â¬"
+            }
+          }
+        ]
+      },
+      {
+        "id": "abstractText",
+        "maxLength": 4000,
+        "rows": 3,
+        "maxRows": 10,
+        "label": "Abstract",
+        "type": "TEXTAREA",
+        "key": "el-22"
+      },
+      {
+        "id": "comment",
+        "maxLength": 1000,
+        "rows": 3,
+        "maxRows": 10,
+        "label": "Comment",
+        "type": "TEXTAREA",
+        "key": "el-23"
+      }
+    ],
+    "namedContainers": [],
+    "layoutBelowActions": [],
+    "actions": [
+      {
+        "id": "cancel",
+        "title": "Cancel",
+        "color": "danger",
+        "outline": true,
+        "responseAction": {
+          "url": "book/cancel",
+          "targetType": "POST"
+        },
+        "disabled": false,
+        "type": "BUTTON",
+        "key": "el-24"
+      },
+      {
+        "id": "markAsDeleted",
+        "title": "Delete",
+        "color": "warning",
+        "outline": true,
+        "responseAction": {
+          "url": "book/markAsDeleted",
+          "targetType": "DELETE"
+        },
+        "confirmMessage": "Do you want to mark this object as deleted?",
+        "disabled": false,
+        "type": "BUTTON",
+        "key": "el-25"
+      },
+      {
+        "id": "update",
+        "title": "Update",
+        "color": "success",
+        "outline": true,
+        "default": true,
+        "responseAction": {
+          "url": "book/saveorupdate",
+          "targetType": "PUT"
+        },
+        "disabled": false,
+        "type": "BUTTON",
+        "key": "el-26"
+      }
+    ],
+    "pageMenu": [],
+    "excelExportSupported": false,
+    "multiSelectionSupported": false,
+    "watchFields": [],
+    "uid": "layout1743771074340",
+    "translations": {
+      "book.lendOut": "Lend out",
+      "book.returnBook": "Return",
+      "yes": "Yes",
+      "cancel": "Cancel",
+      "calendar.today": "Today",
+      "finish": "Finish",
+      "save": "Save",
+      "select.placeholder": "Select...",
+      "attachment.expires": "Expires",
+      "attachment.fileName": "Filename",
+      "attachment.onlyAvailableAfterSave": "Uploading of attachments is only available after saving this new object.",
+      "attachment.size": "File size",
+      "attachment.upload.title": "You may upload multiple files here by dropping in or clicking.",
+      "created": "created",
+      "createdBy": "created by",
+      "delete": "Delete",
+      "description": "Description",
+      "file.upload.deleteSelected": "Delete selected",
+      "file.upload.deleteSelected.confirm": "Do you really want to delete all selected files?",
+      "file.upload.downloadSelected": "Download selected",
+      "file.upload.error.fileAlreadyExists": "File ''{0}'' already exists.",
+      "file.upload.error.toManyFiles": "You tried to upload to many files at once.",
+      "modified": "modified",
+      "modifiedBy": "modified by",
+      "multiselection.aggrid.selection.info.message": "* <span style=\"color:red;\">Please note:</span> The table may be wider than the display. Please scroll to the right to see all columns.\n* The columns can be moved and resized.\n* Together with the Shift or Control key, several lines can be selected at the same time with a mouse click.\n* You can use the arrow keys to navigate through the lines and use the space bar to select and deselect individual lines.",
+      "multiselection.aggrid.selection.info.title": "Multi selection of rows",
+      "reload": "reload",
+      "file.upload.error.maxSizeOfExceeded": "File upload rejected: maximum size of 100MB exceeded.",
+      "label.historyOfChanges": "History of changes",
+      "changes": "Changes",
+      "history.userComment.edit": "Edit change comment",
+      "tooltip.selectMe": "You are great!"
+    }
+  },
+  "serverData": {
+    "csrfToken": "cOtFHKPs8DmhcthWYKPmgGqTOkDqeU"
+  }
+}

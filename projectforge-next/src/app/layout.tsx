@@ -39,7 +39,7 @@ export default function RootLayout({
               height={50}
               className="md:hidden"
             />
-            <div className="bg-white md:m-4 md:rounded-lg md:border md:border-zinc-200 md:inset-shadow-xs md:inset-shadow-zinc-900 md:overflow-auto px-2 md:p-4">
+            <div className="bg-white md:m-4 md:rounded-lg md:border md:border-zinc-200 md:overflow-auto px-2 md:p-4">
               {children}
             </div>
           </div>

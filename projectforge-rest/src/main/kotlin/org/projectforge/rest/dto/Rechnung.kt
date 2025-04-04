@@ -119,9 +119,20 @@ class Rechnung(
     override fun copyTo(dest: RechnungDO) {
         super.copyTo(dest)
         val list = dest.positionen ?: mutableListOf()
-        positionen?.forEach {
+        // Clear the list to avoid potential conflicts with existing items
+        list.clear()
+        
+        // Ensure positions are sorted by number before adding them to the list
+        val sortedPositions = positionen?.sortedBy { it.number }
+        
+        sortedPositions?.forEachIndexed { index, it ->
             val pos = RechnungsPositionDO()
             it.copyTo(pos)
+            // Set the parent reference to establish the relationship
+            pos.rechnung = dest
+            // Important: Ensure the number matches the index+1
+            // This is critical for the @OrderColumn and @ListIndexBase(1) to work properly
+            pos.number = index + 1
             list.add(pos)
         }
         dest.positionen = list
