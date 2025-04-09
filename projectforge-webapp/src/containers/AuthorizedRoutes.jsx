@@ -14,6 +14,7 @@ import TaskTreePage from './page/TaskTreePage';
 import ModalRoutes from './ModalRoutes';
 import RedirectToWicket from './RedirectToWicket';
 import FormModal from './page/form/FormModal';
+import MenuCustomizerPanel from './panel/menu/MenuCustomizerPanel';
 
 export const wicketRoute = (
     <Route
@@ -56,6 +57,10 @@ function AuthorizedRoutes(
             <Route
                 path={`${prefix}taskTree`}
                 element={<TaskTreePage />}
+            />
+            <Route
+                path={`${prefix}customizeMenu`}
+                element={<MenuCustomizerPanel />}
             />
             <Route
                 path={`${prefix}:category/:type/:id?/:tab?`}
