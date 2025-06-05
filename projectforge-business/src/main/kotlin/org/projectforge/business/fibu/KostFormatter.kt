@@ -187,6 +187,18 @@ class KostFormatter {
                 }
             }
         }
+        if (formatType == FormatType.LONG && useProjekt != null) {
+            useProjekt.kunde?.let { kunde ->
+                sb.append(" - ")
+                kunde.identifier.let { identifier ->
+                    if (identifier.isNullOrBlank()) {
+                        sb.append(kunde.name.abbreviate(20))
+                    } else {
+                        sb.append(identifier)
+                    }
+                }
+            }
+        }
         return abbreviateIfRequired(sb.toString(), formatType, abbreviationLength)
     }
 

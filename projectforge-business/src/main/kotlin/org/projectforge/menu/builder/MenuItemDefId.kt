@@ -58,6 +58,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     COST1_LIST("menu.fibu.kost1", "wa/cost1List"), // getReactListUrl("cost1")), //
     COST2_LIST("menu.fibu.kost2", "wa/cost2List"), //
     COST2_TYPE_LIST("menu.fibu.kost2arten", "wa/cost2TypeList"), //
+    COST_SEARCH("menu.fibu.kostSearch", getReactDynamicPageUrl("costSearch")), //
+
     CUSTOMER_LIST("menu.fibu.kunden", "wa/customerList"), //
     //CUSTOMER_LIST("menu.fibu.kunden", getReactListUrl("customer")), // Doesn't work yet
 
