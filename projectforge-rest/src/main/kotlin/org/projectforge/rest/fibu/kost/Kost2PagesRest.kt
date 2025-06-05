@@ -25,8 +25,10 @@ package org.projectforge.rest.fibu.kost
 
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
+import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -34,12 +36,15 @@ import org.projectforge.rest.dto.Customer
 import org.projectforge.rest.dto.Kost2
 import org.projectforge.rest.dto.Project
 import org.projectforge.ui.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/cost2")
 class Kost2PagesRest : AbstractDTOPagesRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao::class.java, "fibu.kost2.title") {
+    @Autowired
+    private lateinit var kostFormatter: KostFormatter
 
     override fun transformFromDB(obj: Kost2DO, editMode: Boolean): Kost2 {
         val kost2 = Kost2()
@@ -110,4 +115,12 @@ class Kost2PagesRest : AbstractDTOPagesRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao::
             )
         return LayoutUtils.processEditPage(layout, dto, this)
     }
+
+    override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<Kost2DO> {
+        val list = super.queryAutocompleteObjects(request, filter)
+        list.forEach { it.displayName = kostFormatter.formatKost2(it, KostFormatter.FormatType.LONG) }
+        return list.sortedBy { it.displayName }
+    }
+
+    override val autoCompleteSearchFields = arrayOf("description", "nummer", "projekt.name", "projekt.kunde.name")
 }
