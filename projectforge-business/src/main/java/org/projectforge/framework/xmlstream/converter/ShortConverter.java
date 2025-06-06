@@ -37,7 +37,7 @@ public class ShortConverter extends AbstractValueConverter<Short>
       if (StringUtils.isEmpty(str) || XmlConstants.NULL_IDENTIFIER.equals(str)) {
         return null;
       }
-      return new Short(str);
+      return Short.valueOf(str);
     } catch (final NumberFormatException ex) {
       log.warn("Can't convert value '" + str + "' to short.");
       return 0;
