@@ -666,7 +666,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   }
 
   /**
-   * Adds a excel export content menu entry. ProjectForge exports all data fields (annotated with {@link PropertyInfo}
+   * Adds an Excel export content menu entry. ProjectForge exports all data fields (annotated with {@link PropertyInfo}
    * of the current displayed result list.
    *
    * @param filenameIdentifier If given then the id will be part of the exported filename, may be null.
