@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -33,43 +33,45 @@ import java.io.Serializable
  * if a new one should be created.
  */
 class ResultSet<O : Any>(
-  var resultSet: List<O>,
-  origResultSet: ResultSet<*>?,
-  var totalSize: Int? = null,
-  var highlightRowId: Long? = null,
-  var selectedEntityIds: Collection<Serializable>? = null,
-  magicFilter: MagicFilter, // only needed to check if the result set was truncated (has size of magicFilter.maxRows).
+    var resultSet: List<O>,
+    origResultSet: ResultSet<*>?,
+    var totalSize: Int? = null,
+    var highlightRowId: Long? = null,
+    var selectedEntityIds: Collection<Serializable>? = null,
+    magicFilter: MagicFilter, // only needed to check if the result set was truncated (has size of magicFilter.maxRows).
 ) {
-  /**
-   * Result info as mark down to display. Is usable for statistics as well as for important note, that the
-   * result set was runcated due to maxRows limitation.
-   */
-  var resultInfo: String? = null
-    internal set
+    /**
+     * Result info as mark down to display. Is usable for statistics as well as for important note, that the
+     * result set was runcated due to maxRows limitation.
+     */
+    var resultInfo: String? = null
+        internal set
 
-  val size = resultSet.size
+    val size = resultSet.size
 
-  init {
-    if (origResultSet != null && selectedEntityIds == null) {
-      selectedEntityIds = origResultSet.selectedEntityIds
-    }
-    if (resultSet.size == magicFilter.maxRows) {
-      val msg = translateMsg("search.maxRowsExceeded", magicFilter.maxRows)
-      resultInfo = "<span style=\"color:red; font-weight: bold;\">$msg</span>"
-    }
-  }
+    var paginationPageSize = magicFilter.paginationPageSize
 
-  fun addResultInfo(info: String?) {
-    if (info.isNullOrBlank()) {
-      return
+    init {
+        if (origResultSet != null && selectedEntityIds == null) {
+            selectedEntityIds = origResultSet.selectedEntityIds
+        }
+        if (resultSet.size == magicFilter.maxRows) {
+            val msg = translateMsg("search.maxRowsExceeded", magicFilter.maxRows)
+            resultInfo = "<span style=\"color:red; font-weight: bold;\">$msg</span>"
+        }
     }
-    resultInfo.let { value ->
-      if (resultInfo.isNullOrBlank()) {
-        resultInfo = info
-      } else {
-        resultInfo = "$value\n\n$info"
-      }
+
+    fun addResultInfo(info: String?) {
+        if (info.isNullOrBlank()) {
+            return
+        }
+        resultInfo.let { value ->
+            if (resultInfo.isNullOrBlank()) {
+                resultInfo = info
+            } else {
+                resultInfo = "$value\n\n$info"
+            }
+        }
     }
-  }
 
 }

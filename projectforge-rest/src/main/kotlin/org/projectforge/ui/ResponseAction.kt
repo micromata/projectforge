@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -37,7 +37,7 @@ class ResponseAction(
   var targetType: TargetType? = null,
   /**
    * If true, then the returned data (including UI, variables etc.) will be merged into current state.
-   * Otherwise a full update is done (for targetType=UPDATE and CLOSE_MODAL).
+   * Otherwise, a full update is done (for targetType=UPDATE and CLOSE_MODAL).
    */
   var merge: Boolean? = null,
   val validationErrors: List<ValidationError>? = null,

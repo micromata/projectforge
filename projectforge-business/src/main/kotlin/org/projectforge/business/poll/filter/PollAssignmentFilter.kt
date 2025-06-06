@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -52,13 +52,8 @@ class PollAssignmentFilter(val values: List<PollAssignment>) : CustomResultFilte
     }
 
     companion object {
-        private var _groupService: GroupService? = null
-        private val groupService: GroupService
-            get() {
-                if (_groupService == null) {
-                    _groupService = ApplicationContextProvider.getApplicationContext().getBean(GroupService::class.java)
-                }
-                return _groupService!!
-            }
+        private val groupService: GroupService by lazy {
+            ApplicationContextProvider.getApplicationContext().getBean(GroupService::class.java)
+        }
     }
 }

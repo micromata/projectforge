@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,6 +32,7 @@ import org.projectforge.business.scripting.xstream.RecentScriptCalls
 import org.projectforge.business.scripting.xstream.ScriptCallData
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.export.ExportJFreeChart
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -113,6 +114,7 @@ class ScriptExecution {
         parameters: List<ScriptParameter>,
         scriptDao: AbstractScriptDao,
         scriptPagesRest: AbstractPagesRest<*, *, *>,
+        scriptLogger: ScriptLogger,
     ): ScriptExecutionResult {
         log.info {
             "Execute script '${script.name}' with params: ${
@@ -127,7 +129,13 @@ class ScriptExecution {
         val initData = prepareScriptInit(script, scriptDao, scriptPagesRest)
         val saveUserContext = ThreadLocalUserContext.userContext
         val scriptExecutionResult = try {
-            scriptDao.execute(initData.scriptDO, parameters, initData.additionalVariables, initData.myImports)
+            scriptDao.execute(
+                initData.scriptDO,
+                parameters,
+                initData.additionalVariables,
+                initData.myImports,
+                scriptLogger,
+            )
         } finally {
             ThreadLocalUserContext.userContext = saveUserContext // If script was executed as.
         }
@@ -156,6 +164,10 @@ class ScriptExecution {
                 is ExportJson -> {
                     exportJson(request, result, scriptExecutionResult)
                 }
+
+                is ExportFile -> {
+                    exportFile(request, result, scriptExecutionResult)
+                }
             }
         }
         return scriptExecutionResult
@@ -168,7 +180,7 @@ class ScriptExecution {
     ): ScriptInitData {
         val scriptDO: ScriptDO
         if (script.id != null) {
-            // Exceuting db script:
+            // Executing db script:
             scriptDO =
                 scriptDao.find(script.id) ?: throw IllegalArgumentException("Script with id #${script.id} not found.")
         } else {
@@ -194,7 +206,7 @@ class ScriptExecution {
     private fun exportExcel(
         request: HttpServletRequest,
         workbook: ExportWorkbook,
-        scriptExecutionResult: ScriptExecutionResult
+        scriptExecutionResult: ScriptExecutionResult,
     ) {
         val filename = createDownloadFilename(workbook.filename, "xls")
         try {
@@ -212,10 +224,12 @@ class ScriptExecution {
     private fun exportExcel(
         request: HttpServletRequest,
         workbook: ExcelWorkbook,
-        scriptExecutionResult: ScriptExecutionResult
+        scriptExecutionResult: ScriptExecutionResult,
     ) {
         workbook.use {
             val filename = createDownloadFilename(workbook.filename, workbook.filenameExtension)
+            // Evaluate all formulas before exporting:
+            workbook.pOIWorkbook.creationHelper.createFormulaEvaluator().evaluateAll()
             val xls = workbook.asByteArrayOutputStream.toByteArray()
             if (xls == null || xls.size == 0) {
                 scriptExecutionResult.scriptLogger.error("Oups, xls has zero size. Filename: $filename")
@@ -228,7 +242,7 @@ class ScriptExecution {
     private fun exportJFreeChart(
         request: HttpServletRequest,
         exportJFreeChart: ExportJFreeChart,
-        scriptExecutionResult: ScriptExecutionResult
+        scriptExecutionResult: ScriptExecutionResult,
     ) {
         val out = ByteArrayOutputStream()
         val extension = exportJFreeChart.write(out)
@@ -239,7 +253,7 @@ class ScriptExecution {
     private fun exportZipArchive(
         request: HttpServletRequest,
         exportZipArchive: ExportZipArchive,
-        scriptExecutionResult: ScriptExecutionResult
+        scriptExecutionResult: ScriptExecutionResult,
     ) {
         try {
             val filename = createDownloadFilename(exportZipArchive.filename, "zip")
@@ -256,7 +270,7 @@ class ScriptExecution {
     private fun exportJson(
         request: HttpServletRequest,
         exportJson: ExportJson,
-        scriptExecutionResult: ScriptExecutionResult
+        scriptExecutionResult: ScriptExecutionResult,
     ) {
         try {
             val filename = createDownloadFilename(exportJson.jsonName, "json")
@@ -264,7 +278,25 @@ class ScriptExecution {
                 request,
                 filename,
                 JsonUtils.toJson(exportJson.result).toByteArray(StandardCharsets.UTF_8),
-                scriptExecutionResult
+                scriptExecutionResult,
+            )
+        } catch (ex: Exception) {
+            scriptExecutionResult.exception = ex
+            log.error(ex.message, ex)
+        }
+    }
+
+    private fun exportFile(
+        request: HttpServletRequest,
+        exportFile: ExportFile,
+        scriptExecutionResult: ScriptExecutionResult,
+    ) {
+        try {
+            storeDownloadFile(
+                request,
+                exportFile.filename,
+                exportFile.content ?: ByteArray(0),
+                scriptExecutionResult,
             )
         } catch (ex: Exception) {
             scriptExecutionResult.exception = ex
@@ -276,10 +308,12 @@ class ScriptExecution {
         request: HttpServletRequest,
         filename: String,
         bytes: ByteArray,
-        scriptExecutionResult: ScriptExecutionResult
+        scriptExecutionResult: ScriptExecutionResult,
     ) {
         downloadFileSupport.storeDownloadFile(request, filename, bytes)
-        scriptExecutionResult.scriptLogger.info("File '$filename' prepared for download (up-to $DOWNLOAD_EXPIRY_MINUTES minutes available).")
+        val msg = translateMsg("scripting.script.execution.log.filePreparedForDownload", filename, DOWNLOAD_EXPIRY_MINUTES)
+        scriptExecutionResult.downloadAvailable = msg
+        scriptExecutionResult.scriptLogger.info { msg }
     }
 
     internal fun createDownloadFilename(filename: String?, extension: String): String {

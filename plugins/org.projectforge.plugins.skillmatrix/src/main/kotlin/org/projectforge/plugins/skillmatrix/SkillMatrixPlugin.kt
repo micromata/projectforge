@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -41,7 +41,7 @@ private val log = KotlinLogging.logger {}
 class SkillMatrixPlugin : AbstractPlugin(
     PluginAdminService.PLUGIN_SKILL_MATRIX_ID,
     "Skill matrix",
-    "The users skills managed by the users themselve."
+    "The users skills managed by the users themselves."
 ) {
 
     override fun initialize() {

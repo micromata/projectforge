@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -42,7 +42,7 @@ import java.util.*
  */
 object SipgateExcelExporter {
   private class Context(val workbook: ExcelWorkbook, val storage: SipgateDataStorage) {
-    val boldFont = workbook.createOrGetFont("bold", bold = true)
+    val boldFont = ExcelUtils.createFont(workbook, "bold", bold = true)
     val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
     val wrapTextStyle = workbook.createOrGetCellStyle("wrap")
 

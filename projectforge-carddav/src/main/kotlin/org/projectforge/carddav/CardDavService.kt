@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,9 +30,7 @@ import mu.KotlinLogging
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
-import org.projectforge.carddav.model.AddressBook
 import org.projectforge.carddav.model.Contact
-import org.projectforge.carddav.model.User
 import org.projectforge.carddav.service.AddressService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.utils.RequestLog
@@ -59,6 +57,9 @@ class CardDavService {
     private lateinit var domainService: DomainService
 
     @Autowired
+    private lateinit var getRequestHandler: GetRequestHandler
+
+    @Autowired
     private lateinit var restAuthenticationUtils: RestAuthenticationUtils
 
     @Autowired
@@ -66,7 +67,7 @@ class CardDavService {
 
     @PostConstruct
     fun init() {
-        domain = domainService.plainDomain
+        domain = domainService.domainWithContextPath
     }
 
     fun dispatch(request: HttpServletRequest, response: HttpServletResponse) {
@@ -138,7 +139,7 @@ class CardDavService {
         } else if (method == "GET") {
             // /carddav/users/admin/addressbooks/ProjectForge-129.vcf
             writerContext.contactList = getContactList(userDO)
-            GetRequestHandler.handleGetCall(writerContext)
+            getRequestHandler.handleGetCall(writerContext)
         } else if (method == "DELETE") {
             // /carddav/users/admin/addressbooks/ProjectForge-129.vcf
             deleteRequestHandler.handleDeleteCall(writerContext)

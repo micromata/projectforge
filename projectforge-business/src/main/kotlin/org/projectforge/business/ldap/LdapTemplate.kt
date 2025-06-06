@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -55,7 +55,7 @@ abstract class LdapTemplate(private val ldapConnector: LdapConnector) {
     ctx = try {
       ldapConnector.createContext(username, password)
     } catch (ex: NamingException) {
-      log.error("While trying to connect LDAP initally: " + ex.message, ex)
+      log.error("While trying to connect LDAP initially: " + ex.message, ex)
       throw RuntimeException(ex)
     }
     return internalExcecute()

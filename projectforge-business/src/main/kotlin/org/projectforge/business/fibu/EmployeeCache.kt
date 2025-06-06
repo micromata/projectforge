@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,9 +25,9 @@ package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
-import org.hibernate.Hibernate
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.cache.AbstractCache
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -70,7 +70,7 @@ open class EmployeeCache : AbstractCache() {
      */
     fun getEmployeeIfNotInitialized(employee: EmployeeDO?): EmployeeDO? {
         employee ?: return null
-        if (Hibernate.isInitialized(employee) && employee.user != null) {
+        if (HibernateUtils.isFullyInitialized(employee) && employee.user != null) {
             return employee
         }
         return getEmployee(employee.id)
@@ -101,12 +101,13 @@ open class EmployeeCache : AbstractCache() {
         return userGroupCache.getUser(employee.user?.id)
     }
 
-    fun setStatusAndAnnualLeave(employee: EmployeeDO?) {
+    fun setTimeDependentAttrs(employee: EmployeeDO?) {
         employee ?: return
         checkRefresh()
         val cached = employeeMap[employee.id] ?: return
         employee.status = cached.status
         employee.annualLeave = cached.annualLeave
+        employee.weeklyWorkingHours = cached.weeklyWorkingHours
     }
 
     fun findByStaffNumber(staffNumber: Int?): EmployeeDO? {
@@ -119,8 +120,8 @@ open class EmployeeCache : AbstractCache() {
         return employeeMap.values.firstOrNull { it.staffNumber == staffNumber }
     }
 
-    fun setStatusAndAnnualLeave(employees: Collection<EmployeeDO>) {
-        employees.forEach { setStatusAndAnnualLeave(it) }
+    fun setTimeDependentAttrs(employees: Collection<EmployeeDO>) {
+        employees.forEach { setTimeDependentAttrs(it) }
     }
 
     /**
@@ -153,6 +154,16 @@ open class EmployeeCache : AbstractCache() {
                         map[employeeId]?.let { employee ->
                             employee.annualLeave = validSinceEntry.annualLeave
                             log.debug { "EmployeeCache.refresh: Set annualLeave=${validSinceEntry.annualLeave} for employeeId=$employeeId, userId=${employee.user?.id}" }
+                        }
+                    }
+                }
+            getLatestValidSinceEntries(EmployeeValidSinceAttrType.WEEKLY_HOURS)
+                .forEach { validSinceEntry ->
+                    log.debug { "EmployeeCache.refresh: Processing $validSinceEntry" }
+                    validSinceEntry.employee?.id?.let { employeeId ->
+                        map[employeeId]?.let { employee ->
+                            employee.weeklyWorkingHours = validSinceEntry.weeklyWorkingHours
+                            log.debug { "EmployeeCache.refresh: Set weeklyWorkingHours=${validSinceEntry.weeklyWorkingHours} for employeeId=$employeeId, userId=${employee.user?.id}" }
                         }
                     }
                 }

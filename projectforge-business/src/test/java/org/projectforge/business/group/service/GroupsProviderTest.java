@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -46,7 +46,7 @@ public class GroupsProviderTest
   @Test
   public void convertGroupIds()
   {
-    final GroupServiceImpl groupService = new GroupServiceImpl();
+    final GroupService groupService = new GroupService();
     groupService.setUserGroupCache(Mockito.mock(UserGroupCache.class));
     groupService.setGroupDao(Mockito.mock(GroupDao.class));
     Mockito.when(groupService.getGroup(1L)).thenReturn(cg("1", 1));

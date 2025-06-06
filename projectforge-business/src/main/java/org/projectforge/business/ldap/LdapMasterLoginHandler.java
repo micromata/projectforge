@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -107,7 +107,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler {
         ldapUserDao.changePassword(ldapUser, null, password); // update the userPassword but not the (WLAN)sambaNTPassword
       }
     } catch (final Exception ex) {
-      log.error("An exception occured while checking login against LDAP system (ignoring this error): " + ex.getMessage(), ex);
+      log.error("An exception occurred while checking login against LDAP system (ignoring this error): " + ex.getMessage(), ex);
     }
     return loginResult;
   }

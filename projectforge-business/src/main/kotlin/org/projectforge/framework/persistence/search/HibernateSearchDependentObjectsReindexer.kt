@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -239,7 +239,7 @@ class HibernateSearchDependentObjectsReindexer {
                 } else {
                     for (e in list) {
                         if (entry == e) {
-                            log.warn("Entry already registerd: $entry")
+                            log.warn("Entry already registered: $entry")
                         }
                     }
                 }

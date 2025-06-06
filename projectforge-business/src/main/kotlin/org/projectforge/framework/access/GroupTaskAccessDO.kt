@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,10 @@
 
 package org.projectforge.framework.access
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.apache.commons.lang3.builder.ToStringBuilder
-import org.hibernate.Hibernate
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
@@ -34,13 +34,14 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmb
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.history.PersistenceBehavior
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import java.io.Serializable
-import java.util.*
 
 /**
  * Represents an access entry with the permissions of one group to one task. The persistent data object of
@@ -70,6 +71,7 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne
     @get:JoinColumn(name = "group_id")
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var group: GroupDO? = null
 
     @PropertyInfo(i18nKey = "task")
@@ -77,6 +79,7 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne
     @get:JoinColumn(name = "task_id")
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var task: TaskDO? = null
 
     /**
@@ -230,7 +233,7 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
         tos.append("id", id)
         tos.append("task", taskId)
         tos.append("group", groupId)
-        if (Hibernate.isInitialized(this.accessEntries)) {
+        if (HibernateUtils.isFullyInitialized(this.accessEntries)) {
             tos.append("entries", this.accessEntries)
         } else {
             tos.append("entries", "LazyCollection")
@@ -275,7 +278,7 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
     }
 
     /**
-     * This template is used as default for employees. The have read access to the access management, full access to tasks
+     * This template is used as default for employees. They have read access to the access management, full access to tasks
      * and own time sheets and only read-access to foreign time sheets.
      */
     fun employee() {
@@ -283,6 +286,17 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
         ensureAndGetTasksEntry().setAccess(true, true, true, true)
         ensureAndGetOwnTimesheetsEntry().setAccess(true, true, true, true)
         ensureAndGetTimesheetsEntry().setAccess(true, false, false, false)
+    }
+
+    /**
+     * This template is used as default for external stuff. They have no access to the access management, read access to tasks
+     * and own time sheets and no access to foreign time sheets.
+     */
+    fun external() {
+        ensureAndGetAccessManagementEntry().setAccess(false, false, false, false)
+        ensureAndGetTasksEntry().setAccess(true, false, false, false)
+        ensureAndGetOwnTimesheetsEntry().setAccess(true, true, true, true)
+        ensureAndGetTimesheetsEntry().setAccess(false, false, false, false)
     }
 
     /**

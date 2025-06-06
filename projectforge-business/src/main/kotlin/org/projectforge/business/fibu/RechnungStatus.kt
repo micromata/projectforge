@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -50,6 +50,10 @@ enum class RechnungStatus(key: String) : I18nEnum {
      */
     override val i18nKey: String?
         get() = "fibu.rechnung.status." + key
+
+    fun isIn(vararg status: RechnungStatus): Boolean {
+        return status.any { it == this }
+    }
 
     init {
         this.key = key

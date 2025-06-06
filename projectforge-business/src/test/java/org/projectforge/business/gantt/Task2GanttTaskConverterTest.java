@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -105,7 +105,7 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
             final GanttChartData ganttChartData = Task2GanttTaskConverter.convertToGanttObjectTree(taskTree,
                     getTask(prefix + "1"));
             assertEquals(2, ganttChartData.getExternalObjects().size(),
-                    "Two external objects (2.1 and 2.2) exptected.");
+                    "Two external objects (2.1 and 2.2) expected.");
             assertExternalTasks(ganttChartData, prefix);
             final GanttChartDO ganttChartDO = new GanttChartDO();
             ganttChartDO.setTask(getTask(prefix + "1"));

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,10 +24,9 @@
 package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.hibernate.annotations.Cache
-import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.UserException
@@ -41,7 +40,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
-import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsTypeBinder
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.search.ClassBridge
 
 /**
@@ -81,10 +80,12 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   // @ContainedIn
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "auftrag_fk", nullable = false)
+  @JsonSerialize(using = IdOnlySerializer::class)
   open var auftrag: AuftragDO? = null
 
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "task_fk", nullable = true)
+  @JsonSerialize(using = IdOnlySerializer::class)
   open var task: TaskDO? = null
 
   @PropertyInfo(i18nKey = "fibu.auftrag.position.art")
@@ -98,13 +99,24 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   @get:Column(name = "paymentType", length = 30)
   open var paymentType: AuftragsPositionsPaymentType? = null
 
+  /**
+   * When sales of an order are distributed, this can be used to determine, for example, whether sales are
+   * invoiced/forecast in the current month or in the following month.
+   * Default is [AuftragDO.forecastType].
+   */
+  @PropertyInfo(i18nKey = "fibu.auftrag.forecastType", tooltip = "fibu.auftrag.forecastType.info")
+  @FullTextField
+  @get:Enumerated(EnumType.STRING)
+  @get:Column(name = "forecast_type", length = 20)
+  open var forecastType: AuftragForecastType? = null
+
   @PropertyInfo(i18nKey = "fibu.auftrag.position.status")
   @FullTextField
   @get:Enumerated(EnumType.STRING)
   @get:Column(name = "status", length = 30)
   open var status: AuftragsStatus? = null
 
-  @PropertyInfo(i18nKey = "fibu.auftrag.titel")
+  @PropertyInfo(i18nKey = "fibu.auftrag.title")
   @FullTextField
   @get:Column(name = "titel", length = 255)
   open var titel: String? = null

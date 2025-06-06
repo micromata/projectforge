@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.business.address
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
@@ -33,6 +34,7 @@ import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsTypeBinder
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.search.ClassBridge
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
@@ -59,9 +61,10 @@ open class AddressbookDO : BaseUserGroupRightsDO(), DisplayNameCapable {
 
     @PropertyInfo(i18nKey = "addressbook.owner")
     @IndexedEmbedded(includeDepth = 1)
-    @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:ManyToOne(fetch = FetchType.EAGER)
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "owner_fk")
+    @JsonSerialize(using = IdOnlySerializer::class)
     override var owner: PFUserDO? = null
 
 

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -200,7 +200,6 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Long>, F extends
         body.add(timeOfLastUpdateLabel);
         onPreEdit();
         evaluateInitialPageParameters(getPageParameters());
-        this.editPageSupport = new EditPageSupport<>(this, getBaseDao());
     }
 
     protected List<FlatDisplayHistoryEntry> getHistory() {
@@ -311,6 +310,8 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Long>, F extends
         final O data = getData();
         getLogger().info("Clone of data chosen: " + data);
         data.setId(null);
+        data.setCreated(null);
+        data.setLastUpdate(null);
         data.setDeleted(false);
     }
 
@@ -357,40 +358,40 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Long>, F extends
      * User has clicked the save button for storing a new item.
      */
     protected void create() {
-        this.editPageSupport.create();
+        getEditPageSupport().create();
     }
 
     /**
      * User has clicked the update button for updating an existing item.
      */
     protected void update() {
-        this.editPageSupport.update();
+        getEditPageSupport().update();
     }
 
     /**
      * User has clicked the update button for updating an existing item.
      */
     protected void updateAndNext() {
-        this.editPageSupport.updateAndNext();
+        getEditPageSupport().updateAndNext();
     }
 
     /**
      * @see EditPageSupport#updateAndStay()
      */
     protected void updateAndStay() {
-        this.editPageSupport.updateAndStay();
+        getEditPageSupport().updateAndStay();
     }
 
     protected void undelete() {
-        this.editPageSupport.undelete();
+        getEditPageSupport().undelete();
     }
 
     protected void markAsDeleted() {
-        this.editPageSupport.markAsDeleted();
+        getEditPageSupport().markAsDeleted();
     }
 
     protected void delete() {
-        this.editPageSupport.delete();
+        getEditPageSupport().delete();
     }
 
     protected void reset() {

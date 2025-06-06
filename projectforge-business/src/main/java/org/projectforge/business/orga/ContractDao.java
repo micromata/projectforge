@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -121,7 +121,7 @@ public class ContractDao extends BaseDao<ContractDO> {
     /**
      * Gets the highest contract number.
      *
-     * @param contract is needed to check wether the contract does already exist or not. If already exist it will be
+     * @param contract is needed to check whether the contract does already exist or not. If already exist it will be
      *                 assured that this contract has an unchanged number.
      */
     @SuppressWarnings("unchecked")

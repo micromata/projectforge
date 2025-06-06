@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,7 +32,7 @@ enum class BookStatus(
     val key: String
 ) : I18nEnum {
     /**
-     * Book is present at the office ore lend out is known.
+     * Book is present at the office or lend out is known.
      */
     PRESENT("present"),
 

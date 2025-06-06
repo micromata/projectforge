@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.business.address
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
@@ -35,6 +36,7 @@ import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.json.IdsOnlySerializer
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.LabelValueBean
@@ -272,12 +274,8 @@ open class AddressDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column
     open var birthday: LocalDate? = null
 
-    @PropertyInfo(i18nKey = "address.image")
-    @get:Column
-    open var image: Boolean? = null
-
     /**
-     * Time stamp of last image modification (or deletion). Usefull for history of changes.
+     * Time stamp of last image modification (or deletion). Useful for history of changes.
      */
     @get:Column(name = "image_last_update")
     open var imageLastUpdate: Date? = null
@@ -297,6 +295,7 @@ open class AddressDO : DefaultBaseDO(), DisplayNameCapable {
                 columnList = "addressbook_id"
             )]
     )
+    @JsonSerialize(using = IdsOnlySerializer::class)
     open var addressbookList: MutableSet<AddressbookDO>? = null
 
     fun add(addressbook: AddressbookDO) {

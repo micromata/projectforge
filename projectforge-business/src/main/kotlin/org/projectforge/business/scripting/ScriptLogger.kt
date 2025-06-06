@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,17 +25,24 @@ package org.projectforge.business.scripting
 
 import mu.KotlinLogging
 import org.projectforge.common.logging.LogLevel
+import java.util.*
 import kotlin.script.experimental.api.ScriptDiagnostic
 
 private val log = KotlinLogging.logger {}
 
 /**
- * You may use loging functionality inside your scripts by using log.info(String) and log.error(String).
+ * You may use logging functionality inside your scripts by using log.info(String) and log.error(String).
  */
 class ScriptLogger {
-    class Message(val message: String?, val level: LogLevel)
+    class Message(val message: String?, val level: LogLevel, val timestamp: Date = Date())
+
+    val hasErrors: Boolean
+        get() = messages.any { it.level <= LogLevel.ERROR }
 
     val messages = mutableListOf<Message>()
+
+    val lastModified: Date?
+        get() = messages.maxOfOrNull { it.timestamp }
 
     fun error(msg: Any?) {
         error { msg }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -48,6 +48,8 @@ open class CardDavInit {
 
     companion object {
         internal const val CARD_DAV_BASE_PATH = "/carddav"
+
+        internal const val PHOTO_PATH = "photos/contact-" // Don't use '/' as prefix!
 
         internal const val MAX_IMAGE_SIZE = (5 * NumberOfBytes.MEGA_BYTES).toString()
 

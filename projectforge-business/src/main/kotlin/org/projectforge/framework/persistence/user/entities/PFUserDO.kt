@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,7 @@
 
 package org.projectforge.framework.persistence.user.entities
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo
-import com.fasterxml.jackson.annotation.ObjectIdGenerators
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
@@ -34,8 +33,9 @@ import org.projectforge.business.common.HibernateSearchPhoneNumberBridge
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.configuration.Configuration
-import org.projectforge.framework.persistence.api.IUserRightId
+import org.projectforge.framework.json.IdsOnlySerializer
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.entities.HistoryUserCommentSupport
 import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDayUtils
@@ -59,8 +59,7 @@ import java.util.*
         query = "from PFUserDO where username=:username and id<>:id"
     )
 )
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
-open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
+open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSupport {
 
     override val displayName: String
         @Transient
@@ -78,7 +77,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     open var username: String? = null
 
     /**
-     * Timesamp of the lastPasswordChange.
+     * Timestamp of the lastPasswordChange.
      */
     @PropertyInfo(i18nKey = "user.changePassword.password.lastChange")
     @get:Column(name = "last_password_change")
@@ -288,6 +287,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
         orphanRemoval = false,
         mappedBy = "user"
     ) // No cascade, because the rights are managed by the UserRightDao.
+    @JsonSerialize(using = IdsOnlySerializer::class)
     open var rights: MutableSet<UserRightDO>? = mutableSetOf()
 
     /**
@@ -410,19 +410,6 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
         this.rights!!.add(right)
         right.user = this
         return this
-    }
-
-    @Transient
-    fun getRight(rightId: IUserRightId): UserRightDO? {
-        if (this.rights == null) {
-            return null
-        }
-        for (right in this.rights!!) {
-            if (right.rightIdString == rightId.id) {
-                return right
-            }
-        }
-        return null
     }
 
     /**

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -344,7 +344,7 @@ class VacationPagesRest :
                 UIRow()
                     .add(
                         UICol(6)
-                            .add(lc, "manager")
+                            .add(UISelect.createEmployeeSelect(lc, "manager", required  = true))
                     )
                     .add(
                         UICol(6)
@@ -355,7 +355,7 @@ class VacationPagesRest :
                 UIRow()
                     .add(
                         UICol(6)
-                            .add(lc, "replacement")
+                            .add(UISelect.createEmployeeSelect(lc, "replacement", required  = true))
                     )
                     .add(
                         UICol(6)

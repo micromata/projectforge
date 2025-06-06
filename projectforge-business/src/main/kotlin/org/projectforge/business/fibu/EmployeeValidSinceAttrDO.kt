@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,9 +25,12 @@ package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonIdentityReference
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
+import mu.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.candh.CandHHistoryEntryICustomizer
 import org.projectforge.framework.persistence.candh.CandHIgnore
@@ -37,6 +40,8 @@ import org.projectforge.framework.persistence.history.WithHistory
 import java.io.Serializable
 import java.math.BigDecimal
 import java.time.LocalDate
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Represents timeable attributes of an employee (annual leave days and status).
@@ -73,6 +78,7 @@ open class EmployeeValidSinceAttrDO : Serializable, AbstractBaseDO<Long>(), Cand
     @JsonIdentityReference(alwaysAsId = true)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "employee_fk", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var employee: EmployeeDO? = null
 
     @get:Enumerated(EnumType.STRING)
@@ -107,6 +113,19 @@ open class EmployeeValidSinceAttrDO : Serializable, AbstractBaseDO<Long>(), Cand
     @CandHIgnore
     @get:JsonIgnore
     @get:Transient
+    var weeklyWorkingHours: BigDecimal?
+        get() {
+            checkType(EmployeeValidSinceAttrType.WEEKLY_HOURS)
+            return value?.let { runCatching { BigDecimal(it) }.getOrNull() }
+        }
+        set(value) {
+            checkType(EmployeeValidSinceAttrType.WEEKLY_HOURS)
+            this.value = value?.toString()
+        }
+
+    @CandHIgnore
+    @get:JsonIgnore
+    @get:Transient
     var status: EmployeeStatus?
         get() {
             checkType(EmployeeValidSinceAttrType.STATUS)
@@ -130,19 +149,24 @@ open class EmployeeValidSinceAttrDO : Serializable, AbstractBaseDO<Long>(), Cand
 
     override fun customize(historyEntry: HistoryEntryDO) {
         historyEntry.attributes?.filter { it.propertyName == "value" }?.forEach { attr ->
-            if (type == EmployeeValidSinceAttrType.ANNUAL_LEAVE) {
-                attr.setPropertyTypeClass(BigDecimal::class)
-                attr.propertyName = buildPropertyName("annualLeave")
-            } else if (type == EmployeeValidSinceAttrType.STATUS) {
-                attr.setPropertyTypeClass(EmployeeStatus::class)
-                attr.propertyName = buildPropertyName("status")
+            when (type) {
+                EmployeeValidSinceAttrType.ANNUAL_LEAVE -> {
+                    attr.setPropertyTypeClass(BigDecimal::class)
+                }
+
+                EmployeeValidSinceAttrType.WEEKLY_HOURS -> {
+                    attr.setPropertyTypeClass(BigDecimal::class)
+                }
+
+                EmployeeValidSinceAttrType.STATUS -> {
+                    attr.setPropertyTypeClass(EmployeeStatus::class)
+                }
+
+                else -> {
+                    log.error("Unknown type: $type")
+                }
             }
         }
-    }
-
-    private fun buildPropertyName(propertyName: String): String {
-        validSince ?: return propertyName
-        return "$propertyName:$validSince"
     }
 
     private fun checkType(type: EmployeeValidSinceAttrType) {

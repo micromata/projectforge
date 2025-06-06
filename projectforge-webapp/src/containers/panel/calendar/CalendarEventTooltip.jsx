@@ -5,8 +5,7 @@ import { CardFooter } from 'reactstrap';
 import styles from './CalendarEventTooltip.module.scss';
 import { CardHeader, CardBody } from '../../../components/design';
 
-function CalendarEventTooltip(props) {
-    const { forwardRef, event } = props;
+function CalendarEventTooltip({ forwardRef, event = null }) {
     const extendedProps = event?.extendedProps;
     const tooltip = extendedProps?.tooltip;
 
@@ -44,10 +43,6 @@ CalendarEventTooltip.propTypes = {
     event: PropTypes.shape({
         extendedProps: PropTypes.shape({}),
     }),
-};
-
-CalendarEventTooltip.defaultProps = {
-    event: null,
 };
 
 export default CalendarEventTooltip;

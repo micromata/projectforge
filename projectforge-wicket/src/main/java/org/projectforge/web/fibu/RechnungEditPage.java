@@ -1,9 +1,9 @@
-/// //////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
 //
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -87,7 +87,6 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
 
                 }.setDefaultFormProcessing(false), title);
                 exportMenu.addSubMenuEntry(menu);
-                exportMenu.addSubMenuEntry(menu);
             }
         }
         getData().recalculate(); // Muss immer gemacht werden, damit das Zahlungsziel in Tagen berechnet wird.
@@ -123,7 +122,8 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
     @Override
     protected void cloneData() {
         super.cloneData();
-        final RechnungDO rechnung = getData();
+        final RechnungDO rechnung = new RechnungDO();
+        rechnung.copyValuesFrom(getData(), "id", "positionen");
         rechnung.setNummer(null);
 
         final Integer zahlungsZielInTagen = rechnung.getZahlungsZielInTagen();
@@ -153,7 +153,7 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
             }
         }
         form.refreshPositions();
-        setResponsePage(new RechnungEditPage(form.getData()));
+        setResponsePage(new RechnungEditPage(rechnung));
     }
 
     @Override

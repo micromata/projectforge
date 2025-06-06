@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -54,7 +54,7 @@ public class SearchDao {
     }
     final List<ExtendedBaseDO> list = baseDao.selectForSearchDao(filter);
     if (list == null) {
-      // An error occured.
+      // An error occurred.
       return null;
     }
     final List<SearchResultData> result = new ArrayList<>();

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -218,7 +218,7 @@ public class ProjektEditForm extends AbstractEditForm<ProjektDO, ProjektEditPage
     if (isNew() == true) {
       kost2Arts = WicketSupport.get(KostCache.class).getCloneOfAllKost2Arts();
     } else {
-      kost2Arts = WicketSupport.get(KostCache.class).getAllKost2Arts(getData().getId());
+      kost2Arts = WicketSupport.get(KostCache.class).getAllKost2ArtsForProjekt(getData().getId());
     }
     {
       // cost 2 types

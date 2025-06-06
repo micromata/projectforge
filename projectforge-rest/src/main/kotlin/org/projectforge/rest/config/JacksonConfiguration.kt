@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -174,6 +174,9 @@ open class JacksonConfiguration {
       registerAllowedUnknownProperties(StyledTeamCalendar::class.java, "label", "filterType")
 
       registeredDelegatingDeserializer(
+        Employee::class.java,
+        User::class.java,
+        Group::class.java,
         Customer::class.java,
         Konto::class.java,
         Kost1::class.java,

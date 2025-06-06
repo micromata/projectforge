@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -79,7 +79,7 @@ class PollInfoPageRest : AbstractDynamicPageRest() {
         layout.add(field)
 
         layout.add(
-            UIFieldset().add(UILabel(translate("poll.question.singletitel"))).add(
+            UIFieldset().add(UILabel(translate("poll.question.PollSingleResponseQuestion"))).add(
                 UICol()
                     .add(
                         UIReadOnlyField(
@@ -91,7 +91,7 @@ class PollInfoPageRest : AbstractDynamicPageRest() {
             )
         )
         layout.add(
-            UIFieldset().add(UILabel(translate("poll.question.multititle"))).add(
+            UIFieldset().add(UILabel(translate("poll.question.PollMultiResponseQuestion"))).add(
                 UICol()
                     .add(
                         UIReadOnlyField(
@@ -103,7 +103,7 @@ class PollInfoPageRest : AbstractDynamicPageRest() {
             )
         )
         layout.add(
-            UIFieldset().add(UILabel(translate("poll.question.texttitle"))).add(
+            UIFieldset().add(UILabel(translate("poll.question.PollTextQuestion"))).add(
                 UICol()
                     .add(
                         UIReadOnlyField(

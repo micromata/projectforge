@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,12 +24,12 @@
 package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonBackReference
-import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonManagedReference
-import com.fasterxml.jackson.annotation.ObjectIdGenerators
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.business.fibu.kost.KostZuweisungDO
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.history.PersistenceBehavior
 
 /**
@@ -46,12 +46,12 @@ import org.projectforge.framework.persistence.history.PersistenceBehavior
         columnList = "eingangsrechnung_fk"
     )]
 )
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class EingangsrechnungsPositionDO : AbstractRechnungsPositionDO() {
 
     @JsonBackReference
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "eingangsrechnung_fk", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var eingangsrechnung: EingangsrechnungDO? = null
 
     override val rechnungId: Long?
@@ -60,17 +60,17 @@ open class EingangsrechnungsPositionDO : AbstractRechnungsPositionDO() {
 
     @PersistenceBehavior(autoUpdateCollectionEntries = true)
     @get:OneToMany(
+        mappedBy = "eingangsrechnungsPosition",
         cascade = [CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH],
         orphanRemoval = false,
         fetch = FetchType.LAZY,
     )
-    @get:JoinColumn(name = "eingangsrechnungs_pos_fk")
     @get:OrderColumn(name = "index")
     @JsonManagedReference
     override var kostZuweisungen: MutableList<KostZuweisungDO>? = null
 
     override fun checkKostZuweisungId(zuweisung: KostZuweisungDO): Boolean {
-        return zuweisung.eingangsrechnungsPositionId == this.id
+        return zuweisung.eingangsrechnungsPosition?.id == this.id
     }
 
     /**

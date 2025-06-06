@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.marketing
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.business.address.AddressDO
@@ -32,6 +33,7 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
+import org.projectforge.framework.json.IdOnlySerializer
 
 /**
  * A marketing campaign.
@@ -68,12 +70,14 @@ open class AddressCampaignValueDO : DefaultBaseDO() {
   @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "address_campaign_fk", nullable = false)
+  @JsonSerialize(using = IdOnlySerializer::class)
   open var addressCampaign: AddressCampaignDO? = null
 
   @IndexedEmbedded(includeDepth = 1)
   @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "address_fk", nullable = false)
+  @JsonSerialize(using = IdOnlySerializer::class)
   open var address: AddressDO? = null
 
   @PropertyInfo(i18nKey = "value")

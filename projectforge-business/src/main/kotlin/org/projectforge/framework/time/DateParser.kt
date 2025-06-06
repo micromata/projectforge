@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -57,12 +57,23 @@ object DateParser {
         input: String,
         defaultZoneId: ZoneId? = null,
         parseLocalDateIfNoTimeOfDayGiven: Boolean = true,
+        numberFormat: PFDateTime.NumberFormat? = null,
     ): Temporal? {
         val str = input.trim()
-        val instant = if (str.matches(epochSecondsRegex)) {
-            Instant.ofEpochSecond(str.toLong())
-        } else if (str.matches(epochMillisRegex)) {
-            Instant.ofEpochMilli(str.toLong())
+        val instant = if (str.matches(isNumberRegex)) {
+            str.toLongOrNull()?.let { number ->
+                if (numberFormat == PFDateTime.NumberFormat.EPOCH_SECONDS) {
+                    Instant.ofEpochSecond(number)
+                } else if (numberFormat == PFDateTime.NumberFormat.EPOCH_MILLIS) {
+                    Instant.ofEpochMilli(number)
+                } else if (str.matches(epochSecondsRegex)) {
+                    Instant.ofEpochSecond(number)
+                } else if (str.matches(epochMillisRegex)) {
+                    Instant.ofEpochMilli(number)
+                } else {
+                    null
+                }
+            }
         } else {
             null
         }
@@ -130,6 +141,7 @@ object DateParser {
 
     private val epochSecondsRegex = Regex("\\d{10}")
     private val epochMillisRegex = Regex("\\d{13}")
+    private val isNumberRegex = Regex("^\\d+$")
     private val zonedDateTimeFormatters = mapOf(
         // 2024-12-31T12:34:56Z, 2024-12-31T12:34:56 +01:00 (ISO 8601), 2024-12-31T12:34:56.123Z
         Regex("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,3})?(?:Z|[+-]\\d{2}:\\d{2})") to DateTimeFormatter.ISO_DATE_TIME,

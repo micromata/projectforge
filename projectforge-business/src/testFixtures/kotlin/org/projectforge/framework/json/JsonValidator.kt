@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,6 +25,7 @@ package org.projectforge.framework.json
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import org.jetbrains.kotlin.ir.types.IdSignatureValues.result
 import kotlin.collections.get
 
 class JsonValidator(val json: String) {
@@ -89,19 +90,20 @@ class JsonValidator(val json: String) {
     }
 
     fun getDouble(path: String): Double? {
-        val result = getElement(path)
-        if (result == null)
-            return null
+        val result = getElement(path) ?: return null
         if (result is Double) {
             return result
         }
         throw java.lang.IllegalArgumentException("Requested element of path '${path}' isn't of type Double: '${result::class.java}'.")
     }
 
+    fun getLong(path: String): Long? {
+        val double = getDouble(path) ?: return null
+        return double.toLong() // Gson uses Double for all numbers.
+    }
+
     fun getBoolean(path: String): Boolean? {
-        val result = getElement(path)
-        if (result == null)
-            return null
+        val result = getElement(path) ?: return null
         if (result is Boolean) {
             return result
         }
@@ -109,9 +111,7 @@ class JsonValidator(val json: String) {
     }
 
     fun getList(path: String): List<*>? {
-        val result = getElement(path)
-        if (result == null)
-            return null
+        val result = getElement(path) ?: return null
         if (result is List<*>) {
             return result
         }
@@ -119,9 +119,7 @@ class JsonValidator(val json: String) {
     }
 
     fun getMap(path: String): Map<String, *>? {
-        val result = getElement(path)
-        if (result == null)
-            return null
+        val result = getElement(path) ?: return null
         if (result is Map<*, *>) {
             @Suppress("UNCHECKED_CAST")
             return result as Map<String, *>
@@ -137,12 +135,12 @@ class JsonValidator(val json: String) {
             if (currentMap == null) {
                 throw IllegalArgumentException("Can't step so deep: '${path}'. '${it}' doesn't exist.")
             }
-            if (it.isNullOrBlank())
+            if (it.isBlank())
                 throw IllegalArgumentException("Illegal path: '${path}' contains empty attributes such as 'a..b'.")
 
-            var idx: Int?;
+            val idx: Int?;
             var attr = it
-            var value: Any?
+            val value: Any?
             if (it.indexOf('[') > 0) {
                 // Array found:
                 if (!it.matches(attrRegexWithIndex)) {

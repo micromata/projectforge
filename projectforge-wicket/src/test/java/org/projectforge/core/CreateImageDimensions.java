@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -43,7 +43,7 @@ import org.projectforge.web.core.ImageDimension;
 import org.projectforge.web.wicket.WebConstants;
 
 /**
- * Creates a dimenstion file for setting the html markup attributes width and size for images. It generates a dimension
+ * Creates a dimension file for setting the html markup attributes width and size for images. It generates a dimension
  * file which is read by PresizedImage. Test case should be executed every time after modifying dimensions of web app
  * images or adding new images.
  *

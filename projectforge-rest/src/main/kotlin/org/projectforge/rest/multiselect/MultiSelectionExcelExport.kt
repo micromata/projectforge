@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,6 +28,7 @@ import de.micromata.merlin.excel.ExcelWorkbook
 import mu.KotlinLogging
 import org.apache.poi.ss.usermodel.CellStyle
 import org.projectforge.common.props.PropertyType
+import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -54,7 +55,7 @@ object MultiSelectionExcelExport {
     log.info("Exporting results of mass update as Excel file.")
     ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
       val sheet = workbook.createOrGetSheet(translate("massUpdate.result.excel.title"))
-      val boldFont = workbook.createOrGetFont("bold", bold = true)
+      val boldFont = ExcelUtils.createFont(workbook, "bold", bold = true)
       val boldStyle = workbook.createOrGetCellStyle("boldStyle")
       boldStyle.setFont(boldFont)
       val amountStyle = workbook.createOrGetCellStyle("amount")
@@ -84,7 +85,7 @@ object MultiSelectionExcelExport {
         sheet.registerColumns(head)
       }
       headRow.fillHeadRow()
-      massUpdateContext.massUpdateData.forEach { (field, _) ->
+      massUpdateContext.massUpdateParams.forEach { (field, _) ->
         if (modifiedFields.contains(field)) {
           val colNumber = firstRow.createCell().setCellValue(multiSelectedPage.getFieldTranslation(field)).colNumber
           firstRow.createCell()

@@ -1,11 +1,9 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import DayPickerInput from 'react-day-picker/DayPickerInput';
-import AdditionalLabel from './AdditionalLabel';
 
 // Automatically validate the input fields nested inside. (Only first level)
 function ValidationManager({ children, customValidation }) {
-    let extraLabel = null;
+    const extraLabel = null;
 
     return (
         <>
@@ -13,7 +11,7 @@ function ValidationManager({ children, customValidation }) {
                 if (!child) {
                     return child;
                 }
-                const { props: childProps, type } = child;
+                const { props: childProps } = child;
                 const {
                     checked,
                     required,
@@ -43,15 +41,11 @@ function ValidationManager({ children, customValidation }) {
                         // or else set the additional label to the validation message.
                         additionalLabel = customValidation.message;
                     }
-
-                    if (type === DayPickerInput) {
-                        extraLabel = <AdditionalLabel title={additionalLabel} />;
-                    }
                 }
 
                 return {
                     ...child,
-                    // Manupulating the props of the child.
+                    // Manipulating the props of the child.
                     props: {
                         ...child.props,
                         additionalLabel,
@@ -69,10 +63,6 @@ ValidationManager.propTypes = {
     customValidation: PropTypes.shape({
         message: PropTypes.string,
     }),
-};
-
-ValidationManager.defaultProps = {
-    customValidation: undefined,
 };
 
 export default ValidationManager;

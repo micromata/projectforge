@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -115,7 +115,7 @@ public interface ContentProvider
   public ContentProvider setColWidths(int... charLengths);
 
   /**
-   * Creates a new instance. This is usefull because every sheet of the workbook should have its own content provider (regarding col widths,
+   * Creates a new instance. This is useful because every sheet of the workbook should have its own content provider (regarding col widths,
    * property formats etc.) if not set explicit.
    *
    * @return

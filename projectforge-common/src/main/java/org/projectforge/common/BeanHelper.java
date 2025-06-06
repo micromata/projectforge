@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -31,7 +31,7 @@ import java.lang.reflect.*;
 import java.util.*;
 
 /**
- * Some useful methods for determing and converting property, getter and setter names.
+ * Some useful methods for determining and converting property, getter and setter names.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */

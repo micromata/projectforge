@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,12 @@
 
 package org.projectforge.business.fibu
 
-enum class EmployeeValidSinceAttrType {
-    ANNUAL_LEAVE,
-    STATUS;
+import org.projectforge.common.i18n.I18nEnum
+
+enum class EmployeeValidSinceAttrType(override val i18nKey: String) : I18nEnum {
+    ANNUAL_LEAVE("fibu.employee.urlaubstage"),
+    STATUS("fibu.employee.status"),
+    WEEKLY_HOURS("fibu.employee.wochenstunden");
 
     companion object {
         fun safeValueOf(name: String?): EmployeeValidSinceAttrType? {

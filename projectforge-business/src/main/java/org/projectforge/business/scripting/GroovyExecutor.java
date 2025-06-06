@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -48,7 +48,7 @@ import java.util.Map;
 public class GroovyExecutor {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GroovyExecutor.class);
 
-    public ScriptExecutionResult execute(final ScriptExecutionResult result, final String script, final Map<String, Object> variables) {
+    public ScriptExecutionResult execute(final ScriptExecutionResult result, final String script, final Map<String, Object> variables, final ScriptLogger scriptLogger) {
         if (script == null) {
             return result;
         }
@@ -56,7 +56,7 @@ public class GroovyExecutor {
         if (groovyObject == null) {
             return result;
         }
-        return execute(result, groovyObject, variables);
+        return execute(result, groovyObject, variables, scriptLogger);
     }
 
     public String executeTemplate(final String template, final Map<String, Object> variables) {
@@ -146,15 +146,15 @@ public class GroovyExecutor {
         return groovyObject;
     }
 
-    public ScriptExecutionResult execute(final Script groovyScript) {
-        return execute(groovyScript, null);
+    public ScriptExecutionResult execute(final Script groovyScript, final ScriptLogger scriptLogger) {
+        return execute(groovyScript, null, scriptLogger);
     }
 
-    public ScriptExecutionResult execute(final Script groovyScript, final Map<String, Object> variables) {
-        return execute(null, groovyScript, variables);
+    public ScriptExecutionResult execute(final Script groovyScript, final Map<String, Object> variables, final ScriptLogger scriptLogger) {
+        return execute(null, groovyScript, variables, scriptLogger);
     }
 
-    public ScriptExecutionResult execute(ScriptExecutionResult result, final Script groovyScript, final Map<String, Object> variables) {
+    public ScriptExecutionResult execute(ScriptExecutionResult result, final Script groovyScript, final Map<String, Object> variables, final ScriptLogger scriptLogger) {
         if (variables != null) {
             final Binding binding = groovyScript.getBinding();
             for (final Map.Entry<String, Object> entry : variables.entrySet()) {
@@ -162,8 +162,9 @@ public class GroovyExecutor {
             }
         }
         if (result == null) {
-            result = new ScriptExecutionResult(new ScriptLogger());
+            result = new ScriptExecutionResult(scriptLogger);
         }
+        scriptLogger.info(I18n.getString("scripting.script.execution.log.started"));
         Object res;
         try {
             res = groovyScript.run();

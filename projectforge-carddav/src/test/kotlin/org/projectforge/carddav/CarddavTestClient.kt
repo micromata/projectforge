@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -58,7 +58,7 @@ fun main(args: Array<String>) {
     }
     val username = args[0]
     val davToken = args[1]
-    val baseUrl = if (args.size > 2) args[2] else "http://localhost:8080/carddav"
+    val baseUrl = "http://localhost:8080/carddav" // if (args.size > 2) args[2] else "http://localhost:8080/carddav"
     val lastSyncToken = if (args.size > 3) args[3] else null
     val client = CardDavTestClient(baseUrl, username = username, password = davToken, lastSyncToken = lastSyncToken)
     client.run()
@@ -72,7 +72,7 @@ fun main(args: Array<String>) {
 // REPORT for Milton (uri=/users/username/addressBooks/default/
 
 class CardDavTestClient(private val baseUrl: String, username: String, password: String, val lastSyncToken: String?) {
-    private class ResponseData(val content: String, val headers: String)
+    private class ResponseData(val content: String, val status: Int, val headers: String)
 
     private val client: CloseableHttpClient = HttpClients.createDefault()
     private val authHeader: String = "Basic " + Base64.getEncoder().encodeToString("$username:$password".toByteArray())
@@ -80,7 +80,7 @@ class CardDavTestClient(private val baseUrl: String, username: String, password:
     private val responseHandler = HttpClientResponseHandler { response: ClassicHttpResponse ->
         val entity: HttpEntity? = response.entity
         val content = entity?.content?.bufferedReader(Charsets.UTF_8)?.use { it.readText() } ?: ""
-        ResponseData(content, response.headers.joinToString { "${it.name}=${it.value}" })
+        ResponseData(content, response.code, response.headers.joinToString { "${it.name}=${it.value}" })
     }
 
     /**
@@ -89,7 +89,7 @@ class CardDavTestClient(private val baseUrl: String, username: String, password:
     fun run() {
         try {
             sendRequest("OPTIONS") // "/users/$username/")
-            """
+            /*"""
                 <?xml version="1.0" encoding="UTF-8"?>
                 <A:propfind xmlns:A="DAV:">
                   <A:prop>
@@ -100,7 +100,9 @@ class CardDavTestClient(private val baseUrl: String, username: String, password:
                 </A:propfind>
             """.trimIndent().let { body ->
                 sendRequest("PROPFIND", requestBody = body, useAuthHeader = true)
-            }
+            }*/
+            sendRequest("GET", path = "/users/kai/addressbooks/ProjectForge-1970264.vcf", useAuthHeader = true)
+            sendRequest("GET", path = "/photos/contact-1970264.jpg", useAuthHeader = true, logResponseContent = false)
             /*
             """
                 <propfind xmlns="DAV:">
@@ -180,7 +182,8 @@ class CardDavTestClient(private val baseUrl: String, username: String, password:
         method: String,
         path: String = "",
         requestBody: String? = null,
-        useAuthHeader: Boolean = false
+        useAuthHeader: Boolean = false,
+        logResponseContent: Boolean = true,
     ): String {
         val url = "$baseUrl$path"
         val context = HttpCoreContext.create()
@@ -200,12 +203,12 @@ class CardDavTestClient(private val baseUrl: String, username: String, password:
             println("   ]")
         }
         client.execute(builder.build(), context, responseHandler).also {
-            logResponse(method, url, it)
+            logResponse(method, url, it, logResponseContent = logResponseContent)
             return it.content
         }
     }
 
-    private fun sendSyncReportRequest(path: String = "") {
+    private fun sendSyncReportRequest(path: String = "", logResponseContent: Boolean = true) {
         val url = "$baseUrl$path"
         val context = HttpCoreContext.create()
         val body = """
@@ -224,11 +227,11 @@ class CardDavTestClient(private val baseUrl: String, username: String, password:
         builder.setEntity(StringEntity(body, ContentType.APPLICATION_XML))
 
         val response = client.execute(builder.build(), context, responseHandler).also {
-            logResponse("REPORT", url, it)
+            logResponse("REPORT", url, it, logResponseContent = logResponseContent)
         }
     }
 
-    private fun sendGetRequest(path: String = "", useAuthHeader: Boolean = false) {
+    private fun sendGetRequest(path: String = "", useAuthHeader: Boolean = false, logResponseContent: Boolean = true) {
         val url = "$baseUrl$path"
         val context = HttpCoreContext.create()
         val getRequest = HttpGet(url)
@@ -236,16 +239,20 @@ class CardDavTestClient(private val baseUrl: String, username: String, password:
             getRequest.addHeader("Authorization", authHeader)
         }
         val result = client.execute(getRequest, context, responseHandler)
-        logResponse("GET", url, result)
+        logResponse("GET", url, result, logResponseContent = logResponseContent)
     }
 
-    private fun logResponse(method: String, endpoint: String, response: ResponseData) {
+    private fun logResponse(method: String, endpoint: String, response: ResponseData, logResponseContent: Boolean) {
         println("$method: $endpoint: response=[")
-        println("   headers=[${response.headers}], content-length=${response.content.length}")
+        println("   status=[${response.status}], headers=[${response.headers}], content-length=${response.content.length}")
         if (response.content.isNotEmpty()) {
-            println("   content=[")
-            println(response.content.abbreviate(2000))
-            println("   ]")
+            if (logResponseContent) {
+                println("   content=[")
+                println(response.content.abbreviate(2000))
+                println("   ]")
+            } else {
+                println("   content-size=${response.content.length}")
+            }
         }
         println("]")
     }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,8 +35,8 @@ private val log = KotlinLogging.logger {}
 /**
  * Handles close and clean-up. Thin wrapper for [Session]
  */
-open class SessionWrapper(private val repoService: RepoService) {
-    val session: Session = repoService.repository.login(credentials)
+open class SessionWrapper(repoStore: OakStorage) {
+    val session: Session = repoStore.repository.login(credentials)
 
     val valueFactory: ValueFactory
         get() = session.valueFactory
@@ -57,7 +57,6 @@ open class SessionWrapper(private val repoService: RepoService) {
     }
 
     fun logout() {
-        repoService.fileStore?.flush()
         session.save()
     }
 

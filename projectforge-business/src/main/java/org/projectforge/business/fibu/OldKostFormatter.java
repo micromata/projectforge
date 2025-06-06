@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -205,7 +205,7 @@ public class OldKostFormatter {
    * <li>Project is given: [description]; [projekt.kunde.name] - [projekt.name]; [kost2Art.id] - [kost2Art.name];</li>
    * <li>Project is not given: [description]</li>
    * </ul>
-   * DONT'T forget to escape html if displayed directly!
+   * DON'T forget to escape html if displayed directly!
    *
    * @param kost2
    * @return formatted string or "" if kost2 is null.

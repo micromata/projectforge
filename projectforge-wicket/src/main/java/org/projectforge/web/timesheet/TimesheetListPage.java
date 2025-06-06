@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -40,14 +40,10 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.hibernate.Hibernate;
-import org.projectforge.business.systeminfo.SystemInfoCache;
+import org.projectforge.business.system.SystemInfoCache;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.timesheet.TimesheetDO;
-import org.projectforge.business.timesheet.TimesheetDao;
-import org.projectforge.business.timesheet.TimesheetExport;
-import org.projectforge.business.timesheet.TimesheetFilter;
-import org.projectforge.business.user.UserFormatter;
+import org.projectforge.business.timesheet.*;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.utils.HtmlDateTimeFormatter;
 import org.projectforge.business.utils.HtmlHelper;
@@ -222,6 +218,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
     protected static final List<IColumn<TimesheetDO, String>> createColumns(
             UserGroupCache userGroupCache, final WebPage page,
             final TimesheetFilter timesheetFilter) {
+        final boolean timeSavingsByAIEnabled = WicketSupport.get(TimesheetDao.class).getTimeSavingsByAIEnabled();
         final List<IColumn<TimesheetDO, String>> columns = new ArrayList<IColumn<TimesheetDO, String>>();
         final CellItemListener<TimesheetDO> cellItemListener = new CellItemListener<TimesheetDO>() {
             @Override
@@ -312,6 +309,20 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
                 item.add(label);
             }
         });
+        if (timeSavingsByAIEnabled) {
+            columns.add(new CellItemListenerPropertyColumn<TimesheetDO>(page.getString("timesheet.ai.timeSavedByAI"),
+                    getSortable("timeSavedByAIMillis", true),
+                    "timeSavedByAIMillis", cellItemListener) {
+                @Override
+                public void populateItem(final Item<ICellPopulator<TimesheetDO>> item, final String componentId,
+                                         final IModel<TimesheetDO> rowModel) {
+                    final TimesheetDO timesheet = rowModel.getObject();
+                    final Label label = new Label(componentId, AITimeSavings.getFormattedTimeSavedByAI(timesheet, true));
+                    cellItemListener.populateItem(item, componentId, rowModel);
+                    item.add(label);
+                }
+            });
+        }
         columns.add(new CellItemListenerPropertyColumn<TimesheetDO>(page.getString("timesheet.location"),
                 getSortable("location", true),
                 "location", cellItemListener));

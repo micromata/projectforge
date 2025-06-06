@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -33,9 +33,9 @@ class MagicFilterTest {
     fun serializationTest() {
         val filter = MagicFilter()
         filter.entries.add(MagicFilterEntry("zipCode", "12345"))
-        val om = UserPrefDao.getObjectMapper()
-        var json = om.writeValueAsString(filter)
-        var obj = om.readValue(json, MagicFilter::class.java) as MagicFilter
+        val om = UserPrefDao.objectMapper
+        val json = om.writeValueAsString(filter)
+        val obj = om.readValue(json, MagicFilter::class.java) as MagicFilter
         Assertions.assertEquals(1, obj.entries.size)
         Assertions.assertEquals("zipCode", obj.entries[0].field)
         Assertions.assertEquals("12345", obj.entries[0].value.value)

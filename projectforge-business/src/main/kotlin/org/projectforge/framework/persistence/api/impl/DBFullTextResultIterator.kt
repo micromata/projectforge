@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -39,7 +39,10 @@ import java.text.Collator
 
 private val log = KotlinLogging.logger {}
 
-private const val MAX_RESULTS = 100
+/**
+ * Block wise search result iterator. (100 was much too low: 100 caused a lot of queries)
+ */
+private const val MAX_RESULTS = 10_000
 
 internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
     val baseDao: BaseDao<O>,

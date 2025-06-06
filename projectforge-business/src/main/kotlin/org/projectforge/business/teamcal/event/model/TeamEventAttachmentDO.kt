@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,13 @@
 
 package org.projectforge.business.teamcal.event.model
 
-import org.apache.commons.lang3.StringUtils
-import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.hibernate.annotations.Type
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
-import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.mail.MailAttachment
-import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Table
-import org.hibernate.annotations.JdbcTypeCode
-import org.hibernate.type.SqlTypes
+import org.apache.commons.lang3.StringUtils
+import org.apache.commons.lang3.builder.HashCodeBuilder
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.mail.IMailAttachment
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -42,32 +38,11 @@ import org.hibernate.type.SqlTypes
 @Entity
 @Indexed
 @Table(name = "T_PLUGIN_CALENDAR_EVENT_ATTACHMENT")
-open class TeamEventAttachmentDO : DefaultBaseDO(), Comparable<TeamEventAttachmentDO>, MailAttachment {
+open class TeamEventAttachmentDO : DefaultBaseDO(), Comparable<TeamEventAttachmentDO>, IMailAttachment {
 
-    private var filename: String? = null
+    override var filename: String? = null
 
-    private var content: ByteArray? = null
-
-    @Column
-    override fun getFilename(): String? {
-        return filename
-    }
-
-    open fun setFilename(filename: String): TeamEventAttachmentDO {
-        this.filename = filename
-        return this
-    }
-
-    @Column
-    @JdbcTypeCode(SqlTypes.BLOB)
-    override fun getContent(): ByteArray? {
-        return content
-    }
-
-    open fun setContent(content: ByteArray): TeamEventAttachmentDO {
-        this.content = content
-        return this
-    }
+    override var content: ByteArray? = null
 
     /**
      * @see java.lang.Comparable.compareTo
@@ -103,10 +78,10 @@ open class TeamEventAttachmentDO : DefaultBaseDO(), Comparable<TeamEventAttachme
         if (id != null && this.id == o!!.id) {
             return true
         }
-        if (!StringUtils.equals(this.getFilename(), o!!.getFilename())) {
+        if (this.filename != o!!.filename) {
             return false
         }
-        return o.getContent()?.let { this.getContent()?.contentEquals(it) }!!
+        return o.content?.let { this.content?.contentEquals(it) }!!
     }
 
     /**

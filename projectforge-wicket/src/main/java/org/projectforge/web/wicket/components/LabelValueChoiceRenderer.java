@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -178,7 +178,7 @@ public class LabelValueChoiceRenderer<T> implements IChoiceRenderer<T>
   }
 
   /**
-   * Please note: This method does not check wether the given object is an entry of the year list or not.
+   * Please note: This method does not check whether the given object is an entry of the year list or not.
    *
    * @return given integer as String or "[minYear]-[maxYear]" if value is -1.
    * @see org.apache.wicket.markup.html.form.IChoiceRenderer#getDisplayValue(java.lang.Object)

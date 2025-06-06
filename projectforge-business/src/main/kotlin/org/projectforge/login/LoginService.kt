@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -107,8 +107,6 @@ open class LoginService {
      */
     fun checkLogin(request: HttpServletRequest, response: HttpServletResponse): UserContext? {
         getUserContext(request)?.let { userContext ->
-            // Get the fresh user from the user cache.
-            userContext.refreshUser()
             // Check 2FA if session is kept alive for a longer time:
             handle2FARequiredAfterLogin(request, userContext)
             if (!ensureSystemAccess(request, response, userContext)) {
@@ -344,6 +342,7 @@ open class LoginService {
         fun getUserContext(request: HttpServletRequest, createSession: Boolean = false): UserContext? {
             val session = request.getSession(createSession) ?: return null
             val userContext = session.getAttribute(SESSION_KEY_USER) as? UserContext?
+            userContext?.refreshUser() // Refresh user from cache: might be deactivated or changed in the meantime.
             if (log.isDebugEnabled) {
                 log.debug("User '${userContext?.user?.username}' successfully restored from http session (request=${request.requestURI}).")
             }

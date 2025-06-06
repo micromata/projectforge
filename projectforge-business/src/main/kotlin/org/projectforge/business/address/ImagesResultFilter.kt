@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,6 +27,6 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 
 class ImagesResultFilter : CustomResultFilter<AddressDO> {
     override fun match(list: MutableList<AddressDO>, element: AddressDO): Boolean {
-        return element.image == true
+        return AddressImageCache.instance.getImage(element.id) != null
     }
 }

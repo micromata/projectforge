@@ -19,7 +19,7 @@ function ReactSelect(
         getOptionLabel,
         id,
         label,
-        labelProperty,
+        labelProperty = 'label',
         loadOptions,
         multi,
         required,
@@ -27,7 +27,7 @@ function ReactSelect(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         translations,
         value,
-        valueProperty,
+        valueProperty = 'value',
         values,
         ...props
     },
@@ -90,7 +90,6 @@ function ReactSelect(
 
     return (
         <div className="react-select">
-            {tooltipElement}
             <Tag
                 cache={{}}
                 className={classNames(
@@ -124,6 +123,8 @@ function ReactSelect(
                 value={value || null}
                 {...props}
             />
+            {tooltipElement}
+
             {additionalLabel && (
                 <span className="react-select__additional-label">{additionalLabel}</span>
             )}
@@ -160,22 +161,4 @@ ReactSelect.propTypes = {
     values: PropTypes.arrayOf(PropTypes.shape({})),
 };
 
-ReactSelect.defaultProps = {
-    additionalLabel: undefined,
-    autoCompletion: undefined,
-    className: undefined,
-    color: undefined,
-    defaultValue: undefined,
-    getOptionLabel: undefined,
-    id: undefined,
-    labelProperty: 'label',
-    loadOptions: undefined,
-    multi: false,
-    onChange: undefined,
-    required: false,
-    tooltip: undefined,
-    value: undefined,
-    valueProperty: 'value',
-    values: undefined,
-};
 export default ReactSelect;

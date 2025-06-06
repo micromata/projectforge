@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,14 +24,14 @@
 package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonBackReference
-import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonManagedReference
-import com.fasterxml.jackson.annotation.ObjectIdGenerators
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.history.PersistenceBehavior
 import java.time.LocalDate
 
@@ -50,13 +50,13 @@ import java.time.LocalDate
         columnList = "auftrags_position_fk"
     ), jakarta.persistence.Index(name = "idx_fk_t_fibu_rechnung_position_rechnung_fk", columnList = "rechnung_fk")]
 )
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class RechnungsPositionDO : AbstractRechnungsPositionDO() {
     @JsonBackReference
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "rechnung_fk", nullable = false)
     @get:AssociationInverseSide(inversePath = ObjectPath(PropertyValue(propertyName = "rechnung")))
     @get:IndexingDependency(derivedFrom = [ObjectPath(PropertyValue(propertyName = "positionen"))])
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var rechnung: RechnungDO? = null
 
     override val rechnungId: Long?
@@ -68,6 +68,7 @@ open class RechnungsPositionDO : AbstractRechnungsPositionDO() {
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "auftrags_position_fk")
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var auftragsPosition: AuftragsPositionDO? = null
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.type")
@@ -85,17 +86,17 @@ open class RechnungsPositionDO : AbstractRechnungsPositionDO() {
 
     @PersistenceBehavior(autoUpdateCollectionEntries = true)
     @get:OneToMany(
+        mappedBy = "rechnungsPosition",
         cascade = [CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH],
         orphanRemoval = false,
         fetch = FetchType.LAZY,
     )
-    @get:JoinColumn(name = "rechnungs_pos_fk")
     @get:OrderColumn(name = "index")
     @JsonManagedReference
     override var kostZuweisungen: MutableList<KostZuweisungDO>? = null
 
     override fun checkKostZuweisungId(zuweisung: KostZuweisungDO): Boolean {
-        return zuweisung.rechnungsPositionId == this.id
+        return zuweisung.rechnungsPosition?.id == this.id
     }
 
     /**

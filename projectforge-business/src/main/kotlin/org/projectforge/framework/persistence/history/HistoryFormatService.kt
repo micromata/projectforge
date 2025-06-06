@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -98,12 +98,27 @@ class HistoryFormatService {
         val displayHistoryEntry = adapter?.convertHistoryEntry(item, context)
             ?: stdHistoryFormatAdapter.convertHistoryEntry(item, context)
         context.setCurrent(displayHistoryEntry)
+        context.baseDao?.customizeHistoryEntry(context)
+        if (historyEntry.entityOpType == EntityOpType.Insert && historyEntry.attributes.isNullOrEmpty()) {
+            // Special case: Insert without attributes.
+            context.baseDao?.getHistoryPropertyPrefix(context)?.let { propertyPrefix ->
+                // Add the operation as attribute, if a propertyPrefix is given.
+                displayHistoryEntry.attributes.add(DisplayHistoryEntryAttr().also { attr ->
+                    attr.operationType = PropertyOpType.Insert
+                    attr.displayPropertyName = propertyPrefix
+                    attr.newValue = attr.operation
+                })
+            }
+        }
         historyEntry.attributes?.forEach { attr ->
             context.setCurrent(attr)
             val displayAttr = adapter?.convertHistoryEntryAttr(item, context)
                 ?: stdHistoryFormatAdapter.convertHistoryEntryAttr(item, context)
             displayHistoryEntry.attributes.add(displayAttr)
             context.setCurrent(displayAttr)
+            context.baseDao?.getHistoryPropertyPrefix(context)?.let {
+                displayAttr.displayPropertyName = "$it:${displayAttr.displayPropertyName}"
+            }
             context.baseDao?.customizeHistoryEntryAttr(context)
             context.clearCurrentDisplayHistoryEntryAttr()
         }

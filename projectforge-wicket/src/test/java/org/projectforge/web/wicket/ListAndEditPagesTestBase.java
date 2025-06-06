@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -93,14 +93,14 @@ public abstract class ListAndEditPagesTestBase extends WicketPageTestBase {
   }
 
   /**
-   * Starts list page with reseted filter.
+   * Starts list page with reset filter.
    */
   protected void startListPage() {
     startListPage(null);
   }
 
   /**
-   * Starts list page with reseted filter and given search string as filter string.
+   * Starts list page with reset filter and given search string as filter string.
    */
   protected void startListPage(final String searchString) {
     tester.startPage(getListPageClass());

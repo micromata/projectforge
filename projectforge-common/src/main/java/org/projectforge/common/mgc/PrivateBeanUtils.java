@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -51,7 +51,7 @@ public class PrivateBeanUtils
     private AccessibleObject object;
 
     /**
-     * The was accessable.
+     * The object was accessible.
      */
     private boolean wasAccessable = false;
 
@@ -224,7 +224,7 @@ public class PrivateBeanUtils
   }
 
   /**
-   * Try find a field with given name. Goes throw class hierarchie.
+   * Try finding a field with given name. Goes through class hierarchy.
    *
    * @param cls the cls
    * @param fieldName the field name
@@ -427,7 +427,7 @@ public class PrivateBeanUtils
   }
 
   /**
-   * Wirte a bean field.
+   * Write a bean field.
    *
    * @param bean the bean
    * @param field the field
@@ -555,7 +555,7 @@ public class PrivateBeanUtils
    * Gets the bean size.
    *
    * @param bean the bean
-   * @param classNameMatcher matches agains class name
+   * @param classNameMatcher matches against class name
    * @return the bean size
    */
   public static int getBeanSize(Object bean, Matcher<String> classNameMatcher)
@@ -568,7 +568,7 @@ public class PrivateBeanUtils
    *
    * @param bean the bean
    * @param classNameMatcher the class name matcher
-   * @param fieldNameMatcher matches agains (decl class name).fieldname
+   * @param fieldNameMatcher matches against (decl class name).fieldname
    * @return the bean size
    */
   public static int getBeanSize(Object bean, Matcher<String> classNameMatcher, Matcher<String> fieldNameMatcher)
@@ -795,7 +795,7 @@ public class PrivateBeanUtils
     Method m = findMethod(bean, bean.getClass(), method, args);
     if (m == null) {
       throw new RuntimeException(
-          "Canot find method to call: " + bean.getClass().getName() + "." + method + getArgsDescriptor(args));
+          "Cannot find method to call: " + bean.getClass().getName() + "." + method + getArgsDescriptor(args));
     }
     return invokeMethod(bean, m, args);
   }
@@ -841,7 +841,7 @@ public class PrivateBeanUtils
     Method m = findMethod(null, clazz, method, args);
     if (m == null) {
       throw new RuntimeException(
-          "Canot find method to call: " + clazz.getName() + "." + method + getArgsDescriptor(args));
+          "Cannot find method to call: " + clazz.getName() + "." + method + getArgsDescriptor(args));
     }
     AccessibleScope ascope = new AccessibleScope(m);
     try {
@@ -917,7 +917,7 @@ public class PrivateBeanUtils
   {
     Constructor<T> constr = findConstructor(clazz, args);
     if (constr == null) {
-      throw new RuntimeException("Canot find constructor to call: " + clazz.getName() + "." + getArgsDescriptor(args));
+      throw new RuntimeException("Cannot find constructor to call: " + clazz.getName() + "." + getArgsDescriptor(args));
     }
     AccessibleScope ascope = new AccessibleScope(constr);
     try {
@@ -958,7 +958,7 @@ public class PrivateBeanUtils
   }
 
   /**
-   * Copy all instance fiels from source to target. static fields are not copied.
+   * Copy all instance fields from source to target. static fields are not copied.
    *
    * @param <T> the generic type
    * @param targetClass the target class

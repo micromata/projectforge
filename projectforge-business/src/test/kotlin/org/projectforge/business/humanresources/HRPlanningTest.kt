@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -38,6 +38,7 @@ import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.framework.time.PFDateTime.Companion.withDate
 import org.projectforge.framework.time.PFDay
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.business.timesheet.TimesheetReferenceListTest.Companion.user
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.Serializable
 import java.math.BigDecimal
@@ -158,7 +159,7 @@ class HRPlanningTest : AbstractTestBase() {
             logon(TEST_ADMIN_USER)
             // split
             user1 = userService.find(user1.id, false)
-            val userRight = user1.getRight(UserRightId.PM_HR_PLANNING)
+            val userRight = user1.rights?.find { it.rightIdString == UserRightId.PM_HR_PLANNING.id }
             userRight!!.value = UserRightValue.READWRITE
             userRightDao.update(userRight)
             logon(user1)

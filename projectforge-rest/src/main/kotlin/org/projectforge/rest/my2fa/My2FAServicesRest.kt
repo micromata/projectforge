@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,6 +26,7 @@ package org.projectforge.rest.my2fa
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import jakarta.validation.Valid
 import mu.KotlinLogging
 import org.apache.commons.codec.binary.Base64
 import org.projectforge.business.user.filter.CookieService
@@ -39,7 +40,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.PostData
-import org.projectforge.rest.pub.LoginPageRest
+import org.projectforge.rest.pub.LoginServiceRest
 import org.projectforge.rest.pub.My2FAPublicServicesRest
 import org.projectforge.rest.pub.PasswordResetPageRest
 import org.projectforge.security.My2FAData
@@ -56,7 +57,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.nio.charset.StandardCharsets
-import jakarta.validation.Valid
 
 private val log = KotlinLogging.logger {}
 
@@ -146,7 +146,7 @@ class My2FAServicesRest {
 
     /**
      * Should be called after [ThreadLocalUserContext.getUserContext] -> [UserContext.updateLastSuccessful2FA].
-     * Updates the time stamp of the last succesful 2FA as cookie as well as in the user's session.
+     * Updates the time stamp of the last successful 2FA as cookie as well as in the user's session.
      */
     fun updateCookieAndSession(request: HttpServletRequest, response: HttpServletResponse) {
         ThreadLocalUserContext.userContext!!.lastSuccessful2FA?.let { lastSuccessful2FA ->
@@ -220,7 +220,7 @@ class My2FAServicesRest {
         afterLogin: Boolean,
     ): ResponseEntity<ResponseAction> {
         if (afterLogin) {
-            val redirectUrl = LoginPageRest.getRedirectUrl(request, postData.serverData)
+            val redirectUrl = LoginServiceRest.getRedirectUrl(request, postData.serverData)
             return ResponseEntity(
                 ResponseAction(targetType = TargetType.CHECK_AUTHENTICATION, url = redirectUrl),
                 HttpStatus.OK
@@ -337,7 +337,7 @@ class My2FAServicesRest {
 
     /**
      * @param showCancelButton Only true for login process (the private services aren't yet available) and password reset
-     * @param mailOTPDisabled True, if no mail button should be displayed (escpecially for password reset).
+     * @param mailOTPDisabled True, if no mail button should be displayed (especially for password reset).
      * @param restServiceClass Optional rest service class, [My2FAPublicServicesRest] is default.
      */
     private fun fillCodeCol(

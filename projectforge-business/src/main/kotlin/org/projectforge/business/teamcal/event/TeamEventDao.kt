@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -69,7 +69,6 @@ import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTime.Companion.fromTemporal
 import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.framework.time.PFDateTime.Companion.fromOrNull
-import org.projectforge.framework.time.PFDateTime.Companion.fromTemporalOrNull
 import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.time.PFDateTimeUtils.getUTCBeginOfDayTimestamp
@@ -279,7 +278,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
             // Add current date to the master date as exclusion date and save this event (without recurrence settings).
             event.addRecurrenceExDate(selectedEvent.startDate)
             if (newEvent.hasRecurrence()) {
-                log.warn("User tries to modifiy single event of a series, the given recurrence is ignored.")
+                log.warn("User tries to modify single event of a series, the given recurrence is ignored.")
             }
             newEvent.setRecurrence(null as? RRule<ZonedDateTime>?) // User only wants to modify single event, ignore recurrence.
             insert(newEvent)
@@ -633,7 +632,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     override fun addOwnHistoryEntries(obj: TeamEventDO, context: HistoryLoadContext) {
         obj.attendees?.forEach { attendee ->
             historyService.loadAndMergeHistory(attendee, context) { entry ->
-                HistoryFormatUtils.setPropertyNameForListEntries(entry, attendee.toString())
+                HistoryFormatUtils.setNumberAsPropertyNameForListEntries(entry, attendee.toString())
             }
         }
     }

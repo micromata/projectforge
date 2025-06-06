@@ -18,10 +18,10 @@ You can build the webapp via `yarn build` or `npm run build`.
 Now you can modify the Web files directly in the directory ```projectforge-webapp``` and
 any change is automatically deployed instantly for your web browser.
 
-If you wan't to disable the browser auto startup create an .env file with `BROWSER=none`. Don't commit this file!
+If you want to disable the browser auto startup create an .env file with `BROWSER=none`. Don't commit this file!
    
 ## Working with IntelliJ (ESLINT)
 ProjectForge uses linting:
-1. Preferences -> JavaScript -> JavaScipt language version -> React JSX
+1. Preferences -> JavaScript -> JavaScript language version -> React JSX
 2. Preferecses -> JavaScrpt -> Code Quality Tools -> ESLint -> Automatic ESLint configuration
 

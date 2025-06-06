@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -49,7 +49,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@Disabled("Test disabled: pfJpaXmlDumpService.createTestDatabase() not yet migrated to verion 8.0.0")
+@Disabled("Test disabled: pfJpaXmlDumpService.createTestDatabase() not yet migrated to version 8.0.0")
 public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
           .getLogger(InitDatabaseDaoWithTestDataTestFork.class);

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -77,7 +77,7 @@ object FinalizeScreenSupport {
             sb.append("You chose a directory different to ${File(System.getProperty("user.home"), "ProjectForge")}. That's OK.\n")
             sb.append("To be sure, that this directory is found by the ProjectForge server, please refer log files or home page.\n\n")
         }
-        sb.append("Press 'Finish' for starting the intialization and for starting-up the server.")
+        sb.append("Press 'Finish' for starting the initialization and for starting-up the server.")
         return sb.toString()
     }
 

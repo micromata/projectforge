@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,7 +30,6 @@ import org.projectforge.business.scripting.ScriptDao
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
@@ -140,20 +139,6 @@ class ScriptExecutePageRest : AbstractScriptExecutePageRest() {
     script.executableByEmails = executableByMails.joinToString()
     if (executableByMails.isNotEmpty()) {
       layout.add(UIReadOnlyField("executableByEmails", label = "scripting.script.executableByUsers"))
-    }
-    val examplesMenu = MenuItem("examples", translate("scripting.script.examples"))
-    layout.add(examplesMenu)
-    ExampleScripts.exampleFiles.forEachIndexed { index, exampleScript ->
-      examplesMenu.add(
-        MenuItem(
-          id = "example$index",
-          title = exampleScript.title,
-          url = PagesResolver.getDynamicPageUrl(
-            ScriptExecutePageRest::class.java,
-            params = mapOf("example" to index),
-          ),
-        )
-      )
     }
     layout.add(
       MenuItem(

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,6 +24,7 @@
 package org.projectforge.business.scripting
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.JdbcTypeCode
@@ -32,6 +33,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.hibernate.type.SqlTypes
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.jcr.AttachmentsInfo
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -76,6 +78,7 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "execute_as_user_id", nullable = true)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var executeAsUser: PFUserDO? = null
 
     /**
@@ -96,7 +99,7 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
 
     @PropertyInfo(i18nKey = "description", tooltip = "scripting.script.description.tooltip")
     @FullTextField
-    @get:Column(length = 4000)
+    @get:Column(length = DESCRIPTION_MAX_LENGTH)
     open var description: String? = null
 
     /**
@@ -141,6 +144,11 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
     @get:Column(length = 20)
     open var parameter1Type: ScriptParameterType? = null
 
+    @PropertyInfo(i18nKey = "description")
+    @FullTextField
+    @get:Column(length = DESCRIPTION_MAX_LENGTH)
+    open var parameter1Description: String? = null
+
     @PropertyInfo(i18nKey = "scripting.script.parameterName")
     @FullTextField
     @get:Column(length = PARAMETER_NAME_MAX_LENGTH)
@@ -150,6 +158,11 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
     open var parameter2Type: ScriptParameterType? = null
+
+    @PropertyInfo(i18nKey = "description")
+    @FullTextField
+    @get:Column(length = DESCRIPTION_MAX_LENGTH)
+    open var parameter2Description: String? = null
 
     @PropertyInfo(i18nKey = "scripting.script.parameterName")
     @FullTextField
@@ -161,6 +174,11 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
     @get:Column(length = 20)
     open var parameter3Type: ScriptParameterType? = null
 
+    @PropertyInfo(i18nKey = "description")
+    @FullTextField
+    @get:Column(length = DESCRIPTION_MAX_LENGTH)
+    open var parameter3Description: String? = null
+
     @PropertyInfo(i18nKey = "scripting.script.parameterName")
     @FullTextField
     @get:Column(length = PARAMETER_NAME_MAX_LENGTH)
@@ -170,6 +188,11 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
     open var parameter4Type: ScriptParameterType? = null
+
+    @PropertyInfo(i18nKey = "description")
+    @FullTextField
+    @get:Column(length = DESCRIPTION_MAX_LENGTH)
+    open var parameter4Description: String? = null
 
     @PropertyInfo(i18nKey = "scripting.script.parameterName")
     @FullTextField
@@ -181,6 +204,11 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
     @get:Column(length = 20)
     open var parameter5Type: ScriptParameterType? = null
 
+    @PropertyInfo(i18nKey = "description")
+    @FullTextField
+    @get:Column(length = DESCRIPTION_MAX_LENGTH)
+    open var parameter5Description: String? = null
+
     @PropertyInfo(i18nKey = "scripting.script.parameterName")
     @FullTextField
     @get:Column(length = PARAMETER_NAME_MAX_LENGTH)
@@ -190,6 +218,11 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
     open var parameter6Type: ScriptParameterType? = null
+
+    @PropertyInfo(i18nKey = "description")
+    @FullTextField
+    @get:Column(length = DESCRIPTION_MAX_LENGTH)
+    open var parameter6Description: String? = null
 
     open var scriptAsString: String?
         @Transient
@@ -269,7 +302,7 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
         try {
             str = String(bytes, Charsets.UTF_8)
         } catch (ex: UnsupportedEncodingException) {
-            log.error("Exception encountered while convering byte[] to String: " + ex.message, ex)
+            log.error("Exception encountered while converting byte[] to String: " + ex.message, ex)
         }
 
         return str
@@ -283,7 +316,7 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
         try {
             bytes = str.toByteArray(charset("UTF-8"))
         } catch (ex: UnsupportedEncodingException) {
-            log.error("Exception encountered while convering String to bytes: " + ex.message, ex)
+            log.error("Exception encountered while converting String to bytes: " + ex.message, ex)
         }
 
         return bytes
@@ -304,12 +337,12 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
     @Transient
     fun getParameterList(allowNullParams: Boolean = false): List<ScriptParameter> {
         val scriptParameters = mutableListOf<ScriptParameter>()
-        addParameter(scriptParameters, allowNullParams, parameter1Name, parameter1Type)
-        addParameter(scriptParameters, allowNullParams, parameter2Name, parameter2Type)
-        addParameter(scriptParameters, allowNullParams, parameter3Name, parameter3Type)
-        addParameter(scriptParameters, allowNullParams, parameter4Name, parameter4Type)
-        addParameter(scriptParameters, allowNullParams, parameter5Name, parameter5Type)
-        addParameter(scriptParameters, allowNullParams, parameter6Name, parameter6Type)
+        addParameter(scriptParameters, allowNullParams, parameter1Name, parameter1Type, parameter1Description)
+        addParameter(scriptParameters, allowNullParams, parameter2Name, parameter2Type, parameter2Description)
+        addParameter(scriptParameters, allowNullParams, parameter3Name, parameter3Type, parameter3Description)
+        addParameter(scriptParameters, allowNullParams, parameter4Name, parameter4Type, parameter4Description)
+        addParameter(scriptParameters, allowNullParams, parameter5Name, parameter5Type, parameter5Description)
+        addParameter(scriptParameters, allowNullParams, parameter6Name, parameter6Type, parameter6Description)
         return scriptParameters
     }
 
@@ -321,31 +354,37 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
                 0 -> {
                     parameter1Name = scriptParameter?.parameterName
                     parameter1Type = scriptParameter?.type
+                    parameter1Description = scriptParameter?.parameterDescription
                 }
 
                 1 -> {
                     parameter2Name = scriptParameter?.parameterName
                     parameter2Type = scriptParameter?.type
+                    parameter2Description = scriptParameter?.parameterDescription
                 }
 
                 2 -> {
                     parameter3Name = scriptParameter?.parameterName
                     parameter3Type = scriptParameter?.type
+                    parameter3Description = scriptParameter?.parameterDescription
                 }
 
                 3 -> {
                     parameter4Name = scriptParameter?.parameterName
                     parameter4Type = scriptParameter?.type
+                    parameter4Description = scriptParameter?.parameterDescription
                 }
 
                 4 -> {
                     parameter5Name = scriptParameter?.parameterName
                     parameter5Type = scriptParameter?.type
+                    parameter5Description = scriptParameter?.parameterDescription
                 }
 
                 5 -> {
                     parameter6Name = scriptParameter?.parameterName
                     parameter6Type = scriptParameter?.type
+                    parameter6Description = scriptParameter?.parameterDescription
                 }
             }
         }
@@ -355,10 +394,11 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
         scriptParameters: MutableList<ScriptParameter>,
         allowNullParams: Boolean,
         parameterName: String?,
-        type: ScriptParameterType?
+        type: ScriptParameterType?,
+        description: String?,
     ) {
         if (allowNullParams || (type != null && !parameterName.isNullOrBlank())) {
-            scriptParameters.add(ScriptParameter(parameterName, type))
+            scriptParameters.add(ScriptParameter(parameterName, type, description))
         }
     }
 
@@ -385,6 +425,8 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
 
     companion object {
         const val PARAMETER_NAME_MAX_LENGTH = 100
+
+        const val DESCRIPTION_MAX_LENGTH = 4000
 
         @JsonIgnore
         private val log = org.slf4j.LoggerFactory.getLogger(ScriptDO::class.java)

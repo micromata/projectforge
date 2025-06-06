@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -143,8 +143,7 @@ open class AddressExport {
             val sheet = workbook.createOrGetSheet(translate(sheetTitle))
             sheet.enableMultipleColumns = true
 
-            val boldFont = workbook.createOrGetFont("bold", bold = true)
-            val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
+            val boldStyle = workbook.createOrGetCellStyle(ExcelUtils.BOLD_STYLE)
             registerCols(sheet)
             sheet.createRow() // title row
             val headRow = sheet.createRow() // second row as head row.

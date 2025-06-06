@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -87,7 +87,7 @@ class Address(
 
     override fun copyFrom(src: AddressDO) {
         super.copyFrom(src)
-        if (src.image == true) {
+        if (AddressImageCache.instance.getImage(src.id) != null) {
             imageData = byteArrayOf(1) // Marker for frontend for an available image.
         }
         // For new addresses no cache entry exist.

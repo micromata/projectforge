@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -41,6 +41,7 @@ import org.projectforge.business.fibu.MonthlyEmployeeReport.Kost2Row;
 import org.projectforge.business.fibu.kost.*;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.formatter.WicketTaskFormatter;
+import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.configuration.Configuration;
@@ -256,6 +257,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
     private void addReport() {
         final RepeatingView headcolRepeater = new RepeatingView("headcolRepeater");
         table.add(headcolRepeater);
+        final boolean timeSavingsByAIEnabled = WicketSupport.get(TimesheetDao.class).getTimeSavingsByAIEnabled();
         if (!MapUtils.isEmpty(report.getKost2Rows())) {
             headcolRepeater.add(new Label(headcolRepeater.newChildId(), getString("fibu.kost2")));
             headcolRepeater.add(new Label(headcolRepeater.newChildId(), getString("fibu.kunde")));
@@ -274,6 +276,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
                     + week.getFormattedToDayOfMonth()
                     + "."));
         }
+        table.add(new Label("timeSavedByAI", getString("timesheet.ai.timeSavedByAI")).setVisible(timeSavingsByAIEnabled));
         final RepeatingView rowRepeater = new RepeatingView("rowRepeater");
         table.add(rowRepeater);
         int rowCounter = 0;
@@ -286,17 +289,19 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
                 row.add(AttributeModifier.replace("class", "odd"));
             }
             final Kost2Row kost2Row = rowEntry.getValue();
-            final Kost2DO cost2 = kost2Row.getKost2();
-            addLabelCols(row, cost2, null, "kost2.nummer:" + cost2.getFormattedNumber() + "*", report.getUser(),
+            final Kost2DO cost2 = kost2Row.kost2;
+            addLabelCols(row, cost2, null, "kost2.nummer:" + cost2.getFormattedNumber() + "*", report.user,
                     report.getFromDate().getTime(), report
                             .getToDate().getTime());
             final RepeatingView colWeekRepeater = new RepeatingView("colWeekRepeater");
             row.add(colWeekRepeater);
             for (final MonthlyEmployeeReportWeek week : report.getWeeks()) {
-                final MonthlyEmployeeReportEntry entry = week.getKost2Entries().get(kost2Row.getKost2().getId());
+                final MonthlyEmployeeReportEntry entry = week.getKost2Entries().get(kost2Row.kost2.getId());
                 colWeekRepeater.add(new Label(colWeekRepeater.newChildId(), entry != null ? entry.getFormattedDuration() : ""));
             }
-            row.add(new Label("sum", report.getKost2Durations().get(cost2.getId()).getFormattedDuration()));
+            MonthlyEmployeeReportEntry entry = report.getKost2Durations().get(cost2.getId());
+            row.add(new Label("sum", entry.getFormattedDuration()));
+            row.add(new Label("aiTimeSavings", entry.getGetFormattedTimeSavedByAI()).setVisible(timeSavingsByAIEnabled));
         }
 
         for (final Map.Entry<String, TaskDO> rowEntry : report.getTaskEntries().entrySet()) {
@@ -308,7 +313,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
                 row.add(AttributeModifier.replace("class", "odd"));
             }
             final TaskDO task = rowEntry.getValue();
-            addLabelCols(row, null, task, null, report.getUser(), report.getFromDate().getTime(),
+            addLabelCols(row, null, task, null, report.user, report.getFromDate().getTime(),
                     report.getToDate().getTime());
             final RepeatingView colWeekRepeater = new RepeatingView("colWeekRepeater");
             row.add(colWeekRepeater);
@@ -316,37 +321,29 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
                 final MonthlyEmployeeReportEntry entry = week.getTaskEntries().get(task.getId());
                 colWeekRepeater.add(new Label(colWeekRepeater.newChildId(), entry != null ? entry.getFormattedDuration() : ""));
             }
-            row.add(new Label("sum", report.getTaskDurations().get(task.getId()).getFormattedDuration()));
+            MonthlyEmployeeReportEntry entry = report.getTaskDurations().get(task.getId());
+            row.add(new Label("sum", entry.getFormattedDuration()));
+            row.add(new Label("aiTimeSavings", entry.getGetFormattedTimeSavedByAI()).setVisible(timeSavingsByAIEnabled));
         }
         {
             // Sum row.
             final WebMarkupContainer row = new WebMarkupContainer(rowRepeater.newChildId());
             rowRepeater.add(row);
-            if (rowCounter++ % 2 == 0) {
-                row.add(AttributeModifier.replace("class", "even"));
-            } else {
-                row.add(AttributeModifier.replace("class", "odd"));
-            }
-            addLabelCols(row, null, null, null, report.getUser(), report.getFromDate().getTime(),
+            addLabelCols(row, null, null, null, report.user, report.getFromDate().getTime(),
                     report.getToDate().getTime()).add(
                     AttributeModifier.replace("style", "text-align: right;"));
-            final RepeatingView colWeekRepeater = new RepeatingView("colWeekRepeater");
-            row.add(colWeekRepeater);
+            final RepeatingView colWeekRepeater = prepareSumRow(row, rowCounter++);
             for (final MonthlyEmployeeReportWeek week : report.getWeeks()) {
                 colWeekRepeater.add(new Label(colWeekRepeater.newChildId(), week.getFormattedTotalDuration()));
             }
             row.add(new Label("sum", report.getFormattedTotalNetDuration()).add(AttributeModifier.replace("style",
                     "font-weight: bold; color:red; text-align: right;")));
+            row.add(new Label("aiTimeSavings", report.getFormattedTotalTimeSavedByAI()).setVisible(timeSavingsByAIEnabled));
         }
         if (report.getTotalGrossDuration() != report.getTotalNetDuration()) {
-            // Net sum row.
+            // Gross sum row.
             final WebMarkupContainer row = new WebMarkupContainer(rowRepeater.newChildId());
             rowRepeater.add(row);
-            if (rowCounter++ % 2 == 0) {
-                row.add(AttributeModifier.replace("class", "even"));
-            } else {
-                row.add(AttributeModifier.replace("class", "odd"));
-            }
             final Component comp = new WebMarkupContainer("cost2").setVisible(false);
             row.add(comp);
             row.add(new Label("customer", "").setVisible(false));
@@ -356,14 +353,49 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
             final WebMarkupContainer tdContainer = title.findParent(WebMarkupContainer.class);
             tdContainer.add(AttributeModifier.replace("colspan", "4"));
             tdContainer.add(AttributeModifier.replace("style", "font-weight: bold; text-align: right;"));
-            final RepeatingView colWeekRepeater = new RepeatingView("colWeekRepeater");
-            row.add(colWeekRepeater);
+            final RepeatingView colWeekRepeater = prepareSumRow(row, rowCounter++);
             for (@SuppressWarnings("unused") final MonthlyEmployeeReportWeek week : report.getWeeks()) {
-                colWeekRepeater.add(new Label(colWeekRepeater.newChildId(), ""));
+                colWeekRepeater.add(new Label(colWeekRepeater.newChildId(), week.getFormattedGrossDuration()));
             }
             row.add(new Label("sum", report.getFormattedTotalGrossDuration()).add(AttributeModifier.replace("style",
                     "font-weight: bold; text-align: right;")));
+            row.add(new Label("aiTimeSavings", report.getFormattedTotalTimeSavedByAI()).setVisible(timeSavingsByAIEnabled));
         }
+        if (timeSavingsByAIEnabled) {
+            // Sum row time saved by AI.
+            final WebMarkupContainer row = new WebMarkupContainer(rowRepeater.newChildId());
+            rowRepeater.add(row);
+            final Component comp = new WebMarkupContainer("cost2").setVisible(false);
+            row.add(comp);
+            row.add(new Label("customer", "").setVisible(false));
+            row.add(new Label("project", "").setVisible(false));
+            final Label title = addCostType(row, getString("timesheet.ai.timeSavedByAI"));
+            title.add(AttributeModifier.replace("style", "text-align: right; color:purple;"));
+            final WebMarkupContainer tdContainer = title.findParent(WebMarkupContainer.class);
+            tdContainer.add(AttributeModifier.replace("colspan", "4"));
+            tdContainer.add(AttributeModifier.replace("style", "text-align: right;"));
+            final RepeatingView colWeekRepeater = prepareSumRow(row, rowCounter++);
+            for (@SuppressWarnings("unused") final MonthlyEmployeeReportWeek week : report.getWeeks()) {
+                colWeekRepeater.add(new Label(colWeekRepeater.newChildId(), week.getFormattedTotalTimeSavedByAI())
+                        .add(AttributeModifier.replace("style",
+                                "text-align: right; color:purple;")));
+            }
+            row.add(new Label("sum", report.getFormattedTotalTimeSavedByAI()).add(AttributeModifier.replace("style",
+                    "font-weight: bold; color:purple; text-align: right;")));
+            row.add(new Label("aiTimeSavings", report.getFormattedTimeSavedByAIPercentage()).add(AttributeModifier.replace("style",
+                    "font-weight: bold; color:purple; text-align: right;")));
+        }
+    }
+
+    private RepeatingView prepareSumRow(final WebMarkupContainer row, int rowCounter) {
+        if (rowCounter % 2 == 0) {
+            row.add(AttributeModifier.replace("class", "even"));
+        } else {
+            row.add(AttributeModifier.replace("class", "odd"));
+        }
+        final RepeatingView colWeekRepeater = new RepeatingView("colWeekRepeater");
+        row.add(colWeekRepeater);
+        return colWeekRepeater;
     }
 
     @SuppressWarnings("serial")

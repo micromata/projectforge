@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -60,7 +60,7 @@ public class MyDateConverter extends MyAbstractDateConverter
    * while the client sees 12/24. </p>
    *
    * @param dateStyle Date style to use. The first character is the date style, and the second character is the time style. Specify a
-   *          character of 'S' for short style, 'M' for medium, 'L' for long, and 'F' for full. A date or time may be ommitted by specifying
+   *          character of 'S' for short style, 'M' for medium, 'L' for long, and 'F' for full. A date or time may be omitted by specifying
    *          a style character '-'. See {@link DateTimeFormat#forStyle(String)}.
    * @throws IllegalArgumentException in case dateStyle is null
    */

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -82,9 +82,10 @@ class EmployeePagesRest :
                 employee.kost1 = dto
             }
         }
-        employeeCache.setStatusAndAnnualLeave(obj)
+        employeeCache.setTimeDependentAttrs(obj)
         employee.status = obj.status
         employee.annualLeave = obj.annualLeave
+        employee.weeklyWorkingHours = obj.weeklyWorkingHours
         return employee
     }
 
@@ -97,6 +98,8 @@ class EmployeePagesRest :
     override fun onBeforeGetItemAndLayout(request: HttpServletRequest, dto: Employee, userAccess: UILayout.UserAccess) {
         dto.id?.let { id ->
             dto.statusEntries = employeeService.selectStatusEntries(id).map { EmployeeValidSinceAttr(it) }
+            dto.weeklyWorkingHoursEntries =
+                employeeService.selectWeeklyWorkingHoursEntries(id).map { EmployeeValidSinceAttr(it) }
             dto.annualLeaveEntries =
                 employeeService.selectAnnualLeaveDayEntries(id).map { EmployeeValidSinceAttr(it) }
         }
@@ -183,7 +186,7 @@ class EmployeePagesRest :
                     .add(
                         UICol()
                             .add(
-                                lc, "staffNumber", "weeklyWorkingHours", "eintrittsDatum", "austrittsDatum"
+                                lc, "staffNumber", "eintrittsDatum", "austrittsDatum"
                             )
                     )
             )
@@ -223,6 +226,39 @@ class EmployeePagesRest :
                                 )
                         )
                     )
+                    .add(
+                        UICol().add(
+                            UIFieldset(title = "fibu.employee.wochenstunden")
+                                .add(
+                                    UIAgGrid("weeklyWorkingHoursEntries")
+                                        .add(
+                                            UIAgGridColumnDef.createCol(
+                                                lc,
+                                                "validSince",
+                                                headerName = "attr.validSince"
+                                            )
+                                        )
+                                        .add(UIAgGridColumnDef.createCol(lc, "value", headerName = "days"))
+                                        .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
+                                        .withRowClickRedirectUrl(
+                                            createModalUrl(dto, EmployeeValidSinceAttrType.WEEKLY_HOURS),
+                                            openModal = true,
+                                        )
+                                ).add(
+                                    UIButton.createAddButton(
+                                        responseAction = ResponseAction(
+                                            createModalUrl(dto, EmployeeValidSinceAttrType.WEEKLY_HOURS, true),
+                                            targetType = TargetType.MODAL
+                                        ),
+                                        default = false,
+                                    )
+                                )
+                        )
+                    )
+            )
+        layout.layoutBelowActions
+            .add(
+                UIRow()
                     .add(
                         UICol()
                             .add(

@@ -8,8 +8,6 @@ function MagicInputNotImplemented() {
 
 MagicInputNotImplemented.propTypes = {};
 
-MagicInputNotImplemented.defaultProps = {};
-
 MagicInputNotImplemented.isEmpty = () => false;
 
 MagicInputNotImplemented.getLabel = (label) => `${label} (Not implemented)`;

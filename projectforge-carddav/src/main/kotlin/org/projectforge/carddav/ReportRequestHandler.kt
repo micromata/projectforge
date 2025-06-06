@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -79,7 +79,7 @@ internal object ReportRequestHandler {
                 //val syncToken = CardDavXmlUtils.extractSyncToken(requestWrapper.body)
                 log.debug { "handleReportCall: Modifications detected since the last sync-token." }
                 contactList.forEach { contact ->
-                    appendPropfindContact(sb, requestWrapper.requestURI, contact, false)
+                    appendPropfindContact(sb, requestWrapper.href, contact, false)
                 }
                 sb.appendLine("  <d:sync-token>$newSyncToken</d:sync-token>")
             }
@@ -91,7 +91,7 @@ internal object ReportRequestHandler {
             }
             val requestedContacts = contactList.filter { contact -> requestedAddressIds.contains(contact.id) }
             requestedContacts.forEach { contact ->
-                appendPropfindContact(sb, requestWrapper.requestURI, contact, true)
+                appendPropfindContact(sb, requestWrapper.href, contact, true)
             }
         } else {
             ResponseUtils.setValues(
@@ -102,9 +102,9 @@ internal object ReportRequestHandler {
         }
         appendMultiStatusEnd(sb)
         val content = sb.toString()
-        log.debug { "handleReportCall: response=[${TestUtils.sanitizeContent(content)}]" }
+        log.debug { "handleReportCall: response=[${CardDavServerDebugWriter.sanitizeContent(content)}]" }
         CardDavUtils.setMultiStatusResponse(response, content)
-        TestUtils.writeRequestResponseLogInTestMode(requestWrapper, response, content)
+        CardDavServerDebugWriter.writeRequestResponseLogInTestMode(requestWrapper, response, content)
     }
 
     /**

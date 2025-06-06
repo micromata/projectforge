@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -42,7 +42,7 @@ public enum UserAgentBrowser
   public static UserAgentBrowser getBrowserFromUserAgentString(String userAgent)
   {
     if (StringUtils.isNotEmpty(userAgent)) {
-      //TODO: Add mor browsers for user agent
+      //TODO: Add more browsers for user agent
       if (userAgent.contains("Version")) {
         return UserAgentBrowser.SAFARI;
       }

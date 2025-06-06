@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,10 @@
 
 package org.projectforge.framework.persistence.entities
 
-import java.io.Serializable
 import jakarta.persistence.MappedSuperclass
+import jakarta.persistence.Transient
 import org.projectforge.framework.persistence.history.WithHistory
+import java.io.Serializable
 
 /**
  * Declares lastUpdate and created as invalidHistorizableProperties.
@@ -35,6 +36,12 @@ import org.projectforge.framework.persistence.history.WithHistory
 @MappedSuperclass
 @WithHistory
 abstract class AbstractHistorizableBaseDO<I : Serializable> : AbstractBaseDO<I>() {
+    /**
+     * @see org.projectforge.framework.persistence.history.HistoryEntryDO.userComment
+     */
+    @get:Transient
+    var historyUserComment: String? = null
+
     companion object {
         private const val serialVersionUID = -5980671510045450615L
     }

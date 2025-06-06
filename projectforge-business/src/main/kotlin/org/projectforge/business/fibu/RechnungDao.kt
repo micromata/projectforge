@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -38,7 +38,6 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
-import org.projectforge.framework.persistence.history.HistoryFormatUtils
 import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.projectforge.framework.time.PFDateTime.Companion.from
@@ -55,9 +54,6 @@ private val log = KotlinLogging.logger {}
 
 @Service
 open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
-    @Autowired
-    private lateinit var auftragsCache: AuftragsCache
-
     @Autowired
     private lateinit var kundeDao: KundeDao
 
@@ -149,7 +145,6 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
 
     override fun afterInsertOrModify(obj: RechnungDO, operationType: OperationType) {
         rechnungCache.update(obj)
-        auftragsCache.setExpired() // Expire the cache because assignments to order position may be changed.
     }
 
     /**
@@ -232,7 +227,10 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
 
     private fun validate(rechnung: RechnungDO) {
         if (rechnung.datum == null) {
-            throw UserException("validation.required.valueNotPresent", MessageParam("fibu.rechnung.datum", MessageParamType.I18N_KEY))
+            throw UserException(
+                "validation.required.valueNotPresent",
+                MessageParam("fibu.rechnung.datum", MessageParamType.I18N_KEY)
+            )
         }
         val status = rechnung.status
         val zahlBetrag = rechnung.zahlBetrag
@@ -347,18 +345,22 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      */
     override fun addOwnHistoryEntries(obj: RechnungDO, context: HistoryLoadContext) {
         obj.positionen?.forEach { position ->
-            historyService.loadAndMergeHistory(position, context) { entry ->
-                HistoryFormatUtils.setPropertyNameForListEntries(entry, "pos", position.number)
-            }
+            historyService.loadAndMergeHistory(position, context)
             position.kostZuweisungen?.forEach { zuweisung ->
-                historyService.loadAndMergeHistory(zuweisung, context) { entry ->
-                    HistoryFormatUtils.setPropertyNameForListEntries(
-                        entry,
-                        Pair("pos", position.number),
-                        Pair("kost", zuweisung.index),
-                    )
-                }
+                historyService.loadAndMergeHistory(zuweisung, context)
             }
+        }
+    }
+
+    override fun getHistoryPropertyPrefix(context: HistoryLoadContext): String? {
+        val entry = context.requiredHistoryEntry
+        val item = context.findLoadedEntity(entry)
+        return if (item is RechnungsPositionDO) {
+            item.number.toString()
+        } else if (item is KostZuweisungDO) {
+            "${item.rechnungsPosition?.number}: kost #${item.index}"
+        } else {
+            null
         }
     }
 

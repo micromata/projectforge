@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -36,84 +36,67 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 class Vacation(
-  var employee: Employee? = null,
-  var startDate: LocalDate? = null,
-  var startDateFormatted: String? = null,
-  var endDate: LocalDate? = null,
-  var endDateFormatted: String? = null,
-  var workingDays: BigDecimal? = null,
-  var workingDaysFormatted: String? = null,
-  var status: VacationStatus? = null,
-  var statusString: String? = null,
-  var vacationMode: VacationMode? = null,
-  var vacationModeString: String? = null,
-  var replacement: Employee? = null,
-  var otherReplacements: List<Employee>? = null,
-  var otherReplacementsAsString: String? = null,
-  var manager: Employee? = null,
-  var special: Boolean? = null,
-  var specialFormatted: String? = null,
-  var halfDayBegin: Boolean? = null,
-  var halfDayEnd: Boolean? = null,
-  var comment: String? = null,
-  var vacationDaysLeftInYear: BigDecimal? = null,
-  var vacationDaysLeftInYearString: String? = null,
-  /**
-   * Vacations of substitutes overlapping this vacation. Only set in detail
-   * view.
-   */
-  var conflictingVacations: List<Vacation>? = null,
-  /**
-   * If at least one day of the vacation period isn't covered by any substitute (replacement).
-   */
-  var conflict: Boolean? = null,
+    var employee: Employee? = null,
+    var startDate: LocalDate? = null,
+    var startDateFormatted: String? = null,
+    var endDate: LocalDate? = null,
+    var endDateFormatted: String? = null,
+    var workingDays: BigDecimal? = null,
+    var workingDaysFormatted: String? = null,
+    var status: VacationStatus? = null,
+    var statusString: String? = null,
+    var vacationMode: VacationMode? = null,
+    var vacationModeString: String? = null,
+    var replacement: Employee? = null,
+    var otherReplacements: List<Employee>? = null,
+    var otherReplacementsAsString: String? = null,
+    var manager: Employee? = null,
+    var special: Boolean? = null,
+    var specialFormatted: String? = null,
+    var halfDayBegin: Boolean? = null,
+    var halfDayEnd: Boolean? = null,
+    var comment: String? = null,
+    var vacationDaysLeftInYear: BigDecimal? = null,
+    var vacationDaysLeftInYearString: String? = null,
+    /**
+     * Vacations of substitutes overlapping this vacation. Only set in detail
+     * view.
+     */
+    var conflictingVacations: List<Vacation>? = null,
+    /**
+     * If at least one day of the vacation period isn't covered by any substitute (replacement).
+     */
+    var conflict: Boolean? = null,
 ) : BaseDTO<VacationDO>() {
-  constructor(src: VacationDO) : this() {
-    this.copyFrom(src)
-  }
+    constructor(src: VacationDO) : this() {
+        this.copyFrom(src)
+    }
 
-  override fun copyFrom(src: VacationDO) {
-    super.copyFrom(src)
-    workingDays = VacationService.getVacationDays(src)
-    workingDaysFormatted = VacationStats.format(workingDays)
-    status?.let { statusString = translate(it.i18nKey) }
-    vacationMode = src.getVacationmode()
-    vacationMode?.let { vacationModeString = translate(it.i18nKey) }
-    specialFormatted = if (special == true) {
-      translate("yes")
-    } else {
-      translate("no")
+    override fun copyFrom(src: VacationDO) {
+        super.copyFrom(src)
+        workingDays = VacationService.getVacationDays(src)
+        workingDaysFormatted = VacationStats.format(workingDays)
+        status?.let { statusString = translate(it.i18nKey) }
+        vacationMode = src.getVacationmode()
+        vacationMode?.let { vacationModeString = translate(it.i18nKey) }
+        specialFormatted = if (special == true) {
+            translate("yes")
+        } else {
+            translate("no")
+        }
+        startDateFormatted = startDate?.let {
+            PFDayUtils.format(it, DateFormatType.DATE)
+        }
+        endDateFormatted = endDate?.let {
+            PFDayUtils.format(it, DateFormatType.DATE)
+        }
+        otherReplacements = Employee.toEmployeeList(src.otherReplacements)?.also {
+            otherReplacementsAsString = it.joinToString { it.displayName ?: "???" }
+        }
     }
-    startDateFormatted = startDate?.let {
-      PFDayUtils.format(it, DateFormatType.DATE)
-    }
-    endDateFormatted = endDate?.let {
-      PFDayUtils.format(it, DateFormatType.DATE)
-    }
-    val newOtherReplacements = mutableListOf<Employee>()
-    src.otherReplacements?.forEach {
-      val employee = Employee()
-      employee.copyFromMinimal(it)
-      newOtherReplacements.add(employee)
-    }
-    if (newOtherReplacements.isNotEmpty()) {
-      newOtherReplacements.sortedBy { it.displayName }.let {
-        otherReplacements = it
-        otherReplacementsAsString = it.joinToString { it.displayName ?: "???" }
-      }
-    }
-  }
 
-  override fun copyTo(dest: VacationDO) {
-    super.copyTo(dest)
-    val newOtherReplacements = mutableSetOf<EmployeeDO>()
-    otherReplacements?.forEach { e ->
-      val employeeDO = EmployeeDO()
-      employeeDO.id = e.id
-      newOtherReplacements.add(employeeDO)
+    override fun copyTo(dest: VacationDO) {
+        super.copyTo(dest)
+        dest.otherReplacements = Employee.toEmployeeDOList(otherReplacements)
     }
-    if (newOtherReplacements.isNotEmpty()) {
-      dest.otherReplacements = newOtherReplacements
-    }
-  }
 }

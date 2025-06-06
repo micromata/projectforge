@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,16 +23,18 @@
 
 package org.projectforge.business.fibu
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.Transient
 import mu.KotlinLogging
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.extensions.abbreviate
 import org.projectforge.framework.i18n.I18nHelper
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.Serializable
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.Date
+import java.util.*
 
 private val log = KotlinLogging.logger {}
 
@@ -40,13 +42,15 @@ private val log = KotlinLogging.logger {}
  * Information about an order with additional calculated values.
  * @see OrderInfo.calculateAll
  */
-class OrderInfo() : Serializable {
+class OrderInfo : Serializable {
     class PaymentScheduleInfo(schedule: PaymentScheduleDO) : Serializable {
         val id = schedule.id
+        val number = schedule.number
         val positionNumber = schedule.positionNumber
         val amount = schedule.amount
         val reached = schedule.reached
         val scheduleDate = schedule.scheduleDate
+
         /**
          * Not deleted and amount is given > 0,00.
          */
@@ -66,20 +70,40 @@ class OrderInfo() : Serializable {
     var created: Date? = null
     var erfassungsDatum: LocalDate? = null
     var entscheidungsDatum: LocalDate? = null
-    lateinit var kundeAsString: String
-    lateinit var projektAsString: String
+    var kundeId: Long? = null
+    var kundeAsString: String? = null
+    var projektId: Long? = null
+    var projektAsString: String? = null
     var probabilityOfOccurrence: Int? = null
+    var forecastType: AuftragForecastType? = null
     var periodOfPerformanceBegin: LocalDate? = null
     var periodOfPerformanceEnd: LocalDate? = null
+
+    @JsonSerialize(using = IdOnlySerializer::class)
     var contactPerson: PFUserDO? = null
     var bemerkung: String? = null
     var paymentScheduleEntries: Collection<PaymentScheduleInfo>? = null
 
     /**
      * The positions (not deleted) of the order with additional information.
+     * If not set (e.g. by OrderbookSnapshot), the positions will be lazy loaded from cache.
      */
-    val infoPositions: Collection<OrderPositionInfo>?
-        get() = AuftragsCache.instance.getOrderPositionInfosByAuftragId(id)
+    var infoPositions: Collection<OrderPositionInfo>? = null
+        get() = if (field != null || snapshotDate != null) field else AuftragsCache.instance.getOrderPositionInfosByAuftragId(
+            id
+        )
+        set(value) {
+            field = value
+        }
+
+    /**
+     * If given, the order was loaded from a snapshot. Therefore, no recalculation should be done.
+     */
+    var snapshotDate: LocalDate? = null
+
+    fun getPaymentScheduleEntriesOfPosition(pos: OrderPositionInfo): Collection<PaymentScheduleInfo>? {
+        return paymentScheduleEntries?.filter { it.positionNumber == pos.number }
+    }
 
     fun updateFields(order: AuftragDO, paymentSchedules: Collection<PaymentScheduleDO>? = null) {
         id = order.id
@@ -97,13 +121,20 @@ class OrderInfo() : Serializable {
         created = order.created
         erfassungsDatum = order.erfassungsDatum
         entscheidungsDatum = order.entscheidungsDatum
+        kundeId = order.kunde?.id
         kundeAsString = order.kundeAsString
-        projektAsString = order.projektAsString
+        projektId = order.projekt?.id
+        projektAsString = order.projekt?.name
         probabilityOfOccurrence = order.probabilityOfOccurrence
+        forecastType = order.forecastType
         periodOfPerformanceBegin = order.periodOfPerformanceBegin
         periodOfPerformanceEnd = order.periodOfPerformanceEnd
         contactPerson = order.contactPerson
         bemerkung = order.bemerkung.abbreviate(30)
+        updatePaymentScheduleEntries(paymentSchedules)
+    }
+
+    fun updatePaymentScheduleEntries(paymentSchedules: Collection<PaymentScheduleDO>?) {
         paymentSchedules?.let { this.paymentScheduleEntries = it.map { PaymentScheduleInfo(it) } }
     }
 
@@ -128,9 +159,9 @@ class OrderInfo() : Serializable {
     var netSum = BigDecimal.ZERO
 
     /**
-     * The sum of all net sums of the positions (only ordered positions) of this order. This value is 0 for lost orders.
+     * The sum of all net sums of the positions (only commissioned positions) of this order. This value is 0 for lost orders.
      */
-    var orderedNetSum = BigDecimal.ZERO
+    var commissionedNetSum = BigDecimal.ZERO
 
     /**
      * For not lost orders the sum of all akquise sums of the positions of this order.
@@ -173,9 +204,16 @@ class OrderInfo() : Serializable {
         return infoPositions?.find { it.id == id }
     }
 
+    /** Use this method to calculate all fields of this order info without using the cached order info. */
+    fun calculateAll(order: AuftragDO) {
+        updateFields(order, order.paymentSchedules) // Update order info fields from given order.
+        val posInfos = order.positionen?.map { OrderPositionInfo(it, order.info) }
+        calculateAll(order, posInfos, order.paymentSchedules)
+    }
+
     /**
      * For list of orders you should select positions and payment schedules in one query to avoid N+1 problem.
-     * @param positionInfos The positions of the order. If not given, the positions of the order will be lazy loaded (if order is attached).
+     * @param positionInfos The positions of the order.
      * @param paymentScheduleEntries The payment schedules of the order. If not given, the schedules of the order will be lazy loaded (if order is attached).
      */
     fun calculateAll(
@@ -184,10 +222,10 @@ class OrderInfo() : Serializable {
         paymentScheduleDOEntries: Collection<PaymentScheduleDO>?,
     ) {
         updateFields(order, paymentScheduleDOEntries)
-        positionInfos?.forEach { it.recalculate(this) }
+        positionInfos?.forEach { it.recalculateAll(this, snapshotDate) }
         netSum = positionInfos?.sumOf { it.netSum } ?: BigDecimal.ZERO
-        orderedNetSum = if (status.orderState != AuftragsOrderState.LOST) {
-            positionInfos?.sumOf { it.orderedNetSum } ?: BigDecimal.ZERO
+        commissionedNetSum = if (status.orderState != AuftragsOrderState.LOST) {
+            positionInfos?.sumOf { it.commissionedNetSum } ?: BigDecimal.ZERO
         } else {
             BigDecimal.ZERO
         }
@@ -196,6 +234,11 @@ class OrderInfo() : Serializable {
         } else {
             BigDecimal.ZERO
         }
+        personDays = calculatePersonDays(positionInfos)
+        calculateInvoicedSum(positionInfos)
+    }
+
+    fun calculateInvoicedSum(positionInfos: Collection<OrderPositionInfo>?) {
         invoicedSum = positionInfos?.sumOf { it.invoicedSum } ?: BigDecimal.ZERO
         positionAbgeschlossenUndNichtVollstaendigFakturiert = positionInfos?.any { it.toBeInvoiced } == true
         toBeInvoicedSum = calculateToBeInvoicedSum(positionInfos, paymentScheduleEntries)
@@ -203,24 +246,27 @@ class OrderInfo() : Serializable {
         if (notYetInvoicedSum < BigDecimal.ZERO) {
             notYetInvoicedSum = BigDecimal.ZERO
         }
-        isVollstaendigFakturiert = calculateIsVollstaendigFakturiert(order, positionInfos, paymentScheduleEntries)
-        personDays = calculatePersonDays(positionInfos)
+        isVollstaendigFakturiert = calculateIsVollstaendigFakturiert(this, positionInfos, paymentScheduleEntries)
         paymentSchedulesReached = paymentScheduleEntries?.any { it.toBeInvoiced } ?: false
         if (paymentSchedulesReached) {
-            log.debug("Payment schedules reached for order: ${order.id}")
+            log.debug("Payment schedules reached for order: $id")
             toBeInvoiced = true
         } else {
-            if (order.status == AuftragsStatus.ABGESCHLOSSEN || positionInfos?.any { it.status == AuftragsStatus.ABGESCHLOSSEN } == true) {
+            if (status == AuftragsStatus.ABGESCHLOSSEN || positionInfos?.any { it.status == AuftragsStatus.ABGESCHLOSSEN } == true) {
                 toBeInvoiced = (positionInfos?.any { it.toBeInvoiced } == true)
                 if (toBeInvoiced) {
-                    log.debug("Finished order and/or positions and to be invoiced: ${order.id}")
+                    log.debug("Finished order and/or positions and to be invoiced: $id")
                 }
             }
         }
+        updateFieldsIfDeleted()
+    }
+
+    private fun updateFieldsIfDeleted() {
         if (deleted) {
             toBeInvoiced = false
             netSum = BigDecimal.ZERO
-            orderedNetSum = BigDecimal.ZERO
+            commissionedNetSum = BigDecimal.ZERO
             akquiseSum = BigDecimal.ZERO
             toBeInvoicedSum = BigDecimal.ZERO
             positionAbgeschlossenUndNichtVollstaendigFakturiert = false
@@ -257,16 +303,16 @@ class OrderInfo() : Serializable {
         /**
          * Checks if the order is fully invoiced. An order is fully invoiced if all positions are fully invoiced and all
          * payment schedules are fully invoiced.
-         * @param order The order to check.
+         * @param orderInfo The order to check.
          * @param positions The positions of the order.
          * @param paymentSchedules The payment schedules of the order.
          */
         fun calculateIsVollstaendigFakturiert(
-            order: AuftragDO,
+            orderInfo: OrderInfo,
             positions: Collection<OrderPositionInfo>?,
             paymentSchedules: Collection<PaymentScheduleInfo>?
         ): Boolean {
-            if (order.status != AuftragsStatus.ABGESCHLOSSEN) {
+            if (orderInfo.status != AuftragsStatus.ABGESCHLOSSEN) {
                 // Only finished orders can be fully invoiced.
                 return false
             }

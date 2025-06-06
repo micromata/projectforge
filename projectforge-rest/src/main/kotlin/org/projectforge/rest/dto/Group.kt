@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -43,12 +43,20 @@ class Group(
     var gidNumber: Int? = null,
 ) : BaseDTODisplayObject<GroupDO>(id = id, displayName = displayName) {
     override fun copyFromMinimal(src: GroupDO) {
-        super.copyFromMinimal(src)
         name = src.name
+        displayName = src.displayName
+        id = src.id
+        if (userGroupCache.isUserMemberOfAdminGroup) {
+            super.copyFromMinimal(src)
+        }
     }
 
     override fun copyFrom(src: GroupDO) {
-        super.copyFrom(src)
+        copyFromMinimal(src)
+        if (userGroupCache.isUserMemberOfAdminGroup) {
+            super.copyFrom(src)
+        }
+        // Assigned users are visible for all users (for double-checking leavers):
         val newAssignedUsers = mutableSetOf<User>()
         src.assignedUsers?.forEach { userDO ->
             val user = User()
@@ -64,7 +72,7 @@ class Group(
         super.copyTo(dest)
         val newAssignedUsers = mutableSetOf<PFUserDO>()
         assignedUsers?.forEach { u ->
-            UserGroupCache.getInstance().getUser(u.id)?.let { userDO ->
+            userGroupCache.getUser(u.id)?.let { userDO ->
                 newAssignedUsers.add(userDO)
             }
         }
@@ -74,6 +82,8 @@ class Group(
     }
 
     companion object {
+        private val userGroupCache: UserGroupCache by lazy { UserGroupCache.getInstance() }
+
         /**
          * Converts csv of group ids to list of groups (only with id and displayName = "???", no other content).
          */

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -170,7 +170,7 @@ open class AccountingRecord(
         customerGroup = customerGroup,
         project = projectName,
         projectId = project.id!!,
-        costs = -BigDecimal(ts.getDuration()).divide(TimePeriod.MILLIS_PER_HOUR, 2, RoundingMode.HALF_UP)
+        costs = -BigDecimal(ts.duration).divide(TimePeriod.MILLIS_PER_HOUR, 2, RoundingMode.HALF_UP)
           .multiply(hourlyRate)
           .setScale(2, RoundingMode.HALF_UP),
         projectManagerGroup = project.projektManagerGroup?.name,

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -76,7 +76,7 @@ class Auftrag(
         personDays = orderInfo.personDays
         assignedPersons = src.assignedPersons
         formattedNettoSumme = NumberFormatter.formatCurrency(orderInfo.netSum)
-        formattedBeauftragtNettoSumme = NumberFormatter.formatCurrency(orderInfo.orderedNetSum)
+        formattedBeauftragtNettoSumme = NumberFormatter.formatCurrency(orderInfo.commissionedNetSum)
         formattedFakturiertSum = NumberFormatter.formatCurrency(orderInfo.invoicedSum)
         formattedZuFakturierenSum = NumberFormatter.formatCurrency(orderInfo.notYetInvoicedSum)
         pos = "#" + positionen?.size

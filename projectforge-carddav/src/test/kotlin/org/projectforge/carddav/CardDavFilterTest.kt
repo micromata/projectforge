@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -46,9 +46,10 @@ class CardDavFilterTest {
         checkRequest("PROPFIND", "/principals", true)
 
         checkRequest( "OPTIONS", "/.well-known/carddav", true)
+        checkRequest( "GET", "/.well-known/carddav", true)
 
         checkRequest("GET", "/principals", false)
-        checkRequest("GET", "/carddav", false)
+        checkRequest("GET", "/carddav", true)
         checkRequest("GET", "/carddav/users/joe/addressbooks/ProjectForge-123.vcf", true)
         checkRequest("GET", "/users/joe/addressbooks/ProjectForge-123.vcf", true)
         checkRequest("GET", "/users/joe/addressbooks/ProjectForge123.vcf", false)

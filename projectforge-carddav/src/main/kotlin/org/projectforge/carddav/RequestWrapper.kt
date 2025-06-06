@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -33,6 +33,10 @@ private val log = KotlinLogging.logger {}
 internal class RequestWrapper(val request: HttpServletRequest) {
     val requestURI = request.requestURI ?: "null"
     val method = request.method ?: "null"
+    val href: String by lazy {
+        CardDavUtils.fixHref(requestURI)
+    }
+
     val basicAuth: Boolean by lazy {
         request.getHeader("authorization") != null ||
                 request.getHeader("Authorization") != null

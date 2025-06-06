@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,7 +28,7 @@ import org.projectforge.framework.persistence.history.HistoryEntryDO
 /**
  * Interface to customize history entries.
  * For example, the EmployeeValidSinceAttrDO class uses this interface to customize the propertyName and propertyTypeClass.
- * [customize] is called by [CandHHistoryEntryWrapper.prepareAndGetHistoryEntry]
+ * [customize] is called by [org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter.insertHistoryEntry]
  * @see org.projectforge.business.fibu.EmployeeValidSinceAttrDO
  */
 interface CandHHistoryEntryICustomizer {

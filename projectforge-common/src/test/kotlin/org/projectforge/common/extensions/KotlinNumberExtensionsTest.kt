@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -44,6 +44,12 @@ class KotlinNumberExtensionsTest {
         Assertions.assertEquals("00:01.123", (1123).formatMillis())
         Assertions.assertEquals("01:01.123", (61123).formatMillis())
         Assertions.assertEquals("12:21.123", (12 * 60000 + 21 * 1000 + 123).formatMillis())
+
+        Assertions.assertEquals("12:21", (12 * 60000 + 21 * 1000 + 123).formatMillis(showMillis = false))
+        Assertions.assertEquals("12:22", (12 * 60000 + 21 * 1000 + 500).formatMillis(showMillis = false), "Rounding up")
+        Assertions.assertEquals("00:12", (12 * 60000 + 21 * 1000 + 123).formatMillis(showSeconds = false))
+
+        Assertions.assertEquals("00:13", (12 * 60000 + 30 * 1000 + 500).formatMillis(showSeconds = false), "Rounding up")
     }
 
     @Test
@@ -79,6 +85,20 @@ class KotlinNumberExtensionsTest {
         formatBytesTest(scale, "GB")
         scale *= 1024
         formatBytesTest(scale, "TB")
+    }
+
+    @Test
+    fun `test millis as hours`() {
+        Assertions.assertEquals("0.00", 0.millisAsHours().toString())
+        Assertions.assertEquals("0.00", 1.millisAsHours().toString())
+        Assertions.assertEquals("0.00", 17_999.millisAsHours().toString())
+        Assertions.assertEquals("0.01", 18_000.millisAsHours().toString())
+        Assertions.assertEquals("0.01", 36_000.millisAsHours().toString())
+        Assertions.assertEquals("0.09", 341_999.millisAsHours().toString())
+        Assertions.assertEquals("0.10", 342_000.millisAsHours().toString())
+        Assertions.assertEquals("0.10", 360_000.millisAsHours().toString())
+        Assertions.assertEquals("1.00", 3_600_000.millisAsHours().toString())
+        Assertions.assertEquals("1000.00", 3_600_000_000.millisAsHours().toString())
     }
 
     private fun formatBytesTest(scale: Long, unit: String) {

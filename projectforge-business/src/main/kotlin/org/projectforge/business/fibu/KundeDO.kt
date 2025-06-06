@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef
@@ -31,6 +32,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.business.common.NumberToStringValueBridge
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 
 /**
@@ -109,6 +111,7 @@ open class KundeDO : AbstractHistorizableBaseDO<Long>(), DisplayNameCapable {
     @PropertyInfo(i18nKey = "fibu.konto")
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "konto_id")
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var konto: KontoDO? = null
 
     /**

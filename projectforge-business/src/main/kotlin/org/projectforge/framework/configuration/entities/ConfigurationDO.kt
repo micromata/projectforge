@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -297,7 +297,7 @@ open class ConfigurationDO : DefaultBaseDO {
             } else if (type == ConfigurationType.FLOAT && this.configurationType == ConfigurationType.PERCENT) {
                 return
             } else if (this.configurationType == ConfigurationType.TASK) {
-                // Only for backward compability.
+                // Only for backward compatibility.
                 return
             }
         }

@@ -9,9 +9,9 @@ import FavoriteNameInput from './FavoriteNameInput';
 
 function FavoriteEntry(
     {
-        currentFavoriteId,
+        currentFavoriteId = 0,
         id,
-        isModified,
+        isModified = false,
         name,
         onFavoriteDelete,
         onFavoriteRename,
@@ -117,14 +117,6 @@ FavoriteEntry.propTypes = {
     onFavoriteDelete: PropTypes.func,
     onFavoriteRename: PropTypes.func,
     onFavoriteUpdate: PropTypes.func,
-};
-
-FavoriteEntry.defaultProps = {
-    currentFavoriteId: 0,
-    isModified: false,
-    onFavoriteDelete: undefined,
-    onFavoriteRename: undefined,
-    onFavoriteUpdate: undefined,
 };
 
 export default FavoriteEntry;

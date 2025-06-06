@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -74,7 +74,7 @@ object BackupFilesPurging {
         val weeksSet = mutableSetOf<Triple<String, Int, Int>>() // File prefix, Year, week of year
         val keepDailyBackupsUntil = baseDate.minusDays(keepDailyBackups)
         val keepWeeklyBackupsUntil = baseDate.minusDays(keepWeeklyBackups * 7)
-        log.info { "Keeping daily backups back until ${DATE_FORMATTER.format(keepDailyBackupsUntil)}, wwekly backups until ${DATE_FORMATTER.format(keepWeeklyBackupsUntil)} and keeping monthly backups forever in ${backupDirectory.absolutePath}/${filePrefix ?: ""}*..." }
+        log.info { "Keeping daily backups back until ${DATE_FORMATTER.format(keepDailyBackupsUntil)}, weekly backups until ${DATE_FORMATTER.format(keepWeeklyBackupsUntil)} and keeping monthly backups forever in ${backupDirectory.absolutePath}/${filePrefix ?: ""}*..." }
         var deletedFiles = 0
         var keptFiles = 0
         var totalFiles = 0

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -38,7 +38,7 @@ object ExceptionStackTracePrinter {
      */
     @JvmStatic
     @JvmOverloads
-    fun toString(ex: Exception, showExceptionMessage: Boolean = true, stopBeforeForeignPackages: Boolean = true, depth: Int = 10, vararg showPackagesOnly: String): String {
+    fun toString(ex: Throwable, showExceptionMessage: Boolean = true, stopBeforeForeignPackages: Boolean = true, depth: Int = 10, vararg showPackagesOnly: String): String {
         val sb = StringBuilder()
         if (showExceptionMessage) {
             sb.append(ex::class.java.name).append(":").append(ex.message).append("\n")

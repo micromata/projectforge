@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -62,6 +62,7 @@ class RechnungPagesRest :
         magicFilter: MagicFilter,
         userAccess: UILayout.UserAccess
     ) {
+        val infoLC = LayoutContext(RechnungInfo::class.java)
         val grid = agGridSupport.prepareUIGrid4ListPage(
             request,
             layout,
@@ -79,8 +80,8 @@ class RechnungPagesRest :
         }
         grid.add(lc, "betreff", "datum", "faelligkeit", "bezahlDatum")
             .add(lc, "statusAsString", headerName = "fibu.rechnung.status", width = 100)
-            .add(lc, "netSum")
-            .add(lc, "grossSumWithDiscount", lcField = "grossSum")
+            .add(infoLC, "netSum")
+            .add(infoLC, "grossSumWithDiscount")
             .add(lc, "konto", "periodOfPerformanceBegin", "periodOfPerformanceEnd", "bemerkung")
             .add(field = "kost1List", headerName = translate("fibu.kost1"), tooltipField = "kost1Info")
             .add(field = "kost2List", headerName = translate("fibu.kost2"), tooltipField = "kost2Info")

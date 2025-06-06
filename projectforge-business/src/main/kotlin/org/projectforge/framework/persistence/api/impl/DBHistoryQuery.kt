@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,7 +34,7 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 internal object DBHistoryQuery {
-    private const val MAX_RESULT_SIZE = 100000 // Limit result list to 100000
+    private const val MAX_RESULT_SIZE = 100_000 // Limit result list to 100_000
 
     fun searchHistoryEntryByCriteria(
         entityManager: EntityManager,

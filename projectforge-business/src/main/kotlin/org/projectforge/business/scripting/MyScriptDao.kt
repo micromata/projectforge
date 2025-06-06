@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -64,7 +64,7 @@ open class MyScriptDao : AbstractScriptDao() {
         }
       }
       obj.executableByGroupIds?.split(",")?.forEach { groupId ->
-        groupId.toLongOrNull()?.let { gid ->
+        groupId.trim().toLongOrNull()?.let { gid ->
           if (userGroupCache.isUserMemberOfGroup(userId, gid)) {
             // Logged-in user is member of this group listed in executableByGroupIds
             return true

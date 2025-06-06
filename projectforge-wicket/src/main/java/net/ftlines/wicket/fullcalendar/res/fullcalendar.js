@@ -3492,7 +3492,7 @@ function AgendaView(element, calendar, viewName) {
 								.appendTo(slotContent);
 						}
 					}else{
-						rect.isStart = true; // conside rect a "seg" now
+						rect.isStart = true; // consider rect a "seg" now
 						rect.isEnd = true;   //
 						selectionHelper = $(slotSegHtml(
 							{
@@ -4360,7 +4360,7 @@ function View(element, calendar, viewName) {
 					trigger('eventMouseout', this, event, ev);
 				}
 			);
-		// TODO: don't fire eventMouseover/eventMouseout *while* dragging is occuring (on subject element)
+		// TODO: don't fire eventMouseover/eventMouseout *while* dragging is occurring (on subject element)
 		// TODO: same for resizing
 	}
 	

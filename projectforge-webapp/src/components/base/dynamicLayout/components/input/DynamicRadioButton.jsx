@@ -42,6 +42,4 @@ DynamicRadioButton.propTypes = {
     label: PropTypes.string.isRequired,
 };
 
-DynamicRadioButton.defaultProps = {};
-
 export default DynamicRadioButton;

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -67,7 +67,7 @@ object VacationExcelExporter {
       "monthSeparation",
       fillForegroundColor = IndexedColors.BLACK,
     )
-    val boldFont = workbook.createOrGetFont("bold", bold = true, heightInPoints = 18)
+    val boldFont = ExcelUtils.createFont(workbook, "bold", bold = true, heightInPoints = 18)
     val monthStyle =
       ExcelUtils.createCellStyle(workbook, "month", font = boldFont, alignment = HorizontalAlignment.CENTER)
     val standardStyle = ExcelUtils.createCellStyle(workbook, "standard", borderStyle = BorderStyle.THIN)

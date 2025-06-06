@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -69,17 +69,17 @@ class ForecastExportTest : AbstractTestBase() {
 
         val filter = AuftragFilter()
         filter.periodOfPerformanceStartDate = baseDate.localDate
-        val ba = forecastExport.export(filter)
+        val ba = forecastExport.xlsExport(filter)
         val excelFile = WorkFileHelper.getWorkFile("forecast.xlsx")
         baseLog.info("Writing forecast Excel file to work directory: " + excelFile.absolutePath)
         FileUtils.writeByteArrayToFile(excelFile, ba)
 
         ExcelWorkbook(ByteArrayInputStream(ba), excelFile.name).use { workbook ->
-            val forecastSheet = workbook.getSheet(ForecastExport.Sheet.FORECAST.title)!!
+            val forecastSheet = workbook.getSheet(ForecastExportContext.Sheet.FORECAST.title)!!
             val monthCols = Array(12) {
                 forecastSheet.registerColumn(ForecastExport.formatMonthHeader(baseDate.plusMonths(it.toLong())))
             }
-            val firstRow = 9
+            val firstRow = 10
             forecastSheet.headRow // Enforce analyzing the column definitions.
 
             // order 1

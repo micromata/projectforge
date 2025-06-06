@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -58,7 +58,7 @@ internal class DeleteRequestHandler {
         } else {
             ResponseUtils.setValues(response, content = "The resource does not exist.", status = HttpStatus.NOT_FOUND)
         }
-        TestUtils.writeRequestResponseLogInTestMode(requestWrapper, response)
+        CardDavServerDebugWriter.writeRequestResponseLogInTestMode(requestWrapper, response)
         log.debug { "handleGetCall: response.content=[]" }
     }
 }

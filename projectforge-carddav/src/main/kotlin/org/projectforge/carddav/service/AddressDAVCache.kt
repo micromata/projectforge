@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,11 +25,10 @@ package org.projectforge.carddav.service
 
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
-import org.projectforge.business.address.AddressDO
-import org.projectforge.business.address.AddressDao
-import org.projectforge.business.address.AddressImageDao
+import org.projectforge.business.address.*
 import org.projectforge.business.address.vcard.VCardUtils
 import org.projectforge.carddav.CardDavConfig
+import org.projectforge.carddav.CardDavUtils
 import org.projectforge.carddav.model.Contact
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
@@ -48,7 +47,7 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
     private lateinit var addressDao: AddressDao
 
     @Autowired
-    private lateinit var addressImageDao: AddressImageDao
+    private lateinit var addressImageCache: AddressImageCache
 
     @Autowired
     private lateinit var cardDavConfig: CardDavConfig
@@ -73,14 +72,27 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
         log.info { "Got ${result.size} addresses from cache and must load ${missedInCache.size} from data base..." }
         if (missedInCache.size > 0) {
             addressDao.select(missedInCache, checkAccess = false)?.forEach {
-                val vcard = VCardUtils.buildVCardString(it, addressImageDao, cardDavConfig.vcardVersion)
+                val image = addressImageCache.getImage(it.id!!)
+                val imageType = image?.imageType
+                val imageUrl = if (image != null) {
+                    CardDavUtils.getImageUrl(it.id!!, imageType ?: ImageType.PNG)
+                } else {
+                    null
+                }
+                val vcard = VCardUtils.buildVCardString(
+                    it,
+                    cardDavConfig.vcardVersion,
+                    imageUrl = imageUrl,
+                    imageType = imageType
+                )
                 val contact =
                     Contact(
                         it.id,
                         firstName = it.firstName,
                         lastName = it.name,
                         lastUpdated = it.lastUpdate,
-                        hasImage = it.image == true,
+                        imageType = imageType,
+                        imageLastUpdate = image?.lastUpdate,
                         vcardData = vcard,
                     )
                 addCachedContact(it.id!!, contact)

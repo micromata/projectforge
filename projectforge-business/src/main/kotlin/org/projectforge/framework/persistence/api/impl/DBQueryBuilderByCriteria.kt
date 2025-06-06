@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -38,17 +38,15 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Long>>(
     private val entityManager: EntityManager,
     private val queryFilter: QueryFilter
 ) {
-    private var _ctx: DBCriteriaContext<O>? = null
-    private val ctx: DBCriteriaContext<O>
-        get() {
-            if (_ctx == null) {
-                val cb = entityManager.criteriaBuilder
-                val cr = cb.createQuery(baseDao.doClass)
-                _ctx = DBCriteriaContext(cb, cr, cr.from(baseDao.doClass), baseDao.doClass)
-                initJoinSets()
+    private val ctx: DBCriteriaContext<O> by lazy {
+        val cb = entityManager.criteriaBuilder
+        val cr = cb.createQuery(baseDao.doClass)
+        DBCriteriaContext(cb, cr, cr.from(baseDao.doClass), baseDao.doClass).also { context ->
+            queryFilter.joinList.forEach { join ->
+                context.addJoin(join)
             }
-            return _ctx!!
         }
+    }
 
     /**
      * predicates for criteria search.
@@ -84,12 +82,6 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Long>>(
             )
         } catch (ex: Exception) {
             log.error("Can't add order for property '${ctx.entityName}.${sortProperty.property}: ${ex.message}")
-        }
-    }
-
-    private fun initJoinSets() {
-        queryFilter.joinList.forEach {
-            ctx.addJoin(it)
         }
     }
 }

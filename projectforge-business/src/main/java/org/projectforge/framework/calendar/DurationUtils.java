@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 public class DurationUtils {
   /**
    * @param millis
-   * @return hours:minutes (e. g. 2:30, 12:30, 127:15, ...)
+   * @return hours:minutes (e.g. 2:30, 12:30, 127:15, ...)
    */
   public static String getFormattedHoursAndMinutes(final long millis) {
     return getFormattedHoursAndMinutes(millis, false);
@@ -39,7 +39,7 @@ public class DurationUtils {
 
   /**
    * @param millis
-   * @return hours:minutes (e. g. 2:30, 12:30, 127:15, ...)
+   * @return hours:minutes (e.g. 2:30, 12:30, 127:15, ...)
    */
   public static String getFormattedHoursAndMinutes(final long millis, boolean withSeconds) {
     final StringBuilder sb = new StringBuilder();

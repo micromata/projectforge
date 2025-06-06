@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -44,7 +44,7 @@ import org.springframework.context.annotation.Configuration
  * - 'admin;/wa/employee;WRITE:user': Means All uri's for admin's and uri /wa/employee.
  * - '/': Means all uri's matches.
  *
- * Second factors may be definied with different periods of expiry. If an uri matches multiples periods; the shortest period is used.
+ * Second factors may be defined with different periods of expiry. If an uri matches multiples periods; the shortest period is used.
  */
 @Configuration
 open class My2FARequestConfiguration {

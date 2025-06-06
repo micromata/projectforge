@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -282,7 +282,7 @@ class HRPlanningDao protected constructor() : BaseDao<HRPlanningDO>(HRPlanningDO
                 prefix = "" // Just in case.
             }
             historyService.loadAndMergeHistory(position, context) { entry ->
-                HistoryFormatUtils.setPropertyNameForListEntries(entry, prefix)
+                HistoryFormatUtils.setNumberAsPropertyNameForListEntries(entry, prefix)
             }
         }
     }

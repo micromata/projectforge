@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -91,7 +91,7 @@ public class UserXmlPreferencesBaseDOSingleValueConverter implements SingleValue
     final Long id = Long.parseLong(str);
     final BaseDao<?> dao = applicationContext.getBean(daoClass);
     if (dao == null) {
-      log.error("Could not get dao '" + daoClass + "'. It's not registerd in the Registry.");
+      log.error("Could not get dao '" + daoClass + "'. It's not registered in the Registry.");
       return null;
     } else {
       return dao.findOrLoad(id);

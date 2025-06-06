@@ -48,6 +48,4 @@ DynamicAutoCompletion.propTypes = {
     urlparams: PropTypes.shape({}),
 };
 
-DynamicAutoCompletion.defaultProps = {};
-
 export default DynamicAutoCompletion;

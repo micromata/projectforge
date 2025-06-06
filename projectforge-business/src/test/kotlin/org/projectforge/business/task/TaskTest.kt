@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -101,7 +101,7 @@ class TaskTest : AbstractTestBase() {
         val path = task1_1_1!!.pathToRoot
         Assertions.assertEquals(3, path.size, "Node has 2 ancestors plus itself.")
         Assertions.assertEquals(getTask("1").id, path[0].id, "Top task in path should be '1'")
-        Assertions.assertEquals(getTask("1.1").id, path[1].id, "Second task in path sould be '1.1'")
+        Assertions.assertEquals(getTask("1.1").id, path[1].id, "Second task in path should be '1.1'")
         Assertions.assertEquals(getTask("1.1.1").id, path[2].id, "Third task in path is the node itself: '1.1'")
     }
 

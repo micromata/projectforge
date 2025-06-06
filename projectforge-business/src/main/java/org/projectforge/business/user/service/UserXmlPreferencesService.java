@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -113,7 +113,7 @@ public class UserXmlPreferencesService {
         if (expectedType.isAssignableFrom(entry.getClass())) {
             return (T) entry;
         }
-        // Probably a new software release results in an incompability of old and new object format.
+        // Probably a new software release results in an incompatibility of old and new object format.
         log.info("Could not get user preference entry: (old) type "
                 + entry.getClass().getName()
                 + " is not assignable to (new) required type "

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,6 +24,7 @@
 package org.projectforge.business.scripting;
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -43,6 +44,9 @@ public class ScriptParameter implements Serializable
 
   @XStreamAsAttribute
   protected String parameterName;
+
+  @XStreamOmitField
+  protected String parameterDescription;
 
   protected String stringValue;
 
@@ -75,6 +79,12 @@ public class ScriptParameter implements Serializable
   {
     this.parameterName = parameterName;
     this.type = type;
+  }
+
+  public ScriptParameter(final String parameterName, final ScriptParameterType type, final String description)
+  {
+    this(parameterName, type);
+    this.parameterDescription = description;
   }
 
   public Object getValue()
@@ -152,6 +162,10 @@ public class ScriptParameter implements Serializable
   public String getParameterName()
   {
     return parameterName;
+  }
+
+  public String getParameterDescription() {
+    return parameterDescription;
   }
 
   public String getStringValue()
@@ -238,6 +252,10 @@ public class ScriptParameter implements Serializable
   public void setParameterName(String parameterName)
   {
     this.parameterName = parameterName;
+  }
+
+  public void setParameterDescription(String parameterDescription) {
+    this.parameterDescription = parameterDescription;
   }
 
   public TaskDO getTask()

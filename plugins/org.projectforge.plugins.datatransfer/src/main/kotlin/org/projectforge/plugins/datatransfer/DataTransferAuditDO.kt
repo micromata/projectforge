@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,6 +24,7 @@
 package org.projectforge.plugins.datatransfer
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.Constants
 import org.projectforge.framework.i18n.TimeAgo
@@ -32,6 +33,7 @@ import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
 import jakarta.persistence.*
+import org.projectforge.framework.json.IdOnlySerializer
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -84,6 +86,7 @@ open class DataTransferAuditDO {
 
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "by_user_fk")
+  @JsonSerialize(using = IdOnlySerializer::class)
   open var byUser: PFUserDO? = null
 
   @get:Column(name = "by_external_user", length = 4000)
@@ -109,6 +112,7 @@ open class DataTransferAuditDO {
    */
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "upload_by_user_fk")
+  @JsonSerialize(using = IdOnlySerializer::class)
   open var uploadByUser: PFUserDO? = null
 
   @get:Column(length = 1000)

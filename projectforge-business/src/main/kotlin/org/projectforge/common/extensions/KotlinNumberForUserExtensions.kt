@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,11 @@
 
 package org.projectforge.common.extensions
 
+import org.projectforge.Constants
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.utils.NumberHelper
+import java.math.MathContext
+import java.math.RoundingMode
 
 /**
  * Formats a number for the user by using the locale of [ThreadLocalUserContext].
@@ -42,4 +46,44 @@ fun Number?.formatForUser(scale: Int? = null): String {
 fun Number?.formatBytesForUser(): String {
     this ?: return ""
     return this.formatBytes(ThreadLocalUserContext.locale)
+}
+
+/**
+ * Formats a number for the user by using the locale of [ThreadLocalUserContext].
+ */
+fun Number?.formatCurrency(withCurrencySymbol: Boolean = false, scale: Int = 2): String {
+    val amount = this.formatForUser(scale = scale)
+    return if (!withCurrencySymbol || Constants.CURRENCY_SYMBOL.isBlank()) {
+        amount
+    } else {
+        "$amount ${Constants.CURRENCY_SYMBOL}"
+    }
+}
+
+/**
+ * Formats a number (is already percent value) for the user by using the locale of [ThreadLocalUserContext].
+ */
+fun Number?.formatPercent(withSymbol: Boolean = false, scale: Int = 0): String {
+    this ?: return ""
+    val amount = this.formatForUser(scale)
+    return if (withSymbol) {
+        "$amount %"
+    } else {
+        amount
+    }
+}
+
+/**
+ * Formats a fraction for the user by using the locale of [ThreadLocalUserContext].
+ */
+fun Number?.formatFractionAsPercent(withSymbol: Boolean = false): String {
+    this ?: return ""
+    val amount = this.asBigDecimal()
+        .multiply(NumberHelper.HUNDRED, MathContext(0, RoundingMode.HALF_UP))
+        .formatForUser(0)
+    return if (withSymbol) {
+        "$amount %"
+    } else {
+        amount
+    }
 }

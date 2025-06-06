@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -53,8 +53,6 @@ class QuestionAnswer {
     var uid: String? = null
     var questionUid: String? = ""
     var answers: MutableList<Any>? = mutableListOf()
-    var annotation: MutableList<Any>? = mutableListOf()
-
 
     fun toObject(string: String): QuestionAnswer {
         return ObjectMapper().readValue(string, QuestionAnswer::class.java)

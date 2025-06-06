@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -98,7 +98,7 @@ abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), DisplayNameCapable
     fun deleteKostZuweisung(idx: Int) {
         val zuweisung = getKostZuweisung(idx) ?: return
         if (!isKostZuweisungDeletable(zuweisung)) {
-            log.error("Deleting of cost assignements which are already persisted (a id / pk already exists) or not are not the last entry is not supported. Do nothing.")
+            log.error("Deleting of cost assignments which are already persisted (a id / pk already exists) or not are not the last entry is not supported. Do nothing.")
             return
         }
         this.kostZuweisungen!!.remove(zuweisung)

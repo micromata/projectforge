@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,6 +25,8 @@ package org.projectforge.business.timesheet
 
 import com.thoughtworks.xstream.annotations.XStreamAlias
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute
+import com.thoughtworks.xstream.annotations.XStreamOmitField
+import java.math.BigDecimal
 
 /**
  *
@@ -34,27 +36,40 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute
 data class TimesheetRecentEntry
 @JvmOverloads
 constructor(
-        @XStreamAsAttribute
-        var taskId: Long? = null,
-        @XStreamAsAttribute
-        var userId: Long? = null,
-        @XStreamAsAttribute
-        var kost2Id: Long? = null,
-        @XStreamAsAttribute
-        var location: String? = null,
-        @XStreamAsAttribute
-        var reference: String? = null,
-        @XStreamAsAttribute
-        var tag: String? = null,
-        @XStreamAsAttribute
-        var description: String? = null) {
+    @XStreamAsAttribute
+    var taskId: Long? = null,
+    @XStreamAsAttribute
+    var userId: Long? = null,
+    @XStreamAsAttribute
+    var kost2Id: Long? = null,
+    @XStreamAsAttribute
+    var location: String? = null,
+    @XStreamAsAttribute
+    var reference: String? = null,
+    @XStreamAsAttribute
+    var tag: String? = null,
+    @XStreamAsAttribute
+    var description: String? = null,
+    // Don't copy these values to the timesheet. The user should enter them manually.
+    @XStreamOmitField
+    var timeSavedByAI: BigDecimal? = null,
+    @XStreamOmitField
+    var timeSavedByAIUnit: TimesheetDO.TimeSavedByAIUnit? = null,
+    @XStreamOmitField
+    var timeSavedByAIDescription: String? = null,
+) {
 
     constructor(timesheet: TimesheetDO) : this(
-            taskId = timesheet.taskId,
-            userId = timesheet.userId,
-            kost2Id = timesheet.kost2Id,
-            location = timesheet.location,
-            reference = timesheet.reference,
-            tag = timesheet.tag,
-            description = timesheet.description)
+        taskId = timesheet.taskId,
+        userId = timesheet.userId,
+        kost2Id = timesheet.kost2Id,
+        location = timesheet.location,
+        reference = timesheet.reference,
+        tag = timesheet.tag,
+        description = timesheet.description,
+        timeSavedByAIUnit = timesheet.timeSavedByAIUnit,
+        // Don't copy these values to the timesheet. The user should enter them manually.
+        // timeSavedByAI = timesheet.timeSavedByAI,
+        // timeSavedByAIDescription = timesheet.timeSavedByAIDescription,
+    )
 }

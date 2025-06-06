@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,6 +35,16 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 object ClassUtils {
+
+    fun forNameOrNull(clazz: String?): Class<*>? {
+        clazz ?: return null
+        return try {
+            Class.forName(clazz)
+        } catch (e: ClassNotFoundException) {
+            log.error(e) { "Class not found: $clazz" }
+            null
+        }
+    }
 
     fun getProxiedClass(clazz: Class<*>): Class<*> {
         if (clazz.name.contains("$$")) {
@@ -122,6 +132,19 @@ object ClassUtils {
 
     fun isKotlinClass(clazz: Class<*>): Boolean {
         return clazz.annotations.any { it.annotationClass.simpleName == "Metadata" }
+    }
+
+    /**
+     * Sets a private field of an instance.
+     *
+     * @param instance The instance.
+     * @param fieldName The field name.
+     * @param value The value to set.
+     */
+    fun setPrivateField(instance: Any, fieldName: String, value: Any?) {
+        val field: Field = instance::class.java.getDeclaredField(fieldName)
+        field.isAccessible = true
+        field.set(instance, value)
     }
 
     class Info(

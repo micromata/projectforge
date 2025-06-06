@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -53,7 +53,7 @@ class DatabaseBackupPurgeJob {
     @Scheduled(cron = "\${projectforge.cron.purgeBackup}")
     fun execute() {
         if (dbBackupDir.isNullOrBlank()) {
-            log.info { "No backup dir will be cleaned up, because the backup dir isn't configured. If you want the feature, that all daily backups will be removed after 30 days but the montly backups will be kept, please configure projectforge.cron.dbBackupCleanup in projectforge.properties." }
+            log.info { "No backup dir will be cleaned up, because the backup dir isn't configured. If you want the feature, that all daily backups will be removed after 30 days but the monthly backups will be kept, please configure projectforge.cron.dbBackupCleanup in projectforge.properties." }
             return
         }
         val backupDir = File(dbBackupDir)
@@ -61,10 +61,12 @@ class DatabaseBackupPurgeJob {
             log.error { "Configured backup dir '$dbBackupDir' isn't a directory. Can't clean up old backups from this directory." }
             return
         }
-        log.info { "Starting job for cleaning daily backup files older than 30 days, but monthly backups will be kept." }
-        BackupFilesPurging.purgeDirectory(backupDir,
-            filePrefix = dbBackupFilesPrefix,
-            keepDailyBackups = dbBackupKeepDailyBackups ?: 8,
-            keepWeeklyBackups = dbBackupKeepWeeklyBackups ?: 4)
+        Thread {
+            log.info { "Starting job for cleaning daily backup files older than 30 days, but monthly backups will be kept." }
+            BackupFilesPurging.purgeDirectory(backupDir,
+                filePrefix = dbBackupFilesPrefix,
+                keepDailyBackups = dbBackupKeepDailyBackups ?: 8,
+                keepWeeklyBackups = dbBackupKeepWeeklyBackups ?: 4)
+        }.start()
     }
 }

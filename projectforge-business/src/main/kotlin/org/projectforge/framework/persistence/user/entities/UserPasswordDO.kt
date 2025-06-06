@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,16 +24,18 @@
 package org.projectforge.framework.persistence.user.entities
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import mu.KotlinLogging
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import jakarta.persistence.*
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.history.NoHistory
 
 private val log = KotlinLogging.logger {}
 
 /**
- * Users may have serveral authentication tokens, e. g. for CardDAV/CalDAV-Clients or other clients. ProjectForge shows the usage of this tokens and such tokens
+ * Users may have several authentication tokens, e. g. for CardDAV/CalDAV-Clients or other clients. ProjectForge shows the usage of this tokens and such tokens
  * may easily be revokable. In addition, no password may be stored on smartphone client e. g. for using ProjectForge's CardDAV/CalDAV service.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
@@ -53,6 +55,7 @@ open class UserPasswordDO : DefaultBaseDO() {
   @PropertyInfo(i18nKey = "user")
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "user_id")
+  @JsonSerialize(using = IdOnlySerializer::class)
   open var user: PFUserDO? = null
 
   /**

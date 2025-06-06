@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -48,7 +48,7 @@ import jakarta.servlet.http.HttpServletRequest
  * On this page, the user may enter his login name or e-mail and request a password reset.
  */
 @RestController
-@RequestMapping("${Rest.PUBLIC_URL}/passwordForgotten")
+@RequestMapping("${Rest.PUBLIC_URL}/${PasswordForgottenPageRest.REST_PATH}")
 open class PasswordForgottenPageRest : AbstractDynamicPageRest() {
   class PasswordForgottenData(var usernameEmail: String? = null)
 
@@ -123,6 +123,7 @@ open class PasswordForgottenPageRest : AbstractDynamicPageRest() {
   }
 
   companion object {
+    const val REST_PATH = "passwordForgotten"
     private const val LAYOUT_TITLE = "password.forgotten.title"
     private const val I18N_USERNAME_EMAIL = "password.reset.username_email"
     private const val FIELD_ID_USERNAME_EMAIL = "usernameEmail"

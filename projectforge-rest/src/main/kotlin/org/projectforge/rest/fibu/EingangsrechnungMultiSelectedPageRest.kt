@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -138,8 +138,8 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
     if (invoices.isNullOrEmpty()) {
       return null
     }
-    val params = massUpdateContext.massUpdateData
-    val massUpdateData = massUpdateContext.massUpdateData
+    val params = massUpdateContext.massUpdateParams
+    val massUpdateData = massUpdateContext.massUpdateParams
     invoices.forEach { invoice ->
       massUpdateContext.startUpdate(invoice)
       processTextParameter(invoice, "kreditor", params)
@@ -151,7 +151,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
         param.localDateValue?.let {
           if (!massUpdateData.containsKey("zahlBetrag")) {
             // Add parameter for excel export:
-            val massParam = MassUpdateParameter()
+            val massParam = MassUpdateParameter("zahlBetrag", "fibu.rechnung.zahlBetrag")
             massUpdateData["zahlBetrag"] = massParam
           }
           invoice.bezahlDatum = param.localDateValue
@@ -167,7 +167,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
         if (param.delete == true) {
           if (!massUpdateData.containsKey("zahlBetrag")) {
             // Add parameter for excel export:
-            val massParam = MassUpdateParameter()
+            val massParam = MassUpdateParameter("zahlBetrag", "fibu.rechnung.zahlBetrag")
             massUpdateData["zahlBetrag"] = massParam
           }
           invoice.bezahlDatum = null

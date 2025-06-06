@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -51,7 +51,6 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.persistence.history.FlatHistoryFormatService
-import org.projectforge.framework.persistence.history.HistoryFormatUtils
 import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.projectforge.framework.utils.NumberHelper.parseInteger
@@ -237,9 +236,6 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
                     eq("paymentSchedules.reached", true)
                 )
             )
-        } else {
-            addCriterionForAuftragsStatuses(myFilter, queryFilter)
-            positionStatusAlreadyFilterd = true
         }
 
         if (myFilter.user != null) {
@@ -272,28 +268,11 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             // Don't use filter for orders to be invoiced.
             list = list.toMutableList() // Make mutable list of Kotlin's immutable list.
             filterPositionsArten(myFilter, list)
-            if (!positionStatusAlreadyFilterd) { // Don't filter position status' again.
-                filterPositionsStatus(myFilter, list)
-            }
+            list = filterPositionsStatus(myFilter, list)
             filterPositionsPaymentTypes(myFilter, list)
         }
 
         return list
-    }
-
-    private fun addCriterionForAuftragsStatuses(myFilter: AuftragFilter, queryFilter: QueryFilter) {
-        val auftragsStatuses = myFilter.auftragsStatuses
-        if (auftragsStatuses.isNotEmpty()) {
-            val orCriterions: MutableList<DBPredicate> = ArrayList()
-            orCriterions.add(isIn<Any>("status", auftragsStatuses))
-            orCriterions.add(isIn<Any>("positionen.status", myFilter.auftragsStatuses))
-            queryFilter.add(or(*orCriterions.toTypedArray<DBPredicate>()))
-        }
-
-        // check deleted
-        if (!myFilter.ignoreDeleted) {
-            queryFilter.add(eq("positionen.deleted", myFilter.deleted))
-        }
     }
 
     private fun createCriterionForErfassungsDatum(myFilter: AuftragFilter): Optional<DBPredicate> {
@@ -336,19 +315,12 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         }
     }
 
-    private fun filterPositionsStatus(myFilter: AuftragFilter, list: List<AuftragDO>) {
-        if (CollectionUtils.isEmpty(myFilter.auftragsStatuses)) {
-            return
+    private fun filterPositionsStatus(myFilter: AuftragFilter, list: List<AuftragDO>): List<AuftragDO> {
+        val auftragsStatuses: List<AuftragsStatus> = myFilter.auftragsStatuses
+        if (auftragsStatuses.isEmpty()) {
+            return list
         }
-        val statusFilter = AuftragsPositionsStatusFilter(myFilter.auftragsStatuses)
-        CollectionUtils.filter(
-            list
-        ) { `object`: AuftragDO? ->
-            statusFilter.match(
-                list.toMutableList(),
-                `object`!!
-            )
-        }
+        return list.filter { auftrag -> auftrag.positionenExcludingDeleted.any { pos -> auftragsStatuses.contains(pos.status) } }
     }
 
     private fun filterPositionsPaymentTypes(myFilter: AuftragFilter, list: List<AuftragDO>) {
@@ -607,18 +579,22 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         context: HistoryLoadContext
     ) {
         obj.positionenIncludingDeleted?.forEach { position ->
-            historyService.loadAndMergeHistory(position, context) { entry ->
-                HistoryFormatUtils.setPropertyNameForListEntries(entry, prefix = "pos", number = position.number)
-            }
+            historyService.loadAndMergeHistory(position, context)
         }
         obj.paymentSchedules?.forEach { schedule ->
-            historyService.loadAndMergeHistory(schedule, context) { entry ->
-                HistoryFormatUtils.setPropertyNameForListEntries(
-                    entry,
-                    prefix = "paymentSchedule",
-                    number = schedule.number
-                )
-            }
+            historyService.loadAndMergeHistory(schedule, context)
+        }
+    }
+
+    override fun getHistoryPropertyPrefix(context: HistoryLoadContext): String? {
+        val entry = context.requiredHistoryEntry
+        val item = context.findLoadedEntity(entry)
+        return if (item is AuftragsPositionDO) {
+            "pos#${item.number}"
+        } else if (item is PaymentScheduleDO) {
+            "payment#${item.number}"
+        } else {
+            null
         }
     }
 

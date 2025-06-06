@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -47,6 +47,7 @@ public class CronReindexingHourlyJob {
   //@Scheduled(cron = "${projectforge.cron.hourly}")
 
   /**
+   * TODO: If reindexing of database entries, modified in the last hour, this job should be reactivated.
    * In ms.
    */
   //@Scheduled(fixedDelay = 3600 * 1000, initialDelay = 120 * 1000)

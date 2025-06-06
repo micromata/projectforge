@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,83 +29,88 @@ import org.projectforge.framework.i18n.translate
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 class MarkdownBuilder {
-  private val sb = StringBuilder()
+    private val sb = StringBuilder()
 
-  enum class Color(val color: String) { RED("red"), BLUE("blue"), GREEN("green") }
+    enum class Color(val color: String) { BLACK("black"), BLUE("blue"), RED("red"), GREEN("green") }
 
-  fun h3(text: String): MarkdownBuilder {
-    sb.append("### ").appendLine(text).appendLine()
-    return this
-  }
-
-  fun emptyLine(): MarkdownBuilder {
-    first = true
-    sb.appendLine()
-    return this
-  }
-
-  fun append(text: String?): MarkdownBuilder {
-    sb.append(text ?: "")
-    return this
-  }
-
-  fun appendLine(text: String? = null): MarkdownBuilder {
-    first = true
-    sb.appendLine(text ?: "")
-    return this
-  }
-
-  /**
-   * @return this for chaining.
-   */
-  fun beginTable(vararg header: String?): MarkdownBuilder {
-    first = true
-    row(*header)
-    header.forEach { sb.append("---").append(" | ") }
-    sb.appendLine()
-    return this
-  }
-
-  fun row(vararg cell: String?): MarkdownBuilder {
-    first = true
-    sb.append("| ")
-    cell.forEach { sb.append(it ?: "").append(" | ") }
-    sb.appendLine()
-    return this
-  }
-
-  fun endTable(): MarkdownBuilder {
-    first = true
-    sb.appendLine()
-    return this
-  }
-
-  private var first = true
-
-  @JvmOverloads
-  fun appendPipedValue(i18nKey: String, value: String, color: Color? = null, totalValue: String? = null) {
-    ensureSeparator()
-    if (color != null) {
-      sb.append("<span style=\"color:${color.color};\">")
+    fun h3(text: String): MarkdownBuilder {
+        sb.append("### ").appendLine(text).appendLine()
+        return this
     }
-    sb.append(translate(i18nKey)).append(": ").append(value)
-    if (!totalValue.isNullOrBlank()) {
-      sb.append("/").append(totalValue)
-    }
-    if (color != null) {
-      sb.append("</span>")
-    }
-  }
 
-  private fun ensureSeparator() {
-    if (first) {
-      first = false
-    } else {
-      sb.append(" | ")
+    fun emptyLine(): MarkdownBuilder {
+        first = true
+        sb.appendLine()
+        return this
     }
-  }
 
-  override fun toString(): String {
-    return sb.toString()
-  }
+    fun append(text: String?, color: Color? = null): MarkdownBuilder {
+        if (color == null || text.isNullOrBlank()) {
+            sb.append(text ?: "")
+        } else {
+            sb.append("<span style=\"color:${color.color};\">").append(text).append("</span>")
+        }
+        return this
+    }
+
+    fun appendLine(text: String? = null, color: Color? = null): MarkdownBuilder {
+        first = true
+        append(text, color)
+        sb.appendLine()
+        return this
+    }
+
+    /**
+     * @return this for chaining.
+     */
+    fun beginTable(vararg header: String?): MarkdownBuilder {
+        first = true
+        row(*header)
+        header.forEach { sb.append("---").append(" | ") }
+        sb.appendLine()
+        return this
+    }
+
+    fun row(vararg cell: String?): MarkdownBuilder {
+        first = true
+        sb.append("| ")
+        cell.forEach { sb.append(it ?: "").append(" | ") }
+        sb.appendLine()
+        return this
+    }
+
+    fun endTable(): MarkdownBuilder {
+        first = true
+        sb.appendLine()
+        return this
+    }
+
+    private var first = true
+
+    @JvmOverloads
+    fun appendPipedValue(i18nKey: String, value: String, color: Color? = null, totalValue: String? = null) {
+        ensureSeparator()
+        if (color != null) {
+            sb.append("<span style=\"color:${color.color};\">")
+        }
+        sb.append(translate(i18nKey)).append(": ").append(value)
+        if (!totalValue.isNullOrBlank()) {
+            sb.append("/").append(totalValue)
+        }
+        if (color != null) {
+            sb.append("</span>")
+        }
+    }
+
+    private fun ensureSeparator() {
+        if (first) {
+            first = false
+        } else {
+            sb.append(" | ")
+        }
+    }
+
+    override fun toString(): String {
+        return sb.toString()
+    }
 }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -202,7 +202,7 @@ class Configuration(
         lateinit var instance: Configuration
             private set
 
-        private var initialized = false
+        private var instanceSet = false
 
         /**
          * Validates the domain.
@@ -214,7 +214,7 @@ class Configuration(
 
         fun initializeForTestOnly(configurationService: ConfigurationService) {
             instance = Configuration(configurationService, null)
-            initialized = true
+            instanceSet = true
         }
     }
 
@@ -223,7 +223,7 @@ class Configuration(
             log.warn("Oups, shouldn't initiate Configuration twice.")
         } else {
             instance = this
-            initialized = true
+            instanceSet = true
         }
     }
 }

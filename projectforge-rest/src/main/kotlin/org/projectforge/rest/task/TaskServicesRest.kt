@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -113,7 +113,7 @@ class TaskServicesRest {
         )
 
         /**
-         * Only for creating a pseudo emty task.
+         * Only for creating a pseudo empty task.
          */
         constructor(title: String) : this(
             id = -1, title = title
@@ -153,7 +153,7 @@ class TaskServicesRest {
         fun addKost2List(task: Task, includeKost2ObjectList: Boolean = true) {
             val kost2DOList = TaskTree.instance.getKost2List(task.id)
             if (!kost2DOList.isNullOrEmpty()) {
-                if (includeKost2ObjectList) {  // Only if needed in tree, save bandwith...
+                if (includeKost2ObjectList) {  // Only if needed in tree, save bandwidth...
                     val kost2List: List<Kost2> = kost2DOList.map {
                         Kost2(
                             it.id!!,
@@ -289,6 +289,7 @@ class TaskServicesRest {
                     valueFormatter = UIAgGridColumnDef.Formatter.TREE_NAVIGATION,
                     sortable = false,
                     width = UIAgGridColumnDef.DESCRIPTION_WIDTH,
+                    filter = false,
                 )
                     .withPinnedLeft()
             )
@@ -298,6 +299,7 @@ class TaskServicesRest {
                     headerName = translate("task.consumption"),
                     valueFormatter = UIAgGridColumnDef.Formatter.CONSUMPTION,
                     sortable = false,
+                    filter = false,
                 )
             )
             if (kost2Visible) {
@@ -307,18 +309,26 @@ class TaskServicesRest {
                         headerName = translate("fibu.kost2"),
                         sortable = false,
                         width = 80,
+                        filter = false,
                     )
                         .withTooltipField("kost2ListAsLines")
                 )
             }
             result.columnDefs.add(
-                UIAgGridColumnDef.createCol(lc, "statusAsString", lcField = "status", sortable = false, width = 100)
+                UIAgGridColumnDef.createCol(
+                    lc,
+                    "statusAsString",
+                    lcField = "status",
+                    sortable = false,
+                    width = 100,
+                    filter = false,
+                )
             )
             result.columnDefs.add(
-                UIAgGridColumnDef.createCol(lc, "shortDescription", sortable = false)
+                UIAgGridColumnDef.createCol(lc, "shortDescription", sortable = false, filter = false)
             )
             result.columnDefs.add(
-                UIAgGridColumnDef.createCol(lc, "responsibleUser", sortable = false)
+                UIAgGridColumnDef.createCol(lc, "responsibleUser", sortable = false, filter = false)
             )
             result.initFilter = filter
             result.translations = addTranslations(
@@ -357,7 +367,9 @@ class TaskServicesRest {
             val children = taskNode.children.toMutableList()
             children.sortBy { it.task.title }
             children.forEach { node ->
-                if (ctx.taskFilter.match(node, taskDao, ctx.user)) {
+                if (ctx.taskFilter.match(node, taskDao, ctx.user) &&
+                    taskDao.hasUserSelectAccess(ctx.user, node.getTask(), false)
+                ) {
                     val child = Task(node)
                     addKost2List(child, false)
                     child.consumption = Consumption.create(node)

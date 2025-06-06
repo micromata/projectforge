@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,6 +27,7 @@ import mu.KotlinLogging
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.login.LoginService
 import org.projectforge.rest.Authentication
+import org.projectforge.rest.utils.RequestLog
 import org.projectforge.security.SecurityLogging
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -54,8 +55,9 @@ class RestUserFilter : AbstractRestUserFilter(UserTokenType.REST_CLIENT) {
     val requestURI = authInfo.request.requestURI
     // Don't log error for userStatus (used by React client for checking weather the user is logged in or not).
     if (requestURI == null || requestURI != "/rs/userStatus") {
+      val method = authInfo.request.method
       val msg =
-        "Neither ${Authentication.AUTHENTICATION_USER_ID} nor ${Authentication.AUTHENTICATION_USERNAME}/${Authentication.AUTHENTICATION_TOKEN} is given for rest call: $requestURI. Rest call forbidden."
+        "Neither valid session-credentials (request.sessionId=${RequestLog.getTruncatedSessionId(authInfo.request)}), ${Authentication.AUTHENTICATION_USER_ID} nor ${Authentication.AUTHENTICATION_USERNAME}/${Authentication.AUTHENTICATION_TOKEN} is given for rest call: $method:$requestURI. Rest call forbidden."
       log.error(msg)
       SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "REST AUTHENTICATION FAILED", msg)
     }

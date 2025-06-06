@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,6 +32,7 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.WicketSupport;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Every user has access to own to-do's or to-do's he's assigned to. All other users have access if the to-do is
@@ -55,7 +56,7 @@ public class LicenseManagementRight extends UserRightAccessCheck<LicenseDO>
   public boolean hasAccess(final PFUserDO user, final LicenseDO obj, final LicenseDO oldObj,
       final OperationType operationType)
   {
-    return true;
+    return LicensePluginService.getInstance().hasAccess();
   }
 
   public boolean isLicenseKeyVisible(final PFUserDO user, final LicenseDO license)

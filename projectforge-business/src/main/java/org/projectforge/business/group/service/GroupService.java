@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,31 +23,167 @@
 
 package org.projectforge.business.group.service;
 
+import jakarta.annotation.PostConstruct;
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.business.common.BaseUserGroupRightService;
+import org.projectforge.business.user.GroupDao;
+import org.projectforge.business.user.GroupsComparator;
+import org.projectforge.business.user.UserGroupCache;
+import org.projectforge.business.user.UsersComparator;
+import org.projectforge.common.StringHelper;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
-public interface GroupService
-{
+@Service
+public class GroupService {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GroupService.class);
 
-  Collection<GroupDO> getSortedGroups();
+    private static GroupService instance;
 
-  String getGroupIds(Collection<GroupDO> groups);
+    @Autowired
+    private GroupDao groupDao;
 
-  Collection<GroupDO> getSortedGroups(String groupIds);
+    @Autowired
+    private UserGroupCache userGroupCache;
 
-  List<String> getGroupNames(String groupIds);
+    private final GroupsComparator groupsComparator = new GroupsComparator();
 
-  List<GroupDO> getAllGroups();
+    private final UsersComparator usersComparator = new UsersComparator();
 
-  Collection<PFUserDO> getGroupUsers(long[] groupIds);
+    @PostConstruct
+    private void postConstruct() {
+        instance = this;
+    }
 
-  GroupDO getGroup(Long groupId);
+    public GroupDO getGroup(final Long groupId) {
+        return groupDao.findOrLoad(groupId);
+    }
 
-  String getGroupname(Long groupId);
+    public String getGroupname(final Long groupId) {
+        final GroupDO group = getGroup(groupId);
+        return group == null ? null : group.getName();
+    }
 
-  String getGroupnames(Long userId);
+    public String getGroupnames(final Long userId) {
+        final Set<Long> groupSet = userGroupCache.getUserGroupIdMap().get(userId);
+        if (groupSet == null) {
+            return "";
+        }
+        final List<String> list = new ArrayList<>();
+        for (final Long groupId : groupSet) {
+            final GroupDO group = userGroupCache.getGroup(groupId);
+            if (group != null) {
+                list.add(group.getName());
+            } else {
+                log.error("Group with id " + groupId + " not found.");
+            }
+        }
+        return StringHelper.listToString(list, "; ", true);
+    }
 
+    /**
+     * @param groupIds
+     * @return
+     */
+    public List<String> getGroupNames(final String groupIds) {
+        if (StringUtils.isEmpty(groupIds)) {
+            return null;
+        }
+        final long[] ids = StringHelper.splitToLongs(groupIds, ",", false);
+        final List<String> list = new ArrayList<>();
+        for (final long id : ids) {
+            final GroupDO group = userGroupCache.getGroup(id);
+            if (group != null) {
+                list.add(group.getName());
+            } else {
+                log.warn("Group with id '" + id + "' not found in UserGroupCache. groupIds string was: " + groupIds);
+            }
+        }
+        return list;
+    }
+
+    /**
+     * @param groupIds
+     * @return
+     */
+    public Collection<GroupDO> getSortedGroups(final String groupIds) {
+        if (StringUtils.isEmpty(groupIds)) {
+            return null;
+        }
+        Collection<GroupDO> sortedGroups = new TreeSet<>(groupsComparator);
+        final long[] ids = StringHelper.splitToLongs(groupIds, ",", false);
+        for (final long id : ids) {
+            final GroupDO group = getGroup(id);
+            if (group != null) {
+                sortedGroups.add(group);
+            } else {
+                log.warn("Group with id '" + id + "' not found in UserGroupCache. groupIds string was: " + groupIds);
+            }
+        }
+        return sortedGroups;
+    }
+
+    public String getGroupIds(final Collection<GroupDO> groups) {
+        return BaseUserGroupRightService.asSortedIdStrings(groups);
+    }
+
+    public Collection<GroupDO> getSortedGroups() {
+        final Collection<GroupDO> allGroups = userGroupCache.getAllGroups();
+        TreeSet<GroupDO> sortedGroups = new TreeSet<>(groupsComparator);
+        final PFUserDO loggedInUser = ThreadLocalUserContext.getLoggedInUser();
+        for (final GroupDO group : allGroups) {
+            if (!group.getDeleted() && groupDao.hasUserSelectAccess(loggedInUser, group, false)) {
+                sortedGroups.add(group);
+            }
+        }
+        return sortedGroups;
+    }
+
+    public Collection<PFUserDO> getGroupUsers(long[] groupIds) {
+        Collection<PFUserDO> sortedUsers = new TreeSet<>(usersComparator);
+        if (groupIds == null) {
+            return sortedUsers;
+        }
+        for (long groupId : groupIds) {
+            final GroupDO group = getGroup(groupId);
+            if (group != null) {
+                final Set<PFUserDO> users = group.getAssignedUsers();
+                if (users != null) {
+                    sortedUsers.addAll(users);
+                }
+            }
+        }
+        return sortedUsers;
+    }
+
+    /**
+     * ONLY for Tests
+     *
+     * @param userGroupCache
+     */
+    public void setUserGroupCache(UserGroupCache userGroupCache) {
+        this.userGroupCache = userGroupCache;
+    }
+
+    /**
+     * ONLY for Tests
+     *
+     * @param groupDao
+     */
+    public void setGroupDao(GroupDao groupDao) {
+        this.groupDao = groupDao;
+    }
+
+    public List<GroupDO> getAllGroups() {
+        return groupDao.selectAll(false);
+    }
+
+    public static GroupService getInstance() {
+        return instance;
+    }
 }

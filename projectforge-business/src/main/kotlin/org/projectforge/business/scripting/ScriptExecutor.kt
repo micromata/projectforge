@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,6 +26,7 @@ package org.projectforge.business.scripting
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.ProjectForgeVersion
+import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.ForecastExport
 import org.projectforge.business.fibu.kost.reporting.ReportGeneratorList
 import org.projectforge.business.task.ScriptingTaskTree
@@ -35,6 +36,7 @@ import org.projectforge.registry.Registry
 private val log = KotlinLogging.logger {}
 
 abstract class ScriptExecutor(
+    var scriptLogger: ScriptLogger = ScriptLogger(),
     /**
      * Script input (before pre-processing). #INCLUDE statements are not yet resolved and
      * auto-imports and bindings (Kotlin) are not included.
@@ -77,8 +79,6 @@ abstract class ScriptExecutor(
     val effectiveScript: String
         get() = _effectiveScript ?: resolvedScript ?: source
 
-    val scriptLogger = ScriptLogger()
-
     val scriptExecutionResult = ScriptExecutionResult(scriptLogger)
 
     private lateinit var scriptDao: AbstractScriptDao
@@ -95,6 +95,7 @@ abstract class ScriptExecutor(
         variables["log"] = scriptLogger
         variables["reportList"] = ReportGeneratorList()
         variables["i18n"] = I18n()
+        variables["caches"] = PfCaches.instance
         variables["forecastExport"] =
             ApplicationContextProvider.getApplicationContext().getBean(ForecastExport::class.java)
         for (entry in Registry.getInstance().orderedList) {
@@ -258,11 +259,11 @@ abstract class ScriptExecutor(
             return sb.toString()
         }
 
-        fun createScriptExecutor(scriptDO: ScriptDO): ScriptExecutor {
+        fun createScriptExecutor(scriptDO: ScriptDO, scriptLogger: ScriptLogger = ScriptLogger()): ScriptExecutor {
             return if (getScriptType(scriptDO) == ScriptDO.ScriptType.GROOVY) {
-                GroovyScriptExecutor()
+                GroovyScriptExecutor(scriptLogger)
             } else {
-                KotlinScriptExecutor()
+                KotlinScriptExecutor(scriptLogger)
             }
         }
 
@@ -299,8 +300,9 @@ abstract class ScriptExecutor(
             "import de.micromata.merlin.I18n",
             "import org.projectforge.business.fibu.*",
             "import org.projectforge.business.fibu.kost.*",
-            "import org.projectforge.business.scripting.ExportZipArchive",
+            "import org.projectforge.business.scripting.ExportFile",
             "import org.projectforge.business.scripting.ExportJson",
+            "import org.projectforge.business.scripting.ExportZipArchive",
             "import org.projectforge.business.scripting.ScriptDO",
             "import org.projectforge.business.scripting.ScriptingDao",
             "import org.projectforge.business.scripting.support.*",
@@ -311,6 +313,8 @@ abstract class ScriptExecutor(
             "import org.projectforge.common.*",
             "import org.projectforge.excel.ExcelUtils",
             "import org.projectforge.framework.calendar.*",
+            "import org.projectforge.framework.persistence.api.QueryFilter",
+            "import org.projectforge.framework.persistence.api.SortProperty",
             "import org.projectforge.framework.time.*",
             "import org.projectforge.framework.utils.NumberHelper",
             "import org.projectforge.framework.utils.RoundUtils",

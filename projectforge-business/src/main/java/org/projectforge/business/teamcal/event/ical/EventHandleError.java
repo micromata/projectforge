@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,7 +28,7 @@ public enum EventHandleError
   CALANDER_NOT_SPECIFIED,               // no calender defined
   NO_METHOD_SELECTED,                   // no method for handling event selected
 
-  WARN_MAIN_RECURRING_EVENT_MISSING,    // the main event of an reccurring one is missing
+  WARN_MAIN_RECURRING_EVENT_MISSING,    // the main event of a recurring one is missing
   WARN_EVENT_TO_DELETE_NOT_FOUND,       // No event in db to delete
   WARN_OUTDATED                         // the parsed event is older then the current DB state
 }

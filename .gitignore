@@ -51,3 +51,4 @@ projectforge-application/src/main/kotlin/local
 build
 .kotlin
 projectforge-webapp/node
+projectforge-business/src/main/kotlin/testscripts

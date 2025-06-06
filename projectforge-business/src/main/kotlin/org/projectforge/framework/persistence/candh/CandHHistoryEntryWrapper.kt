@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -63,9 +63,6 @@ internal class CandHHistoryEntryWrapper(private val historyEntry: HistoryEntryDO
         historyEntry.attributes = mutableSetOf()
         attributeWrappers?.forEach { attrWrapper ->
             attrWrapper.prepareAndGetAttr(historyEntry)
-        }
-        if (entity is CandHHistoryEntryICustomizer) {
-            entity.customize(historyEntry)
         }
         return historyEntry
     }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -52,7 +52,7 @@ class RechnungCache(rechnungJdbcService: RechnungJdbcService) :
         RechnungCalculator.auftragsCache = auftragsCache
     }
 
-    fun getOrderPositionInfos(rechnungId: Long?): Set<OrderPositionInfo>? {
+    fun getOrderPositionInfosOfInvoice(rechnungId: Long?): Set<OrderPositionInfo>? {
         rechnungId ?: return null
         val info = getRechnungInfo(rechnungId) ?: return null
         val set = mutableSetOf<OrderPositionInfo>()
@@ -64,6 +64,12 @@ class RechnungCache(rechnungJdbcService: RechnungJdbcService) :
             }
         }
         return set
+    }
+
+    fun getOrderPositionInfoOfInvoicePos(rechnungPosId: Long?): OrderPositionInfo? {
+        rechnungPosId ?: return null
+        val posInfo = getRechnungPosInfo(rechnungPosId) ?: return null
+        return auftragsCache.getOrderPositionInfo(posInfo.auftragsPositionId)
     }
 
     fun getRechnungsPosInfosByAuftragId(auftragId: Long?): List<RechnungPosInfo>? {
@@ -90,8 +96,6 @@ class RechnungCache(rechnungJdbcService: RechnungJdbcService) :
             }
         }
 
-        // TODO: Update rechungPosInfo
-        auftragsRechnungCache.setExpired() // Invalidate cache.
     }
 
     fun update(invoice: EingangsrechnungDO) {
@@ -116,11 +120,6 @@ class RechnungCache(rechnungJdbcService: RechnungJdbcService) :
         } else {
             eingangsrechnungCache.getRechnungInfo(id)
         }
-    }
-
-    override fun setExpired() {
-        super.setExpired()
-        auftragsRechnungCache.setExpired()
     }
 
     companion object {

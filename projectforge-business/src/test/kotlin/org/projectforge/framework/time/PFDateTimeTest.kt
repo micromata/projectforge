@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -92,6 +92,20 @@ class PFDateTimeTest {
             "2019-03-31 22:00",
             PFDateTimeUtils.parseAndCreateDateTime("2019-03-31T22:00:00.000Z")!!.isoString
         )
+        assertEquals(
+            "2024-11-16 22:36",
+            PFDateTimeUtils.parseAndCreateDateTime(
+                "1731796572",
+                numberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS
+            )!!.isoString
+        )
+        assertEquals(
+            "1970-01-21 01:03",
+            PFDateTimeUtils.parseAndCreateDateTime(
+                "1731796572",
+                numberFormat = PFDateTime.NumberFormat.EPOCH_MILLIS
+            )!!.isoString
+        )
         assertNull(PFDateTimeUtils.parseAndCreateDateTime("2019-03-31"))
     }
 
@@ -123,12 +137,12 @@ class PFDateTimeTest {
     fun weekOfYearTest() {
         val storedDefaultLocale = ConfigurationServiceAccessor.get().defaultLocale
         ConfigurationServiceAccessor.internalSetLocaleForJunitTests(Locale("de", "DE"))
-        PFDay._weekFields = null // Force recalculation of weekFields
+        PFDay.resetWeekFieldsForTest() // Force recalculation of weekFields
 
         checkISOWeeks()
 
         ConfigurationServiceAccessor.internalSetLocaleForJunitTests(Locale("en", "US"))
-        PFDay._weekFields = null // Force recalculation of weekFields
+        PFDay.resetWeekFieldsForTest() // Force recalculation of weekFields
         // US weeks:
         var dateTime = PFDateTimeUtils.parseAndCreateDateTime("2020-12-31 10:00")
         assertEquals(1, dateTime!!.weekOfYear)
@@ -143,12 +157,12 @@ class PFDateTimeTest {
         assertEquals(1, dateTime!!.weekOfYear)
 
         ConfigurationServiceAccessor.internalSetMinimalDaysInFirstWeekForJunitTests(4)
-        PFDay._weekFields = null // Force recalculation of weekFields
+        PFDay.resetWeekFieldsForTest() // Force recalculation of weekFields
         checkISOWeeks()
         ConfigurationServiceAccessor.internalSetMinimalDaysInFirstWeekForJunitTests(null)
 
         ConfigurationServiceAccessor.internalSetLocaleForJunitTests(storedDefaultLocale)
-        PFDay._weekFields = null // Force recalculation of weekFields
+        PFDay.resetWeekFieldsForTest() // Force recalculation of weekFields
     }
 
     private fun checkISOWeeks() {

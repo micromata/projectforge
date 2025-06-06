@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,30 +23,32 @@
 
 package org.projectforge.carddav.model
 
+import org.projectforge.business.address.ImageType
+import org.projectforge.carddav.CardDavUtils
 import org.projectforge.framework.time.PFDateTime
 import java.security.MessageDigest
+import java.util.Date
 
 data class Contact(
     val id: Long? = null,
     val firstName: String? = null,
     val lastName: String? = null,
-    val lastUpdated: java.util.Date? = null,
-    val hasImage: Boolean = false,
+    val lastUpdated: Date? = null,
+    val imageLastUpdate: Date? = null,
+    val imageType: ImageType? = null,
     var vcardData: String? = null,
 ) {
     val displayName = "$lastName, $firstName"
 
     /**
      * A unique identifier for this version of the resource. This allows clients to detect changes efficiently.
-     * The hashcode of the vcard, embedded in quotes.
+     * The hashcode of the vcard combined with last update of image, embedded in quotes.
      * Please note: the etag is embedded in quotes. Must be used in xml as well as in http response of GET call.
      * @return The ETag.
      */
     val etag: String by lazy {
         vcardData?.let {
-            val digest = MessageDigest.getInstance("SHA-256")
-            val hashBytes = digest.digest(it.toByteArray())
-            "\"${hashBytes.joinToString("") { "%02x".format(it) }}\""
+            CardDavUtils.getEtag("$it:imageLastUpdate=$imageLastUpdate".toByteArray())
         } ?: "\"null\""
     }
 

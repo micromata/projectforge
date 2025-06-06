@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -112,7 +112,7 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
     selectedIds: Collection<Serializable>,
     massUpdateContext: MassUpdateContext<AddressCampaignValue>,
   ): ResponseEntity<*>? {
-    val params = massUpdateContext.massUpdateData
+    val params = massUpdateContext.massUpdateParams
     val addressCampaign = addressCampaignValuePagesRest.getAddressCampaign(request)
     params["value"]?.let { param ->
       param.textValue?.let { value ->

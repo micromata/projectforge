@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -37,6 +37,13 @@ class HistoryServiceUtils private constructor() {
         return getNoHistoryProperties(entityClass).contains(propertyName)
     }
 
+    /**
+     * Returns the set of property names which are marked as NoHistory for the given entity class.
+     * The result is cached.
+     * @param entityClass the entity class
+     * @return the set of property names which are marked as NoHistory
+     * @see NoHistory
+     */
     fun getNoHistoryProperties(entityClass: Class<*>): Set<String> {
         synchronized(noHistoryPropertiesByClass) {
             noHistoryPropertiesByClass[entityClass]?.let { return it }
@@ -55,7 +62,7 @@ class HistoryServiceUtils private constructor() {
     }
 
     private fun determineNoHistoryProperties(entityClass: Class<*>, set: MutableSet<String>) {
-        log.debug { "Determing NoHistory properties of class ${entityClass.name}" }
+        log.debug { "Determining NoHistory properties of class ${entityClass.name}" }
         for (field in entityClass.declaredFields) {
             if (field.isAnnotationPresent(NoHistory::class.java)) {
                 log.debug { "NoHistory annotation found for field: ${entityClass.name}.${field.name}" }

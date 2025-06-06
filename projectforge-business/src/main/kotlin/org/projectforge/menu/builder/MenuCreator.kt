@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -45,10 +45,12 @@ import org.projectforge.business.vacation.service.VacationMenuCounterCache
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.api.UserRightService.*
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.Menu
+import org.projectforge.menu.MenuConfiguration
 import org.projectforge.menu.MenuItem
 import org.projectforge.sms.SmsSenderConfig
 import org.springframework.beans.factory.annotation.Autowired
@@ -104,9 +106,6 @@ open class MenuCreator {
 
     @Autowired
     private lateinit var conflictingVacationsCache: ConflictingVacationsCache
-
-    @Autowired
-    private lateinit var auftragDao: AuftragDao
 
     private var initialized = false
 
@@ -202,6 +201,30 @@ open class MenuCreator {
         return null
     }
 
+    fun findByNameOrId(str: String?): MenuItemDef? {
+        str ?: return null
+        initialize()
+        menuItemDefHolder.menuItems.forEach {
+            if (it.id == str || translate(it.i18nKey) == str)
+                return it
+            val menuItemDef = findByNameOrId(it, str)
+            if (menuItemDef != null)
+                return menuItemDef
+        }
+        return null
+    }
+
+    private fun findByNameOrId(parent: MenuItemDef, id: String): MenuItemDef? {
+        parent.children?.forEach {
+            if (it.id == id)
+                return it
+            val menuItemDef = findByNameOrId(it, id)
+            if (menuItemDef != null)
+                return menuItemDef
+        }
+        return null
+    }
+
     @Synchronized
     private fun initialize() {
         if (initialized)
@@ -221,7 +244,7 @@ open class MenuCreator {
         //
         val commonMenu = menuItemDefHolder.add(MenuItemDef(MenuItemDefId.COMMON))
             .add(MenuItemDef(MenuItemDefId.CALENDAR))
-            .add(MenuItemDef(MenuItemDefId.TEAMCALENDAR))
+            .add(MenuItemDef(MenuItemDefId.CALENDAR_LIST))
             .add(
                 MenuItemDef(MenuItemDefId.VACATION,
                     badgeCounter = { vacationMenuCounterCache.getOpenLeaveApplicationsForUser(ThreadLocalUserContext.loggedInUser) })
@@ -383,6 +406,14 @@ open class MenuCreator {
                     })
             )
             .add(
+                MenuItemDef(MenuItemDefId.COST_SEARCH,
+                    checkAccess =
+                        {
+                            hasRight(Kost2Dao.USER_RIGHT_ID, *READONLY_READWRITE) ||
+                                    isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
+                        })
+            )
+            .add(
                 MenuItemDef(MenuItemDefId.COST2_TYPE_LIST,
                     checkAccess =
                     {
@@ -488,6 +519,7 @@ open class MenuCreator {
             menuItemDefHolder.add(MenuItemDef(MenuItemDefId.ADMINISTRATION, visibleForRestrictedUsers = true))
         adminMenu
             .add(MenuItemDef(MenuItemDefId.MY_ACCOUNT))
+            .add(MenuItemDef(MenuItemDefId.MY_MENU))
             .add(MenuItemDef(MenuItemDefId.MY_2FA_SETUP))
             .add(MenuItemDef(MenuItemDefId.MY_PREFERENCES))
             .add(
@@ -560,6 +592,10 @@ open class MenuCreator {
     }
 
     private fun build(parent: MenuItem?, menuItemDef: MenuItemDef, menuCreatorContext: MenuCreatorContext): MenuItem? {
+        if (!MenuConfiguration.instance.isVisible(menuItemDef)) {
+            // Not visible for the user (groups customized in projectforge.properties).
+            return null
+        }
         if (!checkAccess(menuCreatorContext, menuItemDef))
             return null // No access
         val menuItem = menuItemDef.createMenu(parent, menuCreatorContext)
@@ -584,8 +620,6 @@ open class MenuCreator {
             return false
         }
         var userRightId = menuItemDef.requiredUserRightId
-        if (userRightId == null && menuItemDef.requiredUserRight != null)
-            userRightId = menuItemDef.requiredUserRight?.id
         if (userRightId != null && !hasRight(menuBuilderContext, userRightId, menuItemDef.requiredUserRightValues)) {
             return false
         }

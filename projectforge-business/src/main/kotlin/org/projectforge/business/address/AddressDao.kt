@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,8 +28,8 @@ import jakarta.persistence.criteria.CriteriaBuilder
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.ArrayUtils
 import org.apache.commons.lang3.StringUtils
+import org.projectforge.business.sipgate.SipgateDeleteContactService
 import org.projectforge.business.teamcal.event.TeamEventDao
-import org.projectforge.business.user.UserRightId
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
@@ -41,7 +41,6 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
-import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -72,14 +71,13 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
     @Autowired
     private lateinit var addressbookCache: AddressbookCache
 
-    @Autowired
-    private lateinit var userRights: UserRightService
-
-    @Transient
-    private var addressbookRight: AddressbookRight? = null
+    private val addressbookRight = AddressbookRight()
 
     @Autowired
     private lateinit var personalAddressDao: PersonalAddressDao
+
+    @Autowired
+    private lateinit var sipgateDeleteContactService: SipgateDeleteContactService
 
     @Autowired
     private lateinit var teamEventDao: TeamEventDao
@@ -254,11 +252,8 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
             //Global addressbook is selectable for every one
             abIdList.add(AddressbookDao.GLOBAL_ADDRESSBOOK_ID)
             //Get all addressbooks for user
-            if (addressbookRight == null) {
-                addressbookRight = userRights.getRight(UserRightId.MISC_ADDRESSBOOK) as AddressbookRight
-            }
             for (ab in addressbookDao.selectAllNotDeleted(checkAccess = false)) {
-                if (!ab.deleted && addressbookRight!!.hasSelectAccess(loggedInUser, ab)) {
+                if (!ab.deleted && addressbookRight.hasSelectAccess(loggedInUser, ab)) {
                     ab.id?.let {
                         abIdList.add(it)
                     }
@@ -275,30 +270,25 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         operationType: OperationType,
         throwException: Boolean
     ): Boolean {
-        if (addressbookRight == null) {
-            addressbookRight = userRights.getRight(UserRightId.MISC_ADDRESSBOOK) as AddressbookRight
-        }
-        val addressbookList =  addressbookCache.getAddressbooksForAddress(obj) ?: obj?.addressbookList
+        val addressbookList = addressbookCache.getAddressbooksForAddress(obj) ?: obj?.addressbookList
         if (addressbookList.isNullOrEmpty()) {
             return true
         }
-        when (operationType) {
-            OperationType.SELECT -> {
-                addressbookList.forEach { ab ->
-                    if (addressbookRight!!.checkGlobal(ab) || addressbookRight!!.getAccessType(ab, user.id)
-                            .hasAnyAccess()
-                    ) {
+        addressbookList.forEach { ab ->
+            val addressBook = addressbookCache.getAddressbook(ab)
+            if (addressBook == null) {
+                log.error("Addressbook not found: $ab")
+                return@forEach // Skip this addressbook.
+            }
+            when (operationType) {
+                OperationType.SELECT -> {
+                    if (addressbookRight.getAccessType(addressBook, user.id).hasAnyAccess()) {
                         return true
                     }
                 }
-            }
 
-            else -> {
-                for (ab in addressbookList) {
-                    if (addressbookRight!!.checkGlobal(ab) || addressbookRight!!.hasFullAccess(
-                            addressbookCache.getAddressbook(ab), user.id
-                        )
-                    ) {
+                else -> {
+                    if (addressbookRight.hasFullAccess(addressBook, user.id)) {
                         return true
                     }
                 }
@@ -319,7 +309,6 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         } else {
             //Check addressbook changes
             val dbAddress = find(obj.id, checkAccess = false)!!
-            val addressbookRight = userRights.getRight(UserRightId.MISC_ADDRESSBOOK) as AddressbookRight
             dbAddress.addressbookList?.forEach { dbAddressbook ->
                 //If user has no right for assigned addressbook, it could not be removed
                 if (!addressbookRight.hasSelectAccess(loggedInUser, dbAddressbook)
@@ -331,14 +320,6 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         }
     }
 
-    override fun onUpdate(obj: AddressDO, dbObj: AddressDO) {
-        // Don't modify the following fields:
-        if (obj.getTransientAttribute("Modify image modification data") !== "true") {
-            obj.image = dbObj.image
-            obj.imageLastUpdate = dbObj.imageLastUpdate
-        }
-    }
-
     /**
      * On force deletion all personal address references has to be deleted.
      * @param obj The deleted object.
@@ -347,6 +328,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         persistenceService.runInTransaction { context ->
             personalAddressDao.internalDeleteAll(obj)
             teamEventDao.removeAttendeeByAddressIdFromAllEvents(obj)
+            sipgateDeleteContactService.deleteContact(obj.id!!)
             val counter = context.executeNamedUpdate(
                 AddressImageDO.DELETE_ALL_IMAGES_BY_ADDRESS_ID,
                 Pair("addressId", obj.id)
@@ -361,19 +343,6 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
                 }
             }
         }
-    }
-
-    /**
-     * Mark the given address, so the image fields (image and imageLastUpdate) will be updated. imageLastUpdate will be
-     * set to now.
-     *
-     * @param address
-     * @param hasImage Is there an image or not?
-     */
-    fun internalModifyImageData(address: AddressDO, hasImage: Boolean) {
-        address.setTransientAttribute("Modify image modification data", "true")
-        address.image = hasImage
-        address.imageLastUpdate = Date()
     }
 
     override fun onInsert(obj: AddressDO) {

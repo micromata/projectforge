@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -47,11 +47,13 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
 
   protected TaskDO task;
 
-  protected GroupDO managerGroup, team;
+  protected GroupDO managerGroup, team, externalGroup;
 
   protected NewGroupSelectPanel groupSelectPanelTeam;
 
   protected NewGroupSelectPanel groupSelectPanelManager;
+
+  protected NewGroupSelectPanel groupSelectPanelExternal;
 
   public TaskWizardForm(final TaskWizardPage parentPage)
   {
@@ -97,10 +99,13 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
           new Model<String>(getString("task.wizard.button.createTask")), createTaskLink));
     }
     // Team
-    groupSelectPanelTeam = createGroupComponents(number++, "team");
+    groupSelectPanelTeam = createGroupComponents(number++, TaskWizardPage.GroupType.TEAM);
 
     // Manager group
-    groupSelectPanelManager = createGroupComponents(number++, "managerGroup");
+    groupSelectPanelManager = createGroupComponents(number++, TaskWizardPage.GroupType.MANAGER);
+
+    // Manager group
+    groupSelectPanelExternal = createGroupComponents(number++, TaskWizardPage.GroupType.EXTERNAL);
 
     gridBuilder.newGridPanel();
     {
@@ -126,7 +131,7 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
         @Override
         public final void onSubmit()
         {
-          setResponsePage(TaskTreePage.class);
+          setResponsePage(parentPage.getReturnToPage());
         }
       });
     }
@@ -145,17 +150,17 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
   }
 
   @SuppressWarnings("serial")
-  private NewGroupSelectPanel createGroupComponents(final int number, final String key)
+  private NewGroupSelectPanel createGroupComponents(final int number, final TaskWizardPage.GroupType group)
   {
     gridBuilder.newGridPanel();
     final DivPanel section = gridBuilder.getPanel();
     section
-        .add(new Heading3Panel(section.newChildId(), String.valueOf(number) + ". " + getString("task.wizard." + key)));
-    section.add(new DivTextPanel(section.newChildId(), getString("task.wizard." + key + ".intro")));
+        .add(new Heading3Panel(section.newChildId(), number + ". " + getString("task.wizard." + group.key)));
+    section.add(new DivTextPanel(section.newChildId(), getString("task.wizard." + group.key + ".intro")));
     final FieldsetPanel fs = gridBuilder.newFieldset(getString("group")).suppressLabelForWarning();
     NewGroupSelectPanel groupSelectPanel = new NewGroupSelectPanel(fs.newChildId(),
-        new PropertyModel<GroupDO>(this, key), parentPage,
-        key + "Id");
+        new PropertyModel<GroupDO>(this, group.key), parentPage,
+            group.key + "Id");
     fs.add(groupSelectPanel);
     groupSelectPanel.setShowFavorites(false).init();
     AjaxSubmitLink createGroupLink = new AjaxSubmitLink(IconLinkPanel.LINK_ID)
@@ -163,20 +168,23 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
       @Override
       protected void onSubmit(final AjaxRequestTarget target)
       {
-        parentPage.managerGroupCreated = "managerGroup".equals(key);
+        if (task == null) {
+          return;
+        }
+        parentPage.createdGroup = group;
         final PageParameters params = new PageParameters();
         final StringBuilder buf = new StringBuilder();
         if (task != null) {
           buf.append(task.getTitle());
         }
-        if (parentPage.managerGroupCreated == true) {
+        if (group != TaskWizardPage.GroupType.TEAM) {
           if (task != null) {
             buf.append("-");
           }
-          buf.append(getString("task.wizard.managerGroup.groupNameSuffix"));
+          buf.append(getString("task.wizard." + group.key + ".groupNameSuffix"));
         }
         params.add(GroupEditPage.PARAM_GROUP_NAME, buf.toString());
-        final GroupEditPage editPage = new GroupEditPage(params, key + "Id");
+        final GroupEditPage editPage = new GroupEditPage(params, group.key + "Id");
         editPage.setReturnToPage(parentPage);
         setResponsePage(editPage);
       }

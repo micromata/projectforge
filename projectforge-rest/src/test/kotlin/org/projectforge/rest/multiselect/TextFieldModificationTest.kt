@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,7 +34,7 @@ class TextFieldModificationTest {
     checkNewTextValue("", "", "", "empty string to delete", delete = true)
     checkNewTextValue("test", "", "", "delete string", delete = true)
     checkNewTextValue("test", "", "test", "Can't delete and append text!", delete = true, append = true)
-    checkNewTextValue("test", "new text", "test\nnew text", "new value shoud be appended", append = true)
+    checkNewTextValue("test", "new text", "test\nnew text", "new value should be appended", append = true)
     checkNewTextValue(
       "test\nnew text",
       "new text",
@@ -88,7 +88,7 @@ class TextFieldModificationTest {
     append: Boolean? = null,
     replaceText: String? = null,
   ) {
-    val param = MassUpdateParameter()
+    val param = MassUpdateParameter("param", "displayName")
     param.textValue = newValue
     param.delete = delete
     param.append = append

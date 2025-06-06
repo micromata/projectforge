@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -176,7 +176,7 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
     }
 
     /**
-     * Important! Models must be identifyable by their contained object.
+     * Important! Models must be identifiable by their contained object.
      */
     @Override
     public boolean equals(final Object obj)
@@ -188,7 +188,7 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
     }
 
     /**
-     * Important! Models must be identifyable by their contained object.
+     * Important! Models must be identifiable by their contained object.
      */
     @Override
     public int hashCode()

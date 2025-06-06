@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,9 @@
 
 package org.projectforge.plugins.skillmatrix
 
+import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.business.PfCaches
+import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -31,123 +34,155 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDOPagesRest
+import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.dto.Employee
+import org.projectforge.rest.dto.Kost1
+import org.projectforge.rest.dto.SkillEntry
+import org.projectforge.rest.dto.User
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterElement
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import jakarta.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/skillentry")
-class SkillEntryPagesRest() : AbstractDOPagesRest<SkillEntryDO, SkillEntryDao>(
-  SkillEntryDao::class.java,
-  "plugins.skillmatrix.title",
-  cloneSupport = CloneSupport.CLONE
+class SkillEntryPagesRest() : AbstractDTOPagesRest<SkillEntryDO, SkillEntry, SkillEntryDao>(
+    SkillEntryDao::class.java,
+    "plugins.skillmatrix.title",
+    cloneSupport = CloneSupport.CLONE
 ) {
-  /**
-   * Initializes new memos for adding.
-   */
-  override fun newBaseDO(request: HttpServletRequest?): SkillEntryDO {
-    val memo = super.newBaseDO(request)
-    memo.owner = ThreadLocalUserContext.loggedInUser
-    return memo
-  }
+    @Autowired
+    private lateinit var caches: PfCaches
 
-  /**
-   * LAYOUT List page
-   */
-  override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
-    agGridSupport.prepareUIGrid4ListPage(
-      request,
-      layout,
-      magicFilter,
-      this,
-      userAccess = userAccess,
-    )
-      .add(lc, "lastUpdate", "skill", "owner")
-      .add(lc, "rating", formatter = UIAgGridColumnDef.Formatter.RATING)
-      .add(lc, "interest", formatter = UIAgGridColumnDef.Formatter.RATING)
-      .add(lc, "comment")
-      .withMultiRowSelection(request, magicFilter)
-
-    layout.add(
-      MenuItem(
-        "skillmatrix.export",
-        i18nKey = "exportAsXls",
-        url = "${SkillMatrixServicesRest.REST_EXCEL_EXPORT_PATH}",
-        type = MenuItemTargetType.DOWNLOAD
-      )
-    )
-  }
-
-  override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
-    elements.add(
-      UIFilterElement(
-        "owner",
-        UIFilterElement.FilterType.BOOLEAN,
-        translate("plugins.skillmatrix.filter.mySkills"),
-        defaultFilter = true
-      )
-    )
-  }
-
-  override fun preProcessMagicFilter(
-    target: QueryFilter,
-    source: MagicFilter
-  ): List<CustomResultFilter<SkillEntryDO>>? {
-    val ownerFilterEntry = source.entries.find { it.field == "owner" }
-    if (ownerFilterEntry?.isTrueValue == true) {
-      ownerFilterEntry.synthetic = true
-      target.createJoin("owner")
-      target.add(QueryFilter.eq("owner", ThreadLocalUserContext.loggedInUser!!)) // Show only own skills, not from others.
+    /**
+     * Initializes new memos for adding.
+     */
+    override fun newBaseDO(request: HttpServletRequest?): SkillEntryDO {
+        val memo = super.newBaseDO(request)
+        memo.owner = ThreadLocalUserContext.loggedInUser
+        return memo
     }
-    return null
-  }
 
-  /**
-   * Sets logged-in-user as owner.
-   */
-  override fun prepareClone(dto: SkillEntryDO): SkillEntryDO {
-    val clone = super.prepareClone(dto)
-    clone.owner = ThreadLocalUserContext.loggedInUser
-    return clone
-  }
+    override fun transformFromDB(obj: SkillEntryDO, editMode: Boolean): SkillEntry {
+        val entry = SkillEntry()
+        entry.copyFrom(obj)
+        caches.getUser(obj.owner?.id)?.let { userDO ->
+            entry.owner = User(userDO)
+        }
+        return entry
+    }
 
-  /**
-   * LAYOUT Edit page
-   */
-  override fun createEditLayout(dto: SkillEntryDO, userAccess: UILayout.UserAccess): UILayout {
-    val skillRating = UIRatingStars(
-      "rating",
-      lc,
-      Array(SkillEntryDO.MAX_VAL_RATING + 1) { idx -> translate("plugins.skillmatrix.rating.$idx") },
-      label = "plugins.skillmatrix.rating"
-    )
-    val interestRating = UIRatingStars(
-      "interest",
-      lc,
-      Array(SkillEntryDO.MAX_VAL_INTEREST + 1) { idx -> translate("plugins.skillmatrix.interest.$idx") },
-      label = "plugins.skillmatrix.interest"
-    )
-    val skill = UIInput("skill", lc).enableAutoCompletion(this)
-    val layout = super.createEditLayout(dto, userAccess)
-      .add(skill)
-      .add(
-        UIRow()
-          .add(
-            UICol(UILength(md = 4)).add(
-              UIReadOnlyField(
-                "owner.displayName",
-                lc,
-                label = "plugins.skillmatrix.owner"
-              )
+    override fun transformForDB(dto: SkillEntry): SkillEntryDO {
+        val entryDO = SkillEntryDO()
+        dto.copyTo(entryDO)
+        return entryDO
+    }
+
+    /**
+     * LAYOUT List page
+     */
+    override fun createListLayout(
+        request: HttpServletRequest,
+        layout: UILayout,
+        magicFilter: MagicFilter,
+        userAccess: UILayout.UserAccess
+    ) {
+        agGridSupport.prepareUIGrid4ListPage(
+            request,
+            layout,
+            magicFilter,
+            this,
+            userAccess = userAccess,
+        )
+            .add(lc, "lastUpdate", "skill", "owner")
+            .add(lc, "rating", formatter = UIAgGridColumnDef.Formatter.RATING)
+            .add(lc, "interest", formatter = UIAgGridColumnDef.Formatter.RATING)
+            .add(lc, "comment")
+            .withMultiRowSelection(request, magicFilter)
+
+        layout.add(
+            MenuItem(
+                "skillmatrix.export",
+                i18nKey = "exportAsXls",
+                url = SkillMatrixServicesRest.REST_EXCEL_EXPORT_PATH,
+                type = MenuItemTargetType.DOWNLOAD
             )
-          )
-          .add(UICol(UILength(md = 4)).add(skillRating))
-          .add(UICol(UILength(md = 4)).add(interestRating))
-      )
-      .add(lc, "comment")
-    return LayoutUtils.processEditPage(layout, dto, this)
-  }
+        )
+    }
+
+    override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        elements.add(
+            UIFilterElement(
+                "owner",
+                UIFilterElement.FilterType.BOOLEAN,
+                translate("plugins.skillmatrix.filter.mySkills"),
+                defaultFilter = true
+            )
+        )
+    }
+
+    override fun preProcessMagicFilter(
+        target: QueryFilter,
+        source: MagicFilter
+    ): List<CustomResultFilter<SkillEntryDO>>? {
+        val ownerFilterEntry = source.entries.find { it.field == "owner" }
+        if (ownerFilterEntry?.isTrueValue == true) {
+            ownerFilterEntry.synthetic = true
+            target.createJoin("owner")
+            target.add(
+                QueryFilter.eq(
+                    "owner",
+                    ThreadLocalUserContext.loggedInUser!!
+                )
+            ) // Show only own skills, not from others.
+        }
+        return null
+    }
+
+    /**
+     * Sets logged-in-user as owner.
+     */
+    override fun prepareClone(dto: SkillEntry): SkillEntry {
+        val clone = super.prepareClone(dto)
+        clone.owner = User(ThreadLocalUserContext.requiredLoggedInUser)
+        return clone
+    }
+
+    /**
+     * LAYOUT Edit page
+     */
+    override fun createEditLayout(dto: SkillEntry, userAccess: UILayout.UserAccess): UILayout {
+        val skillRating = UIRatingStars(
+            "rating",
+            lc,
+            Array(SkillEntryDO.MAX_VAL_RATING + 1) { idx -> translate("plugins.skillmatrix.rating.$idx") },
+            label = "plugins.skillmatrix.rating"
+        )
+        val interestRating = UIRatingStars(
+            "interest",
+            lc,
+            Array(SkillEntryDO.MAX_VAL_INTEREST + 1) { idx -> translate("plugins.skillmatrix.interest.$idx") },
+            label = "plugins.skillmatrix.interest"
+        )
+        val skill = UIInput("skill", lc).enableAutoCompletion(this)
+        val layout = super.createEditLayout(dto, userAccess)
+            .add(skill)
+            .add(
+                UIRow()
+                    .add(
+                        UICol(UILength(md = 4)).add(
+                            UIReadOnlyField(
+                                "owner.displayName",
+                                lc,
+                                label = "plugins.skillmatrix.owner"
+                            )
+                        )
+                    )
+                    .add(UICol(UILength(md = 4)).add(skillRating))
+                    .add(UICol(UILength(md = 4)).add(interestRating))
+            )
+            .add(lc, "comment")
+        return LayoutUtils.processEditPage(layout, dto, this)
+    }
 }

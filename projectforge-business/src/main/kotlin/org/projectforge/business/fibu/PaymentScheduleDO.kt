@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.projectforge.common.anots.PropertyInfo
@@ -32,6 +33,7 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
 import java.time.LocalDate
 import jakarta.persistence.*
+import org.projectforge.framework.json.IdOnlySerializer
 
 /**
  * @author Werner Feder (werner.feder@t-online.de)
@@ -55,10 +57,11 @@ open class PaymentScheduleDO : DefaultBaseDO(), DisplayNameCapable {
   @JsonIgnore
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "auftrag_id", nullable = false)
+  @JsonSerialize(using = IdOnlySerializer::class)
   open var auftrag: AuftragDO? = null
 
   /**
-   * The position's number this payment schedule is assigned to.
+   * The order position's number this payment schedule is assigned to. (It is not the id/pk!!!)
    */
   @get:Column(name = "position_number")
   open var positionNumber: Short? = null

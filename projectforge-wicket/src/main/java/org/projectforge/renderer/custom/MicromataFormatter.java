@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,8 @@
 
 package org.projectforge.renderer.custom;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.common.OutputType;
 import org.projectforge.business.fibu.OldKostFormatter;
@@ -41,140 +43,132 @@ import org.projectforge.framework.renderer.RowHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.util.*;
 
 /**
  * @author Sebastian Hardt (s.hardt@micromata.de)
  */
 @Service
-public class MicromataFormatter extends Formatter
-{
+public class MicromataFormatter extends Formatter {
 
-  @Autowired
-  private UserFormatter userFormatter;
+    @Autowired
+    private UserFormatter userFormatter;
 
-  @Autowired
-  private HtmlDateTimeFormatter htmlDateTimeFormatter;
+    @Autowired
+    private HtmlDateTimeFormatter htmlDateTimeFormatter;
 
-  @Autowired
-  private KostCache kostCache;
+    @Autowired
+    private KostCache kostCache;
 
-  @Override
-  public Map<String, Object> getData(final List<TimesheetDO> timeSheets, final Long taskId,
-      final HttpServletRequest request,
-      final HttpServletResponse response, final TimesheetFilter actionFilter)
-  {
+    @Override
+    public Map<String, Object> getData(final List<TimesheetDO> timeSheets, final Long taskId,
+                                       final HttpServletRequest request,
+                                       final HttpServletResponse response, final TimesheetFilter actionFilter) {
 
-    final Map<String, Object> data = new HashMap<String, Object>();
+        final Map<String, Object> data = new HashMap<String, Object>();
 
-    long durationSum = 0;
+        long durationSum = 0;
 
-    for (final TimesheetDO timesheet : timeSheets) {
-      durationSum += timesheet.getDuration();
-    }
-
-    final List<RowHolder> list = new ArrayList<RowHolder>();
-    for (final TimesheetDO timesheet : timeSheets) {
-      final RowHolder row = new RowHolder();
-      if (actionFilter.getUserId() != null) {
-        final Kost2DO kost2 = kostCache.getKost2(timesheet.getKost2Id());
-        if (kost2 != null) {
-          row.addCell(new CellHolder(OldKostFormatter.format(kost2)));
-        } else {
-          row.addCell(new CellHolder(""));
+        for (final TimesheetDO timesheet : timeSheets) {
+            durationSum += timesheet.getDuration();
         }
-      } else {
-        row.addCell(new CellHolder(userFormatter.getFormattedUser(timesheet.getUser())));
-      }
-      final String taskPath = WicketTaskFormatter.getTaskPath(timesheet.getTaskId(), taskId, true, OutputType.PLAIN);
-      row.addCell(new CellHolder(HtmlHelper.formatXSLFOText(taskPath, true)));
-      row.addCell(
-          new CellHolder(
-              htmlDateTimeFormatter.getFormattedTimePeriod(timesheet.getTimePeriod(), RenderType.FOP, true)));
-      row.addCell(new CellHolder(htmlDateTimeFormatter.getFormattedDuration(timesheet.getTimePeriod())));
-      row.addCell(new CellHolder(HtmlHelper.formatXSLFOText(timesheet.getDescription(), true)));
-      if (StringUtils.isNotBlank(timesheet.getLocation()) == true) {
-        row.addCell(new CellHolder(HtmlHelper.formatXSLFOText(timesheet.getLocation(), true)));
-      } else {
-        row.addCell(new CellHolder(""));
-      }
-      list.add(row);
+
+        final List<RowHolder> list = new ArrayList<RowHolder>();
+        for (final TimesheetDO timesheet : timeSheets) {
+            final RowHolder row = new RowHolder();
+            if (actionFilter.getUserId() != null) {
+                final Kost2DO kost2 = kostCache.getKost2(timesheet.getKost2Id());
+                if (kost2 != null) {
+                    row.addCell(new CellHolder(OldKostFormatter.format(kost2)));
+                } else {
+                    row.addCell(new CellHolder(""));
+                }
+            } else {
+                row.addCell(new CellHolder(userFormatter.getFormattedUser(timesheet.getUser())));
+            }
+            final String taskPath = WicketTaskFormatter.getTaskPath(timesheet.getTaskId(), taskId, true, OutputType.PLAIN);
+            row.addCell(new CellHolder(HtmlHelper.formatXSLFOText(taskPath, true)));
+            row.addCell(
+                    new CellHolder(
+                            htmlDateTimeFormatter.getFormattedTimePeriod(timesheet.getTimePeriod(), RenderType.FOP, true)));
+            row.addCell(new CellHolder(htmlDateTimeFormatter.getFormattedDuration(timesheet.getTimePeriod())));
+            row.addCell(new CellHolder(HtmlHelper.formatXSLFOText(timesheet.getDescription(), true)));
+            if (StringUtils.isNotBlank(timesheet.getLocation()) == true) {
+                row.addCell(new CellHolder(HtmlHelper.formatXSLFOText(timesheet.getLocation(), true)));
+            } else {
+                row.addCell(new CellHolder(""));
+            }
+            list.add(row);
+        }
+
+        data.put("list", list);
+        data.put("title", getLocalizedString("timesheet.title.list"));
+        data.put("systemDate", htmlDateTimeFormatter.getFormattedDateTime(new Date()));
+        data.put("searchStringLabel", getLocalizedString("searchString"));
+
+        if (StringUtils.isNotEmpty(actionFilter.getSearchString()) == true) {
+            data.put("searchString", HtmlHelper.formatXSLFOText(actionFilter.getSearchString(), true));
+        } else {
+            data.put("searchString", NullObject.instance);
+        }
+
+        data.put("timePeriodLabel", getLocalizedString("timePeriod"));
+
+        data.put("startTime", htmlDateTimeFormatter.getFormattedDate(actionFilter.getStartTime()));
+        data.put("stopTime", htmlDateTimeFormatter.getFormattedDate(actionFilter.getStopTime()));
+        data.put("taskLabel", getLocalizedString("task"));
+
+        if (taskId != null) {
+            data.put("task", HtmlHelper.formatXSLFOText(WicketTaskFormatter.getTaskPath(taskId, true, OutputType.PLAIN), true));
+        } else {
+            data.put("task", NullObject.instance);
+        }
+        data.put("userLabel", getLocalizedString("timesheet.user"));
+
+        if (actionFilter.getUserId() != null) {
+            data.put("user", userFormatter.getFormattedUser(actionFilter.getUserId()));
+        } else {
+            data.put("user", NullObject.instance);
+        }
+        data.put("totalDurationLabel", getLocalizedString("timesheet.totalDuration"));
+
+        final String str1 = htmlDateTimeFormatter.getFormattedDuration(durationSum);
+        final String str2 = htmlDateTimeFormatter.getFormattedDuration(durationSum,
+                htmlDateTimeFormatter.getDurationOfWorkingDay(),
+                -1);
+        data.put("totalDuration", str1);
+        if (str1.equals(str2) == false) {
+            data.put("totalHours", str2);
+        } else {
+            data.put("totalHours", NullObject.instance);
+        }
+
+        data.put("optionsLabel", getLocalizedString("label.options"));
+        data.put("deletedLabel", getLocalizedString("deleted"));
+
+        data.put("deleted", actionFilter.getDeleted());
+
+        data.put("durationLabel", getLocalizedString("timesheet.duration"));
+        data.put("descriptionLabel", getLocalizedString("description"));
+        data.put("locationLabel", getLocalizedString("timesheet.location"));
+
+        return data;
     }
 
-    data.put("list", list);
-    data.put("title", getLocalizedString("timesheet.title.list"));
-    data.put("systemDate", htmlDateTimeFormatter.getFormattedDateTime(new Date()));
-    data.put("searchStringLabel", getLocalizedString("searchString"));
-
-    if (StringUtils.isNotEmpty(actionFilter.getSearchString()) == true) {
-      data.put("searchString", HtmlHelper.formatXSLFOText(actionFilter.getSearchString(), true));
-    } else {
-      data.put("searchString", NullObject.instance);
+    public HtmlDateTimeFormatter getHtmlDateTimeFormatter() {
+        return htmlDateTimeFormatter;
     }
 
-    data.put("timePeriodLabel", getLocalizedString("timePeriod"));
-
-    data.put("startTime", htmlDateTimeFormatter.getFormattedDate(actionFilter.getStartTime()));
-    data.put("stopTime", htmlDateTimeFormatter.getFormattedDate(actionFilter.getStopTime()));
-    data.put("taskLabel", getLocalizedString("task"));
-
-    if (taskId != null) {
-      data.put("task", WicketTaskFormatter.getTaskPath(taskId, true, OutputType.PLAIN));
-    } else {
-      data.put("task", NullObject.instance);
-    }
-    data.put("userLabel", getLocalizedString("timesheet.user"));
-
-    if (actionFilter.getUserId() != null) {
-      data.put("user", userFormatter.getFormattedUser(actionFilter.getUserId()));
-    } else {
-      data.put("user", NullObject.instance);
-    }
-    data.put("totalDurationLabel", getLocalizedString("timesheet.totalDuration"));
-
-    final String str1 = htmlDateTimeFormatter.getFormattedDuration(durationSum);
-    final String str2 = htmlDateTimeFormatter.getFormattedDuration(durationSum,
-        htmlDateTimeFormatter.getDurationOfWorkingDay(),
-        -1);
-    data.put("totalDuration", str1);
-    if (str1.equals(str2) == false) {
-      data.put("totalHours", str2);
-    } else {
-      data.put("totalHours", NullObject.instance);
+    public void setHtmlDateTimeFormatter(HtmlDateTimeFormatter htmlDateTimeFormatter) {
+        this.htmlDateTimeFormatter = htmlDateTimeFormatter;
     }
 
-    data.put("optionsLabel", getLocalizedString("label.options"));
-    data.put("deletedLabel", getLocalizedString("deleted"));
+    public UserFormatter getUserFormatter() {
+        return userFormatter;
+    }
 
-    data.put("deleted", actionFilter.getDeleted());
-
-    data.put("durationLabel", getLocalizedString("timesheet.duration"));
-    data.put("descriptionLabel", getLocalizedString("description"));
-    data.put("locationLabel", getLocalizedString("timesheet.location"));
-
-    return data;
-  }
-
-  public HtmlDateTimeFormatter getHtmlDateTimeFormatter()
-  {
-    return htmlDateTimeFormatter;
-  }
-
-  public void setHtmlDateTimeFormatter(HtmlDateTimeFormatter htmlDateTimeFormatter)
-  {
-    this.htmlDateTimeFormatter = htmlDateTimeFormatter;
-  }
-
-  public UserFormatter getUserFormatter()
-  {
-    return userFormatter;
-  }
-
-  public void setUserFormatter(UserFormatter userFormatter)
-  {
-    this.userFormatter = userFormatter;
-  }
+    public void setUserFormatter(UserFormatter userFormatter) {
+        this.userFormatter = userFormatter;
+    }
 
 }

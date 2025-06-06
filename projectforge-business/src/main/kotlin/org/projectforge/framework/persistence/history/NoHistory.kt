@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,6 +25,8 @@ package org.projectforge.framework.persistence.history
 
 /**
  * Any property annotated with this annotation will not be stored in the history.
+ * This annotation is used by the [HistoryServiceUtils] to determine which properties should not be stored in the history.
+ * @see HistoryServiceUtils
  */
 @Retention(AnnotationRetention.RUNTIME)
 annotation class NoHistory

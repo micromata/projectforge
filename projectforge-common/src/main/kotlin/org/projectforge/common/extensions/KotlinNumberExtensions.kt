@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,6 +26,7 @@ package org.projectforge.common.extensions
 import org.projectforge.common.FormatterUtils
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.math.RoundingMode
 import java.text.NumberFormat
 import java.util.*
 import kotlin.math.absoluteValue
@@ -42,14 +43,13 @@ fun Number?.format(locale: Locale? = null, scale: Int? = null): String {
     if (scale != null) {
         format.maximumFractionDigits = scale
         format.minimumFractionDigits = scale
+        format.roundingMode = RoundingMode.HALF_UP
     }
     return when (this) {
-        is BigDecimal -> format.format(this)
-        is BigInteger -> format.format(this)
-        is Double -> format.format(this)
-        is Float -> format.format(this)
-        is Int -> format.format(this)
-        is Long -> format.format(this)
+        is BigDecimal, is BigInteger, is Double, is Float, is Int, is Long -> {
+            format.format(this)
+        }
+
         else -> format.format(this.toDouble())
     }
 }
@@ -102,19 +102,39 @@ fun Number?.formatBytes(locale: Locale? = null): String {
     return FormatterUtils.formatBytes(this.toLong(), locale ?: Locale.getDefault())
 }
 
-fun Number?.formatMillis(): String {
+/**
+ * Formats a number given in millis to a string in the format HH:mm:ss.SSS.
+ */
+fun Number?.formatMillis(showMillis: Boolean = true, showSeconds: Boolean = true): String {
     this ?: return ""
     val millis = this.toLong()
     val hours = millis / (1000 * 60 * 60)
-    val minutes = (millis / (1000 * 60)) % 60
-    val seconds = (millis / 1000) % 60
+    var minutes = (millis / (1000 * 60)) % 60
+    var seconds = (millis / 1000) % 60
     val milliseconds = millis % 1000
-
+    if (!showMillis && milliseconds >= 500) {
+        ++seconds // Round up.
+    }
+    if (!showSeconds && seconds >= 30) {
+        ++minutes // Round up.
+    }
     return when {
-        hours > 0 -> String.format("%d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds)
+        hours > 0 || !showSeconds -> if (showMillis && showSeconds) {
+            String.format("%d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds)
+        } else if (showSeconds) {
+            String.format("%d:%02d:%02d", hours, minutes, seconds)
+        } else {
+            String.format("%02d:%02d", hours, minutes)
+        }
         // minutes > 0 -> String.format("%02d:%02d.%03d", minutes, seconds, milliseconds)
         // else -> String.format("%02d.%03d", seconds, milliseconds)
-        else -> String.format("%02d:%02d.%03d", minutes, seconds, milliseconds)
+        else -> if (showMillis && showSeconds) {
+            String.format("%02d:%02d.%03d", minutes, seconds, milliseconds)
+        } else if (showSeconds) {
+            String.format("%02d:%02d", minutes, seconds)
+        } else {
+            String.format("%02d", minutes)
+        }
     }
 }
 
@@ -145,3 +165,18 @@ fun Number?.isZeroOrNull(): Boolean {
     }
 }
 
+private val MILLIS_PER_HOUR = BigDecimal(1000 * 60 * 60)
+
+private val MILLIS_PER_24H = BigDecimal(1000 * 60 * 60 * 24)
+
+fun Number.millisAsHours(): BigDecimal {
+    return this.asBigDecimal().divide(MILLIS_PER_HOUR, 2, RoundingMode.HALF_UP)
+}
+
+/**
+ * Returns the given number as a fraction of 24 hours. This format is useful for Excel.
+ * @return The fraction of 24 hours.
+ */
+fun Number.millisAsFractionOf24h(): BigDecimal {
+    return this.asBigDecimal().divide(MILLIS_PER_24H, 8, RoundingMode.HALF_UP)
+}

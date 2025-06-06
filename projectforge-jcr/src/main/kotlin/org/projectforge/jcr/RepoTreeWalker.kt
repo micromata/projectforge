@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,10 @@
 
 package org.projectforge.jcr
 
+import mu.KotlinLogging
 import javax.jcr.Node
+
+private val log = KotlinLogging.logger {}
 
 open class RepoTreeWalker(
   val repoService: RepoService,
@@ -54,10 +57,14 @@ open class RepoTreeWalker(
         }
       }
     }
-    node.nodes?.let {
-      while (it.hasNext()) {
-        walk(it.nextNode())
+    try {
+      node.nodes?.let {
+        while (it.hasNext()) {
+          walk(it.nextNode())
+        }
       }
+    } catch (e: Exception) {
+      log.error { "Error while reading children of node '${node.path}': ${e.message}" }
     }
   }
 

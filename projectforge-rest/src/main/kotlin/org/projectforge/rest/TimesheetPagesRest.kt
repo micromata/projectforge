@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,12 +24,12 @@
 package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
 import org.projectforge.Constants
 import org.projectforge.business.PfCaches
-import org.projectforge.business.fibu.kost.KostCache
-import org.projectforge.business.fibu.kost.KundeCache
-import org.projectforge.business.fibu.kost.ProjektCache
-import org.projectforge.business.systeminfo.SystemInfoCache
+import org.projectforge.business.configuration.ConfigurationService
+import org.projectforge.business.scripting.ScriptParameterType
+import org.projectforge.business.system.SystemInfoCache
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.timesheet.*
 import org.projectforge.business.user.service.UserService
@@ -58,7 +58,6 @@ import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import java.util.*
-import jakarta.validation.Valid
 
 @RestController
 @RequestMapping("${Rest.URL}/timesheet")
@@ -72,16 +71,10 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     private lateinit var caches: PfCaches
 
     @Autowired
+    private lateinit var configurationService: ConfigurationService
+
+    @Autowired
     private lateinit var userService: UserService
-
-    @Autowired
-    private lateinit var kostCache: KostCache
-
-    @Autowired
-    private lateinit var kundeCache: KundeCache
-
-    @Autowired
-    private lateinit var projektCache: ProjektCache
 
     @Autowired
     private lateinit var teamEventRest: TeamEventPagesRest
@@ -109,6 +102,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         val dayName: String,
         val timePeriod: String,
         val duration: String,
+        val aiTimeSavings: String,
         val deleted: Boolean? = null,
     )
 
@@ -133,7 +127,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         val timesheetDO = TimesheetDO()
         dto.copyTo(timesheetDO)
         if (timesheetDO.kost2 != null && baseDao.getKost2List(timesheetDO).isNullOrEmpty()) {
-            // Work arround: if kost 2 was selected in client before new task without kost2 assignments was chosen,
+            // Work around: if kost 2 was selected in client before new task without kost2 assignments was chosen,
             // the former kost2 selection will be sent by the client.
             timesheetDO.kost2 = null
         }
@@ -174,6 +168,9 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             sheet.reference = recentEntry.reference
             sheet.tag = recentEntry.tag
             sheet.description = recentEntry.description
+            recentEntry.timeSavedByAIUnit?.let {
+                sheet.timeSavedByAIUnit = it
+            }
             if (sheet.user == null && recentEntry.userId != null) {
                 sheet.user = User.getUser(recentEntry.userId)
             }
@@ -182,6 +179,14 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             sheet.user = User.getUser(ThreadLocalUserContext.loggedInUserId) // Use current user.
         }
         return sheet
+    }
+
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: Timesheet) {
+        if (baseDao.timeSavingsByAIEnabled) {
+            timesheetDao.validateTimeSavingsByAI(dto.timeSavedByAI, dto.timeSavedByAIUnit)?.let {
+                validationErrors.add(ValidationError(translate(it), fieldId = "timeSavedByAI"))
+            }
+        }
     }
 
     override fun onAfterEdit(obj: TimesheetDO, postData: PostData<Timesheet>, event: RestButtonEvent): ResponseAction {
@@ -207,12 +212,15 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                 dayName = day?.dayOfWeekAsShortString ?: "??",
                 timePeriod = dateTimeFormatter.getFormattedTimePeriodOfDay(it.timePeriod),
                 duration = dateTimeFormatter.getFormattedDuration(it.timePeriod),
+                aiTimeSavings = if (baseDao.timeSavingsByAIEnabled) {
+                    AITimeSavings.getFormattedTimeSavedByAI(it)
+                } else "",
                 deleted = timesheet.deleted,
             )
         }
         var duration = 0L
         resultSet.resultSet.forEach { timesheet ->
-            duration += timesheet.getDuration()
+            duration += timesheet.duration
         }
         val md = MarkdownBuilder()
         md.appendPipedValue(
@@ -294,13 +302,15 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             .add("dayName", headerName = "calendar.dayOfWeekShortLabel", width = 30)
             .add("timePeriod", headerName = "timePeriod", width = 140)
             .add("duration", headerName = "timesheet.duration", width = 50)
-            .add(lc, "location", "reference")
+        if (baseDao.timeSavingsByAIEnabled) {
+            table.add("aiTimeSavings", headerName = "timesheet.ai.timeSavedByAI", width = 50)
+        }
+        table.add(lc, "location", "reference")
             .withMultiRowSelection(request, magicFilter)
         if (!baseDao.getTags().isNullOrEmpty()) {
             table.add(lc, "tag", width = 100)
         }
         table.add(lc, "description", width = 1000)
-        layout.add(UILabel("'${translate("timesheet.totalDuration")}: tbd.")) // See TimesheetListForm
     }
 
     /**
@@ -337,6 +347,35 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         }
         row.add(UICol(md = 6).add(referenceField))
         layout.add(descriptionArea)
+        if (baseDao.timeSavingsByAIEnabled) {
+            layout.add(
+                UIRow()
+                    .add(UICol(md = 3).add(lc, TimesheetDO::timeSavedByAI))
+                    .add(
+                        UICol(md = 3).add(
+                            UISelect<ScriptParameterType>(
+                                "timeSavedByAIUnit",
+                                required = true,
+                                label = "timesheet.ai.timeSavedByAIUnit",
+                                tooltip = "timesheet.ai.timeSavedByAIUnit.info",
+                            ).buildValues(
+                                TimesheetDO.TimeSavedByAIUnit::class.java
+                            )
+                        )
+                    )
+                    .add(UICol(md = 6).add(lc, TimesheetDO::timeSavedByAIDescription))
+            )
+        }
+        if (baseDao.timeSavingsByAIEnabled) {
+            configurationService.timesheetNoteSavingsByAI?.let { hint ->
+                if (hint.isNotBlank()) {
+                    layout.layoutBelowActions.add(
+                        UIAlert(hint, title = "timesheet.ai.timeSavedByAI", color = UIColor.SECONDARY, markdown = true)
+                    )
+                }
+            }
+        }
+
         JiraSupport.createJiraElement(dto.description, descriptionArea)
             ?.let { layout.add(UIRow().add(UICol().add(it))) }
         Favorites.addTranslations(layout.translations)
@@ -371,7 +410,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     }
 
     /**
-     * @return The list fo recent edited time sheets of the current logged in user.
+     * @return The list of recent edited time sheets of the current logged-in user.
      */
     @GetMapping("recentList")
     fun getRecentList(): RecentTimesheets {
@@ -388,6 +427,12 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                 ts.task = Task()
                 ts.task!!.copyFromMinimal(task)
             }
+            it.timeSavedByAIUnit?.let {
+                ts.timeSavedByAIUnit = it
+            }
+            // Don't copy these values to the timesheet. The user should enter them manually.
+            // ts.timeSavedByAI = it.timeSavedByAI
+            // ts.timeSavedByAIDescription = it.timeSavedByAIDescription
             val user = userService.getUser(it.userId)
             if (user != null) {
                 ts.user = User()
@@ -399,6 +444,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                     val kost2 = Kost2()
                     ts.kost2 = kost2
                     kost2.copyFromMinimal(kost2DO)
+                    kost2.formattedNumber = kost2DO.formattedNumber
                     kost2DO.projekt?.let { projektDO ->
                         val projekt = Project(projektDO.id, name = projektDO.name)
                         kost2.project = projekt

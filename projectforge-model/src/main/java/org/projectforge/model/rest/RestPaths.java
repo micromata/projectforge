@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -36,21 +36,7 @@ public class RestPaths
 
   public static final String REST_START_MULTI_SELECTION = "startMultiSelection";
 
-  public static final String ADDRESS = "address";
-
-  public static final String AUTHENTICATE = "authenticate";
-
-  public static final String AUTHENTICATE_GET_TOKEN_METHOD = "getToken";
-
-  public static final String AUTHENTICATE_GET_TOKEN = AUTHENTICATE + "/" + AUTHENTICATE_GET_TOKEN_METHOD;
-
-  public static final String AUTHENTICATE_INITIAL_CONTACT_METHOD = "initialContact";
-
-  public static final String AUTHENTICATE_INITIAL_CONTACT = AUTHENTICATE + "/" + AUTHENTICATE_INITIAL_CONTACT_METHOD;
-
   public static final String TASK = "task";
-
-  public static final String TIMESHEET = "timesheet";
 
   public static final String TIMESHEET_TEMPLATE = "timesheetTemplate";
 
@@ -77,12 +63,6 @@ public class RestPaths
   public static final String UNDELETE = "undelete";
 
   public static final String CLONE = "clone";
-
-  public static final String TREE = "tree";
-
-  public static final String TEAMCAL = "teamcal";
-
-  public static final String TEAMEVENTS = "teamevents";
 
   public static final String SET_COLUMN_STATES = "setColumnStates";
 

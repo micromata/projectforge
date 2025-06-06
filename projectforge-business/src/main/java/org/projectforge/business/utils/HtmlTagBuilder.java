@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -97,7 +97,7 @@ public class HtmlTagBuilder
   }
 
   /**
-   * Appends '>' character for closing the start tag. Only useable in quick and dirty mode. Otherwise a
+   * Appends '>' character for closing the start tag. Only usable in quick and dirty mode. Otherwise a
    * NullPointerException will be thrown.
    */
   public void finishStartTag()
@@ -106,7 +106,7 @@ public class HtmlTagBuilder
   }
 
   /**
-   * Appends " />" character for closing the start tag. Only useable in quick and dirty mode. Otherwise a
+   * Appends " />" character for closing the start tag. Only usable in quick and dirty mode. Otherwise a
    * NullPointerException will be thrown.
    */
   public void finishEmptyTag()

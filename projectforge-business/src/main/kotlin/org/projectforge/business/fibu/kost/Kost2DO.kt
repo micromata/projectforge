@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu.kost
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
@@ -33,6 +34,7 @@ import org.projectforge.business.fibu.OldKostFormatter
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
 
@@ -111,6 +113,7 @@ open class Kost2DO : DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
     @PropertyInfo(i18nKey = "fibu.kost2.art")
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "kost2_art_id", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var kost2Art: Kost2ArtDO? = null
 
     @PropertyInfo(i18nKey = "fibu.kost2.workFraction")
@@ -139,6 +142,7 @@ open class Kost2DO : DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "projekt_id")
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var projekt: ProjektDO? = null
 
     /**

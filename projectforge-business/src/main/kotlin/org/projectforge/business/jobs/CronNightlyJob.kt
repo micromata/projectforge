@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,6 +24,7 @@
 package org.projectforge.business.jobs
 
 import mu.KotlinLogging
+import org.projectforge.common.extensions.formatMillis
 import org.projectforge.framework.persistence.search.HibernateSearchReindexer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
@@ -45,14 +46,16 @@ class CronNightlyJob {
     //@Scheduled(cron = "0 30 2 * * *")
     @Scheduled(cron = "\${projectforge.cron.nightly}")
     fun execute() {
+        val started = System.currentTimeMillis()
         log.info("Nightly job started.")
-
-        try {
-            hibernateSearchReindexer.execute()
-        } catch (ex: Throwable) {
-            log.error("While executing hibernate search re-index job: " + ex.message, ex)
-        }
-
-        log.info("Nightly job job finished.")
+        Thread {
+            try {
+                hibernateSearchReindexer.execute()
+            } catch (ex: Throwable) {
+                log.error("While executing hibernate search re-index job: " + ex.message, ex)
+            } finally {
+                log.info("Nightly job job finished after ${(System.currentTimeMillis() - started).formatMillis()}.")
+            }
+        }.start()
     }
 }

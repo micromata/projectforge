@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,7 +26,7 @@ package org.projectforge.business.task;
 import org.projectforge.business.task.TaskTree;
 
 /**
- * For backward compability, please use TaskTree as autowired member instead.
+ * For backward compatibility, please use TaskTree as autowired member instead.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class TaskTreeHelper {

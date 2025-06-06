@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,6 +24,7 @@
 package org.projectforge.business.book
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
@@ -36,6 +37,7 @@ import java.time.LocalDate
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.history.NoHistory
 
 /**
@@ -73,6 +75,7 @@ open class BookDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:Fetch(FetchMode.SELECT)
     @get:JoinColumn(name = "lend_out_by")
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var lendOutBy: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "date")

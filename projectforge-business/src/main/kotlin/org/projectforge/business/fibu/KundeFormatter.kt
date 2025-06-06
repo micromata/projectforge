@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -80,7 +80,7 @@ class KundeFormatter {
          * @return
          */
         @JvmStatic
-        fun formatKundeAsString(kunde: KundeDO?, kundeText: String?): String {
+        fun formatKundeAsString(kunde: KundeDO?, kundeText: String? = null): String {
             return internalFormatKundeAsString(instance.kundeCache.getKundeIfNotInitialized(kunde), kundeText)
         }
 

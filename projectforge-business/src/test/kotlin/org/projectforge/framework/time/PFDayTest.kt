@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -89,13 +89,13 @@ class PFDayTest {
     @Test
     fun weekOfTest() {
         ConfigurationServiceAccessor.internalSetMinimalDaysInFirstWeekForJunitTests(4)
-        PFDay._weekFields = null // Force recalculation of weekFields
+        PFDay.resetWeekFieldsForTest() // Force recalculation of weekFields
 
         val date = PFDay.withDate(2020, Month.OCTOBER, 4)
         assertEquals(40, date.weekOfYear)
 
         ConfigurationServiceAccessor.internalSetMinimalDaysInFirstWeekForJunitTests(null)
-        PFDay._weekFields = null // Force recalculation of weekFields
+        PFDay.resetWeekFieldsForTest() // Force recalculation of weekFields
     }
 
     private fun checkDate(date: LocalDate, year: Int, month: Month, dayOfMonth: Int) {

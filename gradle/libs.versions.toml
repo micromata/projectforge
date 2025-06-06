@@ -4,13 +4,13 @@
 [versions]
 org-projectforge = "8.0.0-SNAPSHOT"
 
-com-fasterxml-jackson = "2.17.2"
+com-fasterxml-jackson = "2.18.2"
 com-google-zxing-core = "3.5.3"
 com-google-zxing-javase = "3.5.3"
 com-googlecode-ez-vcard = "0.12.1"
 com-googlecode-gson = "2.11.0"
 com-googlecode-json-simple = "1.1.1"
-com-googlecode-lanterna = "3.1.2"
+com-googlecode-lanterna = "3.1.3"
 com-itextpdf = "5.5.13.4"
 com-thoughtworks-xstream = "1.4.21"
 com-webauthn4j-core = "0.28.2.RELEASE"
@@ -21,7 +21,7 @@ commons-io = "2.16.1"
 de-micromata-merlin = "1.1.16"
 io-dropwizard-metrics-core = "4.2.26"
 io-spring-dependency-management = "1.1.6" # io.spring.dependency-management.gradle.plugin
-fr-opensagres-xdocreport-poi-xwpf-converter-pdf = "2.0.4"
+fr-opensagres-xdocreport-poi-xwpf-converter-pdf = "2.1.0"
 jakarta-activation-api = "2.1.3"
 jakarta-annotation-api = "3.0.0"
 org-eclipse-angus-jakarta-mail = "2.0.3"
@@ -37,20 +37,21 @@ net-lingala-zip4j-zip4j = "2.11.5"
 net-sourceforge-mpxj = "4.3.0"
 org-apache-commons-collections4 = "4.4"
 org-apache-commons-lang3 = "3.16.0"
-org-apache-commons-text = "1.12.0"
+org-apache-commons-text = "1.13.0"
 org-apache-directory-server-apacheds-server-integ = "1.5.7"
 org-apache-groovy = "4.0.22"
 org-apache-httpcomponents-client5-httpclient5 = "5.4.1"
 org-apache-httpcomponents-core5 = "5.3.1" # Needed by httpclient5
-org-apache-jackrabbit-oak-jcr = "1.66.0"
-org-apache-jackrabbit-oak-segment-tar = "1.66.0"
+org-apache-jackrabbit-oak = "1.74.0"
 org-apache-poi = "5.3.0"
 org-apache-poi-ooxml = "5.3.0"
-org-apache-wicket-myextensions = "10.2.0"
-org-apache-wicket-spring = "10.2.0"
-org-apache-wicket-tester = "10.2.0"
+org-apache-wicket-myextensions = "10.5.0"
+org-apache-wicket-spring = "10.5.0"
+org-apache-wicket-tester = "10.5.0"
+org-wicketstuff-html5 = "10.5.0"
+org-wicketstuff-select2 = "10.5.0"
 org-apache-xmlgraphics-batik = "1.17"
-org-apache-xmlgraphics-fop = "2.9"
+org-apache-xmlgraphics-fop = "2.10"
 org-apache-xmlgraphics-commons = "2.9"
 org-aspectj-aspectjtools = "1.9.22.1"
 org-bouncycastle-bcprov-jdk18on = "1.79"
@@ -58,12 +59,11 @@ org-dom4j = "2.1.4"
 org-flywaydb = "10.22.0"
 org-glassfish-jaxb = "4.0.5"
 org-hibernate-search = "7.2.1.Final"
-org-hibernate-orm = "6.6.3.Final"
+org-hibernate-orm = "6.6.4.Final"
+org-hibernate-validator = "8.0.2.Final"
 org-hsqldb-hsqldb = "2.7.4"
 org-jetbrains-kotlin = "2.0.21"
 org-jetbrains-kotlinx-coroutines-core = "1.9.0"
-org-jetbrains-kotlinx-coroutines-slf4j = "1.8.1"
-org-jetbrains-intellij-deps-trove4j = "1.0.20200330" # Needed by Kotlin scripting engine. Must match the version of the Kotlin compiler.
 org-jfree-jfreechart = "1.5.5"
 org-junit-jupiter = "5.10.3"
 org-junit-platform-launcher = "1.10.3"
@@ -74,16 +74,14 @@ org-mockito-kotlin = "5.4.0"
 org-mozilla-rhino = "1.7.15"
 org-postgresql = "42.7.4"
 org-reflections = "0.10.2"
-org-springframework-boot = "3.3.6"
-org-apache-tomcat-embed = "10.1.33" # must match spring-boot
-org-springframework-spring = "6.1.15"
+org-springframework-boot = "3.3.10"
+org-apache-tomcat-embed = "10.1.39" # must match spring-boot
+org-springframework-spring = "6.1.18"
 org-springframework-security = "6.4.1"
-org-wicketstuff-html5 = "10.2.0"
-org-wicketstuff-select2 = "10.2.0"
 se-sawano-java-alphanumeric-comparator = "1.4.1"
 
 # logging
-ch-qos-logback = "1.5.12"
+ch-qos-logback = "1.5.15"
 io-github-microutils-kotlin-logging = "3.0.5"
 jboss-logging = "3.6.0.Final"
 org-apache-logging-log4j = "2.24.2" # Needed by poi.
@@ -112,6 +110,7 @@ com-fasterxml-jackson-core-annotations = { module = "com.fasterxml.jackson.core:
 com-fasterxml-jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "com-fasterxml-jackson" }
 com-fasterxml-jackson-core-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "com-fasterxml-jackson" }
 com-fasterxml-jackson-dataformat-cbor = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-cbor", version.ref = "com-fasterxml-jackson" }
+com-fasterxml-jackson-datatype-hibernate6 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-hibernate6", version.ref = "com-fasterxml-jackson" }
 com-fasterxml-jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "com-fasterxml-jackson" }
 com-fasterxml-jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "com-fasterxml-jackson" }
 com-googlecode-gson = { module = "com.google.code.gson:gson", version.ref = "com-googlecode-gson" }
@@ -150,14 +149,16 @@ org-apache-commons-lang3 = { module = "org.apache.commons:commons-lang3", versio
 org-apache-commons-text = { module = "org.apache.commons:commons-text", version.ref = "org-apache-commons-text" }
 org-apache-groovy-all = { module = "org.apache.groovy:groovy-all", version.ref = "org-apache-groovy" }
 org-apache-httpcomponents-client5-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "org-apache-httpcomponents-client5-httpclient5" }
-org-apache-jackrabbit-oak-jcr = { module = "org.apache.jackrabbit:oak-jcr", version.ref = "org-apache-jackrabbit-oak-jcr" }
-org-apache-jackrabbit-oak-segment-tar = { module = "org.apache.jackrabbit:oak-segment-tar", version.ref = "org-apache-jackrabbit-oak-segment-tar" }
+org-apache-jackrabbit-oak-jcr = { module = "org.apache.jackrabbit:oak-jcr", version.ref = "org-apache-jackrabbit-oak" }
+org-apache-jackrabbit-oak-segment-tar = { module = "org.apache.jackrabbit:oak-segment-tar", version.ref = "org-apache-jackrabbit-oak" }
+org-apache-jackrabbit-oak-store-document = { module = "org.apache.jackrabbit:oak-store-document", version.ref = "org-apache-jackrabbit-oak" }
 org-apache-logging-log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "org-apache-logging-log4j" }
 org-apache-logging-log4j-to-slf4j = { module = "org.apache.logging.log4j:log4j-to-slf4j", version.ref = "org-apache-logging-log4j" }
 org-apache-poi = { module = "org.apache.poi:poi", version.ref = "org-apache-poi" }
 org-apache-poi-ooxml = { module = "org.apache.poi:poi-ooxml", version.ref = "org-apache-poi-ooxml" }
 org-apache-tomcat-embed-core = { module = "org.apache.tomcat.embed:tomcat-embed-core", version.ref = "org-apache-tomcat-embed" }
 org-apache-tomcat-embed-websocket = { module = "org.apache.tomcat.embed:tomcat-embed-websocket", version.ref = "org-apache-tomcat-embed" }
+org-apache-tomcat-embed-el = { module = "org.apache.tomcat.embed:tomcat-embed-el", version.ref = "org-apache-tomcat-embed" }
 org-apache-wicket-myextensions = { module = "org.apache.wicket:wicket-extensions", version.ref = "org-apache-wicket-myextensions" }
 org-apache-wicket-spring = { module = "org.apache.wicket:wicket-spring", version.ref = "org-apache-wicket-spring" }
 org-apache-xmlgraphics-batik-codec = { module = "org.apache.xmlgraphics:batik-codec", version.ref = "org-apache-xmlgraphics-batik" }
@@ -177,6 +178,7 @@ org-glassfish-jaxb-xjc = { module = "org.glassfish.jaxb:jaxb-xjc", version.ref =
 org-hibernate-orm-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "org-hibernate-orm" }
 org-hibernate-search-backend-lucene = { module = "org.hibernate.search:hibernate-search-backend-lucene", version.ref = "org-hibernate-search" }
 org-hibernate-search-mapper-orm = { module = "org.hibernate.search:hibernate-search-mapper-orm", version.ref = "org-hibernate-search" }
+org-hibernate-validator = { module = "org.hibernate.validator:hibernate-validator", version.ref = "org-hibernate-validator" }
 org-hsqldb-hsqldb = { module = "org.hsqldb:hsqldb", version.ref = "org-hsqldb-hsqldb" }
 org-jetbrains-kotlin-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "org-jetbrains-kotlin" }
 org-jetbrains-kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "org-jetbrains-kotlin" }
@@ -196,6 +198,7 @@ org-slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "org-slf4j" }
 org-slf4j-jul-to-slf4j = { module = "org.slf4j:jul-to-slf4j", version.ref = "org-slf4j" }
 org-slf4j-jcl-over-slf4j = { module = "org.slf4j:jcl-over-slf4j", version.ref = "org-slf4j" }
 org-springframework-boot = { module = "org.springframework.boot:spring-boot", version.ref = "org-springframework-boot" }
+org-springframework-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure", version.ref = "org-springframework-boot" }
 org-springframework-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "org-springframework-boot" }

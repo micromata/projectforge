@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -99,29 +99,23 @@ class KostZuweisungExport {
     }
 
     /**
-     * Export all cost assignements of the given invoices as excel list.
+     * Export all cost assignments of the given invoices as excel list.
      */
     fun exportRechnungen(list: List<AbstractRechnungDO>, sheetTitle: String): ByteArray? {
         rechnungService.fetchPositionen(list)
         val kostZuweisungenMap = rechnungService.selectKostzuweisungen(list).groupBy { it.rechnungsPosition?.id }
         val kostZuweisungen = mutableListOf<KostZuweisungDO>()
-        list.forEach { rechnung ->
+        list.filter { it.isValid }.forEach { rechnung ->
             rechnung.abstractPositionen?.forEach { position ->
                 val zuweisungen = kostZuweisungenMap[position.id]
-                if (zuweisungen.isNullOrEmpty() || zuweisungen.all { it.netto.isZeroOrNull() }) {
-                    kostZuweisungen.add(KostZuweisungDO().also { // Empty kostzuweisung:
-                        it.rechnungsPosition = position as RechnungsPositionDO
-                    })
-                } else {
-                    kostZuweisungen.addAll(zuweisungen.filter { !it.netto.isZeroOrNull() })
-                }
+                zuweisungen?.filter { !it.netto.isZeroOrNull() }?.forEach { kostZuweisungen.add(it) }
             }
         }
         return export(list, kostZuweisungen, sheetTitle)
     }
 
     /**
-     * Export all cost assignements of the given invoices as excel list.
+     * Export all cost assignments of the given invoices as excel list.
      */
     fun exportEingangsRechnungen(list: List<AbstractRechnungDO>, sheetTitle: String): ByteArray? {
         rechnungService.fetchPositionen(list)
@@ -216,7 +210,7 @@ class KostZuweisungExport {
             }
             var konto: KontoDO? = null
             if (rechnung is RechnungDO) {
-                konto = kontoCache.getKontoIfNotInitialized(rechnung.konto)
+                konto = kontoCache.getKonto(rechnung)
             } else if (rechnung is EingangsrechnungDO) {
                 konto = kontoCache.getKontoIfNotInitialized(rechnung.konto)
             }

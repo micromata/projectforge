@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -279,7 +279,7 @@ object SortAndCheckI18nPropertiesMain {
   }
 
   /**
-   * Single apostrophs of i18n messages (containg params) will be replaced (if not used as escape chars).
+   * Single apostrophs of i18n messages (containing params) will be replaced (if not used as escape chars).
    * "Don't believe the hype." -> "Don't believe the hype."
    * "Don''t believe {0}." -> "Don't believe (0})."
    * "Don''t escape '{0}'." -> "Don''t escape '{0}'."

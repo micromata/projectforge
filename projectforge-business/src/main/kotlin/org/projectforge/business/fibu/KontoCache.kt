@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,10 +25,10 @@ package org.projectforge.business.fibu
 
 import mu.KotlinLogging
 import org.apache.commons.collections4.MapUtils
-import org.hibernate.Hibernate
 import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.framework.cache.AbstractCache
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -101,7 +101,7 @@ open class KontoCache : AbstractCache() {
      */
     fun getKontoIfNotInitialized(konto: KontoDO?): KontoDO? {
         konto ?: return null
-        if (Hibernate.isInitialized(konto)) {
+        if (HibernateUtils.isFullyInitialized(konto)) {
             return konto
         }
         return getKonto(konto.id)

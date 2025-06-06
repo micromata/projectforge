@@ -5,12 +5,12 @@ import { Input } from '../../../components/design';
 
 function FavoriteNameInput(
     {
-        defaultValue,
+        defaultValue = '',
         id,
         label,
         onSave,
         tooltip,
-        rename,
+        rename = false,
         ...props
     },
 ) {
@@ -56,13 +56,6 @@ FavoriteNameInput.propTypes = {
     className: PropTypes.string,
     defaultValue: PropTypes.string,
     tooltip: PropTypes.string,
-};
-
-FavoriteNameInput.defaultProps = {
-    className: '',
-    defaultValue: '',
-    rename: false,
-    tooltip: undefined,
 };
 
 export default FavoriteNameInput;

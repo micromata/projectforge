@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.business.task
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
@@ -36,6 +37,7 @@ import org.projectforge.common.i18n.Priority
 import org.projectforge.common.task.TaskStatus
 import org.projectforge.common.task.TimesheetBookingStatus
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.search.ClassBridge
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -79,6 +81,7 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
     @PropertyInfo(i18nKey = "task.parentTask")
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "parent_task_id")
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var parentTask: TaskDO? = null
 
     @PropertyInfo(i18nKey = "task.title")
@@ -162,6 +165,7 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
     @PropertyInfo(i18nKey = "task.assignedUser")
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "responsible_user_id")
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var responsibleUser: PFUserDO? = null
 
     /**
@@ -274,6 +278,7 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
         fetch = FetchType.LAZY
     )
     @get:JoinColumn(name = "gantt_predecessor_fk")
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var ganttPredecessor: TaskDO? = null
 
     /** -&gt; Gantt  */

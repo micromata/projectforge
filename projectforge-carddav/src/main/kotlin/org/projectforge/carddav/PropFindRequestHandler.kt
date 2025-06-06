@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -45,9 +45,9 @@ internal object PropFindRequestHandler {
         log.debug { "handlePropFindCall: ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
         CardDavUtils.handleProps(requestWrapper, response) ?: return // No properties response is handled in handleProps.
         val content = generatePropFindResponse(writerContext)
-        log.debug { "handlePropFindCall: response.content=[${TestUtils.sanitizeContent(content)}]" }
+        log.debug { "handlePropFindCall: response.content=[${CardDavServerDebugWriter.sanitizeContent(content)}]" }
         CardDavUtils.setMultiStatusResponse(response, content)
-        TestUtils.writeRequestResponseLogInTestMode(requestWrapper, response, content)
+        CardDavServerDebugWriter.writeRequestResponseLogInTestMode(requestWrapper, response, content)
     }
 
     /**
@@ -59,9 +59,9 @@ internal object PropFindRequestHandler {
         log.debug { "handlePropFindPrincipalsCall: ${requestWrapper.request.method}: '${requestWrapper.requestURI}' body=[${requestWrapper.body}]" }
         CardDavUtils.handleProps(requestWrapper, response) ?: return // No properties response is handled in handleProps.
         val content = generatePropFindResponse(writerContext)
-        log.debug { "handlePropFindPrincipalsCall: response=[${TestUtils.sanitizeContent(content)}]" }
+        log.debug { "handlePropFindPrincipalsCall: response=[${CardDavServerDebugWriter.sanitizeContent(content)}]" }
         CardDavUtils.setMultiStatusResponse(response, content)
-        TestUtils.writeRequestResponseLogInTestMode(requestWrapper, response, content)
+        CardDavServerDebugWriter.writeRequestResponseLogInTestMode(requestWrapper, response, content)
     }
 
     /**

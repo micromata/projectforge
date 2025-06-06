@@ -73,6 +73,4 @@ function CalendarSubscriptionInfo({ values }) {
 
 CalendarSubscriptionInfo.propTypes = {};
 
-CalendarSubscriptionInfo.defaultProps = {};
-
 export default CalendarSubscriptionInfo;

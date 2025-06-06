@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -42,6 +42,7 @@ import org.projectforge.framework.access.GroupTaskAccessDO
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.i18n.InternalErrorException
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.utils.NumberHelper.greaterZero
@@ -273,7 +274,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
      */
     fun getTaskIfNotInitialized(task: TaskDO?): TaskDO? {
         task ?: return null
-        if (Hibernate.isInitialized(task)) {
+        if (HibernateUtils.isFullyInitialized(task)) {
             return task
         }
         return getTaskById(task.id)
@@ -570,7 +571,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
         get() {
             synchronized(this) {
                 if (this.orderPositionReferencesDirty) {
-                    log.info{"TaskTree: refreshing order position references..."}
+                    log.info { "TaskTree: refreshing order position references..." }
                     val duration = LogDuration()
                     val references = mutableMapOf<Long, MutableSet<OrderPositionInfo>>()
                     persistenceService.runIsolatedReadOnly { context ->
@@ -600,7 +601,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
                     }
                     this.orderPositionReferences = references
                     this.orderPositionReferencesDirty = false
-                    log.info{"TaskTree: refreshing order position references done: $duration"}
+                    log.info { "TaskTree: refreshing order position references done: $duration" }
                 }
                 return this.orderPositionReferences
             }
@@ -697,7 +698,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
     /**
      * @param node
      * @return The ordered person days or if not found the defined max hours. If both not found, the get the sum of all
-     * diect or null if both not found.
+     * direct or null if both not found.
      */
     fun getPersonDays(node: TaskNode?): BigDecimal? {
         checkRefresh()

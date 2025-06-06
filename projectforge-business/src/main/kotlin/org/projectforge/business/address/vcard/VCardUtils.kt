@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,12 +27,12 @@ import ezvcard.Ezvcard
 import ezvcard.VCard
 import ezvcard.parameter.AddressType
 import ezvcard.parameter.EmailType
-import ezvcard.parameter.ImageType
 import ezvcard.parameter.TelephoneType
 import ezvcard.property.*
 import mu.KotlinLogging
 import org.projectforge.business.address.AddressDO
-import org.projectforge.business.address.AddressImageDao
+import org.projectforge.business.address.AddressImageDO
+import org.projectforge.business.address.ImageType
 import org.projectforge.framework.time.PFDateTime
 import java.io.ByteArrayInputStream
 import java.io.IOException
@@ -44,7 +44,8 @@ object VCardUtils {
     @JvmStatic
     fun buildVCard(
         addressDO: AddressDO,
-        addressImageDao: AddressImageDao
+        imageUrl: String? = null,
+        imageType: ImageType? = null,
     ): VCard { //See: https://github.com/mangstadt/ez-vcard
         val vcard = VCard()
         val uid = Uid("urn:uuid:" + addressDO.uid)
@@ -109,9 +110,11 @@ object VCardUtils {
         }
         vcard.addUrl(addressDO.website)
         vcard.addNote(addressDO.comment)
-        if (addressDO.image == true) {
-            val photo = Photo(addressImageDao.getImage(addressDO.id!!), ImageType.JPEG)
-            vcard.addPhoto(photo)
+        if (imageUrl != null) {
+            // embedded: Photo(addressImageDao.getImage(addressDO.id!!), ImageType.JPEG).let { vcard.addPhoto(it) }
+            Photo(imageUrl, (imageType ?: ImageType.PNG).asVCardImageType()).let {
+                vcard.addPhoto(it)
+            }
         }
         return vcard
     }
@@ -120,20 +123,27 @@ object VCardUtils {
     @JvmOverloads
     fun buildVCardByteArray(
         addressDO: AddressDO,
-        addressImageDao: AddressImageDao,
         vCardVersion: VCardVersion = VCardVersion.V_4_0,
+        imageUrl: String? = null,
+        imageType: ImageType? = null,
     ): ByteArray { //See: https://github.com/mangstadt/ez-vcard
-        return buildVCardString(addressDO, addressImageDao, vCardVersion).toByteArray()
+        return buildVCardString(
+            addressDO,
+            vCardVersion,
+            imageUrl,
+            imageType
+        ).toByteArray()
     }
 
     @JvmStatic
     @JvmOverloads
     fun buildVCardString(
         addressDO: AddressDO,
-        addressImageDao: AddressImageDao,
         vCardVersion: VCardVersion = VCardVersion.V_4_0,
+        imageUrl: String? = null,
+        imageType: ImageType? = null,
     ): String { //See: https://github.com/mangstadt/ez-vcard
-        val vcard = buildVCard(addressDO, addressImageDao)
+        val vcard = buildVCard(addressDO, imageUrl, imageType)
         return Ezvcard.write(vcard).version(vCardVersion.ezVCardType).go()
     }
 
@@ -213,7 +223,14 @@ object VCardUtils {
         for (note in vcard.notes) {
             address.comment = if (address.comment != null) address.comment else "" + note.value + " "
         }
-        address.image = vcard.photos.isNullOrEmpty()
+        vcard.photos.firstOrNull { it.data != null }?.let { photo ->
+            address.setTransientAttribute("image", AddressImageDO().also {
+                it.image = photo.data
+                photo.contentType?.let { contentType ->
+                    it.imageType = ImageType.from(contentType) ?: ImageType.PNG
+                }
+            })
+        }
         if (vcard.organization?.values?.isNotEmpty() == true) {
             when (vcard.organization.values.size) {
                 3 -> {
@@ -248,7 +265,7 @@ object VCardUtils {
             try {
                 return Ezvcard.parse(stream).all()
             } catch (e: IOException) {
-                log.error("An exception accured while parsing vcard from byte array: " + e.message, e)
+                log.error("An exception occurred while parsing vcard from byte array: " + e.message, e)
                 return emptyList()
             }
         }
@@ -260,7 +277,7 @@ object VCardUtils {
         try {
             return Ezvcard.parse(vcardString).all()
         } catch (e: IOException) {
-            log.error("An exception accured while parsing vcard from byte array: " + e.message, e)
+            log.error("An exception occurred while parsing vcard from byte array: " + e.message, e)
             return emptyList()
         }
     }
@@ -272,7 +289,7 @@ object VCardUtils {
             try {
                 return Ezvcard.parse(stream).all().map { buildAddressDO(it) }
             } catch (e: IOException) {
-                log.error("An exception accured while parsing vcard from byte array: " + e.message, e)
+                log.error("An exception occurred while parsing vcard from byte array: " + e.message, e)
                 return emptyList()
             }
         }

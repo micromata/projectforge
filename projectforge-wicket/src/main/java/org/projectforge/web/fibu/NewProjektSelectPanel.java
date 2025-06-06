@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -342,7 +342,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
                 return WicketSupport.get(ProjektDao.class).getProjekt(kunde, nummer);
             }
         } catch (Exception e) {
-            log.error("An exception accured while parsing customer id and kost2.", e);
+            log.error("An exception occurred while parsing customer id and kost2.", e);
         }
         return null;
     }

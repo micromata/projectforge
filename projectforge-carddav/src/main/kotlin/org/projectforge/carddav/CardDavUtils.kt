@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,15 +24,20 @@
 package org.projectforge.carddav
 
 import jakarta.servlet.http.HttpServletResponse
+import org.projectforge.business.address.ImageType
+import org.projectforge.carddav.CardDavService.Companion.domain
+import org.projectforge.carddav.CardDavXmlUtils.EXTRACT_ADDRESS_ID_PHOTO_REGEX
 import org.projectforge.carddav.CardDavXmlUtils.EXTRACT_ADDRESS_ID_REGEX
 import org.projectforge.carddav.model.Contact
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.utils.ResponseUtils
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import java.security.MessageDigest
 import java.util.*
 
 internal object CardDavUtils {
@@ -63,6 +68,28 @@ internal object CardDavUtils {
     }
 
     /**
+     * Returns the URL for the given contact image.
+     * @param contactId The contact ID.
+     * @param imageType The image type.
+     * @return The URL. Example: https://projectforge.acme.com/carddav/photos/contact-123.jpg
+     */
+    fun getImageUrl(contactId: Long, imageType: ImageType): String {
+        val path =
+            concatPath(CardDavInit.CARD_DAV_BASE_PATH, "${CardDavInit.PHOTO_PATH}$contactId.${imageType.extension}")
+        // Don't forget to change the regex in CardDavFilter.NORMALIZED_GET_PHOTO_REQUEST_REGEX.
+        val user = ThreadLocalUserContext.loggedInUser?.username ?: "unknown"
+        return concatPath(domain, path)
+    }
+
+    fun isImageUrl(requestUri: String): Boolean {
+        return normalizedUri(requestUri).startsWith(CardDavInit.PHOTO_PATH)
+    }
+
+    fun getBaseUrl(): String {
+        return concatPath(domain, CardDavInit.CARD_DAV_BASE_PATH)
+    }
+
+    /**
      * Returns the ETag for the given contact list.
      * The ETag is the timestamp of the last updated contact.
      * @param contactList The contact list. If empty, the ETag is the timestamp of now.
@@ -71,6 +98,25 @@ internal object CardDavUtils {
     fun getEtag(contactList: List<Contact>?): String {
         val lastUpdated = getLastUpdated(contactList)
         return "\"${PFDateTime.fromOrNow(lastUpdated).format(DateFormatType.ISO_TIMESTAMP_MILLIS)}\""
+    }
+
+    fun getEtag(date: Date): String {
+        return getEtag(date.time.toString().toByteArray())
+    }
+
+    /**
+     * Returns the ETag for the given bytearray.
+     * The ETag is the SHA-256 hash of the bytes formatted as hexadecimal string.
+     * @param bytes The bytes (e.g. of an image).
+     * @return The ETag.
+     */
+    fun getEtag(bytes: ByteArray): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val hashBytes = digest.digest(bytes)
+        // %: Marks the beginning of a formatting placeholder.
+        // 02: Means that the output should be at least 2 digits long. If the value is shorter, it is padded with leading zeros (0).
+        // x: Specifies that the number should be displayed in hexadecimal format (with lowercase letters a-f).
+        return "\"${hashBytes.joinToString("") { "%02x".format(it) }}\""
     }
 
     fun getSyncToken(): String {
@@ -86,8 +132,20 @@ internal object CardDavUtils {
         return contactList?.maxByOrNull { it.lastUpdated ?: oldDate }?.lastUpdated
     }
 
+    /**
+     * Extracts the contact ID from the given path.
+     * Examples:
+     * ...ProjectForge-123.vcf -> 123
+     * ...contact-123.[jpg|png] -> 123
+     * @param path The path.
+     * @return The contact ID or null if no contact ID was found.
+     */
     fun extractContactId(path: String): Long? {
-        return EXTRACT_ADDRESS_ID_REGEX.find(path)?.groups?.get(1)?.value?.toLong()
+        return if (path.contains(CardDavInit.PHOTO_PATH)) {
+            EXTRACT_ADDRESS_ID_PHOTO_REGEX.find(path)?.groups?.get(1)?.value?.toLong()
+        } else {
+            EXTRACT_ADDRESS_ID_REGEX.find(path)?.groups?.get(1)?.value?.toLong()
+        }
     }
 
     /**
@@ -122,11 +180,43 @@ internal object CardDavUtils {
     /**
      * Returns the normalized URI without the CardDAV base path and without leading and trailing slashes.
      * For better comparison, the URI is normalized.
+     * Examples:
+     * /carddav/users/joe/ -> users/joe
+     * /users/joe/ -> users/joe
      * @param requestUri The request URI.
      * @return The normalized URI.
      */
     fun normalizedUri(requestUri: String): String {
-        return requestUri.removePrefix("/carddav").removePrefix("/").removeSuffix("/")
+        return requestUri.removePrefix(CardDavInit.CARD_DAV_BASE_PATH).removePrefix("/").removeSuffix("/")
+    }
+
+    /**
+     * Fixes the href by adding the CardDAV base path if necessary.
+     * @param url The URL.
+     * @param withDomain If true, the domain is added to the URL: https://projectforge.acme.com/carddav/users/joe/
+     * @return The fixed href.
+     */
+    fun fixHref(url: String, withDomain: Boolean = false): String {
+        val path = url // concatPath(CardDavInit.CARD_DAV_BASE_PATH, url)
+        return if (withDomain) {
+            concatPath(domain, path)
+        } else {
+            path
+        }
+    }
+
+    private fun concatPath(path1: String, path2: String): String {
+        if (path2.startsWith(path1)) {
+            // path2 already starts with path1:
+            return path2
+        }
+        return if (path1.endsWith("/") && path2.startsWith("/")) {
+            path1 + path2.removePrefix("/")
+        } else if (!path1.endsWith("/") && !path2.startsWith("/")) {
+            "$path1/$path2"
+        } else {
+            path1 + path2
+        }
     }
 
     /**

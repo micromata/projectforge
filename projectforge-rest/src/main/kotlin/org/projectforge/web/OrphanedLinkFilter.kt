@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -55,6 +55,8 @@ class OrphanedLinkFilter : Filter {
         val uri = servletRequest.requestURI ?: ""
         if (uri.contains("/wa/login")) { // Old Wicket login page, bookmarked by some users.
             redirect(servletResponse, uri, "/")
+        } else if (uri.contains("/wa/calendar") || uri.contains("/wa/teamCalendar")) { // Old Wicket calendars, bookmarked by some users.
+            redirect(servletResponse, uri, "/react/calendar")
         } else if (uri.contains("/wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage")) {
             // /wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage?id=26422747
             redirect(

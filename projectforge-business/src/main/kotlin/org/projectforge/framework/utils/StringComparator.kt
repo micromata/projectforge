@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -33,29 +33,17 @@ import java.util.*
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 object StringComparator {
-    private val germanCollator: Collator
-
-    private var _defaultCollator: Collator? = null
-    private val defaultCollator: Collator
-        get() {
-            // Late init, because Configuration must already available.
-            if (_defaultCollator == null) {
-                var locale: Locale? = ConfigurationServiceAccessor.get().defaultLocale
-                if (locale == null) {
-                    locale = Locale.getDefault()
-                }
-                _defaultCollator = Collator.getInstance(locale)
-            }
-            return _defaultCollator!!
-        }
-
-    private val german = Locale("de")
-
-    init {
-        germanCollator = Collator.getInstance(Locale.GERMAN);
-        germanCollator.setStrength(Collator.SECONDARY);// a == A, a < Ä
+    private val germanCollator: Collator = Collator.getInstance(Locale.GERMAN).also {
+        it.strength = Collator.SECONDARY // a == A, a < Ä
     }
 
+    private val defaultCollator: Collator by lazy {
+        val locale = ConfigurationServiceAccessor.get().defaultLocale ?: Locale.getDefault()
+        Collator.getInstance(locale)
+    }
+
+    private val german = Locale("de")
+    
     /**
      * Using ascending order.
      * @param s1
@@ -74,7 +62,7 @@ object StringComparator {
      * @param s2
      * @param asc
      * @param locale
-     * @return The result of [Collator.compare] or -1, 0, 1 if one or both string paramters are null.
+     * @return The result of [Collator.compare] or -1, 0, 1 if one or both string parameters are null.
      */
     @JvmStatic
     @JvmOverloads

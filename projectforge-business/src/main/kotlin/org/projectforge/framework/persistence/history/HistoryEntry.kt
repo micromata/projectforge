@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -73,4 +73,9 @@ interface HistoryEntry : IdObject<Long> {
      * @return the entity id
      */
     val entityId: Long?
+
+    /**
+     * Optional comment by user for the modification.
+     */
+    val userComment: String?
 }

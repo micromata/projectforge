@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -71,6 +71,10 @@ public enum ConfigurationParam implements IConfigurationParam
    * Cost configured configuration param.
    */
   COST_CONFIGURED("fibu.costConfigured", ConfigurationType.BOOLEAN), //
+  /**
+   * Cost configured configuration param.
+   */
+  TIMESHEET_NOTE_SAVINGS_BY_AI("timesheet.noteSavingsByAI", ConfigurationType.TEXT), //
   /**
    * Default country phone prefix configuration param.
    */

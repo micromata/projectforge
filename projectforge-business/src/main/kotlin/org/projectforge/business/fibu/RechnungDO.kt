@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,14 @@
 
 package org.projectforge.business.fibu
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonManagedReference
-import com.fasterxml.jackson.annotation.ObjectIdGenerators
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.history.PersistenceBehavior
 import java.time.LocalDate
 
@@ -59,7 +59,6 @@ import java.time.LocalDate
     NamedQuery(name = RechnungDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from RechnungDO"),
     NamedQuery(name = RechnungDO.FIND_OTHER_BY_NUMMER, query = "from RechnungDO where nummer=:nummer and id!=:id")
 )
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
 
     @PropertyInfo(i18nKey = "fibu.rechnung.nummer")
@@ -75,6 +74,7 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "kunde_id", nullable = true)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var kunde: KundeDO? = null
 
     /**
@@ -90,6 +90,7 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "projekt_id", nullable = true)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var projekt: ProjektDO? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.status")
@@ -146,6 +147,13 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
     override val abstractPositionen: List<AbstractRechnungsPositionDO>?
         @Transient
         get() = positionen
+
+    /**
+     *  @return true if the invoice is valid: isn't deleted and status is not GEPLANT or STORNIERT
+     */
+    override val isValid: Boolean
+        @Transient
+        get() = !deleted && status?.isIn(RechnungStatus.GEPLANT, RechnungStatus.STORNIERT) == false
 
     override fun ensureAndGetPositionen(): MutableList<out AbstractRechnungsPositionDO> {
         if (this.positionen == null) {

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -63,7 +63,7 @@ class V7_4_1_3__ReleaseUserPassword : BaseJavaMigration() {
       rowMapper
     )
       .forEach {
-        log.info { "Migrating password hashs of user '${it.userName}' (${it.userId})..." }
+        log.info { "Migrating password hashes of user '${it.userName}' (${it.userId})..." }
         val parameters = mutableMapOf<String, Any?>()
         parameters["pk"] = ++counter
         parameters["user_id"] = it.userId

@@ -562,7 +562,7 @@ INSERT INTO t_fibu_employee (pk, created, deleted, last_update, abteilung, accou
                              employee_status, street, urlaubstage, weekly_working_hours, zipcode, kost1_id,
                              user_id)
 VALUES (126, '2010-04-22 07:58:28.512', FALSE, '2017-11-23 12:56:36.593', 'Development', NULL, NULL, NULL, NULL, NULL,
-        NULL, NULL, '2009-12-31 23:00:00', 0, NULL,
+        NULL, NULL, '2010-01-01', 0, NULL,
         NULL, NULL, NULL, 'FEST_ANGESTELLTER',
         NULL, 25, 40.00000, NULL, 80, 17);
 INSERT INTO t_fibu_employee (pk, created, deleted, last_update, abteilung, account_holder, austritt, bic, birthday,
@@ -570,7 +570,7 @@ INSERT INTO t_fibu_employee (pk, created, deleted, last_update, abteilung, accou
                              employee_status, street, urlaubstage, weekly_working_hours, zipcode, kost1_id,
                              user_id)
 VALUES (127, '2010-04-22 07:59:12.961', FALSE, '2017-11-23 12:56:36.679', NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-        NULL, '2009-12-31 23:00:00', 0, NULL, NULL, NULL,
+        NULL, '2010-01-01', 0, NULL, NULL, NULL,
         NULL, 'FEST_ANGESTELLTER', NULL, 25, 40.00000,
         NULL, 81, 18);
 
@@ -630,7 +630,7 @@ VALUES (162, '2013-04-07 18:09:35.002', FALSE, '2013-04-07 18:09:35.002', FALSE,
         NULL, NULL, 15,
         'MINUTES', NULL,
         '2013-03-28 08:00:00',
-        'Legal affaires regular meeting', 157, 'testdata2', 19, NULL, NULL, NULL);
+        'Legal affairs regular meeting', 157, 'testdata2', 19, NULL, NULL, NULL);
 INSERT INTO t_plugin_calendar_event (pk, created, deleted, last_update, all_day, end_date, external_uid, last_email,
                                      location, note, organizer, recurrence_date, recurrence_ex_date,
                                      recurrence_reference_id, recurrence_rule, recurrence_until, reminder_action_type,
@@ -931,24 +931,6 @@ VALUES (121, NULL, FALSE, NULL, 60.00, 5.00000, 1, NULL, 0.19000, 120);
 INSERT INTO t_fibu_eingangsrechnung_position (pk, created, deleted, last_update, einzel_netto, menge, number, s_text,
                                               vat, eingangsrechnung_fk)
 VALUES (124, NULL, FALSE, NULL, 187.00, 1.00000, 1, NULL, 0.19000, 123);
-
-INSERT INTO t_fibu_employee_timed (pk, createdat, createdby, modifiedat, modifiedby, updatecounter, group_name,
-                                   start_time, employee_id)
-VALUES (484, '2017-11-23 12:56:36.593', '19', '2017-11-23 12:56:36.593', '19', 0, 'employeestatus',
-        '2010-01-01 00:00:00', 126);
-INSERT INTO t_fibu_employee_timed (pk, createdat, createdby, modifiedat, modifiedby, updatecounter, group_name,
-                                   start_time, employee_id)
-VALUES (491, '2017-11-23 12:56:36.679', '19', '2017-11-23 12:56:36.679', '19', 0, 'employeestatus',
-        '2010-01-01 00:00:00', 127);
-
-INSERT INTO t_fibu_employee_timedattr (withdata, pk, createdat, createdby, modifiedat, modifiedby, updatecounter, value,
-                                       propertyname, type, parent)
-VALUES ('0', 485, '2017-11-23 12:56:36.593', '19', '2017-11-23 12:56:36.593', '19', 0,
-        'fibu.employee.status.festAngestellter', 'status', 'V', 484);
-INSERT INTO t_fibu_employee_timedattr (withdata, pk, createdat, createdby, modifiedat, modifiedby, updatecounter, value,
-                                       propertyname, type, parent)
-VALUES ('0', 492, '2017-11-23 12:56:36.679', '19', '2017-11-23 12:56:36.679', '19', 0,
-        'fibu.employee.status.festAngestellter', 'status', 'V', 491);
 
 INSERT INTO t_fibu_rechnung (pk, created, deleted, last_update, bemerkung, besonderheiten, betreff, bezahl_datum, datum,
                              faelligkeit, ui_status_as_xml, zahl_betrag, kunde_text, nummer, status, typ,

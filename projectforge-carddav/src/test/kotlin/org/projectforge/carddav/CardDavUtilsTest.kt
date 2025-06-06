@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -39,5 +39,12 @@ class CardDavUtilsTest {
         Assertions.assertEquals("users", CardDavUtils.normalizedUri("/carddav/users/"))
         Assertions.assertEquals("users", CardDavUtils.normalizedUri("/users/"))
         Assertions.assertEquals("principals", CardDavUtils.normalizedUri("/principals/"))
+    }
+
+    @Test
+    fun `test extraction of contact id`() {
+        Assertions.assertEquals(123, CardDavUtils.extractContactId("/carddav/users/joe/ProjectForge-123.vcf"))
+        Assertions.assertEquals(123, CardDavUtils.extractContactId("/carddav/photos/contact-123.jpg"))
+        Assertions.assertEquals(123, CardDavUtils.extractContactId("/carddav/photos/contact-123.png"))
     }
 }

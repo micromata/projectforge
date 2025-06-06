@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -42,7 +42,7 @@ private val log = KotlinLogging.logger {}
 /**
  * For checking new algorithm and strategies, refer https://github.com/micromata/SpringBoot-KotlinScripting
  */
-class KotlinScriptExecutor : ScriptExecutor() {
+class KotlinScriptExecutor(scriptLogger: ScriptLogger) : ScriptExecutor(scriptLogger) {
     override fun execute(): ScriptExecutionResult {
         log.debug { "Updated classpathFiles: ${JarExtractor.classpathFiles?.joinToString()}" }
         log.debug { "Updated classpath URLs: ${JarExtractor.classpathUrls?.joinToString()}" }
@@ -53,7 +53,7 @@ class KotlinScriptExecutor : ScriptExecutor() {
         } else {
             Thread.currentThread().contextClassLoader
         }
-        val scriptingHost = CustomScriptingHost()
+        val scriptingHost = CustomScriptingHost(scriptLogger)
         val compilationConfiguration = ScriptCompilationConfiguration {
             jvm {
                 if (JarExtractor.classpathFiles != null) {
@@ -126,6 +126,13 @@ class KotlinScriptExecutor : ScriptExecutor() {
         private val kotlinImports = listOf(
             "import org.projectforge.framework.i18n.translate",
             "import org.projectforge.framework.i18n.translateMsg",
+            "import org.projectforge.common.extensions.format",
+            "import org.projectforge.common.extensions.format2Digits",
+            "import org.projectforge.common.extensions.format3Digits",
+            "import org.projectforge.common.extensions.formatBytes",
+            "import org.projectforge.common.extensions.formatBytesForUser",
+            "import org.projectforge.common.extensions.formatCurrency",
+            "import org.projectforge.common.extensions.formatForUser",
             "import org.projectforge.business.PfCaches.Companion.initialize"
         )
     }

@@ -85,7 +85,7 @@ GEM
     rb-fsevent (0.11.0)
     rb-inotify (0.10.1)
       ffi (~> 1.0)
-    rexml (3.2.5)
+    rexml (3.3.9)
     rouge (3.26.0)
     ruby2_keywords (0.0.5)
     safe_yaml (1.0.5)
@@ -97,7 +97,7 @@ GEM
     terminal-table (2.0.0)
       unicode-display_width (~> 1.1, >= 1.1.1)
     unicode-display_width (1.7.0)
-    webrick (1.7.0)
+    webrick (1.8.2)
 
 PLATFORMS
   arm64-darwin-21
@@ -115,7 +115,7 @@ DEPENDENCIES
   jekyll-seo-tag
   kramdown-parser-gfm
   tzinfo-data
-  webrick (~> 1.7)
+  webrick (~> 1.8)
 
 RUBY VERSION
    ruby 3.0.0p0

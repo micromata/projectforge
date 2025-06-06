@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -210,7 +210,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
             public void populateItem(final Item<ICellPopulator<RechnungDO>> item, final String componentId,
                                      final IModel<RechnungDO> rowModel) {
                 RechnungDO invoice = rowModel.getObject();
-                final Set<OrderPositionInfo> orderPositions = RechnungCache.getInstance().getOrderPositionInfos(invoice.getId());
+                final Set<OrderPositionInfo> orderPositions = RechnungCache.getInstance().getOrderPositionInfosOfInvoice(invoice.getId());
                 if (CollectionUtils.isEmpty(orderPositions) == true) {
                     item.add(AbstractUnsecureBasePage.createInvisibleDummyComponent(componentId));
                 } else {

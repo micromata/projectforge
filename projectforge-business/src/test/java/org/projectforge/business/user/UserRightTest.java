@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -173,7 +173,7 @@ public class UserRightTest extends AbstractTestBase {
     groupDao.update(group);
     loggedInUser = logon(user.getUsername());
     assertTrue(right.isConfigurable(loggedInUser, userGroupCache.getUserGroupDOs(loggedInUser)),
-        "Right is configurable, because serveral right values are available.");
+        "Right is configurable, because several right values are available.");
     logon(AbstractTestBase.TEST_ADMIN_USER);
     group = getGroup(ProjectForgeGroup.PROJECT_MANAGER.toString());
     group.getAssignedUsers().add(user);
@@ -207,7 +207,7 @@ public class UserRightTest extends AbstractTestBase {
     assertFalse(accessChecker.hasLoggedInUserRight(UserRightId.PM_HR_PLANNING, false, UserRightValue.READWRITE),
         "Right invalid.");
     assertTrue(right.isConfigurable(loggedInUser, userGroupCache.getUserGroupDOs(loggedInUser)),
-        "Right is configurable, because serveral right values are available.");
+        "Right is configurable, because several right values are available.");
     logon(AbstractTestBase.TEST_ADMIN_USER);
     group = getGroup(ProjectForgeGroup.PROJECT_MANAGER.toString());
     group.getAssignedUsers().add(user);

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,7 +25,6 @@ package org.projectforge.framework.time
 
 import org.projectforge.business.configuration.ConfigurationServiceAccessor
 import org.projectforge.common.DateFormatType
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -216,19 +215,13 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
         return isoString
     }
 
-    private var _utilDate: Date? = null
-
     /**
      * @return The date as java.util.Date. java.util.Date is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
      */
-    override val utilDate: Date
-        get() {
-            if (_utilDate == null) {
-                _utilDate = PFDateTime.from(date).utilDate
-            }
-            return _utilDate!!
-        }
+    override val utilDate: Date by lazy {
+        PFDateTime.from(date).utilDate
+    }
 
     /**
      * @return [java.sql.Date] ignoring any user's or system's time zone.
@@ -247,19 +240,11 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
         return localDate == other.localDate
     }
 
-    private var _sqlDate: java.sql.Date? = null
-
     /**
      * @return The date as java.sql.Date. java.sql.Date is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
      */
-    override val sqlDate: java.sql.Date
-        get() {
-            if (_sqlDate == null) {
-                _sqlDate = java.sql.Date.valueOf(date)
-            }
-            return _sqlDate!!
-        }
+    override val sqlDate: java.sql.Date by lazy { java.sql.Date.valueOf(date) }
 
     companion object {
         /**
@@ -293,7 +278,7 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
         }
 
         /**
-         * Date "2020-02-09 **:**:**" (UTC) results in 2020-02-09 independant of user's or system timezoone.
+         * Date "2020-02-09 **:**:**" (UTC) results in 2020-02-09 independent of user's or system timezoone.
          * Convenient method of fromOrNull] with time zone UTC.
          */
         @JvmStatic
@@ -412,26 +397,30 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
             return PFDay(LocalDate.of(year, month, day))
         }
 
-        internal fun getUsersLocale(): Locale {
-            return ThreadLocalUserContext.locale!!
-        }
-
         internal val isoDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
+        private var _weekFields: WeekFields? = null
+
         internal val weekFields: WeekFields
-        get() {
-            if (_weekFields == null) {
-                val minimalDaysInFirstWeek = ConfigurationServiceAccessor.get().minimalDaysInFirstWeek
-                _weekFields = if (minimalDaysInFirstWeek == null) {
-                    val systemLocale = ConfigurationServiceAccessor.get().defaultLocale
-                    WeekFields.of(systemLocale)
-                } else {
-                    val firstDayOfWeek = ConfigurationServiceAccessor.get().defaultFirstDayOfWeek
-                    WeekFields.of(firstDayOfWeek, minimalDaysInFirstWeek)
-                }
+            get() = _weekFields ?: run {
+                val newValue = calculateWeekFields()
+                _weekFields = newValue
+                newValue
             }
-            return _weekFields!!
+
+        fun resetWeekFieldsForTest() {
+            _weekFields = null
         }
-        internal var _weekFields: WeekFields? = null
+
+        private fun calculateWeekFields(): WeekFields {
+            val minimalDaysInFirstWeek = ConfigurationServiceAccessor.get().minimalDaysInFirstWeek
+            return if (minimalDaysInFirstWeek == null) {
+                val systemLocale = ConfigurationServiceAccessor.get().defaultLocale
+                WeekFields.of(systemLocale)
+            } else {
+                val firstDayOfWeek = ConfigurationServiceAccessor.get().defaultFirstDayOfWeek
+                WeekFields.of(firstDayOfWeek, minimalDaysInFirstWeek)
+            }
+        }
     }
 }

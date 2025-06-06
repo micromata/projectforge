@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -81,7 +81,7 @@ public class TimeZoneField extends PFAutoCompleteTextField<TimeZone>
     final String[] favoriteIds = favoritesIds.toArray(new String[favoritesIds.size()]);
     favoriteTimeZones = getAsTimeZoneObjects(favoriteIds);
     withMatchContains(true).withMinChars(2);
-    // Cant't use getString(i18nKey) because we're in the constructor and this would result in a Wicket warning.
+    // Can't use getString(i18nKey) because we're in the constructor and this would result in a Wicket warning.
     final String tooltip = ThreadLocalUserContext.getLocalizedString("tooltip.autocomplete.timeZone");
     WicketUtils.addTooltip(this, tooltip);
   }

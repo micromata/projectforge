@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -66,7 +66,7 @@ class MassUpdateParameterTest {
     check(false, append = true, msg = "parameter has no action (append without text)")
 
     check(true, delete = true, msg = "parameter has action to delete field")
-    check(true, delete = true, textValue = "part to delete", msg = "parameter has action to delete occurences of text")
+    check(true, delete = true, textValue = "part to delete", msg = "parameter has action to delete occurrences of text")
     check(false, change = true, msg = "change of id not handled by MassUpdateParameter")
     check(false, change = true, id = 42, msg = "change of id not handled by MassUpdateParameter")
 
@@ -97,7 +97,7 @@ class MassUpdateParameterTest {
     error: String? = null,
     msg: String? = null,
   ) {
-    val param = MassUpdateParameter()
+    val param = MassUpdateParameter("test", "test")
     param.textValue = textValue
     param.localDateValue = localeDateValue
     param.replaceText = replaceText

@@ -48,11 +48,4 @@ FavoriteActionButton.propTypes = {
     tooltip: PropTypes.string,
 };
 
-FavoriteActionButton.defaultProps = {
-    className: undefined,
-    id: undefined,
-    size: undefined,
-    tooltip: undefined,
-};
-
 export default FavoriteActionButton;

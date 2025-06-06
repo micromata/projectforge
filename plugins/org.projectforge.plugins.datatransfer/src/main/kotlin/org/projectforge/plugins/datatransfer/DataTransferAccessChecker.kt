@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -74,7 +74,7 @@ open class DataTransferAccessChecker(
   }
 
   /**
-   * Checks select/download-access (same). See [checkDownloadAccess] for special handling of perosnal boxes.
+   * Checks select/download-access (same). See [checkDownloadAccess] for special handling of personal boxes.
    */
   private fun checkAccess(user: PFUserDO?, id: Any) {
     user!!

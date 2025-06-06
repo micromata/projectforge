@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,19 @@
 
 package org.projectforge.rest.orga
 
+import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
-import org.projectforge.business.orga.VisitorbookCache
+import org.projectforge.business.PfCaches
 import org.projectforge.business.orga.VisitorbookDO
 import org.projectforge.business.orga.VisitorbookDao
 import org.projectforge.business.orga.VisitorbookService
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.dto.Employee
+import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Visitorbook
 import org.projectforge.rest.dto.VisitorbookEntry
 import org.projectforge.ui.*
@@ -46,10 +50,12 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
     "orga.visitorbook.title"
 ) {
     @Autowired
-    private lateinit var visitorbookCache: VisitorbookCache
-
-    @Autowired
     private lateinit var visitorbookService: VisitorbookService
+
+    @PostConstruct
+    private fun postConstruct() {
+        JacksonConfiguration.registerAllowedUnknownProperties(Visitorbook::class.java, "visitortypeAsString")
+    }
 
     override fun transformForDB(dto: Visitorbook): VisitorbookDO {
         val visitorbookDO = VisitorbookDO()
@@ -61,23 +67,14 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
         val visitorbook = Visitorbook()
         visitorbook.copyFrom(obj)
         obj.id?.let { id ->
-            visitorbookCache.getVisitorbookInfo(id)?.let { info ->
+            visitorbookService.getVisitorbookInfo(id)?.let { info ->
                 visitorbook.lastDateOfVisit = info.lastDateOfVisit
                 visitorbook.latestArrived = info.latestArrived
                 visitorbook.latestDeparted = info.latestDeparted
                 visitorbook.numberOfVisits = info.numberOfVisits
             }
         }
-
-        /*
-        val timeableAttributes = timeableService!!.getTimeableAttrRowsForGroupName<Int, VisitorbookTimedDO>(obj, "timeofvisit")
-        if (timeableAttributes != null && timeableAttributes.size > 0) {
-            val sortedList = timeableService.sortTimeableAttrRowsByDateDescending(timeableAttributes)
-            val newestEntry = sortedList[0]
-            visitorbook.arrive = if (newestEntry.getAttribute("arrive") != null) newestEntry.getAttribute("arrive", String::class.java) else ""
-            visitorbook.depart = if (newestEntry.getAttribute("depart") != null) newestEntry.getAttribute("depart", String::class.java) else ""
-        }*/
-
+        Employee.restoreDisplayNames(visitorbook.contactPersons)
         return visitorbook
     }
 
@@ -112,10 +109,15 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
             // Name	Vorname	Status	Personalnummer	Kost1	Position	Team	Eintrittsdatum	Austrittsdatum	Bemerkung
             .add(
                 lc,
-                "lastname", "firstname", "company", "visitortype",
-                "lastDateOfVisit", "latestArrived", "latestDeparted", "numberOfVisits", "contactPersons",
-                "comment"
+                "lastname", "firstname", "company"
             )
+            .add("visitortypeAsString", headerName = "orga.visitorbook.visitortype")
+            .add("lastDateOfVisit", headerName = "orga.visitorbook.lastVisit")
+            .add("latestArrived", headerName = "orga.visitorbook.lastVisit.arrived")
+            .add("latestDeparted", headerName = "orga.visitorbook.lastVisit.departed")
+            .add("numberOfVisits", headerName = "orga.visitorbook.numberOfVisits", type = UIAgGridColumnDef.Type.NUMBER)
+            .add("contactPersonsAsString", headerName = "orga.visitorbook.contactPersons")
+            .add(lc, "comment")
     }
 
     /**
@@ -126,35 +128,71 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
         val lastname = UIInput("lastname", lc)
         val company = UIInput("company", lc)
         val layout = super.createEditLayout(dto, userAccess)
-            .add(firstname)
-            .add(lastname)
-            .add(company)
-            .add(UISelect.createUserSelect(lc, "contactPersons", true, "orga.visitorbook.contactPerson"))
-            .add(lc, "visitortype")
-        layout.layoutBelowActions.add(
-            UIFieldset(title = "orga.visitorbook.visits")
-                .add(
-                    UIButton.createAddButton(
-                        responseAction = ResponseAction(
-                            createModalUrl(dto, true),
-                            targetType = TargetType.MODAL
-                        ),
-                        default = false,
+            .add(
+                UIRow()
+                    .add(
+                        UICol()
+                            .add(firstname)
+                            .add(lastname)
+                            .add(company)
                     )
-                )
-                .add(
-                    UIAgGrid("entries")
-                        .add(UIAgGridColumnDef.createCol(lc, "dateOfVisit", headerName = "date"))
-                        .add(UIAgGridColumnDef.createCol(lc, "arrived", headerName = "orga.visitorbook.arrive"))
-                        .add(UIAgGridColumnDef.createCol(lc, "departed", headerName = "orga.visitorbook.depart"))
-                        .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
-                        .withRowClickRedirectUrl(
-                            createModalUrl(dto),
-                            openModal = true,
+                    .add(
+                        UICol()
+                            .add(lc, "visitortype")
+                            .add(
+                                UISelect.createEmployeeSelect(
+                                    lc,
+                                    "contactPersons",
+                                    true,
+                                )
+                            )
+                    )
+            )
+            .add(lc, "comment")
+        if (dto.id != null) {
+            layout.layoutBelowActions.add(
+                UIFieldset(title = "orga.visitorbook.visits")
+                    .add(
+                        UIButton.createAddButton(
+                            responseAction = ResponseAction(
+                                createModalUrl(dto, true),
+                                targetType = TargetType.MODAL
+                            ),
+                            default = false,
                         )
-                )
-        )
+                    )
+                    .add(
+                        UIAgGrid("entries")
+                            .add(UIAgGridColumnDef.createCol(lc, "dateOfVisit", headerName = "date"))
+                            .add(
+                                UIAgGridColumnDef.createCol(
+                                    lc,
+                                    "arrived",
+                                    headerName = "orga.visitorbook.arrive"
+                                )
+                            )
+                            .add(
+                                UIAgGridColumnDef.createCol(
+                                    lc,
+                                    "departed",
+                                    headerName = "orga.visitorbook.depart"
+                                )
+                            )
+                            .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
+                            .withRowClickRedirectUrl(
+                                createModalUrl(dto),
+                                openModal = true,
+                            )
+                    )
+            )
+        }
         return LayoutUtils.processEditPage(layout, dto, this)
+    }
+
+    override fun onAfterSave(obj: VisitorbookDO, postData: PostData<Visitorbook>): ResponseAction {
+        // Redirect to edit page after insert for allowing user to add visit entries.
+        return ResponseAction(PagesResolver.getEditPageUrl(VisitorbookPagesRest::class.java, obj.id, absolute = true))
+            .addVariable("id", obj.id ?: -1)
     }
 
     private fun createModalUrl(

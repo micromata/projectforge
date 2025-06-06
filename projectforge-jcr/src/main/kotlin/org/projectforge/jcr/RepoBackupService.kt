@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -53,13 +53,13 @@ open class RepoBackupService {
   internal lateinit var repoService: RepoService
 
   @Autowired
-  internal lateinit var jcrCheckSanityJob: JCRCheckSanityJob
+  internal lateinit var jcrCheckSanityJob: JCRCheckSanityCheckJob
 
 
   internal val listOfIgnoredNodePaths = mutableListOf<String>()
 
   /**
-   * These node pathes will be ignored by backup job. Data transfer files are ignored (plugin datatransfer).
+   * These node paths will be ignored by backup job. Data transfer files are ignored (plugin datatransfer).
    */
   fun registerNodePathToIgnore(nodePath: String) {
     log.info { "Adding path '$nodePath' as path to ignore for backup service." }
@@ -67,7 +67,7 @@ open class RepoBackupService {
   }
 
   /**
-   * Where to put the nigthly backups of the jcr as zip files?
+   * Where to put the nightly backups of the jcr as zip files?
    */
   var backupDirectory: File? = null
     private set
@@ -183,7 +183,7 @@ open class RepoBackupService {
     zipIn: ZipInputStream,
     securityConfirmation: String,
     absPath: String = "/${repoService.mainNodeName}"
-  ): JCRCheckSanityJob.CheckResult {
+  ): JCRCheckSanityCheckJob.CheckResult {
     if (securityConfirmation != RESTORE_SECURITY_CONFIRMATION__I_KNOW_WHAT_I_M_DOING__REPO_MAY_BE_DESTROYED) {
       throw IllegalArgumentException("You must use the correct security confirmation if you know what you're doing. The repo content may be lost after restoring!")
     }
@@ -234,7 +234,7 @@ open class RepoBackupService {
           val content = zipIn.readBytes()
           val inputStream = ByteArrayInputStream(content)
           val bin: Binary = session.valueFactory.createBinary(inputStream)
-          fileNode.setProperty(RepoService.PROPERTY_FILECONTENT, session.valueFactory.createValue(bin))
+          fileNode.setProperty(OakStorage.PROPERTY_FILECONTENT, session.valueFactory.createValue(bin))
           session.save()
         }
         zipEntry = zipIn.nextEntry
@@ -255,15 +255,15 @@ open class RepoBackupService {
   }
 
   private fun getFilesPath(fileName: String): String? {
-    if (!fileName.contains(RepoService.NODENAME_FILES)) {
+    if (!fileName.contains(OakStorage.NODENAME_FILES)) {
       return null
     }
     var archiveName = fileName.substring(fileName.indexOf('/'))
     if (archiveName.startsWith("//")) {
       archiveName = archiveName.substring(1)
     }
-    archiveName = archiveName.substring(0, archiveName.indexOf(RepoService.NODENAME_FILES) - 1)
-    return "$archiveName/${RepoService.NODENAME_FILES}"
+    archiveName = archiveName.substring(0, archiveName.indexOf(OakStorage.NODENAME_FILES) - 1)
+    return "$archiveName/${OakStorage.NODENAME_FILES}"
   }
 
   private fun createZipEntry(archiveName: String, vararg path: String?): ZipEntry {

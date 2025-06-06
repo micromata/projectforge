@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,24 +30,11 @@ import org.projectforge.common.i18n.I18nEnum
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-enum class PaymentType(key: String) : I18nEnum {
+enum class PaymentType(val key: String) : I18nEnum {
     BANK_TRANSFER("bankTransfer"), DEBIT("debit"), CREDIT_CARD("creditCard"), CASH("cash"), SALARY("salary"), CREDIT("credit");
 
-    private val key: String
-
-    /**
-     * @return The key suffix will be used e. g. for i18n.
-     */
-    fun getKey(): String {
-        return key
-    }
-
     override val i18nKey: String?
-        get() = "fibu.payment.type." + key
-
-    init {
-        this.key = key
-    }
+        get() = "fibu.payment.type.$key"
 
     fun isIn(vararg type: PaymentType?): Boolean {
         for (t in type) {

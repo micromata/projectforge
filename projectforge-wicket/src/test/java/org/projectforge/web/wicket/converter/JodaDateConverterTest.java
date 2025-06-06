@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -57,31 +57,31 @@ public class JodaDateConverterTest
     final JodaDateConverter conv = new JodaDateConverter();
     try {
       conv.convertToObject("31.11.09", Locale.GERMAN);
-      fail("ConversionException exprected.");
+      fail("ConversionException expected.");
     } catch (final ConversionException ex) {
       // OK
     }
     try {
       conv.convertToObject("31.11.", Locale.GERMAN);
-      fail("ConversionException exprected.");
+      fail("ConversionException expected.");
     } catch (final ConversionException ex) {
       // OK
     }
     try {
       conv.convertToObject("11/31/1970", Locale.ENGLISH);
-      fail("ConversionException exprected.");
+      fail("ConversionException expected.");
     } catch (final ConversionException ex) {
       // OK
     }
     try {
       conv.convertToObject("11/31/70", Locale.ENGLISH);
-      fail("ConversionException exprected.");
+      fail("ConversionException expected.");
     } catch (final ConversionException ex) {
       // OK
     }
     try {
       conv.convertToObject("11/31", Locale.ENGLISH);
-      fail("ConversionException exprected.");
+      fail("ConversionException expected.");
     } catch (final ConversionException ex) {
       // OK
     }
@@ -123,7 +123,7 @@ public class JodaDateConverterTest
     assertDates(testDate, date);
     try {
       date = conv.convertToObject("21/10/1970", Locale.GERMAN);
-      fail("ConversionException exprected.");
+      fail("ConversionException expected.");
     } catch (final ConversionException ex) {
       // OK
     }
@@ -135,7 +135,7 @@ public class JodaDateConverterTest
     assertDates(testDate, date);
     try {
       date = conv.convertToObject("1970.10.21", Locale.GERMAN);
-      fail("ConversionException exprected.");
+      fail("ConversionException expected.");
     } catch (final ConversionException ex) {
       // OK
     }
@@ -175,7 +175,7 @@ public class JodaDateConverterTest
     assertDates(testDate, date);
     try {
       date = conv.convertToObject(String.valueOf(testDate), Locale.ENGLISH); // millis not supported.
-      fail("ConversionException exprected.");
+      fail("ConversionException expected.");
     } catch (final ConversionException ex) {
       // OK
     }

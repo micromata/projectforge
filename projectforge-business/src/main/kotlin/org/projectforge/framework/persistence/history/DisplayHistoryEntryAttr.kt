@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,6 +26,10 @@ package org.projectforge.framework.persistence.history
 class DisplayHistoryEntryAttr {
     var id: Long? = null
     var operationType: PropertyOpType? = null
+        set(value) {
+            field = value
+            operation = HistoryFormatService.translate(value)
+        }
     var operation: String? = null
     var propertyName: String? = null
     var displayPropertyName: String? = null
@@ -39,11 +43,11 @@ class DisplayHistoryEntryAttr {
             return DisplayHistoryEntryAttr().also {
                 it.id = attr.id
                 it.operationType = attr.opType
-                it.operation = HistoryFormatService.translate(attr.opType)
                 it.propertyName = HistoryFormatUtils.getPlainPropertyName(attr)
                 it.displayPropertyName = attr.displayPropertyName
-                if (it.displayPropertyName == null && entityClass != null)
+                if (it.displayPropertyName == null && entityClass != null) {
                     it.displayPropertyName = HistoryFormatUtils.translatePropertyName(entityClass, attr.propertyName)
+                }
                 it.oldValue = attr.oldValue
                 it.newValue = attr.value
             }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -120,6 +120,7 @@ class ExportZipArchive {
   }
 
   fun add(filename: String, excelWorkbook: ExcelWorkbook?): ExportZipArchive {
+    excelWorkbook?.pOIWorkbook?.creationHelper?.createFormulaEvaluator()?.evaluateAll()
     zipFiles.add(ExportZipFile(filename, excelWorkbook))
     return this
   }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -209,14 +209,23 @@ class TimePeriod @JvmOverloads constructor(
      */
     @JvmStatic
     fun getDurationFields(millis: Long, hoursOfDay: Int, minHours4DaySeparation: Int): IntArray {
-      val duration = millis / 60000
-      var hours = duration.toInt() / 60
-      val minutes = duration.toInt() % 60
+      val totalSeconds = (millis + 500) / 1000 // Rounding the seconds
+      var minutes = (totalSeconds / 60).toInt()
+      val seconds = (totalSeconds % 60).toInt()
+
+      if (seconds >= 30) {
+        minutes++ // rounding to the next minute
+      }
+
+      var hours = minutes / 60
+      minutes %= 60
+
       var days = 0
-      if (minHours4DaySeparation in 0..hours) { // Separate the days for more than 24 hours (=3 days):
+      if (minHours4DaySeparation in 0..hours) { // Separate days if necessary.
         days = hours / hoursOfDay
         hours %= hoursOfDay
       }
+
       return intArrayOf(days, hours, minutes)
     }
 

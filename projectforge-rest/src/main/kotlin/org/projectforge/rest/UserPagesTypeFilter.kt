@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -31,40 +31,34 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 class UserPagesTypeFilter(val type: TYPE) : CustomResultFilter<PFUserDO> {
-  enum class TYPE(val key: String) : I18nEnum {
-    ALL("filter.all"), ADMINS("user.adminUsers"), PRIVILEGED("user.filter.privileged"),
-    RESTRICTED("user.filter.restricted");
+    enum class TYPE(val key: String) : I18nEnum {
+        ALL("filter.all"), ADMINS("user.adminUsers"), PRIVILEGED("user.filter.privileged"),
+        RESTRICTED("user.filter.restricted");
 
-    /**
-     * @return The full i18n key including the i18n prefix "book.type.".
-     */
-    override val i18nKey: String
-      get() = key
-  }
+        /**
+         * @return The full i18n key including the i18n prefix "book.type.".
+         */
+        override val i18nKey: String
+            get() = key
+    }
 
-  override fun match(list: MutableList<PFUserDO>, element: PFUserDO): Boolean {
-    return type == TYPE.ALL ||
-        type == TYPE.ADMINS && accessChecker.isUserMemberOfAdminGroup(element) ||
-        type == TYPE.PRIVILEGED &&
-        accessChecker.isUserMemberOfGroup(
-          element,
-          ProjectForgeGroup.HR_GROUP,
-          ProjectForgeGroup.ADMIN_GROUP,
-          ProjectForgeGroup.FINANCE_GROUP,
-          ProjectForgeGroup.CONTROLLING_GROUP,
-          ProjectForgeGroup.ORGA_TEAM,
-        ) || type == TYPE.RESTRICTED && element.restrictedUser
-  }
+    override fun match(list: MutableList<PFUserDO>, element: PFUserDO): Boolean {
+        return type == TYPE.ALL ||
+                type == TYPE.ADMINS && accessChecker.isUserMemberOfAdminGroup(element) ||
+                type == TYPE.PRIVILEGED &&
+                accessChecker.isUserMemberOfGroup(
+                    element,
+                    ProjectForgeGroup.HR_GROUP,
+                    ProjectForgeGroup.ADMIN_GROUP,
+                    ProjectForgeGroup.FINANCE_GROUP,
+                    ProjectForgeGroup.CONTROLLING_GROUP,
+                    ProjectForgeGroup.ORGA_TEAM,
+                ) || type == TYPE.RESTRICTED && element.restrictedUser
+    }
 
-  companion object {
-    private var _accessChecker: AccessChecker? = null
-    private val accessChecker: AccessChecker
-      get() {
-        // Lazy initialization needed (I18nKeysUsage classForName fails otherwise).
-        if (_accessChecker == null) {
-          _accessChecker = ApplicationContextProvider.getApplicationContext().getBean(AccessChecker::class.java)
+    companion object {
+        private val accessChecker: AccessChecker by lazy {
+            ApplicationContextProvider.getApplicationContext().getBean(AccessChecker::class.java)
         }
-        return _accessChecker!!
-      }
-  }
+    }
 }

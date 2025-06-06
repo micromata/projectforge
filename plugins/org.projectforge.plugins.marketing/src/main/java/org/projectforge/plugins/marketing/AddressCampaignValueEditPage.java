@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -37,7 +37,7 @@ import java.io.Serializable;
 import java.util.Iterator;
 
 /**
- * The controler of the edit formular page. Most functionality such as insert, update, delete etc. is done by the super
+ * The controller of the edit formular page. Most functionality such as insert, update, delete etc. is done by the super
  * class.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -132,7 +132,7 @@ class UserPrefRestService {
             @Suppress("UNCHECKED_CAST")
             return entry as T
         }
-        // Probably a new software release results in an incompability of old and new object format.
+        // Probably a new software release results in an incompatibility of old and new object format.
         log.info("Could not get user preference entry: (old) type "
                 + entry.javaClass.name
                 + " is not assignable tox (new) required type "

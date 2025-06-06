@@ -14,19 +14,19 @@ const filterRecent = (
     },
 ) => {
     const kost2Number = kost2 ? kost2.formattedNumber : '';
-    const projekt = kost2 ? kost2.projekt : '';
-    const kunde = projekt ? projekt.kunde : '';
-    const projektName = projekt ? projekt.name : '';
-    const kundeName = kunde ? kunde.name : '';
+    const project = kost2 ? kost2.project : '';
+    const customer = project ? project.customer : '';
+    const projectName = project ? project.name : '';
+    const customerName = customer ? customer.name : '';
     const taskTitle = task ? task.title : '';
-    const str = `${taskTitle}|${kost2Number}|${projektName}|${kundeName}|${location}|${tag}|${reference}|${description}`.toLocaleLowerCase();
+    const str = `${taskTitle}|${kost2Number}|${projectName}|${customerName}|${location}|${tag}|${reference}|${description}`.toLocaleLowerCase();
     return str.includes(search.toLocaleLowerCase());
 };
 
 function TimesheetRecentEntry(
     {
         callback,
-        cost2Visible,
+        cost2Visible = false,
         recent,
     },
 ) {
@@ -59,16 +59,16 @@ function TimesheetRecentEntry(
         // eslint-disable-next-line no-alert
         .catch((error) => alert(`Internal error: ${error}`));
 
-    const projekt = kost2 ? kost2.projekt : undefined;
-    const kunde = projekt ? projekt.kunde : undefined;
+    const project = kost2 ? kost2.project : undefined;
+    const customer = project ? project.customer : undefined;
 
     return (
         <tr onClick={handleRowClick}>
             {cost2Visible && (
                 <>
                     <td>{kost2 ? kost2.formattedNumber : ''}</td>
-                    <td>{kunde ? kunde.name : ''}</td>
-                    <td>{projekt ? projekt.name : ''}</td>
+                    <td>{customer ? customer.name : ''}</td>
+                    <td>{project ? project.name : ''}</td>
                 </>
             )}
             <td>{task ? task.title : ''}</td>
@@ -85,7 +85,7 @@ TimesheetRecentEntry.propTypes = {
     recent: PropTypes.shape({
         kost2: PropTypes.shape({
             formattedNumber: PropTypes.string,
-            projekt: PropTypes.string,
+            project: PropTypes.string,
         }),
         task: PropTypes.shape({
             title: PropTypes.string,
@@ -96,10 +96,6 @@ TimesheetRecentEntry.propTypes = {
         description: PropTypes.string,
     }).isRequired,
     cost2Visible: PropTypes.bool,
-};
-
-TimesheetRecentEntry.defaultProps = {
-    cost2Visible: false,
 };
 
 export { filterRecent };

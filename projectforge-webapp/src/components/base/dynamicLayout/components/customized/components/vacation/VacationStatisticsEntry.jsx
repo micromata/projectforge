@@ -7,8 +7,8 @@ import { VacationStatisticsContext } from './VacationStatisticsContext';
 function VacationStatisticsEntry(
     {
         field,
-        highlighted,
-        isHead,
+        highlighted = false,
+        isHead = false,
         title,
     },
 ) {
@@ -37,11 +37,6 @@ VacationStatisticsEntry.propTypes = {
     title: PropTypes.string.isRequired,
     highlighted: PropTypes.bool,
     isHead: PropTypes.bool,
-};
-
-VacationStatisticsEntry.defaultProps = {
-    highlighted: false,
-    isHead: false,
 };
 
 export default VacationStatisticsEntry;

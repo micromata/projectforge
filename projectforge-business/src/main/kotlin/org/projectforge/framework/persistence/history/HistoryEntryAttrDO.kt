@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,8 +24,10 @@
 package org.projectforge.framework.persistence.history
 
 import com.fasterxml.jackson.annotation.JsonBackReference
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.api.HibernateUtils
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
@@ -34,7 +36,7 @@ import kotlin.reflect.KMutableProperty1
  * Stores history attributes.
  *
  * Table t_pf_history_attr
- *  withdata            | character(1)                |           | not null | -- 0, 1 (only used by mgc), attr_data concatinated to attr.value.
+ *  withdata            | character(1)                |           | not null | -- 0, 1 (only used by mgc), attr_data concatenated to attr.value.
  *  pk                  | bigint                      |           | not null |
  *  createdat           | timestamp without time zone |           | not null | -- equals to modifiedat and parent.modifiedat
  *  createdby           | character varying(60)       |           | not null | -- equals to modifiedby and parent.modifiedby
@@ -55,6 +57,12 @@ import kotlin.reflect.KMutableProperty1
  *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
+@NamedQueries(
+    NamedQuery(
+        name = HistoryEntryAttrDO.DELETE_HISTORY_ENTRY_ATTR_BY_PARENT_ID,
+        query = "delete from HistoryEntryAttrDO where parent.id=:parentId"
+    )
+)
 @Entity
 @Table(
     name = "t_pf_history_attr",
@@ -75,6 +83,7 @@ class HistoryEntryAttrDO : HistoryEntryAttr {
     @JsonBackReference
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "master_fk", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     var parent: HistoryEntryDO? = null
 
     /**
@@ -158,6 +167,8 @@ class HistoryEntryAttrDO : HistoryEntryAttr {
     }
 
     companion object {
+        internal const val DELETE_HISTORY_ENTRY_ATTR_BY_PARENT_ID = "HistoryEntryAttrDO_Delete"
+
         /**
          * Creates a new HistoryEntryAttrDO. Referenced parent is set by [HistoryEntryDO.add].
          * The old and new value will be serialized to a string by using [HistoryValueHandlerRegistry].

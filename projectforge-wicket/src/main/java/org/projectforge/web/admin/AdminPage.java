@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,7 +30,8 @@ import org.projectforge.SystemStatus;
 import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookDao;
 import org.projectforge.business.book.BookStatus;
-import org.projectforge.business.systeminfo.SystemService;
+import org.projectforge.business.jobs.CronSanityCheckJob;
+import org.projectforge.business.system.SystemService;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.user.UserXmlPreferencesMigrationDao;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
@@ -40,10 +41,10 @@ import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.i18n.I18nKeysUsageInterface;
 import org.projectforge.framework.persistence.api.ReindexSettings;
 import org.projectforge.framework.persistence.database.DatabaseService;
+import org.projectforge.framework.persistence.database.DatabaseTester;
 import org.projectforge.framework.persistence.search.HibernateSearchReindexer;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
-import org.projectforge.jcr.JCRCheckSanityJob;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
@@ -54,7 +55,6 @@ import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class AdminPage extends AbstractStandardFormPage implements ISelectCallerPage {
@@ -87,7 +87,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     addDatabaseActionsMenu();
     addCachesMenu();
     addConfigurationMenu();
-    addMiscMenu();
+    addCheckMenuItem();
     addDevelopmentMenu();
   }
 
@@ -220,11 +220,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   }
 
   @SuppressWarnings("serial")
-  protected void addMiscMenu() {
-    // Misc checks
-    final ContentMenuEntryPanel miscChecksMenu = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-        getString("system.admin.group.title.systemChecksAndFunctionality.miscChecks"));
-    addContentMenuEntry(miscChecksMenu);
+  protected void addCheckMenuItem() {
     // Check system integrity
     final Link<Void> checkSystemIntegrityLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
       @Override
@@ -233,25 +229,10 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
       }
     };
     final ContentMenuEntryPanel checkSystemIntegrityLinkMenuItem = new ContentMenuEntryPanel(
-        miscChecksMenu.newSubMenuChildId(),
+            getNewContentMenuChildId(),
         checkSystemIntegrityLink, getString("system.admin.button.checkSystemIntegrity"))
         .setTooltip(getString("system.admin.button.checkSystemIntegrity.tooltip"));
-    miscChecksMenu.addSubMenuEntry(checkSystemIntegrityLinkMenuItem);
-
-    // JCR sanity check
-    // Check system integrity
-    final Link<Void> checkJCRSanityLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
-      @Override
-      public void onClick() {
-        checkJCRSanity();
-      }
-    };
-    final ContentMenuEntryPanel checkJCRSanityLinkMenuItem = new ContentMenuEntryPanel(
-        miscChecksMenu.newSubMenuChildId(),
-        checkJCRSanityLink, getString("system.admin.button.checkJCRSanity"))
-        .setTooltip(getString("system.admin.button.checkJCRSanity.tooltip"));
-    miscChecksMenu.addSubMenuEntry(checkJCRSanityLinkMenuItem);
-
+    addContentMenuEntry(checkSystemIntegrityLinkMenuItem);
   }
 
   @SuppressWarnings("serial")
@@ -260,21 +241,49 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     final ContentMenuEntryPanel developmentMenu = new ContentMenuEntryPanel(getNewContentMenuChildId(), "Development");
     addContentMenuEntry(developmentMenu);
     // Check I18n properties.
-    final Link<Void> checkI18nPropertiesLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
-      @Override
-      public void onClick() {
-        checkI18nProperties();
-      }
-    };
-    final ContentMenuEntryPanel checkI18nPropertiesLinkMenuItem = new ContentMenuEntryPanel(
-        developmentMenu.newSubMenuChildId(),
-        checkI18nPropertiesLink, getString("system.admin.button.checkI18nProperties"))
-        .setTooltip(getString("system.admin.button.checkI18nProperties.tooltip"));
-    developmentMenu.addSubMenuEntry(checkI18nPropertiesLinkMenuItem);
+    {
+      final Link<Void> checkI18nPropertiesLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
+        @Override
+        public void onClick() {
+          checkI18nProperties();
+        }
+      };
+      final ContentMenuEntryPanel checkI18nPropertiesLinkMenuItem = new ContentMenuEntryPanel(
+              developmentMenu.newSubMenuChildId(),
+              checkI18nPropertiesLink, getString("system.admin.button.checkI18nProperties"))
+              .setTooltip(getString("system.admin.button.checkI18nProperties.tooltip"));
+      developmentMenu.addSubMenuEntry(checkI18nPropertiesLinkMenuItem);
+    }
+    // Debugging of UserGroupCache:
+    {
+      final Link<Void> actionLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
+        @Override
+        public void onClick() {
+          String json = WicketSupport.getUserGroupCache().internalGetStateAsJson();
+          DownloadUtils.setDownloadTarget(json.getBytes(),"userGroupCache-" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".json");
+        }
+      };
+      final ContentMenuEntryPanel menuEntryPanel = new ContentMenuEntryPanel(
+              developmentMenu.newSubMenuChildId(),
+              actionLink, "Debug UserGroupCache").setTooltip("Debugging of UserGroupCache, if corrupted (before refresh). A json download of the state is created.\nYou may check two states via UserGroupCacheTest.main()");
+      developmentMenu.addSubMenuEntry(menuEntryPanel);
+    }
     if (SystemStatus.isDevelopmentMode() == false) {
       // Do nothing.
       return;
     }
+    // Database tester
+    final Link<Void> testDatabaseLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
+      @Override
+      public void onClick() {
+        WicketSupport.get(DatabaseTester.class).test();
+      }
+    };
+    final ContentMenuEntryPanel testDatabaseLinkMenuItem = new ContentMenuEntryPanel(
+            developmentMenu.newSubMenuChildId(),
+            testDatabaseLink
+            , "test database");
+    developmentMenu.addSubMenuEntry(testDatabaseLinkMenuItem);
     // Create test objects
     final Link<Void> createTestObjectsLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
       @Override
@@ -299,16 +308,8 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     log.info("Administration: check integrity of tasks.");
     checkAccess();
     final String result = WicketSupport.get(SystemService.class).checkSystemIntegrity();
-    final String filename = "projectforge_check_report" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
+    final String filename = CronSanityCheckJob.getFILENAME();
     DownloadUtils.setDownloadTarget(result.getBytes(), filename);
-  }
-
-  protected void checkJCRSanity() {
-    log.info("Administration: JCR sanity check.");
-    checkAccess();
-    JCRCheckSanityJob.CheckResult result = WicketSupport.get(JCRCheckSanityJob.class).execute();
-    final String filename = "projectforge_jcr-sanity-check" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
-    DownloadUtils.setDownloadTarget(result.toText().getBytes(StandardCharsets.UTF_8), filename);
   }
 
 

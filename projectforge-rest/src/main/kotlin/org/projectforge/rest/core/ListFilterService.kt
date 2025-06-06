@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -48,7 +48,7 @@ class ListFilterService {
                 } catch (ex: ClassCastException) {
                     // No output needed, info message follows:
                 }
-                // Probably a new software release results in an incompability of old and new filter format.
+                // Probably a new software release results in an incompatibility of old and new filter format.
                 log.info(
                         "Could not restore filter from user prefs: (old) filter type "
                                 + filter.javaClass.getName()

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -61,17 +61,37 @@ object CollectionUtils {
      * Joins the id's of the given collection to a csv string. The entries are sorted by id.
      * Used for example in history entries, representing the removed and added entries of a collection.
      */
-    fun joinToStringOfIds(col: Collection<IdObject<Long>>?): String? {
+    fun joinToStringOfIds(col: Collection<IdObject<Long>>?, filterNotNull: Boolean = true): String? {
         col ?: return null
-        return joinToString(col.map { it.id })
+        return joinToString(col, filterNotNull, idOnly = true)
     }
 
     /**
      * Joins the given collection to a csv string. The entries are sorted.
      */
-    fun <T : Comparable<T>> joinToString(col: Collection<T?>?): String? {
+    fun joinToString(col: Collection<Any?>?, filterNotNull: Boolean = true, idOnly: Boolean = false): String? {
         col ?: return null
-        return col.filterNotNull().sorted().joinToString(separator = ",")
+        var filtered = if (filterNotNull) col.filterNotNull() else col
+        if (filtered.isEmpty()) {
+            return ""
+        }
+        val first = filtered.first()
+        if (first is Comparable<*>) { // Sorting is possible:
+            filtered = filtered.sortedWith(compareBy { it as Comparable<*> })
+        } else if (first is IdObject<*> && first.id is Comparable<*>) { // Sorting is possible:
+            filtered = filtered.sortedWith(compareBy { ((it as IdObject<*>).id as? Comparable<*>) })
+        }
+        return filtered.joinToString(separator = ",") { if (idOnly) toString(it) else it.toString() }
+    }
+
+    private fun toString(entry: Any?): String {
+        return if (entry == null) {
+            "null"
+        } else if (entry is IdObject<*>) {
+            entry.id.toString()
+        } else {
+            entry.toString()
+        }
     }
 
     /**

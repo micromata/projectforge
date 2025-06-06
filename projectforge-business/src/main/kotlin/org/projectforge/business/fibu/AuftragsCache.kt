@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -49,11 +49,9 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
     @Autowired
     private lateinit var auftragDao: AuftragDao
 
-    private var orderInfoMap = mutableMapOf<Long, OrderInfo>()
+    private var orderInfoMap = mapOf<Long, OrderInfo>()
 
-    private var orderPositionIdsMapByOrder = mutableMapOf<Long, MutableList<Long>>()
-
-    private var orderPositionMapByPosId = mutableMapOf<Long, OrderPositionInfo>()
+    private var orderPositionMapByPosId = mapOf<Long, OrderPositionInfo>()
 
     private var toBeInvoicedCounter: Int? = null
 
@@ -68,18 +66,14 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
     fun getOrderPositionInfosByAuftragId(auftragId: Long?): Collection<OrderPositionInfo>? {
         auftragId ?: return null
         checkRefresh()
-        synchronized(orderPositionMapByPosId) {
-            // val list = orderPositionMapByPosId.values.filter { it.auftragId == auftragId }
-            return orderPositionMapByPosId.values.filter { it.auftragId == auftragId }
-        }
+        // val list = orderPositionMapByPosId.values.filter { it.auftragId == auftragId }
+        return orderPositionMapByPosId.values.filter { it.auftragId == auftragId } // No sync, immutable map.
     }
 
     fun getOrderPositionInfo(auftragsPositionId: Long?): OrderPositionInfo? {
         auftragsPositionId ?: return null
         checkRefresh()
-        synchronized(orderPositionMapByPosId) {
-            return orderPositionMapByPosId[auftragsPositionId]
-        }
+        return orderPositionMapByPosId[auftragsPositionId] // No sync, immutable map.
     }
 
     fun getFakturiertSum(order: AuftragDO?): BigDecimal {
@@ -112,16 +106,15 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
         if (toBeInvoicedCounter != null) {
             return toBeInvoicedCounter!!
         }
-        synchronized(orderInfoMap) {
-            val counter = orderInfoMap.values.count { it.toBeInvoiced }
-            log.debug {
-                "To be invoiced counter=$counter: ${
-                    orderInfoMap.values.filter { it.toBeInvoiced }.joinToString { it.nummer.toString() }
-                }"
-            }
-            toBeInvoicedCounter = counter
-            return counter
+        // No sync, immutable map.
+        val counter = orderInfoMap.values.count { it.toBeInvoiced }
+        log.debug {
+            "To be invoiced counter=$counter: ${
+                orderInfoMap.values.filter { it.toBeInvoiced }.joinToString { it.nummer.toString() }
+            }"
         }
+        toBeInvoicedCounter = counter
+        return counter
     }
 
     fun setOrderInfo(order: AuftragDO, checkRefresh: Boolean = true) {
@@ -131,17 +124,23 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
     fun getOrderInfo(orderId: Long?): OrderInfo? {
         orderId ?: return null
         checkRefresh()
-        synchronized(orderInfoMap) {
-            return orderInfoMap[orderId]
-        }
+        return orderInfoMap[orderId] // No sync, immutable map.
     }
+
+    /**
+     * @param orderNumber [AuftragDO.nummer]
+     */
+    fun findOrderInfoByNumber(orderNumber: Int?): OrderInfo? {
+        orderNumber ?: return null
+        checkRefresh()
+        return orderInfoMap.values.find { it.nummer == orderNumber } // No sync, immutable map.
+    }
+
 
     fun getOrderInfoByPositionId(positionInfoId: Long?): OrderInfo? {
         positionInfoId ?: return null
         checkRefresh()
-        synchronized(orderPositionMapByPosId) {
-            return orderPositionMapByPosId[positionInfoId]?.auftrag
-        }
+        return orderPositionMapByPosId[positionInfoId]?.auftrag // No sync, immutable map.
     }
 
 
@@ -153,9 +152,7 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
         if (checkRefresh) {
             checkRefresh()
         }
-        synchronized(orderInfoMap) {
-            return orderInfoMap[order.id] ?: OrderInfo()
-        }
+        return orderInfoMap[order.id] ?: OrderInfo() // No sync, immutable map.
         /*
         val info = readOrderInfo(order)
         order.id?.let { id -> // id might be null on test cases.
@@ -192,7 +189,6 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
         val paymentSchedules = auftragsCacheService.selectNonDeletedPaymentSchedules().groupBy { it.auftrag?.id }
         val nOrderInfoMap = mutableMapOf<Long, OrderInfo>()
         val nOrderPositionMapByPosId = mutableMapOf<Long, OrderPositionInfo>()
-        val nOrderPositionIdsMapByOrder = mutableMapOf<Long, MutableList<Long>>()
         val nOrderPositionInfosByOrderId = mutableMapOf<Long, MutableList<OrderPositionInfo>>()
         orders.forEach { order ->
             nOrderInfoMap[order.id!!] = order.info.also {
@@ -206,10 +202,10 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
                     log.error { "Internal error: Order #$auftragId not found for position $pos" }
                     return@orderPositions
                 }
+                // Constructor of OrderPositionInfo uses AuftragsRechnungCache, which uses AuftragsCache!!!!
                 val posInfo = OrderPositionInfo(pos, orderInfo)
                 nOrderPositionMapByPosId[pos.id!!] = posInfo
-                nOrderPositionIdsMapByOrder.computeIfAbsent(auftragId!!) { mutableListOf() }.add(pos.id!!)
-                nOrderPositionInfosByOrderId.computeIfAbsent(auftragId) { mutableListOf() }.add(posInfo)
+                nOrderPositionInfosByOrderId.computeIfAbsent(auftragId!!) { mutableListOf() }.add(posInfo)
             }
         }
         orders.forEach { order ->
@@ -222,7 +218,6 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
         }
         orderInfoMap = nOrderInfoMap
         orderPositionMapByPosId = nOrderPositionMapByPosId
-        orderPositionIdsMapByOrder = nOrderPositionIdsMapByOrder
         toBeInvoicedCounter = null // Force recalculation.
         log.info { "AuftragsCache.refresh done: ${duration.toSeconds()}" }
     }

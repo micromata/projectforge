@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,16 @@
 
 package org.projectforge.business.scripting.kotlin
 
+import org.jetbrains.kotlin.com.intellij.ide.plugins.PluginManagerCore.logger
+import org.projectforge.business.scripting.ScriptLogger
+import org.projectforge.business.scripting.ThreadLocalScriptingContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import java.util.*
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
+import kotlin.script.experimental.util.PropertiesCollection
 
-class CustomScriptingHost : BasicJvmScriptingHost() {
+class CustomScriptingHost(val logger: ScriptLogger) : BasicJvmScriptingHost() {
     private val loggedInUser = ThreadLocalUserContext.requiredLoggedInUser
 
     override fun eval(
@@ -35,7 +40,13 @@ class CustomScriptingHost : BasicJvmScriptingHost() {
         compilationConfiguration: ScriptCompilationConfiguration,
         evaluationConfiguration: ScriptEvaluationConfiguration?,
     ): ResultWithDiagnostics<EvaluationResult> {
-        ThreadLocalUserContext.setUser(loggedInUser)
-        return super.eval(script, compilationConfiguration, evaluationConfiguration)
+        try {
+            ThreadLocalUserContext.setUser(loggedInUser)
+            ThreadLocalScriptingContext.setLogger(logger)
+            return super.eval(script, compilationConfiguration, evaluationConfiguration)
+        } finally {
+            ThreadLocalUserContext.clear()
+            ThreadLocalScriptingContext.clear()
+        }
     }
 }

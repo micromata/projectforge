@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -94,39 +94,33 @@ class BirthdayButlerService {
     @Scheduled(cron = "0 0 8 L-2 * ?")
     // For testing: @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 10 * 1000)
     fun sendBirthdayButlerJob() {
-        var locale = ThreadLocalUserContext.getLocale(null)
-        birthdayButlerConfiguration.locale?.let {
-            if (it.isNotBlank()) {
-                locale = Locale(it)
-            }
-        }
-        val month = PFDateTime.now().plusMonths(1).month // Use next month.
-        log.info { "BirthdayButlerJob started: using locale '${locale.language}' and month '${month.name}'..." }
-        val response = createWord(month, locale)
-        val error = response.errorMessage
-        if (error != null) {
-            log.error { "BirthdayButlerJob aborted: ${translate(error)} + $error" }
-            sendMail(month, content = error, locale = locale)
-            return
-        }
-        val word = response.wordDocument
-        if (word != null) {
-            val attachment = object : MailAttachment {
-                override fun getFilename(): String {
-                    return createFilename(month, locale)
-                }
-
-                override fun getContent(): ByteArray {
-                    return word
+        Thread {
+            var locale = ThreadLocalUserContext.getLocale(null)
+            birthdayButlerConfiguration.locale?.let {
+                if (it.isNotBlank()) {
+                    locale = Locale(it)
                 }
             }
-            val list = mutableListOf<MailAttachment>()
-            list.add(attachment)
-            sendMail(month, content = "birthdayButler.email.content", mailAttachments = list, locale = locale)
-        } else {
-            sendMail(month, content = "birthdayButler.wordDocument.error", locale = locale)
-        }
-        log.info("BirthdayButlerJob finished.")
+            val month = PFDateTime.now().plusMonths(1).month // Use next month.
+            log.info { "BirthdayButlerJob started: using locale '${locale.language}' and month '${month.name}'..." }
+            val response = createWord(month, locale)
+            val error = response.errorMessage
+            if (error != null) {
+                log.error { "BirthdayButlerJob aborted: ${translate(error)} + $error" }
+                sendMail(month, content = error, locale = locale)
+            } else {
+                val word = response.wordDocument
+                if (word != null) {
+                    val attachment = MailAttachment(createFilename(month, locale), word)
+                    val list = mutableListOf<MailAttachment>()
+                    list.add(attachment)
+                    sendMail(month, content = "birthdayButler.email.content", mailAttachments = list, locale = locale)
+                } else {
+                    sendMail(month, content = "birthdayButler.wordDocument.error", locale = locale)
+                }
+                log.info("BirthdayButlerJob finished.")
+            }
+        }.start()
     }
 
     fun createFilename(month: Month, locale: Locale? = null): String {
@@ -212,12 +206,13 @@ class BirthdayButlerService {
                 variables.put("month", translateMonth(month, locale = locale))
                 val birthdayButlerTemplate = configurationService.getOfficeTemplateFile("BirthdayButlerTemplate.docx")
                 check(birthdayButlerTemplate != null) { "BirthdayButlerTemplate.docx not found" }
-                val wordDocument =
-                    WordDocument(birthdayButlerTemplate.inputStream, birthdayButlerTemplate.file.name).use { document ->
+                val wordDocument = birthdayButlerTemplate.inputStream.use {
+                    WordDocument(it, birthdayButlerTemplate.file.name).use { document ->
                         generateBirthdayTableRows(document.document, birthdayList)
                         document.process(variables)
                         document.asByteArrayOutputStream
                     }
+                }
                 log.info { "Birthday list created" }
                 return wordDocument
             } else {

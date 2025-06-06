@@ -53,6 +53,4 @@ DynamicTimeInput.propTypes = {
     id: PropTypes.string.isRequired,
 };
 
-DynamicTimeInput.defaultProps = {};
-
 export default DynamicTimeInput;

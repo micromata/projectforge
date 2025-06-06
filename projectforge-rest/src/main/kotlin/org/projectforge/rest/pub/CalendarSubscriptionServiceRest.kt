@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -97,7 +97,7 @@ class CalendarSubscriptionServiceRest {
         var logMessage: String? = null
         try {
             val userId = ThreadLocalUserContext.loggedInUserId ?: run {
-                log.error("Internal errror: shouldn't occur: can't get context user! Should be denied by filter!!!")
+                log.error("Internal error: shouldn't occur: can't get context user! Should be denied by filter!!!")
                 return ResponseEntity<Any>(HttpStatus.BAD_REQUEST)
             }
             val params = decryptRequestParams(request, userId, userAuthenticationsService)

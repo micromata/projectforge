@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -36,7 +36,7 @@ enum class LogLevel(val key: String) : I18nEnum {
 
     /**
      * @param threshold
-     * @return True, if this log level is equals or higher than given treshold. ERROR is the highest and TRACE the lowest.
+     * @return True, if this log level is equals or higher than given threshold. ERROR is the highest and TRACE the lowest.
      */
     fun matches(threshold: LogLevel?): Boolean {
         return threshold == null || ordinal <= threshold.ordinal

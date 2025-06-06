@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -83,7 +83,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Long>, D extends BaseDao<O
                 log.info("Double click detection in " + editPage.getClass() + " create method. Do nothing.");
             } else {
                 editPage.setAlreadySubmitted(true);
-                if (editPage.getData().getId() != null) { // && editPage.getData() instanceof IManualIndex == false) {
+                if (!getBaseDao().isNew(editPage.getData())) { // && editPage.getData() instanceof IManualIndex == false) {
                     // User has used the back button?
                     log.info("User has used the back button in "
                             + editPage.getClass()
@@ -93,7 +93,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Long>, D extends BaseDao<O
                         // Error while trying to insert Object and user has used the back button?
                         log.info("User has used the back button "
                                 + editPage.getClass()
-                                + " after inserting a new object and a failure occured (because object with id not found in the data base)? Deleting the id and show the edit page again.");
+                                + " after inserting a new object and a failure occurred (because object with id not found in the data base)? Deleting the id and show the edit page again.");
                         editPage.clearIds();
                         return;
                     }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -195,7 +195,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage {
   public String getPageAsLink(final PageParameters parameters) {
     String relativeUrl = (String) urlFor(this.getClass(), parameters);
     if (relativeUrl.contains("../")) {
-      // Therefore ignore relative pathes ../:
+      // Therefore ignore relative paths ../:
       relativeUrl = relativeUrl.replace("../", "");
     }
 

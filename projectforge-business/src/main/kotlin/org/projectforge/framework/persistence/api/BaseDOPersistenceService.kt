@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -342,7 +342,7 @@ class BaseDOPersistenceService {
     }
 
     /**
-     * Deletes the object. This is only possible for historizable objects.
+     * Deletes the object.
      * @param baseDao The BaseDao of the object. If null, the object must be historizable.
      * @param obj The object to delete.
      * @param checkAccess If true, the access rights are checked.
@@ -392,7 +392,7 @@ class BaseDOPersistenceService {
             if (HistoryBaseDaoAdapter.isHistorizable(obj)) {
                 // Remove all history entries (including all attributes) from the database:
                 historyService.loadHistory(obj, baseDao).originUnsortedEntries.forEach { historyEntry ->
-                    context.delete(historyEntry) // Don't use em.remove directly, due to PersistenceCallsStats.
+                    historyService.forceDeletion(historyEntry)
                     val displayHistoryEntry = ToStringUtil.toJsonString(historyEntry)
                     if (logMessage) {
                         log.info { "${useClass.simpleName}:$id (forced) deletion of history entry: $displayHistoryEntry" }
@@ -427,7 +427,7 @@ class BaseDOPersistenceService {
     private fun flushSearchSession(em: EntityManager?) {
         if (LUCENE_FLUSH_ALWAYS) {
             val searchSession = Search.session(em)
-            // Flushing the index changes asynchonously
+            // Flushing the index changes asynchronously
             searchSession.indexingPlan().execute()
         }
     }

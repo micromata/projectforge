@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -50,8 +50,9 @@ class JsonValidatorTest : AbstractTestBase() {
         Assertions.assertEquals("kai", jsonValidator.get("responsibleUser.username"))
         Assertions.assertNull(jsonValidator.get("responsibleUser.firstname"), "Firstname shouldn't be serialized.")
 
-        jsonValidator = JsonValidator(toJsonString(task, PFUserDO::class.java))
-        Assertions.assertEquals("Kai", jsonValidator.get("responsibleUser.firstname"), "Firstname shouldn't be ignored.")
+        jsonValidator =
+            JsonValidator(toJsonString(task, preferEmbeddedSerializers = false, ignoreIdOnlySerializers = true))
+        Assertions.assertEquals("kai", jsonValidator.get("responsibleUser.username"))
 
         val timesheet = TimesheetDO()
         timesheet.user = user
@@ -61,11 +62,16 @@ class JsonValidatorTest : AbstractTestBase() {
         Assertions.assertEquals(42.0, jsonValidator.getDouble("user.id"))
         Assertions.assertEquals("kai", jsonValidator.get("user.username"))
         Assertions.assertNull(jsonValidator.get("user.firstname"), "Firstname shouldn't be serialized.")
+
+        jsonValidator = JsonValidator(toJsonString(timesheet, preferEmbeddedSerializers = false))
+        Assertions.assertEquals(42.0, jsonValidator.getDouble("user.id"))
+        Assertions.assertNull(jsonValidator.get("user.username"), "Username shouldn't be serialized.")
     }
 
     @Test
     fun parseJsonTest() {
-        val jsonValidator = JsonValidator("{'fruit1':'apple','fruit2':'orange','basket':{'fruit3':'cherry','fruit4':'banana'},'actions':[{'id':'cancel','title':'Abbrechen','style':'danger','type':'button','key':'el-20'},{'id':'create','title':'Anlegen','style':'primary','type':'button','key':'el-21'}]}")
+        val jsonValidator =
+            JsonValidator("{'fruit1':'apple','fruit2':'orange','basket':{'fruit3':'cherry','fruit4':'banana'},'actions':[{'id':'cancel','title':'Abbrechen','style':'danger','type':'button','key':'el-20'},{'id':'create','title':'Anlegen','style':'primary','type':'button','key':'el-21'}]}")
         Assertions.assertEquals("apple", jsonValidator.get("fruit1"))
         Assertions.assertEquals("orange", jsonValidator.get("fruit2"))
         Assertions.assertEquals("cherry", jsonValidator.get("basket.fruit3"))

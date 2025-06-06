@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,10 +25,11 @@ package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
-import org.projectforge.business.fibu.AuftragsCache.Companion.instance
+import org.projectforge.common.extensions.format
 import org.projectforge.common.logging.LogDuration
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
+import org.projectforge.framework.cache.CacheListener
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -68,9 +69,15 @@ class AuftragsRechnungCache : AbstractCache() {
 
     private var invoicePositionMapByRechnungId = mapOf<Long, MutableSet<RechnungPosInfo>>()
 
+    /**
+     * [AuftragsCache.refresh] uses this cache via [OrderPositionInfo] and vice versa. Both caches must run twice.
+     */
+    private var ready = false
+
     @PostConstruct
     private fun init() {
         rechnungDao.register(rechnungListener)
+        auftragsCache.register(auftragsCacheListener)
     }
 
     /**
@@ -106,15 +113,15 @@ class AuftragsRechnungCache : AbstractCache() {
         val mapByAuftragId = mutableMapOf<Long, TreeSet<Long>>()
         val mapByAuftragsPositionId = mutableMapOf<Long, TreeSet<RechnungPosInfo>>()
         val mapByRechnungsPositionMapByRechnungId = mutableMapOf<Long, TreeSet<RechnungPosInfo>>()
-        log.info("Analyzing orders in invoices (RechnungsPositionDO.AuftragsPosition)...")
+        log.info("Analyzing orders in invoices (RechnungsPositionDO.AuftragsPosition, ${list.size.format()} entries)...")
         for (pos in list) {
-            val rechnung = rechnungCache.getRechnungInfo(pos.rechnung?.id)
+            val rechnungInfo = rechnungCache.getRechnungInfo(pos.rechnung?.id)
             val auftragsPositionId = pos.auftragsPosition?.id
             if (auftragsPositionId == null) {
                 log.error("Assigned order position expected: $pos")
                 continue
             }
-            if (pos.deleted || rechnung == null || rechnung.deleted || rechnung.nummer == null) {
+            if (pos.deleted || rechnungInfo == null || rechnungInfo.deleted || rechnungInfo.nummer == null) {
                 // Invoice position or invoice is deleted.
                 continue
             }
@@ -128,12 +135,15 @@ class AuftragsRechnungCache : AbstractCache() {
             mapByAuftragsPositionId
                 .getOrPut(auftragsPositionId) { TreeSet() }
                 .add(rechnungPosInfo)
-            mapByRechnungsPositionMapByRechnungId.getOrPut(rechnung.id) { TreeSet() }
+            mapByRechnungsPositionMapByRechnungId.getOrPut(rechnungInfo.id) { TreeSet() }
                 .add(rechnungPosInfo)
         }
         this.invoicePositionMapByAuftragId = mapByAuftragId
         this.invoicePositionMapByAuftragsPositionId = mapByAuftragsPositionId
         this.invoicePositionMapByRechnungId = mapByRechnungsPositionMapByRechnungId
+        if (!auftragsCache.initialized) {
+            log.info { "AuftragsCache not yet initialized. Must re-run this refresh after initialization of AuftragsCache." }
+        }
         log.info { "Initializing of AuftragsRechnungCache done: ${duration.toSeconds()}." }
     }
 
@@ -143,6 +153,19 @@ class AuftragsRechnungCache : AbstractCache() {
          */
         override fun afterInsertOrModify(obj: RechnungDO, operationType: OperationType) {
             setExpired()
+        }
+    }
+
+    private val auftragsCacheListener = object : CacheListener {
+        override fun onAfterCacheRefresh() {
+            if (!ready) {
+                ready = true
+                auftragsCache.unregister(this)
+                log.info { "Forcing to refresh." }
+                forceReload()
+                log.info { "Forcing AuftragsCache to refresh." }
+                auftragsCache.forceReload()
+            }
         }
     }
 }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,6 +28,7 @@ import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
 import org.projectforge.business.scripting.*
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.jcr.FileInfo
 import org.projectforge.menu.MenuItem
@@ -160,6 +161,20 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
                 )
             )
         )
+        val examplesMenu = MenuItem("examples", translate("scripting.script.examples"))
+        layout.add(examplesMenu)
+        ExampleScripts.exampleFiles.forEachIndexed { index, exampleScript ->
+            examplesMenu.add(
+                MenuItem(
+                    id = "example$index",
+                    title = exampleScript.title,
+                    url = PagesResolver.getDynamicPageUrl(
+                        ScriptExecutePageRest::class.java,
+                        params = mapOf("example" to index),
+                    ),
+                )
+            )
+        }
     }
 
     /**
@@ -215,13 +230,13 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
                     UICol(md = 6).let { col ->
                         row.add(col)
                         for (i in 1..3) {
-                            col.add(createParameterRow(i))
+                            addParameterFields(col, i)
                         }
                     }
                     UICol(md = 6).let { col ->
                         row.add(col)
                         for (i in 4..6) {
-                            col.add(createParameterRow(i))
+                            addParameterFields(col, i)
                         }
                     }
                 }
@@ -348,19 +363,27 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
         }
     }
 
-    private fun createParameterRow(number: Int): UIRow {
-        return UIRow()
-            .add(
-                UICol()
-                    .add(UIInput("parameter$number.name", label = "scripting.script.parameterName"))
-            )
-            .add(
-                UICol()
-                    .add(
-                        UISelect<ScriptParameterType>("parameter$number.type", required = false).buildValues(
-                            ScriptParameterType::class.java
+    private fun addParameterFields(col: UICol, number: Int) {
+        col.add(
+            UIRow()
+                .add(
+                    UICol()
+                        .add(UIInput("parameter$number.name", label = "scripting.script.parameterName"))
+                )
+                .add(
+                    UICol()
+                        .add(
+                            UISelect<ScriptParameterType>("parameter$number.type", required = false).buildValues(
+                                ScriptParameterType::class.java
+                            )
                         )
-                    )
-            )
+                )
+        ).add(
+            UIRow()
+                .add(
+                    UICol()
+                        .add(UITextArea("parameter$number.description", label = "description"))
+                )
+        )
     }
 }

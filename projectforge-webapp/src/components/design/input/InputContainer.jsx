@@ -11,10 +11,10 @@ function InputContainer(
         children,
         className,
         color,
-        isActive,
+        isActive = false,
         label,
-        readOnly,
-        withMargin,
+        readOnly = false,
+        withMargin = false,
         ...props
     },
 ) {
@@ -50,16 +50,6 @@ InputContainer.propTypes = {
     label: PropTypes.node,
     readOnly: PropTypes.bool,
     withMargin: PropTypes.bool,
-};
-
-InputContainer.defaultProps = {
-    additionalLabel: undefined,
-    className: undefined,
-    color: undefined,
-    isActive: false,
-    label: undefined,
-    readOnly: false,
-    withMargin: false,
 };
 
 export default InputContainer;

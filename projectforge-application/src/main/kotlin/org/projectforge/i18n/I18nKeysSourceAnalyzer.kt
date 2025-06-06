@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -108,7 +108,7 @@ internal class I18nKeysSourceAnalyzer {
         }
         getI18nEnums()
         getPropertyInfos()
-        // Now, add all found occurences of all i18n keys detected:
+        // Now, add all found occurrences of all i18n keys detected:
         i18nKeyMap.values.forEach { entry ->
             stringConstantsMap[entry.i18nKey]?.forEach { file ->
                 entry.addUsage(file)

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -76,7 +76,7 @@ class MerlinVariable : MerlinVariableBase() {
 
   /**
    * Input variables will be displayed for editing (or given in serial Excel). Input variables are defined and not dependent.
-   * Equals to definded && !dependent.
+   * Equals to defined && !dependent.
    */
   val input: Boolean
     get() = defined && !dependent

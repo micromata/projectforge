@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,10 +35,17 @@ import org.projectforge.rest.dto.User
  */
 @Suppress("unused")
 class ScriptUser internal constructor() {
-  private val loggedInUser = ThreadLocalUserContext.loggedInUser!!
+  private val loggedInUser = ThreadLocalUserContext.requiredLoggedInUser
   private val userGroupCache = UserGroupCache.getInstance()
 
   val user = User()
+
+  init {
+    user.copyFrom(loggedInUser)
+  }
+
+  val id
+    get() = user.id
 
   /**
    * Convenient field.
@@ -103,9 +110,5 @@ class ScriptUser internal constructor() {
 
   fun isHRStaffMember(): Boolean {
     return userGroupCache.isUserMemberOfHRGroup(loggedInUser.id)
-  }
-
-  init {
-    user.copyFrom(ThreadLocalUserContext.loggedInUser!!)
   }
 }

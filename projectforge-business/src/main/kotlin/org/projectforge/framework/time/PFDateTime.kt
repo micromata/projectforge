@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -150,7 +150,7 @@ open class PFDateTime internal constructor(
     }
 
     /**
-     * 0-based: 0 (January) to 11 (December) for backward compability with [java.util.Calendar.MONTH]
+     * 0-based: 0 (January) to 11 (December) for backward compatibility with [java.util.Calendar.MONTH]
      */
     fun withCompabilityMonth(month: Int): PFDateTime {
         return PFDateTime(dateTime.withMonth(month + 1), locale, precision)
@@ -397,73 +397,35 @@ open class PFDateTime internal constructor(
         return isoString
     }
 
-    private var _utilDate: Date? = null
+    /**
+     * @return The date as java.util.Date. java.util.Date is only calculated, if this getter is called and it
+     * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
+     */
+    override val utilDate: Date by lazy { Date.from(dateTime.toInstant()) }
 
     /**
      * @return The date as java.util.Date. java.util.Date is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
      */
-    override val utilDate: Date
-        get() {
-            if (_utilDate == null)
-                _utilDate = Date.from(dateTime.toInstant())
-            return _utilDate!!
-        }
-
-    private var _calendar: Calendar? = null
-
-    /**
-     * @return The date as java.util.Date. java.util.Date is only calculated, if this getter is called and it
-     * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
-     */
-    val calendar: Calendar
-        get() {
-            if (_calendar == null) {
-                _calendar = Calendar.getInstance(timeZone, locale)
-                _calendar!!.time = utilDate
-            }
-            return _calendar!!
-        }
-
-    private var _sqlTimestamp: java.sql.Timestamp? = null
+    val calendar: Calendar by lazy { Calendar.getInstance(timeZone, locale).also { it.time = utilDate } }
 
     /**
      * @return The date as java.sql.Timestamp. java.sql.Timestamp is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
      */
-    val sqlTimestamp: java.sql.Timestamp
-        get() {
-            if (_sqlTimestamp == null)
-                _sqlTimestamp = java.sql.Timestamp.from(dateTime.toInstant())
-            return _sqlTimestamp!!
-        }
-
-    private var _sqlDate: java.sql.Date? = null
+    val sqlTimestamp: java.sql.Timestamp by lazy { java.sql.Timestamp.from(dateTime.toInstant()) }
 
     /**
      * @return The date as java.sql.Date. java.sql.Date is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
      */
-    override val sqlDate: java.sql.Date
-        get() {
-            if (_sqlDate == null) {
-                _sqlDate = PFDay.from(this).sqlDate
-            }
-            return _sqlDate!!
-        }
-
-    private var _localDate: LocalDate? = null
+    override val sqlDate: java.sql.Date by lazy { PFDay.from(this).sqlDate }
 
     /**
      * @return The date as LocalDate. LocalDate is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
      */
-    override val localDate: LocalDate
-        get() {
-            if (_localDate == null)
-                _localDate = dateTime.toLocalDate()
-            return _localDate!!
-        }
+    override val localDate: LocalDate by lazy { dateTime.toLocalDate() }
 
     val localDateTime: LocalDateTime
         get() = dateTime.toLocalDateTime()
@@ -479,7 +441,7 @@ open class PFDateTime internal constructor(
          * @param value Date in millis or seconds (depends on [numberFormat]).
          * @param zoneId ZoneId to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
          * @param locale Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
-         * @param numberFormat value is intepreted as millis at default.
+         * @param numberFormat value is interpreted as millis at default.
          * @return PFDateTime from given value...
          * @throws java.lang.IllegalStateException if date is null.
          */
@@ -503,7 +465,7 @@ open class PFDateTime internal constructor(
          * @param value Date in millis or seconds (depends on [numberFormat]). Null is supported.
          * @param zoneId ZoneId to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
          * @param locale Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
-         * @param numberFormat value is intepreted as millis at default.
+         * @param numberFormat value is interpreted as millis at default.
          * @return PFDateTime from given value or now, if value is null.
          */
         @JvmStatic
@@ -523,7 +485,7 @@ open class PFDateTime internal constructor(
          * @param value Date in millis or seconds (depends on [numberFormat]). Null is supported.
          * @param zoneId ZoneId to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
          * @param locale Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
-         * @param numberFormat value is intepreted as millis at default.
+         * @param numberFormat value is interpreted as millis at default.
          * @return PFDateTime from given value or null, if value is null.
          */
         @JvmStatic

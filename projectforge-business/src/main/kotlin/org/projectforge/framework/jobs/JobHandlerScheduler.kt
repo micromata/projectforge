@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -36,6 +36,8 @@ class JobHandlerScheduler {
   // Runs every minute
   @Scheduled(fixedDelay = Constants.MILLIS_PER_MINUTE, initialDelay = Constants.MILLIS_PER_MINUTE)
   fun execute() {
-    jobHandler.tidyUp()
+    Thread {
+      jobHandler.tidyUp()
+    }.start()
   }
 }

@@ -45,8 +45,4 @@ VacationEntries.propTypes = {
     })),
 };
 
-VacationEntries.defaultProps = {
-    entries: undefined,
-};
-
 export default VacationEntries;

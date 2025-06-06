@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -179,7 +179,7 @@ public class TeamCalResponseServlet extends HttpServlet
 
     resp.setContentType("text/html;charset=UTF-8");
     final Map<String, Object> templateData = new HashMap<>();
-    templateData.put("reponse", I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.response." + statusFinal.getKey()));
+    templateData.put("response", I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.response." + statusFinal.getKey()));
     final String content = renderGroovyTemplate("htmlTemplates/teamEventResponse.html", templateData);
 
     resp.getOutputStream().print(content);
@@ -189,7 +189,7 @@ public class TeamCalResponseServlet extends HttpServlet
   {
     resp.setContentType("text/html;charset=UTF-8");
     final Map<String, Object> templateData = new HashMap<>();
-    templateData.put("reponse", I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.response.error"));
+    templateData.put("response", I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.response.error"));
     final String content = renderGroovyTemplate("htmlTemplates/teamEventResponse.html", templateData);
     resp.getOutputStream().print(content);
   }

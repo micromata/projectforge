@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -39,7 +39,7 @@ class ScriptFileAccessor(
     attachmentsService.getAttachments(scriptPagesRest.jcrPath!!, scriptDO.id!!, scriptPagesRest.attachmentsAccessChecker)
 
   /**
-   * Backward compability.
+   * Backward compatibility.
    * @return file of db script entry or newest attachment, if db entry doesn't contain a file.
    */
   val file: ByteArray
@@ -51,7 +51,7 @@ class ScriptFileAccessor(
     }
 
   /**
-   * Backward compability.
+   * Backward compatibility.
    * @return file of db script entry or newest attachment, if db entry doesn't contain a file.
    */
   val filename: String

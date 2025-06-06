@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -137,4 +137,6 @@ internal object CardDavXmlUtils {
         "xmlns:$D=\"DAV:\" xmlns:$CARD=\"urn:ietf:params:xml:ns:carddav\" xmlns:$CS=\"http://calendarserver.org/ns/\" xmlns:me=\"http://me.com/_namespace/\""
 
     val EXTRACT_ADDRESS_ID_REGEX = """ProjectForge-(\d+)\.vcf""".toRegex()
+
+    val EXTRACT_ADDRESS_ID_PHOTO_REGEX = """${CardDavInit.PHOTO_PATH}(\d+)\.""".toRegex()
 }

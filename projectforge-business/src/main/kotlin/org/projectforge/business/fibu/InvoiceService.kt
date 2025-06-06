@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,6 +27,7 @@ import de.micromata.merlin.utils.ReplaceUtils
 import de.micromata.merlin.word.RunsProcessor
 import de.micromata.merlin.word.WordDocument
 import de.micromata.merlin.word.templating.Variables
+import mu.KotlinLogging
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.apache.commons.lang3.StringUtils
 import org.apache.poi.xwpf.usermodel.XWPFDocument
@@ -40,7 +41,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.Resource
@@ -53,6 +53,8 @@ import java.text.DecimalFormat
 import java.time.LocalDate
 import java.util.*
 import java.util.stream.Collectors
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Created by blumenstein on 08.05.17.
@@ -98,13 +100,17 @@ open class InvoiceService {
     }
 
     open fun getInvoiceWordDocument(data: RechnungDO, variant: String?): ByteArrayOutputStream? {
+        log.info { "Creating invoice document for invoice number ${data.nummer}." }
         return try {
             var invoiceTemplate: Resource? = null
-            val isSkonto = data.discountMaturity != null && data.discountPercent != null && data.discountZahlungsZielInTagen != null
+            val isSkonto =
+                data.discountMaturity != null && data.discountPercent != null && data.discountZahlungsZielInTagen != null
             if (!customInvoiceTemplateName.isNullOrEmpty()) {
                 val variantSuffix = if (variant.isNullOrBlank()) "" else "_$variant"
-                invoiceTemplate = configurationService.getOfficeTemplateFile("$customInvoiceTemplateName$variantSuffix.docx",
-                    "InvoiceTemplate.docx")
+                invoiceTemplate = configurationService.getOfficeTemplateFile(
+                    "$customInvoiceTemplateName$variantSuffix.docx",
+                    "InvoiceTemplate.docx"
+                )
             }
             val variables = Variables()
             variables.put("table", "") // Marker for finding table (should be removed).
@@ -117,11 +123,12 @@ open class InvoiceService {
             }
             variables.put("Typ", type)
             variables.put("Kundenreferenz", data.customerref1)
-            variables.put("Auftragsnummer", data.positionen!!.stream()
-                    .filter { pos: RechnungsPositionDO -> pos.auftragsPosition != null && pos.auftragsPosition!!.auftrag != null }
-                    .map { pos: RechnungsPositionDO -> pos.auftragsPosition!!.auftrag!!.nummer.toString() }
-                    .distinct()
-                    .collect(Collectors.joining(", ")))
+            variables.put(
+                "Auftragsnummer", data.positionen!!.stream()
+                .filter { pos: RechnungsPositionDO -> pos.auftragsPosition != null && pos.auftragsPosition!!.auftrag != null }
+                .map { pos: RechnungsPositionDO -> pos.auftragsPosition!!.auftrag!!.nummer.toString() }
+                .distinct()
+                .collect(Collectors.joining(", ")))
             variables.put("VORNAME_NACHNAME", ThreadLocalUserContext.loggedInUser?.getFullname()?.uppercase() ?: "")
             variables.put("Rechnungsnummer", data.nummer?.toString() ?: "")
             variables.put("Rechnungsdatum", DateTimeFormatter.instance().getFormattedDate(data.datum))
@@ -130,7 +137,10 @@ open class InvoiceService {
             variables.put("isSkonto", isSkonto)
             if (isSkonto) {
                 variables.put("Skonto", formatBigDecimal(data.discountPercent!!.stripTrailingZeros()) + "%")
-                variables.put("Faelligkeit_Skonto", DateTimeFormatter.instance().getFormattedDate(data.discountMaturity))
+                variables.put(
+                    "Faelligkeit_Skonto",
+                    DateTimeFormatter.instance().getFormattedDate(data.discountMaturity)
+                )
             }
             variables.put("Zwischensumme", formatCurrencyAmount(data.info.netSum))
             variables.put("MwSt", formatCurrencyAmount(data.info.vatAmount))
@@ -208,7 +218,8 @@ open class InvoiceService {
             begin = invoice.periodOfPerformanceBegin
             end = invoice.periodOfPerformanceEnd
         }
-        return DateTimeFormatter.instance().getFormattedDate(begin) + " - " + DateTimeFormatter.instance().getFormattedDate(end)
+        return DateTimeFormatter.instance().getFormattedDate(begin) + " - " + DateTimeFormatter.instance()
+            .getFormattedDate(end)
     }
 
     private fun generatePosTableRows(templateDocument: XWPFDocument, invoice: RechnungDO): XWPFTable? {
@@ -237,7 +248,12 @@ open class InvoiceService {
         return posTbl
     }
 
-    private fun createInvoicePositionRow(posTbl: XWPFTable?, rowCounter: Int, invoice: RechnungDO, position: RechnungsPositionDO) {
+    private fun createInvoicePositionRow(
+        posTbl: XWPFTable?,
+        rowCounter: Int,
+        invoice: RechnungDO,
+        position: RechnungsPositionDO
+    ) {
         try {
             val sourceRow = posTbl!!.getRow(1)
             val ctrow = CTRow.Factory.parse(sourceRow.ctRow.newInputStream())
@@ -278,12 +294,12 @@ open class InvoiceService {
         val subject = if (invoice.betreff != null) "_" + invoice.betreff else ""
         val invoiceDate = "_" + PFDay.fromOrNow(invoice.datum).isoString
         return StringUtils.abbreviate(
-                ReplaceUtils.encodeFilename(number + customer + project + subject + invoiceDate, true),
-                "...", FILENAME_MAXLENGTH) + suffix
+            ReplaceUtils.encodeFilename(number + customer + project + subject + invoiceDate, true),
+            "...", FILENAME_MAXLENGTH
+        ) + suffix
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(InvoiceService::class.java)
         private const val FILENAME_MAXLENGTH = 100 // Higher values result in filename issues in Safari 13-
     }
 }

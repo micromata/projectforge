@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -144,12 +144,16 @@ open class DBQuery {
             || !historSearchParams.searchHistory.isNullOrBlank()
         ) {
             // Search now all history entries which were modified by the given user and/or in the given time period.
-            val idSet = if (historSearchParams.searchHistory.isNullOrBlank()) {
-                DBHistoryQuery.searchHistoryEntryByCriteria(em, baseDao.doClass, historSearchParams)
-                //baseDao.getHistoryEntries(baseDao.entityManager, baseSearchFilter) // No full text required.
-            } else {
-                DBHistoryQuery.searchHistoryEntryByFullTextQuery(em, baseDao.doClass, historSearchParams)
-                //baseDao.getHistoryEntriesFullTextSearch(baseDao.entityManager, baseSearchFilter)
+            val idSet = persistenceService.runIsolatedReadOnly { innerContext ->
+                val isolatedEm = innerContext.em
+                val set = if (historSearchParams.searchHistory.isNullOrBlank()) {
+                    DBHistoryQuery.searchHistoryEntryByCriteria(isolatedEm, baseDao.doClass, historSearchParams)
+                    //baseDao.getHistoryEntries(baseDao.entityManager, baseSearchFilter) // No full text required.
+                } else {
+                    DBHistoryQuery.searchHistoryEntryByFullTextQuery(isolatedEm, baseDao.doClass, historSearchParams)
+                    //baseDao.getHistoryEntriesFullTextSearch(baseDao.entityManager, baseSearchFilter)
+                }
+                set
             }
             while (next != null) {
                 val id = next.id

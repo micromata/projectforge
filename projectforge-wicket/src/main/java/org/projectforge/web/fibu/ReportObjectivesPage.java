@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -115,7 +115,7 @@ public class ReportObjectivesPage extends AbstractStandardFormPage
   }
 
   /**
-   * @return Any existing user storage or null if not exist (wether in class nor in user's session).
+   * @return Any existing user storage or null if not exist (whether in class nor in user's session).
    */
   protected ReportStorage getReportStorage()
   {

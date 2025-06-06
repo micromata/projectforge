@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -83,7 +83,7 @@ object I18nHelper {
       return localized
     }
     return if (localized.startsWith("???")) {
-      // I18n-key not found (e. g. in test cases).
+      // I18n-key not found (e.g. in test cases).
       "$localized (${params.joinToString { it.toString() }})???"
     } else MessageFormat.format(localized, *params)
   }

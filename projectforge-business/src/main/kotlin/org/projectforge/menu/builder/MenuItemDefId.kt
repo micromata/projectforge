@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -50,37 +50,37 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     BIRTHDAY_BUTLER("menu.birthdayButler", getReactDynamicPageUrl("birthdayButler")), //
     BOOK_LIST("menu.bookList", getReactListUrl("book")), //
     CALENDAR("menu.calendar", getReactListUrl("calendar")), //
-    TEAMCALENDAR("menu.plugins.teamcal", getReactListUrl("teamCal")), //
+    CALENDAR_LIST("menu.plugins.teamcal", getReactListUrl("teamCal")), //
     CHANGE_PASSWORD("menu.changePassword", getReactDynamicPageUrl("changePassword")), //
     CHANGE_WLAN_PASSWORD("menu.changeWlanPassword", getReactDynamicPageUrl("changeWlanPassword")), //
     CONFIGURATION("menu.configuration", "wa/configuration"), //
-    CONTACT_LIST("menu.contactList"), //
     CONTRACTS("menu.contracts", getReactListUrl("contract")), //
-    COST1_LIST("menu.fibu.kost1", getReactListUrl("cost1")), //
+    COST1_LIST("menu.fibu.kost1", "wa/cost1List"), // getReactListUrl("cost1")), //
     COST2_LIST("menu.fibu.kost2", "wa/cost2List"), //
     COST2_TYPE_LIST("menu.fibu.kost2arten", "wa/cost2TypeList"), //
+    COST_SEARCH("menu.fibu.kostSearch", getReactDynamicPageUrl("costSearch")), //
+
     CUSTOMER_LIST("menu.fibu.kunden", "wa/customerList"), //
     //CUSTOMER_LIST("menu.fibu.kunden", getReactListUrl("customer")), // Doesn't work yet
 
     DATEV_IMPORT("menu.fibu.datevImport", "wa/datevImport"), //
-    DOCUMENTATION("menu.documentation"), //
     DVELOP("menu.dvelop", getReactDynamicPageUrl("dvelop")), //
     EMPLOYEE_LIST("menu.fibu.employees", getReactListUrl("employee")), //
     EMPLOYEE_SALARY_LIST("menu.fibu.employeeSalaries", "wa/employeeSalaryList"), //
-    EMPLOYEE_SALARY_IMPORT("menu.fibu.employeeSalariesImport", "wa/employeeSalariesImport"), //
+    EMPLOYEE_SALARY_IMPORT("menu.fibu.employeeSalariesImport", "wa/wicket/bookmarkable/org.projectforge.web.fibu.EmployeeSalaryImportPage"), //
     EMPLOYEE_LEAVE_ACCOUNT_ENTRIES("menu.vacation.leaveAccountEntry", getReactListUrl("leaveAccountEntry")), //
     FEEDBACK("menu.gear.feedback", url = "wa/feedback"), //
     GANTT("menu.gantt", "wa/ganttList"), //
     GROUP_LIST("menu.groupList", getReactListUrl("group")), //
     HR_PLANNING_LIST("menu.hrPlanningList", "wa/hrPlanningList"), //
     HR_VIEW("menu.hrList", "wa/hrList"), //
-    IMAGE_CROPPER("menu.imageCropper"), //
     INBOX_LIST("menu.orga.posteingang", getReactListUrl("incomingMail")), //
     INCOMING_INVOICE_LIST("menu.fibu.eingangsrechnungen", "wa/incomingInvoiceList"), //
     JOB_MONITOR("jobs.monitor.title", getReactDynamicPageUrl("jobsMonitor")), //
     LOGOUT("menu.logout", url = "logout"), //
     MONTHLY_EMPLOYEE_REPORT("menu.monthlyEmployeeReport", "wa/monthlyEmployeeReport"), //
     MY_ACCOUNT("menu.myAccount", getReactDynamicPageUrl("myAccount")), //
+    MY_MENU("menu.myMenu", getReactDynamicPageUrl("myMenu")), //
     MY_2FA("menu.2FA", getReactDynamicPageUrl(TWO_FACTOR_AUTHENTIFICATION_SUB_URL_PRIV)), //
     MY_2FA_SETUP("menu.2FASetup", getReactDynamicPageUrl("2FASetup")), //
     MY_SCRIPT_LIST("menu.myScriptList", getReactListUrl("myscript")), //
@@ -103,7 +103,6 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     VACATION_ACCOUNT("menu.vacation.leaveaccount", getReactDynamicPageUrl("vacationAccount")), //
     VISITORBOOK("menu.orga.visitorbook", getReactListUrl("visitorbook")), //
 
-    SPACE_LIST("menu.spaceList"), //
     PLUGIN_ADMIN("menu.pluginAdmin", "wa/wicket/bookmarkable/org.projectforge.web.admin.PluginListPage"), //
     SYSTEM("menu.system", "wa/admin"), //
     SYSTEM_STATISTICS("menu.systemStatistics", getReactDynamicPageUrl("systemStatistics"));

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,8 +34,8 @@ class IBANUtilsTest {
     Assertions.assertNull(format(null))
     Assertions.assertEquals("", format(""))
     Assertions.assertEquals("DE12 3456", format("DE123456"))
-    Assertions.assertEquals("DE123 456", format("DE123 456"), "Is already formattted.")
-    Assertions.assertEquals(" DE123 456", format(" DE123 456"), "Is already formattted.")
+    Assertions.assertEquals("DE123 456", format("DE123 456"), "Is already formatted.")
+    Assertions.assertEquals(" DE123 456", format(" DE123 456"), "Is already formatted.")
     Assertions.assertEquals("DE12 3456 7890 12", format("  DE123456789012"))
   }
 

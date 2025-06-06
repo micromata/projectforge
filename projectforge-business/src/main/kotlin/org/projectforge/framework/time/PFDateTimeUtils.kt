@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,6 +30,7 @@ import org.projectforge.framework.time.PFDateTime.Companion.withDate
 import java.sql.Timestamp
 import java.time.DateTimeException
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
@@ -130,6 +131,13 @@ object PFDateTimeUtils {
         return withDate(ud.year, ud.month, ud.dayOfMonth, 0, 0, 0, 0, ZONE_UTC)
     }
 
+    @JvmStatic
+    fun getBeginOfDateAsUtildate(localDate: LocalDate): Date {
+        // Combine LocalDate with 00:00 Uhr in UTC
+        val instant = localDate.atStartOfDay(ZoneOffset.UTC).toInstant()
+        // Convert Instant to Date
+        return Date.from(instant)
+    }
 
     /**
      * Including limits.
@@ -195,7 +203,7 @@ object PFDateTimeUtils {
     fun parse(
         str: String?,
         defaultZoneId: ZoneId? = null,
-        numberFormat: PFDateTime.NumberFormat? = PFDateTime.NumberFormat.EPOCH_SECONDS,
+        numberFormat: PFDateTime.NumberFormat? = null,
         locale: Locale = PFDateTime.getUsersLocale()
     )
             : PFDateTime? {
@@ -210,7 +218,7 @@ object PFDateTimeUtils {
             // Simply remove milliseconds for this special case:
             trimmedString = trimmedString.substring(0 until trimmedString.length - 4)
         }
-        val temporal = DateParser.parse(trimmedString, defaultZoneId, parseLocalDateIfNoTimeOfDayGiven = false)
+        val temporal = DateParser.parse(trimmedString, defaultZoneId, parseLocalDateIfNoTimeOfDayGiven = false, numberFormat = numberFormat)
         if (temporal != null) {
             val zoneId = defaultZoneId ?: ZoneOffset.UTC
             return PFDateTime.fromTemporal(temporal, zoneId, locale)

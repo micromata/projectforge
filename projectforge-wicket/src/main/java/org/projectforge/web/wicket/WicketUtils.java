@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -44,12 +44,14 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.protocol.http.RequestUtils;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
+import org.apache.wicket.request.Url;
 import org.apache.wicket.request.UrlUtils;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
+import org.apache.wicket.util.string.StringValueConversionException;
 import org.projectforge.Constants;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.common.BeanHelper;
@@ -98,7 +100,7 @@ public class WicketUtils {
         String relativeUrl = page.urlFor(page.getPageClass(), page.getPageParameters()).toString();
 
         if (relativeUrl.contains("../")) {
-            // Therefore ignore relative pathes ../:
+            // Therefore ignore relative paths ../:
             relativeUrl = relativeUrl.replace("../", "");
         }
 
@@ -169,7 +171,12 @@ public class WicketUtils {
         if (sval == null || sval.isNull() == true) {
             return null;
         } else {
-            return sval.toLong();
+            try {
+                return sval.toLong();
+            } catch (Exception ex) {
+                log.warn("Error while trying to convert parameter '" + name + "' to long: " + ex.getMessage(), ex);
+                return null;
+            }
         }
     }
 
@@ -250,8 +257,15 @@ public class WicketUtils {
      * @return path itself if not starts with '/' otherwise "/ProjectForge" + path with session id and params.
      */
     public static String getUrl(final RequestCycle requestCycle, final String path, final boolean encodeUrl) {
-        String url = UrlUtils.rewriteToContextRelative(path, requestCycle);
-        if (encodeUrl == true) {
+        String url;
+        if (path.contains("wa/")) {
+            url = UrlUtils.rewriteToContextRelative(path, requestCycle);
+        } else if (path.startsWith("/")) {
+            url = RequestCycle.get().getUrlRenderer().renderFullUrl(Url.parse(path));
+        } else {
+            url = RequestCycle.get().getUrlRenderer().renderFullUrl(Url.parse("/" + path));
+        }
+        if (encodeUrl) {
             url = requestCycle.getResponse().encodeURL(url);
         }
         return url;
@@ -262,7 +276,7 @@ public class WicketUtils {
      * application.
      *
      * @param pageClass
-     * @param Optional  list of params in tupel form: key, value, key, value...
+     * @param Optional  list of params in tuple form: key, value, key, value...
      */
     public static String getBookmarkablePageUrl(final Class<? extends Page> pageClass, final String... params) {
         final RequestCycle requestCylce = RequestCycle.get();
@@ -766,7 +780,7 @@ public class WicketUtils {
     }
 
     /**
-     * For compability reasons.
+     * For compatibility reasons.
      *
      * @param label Label as prefix
      * @param date
@@ -1109,7 +1123,7 @@ public class WicketUtils {
     }
 
     /**
-     * Searchs the attribute behavior (SimpleAttributeModifier or AttibuteApendModifier) with the given attribute name and
+     * Searches the attribute behavior (SimpleAttributeModifier or AttibuteApendModifier) with the given attribute name and
      * returns it if found, otherwise null.
      *
      * @param comp

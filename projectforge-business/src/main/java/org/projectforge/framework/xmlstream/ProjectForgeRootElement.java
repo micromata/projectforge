@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,7 +30,7 @@ import java.util.Date;
 import java.util.TimeZone;
 
 /**
- * For export and import it's usefull to use an instance of this object to define for example the time zone, version etc.
+ * For export and import it's useful to use an instance of this object to define for example the time zone, version etc.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  *
  */

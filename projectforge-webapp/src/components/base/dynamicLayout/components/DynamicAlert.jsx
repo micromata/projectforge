@@ -33,7 +33,7 @@ function DynamicAlert(props) {
     }
 
     return React.useMemo(() => (
-        <Alert color={color}>
+        <Alert color={color} fade={false}>
             {title && (
                 <h4 className="alert-heading">
                     {title}
@@ -56,13 +56,6 @@ DynamicAlert.propTypes = {
     title: PropTypes.string,
     color: colorPropType,
     icon: PropTypes.arrayOf(PropTypes.string),
-};
-
-DynamicAlert.defaultProps = {
-    markdown: undefined,
-    title: undefined,
-    color: undefined,
-    icon: undefined,
 };
 
 export default DynamicAlert;

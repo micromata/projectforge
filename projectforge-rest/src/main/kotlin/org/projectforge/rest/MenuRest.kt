@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -65,6 +65,7 @@ class MenuRest {
     myAccountMenu.add(userNameItem)
     userNameItem.add(MenuItem(MenuItemDefId.FEEDBACK))
     userNameItem.add(MenuItemDef(MenuItemDefId.MY_ACCOUNT))
+    userNameItem.add(MenuItemDef(MenuItemDefId.MY_MENU))
     userNameItem.add(MenuItemDef(MenuItemDefId.MY_2FA_SETUP, badgeCounter = { my2FASetupMenuBadge.badgeCounter }))
     if (!accessChecker.isRestrictedUser) {
       if (ThreadLocalUserContext.userContext!!.employeeId != null) {

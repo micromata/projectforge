@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -52,7 +52,7 @@ object HibernateSearchFilterUtils {
     private const val ALLOWED_BEGINNING_CHARS = "@._*"
 
     /**
-     * If the search string containts any of this escape chars, no string modification will be done.
+     * If the search string contains any of these escape chars, no string modification will be done.
      */
     private const val ESCAPE_CHARS = "+-"
     /**

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -40,8 +40,8 @@ import org.projectforge.framework.persistence.api.impl.DBQuery
 import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta
 import org.projectforge.framework.persistence.database.DatabaseDao
 import org.projectforge.framework.persistence.database.DatabaseDao.Companion.createReindexSettings
+import org.projectforge.framework.persistence.entities.HistoryUserCommentSupport
 import org.projectforge.framework.persistence.history.*
-import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.jpa.PersistenceCallsRecorder
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.search.HibernateSearchDependentObjectsReindexer
@@ -65,26 +65,22 @@ abstract class BaseDao<O : ExtendedBaseDO<Long>>
 protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceListener<O> {
     protected val baseDOChangedRegistry = BaseDOChangedRegistry<O>(this)
 
+    /**
+     * If true, the user is able to enter a comment in the edit pages: This comment is attached to the history entry.
+     * Please refer [PFUserDO] as an example.
+     * You may also check the support by `obj is HistoryUserCommentSupport`.
+     */
+    val supportsHistoryUserComments: Boolean
+        get() = HistoryUserCommentSupport::class.java.isAssignableFrom(doClass)
+
     internal val changedRegistry = baseDOChangedRegistry
 
-    var identifier: String? = null
-        /**
-         * Identifier should be unique in application (including all plugins). This identifier is also used as category in rest services
-         * or in React pages.
-         * At default, it's the simple name of the DO clazz without extension "DO".
-         */
-        get() {
-            if (field == null) {
-                field = StringUtils.uncapitalize(
-                    StringUtils.removeEnd(
-                        doClass.simpleName,
-                        "DO"
-                    )
-                )
-            }
-            return field
-        }
-        private set
+    /**
+     * Identifier should be unique in application (including all plugins). This identifier is also used as category in rest services
+     * or in React pages.
+     * At default, it's the simple name of the DO clazz without extension "DO".
+     */
+    val identifier: String by lazy { StringUtils.uncapitalize(StringUtils.removeEnd(doClass.simpleName, "DO")) }
 
     @JvmField
     var logDatabaseActions: Boolean = true
@@ -292,7 +288,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     /**
      * This method is used by the searchDao and calls [.getList] by default.
      *
-     * @return A list of found entries or empty list. PLEASE NOTE: Returns null only if any error occured.
+     * @return A list of found entries or empty list. PLEASE NOTE: Returns null only if any error occurred.
      * @see .getList
      */
     @JvmOverloads
@@ -304,7 +300,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
      * Builds query filter by simply calling constructor of QueryFilter with given search filter and calls
      * getList(QueryFilter). Override this method for building more complex query filters.
      *
-     * @return A list of found entries or empty list. PLEASE NOTE: Returns null only if any error occured.
+     * @return A list of found entries or empty list. PLEASE NOTE: Returns null only if any error occurred.
      */
     override fun select(filter: BaseSearchFilter): List<O> {
         return select(filter, true)
@@ -426,12 +422,33 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     }
 
     /**
+     * For customizing [DisplayHistoryEntry]'s. The context holds the current processed [HistoryEntry] as well as the current
+     * created [DisplayHistoryEntry]. Called after converting to display history entries.
+     * Get the current [DisplayHistoryEntry] by calling [HistoryLoadContext.requiredDisplayHistoryEntry].
+     * Does nothing at default.
+     */
+    open fun customizeHistoryEntry(context: HistoryLoadContext) {
+    }
+
+    /**
      * For customizing [DisplayHistoryEntryAttr]'s. The context holds the current processed [HistoryEntryAttr] as well as the current
      * created [DisplayHistoryEntryAttr]. Called after converting to display history entries.
      * Get the current [DisplayHistoryEntryAttr] by calling [HistoryLoadContext.requiredDisplayHistoryEntryAttr].
      * Does nothing at default.
      */
     open fun customizeHistoryEntryAttr(context: HistoryLoadContext) {
+    }
+
+
+    /**
+     * Can optionally be used to indicate changes to fields in lists.
+     * This value allows the user to assign the change to a list entry.
+     * Get the current [HistoryEntry] by calling [HistoryLoadContext.requiredHistoryEntry].
+     * See [org.projectforge.business.orga.VisitorbookDao] for an example.
+     * @return null at default for no prefix.
+     */
+    open fun getHistoryPropertyPrefix(context: HistoryLoadContext): String? {
+        return null
     }
 
     /**
@@ -442,12 +459,16 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     @JvmOverloads
     open fun insertOrUpdate(obj: O, checkAccess: Boolean = true): Serializable? {
         var id: Serializable? = null
-        if (obj.id != null && obj.created != null) { // obj.created is needed for KundeDO (id isn't null for inserting new customers).
+        if (!isNew(obj)) {
             update(obj, checkAccess = checkAccess)
         } else {
             id = insert(obj, checkAccess = checkAccess)
         }
         return id
+    }
+
+    open fun isNew(obj: O): Boolean {
+        return obj.id == null
     }
 
     /**
@@ -561,7 +582,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     }
 
     /**
-     * Historizable objects will be deleted (including all history entries). This option is used to fullfill the
+     * Historizable objects will be deleted (including all history entries). This option is used to fulfill the
      * privacy protection rules.
      */
     @Throws(AccessException::class)
@@ -962,7 +983,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     protected open val additionalHistorySearchDOs: Array<Class<*>>? = null
 
     /**
-     * @return Wether the data object (BaseDO) this dao is responsible for is from type Historizable or not.
+     * @return Whether the data object (BaseDO) this dao is responsible for is from type Historizable or not.
      */
     override fun isHistorizable(): Boolean {
         return HistoryBaseDaoAdapter.isHistorizable(doClass)

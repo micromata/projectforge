@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.business.orga
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import mu.KotlinLogging
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
@@ -30,12 +31,16 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
+import org.projectforge.Constants
 import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.json.IdsOnlySerializer
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.history.NoHistory
 import java.io.Serializable
 
 private val log = KotlinLogging.logger {}
@@ -44,6 +49,14 @@ private val log = KotlinLogging.logger {}
 @Indexed
 //@HibernateSearchInfo(fieldInfoProvider = HibernateSearchAttrSchemaFieldInfoProvider::class, param = "visitorbook")
 @Table(name = "t_orga_visitorbook")
+@NamedEntityGraph(
+    name = VisitorbookDO.ENTITY_GRAPH_WITH_CONTACT_EMPLOYEES,
+    attributeNodes = [NamedAttributeNode(value = "contactPersons", subgraph = "contactPersonIds")],
+    subgraphs = [NamedSubgraph(
+        name = "contactPersonIds",
+        attributeNodes = [NamedAttributeNode(value = "id")]
+    )]
+)
 @AUserRightId("ORGA_VISITORBOOK")
 open class VisitorbookDO : DefaultBaseDO() {
 
@@ -62,52 +75,49 @@ open class VisitorbookDO : DefaultBaseDO() {
     @get:Column(name = "company")
     open var company: String? = null
 
-    @PropertyInfo(i18nKey = "orga.visitorbook.contactPerson")
+    @PropertyInfo(i18nKey = "orga.visitorbook.contactPersons")
     @IndexedEmbedded(includeDepth = 2, includePaths = ["user.firstname", "user.lastname"])
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-    @get:ManyToMany(targetEntity = EmployeeDO::class, fetch = FetchType.LAZY)
+    @get:ManyToMany(fetch = FetchType.LAZY)
     @get:JoinTable(
         name = "T_ORGA_VISITORBOOK_EMPLOYEE",
-        joinColumns = [JoinColumn(name = "VISITORBOOK_ID")],
-        inverseJoinColumns = [JoinColumn(name = "EMPLOYEE_ID")],
+        joinColumns = [JoinColumn(name = "VISITORBOOK_ID", referencedColumnName = "PK")],
+        inverseJoinColumns = [JoinColumn(name = "EMPLOYEE_ID", referencedColumnName = "PK")],
         indexes = [jakarta.persistence.Index(
             name = "idx_fk_t_orga_visitorbook_employee_id",
             columnList = "visitorbook_id"
         ), jakarta.persistence.Index(name = "idx_fk_t_orga_employee_employee_id", columnList = "employee_id")]
     )
+    @JsonSerialize(using = IdsOnlySerializer::class)
     open var contactPersons: Set<EmployeeDO>? = null
+
+    @PropertyInfo(i18nKey = "comment")
+    @FullTextField
+    @get:Column(name = "comment", length = Constants.LENGTH_TEXT)
+    open var comment: String? = null
 
     @PropertyInfo(i18nKey = "orga.visitorbook.visitortype")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "visitor_type", nullable = false)
     open var visitortype: VisitorType? = null
 
-    /*
-    @FullTextField(store = Store.YES)
-    //@FieldBridge(impl = TimeableListFieldBridge::class)
-    @IndexedEmbedded(depth = 2)
-    private var timeableAttributes: MutableList<VisitorbookTimedDO> = ArrayList()
-*/
     @get:OneToMany(
         cascade = [CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH],
         fetch = FetchType.LAZY, orphanRemoval = false,
         mappedBy = "visitorbook", targetEntity = VisitorbookEntryDO::class
     )
+    @NoHistory
     // @HistoryProperty(converter = TimependingHistoryPropertyConverter::class)
+    @JsonSerialize(using = IdsOnlySerializer::class)
     open var entries: MutableList<VisitorbookEntryDO>? = null
-
-    override fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
-        var modificationStatus = super.copyValuesFrom(src, "timeableAttributes")
-        //wval src = obj as VisitorbookDO
-        log.error("Not yet implemented: copyValuesFrom")
-        // modificationStatus = modificationStatus
-        //    .combine(BaseDaoJpaAdapter.copyTimeableAttribute(this, src))
-        return modificationStatus
-    }
 
     fun addEntry(entry: VisitorbookEntryDO) {
         entries?.add(entry) ?: run {
             entries = mutableListOf(entry)
         }
+    }
+
+    companion object {
+        const val ENTITY_GRAPH_WITH_CONTACT_EMPLOYEES = "VisitorbookDO.contactEmployees"
     }
 }

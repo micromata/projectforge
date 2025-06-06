@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.business.scripting
 
+import org.projectforge.business.PfCaches
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
@@ -32,17 +33,22 @@ import java.io.Serializable
 
 open class ScriptingDao<O : ExtendedBaseDO<Long>>
     (baseDao: BaseDao<O>) {
+    protected val caches by lazy { PfCaches.instance }
+
     private val __baseDao = baseDao
 
     /**
-     * @see BaseDao.select
+     * For backward compatibility in scripts. Use [select] instead.
+     * @see [select]
      */
     fun getList(filter: BaseSearchFilter): List<O> {
-        return __baseDao.select(filter)
+        return select(filter)
     }
 
-    fun select(filter: BaseSearchFilter): List<O> {
-        return __baseDao.select(filter)
+    open fun select(filter: BaseSearchFilter): List<O> {
+        val res = __baseDao.select(filter)
+        res.forEach { caches.initializeBaseDO(it) }
+        return res
     }
 
     val list: List<O>
@@ -51,21 +57,29 @@ open class ScriptingDao<O : ExtendedBaseDO<Long>>
          *
          * @return
          */
-        get() = __baseDao.select(QueryFilter())
+        get() = select(QueryFilter())
 
     /**
-     * @see BaseDao.select
+     * For backward compatibility in scripts. Use [select] instead.
+     * @see [select]
      */
     fun getList(filter: QueryFilter): List<O> {
-        return __baseDao.select(filter)
+        return select(filter)
     }
+
+    open fun select(filter: QueryFilter): List<O> {
+        val res = __baseDao.select(filter)
+        res.forEach { caches.initializeBaseDO(it) }
+        return res
+    }
+
 
     /**
      * @see BaseDao.find
      * @throws AccessException
      */
     @Throws(AccessException::class)
-    fun getById(id: Serializable?): O? {
+    open fun getById(id: Serializable?): O? {
         return __baseDao.find(id)
     }
 

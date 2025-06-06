@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.ListIndexBase
@@ -34,6 +35,7 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.jcr.AttachmentsInfo
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.candh.CandHIgnore
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.history.NoHistory
@@ -136,6 +138,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "contact_person_fk", nullable = true)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var contactPerson: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "fibu.kunde")
@@ -143,6 +146,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "kunde_fk", nullable = true)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var kunde: KundeDO? = null
 
     /**
@@ -158,9 +162,10 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "projekt_fk", nullable = true)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var projekt: ProjektDO? = null
 
-    @PropertyInfo(i18nKey = "fibu.auftrag.titel")
+    @PropertyInfo(i18nKey = "fibu.auftrag.title")
     @FullTextField
     @get:Column(name = "titel", length = 1000)
     open var titel: String? = null
@@ -235,6 +240,17 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @get:ListIndexBase(1)
     open var paymentSchedules: MutableList<PaymentScheduleDO>? = null
 
+    /**
+     * When sales of an order are distributed, this can be used to determine, for example, whether sales are
+     * invoiced/forecast in the current month or in the following month.
+     * Default is [AuftragForecastType.FOLLOWING_MONTH].
+     */
+    @PropertyInfo(i18nKey = "fibu.auftrag.forecastType", tooltip = "fibu.auftrag.forecastType.info")
+    @FullTextField
+    @get:Enumerated(EnumType.STRING)
+    @get:Column(name = "forecast_type", length = 20)
+    open var forecastType: AuftragForecastType? = null
+
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.from")
     @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(name = "period_of_performance_begin")
@@ -254,6 +270,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "projectmanager_fk")
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var projectManager: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "fibu.headOfBusinessManager")
@@ -261,6 +278,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "headofbusinessmanager_fk")
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var headOfBusinessManager: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "fibu.salesManager")
@@ -268,6 +286,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "salesmanager_fk")
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var salesManager: PFUserDO? = null
 
     @JsonIgnore
@@ -371,7 +390,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @Deprecated("Use info.orderedNetSum instead.")
     @get:Transient
     val beauftragtNettoSumme: BigDecimal
-        get() = info.orderedNetSum
+        get() = info.commissionedNetSum
 
     @Deprecated("Use info.invoicedSum instead.")
     @get:Transient

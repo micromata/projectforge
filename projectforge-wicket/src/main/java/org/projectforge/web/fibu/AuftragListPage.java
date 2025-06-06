@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -37,10 +37,12 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.projectforge.SystemStatus;
 import org.projectforge.business.common.OutputType;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.KundeCache;
 import org.projectforge.business.fibu.kost.ProjektCache;
+import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotsService;
 import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.common.i18n.UserException;
@@ -123,7 +125,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
                 cellItemListener));
         columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.projekt"), "projekt.name", "projekt.name",
                 cellItemListener));
-        columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.auftrag.titel"), "titel", "titel",
+        columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.auftrag.title"), "titel", "titel",
                 cellItemListener));
         columns.add(new AbstractColumn<AuftragDO, String>(new Model<String>(getString("label.position.short"))) {
             @Override
@@ -256,7 +258,8 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
                     public void onSubmit() {
                         byte[] xls = null;
                         try {
-                            xls = WicketSupport.get(ForecastExport.class).export(form.getSearchFilter());
+                            xls = WicketSupport.get(ForecastExport.class).xlsExport(form.getSearchFilter());
+                            //xls = WicketSupport.get(ForecastExport.class).export(PFDay.of(2024, Month.JANUARY, 1), PFDay.of(2024, Month.AUGUST, 1));
                         } catch (Exception e) {
                             log.error("Exception while creating forecast report: " + e.getMessage(), e);
                             throw new UserException("error", e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e));
@@ -265,12 +268,25 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
                             form.addError("datatable.no-records-found");
                             return;
                         }
-                        final String filename = "ProjectForge-Forecast_" + DateHelper.getDateAsFilenameSuffix(new Date())
-                                + ".xlsx";
+                        final String filename = WicketSupport.get(ForecastExport.class).getExcelFilenmame(form.getSearchFilter());
                         DownloadUtils.setDownloadTarget(xls, filename);
                     }
                 }, getString("fibu.auftrag.forecastExportAsXls")).setTooltip(getString("fibu.auftrag.forecastExportAsXls.tooltip"));
         addContentMenuEntry(forecastExportButton);
+
+        if (SystemStatus.isDevelopmentMode()) {
+            final ContentMenuEntryPanel orderbookExportButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
+                    new SubmitLink(ContentMenuEntryPanel.LINK_ID, form) {
+                        @Override
+                        public void onSubmit() {
+                            byte[] gz = WicketSupport.get(OrderbookSnapshotsService.class).createOrderbookSnapshot().getGzBytes();
+                            final String filename = "ProjectForge-Orderbook_" + DateHelper.getDateAsFilenameSuffix(new Date())
+                                    + ".gz";
+                            DownloadUtils.setDownloadTarget(gz, filename);
+                        }
+                    }, "Dev: Export order book").setTooltip("Export order book as json for development purposes");
+            addContentMenuEntry(orderbookExportButton);
+        }
     }
 
     @Override

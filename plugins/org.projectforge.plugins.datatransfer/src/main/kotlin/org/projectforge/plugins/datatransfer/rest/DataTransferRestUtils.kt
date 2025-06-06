@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.datatransfer.rest
 
+import jakarta.servlet.http.HttpServletResponse
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
@@ -32,48 +33,41 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAuditDao
 import org.projectforge.rest.AttachmentsRestUtils
-import jakarta.servlet.http.HttpServletResponse
 
 object DataTransferRestUtils {
-  /**
-   * @param attachments If not given, all attachments will be downloaded, otherwise only these given attachments.
-   */
-  fun multiDownload(
-    response: HttpServletResponse,
-    attachmentsService: AttachmentsService,
-    attachmentsAccessChecker: AttachmentsAccessChecker,
-    dbObj: DataTransferAreaDO,
-    areaName: String?,
-    jcrPath: String,
-    id: Long,
-    attachments: List<Attachment>? = null,
-    byUser: PFUserDO? = null,
-    byExternalUser: String? = null,
-  ) {
-    AttachmentsRestUtils.multiDownload(
-      response,
-      attachmentsService,
-      attachmentsAccessChecker,
-      areaName,
-      jcrPath,
-      id,
-      attachments,
-    )
-    dataTransferAuditDao.insertAudit(
-      if (attachments.isNullOrEmpty()) AttachmentsEventType.DOWNLOAD_ALL else AttachmentsEventType.DOWNLOAD_MULTI,
-      dbObj,
-      byUser = byUser,
-      byExternalUser = byExternalUser,
-    )
-  }
+    /**
+     * @param attachments If not given, all attachments will be downloaded, otherwise only these given attachments.
+     */
+    fun multiDownload(
+        response: HttpServletResponse,
+        attachmentsService: AttachmentsService,
+        attachmentsAccessChecker: AttachmentsAccessChecker,
+        dbObj: DataTransferAreaDO,
+        areaName: String?,
+        jcrPath: String,
+        id: Long,
+        attachments: List<Attachment>? = null,
+        byUser: PFUserDO? = null,
+        byExternalUser: String? = null,
+    ) {
+        AttachmentsRestUtils.multiDownload(
+            response,
+            attachmentsService,
+            attachmentsAccessChecker,
+            areaName,
+            jcrPath,
+            id,
+            attachments,
+        )
+        dataTransferAuditDao.insertAudit(
+            if (attachments.isNullOrEmpty()) AttachmentsEventType.DOWNLOAD_ALL else AttachmentsEventType.DOWNLOAD_MULTI,
+            dbObj,
+            byUser = byUser,
+            byExternalUser = byExternalUser,
+        )
+    }
 
-  val dataTransferAuditDao: DataTransferAuditDao
-  get() {
-     if (_dataTransferAuditDao == null) {
-       _dataTransferAuditDao =  ApplicationContextProvider.getApplicationContext().getBean(DataTransferAuditDao::class.java)
-     }
-    return _dataTransferAuditDao!!
-  }
-
-  private var _dataTransferAuditDao: DataTransferAuditDao? = null
+    val dataTransferAuditDao: DataTransferAuditDao by lazy {
+        ApplicationContextProvider.getApplicationContext().getBean(DataTransferAuditDao::class.java)
+    }
 }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,11 +26,10 @@ package org.projectforge.business.address
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.Tuple
 import mu.KotlinLogging
-import org.hibernate.Hibernate
-import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.database.TupleUtils.getLong
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
@@ -56,7 +55,7 @@ open class AddressbookCache : AbstractCache() {
 
     private var addressBookList = listOf<AddressbookDO>() // Mustn't be synchronized, it's only read.
 
-    // key is the addres.id, value is a set of addressbook's assigned to the address.
+    // key is the address.id, value is a set of addressbook's assigned to the address.
     private var addressBookByAddressMap = mapOf<Long, List<AddressbookDO>>() // Mustn't be synchronized, it's only read.
 
     fun getAll(): List<AddressbookDO> {
@@ -76,7 +75,7 @@ open class AddressbookCache : AbstractCache() {
      */
     fun getAddressbookIfNotInitialized(ab: AddressbookDO?): AddressbookDO? {
         ab ?: return null
-        if (Hibernate.isInitialized(ab)) {
+        if (HibernateUtils.isFullyInitialized(ab)) {
             return ab
         }
         return getAddressbook(ab.id)

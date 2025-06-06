@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,13 +26,13 @@ package org.projectforge.business.fibu.kost
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.LockModeType
 import mu.KotlinLogging
-import org.hibernate.Hibernate
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.kost.KostHelper.parseKostString
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.utils.NumberHelper.greaterZero
 import org.projectforge.reporting.Kost2Art
@@ -101,7 +101,7 @@ class KostCache : AbstractCache() {
      */
     fun getKost2IfNotInitialized(kost2: Kost2DO?): Kost2DO? {
         kost2 ?: return null
-        if (Hibernate.isInitialized(kost2)) {
+        if (HibernateUtils.isFullyInitialized(kost2)) {
             return kost2
         }
         return getKost2(kost2.id)
@@ -151,8 +151,8 @@ class KostCache : AbstractCache() {
      * Prevents lazy loadings.
      */
     fun getKost1IfNotInitialized(kost1: Kost1DO?): Kost1DO? {
-        kost1?: return null
-        if (Hibernate.isInitialized(kost1)) {
+        kost1 ?: return null
+        if (HibernateUtils.isFullyInitialized(kost1)) {
             return kost1
         }
         return getKost1(kost1.id)
@@ -187,7 +187,7 @@ class KostCache : AbstractCache() {
      */
     fun getKost2ArtIfNotInitialized(kost2Art: Kost2ArtDO?): Kost2ArtDO? {
         kost2Art ?: return null
-        if (Hibernate.isInitialized(kost2Art)) {
+        if (HibernateUtils.isFullyInitialized(kost2Art)) {
             return kost2Art
         }
         return getKost2Art(kost2Art.id)
@@ -199,14 +199,12 @@ class KostCache : AbstractCache() {
      *
      * @param projektId
      */
-    fun getKost2Arts(projektId: Long?): Set<Kost2ArtDO> {
+    fun getKost2ArtsForProjekt(projektId: Long?): Set<Kost2ArtDO> {
         projektId ?: return emptySet()
         checkRefresh()
-        synchronized(kost2Map) {
-            return kost2Map.values.filter { !it.deleted && it.projekt?.id == projektId }
-                .mapNotNull { it.kost2Art }
-                .toSet()
-        }
+        return getKost2ForProjekt(projektId, false)
+            .mapNotNull { it.kost2Art }
+            .toSet()
     }
 
     /**
@@ -214,10 +212,10 @@ class KostCache : AbstractCache() {
      *
      * @param projektId
      */
-    fun getAllKost2Arts(projektId: Long?): List<Kost2Art> {
+    fun getAllKost2ArtsForProjekt(projektId: Long?): List<Kost2Art> {
         checkRefresh()
         synchronized(kost2Map) {
-            val set = getKost2Arts(projektId)
+            val set = getKost2ArtsForProjekt(projektId)
             val result = mutableListOf<Kost2Art>()
             allKost2Arts?.filter { !it.isDeleted }?.forEach { kost2Art ->
                 val kost2ArtDO = Kost2ArtDO()
@@ -229,6 +227,14 @@ class KostCache : AbstractCache() {
                 result.add(art)
             }
             return result
+        }
+    }
+
+    fun getKost2ForProjekt(projektId: Long?, includeDeleted: Boolean = false): List<Kost2DO> {
+        projektId ?: return emptyList()
+        checkRefresh()
+        synchronized(kost2Map) {
+            return kost2Map.values.filter { it.projekt?.id == projektId && (includeDeleted || !it.deleted) }
         }
     }
 

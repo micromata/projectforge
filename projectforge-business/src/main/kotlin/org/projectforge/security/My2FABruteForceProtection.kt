@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -143,7 +143,7 @@ internal class My2FABruteForceProtection {
 
     /**
      * If retry is not allowed, this method will return a localized message about the reason including the number
-     * of failed retries, the risk of beeing deactivated as well as any time penalty.
+     * of failed retries, the risk of being deactivated as well as any time penalty.
      */
     fun getBlockedResult(userId: Long = ThreadLocalUserContext.loggedInUserId!!): OTPCheckResult? {
         getBlockedMessage(userId)?.let { message ->
@@ -154,7 +154,7 @@ internal class My2FABruteForceProtection {
 
     /**
      * If retry is not allowed, this method will return a localized message about the reason including the number
-     * of failed retries, the risk of beeing deactivated as well as any time penalty.
+     * of failed retries, the risk of being deactivated as well as any time penalty.
      */
     fun getBlockedMessage(userId: Long = ThreadLocalUserContext.loggedInUserId!!): String? {
         if (!isBlocked(userId)) {

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -36,7 +36,7 @@ import org.projectforge.web.wicket.WicketUtils;
 import java.io.Serializable;
 
 /**
- * The panel which includes the drop behavior for several files. If the dropped file (string) was sucessfully importet, the hook method
+ * The panel which includes the drop behavior for several files. If the dropped file (string) was successfully importet, the hook method
  * {@link #onStringImport(AjaxRequestTarget, String, String)} is called.
  *
  * @author Johannes Unterstein (j.unterstein@micromata.de)

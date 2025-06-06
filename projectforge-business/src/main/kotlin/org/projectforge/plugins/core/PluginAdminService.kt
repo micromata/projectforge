@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -79,6 +79,14 @@ open class PluginAdminService {
             val pluginsRegistry = PluginsRegistry.instance()
             return pluginsRegistry.plugins
         }
+
+    fun isActive(pluginId: String): Boolean {
+        return activePlugins.any { it.id == pluginId }
+    }
+
+    fun isActive(clazz: Class<*>): Boolean {
+        return activePlugins.any { it.javaClass == clazz }
+    }
 
     /**
      * Store a plugin as activated.

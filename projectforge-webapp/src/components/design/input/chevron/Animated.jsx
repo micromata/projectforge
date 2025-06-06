@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import style from './Chevron.module.scss';
 
-function AnimatedChevron({ direction }) {
+function AnimatedChevron({ direction = 'neutral' }) {
     return (
         <div className={style.chevronContainer}>
             <span className={classNames(style.animatedChevron, style[direction.toLowerCase()])} />
@@ -13,10 +13,6 @@ function AnimatedChevron({ direction }) {
 
 AnimatedChevron.propTypes = {
     direction: PropTypes.oneOf(['neutral', 'ASCENDING', 'DESCENDING']),
-};
-
-AnimatedChevron.defaultProps = {
-    direction: 'neutral',
 };
 
 export default AnimatedChevron;

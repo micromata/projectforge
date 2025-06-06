@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -92,12 +92,11 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
     params: Map<String, MassUpdateParameter>,
     param: MassUpdateParameter,
     field: String,
-    validationErrors: MutableList<ValidationError>
   ): Boolean {
     if (field == "headOfBusinessManager" || field == "projectManager" || field == "salesManager") {
       return param.id != null
     }
-    return super.checkParamHasAction(params, param, field, validationErrors)
+    return super.checkParamHasAction(params, param, field)
   }
 
   override fun proceedMassUpdate(
@@ -109,7 +108,7 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
     if (projects.isNullOrEmpty()) {
       return null
     }
-    val params = massUpdateContext.massUpdateData
+    val params = massUpdateContext.massUpdateParams
     projects.forEach { project ->
       massUpdateContext.startUpdate(project)
       TextFieldModification.processTextParameter(project, "description", params)

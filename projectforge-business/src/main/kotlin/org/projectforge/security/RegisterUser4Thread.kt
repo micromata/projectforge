@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,7 +30,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.slf4j.MDC
 
 /**
- * Helper class for registering and unregistering user in thread. Hanlding ThreadLocalUserContext as well as MDC stuff.
+ * Helper class for registering and unregistering user in thread. Handling ThreadLocalUserContext as well as MDC stuff.
  */
 object RegisterUser4Thread {
   /**

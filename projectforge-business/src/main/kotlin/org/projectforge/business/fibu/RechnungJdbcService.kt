@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -64,6 +64,7 @@ class RechnungJdbcService {
                     instance.also {
                         it.id = rechnungId
                         it.deleted = rs.getBoolean("deleted")
+                        it.datum = getLocalDate(rs, "datum")
                         it.bezahlDatum = getLocalDate(rs, "bezahl_datum")
                         it.faelligkeit = getLocalDate(rs, "faelligkeit")
                         it.zahlBetrag = getBigDecimal(rs, "zahl_betrag")
@@ -138,7 +139,11 @@ class RechnungJdbcService {
                         it.auftragsPosition = AuftragsPositionDO().also { it.id = posId }
                     }
                     getLong(rs, "rechnung_fk")?.let { rechnungId ->
-                        it.rechnung = RechnungDO().also { it.id = rechnungId }
+                        val rechnungNummer = getInt(rs, "rechnung_nummer")
+                        it.rechnung = RechnungDO().also {
+                            it.id = rechnungId
+                            it.nummer = rechnungNummer
+                        }
                     }
                 }
             }
@@ -148,13 +153,14 @@ class RechnungJdbcService {
 
     companion object {
         private val SELECT_RECHNUNG_ORDER = """
-            SELECT p.pk,p.deleted,p.rechnung_fk,p.number,p.menge,p.einzel_netto,p.vat,p.auftrags_position_fk
+            SELECT p.pk,p.deleted,p.rechnung_fk,p.number,p.menge,p.einzel_netto,p.vat,p.auftrags_position_fk,r.nummer as rechnung_nummer
             FROM t_fibu_rechnung_position p
+            LEFT JOIN t_fibu_rechnung r ON p.rechnung_fk = r.pk
             WHERE p.auftrags_position_fk IS NOT NULL
         """.trimIndent()
 
         private val SELECT_RECHNUNG_WITH_KOST = """
-            SELECT r.pk as rechnung_id,r.deleted,r.status,r.nummer,r.bezahl_datum,r.zahl_betrag,r.faelligkeit,r.discountmaturity,r.discountpercent,
+            SELECT r.pk as rechnung_id,r.deleted,r.status,r.nummer,r.datum,r.bezahl_datum,r.zahl_betrag,r.faelligkeit,r.discountmaturity,r.discountpercent,
                    p.pk as pos_id,p.number,p.menge,p.einzel_netto,p.vat,p.s_text,p.auftrags_position_fk,
                    k.pk as kost_id,k.netto,k.index,k.kost1_fk,k.kost2_fk
             FROM t_fibu_rechnung r
@@ -162,7 +168,7 @@ class RechnungJdbcService {
             LEFT JOIN t_fibu_kost_zuweisung k ON k.rechnungs_pos_fk = p.pk
         """.trimIndent()
         private val SELECT_EINGANGS_RECHNUNG_WITH_KOST = """
-            SELECT r.pk as rechnung_id,r.deleted,r.bezahl_datum,r.zahl_betrag,r.faelligkeit,r.discountmaturity,r.discountpercent,
+            SELECT r.pk as rechnung_id,r.deleted,r.datum,r.bezahl_datum,r.zahl_betrag,r.faelligkeit,r.discountmaturity,r.discountpercent,
                    p.pk as pos_id,p.number,p.menge,p.einzel_netto,p.vat,p.s_text,
                    k.pk as kost_id,k.netto,k.index,k.kost1_fk,k.kost2_fk
             FROM t_fibu_eingangsrechnung r

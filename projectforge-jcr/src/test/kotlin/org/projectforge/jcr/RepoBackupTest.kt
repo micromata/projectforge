@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -39,9 +39,10 @@ class RepoBackupTest {
 
   init {
     val repoDir = testUtils.deleteAndCreateTestFile("testBackupRepo")
+    repoService.repoConfig = RepoConfig.createForTests()
     repoService.init(repoDir)
     repoBackupService.repoService = repoService
-    repoBackupService.jcrCheckSanityJob = JCRCheckSanityJob()
+    repoBackupService.jcrCheckSanityJob = JCRCheckSanityCheckJob()
     repoBackupService.jcrCheckSanityJob.repoService = repoService
   }
 
@@ -81,11 +82,12 @@ class RepoBackupTest {
     }
 
     val repo2Service = RepoService()
+    repo2Service.repoConfig = RepoConfig.createForTests()
     val repo2BackupService = RepoBackupService()
     val repo2Dir = testUtils.deleteAndCreateTestFile("testBackupRepo2")
     repo2Service.init(repo2Dir)
     repo2BackupService.repoService = repo2Service
-    repo2BackupService.jcrCheckSanityJob = JCRCheckSanityJob()
+    repo2BackupService.jcrCheckSanityJob = JCRCheckSanityCheckJob()
     repo2BackupService.jcrCheckSanityJob.repoService = repo2Service
 
     ZipInputStream(FileInputStream(zipFile)).use {

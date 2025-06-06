@@ -7,7 +7,7 @@ function DynamicBadge(props) {
     const {
         title,
         color,
-        pill,
+        pill = false,
     } = props;
 
     return (
@@ -19,11 +19,6 @@ DynamicBadge.propTypes = {
     title: PropTypes.string.isRequired,
     color: colorPropType,
     pill: PropTypes.bool,
-};
-
-DynamicBadge.defaultProps = {
-    color: undefined,
-    pill: false,
 };
 
 export default DynamicBadge;

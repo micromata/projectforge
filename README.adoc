@@ -78,7 +78,7 @@ You may use PostgreSQL instead of the built-in data base.
 * Choose and set a database password: +
  `export PGPASSWORD=mypassword`
 * Run PostgreSQL: +
-`docker run --name projectforge-postgres -p 127.0.0.1:5432:5432 -e POSTGRES_PASSWORD=$PGPASSWORD -e POSTGRES_USER=projectforge -d postgres:13.9`
+`docker run --name projectforge-postgres -p 127.0.0.1:5432:5432 -e POSTGRES_PASSWORD=$PGPASSWORD -e POSTGRES_USER=projectforge -d postgres:13.18`
 * Configure ProjectForge
 
 .$HOME/ProjectForge/projectforge.properties
@@ -96,8 +96,8 @@ spring.datasource.driver-class-name=org.postgresql.Driver
 |===
 |Stop|`docker stop projectforge-postgres`
 |Start|`docker start projectforge-postgres`
-|Import dump (optional)|`docker run -v ~/ProjectForgeBackup/pf.sql:/mnt/pf.sql -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:13.9 psql -h postgres -U projectforge -q -f /mnt/pf.sql  2>&1 > log.txt`
-|PSQL|`docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:13.9 psql -h postgres -U projectforge`
+|Import dump (optional)|`docker run -v ~/ProjectForgeBackup/pf.sql:/mnt/pf.sql -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:13.18 psql -h postgres -U projectforge -q -f /mnt/pf.sql`
+|PSQL|`docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:13.18 psql -h postgres -U projectforge`
 |Reset passwords (optional)|`update t_pf_user_password SET password_hash='SHA{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', password_salt=null; update t_pf_user SET password='SHA{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', password_salt=null, email='m.developer@localhost';` +
 password is now `test123`.
 |Clear calendar subscriptions (optional)|`update t_calendar set ext_subscription=false where owner_fk != ###;` +

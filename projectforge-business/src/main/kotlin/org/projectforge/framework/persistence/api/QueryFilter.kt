@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -261,7 +261,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
         /**
          * If no maximum number of results is defined, MAX_ROWS is used as max value.
          */
-        const val QUERY_FILTER_MAX_ROWS: Int = 10000
+        const val QUERY_FILTER_MAX_ROWS: Int = 50_000
 
         @JvmStatic
         fun isNull(field: String): DBPredicate.IsNull {

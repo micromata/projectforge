@@ -44,8 +44,6 @@ FilterListEntry.propTypes = {
     isSelected: PropTypes.bool.isRequired,
 };
 
-FilterListEntry.defaultProps = {};
-
 const mapStateToProps = ({ list }, { id }) => ({
     isSelected: list.categories[list.currentCategory].filter.entries
         .filter(({ field }) => field === id).length !== 0,

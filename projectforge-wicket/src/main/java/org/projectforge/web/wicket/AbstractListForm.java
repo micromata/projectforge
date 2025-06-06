@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -102,7 +102,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
 
   protected FieldsetPanel pageSizeFieldsetPanel;
 
-  public static final int[] PAGE_SIZES = new int[]{3, 5, 10, 25, 50, 100, 200, 500, 1000};
+  public static final int[] PAGE_SIZES = new int[]{25, 50, 100, 200, 500, 1000};
 
   public static DropDownChoice<Integer> getPageSizeDropDownChoice(final String id, final Locale locale,
                                                                   final IModel<Integer> model,
@@ -500,7 +500,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
               // No output needed, info message follows:
             }
             if (this.searchFilter == null) {
-              // Probably a new software release results in an incompability of old and new filter format.
+              // Probably a new software release results in an incompatibility of old and new filter format.
               getLogger().info(
                   "Could not restore filter from user prefs: (old) filter type "
                       + filter.getClass().getName()

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,6 +25,7 @@ package org.projectforge.i18n
 
 import de.micromata.merlin.excel.ExcelWorkbook
 import org.apache.poi.ss.usermodel.IndexedColors
+import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.i18n.I18nKeysUsageInterface
 import org.springframework.stereotype.Service
 import java.io.File
@@ -67,11 +68,9 @@ class I18nKeysUsage(runmode: RUN_MODE? = null, useTmpFile: Boolean = false) : I1
 
   override fun createExcelFile(): I18nKeysUsageInterface.ExcelFile {
     val workbook = ExcelWorkbook.createEmptyWorkbook()
-    val boldFont = workbook.createOrGetFont("bold", bold = true)
+    val boldFont = ExcelUtils.createFont(workbook, "bold", bold = true)
     val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
-    val redFont = workbook.createOrGetFont("error-font")
-    redFont.fontName = "Arial"
-    redFont.color = IndexedColors.RED.index
+    val redFont = ExcelUtils.createFont(workbook, "error-font", color = IndexedColors.RED.index)
     val redStyle = workbook.createOrGetCellStyle("red", redFont)
     redStyle.fillForegroundColor
     val sheet = workbook.createOrGetSheet("I18n keys")

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -127,7 +127,7 @@ public class MyTrustManager implements X509TrustManager
       try {
         chain[0].verify(certificate.getPublicKey());
         for (final X509Certificate cert : chain) {
-          // Verifing by public key
+          // Verifying by public key
           cert.checkValidity();
         }
       } catch (final InvalidKeyException | SignatureException | NoSuchAlgorithmException | NoSuchProviderException ex) {

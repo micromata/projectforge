@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -58,7 +58,7 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
 
   private static final String USER_PREF_KEY_RECENT_GROUPS = "GroupSelectPanel:recentGroups";
 
-  private static final String[] SEARCH_FIELDS = { "id", "name" };
+  private static final String[] SEARCH_FIELDS = { "name" };
 
   private boolean defaultFormProcessing = false;
 

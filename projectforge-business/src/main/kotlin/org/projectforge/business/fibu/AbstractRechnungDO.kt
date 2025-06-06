@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,14 +26,7 @@ package org.projectforge.business.fibu
 import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.ObjectPath
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.PropertyValue
-import org.projectforge.business.fibu.kost.Kost1DO
-import org.projectforge.business.fibu.kost.Kost2DO
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
 import org.projectforge.framework.persistence.candh.CandHIgnore
@@ -128,6 +121,12 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
     abstract val abstractPositionen: List<AbstractRechnungsPositionDO>?
 
     /**
+     * True, if invoice is issued and not canceled, deleted or only planned.
+     */
+    @get:Transient
+    abstract val isValid: Boolean
+
+    /**
      * The user interface status of an invoice. The [RechnungUIStatus] is stored as XML.
      */
     @NoHistory
@@ -190,7 +189,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
         addPositionWithoutCheck(position)
     }
 
-    abstract protected fun addPositionWithoutCheck(position: AbstractRechnungsPositionDO)
+    protected abstract fun addPositionWithoutCheck(position: AbstractRechnungsPositionDO)
 
     abstract fun setAbstractRechnung(position: AbstractRechnungsPositionDO)
 

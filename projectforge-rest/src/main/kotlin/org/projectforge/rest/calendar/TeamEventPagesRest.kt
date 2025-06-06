@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -196,7 +196,7 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
         }
         return transformFromDB(eventDO, editMode)
       } catch (ex: NumberFormatException) {
-        log.error("Can't get event of subscribed calendar. id must be of form {calId}-{uid} but is '$idString', a NumberFormatException occured.")
+        log.error("Can't get event of subscribed calendar. id must be of form {calId}-{uid} but is '$idString', a NumberFormatException occurred.")
         return TeamEvent()
       }
     }
@@ -275,7 +275,7 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
       calendars.add(0, dto.calendar!!)
     }
     val calendarSelectValues = calendars.map {
-      UISelectValue<Long>(it.id!!, it.title!!)
+      UISelectValue<Long>(it.id!!, it.title ?: "???")
     }
     val subject = UIInput("subject", lc)
     subject.focus = true

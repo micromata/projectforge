@@ -6,7 +6,7 @@ import RadioButton from '../../../../../../components/design/input/RadioButton';
 function MagicSelectInput(
     {
         id,
-        multi,
+        multi = true,
         onChange,
         value,
         values,
@@ -50,11 +50,6 @@ MagicSelectInput.propTypes = {
     values: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
     id: PropTypes.string,
     multi: PropTypes.bool,
-};
-
-MagicSelectInput.defaultProps = {
-    id: undefined,
-    multi: true,
 };
 
 MagicSelectInput.isEmpty = ({ values }) => !values || values.length === 0;

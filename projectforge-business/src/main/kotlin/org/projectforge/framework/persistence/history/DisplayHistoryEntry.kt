@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,14 @@
 
 package org.projectforge.framework.persistence.history
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.framework.i18n.TimeAgo
+import org.projectforge.framework.i18n.translate
 import java.util.*
 
 class DisplayHistoryEntry {
+    class DiffCount(val type: EntityOpType, val count: Int, val operation: String)
+
     /**
      * The id of the history entry (pk of database).
      */
@@ -40,7 +44,45 @@ class DisplayHistoryEntry {
     var modifiedByUserId: Long? = null
     var modifiedByUser: String? = null
     var operationType: EntityOpType? = null
-    var operation: String? = null
+    val operation: String
+        get() = HistoryFormatService.translate(operationType)
+    var userComment: String? = null
+    @Suppress("unused") // Used by React frontend.
+    @get:JsonProperty
+    val diffSummary: List<DiffCount>
+        get() {
+            var inserted = 0
+            var updated = 0
+            var deleted = 0
+            attributes.forEach { attr ->
+                when (attr.operationType) {
+                    PropertyOpType.Insert -> inserted++
+                    PropertyOpType.Update -> updated++
+                    PropertyOpType.Delete -> deleted++
+                    else -> {}
+                }
+            }
+            if (inserted == 0 && updated == 0 && deleted == 0) {
+                when (operationType) {
+                    EntityOpType.Insert -> inserted++
+                    EntityOpType.Update -> updated++
+                    EntityOpType.Delete -> deleted++
+                    else -> {}
+                }
+            }
+            val actions = mutableListOf<DiffCount>()
+            if (inserted > 0) {
+                actions.add(DiffCount(EntityOpType.Insert, inserted, translate("operation.inserted")))
+            }
+            if (updated > 0) {
+                actions.add(DiffCount(EntityOpType.Update, updated, translate("operation.updated")))
+            }
+            if (deleted > 0) {
+                actions.add(DiffCount(EntityOpType.Delete, deleted, translate("operation.deleted")))
+            }
+            return actions
+        }
+
     var attributes = mutableListOf<DisplayHistoryEntryAttr>()
 
     companion object {
@@ -53,7 +95,7 @@ class DisplayHistoryEntry {
                 entry.modifiedByUserId = modifiedByUser?.id
                 entry.modifiedByUser = modifiedByUser?.getFullname() ?: historyEntry.modifiedBy
                 entry.operationType = historyEntry.entityOpType
-                entry.operation = HistoryFormatService.translate(historyEntry.entityOpType)
+                entry.userComment = historyEntry.userComment
             }
         }
     }

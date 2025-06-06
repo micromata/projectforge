@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -131,7 +131,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
                 }
             }
         }
-        val duration = timesheetDao.select(selectedIds)?.sumOf { it.getDuration() }
+        val duration = timesheetDao.select(selectedIds)?.sumOf { it.duration }
         val durationAsString = dateTimeFormatter.getPrettyFormattedDuration(duration ?: 0)
         layout.add(
             UIAlert(
@@ -142,13 +142,13 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
         )
 
         kost2Id?.let {
-            ensureMassUpdateParam(massUpdateData, "kost2").id = it
+            ensureMassUpdateParam(massUpdateData, "kost2", "fibu.kost2").id = it
         }
         taskNode?.id?.let { taskId ->
             TaskServicesRest.createTask(taskId)?.let { task ->
-                ensureMassUpdateParam(massUpdateData, "task").id = taskId
+                ensureMassUpdateParam(massUpdateData, "task", "task").id = taskId
                 variables["task"] = if (taskNode.isRootNode) {
-                    // Don't show. If task is null, the React page will not be updated from time to time (workarround)
+                    // Don't show. If task is null, the React page will not be updated from time to time (workaround)
                     TaskServicesRest.Task("")
                 } else {
                     task
@@ -168,6 +168,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
                 UICustomized("timesheet.edit.taskAndKost2", values = mutableMapOf("id" to "kost2.id")),
                 massUpdateData,
                 myOptions = myOptions,
+                displayName = "task"
             )
         )
         timesheetPagesRest.createTagUISelect(id = "tag.textValue")?.let { select ->
@@ -182,6 +183,16 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
             "description",
             minLengthOfTextArea = 1001, // reference has length 1.000 and description 4.000
         )
+        if (timesheetDao.timeSavingsByAIEnabled) {
+            createAndAddFields(
+                layoutContext,
+                massUpdateData,
+                layout,
+                "timeSavedByAI",
+                "timeSavedByAIUnit",
+                "timeSavedByAIDescription",
+            )
+        }
         if (Configuration.instance.isCostConfigured) {
             layout.add(UIAlert(message = "timesheet.massupdate.kost.info", color = UIColor.INFO))
         }
@@ -191,7 +202,6 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
         params: Map<String, MassUpdateParameter>,
         param: MassUpdateParameter,
         field: String,
-        validationErrors: MutableList<ValidationError>
     ): Boolean {
         if (field == "kost2" || field == "task") {
             // No check here, action is checked on field taskAndKost2.
@@ -200,14 +210,14 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
         if (field == "taskAndKost2") {
             return param.change == true && (params["task"]?.id != null || params["kost2"]?.id != null)
         }
-        return super.checkParamHasAction(params, param, field, validationErrors)
+        return super.checkParamHasAction(params, param, field)
     }
 
     override fun handleClientMassUpdateCall(
         request: HttpServletRequest,
         massUpdateContext: MassUpdateContext<TimesheetDO>
     ) {
-        val params = massUpdateContext.massUpdateData
+        val params = massUpdateContext.massUpdateParams
         val kost2Id = params["kost2"]?.id
         val taskId = params["task"]?.id
         val availableKost2s = taskTree.getKost2List(taskId)
@@ -227,7 +237,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
         if (timesheets.isNullOrEmpty()) {
             return null
         }
-        val params = massUpdateContext.massUpdateData
+        val params = massUpdateContext.massUpdateParams
         val taskId = params["task"]?.id
         val project = taskTree.getProjekt(taskId)
         val availableKost2s = taskTree.getKost2List(taskId)
@@ -240,6 +250,23 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
             TextFieldModification.processTextParameter(timesheet, "description", params)
             TextFieldModification.processTextParameter(timesheet, "location", params)
             TextFieldModification.processTextParameter(timesheet, "tag", params)
+            params["timeSavedByAI"]?.let { param ->
+                if (param.delete == true) {
+                    timesheet.timeSavedByAI = null
+                } else {
+                    param.decimalValue?.let { timesheet.timeSavedByAI = it }
+                }
+            }
+            params["timeSavedByAIUnit"]?.let { param ->
+                if (param.delete == true) {
+                    timesheet.timeSavedByAIUnit = null
+                } else {
+                    param.textValue?.let { textValue ->
+                        timesheet.timeSavedByAIUnit = TimesheetDO.TimeSavedByAIUnit.valueOf(textValue)
+                    }
+                }
+            }
+            TextFieldModification.processTextParameter(timesheet, "timeSavedByAIDescription", params)
             params["taskAndKost2"]?.let { param ->
                 if (param.change == true) {
                     if (taskId != null) {

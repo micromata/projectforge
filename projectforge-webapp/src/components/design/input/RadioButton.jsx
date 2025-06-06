@@ -57,12 +57,4 @@ RadioButton.propTypes = {
     tooltip: PropTypes.string,
 };
 
-RadioButton.defaultProps = {
-    additionalLabel: undefined,
-    className: undefined,
-    color: undefined,
-    label: undefined,
-    tooltip: undefined,
-};
-
 export default RadioButton;

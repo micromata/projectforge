@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,27 +23,30 @@
 
 package org.projectforge.menu
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.projectforge.framework.i18n.autoTranslate
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import java.io.Serializable
 
-class MenuItem(var id: String? = null,
-               var title: String? = null,
-               var i18nKey: String? = null,
-               var tooltip: String? = null,
-               var tooltipTitle: String? = null,
-               var url: String? = null,
-               /**
-                * Unique key usable by React. It's also unique for multiple menu items (in different main categories).
-                */
-               var key: String? = null,
-               var badge: MenuBadge? = null,
-               /**
-                * If not given, the client should assume [MenuItemTargetType.REDIRECT]
-                */
-               var type: MenuItemTargetType? = null): Serializable {
+class MenuItem(
+    var id: String? = null,
+    var title: String? = null,
+    var i18nKey: String? = null,
+    var tooltip: String? = null,
+    var tooltipTitle: String? = null,
+    var url: String? = null,
+    /**
+     * Unique key usable by React. It's also unique for multiple menu items (in different main categories).
+     */
+    var key: String? = null,
+    var badge: MenuBadge? = null,
+    /**
+     * If not given, the client should assume [MenuItemTargetType.REDIRECT]
+     */
+    var type: MenuItemTargetType? = null
+) : Serializable {
     constructor(menuItemDef: MenuItemDef?) : this() {
         if (menuItemDef == null)
             return
@@ -55,6 +58,7 @@ class MenuItem(var id: String? = null,
         if (menuItemDef.badgeCounter != null) {
             badge = MenuBadge(counter = menuItemDef.badgeCounter?.invoke())
         }
+        this.menuItemDef = menuItemDef
     }
 
     constructor(menuItemDefId: MenuItemDefId, badge: MenuBadge? = null, type: MenuItemTargetType? = null) : this() {
@@ -72,6 +76,11 @@ class MenuItem(var id: String? = null,
     }
 
     var subMenu: MutableList<MenuItem>? = null
+
+    @Transient
+    @JsonIgnore
+    var menuItemDef: MenuItemDef? = null
+        private set
 
     fun isLeaf(): Boolean {
         return !url.isNullOrBlank()
@@ -119,7 +128,7 @@ class MenuItem(var id: String? = null,
             return
         var badgeCounter = 0
         subMenu?.forEach {
-            if (it.badge?.counter ?: -1 > 0)
+            if ((it.badge?.counter ?: -1) > 0)
                 badgeCounter += it.badge?.counter ?: 0
             it.postProcess()
         }

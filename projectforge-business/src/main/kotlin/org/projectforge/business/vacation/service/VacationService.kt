@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -343,7 +343,9 @@ open class VacationService {
                 2,
                 RoundingMode.HALF_UP
             )
-            result.workingDays += reportOfMonth.numberOfWorkingDays
+            reportOfMonth.numberOfWorkingDays?.let {
+                result.workingDays += it
+            }
             currentMonth = currentMonth.plusMonths(1)
             if (currentMonth > toMonth) {
                 break // here the loop should be ended (not via paranoia setting).
@@ -357,7 +359,7 @@ open class VacationService {
     }
 
     /**
-     * Checks for collissions, enough left days etc.
+     * Checks for collisions, enough left days etc.
      * @param vacation The vacation entry to check.
      * @param dbVacation If modified, the previous entry (data base entry).
      * @param throwException If true, an exception is thrown if validation failed. Default is false.

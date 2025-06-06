@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -45,7 +45,7 @@ public class SearchResultData
   }
 
   /**
-   * History entriy of the object for the search result.
+   * History entry of the object for the search result.
    */
   public HistoryEntry getHistoryEntry()
   {

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -468,7 +468,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
       this.resultList = buildList();
       listPageSortableDataProvider.setCompleteList(this.resultList);
       if (this.resultList == null) {
-        // An error occured:
+        // An error occurred:
         form.addError("search.error");
       }
       return;
@@ -508,7 +508,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     final boolean newAscending = sortParam != null && sortParam.isAscending();
     if (!intialDisplay) {
       if (!Objects.equals(newSortProperty, lastSortProperty) || newAscending != lastSortAscending)
-        // User pressed the head of the colum to sort the result list.
+        // User pressed the head of the column to sort the result list.
         refreshResultList = true;
     }
     lastSortProperty = newSortProperty;

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,6 +27,7 @@ import mu.KotlinLogging
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.jcr.OakStorage
 import org.projectforge.jcr.RepoService
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
@@ -58,6 +59,12 @@ class DataTransferJCRCleanUpJob {
      */
     // Every hour, starting 10 minutes after starting.
     @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 600 * 1000)
+    fun cron() {
+        Thread {
+            execute()
+        }.start()
+    }
+
     fun execute(): Int {
         if (!pluginAdminService.activePlugins.any { it.id == DataTransferPlugin.ID }) {
             log.info("Plugin data transfer not activated. Don't need clean-up job.")
@@ -124,7 +131,7 @@ class DataTransferJCRCleanUpJob {
                 val files = mutableListOf<String>()
                 child.findDescendant(
                     AttachmentsService.DEFAULT_NODE,
-                    RepoService.NODENAME_FILES
+                    OakStorage.NODENAME_FILES
                 )?.children?.forEach {
                     deletedCounter++
                     deletedSize += it.getProperty("size")?.value?.long ?: 0

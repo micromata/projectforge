@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -289,8 +289,12 @@ public class Version implements Comparable<Version>, Serializable
 
   private int parseInt(final String version, final String str)
   {
+    if (version != null && version.contains("gradle.version")) {
+      log.info("Not running in productive environment: version string is '?gradle.version?', assuming 0.");
+      return 0;
+    }
     try {
-      return Integer.valueOf(str);
+      return Integer.parseInt(str);
     } catch (final NumberFormatException ex) {
       log.error("Can't parse version string '" + version + "'. '" + str + "'isn't a number");
     }

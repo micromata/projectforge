@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -81,7 +81,7 @@ class SipgatePageRest : AbstractDynamicPageRest() {
       MenuItem(
         "resetContacts",
         title = "Reset Sipgate contacts",
-        tooltip = "Sync and resets Sipgate contacts. May be used for re-organizing contacts in Sipgate having dublicated number entries....",
+        tooltip = "Sync and resets Sipgate contacts. May be used for re-organizing contacts in Sipgate having duplicated number entries....",
         url = "${getRestPath()}/resetContacts",
         type = MenuItemTargetType.DOWNLOAD
       )

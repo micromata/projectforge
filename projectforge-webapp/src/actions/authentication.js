@@ -47,7 +47,19 @@ export const loadUserStatus = () => (dispatch) => {
                 alertMessage,
             ));
         })
-        .catch(() => catchError(dispatch)({ message: undefined }));
+        .catch(() => {
+            const { pathname, search } = window.location;
+            const href = pathname + search;
+            if (!pathname.startsWith('/react/public/login')
+                // /react/public/datatransfer/ is a special case where the user is not logged in.
+                // Login form is returned by data transfer.
+                && !pathname.startsWith('/react/public/datatransfer/')) {
+                // set the URL to redirect to after login:
+                window.location.href = `/react/public/login?url=${encodeURIComponent(href)}`;
+            }
+
+            catchError(dispatch)({ message: undefined });
+        });
 };
 
 export const login = (username, password, keepSignedIn) => (dispatch) => {

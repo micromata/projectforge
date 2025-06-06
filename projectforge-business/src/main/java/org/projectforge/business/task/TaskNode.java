@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -344,7 +344,7 @@ public class TaskNode implements IdObject<Long>, Serializable {
   }
 
   /**
-   * Adds a new task as a child of this node. It does not check wether this task already exist as child or not! This
+   * Adds a new task as a child of this node. It does not check whether this task already exist as child or not! This
    * method does not modify the child task!
    */
   void addChild(final TaskNode child) {

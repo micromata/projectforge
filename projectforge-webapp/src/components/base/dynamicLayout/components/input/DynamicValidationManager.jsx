@@ -22,6 +22,4 @@ DynamicValidationManager.propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-DynamicValidationManager.defaultProps = {};
-
 export default DynamicValidationManager;

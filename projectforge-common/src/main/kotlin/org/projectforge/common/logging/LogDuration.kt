@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -61,7 +61,6 @@ class LogDuration() {
      * @see formatMillis
      */
     fun toString(timeUnit: TimeUnit): String {
-        val end = System.currentTimeMillis()
         return if (timeUnit == TimeUnit.SECONDS) toSeconds(2) else duration
     }
 

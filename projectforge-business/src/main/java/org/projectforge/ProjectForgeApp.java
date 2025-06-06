@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,7 +29,7 @@ import net.fortuna.ical4j.util.CompatibilityHints;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.projectforge.business.configuration.DomainService;
-import org.projectforge.business.systeminfo.SystemInfoCache;
+import org.projectforge.business.system.SystemInfoCache;
 import org.projectforge.common.CanonicalFileUtils;
 import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.common.StringModifier;
@@ -267,7 +267,7 @@ public class ProjectForgeApp {
     }
 
     /**
-     * @return True, if the dest file exists or was created successfully. False if an error while creation occured.
+     * @return True, if the dest file exists or was created successfully. False if an error while creation occurred.
      */
     public static boolean ensureInitialConfigFile(String classPathSourceFilename, String destFilename) {
         String baseDir = System.getProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR);
@@ -275,7 +275,7 @@ public class ProjectForgeApp {
     }
 
     /**
-     * @return True, if the dest file exists or was created successfully. False if an error while creation occured.
+     * @return True, if the dest file exists or was created successfully. False if an error while creation occurred.
      */
     public static boolean ensureInitialConfigFile(File baseDir, String classPathSourceFilename, String destFilename, boolean logEnabled, StringModifier modifier) {
         if (junitTestMode)

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,6 +34,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.ldap.LdapUserDao;
 import org.projectforge.business.user.GroupDao;
+import org.projectforge.business.user.UserGroupCache;
+import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.web.WicketSupport;
@@ -52,11 +54,17 @@ public class GroupListPage extends AbstractListPage<GroupListForm, GroupDao, Gro
   public GroupListPage(final PageParameters parameters)
   {
     super(parameters, "group");
+    if (!UserGroupCache.getInstance().isUserMemberOfAdminGroup()) {
+      throw new AccessException("You are not allowed to access this page.");
+    }
   }
 
   public GroupListPage(final ISelectCallerPage caller, final String selectProperty)
   {
     super(caller, selectProperty, "group");
+    if (!UserGroupCache.getInstance().isUserMemberOfAdminGroup()) {
+      throw new AccessException("You are not allowed to access this page.");
+    }
   }
 
   @SuppressWarnings("serial")

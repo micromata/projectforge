@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -143,16 +143,18 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         if (!isOwnEntry(user, obj) && !isManager(user, obj)) {
             return throwOrReturnFalse(throwException)
         }
-        if (obj.startDate!!.isBefore(LocalDate.now())) {
-            if (dbObj != null &&
-                isTimePeriodAndEmployeeUnchanged(obj, dbObj) &&
-                getAllowedStatus(user, dbObj).contains(obj.status)
-            ) {
-                // Past entries may be modified on non-time period values, but on allowed status changes as well as on description.
-                return true
+        obj.startDate?.let { startDate ->
+            if (startDate.isBefore(LocalDate.now())) {
+                if (dbObj != null &&
+                    isTimePeriodAndEmployeeUnchanged(obj, dbObj) &&
+                    getAllowedStatus(user, dbObj).contains(obj.status)
+                ) {
+                    // Past entries may be modified on non-time period values, but on allowed status changes as well as on description.
+                    return true
+                }
+                // User aren't allowed to insert/update old entries.
+                return throwOrReturnFalse(throwException)
             }
-            // User aren't allowed to insert/update old entries.
-            return throwOrReturnFalse(throwException)
         }
         obj.status?.let {
             if (!getAllowedStatus(user, obj).contains(it)) {

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,13 +29,15 @@ import org.apache.wicket.behavior.Behavior;
 /**
  * Styles as behavior for TextPanels.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class TextStyle
 {
   public static final Behavior RED = AttributeModifier.append("style", "color: #DA202C;");
 
   public static final Behavior BLUE = AttributeModifier.append("style", "color: blue;");
+
+  public static final Behavior PURPLE = AttributeModifier.append("style", "color: purple;");
 
   public static final Behavior FORM_TEXT = AttributeModifier.append("class", "text");
 }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -37,32 +37,34 @@ private val log = KotlinLogging.logger {}
 
 @Component
 class JCRBackupJob {
-  @Autowired
-  private lateinit var repoBackupService: RepoBackupService
+    @Autowired
+    private lateinit var repoBackupService: RepoBackupService
 
-  @Value("\${projectforge.jcr.cron.purgeBackupKeepDailyBackups}")
-  private val keepDailyBackups: Long? = null
+    @Value("\${projectforge.jcr.cron.purgeBackupKeepDailyBackups}")
+    private val keepDailyBackups: Long? = null
 
-  @Value("\${projectforge.jcr.cron.purgeBackupKeepWeeklyBackups}")
-  private val keepWeeklyBackups: Long? = null
+    @Value("\${projectforge.jcr.cron.purgeBackupKeepWeeklyBackups}")
+    private val keepWeeklyBackups: Long? = null
 
-  // projectforge.jcr.cron.backup=0 30 0 * * *
-  @Scheduled(cron = "\${projectforge.jcr.cron.backup}")
-  fun execute() {
-    log.info("JCR backup job started.")
-    val time = System.currentTimeMillis()
-    val backupFile = RepoBackupService.backupFilename
-    val backupDirectory = repoBackupService.backupDirectory!!
-    val zipFile = File(backupDirectory, backupFile)
-    ZipOutputStream(FileOutputStream(zipFile)).use {
-      repoBackupService.backupAsZipArchive(zipFile.name, it)
+    // projectforge.jcr.cron.backup=0 30 0 * * *
+    @Scheduled(cron = "\${projectforge.jcr.cron.backup}")
+    fun execute() {
+        Thread {
+            log.info("JCR backup job started.")
+            val time = System.currentTimeMillis()
+            val backupFile = RepoBackupService.backupFilename
+            val backupDirectory = repoBackupService.backupDirectory!!
+            val zipFile = File(backupDirectory, backupFile)
+            ZipOutputStream(FileOutputStream(zipFile)).use {
+                repoBackupService.backupAsZipArchive(zipFile.name, it)
+            }
+            log.info("JCR backup job finished after ${(System.currentTimeMillis() - time) / 1000} seconds.")
+            BackupFilesPurging.purgeDirectory(
+                backupDirectory,
+                filePrefix = RepoBackupService.backupFilenamePrefix,
+                keepDailyBackups = keepDailyBackups ?: 8,
+                keepWeeklyBackups = keepWeeklyBackups ?: 4,
+            )
+        }.start()
     }
-    log.info("JCR backup job finished after ${(System.currentTimeMillis() - time) / 1000} seconds.")
-    BackupFilesPurging.purgeDirectory(
-      backupDirectory,
-      filePrefix = RepoBackupService.backupFilenamePrefix,
-      keepDailyBackups = keepDailyBackups ?: 8,
-      keepWeeklyBackups = keepWeeklyBackups ?: 4,
-    )
-  }
 }

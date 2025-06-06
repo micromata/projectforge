@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -123,7 +123,7 @@ open class RestAuthenticationUtils {
     if (authHeader.isNullOrBlank()) {
       if (required) {
         authInfo.resultCode = HttpStatus.UNAUTHORIZED
-        authInfo.response.setHeader("WWW-Authenticate", "Basic realm=\"Basic authenticaiton required\"")
+        authInfo.response.setHeader("WWW-Authenticate", "Basic realm=\"Basic authentication required\"")
         logError(authInfo, "Basic authentication failed, header 'authorization' not found.")
         log.debug{ "Basic authentication failed, header 'authorization' not found (debug info): ${RequestLog.asJson(authInfo.request)}"}
       } else if (log.isDebugEnabled) {
@@ -325,6 +325,7 @@ open class RestAuthenticationUtils {
     var userContext = LoginService.getUserContext(request)
     if (userContext != null) {
       userContext.user = user // Replace by fresh user from authentication.
+      userContext.refreshUser()
       ThreadLocalUserContext.userContext = userContext
     } else {
       userContext = ThreadLocalUserContext.setUser(user)!!

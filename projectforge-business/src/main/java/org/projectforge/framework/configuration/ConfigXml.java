@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -502,7 +502,7 @@ public class ConfigXml {
      * don't configure this element, you will receive the standard ProjectForge menu containing all menu entries which are
      * available for the system and the user. <br/>
      * Please note: ProjectForge assures, that only such menu entries are visible, to which the user has the access to
-     * (independant from your definitions here)! <br/>
+     * (independent from your definitions here)! <br/>
      * If you want to make a menu entry invisible, you can add this to this root element like this:<br/>
      *
      * <pre>

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -113,7 +113,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         return list
     }
 
-    fun getUserRights(userId: Long?): List<UserRightDO>? {
+    fun getUserRights(userId: Long?): Collection<UserRightDO>? {
         return userGroupCache.getUserRights(userId)
     }
 

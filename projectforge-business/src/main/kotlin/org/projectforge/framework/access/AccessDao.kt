@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -33,6 +33,7 @@ import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.GroupDao
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
@@ -294,12 +295,12 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
         operationType: OperationType,
     ) {
         val task = obj.task
-        if (task != null && !Hibernate.isInitialized(task)) {
+        if (task != null && !HibernateUtils.isFullyInitialized(task)) {
             Hibernate.initialize(obj.task)
             obj.task = taskTree.getTaskById(task.id)
         }
         val group = obj.group
-        if (group != null && !Hibernate.isInitialized(group)) {
+        if (group != null && !HibernateUtils.isFullyInitialized(group)) {
             obj.group = groupDao.findOrLoad(obj.groupId!!)
         }
     }

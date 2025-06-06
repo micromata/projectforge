@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -63,11 +63,19 @@ class AuftragsCacheService {
                     order.erfassungsDatum = getLocalDate(tuple, "erfassungsDatum")
                     order.entscheidungsDatum = getLocalDate(tuple, "entscheidungsDatum")
                     order.probabilityOfOccurrence = getInt(tuple, "probabilityOfOccurrence")
+                    order.forecastType = tuple.get("forecastType", AuftragForecastType::class.java)
                     order.bemerkung = getString(tuple, "bemerkung")
                     order.periodOfPerformanceBegin = getLocalDate(tuple, "periodOfPerformanceBegin")
                     order.periodOfPerformanceEnd = getLocalDate(tuple, "periodOfPerformanceEnd")
+                    order.kundeText = getString(tuple, "kundeText")
+                    getLong(tuple, "kundeId")?.let { kundeId ->
+                        order.kunde = em.getReference(KundeDO::class.java, kundeId)
+                    }
+                    getLong(tuple, "projektId")?.let { projektId ->
+                        order.projekt = em.getReference(ProjektDO::class.java, projektId)
+                    }
                     getLong(tuple, "contactPersonId")?.let { userId ->
-                        order.contactPerson = PFUserDO().also { it.id = userId }
+                        order.contactPerson = em.getReference(PFUserDO::class.java, userId)
                     }
                 }
             }
@@ -82,13 +90,14 @@ class AuftragsCacheService {
                 AuftragsPositionDO().also { pos ->
                     pos.id = getLong(tuple, "id")
                     getLong(tuple, "auftragId")?.let { auftragId ->
-                        pos.auftrag = AuftragDO().also { it.id = auftragId }
+                        pos.auftrag = em.getReference(AuftragDO::class.java, auftragId)
                     }
                     pos.number = getShort(tuple, "number")!!
                     pos.deleted = getBoolean(tuple, "deleted")!!
                     pos.titel = getString(tuple, "titel")
                     pos.status = tuple.get("status", AuftragsStatus::class.java)
                     pos.paymentType = tuple.get("paymentType", AuftragsPositionsPaymentType::class.java)
+                    pos.forecastType = tuple.get("forecastType", AuftragForecastType::class.java)
                     pos.art = tuple.get("art", AuftragsPositionsArt::class.java)
                     pos.personDays = getBigDecimal(tuple, "personDays")
                     pos.nettoSumme = getBigDecimal(tuple, "nettoSumme")
@@ -133,14 +142,15 @@ class AuftragsCacheService {
                    a.nummer as nummer,a.angebotsDatum as angebotsDatum,a.erfassungsDatum as erfassungsDatum,
                    a.entscheidungsDatum as entscheidungsDatum,a.bemerkung as bemerkung,
                    a.probabilityOfOccurrence as probabilityOfOccurrence,
+                   a.forecastType as forecastType,
                    a.periodOfPerformanceBegin as periodOfPerformanceBegin, a.periodOfPerformanceEnd as periodOfPerformanceEnd,
-                   a.contactPerson.id as contactPersonId
+                   a.contactPerson.id as contactPersonId, a.kunde.id as kundeId, a.projekt.id as projektId, a.kundeText as kundeText
             FROM ${AuftragDO::class.simpleName} a
         """.trimIndent()
         private val SELECT_POSITIONS = """
             SELECT p.id as id,p.auftrag.id as auftragId,p.task.id as taskId,p.number as number,p.deleted as deleted,p.titel as titel,
-                   p.status as status,p.paymentType as paymentType,p.art as art,p.personDays as personDays,p.nettoSumme as nettoSumme,
-                   p.vollstaendigFakturiert as vollstaendigFakturiert,p.bemerkung as bemerkung,
+                   p.status as status,p.paymentType as paymentType,p.forecastType as forecastType,p.art as art,p.personDays as personDays,
+                   p.nettoSumme as nettoSumme,p.vollstaendigFakturiert as vollstaendigFakturiert,p.bemerkung as bemerkung,
                    p.periodOfPerformanceType as periodOfPerformanceType,
                    p.periodOfPerformanceBegin as periodOfPerformanceBegin,p.periodOfPerformanceEnd as periodOfPerformanceEnd
             FROM ${AuftragsPositionDO::class.simpleName} p

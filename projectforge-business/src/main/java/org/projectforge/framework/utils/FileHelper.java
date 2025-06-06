@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,96 +23,47 @@
 
 package org.projectforge.framework.utils;
 
-import org.projectforge.framework.time.DateHelper;
-
-import java.io.File;
-import java.util.Date;
+import org.projectforge.common.FileUtils;
+import org.projectforge.common.FilenameUtils;
 
 /**
  * Some helper methods ...
+ * Deprecated: Use {@link org.projectforge.common.FileUtils} and {@link org.projectforge.common.FilenameUtils} instead.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class FileHelper
-{
-  public static final String ALLOWED_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.";
-
-  public static final String SUBSTITUTE_CHARS = "ÄÖÜäöüß";
-
-  public static final String[] SUBSTITUTED_BY = { "Ae", "Oe", "Ue", "ae", "oe", "ue", "ss"};
-
-  /**
-   * Return the given path itself if it is already absolute, otherwise absolute path of given path relative to given parent.
-   * @param parent
-   * @param path
-   * @return
-   */
-  public static String getAbsolutePath(String parent, String path)
-  {
-    File file = new File(path);
-    if (file.isAbsolute()) {
-      return path;
+@Deprecated
+public class FileHelper {
+    /**
+     * Return the given path itself if it is already absolute, otherwise absolute path of given path relative to given parent.
+     * @param parent
+     * @param path
+     * @return
+     */
+    public static String getAbsolutePath(String parent, String path) {
+        return FileUtils.getAbsolutePath(parent, path);
     }
-    file = new File(parent, path);
-    return file.getAbsolutePath();
-  }
 
-  /**
-   * Creates a safe filename from the given string by converting all non specified characters will replaces by an underscore or will be
-   * substitue. Example: "Schrödinger" -&gt; "Schroedinger", "http://www.micromata.de" -&gt; "http_www.micromata.de".
-   * 
-   * @param str
-   * @param maxlength The maximum length of the result.
-   * @return
-   */
-  public static String createSafeFilename(String str, int maxlength)
-  {
-    return createSafeFilename(str, null, maxlength, false);
-  }
+    /**
+     * Creates a safe filename from the given string by converting all non specified characters will replaces by an underscore or will be
+     * substitute. Example: "Schrödinger" -&gt; "Schroedinger", "http://www.micromata.de" -&gt; "http_www.micromata.de".
+     *
+     * @param str
+     * @param maxlength The maximum length of the result.
+     * @return
+     */
+    public static String createSafeFilename(String str, int maxlength) {
+        return createSafeFilename(str, null, maxlength, false);
+    }
 
-  /**
-   * FileHelper.createSafeFilename("basename", ".pdf", 8, true)) -> "basename_2010-08-12.pdf".
-   * @param str
-   * @param suffix
-   * @param maxlength
-   * @param appendTimestamp
-   * @return
-   */
-  public static String createSafeFilename(final String str, final String suffix, final int maxlength, final boolean appendTimestamp)
-  {
-    final StringBuilder buf = new StringBuilder();
-    boolean escaped = false;
-    int count = 0;
-    for (int i = 0; i < str.length() && count < maxlength; i++) {
-      char ch = str.charAt(i);
-      if (ALLOWED_CHARS.indexOf(ch) >= 0) {
-        buf.append(ch);
-        count++;
-        escaped = false;
-        continue;
-      } else if (SUBSTITUTE_CHARS.indexOf(ch) >= 0) {
-        String substitution = SUBSTITUTED_BY[SUBSTITUTE_CHARS.indexOf(ch)];
-        int remain = maxlength - count;
-        if (substitution.length() > remain) {
-          // String must be shorten to ensure max length.
-          buf.append(substitution.substring(0, remain));
-        } else {
-          buf.append(substitution);
-        }
-        count += substitution.length();
-        escaped = false;
-        continue;
-      } else if (!escaped) {
-        buf.append("_");
-        count++;
-        escaped = true;
-      }
+    /**
+     * FileHelper.createSafeFilename("basename", ".pdf", 8, true)) -> "basename_2010-08-12.pdf".
+     * @param str
+     * @param suffix
+     * @param maxlength
+     * @param appendTimestamp
+     * @return
+     */
+    public static String createSafeFilename(final String str, final String suffix, final int maxlength, final boolean appendTimestamp) {
+        return FilenameUtils.createSafeFilename(str, suffix, maxlength, appendTimestamp);
     }
-    if (appendTimestamp) {
-      buf.append('_').append(DateHelper.getDateAsFilenameSuffix(new Date()));
-    }
-    if (suffix != null) {
-      buf.append(suffix);
-    }
-    return buf.toString();
-  }
 }

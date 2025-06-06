@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,7 @@
 
 package org.projectforge.business.fibu
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonManagedReference
-import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import jakarta.persistence.*
 import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef
@@ -58,7 +56,6 @@ import org.projectforge.framework.utils.StringComparator
         query = "select min(datum), max(datum) from EingangsrechnungDO"
     )
 )
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<EingangsrechnungDO>, DisplayNameCapable {
 
     override val displayName: String
@@ -126,6 +123,14 @@ open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<Eingangsrechnun
     override val abstractPositionen: List<AbstractRechnungsPositionDO>?
         @Transient
         get() = positionen
+
+    /**
+     * Invoice is valid, if it is not deleted.
+     */
+    override val isValid: Boolean
+        @Transient
+        get() = !deleted
+
 
     override fun ensureAndGetPositionen(): MutableList<out AbstractRechnungsPositionDO> {
         if (this.positionen == null) {

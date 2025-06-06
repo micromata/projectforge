@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -138,7 +138,7 @@ public class ConfigXmlTest {
     public void testExport() {
         createTestConfiguration();
         String exported_config = ConfigXml.getInstance().exportConfiguration();
-        // on windows other pathes may be used.
+        // on windows other paths may be used.
         String expected_config = StringUtils.replace(exportXml, "\\", "/");
         exported_config = StringUtils.replace(exported_config, "\\", "/");
         assertEquals(expected_config, exported_config);

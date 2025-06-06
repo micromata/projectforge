@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -187,7 +187,7 @@ public class TaskTreeForm extends AbstractSecuredForm<TaskFilter, TaskTreePage>
         try {
           this.searchFilter = (TaskFilter) filter;
         } catch (final ClassCastException ex) {
-          // Probably a new software release results in an incompability of old and new filter format.
+          // Probably a new software release results in an incompatibility of old and new filter format.
           log.info("Could not restore filter from user prefs: (old) filter type "
               + filter.getClass().getName()
               + " is not assignable to (new) filter type TaskFilter (OK, probably new software release).");

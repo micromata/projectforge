@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -187,10 +187,6 @@ open class ConfigurationService {
   @Value("\${projectforge.wicket.developmentMode}")
   private var developmentMode = false
 
-  @Value("\${pf.config.security.sqlConsoleAvailable:false}")
-  open var isSqlConsoleAvailable = false
-    protected set
-
   @Value("\${pf.config.security.teamCalCryptPassword}")
   open var teamCalCryptPassword: String? = null
     protected set
@@ -297,7 +293,7 @@ open class ConfigurationService {
     }
     if (inputStream == null) {
       log.error(
-        "File '" + filename + "' not found (wether in file system under '" + base.absolutePath
+        "File '" + filename + "' not found (neither in file system under '" + base.absolutePath
             + "' nor in resource!)"
       )
     }
@@ -403,6 +399,11 @@ open class ConfigurationService {
         log.error("No timezone configured in db configuration. Return default timezone.")
         TimeZone.getDefault()
       }
+    }
+
+  open val timesheetNoteSavingsByAI: String?
+    get() {
+      return configDao.getEntry(ConfigurationParam.TIMESHEET_NOTE_SAVINGS_BY_AI)?.stringValue
     }
 
   /**

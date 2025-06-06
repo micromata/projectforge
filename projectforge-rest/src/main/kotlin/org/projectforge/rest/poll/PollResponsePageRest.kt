@@ -252,7 +252,6 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
         @RequestParam("questionOwner") questionOwner: Long?
     ): ResponseEntity<ResponseAction> {
         val pollResponseDO = PollResponseDO()
-
         // most ugly workaround in existence - for now - TODO mnuhn
         val poll = pollDao.find(pollId, checkAccess = false)
         val inputFields = ObjectMapper().readValue(poll!!.inputFields, MutableList::class.java)

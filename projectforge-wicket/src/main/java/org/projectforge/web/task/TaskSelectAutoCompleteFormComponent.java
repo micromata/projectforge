@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -156,7 +156,7 @@ public abstract class TaskSelectAutoCompleteFormComponent extends PFAutoComplete
     }
 
     /**
-     * Hook method which is called when the model is changed with a valid durin an ajax call
+     * Hook method which is called when the model is changed with a valid during an ajax call
      *
      * @param target
      * @param taskDo

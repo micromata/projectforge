@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,6 +25,7 @@ package org.projectforge.rest.core
 
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
 import mu.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.user.service.UserPrefService
@@ -45,7 +46,6 @@ import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.history.HistoryFormatService
-import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileSizeStandardChecker
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -64,7 +64,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.io.Serializable
-import jakarta.validation.Valid
 
 private val log = KotlinLogging.logger {}
 
@@ -84,7 +83,7 @@ abstract class AbstractPagesRest<
 constructor(
     private val baseDaoClazz: Class<B>,
     private val i18nKeyPrefix: String,
-    val cloneSupport: CloneSupport = CloneSupport.NONE
+    val cloneSupport: CloneSupport = CloneSupport.NONE,
 ) {
     enum class CloneSupport {
         /** No clone support. */
@@ -107,7 +106,7 @@ constructor(
      */
     open val autoCompleteSearchFields: Array<String>? = null
 
-    open val addNewEntryUrl = "${Constants.REACT_APP_PATH}$category/edit"
+    open val addNewEntryUrl: String by lazy { "${Constants.REACT_APP_PATH}$category/edit" }
 
     @PostConstruct
     private fun postConstruct() {
@@ -148,33 +147,17 @@ constructor(
 
     private var initialized = false
 
-    private var _baseDao: B? = null
-
-    private var _category: String? = null
-
     /**
-     * Category should be unique and is e. g. used as react path. At default it's the dir of the url definined in class annotation [RequestMapping].
+     * Category should be unique and is e. g. used as react path. At default, it's the dir of the url defined in class annotation [RequestMapping].
      */
-    open val category: String // open needed by Wicket's SpringBean for proxying.
-        get() {
-            if (_category == null) {
-                _category = getRestPath().removePrefix("${Rest.URL}/")
-            }
-            return _category!!
-        }
+    open val category: String by lazy { getRestPath().removePrefix("${Rest.URL}/") } // open needed by Wicket's SpringBean for proxying.
 
     /**
      * The layout context is needed to examine the data objects for maxLength, nullable, dataType etc.
      */
     protected lateinit var lc: LayoutContext
 
-    val baseDao: B
-        get() {
-            if (_baseDao == null) {
-                _baseDao = applicationContext.getBean(baseDaoClazz)
-            }
-            return _baseDao ?: throw AssertionError("Set to null by another thread")
-        }
+    val baseDao: B by lazy { applicationContext.getBean(baseDaoClazz) }
 
     @Autowired
     private lateinit var accessChecker: AccessChecker
@@ -222,39 +205,40 @@ constructor(
         checkUserAccess(null, userAccess)
         userAccess.update = true // Assume that the user has general update access (change this, see GroupPagesRest)
         val layout = UILayout("$i18nKeyPrefix.list")
-        val gearMenu = layout.ensureGearMenu()
-        gearMenu.add(
-            MenuItem(
-                "reindexNewestDatabaseEntries",
-                i18nKey = "menu.reindexNewestDatabaseEntries",
-                tooltip = "menu.reindexNewestDatabaseEntries.tooltip.content",
-                tooltipTitle = "menu.reindexNewestDatabaseEntries.tooltip.title",
-                url = getRestPath("reindexNewest"),
-                type = MenuItemTargetType.RESTCALL
-            )
-        )
-        if (accessChecker.isLoggedInUserMemberOfAdminGroup)
+        if (!isMultiSelectionMode(request, magicFilter)) {
+            val gearMenu = layout.ensureGearMenu()
             gearMenu.add(
                 MenuItem(
-                    "reindexAllDatabaseEntries",
-                    i18nKey = "menu.reindexAllDatabaseEntries",
-                    tooltip = "menu.reindexAllDatabaseEntries.tooltip.content",
-                    tooltipTitle = "menu.reindexAllDatabaseEntries.tooltip.title",
-                    url = getRestPath("reindexFull"),
+                    "reindexNewestDatabaseEntries",
+                    i18nKey = "menu.reindexNewestDatabaseEntries",
+                    tooltip = "menu.reindexNewestDatabaseEntries.tooltip.content",
+                    tooltipTitle = "menu.reindexNewestDatabaseEntries.tooltip.title",
+                    url = getRestPath("reindexNewest"),
                     type = MenuItemTargetType.RESTCALL
                 )
             )
-        gearMenu.add(
-            MenuItem(
-                "resetFilter",
-                i18nKey = "menu.resetFilter",
-                tooltip = "menu.resetFilter.info",
-                tooltipTitle = "menu.resetFilter",
-                url = getRestPath("filter/reset"),
-                type = MenuItemTargetType.RESTCALL
+            if (accessChecker.isLoggedInUserMemberOfAdminGroup)
+                gearMenu.add(
+                    MenuItem(
+                        "reindexAllDatabaseEntries",
+                        i18nKey = "menu.reindexAllDatabaseEntries",
+                        tooltip = "menu.reindexAllDatabaseEntries.tooltip.content",
+                        tooltipTitle = "menu.reindexAllDatabaseEntries.tooltip.title",
+                        url = getRestPath("reindexFull"),
+                        type = MenuItemTargetType.RESTCALL
+                    )
+                )
+            gearMenu.add(
+                MenuItem(
+                    "resetFilter",
+                    i18nKey = "menu.resetFilter",
+                    tooltip = "menu.resetFilter.info",
+                    tooltipTitle = "menu.resetFilter",
+                    url = getRestPath("filter/reset"),
+                    type = MenuItemTargetType.RESTCALL
+                )
             )
-        )
-
+        }
         layout.addTranslations(
             "reset", "datatable.no-records-found", "date.begin", "date.end", "exportAsXls",
             "search.lastMinute", "search.lastHour", "calendar.today", "search.sinceYesterday",
@@ -413,7 +397,8 @@ constructor(
 
     protected fun getInitialList(request: HttpServletRequest, filter: MagicFilter): InitialListData {
         val favorites = getFilterFavorites()
-        val resultSet = postProcessResultSet(getList(request, this, baseDao, filter), request, filter)
+        val list = getList(request, this, baseDao, filter)
+        val resultSet = postProcessResultSet(list, request, filter)
         resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Long::class.java)
         val ui = createListLayout(request, filter)
             .addTranslations(
@@ -421,29 +406,34 @@ constructor(
                 "searchFilter",
                 "nothingFound"
             )
-        val searchFilterContainer = LayoutListFilterUtils.createNamedSearchFilterContainer(this, lc)
-        val filterEntries = mutableSetOf<String>()
-        searchFilterContainer.content.forEach {
-            if (it is UIFilterElement) {
-                filterEntries.add(it.id)
+        if (isMultiSelectionMode(request, filter)) {
+            // Don't show search filter in multi selection mode (it isn't supported). The user
+            // should use the AG-Grid filter instead.
+            ui.hideSearchFilter = true
+        } else {
+            val searchFilterContainer = LayoutListFilterUtils.createNamedSearchFilterContainer(this, lc)
+            val filterEntries = mutableSetOf<String>()
+            searchFilterContainer.content.forEach {
+                if (it is UIFilterElement) {
+                    filterEntries.add(it.id)
+                }
+            }
+            removeUnknownFilterEntries(filter, filterEntries)
+            ui.add(searchFilterContainer)
+            if (classicsLinkListUrl != null) {
+                ui.add(
+                    MenuItem(
+                        CLASSIC_VERSION_MENU,
+                        title = "*",
+                        url = classicsLinkListUrl,
+                        tooltip = translate("goreact.menu.classics")
+                    ), 0
+                )
+            }
+            if (ui.userAccess.insert != false) {
+                ui.add(MenuItem(CREATE_MENU, title = translate("add"), url = addNewEntryUrl))
             }
         }
-        removeUnknownFilterEntries(filter, filterEntries)
-        ui.add(searchFilterContainer)
-        if (classicsLinkListUrl != null) {
-            ui.add(
-                MenuItem(
-                    CLASSIC_VERSION_MENU,
-                    title = "*",
-                    url = classicsLinkListUrl,
-                    tooltip = translate("goreact.menu.classics")
-                ), 0
-            )
-        }
-        if (ui.userAccess.insert != false) {
-            ui.add(MenuItem(CREATE_MENU, title = translate("add"), url = addNewEntryUrl))
-        }
-
         return InitialListData(
             ui = ui,
             standardEditPage = getStandardEditPage(),
@@ -757,7 +747,7 @@ constructor(
      * a group with a separate label and input field will be generated.
      * layout will be also included if the id is not given.
      * @param returnToCaller This optional parameter defines the caller page of this service to put in server data. After processing this page
-     * the user will be redirect to this given returnToCaller.
+     * the user will be redirected to this given returnToCaller.
      */
     @GetMapping(RestPaths.EDIT)
     fun getItemAndLayout(
@@ -774,6 +764,7 @@ constructor(
             newBaseDTO(request)
         })
             ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+        userAccess.editHistoryComments = baseDao.supportsHistoryUserComments
         onBeforeGetItemAndLayout(request, item, userAccess)
         val formLayoutData = getItemAndLayout(request, item, userAccess)
         returnToCaller?.let {
@@ -801,7 +792,7 @@ constructor(
         userAccess: UILayout.UserAccess
     ): FormLayoutData {
         val ui = createEditLayout(dto, userAccess)
-        ui.addTranslations("changes", "tooltip.selectMe")
+        ui.addTranslations("changes", "history.userComment.edit", "tooltip.selectMe")
         val serverData = sessionCsrfService.createServerData(request)
         val result = FormLayoutData(dto, ui, serverData)
         onGetItemAndLayout(request, dto, result)
@@ -813,7 +804,7 @@ constructor(
 
     /**
      * Will be called after getting the item from the database before creating the layout data. Overwrite this for
-     * e. g. parsing the request and preset the item values.
+     * e.g. parsing the request and preset the item values.
      */
     protected open fun onGetItemAndLayout(request: HttpServletRequest, dto: DTO, formLayoutData: FormLayoutData) {
     }
@@ -929,7 +920,7 @@ constructor(
             if (result.statusCode == HttpStatus.OK) {
                 return result
             }
-            // Validation errors or other errors occured, doesn't save. Proceed with editing.
+            // Validation errors or other errors occurred, doesn't save. Proceed with editing.
         }
         val formLayoutData = getItemAndLayout(request, clone, UILayout.UserAccess(history = false, insert = true))
         return ResponseEntity(
@@ -1236,12 +1227,12 @@ constructor(
             return responseAction
         }
         returnToCaller = afterOperationRedirectTo(obj, postData, event)
-                // Workarround to force reload to restore the AG Grid state:
+                // Workaround to force reload to restore the AG Grid state (forceAGGridReload = true):
             ?: PagesResolver.getListPageUrl(
                 this::class.java,
                 absolute = true,
                 // Force new hash for getting initialList (including ui on actions/list/index.js
-                params = mapOf("hash" to NumberHelper.getSecureRandomAlphanumeric(4))
+                forceAGGridReload = true,
             )
         return ResponseAction(returnToCaller)
             .addVariable("id", obj.id ?: -1)
@@ -1263,7 +1254,7 @@ constructor(
     }
 
     /**
-     * An unique id which is used as parent node for all attachments. Use [enableJcr] for creating unique nodes.
+     * A unique id which is used as parent node for all attachments. Use [enableJcr] for creating unique nodes.
      * @return unique jcr path if attachments are supported or null, if no attachment support is given (download, upload and list).
      * @see [org.projectforge.rest.orga.ContractPagesRest] as an example.
      */
@@ -1275,7 +1266,7 @@ constructor(
      * jcr part will be set to '$prefix.${baseDao.identifier}', must be unique.
      * @param prefix Define a prefix for having uniqueness. At default 'org.projectforge' is used.
      * @param identifier Uses [BaseDao.identifier] at default value.
-     * @param supportedListIds Each entitiy may support multiple lists of attachments. This specifies the available lists in
+     * @param supportedListIds Each entity may support multiple lists of attachments. This specifies the available lists in
      * *addition* to [AttachmentsDaoAccessChecker.DEFAULT_LIST_OF_ATTACHMENTS].
      */
     @JvmOverloads
@@ -1300,6 +1291,68 @@ constructor(
             attachmentsAccessChecker ?: AttachmentsDaoAccessChecker(
                 baseDao, jcrPath, supportedListIds, FileSizeStandardChecker(maxFileSize, maxFileSizeSpringProperty)
             )
+    }
+
+    /**
+     * Convenience method for getting the list page response entity.
+     * @param params Additional parameters for the list page.
+     * @param absolute If true, the absolute URL will be returned.
+     * @param highlightedObjectId If given, the row with this id will be highlighted. The id will be stored in the user preferences as well.
+     * @param forceAGGridReload If true, the AG Grid will be reloaded (workaround).
+     * @return ResponseEntity for the list page.
+     */
+    fun getListPageResponseEntity(
+        params: Map<String, Any?>? = null,
+        absolute: Boolean = false,
+        highlightedObjectId: Long? = null,
+        forceAGGridReload: Boolean = false,
+    ): ResponseEntity<ResponseAction> {
+        return ResponseEntity.ok()
+            .body(
+                getListPageResponseAction(
+                    params,
+                    absolute = absolute,
+                    highlightedObjectId = highlightedObjectId,
+                    forceAGGridReload = forceAGGridReload,
+                )
+            )
+    }
+
+    /**
+     * Convenience method for getting the list page response action.
+     * @param params Additional parameters for the list page.
+     * @param absolute If true, the absolute URL will be returned.
+     * @param highlightedObjectId If given, the row with this id will be highlighted. The id will be stored in the user preferences as well.
+     * @param forceAGGridReload If true, the AG Grid will be reloaded (workaround).
+     * @return ResponseAction for the list page.
+     */
+    fun getListPageResponseAction(
+        params: Map<String, Any?>? = null,
+        absolute: Boolean = false,
+        highlightedObjectId: Long? = null,
+        forceAGGridReload: Boolean = false,
+    ): ResponseAction {
+        val url = PagesResolver.getListPageUrl(
+            this::class.java,
+            params,
+            absolute = absolute,
+            forceAGGridReload = forceAGGridReload
+        )
+        val action = ResponseAction(url)
+        if (highlightedObjectId != null) {
+            action.addVariable("id", highlightedObjectId)
+            if (highlightedObjectId >= 0) {
+                userPrefService.putEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, highlightedObjectId, false)
+            }
+        }
+        return action
+    }
+
+    /**
+     * Is this list page currentyl in multi selection mode?
+     */
+    fun isMultiSelectionMode(request: HttpServletRequest, magicFilter: MagicFilter): Boolean {
+        return MultiSelectionSupport.isMultiSelection(request, magicFilter)
     }
 
     /**

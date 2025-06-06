@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -125,7 +125,7 @@ public class DeltaSetCalculator {
 
             // Try to determine the property type from either currentState or,
             // previousState... Side-note: if both are null, we cannot determine
-            // the propertyType, but thats OK as no change has occurred (null==null)
+            // the propertyType, but that's OK as no change has occurred (null==null)
             if (!isCurrentNull) {
                 propertyType = propertyCurrentState.getClass();
             } else if (!wasPreviousNull) {
@@ -148,7 +148,7 @@ public class DeltaSetCalculator {
     }
 
     /**
-     * General use DeltaSet caluclator.
+     * General use DeltaSet calculator.
      */
     public static DeltaSet calculateDeltaSet(Object entity, SessionFactory sf, Serializable entityId, Class<?> entityType,
                                              Object obj1,
@@ -370,7 +370,7 @@ public class DeltaSetCalculator {
         }
       }
     } catch (Exception ex) {
-      log.error("Exception occured:" + ex, ex);
+      log.error("Exception occurred:" + ex, ex);
     }*/
 
         return obj1.equals(obj2);

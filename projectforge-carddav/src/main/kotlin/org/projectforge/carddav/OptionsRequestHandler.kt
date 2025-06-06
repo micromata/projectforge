@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -56,6 +56,6 @@ internal object OptionsRequestHandler {
             response.addHeader("Content-Type", "application/xml")
         }
         ResponseUtils.setValues(response, status = HttpStatus.OK)
-        TestUtils.writeRequestResponseLogInTestMode(requestWrapper, response)
+        CardDavServerDebugWriter.writeRequestResponseLogInTestMode(requestWrapper, response)
     }
 }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,10 +24,6 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
-import org.projectforge.business.address.AddressDO
-import org.projectforge.business.address.AddressDao
-import org.projectforge.business.address.PersonalAddressDO
-import org.projectforge.business.address.PersonalAddressDao
 import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
@@ -47,6 +43,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
+import org.projectforge.business.address.*
 
 private val log = KotlinLogging.logger {}
 
@@ -55,6 +52,9 @@ private val log = KotlinLogging.logger {}
 class AddressViewPageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var addressDao: AddressDao
+
+  @Autowired
+  private lateinit var addressImageCache: AddressImageCache
 
   @Autowired
   private lateinit var personalAddressDao: PersonalAddressDao
@@ -98,7 +98,8 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
     }
     val fieldSet = UIFieldset(12, title = "'${addressDO.fullNameWithTitleAndForm}$organization")
     layout.add(fieldSet)
-    if (addressDO.image == true) {
+    val image = addressImageCache.getImage(id)
+    if (image != null) {
       fieldSet.add(
         UICustomized(
           "image",

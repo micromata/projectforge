@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -142,7 +142,7 @@ public class TeamEventSubscription implements Serializable {
         }
       });
     } catch (IOException ex) {
-      log.error(ex.getMessage(), ex);
+      log.error(ex.getMessage());
       return;
     }
     if (bytes == null) {
@@ -223,7 +223,7 @@ public class TeamEventSubscription implements Serializable {
           + " information, quit from url '"
           + displayUrl
           + "': "
-          + e.getMessage(), e);
+          + e.getMessage());
     }
   }
 

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -67,8 +67,10 @@ class PollCronJobs {
     @Scheduled(cron = "0 5 6 * * *") //Immer um 00:05
     fun dailyCronJobs() {
         log.info("Start daily cron jobs")
-        cronDeletePolls()
-        cronEndPolls()
+        Thread {
+            cronDeletePolls()
+            cronEndPolls()
+        }.start()
     }
 
 
@@ -90,15 +92,7 @@ class PollCronJobs {
 
                         val excel = exporter.getExcel(poll)
 
-                        val mailAttachment = object : MailAttachment {
-                            override fun getFilename(): String {
-                                return "${pollDO.title}_${LocalDateTime.now().year}_Result.xlsx"
-                            }
-
-                            override fun getContent(): ByteArray? {
-                                return excel
-                            }
-                        }
+                        val mailAttachment = MailAttachment("${pollDO.title}_${LocalDateTime.now().year}_Result.xlsx", excel)
                         val owner = userService.getUser(poll.owner?.id)
                         val mailTo = pollMailService.getAllAttendeesEmails(poll)
                         val mailFrom = pollDO.owner?.email.toString()

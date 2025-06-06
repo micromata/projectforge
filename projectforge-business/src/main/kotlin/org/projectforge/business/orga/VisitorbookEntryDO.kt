@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,19 +23,19 @@
 
 package org.projectforge.business.orga
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo
-import com.fasterxml.jackson.annotation.ObjectIdGenerators
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.projectforge.Constants
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.history.WithHistory
 import java.io.Serializable
 import java.time.LocalDate
 
 /**
- * Represents timeable attributes of an employee (annual leave days and status).
+ * Represents a single visit of a visitor.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
@@ -47,7 +47,6 @@ import java.time.LocalDate
     )]
 )
 @WithHistory
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class VisitorbookEntryDO : Serializable, AbstractBaseDO<Long>() {
     @get:Id
     @get:GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
@@ -56,6 +55,7 @@ open class VisitorbookEntryDO : Serializable, AbstractBaseDO<Long>() {
 
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "visitorbook_fk", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     open var visitorbook: VisitorbookDO? = null
 
     @PropertyInfo(i18nKey = "calendar.day")

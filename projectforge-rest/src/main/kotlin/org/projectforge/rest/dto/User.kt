@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -119,55 +119,67 @@ class User(
     }
 
     override fun copyFromMinimal(src: PFUserDO) {
-        super.copyFromMinimal(src)
+        this.displayName = src.displayName
         this.username = src.username
+        this.id = src.id
+        if (userGroupCache.isUserMemberOfAdminGroup) {
+            super.copyFromMinimal(src)
+        }
     }
 
     override fun copyFrom(src: PFUserDO) {
         val user = PfCaches.instance.getUserIfNotInitialized(src)!!
-        super.copyFrom(user)
-        lastLogin?.let { date ->
-            lastLoginTimeAgo = TimeAgo.getMessage(date)
-            lastLoginFormatted = TimeAgo.getDateAndMessage(date)
-        }
-        lastPasswordChange?.let { date ->
-            lastPasswordChangeFormatted = TimeAgo.getDateAndMessage(date)
-        }
-        lastWlanPasswordChange?.let { date ->
-            lastWlanPasswordChangeFormatted = TimeAgo.getDateAndMessage(date)
-        }
+        // Visible for non-admin user's (if in any same group)
+        copyFromMinimal(user)
         timeZone = user.timeZoneString
-        if (accessChecker.isLoggedInUserMemberOfAdminGroup) {
-            // Rights
-            val sb = StringBuilder()
-            userDao.getUserRights(user.id)?.forEachIndexed { index, rightDO ->
-                if (index > 0) {
-                    sb.append(", ")
-                }
-                sb.append(translate(userRightService.getRightId(rightDO.rightIdString).i18nKey))
-                sb.append(
-                    when (rightDO.value) {
-                        UserRightValue.READONLY -> " (ro)"
-                        UserRightValue.PARTLYREADWRITE -> " (prw)"
-                        UserRightValue.READWRITE -> " (rw)"
-                        else -> ""
-                    }
-                )
+        gpgPublicKey = user.gpgPublicKey
+        sshPublicKey = user.sshPublicKey
+        firstname = user.firstname
+        lastname = user.lastname
+        if (userGroupCache.isUserMemberOfAdminGroup) {
+            super.copyFrom(user)
+            lastLogin?.let { date ->
+                lastLoginTimeAgo = TimeAgo.getMessage(date)
+                lastLoginFormatted = TimeAgo.getDateAndMessage(date)
             }
-            rightsAsString = sb.toString()
-            val newAssignedGroups = mutableSetOf<Group>()
-            userGroupCache.getUserGroups(user)?.forEach { groupId ->
-                userGroupCache.getGroup(groupId)?.let { groupDO ->
-                    val group = Group()
-                    group.copyFromMinimal(groupDO)
-                    if (!newAssignedGroups.any { it.id == groupDO.id }) {
-                        newAssignedGroups.add(group)
+            lastPasswordChange?.let { date ->
+                lastPasswordChangeFormatted = TimeAgo.getDateAndMessage(date)
+            }
+            lastWlanPasswordChange?.let { date ->
+                lastWlanPasswordChangeFormatted = TimeAgo.getDateAndMessage(date)
+            }
+            if (accessChecker.isLoggedInUserMemberOfAdminGroup) {
+                // Rights
+                val sb = StringBuilder()
+                userDao.getUserRights(user.id)?.forEachIndexed { index, rightDO ->
+                    if (index > 0) {
+                        sb.append(", ")
+                    }
+                    sb.append(translate(userRightService.getRightId(rightDO.rightIdString).i18nKey))
+                    sb.append(
+                        when (rightDO.value) {
+                            UserRightValue.READONLY -> " (ro)"
+                            UserRightValue.PARTLYREADWRITE -> " (prw)"
+                            UserRightValue.READWRITE -> " (rw)"
+                            else -> ""
+                        }
+                    )
+                }
+                rightsAsString = sb.toString()
+                val newAssignedGroups = mutableSetOf<Group>()
+                userGroupCache.getUserGroups(user)?.forEach { groupId ->
+                    userGroupCache.getGroup(groupId)?.let { groupDO ->
+                        val group = Group()
+                        group.copyFromMinimal(groupDO)
+                        if (!newAssignedGroups.any { it.id == groupDO.id }) {
+                            newAssignedGroups.add(group)
+                        }
                     }
                 }
-            }
-            assignedGroups = newAssignedGroups.sortedBy { it.displayName?.lowercase() }.toMutableList()
-            PFUserDOConverter.readLdapUserValues(user.ldapValues)?.let { srcValues ->
-                ldapValues = UserLdapValues.create(srcValues)
+                assignedGroups = newAssignedGroups.sortedBy { it.displayName?.lowercase() }.toMutableList()
+                PFUserDOConverter.readLdapUserValues(user.ldapValues)?.let { srcValues ->
+                    ldapValues = UserLdapValues.create(srcValues)
+                }
             }
         }
     }
@@ -194,7 +206,7 @@ class User(
         private val accessChecker =
             ApplicationContextProvider.getApplicationContext().getBean(AccessChecker::class.java)
         private val userDao = ApplicationContextProvider.getApplicationContext().getBean(UserDao::class.java)
-        private val userGroupCache = UserGroupCache.getInstance()
+        private val userGroupCache: UserGroupCache by lazy { UserGroupCache.getInstance() }
         private val userRightService =
             ApplicationContextProvider.getApplicationContext().getBean(UserRightService::class.java)
 

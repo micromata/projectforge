@@ -9,7 +9,7 @@ tags: [installation]
 :toc:
 :toclevels: 4
 
-:last-update-label: Copyright (C) 2021, Last updated
+:last-update-label: Copyright (C) 2024, Last updated
 
 :sectnums:
 
@@ -19,22 +19,28 @@ You may choose now between Docker based installation or normal installation.
 Or, as a developer, you may also refer https://github.com/micromata/projectforge/[ProjectForge on GitHub].
 
 === Docker
-You may install ProjectForge as docker image.
+You may install ProjectForge as docker image. You may run ProjectForge as docker image since version 8.0
+on Linux (amd64 and arm64) as well as on MacOS (Intel or Silicon).
 
 We assume `/home/projectforge/ProjectForge` as ProjectForge's home in this documentation, but you may choose anything else (will be created or should be empty if already exists).
 
-For test or small installations you may use the built-in data base (embedded).
+For test or small installations you may use the built-in database (embedded).
 
 ==== Running single docker container
 
 1. First start `docker run -t -i -p 127.0.0.1:8080:8080 -v $HOME/ProjectForge:/ProjectForge --name projectforge micromata/projectforge`
 2. Follow setup wizard below.
 3. Enjoy.
+4. Stop ProjectForge by pressing `CTRL-C` or `docker stop projectforge`.
 
 You may monitor the log file: `tail -f ~/ProjectForge/logs/ProjectForge.log`
 
 To stop and start use `docker start/stop projectforge`.
 
+For full functionality of all plugins, you should restart the docker container:
+
+1. `docker stop projectforge`
+2. `docker start projectforge`
 
 ==== Running as stack (docker-compose)
 
@@ -49,20 +55,14 @@ To stop and start user `docker-compose up/down`.
 
 You may monitor the log file: `tail -f ~/ProjectForge/logs/ProjectForge.log`
 
-==== Building docker container from source
-
-1. `git clone git@github.com:micromata/projectforge.git`
-2. `cd projectforge`
-3. `docker build -t micromata/projectforge:latest .`
-
-==== Increasing memory
-
-Edit `~/ProjectForge/environment.sh` for customizing settings of ProjectForge as environment variables.
+For configuring ProjectForge, go to ProjectForge base dir:
+1. `projectforge.properties` for customizing settings of ProjectForge.
+2. `environment.sh` for customizing settings of Java options (increasing memory size etc.).
 
 === Java-Installation (without docker)
 If you don't want to use Docker, you're able to install ProjectForge from the executable jar file.
 
-1. Install openjdk (java >8 should also work, if needed, 11+ recommended).
+1. Install openjdk 17.
 2. Get projectForge-application_version.jar
 3. First start: java -jar projectForge-application_version.jar
 
@@ -123,7 +123,7 @@ ProjectForge is only available on port 8080 from localhost due to security reaso
 
 [NOTE]
 ====
-Please be aware, that after your first start of ProjectForge, your page might be public and be configured by anybody else! So proceed immediatelyly with the configuration if your new ProjectForge instance is
+Please be aware, that after your first start of ProjectForge, your page might be public and be configured by anybody else! So proceed immediately with the configuration if your new ProjectForge instance is
 public available.
 ====
 
@@ -139,7 +139,7 @@ h|User name | The user name of the initial admin user of ProjectForge.
 h|Password | Admin's password.
 h|Default time zone | Default time zone for all users, if not configured by an user und MyAccount.
 h|Calendar domain | ProjectForge provides calendar and events. For having world-wide unique event id's, choose here your personal name.
-h|Administrators | ProjectForge sends e-mails to this address(es) in the case of special errors. You can specify one ore more (coma separated) addresses (RFC822).
+h|Administrators | ProjectForge sends e-mails to this address(es) in the case of special errors. You can specify one or more (coma separated) addresses (RFC822).
 h|Feed-back | If this e-mail is given then a feedback panel will be shown if an error occurs. The user has the possibility to send an e-mail feedback (e. g. JIRA-system or help desk).
 |===
 
@@ -213,10 +213,10 @@ All of the commands below should be run with `root` privileges.
 ==== Configure Nginx
 
 To use NGINX as a reverse proxy, it's necessary to create a configuration file. The standard path for NGINX configurations is `/etc/nginx/sites-available/`, so let's create the file link:misc/nginx_sites-available_projectforge[`/etc/nginx/sites-available/projectforge`].
-If you want to use `.htaccess` to blok access to the installation, you need to remove the comment character (`#`) in front of the `auth_basic` and `auth_basic_file` parameters.
+If you want to use `.htaccess` to block access to the installation, you need to remove the comment character (`#`) in front of the `auth_basic` and `auth_basic_file` parameters.
 If you want to use HSTS (which makes browsers show an error page when the SSL certificate is invalid and/or nonexistent), remove the comment character (`#`) in front of the `add_header Strict-Transport-Security` parameter.
 
-**Remeber to replace *projectforge.example.com* with the actual domain you'll run ProjectForge on!**
+**Remember to replace *projectforge.example.com* with the actual domain you'll run ProjectForge on!**
 
 
 To activate the NGINX configuration, you'll need to symlink the configuration file we just created to `/etc/nginx/sites-enabled`. This can be done by using the following command:
@@ -281,19 +281,13 @@ Daily backups (not monthly) will be deleted after 30 days.
 Refer config file for all options: [https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/application.properties]
 
 == Supported Java versions
-.Java Compability (2021/04/12)
-[cols="1,1,1,1,1,3"]
+.Java Compatibility (2021/04/12)
+[cols="1,1,1,3"]
 |===
-|Java version | V6* | V7.0* | V7.1+ | V7.2+ | Comments
+|Java version | V7.5+ | V8.0+ | Comments
 
-|Oracle 1.8 | \+++ | + | + | - | Oracle 1.8 was in production for years up to version 7.1.2. (LDAP master/slave needs Java 11 since 7.1*)
-|OpenJDK 11 | - | \+++ | \+++ | \+++ | OpenJDK 11 is used in development (MacOS) and in heavy production since version 7.0.0. (Linux)
-|OpenJDK 12 | - | + | ? | ? | Should run since version V7.0
-|OpenJDK 13 | - | + | ? | ? | Should run since version V7.0
-|OpenJDK 14 | - | - | ? | ? | Should run since version V7.1
-|OpenJDK 15 | - | - | + | + | Should run since version V7.1
-|OpenJDK 16 | - | - | + | + | Should run since version V7.1
-|OpenJDK 17 | - | - | - | - | Doesn't run. Migration of Wicket, Hibernate and Jakarta stuff is needed and in progress.
+|OpenJDK 11 | \+++ | -   | OpenJDK 11 was used in development (MacOS) and in production since version 7.0.0. (Linux)
+|OpenJDK 17 |    - | \+++| Since version 8.0 OpenJDK 17 is used in development and in production.
 |===
 
 .Legend

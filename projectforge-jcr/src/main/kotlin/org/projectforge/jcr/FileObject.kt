@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -56,14 +56,14 @@ class FileObject() : FileInfo() {
   }
 
   internal constructor(nodeInfo: NodeInfo) : this() {
-    fileName = nodeInfo.getProperty(RepoService.PROPERTY_FILENAME)?.value?.string
-    description = nodeInfo.getProperty(RepoService.PROPERTY_FILEDESC)?.value?.string
-    created = PFJcrUtils.convertToDate(nodeInfo.getProperty(RepoService.PROPERTY_CREATED)?.value?.string)
-    createdByUser = nodeInfo.getProperty(RepoService.PROPERTY_CREATED_BY_USER)?.value?.string
-    lastUpdate = PFJcrUtils.convertToDate(nodeInfo.getProperty(RepoService.PROPERTY_LAST_UPDATE)?.value?.string)
-    lastUpdateByUser = nodeInfo.getProperty(RepoService.PROPERTY_LAST_UPDATE_BY_USER)?.value?.string
+    fileName = nodeInfo.getProperty(OakStorage.PROPERTY_FILENAME)?.value?.string
+    description = nodeInfo.getProperty(OakStorage.PROPERTY_FILEDESC)?.value?.string
+    created = PFJcrUtils.convertToDate(nodeInfo.getProperty(OakStorage.PROPERTY_CREATED)?.value?.string)
+    createdByUser = nodeInfo.getProperty(OakStorage.PROPERTY_CREATED_BY_USER)?.value?.string
+    lastUpdate = PFJcrUtils.convertToDate(nodeInfo.getProperty(OakStorage.PROPERTY_LAST_UPDATE)?.value?.string)
+    lastUpdateByUser = nodeInfo.getProperty(OakStorage.PROPERTY_LAST_UPDATE_BY_USER)?.value?.string
     fileId = nodeInfo.name
-    size = nodeInfo.getProperty(RepoService.PROPERTY_FILESIZE)?.value?.long
+    size = nodeInfo.getProperty(OakStorage.PROPERTY_FILESIZE)?.value?.long
     if (log.isDebugEnabled) {
       log.debug { "Restoring: ${PFJcrUtils.toJson(this)}" }
     }
@@ -73,17 +73,17 @@ class FileObject() : FileInfo() {
    * Copies all fields from node to this, excluding content and path setting (parent path as well as relative path).
    */
   internal fun copyFrom(node: Node) {
-    fileName = PFJcrUtils.getProperty(node, RepoService.PROPERTY_FILENAME)?.string
-    description = PFJcrUtils.getProperty(node, RepoService.PROPERTY_FILEDESC)?.string
-    created = PFJcrUtils.getPropertyAsDate(node, RepoService.PROPERTY_CREATED)
-    createdByUser = PFJcrUtils.getProperty(node, RepoService.PROPERTY_CREATED_BY_USER)?.string
-    lastUpdate = PFJcrUtils.getPropertyAsDate(node, RepoService.PROPERTY_LAST_UPDATE)
-    lastUpdateByUser = PFJcrUtils.getProperty(node, RepoService.PROPERTY_LAST_UPDATE_BY_USER)?.string
+    fileName = PFJcrUtils.getProperty(node, OakStorage.PROPERTY_FILENAME)?.string
+    description = PFJcrUtils.getProperty(node, OakStorage.PROPERTY_FILEDESC)?.string
+    created = PFJcrUtils.getPropertyAsDate(node, OakStorage.PROPERTY_CREATED)
+    createdByUser = PFJcrUtils.getProperty(node, OakStorage.PROPERTY_CREATED_BY_USER)?.string
+    lastUpdate = PFJcrUtils.getPropertyAsDate(node, OakStorage.PROPERTY_LAST_UPDATE)
+    lastUpdateByUser = PFJcrUtils.getProperty(node, OakStorage.PROPERTY_LAST_UPDATE_BY_USER)?.string
     fileId = node.name
-    size = PFJcrUtils.getProperty(node, RepoService.PROPERTY_FILESIZE)?.long
-    checksum = PFJcrUtils.getProperty(node, RepoService.PROPERTY_CHECKSUM)?.string
-    aesEncrypted = PFJcrUtils.getProperty(node, RepoService.PROPERTY_AES_ENCRYPTED)?.boolean == true
-    PFJcrUtils.getProperty(node, RepoService.PROPERTY_ZIP_MODE)?.string?.let {
+    size = PFJcrUtils.getProperty(node, OakStorage.PROPERTY_FILESIZE)?.long
+    checksum = PFJcrUtils.getProperty(node, OakStorage.PROPERTY_CHECKSUM)?.string
+    aesEncrypted = PFJcrUtils.getProperty(node, OakStorage.PROPERTY_AES_ENCRYPTED)?.boolean == true
+    PFJcrUtils.getProperty(node, OakStorage.PROPERTY_ZIP_MODE)?.string?.let {
       zipMode = ZipMode.valueOf(it)
     }
     if (log.isDebugEnabled) {
@@ -95,18 +95,18 @@ class FileObject() : FileInfo() {
    * Copies all fields from this to node, excluding content and id/name.
    */
   internal fun copyTo(node: Node) {
-    node.setProperty(RepoService.PROPERTY_FILENAME, fileName)
-    node.setProperty(RepoService.PROPERTY_FILEDESC, description ?: "")
-    node.setProperty(RepoService.PROPERTY_CREATED, PFJcrUtils.convertToString(created) ?: "")
-    node.setProperty(RepoService.PROPERTY_CREATED_BY_USER, createdByUser ?: "")
-    node.setProperty(RepoService.PROPERTY_LAST_UPDATE, PFJcrUtils.convertToString(lastUpdate) ?: "")
-    node.setProperty(RepoService.PROPERTY_LAST_UPDATE_BY_USER, lastUpdateByUser ?: "")
-    node.setProperty(RepoService.PROPERTY_AES_ENCRYPTED, aesEncrypted == true)
+    node.setProperty(OakStorage.PROPERTY_FILENAME, fileName)
+    node.setProperty(OakStorage.PROPERTY_FILEDESC, description ?: "")
+    node.setProperty(OakStorage.PROPERTY_CREATED, PFJcrUtils.convertToString(created) ?: "")
+    node.setProperty(OakStorage.PROPERTY_CREATED_BY_USER, createdByUser ?: "")
+    node.setProperty(OakStorage.PROPERTY_LAST_UPDATE, PFJcrUtils.convertToString(lastUpdate) ?: "")
+    node.setProperty(OakStorage.PROPERTY_LAST_UPDATE_BY_USER, lastUpdateByUser ?: "")
+    node.setProperty(OakStorage.PROPERTY_AES_ENCRYPTED, aesEncrypted == true)
     zipMode?.let {
-      node.setProperty(RepoService.PROPERTY_ZIP_MODE, it.name)
+      node.setProperty(OakStorage.PROPERTY_ZIP_MODE, it.name)
     }
     setChecksum(node, checksum)
-    size?.let { node.setProperty(RepoService.PROPERTY_FILESIZE, it) }
+    size?.let { node.setProperty(OakStorage.PROPERTY_FILESIZE, it) }
     log.info { "Storing file info: ${PFJcrUtils.toJson(this)}" }
   }
 
@@ -121,7 +121,7 @@ class FileObject() : FileInfo() {
     }
 
   /**
-   * An unique random alpha-numeric string. This id will internally also used as child node name of [RepoService.NODENAME_FILES].
+   * A unique random alphanumeric string. This id will internally also used as child node name of [RepoService.NODENAME_FILES].
    * Leave this id null for new files to store.
    */
   var fileId: String? = null
@@ -133,7 +133,7 @@ class FileObject() : FileInfo() {
    * the file node with id as name resists.
    */
   val location: String
-    get() = "${RepoService.getAbsolutePath(parentNodePath, relPath)}"
+    get() = "${OakStorage.getAbsolutePath(parentNodePath, relPath)}"
 
   /**
    * The location is built of parentNodePath and relPath.
@@ -151,7 +151,7 @@ class FileObject() : FileInfo() {
 
   companion object {
     internal fun setChecksum(node: Node, checksum: String?) {
-      node.setProperty(RepoService.PROPERTY_CHECKSUM, checksum ?: "")
+      node.setProperty(OakStorage.PROPERTY_CHECKSUM, checksum ?: "")
     }
   }
 }

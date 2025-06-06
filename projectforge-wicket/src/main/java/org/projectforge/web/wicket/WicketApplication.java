@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,8 +35,10 @@ import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.request.cycle.IRequestCycleListener;
 import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.resource.loader.BundleStringResourceLoader;
+import org.apache.wicket.settings.DebugSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.apache.wicket.util.lang.Bytes;
 import org.projectforge.Constants;
@@ -177,11 +179,6 @@ public class WicketApplication extends WebApplication implements WicketApplicati
         return startTime;
     }
 
-    @Value("${projectforge.wicket.developmentMode}")
-    public void setDevelopmentMode(Boolean developmentMode) {
-        WicketApplication.developmentMode = developmentMode;
-    }
-
     /**
      * Own solution: uses development parameter of servlet context init parameter (see context.xml or server.xml).
      *
@@ -213,8 +210,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
     protected void init() {
         super.init();
         getCspSettings().blocking().disabled(); // Configuring new Content Security Policy (CSP) settings.
-        getComponentInstantiationListeners().add(
-                new SpringComponentInjector(this, applicationContext));
+        getComponentInstantiationListeners().add(new SpringComponentInjector(this, applicationContext));
         // Wicket workaround for not be able to proxy Kotlin base SpringBeans:
         WicketSupport.register(applicationContext);
         WebRegistry.getInstance().init();
@@ -253,7 +249,17 @@ public class WicketApplication extends WebApplication implements WicketApplicati
                 }
             }
         });
-
+        // Set Cache-Control Header for all pages.
+        getRequestCycleListeners().add(new IRequestCycleListener() {
+            @Override
+            public void onRequestHandlerResolved(RequestCycle cycle, IRequestHandler handler) {
+                if (cycle.getResponse() instanceof WebResponse response) {
+                    response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+                    response.setHeader("Pragma", "no-cache");
+                    response.setHeader("Expires", "0");
+                }
+            }
+        });
         getApplicationSettings().setDefaultMaximumUploadSize(Bytes.megabytes(100));
         getMarkupSettings().setDefaultMarkupEncoding("utf-8");
         final MyAuthorizationStrategy authStrategy = new MyAuthorizationStrategy();
@@ -266,7 +272,6 @@ public class WicketApplication extends WebApplication implements WicketApplicati
         }
         getApplicationSettings().setPageExpiredErrorPage(PageExpiredPage.class); // Don't show expired page.
         // getSessionSettings().setMaxPageMaps(20); // Map up to 20 pages per session (default is 5).
-        getComponentInstantiationListeners().add(new SpringComponentInjector(this));
         getApplicationSettings().setInternalErrorPage(ErrorPage.class);
         getRequestCycleSettings().setTimeout(Duration.ofMinutes(Constants.WICKET_REQUEST_TIMEOUT_MINUTES));
         // getRequestCycleSettings().setRenderStrategy(RequestCycleSettings.RenderStrategy.ONE_PASS_RENDER);
@@ -308,7 +313,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
                 log.info("Strip Wicket tags also in development mode at default (see context.xml).");
                 Application.get().getMarkupSettings().setStripWicketTags(true);
             }
-            getDebugSettings().setOutputMarkupContainerClassName(true);
+            getDebugSettings().setOutputMarkupContainerClassNameStrategy(DebugSettings.ClassOutputStrategy.HTML_COMMENT);
 
             // For getting more information of deserialization issues: use jvm parameter --add-opens java.base/java.io=ALL-UNNAMED
         }
@@ -331,17 +336,13 @@ public class WicketApplication extends WebApplication implements WicketApplicati
 
         getPageSettings().setRecreateBookmarkablePagesAfterExpiry(true);
         getPageSettings().setVersionPagesByDefault(true);
-    /*setPageManagerProvider(() -> {
-      IPageStore pageStore = new InMemoryPageStore(getName(), 20); // max. 10 Seiten pro Session
-      return new PageStoreManager(this, new RequestPageStore(dataStore));
-      // Alternatively, for storing pages on disk with a limit:
-      // String storeFolder = getStoreFolder();
-      // IDataStore diskDataStore = new DiskPageStore(storeFolder, 20); // Limit pages on disk
-      // return new PageStoreManager(this, new RequestPageStore(diskDataStore));
-    });*/
-        getStoreSettings().setMaxSizePerSession(Bytes.kilobytes(100));
-        log.info("Using file storage directory for page store: " + WebApplication.get().getServletContext()
-                .getAttribute("jakarta.servlet.context.tempdir"));
+
+        // Configure standard Wicket settings to fix session-mixing issues after Wicket 10.4 migration
+
+        // These settings help with preserving page state and isolation between users
+        getStoreSettings().setAsynchronous(false);
+        getStoreSettings().setMaxSizePerSession(Bytes.megabytes(2));
+        log.info("Using standard Wicket disk-based page store to fix session problems after Wicket 10 migration");
 
         WicketSupport.register(SipgateDirectCallService.class, applicationContext.getBean(SipgateDirectCallService.class));
 

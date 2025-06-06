@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,18 +25,28 @@ package org.projectforge.carddav
 
 import jakarta.annotation.PostConstruct
 import org.projectforge.business.address.vcard.VCardVersion
+import org.projectforge.business.configuration.DomainService
 import org.projectforge.rest.AddressPagesRest
+import org.projectforge.rest.CardDAVInfoPageRest
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 
 @Configuration
 open class CardDavConfig {
+    @Autowired
+    private lateinit var domainService: DomainService
+
     @Value("\${projectforge.carddav.server.enable:true}")
     var enable: Boolean = true
         private set
 
-    @Value("\${projectforge.carddav.server.testMode:false}")
-    internal var testMode: Boolean = false
+    /**
+     * If set, the user with this name is used for debugging by writing requests and responses to log files.
+     * @see CardDavServerDebugWriter
+     */
+    @Value("\${projectforge.carddav.server.debugUser:}")
+    internal var debugUser: String = ""
         private set
 
     /**
@@ -47,8 +57,12 @@ open class CardDavConfig {
 
     @PostConstruct
     private fun postConstruct() {
-        TestUtils.testMode = testMode
+        CardDavServerDebugWriter.debugUser = debugUser
         AddressPagesRest.carddavServerEnabled = enable
+        CardDAVInfoPageRest.standardUrl = "${domainService.domain}${CardDavInit.CARD_DAV_BASE_PATH}"
+        CardDAVInfoPageRest.appleUrl = domainService.plainDomain
+        CardDAVInfoPageRest.applePath = "${CardDavInit.CARD_DAV_BASE_PATH}/"
+        CardDAVInfoPageRest.iOSUrl = "${domainService.plainDomain}${CardDavInit.CARD_DAV_BASE_PATH}"
     }
 
     val vcardVersion: VCardVersion

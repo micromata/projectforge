@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -62,7 +62,7 @@ class BackupMain {
             val repoBackupService = RepoBackupService()
             repoService.init(repositoryLocation)
             repoBackupService.repoService = repoService
-            val jcrCheckSanityJob = JCRCheckSanityJob()
+            val jcrCheckSanityJob = JCRCheckSanityCheckJob()
             jcrCheckSanityJob.repoService = repoService
             repoBackupService.jcrCheckSanityJob = jcrCheckSanityJob
             return repoBackupService

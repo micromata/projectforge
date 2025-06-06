@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,6 +35,15 @@ class KotlinStringExtensionsTest {
         assertEquals("", "".abbreviate(10))
         assertEquals("1234567890", "1234567890".abbreviate(10))
         assertEquals("1234567...", "1234567890a".abbreviate(10))
+    }
+
+    @Test
+    fun `test shortenMiddle method`() {
+        assertEquals("", null.shortenMiddle())
+        assertEquals("", "".shortenMiddle())
+        assertEquals("1234567890", "1234567890".shortenMiddle())
+        assertEquals("1234...90a", "1234567890a".shortenMiddle())
+        assertEquals("1234...0ab", "1234567890ab".shortenMiddle())
     }
 
     @Test

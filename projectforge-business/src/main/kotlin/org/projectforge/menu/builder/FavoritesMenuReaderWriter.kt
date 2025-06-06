@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -176,9 +176,9 @@ class FavoritesMenuReaderWriter {
         }
 
         /**
-         * Oldes CSV format until 2019.
+         * Oldest CSV format until 2019.
          * @param menuCreator
-         * @param userPrefEntry coma separated list of MenuItemDefs.
+         * @param userPrefEntry comma separated list of MenuItemDefs.
          */
         private fun buildFromOldUserPrefFormat(menuCreator: MenuCreator, userPrefEntry: String): Menu {
             val menu = Menu()

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -183,7 +183,7 @@ public class EmployeeSalaryExportDao {
       BigDecimal sum = BigDecimal.ZERO;
       int j = rows.size();
       for (final Kost2Row row : rows.values()) {
-        final Kost2DO kost2 = row.getKost2();
+        final Kost2DO kost2 = row.kost2;
         final MonthlyEmployeeReportEntry entry = report.getKost2Durations().get(kost2.getId());
         mapping.add(ExcelColumn.KOST1, kost1.getNummer());
         mapping.add(ExcelColumn.MITARBEITER, user.getFullname());

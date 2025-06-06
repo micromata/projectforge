@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -127,7 +127,8 @@ public class EingangsrechnungEditPage
   @Override
   protected void cloneData() {
     super.cloneData();
-    final EingangsrechnungDO rechnung = getData();
+    final EingangsrechnungDO rechnung = new EingangsrechnungDO();
+    rechnung.copyValuesFrom(getData(), "id", "positionen");
     final int zahlungsZielInTagen = rechnung.getZahlungsZielInTagen();
     PFDay day = PFDay.now();
     rechnung.setDatum(day.getLocalDate());
@@ -144,7 +145,7 @@ public class EingangsrechnungEditPage
       }
     }
     form.refreshPositions();
-    setResponsePage(new EingangsrechnungEditPage(form.getData()));
+    setResponsePage(new EingangsrechnungEditPage(rechnung));
   }
 
   @Override

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -33,6 +33,6 @@ internal class WriterContext(
     val userDO: PFUserDO,
     var props: List<Prop>? = null
 ) {
-    val href = requestWrapper.requestURI
+    val href = requestWrapper.href
     var contactList: List<Contact>? = null
 }

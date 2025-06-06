@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,7 +28,6 @@ import org.projectforge.framework.configuration.PFSpringConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -50,7 +49,8 @@ public class WebApplicationConfig implements WebMvcConfigurer {
            PFSpringConfiguration.logCorsFilterWarning(log);
             // Allow maximum access for development on localhost
             registry.addMapping("/**")
-                    .allowedOriginPatterns("*")  // Allow all origins (this is the most permissive)
+                    // '*' doesn't work for modern browsers, use 'http://localhost:3000' instead:
+                    .allowedOrigins(pfSpringConfiguration.getCorsAllowedOrigins())
                     .allowedMethods("*")  // Allow all HTTP methods (GET, POST, PUT, DELETE, OPTIONS, etc.)
                     .allowedHeaders("*")  // Allow all headers
                     .allowCredentials(true)  // Allow credentials (cookies, authorization headers)

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -540,24 +540,24 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
     ): List<TimesheetDO> {
         val massUpdateData = mutableMapOf<String, MassUpdateParameter>()
         if (master.location != null) {
-            MassUpdateParameter().let { param ->
+            MassUpdateParameter("location", "location").let { param ->
                 massUpdateData["location"] = param
                 param.textValue = master.location
             }
         }
         if (master.taskId != null || master.kost2Id != null) {
-            MassUpdateParameter().let { param ->
+            MassUpdateParameter("taskAndKost2", "taskAndKost2").let { param ->
                 massUpdateData["taskAndKost2"] = param
                 param.change = true
             }
             if (master.taskId != null) {
-                MassUpdateParameter().let { param ->
+                MassUpdateParameter("task", "task").let { param ->
                     massUpdateData["task"] = param
                     param.id = master.taskId
                 }
             }
             if (master.kost2Id != null) {
-                MassUpdateParameter().let { param ->
+                MassUpdateParameter("kost2", "kost2").let { param ->
                     massUpdateData["kost2"] = param
                     param.id = master.kost2Id
                 }

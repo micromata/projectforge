@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -121,7 +121,7 @@ public class LdapConnector implements ConfigurationListener {
       final LdapContext ctx = new InitialLdapContext(env, null);
       return ctx;
     } catch (final NamingException ex) {
-      log.error("While trying to connect LDAP initally: " + ex.getMessage(), ex);
+      log.error("While trying to connect LDAP initially: " + ex.getMessage(), ex);
       throw new RuntimeException(ex);
     }
   }

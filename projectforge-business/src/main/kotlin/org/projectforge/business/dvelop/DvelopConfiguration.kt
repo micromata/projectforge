@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -45,7 +45,7 @@ open class DvelopConfiguration {
   open lateinit var apiKey: String
 
   /**
-   * If given, all entities (TradingPartner) will be assigned to this organistion referred by ID.
+   * If given, all entities (TradingPartner) will be assigned to this organisation referred by ID.
    */
   @Value("\${projectforge.dvelop.organization}")
   open lateinit var organizationName: String

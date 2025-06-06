@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,12 +30,19 @@ class ScriptExecutionResult(val scriptLogger: ScriptLogger) : Serializable {
     @Transient
     var result: Any? = null
     @Transient
-    var exception: Exception? = null
+    var exception: Throwable? = null
     var output: String? = null
     /**
      * The effective script (including any auto-imports and bindings).
      */
     var script: String = ""
+
+    /**
+     * If a download is prepared, a user-friendly message is stored here.
+     */
+    var downloadAvailable: String? = null
+
+    var resultAsUserFriendlyString: String? = null
 
     fun hasResult(): Boolean {
         return result != null
@@ -52,7 +59,7 @@ class ScriptExecutionResult(val scriptLogger: ScriptLogger) : Serializable {
         } else HtmlHelper.escapeHtml(result.toString(), true)
 
     fun hasException(): Boolean {
-        return exception != null
+        return exception != null || result is Throwable
     }
 
     companion object {

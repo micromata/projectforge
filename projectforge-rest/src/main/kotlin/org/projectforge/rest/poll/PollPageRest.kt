@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -185,7 +185,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val layout = super.createEditLayout(dto, userAccess)
         val fieldset = UIFieldset(UILength(12))
         layout.add(fieldset)
-        if (/*dto.isFinished()*/ dto.isAlreadyCreated()) {
+        if (dto.isAlreadyCreated()) {
             layout.add(
                 MenuItem(
                     "export-poll-response-button",
@@ -216,6 +216,9 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val colWidth = UILength(xs = 12, sm = 12, md = 6, lg = 6)
 
         fieldset
+            .add(UISpacer(width = 100))
+            .add(UISpacer(width = 100))
+            .add(UILabel("poll.headline.userConfiguration"))
             .add(
                 UIRow()
                     .add(
@@ -238,7 +241,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                                     "fullAccessGroups",
                                     true,
                                     "poll.fullAccessGroups",
-                                    tooltip = "poll.fullAccessgroups.tooltip"
+                                    tooltip = "poll.fullAccessGroups.tooltip"
                                 )
                             )
                     )
@@ -274,6 +277,28 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         if (!dto.isAlreadyCreated()) {
 
             fieldset
+                .add(UISpacer(width = 100))
+                .add(UISpacer(width = 100))
+                .add(UILabel("poll.headline.mailConfiguration"))
+                .add(
+                    UIInput(
+                        "customemailsubject",
+                        required = false,
+                        label = "poll.email-subject-field",
+                        tooltip = "poll.email-subject-tooltip"
+                    )
+                )
+                .add(
+                    UITextArea(
+                        "customemailcontent",
+                        label = "poll.email-content-field",
+                        tooltip = "poll.email-content-tooltip",
+                        rows = 12,
+                        maxRows = 60
+                    )
+                )
+                .add(UISpacer(width = 100))
+                .add(UILabel("poll.headline.questionConfiguration"))
                 .add(
                     UIRow()
                         .add(
@@ -294,7 +319,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                                     UISelect(
                                         "questionType",
                                         values = BaseType.values()
-                                            .map { UISelectValue(it, translateMsg("poll.questionType." + it.name)) },
+                                            .map { UISelectValue(it, translateMsg("poll.question." + it.name)) },
                                         label = "poll.questionType",
                                         tooltip = "poll.questionType.tooltip"
                                     )
@@ -332,48 +357,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                                 )
                         )
                 )
-                .add(
-                    UIRow()
-                        .add(
-                            UICol(colWidth)
-                                .add(
-                                    UIInput(
-                                        "customemailsubject",
-                                        required = false,
-                                        label = "poll.email-subject-field",
-                                        tooltip = "poll.email-subject-tooltip"
-                                    )
-                                )
-                        )
-                        .add(
-                            UICol(colWidth)
-                                .add(
-                                    UISpacer()
-                                )
-                        )
-                )
-                .add(
-                    UIRow()
-                        .add(
-                            UICol(colWidth)
-                                .add(
-                                    UITextArea(
-                                        "customemailcontent",
-                                        label = "poll.email-content-field",
-                                        tooltip = "poll.email-content-tooltip",
-                                        rows = 12,
-                                        maxRows = 60
-                                    )
-                                )
-                        )
-                        .add(
-                            UICol(colWidth)
-                                .add(
-                                    UISpacer()
-                                )
-                        )
-                )
-
         }
 
 
@@ -469,15 +452,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             val excel = excelExport.getExcel(poll)
             val filename = ("${postData.data.title}_${LocalDateTime.now().year}_Result.xlsx")
 
-            val mailAttachment = object : MailAttachment {
-                override fun getFilename(): String {
-                    return filename
-                }
-
-                override fun getContent(): ByteArray? {
-                    return excel
-                }
-            }
+            val mailAttachment = MailAttachment(filename, excel)
 
             if (fuemailSent != true) {
 
@@ -506,12 +481,15 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             throw AccessException("poll.error.oneQuestionRequired")
         }
 
+        if(obj.owner == null) {
+            throw AccessException("poll.error.ownerRequired")
+        }
+
         if (obj.attendeeIds.isNullOrEmpty() || obj.attendeeIds.equals("[]")) {
-            throw AccessException("poll.error.oneAttendeRequired")
+            throw AccessException("poll.error.oneAttendeeRequired")
         }
 
         postData.data.customemailcontent = postData.data.customemailcontent?.replace("\n", "<br>")
-
         super.onBeforeSaveOrUpdate(request, obj, postData)
 
     }
@@ -898,33 +876,25 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val colWidth = UILength(xs = 12, sm = 12, md = 6, lg = 6)
         if (isRunning) {
             fieldset
-                .add(lc, "title", "description", "location")
+                .add(UILabel("poll.headline.generalConfiguration"))
+                .add(lc, "title", "description")
                 .add(
                     UIRow()
                         .add(
                             UICol(colWidth)
-                                .add(
-                                    UISelect.createUserSelect(
-                                        lc,
-                                        "owner",
-                                        false,
-                                        "poll.owner",
-                                    )
-                                )
-                        )
-                        .add(
+                                .add(lc, "deadline",)
+                        ).add(
                             UICol(colWidth)
-                                .add(
-                                    lc,
-                                    "deadline",
-                                )
+                                .add(lc, "location")
                         )
+
                 )
+
         } else {
             fieldset
+                .add(UILabel("poll.headline.generalConfiguration"))
                 .add(UIReadOnlyField(value = pollDto.title, label = "title", dataType = UIDataType.STRING))
                 .add(UIReadOnlyField(value = pollDto.description, label = "description", dataType = UIDataType.STRING))
-                .add(UIReadOnlyField(value = pollDto.location, label = "location", dataType = UIDataType.STRING))
                 .add(
                     UIReadOnlyField(
                         value = pollDto.deadline.toString(),

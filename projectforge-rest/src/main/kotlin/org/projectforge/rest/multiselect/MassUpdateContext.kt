@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -36,7 +36,7 @@ private val log = KotlinLogging.logger {}
  * Stores also statistic data and errors during mass update run.
  */
 abstract class MassUpdateContext<T>(
-  var massUpdateData: MutableMap<String, MassUpdateParameter>,
+  var massUpdateParams: MutableMap<String, MassUpdateParameter>,
 ) {
   class Error(val identifier: String, val message: String)
 
@@ -61,7 +61,7 @@ abstract class MassUpdateContext<T>(
   internal val massUpdateObjects = mutableListOf<MassUpdateObject<T>>()
 
   fun startUpdate(dbObj: T) {
-    current = object : MassUpdateObject<T>(dbObj, massUpdateData, ignoreFieldsForModificationCheck) {
+    current = object : MassUpdateObject<T>(dbObj, massUpdateParams, ignoreFieldsForModificationCheck) {
       override fun getId(): Long {
         return getId(dbObj)
       }

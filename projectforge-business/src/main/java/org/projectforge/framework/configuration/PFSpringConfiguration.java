@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -44,7 +44,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.sql.DataSource;
 
 /**
- * Intial spring configuration for ProjectForge.
+ * Initial spring configuration for ProjectForge.
  *
  * @author Florian Blumenstein, Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
@@ -65,8 +65,15 @@ public class PFSpringConfiguration {
     @Value("${projectforge.web.development.enableCORSFilter}")
     private Boolean corsFilterEnabled;
 
+    @Value("${projectforge.web.development.enableCORSFilter.allowedOrigins}")
+    private String corsAllowedOrigins;
+
     public Boolean getCorsFilterEnabled() {
         return corsFilterEnabled;
+    }
+
+    public String getCorsAllowedOrigins() {
+        return corsAllowedOrigins;
     }
 
     @Autowired
@@ -107,8 +114,9 @@ public class PFSpringConfiguration {
                     .log("")
                     .log("Running in dev mode!")
                     .log("")
-                    .log("Don't deliver this app in dev mode due to security reasons!")
-                    .log("(cross origin allowed)")
+                    .log("Cross origin allowed for:")
+                    .log("  " + instance.getCorsAllowedOrigins())
+                    .log("(projectforge.web.development.enableCORSFilter.allowedOrigins)")
                     .logEnd();
         }
     }

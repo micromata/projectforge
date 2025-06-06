@@ -7,7 +7,7 @@ import style from './DynamicTable.module.scss';
 function DynamicTableHead(
     {
         id,
-        sortable,
+        sortable = false,
         direction,
         dispatchSort,
         title,
@@ -37,13 +37,6 @@ DynamicTableHead.propTypes = {
     titleIcon: PropTypes.arrayOf(PropTypes.string),
     direction: PropTypes.string,
     sortable: PropTypes.bool,
-};
-
-DynamicTableHead.defaultProps = {
-    sortable: false,
-    direction: undefined,
-    title: undefined,
-    titleIcon: undefined,
 };
 
 export default DynamicTableHead;

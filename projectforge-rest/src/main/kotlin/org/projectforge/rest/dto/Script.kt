@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -143,6 +143,7 @@ class Script(
   class Param(
     var name: String? = null,
     var type: ScriptParameterType? = null,
+    var description: String? = null,
     var stringValue: String? = null,
     /**
      * Is of type long (was Integer before migration)
@@ -159,6 +160,7 @@ class Script(
       val result = ScriptParameter()
       result.type = type
       result.parameterName = name
+      result.parameterDescription = description
       when (type) {
         ScriptParameterType.STRING -> result.stringValue = this.stringValue
         ScriptParameterType.INTEGER -> result.intValue = this.intValue
@@ -200,6 +202,7 @@ class Script(
         val result = Param()
         result.name = parameter.parameterName
         result.type = parameter.type
+        result.description = parameter.parameterDescription
         parameter.type?.let { type ->
           when (type) {
             ScriptParameterType.STRING -> result.stringValue = parameter.stringValue

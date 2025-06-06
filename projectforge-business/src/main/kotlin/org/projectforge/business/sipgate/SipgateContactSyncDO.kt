@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,10 +24,12 @@
 package org.projectforge.business.sipgate
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.projectforge.business.address.AddressDO
 import org.projectforge.framework.json.JsonUtils
 import java.util.*
 import jakarta.persistence.*
+import org.projectforge.framework.json.IdOnlySerializer
 
 /**
  * @author K. Reinhard (k.reinhard@micromata.de)
@@ -45,6 +47,10 @@ import jakarta.persistence.*
   ]
 )
 @NamedQueries(
+  NamedQuery(
+    name = SipgateContactSyncDO.DELETE_BY_ADDRESS_ID,
+    query = "delete from SipgateContactSyncDO where address.id = :addressId"
+  ),
   NamedQuery(
     name = SipgateContactSyncDO.FIND_BY_ADDRESS_ID,
     query = "from SipgateContactSyncDO where address.id = :addressId"
@@ -149,6 +155,7 @@ open class SipgateContactSyncDO {
   @get:ManyToOne
   @get:JoinColumn(name = "address_id")
   @get:JsonIgnore
+  @JsonSerialize(using = IdOnlySerializer::class)
   open var address: AddressDO? = null
 
   @get:Column(name = "last_sync")
@@ -232,6 +239,7 @@ open class SipgateContactSyncDO {
       return sb.toString().trim()
     }
 
+    const val DELETE_BY_ADDRESS_ID = "SipgateContactSyncDO_deleteByAddressId"
     const val FIND_BY_CONTACT_AND_ADDRESS_ID = "SipgateContactSyncDO_findByContactAndAddressId"
     const val FIND_BY_ADDRESS_ID = "SipgateContactSyncDO_findByAddressId"
     const val LOAD_ALL = "SipgateContactSyncDO_loadAll"

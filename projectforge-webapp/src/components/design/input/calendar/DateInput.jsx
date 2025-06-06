@@ -2,8 +2,8 @@ import moment from 'moment';
 import 'moment/min/locales';
 import PropTypes from 'prop-types';
 import React from 'react';
-import DayPicker from 'react-day-picker';
-import MomentLocaleUtils from 'react-day-picker/moment';
+import { DayPicker } from 'react-day-picker';
+import { de } from 'react-day-picker/locale';
 import { connect } from 'react-redux';
 import { colorPropType } from '../../../../utilities/propTypes';
 import AdvancedPopper from '../../popper/AdvancedPopper';
@@ -15,14 +15,15 @@ function DateInput(
     {
         additionalLabel,
         color,
-        hideDayPicker,
+        hideDayPicker = false,
         jsDateFormat,
         label,
-        locale,
-        noInputContainer,
+        locale = 'en',
+        noInputContainer = false,
         setDate,
         todayButton,
         value,
+        weekStartsOn,
     },
 ) {
     const [inputValue, setInputValue] = React.useState('');
@@ -154,15 +155,16 @@ function DateInput(
             setIsOpen={setIsOpen}
             isOpen={isOpen}
             withInput
+            additionalClassName={styles.dayPickerContainer}
         >
             <DayPicker
+                defaultMonth={value}
                 selectedDays={value}
                 onDayClick={handleDayPickerClick}
-                month={value}
-                locale={locale}
-                localeUtils={MomentLocaleUtils}
+                locale={locale === 'de' ? de : 'en'}
                 onTodayButtonClick={setDate}
                 todayButton={todayButton}
+                weekStartsOn={weekStartsOn}
             />
         </AdvancedPopper>
     );
@@ -179,22 +181,13 @@ DateInput.propTypes = {
     noInputContainer: PropTypes.bool,
     todayButton: PropTypes.string,
     value: PropTypes.instanceOf(Date),
-};
-
-DateInput.defaultProps = {
-    additionalLabel: undefined,
-    color: undefined,
-    hideDayPicker: false,
-    label: undefined,
-    locale: 'en',
-    noInputContainer: false,
-    todayButton: undefined,
-    value: undefined,
+    weekStartsOn: PropTypes.number,
 };
 
 const mapStateToProps = ({ authentication }) => ({
     jsDateFormat: authentication.user.jsDateFormat,
     locale: authentication.user.locale,
+    weekStartsOn: authentication.user.firstDayOfWeekSunday0,
 });
 
 export default connect(mapStateToProps)(DateInput);

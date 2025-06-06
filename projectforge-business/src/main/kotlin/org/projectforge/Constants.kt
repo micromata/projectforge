@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -39,6 +39,9 @@ object Constants {
 
   @JvmField
   val TEN_BILLION_NEGATIVE = BigDecimal("-10000000000")
+
+  @JvmField
+  val HUNDRED_BD = BigDecimal(100)
 
   const val KB = 1024
 

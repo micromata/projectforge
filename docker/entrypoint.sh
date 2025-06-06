@@ -2,11 +2,16 @@
 
 # https://stackoverflow.com/questions/41451159/how-to-execute-a-script-when-i-terminate-a-docker-container
 
-JAVA_MAIN="org.projectforge.start.ProjectForgeApplication"
 APP_NAME="ProjectForge"
+JAR_FILE="/app/application.jar"
+
+if ! command -v java &> /dev/null; then
+  echo "Error: java is not installed or not in PATH"
+  exit 1
+fi
 
 checkStopped() {
-  pid=$(pgrep -f $JAVA_MAIN)
+  pid=$(pgrep -f $JAR_FILE)
   if [[ -z $pid ]]; then
     echo "${APP_NAME} $1"
     exit 0
@@ -66,7 +71,7 @@ if [ -z "$DOCKER_OPTS" ]; then
   DOCKER_OPTS="-Ddocker=single"
 fi
 
-START="${JAVA_OPTS} -cp app:app/lib/*:/ProjectForge/plugins/* -Dprojectforge.plugins.dir=/ProjectForge/plugins ${DOCKER_OPTS} ${JAVA_MAIN} ${JAVA_ARGS}"
+START="${JAVA_OPTS} ${DOCKER_OPTS} -jar $JAR_FILE ${JAVA_ARGS}"
 # (projectforge.setup is defined in ProjectForgeApp.)
 
 echo "Starting: java ${START}"
@@ -78,7 +83,7 @@ if [ -f "$CONFIG_FILE" ]; then
   echo "Normal start"
   java $START &
 else
-  # CONFIG_FILE doesn't exist, so assume intial start:
+  # CONFIG_FILE doesn't exist, so assume initial start:
   # java must run in foreground for using the console setup wizard.
   echo "Initial start"
   java $START

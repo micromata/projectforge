@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -54,7 +54,7 @@ public class ImportTestDataTest extends AbstractTestBase {
 
   @Override
   protected void initDb() {
-    // no intial entities.
+    // no initial entities.
     init(false);
   }
 

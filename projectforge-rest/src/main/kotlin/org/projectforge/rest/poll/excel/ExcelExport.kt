@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -83,7 +83,7 @@ class ExcelExport {
                 poll.attendees?.forEachIndexed { index, user ->
                     val res = PollResponse()
                     responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
-                    setNewRows(excelSheet, poll, user, res, index + FIRST_DATA_ROW_NUM)
+                    setAnswerRow(excelSheet, poll, user, res, index + FIRST_DATA_ROW_NUM)
                 }
                 log.info("Processed attendee rows successfully")
 
@@ -111,7 +111,7 @@ class ExcelExport {
                         val res = PollResponse()
                         responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
                         if (res.id != null) {
-                            setNewRows(excelSheet, poll, user, res, number)
+                            setAnswerRow(excelSheet, poll, user, res, number)
                         }
                     }
                 }
@@ -142,10 +142,6 @@ class ExcelExport {
         poll.inputFields?.forEach { question ->
             val answers = question.answers
             if (question.type == BaseType.PollMultiResponseQuestion || question.type == BaseType.PollSingleResponseQuestion) {
-                if (!question.answers!!.contains("Anmerkung")) {
-                    val ind = question.answers!!.size
-                    question.answers!!.add(ind, "Anmerkung")
-                }
                 var counter = merge
                 question.answers?.forEach { answer ->
                     excelRow1.getCell(counter).setCellValue(answer)
@@ -171,53 +167,55 @@ class ExcelExport {
         }
         excelRow.setHeight(30F)
     }
-
-    private fun setNewRows(excelSheet: ExcelSheet, poll: Poll, user: User, res: PollResponse?, rowNumber: Int) {
+    
+    private fun setAnswerRow(excelSheet: ExcelSheet, poll: Poll, user: User, res: PollResponse?, rowNumber: Int) {
         val excelRow = excelSheet.getRow(rowNumber)
-
-
+        
+        // set username to first cell of row
         excelRow.getCell(0).setCellValue(user.displayName)
-        var cell = 0
+        
+        var cell = 1
         excelSheet.autosize(0)
-
+        
         var largestAnswer = ""
+        
+        // each question gets iterated once
         poll.inputFields?.forEachIndexed { _, question ->
-            val questionpossibilities = res?.responses?.find { it.questionUid == question.uid }
+            val choices = res?.responses?.find { it.questionUid == question.uid }
+            
+            // if choices is null skip
+            if (choices != null) {
 
-            var index: Int
-            question.answers?.forEachIndexed { ind, answer ->
-                index = question.answers!!.size - 1
-                cell++
+                var index: Int
 
-                if (question.type == BaseType.PollMultiResponseQuestion || question.type == BaseType.PollSingleResponseQuestion) {
-                    if (index == ind && questionpossibilities != null) {
-                        excelSheet.autosize(cell)
-                        if (questionpossibilities.annotation != null && questionpossibilities.annotation!!.size != 0) {
-                            excelRow.getCell(cell).setCellValue(questionpossibilities.annotation?.get(0))
-                        }
-                    }
-                }
-
-                if (question.type == BaseType.PollMultiResponseQuestion) {
-                    questionpossibilities?.answers?.forEach {
-                        excelSheet.autosize(cell)
-                        if (questionpossibilities.answers?.get(ind)!!.equals(true) && ind != index) {
-                            excelRow.getCell(cell).setCellValue("X")
-                        }
-                    }
-                } else if (question.type == BaseType.PollSingleResponseQuestion) {
+                // each answer-field oft the question is iterated
+                question.answers?.forEachIndexed { ind, answer ->
+                    index = question.answers!!.size - 1
                     excelSheet.autosize(cell)
-                    if (answer == questionpossibilities?.answers?.get(0) && ind != index) {
-                        excelRow.getCell(cell).setCellValue("X")
-                    }
-                } else {
-                    if (questionpossibilities?.answers?.isNotEmpty() == true) {
-                        excelSheet.autosize(cell)
-                        excelRow.getCell(cell).setCellValue(questionpossibilities.answers?.get(0).toString())
-                        if (countLines(answer) > countLines(largestAnswer)) {
-                            largestAnswer = answer
+
+                    when (question.type) {
+                        BaseType.PollTextQuestion -> {
+                            if (choices?.answers?.isNotEmpty() == true) {
+                                excelRow.getCell(cell).setCellValue(choices.answers?.get(0).toString())
+                                if (countLines(answer) > countLines(largestAnswer)) {
+                                    largestAnswer = answer
+                                }
+                            }
+                            cell++;
+                        }
+
+                        BaseType.PollSingleResponseQuestion, BaseType.PollMultiResponseQuestion -> {
+                            if (choices?.answers?.get(ind).toString() == "true") {
+                                excelRow.getCell(cell).setCellValue("X")
+                            }
+                            cell++;
+                        }
+
+                        else -> {
+                            log.error("Unknown BaseType on Poll Excel Export: ${question.type}")
                         }
                     }
+
                 }
             }
         }

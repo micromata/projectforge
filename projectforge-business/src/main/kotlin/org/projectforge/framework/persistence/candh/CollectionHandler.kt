@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,11 +27,13 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
 import jakarta.persistence.OneToMany
 import mu.KotlinLogging
+import org.hibernate.collection.spi.PersistentList
 import org.hibernate.collection.spi.PersistentSet
 import org.projectforge.common.AnnotationsUtils
 import org.projectforge.common.KClassUtils
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.candh.CandHMaster.copyValues
 import org.projectforge.framework.persistence.candh.CandHMaster.propertyWasModified
 import org.projectforge.framework.persistence.history.*
@@ -103,7 +105,7 @@ open class CollectionHandler : CandHIHandler {
         compareResults.added?.forEach { addEntry ->
             log.debug { "process: Adding new collection entry: $addEntry" }
             destCollection.add(addEntry)
-            log.debug { "process: Adding entry $addEntry to destPropertyValue." }
+            log.debug { "process: Adding entry to destPropertyValue: $addEntry" }
         }
         val entry = compareResults.anyOrNull // Get any entry from the collections for extracting the class type.
         propertyContext.entriesHistorizable = HistoryServiceUtils.isHistorizable(entry)
@@ -153,11 +155,10 @@ open class CollectionHandler : CandHIHandler {
                             entityOpType = EntityOpType.Delete,
                         )
                     }
-                    // if (!compareResults.added.isNullOrEmpty()) {
-                    // If there are modified entries or added entries, we don't need to add a history entry of added and updated entries as list.
+                    //
+                    // Note for added entries: It's later done in [writeInsertHistoryEntriesForNewCollectionEntries].
                     // toAdd: Entity id is null, so can't create history master entry now.
-                    // It's later done in CollectionHandler.writeInsertHistoryEntriesForNewCollectionEntries.
-                    //}
+                    //
                 }
                 if (updated.isNotEmpty()) {
                     val oldValues = updated.map { it.first }
@@ -189,41 +190,13 @@ open class CollectionHandler : CandHIHandler {
         return true
     }
 
-    /**
-     * If collection is declared as OneToMany and not marked as @NoHistory, the collection is managed by the source class.
-     */
-    private fun collectionManagedBySrcClazz(property: KMutableProperty1<*, *>): Boolean {
-        val annotations = AnnotationsUtils.getAnnotations(property)
-        if (annotations.any { it.annotationClass == NoHistory::class }) {
-            log.debug { "collectionManagedBySrcClazz: Collection is marked as NoHistory, so nothing to do." }
-            // No history for this collection, so nothing to do by this src class.
-            return false
-        }
-        if (annotations.any { it.annotationClass == JoinColumn::class } ||
-            annotations.any { it.annotationClass == JoinTable::class }
-        ) {
-            log.debug { "collectionManagedBySrcClazz: Collection is managed by this class." }
-            // There is a join table or column for this entity, so we're assuming to manage this collection.
-            return true
-        }
-        annotations.firstOrNull { it.annotationClass == OneToMany::class }?.let { annotation ->
-            annotation as OneToMany
-            val mappedBy = annotation.mappedBy
-            log.debug { "collectionManagedBySrcClazz: Collection mappedBy='$mappedBy' -> managed by this=${mappedBy.isNotEmpty()}" }
-            // There is a mappedBy column for this entity, so we're assuming to manage this collection.
-            return mappedBy.isNotEmpty()
-        }
-        return false
-    }
-
     private fun createCollectionInstance(
         srcCollection: Any
     ): MutableCollection<Any?> {
         val collection: MutableCollection<Any?> = when (srcCollection) {
             is TreeSet<*> -> TreeSet()
-            is HashSet<*> -> HashSet()
-            is ArrayList<*> -> ArrayList()
-            is PersistentSet<*> -> HashSet()
+            is HashSet<*>, is PersistentSet<*> -> HashSet()
+            is ArrayList<*>, is PersistentList<*> -> ArrayList()
             else -> {
                 log.error { "createCollectionInstance: Unsupported collection type: " + srcCollection.javaClass.name }
                 ArrayList()
@@ -234,6 +207,33 @@ open class CollectionHandler : CandHIHandler {
     }
 
     companion object {
+        /**
+         * If collection is declared as OneToMany and not marked as @NoHistory, the collection is managed by the source class.
+         */
+        private fun collectionManagedBySrcClazz(property: KMutableProperty1<*, *>): Boolean {
+            val annotations = AnnotationsUtils.getAnnotations(property)
+            if (annotations.any { it.annotationClass == NoHistory::class }) {
+                log.debug { "collectionManagedBySrcClazz: Collection is marked as NoHistory, so nothing to do." }
+                // No history for this collection, so nothing to do by this src class.
+                return false
+            }
+            if (annotations.any { it.annotationClass == JoinColumn::class } ||
+                annotations.any { it.annotationClass == JoinTable::class }
+            ) {
+                log.debug { "collectionManagedBySrcClazz: Collection is managed by this class." }
+                // There is a join table or column for this entity, so we're assuming to manage this collection.
+                return true
+            }
+            annotations.firstOrNull { it.annotationClass == OneToMany::class }?.let { annotation ->
+                annotation as OneToMany
+                val mappedBy = annotation.mappedBy
+                log.debug { "collectionManagedBySrcClazz: Collection mappedBy='$mappedBy' -> managed by this=${mappedBy.isNotEmpty()}" }
+                // There is a mappedBy column for this entity, so we're assuming to manage this collection.
+                return mappedBy.isNotEmpty()
+            }
+            return false
+        }
+
         /*
          * This is necessary, because the id values of the new collection entries are null after persisting the merged object.
          * @param mergedObj The merged object.
@@ -245,12 +245,16 @@ open class CollectionHandler : CandHIHandler {
             srcObj: BaseDO<*>?,
             entryList: MutableList<HistoryEntryDO>,
         ) {
-            mergedObj ?: return
+            if (mergedObj == null) {
+                log.debug { "writeInsertHistoryEntriesForNewCollectionEntries: Check for history entries for new collection entries. mergedObj: null" }
+                return
+            }
+            log.debug { "writeInsertHistoryEntriesForNewCollectionEntries: Check for history entries for new collection entries. mergedObj: ${mergedObj::class.simpleName}:${mergedObj.id}" }
             KClassUtils.filterPublicMutableProperties(mergedObj::class).forEach { property ->
                 @Suppress("UNCHECKED_CAST")
                 property as KMutableProperty1<BaseDO<*>, Any?>
-                if (!CollectionUtils.isCollection(property)) {
-                    // No collection, continue.
+                if (!CollectionUtils.isCollection(property) || !collectionManagedBySrcClazz(property)) {
+                    // No collection or not managed by us, continue.
                     return@forEach
                 }
                 val mergedCol = property.get(mergedObj) as Collection<*>?
@@ -275,7 +279,26 @@ open class CollectionHandler : CandHIHandler {
                     }
                 }
                 newCollectionEntriesWithIdNull.forEach { newEntry ->
+                    log.debug { "writeInsertHistoryEntriesForNewCollectionEntries: Create history entry for new collection entry. newEntry=${newEntry::class.simpleName}:${newEntry.id}" }
                     entryList.add(HistoryEntryDO.create(newEntry, EntityOpType.Insert))
+                }
+                // If autoUpdateCollectionEntries is true, we have to historize the child collections of all existing entries:
+                val behavior = AnnotationsUtils.getAnnotation(property, PersistenceBehavior::class.java)
+                log.debug { "writeInsertHistoryEntriesForNewCollectionEntries: srcEntry of src-collection is BaseDO. autoUpdateCollectionEntres = ${behavior?.autoUpdateCollectionEntries == true}" }
+                if (behavior?.autoUpdateCollectionEntries == true) {
+                    // No, we have to handle the child collections of all existing collection entries:
+                    // Example: RechnungDO -> list of RechnungPositionDO -> list of KostZuweisungDO.
+                    mergedCol.forEach { mergedEntry ->
+                        if (HibernateUtils.isFullyInitialized(mergedEntry) && mergedEntry.id != null) {
+                            log.debug { "writeInsertHistoryEntriesForNewCollectionEntries: Check for history entries of child collections of (if any): ${mergedEntry::class.simpleName}:${mergedEntry.id}" }
+                            // Historize only existing entries.
+                            // If an entry is new, it's clear, that any existing child entry is also new.
+                            @Suppress("UNCHECKED_CAST")
+                            val srcEntry =
+                                srcCol?.firstOrNull { (it as BaseDO<Long>).id == mergedEntry.id } as BaseDO<Long>?
+                            writeInsertHistoryEntriesForNewCollectionEntries(mergedEntry, srcEntry, entryList)
+                        }
+                    }
                 }
             }
         }

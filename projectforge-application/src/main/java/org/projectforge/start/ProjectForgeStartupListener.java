@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -44,46 +44,46 @@ import java.util.List;
  * Only for logging some information on a very early start-up phase (logging is initialized).
  */
 public class ProjectForgeStartupListener implements ApplicationListener<ApplicationPreparedEvent> {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjectForgeStartupListener.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjectForgeStartupListener.class);
 
-  private File baseDir;
+    private File baseDir;
 
-  ProjectForgeStartupListener(File baseDir) {
-    this.baseDir = baseDir;
-  }
-
-  @Override
-  public void onApplicationEvent(ApplicationPreparedEvent applicationPreparedEvent) {
-    log.info("Starting " + ProjectForgeVersion.APP_ID + " " + ProjectForgeVersion.VERSION_NUMBER + ": build timestamp="
-        + ProjectForgeVersion.BUILD_TIMESTAMP + ", " + ProjectForgeVersion.SCM + "=" + ProjectForgeVersion.SCM_ID
-        + " (" + ProjectForgeVersion.SCM_ID_FULL + ")");
-
-    new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL)
-        .log("Using ProjectForge directory: " + CanonicalFileUtils.absolutePath(baseDir))
-        .logEnd();
-
-    log.info("Using Java version: " + System.getProperty("java.vendor") + " " + System.getProperty("java.version"));
-    log.info("Using Java home   : " + System.getProperty("java.home"));
-    RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
-    List<String> arguments = runtimeMxBean.getInputArguments();
-    log.info("Using JVM opts    : " + StringUtils.join(arguments, " "));
-    log.info("Using classpath   : " + runtimeMxBean.getClassPath());
-
-    // checkResource("static/index.html");
-    checkResource("static/react-app.html");
-    checkResource("static/favicon.ico");
-  }
-
-  private void checkResource(final String resourcePath) {
-    try (InputStream resourceStream = ProjectForgeApp.class.getClassLoader().getResourceAsStream(resourcePath)) {
-      if (resourceStream == null) {
-        log.error("Oups, can't find " + resourcePath + " in class path. React-Frontend not available?");
-      } else {
-        byte[] ba = IOUtils.toByteArray(resourceStream);
-        log.info(resourcePath + ": " + FormatterUtils.formatBytes(ba.length));
-      }
-    } catch (IOException ex) {
-      log.error("Oups, can't find " + resourcePath + " in class path. React-Frontend not available?");
+    ProjectForgeStartupListener(File baseDir) {
+        this.baseDir = baseDir;
     }
-  }
+
+    @Override
+    public void onApplicationEvent(ApplicationPreparedEvent applicationPreparedEvent) {
+        new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL, EmphasizedLogSupport.Alignment.LEFT)
+                .log("Starting " + ProjectForgeVersion.APP_ID + " " + ProjectForgeVersion.VERSION_NUMBER + ": build timestamp="
+                        + ProjectForgeVersion.BUILD_TIMESTAMP)
+                .log("                      " + ProjectForgeVersion.SCM + "=" + ProjectForgeVersion.SCM_ID)
+                .log("                      " + ProjectForgeVersion.SCM_ID_FULL)
+                .log("Using ProjectForge directory: " + CanonicalFileUtils.absolutePath(baseDir))
+                .logEnd();
+
+        log.info("Using Java version: " + System.getProperty("java.vendor") + " " + System.getProperty("java.version"));
+        log.info("Using Java home   : " + System.getProperty("java.home"));
+        RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
+        List<String> arguments = runtimeMxBean.getInputArguments();
+        log.info("Using JVM opts    : " + StringUtils.join(arguments, " "));
+        log.info("Using classpath   : " + runtimeMxBean.getClassPath());
+
+        // checkResource("static/index.html");
+        checkResource("static/react-app.html");
+        checkResource("static/favicon.ico");
+    }
+
+    private void checkResource(final String resourcePath) {
+        try (InputStream resourceStream = ProjectForgeApp.class.getClassLoader().getResourceAsStream(resourcePath)) {
+            if (resourceStream == null) {
+                log.error("Oups, can't find " + resourcePath + " in class path. React-Frontend not available?");
+            } else {
+                byte[] ba = IOUtils.toByteArray(resourceStream);
+                log.info(resourcePath + ": " + FormatterUtils.formatBytes(ba.length));
+            }
+        } catch (IOException ex) {
+            log.error("Oups, can't find " + resourcePath + " in class path. React-Frontend not available?");
+        }
+    }
 }

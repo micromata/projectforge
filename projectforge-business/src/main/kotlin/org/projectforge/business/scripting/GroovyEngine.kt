@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -155,7 +155,7 @@ class GroovyEngine @JvmOverloads constructor(
     if (template == null) {
       log.error(
         "Template with filename '" + file
-            + "' not found (whether in resource path nor in ProjectForge's application dir."
+            + "' not found (neither in resource path nor in ProjectForge's application dir."
       )
       return ""
     }

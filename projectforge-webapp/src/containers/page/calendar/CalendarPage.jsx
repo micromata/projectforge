@@ -12,7 +12,7 @@ import FavoritesPanel from '../../panel/favorite/FavoritesPanel';
 import customStyles from './Calendar.module';
 import { CalendarContext, defaultValues as calendarContextDefaultValues } from './CalendarContext';
 
-function CalendarPage({ match, location }) {
+function CalendarPage() {
     const [loading, setLoading] = useState(true);
     const [translations, setTranslations] = useState(undefined);
     const queryParams = new URLSearchParams(window.location.search);
@@ -338,8 +338,6 @@ function CalendarPage({ match, location }) {
                             showBreaks={state.filter.showBreaks}
                             topHeight="250px"
                             translations={translations}
-                            match={match}
-                            location={location}
                             vacationGroups={state.vacationGroups}
                             vacationUsers={state.vacationUsers}
                         />
@@ -351,10 +349,6 @@ function CalendarPage({ match, location }) {
 }
 
 CalendarPage.propTypes = {
-    match: PropTypes.shape({}).isRequired,
-    location: PropTypes.shape({}).isRequired,
 };
-
-CalendarPage.defaultProps = {};
 
 export default CalendarPage;

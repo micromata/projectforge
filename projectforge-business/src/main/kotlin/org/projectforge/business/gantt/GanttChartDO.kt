@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.business.gantt
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.business.task.TaskDO
@@ -33,6 +34,7 @@ import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
+import org.projectforge.framework.json.IdOnlySerializer
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -60,6 +62,7 @@ class GanttChartDO : AbstractBaseDO<Long>() {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "task_fk", nullable = false)
+    @JsonSerialize(using = IdOnlySerializer::class)
     var task: TaskDO? = null
 
     @get:Transient
@@ -105,6 +108,7 @@ class GanttChartDO : AbstractBaseDO<Long>() {
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "owner_fk")
+    @JsonSerialize(using = IdOnlySerializer::class)
     var owner: PFUserDO? = null
 
     val taskId: Long?

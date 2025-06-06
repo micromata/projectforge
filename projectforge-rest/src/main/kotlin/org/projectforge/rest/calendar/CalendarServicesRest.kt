@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -353,7 +353,7 @@ class CalendarServicesRest {
     }
 
     /**
-     * Adjustes the range (start and end) to max 50 days and sets end date to start date + 1 day if not given.
+     * Adjusts the range (start and end) to max 50 days and sets end date to start date + 1 day if not given.
      */
     private fun adjustRange(range: DateTimeRange) {
         if (range.end != null) {

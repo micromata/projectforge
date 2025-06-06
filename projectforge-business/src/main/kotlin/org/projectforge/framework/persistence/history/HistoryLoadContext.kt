@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -68,7 +68,6 @@ class HistoryLoadContext(
     val sortedEntries: List<HistoryEntryDO>
         get() = historyEntries.sortedByDescending { it.id }
 
-    var historyEntryMap = mutableMapOf<Long, HistoryEntryMap>()
     var historyEntryAttrMap = mutableMapOf<Long, HistoryEntryAttrMap>()
 
     internal val userGroupCache = UserGroupCache.getInstance()

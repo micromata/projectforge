@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,12 +26,12 @@ package org.projectforge.business.fibu.kost
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.LockModeType
 import mu.KotlinLogging
-import org.hibernate.Hibernate
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -84,7 +84,7 @@ class KundeCache : AbstractCache() {
      */
     fun getKundeIfNotInitialized(kunde: KundeDO?): KundeDO? {
         kunde ?: return null
-        if (Hibernate.isInitialized(kunde)) {
+        if (HibernateUtils.isFullyInitialized(kunde)) {
             return kunde
         }
         return getKunde(kunde.nummer)

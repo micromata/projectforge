@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,18 +24,12 @@
 package org.projectforge.rest.orga
 
 import jakarta.servlet.http.HttpServletRequest
-import org.bouncycastle.asn1.x500.style.RFC4519Style.c
-import org.projectforge.business.address.AddressDO
-import org.projectforge.business.address.AddressStatus
-import org.projectforge.business.address.ContactStatus
 import org.projectforge.business.orga.VisitorbookEntryDO
 import org.projectforge.business.orga.VisitorbookService
 import org.projectforge.framework.time.PFDateTime
-import org.projectforge.framework.time.PFDay.Companion.today
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
-import org.projectforge.rest.dto.EmployeeValidSinceAttr
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.VisitorbookEntry
@@ -45,7 +39,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
-import java.time.LocalTime
 
 /**
  * Dialog for registering a new token or modifying/deleting an existing one.
@@ -55,6 +48,9 @@ import java.time.LocalTime
 class VisitorbookEntryPageRest : AbstractDynamicPageRest() {
     @Autowired
     private lateinit var visitorbookService: VisitorbookService
+
+    @Autowired
+    private lateinit var visitorbookPagesRest: VisitorbookPagesRest
 
     class ResponseData(
         var entries: List<VisitorbookEntry>? = null,
@@ -66,9 +62,9 @@ class VisitorbookEntryPageRest : AbstractDynamicPageRest() {
         @RequestParam("id") idString: String?,
         @RequestParam("visitorbookId") visitorbookId: Long?,
     ): FormLayoutData {
-        val id = idString?.toLongOrNull()
+        val id = idString?.toLongOrNull() ?: -1
         requiredFields(id, visitorbookId)
-        val data = if (id!! > 0) {
+        val data = if (id > 0) {
             VisitorbookEntry(visitorbookService.findVisitorbookEntry(id))
         } else {
             VisitorbookEntry(visitorbookId = visitorbookId).also {
@@ -79,6 +75,7 @@ class VisitorbookEntryPageRest : AbstractDynamicPageRest() {
         val lc = LayoutContext(VisitorbookEntryDO::class.java)
         val layout = UILayout("orga.visitorbook.timeofvisit")
         layout.add(lc, "dateOfVisit", "arrived", "departed", "comment")
+        layout.addAction(UIButton.createCancelButton(responseAction = ResponseAction(targetType = TargetType.CLOSE_MODAL)))
         if (id < 0) {
             // New entry
             layout.addAction(
@@ -146,15 +143,19 @@ class VisitorbookEntryPageRest : AbstractDynamicPageRest() {
         val dto = postData.data
         val entry = dto.cloneAsDO()
         visitorbookService.insert(visitorbookId = dto.visitorbookId!!, entry = entry)
-        return closeModal(dto)
+        return visitorbookPagesRest.getListPageResponseEntity(
+            absolute = true,
+            forceAGGridReload = true,
+            highlightedObjectId = dto.visitorbookId,
+        )
     }
 
     private fun closeModal(dto: VisitorbookEntry): ResponseEntity<ResponseAction> {
         val responseAction = ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
-        val entries = visitorbookService.selectAllVisitorbookEntries(dto.visitorbookId!!, deleted = false).map { VisitorbookEntry(it) }
+        val entries = visitorbookService.selectAllVisitorbookEntries(dto.visitorbookId!!, deleted = false)
+            .map { VisitorbookEntry(it) }
         responseAction.addVariable("data", ResponseData(entries = entries))
-        return ResponseEntity.ok().body(responseAction)
-
+        return ResponseEntity.ok(responseAction)
     }
 
     private fun requiredFields(dto: VisitorbookEntry, idNull: Boolean = false) {

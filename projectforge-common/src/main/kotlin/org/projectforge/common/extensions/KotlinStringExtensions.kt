@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -41,6 +41,16 @@ fun String?.abbreviate(maxLength: Int): String {
     } else {
         this
     }
+}
+
+fun String?.shortenMiddle(maxLength: Int = 10): String {
+    this ?: return ""
+    if (this.length <= maxLength) return this  // If text is already shorter than maxLength, return it unchanged
+    val lastPartLength = (maxLength - 3) / 2  // "-3" for "..."
+    val firstPartLength = maxLength - lastPartLength - 3
+    val start = this.take(firstPartLength)  // First part of the text
+    val end = this.takeLast(lastPartLength) // Last part of the text
+    return "$start...$end"
 }
 
 /**

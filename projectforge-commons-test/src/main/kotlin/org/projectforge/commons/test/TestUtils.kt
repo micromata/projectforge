@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -119,6 +119,40 @@ class TestUtils(modulName: String) {
             message: String? = null,
         ) {
             assertSame(expected, actual, STANDARD_EPSILON, message)
+        }
+
+        /**
+         * Calls [assertSame] with the standard epsilon.
+         */
+        fun assertSame(
+            expected: String,
+            actual: Number?,
+            message: String? = null,
+        ) {
+            assertSame(expected, actual, STANDARD_EPSILON, message)
+        }
+
+        /**
+         * Asserts that the given [expected] value is equal to the given [actual] value.
+         * The values are considered equal if their values are equals, independent of the scale or within the given [epsilon].
+         * If the [actual] value is `null`, the assertion fails.
+         * @param expected The expected value
+         * @param actual The actual value
+         * @param epsilon The epsilon for the comparison
+         */
+        fun assertSame(
+            expected: String,
+            actual: Number?,
+            epsilon: BigDecimal = STANDARD_EPSILON,
+            message: String? = null,
+        ) {
+            Assertions.assertNotNull(actual, message)
+            val expectedBigDecimal = BigDecimal(expected)
+            val actualBigDecimal = asBigDecimal(actual!!)
+            if ((expectedBigDecimal - actualBigDecimal).abs() > epsilon) {
+                // Exception will be thrown, use assertEquals to get a better message (including the expected and actual values):
+                Assertions.assertEquals(expectedBigDecimal, actualBigDecimal, message)
+            }
         }
 
         /**

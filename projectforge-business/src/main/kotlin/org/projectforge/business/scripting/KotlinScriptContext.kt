@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,7 +24,7 @@
 package org.projectforge.business.scripting
 
 /**
- * Workarround for bindings.
+ * Workaround for bindings.
  */
 class KotlinScriptContext {
     private val propertyValues = mutableMapOf<String, Any?>()
