@@ -31,7 +31,7 @@ import org.projectforge.business.orga.ContractType
 import org.projectforge.framework.configuration.*
 import org.projectforge.framework.configuration.entities.ConfigurationDO
 import org.projectforge.framework.time.TimeNotation
-import org.projectforge.framework.utils.FileHelper
+import org.projectforge.common.FileUtils
 import org.projectforge.mail.SendMail
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -223,14 +223,14 @@ open class ConfigurationService {
         environmentFile.writeText(ENVIRONMENT_FILE_INITIAL_CONTENT)
       }
     }
-    resourceDirName = FileHelper.getAbsolutePath(applicationHomeDir, resourceDirName)
+    resourceDirName = FileUtils.getAbsolutePath(applicationHomeDir, resourceDirName)
     ensureDir(File(resourceDirName))
     if (StringUtils.isBlank(fontsDir)) {
       fontsDir = DEFAULT_FONTS_DIR
     }
-    fontsDir = FileHelper.getAbsolutePath(applicationHomeDir, fontsDir)
+    fontsDir = FileUtils.getAbsolutePath(applicationHomeDir, fontsDir ?: DEFAULT_FONTS_DIR)
     ensureDir(File(fontsDir))
-    val pluginsDir = FileHelper.getAbsolutePath(applicationHomeDir, "plugins")
+    val pluginsDir = FileUtils.getAbsolutePath(applicationHomeDir, "plugins")
     ensureDir(File(pluginsDir))
     setupKeyStores()
     Configuration(this, persistenceService)
