@@ -26,6 +26,7 @@ package org.projectforge.business.fibu
 import mu.KotlinLogging
 import org.projectforge.common.logging.LogDuration
 import org.projectforge.framework.cache.AbstractCache
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 
 private val log = KotlinLogging.logger {}
@@ -41,14 +42,12 @@ abstract class AbstractRechnungCache(
 ) : AbstractCache() {
     private val entityName = entityClass.simpleName
 
-    protected var invoiceInfoMap = mutableMapOf<Long, RechnungInfo>()
+    protected var invoiceInfoMap = ConcurrentHashMap<Long, RechnungInfo>()
 
-    protected var invoicePosInfoMap = mutableMapOf<Long, RechnungPosInfo>()
+    protected var invoicePosInfoMap = ConcurrentHashMap<Long, RechnungPosInfo>()
 
     open fun update(invoice: AbstractRechnungDO) {
-        synchronized(invoiceInfoMap) {
-            invoiceInfoMap[invoice.id!!] = RechnungCalculator.calculate(invoice)
-        }
+        invoiceInfoMap[invoice.id!!] = RechnungCalculator.calculate(invoice)
     }
 
     /**
@@ -63,9 +62,7 @@ abstract class AbstractRechnungCache(
             return info
         }
         return RechnungCalculator.calculate(rechnung).also {
-            synchronized(invoiceInfoMap) {
-                invoiceInfoMap[rechnung.id!!] = it
-            }
+            invoiceInfoMap[rechnung.id!!] = it
             // rechnung.info = it // Set by RechnungsCalculator.
         }
     }
@@ -73,17 +70,13 @@ abstract class AbstractRechnungCache(
     fun getRechnungInfo(rechnungId: Long?): RechnungInfo? {
         rechnungId ?: return null
         checkRefresh()
-        synchronized(invoiceInfoMap) {
-            return invoiceInfoMap[rechnungId]
-        }
+        return invoiceInfoMap[rechnungId]
     }
 
     open fun getRechnungInfo(rechnung: AbstractRechnungDO?): RechnungInfo? {
         val rechnungId = rechnung?.id ?: return null
         checkRefresh()
-        synchronized(invoiceInfoMap) {
-            return invoiceInfoMap[rechnungId]
-        }
+        return invoiceInfoMap[rechnungId]
     }
 
     /**
@@ -100,11 +93,9 @@ abstract class AbstractRechnungCache(
         val info = getRechnungInfo(pos.rechnungId)
         posInfo = RechnungPosInfo(info, pos)
         return RechnungCalculator.calculate(posInfo, pos).also {
-            synchronized(invoiceInfoMap) {
-                pos.id?.let { posId ->
-                    // pos.id is null for cloned invoices.
-                    invoicePosInfoMap[posId] = it
-                }
+            pos.id?.let { posId ->
+                // pos.id is null for cloned invoices.
+                invoicePosInfoMap[posId] = it
             }
             // rechnung.info = it // Set by RechnungsCalculator.
         }
@@ -113,9 +104,7 @@ abstract class AbstractRechnungCache(
     fun getRechnungPosInfo(rechnungPosId: Long?): RechnungPosInfo? {
         rechnungPosId ?: return null
         checkRefresh()
-        synchronized(invoicePosInfoMap) {
-            return invoicePosInfoMap[rechnungPosId]
-        }
+        return invoicePosInfoMap[rechnungPosId]
     }
 
     /**
@@ -126,8 +115,8 @@ abstract class AbstractRechnungCache(
         val duration = LogDuration()
         // This method must not be synchronized because it works with new copies of maps.
         log.info("Getting all invoices ($entityName)...")
-        val nInvoiceInfoMap = mutableMapOf<Long, RechnungInfo>()
-        val nInvoicePosInfoMap = mutableMapOf<Long, RechnungPosInfo>()
+        val nInvoiceInfoMap = ConcurrentHashMap<Long, RechnungInfo>()
+        val nInvoicePosInfoMap = ConcurrentHashMap<Long, RechnungPosInfo>()
         rechnungJdbcService.selectRechnungInfos(entityClass).forEach { rechnungInfo ->
             nInvoiceInfoMap[rechnungInfo.id] = rechnungInfo.also { info ->
                 info.positions?.forEach { pos ->
