@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2025 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -191,35 +191,19 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
             }
 
             if (field.type == BaseType.PollMultiResponseQuestion || field.type == BaseType.PollSingleResponseQuestion) {
-                field.answers?.forEachIndexed { index2, _ ->
-                    if (pollResponse.responses?.get(index)?.answers?.getOrNull(index2) == null) {
-                        pollResponse.responses?.get(index)?.answers?.add(index2, false)
+                field.answers?.forEachIndexed { index2, answer ->
+                    while (pollResponse.responses!![index].answers!!.size <= index2) {
+                        pollResponse.responses!![index].answers!!.add(false)
                     }
-                    if (field.type == BaseType.PollMultiResponseQuestion) {
-                        col.add(
-                            UICheckbox(
-                                "responses[$index].answers[$index2]",
-                                label = field.answers?.get(index2) ?: ""
-                            )
+                    col.add(
+                        UIRadioButton(
+                            id = "responses[$index].answers[$index2]",
+                            name = "single-$index",
+                            value = "true",
+                            label = answer
                         )
-                    } else {
-                        col.add(
-                            UIRadioButton(
-                                "responses[$index].answers[0]",
-                                value = field.answers?.get(index2) ?: "",
-                                label = field.answers?.get(index2) ?: ""
-                            )
-                        )
-                    }
-                }
-                col.add(
-                    UITextArea(
-                        "responses[$index].annotation[0]",
-                        label = "poll.Annotations",
-                        additionalLabel = "poll.annotations.description"
                     )
-                )
-
+                }
             }
 
             fieldSetQuestions.add(UIRow().add(col))
@@ -268,6 +252,32 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
         @RequestParam("questionOwner") questionOwner: Long?
     ): ResponseEntity<ResponseAction> {
         val pollResponseDO = PollResponseDO()
+
+        // most ugly workaround in existence - for now - TODO mnuhn
+        val poll = pollDao.find(pollId, checkAccess = false)
+        val inputFields = ObjectMapper().readValue(poll!!.inputFields, MutableList::class.java)
+        postData.data.responses?.forEachIndexed { index, response ->
+            val question = inputFields[index] as Map<*, *>
+            if (question["type"] == "PollSingleResponseQuestion") {
+                val originalAnswers = question["answers"] as List<*>
+                val boolList = MutableList(originalAnswers.size) { false }
+                response.answers?.forEachIndexed { idx, ans ->
+                    if (ans == true && idx in originalAnswers.indices) {
+                        boolList[idx] = true
+                    }
+                }
+            }
+            else if (question["type"] == "PollMultiResponseQuestion") {
+                val originalAnswers = question["answers"] as List<*>
+                val boolList = MutableList(originalAnswers.size) { false }
+                response.answers?.forEachIndexed { idx, ans ->
+                    if (ans == true && idx in originalAnswers.indices) {
+                        boolList[idx] = true
+                    }
+                }
+            }
+        }
+
         postData.data.copyTo(pollResponseDO)
         pollResponseDO.owner = userService.getUser(questionOwner)
 
