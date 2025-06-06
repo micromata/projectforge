@@ -32,9 +32,18 @@ function ReadonlyField(
     const [isCopied, setIsCopied] = React.useState(0);
     const valueRef = React.useRef(null);
 
-    const copyValue = () => copy(value)
-        .then(() => setIsCopied(1))
-        .catch(() => setIsCopied(-1));
+    const copyValue = () => {
+        const cleanValue = String(value).trim();
+        return copy(cleanValue)
+            .then(() => {
+                setIsCopied(1);
+                setTimeout(() => setIsCopied(0), 1500);
+            })
+            .catch(() => {
+                setIsCopied(-1);
+                setTimeout(() => setIsCopied(0), 1500);
+            });
+    };
 
     const getValue = (v) => {
         if (dataType === 'BOOLEAN') {
