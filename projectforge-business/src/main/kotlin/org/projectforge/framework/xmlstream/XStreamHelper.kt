@@ -43,7 +43,6 @@ object XStreamHelper {
    * @return new XStream initialized with UTF-8 DomDriver.
    */
   @JvmStatic
-  @JvmOverloads
   fun createXStream(vararg types: Class<*>): XStream {
     val xstream = XStream()
     xstream.addPermission(AnyTypePermission.ANY) // allow everything

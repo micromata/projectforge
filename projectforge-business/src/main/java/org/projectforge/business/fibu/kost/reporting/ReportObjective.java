@@ -146,6 +146,7 @@ public class ReportObjective
   /**
    * @deprecated
    */
+  @Deprecated
   public boolean getHasChilds()
   {
     return getHasChildren();

@@ -91,7 +91,7 @@ constructor(
         checkAccess = checkAccess,
         requiredUserRightId = requiredUserRightId,
         requiredUserRightValues = requiredUserRightValues,
-        requiredGroups = *requiredGroups
+        requiredGroups = requiredGroups
     ) {
         this.menuItemDefId = defId
     }
