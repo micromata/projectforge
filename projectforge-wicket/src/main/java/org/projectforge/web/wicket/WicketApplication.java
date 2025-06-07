@@ -336,17 +336,13 @@ public class WicketApplication extends WebApplication implements WicketApplicati
 
         getPageSettings().setRecreateBookmarkablePagesAfterExpiry(true);
         getPageSettings().setVersionPagesByDefault(true);
-    /*setPageManagerProvider(() -> {
-      IPageStore pageStore = new InMemoryPageStore(getName(), 20); // max. 10 Seiten pro Session
-      return new PageStoreManager(this, new RequestPageStore(dataStore));
-      // Alternatively, for storing pages on disk with a limit:
-      // String storeFolder = getStoreFolder();
-      // IDataStore diskDataStore = new DiskPageStore(storeFolder, 20); // Limit pages on disk
-      // return new PageStoreManager(this, new RequestPageStore(diskDataStore));
-    });*/
-        getStoreSettings().setMaxSizePerSession(Bytes.kilobytes(100));
-        log.info("Using file storage directory for page store: " + WebApplication.get().getServletContext()
-                .getAttribute("jakarta.servlet.context.tempdir"));
+
+        // Configure standard Wicket settings to fix session-mixing issues after Wicket 10.4 migration
+
+        // These settings help with preserving page state and isolation between users
+        getStoreSettings().setAsynchronous(false);
+        getStoreSettings().setMaxSizePerSession(Bytes.megabytes(2));
+        log.info("Using standard Wicket disk-based page store to fix session problems after Wicket 10 migration");
 
         WicketSupport.register(SipgateDirectCallService.class, applicationContext.getBean(SipgateDirectCallService.class));
 

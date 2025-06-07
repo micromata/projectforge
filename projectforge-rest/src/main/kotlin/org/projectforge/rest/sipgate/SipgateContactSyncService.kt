@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.sipgate
 
+import jakarta.annotation.PostConstruct
 import jakarta.persistence.EntityManager
 import mu.KotlinLogging
 import org.projectforge.business.address.*
@@ -135,6 +136,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
 
     private var lastSyncInEpochMillis: Long? = null
 
+    @PostConstruct
     private fun postConstruct() {
         addressDao.register(this)
     }

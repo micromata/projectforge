@@ -1,5 +1,6 @@
 ==== Aktuell:
-- Schedule-Task für Sipgate-Sync
+- Stefan R: Rocket-Chat bzgl. KI-Ersparniss
+
 - JCR: Tool for removing or recovering orphaned nodes.
 - Favoriten bei Scriptausführung für Parameter.
 - Viewpage für user für non-admins.
@@ -41,6 +42,7 @@ History
 
 ==== Später
 
+- LdapDao: modification, obwohl keine Änderung.
 - Fakturaquote
 - Suche-Seite hat veraltete Bereiche, AddressListPage läuft auf Fehler.
 - OrderExport: paymentSchedules werden gefetcht.
@@ -108,3 +110,46 @@ docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postg
 remove duplicates
 psql -f export.sql
 ----
+
+
+= Memory-Leaks
+
+== Heap-Dump
+
+`jmap -dump:live,format=b,file=heapdump.hprof <PID>`
+
+
+== Kritische Speicherlöcher (Claude Code)
+
+1. Unbegrenzte Caches ohne Cleanup
+
+- UserGroupCache.kt:80-97 - Maps ohne Größenlimits: userGroupIdMap, groupMap, rightMap
+- BirthdayCache.kt:46 - Geburtstagsliste wächst ohne Limit
+- AbstractRechnungCache.kt:44-46 - Rechnungs-Cache ohne Cleanup gelöschter Einträge
+
+2. Manual Thread ohne Cleanup
+
+- TeamEventExternalSubscriptionCache.java:95-97 - Thread wird manuell gestartet ohne Lifecycle-Management
+- CronNightlyJob.kt:51-59 - Thread-Erstellung ohne ordnungsgemäße Verwaltung
+
+3. Timer ohne Resource Management
+
+- ExpiringSessionAttributes.kt:40-44 - Timer ohne Cleanup-Mechanismus
+
+4. Event Listener ohne Entfernung
+
+- SipgateContactSyncService.kt:140-142 - Listener wird registriert aber nie entfernt
+
+5. ThreadLocal ohne Cleanup
+
+- ThreadLocalUserContext.kt:48-49 - ThreadLocal-Variablen können in langlebigen Threads leaken
+
+  🔧 Sofortige Lösungsempfehlungen
+
+  Höchste Priorität:
+  1. UserGroupCache mit LRU-Cache und Größenlimit ersetzen
+  2. Manual Threads durch Spring's @Scheduled oder TaskScheduler ersetzen
+  3. Timer ordnungsgemäß mit @PreDestroy aufräumen
+  4. Event Listener in @PreDestroy entfernen
+
+  Diese Probleme können über Wochen hinweg erheblichen Speicher akkumulieren, besonders die unbegrenzten Caches sind die wahrscheinlichste Ursache für Ihren 1,5GB Speicherverbrauch.

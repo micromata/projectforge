@@ -95,6 +95,7 @@ public class ScriptingTaskNode {
   /**
    * @deprecated
    */
+  @Deprecated
   public List<ScriptingTaskNode> getChilds() {
     return getChildren();
   }
@@ -106,6 +107,7 @@ public class ScriptingTaskNode {
   /**
    * @deprecated
    */
+  @Deprecated
   public boolean hasChilds() {
     return hasChildren();
   }

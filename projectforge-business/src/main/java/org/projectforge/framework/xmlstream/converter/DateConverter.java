@@ -99,7 +99,7 @@ public class DateConverter extends AbstractValueConverter<Date>
       }
     }
     try {
-      final long timeInMillis = new Long(str);
+      final long timeInMillis = Long.valueOf(str);
       return new Date(timeInMillis);
     } catch (final NumberFormatException ex) {
       log.warn("Can't convert value '" + str + "' to time in millis (long value).");
