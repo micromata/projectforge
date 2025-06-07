@@ -725,7 +725,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
 
         if (ownership == null && o.ownership != null) {
             return false
-        } else if (ownership !== o.ownership) {
+        } else if (ownership != o.ownership) {
             return false
         }
 
