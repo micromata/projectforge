@@ -158,19 +158,26 @@
   transition: all 0.2s ease;
   pointer-events: auto !important;
   position: relative;
-  z-index: 10;
-  background-color: rgba(248, 249, 250, 0.9);
+  z-index: 100;
+  background-color: rgba(248, 249, 250, 0.95);
   border-radius: 6px;
   // Ensure this area can capture drag events
   isolation: isolate;
+  // Create a virtual boundary for this droppable area
+  transform: translateZ(0);
   
   &.draggingOver {
     background-color: rgba(40, 167, 69, 0.15);
     border-color: #28a745;
     border-width: 3px;
     border-style: solid;
-    z-index: 20;
+    z-index: 200;
     box-shadow: inset 0 0 10px rgba(40, 167, 69, 0.2);
+  }
+  
+  // When a group is being dragged over, disable the parent favorites droppable
+  &:hover {
+    z-index: 150;
   }
   
   .menuItem {

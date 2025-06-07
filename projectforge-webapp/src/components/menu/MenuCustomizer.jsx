@@ -26,6 +26,7 @@ function MenuCustomizer() {
     const [showGroupInput, setShowGroupInput] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
+    const [dragOverGroup, setDragOverGroup] = useState(null);
 
     const loadMenuData = () => {
         setLoading(true);
@@ -84,7 +85,31 @@ function MenuCustomizer() {
         // eslint-disable-next-line no-console
         console.log('🚀 handleDragEnd called with result:', result);
 
-        const { source, destination } = result;
+        let { source, destination } = result;
+        
+        // Clear the drag over state
+        const currentDragOverGroup = dragOverGroup;
+        setDragOverGroup(null);
+        
+        // CRITICAL FIX: If dragging within the same group but destination shows 'favorites',
+        // and destination index is very low (0-2), assume it's a within-group move
+        if (source.droppableId.startsWith('group-') && 
+            destination?.droppableId === 'favorites' &&
+            result.draggableId.startsWith('item-') &&
+            destination.index <= 2) {
+            
+            console.log('🔧 CORRECTING: Low destination index suggests within-group move');
+            console.log('🔧 Original destination:', destination);
+            console.log('🔧 Source group:', source.droppableId);
+            
+            // Assume it's a within-group move and keep the same group
+            destination = {
+                droppableId: source.droppableId,
+                index: destination.index
+            };
+            
+            console.log('🔧 Corrected destination:', destination);
+        }
 
         // eslint-disable-next-line no-console
         console.log('🔄 Drag operation:', {
@@ -111,8 +136,12 @@ function MenuCustomizer() {
         // Handle drag within same list
         if (sourceList === destList) {
             if (sourceList === 'favorites') {
-                // Reordering within main favorites list
-                console.log('🔄 Reordering within main favorites list');
+                // Check if we're moving a group or a regular item
+                if (result.draggableId.startsWith('group-')) {
+                    console.log('🔄 Reordering groups within main favorites list');
+                } else {
+                    console.log('🔄 Reordering items within main favorites list');
+                }
                 const reorderedItems = Array.from(customMenu);
                 const [movedItem] = reorderedItems.splice(source.index, 1);
                 reorderedItems.splice(destination.index, 0, movedItem);
@@ -604,9 +633,19 @@ function MenuCustomizer() {
         console.log('🗂️  Rendering group:', item);
         const groupId = item.id || item.key;
         return (
-            <div key={groupId} className={`${styles.menuItem} ${styles.groupItem}`}>
+            <Draggable key={groupId} draggableId={`group-${groupId}`} index={index}>
+                {(provided, snapshot) => (
+                    <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        className={`${styles.menuItem} ${styles.groupItem} ${
+                            snapshot.isDragging ? styles.dragging : ''
+                        }`}
+                    >
                         <div className={styles.menuItemContent}>
-                            <FontAwesomeIcon icon={faEllipsisV} className={styles.dragHandle} />
+                            <div {...provided.dragHandleProps}>
+                                <FontAwesomeIcon icon={faEllipsisV} className={styles.dragHandle} />
+                            </div>
                             <FontAwesomeIcon icon={faFolder} className={styles.folderIcon} />
 
                             {editingGroup === groupId ? (
@@ -694,7 +733,9 @@ function MenuCustomizer() {
                                 </div>
                             )}
                         </Droppable>
-            </div>
+                    </div>
+                )}
+            </Draggable>
         );
     };
 
@@ -728,9 +769,20 @@ function MenuCustomizer() {
                 <DragDropContext 
                     onDragStart={(start) => {
                         console.log('🟡 Drag started:', start);
+                        setDragOverGroup(null); // Reset drag over state
                     }}
                     onDragUpdate={(update) => {
                         console.log('🔵 Drag update:', update);
+                        
+                        // Track which group we're currently hovering over
+                        if (update.destination?.droppableId.startsWith('group-')) {
+                            const groupId = update.destination.droppableId.replace('group-', '');
+                            setDragOverGroup(groupId);
+                            console.log('🎯 Setting dragOverGroup to:', groupId);
+                        } else {
+                            setDragOverGroup(null);
+                        }
+                        
                         if (update.destination && update.source.droppableId.startsWith('group-') && update.destination.droppableId.startsWith('group-')) {
                             console.log('🎯 Within-group drag detected!', {
                                 source: update.source.droppableId,
