@@ -136,14 +136,31 @@
 .groupContent {
   margin-top: 10px;
   margin-left: 25px;
-  padding: 5px;
-  min-height: 50px;
+  padding: 10px;
+  min-height: 80px;
   border-left: 1px dashed #dee2e6;
   transition: background-color 0.2s ease;
+  pointer-events: auto;
+  position: relative;
+  z-index: 10;
+  background-color: rgba(248, 249, 250, 0.8);
+  border-radius: 4px;
   
   &.draggingOver {
     background-color: rgba(40, 167, 69, 0.1);
     border-color: #28a745;
+    border-width: 2px;
+    z-index: 20;
+  }
+  
+  .menuItem {
+    pointer-events: auto;
+    position: relative;
+    z-index: 15;
+    
+    * {
+      pointer-events: auto;
+    }
   }
 }
 
