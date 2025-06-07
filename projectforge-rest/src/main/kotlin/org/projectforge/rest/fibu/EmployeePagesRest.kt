@@ -36,10 +36,7 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
-import org.projectforge.rest.dto.Employee
-import org.projectforge.rest.dto.EmployeeValidSinceAttr
-import org.projectforge.rest.dto.Kost1
-import org.projectforge.rest.dto.User
+import org.projectforge.rest.dto.*
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterBooleanElement
 import org.springframework.beans.factory.annotation.Autowired
@@ -194,77 +191,17 @@ class EmployeePagesRest :
                 UIRow()
                     .add(UICol().add(lc, "comment"))
             )
-        layout.layoutBelowActions
-            .add(
-                UIRow()
-                    .add(
-                        UICol().add(
-                            UIFieldset(title = "fibu.employee.urlaubstage")
-                                .add(
-                                    UIAgGrid("annualLeaveEntries")
-                                        .add(
-                                            UIAgGridColumnDef.createCol(
-                                                lc,
-                                                "validSince",
-                                                headerName = "attr.validSince"
-                                            )
-                                        )
-                                        .add(UIAgGridColumnDef.createCol(lc, "value", headerName = "days"))
-                                        .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
-                                        .withRowClickRedirectUrl(
-                                            createModalUrl(dto, EmployeeValidSinceAttrType.ANNUAL_LEAVE),
-                                            openModal = true,
-                                        )
-                                ).add(
-                                    UIButton.createAddButton(
-                                        responseAction = ResponseAction(
-                                            createModalUrl(dto, EmployeeValidSinceAttrType.ANNUAL_LEAVE, true),
-                                            targetType = TargetType.MODAL
-                                        ),
-                                        default = false,
-                                    )
-                                )
-                        )
-                    )
-                    .add(
-                        UICol().add(
-                            UIFieldset(title = "fibu.employee.wochenstunden")
-                                .add(
-                                    UIAgGrid("weeklyWorkingHoursEntries")
-                                        .add(
-                                            UIAgGridColumnDef.createCol(
-                                                lc,
-                                                "validSince",
-                                                headerName = "attr.validSince"
-                                            )
-                                        )
-                                        .add(UIAgGridColumnDef.createCol(lc, "value", headerName = "days"))
-                                        .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
-                                        .withRowClickRedirectUrl(
-                                            createModalUrl(dto, EmployeeValidSinceAttrType.WEEKLY_HOURS),
-                                            openModal = true,
-                                        )
-                                ).add(
-                                    UIButton.createAddButton(
-                                        responseAction = ResponseAction(
-                                            createModalUrl(dto, EmployeeValidSinceAttrType.WEEKLY_HOURS, true),
-                                            targetType = TargetType.MODAL
-                                        ),
-                                        default = false,
-                                    )
-                                )
-                        )
-                    )
-            )
-        layout.layoutBelowActions
-            .add(
-                UIRow()
-                    .add(
-                        UICol()
-                            .add(
-                                UIFieldset(title = "fibu.employee.status")
+        if (dto.id == null) {
+            layout.add(UIAlert("fibu.employee.insert.hint", color = UIColor.INFO))
+        } else {
+            layout.layoutBelowActions
+                .add(
+                    UIRow()
+                        .add(
+                            UICol().add(
+                                UIFieldset(title = "fibu.employee.urlaubstage")
                                     .add(
-                                        UIAgGrid("statusEntries")
+                                        UIAgGrid("annualLeaveEntries")
                                             .add(
                                                 UIAgGridColumnDef.createCol(
                                                     lc,
@@ -272,25 +209,95 @@ class EmployeePagesRest :
                                                     headerName = "attr.validSince"
                                                 )
                                             )
-                                            .add(UIAgGridColumnDef.createCol(lc, "value", headerName = "status"))
+                                            .add(UIAgGridColumnDef.createCol(lc, "value", headerName = "days"))
                                             .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
                                             .withRowClickRedirectUrl(
-                                                createModalUrl(dto, EmployeeValidSinceAttrType.STATUS),
+                                                createModalUrl(dto, EmployeeValidSinceAttrType.ANNUAL_LEAVE),
                                                 openModal = true,
                                             )
                                     ).add(
                                         UIButton.createAddButton(
                                             responseAction = ResponseAction(
-                                                createModalUrl(dto, EmployeeValidSinceAttrType.STATUS, true),
+                                                createModalUrl(dto, EmployeeValidSinceAttrType.ANNUAL_LEAVE, true),
                                                 targetType = TargetType.MODAL
                                             ),
                                             default = false,
                                         )
                                     )
                             )
-                    )
-            )
+                        )
+                        .add(
+                            UICol().add(
+                                UIFieldset(title = "fibu.employee.wochenstunden")
+                                    .add(
+                                        UIAgGrid("weeklyWorkingHoursEntries")
+                                            .add(
+                                                UIAgGridColumnDef.createCol(
+                                                    lc,
+                                                    "validSince",
+                                                    headerName = "attr.validSince"
+                                                )
+                                            )
+                                            .add(UIAgGridColumnDef.createCol(lc, "value", headerName = "days"))
+                                            .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
+                                            .withRowClickRedirectUrl(
+                                                createModalUrl(dto, EmployeeValidSinceAttrType.WEEKLY_HOURS),
+                                                openModal = true,
+                                            )
+                                    ).add(
+                                        UIButton.createAddButton(
+                                            responseAction = ResponseAction(
+                                                createModalUrl(dto, EmployeeValidSinceAttrType.WEEKLY_HOURS, true),
+                                                targetType = TargetType.MODAL
+                                            ),
+                                            default = false,
+                                        )
+                                    )
+                            )
+                        )
+                )
+            layout.layoutBelowActions
+                .add(
+                    UIRow()
+                        .add(
+                            UICol()
+                                .add(
+                                    UIFieldset(title = "fibu.employee.status")
+                                        .add(
+                                            UIAgGrid("statusEntries")
+                                                .add(
+                                                    UIAgGridColumnDef.createCol(
+                                                        lc,
+                                                        "validSince",
+                                                        headerName = "attr.validSince"
+                                                    )
+                                                )
+                                                .add(UIAgGridColumnDef.createCol(lc, "value", headerName = "status"))
+                                                .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
+                                                .withRowClickRedirectUrl(
+                                                    createModalUrl(dto, EmployeeValidSinceAttrType.STATUS),
+                                                    openModal = true,
+                                                )
+                                        ).add(
+                                            UIButton.createAddButton(
+                                                responseAction = ResponseAction(
+                                                    createModalUrl(dto, EmployeeValidSinceAttrType.STATUS, true),
+                                                    targetType = TargetType.MODAL
+                                                ),
+                                                default = false,
+                                            )
+                                        )
+                                )
+                        )
+                )
+        }
         return LayoutUtils.processEditPage(layout, dto, this)
+    }
+
+    override fun onAfterSave(obj: EmployeeDO, postData: PostData<Employee>): ResponseAction {
+        // Redirect to edit page after insert for allowing user to add vacation, status and weekly hours entries.
+        return ResponseAction(PagesResolver.getEditPageUrl(EmployeePagesRest::class.java, obj.id, absolute = true))
+            .addVariable("id", obj.id ?: -1)
     }
 
     override val autoCompleteSearchFields = arrayOf("user.username", "user.firstname", "user.lastname", "user.email")

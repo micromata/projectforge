@@ -92,8 +92,8 @@ class I18nServiceImpl : I18nService {
 
     override fun getLocalizedStringForKey(i18nKey: String, locale: Locale): String {
         val resourceBundle = getResourceBundleFor("I18NResources", locale)
-        if (resourceBundle != null) {
-            return resourceBundle.getObject(i18nKey) as String
+        return if (resourceBundle != null) {
+            resourceBundle.getObject(i18nKey) as String
         } else {
             throw RuntimeException("No ResourceBundle for given locale found$locale")
         }
