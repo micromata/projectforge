@@ -93,6 +93,8 @@ function MenuCustomizer() {
             sourceIndex: source?.index,
             destination: destination?.droppableId,
             destinationIndex: destination?.index,
+            mode: result.mode,
+            combine: result.combine,
         });
 
         // Dropped outside a droppable area
@@ -109,10 +111,89 @@ function MenuCustomizer() {
         // Handle drag within same list
         if (sourceList === destList) {
             if (sourceList === 'favorites') {
+                // Reordering within main favorites list
+                console.log('🔄 Reordering within main favorites list');
                 const reorderedItems = Array.from(customMenu);
                 const [movedItem] = reorderedItems.splice(source.index, 1);
                 reorderedItems.splice(destination.index, 0, movedItem);
                 setCustomMenu(reorderedItems);
+            } else if (sourceList.startsWith('group-')) {
+                // Reordering within the same group - this should be handled here!
+                const groupId = sourceList.replace('group-', '');
+                console.log('🔀 Reordering within group (same droppable):', groupId);
+
+                const groupIndex = customMenu.findIndex(
+                    (item) => (item.id || item.key) === groupId,
+                );
+                console.log('📍 Group index:', groupIndex, 'Group found:', groupIndex !== -1);
+
+                if (groupIndex !== -1) {
+                    const currentGroup = customMenu[groupIndex];
+                    console.log('📍 Current group:', currentGroup);
+                    
+                    // Ensure subMenu exists
+                    if (!currentGroup.subMenu) {
+                        console.log('❌ Group has no subMenu!');
+                        return;
+                    }
+
+                    // Force subMenu to be an array if it's not
+                    if (!Array.isArray(currentGroup.subMenu)) {
+                        console.log('❌ subMenu is not an array!');
+                        return;
+                    }
+
+                    console.log('📋 Current subMenu:', currentGroup.subMenu);
+
+                    // Create a new copy of the custom menu
+                    const newCustomMenu = [...customMenu];
+                    const subMenuItems = [...currentGroup.subMenu];
+
+                    console.log(
+                        '📊 SubMenu details:',
+                        'Length:', subMenuItems.length,
+                        'Source index:', source.index,
+                        'Destination index:', destination.index,
+                    );
+
+                    // Check if source index is valid
+                    if (source.index >= subMenuItems.length || source.index < 0) {
+                        console.log('❌ Invalid source index:', source.index, 'for array length:', subMenuItems.length);
+                        return;
+                    }
+
+                    // Check if destination index is valid (can be equal to length for appending)
+                    if (destination.index < 0 || destination.index > subMenuItems.length) {
+                        console.log('❌ Invalid destination index:', destination.index, 'for array length:', subMenuItems.length);
+                        return;
+                    }
+
+                    // Same position, no change needed
+                    if (source.index === destination.index) {
+                        console.log('⏹️ Source and destination are the same, no change needed');
+                        return;
+                    }
+
+                    // Get the item we're moving
+                    const [movedItem] = subMenuItems.splice(source.index, 1);
+                    console.log('📦 Moving item within group:', movedItem);
+
+                    // Insert at destination position
+                    subMenuItems.splice(destination.index, 0, movedItem);
+
+                    // Update the group with the reordered items
+                    newCustomMenu[groupIndex] = {
+                        ...newCustomMenu[groupIndex],
+                        subMenu: subMenuItems,
+                    };
+
+                    console.log('✅ Updated subMenu:', newCustomMenu[groupIndex].subMenu);
+
+                    // Update the state with our new menu structure
+                    setCustomMenu(newCustomMenu);
+                } else {
+                    console.log('❌ Group not found in customMenu');
+                }
             }
         } else if (sourceList === 'mainMenu' && destList === 'favorites') {
             // Get dragged item by id from the draggableId instead of the index
@@ -188,110 +269,57 @@ function MenuCustomizer() {
             }
         } else if (sourceList.startsWith('group-') && destList === 'favorites') {
             // Handle drag from a group to favorites (top level)
+            const sourceGroupId = sourceList.replace('group-', '');
+            const sourceGroupIndex = customMenu.findIndex(
+                (item) => (item.id || item.key) === sourceGroupId,
+            );
+
             // eslint-disable-next-line no-console
-            console.log('⚠️ BLOCKED: Preventing group item from moving to favorites. This was likely an unintended drag.');
-            
-            // BLOCK this operation - it's likely an unintended drag due to overlapping droppable zones
-            // Users should explicitly drag outside the group area if they want to move to main level
-            return;
+            console.log('🔄 Moving item from group to favorites main level', {
+                sourceGroupId,
+                sourceGroupIndex,
+                sourceIndex: source.index,
+                destIndex: destination.index,
+            });
+
+            if (sourceGroupIndex !== -1 && customMenu[sourceGroupIndex].subMenu) {
+                const newCustomMenu = Array.from(customMenu);
+                
+                // Remove item from source group
+                const [itemToMove] = newCustomMenu[sourceGroupIndex].subMenu.splice(source.index, 1);
+                
+                // Add item to main favorites at destination index
+                newCustomMenu.splice(destination.index, 0, itemToMove);
+                
+                setCustomMenu(newCustomMenu);
+            }
         } else if (sourceList.startsWith('group-') && destList.startsWith('group-')) {
             // Handle drag between different groups
             const sourceGroupId = sourceList.replace('group-', '');
             const destGroupId = destList.replace('group-', '');
 
-            if (sourceGroupId === destGroupId) {
-                // Handle reordering within same group
-                // eslint-disable-next-line no-console
-                console.log('🔀 Reordering within group:', sourceGroupId);
+            // Handle drag between different groups
+            console.log('🔄 Moving between different groups:', sourceGroupId, '->', destGroupId);
+            const sourceGroupIndex = customMenu.findIndex(
+                (item) => (item.id || item.key) === sourceGroupId,
+            );
+            const destGroupIndex = customMenu.findIndex(
+                (item) => (item.id || item.key) === destGroupId,
+            );
 
-                const groupIndex = customMenu.findIndex(
-                    (item) => (item.id || item.key) === sourceGroupId,
-                );
-                // eslint-disable-next-line no-console
-                console.log('📍 Group index:', groupIndex, 'Group found:', groupIndex !== -1);
+            if (sourceGroupIndex !== -1 && destGroupIndex !== -1
+                && customMenu[sourceGroupIndex].subMenu) {
+                const newCustomMenu = Array.from(customMenu);
+                const [itemToMove] = newCustomMenu[sourceGroupIndex].subMenu
+                    .splice(source.index, 1);
 
-                if (groupIndex !== -1 && customMenu[groupIndex].subMenu) {
-                    // eslint-disable-next-line no-console
-                    console.log('📋 Current subMenu:', customMenu[groupIndex].subMenu);
-
-                    // Force subMenu to be an array if it's not
-                    if (!Array.isArray(customMenu[groupIndex].subMenu)) {
-                        // eslint-disable-next-line no-console
-                        console.log('❌ subMenu is not an array!');
-                        return;
-                    }
-
-                    // Create a new copy of the custom menu
-                    const newCustomMenu = [...customMenu];
-                    const subMenuItems = [...newCustomMenu[groupIndex].subMenu];
-
-                    // eslint-disable-next-line no-console
-                    console.log(
-                        '📊 SubMenu length:',
-                        subMenuItems.length,
-                        'Source index:',
-                        source.index,
-                        'Destination index:',
-                        destination.index,
-                    );
-
-                    // Check if source index is valid
-                    if (source.index >= subMenuItems.length || source.index < 0) {
-                        // eslint-disable-next-line no-console
-                        console.log('❌ Invalid source index');
-                        return;
-                    }
-
-                    // Check if destination index is valid
-                    if (destination.index < 0 || destination.index > subMenuItems.length) {
-                        // eslint-disable-next-line no-console
-                        console.log('❌ Invalid destination index');
-                        return;
-                    }
-
-                    // Get the item we're moving
-                    const [movedItem] = subMenuItems.splice(source.index, 1);
-                    // eslint-disable-next-line no-console
-                    console.log('📦 Moving item:', movedItem);
-
-                    // Insert at destination position
-                    subMenuItems.splice(destination.index, 0, movedItem);
-
-                    // Update the group with the reordered items
-                    newCustomMenu[groupIndex] = {
-                        ...newCustomMenu[groupIndex],
-                        subMenu: subMenuItems,
-                    };
-
-                    // eslint-disable-next-line no-console
-                    console.log('✅ Updated subMenu:', newCustomMenu[groupIndex].subMenu);
-
-                    // Update the state with our new menu structure
-                    setCustomMenu(newCustomMenu);
+                // Create subMenu if it doesn't exist
+                if (!newCustomMenu[destGroupIndex].subMenu) {
+                    newCustomMenu[destGroupIndex].subMenu = [];
                 }
-            } else {
-                // Handle drag between different groups
-                const sourceGroupIndex = customMenu.findIndex(
-                    (item) => (item.id || item.key) === sourceGroupId,
-                );
-                const destGroupIndex = customMenu.findIndex(
-                    (item) => (item.id || item.key) === destGroupId,
-                );
 
-                if (sourceGroupIndex !== -1 && destGroupIndex !== -1
-                    && customMenu[sourceGroupIndex].subMenu) {
-                    const newCustomMenu = Array.from(customMenu);
-                    const [itemToMove] = newCustomMenu[sourceGroupIndex].subMenu
-                        .splice(source.index, 1);
-
-                    // Create subMenu if it doesn't exist
-                    if (!newCustomMenu[destGroupIndex].subMenu) {
-                        newCustomMenu[destGroupIndex].subMenu = [];
-                    }
-
-                    newCustomMenu[destGroupIndex].subMenu.splice(destination.index, 0, itemToMove);
-                    setCustomMenu(newCustomMenu);
-                }
+                newCustomMenu[destGroupIndex].subMenu.splice(destination.index, 0, itemToMove);
+                setCustomMenu(newCustomMenu);
             }
         }
     };
@@ -487,7 +515,6 @@ function MenuCustomizer() {
                             <FontAwesomeIcon
                                 icon={faEllipsisV}
                                 className={styles.dragHandle}
-                                onMouseDown={() => console.log(`🖱️ MouseDown on drag handle for: ${item.title} (groupId: ${groupId})`)}
                             />
                             <span className={styles.itemTitle}>{item.title}</span>
                             {groupId && (
@@ -634,7 +661,7 @@ function MenuCustomizer() {
                             )}
                         </div>
 
-                        <Droppable droppableId={`group-${groupId}`} type="menuItem" isCombineEnabled={false}>
+                        <Droppable droppableId={`group-${groupId}`} type="groupItem" isCombineEnabled={false}>
                             {(providedDrop, snapshotDrop) => (
                                 <div
                                     ref={providedDrop.innerRef}
@@ -658,9 +685,9 @@ function MenuCustomizer() {
                                     {providedDrop.placeholder}
                                     {(!item.subMenu || item.subMenu.length === 0) && (
                                         <div className={styles.emptyGroup}>
-                                            <p>Empty group.</p>
+                                            <p>Empty group - drop items here</p>
                                             <p>
-                                                Drag items here from available items or your menu.
+                                                Drag menu items from the left or move items between groups
                                             </p>
                                         </div>
                                     )}
@@ -687,12 +714,13 @@ function MenuCustomizer() {
                     items on the left to your custom menu on the right.
                 </p>
                 <ul>
-                    <li>Click and drag items from the available menu to your custom menu</li>
+                    <li>Drag items from available menu to your custom menu</li>
                     <li>Create groups to organize your menu items</li>
-                    <li>Drag items into groups or between groups</li>
-                    <li>Rearrange items in your custom menu by dragging them</li>
-                    <li>Remove items from your custom menu with the trash icon</li>
-                    <li>Save your changes when you&apos;re finished customizing</li>
+                    <li>Drag items into groups, between groups, or from groups to main level</li>
+                    <li>Reorder items within groups by dragging them</li>
+                    <li>Reorder items in your main custom menu by dragging them</li>
+                    <li>Remove items with the trash/minus icon</li>
+                    <li>Save your changes when finished customizing</li>
                 </ul>
             </div>
 
@@ -703,6 +731,14 @@ function MenuCustomizer() {
                     }}
                     onDragUpdate={(update) => {
                         console.log('🔵 Drag update:', update);
+                        if (update.destination && update.source.droppableId.startsWith('group-') && update.destination.droppableId.startsWith('group-')) {
+                            console.log('🎯 Within-group drag detected!', {
+                                source: update.source.droppableId,
+                                destination: update.destination.droppableId,
+                                sourceIndex: update.source.index,
+                                destIndex: update.destination.index,
+                            });
+                        }
                     }}
                     onDragEnd={handleDragEnd}
                     onBeforeCapture={(before) => {
@@ -789,11 +825,13 @@ function MenuCustomizer() {
                             </CardHeader>
                             <CardBody>
                                 <Droppable droppableId="favorites" type="menuItem">
-                                    {(providedFav) => (
+                                    {(providedFav, snapshotFav) => (
                                         <div
                                             ref={providedFav.innerRef}
                                             {...providedFav.droppableProps}
-                                            className={styles.menuList}
+                                            className={`${styles.menuList} ${
+                                                snapshotFav.isDraggingOver ? 'dragging-over' : ''
+                                            }`}
                                         >
                                             {customMenu.map((item, index) => {
                                                 // eslint-disable-next-line no-console
