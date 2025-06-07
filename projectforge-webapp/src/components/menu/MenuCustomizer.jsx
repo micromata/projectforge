@@ -1,8 +1,26 @@
 /* eslint-disable */
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardBody, Button, Alert } from 'reactstrap';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import {
+    DndContext,
+    DragOverlay,
+    useSensor,
+    useSensors,
+    PointerSensor,
+    KeyboardSensor,
+    closestCenter,
+    DragStartEvent,
+    DragEndEvent,
+    DragOverEvent,
+    useDroppable,
+} from '@dnd-kit/core';
+import {
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faArrowDown, faArrowUp, faMinus, faEllipsisV, faPencilAlt, faSave, faUndo, faTrash, faFolder } from '@fortawesome/free-solid-svg-icons';
 import { baseRestURL, handleHTTPErrors } from '../../utilities/rest';
@@ -26,7 +44,18 @@ function MenuCustomizer() {
     const [showGroupInput, setShowGroupInput] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
-    const [dragOverGroup, setDragOverGroup] = useState(null);
+    const [activeId, setActiveId] = useState(null);
+    
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
 
     const loadMenuData = () => {
         setLoading(true);
@@ -81,276 +110,182 @@ function MenuCustomizer() {
         loadMenuData();
     }, []);
 
-    const handleDragEnd = (result) => {
-        // eslint-disable-next-line no-console
-        console.log('🚀 handleDragEnd called with result:', result);
+    const handleDragStart = (event) => {
+        setActiveId(event.active.id);
+    };
 
-        let { source, destination } = result;
+    const handleDragEnd = (event) => {
+        setActiveId(null);
         
-        // Clear the drag over state
-        const currentDragOverGroup = dragOverGroup;
-        setDragOverGroup(null);
+        const { active, over } = event;
         
-        // CRITICAL FIX: If dragging within the same group but destination shows 'favorites',
-        // and destination index is very low (0-2), assume it's a within-group move
-        if (source.droppableId.startsWith('group-') && 
-            destination?.droppableId === 'favorites' &&
-            result.draggableId.startsWith('item-') &&
-            destination.index <= 2) {
-            
-            console.log('🔧 CORRECTING: Low destination index suggests within-group move');
-            console.log('🔧 Original destination:', destination);
-            console.log('🔧 Source group:', source.droppableId);
-            
-            // Assume it's a within-group move and keep the same group
-            destination = {
-                droppableId: source.droppableId,
-                index: destination.index
-            };
-            
-            console.log('🔧 Corrected destination:', destination);
-        }
-
-        // eslint-disable-next-line no-console
-        console.log('🔄 Drag operation:', {
-            draggableId: result.draggableId,
-            source: source?.droppableId,
-            sourceIndex: source?.index,
-            destination: destination?.droppableId,
-            destinationIndex: destination?.index,
-            mode: result.mode,
-            combine: result.combine,
-        });
-
-        // Dropped outside a droppable area
-        if (!destination) {
-            // eslint-disable-next-line no-console
-            console.log('❌ Dropped outside droppable area');
+        if (!over) {
             return;
         }
 
-        // Source and destination lists
-        const sourceList = source.droppableId;
-        const destList = destination.droppableId;
+        const activeId = active.id;
+        const overId = over.id;
+        
 
-        // Handle drag within same list
-        if (sourceList === destList) {
-            if (sourceList === 'favorites') {
-                // Check if we're moving a group or a regular item
-                if (result.draggableId.startsWith('group-')) {
-                    console.log('🔄 Reordering groups within main favorites list');
-                } else {
-                    console.log('🔄 Reordering items within main favorites list');
-                }
-                const reorderedItems = Array.from(customMenu);
-                const [movedItem] = reorderedItems.splice(source.index, 1);
-                reorderedItems.splice(destination.index, 0, movedItem);
-                setCustomMenu(reorderedItems);
-            } else if (sourceList.startsWith('group-')) {
-                // Reordering within the same group - this should be handled here!
-                const groupId = sourceList.replace('group-', '');
-                console.log('🔀 Reordering within group (same droppable):', groupId);
+        // Determine containers based on our data structure
+        const activeData = active.data.current;
+        const overData = over.data.current;
+        
+        // Check if we're trying to drag a group into another group - this is not allowed
+        if (activeData?.type === 'group' && overData?.groupId) {
+            return; // Prevent groups from being dropped into other groups
+        }
+        
+        let sourceContainer = 'mainMenu';
+        let destContainer = 'favorites';
+        
+        // Determine source container
+        if (activeData?.groupId) {
+            sourceContainer = `group-${activeData.groupId}`;
+        } else if (activeData?.isMainMenu) {
+            sourceContainer = 'mainMenu';
+        } else {
+            sourceContainer = 'favorites';
+        }
+        
+        // Determine destination container
+        if (overData?.groupId) {
+            destContainer = `group-${overData.groupId}`;
+        } else if (overData?.isMainMenu) {
+            destContainer = 'mainMenu';
+        } else if (overId.toString().startsWith('group-')) {
+            destContainer = overId.toString();
+        } else {
+            destContainer = 'favorites';
+        }
+        
+        // For groups, only allow reordering within favorites (top level)
+        if (activeData?.type === 'group' && destContainer !== 'favorites') {
+            return;
+        }
 
-                const groupIndex = customMenu.findIndex(
-                    (item) => (item.id || item.key) === groupId,
-                );
-                console.log('📍 Group index:', groupIndex, 'Group found:', groupIndex !== -1);
-
-                if (groupIndex !== -1) {
-                    const currentGroup = customMenu[groupIndex];
-                    console.log('📍 Current group:', currentGroup);
-                    
-                    // Ensure subMenu exists
-                    if (!currentGroup.subMenu) {
-                        console.log('❌ Group has no subMenu!');
-                        return;
-                    }
-
-                    // Force subMenu to be an array if it's not
-                    if (!Array.isArray(currentGroup.subMenu)) {
-                        console.log('❌ subMenu is not an array!');
-                        return;
-                    }
-
-                    console.log('📋 Current subMenu:', currentGroup.subMenu);
-
-                    // Create a new copy of the custom menu
+        if (sourceContainer === destContainer) {
+            // Same container reordering
+            handleSameContainerReorder(sourceContainer, activeId, overId);
+        } else {
+            // Cross-container move
+            handleCrossContainerMove(sourceContainer, destContainer, activeId, overId);
+        }
+    };
+    
+    const handleSameContainerReorder = (containerId, activeId, overId) => {
+        
+        if (containerId === 'favorites') {
+            // Reordering in main favorites
+            const oldIndex = customMenu.findIndex(item => getItemId(item) === activeId);
+            const newIndex = customMenu.findIndex(item => getItemId(item) === overId);
+            
+            if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+                const newCustomMenu = [...customMenu];
+                const [movedItem] = newCustomMenu.splice(oldIndex, 1);
+                newCustomMenu.splice(newIndex, 0, movedItem);
+                setCustomMenu(newCustomMenu);
+            }
+        } else if (containerId.startsWith('group-')) {
+            // Reordering within a group
+            const groupId = containerId.replace('group-', '');
+            const groupIndex = customMenu.findIndex(item => getItemId(item) === groupId);
+            
+            if (groupIndex !== -1 && customMenu[groupIndex].subMenu) {
+                const subMenu = customMenu[groupIndex].subMenu;
+                const oldIndex = subMenu.findIndex(item => getItemId(item) === activeId);
+                const newIndex = subMenu.findIndex(item => getItemId(item) === overId);
+                
+                if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
                     const newCustomMenu = [...customMenu];
-                    const subMenuItems = [...currentGroup.subMenu];
-
-                    console.log(
-                        '📊 SubMenu details:',
-                        'Length:', subMenuItems.length,
-                        'Source index:', source.index,
-                        'Destination index:', destination.index,
-                    );
-
-                    // Check if source index is valid
-                    if (source.index >= subMenuItems.length || source.index < 0) {
-                        console.log('❌ Invalid source index:', source.index, 'for array length:', subMenuItems.length);
-                        return;
-                    }
-
-                    // Check if destination index is valid (can be equal to length for appending)
-                    if (destination.index < 0 || destination.index > subMenuItems.length) {
-                        console.log('❌ Invalid destination index:', destination.index, 'for array length:', subMenuItems.length);
-                        return;
-                    }
-
-                    // Same position, no change needed
-                    if (source.index === destination.index) {
-                        console.log('⏹️ Source and destination are the same, no change needed');
-                        return;
-                    }
-
-                    // Get the item we're moving
-                    const [movedItem] = subMenuItems.splice(source.index, 1);
-                    console.log('📦 Moving item within group:', movedItem);
-
-                    // Insert at destination position
-                    subMenuItems.splice(destination.index, 0, movedItem);
-
-                    // Update the group with the reordered items
+                    const newSubMenu = [...subMenu];
+                    const [movedItem] = newSubMenu.splice(oldIndex, 1);
+                    newSubMenu.splice(newIndex, 0, movedItem);
+                    
                     newCustomMenu[groupIndex] = {
                         ...newCustomMenu[groupIndex],
-                        subMenu: subMenuItems,
+                        subMenu: newSubMenu,
                     };
-
-                    console.log('✅ Updated subMenu:', newCustomMenu[groupIndex].subMenu);
-
-                    // Update the state with our new menu structure
-                    setCustomMenu(newCustomMenu);
-                } else {
-                    console.log('❌ Group not found in customMenu');
-                }
-            }
-        } else if (sourceList === 'mainMenu' && destList === 'favorites') {
-            // Get dragged item by id from the draggableId instead of the index
-            // Extract item id from the draggableId (format: "item-{id}")
-            const itemId = result.draggableId.replace('item-', '');
-            const mainMenuItem = menuItems.mainMenu.find((item) => item.id === itemId);
-
-            if (mainMenuItem) {
-                // Only add if it doesn't already exist in favorites
-                if (!customMenu.some((item) => item.id === mainMenuItem.id)) {
-                    const newCustomMenu = Array.from(customMenu);
-                    newCustomMenu.splice(destination.index, 0, { ...mainMenuItem });
+                    
                     setCustomMenu(newCustomMenu);
                 }
             }
-        } else if (sourceList === 'mainMenu' && destList.startsWith('group-')) {
-            // Handle drag from main menu to a group within favorites
-            const groupId = destList.replace('group-', '');
-            // Extract item id from the draggableId (format: "item-{id}")
-            const itemId = result.draggableId.replace('item-', '');
-            const mainMenuItem = menuItems.mainMenu.find((item) => item.id === itemId);
-
-            if (mainMenuItem) {
-                const newCustomMenu = Array.from(customMenu);
-                const groupIndex = newCustomMenu.findIndex(
-                    (item) => (item.id || item.key) === groupId,
-                );
-
-                if (groupIndex !== -1) {
-                    // Create subMenu if it doesn't exist
-                    if (!newCustomMenu[groupIndex].subMenu) {
-                        newCustomMenu[groupIndex].subMenu = [];
-                    }
-
-                    // Only add if it doesn't already exist in this group
-                    if (!newCustomMenu[groupIndex].subMenu.some(
-                        (item) => item.id === mainMenuItem.id,
-                    )) {
-                        // Insert at the specific destination index instead of pushing to the end
-                        newCustomMenu[groupIndex].subMenu.splice(
-                            destination.index,
-                            0,
-                            { ...mainMenuItem },
-                        );
-                        setCustomMenu(newCustomMenu);
-                    }
-                }
+        }
+    };
+    
+    const handleCrossContainerMove = (sourceContainer, destContainer, activeId, overId) => {
+        // Find the item being moved
+        let sourceItem = null;
+        let sourceIndex = -1;
+        let sourceGroupIndex = -1;
+        
+        if (sourceContainer === 'mainMenu') {
+            sourceItem = menuItems.mainMenu.find(item => item.id === activeId);
+        } else if (sourceContainer === 'favorites') {
+            sourceIndex = customMenu.findIndex(item => getItemId(item) === activeId);
+            if (sourceIndex !== -1) {
+                sourceItem = customMenu[sourceIndex];
             }
-        } else if (sourceList === 'favorites' && destList.startsWith('group-')) {
-            // Handle drag from favorites to a group
-            const groupId = destList.replace('group-', '');
-            const itemToMove = customMenu[source.index];
-
-            // Don't allow dragging a group into another group
-            if (itemToMove.subMenu) {
-                return;
-            }
-
-            const newCustomMenu = Array.from(customMenu);
-            const groupIndex = newCustomMenu.findIndex((item) => item.id === groupId);
-
-            if (groupIndex !== -1) {
-                // Create subMenu if it doesn't exist
-                if (!newCustomMenu[groupIndex].subMenu) {
-                    newCustomMenu[groupIndex].subMenu = [];
-                }
-
-                // Add the item at the specific destination index in the group
-                newCustomMenu[groupIndex].subMenu.splice(destination.index, 0, itemToMove);
-                // Remove from the top level
-                newCustomMenu.splice(source.index, 1);
-                setCustomMenu(newCustomMenu);
-            }
-        } else if (sourceList.startsWith('group-') && destList === 'favorites') {
-            // Handle drag from a group to favorites (top level)
-            const sourceGroupId = sourceList.replace('group-', '');
-            const sourceGroupIndex = customMenu.findIndex(
-                (item) => (item.id || item.key) === sourceGroupId,
-            );
-
-            // eslint-disable-next-line no-console
-            console.log('🔄 Moving item from group to favorites main level', {
-                sourceGroupId,
-                sourceGroupIndex,
-                sourceIndex: source.index,
-                destIndex: destination.index,
-            });
-
+        } else if (sourceContainer.startsWith('group-')) {
+            const groupId = sourceContainer.replace('group-', '');
+            sourceGroupIndex = customMenu.findIndex(item => getItemId(item) === groupId);
             if (sourceGroupIndex !== -1 && customMenu[sourceGroupIndex].subMenu) {
-                const newCustomMenu = Array.from(customMenu);
-                
-                // Remove item from source group
-                const [itemToMove] = newCustomMenu[sourceGroupIndex].subMenu.splice(source.index, 1);
-                
-                // Add item to main favorites at destination index
-                newCustomMenu.splice(destination.index, 0, itemToMove);
-                
-                setCustomMenu(newCustomMenu);
+                sourceIndex = customMenu[sourceGroupIndex].subMenu.findIndex(item => getItemId(item) === activeId);
+                if (sourceIndex !== -1) {
+                    sourceItem = customMenu[sourceGroupIndex].subMenu[sourceIndex];
+                }
             }
-        } else if (sourceList.startsWith('group-') && destList.startsWith('group-')) {
-            // Handle drag between different groups
-            const sourceGroupId = sourceList.replace('group-', '');
-            const destGroupId = destList.replace('group-', '');
-
-            // Handle drag between different groups
-            console.log('🔄 Moving between different groups:', sourceGroupId, '->', destGroupId);
-            const sourceGroupIndex = customMenu.findIndex(
-                (item) => (item.id || item.key) === sourceGroupId,
-            );
-            const destGroupIndex = customMenu.findIndex(
-                (item) => (item.id || item.key) === destGroupId,
-            );
-
-            if (sourceGroupIndex !== -1 && destGroupIndex !== -1
-                && customMenu[sourceGroupIndex].subMenu) {
-                const newCustomMenu = Array.from(customMenu);
-                const [itemToMove] = newCustomMenu[sourceGroupIndex].subMenu
-                    .splice(source.index, 1);
-
-                // Create subMenu if it doesn't exist
+        }
+        
+        if (!sourceItem) {
+            return;
+        }
+        
+        // Handle the move
+        const newCustomMenu = [...customMenu];
+        
+        // Remove from source
+        if (sourceContainer === 'favorites') {
+            newCustomMenu.splice(sourceIndex, 1);
+        } else if (sourceContainer.startsWith('group-') && sourceGroupIndex !== -1) {
+            newCustomMenu[sourceGroupIndex].subMenu.splice(sourceIndex, 1);
+        }
+        
+        // Add to destination at the correct position
+        if (destContainer === 'favorites') {
+            // Find the position to insert based on overId
+            const overIndex = newCustomMenu.findIndex(item => getItemId(item) === overId);
+            if (overIndex !== -1) {
+                newCustomMenu.splice(overIndex, 0, { ...sourceItem });
+            } else {
+                newCustomMenu.push({ ...sourceItem });
+            }
+        } else if (destContainer.startsWith('group-')) {
+            // Add to a group at the correct position
+            const destGroupId = destContainer.replace('group-', '');
+            const destGroupIndex = newCustomMenu.findIndex(item => getItemId(item) === destGroupId);
+            
+            if (destGroupIndex !== -1) {
                 if (!newCustomMenu[destGroupIndex].subMenu) {
                     newCustomMenu[destGroupIndex].subMenu = [];
                 }
-
-                newCustomMenu[destGroupIndex].subMenu.splice(destination.index, 0, itemToMove);
-                setCustomMenu(newCustomMenu);
+                
+                const subMenu = newCustomMenu[destGroupIndex].subMenu;
+                const overIndex = subMenu.findIndex(item => getItemId(item) === overId);
+                
+                if (overIndex !== -1) {
+                    subMenu.splice(overIndex, 0, { ...sourceItem });
+                } else {
+                    subMenu.push({ ...sourceItem });
+                }
             }
         }
+        
+        setCustomMenu(newCustomMenu);
+    };
+    
+    const getItemId = (item) => {
+        return item.id || item.key || `fallback-${Date.now()}`;
     };
 
     const addNewGroup = () => {
@@ -488,100 +423,107 @@ function MenuCustomizer() {
         return indexMap;
     }, [menuItems.mainMenuStructured]);
 
-    // eslint-disable-next-line max-len
-    const renderDraggableItem = (item, index, isDraggable = true, groupId = null, isMainMenu = false) => {
-        // Create a consistent, unique draggableId format
-        // Always use the simple format for consistency across all drag operations
-        const itemDraggableId = `item-${item.id}`;
-
-        // Create unique key for React reconciliation
-        let uniqueKey;
-        if (groupId) {
-            uniqueKey = `group-${groupId}-item-${item.id}`;
-        } else if (isMainMenu) {
-            uniqueKey = `main-${item.id}`;
-        } else {
-            uniqueKey = `fav-${item.id}`;
-        }
-
-        // eslint-disable-next-line no-console
-        console.log(`🎯 Rendering draggable: ${item.title}`, {
-            id: item.id,
-            index,
-            groupId,
-            isMainMenu,
-            uniqueKey,
-            draggableId: itemDraggableId,
+    // Sortable item component for @dnd-kit
+    const SortableItem = ({ item, groupId = null, isMainMenu = false }) => {
+        const itemId = getItemId(item);
+        const {
+            attributes,
+            listeners,
+            setNodeRef,
+            transform,
+            transition,
+            isDragging,
+        } = useSortable({ 
+            id: itemId,
+            data: {
+                type: 'item',
+                item,
+                groupId,
+                isMainMenu,
+            }
         });
 
+        const style = {
+            transform: CSS.Transform.toString(transform),
+            transition,
+            opacity: isDragging ? 0.5 : 1,
+        };
+
+
         return (
-            <Draggable
-                key={uniqueKey}
-                draggableId={itemDraggableId}
-                index={index}
-                isDragDisabled={false}
+            <div
+                ref={setNodeRef}
+                style={style}
+                className={isDragging ? `${styles.menuItem} ${styles.dragging}` : styles.menuItem}
+                {...attributes}
+                {...listeners}
             >
-                {(provided, snapshot) => {
-                    if (snapshot.isDragging) {
-                        // eslint-disable-next-line no-console
-                        console.log(`🚀 Item is being dragged: ${item.title}`, {
-                            groupId,
-                            draggableId: itemDraggableId,
-                        });
-                    }
-                    return (
-                        <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            className={
-                                snapshot.isDragging
-                                    ? `${styles.menuItem} ${styles.dragging}`
-                                    : styles.menuItem
-                            }
+                <div className={styles.menuItemContent}>
+                    <FontAwesomeIcon
+                        icon={faEllipsisV}
+                        className={styles.dragHandle}
+                    />
+                    <span className={styles.itemTitle}>{item.title}</span>
+                    {groupId && (
+                        <Button
+                            color="link"
+                            className={styles.actionButton}
+                            onClick={() => removeItem(item.id, groupId)}
+                            title="Remove from group"
                         >
-                        <div className={styles.menuItemContent}>
-                            <FontAwesomeIcon
-                                icon={faEllipsisV}
-                                className={styles.dragHandle}
-                            />
-                            <span className={styles.itemTitle}>{item.title}</span>
-                            {groupId && (
-                                <Button
-                                    color="link"
-                                    className={styles.actionButton}
-                                    onClick={() => removeItem(item.id, groupId)}
-                                    title="Remove from group"
-                                >
-                                    <FontAwesomeIcon icon={faMinus} />
-                                </Button>
-                            )}
-                            {!groupId && !isMainMenu && (
-                                <Button
-                                    color="link"
-                                    className={styles.actionButton}
-                                    onClick={() => removeItem(item.id)}
-                                    title="Remove from favorites"
-                                >
-                                    <FontAwesomeIcon icon={faTrash} />
-                                </Button>
-                            )}
-                        </div>
-                    </div>
-                    );
-                }}
-            </Draggable>
+                            <FontAwesomeIcon icon={faMinus} />
+                        </Button>
+                    )}
+                    {!groupId && !isMainMenu && (
+                        <Button
+                            color="link"
+                            className={styles.actionButton}
+                            onClick={() => removeItem(item.id)}
+                            title="Remove from favorites"
+                        >
+                            <FontAwesomeIcon icon={faTrash} />
+                        </Button>
+                    )}
+                </div>
+            </div>
         );
     };
 
-    // Function to render menu in category columns
+    const DroppableArea = ({ id, children, className }) => {
+        const {
+            setNodeRef,
+            isOver,
+        } = useDroppable({
+            id: id,
+        });
+
+        return (
+            <div 
+                ref={setNodeRef}
+                data-droppable-id={id} 
+                className={`${className} ${isOver ? styles.draggingOver : ''}`}
+            >
+                {children}
+            </div>
+        );
+    };
+
+    // Function to render menu in category columns with new @dnd-kit
     const renderCategoryColumns = (menuStructure) => {
-        // Split the menu structure into balanced columns
-        const numColumns = 4; // Define number of columns
+        const numColumns = 4;
         const itemsPerColumn = Math.ceil(menuStructure.length / numColumns);
         const columns = [];
 
-        // Create columns
+        // Create all items for SortableContext
+        const allMainMenuItems = [];
+        menuStructure.forEach(category => {
+            if (category.subMenu) {
+                category.subMenu.forEach(item => {
+                    allMainMenuItems.push(item);
+                });
+            }
+        });
+
         for (let i = 0; i < numColumns; i += 1) {
             const startIndex = i * itemsPerColumn;
             const endIndex = Math.min(startIndex + itemsPerColumn, menuStructure.length);
@@ -597,17 +539,11 @@ function MenuCustomizer() {
                             <div className="collapse show">
                                 <ul className={styles.categoryLinks}>
                                     {category.subMenu && category.subMenu.map((item) => (
-                                        <li
-                                            key={item.id}
-                                            className={styles.categoryLink}
-                                        >
-                                            {renderDraggableItem(
-                                                item,
-                                                mainMenuIndexMap.get(item.id) || 0,
-                                                true,
-                                                null,
-                                                true,
-                                            )}
+                                        <li key={item.id} className={styles.categoryLink}>
+                                            <SortableItem 
+                                                item={item} 
+                                                isMainMenu={true}
+                                            />
                                         </li>
                                     ))}
                                     {(!category.subMenu || category.subMenu.length === 0) && (
@@ -628,114 +564,119 @@ function MenuCustomizer() {
         return columns;
     };
 
-    const renderGroupItem = (item, index) => {
-        // eslint-disable-next-line no-console
-        console.log('🗂️  Rendering group:', item);
-        const groupId = item.id || item.key;
+    const SortableGroup = ({ item }) => {
+        const groupId = getItemId(item);
+        const {
+            attributes,
+            listeners,
+            setNodeRef,
+            transform,
+            transition,
+            isDragging,
+        } = useSortable({ 
+            id: groupId,
+            data: {
+                type: 'group',
+                item,
+            }
+        });
+
+        const style = {
+            transform: CSS.Transform.toString(transform),
+            transition,
+            opacity: isDragging ? 0.5 : 1,
+        };
+
+        // Get all item IDs for this group's SortableContext
+        const groupItemIds = (item.subMenu || []).map(subItem => getItemId(subItem));
+
         return (
-            <Draggable key={groupId} draggableId={`group-${groupId}`} index={index}>
-                {(provided, snapshot) => (
-                    <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        className={`${styles.menuItem} ${styles.groupItem} ${
-                            snapshot.isDragging ? styles.dragging : ''
-                        }`}
-                    >
-                        <div className={styles.menuItemContent}>
-                            <div {...provided.dragHandleProps}>
-                                <FontAwesomeIcon icon={faEllipsisV} className={styles.dragHandle} />
-                            </div>
-                            <FontAwesomeIcon icon={faFolder} className={styles.folderIcon} />
-
-                            {editingGroup === groupId ? (
-                                <div className={styles.groupEditForm}>
-                                    <input
-                                        type="text"
-                                        className={styles.groupNameInput}
-                                        value={newGroupName}
-                                        onChange={(e) => setNewGroupName(e.target.value)}
-                                        // eslint-disable-next-line jsx-a11y/no-autofocus
-                                        autoFocus
-                                    />
-                                    <Button
-                                        color="primary"
-                                        size="sm"
-                                        className={styles.saveGroupButton}
-                                        onClick={() => editGroup(groupId, newGroupName)}
-                                    >
-                                        <FontAwesomeIcon icon={faSave} />
-                                    </Button>
-                                    <Button
-                                        color="secondary"
-                                        size="sm"
-                                        onClick={() => setEditingGroup(null)}
-                                    >
-                                        <FontAwesomeIcon icon={faUndo} />
-                                    </Button>
-                                </div>
-                            ) : (
-                                <>
-                                    <span className={styles.itemTitle}>{item.title}</span>
-                                    <Button
-                                        color="link"
-                                        className={styles.actionButton}
-                                        onClick={() => {
-                                            setEditingGroup(groupId);
-                                            setNewGroupName(item.title);
-                                        }}
-                                        title="Edit group name"
-                                    >
-                                        <FontAwesomeIcon icon={faPencilAlt} />
-                                    </Button>
-                                    <Button
-                                        color="link"
-                                        className={styles.actionButton}
-                                        onClick={() => removeItem(groupId)}
-                                        title="Remove group"
-                                    >
-                                        <FontAwesomeIcon icon={faTrash} />
-                                    </Button>
-                                </>
-                            )}
-                        </div>
-
-                        <Droppable droppableId={`group-${groupId}`} type="groupItem" isCombineEnabled={false}>
-                            {(providedDrop, snapshotDrop) => (
-                                <div
-                                    ref={providedDrop.innerRef}
-                                    {...providedDrop.droppableProps}
-                                    className={`${styles.groupContent} ${
-                                        snapshotDrop.isDraggingOver ? styles.draggingOver : ''
-                                    }`}
-                                >
-                                    {item.subMenu && item.subMenu.map((subItem, subIndex) => {
-                                        // eslint-disable-next-line no-console
-                                        console.log(
-                                            `🏷️  Rendering group item: ${subItem.title} in group ${groupId}`,
-                                        );
-                                        return renderDraggableItem(
-                                            subItem,
-                                            subIndex,
-                                            true,
-                                            groupId,
-                                        );
-                                    })}
-                                    {providedDrop.placeholder}
-                                    {(!item.subMenu || item.subMenu.length === 0) && (
-                                        <div className={styles.emptyGroup}>
-                                            <p>Empty group - drop items here</p>
-                                            <p>
-                                                Drag menu items from the left or move items between groups
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </Droppable>
+            <div
+                ref={setNodeRef}
+                style={style}
+                className={`${styles.menuItem} ${styles.groupItem} ${isDragging ? styles.dragging : ''}`}
+            >
+                <div className={styles.menuItemContent}>
+                    <div {...attributes} {...listeners}>
+                        <FontAwesomeIcon icon={faEllipsisV} className={styles.dragHandle} />
                     </div>
-                )}
-            </Draggable>
+                    <FontAwesomeIcon icon={faFolder} className={styles.folderIcon} />
+
+                    {editingGroup === groupId ? (
+                        <div className={styles.groupEditForm}>
+                            <input
+                                type="text"
+                                className={styles.groupNameInput}
+                                value={newGroupName}
+                                onChange={(e) => setNewGroupName(e.target.value)}
+                                autoFocus
+                            />
+                            <Button
+                                color="primary"
+                                size="sm"
+                                className={styles.saveGroupButton}
+                                onClick={() => editGroup(groupId, newGroupName)}
+                            >
+                                <FontAwesomeIcon icon={faSave} />
+                            </Button>
+                            <Button
+                                color="secondary"
+                                size="sm"
+                                onClick={() => setEditingGroup(null)}
+                            >
+                                <FontAwesomeIcon icon={faUndo} />
+                            </Button>
+                        </div>
+                    ) : (
+                        <>
+                            <span className={styles.itemTitle}>{item.title}</span>
+                            <Button
+                                color="link"
+                                className={styles.actionButton}
+                                onClick={() => {
+                                    setEditingGroup(groupId);
+                                    setNewGroupName(item.title);
+                                }}
+                                title="Edit group name"
+                            >
+                                <FontAwesomeIcon icon={faPencilAlt} />
+                            </Button>
+                            <Button
+                                color="link"
+                                className={styles.actionButton}
+                                onClick={() => removeItem(groupId)}
+                                title="Remove group"
+                            >
+                                <FontAwesomeIcon icon={faTrash} />
+                            </Button>
+                        </>
+                    )}
+                </div>
+
+                <SortableContext 
+                    id={`group-${groupId}`}
+                    items={groupItemIds} 
+                    strategy={verticalListSortingStrategy}
+                >
+                    <DroppableArea id={`group-${groupId}`} className={styles.groupContent}>
+                        {item.subMenu && item.subMenu.map((subItem) => {
+                            return (
+                                <SortableItem 
+                                    key={getItemId(subItem)}
+                                    item={subItem} 
+                                    groupId={groupId}
+                                />
+                            );
+                        })}
+                        {(!item.subMenu || item.subMenu.length === 0) && (
+                            <div className={styles.emptyGroup}>
+                                <p>Empty group - drop items here</p>
+                                <p>Drag menu items from the left or move items between groups</p>
+                            </div>
+                        )}
+                    </DroppableArea>
+                </SortableContext>
+            </div>
         );
     };
 
@@ -766,57 +707,19 @@ function MenuCustomizer() {
             </div>
 
             <div className={styles.menuContainer}>
-                <DragDropContext 
-                    onDragStart={(start) => {
-                        console.log('🟡 Drag started:', start);
-                        setDragOverGroup(null); // Reset drag over state
-                    }}
-                    onDragUpdate={(update) => {
-                        console.log('🔵 Drag update:', update);
-                        
-                        // Track which group we're currently hovering over
-                        if (update.destination?.droppableId.startsWith('group-')) {
-                            const groupId = update.destination.droppableId.replace('group-', '');
-                            setDragOverGroup(groupId);
-                            console.log('🎯 Setting dragOverGroup to:', groupId);
-                        } else {
-                            setDragOverGroup(null);
-                        }
-                        
-                        if (update.destination && update.source.droppableId.startsWith('group-') && update.destination.droppableId.startsWith('group-')) {
-                            console.log('🎯 Within-group drag detected!', {
-                                source: update.source.droppableId,
-                                destination: update.destination.droppableId,
-                                sourceIndex: update.source.index,
-                                destIndex: update.destination.index,
-                            });
-                        }
-                    }}
+                <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragStart={handleDragStart}
                     onDragEnd={handleDragEnd}
-                    onBeforeCapture={(before) => {
-                        console.log('🔍🔍🔍 BEFORE CAPTURE:', JSON.stringify(before, null, 2));
-                    }}
-                    onBeforeDragStart={(initial) => {
-                        console.log('📌📌📌 BEFORE DRAG START:', JSON.stringify(initial, null, 2));
-                    }}
                 >
                     <div className={styles.menuSection}>
                         <Card>
                             <CardHeader>Available Menu Items</CardHeader>
                             <CardBody>
-                                <Droppable droppableId="mainMenu" type="menuItem">
-                                    {(providedMain) => (
-                                        <div
-                                            ref={providedMain.innerRef}
-                                            {...providedMain.droppableProps}
-                                            className={`${styles.menuList} ${styles.mainMenuList}`}
-                                        >
-                                            {/* eslint-disable-next-line max-len */}
-                                            {menuItems.mainMenuStructured && renderCategoryColumns(menuItems.mainMenuStructured)}
-                                            {providedMain.placeholder}
-                                        </div>
-                                    )}
-                                </Droppable>
+                                <div className={`${styles.menuList} ${styles.mainMenuList}`}>
+                                    {menuItems.mainMenuStructured && renderCategoryColumns(menuItems.mainMenuStructured)}
+                                </div>
                             </CardBody>
                         </Card>
                     </div>
@@ -851,7 +754,6 @@ function MenuCustomizer() {
                                                 value={newGroupName}
                                                 onChange={(e) => setNewGroupName(e.target.value)}
                                                 placeholder="Group name"
-                                                // eslint-disable-next-line jsx-a11y/no-autofocus
                                                 autoFocus
                                             />
                                             <Button
@@ -876,42 +778,64 @@ function MenuCustomizer() {
                                 </div>
                             </CardHeader>
                             <CardBody>
-                                <Droppable droppableId="favorites" type="menuItem">
-                                    {(providedFav, snapshotFav) => (
-                                        <div
-                                            ref={providedFav.innerRef}
-                                            {...providedFav.droppableProps}
-                                            className={`${styles.menuList} ${
-                                                snapshotFav.isDraggingOver ? 'dragging-over' : ''
-                                            }`}
-                                        >
-                                            {customMenu.map((item, index) => {
-                                                // eslint-disable-next-line no-console
-                                                console.log(`📋 Rendering favorites item: ${item.title} at index ${index}`);
-                                                return item.subMenu
-                                                    ? renderGroupItem(item, index)
-                                                    : renderDraggableItem(
-                                                        item,
-                                                        index,
-                                                        true,
-                                                        null,
-                                                        false,
-                                                    );
-                                            })}
-                                            {providedFav.placeholder}
-                                            {customMenu.length === 0 && (
-                                                <div className={styles.emptyMenu}>
-                                                    <p>Your custom menu is empty.</p>
-                                                    <p>Drag items from available menu items.</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </Droppable>
+                                <SortableContext 
+                                    id="favorites"
+                                    items={customMenu.map(item => getItemId(item))} 
+                                    strategy={verticalListSortingStrategy}
+                                >
+                                    <DroppableArea id="favorites" className={styles.menuList}>
+                                        {customMenu.map((item) => {
+                                            return item.subMenu ? (
+                                                <SortableGroup key={getItemId(item)} item={item} />
+                                            ) : (
+                                                <SortableItem key={getItemId(item)} item={item} />
+                                            );
+                                        })}
+                                        {customMenu.length === 0 && (
+                                            <div className={styles.emptyMenu}>
+                                                <p>Your custom menu is empty.</p>
+                                                <p>Drag items from available menu items.</p>
+                                            </div>
+                                        )}
+                                    </DroppableArea>
+                                </SortableContext>
                             </CardBody>
                         </Card>
                     </div>
-                </DragDropContext>
+
+                    <DragOverlay>
+                        {activeId ? (
+                            <div className={`${styles.menuItem} ${styles.dragging}`}>
+                                <div className={styles.menuItemContent}>
+                                    <FontAwesomeIcon icon={faEllipsisV} className={styles.dragHandle} />
+                                    <span className={styles.itemTitle}>
+                                        {/* Find the actual item title */}
+                                        {(() => {
+                                            // Try to find in main menu
+                                            const mainItem = menuItems.mainMenu?.find(item => item.id === activeId);
+                                            if (mainItem) return mainItem.title;
+                                            
+                                            // Try to find in custom menu (flat search)
+                                            const findInCustomMenu = (items) => {
+                                                for (const item of items) {
+                                                    if (getItemId(item) === activeId) return item.title;
+                                                    if (item.subMenu) {
+                                                        const found = findInCustomMenu(item.subMenu);
+                                                        if (found) return found;
+                                                    }
+                                                }
+                                                return null;
+                                            };
+                                            
+                                            const customItem = findInCustomMenu(customMenu);
+                                            return customItem || 'Dragging...';
+                                        })()}
+                                    </span>
+                                </div>
+                            </div>
+                        ) : null}
+                    </DragOverlay>
+                </DndContext>
             </div>
 
             <div className={styles.actionButtons}>
