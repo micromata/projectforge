@@ -24,16 +24,15 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
-import org.projectforge.business.user.service.UserXmlPreferencesService
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.Menu
 import org.projectforge.menu.MenuItem
-import org.projectforge.menu.builder.FavoritesMenuCreator
 import org.projectforge.menu.builder.FavoritesMenuReaderWriter
 import org.projectforge.rest.config.Rest
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 private val log = KotlinLogging.logger {}
 
@@ -46,25 +45,17 @@ class MenuCustomizerRest {
 
     class CustomMenuData(val favoritesMenu: List<MenuItem>? = null)
 
-    @Autowired
-    private lateinit var favoritesMenuCreator: FavoritesMenuCreator
-    
-    @Autowired
-    private lateinit var userXmlPreferencesService: UserXmlPreferencesService
-
     /**
      * Saves the customized menu for the current user.
      * @param customMenuData The custom menu data with the favorites menu items.
      */
     @PostMapping("customized")
     fun saveCustomMenu(@RequestBody customMenuData: CustomMenuData): ResponseEntity<Any> {
-        log.info { "Saving customized menu via REST API for user: ${ThreadLocalUserContext.requiredLoggedInUser.username}" }
-        log.info { "Received ${customMenuData.favoritesMenu?.size ?: 0} menu items: ${customMenuData.favoritesMenu?.map { "${it.id}:${it.title}" }}" }
-
         if (customMenuData.favoritesMenu == null) {
             return ResponseEntity.badRequest().body(mapOf("message" to "Favorites menu cannot be null"))
         }
 
+        log.info { "User saves new custom menu." }
         // Create a new menu with the provided items
         // For groups that have subMenus, we need to ensure they don't conflict with existing MenuItemDefs
         val newMenu = Menu()
@@ -86,20 +77,6 @@ class MenuCustomizerRest {
 
         // Store the menu in user preferences
         FavoritesMenuReaderWriter.storeAsUserPref(newMenu)
-        log.info { "Menu successfully stored for user: ${ThreadLocalUserContext.requiredLoggedInUser.username}" }
-
-        // Verify by reading it back
-        val verifyMenu = favoritesMenuCreator.getFavoriteMenu()
-        log.info { "Verification: Read back ${verifyMenu.menuItems.size} items: ${verifyMenu.menuItems.map { "${it.id}:${it.title}" }}" }
-        
-        // Also check what's actually stored in user preferences
-        val storedPref = userXmlPreferencesService.getEntry("usersFavoriteMenuEntries") as String?
-        log.info { "Stored preference length: ${storedPref?.length ?: 0}" }
-        log.info { "Stored preference preview: ${storedPref?.take(200) ?: "null"}" }
-        
-        // Direct test: Read the stored XML directly
-        val directReadMenu = favoritesMenuCreator.getFavoriteMenu(storedPref)
-        log.info { "Direct read test: ${directReadMenu.menuItems.size} items: ${directReadMenu.menuItems.map { "${it.id}:${it.title}" }}" }
 
         return ResponseEntity.ok(mapOf("status" to "success"))
     }
@@ -109,9 +86,7 @@ class MenuCustomizerRest {
      */
     @PostMapping("reset")
     fun resetMenu(): ResponseEntity<Any> {
-        log.info { "Resetting menu to default via REST API for user: ${ThreadLocalUserContext.requiredLoggedInUser.username}" }
-
-        // Clear the user preference for favorites menu
+        log.info { "Clear the user preference for favorites menu." }
         FavoritesMenuReaderWriter.storeAsUserPref(null)
 
         return ResponseEntity.ok(mapOf("status" to "success"))
