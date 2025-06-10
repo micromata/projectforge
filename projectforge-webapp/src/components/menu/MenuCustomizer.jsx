@@ -425,18 +425,41 @@ function MenuCustomizer() {
         
         // Add to destination at the correct position
         if (destContainer === 'favorites') {
+            // Check if this item already exists anywhere in custom menu (top-level or groups)
+            const baseId = getItemId(sourceItem);
+            
+            // Check top-level items
+            const topLevelIds = newCustomMenu.map(item => getItemId(item));
+            if (topLevelIds.includes(baseId)) {
+                console.log('🚫 Item already exists at top level:', baseId);
+                return; // Prevent duplicate
+            }
+            
+            // Check all group items
+            for (const item of newCustomMenu) {
+                if (item.subMenu) {
+                    const groupItemIds = item.subMenu.map(subItem => getItemId(subItem));
+                    if (groupItemIds.includes(baseId)) {
+                        console.log('🚫 Item already exists in group:', getItemId(item), 'baseId:', baseId);
+                        return; // Prevent duplicate
+                    }
+                }
+            }
+            
+            const itemCopy = { ...sourceItem };
+            
             // Handle drop zones - extract index from drop-zone-{index}
             if (overId.toString().startsWith('drop-zone-')) {
                 if (overId === 'drop-zone-start') {
                     console.log('   Adding to favorites via start drop zone, index: 0');
                     // Insert at the beginning
-                    newCustomMenu.splice(0, 0, { ...sourceItem });
+                    newCustomMenu.splice(0, 0, itemCopy);
                     console.log('   ✅ Item inserted at start position');
                 } else {
                     const dropZoneIndex = parseInt(overId.toString().replace('drop-zone-', ''));
                     console.log('   Adding to favorites via drop zone, index:', dropZoneIndex + 1);
                     // Insert after the item at dropZoneIndex
-                    newCustomMenu.splice(dropZoneIndex + 1, 0, { ...sourceItem });
+                    newCustomMenu.splice(dropZoneIndex + 1, 0, itemCopy);
                     console.log('   ✅ Item inserted at drop zone position', dropZoneIndex + 1);
                 }
             } else {
@@ -444,10 +467,10 @@ function MenuCustomizer() {
                 const overIndex = newCustomMenu.findIndex(item => getItemId(item) === overId);
                 console.log('   Adding to favorites, overIndex:', overIndex, 'overId:', overId);
                 if (overIndex !== -1) {
-                    newCustomMenu.splice(overIndex, 0, { ...sourceItem });
+                    newCustomMenu.splice(overIndex, 0, itemCopy);
                     console.log('   ✅ Item inserted at position', overIndex);
                 } else {
-                    newCustomMenu.push({ ...sourceItem });
+                    newCustomMenu.push(itemCopy);
                     console.log('   ✅ Item pushed to end');
                 }
             }
@@ -463,13 +486,36 @@ function MenuCustomizer() {
                 
                 const subMenu = newCustomMenu[destGroupIndex].subMenu;
                 
+                // Check if this item already exists anywhere in custom menu
+                const baseId = getItemId(sourceItem);
+                
+                // Check top-level items
+                const topLevelIds = newCustomMenu.map(item => getItemId(item));
+                if (topLevelIds.includes(baseId)) {
+                    console.log('🚫 Item already exists at top level, cannot add to group:', baseId);
+                    return; // Prevent duplicate
+                }
+                
+                // Check all group items (including current group)
+                for (const item of newCustomMenu) {
+                    if (item.subMenu) {
+                        const groupItemIds = item.subMenu.map(subItem => getItemId(subItem));
+                        if (groupItemIds.includes(baseId)) {
+                            console.log('🚫 Item already exists in group:', getItemId(item), 'baseId:', baseId);
+                            return; // Prevent duplicate
+                        }
+                    }
+                }
+                
+                const itemCopy = { ...sourceItem };
+                
                 // Handle group drop zones
                 if (overId.toString().includes('-drop-zone-')) {
                     const parts = overId.toString().split('-drop-zone-');
                     const dropZoneIndex = parseInt(parts[1]);
                     console.log('   Adding to group via drop zone, index:', dropZoneIndex + 1);
                     // Insert after the item at dropZoneIndex
-                    subMenu.splice(dropZoneIndex + 1, 0, { ...sourceItem });
+                    subMenu.splice(dropZoneIndex + 1, 0, itemCopy);
                     console.log('   ✅ Item inserted at group drop zone position', dropZoneIndex + 1);
                 } else {
                     // Extract the original ID from the compound overId for group items
@@ -478,10 +524,10 @@ function MenuCustomizer() {
                     
                     console.log('   Adding to group, originalOverId:', originalOverId, 'overIndex:', overIndex);
                     if (overIndex !== -1) {
-                        subMenu.splice(overIndex, 0, { ...sourceItem });
+                        subMenu.splice(overIndex, 0, itemCopy);
                         console.log('   ✅ Item inserted at group position', overIndex);
                     } else {
-                        subMenu.push({ ...sourceItem });
+                        subMenu.push(itemCopy);
                         console.log('   ✅ Item pushed to end of group');
                     }
                 }
@@ -549,25 +595,30 @@ function MenuCustomizer() {
     };
 
     const removeItem = (itemId, groupId = null) => {
+        console.log('🗑️ Removing item:', itemId, 'from group:', groupId);
+        
         if (groupId) {
-            // Remove item from group
+            // Remove item from group - use exact ID match
             const newCustomMenu = customMenu.map((item) => {
-                const currentItemId = item.id || item.key;
+                const currentItemId = getItemId(item);
                 if (currentItemId === groupId && item.subMenu) {
                     return {
                         ...item,
-                        subMenu: item.subMenu.filter((subItem) => subItem.id !== itemId),
+                        subMenu: item.subMenu.filter((subItem) => getItemId(subItem) !== itemId),
                     };
                 }
                 return item;
             });
             setCustomMenu(newCustomMenu);
+            console.log('✅ Item removed from group');
         } else {
-            // Remove item from top level
-            setCustomMenu(customMenu.filter((item) => {
-                const currentItemId = item.id || item.key;
+            // Remove item from top level - use exact ID match
+            const newCustomMenu = customMenu.filter((item) => {
+                const currentItemId = getItemId(item);
                 return currentItemId !== itemId;
-            }));
+            });
+            setCustomMenu(newCustomMenu);
+            console.log('✅ Item removed from top level');
         }
     };
 
@@ -742,7 +793,7 @@ function MenuCustomizer() {
                         <Button
                             color="link"
                             className={styles.actionButton}
-                            onClick={() => removeItem(item.id, groupId)}
+                            onClick={() => removeItem(getItemId(item), groupId)}
                             title="Remove from group"
                         >
                             <FontAwesomeIcon icon={faMinus} />
@@ -752,7 +803,7 @@ function MenuCustomizer() {
                         <Button
                             color="link"
                             className={styles.actionButton}
-                            onClick={() => removeItem(item.id)}
+                            onClick={() => removeItem(getItemId(item))}
                             title="Remove from favorites"
                         >
                             <FontAwesomeIcon icon={faTrash} />
