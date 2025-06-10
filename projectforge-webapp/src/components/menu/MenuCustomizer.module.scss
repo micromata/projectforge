@@ -34,6 +34,13 @@
   flex-wrap: wrap;
   gap: 15px;
   align-items: flex-start;
+  
+  // Prevent layout shifts during drag operations
+  &.dragging {
+    * {
+      pointer-events: none;
+    }
+  }
 }
 
 /* Template menu layout */
@@ -56,18 +63,27 @@
   transition: all 0.2s ease;
   white-space: nowrap;
   min-width: 120px;
+  position: relative;
   
-  &:hover {
+  &:hover:not(.dragging) {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   }
   
   &.dragging {
     opacity: 0.4;
+    transform: none !important;
+    transition: none !important;
   }
   
   .horizontalMenuList & {
     border-top: 3px solid #007bff;
+    
+    // Stabilize layout during drag
+    &.dragging {
+      height: auto;
+      min-height: 40px;
+    }
   }
   
   .templateMenuBody & {
@@ -112,6 +128,13 @@
   border-radius: 8px;
   overflow: hidden;
   border-top: 3px solid #007bff;
+  
+  // Stabilize group layout during drag
+  &.dragging {
+    min-height: 100px;
+    transform: none !important;
+    transition: none !important;
+  }
 }
 
 .folderIcon {
