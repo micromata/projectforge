@@ -48,6 +48,7 @@ function MenuCustomizer() {
     const [success, setSuccess] = useState(null);
     const [activeId, setActiveId] = useState(null);
     const [overId, setOverId] = useState(null);
+    const [draggedItem, setDraggedItem] = useState(null);
     
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -121,6 +122,14 @@ function MenuCustomizer() {
         console.log('🚀 Drag Start:', event.active.id, event.active.data.current);
         setActiveId(event.active.id);
         
+        // Store the dragged item data for the overlay
+        const activeData = event.active.data.current;
+        if (activeData && activeData.item) {
+            setDraggedItem(activeData.item);
+        } else {
+            setDraggedItem(null);
+        }
+        
         // Store current scroll position
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
@@ -174,6 +183,7 @@ function MenuCustomizer() {
         
         setActiveId(null);
         setOverId(null);
+        setDraggedItem(null);
         
         const { active, over } = event;
         
@@ -1249,10 +1259,17 @@ function MenuCustomizer() {
                 </div>
                 
                 <DragOverlay>
-                    {activeId ? (
+                    {activeId && draggedItem ? (
                         <div className={styles.dragOverlayItem}>
                             <FontAwesomeIcon icon={faEllipsisV} className={styles.dragHandle} />
-                            <span>Dragging item...</span>
+                            {draggedItem.subMenu ? (
+                                <>
+                                    <FontAwesomeIcon icon={faFolder} className={styles.folderIcon} />
+                                    <span>{draggedItem.title}</span>
+                                </>
+                            ) : (
+                                <span>{draggedItem.title}</span>
+                            )}
                         </div>
                     ) : null}
                 </DragOverlay>
