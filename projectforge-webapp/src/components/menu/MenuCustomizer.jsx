@@ -215,7 +215,13 @@ function MenuCustomizer() {
             if (overData?.groupId) {
                 destContainer = `group-${overData.groupId}`;
             } else if (overId.toString().startsWith('group-')) {
-                destContainer = overId.toString();
+                // Handle group drop zones for template items
+                if (overId.toString().includes('-drop-zone-')) {
+                    const parts = overId.toString().split('-drop-zone-');
+                    destContainer = parts[0]; // e.g., "group-PROJECT_MANAGEMENT"
+                } else {
+                    destContainer = overId.toString();
+                }
             } else {
                 destContainer = 'favorites';
             }
@@ -347,28 +353,61 @@ function MenuCustomizer() {
                 const subMenu = customMenu[groupIndex].subMenu;
                 const oldIndex = subMenu.findIndex(item => getItemId(item) === originalActiveId);
                 
-                // Check if dropping on group itself (originalOverId matches groupId)
-                if (originalOverId === groupId) {
-                    console.log('   Dropping on group header - no reorder needed');
-                    return; // No action needed when dropping on group header
-                }
-                
-                const newIndex = subMenu.findIndex(item => getItemId(item) === originalOverId);
-                
-                console.log('   Group reorder:', oldIndex, '->', newIndex, 'in group', groupId);
-                if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-                    const newCustomMenu = [...customMenu];
-                    const newSubMenu = arrayMove(subMenu, oldIndex, newIndex);
+                // Check if dropping on group drop zone
+                if (overId.toString().includes('-drop-zone-')) {
+                    const parts = overId.toString().split('-drop-zone-');
+                    const dropZoneIndex = parseInt(parts[1]);
+                    let newIndex = dropZoneIndex + 1; // Position after the drop zone
                     
-                    newCustomMenu[groupIndex] = {
-                        ...newCustomMenu[groupIndex],
-                        subMenu: newSubMenu,
-                    };
-                    
-                    setCustomMenu(newCustomMenu);
-                    console.log('✅ Group reordered');
+                    console.log('   Group reorder via drop zone:', oldIndex, '->', newIndex, 'in group', groupId);
+                    if (oldIndex !== -1) {
+                        // Adjust newIndex if moving within same group
+                        if (oldIndex < newIndex) {
+                            newIndex = newIndex - 1;
+                        }
+                        
+                        // Ensure newIndex is within bounds
+                        newIndex = Math.min(newIndex, subMenu.length - 1);
+                        newIndex = Math.max(newIndex, 0);
+                        
+                        console.log('   Adjusted group reorder:', oldIndex, '->', newIndex);
+                        if (oldIndex !== newIndex) {
+                            const newCustomMenu = [...customMenu];
+                            const newSubMenu = arrayMove(subMenu, oldIndex, newIndex);
+                            
+                            newCustomMenu[groupIndex] = {
+                                ...newCustomMenu[groupIndex],
+                                subMenu: newSubMenu,
+                            };
+                            
+                            setCustomMenu(newCustomMenu);
+                            console.log('✅ Group reordered via drop zone');
+                        }
+                    }
                 } else {
-                    console.log('❌ Invalid group reorder indices');
+                    // Check if dropping on group itself (originalOverId matches groupId)
+                    if (originalOverId === groupId) {
+                        console.log('   Dropping on group header - no reorder needed');
+                        return; // No action needed when dropping on group header
+                    }
+                    
+                    const newIndex = subMenu.findIndex(item => getItemId(item) === originalOverId);
+                    
+                    console.log('   Group reorder:', oldIndex, '->', newIndex, 'in group', groupId);
+                    if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+                        const newCustomMenu = [...customMenu];
+                        const newSubMenu = arrayMove(subMenu, oldIndex, newIndex);
+                        
+                        newCustomMenu[groupIndex] = {
+                            ...newCustomMenu[groupIndex],
+                            subMenu: newSubMenu,
+                        };
+                        
+                        setCustomMenu(newCustomMenu);
+                        console.log('✅ Group reordered');
+                    } else {
+                        console.log('❌ Invalid group reorder indices');
+                    }
                 }
             }
         }
