@@ -73,6 +73,24 @@ class PollCronJobs {
         }.start()
     }
 
+    private fun getEmailsOfUsersWhoHaventResponded(poll: Poll, pollId: Long): List<String> {
+        // Alle E-Mail-Adressen der Teilnehmer abrufen
+        val allAttendeesEmails = pollMailService.getAllAttendeesEmails(poll)
+        // Alle Antworten für diese Umfrage abrufen
+        val allResponses = pollResponseDao.selectAll(checkAccess = false)
+            .filter { response ->
+                response.poll?.id == pollId
+            }
+        // E-Mail-Adressen von Benutzern, die bereits geantwortet haben
+        val respondedUserEmails = allResponses.mapNotNull { response ->
+            response.owner?.email
+        }.toSet()
+        // Nur E-Mails von Benutzern zurückgeben, die noch nicht geantwortet haben
+        return allAttendeesEmails.filter { email ->
+            email !in respondedUserEmails
+        }
+    }
+
 
     /**
      * Method to end polls after deadline
@@ -117,17 +135,24 @@ class PollCronJobs {
             val daysDifference = ChronoUnit.DAYS.between(LocalDate.now(), pollDO.deadline)
             if (daysDifference == 1L || daysDifference == 7L) {
                 // add all attendees mails
-                val mailTo = pollMailService.getAllAttendeesEmails(poll)
-                val mailFrom = pollDO.owner?.email.toString()
-                val mailSubject = translateMsg("poll.mail.endingSoon.subject", daysDifference)
-                val mailContent = translateMsg(
-                    "poll.mail.endingSoon.content",
-                    pollDO.title,
-                    pollDO.owner?.displayName,
-                    pollDO.deadline?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString(),
-                    pollDO.id.toString(),
-                )
-                pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
+                val mailToFiltered = getEmailsOfUsersWhoHaventResponded(poll, pollDO.id!!)
+
+                if (mailToFiltered.isNotEmpty()) {
+                    val mailTo = pollMailService.getAllAttendeesEmails(poll)
+                    val mailFrom = pollDO.owner?.email.toString()
+                    val mailSubject = translateMsg("poll.mail.endingSoon.subject", daysDifference)
+                    val mailContent = translateMsg(
+                        "poll.mail.endingSoon.content",
+                        pollDO.title,
+                        pollDO.owner?.displayName,
+                        pollDO.deadline?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString(),
+                        pollDO.id.toString(),
+                    )
+                    pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
+                    log.info("Sent reminder mail for poll (${pollDO.id}) to ${mailToFiltered.size} users who haven't responded yet")
+                } else {
+                    log.info("No reminder mail sent for poll (${pollDO.id}) - all users have already responded")
+                }
             }
         }
     }
