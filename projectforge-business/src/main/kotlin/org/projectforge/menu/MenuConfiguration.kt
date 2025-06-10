@@ -202,7 +202,7 @@ open class MenuConfiguration {
             )
         )
         registry.add(MenuVisibility("myAccount", myAccountVisibility, MenuItemDefId.MY_ACCOUNT))
-        registry.add(MenuVisibility("myMenu", myAccountVisibility, MenuItemDefId.MY_MENU))
+        registry.add(MenuVisibility("customizeMenu", myAccountVisibility, MenuItemDefId.CUSTOMIZE_MENU))
         registry.add(MenuVisibility("my2FA", my2FAVisibility, MenuItemDefId.MY_2FA))
         registry.add(MenuVisibility("my2FASetup", my2FASetupVisibility, MenuItemDefId.MY_2FA_SETUP))
         registry.add(MenuVisibility("myScripts", myScriptsVisibility, MenuItemDefId.MY_SCRIPT_LIST))

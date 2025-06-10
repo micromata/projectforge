@@ -93,10 +93,6 @@ function MenuCustomizer() {
 
                 const allMenuItems = flattenMenuItems(menuStructure);
 
-                console.log('📥 Loaded menu data:');
-                console.log('  - Main menu items:', allMenuItems.length);
-                console.log('  - Favorites menu items:', (json.favoritesMenu.menuItems || []).length);
-                console.log('  - Favorites items:', (json.favoritesMenu.menuItems || []).map(item => ({ id: (item.id || item.key), title: item.title })));
                 
                 setMenuItems({
                     // Store both the structured and flattened menu items
@@ -108,8 +104,6 @@ function MenuCustomizer() {
                 setLoading(false);
             })
             .catch((err) => {
-                // eslint-disable-next-line no-console
-                console.error('Error loading menu data:', err);
                 setError('Error loading menu data. Please try again.');
                 setLoading(false);
             });
@@ -119,12 +113,8 @@ function MenuCustomizer() {
         loadMenuData();
     }, []);
 
-    useEffect(() => {
-        console.log('📋 Custom menu changed:', customMenu.length, 'items:', customMenu.map(item => item.title));
-    }, [customMenu]);
 
     const handleDragStart = (event) => {
-        console.log('🚀 Drag Start:', event.active.id, event.active.data.current);
         setActiveId(event.active.id);
         
         // Store the dragged item data for the overlay
@@ -149,14 +139,10 @@ function MenuCustomizer() {
 
     const handleDragOver = (event) => {
         const { over } = event;
-        console.log('🔄 Drag Over:', over ? over.id : 'null', over ? over.data.current : 'no data');
         setOverId(over ? over.id : null);
     };
 
     const handleDragEnd = (event) => {
-        console.log('🏁 Drag End:', event.active.id, '->', event.over ? event.over.id : 'null');
-        console.log('   Active Data:', event.active.data.current);
-        console.log('   Over Data:', event.over ? event.over.data.current : 'none');
         
         // Re-enable scrolling and restore position
         document.body.style.overflow = '';
@@ -193,14 +179,11 @@ function MenuCustomizer() {
         const { active, over } = event;
         
         if (!over) {
-            console.log('❌ No drop target');
             return;
         }
 
         const activeId = active.id;
         const overId = over.id;
-        
-        console.log('🔍 Raw IDs - activeId:', activeId, 'overId:', overId);
         
 
         // Determine containers based on our data structure
@@ -252,7 +235,6 @@ function MenuCustomizer() {
                     destContainer = 'favorites'; // Dropping on top-level items or favorites area
                 } else {
                     // Prevent dropping groups into group items or invalid targets
-                    console.log('🚫 Invalid drop target for group');
                     return;
                 }
             } else {
@@ -289,32 +271,22 @@ function MenuCustomizer() {
         
         // For groups, only allow reordering within favorites (top level)
         if (activeData?.type === 'group' && destContainer !== 'favorites') {
-            console.log('🚫 Group move blocked - groups can only be reordered at top level');
             return;
         }
 
-        console.log('🔄 Container transfer:', sourceContainer, '->', destContainer);
-
         // If dragging from mainMenu (template), always treat as cross-container move
         if (sourceContainer === 'mainMenu') {
-            console.log('🔀 Template to custom menu move to:', destContainer);
             handleCrossContainerMove(sourceContainer, destContainer, activeId, overId);
         } else if (sourceContainer === destContainer) {
-            console.log('📋 Same container reorder');
             handleSameContainerReorder(sourceContainer, activeId, overId);
         } else {
-            console.log('🔀 Cross container move');
             handleCrossContainerMove(sourceContainer, destContainer, activeId, overId);
         }
     };
     
     const handleSameContainerReorder = (containerId, activeId, overId) => {
-        console.log('🔄 Same container reorder:', containerId, activeId, '->', overId);
-        
         const originalActiveId = getOriginalId(activeId);
         const originalOverId = getOriginalId(overId);
-        
-        console.log('🔍 Reorder Original IDs - activeId:', originalActiveId, 'overId:', originalOverId);
         
         if (containerId === 'favorites') {
             // Check if dropping on a drop zone
@@ -330,7 +302,6 @@ function MenuCustomizer() {
                     newIndex = dropZoneIndex + 1;
                 }
                 
-                console.log('   Favorites reorder via drop zone:', oldIndex, '->', newIndex);
                 if (oldIndex !== -1 && oldIndex !== newIndex) {
                     // For groups and items, handle the adjustment differently
                     let adjustedNewIndex;
@@ -340,23 +311,18 @@ function MenuCustomizer() {
                         adjustedNewIndex = newIndex;
                     }
                     
-                    console.log('   Adjusted newIndex:', adjustedNewIndex);
                     const newCustomMenu = arrayMove(customMenu, oldIndex, adjustedNewIndex);
                     setCustomMenu(newCustomMenu);
-                    console.log('✅ Favorites reordered via drop zone to position', adjustedNewIndex);
                 }
             } else {
                 // Reordering in main favorites using regular items
                 const oldIndex = customMenu.findIndex(item => getItemId(item) === originalActiveId);
                 const newIndex = customMenu.findIndex(item => getItemId(item) === originalOverId);
                 
-                console.log('   Favorites reorder:', oldIndex, '->', newIndex);
                 if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
                     const newCustomMenu = arrayMove(customMenu, oldIndex, newIndex);
                     setCustomMenu(newCustomMenu);
-                    console.log('✅ Favorites reordered');
                 } else {
-                    console.log('❌ Invalid reorder indices');
                 }
             }
         } else if (containerId.startsWith('group-')) {
@@ -374,7 +340,6 @@ function MenuCustomizer() {
                     const dropZoneIndex = parseInt(parts[1]);
                     let newIndex = dropZoneIndex + 1; // Position after the drop zone
                     
-                    console.log('   Group reorder via drop zone:', oldIndex, '->', newIndex, 'in group', groupId);
                     if (oldIndex !== -1) {
                         // Adjust newIndex if moving within same group
                         if (oldIndex < newIndex) {
@@ -385,7 +350,6 @@ function MenuCustomizer() {
                         newIndex = Math.min(newIndex, subMenu.length - 1);
                         newIndex = Math.max(newIndex, 0);
                         
-                        console.log('   Adjusted group reorder:', oldIndex, '->', newIndex);
                         if (oldIndex !== newIndex) {
                             const newCustomMenu = [...customMenu];
                             const newSubMenu = arrayMove(subMenu, oldIndex, newIndex);
@@ -396,19 +360,16 @@ function MenuCustomizer() {
                             };
                             
                             setCustomMenu(newCustomMenu);
-                            console.log('✅ Group reordered via drop zone');
                         }
                     }
                 } else {
                     // Check if dropping on group itself (originalOverId matches groupId)
                     if (originalOverId === groupId) {
-                        console.log('   Dropping on group header - no reorder needed');
                         return; // No action needed when dropping on group header
                     }
                     
                     const newIndex = subMenu.findIndex(item => getItemId(item) === originalOverId);
                     
-                    console.log('   Group reorder:', oldIndex, '->', newIndex, 'in group', groupId);
                     if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
                         const newCustomMenu = [...customMenu];
                         const newSubMenu = arrayMove(subMenu, oldIndex, newIndex);
@@ -419,9 +380,7 @@ function MenuCustomizer() {
                         };
                         
                         setCustomMenu(newCustomMenu);
-                        console.log('✅ Group reordered');
                     } else {
-                        console.log('❌ Invalid group reorder indices');
                     }
                 }
             }
@@ -429,12 +388,10 @@ function MenuCustomizer() {
     };
     
     const handleCrossContainerMove = (sourceContainer, destContainer, activeId, overId) => {
-        console.log('🔀 Cross container move:', sourceContainer, '->', destContainer, 'activeId:', activeId, 'overId:', overId);
         
         const originalActiveId = getOriginalId(activeId);
         const originalOverId = overId ? getOriginalId(overId) : null;
         
-        console.log('🔍 Original IDs - activeId:', originalActiveId, 'overId:', originalOverId);
         
         // Find the item being moved
         let sourceItem = null;
@@ -443,7 +400,6 @@ function MenuCustomizer() {
         
         if (sourceContainer === 'mainMenu') {
             sourceItem = menuItems.mainMenu.find(item => item.id === originalActiveId);
-            console.log('   Found mainMenu item:', sourceItem);
         } else if (sourceContainer === 'favorites') {
             sourceIndex = customMenu.findIndex(item => getItemId(item) === originalActiveId);
             if (sourceIndex !== -1) {
@@ -461,11 +417,9 @@ function MenuCustomizer() {
         }
         
         if (!sourceItem) {
-            console.log('   ❌ No source item found for activeId:', activeId);
             return;
         }
         
-        console.log('   ✅ Source item found:', sourceItem.title);
         
         // Handle the move
         const newCustomMenu = [...customMenu];
@@ -485,7 +439,6 @@ function MenuCustomizer() {
             // Check top-level items
             const topLevelIds = newCustomMenu.map(item => getItemId(item));
             if (topLevelIds.includes(baseId)) {
-                console.log('🚫 Item already exists at top level:', baseId);
                 return; // Prevent duplicate
             }
             
@@ -494,7 +447,6 @@ function MenuCustomizer() {
                 if (item.subMenu) {
                     const groupItemIds = item.subMenu.map(subItem => getItemId(subItem));
                     if (groupItemIds.includes(baseId)) {
-                        console.log('🚫 Item already exists in group:', getItemId(item), 'baseId:', baseId);
                         return; // Prevent duplicate
                     }
                 }
@@ -505,27 +457,20 @@ function MenuCustomizer() {
             // Handle drop zones - extract index from drop-zone-{index}
             if (overId.toString().startsWith('drop-zone-')) {
                 if (overId === 'drop-zone-start') {
-                    console.log('   Adding to favorites via start drop zone, index: 0');
                     // Insert at the beginning
                     newCustomMenu.splice(0, 0, itemCopy);
-                    console.log('   ✅ Item inserted at start position');
                 } else {
                     const dropZoneIndex = parseInt(overId.toString().replace('drop-zone-', ''));
-                    console.log('   Adding to favorites via drop zone, index:', dropZoneIndex + 1);
                     // Insert after the item at dropZoneIndex
                     newCustomMenu.splice(dropZoneIndex + 1, 0, itemCopy);
-                    console.log('   ✅ Item inserted at drop zone position', dropZoneIndex + 1);
                 }
             } else {
                 // Find the position to insert based on overId
                 const overIndex = newCustomMenu.findIndex(item => getItemId(item) === overId);
-                console.log('   Adding to favorites, overIndex:', overIndex, 'overId:', overId);
                 if (overIndex !== -1) {
                     newCustomMenu.splice(overIndex, 0, itemCopy);
-                    console.log('   ✅ Item inserted at position', overIndex);
                 } else {
                     newCustomMenu.push(itemCopy);
-                    console.log('   ✅ Item pushed to end');
                 }
             }
         } else if (destContainer.startsWith('group-')) {
@@ -546,7 +491,6 @@ function MenuCustomizer() {
                 // Check top-level items
                 const topLevelIds = newCustomMenu.map(item => getItemId(item));
                 if (topLevelIds.includes(baseId)) {
-                    console.log('🚫 Item already exists at top level, cannot add to group:', baseId);
                     return; // Prevent duplicate
                 }
                 
@@ -555,8 +499,7 @@ function MenuCustomizer() {
                     if (item.subMenu) {
                         const groupItemIds = item.subMenu.map(subItem => getItemId(subItem));
                         if (groupItemIds.includes(baseId)) {
-                            console.log('🚫 Item already exists in group:', getItemId(item), 'baseId:', baseId);
-                            return; // Prevent duplicate
+                                return; // Prevent duplicate
                         }
                     }
                 }
@@ -567,29 +510,22 @@ function MenuCustomizer() {
                 if (overId.toString().includes('-drop-zone-')) {
                     const parts = overId.toString().split('-drop-zone-');
                     const dropZoneIndex = parseInt(parts[1]);
-                    console.log('   Adding to group via drop zone, index:', dropZoneIndex + 1);
                     // Insert after the item at dropZoneIndex
                     subMenu.splice(dropZoneIndex + 1, 0, itemCopy);
-                    console.log('   ✅ Item inserted at group drop zone position', dropZoneIndex + 1);
                 } else {
                     // Extract the original ID from the compound overId for group items
                     const originalOverId = getOriginalId(overId);
                     const overIndex = subMenu.findIndex(item => getItemId(item) === originalOverId);
                     
-                    console.log('   Adding to group, originalOverId:', originalOverId, 'overIndex:', overIndex);
                     if (overIndex !== -1) {
                         subMenu.splice(overIndex, 0, itemCopy);
-                        console.log('   ✅ Item inserted at group position', overIndex);
                     } else {
                         subMenu.push(itemCopy);
-                        console.log('   ✅ Item pushed to end of group');
                     }
                 }
             }
         }
         
-        console.log('   📋 Setting new custom menu:', newCustomMenu);
-        console.log('   📋 Item IDs:', newCustomMenu.map(item => ({ id: getItemId(item), title: item.title })));
         setCustomMenu(newCustomMenu);
     };
     
@@ -649,7 +585,6 @@ function MenuCustomizer() {
     };
 
     const removeItem = (itemId, groupId = null) => {
-        console.log('🗑️ Removing item:', itemId, 'from group:', groupId);
         
         if (groupId) {
             // Remove item from group - use exact ID match
@@ -664,7 +599,6 @@ function MenuCustomizer() {
                 return item;
             });
             setCustomMenu(newCustomMenu);
-            console.log('✅ Item removed from group');
         } else {
             // Remove item from top level - use exact ID match
             const newCustomMenu = customMenu.filter((item) => {
@@ -672,13 +606,11 @@ function MenuCustomizer() {
                 return currentItemId !== itemId;
             });
             setCustomMenu(newCustomMenu);
-            console.log('✅ Item removed from top level');
         }
     };
 
     const saveMenu = () => {
         setLoading(true);
-        console.log('💾 Saving menu with', customMenu.length, 'items:', customMenu.map(item => ({ id: getItemId(item), title: item.title })));
         
         // Clean up the menu items before sending - remove unnecessary properties for leaf nodes
         const cleanedMenu = customMenu.map(item => {
@@ -698,7 +630,6 @@ function MenuCustomizer() {
             }
         });
         
-        console.log('🧹 Cleaned menu data:', cleanedMenu.map(item => ({ id: getItemId(item), title: item.title, hasSubMenu: !!item.subMenu })));
         
         fetch(`${baseRestURL}/menu/customized`, {
             method: 'POST',
@@ -711,15 +642,12 @@ function MenuCustomizer() {
             .then(handleHTTPErrors)
             .then((response) => response.json())
             .then((result) => {
-                console.log('✅ Menu save response:', result);
                 setSuccess('Menu saved successfully');
                 setLoading(false);
                 // Refresh the menu data
                 loadMenuData();
             })
             .catch((err) => {
-                // eslint-disable-next-line no-console
-                console.error('❌ Error saving menu:', err);
                 setError('Error saving menu. Please try again.');
                 setLoading(false);
             });
@@ -746,8 +674,6 @@ function MenuCustomizer() {
                     loadMenuData();
                 })
                 .catch((err) => {
-                    // eslint-disable-next-line no-console
-                    console.error('Error resetting menu:', err);
                     setError('Error resetting menu. Please try again.');
                     setLoading(false);
                 });

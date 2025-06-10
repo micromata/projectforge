@@ -80,7 +80,6 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     LOGOUT("menu.logout", url = "logout"), //
     MONTHLY_EMPLOYEE_REPORT("menu.monthlyEmployeeReport", "wa/monthlyEmployeeReport"), //
     MY_ACCOUNT("menu.myAccount", getReactDynamicPageUrl("myAccount")), //
-    MY_MENU("menu.myMenu", getReactDynamicPageUrl("myMenu")), //
     CUSTOMIZE_MENU("menu.customizeMenu", "${Constants.REACT_APP_PATH}customizeMenu"), //
     MY_2FA("menu.2FA", getReactDynamicPageUrl(TWO_FACTOR_AUTHENTIFICATION_SUB_URL_PRIV)), //
     MY_2FA_SETUP("menu.2FASetup", getReactDynamicPageUrl("2FASetup")), //
