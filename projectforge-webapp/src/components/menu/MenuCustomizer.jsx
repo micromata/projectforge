@@ -220,25 +220,49 @@ function MenuCustomizer() {
                 destContainer = 'favorites';
             }
         } else {
-            // Normal destination detection for non-template items
-            if (overData?.groupId) {
-                destContainer = `group-${overData.groupId}`;
-            } else if (overData?.isMainMenu) {
-                destContainer = 'mainMenu';
-            } else if (overId.toString().startsWith('group-')) {
-                destContainer = overId.toString();
-            } else if (overId.toString().startsWith('drop-zone-')) {
-                // Dropping on a drop zone - always treat as favorites
-                destContainer = 'favorites';
-            } else if (overData?.type === 'group') {
-                // If dropping on a group header, treat as same container if item is from that group
-                if (activeData?.groupId && activeData.groupId === getItemId(overData.item)) {
-                    destContainer = `group-${activeData.groupId}`;
+            // Special handling for group moves - groups can only be reordered at top level
+            if (activeData?.type === 'group') {
+                // For groups, only allow dropping on drop zones or other groups at top level
+                if (overId.toString().startsWith('drop-zone-')) {
+                    destContainer = 'favorites';
+                } else if (overData?.type === 'group') {
+                    destContainer = 'favorites'; // Group-to-group reordering at top level
+                } else if (overId.toString().startsWith('custom-') || overId === 'favorites') {
+                    destContainer = 'favorites'; // Dropping on top-level items or favorites area
                 } else {
-                    destContainer = `group-${getItemId(overData.item)}`;
+                    // Prevent dropping groups into group items or invalid targets
+                    console.log('🚫 Invalid drop target for group');
+                    return;
                 }
             } else {
-                destContainer = 'favorites';
+                // Normal destination detection for non-template items
+                if (overData?.groupId) {
+                    destContainer = `group-${overData.groupId}`;
+                } else if (overData?.isMainMenu) {
+                    destContainer = 'mainMenu';
+                } else if (overId.toString().startsWith('drop-zone-')) {
+                    // Dropping on a drop zone - always treat as favorites
+                    destContainer = 'favorites';
+                } else if (overId.toString().includes('-drop-zone-')) {
+                    // Dropping on a group drop zone - extract group ID
+                    const parts = overId.toString().split('-drop-zone-');
+                    if (parts[0].startsWith('group-')) {
+                        destContainer = parts[0]; // e.g., "group-PROJECT_MANAGEMENT"
+                    } else {
+                        destContainer = 'favorites';
+                    }
+                } else if (overId.toString().startsWith('group-')) {
+                    destContainer = overId.toString();
+                } else if (overData?.type === 'group') {
+                    // If dropping on a group header, treat as same container if item is from that group
+                    if (activeData?.groupId && activeData.groupId === getItemId(overData.item)) {
+                        destContainer = `group-${activeData.groupId}`;
+                    } else {
+                        destContainer = `group-${getItemId(overData.item)}`;
+                    }
+                } else {
+                    destContainer = 'favorites';
+                }
             }
         }
         
@@ -266,19 +290,6 @@ function MenuCustomizer() {
     const handleSameContainerReorder = (containerId, activeId, overId) => {
         console.log('🔄 Same container reorder:', containerId, activeId, '->', overId);
         
-        // Extract original IDs from compound IDs
-        const getOriginalId = (id) => {
-            if (typeof id === 'string') {
-                if (id.startsWith('custom-')) {
-                    return id.substring(7); // Remove 'custom-' prefix
-                } else if (id.includes('-')) {
-                    const parts = id.split('-');
-                    return parts[parts.length - 1]; // Get the last part as the original ID
-                }
-            }
-            return id;
-        };
-        
         const originalActiveId = getOriginalId(activeId);
         const originalOverId = getOriginalId(overId);
         
@@ -300,8 +311,15 @@ function MenuCustomizer() {
                 
                 console.log('   Favorites reorder via drop zone:', oldIndex, '->', newIndex);
                 if (oldIndex !== -1 && oldIndex !== newIndex) {
-                    // Adjust newIndex if moving from left to right
-                    const adjustedNewIndex = oldIndex < newIndex ? newIndex - 1 : newIndex;
+                    // For groups and items, handle the adjustment differently
+                    let adjustedNewIndex;
+                    if (oldIndex < newIndex) {
+                        adjustedNewIndex = newIndex - 1;
+                    } else {
+                        adjustedNewIndex = newIndex;
+                    }
+                    
+                    console.log('   Adjusted newIndex:', adjustedNewIndex);
                     const newCustomMenu = arrayMove(customMenu, oldIndex, adjustedNewIndex);
                     setCustomMenu(newCustomMenu);
                     console.log('✅ Favorites reordered via drop zone to position', adjustedNewIndex);
@@ -358,19 +376,6 @@ function MenuCustomizer() {
     
     const handleCrossContainerMove = (sourceContainer, destContainer, activeId, overId) => {
         console.log('🔀 Cross container move:', sourceContainer, '->', destContainer, 'activeId:', activeId, 'overId:', overId);
-        
-        // Extract original IDs from compound IDs
-        const getOriginalId = (id) => {
-            if (typeof id === 'string') {
-                if (id.startsWith('custom-')) {
-                    return id.substring(7); // Remove 'custom-' prefix
-                } else if (id.includes('-')) {
-                    const parts = id.split('-');
-                    return parts[parts.length - 1]; // Get the last part as the original ID
-                }
-            }
-            return id;
-        };
         
         const originalActiveId = getOriginalId(activeId);
         const originalOverId = overId ? getOriginalId(overId) : null;
@@ -457,12 +462,28 @@ function MenuCustomizer() {
                 }
                 
                 const subMenu = newCustomMenu[destGroupIndex].subMenu;
-                const overIndex = subMenu.findIndex(item => getItemId(item) === overId);
                 
-                if (overIndex !== -1) {
-                    subMenu.splice(overIndex, 0, { ...sourceItem });
+                // Handle group drop zones
+                if (overId.toString().includes('-drop-zone-')) {
+                    const parts = overId.toString().split('-drop-zone-');
+                    const dropZoneIndex = parseInt(parts[1]);
+                    console.log('   Adding to group via drop zone, index:', dropZoneIndex + 1);
+                    // Insert after the item at dropZoneIndex
+                    subMenu.splice(dropZoneIndex + 1, 0, { ...sourceItem });
+                    console.log('   ✅ Item inserted at group drop zone position', dropZoneIndex + 1);
                 } else {
-                    subMenu.push({ ...sourceItem });
+                    // Extract the original ID from the compound overId for group items
+                    const originalOverId = getOriginalId(overId);
+                    const overIndex = subMenu.findIndex(item => getItemId(item) === originalOverId);
+                    
+                    console.log('   Adding to group, originalOverId:', originalOverId, 'overIndex:', overIndex);
+                    if (overIndex !== -1) {
+                        subMenu.splice(overIndex, 0, { ...sourceItem });
+                        console.log('   ✅ Item inserted at group position', overIndex);
+                    } else {
+                        subMenu.push({ ...sourceItem });
+                        console.log('   ✅ Item pushed to end of group');
+                    }
                 }
             }
         }
@@ -474,6 +495,19 @@ function MenuCustomizer() {
     
     const getItemId = (item) => {
         return item.id || item.key || `fallback-${Date.now()}`;
+    };
+
+    // Extract original IDs from compound IDs
+    const getOriginalId = (id) => {
+        if (typeof id === 'string') {
+            if (id.startsWith('custom-')) {
+                return id.substring(7); // Remove 'custom-' prefix
+            } else if (id.includes('-')) {
+                const parts = id.split('-');
+                return parts[parts.length - 1]; // Get the last part as the original ID
+            }
+        }
+        return id;
     };
 
     const addNewGroup = () => {
@@ -881,10 +915,8 @@ function MenuCustomizer() {
                 style={style}
                 className={className}
             >
-                <div className={styles.menuItemContent}>
-                    <div {...attributes} {...listeners}>
-                        <FontAwesomeIcon icon={faEllipsisV} className={styles.dragHandle} />
-                    </div>
+                <div className={styles.menuItemContent} {...attributes} {...listeners}>
+                    <FontAwesomeIcon icon={faEllipsisV} className={styles.dragHandle} />
                     <FontAwesomeIcon icon={faFolder} className={styles.folderIcon} />
 
                     {editingGroup === groupId ? (
@@ -900,14 +932,22 @@ function MenuCustomizer() {
                                 color="primary"
                                 size="sm"
                                 className={styles.saveGroupButton}
-                                onClick={() => editGroup(groupId, newGroupName)}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    editGroup(groupId, newGroupName);
+                                }}
+                                onMouseDown={(e) => e.stopPropagation()}
                             >
                                 <FontAwesomeIcon icon={faSave} />
                             </Button>
                             <Button
                                 color="secondary"
                                 size="sm"
-                                onClick={() => setEditingGroup(null)}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingGroup(null);
+                                }}
+                                onMouseDown={(e) => e.stopPropagation()}
                             >
                                 <FontAwesomeIcon icon={faUndo} />
                             </Button>
@@ -918,10 +958,12 @@ function MenuCustomizer() {
                             <Button
                                 color="link"
                                 className={styles.actionButton}
-                                onClick={() => {
+                                onClick={(e) => {
+                                    e.stopPropagation();
                                     setEditingGroup(groupId);
                                     setNewGroupName(item.title);
                                 }}
+                                onMouseDown={(e) => e.stopPropagation()}
                                 title="Edit group name"
                             >
                                 <FontAwesomeIcon icon={faPencilAlt} />
@@ -929,7 +971,11 @@ function MenuCustomizer() {
                             <Button
                                 color="link"
                                 className={styles.actionButton}
-                                onClick={() => removeItem(groupId)}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeItem(groupId);
+                                }}
+                                onMouseDown={(e) => e.stopPropagation()}
                                 title="Remove group"
                             >
                                 <FontAwesomeIcon icon={faTrash} />
@@ -944,13 +990,21 @@ function MenuCustomizer() {
                     strategy={verticalListSortingStrategy}
                 >
                     <div className={styles.groupContent}>
-                        {item.subMenu && item.subMenu.map((subItem) => {
+                        {item.subMenu && item.subMenu.map((subItem, subIndex) => {
                             return (
-                                <SortableItem 
-                                    key={getItemId(subItem)}
-                                    item={subItem} 
-                                    groupId={groupId}
-                                />
+                                <React.Fragment key={getItemId(subItem)}>
+                                    <SortableItem 
+                                        item={subItem} 
+                                        groupId={groupId}
+                                    />
+                                    {/* Add drop zone after each group item */}
+                                    <DroppableArea 
+                                        id={`group-${groupId}-drop-zone-${subIndex}`} 
+                                        className={styles.groupDropZone}
+                                    >
+                                        <div className={styles.groupDropZoneIndicator} />
+                                    </DroppableArea>
+                                </React.Fragment>
                             );
                         })}
                         {(!item.subMenu || item.subMenu.length === 0) && (

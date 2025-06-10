@@ -95,6 +95,15 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  
+  .groupItem & {
+    cursor: grab;
+    padding: 4px 0;
+    
+    &:active {
+      cursor: grabbing;
+    }
+  }
 }
 
 .dragHandle {
@@ -199,6 +208,36 @@
     width: 4px;
     background-color: #007bff;
     box-shadow: 0 0 8px rgba(0, 123, 255, 0.6);
+  }
+}
+
+/* Drop zones within groups */
+.groupDropZone {
+  width: 100%;
+  height: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  margin: 2px 0;
+  
+  &.draggingOver {
+    height: 12px;
+    background-color: rgba(40, 167, 69, 0.2);
+  }
+}
+
+.groupDropZoneIndicator {
+  width: 80%;
+  height: 1px;
+  background-color: transparent;
+  border-radius: 1px;
+  transition: all 0.2s ease;
+  
+  .groupDropZone.draggingOver & {
+    height: 3px;
+    background-color: #28a745;
+    box-shadow: 0 0 6px rgba(40, 167, 69, 0.6);
   }
 }
 
