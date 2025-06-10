@@ -102,7 +102,7 @@ class HibernateSearchReindexer {
     fun rebuildDatabaseSearchIndices(settings: ReindexSettings, vararg classes: Class<*>): String {
         if (currentReindexRun != null) {
             val sb = StringBuilder()
-            if (classes != null && classes.size > 0) {
+            if (classes != null && classes.isNotEmpty()) {
                 var first = true
                 for (cls in classes) {
                     first = StringHelper.append(sb, first, cls.name, ", ")
@@ -122,7 +122,7 @@ class HibernateSearchReindexer {
             try {
                 currentReindexRun = Date()
                 val sb = StringBuilder()
-                if (classes != null && classes.size > 0) {
+                if (classes != null && classes.isNotEmpty()) {
                     for (cls in classes) {
                         reindex(cls, settings, sb)
                     }

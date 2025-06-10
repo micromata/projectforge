@@ -115,6 +115,7 @@ public class AccountingRecordListPage
         final List<IColumn<BuchungssatzDO, String>> columns = createColumns(this, true);
         dataTable = createDataTable(columns, "formattedSatzNummer", SortOrder.ASCENDING);
         form.add(dataTable);
+        addExcelExport(getString("fibu.buchungssaetze"), getString("fibu.buchungssaetze"));
     }
 
     @SuppressWarnings("serial")

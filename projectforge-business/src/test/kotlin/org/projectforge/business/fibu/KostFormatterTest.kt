@@ -175,7 +175,7 @@ class KostFormatterTest : AbstractTestBase() {
             kostFormatter.formatKost2(kost2, KostFormatter.FormatType.TEXT, 30)
         )
         Assertions.assertEquals(
-            "5.017.42.--: Project name very long name of the project with a lot of text to test the formatter",
+            "5.017.42.--: Project name very long name of the project with a lot of text to test the formatter - ACME very long na...",
             kostFormatter.formatKost2(kost2, KostFormatter.FormatType.LONG)
         )
         Kost2ArtDO().let { kost2Art ->

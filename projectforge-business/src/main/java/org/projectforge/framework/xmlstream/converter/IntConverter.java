@@ -37,7 +37,7 @@ public class IntConverter extends AbstractValueConverter<Integer>
       if (StringUtils.isEmpty(str) || XmlConstants.NULL_IDENTIFIER.equals(str)) {
         return null;
       }
-      return new Integer(str);
+      return Integer.valueOf(str);
     } catch (final NumberFormatException ex) {
       log.warn("Can't convert value '" + str + "' to int.");
       return 0;
