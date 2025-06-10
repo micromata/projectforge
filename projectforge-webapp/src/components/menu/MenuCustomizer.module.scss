@@ -1,128 +1,88 @@
+/* Clean, simple MenuCustomizer CSS - completely rebuilt */
+
 .menuCustomizer {
-  margin-bottom: 30px;
+  padding: 20px;
   
-  h2 {
-    margin-bottom: 20px;
+  // Prevent auto-scrolling during drag operations
+  * {
+    scroll-behavior: auto !important;
   }
 }
 
-.instructionsBox {
+.customMenuSection {
+  margin-bottom: 20px;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.templateMenuSection {
+  // No special styling needed
+}
+
+/* Custom menu horizontal layout */
+.horizontalMenuList {
+  min-height: 120px;
+  padding: 15px;
   background-color: #f8f9fa;
   border-radius: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: flex-start;
+}
+
+/* Template menu layout */
+.templateMenuBody {
   padding: 15px;
-  margin-bottom: 20px;
-  
-  p {
-    margin-bottom: 10px;
-  }
-  
-  ul {
-    margin-bottom: 0;
-  }
-}
-
-.menuContainer {
   display: flex;
-  flex-direction: row;
-  gap: 20px;
-  margin-bottom: 20px;
-  
-  @media (max-width: 992px) {
-    flex-direction: column;
-  }
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: flex-start;
 }
 
-.menuSection {
-  flex: 1;
-  min-width: 0;
-}
-
-.menuControls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-  @media (max-width: 992px) {
-    display: none;
-  }
-}
-
-.controlArrow {
-  display: flex;
-  flex-direction: column;
-  color: #6c757d;
-  font-size: 1.5rem;
-  
-  svg {
-    margin: 5px 0;
-  }
-}
-
-.menuList {
-  min-height: 300px;
-  max-height: 500px;
-  overflow-y: auto;
-  padding: 10px;
-  border-radius: 4px;
-  
-  &.mainMenuList {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    
-    @media (max-width: 768px) {
-      flex-direction: column;
-    }
-  }
-  
-  // Favorites list styling to reduce overlap conflicts
-  &:not(.mainMenuList) {
-    background-color: rgba(255, 255, 255, 0.5);
-    
-    // Add visual separation when dragging over
-    &[data-rfd-droppable-id="favorites"] {
-      transition: background-color 0.2s ease;
-      
-      &.dragging-over {
-        background-color: rgba(0, 123, 255, 0.1);
-      }
-    }
-  }
-}
-
+/* Menu items */
 .menuItem {
-  padding: 10px;
-  margin-bottom: 8px;
+  padding: 8px 12px;
   background-color: white;
   border: 1px solid #dee2e6;
-  border-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   cursor: grab;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  min-width: 120px;
   
-  &.dragging {
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   }
   
-  .mainMenuList & {
-    height: 100%;
+  &.dragging {
+    opacity: 0.4;
+  }
+  
+  .horizontalMenuList & {
+    border-top: 3px solid #007bff;
+  }
+  
+  .templateMenuBody & {
     border-left: 3px solid #28a745;
-    transition: transform 0.1s ease;
-    
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
-    }
   }
 }
 
 .menuItemContent {
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
 .dragHandle {
   color: #adb5bd;
-  margin-right: 10px;
   cursor: grab;
 }
 
@@ -134,123 +94,147 @@
   padding: 0;
   margin-left: 5px;
   color: #6c757d;
+  border: none;
+  background: none;
   
   &:hover {
     color: #343a40;
   }
 }
 
+/* Groups */
 .groupItem {
-  border-left: 3px solid #007bff;
+  min-width: 200px;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  overflow: hidden;
+  border-top: 3px solid #007bff;
 }
 
 .folderIcon {
-  margin-right: 10px;
+  margin-right: 8px;
   color: #007bff;
 }
 
 .groupContent {
-  margin-top: 10px;
-  margin-left: 25px;
-  padding: 15px;
-  min-height: 100px;
-  border: 2px dashed #dee2e6;
-  transition: all 0.2s ease;
-  pointer-events: auto !important;
-  position: relative;
-  z-index: 100;
-  background-color: rgba(248, 249, 250, 0.95);
-  border-radius: 6px;
-  // Ensure this area can capture drag events
-  isolation: isolate;
-  // Create a virtual boundary for this droppable area
-  transform: translateZ(0);
+  padding: 8px;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 60px;
   
   &.draggingOver {
-    background-color: rgba(40, 167, 69, 0.15);
-    border-color: #28a745;
-    border-width: 3px;
-    border-style: solid;
-    z-index: 200;
-    box-shadow: inset 0 0 10px rgba(40, 167, 69, 0.2);
-  }
-  
-  // When a group is being dragged over, disable the parent favorites droppable
-  &:hover {
-    z-index: 150;
+    background-color: rgba(40, 167, 69, 0.2);
+    border: 3px solid #28a745;
+    box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
   }
   
   .menuItem {
-    pointer-events: auto !important;
-    position: relative;
-    z-index: 15;
-    margin-bottom: 6px;
-    // Ensure draggable items work properly
-    touch-action: none;
-    
-    &:last-child {
-      margin-bottom: 0;
-    }
-    
-    * {
-      pointer-events: auto;
-    }
+    margin: 0;
+    font-size: 0.85rem;
+    border-top: 2px solid #28a745;
+    min-width: auto;
   }
 }
 
 .emptyGroup, .emptyMenu {
-  padding: 15px;
+  padding: 20px;
   color: #6c757d;
   text-align: center;
   font-style: italic;
   border: 2px dashed #dee2e6;
   border-radius: 4px;
-  
-  p {
-    margin-bottom: 0.5rem;
-    &:last-child {
-      margin-bottom: 0;
-    }
-  }
 }
 
-.headerActions {
-  float: right;
-}
-
-.groupForm, .groupEditForm {
+/* Drop zones between items */
+.dropZone {
+  width: 8px;
+  min-height: 60px;
   display: flex;
   align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  
+  &.draggingOver {
+    width: 20px;
+    background-color: rgba(0, 123, 255, 0.2);
+  }
 }
 
-.groupNameInput {
-  margin-right: 5px;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  border-radius: 0.2rem;
-  border: 1px solid #ced4da;
+.dropZoneIndicator {
+  width: 2px;
+  height: 40px;
+  background-color: transparent;
+  border-radius: 1px;
+  transition: all 0.2s ease;
+  
+  .dropZone.draggingOver & {
+    width: 4px;
+    background-color: #007bff;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.6);
+  }
 }
 
-.saveGroupButton {
-  margin-right: 5px;
+/* Drop indicators for horizontal layout */
+.menuItem::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -3px;
+  width: 4px;
+  background-color: #007bff;
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
-.actionButtons {
+.menuItem.dropIndicatorLeft::before {
+  opacity: 1;
+  background-color: #28a745;
+  width: 6px;
+  box-shadow: 0 0 8px rgba(40, 167, 69, 0.8);
+}
+
+.menuItem::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: -3px;
+  width: 4px;
+  background-color: #007bff;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.menuItem.dropIndicatorRight::after {
+  opacity: 1;
+}
+
+/* Drag overlay styling */
+.dragOverlayItem {
+  padding: 8px 12px;
+  background-color: white;
+  border: 2px solid #007bff;
+  border-radius: 6px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   display: flex;
-  gap: 10px;
-  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  opacity: 0.9;
+  transform: rotate(5deg);
 }
 
-/* Styles for category-based menu structure */
+/* Category columns for template */
 .categoryColumn {
   flex: 1;
-  min-width: 250px;
-  max-width: 350px;
-  
-  @media (max-width: 768px) {
-    max-width: 100%;
-  }
+  min-width: 200px;
+  max-width: 300px;
 }
 
 .categoryContainer {
@@ -258,13 +242,7 @@
   background-color: white;
   border-radius: 4px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
   border: 1px solid #e9ecef;
-  
-  &:hover {
-    border-color: #dee2e6;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-  }
 }
 
 .categoryTitle {
@@ -278,7 +256,6 @@
   text-align: left;
   cursor: pointer;
   color: #344563;
-  transition: background-color 0.2s ease;
   
   &:hover {
     background-color: #e8eef5;
@@ -286,7 +263,7 @@
 }
 
 .categoryLinks {
-  list-style-type: none;
+  list-style: none;
   padding: 0;
   margin: 0;
 }
@@ -300,7 +277,7 @@
   
   .menuItem {
     padding: 6px 8px;
-    margin-bottom: 0;
+    margin: 0;
     border: none;
     border-radius: 0;
     box-shadow: none;
@@ -308,15 +285,43 @@
     &:hover {
       background-color: #f8f9fa;
     }
-    
-    &.dragging {
-      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-    }
-    
-    .menuItemContent {
-      .dragHandle {
-        color: #28a745;
-      }
-    }
+  }
+}
+
+/* Header actions */
+.headerActions {
+  float: right;
+}
+
+.groupForm, .groupEditForm {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.groupNameInput {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  border-radius: 0.2rem;
+  border: 1px solid #ced4da;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .categoryColumn {
+    min-width: 150px;
+    max-width: 200px;
+  }
+  
+  .templateMenuBody, .horizontalMenuList {
+    gap: 10px;
+    padding: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .categoryColumn {
+    min-width: 100%;
+    max-width: 100%;
   }
 }
