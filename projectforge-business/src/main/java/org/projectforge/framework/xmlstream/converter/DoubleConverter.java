@@ -37,7 +37,7 @@ public class DoubleConverter extends AbstractValueConverter<Double>
       if (StringUtils.isEmpty(str) || XmlConstants.NULL_IDENTIFIER.equals(str)) {
         return null;
       }
-      return new Double(str);
+      return Double.valueOf(str);
     } catch (final NumberFormatException ex) {
       log.warn("Can't convert value '" + str + "' to double.");
       return 0.0;

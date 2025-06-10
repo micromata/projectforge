@@ -49,6 +49,6 @@ public class IntRanges extends Ranges<Integer> implements Serializable
   @Override
   protected Integer parseValue(final String value)
   {
-    return new Integer(value);
+    return Integer.valueOf(value);
   }
 }

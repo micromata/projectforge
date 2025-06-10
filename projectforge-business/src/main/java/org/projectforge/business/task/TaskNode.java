@@ -250,6 +250,7 @@ public class TaskNode implements IdObject<Long>, Serializable {
   /**
    * @deprecated
    */
+  @Deprecated
   public List<TaskNode> getChilds() {
     return getChildren();
   }
@@ -267,6 +268,7 @@ public class TaskNode implements IdObject<Long>, Serializable {
   /**
    * @deprecated
    */
+  @Deprecated
   public boolean hasChilds() {
     return hasChildren();
   }

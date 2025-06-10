@@ -212,6 +212,7 @@ public class Report implements Serializable
   /**
    * @deprecated
    */
+  @Deprecated
   public boolean isShowChilds()
   {
     return isShowChildren();
@@ -238,6 +239,7 @@ public class Report implements Serializable
   /**
    * @deprecated
    */
+  @Deprecated
   public boolean hasChilds()
   {
     return hasChildren();

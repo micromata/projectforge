@@ -184,7 +184,7 @@ object DateFormats {
         ConfigurationServiceAccessor.get().defaultTimeNotation
       } else {
         val locale = ThreadLocalUserContext.locale
-        if (locale != null && locale.toString().lowercase(Locale.getDefault()).startsWith("de")) {
+        if (locale.toString().lowercase(Locale.getDefault()).startsWith("de")) {
           TimeNotation.H24
         } else {
           TimeNotation.H12
