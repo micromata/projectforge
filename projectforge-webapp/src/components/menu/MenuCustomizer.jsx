@@ -9,6 +9,7 @@ import {
     PointerSensor,
     KeyboardSensor,
     closestCenter,
+    closestCorners,
     DragStartEvent,
     DragEndEvent,
     DragOverEvent,
@@ -19,6 +20,7 @@ import {
     sortableKeyboardCoordinates,
     verticalListSortingStrategy,
     useSortable,
+    arrayMove,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -45,6 +47,7 @@ function MenuCustomizer() {
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
     const [activeId, setActiveId] = useState(null);
+    const [overId, setOverId] = useState(null);
     
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -110,21 +113,79 @@ function MenuCustomizer() {
         loadMenuData();
     }, []);
 
+    useEffect(() => {
+        console.log('📋 Custom menu changed:', customMenu.length, 'items:', customMenu.map(item => item.title));
+    }, [customMenu]);
+
     const handleDragStart = (event) => {
+        console.log('🚀 Drag Start:', event.active.id, event.active.data.current);
         setActiveId(event.active.id);
+        
+        // Store current scroll position
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+        
+        // Prevent scrolling during drag
+        window.dragStartScrollPosition = { top: scrollTop, left: scrollLeft };
+        
+        // Completely disable scrolling during drag
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+    };
+
+    const handleDragOver = (event) => {
+        const { over } = event;
+        console.log('🔄 Drag Over:', over ? over.id : 'null', over ? over.data.current : 'no data');
+        setOverId(over ? over.id : null);
     };
 
     const handleDragEnd = (event) => {
+        console.log('🏁 Drag End:', event.active.id, '->', event.over ? event.over.id : 'null');
+        console.log('   Active Data:', event.active.data.current);
+        console.log('   Over Data:', event.over ? event.over.data.current : 'none');
+        
+        // Re-enable scrolling and restore position
+        document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
+        
+        // Restore scroll position with a delay to override any automatic scrolling
+        if (window.dragStartScrollPosition) {
+            const targetTop = window.dragStartScrollPosition.top;
+            const targetLeft = window.dragStartScrollPosition.left;
+            
+            // Immediate restore
+            window.scrollTo(targetLeft, targetTop);
+            
+            // Delayed restore to override any automatic scrolling
+            setTimeout(() => {
+                window.scrollTo(targetLeft, targetTop);
+            }, 0);
+            
+            setTimeout(() => {
+                window.scrollTo(targetLeft, targetTop);
+            }, 10);
+            
+            setTimeout(() => {
+                window.scrollTo(targetLeft, targetTop);
+            }, 50);
+            
+            window.dragStartScrollPosition = null;
+        }
+        
         setActiveId(null);
+        setOverId(null);
         
         const { active, over } = event;
         
         if (!over) {
+            console.log('❌ No drop target');
             return;
         }
 
         const activeId = active.id;
         const overId = over.id;
+        
+        console.log('🔍 Raw IDs - activeId:', activeId, 'overId:', overId);
         
 
         // Determine containers based on our data structure
@@ -149,42 +210,115 @@ function MenuCustomizer() {
         }
         
         // Determine destination container
-        if (overData?.groupId) {
-            destContainer = `group-${overData.groupId}`;
-        } else if (overData?.isMainMenu) {
-            destContainer = 'mainMenu';
-        } else if (overId.toString().startsWith('group-')) {
-            destContainer = overId.toString();
+        // If dragging FROM mainMenu (template), destination should always be favorites or groups
+        if (activeData?.isMainMenu) {
+            if (overData?.groupId) {
+                destContainer = `group-${overData.groupId}`;
+            } else if (overId.toString().startsWith('group-')) {
+                destContainer = overId.toString();
+            } else {
+                destContainer = 'favorites';
+            }
         } else {
-            destContainer = 'favorites';
+            // Normal destination detection for non-template items
+            if (overData?.groupId) {
+                destContainer = `group-${overData.groupId}`;
+            } else if (overData?.isMainMenu) {
+                destContainer = 'mainMenu';
+            } else if (overId.toString().startsWith('group-')) {
+                destContainer = overId.toString();
+            } else if (overId.toString().startsWith('drop-zone-')) {
+                // Dropping on a drop zone - always treat as favorites
+                destContainer = 'favorites';
+            } else if (overData?.type === 'group') {
+                // If dropping on a group header, treat as same container if item is from that group
+                if (activeData?.groupId && activeData.groupId === getItemId(overData.item)) {
+                    destContainer = `group-${activeData.groupId}`;
+                } else {
+                    destContainer = `group-${getItemId(overData.item)}`;
+                }
+            } else {
+                destContainer = 'favorites';
+            }
         }
         
         // For groups, only allow reordering within favorites (top level)
         if (activeData?.type === 'group' && destContainer !== 'favorites') {
+            console.log('🚫 Group move blocked - groups can only be reordered at top level');
             return;
         }
 
-        if (sourceContainer === destContainer) {
-            // Same container reordering
+        console.log('🔄 Container transfer:', sourceContainer, '->', destContainer);
+
+        // If dragging from mainMenu (template), always treat as cross-container move
+        if (sourceContainer === 'mainMenu') {
+            console.log('🔀 Template to custom menu move to:', destContainer);
+            handleCrossContainerMove(sourceContainer, destContainer, activeId, overId);
+        } else if (sourceContainer === destContainer) {
+            console.log('📋 Same container reorder');
             handleSameContainerReorder(sourceContainer, activeId, overId);
         } else {
-            // Cross-container move
+            console.log('🔀 Cross container move');
             handleCrossContainerMove(sourceContainer, destContainer, activeId, overId);
         }
     };
     
     const handleSameContainerReorder = (containerId, activeId, overId) => {
+        console.log('🔄 Same container reorder:', containerId, activeId, '->', overId);
+        
+        // Extract original IDs from compound IDs
+        const getOriginalId = (id) => {
+            if (typeof id === 'string') {
+                if (id.startsWith('custom-')) {
+                    return id.substring(7); // Remove 'custom-' prefix
+                } else if (id.includes('-')) {
+                    const parts = id.split('-');
+                    return parts[parts.length - 1]; // Get the last part as the original ID
+                }
+            }
+            return id;
+        };
+        
+        const originalActiveId = getOriginalId(activeId);
+        const originalOverId = getOriginalId(overId);
+        
+        console.log('🔍 Reorder Original IDs - activeId:', originalActiveId, 'overId:', originalOverId);
         
         if (containerId === 'favorites') {
-            // Reordering in main favorites
-            const oldIndex = customMenu.findIndex(item => getItemId(item) === activeId);
-            const newIndex = customMenu.findIndex(item => getItemId(item) === overId);
-            
-            if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-                const newCustomMenu = [...customMenu];
-                const [movedItem] = newCustomMenu.splice(oldIndex, 1);
-                newCustomMenu.splice(newIndex, 0, movedItem);
-                setCustomMenu(newCustomMenu);
+            // Check if dropping on a drop zone
+            if (overId.toString().startsWith('drop-zone-')) {
+                // This is a reorder within favorites using drop zones
+                const oldIndex = customMenu.findIndex(item => getItemId(item) === originalActiveId);
+                let newIndex;
+                
+                if (overId === 'drop-zone-start') {
+                    newIndex = 0;
+                } else {
+                    const dropZoneIndex = parseInt(overId.toString().replace('drop-zone-', ''));
+                    newIndex = dropZoneIndex + 1;
+                }
+                
+                console.log('   Favorites reorder via drop zone:', oldIndex, '->', newIndex);
+                if (oldIndex !== -1 && oldIndex !== newIndex) {
+                    // Adjust newIndex if moving from left to right
+                    const adjustedNewIndex = oldIndex < newIndex ? newIndex - 1 : newIndex;
+                    const newCustomMenu = arrayMove(customMenu, oldIndex, adjustedNewIndex);
+                    setCustomMenu(newCustomMenu);
+                    console.log('✅ Favorites reordered via drop zone to position', adjustedNewIndex);
+                }
+            } else {
+                // Reordering in main favorites using regular items
+                const oldIndex = customMenu.findIndex(item => getItemId(item) === originalActiveId);
+                const newIndex = customMenu.findIndex(item => getItemId(item) === originalOverId);
+                
+                console.log('   Favorites reorder:', oldIndex, '->', newIndex);
+                if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+                    const newCustomMenu = arrayMove(customMenu, oldIndex, newIndex);
+                    setCustomMenu(newCustomMenu);
+                    console.log('✅ Favorites reordered');
+                } else {
+                    console.log('❌ Invalid reorder indices');
+                }
             }
         } else if (containerId.startsWith('group-')) {
             // Reordering within a group
@@ -193,14 +327,20 @@ function MenuCustomizer() {
             
             if (groupIndex !== -1 && customMenu[groupIndex].subMenu) {
                 const subMenu = customMenu[groupIndex].subMenu;
-                const oldIndex = subMenu.findIndex(item => getItemId(item) === activeId);
-                const newIndex = subMenu.findIndex(item => getItemId(item) === overId);
+                const oldIndex = subMenu.findIndex(item => getItemId(item) === originalActiveId);
                 
+                // Check if dropping on group itself (originalOverId matches groupId)
+                if (originalOverId === groupId) {
+                    console.log('   Dropping on group header - no reorder needed');
+                    return; // No action needed when dropping on group header
+                }
+                
+                const newIndex = subMenu.findIndex(item => getItemId(item) === originalOverId);
+                
+                console.log('   Group reorder:', oldIndex, '->', newIndex, 'in group', groupId);
                 if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
                     const newCustomMenu = [...customMenu];
-                    const newSubMenu = [...subMenu];
-                    const [movedItem] = newSubMenu.splice(oldIndex, 1);
-                    newSubMenu.splice(newIndex, 0, movedItem);
+                    const newSubMenu = arrayMove(subMenu, oldIndex, newIndex);
                     
                     newCustomMenu[groupIndex] = {
                         ...newCustomMenu[groupIndex],
@@ -208,21 +348,45 @@ function MenuCustomizer() {
                     };
                     
                     setCustomMenu(newCustomMenu);
+                    console.log('✅ Group reordered');
+                } else {
+                    console.log('❌ Invalid group reorder indices');
                 }
             }
         }
     };
     
     const handleCrossContainerMove = (sourceContainer, destContainer, activeId, overId) => {
+        console.log('🔀 Cross container move:', sourceContainer, '->', destContainer, 'activeId:', activeId, 'overId:', overId);
+        
+        // Extract original IDs from compound IDs
+        const getOriginalId = (id) => {
+            if (typeof id === 'string') {
+                if (id.startsWith('custom-')) {
+                    return id.substring(7); // Remove 'custom-' prefix
+                } else if (id.includes('-')) {
+                    const parts = id.split('-');
+                    return parts[parts.length - 1]; // Get the last part as the original ID
+                }
+            }
+            return id;
+        };
+        
+        const originalActiveId = getOriginalId(activeId);
+        const originalOverId = overId ? getOriginalId(overId) : null;
+        
+        console.log('🔍 Original IDs - activeId:', originalActiveId, 'overId:', originalOverId);
+        
         // Find the item being moved
         let sourceItem = null;
         let sourceIndex = -1;
         let sourceGroupIndex = -1;
         
         if (sourceContainer === 'mainMenu') {
-            sourceItem = menuItems.mainMenu.find(item => item.id === activeId);
+            sourceItem = menuItems.mainMenu.find(item => item.id === originalActiveId);
+            console.log('   Found mainMenu item:', sourceItem);
         } else if (sourceContainer === 'favorites') {
-            sourceIndex = customMenu.findIndex(item => getItemId(item) === activeId);
+            sourceIndex = customMenu.findIndex(item => getItemId(item) === originalActiveId);
             if (sourceIndex !== -1) {
                 sourceItem = customMenu[sourceIndex];
             }
@@ -230,7 +394,7 @@ function MenuCustomizer() {
             const groupId = sourceContainer.replace('group-', '');
             sourceGroupIndex = customMenu.findIndex(item => getItemId(item) === groupId);
             if (sourceGroupIndex !== -1 && customMenu[sourceGroupIndex].subMenu) {
-                sourceIndex = customMenu[sourceGroupIndex].subMenu.findIndex(item => getItemId(item) === activeId);
+                sourceIndex = customMenu[sourceGroupIndex].subMenu.findIndex(item => getItemId(item) === originalActiveId);
                 if (sourceIndex !== -1) {
                     sourceItem = customMenu[sourceGroupIndex].subMenu[sourceIndex];
                 }
@@ -238,8 +402,11 @@ function MenuCustomizer() {
         }
         
         if (!sourceItem) {
+            console.log('   ❌ No source item found for activeId:', activeId);
             return;
         }
+        
+        console.log('   ✅ Source item found:', sourceItem.title);
         
         // Handle the move
         const newCustomMenu = [...customMenu];
@@ -253,12 +420,31 @@ function MenuCustomizer() {
         
         // Add to destination at the correct position
         if (destContainer === 'favorites') {
-            // Find the position to insert based on overId
-            const overIndex = newCustomMenu.findIndex(item => getItemId(item) === overId);
-            if (overIndex !== -1) {
-                newCustomMenu.splice(overIndex, 0, { ...sourceItem });
+            // Handle drop zones - extract index from drop-zone-{index}
+            if (overId.toString().startsWith('drop-zone-')) {
+                if (overId === 'drop-zone-start') {
+                    console.log('   Adding to favorites via start drop zone, index: 0');
+                    // Insert at the beginning
+                    newCustomMenu.splice(0, 0, { ...sourceItem });
+                    console.log('   ✅ Item inserted at start position');
+                } else {
+                    const dropZoneIndex = parseInt(overId.toString().replace('drop-zone-', ''));
+                    console.log('   Adding to favorites via drop zone, index:', dropZoneIndex + 1);
+                    // Insert after the item at dropZoneIndex
+                    newCustomMenu.splice(dropZoneIndex + 1, 0, { ...sourceItem });
+                    console.log('   ✅ Item inserted at drop zone position', dropZoneIndex + 1);
+                }
             } else {
-                newCustomMenu.push({ ...sourceItem });
+                // Find the position to insert based on overId
+                const overIndex = newCustomMenu.findIndex(item => getItemId(item) === overId);
+                console.log('   Adding to favorites, overIndex:', overIndex, 'overId:', overId);
+                if (overIndex !== -1) {
+                    newCustomMenu.splice(overIndex, 0, { ...sourceItem });
+                    console.log('   ✅ Item inserted at position', overIndex);
+                } else {
+                    newCustomMenu.push({ ...sourceItem });
+                    console.log('   ✅ Item pushed to end');
+                }
             }
         } else if (destContainer.startsWith('group-')) {
             // Add to a group at the correct position
@@ -281,6 +467,8 @@ function MenuCustomizer() {
             }
         }
         
+        console.log('   📋 Setting new custom menu:', newCustomMenu);
+        console.log('   📋 Item IDs:', newCustomMenu.map(item => ({ id: getItemId(item), title: item.title })));
         setCustomMenu(newCustomMenu);
     };
     
@@ -423,9 +611,48 @@ function MenuCustomizer() {
         return indexMap;
     }, [menuItems.mainMenuStructured]);
 
+    // Create a global list of all draggable item IDs
+    const allDraggableIds = React.useMemo(() => {
+        const ids = [];
+        
+        // Add custom menu item IDs including groups
+        customMenu.forEach(item => {
+            const itemId = getItemId(item);
+            if (item.subMenu) {
+                // For groups: add the group itself AND the sub-items
+                ids.push(itemId); // Group ID without prefix
+                item.subMenu.forEach(subItem => {
+                    const subItemId = `${itemId}-${getItemId(subItem)}`;
+                    ids.push(subItemId);
+                });
+            } else {
+                // For regular items: add the item with custom prefix
+                ids.push(`custom-${itemId}`);
+            }
+        });
+        
+        // Add main menu item IDs
+        if (menuItems.mainMenu) {
+            menuItems.mainMenu.forEach(item => {
+                ids.push(item.id);
+            });
+        }
+        
+        return ids;
+    }, [customMenu, menuItems.mainMenu]);
+
     // Sortable item component for @dnd-kit
     const SortableItem = ({ item, groupId = null, isMainMenu = false }) => {
-        const itemId = getItemId(item);
+        // Create unique ID for items to avoid conflicts
+        const baseId = getItemId(item);
+        let itemId;
+        if (groupId) {
+            itemId = `${groupId}-${baseId}`;
+        } else if (isMainMenu) {
+            itemId = baseId; // Template items keep original ID
+        } else {
+            itemId = `custom-${baseId}`; // Custom menu items get prefix
+        }
         const {
             attributes,
             listeners,
@@ -443,18 +670,31 @@ function MenuCustomizer() {
             }
         });
 
+
         const style = {
             transform: CSS.Transform.toString(transform),
-            transition,
-            opacity: isDragging ? 0.5 : 1,
+            transition: isDragging ? 'none' : transition,
+            opacity: isDragging ? 0.4 : 1,
         };
 
+        // Determine if this item should show drop indicator
+        const isDropTarget = overId === itemId;
+        const isBeingDragged = activeId === itemId;
+        
+        let className = styles.menuItem;
+        if (isDragging) {
+            className += ` ${styles.dragging}`;
+        }
+        if (isDropTarget && !isBeingDragged) {
+            // For horizontal layout, use left/right indicators
+            className += ` ${styles.dropIndicatorLeft}`;
+        }
 
         return (
             <div
                 ref={setNodeRef}
                 style={style}
-                className={isDragging ? `${styles.menuItem} ${styles.dragging}` : styles.menuItem}
+                className={className}
                 {...attributes}
                 {...listeners}
             >
@@ -508,64 +748,90 @@ function MenuCustomizer() {
         );
     };
 
-    // Function to render menu in category columns with new @dnd-kit
-    const renderCategoryColumns = (menuStructure) => {
-        const numColumns = 4;
-        const itemsPerColumn = Math.ceil(menuStructure.length / numColumns);
-        const columns = [];
-
-        // Create all items for SortableContext
-        const allMainMenuItems = [];
-        menuStructure.forEach(category => {
-            if (category.subMenu) {
-                category.subMenu.forEach(item => {
-                    allMainMenuItems.push(item);
-                });
+    // Non-sortable item component for template menu
+    const TemplateItem = ({ item }) => {
+        const itemId = getItemId(item);
+        const {
+            attributes,
+            listeners,
+            setNodeRef,
+            transform,
+            transition,
+            isDragging,
+        } = useSortable({ 
+            id: itemId,
+            data: {
+                type: 'item',
+                item,
+                groupId: null,
+                isMainMenu: true,
             }
         });
 
-        for (let i = 0; i < numColumns; i += 1) {
-            const startIndex = i * itemsPerColumn;
-            const endIndex = Math.min(startIndex + itemsPerColumn, menuStructure.length);
-            const columnItems = menuStructure.slice(startIndex, endIndex);
+        const style = {
+            transform: CSS.Transform.toString(transform),
+            transition: isDragging ? 'none' : transition,
+            opacity: isDragging ? 0.4 : 1,
+        };
 
-            columns.push(
-                <div key={`column-${i}`} className={styles.categoryColumn}>
-                    {columnItems.map((category) => (
-                        <div key={category.id} className={styles.categoryContainer}>
-                            <button type="button" className={styles.categoryTitle}>
-                                {category.title}
-                            </button>
-                            <div className="collapse show">
-                                <ul className={styles.categoryLinks}>
-                                    {category.subMenu && category.subMenu.map((item) => (
-                                        <li key={item.id} className={styles.categoryLink}>
-                                            <SortableItem 
-                                                item={item} 
-                                                isMainMenu={true}
-                                            />
-                                        </li>
-                                    ))}
-                                    {(!category.subMenu || category.subMenu.length === 0) && (
-                                        <li className={styles.categoryLink}>
-                                            <div className={styles.emptyGroup}>
-                                                <p>No items in this category</p>
-                                            </div>
-                                        </li>
-                                    )}
-                                </ul>
-                            </div>
-                        </div>
-                    ))}
-                </div>,
-            );
+        let className = styles.menuItem;
+        if (isDragging) {
+            className += ` ${styles.dragging}`;
         }
 
-        return columns;
+        return (
+            <div
+                ref={setNodeRef}
+                style={style}
+                className={className}
+                {...attributes}
+                {...listeners}
+            >
+                <div className={styles.menuItemContent}>
+                    <FontAwesomeIcon
+                        icon={faEllipsisV}
+                        className={styles.dragHandle}
+                    />
+                    <span className={styles.itemTitle}>{item.title}</span>
+                </div>
+            </div>
+        );
+    };
+
+    // Function to render menu categories without fixed columns - let CSS handle the layout
+    const renderCategoryColumns = (menuStructure) => {
+        // Return all categories and let CSS flexbox handle the column layout
+        return menuStructure.map((category) => (
+            <div key={category.id} className={styles.categoryColumn}>
+                <div className={styles.categoryContainer}>
+                    <button type="button" className={styles.categoryTitle}>
+                        {category.title}
+                    </button>
+                    <div className="collapse show">
+                        <ul className={styles.categoryLinks}>
+                            {category.subMenu && category.subMenu.map((item) => (
+                                <li key={item.id} className={styles.categoryLink}>
+                                    <TemplateItem item={item} />
+                                </li>
+                            ))}
+                            {(!category.subMenu || category.subMenu.length === 0) && (
+                                <li className={styles.categoryLink}>
+                                    <div className={styles.emptyGroup}>
+                                        <p>No items in this category</p>
+                                    </div>
+                                </li>
+                            )}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        ));
     };
 
     const SortableGroup = ({ item }) => {
         const groupId = getItemId(item);
+        
+        // Make group sortable again for group reordering
         const {
             attributes,
             listeners,
@@ -583,18 +849,37 @@ function MenuCustomizer() {
 
         const style = {
             transform: CSS.Transform.toString(transform),
-            transition,
-            opacity: isDragging ? 0.5 : 1,
+            transition: isDragging ? 'none' : transition,
+            opacity: isDragging ? 0.4 : 1,
         };
 
-        // Get all item IDs for this group's SortableContext
-        const groupItemIds = (item.subMenu || []).map(subItem => getItemId(subItem));
+        // Get all item IDs for this group's SortableContext (with unique group prefix)
+        const groupItemIds = (item.subMenu || []).map(subItem => `${groupId}-${getItemId(subItem)}`);
+        
+        // Determine if this group should show drop indicator
+        const isDropTarget = overId === groupId;
+        const isBeingDragged = activeId === groupId;
+        
+        let className = `${styles.menuItem} ${styles.groupItem}`;
+        if (isDragging) {
+            className += ` ${styles.dragging}`;
+        }
+        if (isDropTarget && !isBeingDragged) {
+            className += ` ${styles.dropIndicatorLeft}`;
+        }
+        
+        // Don't hide group when one of its items is being dragged
+        const isChildBeingDragged = activeId && activeId.startsWith(`${groupId}-`);
+        if (isChildBeingDragged && !isDragging) {
+            // Keep group visible when child item is being dragged
+            className = className.replace(styles.dragging, '');
+        }
 
         return (
             <div
                 ref={setNodeRef}
                 style={style}
-                className={`${styles.menuItem} ${styles.groupItem} ${isDragging ? styles.dragging : ''}`}
+                className={className}
             >
                 <div className={styles.menuItemContent}>
                     <div {...attributes} {...listeners}>
@@ -658,7 +943,7 @@ function MenuCustomizer() {
                     items={groupItemIds} 
                     strategy={verticalListSortingStrategy}
                 >
-                    <DroppableArea id={`group-${groupId}`} className={styles.groupContent}>
+                    <div className={styles.groupContent}>
                         {item.subMenu && item.subMenu.map((subItem) => {
                             return (
                                 <SortableItem 
@@ -670,11 +955,10 @@ function MenuCustomizer() {
                         })}
                         {(!item.subMenu || item.subMenu.length === 0) && (
                             <div className={styles.emptyGroup}>
-                                <p>Empty group - drop items here</p>
-                                <p>Drag menu items from the left or move items between groups</p>
+                                <p>Drop items here</p>
                             </div>
                         )}
-                    </DroppableArea>
+                    </div>
                 </SortableContext>
             </div>
         );
@@ -685,170 +969,152 @@ function MenuCustomizer() {
     }
 
     return (
-        <div className={styles.menuCustomizer}>
-            <h2>Customize Your Menu</h2>
-            {error && <Alert color="danger" timeout={5000}>{error}</Alert>}
-            {success && <Alert color="success" timeout={5000}>{success}</Alert>}
-
-            <div className={styles.instructionsBox}>
-                <p>
-                    Customize your menu by dragging items from the available menu
-                    items on the left to your custom menu on the right.
-                </p>
-                <ul>
-                    <li>Drag items from available menu to your custom menu</li>
-                    <li>Create groups to organize your menu items</li>
-                    <li>Drag items into groups, between groups, or from groups to main level</li>
-                    <li>Reorder items within groups by dragging them</li>
-                    <li>Reorder items in your main custom menu by dragging them</li>
-                    <li>Remove items with the trash/minus icon</li>
-                    <li>Save your changes when finished customizing</li>
-                </ul>
-            </div>
-
-            <div className={styles.menuContainer}>
-                <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragStart={handleDragStart}
-                    onDragEnd={handleDragEnd}
-                >
-                    <div className={styles.menuSection}>
-                        <Card>
-                            <CardHeader>Available Menu Items</CardHeader>
-                            <CardBody>
-                                <div className={`${styles.menuList} ${styles.mainMenuList}`}>
-                                    {menuItems.mainMenuStructured && renderCategoryColumns(menuItems.mainMenuStructured)}
-                                </div>
-                            </CardBody>
-                        </Card>
-                    </div>
-
-                    <div className={styles.menuControls}>
-                        <div className={styles.controlArrow}>
-                            <FontAwesomeIcon icon={faArrowDown} />
-                            <FontAwesomeIcon icon={faArrowUp} />
-                        </div>
-                    </div>
-
-                    <div className={styles.menuSection}>
-                        <Card>
-                            <CardHeader>
-                                Your Custom Menu
-                                <div className={styles.headerActions}>
-                                    {!showGroupInput ? (
+        <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+            autoScroll={false}
+            measuring={{
+                droppable: {
+                    strategy: 'whenDragging'
+                }
+            }}
+        >
+            <SortableContext 
+                id="global-sortable-context"
+                items={allDraggableIds} 
+                strategy={verticalListSortingStrategy}
+            >
+                <div className={styles.menuCustomizer}>
+                <h2>Customize Your Menu</h2>
+                {error && <Alert color="danger" timeout={5000}>{error}</Alert>}
+                {success && <Alert color="success" timeout={5000}>{success}</Alert>}
+                {/* Custom Menu Section */}
+                <div className={styles.customMenuSection}>
+                    <Card>
+                        <CardHeader>
+                            Your Custom Menu
+                            <div className={styles.headerActions}>
+                                {!showGroupInput ? (
+                                    <Button
+                                        color="primary"
+                                        size="sm"
+                                        onClick={() => setShowGroupInput(true)}
+                                        title="Add a new group"
+                                    >
+                                        <FontAwesomeIcon icon={faPlus} />
+                                        <span>Add Group</span>
+                                    </Button>
+                                ) : (
+                                    <div className={styles.groupForm}>
+                                        <input
+                                            type="text"
+                                            className={styles.groupNameInput}
+                                            value={newGroupName}
+                                            onChange={(e) => setNewGroupName(e.target.value)}
+                                            placeholder="Group name"
+                                            autoFocus
+                                        />
                                         <Button
                                             color="primary"
                                             size="sm"
-                                            onClick={() => setShowGroupInput(true)}
-                                            title="Add a new group"
+                                            onClick={addNewGroup}
                                         >
-                                            <FontAwesomeIcon icon={faPlus} />
-                                            <span>Add Group</span>
+                                            Add
                                         </Button>
-                                    ) : (
-                                        <div className={styles.groupForm}>
-                                            <input
-                                                type="text"
-                                                className={styles.groupNameInput}
-                                                value={newGroupName}
-                                                onChange={(e) => setNewGroupName(e.target.value)}
-                                                placeholder="Group name"
-                                                autoFocus
-                                            />
-                                            <Button
-                                                color="primary"
-                                                size="sm"
-                                                onClick={addNewGroup}
-                                            >
-                                                Add
-                                            </Button>
-                                            <Button
-                                                color="secondary"
-                                                size="sm"
-                                                onClick={() => {
-                                                    setShowGroupInput(false);
-                                                    setNewGroupName('');
-                                                }}
-                                            >
-                                                Cancel
-                                            </Button>
-                                        </div>
-                                    )}
-                                </div>
-                            </CardHeader>
-                            <CardBody>
-                                <SortableContext 
-                                    id="favorites"
-                                    items={customMenu.map(item => getItemId(item))} 
-                                    strategy={verticalListSortingStrategy}
-                                >
-                                    <DroppableArea id="favorites" className={styles.menuList}>
-                                        {customMenu.map((item) => {
-                                            return item.subMenu ? (
-                                                <SortableGroup key={getItemId(item)} item={item} />
-                                            ) : (
-                                                <SortableItem key={getItemId(item)} item={item} />
-                                            );
-                                        })}
-                                        {customMenu.length === 0 && (
-                                            <div className={styles.emptyMenu}>
-                                                <p>Your custom menu is empty.</p>
-                                                <p>Drag items from available menu items.</p>
-                                            </div>
-                                        )}
-                                    </DroppableArea>
-                                </SortableContext>
-                            </CardBody>
-                        </Card>
-                    </div>
-
-                    <DragOverlay>
-                        {activeId ? (
-                            <div className={`${styles.menuItem} ${styles.dragging}`}>
-                                <div className={styles.menuItemContent}>
-                                    <FontAwesomeIcon icon={faEllipsisV} className={styles.dragHandle} />
-                                    <span className={styles.itemTitle}>
-                                        {/* Find the actual item title */}
-                                        {(() => {
-                                            // Try to find in main menu
-                                            const mainItem = menuItems.mainMenu?.find(item => item.id === activeId);
-                                            if (mainItem) return mainItem.title;
-                                            
-                                            // Try to find in custom menu (flat search)
-                                            const findInCustomMenu = (items) => {
-                                                for (const item of items) {
-                                                    if (getItemId(item) === activeId) return item.title;
-                                                    if (item.subMenu) {
-                                                        const found = findInCustomMenu(item.subMenu);
-                                                        if (found) return found;
-                                                    }
-                                                }
-                                                return null;
-                                            };
-                                            
-                                            const customItem = findInCustomMenu(customMenu);
-                                            return customItem || 'Dragging...';
-                                        })()}
-                                    </span>
-                                </div>
+                                        <Button
+                                            color="secondary"
+                                            size="sm"
+                                            onClick={() => {
+                                                setShowGroupInput(false);
+                                                setNewGroupName('');
+                                            }}
+                                        >
+                                            Cancel
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
-                        ) : null}
-                    </DragOverlay>
-                </DndContext>
-            </div>
+                        </CardHeader>
+                        <CardBody>
+                            <DroppableArea id="favorites" className={styles.horizontalMenuList}>
+                                {/* Add drop zone at the beginning */}
+                                <DroppableArea 
+                                    id="drop-zone-start" 
+                                    className={styles.dropZone}
+                                >
+                                    <div className={styles.dropZoneIndicator} />
+                                </DroppableArea>
+                                {customMenu.map((item, index) => {
+                                    const itemKey = item.subMenu ? getItemId(item) : `custom-${getItemId(item)}`;
+                                    return (
+                                        <React.Fragment key={itemKey}>
+                                            {item.subMenu ? (
+                                                <SortableGroup item={item} />
+                                            ) : (
+                                                <SortableItem 
+                                                    item={item} 
+                                                    groupId={null} 
+                                                    isMainMenu={false} 
+                                                />
+                                            )}
+                                            {/* Add drop zone after each item */}
+                                            <DroppableArea 
+                                                id={`drop-zone-${index}`} 
+                                                className={styles.dropZone}
+                                            >
+                                                <div className={styles.dropZoneIndicator} />
+                                            </DroppableArea>
+                                        </React.Fragment>
+                                    );
+                                })}
+                                {customMenu.length === 0 && (
+                                    <div className={styles.emptyMenu}>
+                                        <p>Drag items from template below</p>
+                                    </div>
+                                )}
+                            </DroppableArea>
+                        </CardBody>
+                    </Card>
+                </div>
 
-            <div className={styles.actionButtons}>
-                <Button color="primary" onClick={saveMenu}>
-                    <FontAwesomeIcon icon={faSave} />
-                    <span>Save Changes</span>
-                </Button>
-                <Button color="secondary" onClick={resetMenu}>
-                    <FontAwesomeIcon icon={faUndo} />
-                    <span>Reset to Default</span>
-                </Button>
-            </div>
-        </div>
+                {/* Action Buttons */}
+                <div className={styles.actionButtons}>
+                    <Button color="primary" onClick={saveMenu}>
+                        <FontAwesomeIcon icon={faSave} />
+                        <span>Save Changes</span>
+                    </Button>
+                    <Button color="secondary" onClick={resetMenu}>
+                        <FontAwesomeIcon icon={faUndo} />
+                        <span>Reset to Default</span>
+                    </Button>
+                </div>
+
+                {/* Template Menu Section */}
+                <div className={styles.templateMenuSection}>
+                    <Card>
+                        <CardHeader>Available Menu Items (Template)</CardHeader>
+                        <CardBody className={styles.templateMenuBody}>
+                            {menuItems.mainMenuStructured && renderCategoryColumns(menuItems.mainMenuStructured)}
+                        </CardBody>
+                    </Card>
+                </div>
+
+                </div>
+                
+                <DragOverlay>
+                    {activeId ? (
+                        <div className={styles.dragOverlayItem}>
+                            <FontAwesomeIcon icon={faEllipsisV} className={styles.dragHandle} />
+                            <span>Dragging item...</span>
+                        </div>
+                    ) : null}
+                </DragOverlay>
+                
+            </SortableContext>
+        </DndContext>
     );
 }
 
