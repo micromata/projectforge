@@ -93,6 +93,11 @@ function MenuCustomizer() {
 
                 const allMenuItems = flattenMenuItems(menuStructure);
 
+                console.log('📥 Loaded menu data:');
+                console.log('  - Main menu items:', allMenuItems.length);
+                console.log('  - Favorites menu items:', (json.favoritesMenu.menuItems || []).length);
+                console.log('  - Favorites items:', (json.favoritesMenu.menuItems || []).map(item => ({ id: (item.id || item.key), title: item.title })));
+                
                 setMenuItems({
                     // Store both the structured and flattened menu items
                     mainMenu: allMenuItems || [],
@@ -673,17 +678,40 @@ function MenuCustomizer() {
 
     const saveMenu = () => {
         setLoading(true);
+        console.log('💾 Saving menu with', customMenu.length, 'items:', customMenu.map(item => ({ id: getItemId(item), title: item.title })));
+        
+        // Clean up the menu items before sending - remove unnecessary properties for leaf nodes
+        const cleanedMenu = customMenu.map(item => {
+            if (item.subMenu && item.subMenu.length > 0) {
+                // For groups, clean up sub-items too
+                return {
+                    ...item,
+                    subMenu: item.subMenu.map(subItem => {
+                        const { subMenu, ...cleanSubItem } = subItem; // Remove subMenu property from leaf nodes
+                        return cleanSubItem;
+                    })
+                };
+            } else {
+                // For leaf nodes, remove subMenu property
+                const { subMenu, ...cleanItem } = item;
+                return cleanItem;
+            }
+        });
+        
+        console.log('🧹 Cleaned menu data:', cleanedMenu.map(item => ({ id: getItemId(item), title: item.title, hasSubMenu: !!item.subMenu })));
+        
         fetch(`${baseRestURL}/menu/customized`, {
             method: 'POST',
             credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ favoritesMenu: customMenu }),
+            body: JSON.stringify({ favoritesMenu: cleanedMenu }),
         })
             .then(handleHTTPErrors)
             .then((response) => response.json())
-            .then(() => {
+            .then((result) => {
+                console.log('✅ Menu save response:', result);
                 setSuccess('Menu saved successfully');
                 setLoading(false);
                 // Refresh the menu data
@@ -691,7 +719,7 @@ function MenuCustomizer() {
             })
             .catch((err) => {
                 // eslint-disable-next-line no-console
-                console.error('Error saving menu:', err);
+                console.error('❌ Error saving menu:', err);
                 setError('Error saving menu. Please try again.');
                 setLoading(false);
             });
@@ -1143,8 +1171,8 @@ function MenuCustomizer() {
             >
                 <div className={styles.menuCustomizer}>
                 <h2>Customize Your Menu</h2>
-                {error && <Alert color="danger" timeout={5000}>{error}</Alert>}
-                {success && <Alert color="success" timeout={5000}>{success}</Alert>}
+                {error && <Alert color="danger">{error}</Alert>}
+                {success && <Alert color="success">{success}</Alert>}
                 {/* Custom Menu Section */}
                 <div className={styles.customMenuSection}>
                     <Card>
