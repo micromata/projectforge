@@ -156,7 +156,7 @@ public class AccountingRecordListPage
                         final BuchungssatzDO satz = rowModel.getObject();
                         final Kost1DO kost1 = WicketSupport.get(PfCaches.class).getKost1IfNotInitialized(satz.getKost1());
                         item.add(new Label(componentId, kost1.getDisplayName()));
-                        cellItemListener.populateItem(item, componentId, rowModel);
+                        addTooltipAndCellItemListener(item, componentId, rowModel);
                     }
 
                     @Override
@@ -177,7 +177,7 @@ public class AccountingRecordListPage
                         final BuchungssatzDO satz = rowModel.getObject();
                         final Kost2DO kost2 = WicketSupport.get(PfCaches.class).getKost2IfNotInitialized(satz.getKost2());
                         item.add(new Label(componentId, kost2.getDisplayName()));
-                        cellItemListener.populateItem(item, componentId, rowModel);
+                        addTooltipAndCellItemListener(item, componentId, rowModel);
                     }
 
                     @Override
@@ -203,7 +203,7 @@ public class AccountingRecordListPage
                     displayName = konto.getDisplayName();
                 }
                 item.add(new Label(componentId, displayName));
-                cellItemListener.populateItem(item, componentId, rowModel);
+                addTooltipAndCellItemListener(item, componentId, rowModel);
             }
 
             @Override
@@ -228,8 +228,7 @@ public class AccountingRecordListPage
                             displayName = konto.getDisplayName();
                         }
                         item.add(new Label(componentId, displayName));
-                        cellItemListener.populateItem(item, componentId, rowModel);
-
+                        addTooltipAndCellItemListener(item, componentId, rowModel);
                     }
 
                     @Override

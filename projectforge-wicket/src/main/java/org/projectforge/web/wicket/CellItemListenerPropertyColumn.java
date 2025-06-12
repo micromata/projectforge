@@ -101,6 +101,27 @@ public class CellItemListenerPropertyColumn<T> extends PropertyColumn<T, String>
   }
 
   /**
+   * Adds tooltip and calls CellItemListener. Call this method at the end of custom populateItem implementations.
+   */
+  protected void addTooltipAndCellItemListener(final Item<ICellPopulator<T>> item, final String componentId, final IModel<T> rowModel)
+  {
+    final String tooltip = getTooltip(rowModel.getObject());
+    if (tooltip != null && tooltip.length() > 0) {
+      WicketUtils.addTooltip(item, new Model<String>()
+      {
+        @Override
+        public String getObject()
+        {
+          return getTooltip(rowModel.getObject());
+        }
+      });
+    }
+    if (cellItemListener != null) {
+      cellItemListener.populateItem(item, componentId, rowModel);
+    }
+  }
+
+  /**
    * Call CellItemListener. If a property model object is of type I18nEnum then the translation is automatically used.
    *
    * @see org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
@@ -123,19 +144,6 @@ public class CellItemListenerPropertyColumn<T> extends PropertyColumn<T, String>
     } else {
       item.add(new Label(componentId, propertyModel).setRenderBodyOnly(true));
     }
-    final String tooltip = getTooltip(rowModel.getObject());
-    if (tooltip != null && tooltip.length() > 0) {
-      WicketUtils.addTooltip(item, new Model<String>()
-      {
-        @Override
-        public String getObject()
-        {
-          return getTooltip(rowModel.getObject());
-        }
-      });
-    }
-    if (cellItemListener != null) {
-      cellItemListener.populateItem(item, componentId, rowModel);
-    }
+    addTooltipAndCellItemListener(item, componentId, rowModel);
   }
 }
