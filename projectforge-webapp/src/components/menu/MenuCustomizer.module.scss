@@ -1,0 +1,389 @@
+/* Clean, simple MenuCustomizer CSS - completely rebuilt */
+
+.menuCustomizer {
+  padding: 20px;
+  
+  // Prevent auto-scrolling during drag operations
+  * {
+    scroll-behavior: auto !important;
+  }
+}
+
+.customMenuSection {
+  margin-bottom: 20px;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.templateMenuSection {
+  // No special styling needed
+}
+
+/* Custom menu horizontal layout */
+.horizontalMenuList {
+  min-height: 120px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: flex-start;
+  
+  // Prevent layout shifts during drag operations
+  &.dragging {
+    * {
+      pointer-events: none;
+    }
+  }
+}
+
+/* Template menu layout */
+.templateMenuBody {
+  padding: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: flex-start;
+}
+
+/* Menu items */
+.menuItem {
+  padding: 8px 12px;
+  background-color: white;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: grab;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  min-width: 120px;
+  position: relative;
+  
+  &:hover:not(.dragging) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  &.dragging {
+    opacity: 0.4;
+    transform: none !important;
+    transition: none !important;
+  }
+  
+  .horizontalMenuList & {
+    border-top: 3px solid #007bff;
+    
+    // Stabilize layout during drag
+    &.dragging {
+      height: auto;
+      min-height: 40px;
+    }
+  }
+  
+  .templateMenuBody & {
+    border-left: 3px solid #28a745;
+  }
+}
+
+.menuItemContent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  
+  .groupItem & {
+    cursor: grab;
+    padding: 4px 0;
+    
+    &:active {
+      cursor: grabbing;
+    }
+  }
+}
+
+.dragHandle {
+  color: #adb5bd;
+  cursor: grab;
+}
+
+.itemTitle {
+  flex: 1;
+}
+
+.actionButton {
+  padding: 0;
+  margin-left: 5px;
+  color: #6c757d;
+  border: none;
+  background: none;
+  
+  &:hover {
+    color: #343a40;
+  }
+}
+
+/* Groups */
+.groupItem {
+  min-width: 200px;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  overflow: hidden;
+  border-top: 3px solid #007bff;
+  
+  // Stabilize group layout during drag
+  &.dragging {
+    min-height: 100px;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+.folderIcon {
+  margin-right: 8px;
+  color: #007bff;
+}
+
+.groupContent {
+  padding: 8px;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 60px;
+  
+  &.draggingOver {
+    background-color: rgba(40, 167, 69, 0.2);
+    border: 3px solid #28a745;
+    box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+  }
+  
+  .menuItem {
+    margin: 0;
+    font-size: 0.85rem;
+    border-top: 2px solid #28a745;
+    min-width: auto;
+  }
+}
+
+.emptyGroup, .emptyMenu {
+  padding: 20px;
+  color: #6c757d;
+  text-align: center;
+  font-style: italic;
+  border: 2px dashed #dee2e6;
+  border-radius: 4px;
+}
+
+/* Drop zones between items */
+.dropZone {
+  width: 8px;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  
+  &.draggingOver {
+    width: 20px;
+    background-color: rgba(0, 123, 255, 0.2);
+  }
+}
+
+.dropZoneIndicator {
+  width: 2px;
+  height: 40px;
+  background-color: transparent;
+  border-radius: 1px;
+  transition: all 0.2s ease;
+  
+  .dropZone.draggingOver & {
+    width: 4px;
+    background-color: #007bff;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.6);
+  }
+}
+
+/* Drop zones within groups */
+.groupDropZone {
+  width: 100%;
+  height: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  margin: 2px 0;
+  
+  &.draggingOver {
+    height: 12px;
+    background-color: rgba(40, 167, 69, 0.2);
+  }
+}
+
+.groupDropZoneIndicator {
+  width: 80%;
+  height: 1px;
+  background-color: transparent;
+  border-radius: 1px;
+  transition: all 0.2s ease;
+  
+  .groupDropZone.draggingOver & {
+    height: 3px;
+    background-color: #28a745;
+    box-shadow: 0 0 6px rgba(40, 167, 69, 0.6);
+  }
+}
+
+/* Drop indicators for horizontal layout */
+.menuItem::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -3px;
+  width: 4px;
+  background-color: #007bff;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.menuItem.dropIndicatorLeft::before {
+  opacity: 1;
+  background-color: #28a745;
+  width: 6px;
+  box-shadow: 0 0 8px rgba(40, 167, 69, 0.8);
+}
+
+.menuItem::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: -3px;
+  width: 4px;
+  background-color: #007bff;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.menuItem.dropIndicatorRight::after {
+  opacity: 1;
+}
+
+/* Drag overlay styling */
+.dragOverlayItem {
+  padding: 8px 12px;
+  background-color: white;
+  border: 2px solid #007bff;
+  border-radius: 6px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  opacity: 0.9;
+  transform: rotate(5deg);
+}
+
+/* Category columns for template */
+.categoryColumn {
+  flex: 1;
+  min-width: 200px;
+  max-width: 300px;
+}
+
+.categoryContainer {
+  margin-bottom: 15px;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e9ecef;
+}
+
+.categoryTitle {
+  display: block;
+  width: 100%;
+  padding: 10px 15px;
+  background-color: #f0f4f8;
+  border: none;
+  border-bottom: 1px solid #dee2e6;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  color: #344563;
+  
+  &:hover {
+    background-color: #e8eef5;
+  }
+}
+
+.categoryLinks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.categoryLink {
+  border-bottom: 1px solid #f3f3f3;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  .menuItem {
+    padding: 6px 8px;
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    
+    &:hover {
+      background-color: #f8f9fa;
+    }
+  }
+}
+
+/* Header actions */
+.headerActions {
+  float: right;
+}
+
+.groupForm, .groupEditForm {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.groupNameInput {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  border-radius: 0.2rem;
+  border: 1px solid #ced4da;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .categoryColumn {
+    min-width: 150px;
+    max-width: 200px;
+  }
+  
+  .templateMenuBody, .horizontalMenuList {
+    gap: 10px;
+    padding: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .categoryColumn {
+    min-width: 100%;
+    max-width: 100%;
+  }
+}

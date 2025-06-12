@@ -9,7 +9,6 @@ import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
 import bootstrapPlugin from '@fullcalendar/bootstrap';
 import { connect } from 'react-redux'; // a plugin!
-import classNames from 'classnames';
 import { createPopper } from '@popperjs/core';
 import { Outlet, useNavigate } from 'react-router';
 import LoadingContainer from '../../../components/design/loading-container';
@@ -243,7 +242,7 @@ function FullCalendarPanel({
             navigate(`/react/calendar/timesheet/edit?startDate=${event.start.getTime() / 1000}&endDate=${event.end.getTime() / 1000}`);
         } else if (category === 'timesheet-stats') {
             // Do nothing
-        } else if (category === 'vaction') {
+        } else if (category === 'vacation') {
             navigate(`/react/calendar/vacation/edit/${id}?returnToCaller=%2Freact%2Fcalendar`);
         } else if (category === 'address') {
             // start date is send to the server and is needed for series events to detect the

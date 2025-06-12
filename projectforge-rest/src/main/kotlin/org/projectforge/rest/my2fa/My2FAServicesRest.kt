@@ -355,8 +355,10 @@ class My2FAServicesRest {
             .add(
                 UIInput(
                     "code", label = "user.My2FACode.code", tooltip = "user.My2FACode.code.info",
-                    autoComplete = UIInput.AutoCompleteType.OFF,
+                    autoComplete = UIInput.AutoCompleteType.ONE_TIME_CODE,
+                    inputMode = UIInput.InputMode.NUMERIC,
                     focus = true,
+                    pattern = "\\d*"
                 )
             )
         if (showCancelButton) {

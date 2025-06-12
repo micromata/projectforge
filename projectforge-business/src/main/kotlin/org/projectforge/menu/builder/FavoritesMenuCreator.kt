@@ -58,9 +58,6 @@ open class FavoritesMenuCreator {
         val favMenuAsUserPrefString =
             userXmlPreferencesService.getEntry(USER_PREF_FAVORITES_MENU_ENTRIES_KEY) as String?
         val menu = getFavoriteMenu(favMenuAsUserPrefString)
-        PluginsRegistry.instance().plugins.forEach { activePlugin ->
-            activePlugin.handleFavoriteMenu(menu, menu.getAllDescendants())
-        }
         menu.menuItems.removeIf { !MenuConfiguration.instance.isVisible(it.menuItemDef) }
         menu.postProcess() // Build badges of top menus.
         return menu
@@ -92,10 +89,13 @@ open class FavoritesMenuCreator {
             menu.add(menuCreator.findById(MenuItemDefId.ADDRESS_LIST))
             menu.add(menuCreator.findById(PluginAdminService.PLUGIN_DATA_TRANSFER_ID))
         }
+        PluginsRegistry.instance().plugins.forEach { activePlugin ->
+            activePlugin.createDefaultFavoriteMenu(menu, menu.getAllDescendants())
+        }
         return menu
     }
 
-    internal fun getFavoriteMenu(favMenuAsUserPrefString: String?): Menu {
+    fun getFavoriteMenu(favMenuAsUserPrefString: String?): Menu {
         val menu = FavoritesMenuReaderWriter.read(menuCreator, favMenuAsUserPrefString)
         if (menu.menuItems.isNotEmpty())
             return menu
