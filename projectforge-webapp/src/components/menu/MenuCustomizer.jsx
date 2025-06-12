@@ -51,6 +51,8 @@ function MenuCustomizer() {
     const [draggedItem, setDraggedItem] = useState(null);
     const [translations, setTranslations] = useState({});
     const [excelMenuUrl, setExcelMenuUrl] = useState('');
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [lastSavedMenu, setLastSavedMenu] = useState([]);
     
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -114,7 +116,10 @@ function MenuCustomizer() {
                     mainMenuStructured: menuStructure || [],
                     favoritesMenu: json.favoritesMenu.menuItems || [],
                 });
-                setCustomMenu(json.favoritesMenu.menuItems || []);
+                const favoriteItems = json.favoritesMenu.menuItems || [];
+                setCustomMenu(favoriteItems);
+                setLastSavedMenu([...favoriteItems]); // Deep copy for tracking saved state
+                setHasUnsavedChanges(false);
                 setLoading(false);
             })
             .catch((err) => {
@@ -126,6 +131,13 @@ function MenuCustomizer() {
     useEffect(() => {
         loadMenuData();
     }, []);
+
+    // Track changes to mark menu as modified
+    useEffect(() => {
+        // Compare current menu with last saved menu to detect changes
+        const menuChanged = JSON.stringify(customMenu) !== JSON.stringify(lastSavedMenu);
+        setHasUnsavedChanges(menuChanged);
+    }, [customMenu, lastSavedMenu]);
 
 
     const handleDragStart = (event) => {
@@ -658,13 +670,47 @@ function MenuCustomizer() {
             .then((result) => {
                 setSuccess(translations.menuSavedSuccessfully || 'Menu saved successfully');
                 setLoading(false);
-                // Refresh the menu data
-                loadMenuData();
+                // Update saved state and mark as unchanged
+                setLastSavedMenu([...customMenu]);
+                setHasUnsavedChanges(false);
+                // Clear success message after 3 seconds
+                setTimeout(() => setSuccess(null), 3000);
             })
             .catch((err) => {
                 setError(translations.errorSavingMenu || 'Error saving menu. Please try again.');
                 setLoading(false);
             });
+    };
+
+    const loadDefaultMenu = () => {
+        setLoading(true);
+        fetch(`${baseRestURL}/menu/default`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+            .then(handleHTTPErrors)
+            .then((response) => response.json())
+            .then((data) => {
+                setCustomMenu(data.favoritesMenu || []);
+                setSuccess(translations.loadDefault || 'Default menu loaded');
+                setLoading(false);
+                // Clear success message after 3 seconds
+                setTimeout(() => setSuccess(null), 3000);
+            })
+            .catch((err) => {
+                setError(translations.errorLoadingMenu || 'Error loading default menu. Please try again.');
+                setLoading(false);
+            });
+    };
+
+    const undoChanges = () => {
+        setCustomMenu([...lastSavedMenu]);
+        setSuccess(translations.undo || 'Changes undone');
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccess(null), 3000);
     };
 
     const resetMenu = () => {
@@ -1204,18 +1250,32 @@ function MenuCustomizer() {
 
                 {/* Action Buttons */}
                 <div className={styles.actionButtons}>
-                    <Button color="primary" onClick={saveMenu}>
+                    <Button 
+                        color="primary" 
+                        onClick={saveMenu}
+                    >
                         <FontAwesomeIcon icon={faSave} />
                         <span>{translations.saveChanges || 'Save Changes'}</span>
                     </Button>
-                    <Button color="secondary" onClick={resetMenu}>
+                    <Button 
+                        color="secondary" 
+                        onClick={undoChanges}
+                    >
                         <FontAwesomeIcon icon={faUndo} />
-                        <span>{translations.resetToDefault || 'Reset to Default'}</span>
+                        <span>{translations.undo || 'Undo'}</span>
+                    </Button>
+                    <Button 
+                        color="warning" 
+                        onClick={loadDefaultMenu}
+                    >
+                        <FontAwesomeIcon icon={faUndo} />
+                        <span>{translations.loadDefault || 'Load Default'}</span>
                     </Button>
                     {excelMenuUrl && (
                         <Button 
                             color="success" 
                             onClick={() => window.open(excelMenuUrl, '_blank')}
+                            title={translations.excelMenuTooltip || 'Configure menu via Excel download and upload'}
                         >
                             <span>{translations.excelMenu || 'Excel Menu'}</span>
                         </Button>
