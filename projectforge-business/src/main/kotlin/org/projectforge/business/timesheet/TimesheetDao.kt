@@ -298,6 +298,12 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             throw UserException("timesheet.error.maximumDurationExceeded")
         }
         Validate.isTrue(obj.startTime!!.before(obj.stopTime), "Stop time of time sheet is before start time!")
+        
+        // Perform final overlap check within transaction to prevent race conditions
+        if (hasTimeOverlap(obj, true)) {
+            throw UserException("timesheet.error.timeCollision")
+        }
+        
         if (Configuration.instance.isCostConfigured) {
             val kost2List = taskTree.getKost2List(obj.taskId)
             val kost2Id = obj.kost2Id
