@@ -19,7 +19,7 @@ function DynamicButton(props) {
     } = props;
 
     const [showConfirmMessage, setShowConfirmMessage] = React.useState(false);
-    const { callAction, ui } = React.useContext(DynamicLayoutContext);
+    const { callAction, ui, isFetching } = React.useContext(DynamicLayoutContext);
 
     const handleClick = (event) => {
         event.preventDefault();
@@ -96,7 +96,7 @@ function DynamicButton(props) {
                 {...stylingProps}
                 onClick={handleClick}
                 type={type}
-                disabled={disabled}
+                disabled={disabled || isFetching}
             >
                 <span id={buttonId}>{title}</span>
             </Button>
