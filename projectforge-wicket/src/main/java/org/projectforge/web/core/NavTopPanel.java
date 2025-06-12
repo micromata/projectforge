@@ -54,7 +54,6 @@ import org.projectforge.web.WicketLoginService;
 import org.projectforge.web.WicketMenuBuilder;
 import org.projectforge.web.WicketMenuEntry;
 import org.projectforge.web.WicketSupport;
-import org.projectforge.web.core.menuconfig.MenuConfig;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.AbstractSecuredPage;
@@ -92,7 +91,6 @@ public class NavTopPanel extends NavAbstractPanel {
   public void init(final AbstractSecuredPage page) {
     getMenu();
     favoritesMenu = WicketSupport.get(WicketMenuBuilder.class).getFavoriteMenu();
-    add(new MenuConfig("menuconfig", getMenu()));
     add(new BookmarkablePageLink<Void>("feedbackLink", FeedbackPage.class));
     {
       final AjaxLink<Void> showBookmarkLink = new AjaxLink<Void>("showBookmarkLink") {

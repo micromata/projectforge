@@ -24,19 +24,14 @@
                 </ul></li>
             </ul></li>
         </ul>
-        <wicket:container wicket:id="menuconfig"></wicket:container>
-        <div id="pf_sortablecontainer">
-          <ul class="nav navbar-nav" role="menu">
-            <li id="pf_newentry" class="pf_disable"><input type="text" class="text"><a class="pf_safenewentry"><i
-                class="glyphicon glyphicon-plus-sign"></i></a></li>
-            <li wicket:id="menuRepeater"><a href="#" wicket:id="link"><span wicket:id="label">[Generic]</span><span
-                class="badge badge-important" wicket:id="suffix">[5]</span> <b class="caret" wicket:id="caret"></b></a>
-              <ul class="dropdown-menu" wicket:id="subMenu">
-                <li wicket:id="subMenuRepeater"><a wicket:id="link"><span wicket:id="label">[Addresses]</span><span
-                    class="badge badge-important" wicket:id="suffix">[5]</span></a></li>
-              </ul></li>
-          </ul>
-        </div>
+        <ul class="nav navbar-nav" role="menu">
+          <li wicket:id="menuRepeater"><a href="#" wicket:id="link"><span wicket:id="label">[Generic]</span><span
+              class="badge badge-important" wicket:id="suffix">[5]</span> <b class="caret" wicket:id="caret"></b></a>
+            <ul class="dropdown-menu" wicket:id="subMenu">
+              <li wicket:id="subMenuRepeater"><a wicket:id="link"><span wicket:id="label">[Addresses]</span><span
+                  class="badge badge-important" wicket:id="suffix">[5]</span></a></li>
+            </ul></li>
+        </ul>
         <ul class="nav navbar-nav pull-right">
           <li id="navuserpanel" class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown"><span wicket:id="user">[Kai Reinhard]</span><b
               class="caret"></b></a>
