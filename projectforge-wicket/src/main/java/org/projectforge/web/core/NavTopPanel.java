@@ -123,8 +123,8 @@ public class NavTopPanel extends NavAbstractPanel {
       } else {
         final ExternalLink myAccountLink = new ExternalLink("myAccountLink", PagesResolver.getDynamicPageUrl(MyAccountPageRest.class, null, null, true));
         add(myAccountLink);
-        final ExternalLink myMenuLink = new ExternalLink("myMenuLink", PagesResolver.getDynamicPageUrl(MyMenuPageRest.class, null, null, true));
-        add(myMenuLink);
+        final ExternalLink customizeMenuLink = new ExternalLink("customizeMenuLink", "/" + PagesResolver.REACT_PATH + "/customizeMenu");
+        add(customizeMenuLink);
         final ExternalLink my2FactorAuthentificationLink = new ExternalLink("my2FactorAuthentificationLink", PagesResolver.getDynamicPageUrl(My2FASetupPageRest.class, null, null, true));
         add(my2FactorAuthentificationLink);
         addVacationViewLink();
