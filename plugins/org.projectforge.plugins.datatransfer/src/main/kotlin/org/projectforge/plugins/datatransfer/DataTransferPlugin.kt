@@ -93,7 +93,7 @@ class DataTransferPlugin :
         )
     }
 
-    override fun handleFavoriteMenu(menu: Menu, allMenuItems: List<MenuItem>) {
+    override fun createDefaultFavoriteMenu(menu: Menu, allMenuItems: List<MenuItem>) {
         if (allMenuItems.any { it.id == info.id }) {
             // DataTransfer menu already set in user's favorite menu.
             return

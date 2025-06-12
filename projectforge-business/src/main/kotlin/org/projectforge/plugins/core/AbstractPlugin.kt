@@ -225,7 +225,7 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
             .toTypedArray()
     }
 
-    open fun handleFavoriteMenu(menu: Menu, allMenuItems: List<MenuItem>) {
+    open fun createDefaultFavoriteMenu(menu: Menu, allMenuItems: List<MenuItem>) {
     }
 
     companion object {
