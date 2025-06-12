@@ -49,6 +49,8 @@ function MenuCustomizer() {
     const [activeId, setActiveId] = useState(null);
     const [overId, setOverId] = useState(null);
     const [draggedItem, setDraggedItem] = useState(null);
+    const [translations, setTranslations] = useState({});
+    const [excelMenuUrl, setExcelMenuUrl] = useState('');
     
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -63,17 +65,29 @@ function MenuCustomizer() {
 
     const loadMenuData = () => {
         setLoading(true);
-        // Direct URL call to prevent double URL issue
-        fetch(`${baseRestURL}/menu`, {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-                Accept: 'application/json',
-            },
-        })
-            .then(handleHTTPErrors)
-            .then((response) => response.json())
-            .then((json) => {
+        // Load translations and page data first, then menu data
+        Promise.all([
+            fetch(`${baseRestURL}/menu/customizer`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    Accept: 'application/json',
+                },
+            }).then(handleHTTPErrors).then(response => response.json()),
+            fetch(`${baseRestURL}/menu`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    Accept: 'application/json',
+                },
+            }).then(handleHTTPErrors).then(response => response.json())
+        ])
+            .then(([pageData, menuData]) => {
+                // Set translations and Excel URL
+                setTranslations(pageData.translations);
+                setExcelMenuUrl(pageData.excelMenuUrl);
+                
+                const json = menuData;
                 // Keep original menu structure for rendering categories
                 const menuStructure = json.mainMenu.menuItems || [];
 
@@ -104,7 +118,7 @@ function MenuCustomizer() {
                 setLoading(false);
             })
             .catch((err) => {
-                setError('Error loading menu data. Please try again.');
+                setError(translations.errorLoadingMenu || 'Error loading menu data. Please try again.');
                 setLoading(false);
             });
     };
@@ -548,7 +562,7 @@ function MenuCustomizer() {
 
     const addNewGroup = () => {
         if (!newGroupName.trim()) {
-            setError('Group name cannot be empty');
+            setError(translations.groupNameCannotBeEmpty || 'Group name cannot be empty');
             return;
         }
 
@@ -567,7 +581,7 @@ function MenuCustomizer() {
 
     const editGroup = (groupId, newName) => {
         if (!newName.trim()) {
-            setError('Group name cannot be empty');
+            setError(translations.groupNameCannotBeEmpty || 'Group name cannot be empty');
             return;
         }
 
@@ -642,20 +656,20 @@ function MenuCustomizer() {
             .then(handleHTTPErrors)
             .then((response) => response.json())
             .then((result) => {
-                setSuccess('Menu saved successfully');
+                setSuccess(translations.menuSavedSuccessfully || 'Menu saved successfully');
                 setLoading(false);
                 // Refresh the menu data
                 loadMenuData();
             })
             .catch((err) => {
-                setError('Error saving menu. Please try again.');
+                setError(translations.errorSavingMenu || 'Error saving menu. Please try again.');
                 setLoading(false);
             });
     };
 
     const resetMenu = () => {
         // eslint-disable-next-line no-alert
-        if (window.confirm('Are you sure you want to reset your menu to default?')) {
+        if (window.confirm(translations.confirmReset || 'Are you sure you want to reset your menu to default?')) {
             setLoading(true);
             fetch(`${baseRestURL}/menu/reset`, {
                 method: 'POST',
@@ -668,13 +682,13 @@ function MenuCustomizer() {
                 .then(handleHTTPErrors)
                 .then((response) => response.json())
                 .then(() => {
-                    setSuccess('Menu reset successfully');
+                    setSuccess(translations.menuResetSuccessfully || 'Menu reset successfully');
                     setLoading(false);
                     // Refresh the menu data
                     loadMenuData();
                 })
                 .catch((err) => {
-                    setError('Error resetting menu. Please try again.');
+                    setError(translations.errorResettingMenu || 'Error resetting menu. Please try again.');
                     setLoading(false);
                 });
         }
@@ -797,7 +811,7 @@ function MenuCustomizer() {
                             color="link"
                             className={styles.actionButton}
                             onClick={() => removeItem(getItemId(item), groupId)}
-                            title="Remove from group"
+                            title={translations.removeFromGroup || "Remove from group"}
                         >
                             <FontAwesomeIcon icon={faMinus} />
                         </Button>
@@ -807,7 +821,7 @@ function MenuCustomizer() {
                             color="link"
                             className={styles.actionButton}
                             onClick={() => removeItem(getItemId(item))}
-                            title="Remove from favorites"
+                            title={translations.removeFromFavorites || "Remove from favorites"}
                         >
                             <FontAwesomeIcon icon={faTrash} />
                         </Button>
@@ -905,7 +919,7 @@ function MenuCustomizer() {
                             {(!category.subMenu || category.subMenu.length === 0) && (
                                 <li className={styles.categoryLink}>
                                     <div className={styles.emptyGroup}>
-                                        <p>No items in this category</p>
+                                        <p>{translations.noItemsInCategory || "No items in this category"}</p>
                                     </div>
                                 </li>
                             )}
@@ -1018,7 +1032,7 @@ function MenuCustomizer() {
                                     setNewGroupName(item.title);
                                 }}
                                 onMouseDown={(e) => e.stopPropagation()}
-                                title="Edit group name"
+                                title={translations.editGroupName || "Edit group name"}
                             >
                                 <FontAwesomeIcon icon={faPencilAlt} />
                             </Button>
@@ -1030,7 +1044,7 @@ function MenuCustomizer() {
                                     removeItem(groupId);
                                 }}
                                 onMouseDown={(e) => e.stopPropagation()}
-                                title="Remove group"
+                                title={translations.removeGroup || "Remove group"}
                             >
                                 <FontAwesomeIcon icon={faTrash} />
                             </Button>
@@ -1063,7 +1077,7 @@ function MenuCustomizer() {
                         })}
                         {(!item.subMenu || item.subMenu.length === 0) && (
                             <div className={styles.emptyGroup}>
-                                <p>Drop items here</p>
+                                <p>{translations.dropItemsHere || "Drop items here"}</p>
                             </div>
                         )}
                     </div>
@@ -1096,24 +1110,24 @@ function MenuCustomizer() {
                 strategy={verticalListSortingStrategy}
             >
                 <div className={styles.menuCustomizer}>
-                <h2>Customize Your Menu</h2>
+                <h2>{translations.title || 'Customize Your Menu'}</h2>
                 {error && <Alert color="danger">{error}</Alert>}
                 {success && <Alert color="success">{success}</Alert>}
                 {/* Custom Menu Section */}
                 <div className={styles.customMenuSection}>
                     <Card>
                         <CardHeader>
-                            Your Custom Menu
+                            {translations.customMenuSection || 'Your Custom Menu'}
                             <div className={styles.headerActions}>
                                 {!showGroupInput ? (
                                     <Button
                                         color="primary"
                                         size="sm"
                                         onClick={() => setShowGroupInput(true)}
-                                        title="Add a new group"
+                                        title={translations.addGroup || "Add a new group"}
                                     >
                                         <FontAwesomeIcon icon={faPlus} />
-                                        <span>Add Group</span>
+                                        <span>{translations.addGroup || 'Add Group'}</span>
                                     </Button>
                                 ) : (
                                     <div className={styles.groupForm}>
@@ -1122,7 +1136,7 @@ function MenuCustomizer() {
                                             className={styles.groupNameInput}
                                             value={newGroupName}
                                             onChange={(e) => setNewGroupName(e.target.value)}
-                                            placeholder="Group name"
+                                            placeholder={translations.groupName || "Group name"}
                                             autoFocus
                                         />
                                         <Button
@@ -1130,7 +1144,7 @@ function MenuCustomizer() {
                                             size="sm"
                                             onClick={addNewGroup}
                                         >
-                                            Add
+                                            {translations.add || 'Add'}
                                         </Button>
                                         <Button
                                             color="secondary"
@@ -1140,7 +1154,7 @@ function MenuCustomizer() {
                                                 setNewGroupName('');
                                             }}
                                         >
-                                            Cancel
+                                            {translations.cancel || 'Cancel'}
                                         </Button>
                                     </div>
                                 )}
@@ -1180,7 +1194,7 @@ function MenuCustomizer() {
                                 })}
                                 {customMenu.length === 0 && (
                                     <div className={styles.emptyMenu}>
-                                        <p>Drag items from template below</p>
+                                        <p>{translations.dragItemsHere || 'Drag items from template below'}</p>
                                     </div>
                                 )}
                             </DroppableArea>
@@ -1192,18 +1206,26 @@ function MenuCustomizer() {
                 <div className={styles.actionButtons}>
                     <Button color="primary" onClick={saveMenu}>
                         <FontAwesomeIcon icon={faSave} />
-                        <span>Save Changes</span>
+                        <span>{translations.saveChanges || 'Save Changes'}</span>
                     </Button>
                     <Button color="secondary" onClick={resetMenu}>
                         <FontAwesomeIcon icon={faUndo} />
-                        <span>Reset to Default</span>
+                        <span>{translations.resetToDefault || 'Reset to Default'}</span>
                     </Button>
+                    {excelMenuUrl && (
+                        <Button 
+                            color="success" 
+                            onClick={() => window.open(excelMenuUrl, '_blank')}
+                        >
+                            <span>{translations.excelMenu || 'Excel Menu'}</span>
+                        </Button>
+                    )}
                 </div>
 
                 {/* Template Menu Section */}
                 <div className={styles.templateMenuSection}>
                     <Card>
-                        <CardHeader>Available Menu Items (Template)</CardHeader>
+                        <CardHeader>{translations.templateMenuSection || 'Available Menu Items (Template)'}</CardHeader>
                         <CardBody className={styles.templateMenuBody}>
                             {menuItems.mainMenuStructured && renderCategoryColumns(menuItems.mainMenuStructured)}
                         </CardBody>

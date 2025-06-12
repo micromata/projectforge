@@ -24,15 +24,13 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
+import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.Menu
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.builder.FavoritesMenuReaderWriter
 import org.projectforge.rest.config.Rest
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 private val log = KotlinLogging.logger {}
 
@@ -44,6 +42,53 @@ private val log = KotlinLogging.logger {}
 class MenuCustomizerRest {
 
     class CustomMenuData(val favoritesMenu: List<MenuItem>? = null)
+    
+    class MenuCustomizerPageData(
+        val translations: Map<String, String>,
+        val excelMenuUrl: String
+    )
+
+    /**
+     * Returns page data including translations and Excel menu URL.
+     */
+    @GetMapping("customizer")
+    fun getMenuCustomizerPageData(): ResponseEntity<MenuCustomizerPageData> {
+        val translations = mapOf(
+            "title" to translate("menu.customizer.title"),
+            "customMenuSection" to translate("menu.customizer.customMenuSection"),
+            "templateMenuSection" to translate("menu.customizer.templateMenuSection"),
+            "addGroup" to translate("menu.customizer.addGroup"),
+            "groupName" to translate("menu.customizer.groupName"),
+            "add" to translate("add"),
+            "cancel" to translate("cancel"),
+            "save" to translate("save"),
+            "reset" to translate("reset"),
+            "saveChanges" to translate("menu.customizer.saveChanges"),
+            "resetToDefault" to translate("menu.customizer.resetToDefault"),
+            "dragItemsHere" to translate("menu.customizer.dragItemsHere"),
+            "noItemsInCategory" to translate("menu.customizer.noItemsInCategory"),
+            "dropItemsHere" to translate("menu.customizer.dropItemsHere"),
+            "removeFromGroup" to translate("menu.customizer.removeFromGroup"),
+            "removeFromFavorites" to translate("menu.customizer.removeFromFavorites"),
+            "editGroupName" to translate("menu.customizer.editGroupName"),
+            "removeGroup" to translate("menu.customizer.removeGroup"),
+            "groupNameCannotBeEmpty" to translate("menu.customizer.groupNameCannotBeEmpty"),
+            "menuSavedSuccessfully" to translate("menu.customizer.menuSavedSuccessfully"),
+            "menuResetSuccessfully" to translate("menu.customizer.menuResetSuccessfully"),
+            "errorLoadingMenu" to translate("menu.customizer.errorLoadingMenu"),
+            "errorSavingMenu" to translate("menu.customizer.errorSavingMenu"),
+            "errorResettingMenu" to translate("menu.customizer.errorResettingMenu"),
+            "confirmReset" to translate("menu.customizer.confirmReset"),
+            "excelMenu" to translate("menu.customizer.excelMenu")
+        )
+        
+        val pageData = MenuCustomizerPageData(
+            translations = translations,
+            excelMenuUrl = "/react/myMenu/dynamic/"
+        )
+        
+        return ResponseEntity.ok(pageData)
+    }
 
     /**
      * Saves the customized menu for the current user.
