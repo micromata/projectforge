@@ -27,8 +27,10 @@ import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.Menu
 import org.projectforge.menu.MenuItem
+import org.projectforge.menu.builder.FavoritesMenuCreator
 import org.projectforge.menu.builder.FavoritesMenuReaderWriter
 import org.projectforge.rest.config.Rest
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -47,6 +49,9 @@ class MenuCustomizerRest {
         val translations: Map<String, String>,
         val excelMenuUrl: String
     )
+    
+    @Autowired
+    private lateinit var favoritesMenuCreator: FavoritesMenuCreator
 
     /**
      * Returns page data including translations and Excel menu URL.
@@ -79,7 +84,10 @@ class MenuCustomizerRest {
             "errorSavingMenu" to translate("menu.customizer.errorSavingMenu"),
             "errorResettingMenu" to translate("menu.customizer.errorResettingMenu"),
             "confirmReset" to translate("menu.customizer.confirmReset"),
-            "excelMenu" to translate("menu.customizer.excelMenu")
+            "excelMenu" to translate("menu.customizer.excelMenu"),
+            "excelMenuTooltip" to translate("menu.customizer.excelMenuTooltip"),
+            "undo" to translate("menu.customizer.undo"),
+            "loadDefault" to translate("menu.customizer.loadDefault")
         )
         
         val pageData = MenuCustomizerPageData(
@@ -127,7 +135,25 @@ class MenuCustomizerRest {
     }
 
     /**
-     * Resets the user's menu to the default menu.
+     * Returns the default menu without saving it to user preferences.
+     */
+    @GetMapping("default")
+    fun getDefaultMenu(): ResponseEntity<Any> {
+        val defaultMenu = favoritesMenuCreator.createDefaultFavoriteMenu()
+        return ResponseEntity.ok(mapOf("favoritesMenu" to defaultMenu.menuItems))
+    }
+
+    /**
+     * Returns the currently saved menu from user preferences.
+     */
+    @GetMapping("saved")
+    fun getSavedMenu(): ResponseEntity<Any> {
+        val savedMenu = favoritesMenuCreator.getFavoriteMenu()
+        return ResponseEntity.ok(mapOf("favoritesMenu" to savedMenu.menuItems))
+    }
+
+    /**
+     * Resets the user's menu to the default menu (permanently saves it).
      */
     @PostMapping("reset")
     fun resetMenu(): ResponseEntity<Any> {
