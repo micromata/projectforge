@@ -107,12 +107,9 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
     gridBuilder.newSplitPanel(GridSize.COL50, true);
     gridBuilder.newSubSplitPanel(GridSize.COL50);
     {
-      // Date
-      final FieldProperties<LocalDate> props = getDatumProperties();
-      final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "datum");
-      LocalDatePanel components = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
-      components.setRequired(true);
-      fs.add(components);
+      // Currency
+      final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "currency");
+      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "currency")));
     }
     gridBuilder.newSubSplitPanel(GridSize.COL50);
     {
@@ -301,10 +298,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
     }
   }
 
-
-
-
-  private FieldProperties<LocalDate> getDatumProperties() {
+  protected FieldProperties<LocalDate> getDatumProperties() {
     return new FieldProperties<>("fibu.rechnung.datum", new PropertyModel<>(super.data, "datum"));
   }
 

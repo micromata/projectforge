@@ -36,10 +36,12 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.projectforge.business.common.NumberToStringValueBridge
 
+/**
+ * DATEV-Konto
+ */
 @Entity
 @Indexed
 @Table(name = "T_FIBU_KONTO", uniqueConstraints = [UniqueConstraint(columnNames = ["nummer"])])
-//@WithHistory
 @NamedQueries(
         NamedQuery(name = KontoDO.FIND_BY_NUMMER, query = "from KontoDO where nummer=:nummer"))
 open class KontoDO : DefaultBaseDO(), DisplayNameCapable {

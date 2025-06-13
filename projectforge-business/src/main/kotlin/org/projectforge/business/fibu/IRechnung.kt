@@ -31,4 +31,5 @@ import java.math.BigDecimal
 interface IRechnung {
     val zahlBetrag: BigDecimal?
     val positionen: List<IRechnungsPosition>?
+    val currency: String?
 }

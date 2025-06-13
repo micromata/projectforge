@@ -49,10 +49,11 @@ class Rechnung(
     var zahlungsZielInTagen: Int? = null,
     var discountZahlungsZielInTagen: Int? = null,
     var bezahlDatum: LocalDate? = null,
+    override val currency: String? = null,
     override var zahlBetrag: BigDecimal? = null,
     var konto: Konto? = null,
     var discountPercent: BigDecimal? = null,
-    var discountMaturity: LocalDate? = null
+    var discountMaturity: LocalDate? = null,
 ) : BaseDTO<RechnungDO>(), IRechnung {
     override var positionen: MutableList<RechnungsPosition>? = null
 

@@ -23,19 +23,16 @@
 
 package org.projectforge.rest.dto
 
-import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO
 import org.projectforge.business.fibu.IRechnungsPosition
-import org.projectforge.business.fibu.RechnungCalculator
 import org.projectforge.business.fibu.kost.KostZuweisungDO
 import java.math.BigDecimal
 
 class EingangsrechnungsPosition(
-        var text: String? = null,
-        override var menge: BigDecimal? = null,
-        override var einzelNetto: BigDecimal? = null,
-        override var vat: BigDecimal? = null
-
+    var text: String? = null,
+    override var menge: BigDecimal? = null,
+    override var einzelNetto: BigDecimal? = null,
+    override var vat: BigDecimal? = null,
 ) : BaseDTO<EingangsrechnungsPositionDO>(), IRechnungsPosition {
     var kostZuweisungen: MutableList<KostZuweisung>? = null
 

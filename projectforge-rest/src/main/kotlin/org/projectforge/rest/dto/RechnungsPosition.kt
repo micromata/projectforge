@@ -31,8 +31,7 @@ class RechnungsPosition(
         var text: String? = null,
         override var menge: BigDecimal? = null,
         override var einzelNetto: BigDecimal? = null,
-        override var vat: BigDecimal? = null
-
+        override var vat: BigDecimal? = null,
 ) : BaseDTO<RechnungsPositionDO>(), IRechnungsPosition {
 
     var kostZuweisungen: MutableList<KostZuweisung>? = null
