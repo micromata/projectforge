@@ -143,7 +143,7 @@ abstract class AbstractImportJob(
   }
 
   /**
-   * For displaying purposes (e. g. progress, errors etc.). Use pure text or markdown format.
+   * For displaying purposes (e.g. progress, errors etc.). Use pure text or markdown format.
    */
   override val info: String
     get() {

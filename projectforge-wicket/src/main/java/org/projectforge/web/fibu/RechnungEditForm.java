@@ -41,10 +41,13 @@ import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.*;
+import org.projectforge.web.wicket.flowlayout.FieldProperties;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
 import org.slf4j.Logger;
+
+import java.time.LocalDate;
 
 public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, RechnungsPositionDO, RechnungEditPage>
 {
@@ -84,14 +87,35 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
       // Number
       final FieldsetPanel fs = gridBuilder.newFieldset(RechnungDO.class, "nummer");
       final MinMaxNumberField<Integer> number = new MinMaxNumberField<Integer>(InputPanel.WICKET_ID,
-          new PropertyModel<Integer>(data,
-              "nummer"),
-          0, 99999999);
+              new PropertyModel<Integer>(data,
+                      "nummer"),
+              0, 99999999);
       number.setMaxLength(8).add(AttributeModifier.append("style", "width: 6em !important;"));
       fs.add(number);
       if (NumberHelper.greaterZero(getData().getNummer()) == false) {
         fs.addHelpIcon(getString("fibu.tooltip.nummerWirdAutomatischVergeben"));
       }
+    }
+    {
+      // Type
+      gridBuilder.newSubSplitPanel(GridSize.COL50);
+      final FieldsetPanel fs = gridBuilder.newFieldset(RechnungDO.class, "typ");
+      final LabelValueChoiceRenderer<RechnungTyp> typeChoiceRenderer = new LabelValueChoiceRenderer<RechnungTyp>(this,
+              RechnungTyp.values());
+      final DropDownChoice<RechnungTyp> typeChoice = new DropDownChoice<RechnungTyp>(fs.getDropDownChoiceId(),
+              new PropertyModel<RechnungTyp>(data, "typ"), typeChoiceRenderer.getValues(), typeChoiceRenderer);
+      typeChoice.setNullValid(false);
+      typeChoice.setRequired(true);
+      fs.add(typeChoice);
+    }
+    gridBuilder.newSubSplitPanel(GridSize.COL50);
+    {
+      // Date
+      final FieldProperties<LocalDate> props = getDatumProperties();
+      final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "datum");
+      LocalDatePanel components = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
+      components.setRequired(true);
+      fs.add(components);
     }
     gridBuilder.newSubSplitPanel(GridSize.COL50);
     {
@@ -106,31 +130,18 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
       statusChoice.setRequired(true);
       fs.add(statusChoice);
     }
-    {
-      // Type
-      gridBuilder.newSubSplitPanel(GridSize.COL50);
-      final FieldsetPanel fs = gridBuilder.newFieldset(RechnungDO.class, "typ");
-      final LabelValueChoiceRenderer<RechnungTyp> typeChoiceRenderer = new LabelValueChoiceRenderer<RechnungTyp>(this,
-          RechnungTyp.values());
-      final DropDownChoice<RechnungTyp> typeChoice = new DropDownChoice<RechnungTyp>(fs.getDropDownChoiceId(),
-          new PropertyModel<RechnungTyp>(data, "typ"), typeChoiceRenderer.getValues(), typeChoiceRenderer);
-      typeChoice.setNullValid(false);
-      typeChoice.setRequired(true);
-      fs.add(typeChoice);
-    }
-    gridBuilder.newSubSplitPanel(GridSize.COL50);
+    gridBuilder.newSubSplitPanel(GridSize.COL100);
     if (WicketSupport.get(KontoCache.class).isEmpty() == false) {
       // Show this field only if DATEV accounts does exist.
       final FieldsetPanel fs = gridBuilder.newFieldset(RechnungDO.class, "konto");
       final KontoSelectPanel kontoSelectPanel = new KontoSelectPanel(fs.newChildId(),
-          new PropertyModel<KontoDO>(data, "konto"), null,
-          "kontoId");
+              new PropertyModel<KontoDO>(data, "konto"), null,
+              "kontoId");
       kontoSelectPanel.setKontoNumberRanges(AccountingConfig.getInstance().getDebitorsAccountNumberRanges());
       fs.addHelpIcon(getString("fibu.rechnung.konto.tooltip"));
       fs.add(kontoSelectPanel);
       kontoSelectPanel.init();
     }
-    gridBuilder.newSubSplitPanel(GridSize.COL100);
     {
       // Projekt
       final FieldsetPanel fs = gridBuilder.newFieldset(RechnungDO.class, "projekt").suppressLabelForWarning();

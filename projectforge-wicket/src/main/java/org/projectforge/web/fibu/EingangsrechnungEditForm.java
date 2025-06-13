@@ -38,12 +38,16 @@ import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
+import org.projectforge.web.wicket.components.LocalDateModel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
+import org.projectforge.web.wicket.flowlayout.FieldProperties;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.slf4j.Logger;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 public class EingangsrechnungEditForm extends
@@ -74,6 +78,14 @@ public class EingangsrechnungEditForm extends
     }
     /* GRID50 - BLOCK */
     gridBuilder.newSplitPanel(GridSize.COL50);
+    {
+      // Date
+      final FieldProperties<LocalDate> props = getDatumProperties();
+      final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "datum");
+      LocalDatePanel components = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
+      components.setRequired(true);
+      fs.add(components);
+    }
     {
       // Creditor
       final FieldsetPanel fs = gridBuilder.newFieldset(EingangsrechnungDO.class, "kreditor");

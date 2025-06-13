@@ -98,6 +98,10 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
     @get:Column(name = "zahl_betrag", scale = 2, precision = 12)
     override var zahlBetrag: BigDecimal? = null
 
+    @PropertyInfo(i18nKey = "fibu.rechnung.currency")
+    @get:Column(length = 10)
+    override var currency: String? = null
+
     /**
      * This Datev account number is used for the exports of invoices. For debitor invoices (RechnungDO): If not given then
      * the account number assigned to the ProjektDO if set or KundeDO is used instead (default).

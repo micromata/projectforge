@@ -48,6 +48,7 @@ class Eingangsrechnung(
   var discountZahlungsZielInTagen: Int? = null,
   var bezahlDatum: LocalDate? = null,
   override var zahlBetrag: BigDecimal? = null,
+  override val currency: String? = null,
   var konto: Konto? = null,
   var discountPercent: BigDecimal? = null,
   var discountMaturity: LocalDate? = null
