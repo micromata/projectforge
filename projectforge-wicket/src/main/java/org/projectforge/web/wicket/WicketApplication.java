@@ -341,7 +341,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
 
         // These settings help with preserving page state and isolation between users
         getStoreSettings().setAsynchronous(false);
-        getStoreSettings().setMaxSizePerSession(Bytes.megabytes(2));
+        getStoreSettings().setMaxSizePerSession(Bytes.megabytes(5));
         log.info("Using standard Wicket disk-based page store to fix session problems after Wicket 10 migration");
 
         WicketSupport.register(SipgateDirectCallService.class, applicationContext.getBean(SipgateDirectCallService.class));
