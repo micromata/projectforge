@@ -86,5 +86,5 @@ class Kost1PagesRest : AbstractDTOPagesRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::
         return list
     }
 
-    override val autoCompleteSearchFields = arrayOf("description", "nummer")
+    override val autoCompleteSearchFields = arrayOf("description", "nummer", "rawNumberString")
 }
