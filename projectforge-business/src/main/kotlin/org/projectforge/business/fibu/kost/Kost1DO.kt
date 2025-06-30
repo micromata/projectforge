@@ -112,10 +112,20 @@ open class Kost1DO : DefaultBaseDO(), DisplayNameCapable {
         get() = KostFormatter.instance.formatKost1(this, KostFormatter.FormatType.FORMATTED_NUMBER)
 
     /**
+     * Format: ########
+     * Used for searching.
+     */
+    @get:Transient
+    @get:GenericField(name = "rawNumberString")
+    @get:IndexingDependency(derivedFrom = [ObjectPath(PropertyValue(propertyName = "id"))])
+    val rawNumberString: String
+        get() = KostFormatter.getKostAsSafeIntString(nummernkreis, bereich, teilbereich, endziffer)
+
+    /**
      * @see KostFormatter.getKostAsInt
      */
+    @get:Transient
     val nummer: Int
-        @Transient
         get() = KostFormatter.getKostAsInt(nummernkreis, bereich, teilbereich, endziffer)
 
     /**
