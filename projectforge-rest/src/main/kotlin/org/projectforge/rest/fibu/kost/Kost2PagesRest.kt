@@ -25,7 +25,6 @@ package org.projectforge.rest.fibu.kost
 
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.fibu.KostFormatter
-import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
@@ -122,5 +121,6 @@ class Kost2PagesRest : AbstractDTOPagesRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao::
         return list.sortedBy { it.displayName }
     }
 
-    override val autoCompleteSearchFields = arrayOf("description", "nummer", "projekt.name", "projekt.kunde.name")
+    override val autoCompleteSearchFields =
+        arrayOf("description", "nummer", "rawNumberString", "projekt.name", "projekt.kunde.name")
 }

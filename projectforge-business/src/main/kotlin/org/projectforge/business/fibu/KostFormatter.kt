@@ -264,6 +264,28 @@ class KostFormatter {
         }
 
         /**
+         * Calls getKostAsInt(nummernkreis, bereich, teilbereich, endziffer) and returns the result as a String.
+         */
+        fun getKostAsSafeIntString(nummernkreis: Int, bereich: Int, teilbereich: Int, endziffer: Int): String {
+            return try {
+                getKostAsInt(nummernkreis, bereich, teilbereich, endziffer).toString()
+            } catch (e: UnsupportedOperationException) {
+                "00000000"
+            }
+        }
+
+        /**
+         * Calls getKostAsInt(nummernkreis, bereich, teilbereich, endziffer) and returns the result as a String.
+         */
+        fun getKostAsSafeIntString(nummernkreis: Int, bereich: Int, teilbereich: Int, endziffer: Long): String {
+            return try {
+                getKostAsInt(nummernkreis, bereich, teilbereich, endziffer).toString()
+            } catch (e: UnsupportedOperationException) {
+                "00000000"
+            }
+        }
+
+        /**
          * Gibt den Kostenträger als Ganzzahl zurück. Wenn die Wertebereiche der einzelnen Parameter außerhalb des definierten
          * Bereichs liegt, wird eine UnsupportedOperationException geworfen.
          *
