@@ -43,7 +43,6 @@ import java.time.LocalDate
 class BuchungssatzExcelImporter(
     private val storage: ImportStorage<BuchungssatzDO>, private val kontoDao: KontoDao, private val kost1Dao: Kost1Dao,
     private val kost2Dao: Kost2Dao,
-    private val persistenceService: PfPersistenceService,
 ) {
     private val dateValidator = ExcelColumnDateValidator(
         ExcelColumnDateValidator.GERMAN_FORMATS,

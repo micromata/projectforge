@@ -107,7 +107,7 @@ class DatevImportService {
                 Type.BUCHUNGSSAETZE, workbook, ImportLogger.Level.INFO,
                 "'$filename':", log
             )
-            val imp = BuchungssatzExcelImporter(storage, kontoDao, kost1Dao, kost2Dao, persistenceService)
+            val imp = BuchungssatzExcelImporter(storage, kontoDao, kost1Dao, kost2Dao)
             imp.doImport(workbook)
             return storage
         }

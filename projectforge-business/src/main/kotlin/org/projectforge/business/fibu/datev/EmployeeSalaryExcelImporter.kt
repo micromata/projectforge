@@ -23,14 +23,16 @@
 
 package org.projectforge.business.fibu.datev
 
-import de.micromata.merlin.excel.*
+import de.micromata.merlin.excel.ExcelColumnName
+import de.micromata.merlin.excel.ExcelColumnNumberValidator
+import de.micromata.merlin.excel.ExcelColumnValidator
+import de.micromata.merlin.excel.ExcelWorkbook
 import de.micromata.merlin.excel.importer.ImportHelper
 import de.micromata.merlin.excel.importer.ImportLogger
 import de.micromata.merlin.excel.importer.ImportStorage
 import de.micromata.merlin.excel.importer.ImportedSheet
 import mu.KotlinLogging
 import org.projectforge.business.fibu.EmployeeCache
-import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.EmployeeSalaryDO
 import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.common.i18n.UserException
@@ -99,7 +101,10 @@ class EmployeeSalaryExcelImporter {
             val employee = employeeCache.findByStaffNumber(staffNumber)
                 ?: employeeService.findByStaffnumber(staffNumber)
             if (employee == null) {
-                element.putErrorProperty("Personalnummer", "Mitarbeiter:in mit Personalnummer '$staffNumber' nicht gefunden.")
+                element.putErrorProperty(
+                    "Personalnummer",
+                    "Mitarbeiter:in mit Personalnummer '$staffNumber' nicht gefunden."
+                )
             }
             salary.employee = employee
             salary.year = year

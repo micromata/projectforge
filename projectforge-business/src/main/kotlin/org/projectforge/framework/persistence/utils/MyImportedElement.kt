@@ -27,11 +27,23 @@ import de.micromata.merlin.excel.importer.ImportedElement
 import de.micromata.merlin.excel.importer.ImportedSheet
 import org.projectforge.framework.DisplayNameCapable
 
-open class MyImportedElement<T>(importedSheet: ImportedSheet<T>,
-                                row: Int,
-                                clazz: Class<T>,
-                                vararg diffProperties: String)
-    : ImportedElement<T>(importedSheet, row, clazz, *diffProperties) {
+/**
+ * Custom imported element class that formats values as strings, particularly for display names.
+ * This class extends the generic ImportedElement class to provide specific functionality
+ * for handling imported data with display names.
+ * @param T The type of the imported data.
+ * @param importedSheet The sheet from which the data is imported.
+ * @param row The row number in the sheet.
+ * @param clazz The class type of the imported data.
+ * @param diffProperties Optional properties to track differences in the imported data.
+ *                       List of property names which will be used for display property changes.
+ */
+open class MyImportedElement<T>(
+    importedSheet: ImportedSheet<T>,
+    row: Int,
+    clazz: Class<T>,
+    vararg diffProperties: String
+) : ImportedElement<T>(importedSheet, row, clazz, *diffProperties) {
 
     override fun valueAsString(value: Any?): String? {
         if (value == null)
