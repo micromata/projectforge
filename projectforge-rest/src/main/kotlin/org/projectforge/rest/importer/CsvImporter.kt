@@ -178,7 +178,7 @@ object CsvImporter {
   }
 
   /**
-   * If the users specified e. g. ISO-8859-1 char set, but special bytes of UTF-8 or UTF-16 are found, the
+   * If the users specified e.g. ISO-8859-1 char set, but special bytes of UTF-8 or UTF-16 are found, the
    * returned charset will be UTF-8 or UTF-16.
    */
   internal fun detectCharset(bytes: ByteArray, defaultCharset: Charset?): Charset {
