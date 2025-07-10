@@ -35,7 +35,7 @@ import java.io.InputStream
 import java.security.SecureRandom
 import java.util.*
 import javax.jcr.*
-import kotlin.concurrent.thread
+import kotlinx.coroutines.*
 
 private val log = KotlinLogging.logger {}
 
@@ -49,9 +49,15 @@ abstract class OakStorage(val mainNodeName: String) {
     lateinit var nodeStore: NodeStore
         protected set
 
+    private val checksumScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
     abstract fun shutdown()
 
     abstract fun afterSessionClosed()
+
+    protected fun shutdownChecksumScope() {
+        checksumScope.cancel("OakStorage shutdown")
+    }
 
     /**
      * @param parentNodePath Path, nodes are separated by '/', e. g. "world/germany". The nodes of this path must already exist.
@@ -176,9 +182,9 @@ abstract class OakStorage(val mainNodeName: String) {
             fileObject.copyTo(fileNode)
             session.save()
         }
-        lazyCheckSumFileObject?.let {
-            thread {
-                checksum(it)
+        lazyCheckSumFileObject?.let { fileObject ->
+            checksumScope.launch {
+                checksum(fileObject)
             }
         }
     }
@@ -451,15 +457,26 @@ abstract class OakStorage(val mainNodeName: String) {
     }
 
     open fun retrieveFileInputStream(fileObject: FileObject, password: String? = null): InputStream? {
-        return runInSession { session ->
+        val session = SessionWrapper(this)
+        return try {
             val filesNode = getFilesNode(session, fileObject.parentNodePath, fileObject.relPath, false)
             val node = findFile(filesNode, fileObject.fileId, fileObject.fileName)
             if (node == null) {
                 log.warn { "File not found in repository: $fileObject" }
+                session.logout()
                 null
             } else {
-                getFileInputStream(node, fileObject)
+                val inputStream = getFileInputStream(node, fileObject, password = password)
+                if (inputStream != null) {
+                    SessionBoundInputStream(inputStream, session)
+                } else {
+                    session.logout()
+                    null
+                }
             }
+        } catch (ex: Exception) {
+            session.logout()
+            throw ex
         }
     }
 
