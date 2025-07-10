@@ -161,7 +161,7 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
         if (userGroupCache.isUserMemberOfAdminGroup && useLdapStuff) {
             agGrid.add(lc, "ldapValues")
         }
-        
+
         if (userGroupCache.isUserMemberOfAdminGroup) {
             layout.excelExportSupported = true
         }
@@ -271,13 +271,7 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
                 fieldset.add(UIRow().add(UICol().add(gidInput)).add(UICol().add(button)))
             }
         }
-        val mails = mutableSetOf<String>()
-        dto.assignedUsers?.forEach { user ->
-            userService.find(user.id, false)?.email?.let { email ->
-                mails.add(email)
-            }
-        }
-        dto.emails = mails.sorted().joinToString()
+        dto.setEmails()
         layout.add(UIReadOnlyField("emails", label = "address.emails"))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
@@ -298,7 +292,7 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
             val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
             val wrapTextStyle = workbook.createOrGetCellStyle("wrap")
             wrapTextStyle.wrapText = true
-            
+
             ExcelUtils.registerColumn(sheet, GroupDO::name, 20)
             ExcelUtils.registerColumn(sheet, GroupDO::localGroup)
             ExcelUtils.registerColumn(sheet, GroupDO::organization, 20)
@@ -310,33 +304,34 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
                 ExcelUtils.registerColumn(sheet, GroupDO::ldapValues, 50)
                 sheet.registerColumn(translate("ldap.gidNumber"), "gidNumber").withSize(15)
             }
-            
+
             ExcelUtils.addHeadRow(sheet, boldStyle)
             list.forEach { groupDO ->
                 val group = Group()
                 group.copyFrom(groupDO)
                 val row = sheet.createRow()
                 row.autoFillFromObject(group, "assignedUsers", "groupOwner", "emails", "gidNumber")
-                
+
                 row.getCell("assignedUsers")?.let {
                     it.setCellValue(group.assignedUsers?.joinToString { user -> user.displayName ?: "???" })
                     it.setCellStyle(wrapTextStyle)
                 }
-                
+
                 row.getCell("groupOwner")?.let {
                     it.setCellValue(group.groupOwner?.displayName ?: "")
                     it.setCellStyle(wrapTextStyle)
                 }
-                
+
                 row.getCell("emails")?.let {
+                    group.setEmails()
                     it.setCellValue(group.emails ?: "")
                     it.setCellStyle(wrapTextStyle)
                 }
-                
+
                 if (useLdapStuff) {
                     row.getCell("gidNumber")?.setCellValue(group.gidNumber?.toDouble() ?: 0.0)
                 }
-                
+
                 ExcelUtils.getCell(row, GroupDO::description)?.setCellStyle(wrapTextStyle)
                 ExcelUtils.getCell(row, GroupDO::ldapValues)?.setCellStyle(wrapTextStyle)
             }
