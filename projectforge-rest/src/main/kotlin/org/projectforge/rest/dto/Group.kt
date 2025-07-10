@@ -42,6 +42,31 @@ class Group(
     /** LDAP value, if in use: */
     var gidNumber: Int? = null,
 ) : BaseDTODisplayObject<GroupDO>(id = id, displayName = displayName) {
+
+    /**
+     * Populates the `emails` field with a concatenated list of sorted email addresses of the users
+     * assigned to the group. The email addresses are retrieved from the `UserService`.
+     *
+     * This method queries the `UserService` for each user in the `assignedUsers` set to obtain
+     * their email address. If an email address is found, it's added to a mutable set to ensure
+     * uniqueness. Once all email addresses are collected, they are sorted and joined into a
+     * comma-separated string, which is assigned to the `emails` field.
+     *
+     * Note:
+     * - If `assignedUsers` is null, no action is performed, and the `emails` field remains unchanged.
+     * - This method depends on `UserService.getInstance()` and `UserService.find()` for data retrieval.
+     */
+    fun setEmails() {
+        val userGroupCache = UserGroupCache.getInstance()
+        val mails = mutableSetOf<String>()
+        assignedUsers?.forEach { user ->
+            userGroupCache.getUser(user.id)?.email?.let { email ->
+                mails.add(email)
+            }
+        }
+        emails = mails.sorted().joinToString()
+    }
+
     override fun copyFromMinimal(src: GroupDO) {
         name = src.name
         displayName = src.displayName

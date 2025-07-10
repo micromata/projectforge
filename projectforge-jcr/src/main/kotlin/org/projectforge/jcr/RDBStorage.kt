@@ -61,6 +61,7 @@ internal class RDBStorage(
 
     override fun shutdown() {
         log.info { "Shutting down jcr RDB repository '$mainNodeName'..." }
+        shutdownChecksumScope()
         try {
             (nodeStore as? DocumentNodeStore)?.dispose()
             log.info { "Repository shutdown completed." }
