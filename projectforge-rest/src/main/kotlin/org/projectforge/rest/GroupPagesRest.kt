@@ -23,6 +23,7 @@
 
 package org.projectforge.rest
 
+import de.micromata.merlin.excel.ExcelWorkbook
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import mu.KotlinLogging
@@ -35,25 +36,34 @@ import org.projectforge.business.login.Login
 import org.projectforge.business.user.GroupDao
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.service.UserService
+import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.GroupDO
+import org.projectforge.framework.time.DateHelper
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.RestResolver
+import org.projectforge.rest.core.getObjectList
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.io.ByteArrayResource
+import org.springframework.http.HttpHeaders
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.*
 
 private val log = KotlinLogging.logger {}
 
@@ -150,6 +160,10 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
         )
         if (userGroupCache.isUserMemberOfAdminGroup && useLdapStuff) {
             agGrid.add(lc, "ldapValues")
+        }
+        
+        if (userGroupCache.isUserMemberOfAdminGroup) {
+            layout.excelExportSupported = true
         }
     }
 
@@ -266,6 +280,74 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
         dto.emails = mails.sorted().joinToString()
         layout.add(UIReadOnlyField("emails", label = "address.emails"))
         return LayoutUtils.processEditPage(layout, dto, this)
+    }
+
+    /**
+     * Exports groups as Excel file.
+     */
+    @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
+    fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
+        log.info("Exporting groups as Excel file.")
+        accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+
+        @Suppress("UNCHECKED_CAST")
+        val list = getObjectList(this, baseDao, filter)
+        ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
+            val sheet = workbook.createOrGetSheet(translate("group.title.heading"))
+            val boldFont = ExcelUtils.createFont(workbook, "bold", bold = true)
+            val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
+            val wrapTextStyle = workbook.createOrGetCellStyle("wrap")
+            wrapTextStyle.wrapText = true
+            
+            ExcelUtils.registerColumn(sheet, GroupDO::name, 20)
+            ExcelUtils.registerColumn(sheet, GroupDO::localGroup)
+            ExcelUtils.registerColumn(sheet, GroupDO::organization, 20)
+            ExcelUtils.registerColumn(sheet, GroupDO::description, 50)
+            sheet.registerColumn(translate("group.assignedUsers"), "assignedUsers").withSize(100)
+            sheet.registerColumn(translate("group.owner"), "groupOwner").withSize(30)
+            sheet.registerColumn(translate("address.emails"), "emails").withSize(100)
+            if (useLdapStuff) {
+                ExcelUtils.registerColumn(sheet, GroupDO::ldapValues, 50)
+                sheet.registerColumn(translate("ldap.gidNumber"), "gidNumber").withSize(15)
+            }
+            
+            ExcelUtils.addHeadRow(sheet, boldStyle)
+            list.forEach { groupDO ->
+                val group = Group()
+                group.copyFrom(groupDO)
+                val row = sheet.createRow()
+                row.autoFillFromObject(group, "assignedUsers", "groupOwner", "emails", "gidNumber")
+                
+                row.getCell("assignedUsers")?.let {
+                    it.setCellValue(group.assignedUsers?.joinToString { user -> user.displayName ?: "???" })
+                    it.setCellStyle(wrapTextStyle)
+                }
+                
+                row.getCell("groupOwner")?.let {
+                    it.setCellValue(group.groupOwner?.displayName ?: "")
+                    it.setCellStyle(wrapTextStyle)
+                }
+                
+                row.getCell("emails")?.let {
+                    it.setCellValue(group.emails ?: "")
+                    it.setCellStyle(wrapTextStyle)
+                }
+                
+                if (useLdapStuff) {
+                    row.getCell("gidNumber")?.setCellValue(group.gidNumber?.toDouble() ?: 0.0)
+                }
+                
+                ExcelUtils.getCell(row, GroupDO::description)?.setCellStyle(wrapTextStyle)
+                ExcelUtils.getCell(row, GroupDO::ldapValues)?.setCellStyle(wrapTextStyle)
+            }
+            sheet.setAutoFilter()
+            val filename = ("GroupList_${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx")
+            val resource = ByteArrayResource(workbook.asByteArrayOutputStream.toByteArray())
+            return ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.parseMediaType("application/octet-stream"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
+                .body(resource)
+        }
     }
 
     private val useLdapStuff: Boolean
