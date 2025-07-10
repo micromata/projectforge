@@ -65,7 +65,8 @@ internal class SegmentTarStorage(
     }
 
     override fun shutdown() {
-        log.info { "Shutting down jcr filestore repository '$mainNodeName' in ${fileStoreLocation.absolutePath}..." }
+        log.info { "Shutting down JCR filestore repository '$mainNodeName' in ${fileStoreLocation.absolutePath}..." }
+        shutdownChecksumScope()
         fileStore?.let {
             it.flush()
             it.compactFull()
