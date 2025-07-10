@@ -58,6 +58,7 @@ open class SessionWrapper(repoStore: OakStorage) {
 
     fun logout() {
         session.save()
+        session.logout()
     }
 
     companion object {
