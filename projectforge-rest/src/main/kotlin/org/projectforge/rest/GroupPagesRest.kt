@@ -271,7 +271,7 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
                 fieldset.add(UIRow().add(UICol().add(gidInput)).add(UICol().add(button)))
             }
         }
-        dto.setEmails()
+        dto.populateEmails()
         layout.add(UIReadOnlyField("emails", label = "address.emails"))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
@@ -323,7 +323,7 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
                 }
 
                 row.getCell("emails")?.let {
-                    group.setEmails()
+                    group.populateEmails()
                     it.setCellValue(group.emails ?: "")
                     it.setCellStyle(wrapTextStyle)
                 }
