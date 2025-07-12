@@ -29,6 +29,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -43,7 +44,9 @@ import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.rest.core.PagesResolver;
 import org.projectforge.rest.fibu.EingangsrechnungPagesRest;
+import org.projectforge.rest.fibu.EingangsrechnungImportPageRest;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
@@ -228,6 +231,8 @@ public class EingangsrechnungListPage
                     }, getString("fibu.rechnung.kostExcelExport")).setTooltip(getString("fibu.rechnung.kostExcelExport.tootlip"));
             addContentMenuEntry(exportKostzuweisungButton);
         }
+        final ExternalLink importLink = new ExternalLink(ContentMenuEntryPanel.LINK_ID, PagesResolver.getDynamicPageUrl(EingangsrechnungImportPageRest.class, null, null, true));
+        addContentMenuEntry(new ContentMenuEntryPanel(getNewContentMenuChildId(), importLink, getString("import")));
         addNewMassSelect(EingangsrechnungPagesRest.class);
     }
 
