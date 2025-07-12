@@ -68,7 +68,7 @@ object PagesResolver {
 
 
     /**
-     * @return Path of react page.
+     * @return Path of React page.
      */
     fun getBasePageUrl(
         pagesRestClass: Class<*>,
@@ -84,7 +84,7 @@ object PagesResolver {
     }
 
     /**
-     * @return Path of react page.
+     * @return Path of React page.
      */
     @JvmStatic
     @JvmOverloads
