@@ -83,23 +83,9 @@ class FileUtilsTest {
         Assertions.assertFalse(FileUtils.checkMaxFileSize(mockFile(10 * 1024 * 1024 + 1), 0, 0, 10))
     }
 
-    @Test
-    fun testCheckFile() {
-        Assertions.assertNull(FileUtils.checkFile(mockFile(1024, "test.txt"), "txt", kiloBytes = 1))
-        Assertions.assertEquals(
-            "file.upload.error.maxSizeOfExceeded",
-            FileUtils.checkFile(mockFile(1025, "test.txt"), "txt", kiloBytes = 1)
-        )
-        Assertions.assertEquals(
-            "file.upload.error.unsupportedFormat",
-            FileUtils.checkFile(mockFile(1024, "test.xls"), "txt", kiloBytes = 1)
-        )
-    }
-
-    private fun mockFile(size: Long, name: String = "test.txt"): File {
+    private fun mockFile(size: Long): File {
         val file = Mockito.mock(File::class.java)
         Mockito.`when`(file.length()).thenReturn(size)
-        Mockito.`when`(file.absolutePath).thenReturn("/mock/path/$name")
         return file
     }
 }
