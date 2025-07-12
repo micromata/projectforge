@@ -123,11 +123,20 @@ object FileUtils {
         megaBytes: Long = 0,
         gigaBytes: Long = 0,
     ): Boolean {
-        val max = gigaBytes * GB + megaBytes * MB + kiloBytes * KB + bytes
+        val max = calculateBytes(bytes, kiloBytes, megaBytes, gigaBytes)
         if (max <= 0) {
             return true // No size limit
         }
         return fileSize <= max
+    }
+
+    fun calculateBytes(
+        bytes: Long = 0,
+        kiloBytes: Long = 0,
+        megaBytes: Long = 0,
+        gigaBytes: Long = 0,
+    ): Long {
+        return gigaBytes * GB + megaBytes * MB + kiloBytes * KB + bytes
     }
 
     private const val KB = 1024

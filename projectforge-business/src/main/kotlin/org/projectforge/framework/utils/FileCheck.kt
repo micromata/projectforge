@@ -23,9 +23,10 @@
 
 package org.projectforge.framework.utils
 
+import org.projectforge.common.FileUtils.calculateBytes
 import org.projectforge.common.FileUtils.checkExtension
 import org.projectforge.common.FileUtils.checkMaxFileSize
-import org.projectforge.framework.i18n.translate
+import org.projectforge.common.extensions.formatBytesForUser
 import org.projectforge.framework.i18n.translateMsg
 import java.io.File
 
@@ -77,10 +78,13 @@ object FileCheck {
         gigaBytes: Long = 0
     ): String? {
         if (!checkExtension(fileName, *extensions)) {
-            return translateMsg("file.upload.error.unsupportedFormat", extensions)
+            return translateMsg("file.upload.error.unsupportedFormat", extensions.joinToString(", "))
         }
         if (!checkMaxFileSize(fileSize, bytes, kiloBytes, megaBytes, gigaBytes)) {
-            return translate("file.upload.error.maxSizeOfExceeded")
+            return translateMsg(
+                "file.upload.error.maxSizeOfExceeded",
+                calculateBytes(bytes, kiloBytes, megaBytes, gigaBytes).formatBytesForUser(),
+            )
         }
         return null
     }
