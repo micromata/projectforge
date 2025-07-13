@@ -27,6 +27,7 @@ import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.common.FormatterUtils
+import org.projectforge.framework.utils.FileCheck
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.BankAccount
@@ -64,9 +65,9 @@ class BankingServicesRest {
                 )
             }."
         }
-        if (file.size > 100 * Constants.MB) {
-            log.warn("Upload file size to big: ${file.size} > 100MB")
-            throw IllegalArgumentException("Upload file size to big: ${file.size} > 100MB")
+        FileCheck.checkFile(filename, file.size, "csv", megaBytes = 100)?.let { error ->
+            log.warn("Upload error for file '${file.name}': $error")
+            throw IllegalArgumentException(error)
         }
         val bankAccountDO = bankAccountDao.find(id)
         if (bankAccountDO == null) {
