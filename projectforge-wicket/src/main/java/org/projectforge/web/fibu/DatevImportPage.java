@@ -71,9 +71,10 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm> {
     final FileUpload fileUpload = form.fileUploadField.getFileUpload();
     if (fileUpload != null) {
       doImportWithExcelExceptionHandling(() -> {
-        final InputStream is = fileUpload.getInputStream();
-        final String clientFileName = fileUpload.getClientFileName();
-        setStorage(WicketSupport.get(DatevImportService.class).importKontenplan(is, clientFileName));
+        try (InputStream is = fileUpload.getInputStream()) {
+          final String clientFileName = fileUpload.getClientFileName();
+          setStorage(WicketSupport.get(DatevImportService.class).importKontenplan(is, clientFileName));
+        }
         return null;
       });
     }
@@ -84,9 +85,10 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm> {
     final FileUpload fileUpload = form.fileUploadField.getFileUpload();
     if (fileUpload != null) {
       doImportWithExcelExceptionHandling(() -> {
-        final InputStream is = fileUpload.getInputStream();
-        final String clientFileName = fileUpload.getClientFileName();
-        setStorage(WicketSupport.get(DatevImportService.class).importBuchungsdaten(is, clientFileName));
+        try (InputStream is = fileUpload.getInputStream()) {
+          final String clientFileName = fileUpload.getClientFileName();
+          setStorage(WicketSupport.get(DatevImportService.class).importBuchungsdaten(is, clientFileName));
+        }
         return null;
       });
     }
