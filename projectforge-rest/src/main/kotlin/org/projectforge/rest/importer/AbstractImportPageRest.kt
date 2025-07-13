@@ -27,7 +27,6 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.utils.FileCheck
 import org.projectforge.framework.utils.MarkdownBuilder
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.model.rest.RestPaths
@@ -45,8 +44,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.multipart.MultipartFile
 import kotlin.reflect.KProperty
 
 private val log = KotlinLogging.logger {}
@@ -85,8 +82,6 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
     fun createLayout(
         request: HttpServletRequest,
         importStorage: ImportStorage<*>?,
-        statusText: String? = null,
-        isStatusError: Boolean = false,
     ): UILayout {
         val data = importStorage?.info
         val layout = UILayout(title)
@@ -94,27 +89,18 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
             layout.uid = "layout${importStorage.hashCode()}"
         }
         val fieldset = UIFieldset(title = importStorage?.title ?: translate("import.title"))
-        if (statusText != null) {
-            layout.add(UIAlert(statusText, markdown = false, color = if (isStatusError) UIColor.DANGER else UIColor.SUCCESS))
-        }
-
         layout.add(fieldset)
         val hasEntries = importStorage?.pairEntries?.isNotEmpty() == true
         if (!hasEntries) {
-            if (!createImportDropArea(layout)) {
-                // No drop area, so we show an error message. Upload is handled by another page.
-                // The BankAccountRecordImportPageRest is an example of this.
-                // See EingangsrechnungsImportPageRest for an example with a drop area.
-                fieldset.add(UIAlert("import.error.nothingToImport", color = UIColor.DANGER))
-                fieldset.add(
-                    UIButton.createCancelButton(
-                        ResponseAction(
-                            RestResolver.getRestUrl(this::class.java, "cancel"),
-                            targetType = TargetType.GET,
-                        )
+            fieldset.add(UIAlert("import.error.nothingToImport", color = UIColor.DANGER))
+            fieldset.add(
+                UIButton.createCancelButton(
+                    ResponseAction(
+                        RestResolver.getRestUrl(this::class.java, "cancel"),
+                        targetType = TargetType.GET,
                     )
                 )
-            }
+            )
         } else {
             if (data != null) {
                 val row = UIRow()
@@ -215,61 +201,6 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
         displayOptions: ImportStorage.DisplayOptions,
     ): List<ImportEntry<*>> {
         return importStorage.createEntries(displayOptions)
-    }
-
-    /**
-     * Creates an import drop area within the specified UI layout.
-     *
-     * @param layout the UI layout where the import drop area should be created
-     * @return true if the import drop area was successfully created, false otherwise, if no drop area is supported.
-     * Returning false by default.
-     */
-    protected open fun createImportDropArea(layout: UILayout): Boolean {
-        return false
-    }
-
-    protected open val fileExtensions = arrayOf("xlsx")
-
-    protected open val maxFileUploadSizeMB = 10L // in MB
-
-    /**
-     * Will be called if the user wants to upload a file for import.
-     */
-    @PostMapping("upload")
-    fun upload(
-        request: HttpServletRequest,
-        @RequestParam("file") file: MultipartFile
-    ): ResponseEntity<*> {
-        val filename = file.originalFilename ?: "unknown"
-        log.info { "User tries to upload invoice import file: '$filename', size=${file.size} bytes." }
-
-        try {
-            if (file.isEmpty) {
-                return result(request, translate("file.upload.error.empty"), isStatusError = true)
-            }
-
-            FileCheck.checkFile(filename, file.size, *fileExtensions, megaBytes = maxFileUploadSizeMB)?.let { error ->
-                return result(request, error, isStatusError = true)
-            }
-            proceedUpload(file).let { importUrl ->
-                if (importUrl != null) {
-                    log.info("Successfully processed file: $filename, redirecting to: $importUrl")
-                    return ResponseEntity.ok(
-                        ResponseAction(targetType = TargetType.REDIRECT)
-                            .addVariable("url", importUrl)
-                    )
-                } else {
-                    return result(request, translate("file.upload.error"), isStatusError = true)
-                }
-            }
-        } catch (ex: Exception) {
-            log.error("Error processing uploaded file: $filename", ex)
-            return result(request, translate("file.upload.error"), isStatusError = true)
-        }
-    }
-
-    protected open fun proceedUpload(file: MultipartFile): String? {
-        return null
     }
 
     /**
@@ -402,17 +333,6 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
             row.add(UICheckbox(fieldId, label = "import.entry.status.$id"))
             layout.watchFields.add(fieldId)
         }
-    }
-
-    protected fun result(
-        request: HttpServletRequest,
-        statusText: String? = null,
-        isStatusError: Boolean = false,
-    ): ResponseEntity<*> {
-        return ResponseEntity.ok(
-            ResponseAction(targetType = TargetType.UPDATE)
-                .addVariable("ui", createLayout(request, null, statusText = statusText, isStatusError = isStatusError))
-        )
     }
 
     companion object {

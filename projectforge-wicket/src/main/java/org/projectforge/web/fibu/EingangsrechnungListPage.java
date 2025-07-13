@@ -46,7 +46,7 @@ import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.rest.core.PagesResolver;
 import org.projectforge.rest.fibu.EingangsrechnungPagesRest;
-import org.projectforge.rest.fibu.EingangsrechnungImportPageRest;
+import org.projectforge.rest.fibu.EingangsrechnungUploadPageRest;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
@@ -231,7 +231,7 @@ public class EingangsrechnungListPage
                     }, getString("fibu.rechnung.kostExcelExport")).setTooltip(getString("fibu.rechnung.kostExcelExport.tootlip"));
             addContentMenuEntry(exportKostzuweisungButton);
         }
-        final ExternalLink importLink = new ExternalLink(ContentMenuEntryPanel.LINK_ID, PagesResolver.getDynamicPageUrl(EingangsrechnungImportPageRest.class, null, null, true));
+        final ExternalLink importLink = new ExternalLink(ContentMenuEntryPanel.LINK_ID, PagesResolver.getDynamicPageUrl(EingangsrechnungUploadPageRest.class, null, null, true));
         addContentMenuEntry(new ContentMenuEntryPanel(getNewContentMenuChildId(), importLink, getString("import")));
         addNewMassSelect(EingangsrechnungPagesRest.class);
     }
