@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.multipart.MultipartFile
+import java.io.InputStream
 
 private val log = KotlinLogging.logger {}
 
@@ -59,7 +60,9 @@ abstract class AbstractImportUploadPageRest : AbstractDynamicPageRest() {
 
     open val downloadTemplateSupported: Boolean = false
 
-    abstract fun callerPage(request: HttpServletRequest): String;
+    abstract fun callerPage(request: HttpServletRequest): String
+
+    abstract fun successPage(request: HttpServletRequest): String
 
     @GetMapping("dynamic")
     fun getForm(request: HttpServletRequest): FormLayoutData {
@@ -146,26 +149,27 @@ abstract class AbstractImportUploadPageRest : AbstractDynamicPageRest() {
             FileCheck.checkFile(filename, file.size, *fileExtensions, megaBytes = maxFileUploadSizeMB)?.let { error ->
                 return result(error, isStatusError = true)
             }
-            proceedUpload(file).let { importUrl ->
-                if (importUrl != null) {
-                    log.info("Successfully processed file: $filename, redirecting to: $importUrl")
-                    return ResponseEntity.ok(
-                        ResponseAction(targetType = TargetType.REDIRECT)
-                            .addVariable("url", importUrl)
-                    )
-                } else {
-                    return result(translate("file.upload.error"), isStatusError = true)
+            file.inputStream.use { inputStream ->
+                val result = proceedUpload(inputStream, filename)
+                if (result != null) {
+                    return result("${translate("file.upload.error")}: $result", isStatusError = true)
                 }
             }
+            val successPage = successPage(request)
+            log.info("Successfully processed file: $filename, redirecting to: $successPage")
+            return ResponseEntity.ok(
+                ResponseAction(targetType = TargetType.REDIRECT).addVariable("url", successPage)
+            )
         } catch (ex: Exception) {
             log.error("Error processing uploaded file: $filename", ex)
             return result(translate("file.upload.error"), isStatusError = true)
         }
     }
 
-    protected open fun proceedUpload(file: MultipartFile): String? {
-        return null
-    }
+    /**
+     * @return Returns the error messages if the upload was not successful, otherwise null.
+     */
+    abstract fun proceedUpload(inputstream: InputStream, filename: String): String?
 
     /**
      * Called from UIButton cancel above.
