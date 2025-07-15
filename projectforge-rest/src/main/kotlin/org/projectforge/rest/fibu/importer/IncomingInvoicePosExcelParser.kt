@@ -29,15 +29,11 @@ import de.micromata.merlin.excel.ExcelColumnNumberValidator
 import de.micromata.merlin.excel.ExcelColumnValidator
 import de.micromata.merlin.excel.ExcelWorkbook
 import de.micromata.merlin.excel.importer.ImportHelper
-import de.micromata.merlin.excel.importer.ImportLogger
-import de.micromata.merlin.excel.importer.ImportStorage
-import de.micromata.merlin.excel.importer.ImportedSheet
 import mu.KotlinLogging
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.kost.Kost1Dao
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.fibu.kost.KostCache
-import org.projectforge.framework.persistence.utils.MyImportedElement
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -112,32 +108,25 @@ class IncomingInvoicePosExcelParser(
         val it = sheet.dataRowIterator
         while (it.hasNext()) {
             val row = it.next()
-            val element = MyImportedElement(
-                importedSheet, row.rowNum, EingangsrechnungPosImportDTO::class.java,
-                *DIFF_PROPERTIES
-            )
-            val invoicePos = EingangsrechnungPosImportDTO()
-            element.value = invoicePos
-            
+            val invoicePos = storage.prepareEntity()
+
             // Use ImportHelper.fillBean to automatically fill basic fields
             ImportHelper.fillBean(invoicePos, sheet, row.rowNum)
-            
+
             // Parse period from period string (e.g., "01.05.2025-31.05.2025")
             val periodStr = sheet.getCellString(row, Cols.PERIOD)
             if (periodStr != null && periodStr.contains("-")) {
                 val parts = periodStr.split("-")
                 if (parts.size == 2) {
                     try {
-                        // Parse dates from period parts - we need to create cells or use different approach
-                        // For now, skip period parsing as it requires more complex implementation
+                        invoicePos.periodFrom = dateValidator.getDate(sheet.getCell(row, Cols.PERIOD)?.takeIf { parts[0].isNotBlank() })
+                        invoicePos.periodUntil = dateValidator.getDate(sheet.getCell(row, Cols.PERIOD)?.takeIf { parts[1].isNotBlank() })
                     } catch (e: Exception) {
                         log.warn("Could not parse period '$periodStr' in row ${row.rowNum}")
                     }
                 }
             }
-            
-            // grossSum is automatically filled by ImportHelper.fillBean via targetProperty
-            
+
             // Parse tax rate and calculate VAT amount
             val taxRateStr = sheet.getCellString(row, Cols.TAX_RATE)
             var taxRate: BigDecimal? = null
@@ -151,14 +140,14 @@ class IncomingInvoicePosExcelParser(
             if (taxRate != null && invoicePos.grossSum != null) {
                 invoicePos.vatAmountSum = invoicePos.grossSum!! * taxRate / BigDecimal("100")
             }
-            
+
             // Parse DATEV account
             val datevAccount = sheet.getCellString(row, Cols.DATEV_ACCOUNT)
             if (datevAccount != null) {
                 invoicePos.konto = org.projectforge.rest.dto.Konto()
                 invoicePos.konto!!.nummer = datevAccount.toIntOrNull()
             }
-            
+
             // Parse KOST1 and KOST2
             val kost1Str = sheet.getCellString(row, Cols.COST1)
             if (kost1Str != null) {
@@ -173,25 +162,22 @@ class IncomingInvoicePosExcelParser(
                     invoicePos.kost1!!.endziffer = kost1.endziffer
                     invoicePos.kost1!!.description = kost1.description
                 } else {
-                    element.putErrorProperty("kost1", "KOST1 '$kost1Str' nicht gefunden.")
+                    log.warn("KOST1 '$kost1Str' nicht gefunden in row ${row.rowNum}")
                 }
             }
-            
+
             val kost2Str = sheet.getCellString(row, Cols.COST2)
             if (kost2Str != null) {
                 val kost2 = kostCache.getKost2(kost2Str)
                 if (kost2 != null) {
                     invoicePos.kost2 = org.projectforge.rest.dto.Kost2()
                     invoicePos.kost2!!.id = kost2.id
-                    // Kost2 DTO will have similar structure - check the actual properties
-                    invoicePos.kost2!!.id = kost2.id
                     invoicePos.kost2!!.description = kost2.description
                 } else {
-                    element.putErrorProperty("kost2", "KOST2 '$kost2Str' nicht gefunden.")
+                    log.warn("KOST2 '$kost2Str' nicht gefunden in row ${row.rowNum}")
                 }
             }
-            
-            importedSheet.addElement(element)
+
             log.debug(invoicePos.toString())
         }
     }
