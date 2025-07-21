@@ -76,6 +76,10 @@ class Group(
         copyFromMinimal(src)
         if (userGroupCache.isUserMemberOfAdminGroup) {
             super.copyFrom(src)
+        } else {
+            // Only copy fields that are allowed for non-admin users:
+            description = src.description
+            organization = src.organization
         }
         // Assigned users are visible for all users (for double-checking leavers):
         val newAssignedUsers = mutableSetOf<User>()
