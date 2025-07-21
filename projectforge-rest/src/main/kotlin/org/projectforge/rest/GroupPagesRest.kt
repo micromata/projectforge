@@ -149,9 +149,7 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
             userAccess = userAccess,
         )
             .add(lc, "name")
-        if (userGroupCache.isUserMemberOfAdminGroup) {
-            agGrid.add(lc, "organization", "description", wrapText = true)
-        }
+        agGrid.add(lc, "organization", "description", wrapText = true)
         agGrid.add(
             lc,
             "assignedUsers",
