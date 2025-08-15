@@ -36,17 +36,26 @@ function DropArea({
     };
 
     const addFiles = (newFileList) => {
+        if (!newFileList || newFileList.length === 0) {
+            return;
+        }
+
         let newFiles;
 
         if (multiple) {
             newFiles = [
                 ...fileList,
                 ...Array.from(newFileList).filter(
-                    (file) => !fileList.find((cf) => areFilesEqual(file, cf)),
+                    (file) => file && !fileList.find((cf) => areFilesEqual(file, cf)),
                 ),
             ];
         } else {
-            newFiles = [newFileList[0]];
+            const firstFile = newFileList[0];
+            if (firstFile) {
+                newFiles = [firstFile];
+            } else {
+                return;
+            }
         }
 
         setFileList(newFiles);

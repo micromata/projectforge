@@ -28,11 +28,20 @@ function DynamicDropArea(
     const [loading, setLoading] = React.useState(false);
 
     const uploadFile = (files) => {
+        if (!files || files.length === 0) {
+            return Promise.resolve();
+        }
+
+        const file = files[0];
+        if (!file) {
+            return Promise.resolve();
+        }
+
         setLoading(true);
         const formData = new FormData();
         let filename;
         let status = 0;
-        formData.append('file', files[0]);
+        formData.append('file', file);
         return fetch(
             getServiceURL(`${uploadUrlRef.current}`),
             {
