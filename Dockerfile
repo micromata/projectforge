@@ -1,4 +1,4 @@
-FROM openjdk:17-slim
+FROM openjdk:21-slim
 
 # Argument for JAR file name to use in working directory:
 ARG JAR_FILE
