@@ -4,6 +4,10 @@ date: 2025-09-01
 ---
 :page-liquid:
 
+**Update strongly recommended for all users** - This release fixes a major memory leak in the data transfer module and resolves frequent page errors in web pages (Wicket memory issues).
+
+**Stability proven** - This release has been running stable for many weeks without interruption in two heavily used installations.
+
 
 ++++
 {% include tag.html tag="improved" %}
