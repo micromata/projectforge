@@ -215,10 +215,10 @@ class WebAuthnServicesRest {
       PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.RS256),
     )
 
-  // CROSS_PLATFORM: required for support of mobile phones etc.
+  // Allow both platform (Touch ID, Windows Hello) and cross-platform (USB keys) authenticators
   private val authenticatorSelectionCriteria: AuthenticatorSelectionCriteria
     get() = AuthenticatorSelectionCriteria(
-      AuthenticatorAttachment.CROSS_PLATFORM,
+      null, // null allows both PLATFORM and CROSS_PLATFORM authenticators
       false,
       UserVerificationRequirement.PREFERRED
     )
