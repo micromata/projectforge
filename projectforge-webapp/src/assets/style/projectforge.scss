@@ -502,6 +502,12 @@ button.dropdown-item a.nav-link {
   border-bottom-left-radius: 0;
 }
 
+// Style for current day (today) - react-day-picker v9
+.rdp-today {
+  color: red !important;
+  font-weight: bold;
+}
+
 // Card
 .card {
   margin-bottom: 15px;
