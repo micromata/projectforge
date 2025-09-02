@@ -6,7 +6,7 @@ plugins {
 
 allprojects {
     group = "org.projectforge"
-    version = "8.1-SNAPSHOT" // Update version string here (nowhere else)
+    version = "8.2-SNAPSHOT" // Update version string here (nowhere else)
 
     repositories {
         mavenCentral()

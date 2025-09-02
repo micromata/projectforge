@@ -1,0 +1,99 @@
+---
+title: ProjectForge 8.1 released
+date: 2025-09-01
+---
+:page-liquid:
+
+**Update strongly recommended for all users** - This release fixes a major memory leak in the data transfer module and resolves frequent page errors in web pages (Wicket memory issues).
+
+**Stability proven** - This release has been running stable for many weeks without interruption in two heavily used installations.
+
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Groups: Description and organization of groups are now visible for non-admins.
+- Group Excel export: Includes email addresses of assigned users.
+- Menu customization: Drag & drop functionality implemented for personalized menu organization.
+- AI time savings tracking in timesheets with calculation and reporting features.
+- Cost search functionality supports plain number string searches.
+- Timesheet collision prevention on multiple button events.
+- Excel export functionality added to accounting record list page.
+- User registration process made more user-friendly for new employees.
+- Modal dialogs on calendar page support ESC key and click-outside closing.
+- 2FA code input field with improved UX (numeric inputmode, autoComplete).
+- Excel export of timesheets with AI-savings data included.
+- Improved forecast and orderbook functionality with planning data.
+- History entries now support user comments for administrative changes.
+- Enhanced AG Grid implementation with German translations, filtering, and sorting.
+- Vacation validator improvements for edge cases with remaining days from previous year.
+- Sipgate contact synchronization service with configurable cron job scheduling.
+- Data transfer functionality with sanity checks and backup capabilities.
+- JCR memory leak fixes and improved repository management.
+- Enhanced user and group access control with menu visibility configuration.
+- Forecast export functionality with filtering by unit, customer, and projects.
+- Task wizard support for optional external groups.
+- Multi-selection improvements for employees in visitor book and vacation entries.
+++++
+{% include tag.html tag="fixed" %}
+++++
+- JCR memory leaks in DataTransfer module resolved.
+- DynamicButton disabled state during fetch operations.
+- Accounting record list page tooltips fixed.
+- Timesheet recent entries display corrected (kost2, project, customer info).
+- VacationValidator edge case handling for vacation day calculations.
+- NPE fixes in vacation account management and group services.
+- Task tree access checking improvements for timesheet editing.
+- Order forecast data and invoice cache handling corrections.
+- User group cache and right handling stability improvements.
+- Address forced deletion after MGC migration fixed.
+- History formatting and user comment handling corrected.
+- Various UI fixes for AG Grid tables and component rendering.
+- Excel export XML escaping for task titles in timesheet exports.
+- Cost assignment export improvements for invoice handling.
+- Login redirect functionality after authentication.
+- Calendar and timesheet page rendering issues resolved.
+- Employee selection improvements without autocompletion quirks.
+- Mass update functionality with proper Excel modification tracking.
+- Multiple deadlock issues resolved in caching and logging components.
+- Wicket session store size increased from 100kB to 2MB: prevents session loss on large pages.
+- CSRF token handling and exception registry improvements.
+- File stream handling corrections ensuring proper resource closure.
+++++
+{% include tag.html tag="admin" %}
+++++
+- Enhanced administration capabilities with user group cache debugging tools.
+- System sanity checks with automated error reporting via email.
+- Improved cron job scheduling using separate threads to prevent blocking.
+- Database testing tools accessible via admin interface.
+- Configuration parameter management for AI time savings features.
+- Menu item visibility configuration by user groups.
+- Enhanced logging and exception handling for proactive error reporting.
+++++
+{% include tag.html tag="security" %}
+++++
+- CVE updates: Tomcat upgraded from 10.1.33 to 10.1.39.
+- Improved access control for addresses and address campaigns (marketing users only).
+- Enhanced user and group visibility restrictions for non-admin users.
+- CSRF protection improvements and token handling enhancements.
+++++
+{% include tag.html tag="technology" %}
+++++
+- Wicket upgraded to version 10.5.0 with improved page store handling.
+- Spring framework updates and dependency management improvements.
+- AG Grid integration with advanced filtering, sorting, and column pinning.
+- React Router dependency management and compatibility fixes.
+- Enhanced Kotlin coroutines implementation for asynchronous operations.
+- JCR (Java Content Repository) improvements with RDB storage preparation.
+- Jackson library updates with Hibernate 6 module integration.
+- Excel processing improvements with Apache POI enhancements.
+- Database migration scripts and flyway integration updates.
+- Docker container improvements for multi-architecture support preparation.
+- Package dependency updates including security patches.
+- Gradle build system optimizations and test framework enhancements.
+- Source file headers updated to 2025 copyright year.
+++++
+
+++++
+{% include download-link.html %}
+++++
