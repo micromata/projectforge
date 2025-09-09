@@ -82,7 +82,7 @@ class Kost1PagesRest : AbstractDTOPagesRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::
 
     override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<Kost1DO> {
         val list = super.queryAutocompleteObjects(request, filter)
-        list.forEach { it.displayName = kostFormatter.formatKost1(it, KostFormatter.FormatType.TEXT) }
+        list.forEach { it.displayName = kostFormatter.formatKost1(it, KostFormatter.FormatType.LONG) }
         return list
     }
 
