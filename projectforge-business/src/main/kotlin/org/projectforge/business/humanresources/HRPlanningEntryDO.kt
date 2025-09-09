@@ -125,7 +125,7 @@ open class HRPlanningEntryDO : DefaultBaseDO(), DisplayNameCapable {
     open var weekendHours: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "hr.planning.description")
-    @FullTextField
+    @FullTextField(analyzer = "jiraPreservingAnalyzer")
     @get:Column(length = 4000)
     open var description: String? = null
 

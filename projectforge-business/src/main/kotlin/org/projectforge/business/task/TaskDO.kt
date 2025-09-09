@@ -85,7 +85,7 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
     open var parentTask: TaskDO? = null
 
     @PropertyInfo(i18nKey = "task.title")
-    @FullTextField
+    @FullTextField(analyzer = "jiraPreservingAnalyzer")
     @get:Column(length = TITLE_LENGTH, nullable = false)
     open var title: String? = null
 
@@ -100,12 +100,12 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
     open var priority: Priority? = null
 
     @PropertyInfo(i18nKey = "shortDescription")
-    @FullTextField
+    @FullTextField(analyzer = "jiraPreservingAnalyzer")
     @get:Column(name = "short_description", length = SHORT_DESCRIPTION_LENGTH)
     open var shortDescription: String? = null
 
     @PropertyInfo(i18nKey = "description")
-    @FullTextField
+    @FullTextField(analyzer = "jiraPreservingAnalyzer")
     @get:Column(name = "description", length = DESCRIPTION_LENGTH)
     open var description: String? = null
 
@@ -172,7 +172,7 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
      * Reference is a free use-able field, which will be inherited to all sibling tasks. The reference is exported e. g.
      * in the time sheet MS Excel export.
      */
-    @FullTextField
+    @FullTextField(analyzer = "jiraPreservingAnalyzer")
     @PropertyInfo(i18nKey = "task.reference")
     @get:Column(length = REFERENCE_LENGTH)
     open var reference: String? = null
