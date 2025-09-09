@@ -30,6 +30,7 @@ import org.projectforge.business.fibu.OldKostFormatter.format3Digits
 import org.projectforge.business.fibu.kost.*
 import org.projectforge.common.extensions.abbreviate
 import org.projectforge.common.extensions.format3Digits
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.framework.utils.NumberHelper.splitToInts
 import org.springframework.beans.factory.annotation.Autowired
@@ -174,6 +175,11 @@ class KostFormatter {
         val useProjekt = projektCache.getProjektIfNotInitialized(useKost2.projekt)
         if (formatType == FormatType.LONG || formatType == FormatType.TEXT) {
             sb.append(": ")
+            if (useKost2.kostentraegerStatus != null && useKost2.kostentraegerStatus != KostentraegerStatus.ACTIVE) {
+                sb.append("*")
+                    .append(translate(useKost2.kostentraegerStatus))
+                    .append("* ")
+            }
             useProjekt.let { projekt ->
                 if (projekt != null) {
                     useKost2.kost2Art.let { kost2Art ->
@@ -223,7 +229,15 @@ class KostFormatter {
             .append(format2Digits(useKost.teilbereich)).append(delimiter)
             .append(format2Digits(useKost.endziffer))
         if (formatType == FormatType.LONG || formatType == FormatType.TEXT) {
-            sb.append(": ").append(useKost.description)
+            sb.append(": ")
+            if (useKost.kostentraegerStatus != null && useKost.kostentraegerStatus != KostentraegerStatus.ACTIVE) {
+                sb.append("*")
+                    .append(translate(useKost.kostentraegerStatus))
+                    .append("* ")
+                    .append(useKost.description)
+            } else {
+                sb.append(useKost.description)
+            }
         }
         return abbreviateIfRequired(sb.toString(), formatType, abbreviationLength)
     }
