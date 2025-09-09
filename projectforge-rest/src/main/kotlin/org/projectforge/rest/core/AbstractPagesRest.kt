@@ -881,7 +881,7 @@ constructor(
     }
 
     /**
-     * Will create a new BaseSearchFilter. If you want to use an DO specific filter, override this method.
+     * Will create a new BaseSearchFilter. If you want to use a DO specific filter, override this method.
      */
     open fun createAutoCompleteObjectsFilter(request: HttpServletRequest): BaseSearchFilter {
         return BaseSearchFilter()
