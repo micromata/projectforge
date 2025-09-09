@@ -32,9 +32,21 @@ private val log = KotlinLogging.logger {}
 object HibernateSearchMeta {
     private val classInfos = mutableMapOf<Class<*>, HibernateSearchClassInfo>()
 
+    /**
+     * Used by Wicket list pages to show the search fields in tooltips.
+     */
     fun getSearchFields(dao: IDao<*>): Array<String>? {
         if (dao !is BaseDao) return null
-        return ensureClassInfo(dao).allFieldNames
+        val additionalFields = dao.additionalSearchFields
+        return if (additionalFields.isNullOrEmpty()) {
+            ensureClassInfo(dao).allFieldNames
+        } else {
+            // merge and sort
+            (ensureClassInfo(dao).allFieldNames + additionalFields)
+                .distinct()
+                .sorted()
+                .toTypedArray()
+        }
     }
 
     fun getClassInfo(baseDO: Class<*>): HibernateSearchClassInfo {
