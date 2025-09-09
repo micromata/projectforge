@@ -149,7 +149,7 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
      * Free multi purpose field.
      */
     @PropertyInfo(i18nKey = "timesheet.reference")
-    @FullTextField
+    @FullTextField(analyzer = "jiraPreservingAnalyzer")
     @get:Column(length = 1000)
     open var reference: String? = null
 
@@ -163,7 +163,7 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
 
     @PropertyInfo(i18nKey = "timesheet.description")
     @UserPrefParameter(i18nKey = "description", multiline = true)
-    @FullTextField
+    @FullTextField(analyzer = "jiraPreservingAnalyzer")
     @get:Column(length = 4000)
     open var description: String? = null
 
