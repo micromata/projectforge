@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.search
 
+import org.apache.lucene.analysis.classic.ClassicTokenizerFactory
 import org.apache.lucene.analysis.core.KeywordTokenizerFactory
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory
 import org.apache.lucene.analysis.core.WhitespaceTokenizerFactory
@@ -45,10 +46,10 @@ class MyAnalysisConfigurer : LuceneAnalysisConfigurer {
             .param("expand", "true")
 
         // Analyzer that preserves JIRA issue patterns (e.g., ACME-1234)
-        // Uses WhitespaceTokenizer to keep JIRA issues as single tokens
+        // Uses ClassicTokenizerFactory to keep JIRA issues as single tokens
         context.analyzer("jiraPreservingAnalyzer")
             .custom()
-            .tokenizer(WhitespaceTokenizerFactory::class.java) // Split only on whitespace, keeps ACME-1234 together
+            .tokenizer(ClassicTokenizerFactory::class.java) // Preserves ACME-1234.
             .tokenFilter(LowerCaseFilterFactory::class.java) // Make search case-insensitive
 
         /*        context.analyzer("customAnalyzer")
