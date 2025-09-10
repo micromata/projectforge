@@ -11,6 +11,7 @@ function ObjectAutoCompletion(
         inputId,
         inputProps,
         onSelect,
+        urlparams,
         value = {},
         ...props
     },
@@ -66,6 +67,7 @@ function ObjectAutoCompletion(
             )}
             onSelect={onSelect}
             search={search}
+            urlparams={urlparams}
             {...props}
         />
     );
@@ -76,6 +78,7 @@ ObjectAutoCompletion.propTypes = {
     onSelect: PropTypes.func.isRequired,
     icon: PropTypes.shape({}),
     inputProps: PropTypes.shape({}),
+    urlparams: PropTypes.shape({}),
     value: PropTypes.shape({
         displayName: PropTypes.string,
     }),

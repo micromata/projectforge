@@ -48,6 +48,7 @@ class CostSearchPageRest : AbstractDynamicPageRest() {
     ) : DisplayNameCapable
 
     class SearchData {
+        var onlyActiveEntries: Boolean? = true
         var cost1: CostObject? = null
         var cost2: CostObject? = null
         var cost1Number: Int? = null
@@ -67,6 +68,8 @@ class CostSearchPageRest : AbstractDynamicPageRest() {
         val layout = UILayout("menu.fibu.kostSearch")
 
         layout.add(
+            UICheckbox("onlyActiveEntries", label = "label.onlyActiveEntries")
+        ).add(
             UIRow().add(
                 UICol(sm = 6).add(
                     UIRow().add(
@@ -74,7 +77,9 @@ class CostSearchPageRest : AbstractDynamicPageRest() {
                             "cost1",
                             label = "fibu.kost1",
                             dataType = UIDataType.COST1,
-                        )
+                        ).also {
+                            it.autoCompletionUrlParams = mapOf("onlyActiveEntries" to "onlyActiveEntries")
+                        }
                     )
                 ).add(
                     UIRow().add(
@@ -94,7 +99,9 @@ class CostSearchPageRest : AbstractDynamicPageRest() {
                             "cost2",
                             label = "fibu.kost2",
                             dataType = UIDataType.COST2,
-                        )
+                        ).also {
+                            it.autoCompletionUrlParams = mapOf("onlyActiveEntries" to "onlyActiveEntries")
+                        }
                     )
                 ).add(
                     UIRow().add(
