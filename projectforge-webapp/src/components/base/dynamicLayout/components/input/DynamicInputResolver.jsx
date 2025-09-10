@@ -46,13 +46,7 @@ function DynamicInputResolver(
         case 'GROUP':
         case 'EMPLOYEE':
         case 'COST1':
-            Tag = DynamicObjectSelect;
-            additionalProps.type = dataType;
-            break;
         case 'COST2':
-            Tag = DynamicObjectSelect;
-            additionalProps.type = dataType;
-            break;
         case 'KONTO':
             Tag = DynamicObjectSelect;
             additionalProps.type = dataType;

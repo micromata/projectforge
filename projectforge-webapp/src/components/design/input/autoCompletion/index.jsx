@@ -2,10 +2,11 @@ import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { colorPropType } from '../../../../utilities/propTypes';
-import { debouncedWaitTime, getServiceURL, handleHTTPErrors } from '../../../../utilities/rest';
+import { debouncedWaitTime, getServiceURL, handleHTTPErrors, evalServiceURL } from '../../../../utilities/rest';
 import AdvancedPopper from '../../popper/AdvancedPopper';
 import styles from './AutoCompletion.module.scss';
 import Completion from './Completion';
+import { DynamicLayoutContext } from '../../../base/dynamicLayout/context';
 
 const loadCompletionsBounced = (
     {
@@ -37,6 +38,7 @@ function AutoCompletion(
         color,
         input,
         url,
+        urlparams,
         onSelect,
         required = false,
         search = '',
@@ -53,6 +55,25 @@ function AutoCompletion(
     const [loadCompletions] = React.useState(
         () => AwesomeDebouncePromise(loadCompletionsBounced, debouncedWaitTime),
     );
+
+    // Try to get context data, but make it optional for backward compatibility
+    const contextData = React.useContext(DynamicLayoutContext);
+    const data = contextData?.data;
+
+    // Process URL params similar to DynamicAutoCompletion
+    const processedUrl = React.useMemo(() => {
+        if (!url) return url;
+
+        if (urlparams && data) {
+            const autoCompletionData = {};
+            Object.keys(urlparams).forEach((key) => {
+                autoCompletionData[key] = Object.getByString(data, urlparams[key]);
+            });
+            return evalServiceURL(url, autoCompletionData);
+        }
+
+        return url;
+    }, [url, urlparams, data]);
 
     const setIsOpen = (state) => {
         setIsOpenState(state);
@@ -102,11 +123,11 @@ function AutoCompletion(
     };
 
     React.useEffect(() => {
-        if (url && wasOpen) {
+        if (processedUrl && wasOpen) {
             const newAbortController = new AbortController();
 
             loadCompletions({
-                url,
+                url: processedUrl,
                 search,
                 setCompletions,
                 searchParameter,
@@ -118,7 +139,7 @@ function AutoCompletion(
         }
 
         return undefined;
-    }, [url, search, wasOpen]);
+    }, [processedUrl, search, wasOpen]);
 
     React.useEffect(() => {
         setSelected(Math.min(completions.length, selected));
@@ -169,6 +190,7 @@ AutoCompletion.propTypes = {
     additionalLabel: PropTypes.string,
     color: colorPropType,
     url: PropTypes.string,
+    urlparams: PropTypes.shape({}),
     required: PropTypes.bool,
     search: PropTypes.string,
     searchParameter: PropTypes.string,

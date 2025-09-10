@@ -7,6 +7,7 @@ import DynamicValidationManager from '../input/DynamicValidationManager';
 function DynamicObjectSelect(
     {
         id,
+        urlparams,
         ...props
     },
 ) {
@@ -21,6 +22,7 @@ function DynamicObjectSelect(
                 onSelect={handleSelect}
                 translations={ui.translations}
                 value={data[id] || {}}
+                urlparams={urlparams}
                 {...props}
             />
         </DynamicValidationManager>
@@ -29,6 +31,7 @@ function DynamicObjectSelect(
 
 DynamicObjectSelect.propTypes = {
     id: PropTypes.string.isRequired,
+    urlparams: PropTypes.shape({}),
 };
 
 export default DynamicObjectSelect;
