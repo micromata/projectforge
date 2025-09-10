@@ -27,6 +27,7 @@ import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
+import org.projectforge.business.fibu.kost.KostentraegerStatus
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
@@ -116,7 +117,11 @@ class Kost2PagesRest : AbstractDTOPagesRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao::
     }
 
     override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<Kost2DO> {
-        val list = super.queryAutocompleteObjects(request, filter)
+        val onlyActiveEntries = request.getParameter("onlyActiveEntries")?.toBooleanStrictOrNull() ?: true
+        var list = super.queryAutocompleteObjects(request, filter)
+        if (onlyActiveEntries) {
+            list = list.filter { it.kostentraegerStatus == null || it.kostentraegerStatus == KostentraegerStatus.ACTIVE }
+        }
         list.forEach { it.displayName = kostFormatter.formatKost2(it, KostFormatter.FormatType.LONG) }
         return list.sortedBy { it.displayName }
     }

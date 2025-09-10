@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.business.fibu.kost.KostentraegerStatus
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -81,7 +82,11 @@ class Kost1PagesRest : AbstractDTOPagesRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::
     }
 
     override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<Kost1DO> {
-        val list = super.queryAutocompleteObjects(request, filter)
+        val onlyActiveEntries = request.getParameter("onlyActiveEntries")?.toBooleanStrictOrNull() ?: true
+        var list = super.queryAutocompleteObjects(request, filter)
+        if (onlyActiveEntries) {
+            list = list.filter { it.kostentraegerStatus == null || it.kostentraegerStatus == KostentraegerStatus.ACTIVE }
+        }
         list.forEach { it.displayName = kostFormatter.formatKost1(it, KostFormatter.FormatType.LONG) }
         return list
     }
