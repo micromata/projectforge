@@ -49,11 +49,11 @@ data class UIInput(
    */
   val autoComplete: AutoCompleteType? = null,
   /**
-   * Input modes for HTML Input fields (e. g. inputmode="numeric").
+   * Input modes for HTML Input fields (e.g. inputmode="numeric").
    */
   val inputMode: InputMode? = null,
   /**
-   * Pattern for HTML Input fields (e. g. pattern="\d*").
+   * Pattern for HTML Input fields (e.g. pattern="\d*").
    */
   val pattern: String? = null,
 ) : UIElement(UIElementType.INPUT), UILabelledElement, IUIId {
