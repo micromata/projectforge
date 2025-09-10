@@ -177,6 +177,60 @@ object NumberHelper {
     }
 
     /**
+     * Parses a localized numeric string into an [Int], optionally in strict mode.
+     *
+     * Supports numbers with optional thousand separators (dots, commas, or spaces),
+     * and safely returns `null` for invalid or obviously non-integer input (e.g., mixed letters).
+     *
+     * ### Strict mode behavior:
+     * - Allows only valid integer formats.
+     * - Rejects decimal numbers (e.g. `"1.000.123,45"` or `"1,000,123.45"`).
+     * - Supports either German format (dot as thousand separator) or English format (comma as thousand separator), not both.
+     * - Detects decimal separators based on position (e.g. trailing `.45` or `,89` → invalid).
+     *
+     * ### Non-strict (default) behavior:
+     * - Removes all non-digit characters except minus sign.
+     * - Useful for parsing loose or mixed numeric strings from user input, CSV, etc.
+     *
+     * @param input The string to parse.
+     * @param strict If `true`, enables strict format checking and rejects decimals; otherwise allows flexible parsing.
+     * @return The parsed integer value, or `null` if the input is invalid or cannot be safely parsed.
+     *
+     * @see toIntOrNull for safe conversion behavior.
+     */
+    fun parseLocalizedInt(input: String?, strict: Boolean = false): Int? {
+        input ?: return null
+        val trimmed = input.trim()
+
+        if (strict) {
+            // Reject if both '.' and ',' are present → likely a decimal number
+            if (trimmed.contains('.') && trimmed.contains(',')) return null
+
+            // German format: '.' as thousand separator
+            if (trimmed.contains('.')) {
+                // Reject if it ends with ".45" or similar (decimal)
+                if (Regex("\\.\\d{1,2}$").containsMatchIn(trimmed)) return null
+                return trimmed.replace(".", "").toIntOrNull()
+            }
+
+            // English format: ',' as thousand separator
+            if (trimmed.contains(',')) {
+                // Reject if it ends with ",45" or similar (decimal)
+                if (Regex(",\\d{1,2}$").containsMatchIn(trimmed)) return null
+                return trimmed.replace(",", "").toIntOrNull()
+            }
+
+            // No separator – try plain int
+            return trimmed.toIntOrNull()
+        } else {
+            // Loose mode: allow mixed separators, remove all non-digit/minus characters
+            if (!trimmed.matches(Regex("[-\\d.,\\s]+"))) return null
+            val cleaned = trimmed.replace(Regex("[^\\d-]"), "")
+            return cleaned.toIntOrNull()
+        }
+    }
+
+    /**
      * Parses the given string as short value.
      *
      * @param value The string representation of the short value to parse.

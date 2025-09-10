@@ -28,7 +28,9 @@ import de.micromata.merlin.excel.importer.ImportHelper
 import mu.KotlinLogging
 import org.apache.poi.ss.usermodel.CellType
 import org.projectforge.business.fibu.EingangsrechnungDao
+import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.kost.KostCache
+import org.projectforge.framework.utils.NumberHelper
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -38,6 +40,7 @@ class IncomingInvoicePosExcelParser(
     private val storage: EingangsrechnungImportStorage,
     private val eingangsrechnungDao: EingangsrechnungDao,
     private val kostCache: KostCache,
+    private val kontoCache: KontoCache,
 ) {
     private val dateValidator = ExcelColumnDateValidator(
         ExcelColumnDateValidator.GERMAN_FORMATS,
@@ -48,7 +51,7 @@ class IncomingInvoicePosExcelParser(
     private enum class Cols(override val head: String, override vararg val aliases: String) : ExcelColumnName {
         PERIOD("Periode"), // e.g. "01.05.2025-31.05.2025"
         AMMOUNT("Betrag"),
-        CURRENCY("Währung"), // e.g. "EUR", "USD", ...
+        CURRENCY("Währung", "WKZ"), // e.g. "EUR", "USD", ...
         DATE("Datum", "Rechnungsdatum"), // e.g. "01.05." or "01.05.2025"
         INVOICE_NUMBER("RENR", "Rechnungs-Nr."),
         CREDITOR("LieferantName", "Geschäftspartner-Name"),
@@ -138,15 +141,22 @@ class IncomingInvoicePosExcelParser(
             }
 
             // Parse DATEV account
-            val datevAccount = sheet.getCellString(row, Cols.DATEV_ACCOUNT)
-            if (datevAccount != null) {
-                invoicePos.konto = org.projectforge.rest.dto.Konto()
-                invoicePos.konto!!.nummer = datevAccount.toIntOrNull()
+            val datevAccountNumber =
+                NumberHelper.parseLocalizedInt(sheet.getCellString(row, Cols.DATEV_ACCOUNT), strict = true)
+            kontoCache.findKontoByNumber(datevAccountNumber)?.let { konto ->
+                org.projectforge.rest.dto.Konto().let { kontoDTO ->
+                    invoicePos.konto = kontoDTO
+                    kontoDTO.id = konto.id
+                    kontoDTO.nummer = konto.nummer
+                }
             }
 
             // Parse KOST1 and KOST2
-            val kost1Val = if (sheet.getCell(row, Cols.COST1)?.cellType == CellType.NUMERIC)
-                sheet.getCellInt(row, Cols.COST1) else sheet.getCellString(row, Cols.COST1)
+            val kost1Val = if (sheet.getCell(row, Cols.COST1)?.cellType == CellType.NUMERIC) {
+                sheet.getCellInt(row, Cols.COST1)
+            } else {
+                sheet.getCellString(row, Cols.COST1)
+            }
             if (kost1Val != null) {
                 val kost1 = kostCache.findKost1(kost1Val)
                 if (kost1 != null) {
@@ -175,7 +185,7 @@ class IncomingInvoicePosExcelParser(
                     log.warn("KOST2 '$kost2Val' not found in row ${row.rowNum}")
                 }
             }
-            // Tbd: Pos: Konto, Datum, fällig, gezahlt am.
+            // Tbd: Pos: Datum, fällig, gezahlt am.
             // Tbd: Rechnung: Konto, Datum, fällig, gezahlt am.
             log.debug(invoicePos.toString())
         }

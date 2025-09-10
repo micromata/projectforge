@@ -26,6 +26,7 @@ package org.projectforge.rest.fibu
 import de.micromata.merlin.excel.ExcelWorkbook
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.fibu.EingangsrechnungDao
+import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.locale
@@ -46,6 +47,9 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
 
     @Autowired
     private lateinit var kostCache: KostCache
+
+    @Autowired
+    private lateinit var kontoCache: KontoCache
 
     override val title: String
         get() = translate("fibu.eingangsrechnung.import.title")
@@ -69,7 +73,8 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
             IncomingInvoicePosExcelParser(
                 storage = EingangsrechnungImportStorage(),
                 eingangsrechnungDao = eingangsrechnungDao,
-                kostCache = kostCache
+                kostCache = kostCache,
+                kontoCache = kontoCache,
             ).parse(workbook)
         }
         return null

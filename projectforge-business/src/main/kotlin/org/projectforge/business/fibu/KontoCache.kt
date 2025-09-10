@@ -70,8 +70,14 @@ open class KontoCache : AbstractCache() {
         return accountMapById!![id]
     }
 
+    fun findKontoByNumber(number: Int?): KontoDO? {
+        number ?: return null
+        checkRefresh()
+        return accountMapById!!.values.find { konto -> konto?.nummer == number }
+    }
+
     /**
-     * Gets account of given project if given, otherwise the account assigned to the customer assigned to this project. If
+     * Gets the account of given project if given, otherwise the account assigned to the customer assigned to this project. If
      * no account is given at all, null is returned.<br></br>
      * Please note: The object of project must be initialized including the assigned customer, if not a
      * [LazyInitializationException] could be thrown.
