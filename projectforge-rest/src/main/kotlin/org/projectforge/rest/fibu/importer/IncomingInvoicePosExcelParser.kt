@@ -23,16 +23,11 @@
 
 package org.projectforge.rest.fibu.importer
 
-import de.micromata.merlin.excel.ExcelColumnDateValidator
-import de.micromata.merlin.excel.ExcelColumnName
-import de.micromata.merlin.excel.ExcelColumnNumberValidator
-import de.micromata.merlin.excel.ExcelColumnValidator
-import de.micromata.merlin.excel.ExcelWorkbook
+import de.micromata.merlin.excel.*
 import de.micromata.merlin.excel.importer.ImportHelper
 import mu.KotlinLogging
+import org.apache.poi.ss.usermodel.CellType
 import org.projectforge.business.fibu.EingangsrechnungDao
-import org.projectforge.business.fibu.kost.Kost1Dao
-import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.fibu.kost.KostCache
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -49,6 +44,7 @@ class IncomingInvoicePosExcelParser(
         minimum = LocalDate.of(1990, 1, 1),
         maximum = LocalDate.of(2100, 12, 31)
     )
+
     private enum class Cols(override val head: String, override vararg val aliases: String) : ExcelColumnName {
         PERIOD("Periode"), // e.g. "01.05.2025-31.05.2025"
         AMMOUNT("Betrag"),
@@ -76,9 +72,9 @@ class IncomingInvoicePosExcelParser(
         val name = sheet.sheetName
         sheet.autotrimCellValues = true
         log.info("Reading sheet '${sheet.sheetName}'.")
-        sheet.registerColumn(Cols.INVOICE_NUMBER, ExcelColumnNumberValidator().setRequired())
+        sheet.registerColumn(Cols.INVOICE_NUMBER, ExcelColumnValidator()).setTargetProperty("referenz")
         sheet.registerColumn(Cols.AMMOUNT, ExcelColumnValidator().setRequired()).setTargetProperty("grossSum")
-        sheet.registerColumn(Cols.CREDITOR, ExcelColumnValidator())
+        sheet.registerColumn(Cols.CREDITOR, ExcelColumnValidator()).setTargetProperty("kreditor")
         sheet.registerColumn(Cols.DATEV_ACCOUNT, ExcelColumnNumberValidator()).setTargetProperty("konto")
         sheet.registerColumn(Cols.COST1, ExcelColumnValidator()).setTargetProperty("kost1")
         sheet.registerColumn(Cols.COST2, ExcelColumnValidator()).setTargetProperty("kost2")
@@ -89,14 +85,12 @@ class IncomingInvoicePosExcelParser(
         sheet.registerColumn(Cols.TAX_RATE, ExcelColumnValidator())
         sheet.registerColumn(Cols.TEXT, ExcelColumnValidator()).setTargetProperty("betreff")
         sheet.registerColumn(Cols.PERIOD, ExcelColumnValidator())
-        sheet.registerColumn(Cols.CREDITOR, ExcelColumnValidator()).setTargetProperty("kreditor")
-        sheet.registerColumn(Cols.INVOICE_NUMBER, ExcelColumnValidator()).setTargetProperty("referenz")
         if (sheet.headRow == null) {
             log.info("Ignoring sheet '$name' for importing IncomingInvoicePositions, no valid head row found.")
             return
         }
         sheet.setColumnsForRowEmptyCheck(
-            Cols.PERIOD,
+            // Cols.PERIOD, // Optional for invoice import (without all positions)
             Cols.DATE,
             Cols.INVOICE_NUMBER,
         )
@@ -119,8 +113,10 @@ class IncomingInvoicePosExcelParser(
                 val parts = periodStr.split("-")
                 if (parts.size == 2) {
                     try {
-                        invoicePos.periodFrom = dateValidator.getDate(sheet.getCell(row, Cols.PERIOD)?.takeIf { parts[0].isNotBlank() })
-                        invoicePos.periodUntil = dateValidator.getDate(sheet.getCell(row, Cols.PERIOD)?.takeIf { parts[1].isNotBlank() })
+                        invoicePos.periodFrom =
+                            dateValidator.getDate(sheet.getCell(row, Cols.PERIOD)?.takeIf { parts[0].isNotBlank() })
+                        invoicePos.periodUntil =
+                            dateValidator.getDate(sheet.getCell(row, Cols.PERIOD)?.takeIf { parts[1].isNotBlank() })
                     } catch (e: Exception) {
                         log.warn("Could not parse period '$periodStr' in row ${row.rowNum}")
                     }
@@ -130,7 +126,7 @@ class IncomingInvoicePosExcelParser(
             // Parse tax rate and calculate VAT amount
             val taxRateStr = sheet.getCellString(row, Cols.TAX_RATE)
             var taxRate: BigDecimal? = null
-            if (taxRateStr != null) {
+            if (!taxRateStr.isNullOrBlank()) {
                 try {
                     taxRate = BigDecimal(taxRateStr)
                 } catch (e: NumberFormatException) {
@@ -149,9 +145,10 @@ class IncomingInvoicePosExcelParser(
             }
 
             // Parse KOST1 and KOST2
-            val kost1Str = sheet.getCellString(row, Cols.COST1)
-            if (kost1Str != null) {
-                val kost1 = kostCache.getKost1(kost1Str)
+            val kost1Val = if (sheet.getCell(row, Cols.COST1)?.cellType == CellType.NUMERIC)
+                sheet.getCellInt(row, Cols.COST1) else sheet.getCellString(row, Cols.COST1)
+            if (kost1Val != null) {
+                val kost1 = kostCache.findKost1(kost1Val)
                 if (kost1 != null) {
                     invoicePos.kost1 = org.projectforge.rest.dto.Kost1()
                     invoicePos.kost1!!.id = kost1.id
@@ -162,22 +159,24 @@ class IncomingInvoicePosExcelParser(
                     invoicePos.kost1!!.endziffer = kost1.endziffer
                     invoicePos.kost1!!.description = kost1.description
                 } else {
-                    log.warn("KOST1 '$kost1Str' nicht gefunden in row ${row.rowNum}")
+                    log.warn("KOST1 '$kost1Val' not found in row ${row.rowNum}")
                 }
             }
 
-            val kost2Str = sheet.getCellString(row, Cols.COST2)
-            if (kost2Str != null) {
-                val kost2 = kostCache.getKost2(kost2Str)
+            val kost2Val = if (sheet.getCell(row, Cols.COST2)?.cellType == CellType.NUMERIC)
+                sheet.getCellInt(row, Cols.COST2) else sheet.getCellString(row, Cols.COST2)
+            if (kost2Val != null) {
+                val kost2 = kostCache.findKost2(kost2Val)
                 if (kost2 != null) {
                     invoicePos.kost2 = org.projectforge.rest.dto.Kost2()
                     invoicePos.kost2!!.id = kost2.id
                     invoicePos.kost2!!.description = kost2.description
                 } else {
-                    log.warn("KOST2 '$kost2Str' nicht gefunden in row ${row.rowNum}")
+                    log.warn("KOST2 '$kost2Val' not found in row ${row.rowNum}")
                 }
             }
-
+            // Tbd: Pos: Konto, Datum, fällig, gezahlt am.
+            // Tbd: Rechnung: Konto, Datum, fällig, gezahlt am.
             log.debug(invoicePos.toString())
         }
     }
