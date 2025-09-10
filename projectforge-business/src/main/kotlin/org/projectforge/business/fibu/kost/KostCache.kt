@@ -26,6 +26,7 @@ package org.projectforge.business.fibu.kost
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.LockModeType
 import mu.KotlinLogging
+import org.apache.fop.datatypes.Numeric
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.kost.KostHelper.parseKostString
@@ -170,6 +171,46 @@ class KostCache : AbstractCache() {
                 kost1.nummernkreis == kostArray[0] && kost1.bereich == kostArray[1] && kost1.teilbereich == kostArray[2] && kost1.endziffer == kostArray[3]
             }
         }
+    }
+
+    fun findKost1(kost: Any?): Kost1DO? {
+        kost ?: return null
+        if (kost is Kost1DO) {
+            return getKost1IfNotInitialized(kost)
+        }
+        if (kost is String) {
+            return getKost1(kost)
+        }
+        if (kost is Number) {
+            checkRefresh()
+            synchronized(kost1Map) {
+                return kost1Map.values.firstOrNull { kost1 ->
+                    kost1.rawNumberString == kost.toString()
+                }
+            }
+        }
+        log.error { "Unkown object type to find Kost1: ${kost.javaClass.name} (${kost.toString()})" }
+        return null
+    }
+
+    fun findKost2(kost: Any?): Kost2DO? {
+        kost ?: return null
+        if (kost is Kost2DO) {
+            return getKost2IfNotInitialized(kost)
+        }
+        if (kost is String) {
+            return getKost2(kost)
+        }
+        if (kost is Number) {
+            checkRefresh()
+            synchronized(kost2Map) {
+                return kost2Map.values.firstOrNull { kost2 ->
+                    kost2.rawNumberString == kost.toString()
+                }
+            }
+        }
+        log.error { "Unkown object type to find Kost2: ${kost.javaClass.name} (${kost.toString()})" }
+        return null
     }
 
     fun getKost2Art(kost2ArtId: Long?): Kost2ArtDO? {

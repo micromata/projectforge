@@ -33,6 +33,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.fibu.importer.EingangsrechnungImportStorage
 import org.projectforge.rest.fibu.importer.IncomingInvoicePosExcelParser
 import org.projectforge.rest.importer.AbstractImportUploadPageRest
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.io.InputStream
@@ -40,6 +41,12 @@ import java.io.InputStream
 @RestController
 @RequestMapping("${Rest.URL}/uploadIncomingInvoices")
 class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
+    @Autowired
+    private lateinit var eingangsrechnungDao: EingangsrechnungDao
+
+    @Autowired
+    private lateinit var kostCache: KostCache
+
     override val title: String
         get() = translate("fibu.eingangsrechnung.import.title")
 
@@ -61,8 +68,8 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
         ExcelWorkbook(inputstream, filename, locale).use { workbook ->
             IncomingInvoicePosExcelParser(
                 storage = EingangsrechnungImportStorage(),
-                eingangsrechnungDao = EingangsrechnungDao(),
-                kostCache = KostCache()
+                eingangsrechnungDao = eingangsrechnungDao,
+                kostCache = kostCache
             ).parse(workbook)
         }
         return null
