@@ -23,22 +23,21 @@
 
 package org.projectforge.rest.fibu.kost
 
+import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost1Dao
+import org.projectforge.business.fibu.kost.KostentraegerStatus
+import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Kost1
 import org.projectforge.ui.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import jakarta.servlet.http.HttpServletRequest
-import org.projectforge.business.fibu.KostFormatter
-import org.projectforge.business.fibu.kost.KostentraegerStatus
-import org.projectforge.business.user.ProjectForgeGroup
-import org.projectforge.framework.persistence.api.BaseSearchFilter
-import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.springframework.beans.factory.annotation.Autowired
 
 @RestController
 @RequestMapping("${Rest.URL}/cost1")
@@ -60,10 +59,17 @@ class Kost1PagesRest : AbstractDTOPagesRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
-      layout.add(UITable.createUIResultSetTable()
-                        .add(UITableColumn("formattedNumber", title = "fibu.kost1"))
-                        .add(lc, "description", "kostentraegerStatus"))
+    override fun createListLayout(
+        request: HttpServletRequest,
+        layout: UILayout,
+        magicFilter: MagicFilter,
+        userAccess: UILayout.UserAccess
+    ) {
+        layout.add(
+            UITable.createUIResultSetTable()
+                .add(UITableColumn("formattedNumber", title = "fibu.kost1"))
+                .add(lc, "description", "kostentraegerStatus")
+        )
     }
 
     override val classicsLinkListUrl: String?
@@ -74,18 +80,25 @@ class Kost1PagesRest : AbstractDTOPagesRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::
      */
     override fun createEditLayout(dto: Kost1, userAccess: UILayout.UserAccess): UILayout {
         val layout = super.createEditLayout(dto, userAccess)
-                .add(UIRow()
-                        .add(UICol()
-                                .add(UICustomized("cost.number"))
-                                .add(lc, "description", "kostentraegerStatus")))
+            .add(
+                UIRow()
+                    .add(
+                        UICol()
+                            .add(UICustomized("cost.number"))
+                            .add(lc, "description", "kostentraegerStatus")
+                    )
+            )
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
     override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<Kost1DO> {
         val onlyActiveEntries = request.getParameter("onlyActiveEntries")?.toBooleanStrictOrNull() ?: true
         var list = super.queryAutocompleteObjects(request, filter)
-        if (onlyActiveEntries) {
-            list = list.filter { it.kostentraegerStatus == null || it.kostentraegerStatus == KostentraegerStatus.ACTIVE }
+        val searchString = filter.searchString?.replace(Regex("[*+]"), "")?.trim()
+        if (onlyActiveEntries && !NumberHelper.isDigitsAndDotsOnly(searchString)) {
+            // Don't filter by active status when searching for a number
+            list =
+                list.filter { it.kostentraegerStatus == null || it.kostentraegerStatus == KostentraegerStatus.ACTIVE }
         }
         list.forEach { it.displayName = kostFormatter.formatKost1(it, KostFormatter.FormatType.LONG) }
         return list
