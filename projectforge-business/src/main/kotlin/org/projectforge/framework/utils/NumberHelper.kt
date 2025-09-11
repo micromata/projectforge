@@ -297,6 +297,17 @@ object NumberHelper {
     }
 
     /**
+     * Checks if the input string contains only digits and dots, and ensures at least one digit is present.
+     *
+     * @param input The string to be checked. This can be null.
+     * @return True if the input string contains only digits and dots and includes at least one digit, false otherwise.
+     */
+    fun isDigitsAndDotsOnly(input: String?): Boolean {
+        input ?: return false
+        return input.matches(Regex("(?=.*\\d)^[\\d.]+$"))
+    }
+
+    /**
      *
      */
     @JvmStatic

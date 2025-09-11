@@ -95,6 +95,20 @@ class NumberHelperTest {
     }
 
     @Test
+    fun isDigitsAndDotsOnly() {
+        Assertions.assertTrue(NumberHelper.isDigitsAndDotsOnly("5.100.87.0"))
+        Assertions.assertTrue(NumberHelper.isDigitsAndDotsOnly("5100870"))
+        Assertions.assertTrue(NumberHelper.isDigitsAndDotsOnly("123..."))
+        Assertions.assertTrue(NumberHelper.isDigitsAndDotsOnly(".123"))
+        Assertions.assertTrue(NumberHelper.isDigitsAndDotsOnly("123."))
+        Assertions.assertTrue(NumberHelper.isDigitsAndDotsOnly("12.34.56"))
+        Assertions.assertFalse(NumberHelper.isDigitsAndDotsOnly("5 100,87.00"))
+        Assertions.assertFalse(NumberHelper.isDigitsAndDotsOnly("hallo 2435"))
+        Assertions.assertFalse(NumberHelper.isDigitsAndDotsOnly("..."))
+        Assertions.assertFalse(NumberHelper.isDigitsAndDotsOnly(""))
+        Assertions.assertFalse(NumberHelper.isDigitsAndDotsOnly(null))
+    }
+
     fun randomAlphaNumericTest() {
         Assertions.assertEquals(62, NumberHelper.ALPHA_NUMERICS_CHARSET.length)
         var str = NumberHelper.getSecureRandomAlphanumeric(1000)
