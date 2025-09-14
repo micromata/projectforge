@@ -100,6 +100,11 @@ open class UIAgGridColumnDef(
         BOOLEAN,
         CONSUMPTION,
         CURRENCY,
+
+        /**
+         * Currency formatting without currency symbol, only localized number with 2 decimal places.
+         */
+        CURRENCY_PLAIN,
         DATE,
         NUMBER,
         TIMESTAMP_MINUTES,
@@ -159,6 +164,13 @@ open class UIAgGridColumnDef(
         return this
     }
 
+    /**
+     * Configures the filter to show "Apply" and "Reset" buttons in the AG-Grid column filter UI.
+     * This gives users explicit control over when filter criteria are applied, rather than
+     * applying filters immediately on input changes.
+     *
+     * @return FilterParams instance for further configuration
+     */
     fun setApplyAndResetButton(): FilterParams {
         filterParams = filterParams ?: FilterParams()
         return filterParams!!.also {
@@ -174,6 +186,14 @@ open class UIAgGridColumnDef(
     fun setFormat(formatter: Formatter): UIAgGridColumnDef {
         when (formatter) {
             Formatter.CURRENCY -> {
+                if (width == null) {
+                    this.width = CURRENCY_WIDTH
+                }
+                this.type = AG_TYPE.NUMERIC_COLUMN.agType
+                this.filter = "agNumberColumnFilter"
+            }
+
+            Formatter.CURRENCY_PLAIN -> {
                 if (width == null) {
                     this.width = CURRENCY_WIDTH
                 }
@@ -351,10 +371,12 @@ open class UIAgGridColumnDef(
                     col.headerName = translate(elementInfo.i18nKey)
                 }
                 if (type == null && useFormatter == null) {
-                    // Try to determine formatter by type and propertyInfo (defined on DO-field):
+                    // Try to determine the formatter by type and propertyInfo (defined on DO-field):
                     if (Number::class.java.isAssignableFrom(elementInfo.propertyClass)) {
                         if (elementInfo.propertyType == PropertyType.CURRENCY) {
                             useFormatter = Formatter.CURRENCY
+                        } else if (elementInfo.propertyType == PropertyType.CURRENCY_PLAIN) {
+                            useFormatter = Formatter.CURRENCY_PLAIN
                         } else {
                             useFormatter = Formatter.NUMBER
                         }
@@ -446,6 +468,15 @@ open class UIAgGridColumnDef(
                 Formatter.CURRENCY -> {
                     result["locale"] = ThreadLocalUserContext.localeAsString
                     result["currency"] = ConfigurationServiceAccessor.get().currency ?: "EUR"
+                }
+
+                Formatter.CURRENCY_PLAIN -> {
+                    result["locale"] = ThreadLocalUserContext.localeAsString
+                    result["currency"] = ConfigurationServiceAccessor.get().currency ?: "EUR"
+                }
+
+                Formatter.NUMBER -> {
+                    result["locale"] = ThreadLocalUserContext.localeAsString
                 }
 
                 else -> {}

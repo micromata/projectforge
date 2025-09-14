@@ -242,7 +242,7 @@ public class ExcelExporter
       final ExportColumn exportColumn)
   {
     final PropertyType type = propInfo.type();
-    if (type == PropertyType.CURRENCY) {
+    if (type == PropertyType.CURRENCY || type == PropertyType.CURRENCY_PLAIN) {
       putCurrencyFormat(sheetProvider, exportColumn);
     } else if (type == PropertyType.DATE) {
       sheetProvider.putFormat(exportColumn, "MM/dd/yyyy");

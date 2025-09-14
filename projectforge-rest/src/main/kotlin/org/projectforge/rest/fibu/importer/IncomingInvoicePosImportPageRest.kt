@@ -118,7 +118,7 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
 
         // Betrag (erstelle custom column da grossSum nicht in EingangsrechnungDO ist)
         val betragCol = UIAgGridColumnDef.createCol(lc, "read.grossSum", headerName = "Betrag", width = 100)
-        betragCol.setFormat(Formatter.NUMBER)
+        betragCol.setFormat(Formatter.CURRENCY_PLAIN)
         agGrid.add(betragCol)
 
         // Währung (custom column)

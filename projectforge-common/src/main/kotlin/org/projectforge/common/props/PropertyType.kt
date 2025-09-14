@@ -29,7 +29,7 @@ package org.projectforge.common.props
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 enum class PropertyType {
-    CURRENCY, DATE, DATE_TIME, DATE_TIME_SECONDS, DATE_TIME_MILLIS,
+    CURRENCY, CURRENCY_PLAIN, DATE, DATE_TIME, DATE_TIME_SECONDS, DATE_TIME_MILLIS,
 
     /**
      * Use INPUT for long text fields if you wish to use input fields instead of text areas.
