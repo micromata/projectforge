@@ -91,6 +91,12 @@ class EingangsrechnungPosImportDTO(
     var kost2: Kost2? = null,
     var periodFrom: LocalDate? = null,
     var periodUntil: LocalDate? = null,
+
+    /**
+     * Sequential position number within an invoice (RENR).
+     * Starts with 1 and is assigned in the order of reading.
+     */
+    var positionNummer: Int? = null,
 ) : BaseDTO<EingangsrechnungDO>(), ImportPairEntry.Modified<EingangsrechnungPosImportDTO> {
 
     override val properties: Array<KProperty<*>>

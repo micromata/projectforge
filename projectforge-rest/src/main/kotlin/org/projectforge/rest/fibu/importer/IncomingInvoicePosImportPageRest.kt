@@ -101,10 +101,15 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
     ) {
         val lc = LayoutContext(EingangsrechnungDO::class.java)
 
-        // RENR (Invoice Number) - wichtigste Spalte
+        // Position Number - first column
+        val positionCol = UIAgGridColumnDef.createCol(lc, "read.positionNummer", headerName = "Pos.", width = 60)
+        positionCol.cellRenderer = "diffCell"
+        agGrid.add(positionCol)
+
+        // RENR (Invoice Number) - most important column
         addReadColumn(agGrid, lc, EingangsrechnungDO::referenz)
 
-        // Kreditor
+        // Creditor
         addReadColumn(agGrid, lc, EingangsrechnungDO::kreditor, wrapText = true)
 
         // Datum

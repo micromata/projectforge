@@ -213,11 +213,23 @@ class IncomingInvoicePosExcelParser(
 
         groupedByRenr.forEach { (renr, positions) ->
             log.debug("Processing RENR '$renr' with ${positions.size} positions")
+
+            // Assign position numbers (1, 2, 3, ...) in reading order
+            assignPositionNumbers(renr, positions)
+
+            // Validate header consistency
             validateInvoiceHeaderConsistency(renr, positions)
         }
 
         storage.consolidatedInvoices = groupedByRenr.filterKeys { it != "UNKNOWN" }
         log.info("Consolidation completed. ${storage.consolidatedInvoices.size} invoices consolidated.")
+    }
+
+    private fun assignPositionNumbers(renr: String, positions: List<EingangsrechnungPosImportDTO>) {
+        positions.forEachIndexed { index, position ->
+            position.positionNummer = index + 1
+            log.debug("Assigned position number ${position.positionNummer} to position in RENR '$renr'")
+        }
     }
 
     private fun validateInvoiceHeaderConsistency(renr: String, positions: List<EingangsrechnungPosImportDTO>) {
