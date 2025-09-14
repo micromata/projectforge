@@ -38,6 +38,7 @@ import org.projectforge.rest.importer.ImportStorage
 import org.projectforge.ui.LayoutContext
 import org.projectforge.ui.UIAgGrid
 import org.projectforge.ui.UIAgGridColumnDef
+import org.projectforge.ui.UIAgGridColumnDef.Formatter
 import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
@@ -117,7 +118,7 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
 
         // Betrag (erstelle custom column da grossSum nicht in EingangsrechnungDO ist)
         val betragCol = UIAgGridColumnDef.createCol(lc, "read.grossSum", headerName = "Betrag", width = 100)
-        betragCol.cellRenderer = "diffCell"
+        betragCol.setFormat(Formatter.NUMBER)
         agGrid.add(betragCol)
 
         // Währung (custom column)

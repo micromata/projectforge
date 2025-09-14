@@ -166,6 +166,44 @@ open class UIAgGridColumnDef(
         }
     }
 
+    /**
+     * Sets the formatter. Also sets cellRenderer to "formatter".
+     * @param formatter The formatter to set.
+     * @return this for chaining.
+     */
+    fun setFormat(formatter: Formatter): UIAgGridColumnDef {
+        when (formatter) {
+            Formatter.CURRENCY -> {
+                if (width == null) {
+                    this.width = CURRENCY_WIDTH
+                }
+                this.type = AG_TYPE.NUMERIC_COLUMN.agType
+                this.filter = "agNumberColumnFilter"
+            }
+
+            Formatter.NUMBER -> {
+                if (width == null) {
+                    this.width = NUMBER_WIDTH
+                }
+                this.type = AG_TYPE.NUMERIC_COLUMN.agType
+                this.filter = "agNumberColumnFilter"
+                this.setApplyAndResetButton()
+            }
+
+            Formatter.CONSUMPTION -> {
+                if (width == null) {
+                    this.width = 80
+                }
+            }
+
+            else -> {
+            }
+        }
+        cellRenderer = "formatter"
+        cellRendererParams = createCellRendererParams(formatter)
+        return this
+    }
+
     companion object {
         fun createCol(
             property: KProperty<*>,
@@ -373,34 +411,7 @@ open class UIAgGridColumnDef(
                 col.width = width
             }
             useFormatter?.let {
-                when (it) {
-                    Formatter.CURRENCY -> {
-                        if (width == null) {
-                            col.width = CURRENCY_WIDTH
-                        }
-                        col.type = AG_TYPE.NUMERIC_COLUMN.agType
-                        col.filter = "agNumberColumnFilter"
-                    }
-
-                    Formatter.NUMBER -> {
-                        if (width == null) {
-                            col.width = NUMBER_WIDTH
-                        }
-                        col.type = AG_TYPE.NUMERIC_COLUMN.agType
-                        col.filter = "agNumberColumnFilter"
-                        col.setApplyAndResetButton()
-                    }
-
-                    Formatter.CONSUMPTION -> {
-                        if (width == null) {
-                            col.width = 80
-                        } else {
-                        }
-                    }
-
-                    else -> {
-                    }
-                }
+                col.setFormat(it)
             }
             if (useFormatter == null
                 && elementInfo?.propertyType?.isIn(PropertyType.INPUT, PropertyType.UNSPECIFIED) == true
@@ -411,21 +422,13 @@ open class UIAgGridColumnDef(
                 col.setApplyAndResetButton()
             }
             valueGetter?.let { col.valueGetter = it }
-            var myParams: MutableMap<String, Any>? = null
-            useFormatter?.let {
-                col.cellRenderer = "formatter"
-                myParams = createCellRendererParams(it)
-                col.cellRendererParams = myParams
-            }
             if (!valueIconMap.isNullOrEmpty()) {
                 if (col.cellRenderer.isNullOrEmpty()) {
                     col.cellRenderer = "formatter"
                 }
-                if (myParams == null) {
-                    myParams = mutableMapOf()
-                    col.cellRendererParams = myParams
+                col.cellRendererParams = (col.cellRendererParams?.toMutableMap() ?: mutableMapOf()).apply {
+                    this["valueIconMap"] = valueIconMap
                 }
-                myParams!!["valueIconMap"] = valueIconMap
             }
             return col
         }
@@ -441,7 +444,7 @@ open class UIAgGridColumnDef(
                     DateFormats.getFormatString(DateFormatType.DATE_TIME_SECONDS)
 
                 Formatter.CURRENCY -> {
-                    result["locale"] = ThreadLocalUserContext.localeAsString!!
+                    result["locale"] = ThreadLocalUserContext.localeAsString
                     result["currency"] = ConfigurationServiceAccessor.get().currency ?: "EUR"
                 }
 
