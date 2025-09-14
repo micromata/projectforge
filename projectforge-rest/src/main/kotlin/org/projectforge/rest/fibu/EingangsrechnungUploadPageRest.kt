@@ -51,6 +51,9 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
     @Autowired
     private lateinit var kontoCache: KontoCache
 
+    // Temporary storage for the parsed import data
+    private var lastParsedStorage: EingangsrechnungImportStorage? = null
+
     override val title: String
         get() = translate("fibu.eingangsrechnung.import.title")
 
@@ -65,18 +68,28 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
     }
 
     override fun successPage(request: HttpServletRequest): String {
-        return "tbd" // PagesResolver.getDynamicPageUrl(EingangsrechnungImportPageRest::class.java, absolute = true)
+        val storage = lastParsedStorage
+        return if (storage != null) {
+            IncomingInvoicePosExcelParser.storeInSessionAndGetNavigationUrl(request, storage)
+        } else {
+            // Fallback if no storage is available
+            callerPage(request)
+        }
     }
 
     override fun proceedUpload(inputstream: InputStream, filename: String): String? {
+        val storage = EingangsrechnungImportStorage()
         ExcelWorkbook(inputstream, filename, locale).use { workbook ->
             IncomingInvoicePosExcelParser(
-                storage = EingangsrechnungImportStorage(),
+                storage = storage,
                 eingangsrechnungDao = eingangsrechnungDao,
                 kostCache = kostCache,
                 kontoCache = kontoCache,
             ).parse(workbook)
         }
-        return null
+
+        // Store for later use in successPage()
+        lastParsedStorage = storage
+        return null // Success - continue to successPage()
     }
 }

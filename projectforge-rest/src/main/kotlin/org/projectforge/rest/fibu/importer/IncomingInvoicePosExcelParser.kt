@@ -25,12 +25,16 @@ package org.projectforge.rest.fibu.importer
 
 import de.micromata.merlin.excel.*
 import de.micromata.merlin.excel.importer.ImportHelper
+import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
 import org.apache.poi.ss.usermodel.CellType
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.rest.core.ExpiringSessionAttributes
+import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.importer.AbstractImportPageRest
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -193,9 +197,12 @@ class IncomingInvoicePosExcelParser(
         }
 
         consolidateInvoicesByRenr()
-        val errors = storage.errorList
-        val entries = storage.pairEntries
-        val entriesErrors = entries.filter { it.error != null }
+
+        log.info("Parsing completed. Parsed ${storage.readInvoices.size} invoice positions.")
+        log.info("Found ${storage.consolidatedInvoices.size} consolidated invoices.")
+        if (storage.errorList.isNotEmpty()) {
+            log.warn("Import has ${storage.errorList.size} errors: ${storage.errorList}")
+        }
     }
 
     private fun consolidateInvoicesByRenr() {
@@ -280,5 +287,19 @@ class IncomingInvoicePosExcelParser(
             "CURRENCY", "DATE", "INVOICE_NUMBER", "CREDITOR",
             "DATEV_ACCOUNT", "TEXT", "DUE_DATE", "PAID_DATE", "TAX_RATE"
         )
+
+        /**
+         * Stores the import storage in session and returns URL to navigate to import page
+         */
+        fun storeInSessionAndGetNavigationUrl(request: HttpServletRequest, storage: EingangsrechnungImportStorage): String {
+            ExpiringSessionAttributes.setAttribute(
+                request,
+                AbstractImportPageRest.getSessionAttributeName(IncomingInvoicePosImportPageRest::class.java),
+                storage,
+                20 // TTL in minutes
+            )
+
+            return PagesResolver.getDynamicPageUrl(IncomingInvoicePosImportPageRest::class.java)
+        }
     }
 }

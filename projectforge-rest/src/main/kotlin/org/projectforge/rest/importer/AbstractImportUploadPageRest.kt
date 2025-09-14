@@ -30,7 +30,6 @@ import org.projectforge.framework.utils.FileCheck
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
-import org.projectforge.rest.fibu.EingangsrechnungUploadPageRest
 import org.projectforge.ui.*
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -94,8 +93,8 @@ abstract class AbstractImportUploadPageRest : AbstractDynamicPageRest() {
         // Drop Area for file upload
         layout.add(
             UIDropArea(
-                "fibu.eingangsrechnung.import.dropArea",
-                uploadUrl = RestResolver.getRestUrl(EingangsrechnungUploadPageRest::class.java, "upload")
+                "file.upload.dropArea",
+                uploadUrl = RestResolver.getRestUrl(this::class.java, "upload")
             )
         )
 
@@ -114,7 +113,7 @@ abstract class AbstractImportUploadPageRest : AbstractDynamicPageRest() {
         if (downloadTemplateSupported) {
             layout.addAction(
                 UIButton.createDownloadButton(
-                    title = "fibu.eingangsrechnung.import.downloadTemplate",
+                    title = "file.upload.downloadTemplate",
                     responseAction = ResponseAction(
                         RestResolver.getRestUrl(this.javaClass, "template"),
                         targetType = TargetType.DOWNLOAD
