@@ -141,7 +141,7 @@ object MultiSelectionExcelExport {
       context.multiSelectedPage.layoutContext?.let { lc ->
         ElementsRegistry.getElementInfo(lc, field)?.let { elementInfo ->
           when (elementInfo.propertyType) {
-            PropertyType.CURRENCY -> cell.setCellStyle(context.amountStyle)
+            PropertyType.CURRENCY, PropertyType.CURRENCY_PLAIN -> cell.setCellStyle(context.amountStyle)
             else -> {}
           }
         }

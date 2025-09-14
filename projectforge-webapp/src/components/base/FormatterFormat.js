@@ -18,6 +18,14 @@ const formatterFormat = (
                 style: 'currency',
                 currency,
             }).format(value);
+        case 'CURRENCY_PLAIN':
+            return Intl.NumberFormat(locale, {
+                style: 'decimal',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            }).format(value);
+        case 'NUMBER':
+            return Intl.NumberFormat(locale).format(value);
         case 'SHOW_DISPLAYNAME':
         case 'COST1':
         case 'COST2':
