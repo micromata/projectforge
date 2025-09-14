@@ -188,6 +188,89 @@ class IncomingInvoicePosExcelParser(
             // Tbd: Pos: Datum, fällig, gezahlt am.
             // Tbd: Rechnung: Konto, Datum, fällig, gezahlt am.
             log.debug(invoicePos.toString())
+
+            storage.commitEntity(invoicePos)
+        }
+
+        consolidateInvoicesByRenr()
+        val errors = storage.errorList
+        val entries = storage.pairEntries
+        val entriesErrors = entries.filter { it.error != null }
+    }
+
+    private fun consolidateInvoicesByRenr() {
+        log.info("Starting consolidation of invoices by RENR...")
+
+        val groupedByRenr = storage.readInvoices.groupBy { it.referenz ?: "UNKNOWN" }
+        log.info("Found ${groupedByRenr.size} different RENR groups with ${storage.readInvoices.size} total positions")
+
+        groupedByRenr.forEach { (renr, positions) ->
+            log.debug("Processing RENR '$renr' with ${positions.size} positions")
+            validateInvoiceHeaderConsistency(renr, positions)
+        }
+
+        storage.consolidatedInvoices = groupedByRenr.filterKeys { it != "UNKNOWN" }
+        log.info("Consolidation completed. ${storage.consolidatedInvoices.size} invoices consolidated.")
+    }
+
+    private fun validateInvoiceHeaderConsistency(renr: String, positions: List<EingangsrechnungPosImportDTO>) {
+        if (positions.isEmpty()) return
+
+        val invoiceHeaderFields = listOf(
+            "kreditor", "konto", "referenz", "datum", "faelligkeit",
+            "bezahlDatum", "currency", "zahlBetrag", "discountMaturity",
+            "discountPercent", "iban", "bic", "receiver", "paymentType",
+            "customernr", "bemerkung"
+        )
+
+        invoiceHeaderFields.forEach { fieldName ->
+            validateFieldConsistency(renr, fieldName, positions)
+        }
+    }
+
+    private fun validateFieldConsistency(renr: String, fieldName: String, positions: List<EingangsrechnungPosImportDTO>) {
+        val distinctValues = positions.map { getFieldValue(it, fieldName) }
+            .filter { it != null }
+            .distinct()
+
+        if (distinctValues.size > 1) {
+            val errorMessage = "RENR '$renr': Inkonsistente Werte für '$fieldName': ${distinctValues.joinToString(", ")}"
+            log.error(errorMessage)
+            storage.addError(errorMessage)
+
+            positions.forEach { position ->
+                val pairEntry = storage.pairEntries.find { it.read == position }
+                if (pairEntry != null) {
+                    val existingError = pairEntry.error
+                    pairEntry.error = if (existingError.isNullOrBlank()) {
+                        "Inkonsistente Rechnungsheader-Daten für $fieldName"
+                    } else {
+                        "$existingError; Inkonsistente $fieldName"
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getFieldValue(dto: EingangsrechnungPosImportDTO, fieldName: String): Any? {
+        return when (fieldName) {
+            "kreditor" -> dto.kreditor
+            "konto" -> dto.konto?.let { "${it.id}:${it.nummer}" }
+            "referenz" -> dto.referenz
+            "datum" -> dto.datum
+            "faelligkeit" -> dto.faelligkeit
+            "bezahlDatum" -> dto.bezahlDatum
+            "currency" -> dto.currency
+            "zahlBetrag" -> dto.zahlBetrag
+            "discountMaturity" -> dto.discountMaturity
+            "discountPercent" -> dto.discountPercent
+            "iban" -> dto.iban
+            "bic" -> dto.bic
+            "receiver" -> dto.receiver
+            "paymentType" -> dto.paymentType
+            "customernr" -> dto.customernr
+            "bemerkung" -> dto.bemerkung
+            else -> null
         }
     }
 

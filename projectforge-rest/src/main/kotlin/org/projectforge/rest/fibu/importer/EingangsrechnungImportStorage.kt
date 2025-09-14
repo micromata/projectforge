@@ -26,6 +26,7 @@ package org.projectforge.rest.fibu.importer
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.importer.ImportFieldSettings
+import org.projectforge.rest.importer.ImportPairEntry
 import org.projectforge.rest.importer.ImportSettings
 import org.projectforge.rest.importer.ImportStorage
 
@@ -44,11 +45,20 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
 
     var readInvoices = mutableListOf<EingangsrechnungPosImportDTO>()
 
+    /**
+     * Map of consolidated invoices grouped by RENR (invoice number).
+     * Key: RENR (invoice number)
+     * Value: List of positions belonging to that invoice
+     */
+    var consolidatedInvoices = mapOf<String, List<EingangsrechnungPosImportDTO>>()
+
     override fun prepareEntity(): EingangsrechnungPosImportDTO {
         return EingangsrechnungPosImportDTO()
     }
 
     override fun commitEntity(obj: EingangsrechnungPosImportDTO) {
         readInvoices.add(obj)
+        val pairEntry = ImportPairEntry(read = obj)
+        addEntry(pairEntry)
     }
 }
