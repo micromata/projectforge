@@ -292,14 +292,20 @@ class IncomingInvoicePosExcelParser(
          * Stores the import storage in session and returns URL to navigate to import page
          */
         fun storeInSessionAndGetNavigationUrl(request: HttpServletRequest, storage: EingangsrechnungImportStorage): String {
+            val sessionAttributeName = AbstractImportPageRest.getSessionAttributeName(IncomingInvoicePosImportPageRest::class.java)
+            log.info("Storing import storage in session with key: $sessionAttributeName")
+            log.info("Storage contains ${storage.readInvoices.size} invoices, ${storage.pairEntries.size} pair entries")
+
             ExpiringSessionAttributes.setAttribute(
                 request,
-                AbstractImportPageRest.getSessionAttributeName(IncomingInvoicePosImportPageRest::class.java),
+                sessionAttributeName,
                 storage,
                 20 // TTL in minutes
             )
 
-            return PagesResolver.getDynamicPageUrl(IncomingInvoicePosImportPageRest::class.java)
+            val navigationUrl = PagesResolver.getDynamicPageUrl(IncomingInvoicePosImportPageRest::class.java, absolute = true)
+            log.info("Generated navigation URL: $navigationUrl")
+            return navigationUrl
         }
     }
 }

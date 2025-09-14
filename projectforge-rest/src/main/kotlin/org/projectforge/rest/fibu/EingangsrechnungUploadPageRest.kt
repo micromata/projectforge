@@ -25,6 +25,7 @@ package org.projectforge.rest.fibu
 
 import de.micromata.merlin.excel.ExcelWorkbook
 import jakarta.servlet.http.HttpServletRequest
+import mu.KotlinLogging
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.kost.KostCache
@@ -38,6 +39,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.io.InputStream
+
+private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/uploadIncomingInvoices")
@@ -70,9 +73,12 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
     override fun successPage(request: HttpServletRequest): String {
         val storage = lastParsedStorage
         return if (storage != null) {
-            IncomingInvoicePosExcelParser.storeInSessionAndGetNavigationUrl(request, storage)
+            val navigationUrl = IncomingInvoicePosExcelParser.storeInSessionAndGetNavigationUrl(request, storage)
+            log.info("Navigation URL for import page: $navigationUrl")
+            log.info("Storage contains ${storage.readInvoices.size} invoices, ${storage.consolidatedInvoices.size} consolidated")
+            navigationUrl
         } else {
-            // Fallback if no storage is available
+            log.warn("No storage available in successPage, falling back to caller page")
             callerPage(request)
         }
     }

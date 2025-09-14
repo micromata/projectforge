@@ -28,9 +28,11 @@ import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.FileCheck
 import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.ui.*
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -156,9 +158,13 @@ abstract class AbstractImportUploadPageRest : AbstractDynamicPageRest() {
             }
             val successPage = successPage(request)
             log.info("Successfully processed file: $filename, redirecting to: $successPage")
-            return ResponseEntity.ok(
-                ResponseAction(targetType = TargetType.REDIRECT).addVariable("url", successPage)
+            return ResponseEntity(
+                ResponseAction(
+                    successPage,
+                    targetType = TargetType.REDIRECT
+                ), HttpStatus.OK
             )
+
         } catch (ex: Exception) {
             log.error("Error processing uploaded file: $filename", ex)
             return result(translate("file.upload.error"), isStatusError = true)
