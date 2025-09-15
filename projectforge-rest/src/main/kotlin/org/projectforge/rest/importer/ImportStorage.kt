@@ -164,7 +164,28 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
   }
 
   /**
+   * Creates a new ImportPairEntry with a prepared entity ready for parsing.
+   * This allows parsers to directly access and set error messages during parsing.
+   *
+   * @return ImportPairEntry containing the prepared entity
+   */
+  fun prepareImportPairEntry(): ImportPairEntry<O> {
+    val dto = prepareEntity()
+    return ImportPairEntry(read = dto)
+  }
+
+  /**
    * Store or skip this entity after the setting of all properties.
    */
   abstract fun commitEntity(obj: O)
+
+  /**
+   * Store or skip this ImportPairEntry after parsing and validation.
+   * This is the preferred method when using prepareImportPairEntry().
+   *
+   * @param pairEntry The ImportPairEntry to commit
+   */
+  open fun commitEntity(pairEntry: ImportPairEntry<O>) {
+    pairEntry.read?.let { commitEntity(it) }
+  }
 }

@@ -109,7 +109,8 @@ class IncomingInvoicePosExcelParser(
         val it = sheet.dataRowIterator
         while (it.hasNext()) {
             val row = it.next()
-            val invoicePos = storage.prepareEntity()
+            val pairEntry = storage.prepareImportPairEntry()
+            val invoicePos = pairEntry.read!!
 
             // Use ImportHelper.fillBean to automatically fill basic fields
             ImportHelper.fillBean(invoicePos, sheet, row.rowNum)
@@ -173,6 +174,7 @@ class IncomingInvoicePosExcelParser(
                     invoicePos.kost1!!.endziffer = kost1.endziffer
                     invoicePos.kost1!!.description = kost1.description
                 } else {
+                    pairEntry.error = "KOST1 '$kost1Val' not found in row ${row.rowNum}"
                     log.warn("KOST1 '$kost1Val' not found in row ${row.rowNum}")
                 }
             }
@@ -186,6 +188,12 @@ class IncomingInvoicePosExcelParser(
                     invoicePos.kost2!!.id = kost2.id
                     invoicePos.kost2!!.description = kost2.description
                 } else {
+                    val existingError = pairEntry.error
+                    pairEntry.error = if (existingError.isNullOrBlank()) {
+                        "KOST2 '$kost2Val' not found in row ${row.rowNum}"
+                    } else {
+                        "$existingError; KOST2 '$kost2Val' not found"
+                    }
                     log.warn("KOST2 '$kost2Val' not found in row ${row.rowNum}")
                 }
             }
@@ -193,7 +201,7 @@ class IncomingInvoicePosExcelParser(
             // Tbd: Rechnung: Konto, Datum, fällig, gezahlt am.
             log.debug(invoicePos.toString())
 
-            storage.commitEntity(invoicePos)
+            storage.commitEntity(pairEntry)
         }
 
         consolidateInvoicesByRenr()
