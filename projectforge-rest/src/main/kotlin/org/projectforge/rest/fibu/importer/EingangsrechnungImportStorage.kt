@@ -61,4 +61,16 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         val pairEntry = ImportPairEntry(read = obj)
         addEntry(pairEntry)
     }
+
+    /**
+     * Commits an ImportPairEntry that was prepared using prepareImportPairEntry().
+     * This method is preferred for new parsing implementations as it allows
+     * setting errors directly during parsing.
+     */
+    override fun commitEntity(pairEntry: ImportPairEntry<EingangsrechnungPosImportDTO>) {
+        pairEntry.read?.let { dto ->
+            readInvoices.add(dto)
+        }
+        addEntry(pairEntry)
+    }
 }
