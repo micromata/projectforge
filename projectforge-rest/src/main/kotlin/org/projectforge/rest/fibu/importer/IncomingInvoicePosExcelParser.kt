@@ -34,6 +34,7 @@ import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.dto.Konto
 import org.projectforge.rest.importer.AbstractImportPageRest
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -93,7 +94,9 @@ class IncomingInvoicePosExcelParser(
         sheet.registerColumn(Cols.TEXT, ExcelColumnValidator()).setTargetProperty("betreff")
         sheet.registerColumn(Cols.PERIOD, ExcelColumnValidator())
         if (sheet.headRow == null) {
-            log.info("Ignoring sheet '$name' for importing IncomingInvoicePositions, no valid head row found.")
+            val errorMsg = "Ignoring sheet '$name' for importing IncomingInvoicePositions, no valid head row found."
+            log.info(errorMsg)
+            storage.addError(errorMsg)
             return
         }
         sheet.setColumnsForRowEmptyCheck(
@@ -126,7 +129,9 @@ class IncomingInvoicePosExcelParser(
                         invoicePos.periodUntil =
                             dateValidator.getDate(sheet.getCell(row, Cols.PERIOD)?.takeIf { parts[1].isNotBlank() })
                     } catch (e: Exception) {
-                        log.warn("Could not parse period '$periodStr' in row ${row.rowNum}")
+                        val errorMsg = "Could not parse period '$periodStr' in row ${row.rowNum}"
+                        pairEntry.addError(errorMsg)
+                        log.warn(errorMsg)
                     }
                 }
             }
@@ -138,7 +143,9 @@ class IncomingInvoicePosExcelParser(
                 try {
                     taxRate = BigDecimal(taxRateStr)
                 } catch (e: NumberFormatException) {
-                    log.warn("Could not parse taxRate '$taxRateStr' in row ${row.rowNum}")
+                    val errorMsg = "Could not parse taxRate '$taxRateStr' in row ${row.rowNum}"
+                    pairEntry.addError(errorMsg)
+                    log.warn(errorMsg)
                 }
             }
             if (taxRate != null && invoicePos.grossSum != null) {
@@ -146,13 +153,19 @@ class IncomingInvoicePosExcelParser(
             }
 
             // Parse DATEV account
-            val datevAccountNumber =
-                NumberHelper.parseLocalizedInt(sheet.getCellString(row, Cols.DATEV_ACCOUNT), strict = true)
-            kontoCache.findKontoByNumber(datevAccountNumber)?.let { konto ->
-                org.projectforge.rest.dto.Konto().let { kontoDTO ->
-                    invoicePos.konto = kontoDTO
-                    kontoDTO.id = konto.id
-                    kontoDTO.nummer = konto.nummer
+            sheet.getCellString(row, Cols.DATEV_ACCOUNT)?.let { datevAccountNumberStr ->
+                val datevAccountNumber = NumberHelper.parseLocalizedInt(datevAccountNumberStr, strict = true)
+                val konto = kontoCache.findKontoByNumber(datevAccountNumber)
+
+                if (konto != null) {
+                    invoicePos.konto = Konto().apply {
+                        id = konto.id
+                        nummer = konto.nummer
+                    }
+                } else {
+                    val errorMsg = "Konto '$datevAccountNumberStr' not found."
+                    pairEntry.addError(errorMsg)
+                    log.warn(errorMsg)
                 }
             }
 
@@ -174,8 +187,9 @@ class IncomingInvoicePosExcelParser(
                     invoicePos.kost1!!.endziffer = kost1.endziffer
                     invoicePos.kost1!!.description = kost1.description
                 } else {
-                    pairEntry.addError("KOST1 '$kost1Val' not found in row ${row.rowNum}")
-                    log.warn("KOST1 '$kost1Val' not found in row ${row.rowNum}")
+                    val errorMsg = "KOST1 '$kost1Val' not found."
+                    pairEntry.addError(errorMsg)
+                    log.warn(errorMsg)
                 }
             }
 
@@ -188,8 +202,9 @@ class IncomingInvoicePosExcelParser(
                     invoicePos.kost2!!.id = kost2.id
                     invoicePos.kost2!!.description = kost2.description
                 } else {
-                    pairEntry.addError("KOST2 '$kost2Val' not found in row ${row.rowNum}")
-                    log.warn("KOST2 '$kost2Val' not found in row ${row.rowNum}")
+                    val errorMsg = "KOST2 '$kost2Val' not found."
+                    pairEntry.addError(errorMsg)
+                    log.warn(errorMsg)
                 }
             }
             // Tbd: Pos: Datum, fällig, gezahlt am.
@@ -250,13 +265,18 @@ class IncomingInvoicePosExcelParser(
         }
     }
 
-    private fun validateFieldConsistency(renr: String, fieldName: String, positions: List<EingangsrechnungPosImportDTO>) {
+    private fun validateFieldConsistency(
+        renr: String,
+        fieldName: String,
+        positions: List<EingangsrechnungPosImportDTO>
+    ) {
         val distinctValues = positions.map { getFieldValue(it, fieldName) }
             .filter { it != null }
             .distinct()
 
         if (distinctValues.size > 1) {
-            val errorMessage = "RENR '$renr': Inkonsistente Werte für '$fieldName': ${distinctValues.joinToString(", ")}"
+            val errorMessage =
+                "RENR '$renr': Inkonsistente Werte für '$fieldName': ${distinctValues.joinToString(", ")}"
             log.error(errorMessage)
             storage.addError(errorMessage)
 
@@ -301,8 +321,12 @@ class IncomingInvoicePosExcelParser(
         /**
          * Stores the import storage in session and returns URL to navigate to import page
          */
-        fun storeInSessionAndGetNavigationUrl(request: HttpServletRequest, storage: EingangsrechnungImportStorage): String {
-            val sessionAttributeName = AbstractImportPageRest.getSessionAttributeName(IncomingInvoicePosImportPageRest::class.java)
+        fun storeInSessionAndGetNavigationUrl(
+            request: HttpServletRequest,
+            storage: EingangsrechnungImportStorage
+        ): String {
+            val sessionAttributeName =
+                AbstractImportPageRest.getSessionAttributeName(IncomingInvoicePosImportPageRest::class.java)
             log.info("Storing import storage in session with key: $sessionAttributeName")
             log.info("Storage contains ${storage.readInvoices.size} invoices, ${storage.pairEntries.size} pair entries")
 
@@ -313,7 +337,8 @@ class IncomingInvoicePosExcelParser(
                 20 // TTL in minutes
             )
 
-            val navigationUrl = PagesResolver.getDynamicPageUrl(IncomingInvoicePosImportPageRest::class.java, absolute = true)
+            val navigationUrl =
+                PagesResolver.getDynamicPageUrl(IncomingInvoicePosImportPageRest::class.java, absolute = true)
             log.info("Generated navigation URL: $navigationUrl")
             return navigationUrl
         }
