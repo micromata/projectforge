@@ -123,7 +123,7 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
         entry.status = pair.status
         entry.oldDiffValues = pair.oldDiffValues
         entry.id = pair.id
-        entry.error = pair.error
+        pair.getErrors().forEach { entry.addError(it) }
         result.add(entry)
       }
     }

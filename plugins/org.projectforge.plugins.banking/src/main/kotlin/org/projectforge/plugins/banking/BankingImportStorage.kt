@@ -148,11 +148,11 @@ class BankingImportStorage(importSettings: String? = null, targetEntity: BankAcc
         if (read.bankAccount?.iban.isNullOrBlank()
           || !bankAccountNormalizedIban.contains(StringHelper.removeNonDigitsAndNonASCIILetters(read.bankAccount?.iban))
         ) {
-          entry.error = translateMsg(
+          entry.addError(translateMsg(
             "plugins.banking.import.error.recordWithWrongBankAccount",
             read.bankAccount?.iban,
             (targetEntity as BankAccount).iban
-          )
+          ))
         }
       }
     }
