@@ -27,6 +27,7 @@ data class UICheckbox(var id: String,
                       @Transient
                       override val layoutContext: LayoutContext? = null,
                       val color : UIColor? = null,
+                      val inline: Boolean = false,
                       override var tooltip: String? = null,
                       override var label: String? = null,
                       override var additionalLabel: String? = null,

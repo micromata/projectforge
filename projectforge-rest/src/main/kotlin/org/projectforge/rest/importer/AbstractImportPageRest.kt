@@ -28,6 +28,7 @@ import jakarta.validation.Valid
 import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.MarkdownBuilder
+import org.projectforge.framework.utils.MarkdownBuilder.Color
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -107,13 +108,13 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
                 fieldset.add(row)
                 row.add(
                     UICol(md = 6)
-                        .add(UIAlert("'${createStatsMarkdown(data)}", color = UIColor.LIGHT, markdown = true))
+                        .add(UIAlert("'${createStatsMarkdown(importStorage)}", color = UIColor.LIGHT, markdown = true))
                 )
                 if (data.totalNumber > 0) {
                     val col = UICol(md = 6)
                     row.add(col)
-                    val checkboxGroup = UIRow()
-                    col.add(checkboxGroup)
+                    val checkboxGroup = col
+                    // col.add(checkboxGroup)
                     checkboxGroup.add(UILabel("import.display.options"))
                     addCheckBoxIfNotZero(layout, checkboxGroup, "new", data.numberOfNewEntries)
                     addCheckBoxIfNotZero(layout, checkboxGroup, "deleted", data.numberOfDeletedEntries)
@@ -180,7 +181,7 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
     }
 
     /**
-     * Will be called, if the user wants to see the encryption options.
+     * Will be called if the user wants to see the encryption options.
      */
     @PostMapping(RestPaths.WATCH_FIELDS)
     fun watchFields(
@@ -191,7 +192,8 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
         val importStorage = getImportStorage(request)
             ?: return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
         return ResponseEntity.ok(
-            ResponseAction(targetType = TargetType.UPDATE, merge = true)
+            ResponseAction(targetType = TargetType.UPDATE, merge = false)
+                .addVariable("data", data)
                 .addVariable("variables", mapOf("entries" to createListEntries(importStorage, data.displayOptions)))
         )
     }
@@ -330,7 +332,7 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
     ) {
         if (number > 0) {
             val fieldId = "displayOptions.$id"
-            row.add(UICheckbox(fieldId, label = "import.entry.status.$id"))
+            row.add(UICheckbox(fieldId, label = "import.entry.status.$id", inline = true))
             layout.watchFields.add(fieldId)
         }
     }
@@ -387,7 +389,8 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
         }
     }
 
-    private fun createStatsMarkdown(data: ImportStorageInfo): String {
+    private fun createStatsMarkdown(importStorage: ImportStorage<*>): String {
+        val data = importStorage.info
         val md = MarkdownBuilder()
         md.appendPipedValue("import.stats.total", NumberFormatter.format(data.totalNumber))
         addIfNotZero(md, "import.stats.new", data.numberOfNewEntries, MarkdownBuilder.Color.GREEN)
@@ -416,6 +419,12 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
             data.numberOfUnknownEntries,
             MarkdownBuilder.Color.RED,
         )
+        importStorage.errorList.let {
+            if (it.isNotEmpty()) {
+                md.appendLine().h3(translate("errors"), Color.RED)
+                it.forEach { err -> md.appendListItem(err, Color.RED) }
+            }
+        }
         return md.toString()
     }
 }

@@ -165,6 +165,14 @@ $transitionTime: .2s ease-out;
   letter-spacing: .02em;
   margin-top: 13px;
 
+  &.inline {
+    display: inline-block;
+    margin-top: 0;
+    margin-right: 15px;
+    margin-bottom: 0;
+    vertical-align: top;
+  }
+
   .checkboxLabel {
     position: relative;
     margin-left: 5px;
