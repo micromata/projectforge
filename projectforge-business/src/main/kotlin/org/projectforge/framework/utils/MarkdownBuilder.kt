@@ -33,8 +33,10 @@ class MarkdownBuilder {
 
     enum class Color(val color: String) { BLACK("black"), BLUE("blue"), RED("red"), GREEN("green") }
 
-    fun h3(text: String): MarkdownBuilder {
-        sb.append("### ").appendLine(text).appendLine()
+    fun h3(text: String, color: Color? = null): MarkdownBuilder {
+        sb.append("### ")
+        appendLine(text, color)
+        sb.appendLine()
         return this
     }
 
@@ -51,6 +53,11 @@ class MarkdownBuilder {
             sb.append("<span style=\"color:${color.color};\">").append(text).append("</span>")
         }
         return this
+    }
+
+    fun appendListItem(text: String?, color: Color? = null): MarkdownBuilder {
+        sb.append("- ")
+        return append(text, color)
     }
 
     fun appendLine(text: String? = null, color: Color? = null): MarkdownBuilder {

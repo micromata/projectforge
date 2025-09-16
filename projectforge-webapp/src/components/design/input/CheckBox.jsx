@@ -13,6 +13,7 @@ function CheckBox(
         className,
         color,
         id,
+        inline,
         label,
         tooltip,
         ...props
@@ -20,7 +21,13 @@ function CheckBox(
 ) {
     return (
         <>
-            <div className={classNames(style.formGroup, className, style.checkboxGroup)}>
+            <div className={classNames(
+                style.formGroup,
+                className,
+                style.checkboxGroup,
+                { [style.inline]: inline },
+            )}
+            >
                 <label
                     className={style.checkboxLabel}
                     htmlFor={id}
@@ -56,6 +63,7 @@ CheckBox.propTypes = {
     label: PropTypes.string,
     className: PropTypes.string,
     color: colorPropType,
+    inline: PropTypes.bool,
     tooltip: PropTypes.string,
 };
 

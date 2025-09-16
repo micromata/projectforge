@@ -58,7 +58,7 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
     override val title: String = "fibu.eingangsrechnung.import.title"
 
     override fun callerPage(request: HttpServletRequest): String {
-        return PagesResolver.getListPageUrl(EingangsrechnungPagesRest::class.java, absolute = true)
+        return "/wa/incomingInvoiceList" //PagesResolver.getListPageUrl(EingangsrechnungPagesRest::class.java, absolute = true)
     }
 
     override fun clearImportStorage(request: HttpServletRequest) {
