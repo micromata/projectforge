@@ -35,7 +35,26 @@ open class ImportEntry<O : Any>(
 
   open var status: Status = Status.UNKNOWN
 
-  var error: String? = null
+  val error: String?
+    get() = if (errors.isEmpty()) null else errors.joinToString("; ")
+
+  private val errors = mutableListOf<String>()
+
+  /**
+   * Adds an error message to this import entry.
+   *
+   * @param errorMessage The error message to add
+   */
+  fun addError(errorMessage: String) {
+    errors.add(errorMessage)
+  }
+
+  /**
+   * Gets all error messages as a list.
+   *
+   * @return List of error messages (empty if no errors)
+   */
+  fun getErrors(): List<String> = errors.toList()
 
   @get:JsonProperty
   val statusAsString: String

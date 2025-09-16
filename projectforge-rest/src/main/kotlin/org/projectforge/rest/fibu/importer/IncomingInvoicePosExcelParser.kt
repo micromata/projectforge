@@ -174,7 +174,7 @@ class IncomingInvoicePosExcelParser(
                     invoicePos.kost1!!.endziffer = kost1.endziffer
                     invoicePos.kost1!!.description = kost1.description
                 } else {
-                    pairEntry.error = "KOST1 '$kost1Val' not found in row ${row.rowNum}"
+                    pairEntry.addError("KOST1 '$kost1Val' not found in row ${row.rowNum}")
                     log.warn("KOST1 '$kost1Val' not found in row ${row.rowNum}")
                 }
             }
@@ -188,12 +188,7 @@ class IncomingInvoicePosExcelParser(
                     invoicePos.kost2!!.id = kost2.id
                     invoicePos.kost2!!.description = kost2.description
                 } else {
-                    val existingError = pairEntry.error
-                    pairEntry.error = if (existingError.isNullOrBlank()) {
-                        "KOST2 '$kost2Val' not found in row ${row.rowNum}"
-                    } else {
-                        "$existingError; KOST2 '$kost2Val' not found"
-                    }
+                    pairEntry.addError("KOST2 '$kost2Val' not found in row ${row.rowNum}")
                     log.warn("KOST2 '$kost2Val' not found in row ${row.rowNum}")
                 }
             }
@@ -268,12 +263,7 @@ class IncomingInvoicePosExcelParser(
             positions.forEach { position ->
                 val pairEntry = storage.pairEntries.find { it.read == position }
                 if (pairEntry != null) {
-                    val existingError = pairEntry.error
-                    pairEntry.error = if (existingError.isNullOrBlank()) {
-                        "Inkonsistente Rechnungsheader-Daten für $fieldName"
-                    } else {
-                        "$existingError; Inkonsistente $fieldName"
-                    }
+                    pairEntry.addError("Inkonsistente Rechnungsheader-Daten für $fieldName")
                 }
             }
         }
