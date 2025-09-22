@@ -158,7 +158,7 @@ abstract class AbstractImportUploadPageRest : AbstractDynamicPageRest() {
             file.inputStream.use { inputStream ->
                 val result = proceedUpload(inputStream, filename)
                 if (result != null) {
-                    return result("${translate("file.upload.error")}: $result", isStatusError = true)
+                    return result("${translate("file.upload.error")} $result", isStatusError = true)
                 }
             }
             val successPage = successPage(request)

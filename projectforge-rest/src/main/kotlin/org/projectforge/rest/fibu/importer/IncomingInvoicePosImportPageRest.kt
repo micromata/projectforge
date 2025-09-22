@@ -29,9 +29,7 @@ import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.framework.jobs.JobHandler
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ExpiringSessionAttributes
-import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.FormLayoutData
-import org.projectforge.rest.fibu.EingangsrechnungPagesRest
 import org.projectforge.rest.importer.AbstractImportPageRest
 import org.projectforge.rest.importer.ImportPairEntry
 import org.projectforge.rest.importer.ImportStorage
@@ -79,7 +77,7 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
     override fun import(
         importStorage: ImportStorage<*>,
         selectedEntries: List<ImportPairEntry<EingangsrechnungPosImportDTO>>
-    ): Int? {
+    ): Int {
         return jobHandler.addJob(
             EingangsrechnungImportJob(
                 eingangsrechnungDao,
@@ -160,7 +158,8 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
         periodFromCol.cellRenderer = "diffCell"
         agGrid.add(periodFromCol)
 
-        val periodUntilCol = UIAgGridColumnDef.createCol(lc, "read.periodUntil", headerName = "Periode bis", width = 100)
+        val periodUntilCol =
+            UIAgGridColumnDef.createCol(lc, "read.periodUntil", headerName = "Periode bis", width = 100)
         periodUntilCol.cellRenderer = "diffCell"
         agGrid.add(periodUntilCol)
     }

@@ -23,7 +23,6 @@
 
 package org.projectforge.rest.fibu
 
-import de.micromata.merlin.excel.ExcelWorkbook
 import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
 import org.projectforge.business.fibu.EingangsrechnungDao
@@ -32,11 +31,11 @@ import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.locale
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.fibu.importer.EingangsrechnungImportStorage
-import org.projectforge.rest.fibu.importer.IncomingInvoicePosExcelParser
+import org.projectforge.rest.fibu.importer.IncomingInvoicePosCsvParser
 import org.projectforge.rest.importer.AbstractImportUploadPageRest
+import org.projectforge.rest.importer.CsvImporter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -62,13 +61,15 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
     // Temporary storage for the parsed import data
     private var lastParsedStorage: EingangsrechnungImportStorage? = null
 
+    override val fileExtensions = arrayOf("csv")
+
     override val title: String
         get() = translate("fibu.eingangsrechnung.import.title")
 
-    override val description: String?
+    override val description: String
         get() = translate("fibu.eingangsrechnung.import.description")
 
-    override val templateInfo: String?
+    override val templateInfo: String
         get() = translate("fibu.eingangsrechnung.import.templateInfo")
 
     override fun checkRight() {
@@ -82,7 +83,7 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
     override fun successPage(request: HttpServletRequest): String {
         val storage = lastParsedStorage
         return if (storage != null) {
-            val navigationUrl = IncomingInvoicePosExcelParser.storeInSessionAndGetNavigationUrl(request, storage)
+            val navigationUrl = IncomingInvoicePosCsvParser.storeInSessionAndGetNavigationUrl(request, storage)
             log.info("Navigation URL for import page: $navigationUrl")
             log.info("Storage contains ${storage.readInvoices.size} invoices, ${storage.consolidatedInvoices.size} consolidated")
             navigationUrl
@@ -94,13 +95,21 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
 
     override fun proceedUpload(inputstream: InputStream, filename: String): String? {
         val storage = EingangsrechnungImportStorage()
-        ExcelWorkbook(inputstream, filename, locale).use { workbook ->
-            IncomingInvoicePosExcelParser(
-                storage = storage,
-                eingangsrechnungDao = eingangsrechnungDao,
-                kostCache = kostCache,
-                kontoCache = kontoCache,
-            ).parse(workbook)
+
+        if (filename.endsWith("xls", ignoreCase = true) || filename.endsWith("xlsx", ignoreCase = true)) {
+            return "Excel format not supported for incoming invoices. Please use CSV format."
+        } else {
+            // Parse CSV file
+            CsvImporter.parse(inputstream, storage, storage.importSettings.charSet)
+
+            // Post-process the imported data
+            val csvParser = IncomingInvoicePosCsvParser(
+                storage,
+                eingangsrechnungDao,
+                kostCache,
+                kontoCache
+            )
+            csvParser.postProcessImportedData()
         }
 
         // Store for later use in successPage()
