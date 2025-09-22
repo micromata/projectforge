@@ -78,6 +78,21 @@ public class CSVParser
   public CSVParser(final Reader source)
   {
     this.source = source;
+    skipBOM();
+  }
+
+  /**
+   * Skips UTF-8 BOM (Byte Order Mark) if present at the beginning of the file
+   */
+  private void skipBOM()
+  {
+    nextToken();
+    if (type == Type.CHAR && cval == '\uFEFF') {
+      // BOM found, skip it
+      return;
+    }
+    // No BOM, put the character back
+    unread();
   }
 
   /**
