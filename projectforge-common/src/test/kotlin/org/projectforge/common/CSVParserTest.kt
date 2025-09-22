@@ -262,4 +262,37 @@ class CSVParserTest {
         Assertions.assertEquals("Simple", row2[1])
         Assertions.assertEquals("End", row2[2])
     }
+
+    @Test
+    fun parseSimpleCsvWithBOM() {
+        val parser = loadCsvFromResources("simple_with_bom.csv")
+
+        // Parse headers
+        val headers = parser.parseLine()
+        Assertions.assertNotNull(headers)
+        Assertions.assertEquals(3, headers!!.size)
+        Assertions.assertEquals("Name", headers[0])
+        Assertions.assertEquals("Age", headers[1])
+        Assertions.assertEquals("City", headers[2])
+
+        // Parse first data row
+        val row1 = parser.parseLine()
+        Assertions.assertNotNull(row1)
+        Assertions.assertEquals(3, row1!!.size)
+        Assertions.assertEquals("John", row1[0])
+        Assertions.assertEquals("25", row1[1])
+        Assertions.assertEquals("New York", row1[2])
+
+        // Parse second data row
+        val row2 = parser.parseLine()
+        Assertions.assertNotNull(row2)
+        Assertions.assertEquals(3, row2!!.size)
+        Assertions.assertEquals("Jane", row2[0])
+        Assertions.assertEquals("30", row2[1])
+        Assertions.assertEquals("Berlin", row2[2])
+
+        // Should be end of file
+        val row3 = parser.parseLine()
+        Assertions.assertNull(row3)
+    }
 }
