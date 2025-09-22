@@ -163,11 +163,26 @@ public class CSVParser
     }
     final StringBuilder buf = new StringBuilder();
     while (true) {
-      if (type != Type.CHAR) {
+      if (type == Type.EOF) {
         if (quoted == true) {
           throw new RuntimeException(createMessage(ERROR_QUOTATIONMARK_MISSED_AT_END_OF_CELL));
         }
         return buf.toString();
+      }
+      if (type == Type.EOL && quoted == false) {
+        return buf.toString();
+      }
+      if (type != Type.CHAR && type != Type.EOL) {
+        if (quoted == true) {
+          throw new RuntimeException(createMessage(ERROR_QUOTATIONMARK_MISSED_AT_END_OF_CELL));
+        }
+        return buf.toString();
+      }
+      // Handle newlines within quoted fields
+      if (type == Type.EOL && quoted == true) {
+        buf.append('\n');
+        nextToken();
+        continue;
       }
       if (cval == '"') {
         if (quoted == false) {
