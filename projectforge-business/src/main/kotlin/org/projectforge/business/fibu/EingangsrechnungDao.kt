@@ -232,6 +232,19 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
         return if (resultList.isNotEmpty()) resultList[0] else null
     }
 
+    /**
+     * Find incoming invoices by date range for import reconciliation.
+     * Used by EingangsrechnungImportStorage to match imported data with existing database entries.
+     */
+    fun getByDateRange(from: java.time.LocalDate, until: java.time.LocalDate): List<EingangsrechnungDO> {
+        return persistenceService.executeQuery(
+            "SELECT er FROM EingangsrechnungDO er WHERE er.datum >= :from AND er.datum <= :until AND er.deleted = false ORDER BY er.datum, er.kreditor",
+            EingangsrechnungDO::class.java,
+            Pair("from", from),
+            Pair("until", until)
+        )
+    }
+
     override fun isAutocompletionPropertyEnabled(property: String?): Boolean {
         return ArrayUtils.contains(ENABLED_AUTOCOMPLETION_PROPERTIES, property)
     }

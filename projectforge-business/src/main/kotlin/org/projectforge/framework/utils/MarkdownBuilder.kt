@@ -57,7 +57,7 @@ class MarkdownBuilder {
 
     fun appendListItem(text: String?, color: Color? = null): MarkdownBuilder {
         sb.append("- ")
-        return append(text, color)
+        return appendLine(text, color)
     }
 
     fun appendLine(text: String? = null, color: Color? = null): MarkdownBuilder {

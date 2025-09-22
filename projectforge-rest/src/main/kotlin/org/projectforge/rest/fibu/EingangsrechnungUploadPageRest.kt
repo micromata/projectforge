@@ -29,6 +29,8 @@ import mu.KotlinLogging
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.kost.KostCache
+import org.projectforge.business.user.UserRightValue
+import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.locale
 import org.projectforge.rest.config.Rest
@@ -45,6 +47,9 @@ private val log = KotlinLogging.logger {}
 @RestController
 @RequestMapping("${Rest.URL}/uploadIncomingInvoices")
 class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
+    @Autowired
+    private lateinit var accessChecker: AccessChecker
+
     @Autowired
     private lateinit var eingangsrechnungDao: EingangsrechnungDao
 
@@ -65,6 +70,10 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
 
     override val templateInfo: String?
         get() = translate("fibu.eingangsrechnung.import.templateInfo")
+
+    override fun checkRight() {
+        accessChecker.hasLoggedInUserRight(EingangsrechnungDao.USER_RIGHT_ID, true, UserRightValue.READWRITE)
+    }
 
     override fun callerPage(request: HttpServletRequest): String {
         return "/wa/incomingInvoiceList" //PagesResolver.getListPageUrl(EingangsrechnungPagesRest::class.java, absolute = true)
