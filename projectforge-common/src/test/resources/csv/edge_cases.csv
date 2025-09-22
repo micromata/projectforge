@@ -1,0 +1,4 @@
+"Field1";"Field2";"Field3"
+"Value with ; semicolon";"Value with ""quotes"" and ; semicolon";"Normal"
+"Multiline
+with separators";"Simple";"End"
