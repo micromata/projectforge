@@ -26,7 +26,9 @@ package org.projectforge.rest.importer
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import mu.KotlinLogging
+import org.projectforge.common.extensions.format
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.utils.MarkdownBuilder
 import org.projectforge.framework.utils.MarkdownBuilder.Color
 import org.projectforge.framework.utils.NumberFormatter
@@ -422,7 +424,12 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
         importStorage.errorList.let {
             if (it.isNotEmpty()) {
                 md.appendLine().h3(translate("errors"), Color.RED)
-                it.forEach { err -> md.appendListItem(err, Color.RED) }
+                val maxErrorsToShow = 10
+                it.take(maxErrorsToShow).forEach { err -> md.appendListItem(err, Color.RED) }
+                if (it.size > maxErrorsToShow) {
+                    val remainingErrors = it.size - maxErrorsToShow
+                    md.appendListItem(translateMsg("errors.remainingErrors", remainingErrors.format()), Color.RED)
+                }
             }
         }
         return md.toString()

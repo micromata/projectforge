@@ -65,8 +65,11 @@ abstract class AbstractImportUploadPageRest : AbstractDynamicPageRest() {
 
     abstract fun successPage(request: HttpServletRequest): String
 
+    abstract fun checkRight()
+
     @GetMapping("dynamic")
     fun getForm(request: HttpServletRequest): FormLayoutData {
+        checkRight()
         val layout = createLayout()
         val data = ImportUploadData()
         val formLayoutData = FormLayoutData(data, layout, createServerData(request))
@@ -77,6 +80,7 @@ abstract class AbstractImportUploadPageRest : AbstractDynamicPageRest() {
         statusText: String? = null,
         isStatusError: Boolean = false,
     ): UILayout {
+        checkRight()
         val layout = UILayout(title)
         val fieldset = UIFieldset(title = title)
         layout.add(fieldset)
@@ -139,6 +143,7 @@ abstract class AbstractImportUploadPageRest : AbstractDynamicPageRest() {
         request: HttpServletRequest,
         @RequestParam("file") file: MultipartFile
     ): ResponseEntity<*> {
+        checkRight()
         val filename = file.originalFilename ?: "unknown"
         log.info { "User tries to upload invoice import file: '$filename', size=${file.size} bytes." }
 
@@ -181,6 +186,7 @@ abstract class AbstractImportUploadPageRest : AbstractDynamicPageRest() {
      */
     @GetMapping("cancel")
     fun cancel(request: HttpServletRequest): ResponseAction {
+        checkRight()
         val callerPage = callerPage(request)
         return ResponseAction(callerPage)
     }
