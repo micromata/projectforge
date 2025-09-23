@@ -23,14 +23,18 @@
 
 package org.projectforge.rest.fibu.importer
 
+import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.common.BeanHelper
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.rest.core.ExpiringSessionAttributes
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.Konto
 import org.projectforge.rest.importer.AbstractCsvImporter
+import org.projectforge.rest.importer.AbstractImportPageRest
 import org.projectforge.rest.importer.ImportFieldSettings
 import org.projectforge.rest.importer.ImportStorage
 import java.math.BigDecimal
@@ -38,11 +42,14 @@ import java.math.BigDecimal
 private val log = KotlinLogging.logger {}
 
 /**
- * Specialized CSV importer for incoming invoices that demonstrates how to extend the AbstractCsvImporter
- * for custom field processing and post-processing logic.
+ * Extensible CSV importer for incoming invoices that handles all processing in a single pass.
+ * This consolidates the functionality previously split between CsvImporter and IncomingInvoicePosCsvParser.
  *
- * This example shows how the existing IncomingInvoicePosCsvParser logic can be integrated
- * into the new extensible CSV importer architecture.
+ * Features:
+ * - Custom field processing during CSV parsing (periods, DATEV accounts, etc.)
+ * - Post-processing for each row (KOST lookups, VAT calculations)
+ * - Final consolidation and validation by invoice number
+ * - Session storage for web navigation
  */
 class IncomingInvoiceCsvImporter(
     private val eingangsrechnungDao: EingangsrechnungDao,
@@ -63,54 +70,60 @@ class IncomingInvoiceCsvImporter(
             storage = importStorage
         }
 
-        // Custom field processing logic
+        // Handle special fields that need custom processing during parsing
         return when (fieldSettings.property) {
             "periodString" -> {
-                // Handle period parsing (e.g., "01.05.2025-31.05.2025")
+                // Parse period directly from a field like "01.05.2025-31.05.2025"
                 parsePeriod(value, entity, importStorage)
                 true
             }
             "datevAccountNumber" -> {
-                // Handle DATEV account number parsing
+                // Parse DATEV account number and lookup Konto
                 parseKonto(value, entity, importStorage)
                 true
             }
-            "kost1String" -> {
-                // Store KOST1 as string for later processing
-                BeanHelper.setProperty(entity, "kost1String", value)
-                true
+            else -> {
+                // Handle bemerkung field which might contain period info
+                if (fieldSettings.property == "bemerkung" && value.contains("-")) {
+                    // Try to parse as period from bemerkung field
+                    parsePeriod(value, entity, importStorage)
+                }
+                false // Let standard processing handle the field normally
             }
-            "kost2String" -> {
-                // Store KOST2 as string for later processing
-                BeanHelper.setProperty(entity, "kost2String", value)
-                true
-            }
-            "taxRateString" -> {
-                // Store tax rate as string for VAT calculation
-                BeanHelper.setProperty(entity, "taxRateString", value)
-                true
-            }
-            else -> false // Let standard processing handle other fields
         }
     }
 
     override fun postProcessEntity(entity: EingangsrechnungPosImportDTO, rowIndex: Int, importStorage: ImportStorage<EingangsrechnungPosImportDTO>) {
-        // Custom post-processing after standard row parsing is complete
+        // Process fields that might have been stored as strings during standard parsing
+
+        // Parse DATEV account if stored as konto number
+        if (entity.konto != null && entity.konto!!.nummer != null) {
+            parseKonto(entity.konto!!.nummer.toString(), entity, importStorage)
+        }
+
+        // Parse KOST1 and KOST2 from stored string values
         parseKost1(entity, importStorage)
         parseKost2(entity, importStorage)
+
+        // Calculate VAT amount from tax rate (stored in customernr temporarily)
         calculateVatAmount(entity, importStorage)
     }
 
     override fun finalizeImport(records: List<EingangsrechnungPosImportDTO>, importStorage: ImportStorage<EingangsrechnungPosImportDTO>) {
-        // Final processing after all rows have been parsed
+        // Consolidate and validate after all rows are processed
         if (importStorage is EingangsrechnungImportStorage) {
             consolidateInvoicesByRenr(importStorage)
-            log.info("Finalized import: ${records.size} records processed, ${storage.consolidatedInvoices.size} invoices consolidated")
+
+            log.info("Import finalized: ${records.size} positions processed")
+            log.info("Found ${importStorage.consolidatedInvoices.size} consolidated invoices")
+            if (importStorage.errorList.isNotEmpty()) {
+                log.warn("Import has ${importStorage.errorList.size} errors: ${importStorage.errorList}")
+            }
         }
     }
 
     // =============================================================================
-    // Custom Processing Methods (adapted from IncomingInvoicePosCsvParser)
+    // Custom Processing Methods (from IncomingInvoicePosCsvParser)
     // =============================================================================
 
     private fun parsePeriod(periodStr: String, invoicePos: EingangsrechnungPosImportDTO, importStorage: ImportStorage<EingangsrechnungPosImportDTO>) {
@@ -151,7 +164,7 @@ class IncomingInvoiceCsvImporter(
     }
 
     private fun parseKost1(invoicePos: EingangsrechnungPosImportDTO, importStorage: ImportStorage<EingangsrechnungPosImportDTO>) {
-        val kost1Property = BeanHelper.getProperty(invoicePos, "kost1String")
+        val kost1Property = BeanHelper.getProperty(invoicePos, "kost1")
         val kost1Val = when (kost1Property) {
             is String -> if (kost1Property.isBlank()) null else kost1Property
             is Number -> kost1Property.toString()
@@ -178,7 +191,7 @@ class IncomingInvoiceCsvImporter(
     }
 
     private fun parseKost2(invoicePos: EingangsrechnungPosImportDTO, importStorage: ImportStorage<EingangsrechnungPosImportDTO>) {
-        val kost2Property = BeanHelper.getProperty(invoicePos, "kost2String")
+        val kost2Property = BeanHelper.getProperty(invoicePos, "kost2")
         val kost2Val = when (kost2Property) {
             is String -> if (kost2Property.isBlank()) null else kost2Property
             is Number -> kost2Property.toString()
@@ -201,7 +214,8 @@ class IncomingInvoiceCsvImporter(
     }
 
     private fun calculateVatAmount(invoicePos: EingangsrechnungPosImportDTO, importStorage: ImportStorage<EingangsrechnungPosImportDTO>) {
-        val taxRateProperty = BeanHelper.getProperty(invoicePos, "taxRateString")
+        // Tax rate is temporarily stored in customernr field
+        val taxRateProperty = BeanHelper.getProperty(invoicePos, "customernr")
         if (taxRateProperty is String && taxRateProperty.isNotBlank() && invoicePos.grossSum != null) {
             try {
                 val taxRate = BigDecimal(taxRateProperty)
@@ -308,6 +322,34 @@ class IncomingInvoiceCsvImporter(
         if (importStorage is EingangsrechnungImportStorage) {
             val pairEntry = importStorage.pairEntries.find { it.read == entity }
             pairEntry?.addError(errorMsg)
+        }
+    }
+
+    companion object {
+        /**
+         * Stores the import storage in session and returns URL to navigate to import page.
+         * Moved from IncomingInvoicePosCsvParser for consolidation.
+         */
+        fun storeInSessionAndGetNavigationUrl(
+            request: HttpServletRequest,
+            storage: EingangsrechnungImportStorage
+        ): String {
+            val sessionAttributeName =
+                AbstractImportPageRest.getSessionAttributeName(IncomingInvoicePosImportPageRest::class.java)
+            log.info("Storing import storage in session with key: $sessionAttributeName")
+            log.info("Storage contains ${storage.readInvoices.size} invoices, ${storage.pairEntries.size} pair entries")
+
+            ExpiringSessionAttributes.setAttribute(
+                request,
+                sessionAttributeName,
+                storage,
+                20 // TTL in minutes
+            )
+
+            val navigationUrl =
+                PagesResolver.getDynamicPageUrl(IncomingInvoicePosImportPageRest::class.java, absolute = true)
+            log.info("Generated navigation URL: $navigationUrl")
+            return navigationUrl
         }
     }
 }
