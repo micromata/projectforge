@@ -52,6 +52,15 @@ class CsvImporterTest {
     if (defaultCharsetName != null) {
       defaultCharset = Charset.forName(defaultCharsetName)
     }
-    Assertions.assertEquals(expected, CsvImporter.detectCharset(bytes, defaultCharset).name())
+    // Create a test importer to access the charset detection method
+    val testImporter = object : AbstractCsvImporter<TestDTO>() {
+      fun testDetectCharset(bytes: ByteArray, defaultCharset: Charset?) = detectCharset(bytes, defaultCharset)
+    }
+    Assertions.assertEquals(expected, testImporter.testDetectCharset(bytes, defaultCharset).name())
+  }
+
+  // Simple test DTO for the test
+  class TestDTO : ImportPairEntry.Modified<TestDTO> {
+    override val properties: Array<kotlin.reflect.KProperty<*>>? = null
   }
 }
