@@ -72,22 +72,40 @@ class IncomingInvoiceCsvImporter(
 
         // Handle special fields that need custom processing during parsing
         return when (fieldSettings.property) {
+            "konto" -> {
+                // Parse DATEV account number directly from Konto field
+                parseKonto(value, entity, importStorage)
+                false // Also let standard processing store the raw value
+            }
+            "steuerProzent" -> {
+                // Store tax rate for later VAT calculation
+                try {
+                    if (value.isNotBlank()) {
+                        val taxRate = value.replace(",", ".").toBigDecimalOrNull()
+                        if (taxRate != null) {
+                            // Store temporarily in customernr for post-processing
+                            entity.customernr = taxRate.toString()
+                        }
+                    }
+                } catch (e: Exception) {
+                    addError(entity, "Could not parse tax rate '$value'", importStorage)
+                }
+                false // Let standard processing also store the raw value
+            }
             "periodString" -> {
                 // Parse period directly from a field like "01.05.2025-31.05.2025"
                 parsePeriod(value, entity, importStorage)
                 true
             }
-            "datevAccountNumber" -> {
-                // Parse DATEV account number and lookup Konto
-                parseKonto(value, entity, importStorage)
-                true
-            }
-            else -> {
-                // Handle bemerkung field which might contain period info
-                if (fieldSettings.property == "bemerkung" && value.contains("-")) {
-                    // Try to parse as period from bemerkung field
+            "leistungsdatum" -> {
+                // Handle leistungsdatum field which might contain period info
+                if (value.contains("-")) {
+                    // Try to parse as period from leistungsdatum field
                     parsePeriod(value, entity, importStorage)
                 }
+                false // Let standard processing also handle date parsing
+            }
+            else -> {
                 false // Let standard processing handle the field normally
             }
         }
