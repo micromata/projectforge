@@ -93,7 +93,37 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
     }
 
     override fun proceedUpload(inputstream: InputStream, filename: String): String? {
-        val storage = EingangsrechnungImportStorage()
+        // DATEV CSV field mappings with German column names and formatting
+        val datevImportSettings = """
+            encoding=UTF-8
+            bemerkung=Bemerkung|Freier Text|Notiz
+            besonderheiten=Besonderheiten
+            betreff=Betreff
+            bezahlDatum=BezahltAm|Bezahlt|:dd.MM.yyyy|:dd.MM.yy
+            bic=BIC
+            currency=WKZ|Währung
+            customernr=Kunden-Nr.|Kundennummer
+            datum=Rechnungsdatum|:dd.MM.yyyy|:dd.MM.yy
+            discountMaturity=Fällig mit Skonto 1|Skonto Fälligkeit|:dd.MM.yyyy|:dd.MM.yy
+            discountPercent=Skonto 1 in %|Skonto Prozent|:#,##0.0#|:#0.0#
+            faelligkeit=Fällig ohne Skonto|Fälligkeit|:dd.MM.yyyy|:dd.MM.yy
+            grossSum=Rechnungsbetrag|:#,##0.0#|:#0.0#
+            iban=IBAN
+            konto=Konto
+            kreditor=Geschäftspartner-Name|Kreditor
+            paymentType=Zahlungsart
+            receiver=Empfänger
+            referenz=Rechnungs-Nr.|Referenz|Interne Re.-Nr.
+            zahlBetrag=Zahlbetrag|:#,##0.0#|:#0.0#
+            zahlungsZielInTagen=Zahlungsziel|:#,##0|:#0
+            leistungsdatum=Leistungsdatum|:dd.MM.yyyy|:dd.MM.yy
+            kost1=KOST 1|KOST1
+            kost2=KOST 2|KOST2
+            steuerProzent=Steuer in %|:#,##0.0#|:#0.0#
+            buchungstext=Ware/Leistung|Buchungstext
+        """.trimIndent()
+
+        val storage = EingangsrechnungImportStorage(datevImportSettings)
 
         if (filename.endsWith("xls", ignoreCase = true) || filename.endsWith("xlsx", ignoreCase = true)) {
             return "Excel format not supported for incoming invoices. Please use CSV format."
