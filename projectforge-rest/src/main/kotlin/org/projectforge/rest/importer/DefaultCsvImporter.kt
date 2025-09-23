@@ -23,27 +23,15 @@
 
 package org.projectforge.rest.importer
 
-import java.io.InputStream
-import java.io.Reader
-import java.nio.charset.Charset
+/**
+ * Default CSV importer implementation that provides the same behavior as the original CsvImporter object.
+ * This class uses only the standard processing logic without any custom extensions.
+ *
+ * @param O the type of objects being imported, must extend ImportPairEntry.Modified
+ */
+class DefaultCsvImporter<O : ImportPairEntry.Modified<O>> : AbstractCsvImporter<O>() {
 
-object CsvImporter {
-
-  /**
-   * @param charset to use, if UTF-8 encoding or UTF-16-encoding doesn't fit.
-   */
-  fun <O : ImportPairEntry.Modified<O>> parse(
-    inputStream: InputStream,
-    importStorage: ImportStorage<O>,
-    defaultCharset: Charset? = null,
-  ) {
-    val importer = DefaultCsvImporter<O>()
-    importer.parse(inputStream, importStorage, defaultCharset)
-  }
-
-  fun <O : ImportPairEntry.Modified<O>> parse(reader: Reader, importStorage: ImportStorage<O>) {
-    val importer = DefaultCsvImporter<O>()
-    importer.parse(reader, importStorage)
-  }
+    // No overrides needed - uses all default implementations from AbstractCsvImporter
+    // This provides the exact same behavior as the original CsvImporter object
 
 }
