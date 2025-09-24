@@ -36,9 +36,6 @@ import java.time.LocalDate
 class EingangsrechnungImportStorage(importSettings: String? = null) :
     ImportStorage<EingangsrechnungPosImportDTO>(
         ImportSettings()
-            .addFieldSettings(ImportFieldSettings("kreditor").withLabel(translate("fibu.common.creditor")))
-            .addFieldSettings(ImportFieldSettings("referenz").withLabel(translate("fibu.common.reference")))
-            .addFieldSettings(ImportFieldSettings("datum").withLabel(translate("fibu.rechnung.datum")))
             .parseSettings(
                 importSettings,
                 EingangsrechnungDO::class.java,

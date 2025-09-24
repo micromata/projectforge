@@ -105,21 +105,21 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
             customernr=Kunden-Nr.|Kundennummer
             datum=Rechnungsdatum|:dd.MM.yyyy|:dd.MM.yy
             discountMaturity=Fällig mit Skonto 1|Skonto Fälligkeit|:dd.MM.yyyy|:dd.MM.yy
-            discountPercent=Skonto 1 in %|Skonto Prozent|:#,##0.0#|:#0.0#
             faelligkeit=Fällig ohne Skonto|Fälligkeit|:dd.MM.yyyy|:dd.MM.yy
-            grossSum=Rechnungsbetrag|:#,##0.0#|:#0.0#
+            grossSum=Rechnungsbetrag|Betrag|:#.##0,0#|:#0,0#
+            discountPercent=Skonto 1 in %|Skonto Prozent|:#.##0,0#|:#0,0#
+            zahlBetrag=Zahlbetrag|:#,##0.0#|:#0.0#
+            zahlungsZielInTagen=Zahlungsziel|:#0
+            taxRate=Steuer in %|#.##0,0#|:#0
             iban=IBAN
             konto=Konto
             kreditor=Geschäftspartner-Name|Kreditor
             paymentType=Zahlungsart
             receiver=Empfänger
-            referenz=Rechnungs-Nr.|Referenz|Interne Re.-Nr.
-            zahlBetrag=Zahlbetrag|:#,##0.0#|:#0.0#
-            zahlungsZielInTagen=Zahlungsziel|:#,##0|:#0
+            referenz=Rechnungs-Nr.|Referenz|Interne Re.-Nr.|RENR
             leistungsdatum=Leistungsdatum|:dd.MM.yyyy|:dd.MM.yy
             kost1=KOST 1|KOST1
             kost2=KOST 2|KOST2
-            taxRate=Steuer in %|:#0
             buchungstext=Ware/Leistung|Buchungstext
         """.trimIndent()
 
