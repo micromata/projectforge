@@ -148,10 +148,10 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
         // Bezahlt am
         addReadColumn(agGrid, lc, EingangsrechnungDO::bezahlDatum)
 
-        // VAT Amount (custom column)
-        val vatCol = UIAgGridColumnDef.createCol(lc, "read.vatAmountSum", headerName = "MwSt", width = 80)
-        vatCol.cellRenderer = "diffCell"
-        agGrid.add(vatCol)
+        // TAX rate
+        val taxCol = UIAgGridColumnDef.createCol(lc, "read.taxRate", headerName = "MwSt", width = 80)
+        taxCol.cellRenderer = "diffCell"
+        agGrid.add(taxCol)
 
         // Periode Von-Bis (custom columns)
         val periodFromCol = UIAgGridColumnDef.createCol(lc, "read.periodFrom", headerName = "Periode von", width = 100)

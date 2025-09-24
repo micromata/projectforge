@@ -119,7 +119,7 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
             leistungsdatum=Leistungsdatum|:dd.MM.yyyy|:dd.MM.yy
             kost1=KOST 1|KOST1
             kost2=KOST 2|KOST2
-            steuerProzent=Steuer in %|:#,##0.0#|:#0.0#
+            taxRate=Steuer in %|:#0
             buchungstext=Ware/Leistung|Buchungstext
         """.trimIndent()
 

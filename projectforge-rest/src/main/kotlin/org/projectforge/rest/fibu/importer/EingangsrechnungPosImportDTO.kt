@@ -75,7 +75,7 @@ class EingangsrechnungPosImportDTO(
     var datum: LocalDate? = null,
     var faelligkeit: LocalDate? = null,
     var bezahlDatum: LocalDate? = null,
-    var vatAmountSum: BigDecimal? = null,
+    var taxRate: BigDecimal? = null,
     var grossSum: BigDecimal? = null,
     var currency: String? = null, // Währung (EUR, USD, ...)
     var zahlBetrag: BigDecimal? = null,

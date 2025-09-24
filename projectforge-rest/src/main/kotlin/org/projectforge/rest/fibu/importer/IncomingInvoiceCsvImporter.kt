@@ -37,7 +37,6 @@ import org.projectforge.rest.importer.AbstractCsvImporter
 import org.projectforge.rest.importer.AbstractImportPageRest
 import org.projectforge.rest.importer.ImportFieldSettings
 import org.projectforge.rest.importer.ImportStorage
-import java.math.BigDecimal
 
 private val log = KotlinLogging.logger {}
 
@@ -77,26 +76,13 @@ class IncomingInvoiceCsvImporter(
                 parseKonto(value, entity, importStorage)
                 false // Also let standard processing store the raw value
             }
-            "steuerProzent" -> {
-                // Store tax rate for later VAT calculation
-                try {
-                    if (value.isNotBlank()) {
-                        val taxRate = value.replace(",", ".").toBigDecimalOrNull()
-                        if (taxRate != null) {
-                            // Store temporarily in customernr for post-processing
-                            entity.customernr = taxRate.toString()
-                        }
-                    }
-                } catch (e: Exception) {
-                    addError(entity, "Could not parse tax rate '$value'", importStorage)
-                }
-                false // Let standard processing also store the raw value
-            }
+
             "periodString" -> {
                 // Parse period directly from a field like "01.05.2025-31.05.2025"
                 parsePeriod(value, entity, importStorage)
                 true
             }
+
             "leistungsdatum" -> {
                 // Handle leistungsdatum field which might contain period info
                 if (value.contains("-")) {
@@ -105,13 +91,18 @@ class IncomingInvoiceCsvImporter(
                 }
                 false // Let standard processing also handle date parsing
             }
+
             else -> {
                 false // Let standard processing handle the field normally
             }
         }
     }
 
-    override fun postProcessEntity(entity: EingangsrechnungPosImportDTO, rowIndex: Int, importStorage: ImportStorage<EingangsrechnungPosImportDTO>) {
+    override fun postProcessEntity(
+        entity: EingangsrechnungPosImportDTO,
+        rowIndex: Int,
+        importStorage: ImportStorage<EingangsrechnungPosImportDTO>
+    ) {
         // Process fields that might have been stored as strings during standard parsing
 
         // Parse DATEV account if stored as konto number
@@ -122,18 +113,19 @@ class IncomingInvoiceCsvImporter(
         // Parse KOST1 and KOST2 from stored string values
         parseKost1(entity, importStorage)
         parseKost2(entity, importStorage)
-
-        // Calculate VAT amount from tax rate (stored in customernr temporarily)
-        calculateVatAmount(entity, importStorage)
     }
 
-    override fun finalizeImport(records: List<EingangsrechnungPosImportDTO>, importStorage: ImportStorage<EingangsrechnungPosImportDTO>) {
+    override fun finalizeImport(
+        records: List<EingangsrechnungPosImportDTO>,
+        importStorage: ImportStorage<EingangsrechnungPosImportDTO>
+    ) {
         // Consolidate and validate after all rows are processed
         if (importStorage is EingangsrechnungImportStorage) {
             consolidateInvoicesByRenr(importStorage)
 
             log.info("Import finalized: ${records.size} positions processed")
             log.info("Found ${importStorage.consolidatedInvoices.size} consolidated invoices")
+
             if (importStorage.errorList.isNotEmpty()) {
                 log.warn("Import has ${importStorage.errorList.size} errors: ${importStorage.errorList}")
             }
@@ -144,7 +136,11 @@ class IncomingInvoiceCsvImporter(
     // Custom Processing Methods (from IncomingInvoicePosCsvParser)
     // =============================================================================
 
-    private fun parsePeriod(periodStr: String, invoicePos: EingangsrechnungPosImportDTO, importStorage: ImportStorage<EingangsrechnungPosImportDTO>) {
+    private fun parsePeriod(
+        periodStr: String,
+        invoicePos: EingangsrechnungPosImportDTO,
+        importStorage: ImportStorage<EingangsrechnungPosImportDTO>
+    ) {
         val parts = periodStr.split("-")
         if (parts.size == 2) {
             try {
@@ -159,7 +155,11 @@ class IncomingInvoiceCsvImporter(
         }
     }
 
-    private fun parseKonto(datevAccountNumberStr: String, invoicePos: EingangsrechnungPosImportDTO, importStorage: ImportStorage<EingangsrechnungPosImportDTO>) {
+    private fun parseKonto(
+        datevAccountNumberStr: String,
+        invoicePos: EingangsrechnungPosImportDTO,
+        importStorage: ImportStorage<EingangsrechnungPosImportDTO>
+    ) {
         try {
             val datevAccountNumber = NumberHelper.parseLocalizedInt(datevAccountNumberStr, strict = true)
             val konto = kontoCache.findKontoByNumber(datevAccountNumber)
@@ -181,9 +181,11 @@ class IncomingInvoiceCsvImporter(
         }
     }
 
-    private fun parseKost1(invoicePos: EingangsrechnungPosImportDTO, importStorage: ImportStorage<EingangsrechnungPosImportDTO>) {
-        val kost1Property = BeanHelper.getProperty(invoicePos, "kost1")
-        val kost1Val = when (kost1Property) {
+    private fun parseKost1(
+        invoicePos: EingangsrechnungPosImportDTO,
+        importStorage: ImportStorage<EingangsrechnungPosImportDTO>
+    ) {
+        val kost1Val = when (val kost1Property = BeanHelper.getProperty(invoicePos, "kost1")) {
             is String -> if (kost1Property.isBlank()) null else kost1Property
             is Number -> kost1Property.toString()
             else -> null
@@ -208,9 +210,11 @@ class IncomingInvoiceCsvImporter(
         }
     }
 
-    private fun parseKost2(invoicePos: EingangsrechnungPosImportDTO, importStorage: ImportStorage<EingangsrechnungPosImportDTO>) {
-        val kost2Property = BeanHelper.getProperty(invoicePos, "kost2")
-        val kost2Val = when (kost2Property) {
+    private fun parseKost2(
+        invoicePos: EingangsrechnungPosImportDTO,
+        importStorage: ImportStorage<EingangsrechnungPosImportDTO>
+    ) {
+        val kost2Val = when (val kost2Property = BeanHelper.getProperty(invoicePos, "kost2")) {
             is String -> if (kost2Property.isBlank()) null else kost2Property
             is Number -> kost2Property.toString()
             else -> null
@@ -227,21 +231,6 @@ class IncomingInvoiceCsvImporter(
                 val errorMsg = "KOST2 '$kost2Val' not found."
                 addError(invoicePos, errorMsg, importStorage)
                 log.warn(errorMsg)
-            }
-        }
-    }
-
-    private fun calculateVatAmount(invoicePos: EingangsrechnungPosImportDTO, importStorage: ImportStorage<EingangsrechnungPosImportDTO>) {
-        // Tax rate is temporarily stored in customernr field
-        val taxRateProperty = BeanHelper.getProperty(invoicePos, "customernr")
-        if (taxRateProperty is String && taxRateProperty.isNotBlank() && invoicePos.grossSum != null) {
-            try {
-                val taxRate = BigDecimal(taxRateProperty)
-                invoicePos.vatAmountSum = invoicePos.grossSum!! * taxRate / BigDecimal("100")
-            } catch (e: NumberFormatException) {
-                val errorMsg = "Could not parse tax rate '$taxRateProperty'"
-                addError(invoicePos, errorMsg, importStorage)
-                log.warn(errorMsg, e)
             }
         }
     }
@@ -267,10 +256,13 @@ class IncomingInvoiceCsvImporter(
     }
 
     private fun assignPositionNumbers(renr: String, positions: List<EingangsrechnungPosImportDTO>) {
+        log.debug("Assigning position numbers for RENR '$renr' with ${positions.size} positions")
         positions.forEachIndexed { index, position ->
-            position.positionNummer = index + 1
-            log.debug("Assigned position number ${position.positionNummer} to position in RENR '$renr'")
+            val posNumber = index + 1
+            position.positionNummer = posNumber
+            log.debug("Assigned position number $posNumber to position in RENR '$renr' (creditor: ${position.kreditor}, amount: ${position.grossSum})")
         }
+        log.debug("Position number assignment completed for RENR '$renr'")
     }
 
     private fun validateInvoiceHeaderConsistency(
@@ -336,7 +328,11 @@ class IncomingInvoiceCsvImporter(
         }
     }
 
-    private fun addError(entity: EingangsrechnungPosImportDTO, errorMsg: String, importStorage: ImportStorage<EingangsrechnungPosImportDTO>) {
+    private fun addError(
+        entity: EingangsrechnungPosImportDTO,
+        errorMsg: String,
+        importStorage: ImportStorage<EingangsrechnungPosImportDTO>
+    ) {
         if (importStorage is EingangsrechnungImportStorage) {
             val pairEntry = importStorage.pairEntries.find { it.read == entity }
             pairEntry?.addError(errorMsg)
