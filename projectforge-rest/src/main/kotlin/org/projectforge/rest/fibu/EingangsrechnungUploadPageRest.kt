@@ -113,7 +113,7 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
             taxRate=Steuer in %|#.##0,0#|:#0
             iban=IBAN
             konto=Konto
-            kreditor=Geschäftspartner-Name|Kreditor
+            kreditor=Geschäftspartner-Name|Kreditor|LieferantName
             paymentType=Zahlungsart
             receiver=Empfänger
             referenz=Rechnungs-Nr.|Referenz|Interne Re.-Nr.|RENR

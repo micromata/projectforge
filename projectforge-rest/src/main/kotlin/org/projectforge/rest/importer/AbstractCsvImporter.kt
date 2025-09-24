@@ -60,7 +60,21 @@ abstract class AbstractCsvImporter<O : ImportPairEntry.Modified<O>> {
         defaultCharset: Charset? = null,
     ) {
         val bytes = inputStream.readAllBytes()
-        parse(ByteArrayInputStream(bytes).reader(charset = detectCharset(bytes, defaultCharset)), importStorage)
+        val detectedCharset = detectCharset(bytes, defaultCharset)
+
+        try {
+            parse(ByteArrayInputStream(bytes).reader(charset = detectedCharset), importStorage)
+        } catch (e: Exception) {
+            log.warn("Failed to parse with detected charset ${detectedCharset.name()}, trying fallback charset", e)
+            // Try with alternative charset if the first attempt fails
+            val fallbackCharset = if (detectedCharset == StandardCharsets.UTF_8) {
+                StandardCharsets.ISO_8859_1
+            } else {
+                StandardCharsets.UTF_8
+            }
+            log.info("Retrying CSV parse with fallback charset: ${fallbackCharset.name()}")
+            parse(ByteArrayInputStream(bytes).reader(charset = fallbackCharset), importStorage)
+        }
     }
 
     /**
@@ -328,34 +342,104 @@ abstract class AbstractCsvImporter<O : ImportPairEntry.Modified<O>> {
     }
 
     /**
-     * Charset detection from the original CsvImporter.
-     * If the users specified e.g. ISO-8859-1 char set, but special bytes of UTF-8 or UTF-16 are found, the
-     * returned charset will be UTF-8 or UTF-16.
+     * Enhanced charset detection for better handling of UTF-8 vs ISO-8859-1.
+     * Uses multiple heuristics including BOM detection, UTF-8 validation, and content analysis.
      */
     protected fun detectCharset(bytes: ByteArray, defaultCharset: Charset?): Charset {
-        var utf8EscapeChars = 0
-        var utf16NullBytes = 0
-        val size = bytes.size
-        for (i in 0..100000) {
-            if (i >= size) {
-                break
-            }
-            if (bytes[i] == UTF8_ESCAPE_BYTE) {
-                utf8EscapeChars += 1
-            } else if (bytes[i] == UTF16_NULL_BYTE) {
-                utf16NullBytes += 1
-            }
+        if (bytes.isEmpty()) {
+            return defaultCharset ?: StandardCharsets.UTF_8
         }
-        val utf8EscapeCharsRate = utf8EscapeChars * 1000 / size
-        val utf16NullBytesRate = utf16NullBytes * 10 / size
-        if (utf16NullBytesRate > 1) {
-            // More than 1/10 of all bytes are null bytes, seems to be UTF-16.
-            return StandardCharsets.UTF_16
+
+        // 1. Check for BOM (Byte Order Mark)
+        val detectedByBOM = detectCharsetByBOM(bytes)
+        if (detectedByBOM != null) {
+            log.debug("Charset detected by BOM: ${detectedByBOM.name()}")
+            return detectedByBOM
         }
-        if (utf8EscapeCharsRate > 1) { // More than 1 promille of chars is Ã
+
+        // 2. Check for UTF-16 (null bytes)
+        val utf16Detection = detectUTF16(bytes)
+        if (utf16Detection != null) {
+            log.debug("Charset detected as UTF-16")
+            return utf16Detection
+        }
+
+        // 3. Try to validate as UTF-8
+        val isValidUTF8 = isValidUTF8(bytes)
+        if (isValidUTF8) {
+            log.debug("Charset detected as UTF-8 (valid UTF-8 sequences)")
             return StandardCharsets.UTF_8
         }
-        return defaultCharset ?: StandardCharsets.UTF_8
+
+        // 4. Check for typical German characters in ISO-8859-1 range
+        val hasISO88591GermanChars = hasGermanCharsInISO88591Range(bytes)
+        if (hasISO88591GermanChars) {
+            log.debug("Charset detected as ISO-8859-1 (German characters in ISO range)")
+            return StandardCharsets.ISO_8859_1
+        }
+
+        // 5. Fallback to default or UTF-8
+        val fallback = defaultCharset ?: StandardCharsets.UTF_8
+        log.debug("Charset detection fallback: ${fallback.name()}")
+        return fallback
+    }
+
+    private fun detectCharsetByBOM(bytes: ByteArray): Charset? {
+        if (bytes.size >= 3 && bytes[0] == 0xEF.toByte() && bytes[1] == 0xBB.toByte() && bytes[2] == 0xBF.toByte()) {
+            return StandardCharsets.UTF_8
+        }
+        if (bytes.size >= 2 && bytes[0] == 0xFF.toByte() && bytes[1] == 0xFE.toByte()) {
+            return StandardCharsets.UTF_16LE
+        }
+        if (bytes.size >= 2 && bytes[0] == 0xFE.toByte() && bytes[1] == 0xFF.toByte()) {
+            return StandardCharsets.UTF_16BE
+        }
+        return null
+    }
+
+    private fun detectUTF16(bytes: ByteArray): Charset? {
+        var nullBytes = 0
+        val size = bytes.size
+        val sampleSize = minOf(size, 10000) // Sample first 10KB
+
+        for (i in 0 until sampleSize) {
+            if (bytes[i] == 0.toByte()) {
+                nullBytes++
+            }
+        }
+
+        val nullByteRate = nullBytes * 10 / sampleSize
+        return if (nullByteRate > 1) { // More than 10% null bytes
+            StandardCharsets.UTF_16
+        } else {
+            null
+        }
+    }
+
+    private fun isValidUTF8(bytes: ByteArray): Boolean {
+        return try {
+            val decoded = String(bytes, StandardCharsets.UTF_8)
+            // Check if re-encoding produces the same bytes (valid UTF-8)
+            val reencoded = decoded.toByteArray(StandardCharsets.UTF_8)
+            bytes.contentEquals(reencoded)
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private fun hasGermanCharsInISO88591Range(bytes: ByteArray): Boolean {
+        // Check for German umlauts in ISO-8859-1 byte range (0x80-0xFF)
+        val germanCharsISO88591 = setOf(
+            0xE4.toByte(), // ä
+            0xF6.toByte(), // ö
+            0xFC.toByte(), // ü
+            0xC4.toByte(), // Ä
+            0xD6.toByte(), // Ö
+            0xDC.toByte(), // Ü
+            0xDF.toByte()  // ß
+        )
+
+        return bytes.any { byte -> byte in germanCharsISO88591 }
     }
 
     private class AutodetectNumberMap<O> {
@@ -382,6 +466,127 @@ abstract class AbstractCsvImporter<O : ImportPairEntry.Modified<O>> {
 
         fun add(fieldSettings: ImportFieldSettings, str: String) {
             valueStrings[fieldSettings] = str
+        }
+    }
+
+    // =============================================================================
+    // Header Encoding Utilities
+    // =============================================================================
+
+    protected fun normalizeHeader(header: String): String {
+        val trimmedHeader = header.trim()
+
+        // First try to fix common encoding issues
+        val fixedHeader = fixEncodingIssues(trimmedHeader)
+
+        // If we still have problematic characters, try to recover from wrong charset interpretation
+        val finalHeader = if (containsEncodingProblems(fixedHeader)) {
+            tryRecoverFromWrongCharset(fixedHeader)
+        } else {
+            fixedHeader
+        }
+
+        if (trimmedHeader != finalHeader) {
+            log.debug("Header normalization: '$trimmedHeader' -> '$finalHeader'")
+        }
+        return finalHeader
+    }
+
+    private fun containsEncodingProblems(text: String): Boolean {
+        // Check for common signs of encoding problems
+        return text.contains("�") ||
+               text.contains("Ã") ||
+               text.matches(Regex(".*[À-ÿ]{2,}.*")) // Multiple accented chars in sequence (likely encoding issue)
+    }
+
+    private fun tryRecoverFromWrongCharset(text: String): String {
+        // Common recovery scenarios
+        val recoveryAttempts = listOf(
+            // Try ISO-8859-1 -> UTF-8 conversion
+            { tryCharsetConversion(text, StandardCharsets.ISO_8859_1, StandardCharsets.UTF_8) },
+            // Try UTF-8 -> ISO-8859-1 conversion
+            { tryCharsetConversion(text, StandardCharsets.UTF_8, StandardCharsets.ISO_8859_1) },
+            // Try Windows-1252 -> UTF-8 conversion
+            { tryCharsetConversion(text, Charset.forName("Windows-1252"), StandardCharsets.UTF_8) }
+        )
+
+        for (attempt in recoveryAttempts) {
+            val recovered = attempt()
+            if (recovered != null && !containsEncodingProblems(recovered) && recovered != text) {
+                log.debug("Successfully recovered header encoding: '$text' -> '$recovered'")
+                return recovered
+            }
+        }
+
+        return text // Return original if no recovery worked
+    }
+
+    private fun tryCharsetConversion(text: String, sourceCharset: Charset, targetCharset: Charset): String? {
+        return try {
+            val bytes = text.toByteArray(sourceCharset)
+            val converted = String(bytes, targetCharset)
+            // Only return if the conversion seems meaningful (contains expected German characters)
+            if (converted.any { it in "äöüÄÖÜß" } || !converted.contains("�")) {
+                converted
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    protected fun fixEncodingIssues(text: String): String {
+        var result = text
+
+        // Common UTF-8 to ISO-8859-1 encoding issues for individual characters
+        val encodingFixes = mapOf(
+            // UTF-8 characters incorrectly displayed as ISO-8859-1
+            "Ã¤" to "ä",  // UTF-8 ä as ISO-8859-1
+            "Ã¶" to "ö",  // UTF-8 ö as ISO-8859-1
+            "Ã¼" to "ü",  // UTF-8 ü as ISO-8859-1
+            "Ã„" to "Ä",  // UTF-8 Ä as ISO-8859-1
+            "Ã–" to "Ö",  // UTF-8 Ö as ISO-8859-1
+            "Ãœ" to "Ü",  // UTF-8 Ü as ISO-8859-1
+            "ÃŸ" to "ß",  // UTF-8 ß as ISO-8859-1
+
+            // Replacement character fixes
+            "ä" to "ä",
+            "ö" to "ö",
+            "ü" to "ü",
+            "Ä" to "Ä",
+            "Ö" to "Ö",
+            "Ü" to "Ü",
+            "ß" to "ß"
+        )
+
+        encodingFixes.forEach { (broken, fixed) ->
+            result = result.replace(broken, fixed)
+        }
+
+        // Additional fallback: try to convert bytes if it still looks like mojibake
+        if (result.contains("�") || result.contains("Ã")) {
+            result = tryFixMojibake(result)
+        }
+
+        return result
+    }
+
+    protected fun tryFixMojibake(text: String): String {
+        return try {
+            // Try to fix double-encoding issues: assume text was UTF-8 encoded as ISO-8859-1
+            val bytes = text.toByteArray(StandardCharsets.ISO_8859_1)
+            val recovered = String(bytes, StandardCharsets.UTF_8)
+
+            // Only use the recovered version if it looks better (contains proper German characters)
+            if (recovered.any { it in "äöüÄÖÜß" } && !recovered.contains("�")) {
+                recovered
+            } else {
+                text
+            }
+        } catch (e: Exception) {
+            log.debug("Failed to fix mojibake for: $text", e)
+            text // Return original if fixing fails
         }
     }
 
