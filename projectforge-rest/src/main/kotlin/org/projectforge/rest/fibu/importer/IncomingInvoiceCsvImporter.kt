@@ -37,6 +37,7 @@ import org.projectforge.rest.importer.AbstractCsvImporter
 import org.projectforge.rest.importer.AbstractImportPageRest
 import org.projectforge.rest.importer.ImportFieldSettings
 import org.projectforge.rest.importer.ImportStorage
+import java.nio.charset.StandardCharsets
 
 private val log = KotlinLogging.logger {}
 
@@ -57,6 +58,10 @@ class IncomingInvoiceCsvImporter(
 ) : AbstractCsvImporter<EingangsrechnungPosImportDTO>() {
 
     private lateinit var storage: EingangsrechnungImportStorage
+
+    override fun processHeaders(headers: List<String>, importStorage: ImportStorage<EingangsrechnungPosImportDTO>): List<String> {
+        return headers.map { header -> normalizeHeader(header) }
+    }
 
     override fun processField(
         entity: EingangsrechnungPosImportDTO,
@@ -131,7 +136,7 @@ class IncomingInvoiceCsvImporter(
     ) {
         // Consolidate and validate after all rows are processed
         if (importStorage is EingangsrechnungImportStorage) {
-            consolidateInvoicesByRenr(importStorage)
+            consolidateInvoicesByRenr(records, importStorage)
 
             log.info("Import finalized: ${records.size} positions processed")
             log.info("Found ${importStorage.consolidatedInvoices.size} consolidated invoices")
@@ -249,11 +254,14 @@ class IncomingInvoiceCsvImporter(
     }
 
 
-    private fun consolidateInvoicesByRenr(importStorage: EingangsrechnungImportStorage) {
+    private fun consolidateInvoicesByRenr(
+        records: List<EingangsrechnungPosImportDTO>,
+        importStorage: EingangsrechnungImportStorage
+    ) {
         log.info("Starting consolidation of invoices by RENR...")
 
-        val groupedByRenr = importStorage.readInvoices.groupBy { it.referenz ?: "UNKNOWN" }
-        log.info("Found ${groupedByRenr.size} different RENR groups with ${importStorage.readInvoices.size} total positions")
+        val groupedByRenr = records.groupBy { it.referenz ?: "UNKNOWN" }
+        log.info("Found ${groupedByRenr.size} different RENR groups with ${records.size} total positions")
 
         groupedByRenr.forEach { (renr, positions) ->
             log.debug("Processing RENR '$renr' with ${positions.size} positions")
