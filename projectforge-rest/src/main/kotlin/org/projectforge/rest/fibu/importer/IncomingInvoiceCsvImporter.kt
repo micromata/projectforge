@@ -77,6 +77,18 @@ class IncomingInvoiceCsvImporter(
                 false // Also let standard processing store the raw value
             }
 
+            "kost1" -> {
+                // Parse KOST1 directly during CSV parsing
+                parseKost1FromString(value, entity, importStorage)
+                true // Prevent standard processing since we've handled it
+            }
+
+            "kost2" -> {
+                // Parse KOST2 directly during CSV parsing
+                parseKost2FromString(value, entity, importStorage)
+                true // Prevent standard processing since we've handled it
+            }
+
             "periodString" -> {
                 // Parse period directly from a field like "01.05.2025-31.05.2025"
                 parsePeriod(value, entity, importStorage)
@@ -110,9 +122,7 @@ class IncomingInvoiceCsvImporter(
             parseKonto(entity.konto!!.nummer.toString(), entity, importStorage)
         }
 
-        // Parse KOST1 and KOST2 from stored string values
-        parseKost1(entity, importStorage)
-        parseKost2(entity, importStorage)
+        // KOST1 and KOST2 are now parsed during CSV processing in processField method
     }
 
     override fun finalizeImport(
@@ -181,18 +191,16 @@ class IncomingInvoiceCsvImporter(
         }
     }
 
-    private fun parseKost1(
+
+    private fun parseKost1FromString(
+        kost1String: String,
         invoicePos: EingangsrechnungPosImportDTO,
         importStorage: ImportStorage<EingangsrechnungPosImportDTO>
     ) {
-        val kost1Val = when (val kost1Property = BeanHelper.getProperty(invoicePos, "kost1")) {
-            is String -> if (kost1Property.isBlank()) null else kost1Property
-            is Number -> kost1Property.toString()
-            else -> null
-        }
+        if (kost1String.isBlank()) return
 
-        if (kost1Val != null) {
-            val kost1 = kostCache.findKost1(kost1Val)
+        try {
+            val kost1 = kostCache.findKost1(kost1String)
             if (kost1 != null) {
                 invoicePos.kost1 = org.projectforge.rest.dto.Kost1().apply {
                     id = kost1.id
@@ -203,37 +211,43 @@ class IncomingInvoiceCsvImporter(
                     description = kost1.description
                 }
             } else {
-                val errorMsg = "KOST1 '$kost1Val' not found."
+                val errorMsg = "KOST1 '$kost1String' not found."
                 addError(invoicePos, errorMsg, importStorage)
                 log.warn(errorMsg)
             }
+        } catch (e: Exception) {
+            val errorMsg = "Could not parse KOST1 '$kost1String'"
+            addError(invoicePos, errorMsg, importStorage)
+            log.warn(errorMsg, e)
         }
     }
 
-    private fun parseKost2(
+    private fun parseKost2FromString(
+        kost2String: String,
         invoicePos: EingangsrechnungPosImportDTO,
         importStorage: ImportStorage<EingangsrechnungPosImportDTO>
     ) {
-        val kost2Val = when (val kost2Property = BeanHelper.getProperty(invoicePos, "kost2")) {
-            is String -> if (kost2Property.isBlank()) null else kost2Property
-            is Number -> kost2Property.toString()
-            else -> null
-        }
+        if (kost2String.isBlank()) return
 
-        if (kost2Val != null) {
-            val kost2 = kostCache.findKost2(kost2Val)
+        try {
+            val kost2 = kostCache.findKost2(kost2String)
             if (kost2 != null) {
                 invoicePos.kost2 = org.projectforge.rest.dto.Kost2().apply {
                     id = kost2.id
                     description = kost2.description
                 }
             } else {
-                val errorMsg = "KOST2 '$kost2Val' not found."
+                val errorMsg = "KOST2 '$kost2String' not found."
                 addError(invoicePos, errorMsg, importStorage)
                 log.warn(errorMsg)
             }
+        } catch (e: Exception) {
+            val errorMsg = "Could not parse KOST2 '$kost2String'"
+            addError(invoicePos, errorMsg, importStorage)
+            log.warn(errorMsg, e)
         }
     }
+
 
     private fun consolidateInvoicesByRenr(importStorage: EingangsrechnungImportStorage) {
         log.info("Starting consolidation of invoices by RENR...")
