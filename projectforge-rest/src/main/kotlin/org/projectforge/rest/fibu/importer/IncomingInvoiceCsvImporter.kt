@@ -35,6 +35,7 @@ import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.Konto
 import org.projectforge.rest.importer.AbstractCsvImporter
 import org.projectforge.rest.importer.AbstractImportPageRest
+import org.projectforge.rest.importer.CsvRowContext
 import org.projectforge.rest.importer.ImportFieldSettings
 import org.projectforge.rest.importer.ImportStorage
 import java.nio.charset.StandardCharsets
@@ -67,36 +68,36 @@ class IncomingInvoiceCsvImporter(
         entity: EingangsrechnungPosImportDTO,
         fieldSettings: ImportFieldSettings,
         value: String,
-        importStorage: ImportStorage<EingangsrechnungPosImportDTO>
+        rowContext: CsvRowContext<EingangsrechnungPosImportDTO>
     ): Boolean {
         // Store reference to storage for use in other methods
-        if (!::storage.isInitialized && importStorage is EingangsrechnungImportStorage) {
-            storage = importStorage
+        if (!::storage.isInitialized && rowContext.importStorage is EingangsrechnungImportStorage) {
+            storage = rowContext.importStorage
         }
 
         // Handle special fields that need custom processing during parsing
         return when (fieldSettings.property) {
             "konto" -> {
                 // Parse DATEV account number directly from Konto field
-                parseKonto(value, entity, importStorage)
+                parseKonto(value, entity, rowContext.importStorage)
                 false // Also let standard processing store the raw value
             }
 
             "kost1" -> {
                 // Parse KOST1 directly during CSV parsing
-                parseKost1FromString(value, entity, importStorage)
+                parseKost1FromString(value, entity, rowContext.importStorage)
                 true // Prevent standard processing since we've handled it
             }
 
             "kost2" -> {
                 // Parse KOST2 directly during CSV parsing
-                parseKost2FromString(value, entity, importStorage)
+                parseKost2FromString(value, entity, rowContext.importStorage)
                 true // Prevent standard processing since we've handled it
             }
 
             "periodString" -> {
                 // Parse period directly from a field like "01.05.2025-31.05.2025"
-                parsePeriod(value, entity, importStorage)
+                parsePeriod(value, entity, rowContext.importStorage)
                 true
             }
 
@@ -104,9 +105,20 @@ class IncomingInvoiceCsvImporter(
                 // Handle leistungsdatum field which might contain period info
                 if (value.contains("-")) {
                     // Try to parse as period from leistungsdatum field
-                    parsePeriod(value, entity, importStorage)
+                    parsePeriod(value, entity, rowContext.importStorage)
                 }
                 false // Let standard processing also handle date parsing
+            }
+
+            "datum" -> {
+                // Handle invoice date with period-based year fallback for DD.MM format
+                val parsedDate = parseDateWithPeriodYearFallback(value, entity, fieldSettings, rowContext)
+                if (parsedDate != null) {
+                    entity.datum = parsedDate
+                    true // Prevent standard processing since we handled it successfully
+                } else {
+                    false // Let standard processing try if our enhanced parsing failed
+                }
             }
 
             else -> {
@@ -169,6 +181,62 @@ class IncomingInvoiceCsvImporter(
             }
         }
     }
+
+    private fun parseDateWithPeriodYearFallback(
+        dateStr: String,
+        invoicePos: EingangsrechnungPosImportDTO,
+        fieldSettings: ImportFieldSettings,
+        rowContext: CsvRowContext<EingangsrechnungPosImportDTO>
+    ): java.time.LocalDate? {
+        // First try normal date parsing
+        val normalParse = fieldSettings.parseLocalDate(dateStr)
+        if (normalParse != null) {
+            return normalParse
+        }
+
+        // If normal parsing failed, try DD.MM format with year from period
+        if (dateStr.matches(Regex("\\d{1,2}\\.\\d{1,2}\\.?"))) {
+            val yearFromPeriod = extractYearFromPeriodString(rowContext)
+
+            if (yearFromPeriod != null) {
+                try {
+                    // Clean the date string and add the year
+                    val cleanDateStr = dateStr.removeSuffix(".")
+                    val dateWithYear = "$cleanDateStr.$yearFromPeriod"
+                    log.debug("Trying to parse invoice date '$dateStr' as '$dateWithYear' using year from period")
+
+                    return fieldSettings.parseLocalDate(dateWithYear)
+                } catch (e: Exception) {
+                    log.debug("Could not parse invoice date '$dateStr' with period year $yearFromPeriod", e)
+                }
+            }
+        }
+
+        return null
+    }
+
+    private fun extractYearFromPeriodString(rowContext: CsvRowContext<EingangsrechnungPosImportDTO>): Int? {
+        // Try to get period string from various possible column names
+        val periodString = rowContext.getValueByProperty("periode")
+
+        if (!periodString.isNullOrBlank()) {
+            val parts = periodString.split("-")
+            if (parts.size == 2) {
+                try {
+                    // Use existing field settings for period parsing, or fallback to a basic one
+                    val periodFieldSettings = rowContext.getFieldSettingsByProperty("datum")!!
+
+                    val firstDate = periodFieldSettings.parseLocalDate(parts[0].trim())
+                    return firstDate?.year
+                } catch (e: Exception) {
+                    log.debug("Could not extract year from period string '$periodString'", e)
+                }
+            }
+        }
+
+        return null
+    }
+
 
     private fun parseKonto(
         datevAccountNumberStr: String,

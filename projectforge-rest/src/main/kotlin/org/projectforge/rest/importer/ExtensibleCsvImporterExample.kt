@@ -36,7 +36,7 @@ package org.projectforge.rest.importer
  *         entity: MyDTO,
  *         fieldSettings: ImportFieldSettings,
  *         value: String,
- *         importStorage: ImportStorage<MyDTO>
+ *         rowContext: CsvRowContext<MyDTO>
  *     ): Boolean {
  *         return when (fieldSettings.property) {
  *             "customField" -> {
@@ -106,7 +106,7 @@ package org.projectforge.rest.importer
  *         entity: InvoiceDTO,
  *         fieldSettings: ImportFieldSettings,
  *         value: String,
- *         importStorage: ImportStorage<InvoiceDTO>
+ *         rowContext: CsvRowContext<InvoiceDTO>
  *     ): Boolean {
  *         return when (fieldSettings.property) {
  *             "datevAccount" -> {

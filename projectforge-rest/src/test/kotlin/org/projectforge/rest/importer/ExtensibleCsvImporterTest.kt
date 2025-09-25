@@ -51,7 +51,7 @@ class ExtensibleCsvImporterTest {
             entity: SimpleTestDTO,
             fieldSettings: ImportFieldSettings,
             value: String,
-            importStorage: ImportStorage<SimpleTestDTO>
+            rowContext: CsvRowContext<SimpleTestDTO>
         ): Boolean {
             if (fieldSettings.property == "customField") {
                 customFieldProcessed = true

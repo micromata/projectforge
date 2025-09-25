@@ -85,7 +85,7 @@ class AbstractCsvImporterTest {
             entity: TestDTO,
             fieldSettings: ImportFieldSettings,
             value: String,
-            importStorage: ImportStorage<TestDTO>
+            rowContext: CsvRowContext<TestDTO>
         ): Boolean {
             return when (fieldSettings.property) {
                 "customField" -> {
