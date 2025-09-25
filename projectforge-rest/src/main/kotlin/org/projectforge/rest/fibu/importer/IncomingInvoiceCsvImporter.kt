@@ -28,17 +28,11 @@ import mu.KotlinLogging
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.kost.KostCache
-import org.projectforge.common.BeanHelper
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.Konto
-import org.projectforge.rest.importer.AbstractCsvImporter
-import org.projectforge.rest.importer.AbstractImportPageRest
-import org.projectforge.rest.importer.CsvRowContext
-import org.projectforge.rest.importer.ImportFieldSettings
-import org.projectforge.rest.importer.ImportStorage
-import java.nio.charset.StandardCharsets
+import org.projectforge.rest.importer.*
 
 private val log = KotlinLogging.logger {}
 
@@ -60,7 +54,10 @@ class IncomingInvoiceCsvImporter(
 
     private lateinit var storage: EingangsrechnungImportStorage
 
-    override fun processHeaders(headers: List<String>, importStorage: ImportStorage<EingangsrechnungPosImportDTO>): List<String> {
+    override fun processHeaders(
+        headers: List<String>,
+        importStorage: ImportStorage<EingangsrechnungPosImportDTO>
+    ): List<String> {
         return headers.map { header -> normalizeHeader(header) }
     }
 
@@ -93,21 +90,6 @@ class IncomingInvoiceCsvImporter(
                 // Parse KOST2 directly during CSV parsing
                 parseKost2FromString(value, entity, rowContext.importStorage)
                 true // Prevent standard processing since we've handled it
-            }
-
-            "periodString" -> {
-                // Parse period directly from a field like "01.05.2025-31.05.2025"
-                parsePeriod(value, entity, rowContext.importStorage)
-                true
-            }
-
-            "leistungsdatum" -> {
-                // Handle leistungsdatum field which might contain period info
-                if (value.contains("-")) {
-                    // Try to parse as period from leistungsdatum field
-                    parsePeriod(value, entity, rowContext.importStorage)
-                }
-                false // Let standard processing also handle date parsing
             }
 
             "datum" -> {
@@ -162,25 +144,6 @@ class IncomingInvoiceCsvImporter(
     // =============================================================================
     // Custom Processing Methods (from IncomingInvoicePosCsvParser)
     // =============================================================================
-
-    private fun parsePeriod(
-        periodStr: String,
-        invoicePos: EingangsrechnungPosImportDTO,
-        importStorage: ImportStorage<EingangsrechnungPosImportDTO>
-    ) {
-        val parts = periodStr.split("-")
-        if (parts.size == 2) {
-            try {
-                val dateSettings = ImportFieldSettings("periodFrom")
-                invoicePos.periodFrom = dateSettings.parseLocalDate(parts[0].trim())
-                invoicePos.periodUntil = dateSettings.parseLocalDate(parts[1].trim())
-            } catch (e: Exception) {
-                val errorMsg = "Could not parse period '$periodStr'"
-                addError(invoicePos, errorMsg, importStorage)
-                log.warn(errorMsg, e)
-            }
-        }
-    }
 
     private fun parseDateWithPeriodYearFallback(
         dateStr: String,
