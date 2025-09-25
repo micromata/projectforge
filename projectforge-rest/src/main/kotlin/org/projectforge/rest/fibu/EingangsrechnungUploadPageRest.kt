@@ -98,19 +98,19 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
             encoding=UTF-8
             bemerkung=Bemerkung|Freier Text|Notiz
             besonderheiten=Besonderheiten
-            betreff=Betreff
-            bezahlDatum=BezahltAm|Bezahlt|:dd.MM.yyyy|:dd.MM.yy
+            betreff=Betreff|Ware/Leistung
+            bezahlDatum=BezahltAm|Bezahlt|gezahlt_am|:dd.MM.yyyy|:dd.MM.yy
             bic=BIC
             currency=WKZ|Währung
             customernr=Kunden-Nr.|Kundennummer
-            datum=Rechnungsdatum|:dd.MM.yyyy|:dd.MM.yy
+            datum=Datum|Rechnungsdatum|:dd.MM.yyyy|:dd.MM.yy
             discountMaturity=Fällig mit Skonto 1|Skonto Fälligkeit|:dd.MM.yyyy|:dd.MM.yy
-            faelligkeit=Fällig ohne Skonto|Fälligkeit|:dd.MM.yyyy|:dd.MM.yy
+            faelligkeit=Fällig_am|Fällig ohne Skonto|Fälligkeit|:dd.MM.yyyy|:dd.MM.yy
             grossSum=Rechnungsbetrag|Betrag|:#.##0,0#|:#0,0#
             discountPercent=Skonto 1 in %|Skonto Prozent|:#.##0,0#|:#0,0#
-            zahlBetrag=Zahlbetrag|:#,##0.0#|:#0.0#
+            zahlBetrag=Zahlbetrag|g:#,##0.0#|:#0.0#
             zahlungsZielInTagen=Zahlungsziel|:#0
-            taxRate=Steuer in %|#.##0,0#|:#0
+            taxRate=Steuer in %|Steuer%|#.##0,0#|:#0
             iban=IBAN
             konto=Konto
             kreditor=Geschäftspartner-Name|Kreditor|LieferantName
@@ -121,6 +121,7 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
             kost1=KOST 1|KOST1
             kost2=KOST 2|KOST2
             buchungstext=Ware/Leistung|Buchungstext
+            periode=Periode
         """.trimIndent()
 
         val storage = EingangsrechnungImportStorage(datevImportSettings)

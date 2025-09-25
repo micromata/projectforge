@@ -39,6 +39,35 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 /**
+ * Context information available during CSV row processing.
+ * Provides access to all row values and column mappings.
+ */
+data class CsvRowContext<O : ImportPairEntry.Modified<O>>(
+    val rowValues: List<String>,
+    val columnMapping: Map<Int, ImportFieldSettings>,
+    val importStorage: ImportStorage<O>
+) {
+    /**
+     * Get the value from a specific column by field property name.
+     */
+    fun getValueByProperty(property: String): String? {
+        val columnIndex = columnMapping.entries.find { it.value.property == property }?.key
+        return if (columnIndex != null && columnIndex < rowValues.size) {
+            rowValues[columnIndex]
+        } else {
+            null
+        }
+    }
+
+    /**
+     * Get the ImportFieldSettings for a specific property name.
+     */
+    fun getFieldSettingsByProperty(property: String): ImportFieldSettings? {
+        return columnMapping.values.find { it.property == property }
+    }
+}
+
+/**
  * Abstract base class for extensible CSV importers that allows custom object mapping and parsing.
  * Implements the Template Method Pattern to provide extension points for custom logic while
  * maintaining the standard CSV import workflow.
@@ -106,10 +135,13 @@ abstract class AbstractCsvImporter<O : ImportPairEntry.Modified<O>> {
 
             val record = prepareEntity(importStorage)
 
+            // Create row context for custom processing
+            val rowContext = CsvRowContext(line, importStorage.columnMapping, importStorage)
+
             // Process each cell in the row
             line.forEachIndexed { columnIndex, value ->
                 importStorage.columnMapping[columnIndex]?.let { fieldSettings ->
-                    processRowCell(record, fieldSettings, value, autodetectNumberFormatMap, importStorage)
+                    processRowCell(record, fieldSettings, value, autodetectNumberFormatMap, rowContext)
                 }
             }
 
@@ -165,14 +197,14 @@ abstract class AbstractCsvImporter<O : ImportPairEntry.Modified<O>> {
      * @param entity the target entity
      * @param fieldSettings the field configuration
      * @param value the raw CSV value
-     * @param importStorage the import storage
+     * @param rowContext the row context containing all row values and import storage
      * @return true if field was handled, false for standard processing
      */
     protected open fun processField(
         entity: O,
         fieldSettings: ImportFieldSettings,
         value: String,
-        importStorage: ImportStorage<O>
+        rowContext: CsvRowContext<O>
     ): Boolean {
         return false // Default: use standard processing
     }
@@ -222,15 +254,15 @@ abstract class AbstractCsvImporter<O : ImportPairEntry.Modified<O>> {
         fieldSettings: ImportFieldSettings,
         value: String,
         autodetectNumberFormatMap: AutodetectNumberMap<O>,
-        importStorage: ImportStorage<O>
+        rowContext: CsvRowContext<O>
     ) {
         // Try custom processing first
-        if (processField(record, fieldSettings, value, importStorage)) {
+        if (processField(record, fieldSettings, value, rowContext)) {
             return // Custom processing handled the field
         }
 
         // Check if ImportStorage wants to handle it
-        if (!importStorage.setProperty(record, fieldSettings, value)) {
+        if (!rowContext.importStorage.setProperty(record, fieldSettings, value)) {
             // Standard type-based processing
             val targetValue = parseValueByType(record, fieldSettings, value, autodetectNumberFormatMap)
 
