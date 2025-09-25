@@ -89,8 +89,6 @@ class EingangsrechnungPosImportDTO(
     var bemerkung: String? = null,
     var kost1: Kost1? = null,
     var kost2: Kost2? = null,
-    var periodFrom: LocalDate? = null,
-    var periodUntil: LocalDate? = null,
 
     /**
      * Sequential position number within an invoice (RENR).

@@ -152,15 +152,5 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
         val taxCol = UIAgGridColumnDef.createCol(lc, "read.taxRate", headerName = "MwSt", width = 80)
         taxCol.cellRenderer = "diffCell"
         agGrid.add(taxCol)
-
-        // Periode Von-Bis (custom columns)
-        val periodFromCol = UIAgGridColumnDef.createCol(lc, "read.periodFrom", headerName = "Periode von", width = 100)
-        periodFromCol.cellRenderer = "diffCell"
-        agGrid.add(periodFromCol)
-
-        val periodUntilCol =
-            UIAgGridColumnDef.createCol(lc, "read.periodUntil", headerName = "Periode bis", width = 100)
-        periodUntilCol.cellRenderer = "diffCell"
-        agGrid.add(periodUntilCol)
     }
 }
