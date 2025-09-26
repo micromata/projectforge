@@ -93,7 +93,13 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
         if (importStorage != null) {
             layout.uid = "layout${importStorage.hashCode()}"
         }
-        val fieldset = UIFieldset(title = importStorage?.title ?: translate("import.title"))
+        val title = buildString {
+            append(importStorage?.title ?: translate("import.title"))
+            importStorage?.filename
+                ?.takeIf { it.isNotBlank() }
+                ?.let { append(" - $it") }
+        }
+        val fieldset = UIFieldset(title = title)
         layout.add(fieldset)
         val hasEntries = importStorage?.pairEntries?.isNotEmpty() == true
         if (!hasEntries) {
