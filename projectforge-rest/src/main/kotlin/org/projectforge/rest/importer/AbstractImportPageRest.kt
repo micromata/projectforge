@@ -428,17 +428,21 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
             data.numberOfUnknownEntries,
             MarkdownBuilder.Color.RED,
         )
-        importStorage.errorList.let {
-            if (it.isNotEmpty()) {
-                md.appendLine().h3(translate("errors"), Color.RED)
-                val maxErrorsToShow = 10
-                it.take(maxErrorsToShow).forEach { err -> md.appendListItem(err, Color.RED) }
-                if (it.size > maxErrorsToShow) {
-                    val remainingErrors = it.size - maxErrorsToShow
-                    md.appendListItem(translateMsg("errors.remainingErrors", remainingErrors.format()), Color.RED)
-                }
-            }
-        }
+        add(md, "errors", importStorage.errorList, Color.RED)
+        add(md, "warnings", importStorage.warningList, Color.ORANGE)
         return md.toString()
+    }
+
+    private fun add(md: MarkdownBuilder, type: String, messages: List<String>?, color: Color?) {
+        if (messages.isNullOrEmpty()) {
+            return
+        }
+        md.appendLine().h3(translate(type), color)
+        val maxMessagesToShow = 10
+        messages.take(maxMessagesToShow).forEach { msg -> md.appendListItem(msg, color) }
+        if (messages.size > maxMessagesToShow) {
+            val remainingMsgs = messages.size - maxMessagesToShow
+            md.appendListItem(translateMsg("$type.remaining", remainingMsgs.format()), color)
+        }
     }
 }

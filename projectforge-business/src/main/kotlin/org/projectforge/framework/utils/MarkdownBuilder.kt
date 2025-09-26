@@ -31,7 +31,7 @@ import org.projectforge.framework.i18n.translate
 class MarkdownBuilder {
     private val sb = StringBuilder()
 
-    enum class Color(val color: String) { BLACK("black"), BLUE("blue"), RED("red"), GREEN("green") }
+    enum class Color(val color: String) { BLACK("black"), BLUE("blue"), RED("red"), GREEN("green"), ORANGE("orange") }
 
     fun h3(text: String, color: Color? = null): MarkdownBuilder {
         sb.append("### ")
