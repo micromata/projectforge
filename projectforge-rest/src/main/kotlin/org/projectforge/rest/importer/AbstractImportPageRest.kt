@@ -299,12 +299,20 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
         agGrid: UIAgGrid,
         lc: LayoutContext,
         property: KProperty<*>,
+        width: Int? = null,
         wrapText: Boolean? = null,
         formatter: UIAgGridColumnDef.Formatter? = null,
     ) {
         val field = property.name
         val col =
-            UIAgGridColumnDef.createCol(lc, "read.$field", lcField = field, wrapText = wrapText, formatter = formatter)
+            UIAgGridColumnDef.createCol(
+                lc,
+                "read.$field",
+                lcField = field,
+                width = width,
+                wrapText = wrapText,
+                formatter = formatter,
+            )
         col.cellRenderer = "diffCell"
         agGrid.add(col)
     }
@@ -313,11 +321,12 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
         agGrid: UIAgGrid,
         lc: LayoutContext,
         property: KProperty<*>,
+        width: Int? = null,
         wrapText: Boolean? = null,
         formatter: UIAgGridColumnDef.Formatter? = null,
     ) {
         val field = property.name
-        agGrid.add(lc, "stored.$field", lcField = field, wrapText = wrapText, formatter = formatter)
+        agGrid.add(lc, "stored.$field", lcField = field, width = width, wrapText = wrapText, formatter = formatter)
     }
 
     protected fun addIfNotZero(
