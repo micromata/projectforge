@@ -109,6 +109,7 @@ open class UIAgGridColumnDef(
         NUMBER,
         TIMESTAMP_MINUTES,
         TIMESTAMP_SECONDS,
+        PERCENTAGE,
         RATING,
 
         /**

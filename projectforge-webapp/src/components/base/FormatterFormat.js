@@ -26,6 +26,19 @@ const formatterFormat = (
             }).format(value);
         case 'NUMBER':
             return Intl.NumberFormat(locale).format(value);
+        case 'PERCENTAGE': {
+            // Display percentage with decimal places only if they exist
+            // e.g., 19 -> "19 %", 19.5 -> "19.5 %", 19.25 -> "19.25 %"
+            if (value == null || Number.isNaN(value)) {
+                return '???';
+            }
+            const hasDecimals = value % 1 !== 0;
+            return Intl.NumberFormat(locale, {
+                style: 'percent',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: hasDecimals ? 2 : 0,
+            }).format(value / 100);
+        }
         case 'SHOW_DISPLAYNAME':
         case 'COST1':
         case 'COST2':

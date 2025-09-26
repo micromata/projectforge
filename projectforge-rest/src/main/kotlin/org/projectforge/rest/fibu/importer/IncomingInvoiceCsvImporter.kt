@@ -244,7 +244,7 @@ class IncomingInvoiceCsvImporter(
                     bereich = kost1.bereich
                     teilbereich = kost1.teilbereich
                     endziffer = kost1.endziffer
-                    description = kost1.description
+                    description = kost1.nummer.toString()
                 }
             } else {
                 val errorMsg = "KOST1 '$kost1String' not found."
@@ -270,7 +270,7 @@ class IncomingInvoiceCsvImporter(
             if (kost2 != null) {
                 invoicePos.kost2 = org.projectforge.rest.dto.Kost2().apply {
                     id = kost2.id
-                    description = kost2.description
+                    description = kost2.nummer.toString()
                 }
             } else {
                 val errorMsg = "KOST2 '$kost2String' not found."
