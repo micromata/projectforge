@@ -53,6 +53,11 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
    */
   open val targetEntityTitle: String? = null
 
+  /**
+   * The filename of the uploaded import file.
+   */
+  var filename: String? = null
+
   val title: String
     get() {
       targetEntityTitle?.let {

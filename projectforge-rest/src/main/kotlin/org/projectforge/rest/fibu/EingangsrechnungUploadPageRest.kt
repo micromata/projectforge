@@ -125,6 +125,7 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
         """.trimIndent()
 
         val storage = EingangsrechnungImportStorage(datevImportSettings)
+        storage.filename = filename
 
         if (filename.endsWith("xls", ignoreCase = true) || filename.endsWith("xlsx", ignoreCase = true)) {
             return "Excel format not supported for incoming invoices. Please use CSV format."
