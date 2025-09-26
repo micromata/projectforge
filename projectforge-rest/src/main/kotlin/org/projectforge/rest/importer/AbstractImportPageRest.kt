@@ -68,6 +68,8 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
 
     abstract val title: String
 
+    protected open val creatCsvSettingsHelpText: Boolean = false
+
     protected fun createFormLayoutData(
         request: HttpServletRequest,
         importStorage: ImportStorage<*>?
@@ -297,10 +299,12 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
         agGrid: UIAgGrid,
         lc: LayoutContext,
         property: KProperty<*>,
-        wrapText: Boolean? = null
+        wrapText: Boolean? = null,
+        formatter: UIAgGridColumnDef.Formatter? = null,
     ) {
         val field = property.name
-        val col = UIAgGridColumnDef.createCol(lc, "read.$field", lcField = field, wrapText = wrapText)
+        val col =
+            UIAgGridColumnDef.createCol(lc, "read.$field", lcField = field, wrapText = wrapText, formatter = formatter)
         col.cellRenderer = "diffCell"
         agGrid.add(col)
     }
@@ -309,10 +313,11 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
         agGrid: UIAgGrid,
         lc: LayoutContext,
         property: KProperty<*>,
-        wrapText: Boolean? = null
+        wrapText: Boolean? = null,
+        formatter: UIAgGridColumnDef.Formatter? = null,
     ) {
         val field = property.name
-        agGrid.add(lc, "stored.$field", lcField = field, wrapText = wrapText)
+        agGrid.add(lc, "stored.$field", lcField = field, wrapText = wrapText, formatter = formatter)
     }
 
     protected fun addIfNotZero(
@@ -387,7 +392,9 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
                 .h3(translate("import.info.unknownColumns"))
                 .appendLine(importStorage.unknownColumns.joinToString())
             container.add(UIAlert("'$md", color = UIColor.WARNING, markdown = true))
-            container.add(createSettingsHelp(importStorage.importSettings))
+            if (creatCsvSettingsHelpText) {
+                container.add(createSettingsHelp(importStorage.importSettings))
+            }
         }
     }
 

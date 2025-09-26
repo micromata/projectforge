@@ -104,10 +104,10 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
             currency=WKZ|Währung
             customernr=Kunden-Nr.|Kundennummer
             datum=Datum|Rechnungsdatum|:dd.MM.yyyy|:dd.MM.yy
-            discountMaturity=Fällig mit Skonto 1|Skonto Fälligkeit|:dd.MM.yyyy|:dd.MM.yy
+            discountMaturity=Fällig mit Skonto 1|Skonto Fälligkeit|Skto_Fällig_am|:dd.MM.yyyy|:dd.MM.yy
+            discountPercent=Skonto 1 in %|Skto_Proz|Skonto Prozent|Skonto in %|:#.##0,0#|:#0
             faelligkeit=Fällig_am|Fällig ohne Skonto|Fälligkeit|:dd.MM.yyyy|:dd.MM.yy
             grossSum=Rechnungsbetrag|Betrag|:#.##0,0#|:#0,0#
-            discountPercent=Skonto 1 in %|Skonto Prozent|:#.##0,0#|:#0,0#
             zahlBetrag=Zahlbetrag|g:#,##0.0#|:#0.0#
             zahlungsZielInTagen=Zahlungsziel|:#0
             taxRate=Steuer in %|Steuer%|#.##0,0#|:#0
