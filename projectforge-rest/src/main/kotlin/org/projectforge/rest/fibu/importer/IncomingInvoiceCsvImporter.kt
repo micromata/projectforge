@@ -289,23 +289,42 @@ class IncomingInvoiceCsvImporter(
         records: List<EingangsrechnungPosImportDTO>,
         importStorage: EingangsrechnungImportStorage
     ) {
-        log.info("Starting consolidation of invoices by RENR...")
+        log.info("Starting consolidation of invoices by RENR, Kreditor, and Datum...")
 
-        val groupedByRenr = records.groupBy { it.referenz ?: "UNKNOWN" }
-        log.info("Found ${groupedByRenr.size} different RENR groups with ${records.size} total positions")
+        // Group by combination of RENR, Kreditor, and Datum to identify unique invoices
+        val groupedByInvoiceKey = records.groupBy {
+            val renr = it.referenz ?: "UNKNOWN"
+            val kreditor = it.kreditor ?: "UNKNOWN_KREDITOR"
+            val datum = it.datum?.toString() ?: "UNKNOWN_DATUM"
+            "$renr|$kreditor|$datum"
+        }
 
-        groupedByRenr.forEach { (renr, positions) ->
-            log.debug("Processing RENR '$renr' with ${positions.size} positions")
+        log.info("Found ${groupedByInvoiceKey.size} unique invoices (by RENR+Kreditor+Datum) with ${records.size} total positions")
+
+        var consolidatedInvoices = mutableMapOf<String, List<EingangsrechnungPosImportDTO>>()
+
+        groupedByInvoiceKey.forEach { (invoiceKey, positions) ->
+            val parts = invoiceKey.split("|")
+            val renr = parts[0]
+            val kreditor = parts[1]
+            val datum = parts[2]
+
+            log.debug("Processing invoice RENR='$renr', Kreditor='$kreditor', Datum='$datum' with ${positions.size} positions")
 
             // Assign position numbers (1, 2, 3, ...) in reading order
             assignPositionNumbers(renr, positions)
 
-            // Validate header consistency
+            // Validate header consistency (only for positions of the same actual invoice)
             validateInvoiceHeaderConsistency(renr, positions, importStorage)
+
+            // Store by RENR for backward compatibility (multiple invoices may have same RENR but different kreditor/datum)
+            if (renr != "UNKNOWN") {
+                consolidatedInvoices[renr] = (consolidatedInvoices[renr] ?: emptyList()) + positions
+            }
         }
 
-        importStorage.consolidatedInvoices = groupedByRenr.filterKeys { it != "UNKNOWN" }
-        log.info("Consolidation completed. ${importStorage.consolidatedInvoices.size} invoices consolidated.")
+        importStorage.consolidatedInvoices = consolidatedInvoices
+        log.info("Consolidation completed. ${importStorage.consolidatedInvoices.size} different RENRs with ${groupedByInvoiceKey.size} unique invoices.")
     }
 
     private fun assignPositionNumbers(renr: String, positions: List<EingangsrechnungPosImportDTO>) {
