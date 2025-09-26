@@ -186,6 +186,12 @@ open class UIAgGridColumnDef(
      */
     fun setFormat(formatter: Formatter): UIAgGridColumnDef {
         when (formatter) {
+            Formatter.DATE -> {
+                if (width == null) {
+                    this.width = DATE_WIDTH
+                }
+            }
+
             Formatter.CURRENCY -> {
                 if (width == null) {
                     this.width = CURRENCY_WIDTH
@@ -385,6 +391,7 @@ open class UIAgGridColumnDef(
                         if (width == null) {
                             col.width = DATE_WIDTH
                         }
+                        useFormatter = Formatter.DATE
                         col.filter = "agDateColumnFilter"
                         col.setApplyAndResetButton()
                     } else if (java.util.Date::class.java == elementInfo.propertyClass) {

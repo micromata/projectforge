@@ -162,7 +162,8 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
         agGrid.add(taxCol)
 
         // Customer
-        val customer2Col = UIAgGridColumnDef.createCol(lc, "read.customernr", headerName = "fibu.kunde", width = 150)
+        val customer2Col =
+            UIAgGridColumnDef.createCol(lc, "read.customernr", headerName = "fibu.kunde.nummer", width = 150)
         customer2Col.cellRenderer = "diffCell"
         agGrid.add(customer2Col)
 
