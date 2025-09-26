@@ -101,7 +101,8 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
         val lc = LayoutContext(EingangsrechnungDO::class.java)
 
         // Position Number - first column
-        val positionCol = UIAgGridColumnDef.createCol(lc, "read.positionNummer", headerName = "label.position.short", width = 60)
+        val positionCol =
+            UIAgGridColumnDef.createCol(lc, "read.positionNummer", headerName = "label.position.short", width = 60)
         positionCol.cellRenderer = "diffCell"
         agGrid.add(positionCol)
 
@@ -120,7 +121,8 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
         agGrid.add(betragCol)
 
         // Währung (custom column)
-        val currencyCol = UIAgGridColumnDef.createCol(lc, "read.currency", headerName = "fibu.rechnung.currency", width = 80)
+        val currencyCol =
+            UIAgGridColumnDef.createCol(lc, "read.currency", headerName = "fibu.rechnung.currency", width = 80)
         currencyCol.cellRenderer = "diffCell"
         agGrid.add(currencyCol)
 
@@ -152,8 +154,10 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
         addReadColumn(agGrid, lc, EingangsrechnungDO::zahlBetrag)
 
         // TAX rate
-        val taxCol = UIAgGridColumnDef.createCol(lc, "read.taxRate", headerName = "fibu.common.vat", width = 80,
-            formatter = Formatter.PERCENTAGE)
+        val taxCol = UIAgGridColumnDef.createCol(
+            lc, "read.taxRate", headerName = "fibu.common.vat", width = 80,
+            formatter = Formatter.PERCENTAGE
+        )
         taxCol.cellRenderer = "diffCell"
         agGrid.add(taxCol)
 
@@ -163,7 +167,10 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
         agGrid.add(customer2Col)
 
         // Skonto %
-        addReadColumn(agGrid, lc, EingangsrechnungDO::discountPercent)
+        addReadColumn(
+            agGrid, lc, EingangsrechnungDO::discountPercent,
+            formatter = Formatter.PERCENTAGE
+        )
 
         // Skontodatum
         addReadColumn(agGrid, lc, EingangsrechnungDO::discountMaturity)
