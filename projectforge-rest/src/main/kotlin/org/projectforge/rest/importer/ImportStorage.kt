@@ -74,11 +74,19 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
   var pairEntries = mutableListOf<ImportPairEntry<O>>()
 
   private val errors =  mutableListOf<String>()
+  private val warnings = mutableListOf<String>()
 
   val errorList: List<String>
     get() {
       synchronized(errors) {
         return errors.toList()
+      }
+    }
+
+  val warningList: List<String>
+    get() {
+      synchronized(warnings) {
+        return warnings.toList()
       }
     }
 
@@ -94,6 +102,18 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
   fun addError(error: String) {
     synchronized(errors) {
       errors.add(error)
+    }
+  }
+
+  fun clearWarnings() {
+    synchronized(warnings) {
+      warnings.clear()
+    }
+  }
+
+  fun addWarning(warning: String) {
+    synchronized(warnings) {
+      warnings.add(warning)
     }
   }
 

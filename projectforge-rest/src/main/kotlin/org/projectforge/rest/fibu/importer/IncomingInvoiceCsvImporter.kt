@@ -325,6 +325,53 @@ class IncomingInvoiceCsvImporter(
 
         importStorage.consolidatedInvoices = consolidatedInvoices
         log.info("Consolidation completed. ${importStorage.consolidatedInvoices.size} different RENRs with ${groupedByInvoiceKey.size} unique invoices.")
+
+        // Check for duplicate invoices (same RENR+datum, different kreditor)
+        checkForDuplicateInvoices(records, importStorage)
+    }
+
+    private fun checkForDuplicateInvoices(
+        records: List<EingangsrechnungPosImportDTO>,
+        importStorage: EingangsrechnungImportStorage
+    ) {
+        log.info("Checking for duplicate invoices (same RENR+datum, different kreditor)...")
+
+        // Group by RENR+datum combination
+        val groupedByRenrAndDatum = records.groupBy {
+            val renr = it.referenz ?: "UNKNOWN"
+            val datum = it.datum?.toString() ?: "UNKNOWN_DATUM"
+            "$renr|$datum"
+        }
+
+        var duplicatesFound = 0
+
+        groupedByRenrAndDatum.forEach { (renrDatumKey, positions) ->
+            // Check if there are multiple different kreditors for the same RENR+datum
+            val kreditors = positions.map { it.kreditor }.filterNotNull().distinct()
+
+            if (kreditors.size > 1) {
+                val parts = renrDatumKey.split("|")
+                val renr = parts[0]
+                val datum = parts[1]
+
+                val warningMsg = "Duplicate invoice detected: RENR '$renr', Datum '$datum' has ${kreditors.size} different creditors: ${kreditors.joinToString(", ")}"
+                importStorage.addWarning(warningMsg)
+                log.warn(warningMsg)
+                duplicatesFound++
+
+                // Log details for each creditor
+                kreditors.forEach { kreditor ->
+                    val positionsForKreditor = positions.filter { it.kreditor == kreditor }
+                    log.debug("  - Kreditor '$kreditor': ${positionsForKreditor.size} positions")
+                }
+            }
+        }
+
+        if (duplicatesFound > 0) {
+            log.info("Found $duplicatesFound duplicate invoice(s) with same RENR+datum but different kreditors")
+        } else {
+            log.info("No duplicate invoices found")
+        }
     }
 
     private fun assignPositionNumbers(renr: String, positions: List<EingangsrechnungPosImportDTO>) {
