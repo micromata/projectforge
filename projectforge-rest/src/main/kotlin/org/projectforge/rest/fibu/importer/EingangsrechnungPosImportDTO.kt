@@ -244,8 +244,7 @@ class EingangsrechnungPosImportDTO(
         return if (thisGrossSum != null) {
             try {
                 // Try to calculate and get grossSum, skip if it fails
-                org.projectforge.business.fibu.RechnungCalculator.calculate(dbInvoice, useCaches = false)
-                val dbGrossSum = dbInvoice.info.grossSum
+                val dbGrossSum = dbInvoice.ensuredInfo.grossSum
                 if (thisGrossSum.compareTo(dbGrossSum) == 0) 10 else 0
             } catch (e: Exception) {
                 // Info calculation failed, skip amount comparison

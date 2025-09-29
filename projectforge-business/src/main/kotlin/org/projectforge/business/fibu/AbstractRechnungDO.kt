@@ -162,6 +162,19 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
         @Transient
         get() = this::info.isInitialized
 
+    /**
+     * Ensures that [info] is initialized by calling [RechnungCalculator.ensureInfo] if needed.
+     * Always returns a non-null [RechnungInfo] instance.
+     */
+    val ensuredInfo: RechnungInfo
+        @Transient
+        get() {
+            if (!isInfoInitialized) {
+                RechnungCalculator.calculate(this)
+            }
+            return info
+        }
+
     override fun recalculate() {
         val date = PFDateTime.fromOrNull(this.datum)
         // recalculate the transient fields
