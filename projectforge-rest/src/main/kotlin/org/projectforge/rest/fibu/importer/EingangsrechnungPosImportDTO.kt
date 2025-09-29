@@ -216,4 +216,70 @@ class EingangsrechnungPosImportDTO(
 
         return score
     }
+
+    /**
+     * Header-only matching score for invoice reconciliation.
+     * Focuses on header fields and ignores position-specific data.
+     * Scoring:
+     * - Invoice number exact match: +50 points
+     * - Creditor exact match: +30 points
+     * - Creditor partial match: +10 points
+     * - Date exact match: +20 points
+     * - Date within 7 days: +5 points
+     * - Date within 30 days: +2 points
+     * - Amount exact match: +10 points
+     */
+    fun headerMatchScore(dbInvoice: EingangsrechnungDO): Int {
+        var score = 0
+
+        // Invoice number match (most important for headers)
+        val thisReferenz = this.referenz
+        val dbReferenz = dbInvoice.referenz
+        if (!thisReferenz.isNullOrBlank() && !dbReferenz.isNullOrBlank()) {
+            if (thisReferenz.equals(dbReferenz, ignoreCase = true)) {
+                score += 50
+            }
+        }
+
+        // Creditor match (more important for header matching)
+        val thisKreditor = this.kreditor
+        val dbKreditor = dbInvoice.kreditor
+        if (!thisKreditor.isNullOrBlank() && !dbKreditor.isNullOrBlank()) {
+            if (thisKreditor.equals(dbKreditor, ignoreCase = true)) {
+                score += 30
+            } else if (thisKreditor.contains(dbKreditor, ignoreCase = true) ||
+                       dbKreditor.contains(thisKreditor, ignoreCase = true)) {
+                score += 10 // Partial match
+            }
+        }
+
+        // Date match
+        if (datum != null && dbInvoice.datum != null) {
+            if (datum == dbInvoice.datum) {
+                score += 20
+            } else {
+                val daysDiff = kotlin.math.abs(java.time.temporal.ChronoUnit.DAYS.between(datum, dbInvoice.datum))
+                if (daysDiff <= 7) {
+                    score += 5
+                } else if (daysDiff <= 30) {
+                    score += 2
+                }
+            }
+        }
+
+        // Amount match - for header import, this is the total invoice amount
+        val thisGrossSum = this.grossSum
+        if (thisGrossSum != null) {
+            try {
+                val dbGrossSum = dbInvoice.info.grossSum
+                if (thisGrossSum.compareTo(dbGrossSum) == 0) {
+                    score += 10
+                }
+            } catch (e: Exception) {
+                // Info not initialized, skip amount comparison
+            }
+        }
+
+        return score
+    }
 }
