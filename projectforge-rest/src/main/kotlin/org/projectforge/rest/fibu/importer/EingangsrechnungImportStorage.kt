@@ -135,6 +135,9 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
                 buildHeaderOnlyMatchingPairs(readInvoicesWithoutDate, emptyList())
             }
         }
+
+        // Sort all pair entries after matching is complete
+        sortPairEntriesAfterMatching()
     }
 
     private fun analyzeReadInvoices() {
@@ -738,5 +741,31 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
                 log.debug("Header kreditor group match: ${readInvoice.kreditor} (score: $bestScore)")
             }
         }
+    }
+
+    /**
+     * Sort all pair entries after matching is complete.
+     * Sort order: Date, Creditor, Invoice Number, Position Number
+     */
+    private fun sortPairEntriesAfterMatching() {
+        log.debug("Sorting ${pairEntries.size} pair entries by date, creditor, invoice number, and position")
+
+        pairEntries.sortWith(compareBy<ImportPairEntry<EingangsrechnungPosImportDTO>> { pairEntry ->
+            // Primary sort: Date (nulls last)
+            pairEntry.read?.datum ?: pairEntry.stored?.datum
+        }.thenBy { pairEntry ->
+            // Secondary sort: Creditor (case-insensitive, nulls last)
+            pairEntry.read?.kreditor?.trim()?.lowercase()
+                ?: pairEntry.stored?.kreditor?.trim()?.lowercase()
+        }.thenBy { pairEntry ->
+            // Tertiary sort: Invoice Number (case-insensitive, nulls last)
+            pairEntry.read?.referenz?.trim()?.lowercase()
+                ?: pairEntry.stored?.referenz?.trim()?.lowercase()
+        }.thenBy { pairEntry ->
+            // Quaternary sort: Position Number (nulls last)
+            pairEntry.read?.positionNummer ?: Int.MAX_VALUE
+        })
+
+        log.debug("Sorting completed")
     }
 }
