@@ -23,15 +23,16 @@
 
 package org.projectforge.rest.fibu.importer
 
+import mu.KotlinLogging
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.framework.configuration.ApplicationContextProvider
-import org.projectforge.framework.i18n.translate
-import org.projectforge.rest.importer.ImportFieldSettings
 import org.projectforge.rest.importer.ImportPairEntry
 import org.projectforge.rest.importer.ImportSettings
 import org.projectforge.rest.importer.ImportStorage
 import java.time.LocalDate
+
+private val log = KotlinLogging.logger {}
 
 class EingangsrechnungImportStorage(importSettings: String? = null) :
     ImportStorage<EingangsrechnungPosImportDTO>(
@@ -286,6 +287,16 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
     private fun createImportDTO(eingangsrechnungDO: EingangsrechnungDO): EingangsrechnungPosImportDTO {
         val dto = EingangsrechnungPosImportDTO()
         dto.copyFrom(eingangsrechnungDO)
+
+        // Calculate grossSum from invoice positions
+        try {
+            // Always calculate to ensure we have current values
+            org.projectforge.business.fibu.RechnungCalculator.calculate(eingangsrechnungDO, useCaches = false)
+            dto.grossSum = eingangsrechnungDO.info.grossSum
+        } catch (e: Exception) {
+            log.error("Could not calculate grossSum for invoice ${eingangsrechnungDO.id}, using zahlBetrag as fallback", e)
+        }
+
         return dto
     }
 }

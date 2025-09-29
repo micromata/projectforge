@@ -308,6 +308,7 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
         width: Int? = null,
         wrapText: Boolean? = null,
         formatter: UIAgGridColumnDef.Formatter? = null,
+        filter: Boolean? = null,
     ) {
         val field = property.name
         val col =
@@ -318,6 +319,7 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
                 width = width,
                 wrapText = wrapText,
                 formatter = formatter,
+                filter = filter,
             )
         col.cellRenderer = "diffCell"
         agGrid.add(col)

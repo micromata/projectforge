@@ -99,25 +99,30 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
         agGrid: UIAgGrid,
     ) {
         val lc = LayoutContext(EingangsrechnungDO::class.java)
+        val importStorage = getImportStorage(request)
+        val isPositionBasedImport = importStorage?.isPositionBasedImport ?: true
 
-        // Position Number - first column
-        val positionCol =
-            UIAgGridColumnDef.createCol(lc, "read.positionNummer", headerName = "label.position.short", width = 60)
-        positionCol.cellRenderer = "diffCell"
-        agGrid.add(positionCol)
+        // Position Number - first column (only for position-based imports)
+        if (isPositionBasedImport) {
+            val positionCol =
+                UIAgGridColumnDef.createCol(lc, "read.positionNummer", headerName = "label.position.short", width = 60)
+            positionCol.cellRenderer = "diffCell"
+            agGrid.add(positionCol)
+        }
 
         // RENR (Invoice Number) - most important column
         addReadColumn(agGrid, lc, EingangsrechnungDO::referenz)
 
         // Creditor
-        addReadColumn(agGrid, lc, EingangsrechnungDO::kreditor, wrapText = true)
+        addReadColumn(agGrid, lc, EingangsrechnungDO::kreditor, wrapText = true, filter = true)
 
         // Datum
         addReadColumn(agGrid, lc, EingangsrechnungDO::datum)
 
         // Betrag (erstelle custom column da grossSum nicht in EingangsrechnungDO ist)
         val betragCol = UIAgGridColumnDef.createCol(lc, "read.grossSum", headerName = "fibu.common.betrag", width = 100)
-        betragCol.setFormat(Formatter.CURRENCY_PLAIN)
+        //betragCol.setFormat(Formatter.CURRENCY_PLAIN)
+        betragCol.cellRenderer = "diffCell"
         agGrid.add(betragCol)
 
         // Währung (custom column)
@@ -134,15 +139,19 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
         kontoCol.cellRenderer = "diffCell"
         agGrid.add(kontoCol)
 
-        // KOST1 (custom column)
-        val kost1Col = UIAgGridColumnDef.createCol(lc, "read.kost1.description", headerName = "fibu.kost1", width = 150)
-        kost1Col.cellRenderer = "diffCell"
-        agGrid.add(kost1Col)
+        // KOST1 (custom column) - only for position-based imports
+        if (isPositionBasedImport) {
+            val kost1Col = UIAgGridColumnDef.createCol(lc, "read.kost1.description", headerName = "fibu.kost1", width = 150)
+            kost1Col.cellRenderer = "diffCell"
+            agGrid.add(kost1Col)
+        }
 
-        // KOST2 (custom column)
-        val kost2Col = UIAgGridColumnDef.createCol(lc, "read.kost2.description", headerName = "fibu.kost2", width = 150)
-        kost2Col.cellRenderer = "diffCell"
-        agGrid.add(kost2Col)
+        // KOST2 (custom column) - only for position-based imports
+        if (isPositionBasedImport) {
+            val kost2Col = UIAgGridColumnDef.createCol(lc, "read.kost2.description", headerName = "fibu.kost2", width = 150)
+            kost2Col.cellRenderer = "diffCell"
+            agGrid.add(kost2Col)
+        }
 
         // Fälligkeit
         addReadColumn(agGrid, lc, EingangsrechnungDO::faelligkeit)
