@@ -60,7 +60,7 @@ class IncomingInvoiceCsvImporter(
 
         // Detect import mode based on presence of "Periode" column
         val hasPeriodenColumn = normalizedHeaders.any { header ->
-            header.lowercase().contains("periode")
+            header.trim() == "Periode"
         }
 
         importStorage.isPositionBasedImport = hasPeriodenColumn

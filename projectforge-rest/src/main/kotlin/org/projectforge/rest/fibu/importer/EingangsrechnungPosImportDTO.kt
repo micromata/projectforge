@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.fibu.importer
 
+import mu.KotlinLogging
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.PaymentType
 import org.projectforge.rest.dto.BaseDTO
@@ -33,6 +34,8 @@ import org.projectforge.rest.importer.ImportPairEntry
 import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.reflect.KProperty
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Data Transfer Object for importing incoming invoice positions.
@@ -205,12 +208,14 @@ class EingangsrechnungPosImportDTO(
         val thisGrossSum = this.grossSum
         if (thisGrossSum != null) {
             try {
+                // Try to calculate and get grossSum, skip if it fails
+                org.projectforge.business.fibu.RechnungCalculator.calculate(dbInvoice, useCaches = false)
                 val dbGrossSum = dbInvoice.info.grossSum
                 if (thisGrossSum.compareTo(dbGrossSum) == 0) {
                     score += 10
                 }
             } catch (e: Exception) {
-                // Info not initialized, skip amount comparison
+                // Info calculation failed, skip amount comparison
             }
         }
 
@@ -271,12 +276,15 @@ class EingangsrechnungPosImportDTO(
         val thisGrossSum = this.grossSum
         if (thisGrossSum != null) {
             try {
+                // Try to calculate and get grossSum, skip if it fails
+                org.projectforge.business.fibu.RechnungCalculator.calculate(dbInvoice, useCaches = false)
                 val dbGrossSum = dbInvoice.info.grossSum
                 if (thisGrossSum.compareTo(dbGrossSum) == 0) {
                     score += 10
                 }
             } catch (e: Exception) {
-                // Info not initialized, skip amount comparison
+                // Info calculation failed, skip amount comparison
+                log.error(e.message, e)
             }
         }
 
