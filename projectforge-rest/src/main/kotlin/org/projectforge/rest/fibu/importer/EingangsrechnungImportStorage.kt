@@ -159,52 +159,53 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             return
         }
 
-        val scoreMatrix = Array(readByDate.size) { IntArray(dbInvoicesByDate.size) }
-        for (i in readByDate.indices) {
-            for (j in dbInvoicesByDate.indices) {
-                scoreMatrix[i][j] = readByDate[i].matchScore(dbInvoicesByDate[j])
-            }
-        }
+        // Use optimized multi-stage matching algorithm
+        buildOptimizedMatchingPairs(readByDate, dbInvoicesByDate)
+    }
 
-        val takenReadEntries = mutableSetOf<Int>()
-        val takenDbEntries = mutableSetOf<Int>()
+    /**
+     * Optimized multi-stage matching algorithm for better performance with large datasets.
+     *
+     * Stage 1: Exact matches (O(n)) - immediate matches without score calculation
+     * Stage 2: Grouped matching (O(n log n)) - group by key fields and match within groups
+     * Stage 3: Fallback matching - remaining invoices with limited comparisons
+     */
+    private fun buildOptimizedMatchingPairs(
+        readInvoices: List<EingangsrechnungPosImportDTO>,
+        dbInvoices: List<EingangsrechnungDO>
+    ) {
+        val matchedReadIndices = mutableSetOf<Int>()
+        val matchedDbIndices = mutableSetOf<Int>()
+        val matches = mutableListOf<Pair<Int, Int>>()
 
-        // Match highest scoring pairs first
-        for (iteration in 0..(readByDate.size + dbInvoicesByDate.size)) {
-            var maxScore = 0
-            var maxReadIndex = -1
-            var maxDbIndex = -1
+        // Stage 1: Exact matches - O(n)
+        log.debug("Stage 1: Looking for exact matches...")
+        findExactMatches(readInvoices, dbInvoices, matchedReadIndices, matchedDbIndices, matches)
 
-            for (i in readByDate.indices) {
-                if (takenReadEntries.contains(i)) continue
-                for (j in dbInvoicesByDate.indices) {
-                    if (takenDbEntries.contains(j)) continue
-                    if (scoreMatrix[i][j] > maxScore) {
-                        maxScore = scoreMatrix[i][j]
-                        maxReadIndex = i
-                        maxDbIndex = j
-                    }
-                }
-            }
+        // Stage 2: Grouped matches - O(n log n)
+        log.debug("Stage 2: Looking for grouped matches...")
+        findGroupedMatches(readInvoices, dbInvoices, matchedReadIndices, matchedDbIndices, matches)
 
-            if (maxScore < 25) break // Require meaningful match (creditor similarity + additional factors)
+        // Stage 3: Fallback matches for remaining invoices
+        log.debug("Stage 3: Fallback matching for remaining invoices...")
+        findFallbackMatches(readInvoices, dbInvoices, matchedReadIndices, matchedDbIndices, matches)
 
-            takenReadEntries.add(maxReadIndex)
-            takenDbEntries.add(maxDbIndex)
-            addEntry(ImportPairEntry(readByDate[maxReadIndex], createImportDTO(dbInvoicesByDate[maxDbIndex])))
+        // Create ImportPairEntry objects from matches
+        matches.forEach { (readIndex, dbIndex) ->
+            addEntry(ImportPairEntry(readInvoices[readIndex], createImportDTO(dbInvoices[dbIndex])))
         }
 
         // Add unmatched read entries as new
-        for (i in readByDate.indices) {
-            if (!takenReadEntries.contains(i)) {
-                addEntry(ImportPairEntry(readByDate[i], null))
+        readInvoices.forEachIndexed { index, invoice ->
+            if (!matchedReadIndices.contains(index)) {
+                addEntry(ImportPairEntry(invoice, null))
             }
         }
 
         // Add unmatched database entries as deleted
-        for (j in dbInvoicesByDate.indices) {
-            if (!takenDbEntries.contains(j)) {
-                addEntry(ImportPairEntry(null, createImportDTO(dbInvoicesByDate[j])))
+        dbInvoices.forEachIndexed { index, invoice ->
+            if (!matchedDbIndices.contains(index)) {
+                addEntry(ImportPairEntry(null, createImportDTO(invoice)))
             }
         }
     }
@@ -225,59 +226,142 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             return
         }
 
-        // For header-only import, match based on invoice header data only
-        // Each read entry represents a complete invoice header
-        val scoreMatrix = Array(readByDate.size) { IntArray(dbInvoicesByDate.size) }
-        for (i in readByDate.indices) {
-            for (j in dbInvoicesByDate.indices) {
-                // Use header-only matching score (higher weight on header fields)
-                scoreMatrix[i][j] = readByDate[i].headerMatchScore(dbInvoicesByDate[j])
-            }
-        }
+        // Use optimized multi-stage matching algorithm for header-only imports too
+        buildOptimizedHeaderOnlyMatchingPairs(readByDate, dbInvoicesByDate)
+    }
 
-        val takenReadEntries = mutableSetOf<Int>()
-        val takenDbEntries = mutableSetOf<Int>()
+    /**
+     * Optimized header-only matching using the same multi-stage approach.
+     */
+    private fun buildOptimizedHeaderOnlyMatchingPairs(
+        readInvoices: List<EingangsrechnungPosImportDTO>,
+        dbInvoices: List<EingangsrechnungDO>
+    ) {
+        val matchedReadIndices = mutableSetOf<Int>()
+        val matchedDbIndices = mutableSetOf<Int>()
+        val matches = mutableListOf<Pair<Int, Int>>()
 
-        // Match highest scoring pairs first
-        for (iteration in 0..(readByDate.size + dbInvoicesByDate.size)) {
-            var maxScore = 0
-            var maxReadIndex = -1
-            var maxDbIndex = -1
+        // Stage 1: Exact matches - O(n)
+        log.debug("Header-only Stage 1: Looking for exact matches...")
+        findExactMatches(readInvoices, dbInvoices, matchedReadIndices, matchedDbIndices, matches)
 
-            for (i in readByDate.indices) {
-                if (takenReadEntries.contains(i)) continue
-                for (j in dbInvoicesByDate.indices) {
-                    if (takenDbEntries.contains(j)) continue
-                    if (scoreMatrix[i][j] > maxScore) {
-                        maxScore = scoreMatrix[i][j]
-                        maxReadIndex = i
-                        maxDbIndex = j
-                    }
-                }
-            }
+        // Stage 2: Grouped matches - O(n log n)
+        log.debug("Header-only Stage 2: Looking for grouped matches...")
+        findGroupedHeaderMatches(readInvoices, dbInvoices, matchedReadIndices, matchedDbIndices, matches)
 
-            if (maxScore < 25) break // Require meaningful match for header-only (same as position-based)
+        // Stage 3: Fallback matches for remaining invoices
+        log.debug("Header-only Stage 3: Fallback matching for remaining invoices...")
+        findFallbackHeaderMatches(readInvoices, dbInvoices, matchedReadIndices, matchedDbIndices, matches)
 
-            takenReadEntries.add(maxReadIndex)
-            takenDbEntries.add(maxDbIndex)
-            // For header-only import, the matched entry updates header data only
-            val dbDto = createImportDTO(dbInvoicesByDate[maxDbIndex])
-            addEntry(ImportPairEntry(readByDate[maxReadIndex], dbDto))
+        // Create ImportPairEntry objects from matches (header-only style)
+        matches.forEach { (readIndex, dbIndex) ->
+            val dbDto = createImportDTO(dbInvoices[dbIndex])
+            addEntry(ImportPairEntry(readInvoices[readIndex], dbDto))
         }
 
         // Add unmatched read entries as new
-        for (i in readByDate.indices) {
-            if (!takenReadEntries.contains(i)) {
-                addEntry(ImportPairEntry(readByDate[i], null))
+        readInvoices.forEachIndexed { index, invoice ->
+            if (!matchedReadIndices.contains(index)) {
+                addEntry(ImportPairEntry(invoice, null))
             }
         }
 
         // Add unmatched database entries as deleted (header-only)
-        for (j in dbInvoicesByDate.indices) {
-            if (!takenDbEntries.contains(j)) {
-                addEntry(ImportPairEntry(null, createImportDTO(dbInvoicesByDate[j])))
+        dbInvoices.forEachIndexed { index, invoice ->
+            if (!matchedDbIndices.contains(index)) {
+                addEntry(ImportPairEntry(null, createImportDTO(invoice)))
             }
         }
+    }
+
+    /**
+     * Grouped matches for header-only imports using headerMatchScore.
+     */
+    private fun findGroupedHeaderMatches(
+        readInvoices: List<EingangsrechnungPosImportDTO>,
+        dbInvoices: List<EingangsrechnungDO>,
+        matchedReadIndices: MutableSet<Int>,
+        matchedDbIndices: MutableSet<Int>,
+        matches: MutableList<Pair<Int, Int>>
+    ) {
+        val initialMatches = matches.size
+
+        // Use header-specific matching for grouped searches
+        findHeaderMatchesInReferenzGroups(readInvoices, dbInvoices, matchedReadIndices, matchedDbIndices, matches)
+        findHeaderMatchesInCreditorGroups(readInvoices, dbInvoices, matchedReadIndices, matchedDbIndices, matches)
+
+        log.debug("Header-only Stage 2 completed: ${matches.size - initialMatches} grouped matches found")
+    }
+
+    /**
+     * Fallback header-only matches using headerMatchScore.
+     */
+    private fun findFallbackHeaderMatches(
+        readInvoices: List<EingangsrechnungPosImportDTO>,
+        dbInvoices: List<EingangsrechnungDO>,
+        matchedReadIndices: MutableSet<Int>,
+        matchedDbIndices: MutableSet<Int>,
+        matches: MutableList<Pair<Int, Int>>
+    ) {
+        val initialMatches = matches.size
+        val unmatchedRead = readInvoices.filterIndexed { index, _ -> !matchedReadIndices.contains(index) }
+        val unmatchedDb = dbInvoices.filterIndexed { index, _ -> !matchedDbIndices.contains(index) }
+
+        if (unmatchedRead.isEmpty() || unmatchedDb.isEmpty()) {
+            return
+        }
+
+        // Use headerMatchScore for fallback matching
+        if (unmatchedRead.size * unmatchedDb.size <= 1000) {
+            val readToOriginalIndex = readInvoices.mapIndexed { index, invoice -> invoice to index }.toMap()
+            val dbToOriginalIndex = dbInvoices.mapIndexed { index, invoice -> invoice to index }.toMap()
+
+            val scoreMatrix = Array(unmatchedRead.size) { IntArray(unmatchedDb.size) }
+
+            // Calculate header scores
+            for (i in unmatchedRead.indices) {
+                for (j in unmatchedDb.indices) {
+                    val score = unmatchedRead[i].headerMatchScore(unmatchedDb[j])
+                    scoreMatrix[i][j] = score
+                }
+            }
+
+            val takenReadIndices = mutableSetOf<Int>()
+            val takenDbIndices = mutableSetOf<Int>()
+
+            // Find best matches iteratively
+            while (true) {
+                var maxScore = 0
+                var maxReadIndex = -1
+                var maxDbIndex = -1
+
+                for (i in unmatchedRead.indices) {
+                    if (takenReadIndices.contains(i)) continue
+                    for (j in unmatchedDb.indices) {
+                        if (takenDbIndices.contains(j)) continue
+                        if (scoreMatrix[i][j] > maxScore) {
+                            maxScore = scoreMatrix[i][j]
+                            maxReadIndex = i
+                            maxDbIndex = j
+                        }
+                    }
+                }
+
+                if (maxScore < 25) break // Same threshold for header-only
+
+                takenReadIndices.add(maxReadIndex)
+                takenDbIndices.add(maxDbIndex)
+
+                val originalReadIndex = readToOriginalIndex[unmatchedRead[maxReadIndex]]!!
+                val originalDbIndex = dbToOriginalIndex[unmatchedDb[maxDbIndex]]!!
+
+                matches.add(Pair(originalReadIndex, originalDbIndex))
+                matchedReadIndices.add(originalReadIndex)
+                matchedDbIndices.add(originalDbIndex)
+            }
+        }
+
+        log.debug("Header-only Stage 3 completed: ${matches.size - initialMatches} fallback matches found")
     }
 
     private fun createImportDTO(eingangsrechnungDO: EingangsrechnungDO): EingangsrechnungPosImportDTO {
@@ -293,5 +377,366 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         }
 
         return dto
+    }
+
+    /**
+     * Stage 1: Find exact matches using hash-based lookups for maximum performance.
+     * Creates hash maps for fast O(1) lookups of exact matches.
+     */
+    private fun findExactMatches(
+        readInvoices: List<EingangsrechnungPosImportDTO>,
+        dbInvoices: List<EingangsrechnungDO>,
+        matchedReadIndices: MutableSet<Int>,
+        matchedDbIndices: MutableSet<Int>,
+        matches: MutableList<Pair<Int, Int>>
+    ) {
+        // Create hash maps for fast lookups - O(n)
+        val dbByReferenzDateAmount = mutableMapOf<String, MutableList<Pair<Int, EingangsrechnungDO>>>()
+        val dbByReferenzCreditor = mutableMapOf<String, MutableList<Pair<Int, EingangsrechnungDO>>>()
+
+        // Build hash maps for database invoices
+        dbInvoices.forEachIndexed { index, dbInvoice ->
+            if (matchedDbIndices.contains(index)) return@forEachIndexed
+
+            // Primary key: referenz + datum + grossSum
+            val referenz = dbInvoice.referenz?.trim()?.lowercase()
+            val datum = dbInvoice.datum
+            val grossSum = try { dbInvoice.ensuredInfo.grossSum } catch (e: Exception) { null }
+
+            if (!referenz.isNullOrBlank() && datum != null && grossSum != null) {
+                val primaryKey = "$referenz|$datum|$grossSum"
+                dbByReferenzDateAmount.getOrPut(primaryKey) { mutableListOf() }.add(Pair(index, dbInvoice))
+            }
+
+            // Secondary key: referenz + kreditor
+            val kreditor = dbInvoice.kreditor?.trim()?.lowercase()
+            if (!referenz.isNullOrBlank() && !kreditor.isNullOrBlank()) {
+                val secondaryKey = "$referenz|$kreditor"
+                dbByReferenzCreditor.getOrPut(secondaryKey) { mutableListOf() }.add(Pair(index, dbInvoice))
+            }
+        }
+
+        // Find matches for read invoices - O(n)
+        readInvoices.forEachIndexed { readIndex, readInvoice ->
+            if (matchedReadIndices.contains(readIndex)) return@forEachIndexed
+
+            val referenz = readInvoice.referenz?.trim()?.lowercase()
+            val datum = readInvoice.datum
+            val grossSum = readInvoice.grossSum
+
+            // Try primary key match first (referenz + datum + grossSum)
+            if (!referenz.isNullOrBlank() && datum != null && grossSum != null) {
+                val primaryKey = "$referenz|$datum|$grossSum"
+                dbByReferenzDateAmount[primaryKey]?.firstOrNull { (dbIndex, _) ->
+                    !matchedDbIndices.contains(dbIndex)
+                }?.let { (dbIndex, _) ->
+                    matches.add(Pair(readIndex, dbIndex))
+                    matchedReadIndices.add(readIndex)
+                    matchedDbIndices.add(dbIndex)
+                    log.debug("Exact match (primary): ${readInvoice.referenz}")
+                    return@forEachIndexed
+                }
+            }
+
+            // Try secondary key match (referenz + kreditor)
+            val kreditor = readInvoice.kreditor?.trim()?.lowercase()
+            if (!referenz.isNullOrBlank() && !kreditor.isNullOrBlank()) {
+                val secondaryKey = "$referenz|$kreditor"
+                dbByReferenzCreditor[secondaryKey]?.firstOrNull { (dbIndex, _) ->
+                    !matchedDbIndices.contains(dbIndex)
+                }?.let { (dbIndex, _) ->
+                    matches.add(Pair(readIndex, dbIndex))
+                    matchedReadIndices.add(readIndex)
+                    matchedDbIndices.add(dbIndex)
+                    log.debug("Exact match (secondary): ${readInvoice.referenz}")
+                    return@forEachIndexed
+                }
+            }
+        }
+
+        log.debug("Stage 1 completed: ${matches.size} exact matches found")
+    }
+
+    /**
+     * Stage 2: Find grouped matches by organizing invoices into relevant groups
+     * and only comparing within those groups.
+     */
+    private fun findGroupedMatches(
+        readInvoices: List<EingangsrechnungPosImportDTO>,
+        dbInvoices: List<EingangsrechnungDO>,
+        matchedReadIndices: MutableSet<Int>,
+        matchedDbIndices: MutableSet<Int>,
+        matches: MutableList<Pair<Int, Int>>
+    ) {
+        val initialMatches = matches.size
+
+        // Group by invoice number (referenz)
+        findMatchesInReferenzGroups(readInvoices, dbInvoices, matchedReadIndices, matchedDbIndices, matches)
+
+        // Group by creditor for remaining unmatched invoices
+        findMatchesInCreditorGroups(readInvoices, dbInvoices, matchedReadIndices, matchedDbIndices, matches)
+
+        log.debug("Stage 2 completed: ${matches.size - initialMatches} grouped matches found")
+    }
+
+    /**
+     * Stage 3: Fallback matching for remaining invoices with limited comparisons.
+     * Uses the traditional scoring approach but with optimizations.
+     */
+    private fun findFallbackMatches(
+        readInvoices: List<EingangsrechnungPosImportDTO>,
+        dbInvoices: List<EingangsrechnungDO>,
+        matchedReadIndices: MutableSet<Int>,
+        matchedDbIndices: MutableSet<Int>,
+        matches: MutableList<Pair<Int, Int>>
+    ) {
+        val initialMatches = matches.size
+        val unmatchedRead = readInvoices.filterIndexed { index, _ -> !matchedReadIndices.contains(index) }
+        val unmatchedDb = dbInvoices.filterIndexed { index, _ -> !matchedDbIndices.contains(index) }
+
+        if (unmatchedRead.isEmpty() || unmatchedDb.isEmpty()) {
+            return
+        }
+
+        // For smaller remaining sets, use the original algorithm with optimizations
+        if (unmatchedRead.size * unmatchedDb.size <= 1000) { // Limit to reasonable comparison count
+            val readToOriginalIndex = readInvoices.mapIndexed { index, invoice -> invoice to index }.toMap()
+            val dbToOriginalIndex = dbInvoices.mapIndexed { index, invoice -> invoice to index }.toMap()
+
+            val scoreMatrix = Array(unmatchedRead.size) { IntArray(unmatchedDb.size) }
+
+            // Calculate scores with early exit optimization
+            for (i in unmatchedRead.indices) {
+                for (j in unmatchedDb.indices) {
+                    val score = unmatchedRead[i].matchScore(unmatchedDb[j])
+                    scoreMatrix[i][j] = score
+                }
+            }
+
+            val takenReadIndices = mutableSetOf<Int>()
+            val takenDbIndices = mutableSetOf<Int>()
+
+            // Find best matches iteratively
+            while (true) {
+                var maxScore = 0
+                var maxReadIndex = -1
+                var maxDbIndex = -1
+
+                for (i in unmatchedRead.indices) {
+                    if (takenReadIndices.contains(i)) continue
+                    for (j in unmatchedDb.indices) {
+                        if (takenDbIndices.contains(j)) continue
+                        if (scoreMatrix[i][j] > maxScore) {
+                            maxScore = scoreMatrix[i][j]
+                            maxReadIndex = i
+                            maxDbIndex = j
+                        }
+                    }
+                }
+
+                if (maxScore < 25) break // Require meaningful match
+
+                takenReadIndices.add(maxReadIndex)
+                takenDbIndices.add(maxDbIndex)
+
+                // Map back to original indices
+                val originalReadIndex = readToOriginalIndex[unmatchedRead[maxReadIndex]]!!
+                val originalDbIndex = dbToOriginalIndex[unmatchedDb[maxDbIndex]]!!
+
+                matches.add(Pair(originalReadIndex, originalDbIndex))
+                matchedReadIndices.add(originalReadIndex)
+                matchedDbIndices.add(originalDbIndex)
+            }
+        }
+
+        log.debug("Stage 3 completed: ${matches.size - initialMatches} fallback matches found")
+    }
+
+    /**
+     * Group by invoice number (referenz) and find matches within each group.
+     */
+    private fun findMatchesInReferenzGroups(
+        readInvoices: List<EingangsrechnungPosImportDTO>,
+        dbInvoices: List<EingangsrechnungDO>,
+        matchedReadIndices: MutableSet<Int>,
+        matchedDbIndices: MutableSet<Int>,
+        matches: MutableList<Pair<Int, Int>>
+    ) {
+        // Group database invoices by referenz
+        val dbByReferenz = dbInvoices.mapIndexed { index, invoice ->
+            index to invoice
+        }.filter { (index, _) -> !matchedDbIndices.contains(index) }
+         .groupBy { (_, invoice) -> invoice.referenz?.trim()?.lowercase() }
+         .filterKeys { !it.isNullOrBlank() }
+
+        // Find matches for each read invoice within its referenz group
+        readInvoices.forEachIndexed { readIndex, readInvoice ->
+            if (matchedReadIndices.contains(readIndex)) return@forEachIndexed
+
+            val referenz = readInvoice.referenz?.trim()?.lowercase()
+            if (referenz.isNullOrBlank()) return@forEachIndexed
+
+            val candidateGroup = dbByReferenz[referenz] ?: return@forEachIndexed
+            var bestMatch: Pair<Int, Int>? = null
+            var bestScore = 24 // Just below our minimum threshold of 25
+
+            // Score all candidates in this referenz group
+            candidateGroup.forEach { (dbIndex, dbInvoice) ->
+                if (matchedDbIndices.contains(dbIndex)) return@forEach
+
+                val score = readInvoice.matchScore(dbInvoice)
+                if (score > bestScore) {
+                    bestScore = score
+                    bestMatch = Pair(readIndex, dbIndex)
+                }
+            }
+
+            // Add the best match if it meets our threshold
+            bestMatch?.let { (readIdx, dbIdx) ->
+                matches.add(Pair(readIdx, dbIdx))
+                matchedReadIndices.add(readIdx)
+                matchedDbIndices.add(dbIdx)
+                log.debug("Referenz group match: ${readInvoice.referenz} (score: $bestScore)")
+            }
+        }
+    }
+
+    /**
+     * Group by creditor and find matches within each group for remaining invoices.
+     */
+    private fun findMatchesInCreditorGroups(
+        readInvoices: List<EingangsrechnungPosImportDTO>,
+        dbInvoices: List<EingangsrechnungDO>,
+        matchedReadIndices: MutableSet<Int>,
+        matchedDbIndices: MutableSet<Int>,
+        matches: MutableList<Pair<Int, Int>>
+    ) {
+        // Group database invoices by kreditor
+        val dbByKreditor = dbInvoices.mapIndexed { index, invoice ->
+            index to invoice
+        }.filter { (index, _) -> !matchedDbIndices.contains(index) }
+         .groupBy { (_, invoice) -> invoice.kreditor?.trim()?.lowercase() }
+         .filterKeys { !it.isNullOrBlank() }
+
+        // Find matches for each read invoice within its kreditor group
+        readInvoices.forEachIndexed { readIndex, readInvoice ->
+            if (matchedReadIndices.contains(readIndex)) return@forEachIndexed
+
+            val kreditor = readInvoice.kreditor?.trim()?.lowercase()
+            if (kreditor.isNullOrBlank()) return@forEachIndexed
+
+            val candidateGroup = dbByKreditor[kreditor] ?: return@forEachIndexed
+            var bestMatch: Pair<Int, Int>? = null
+            var bestScore = 24 // Just below our minimum threshold of 25
+
+            // Score all candidates in this kreditor group
+            candidateGroup.forEach { (dbIndex, dbInvoice) ->
+                if (matchedDbIndices.contains(dbIndex)) return@forEach
+
+                val score = readInvoice.matchScore(dbInvoice)
+                if (score > bestScore) {
+                    bestScore = score
+                    bestMatch = Pair(readIndex, dbIndex)
+                }
+            }
+
+            // Add the best match if it meets our threshold
+            bestMatch?.let { (readIdx, dbIdx) ->
+                matches.add(Pair(readIdx, dbIdx))
+                matchedReadIndices.add(readIdx)
+                matchedDbIndices.add(dbIdx)
+                log.debug("Kreditor group match: ${readInvoice.kreditor} (score: $bestScore)")
+            }
+        }
+    }
+
+    /**
+     * Group by invoice number (referenz) and find header matches within each group.
+     */
+    private fun findHeaderMatchesInReferenzGroups(
+        readInvoices: List<EingangsrechnungPosImportDTO>,
+        dbInvoices: List<EingangsrechnungDO>,
+        matchedReadIndices: MutableSet<Int>,
+        matchedDbIndices: MutableSet<Int>,
+        matches: MutableList<Pair<Int, Int>>
+    ) {
+        val dbByReferenz = dbInvoices.mapIndexed { index, invoice ->
+            index to invoice
+        }.filter { (index, _) -> !matchedDbIndices.contains(index) }
+         .groupBy { (_, invoice) -> invoice.referenz?.trim()?.lowercase() }
+         .filterKeys { !it.isNullOrBlank() }
+
+        readInvoices.forEachIndexed { readIndex, readInvoice ->
+            if (matchedReadIndices.contains(readIndex)) return@forEachIndexed
+
+            val referenz = readInvoice.referenz?.trim()?.lowercase()
+            if (referenz.isNullOrBlank()) return@forEachIndexed
+
+            val candidateGroup = dbByReferenz[referenz] ?: return@forEachIndexed
+            var bestMatch: Pair<Int, Int>? = null
+            var bestScore = 24
+
+            candidateGroup.forEach { (dbIndex, dbInvoice) ->
+                if (matchedDbIndices.contains(dbIndex)) return@forEach
+
+                val score = readInvoice.headerMatchScore(dbInvoice)
+                if (score > bestScore) {
+                    bestScore = score
+                    bestMatch = Pair(readIndex, dbIndex)
+                }
+            }
+
+            bestMatch?.let { (readIdx, dbIdx) ->
+                matches.add(Pair(readIdx, dbIdx))
+                matchedReadIndices.add(readIdx)
+                matchedDbIndices.add(dbIdx)
+                log.debug("Header referenz group match: ${readInvoice.referenz} (score: $bestScore)")
+            }
+        }
+    }
+
+    /**
+     * Group by creditor and find header matches within each group.
+     */
+    private fun findHeaderMatchesInCreditorGroups(
+        readInvoices: List<EingangsrechnungPosImportDTO>,
+        dbInvoices: List<EingangsrechnungDO>,
+        matchedReadIndices: MutableSet<Int>,
+        matchedDbIndices: MutableSet<Int>,
+        matches: MutableList<Pair<Int, Int>>
+    ) {
+        val dbByKreditor = dbInvoices.mapIndexed { index, invoice ->
+            index to invoice
+        }.filter { (index, _) -> !matchedDbIndices.contains(index) }
+         .groupBy { (_, invoice) -> invoice.kreditor?.trim()?.lowercase() }
+         .filterKeys { !it.isNullOrBlank() }
+
+        readInvoices.forEachIndexed { readIndex, readInvoice ->
+            if (matchedReadIndices.contains(readIndex)) return@forEachIndexed
+
+            val kreditor = readInvoice.kreditor?.trim()?.lowercase()
+            if (kreditor.isNullOrBlank()) return@forEachIndexed
+
+            val candidateGroup = dbByKreditor[kreditor] ?: return@forEachIndexed
+            var bestMatch: Pair<Int, Int>? = null
+            var bestScore = 24
+
+            candidateGroup.forEach { (dbIndex, dbInvoice) ->
+                if (matchedDbIndices.contains(dbIndex)) return@forEach
+
+                val score = readInvoice.headerMatchScore(dbInvoice)
+                if (score > bestScore) {
+                    bestScore = score
+                    bestMatch = Pair(readIndex, dbIndex)
+                }
+            }
+
+            bestMatch?.let { (readIdx, dbIdx) ->
+                matches.add(Pair(readIdx, dbIdx))
+                matchedReadIndices.add(readIdx)
+                matchedDbIndices.add(dbIdx)
+                log.debug("Header kreditor group match: ${readInvoice.kreditor} (score: $bestScore)")
+            }
+        }
     }
 }
