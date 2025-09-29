@@ -58,6 +58,12 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
    */
   var filename: String? = null
 
+  /**
+   * Flag indicating whether this import contains individual positions (true) or only header data (false).
+   * For invoice imports: true if "Periode" column exists, false otherwise.
+   */
+  var isPositionBasedImport: Boolean = true
+
   val title: String
     get() {
       targetEntityTitle?.let {

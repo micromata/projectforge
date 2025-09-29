@@ -25,7 +25,6 @@ package org.projectforge.rest.fibu.importer
 
 import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
-import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.framework.utils.NumberHelper
@@ -47,7 +46,6 @@ private val log = KotlinLogging.logger {}
  * - Session storage for web navigation
  */
 class IncomingInvoiceCsvImporter(
-    private val eingangsrechnungDao: EingangsrechnungDao,
     private val kostCache: KostCache,
     private val kontoCache: KontoCache,
 ) : AbstractCsvImporter<EingangsrechnungPosImportDTO>() {
@@ -58,7 +56,18 @@ class IncomingInvoiceCsvImporter(
         headers: List<String>,
         importStorage: ImportStorage<EingangsrechnungPosImportDTO>
     ): List<String> {
-        return headers.map { header -> normalizeHeader(header) }
+        val normalizedHeaders = headers.map { header -> normalizeHeader(header) }
+
+        // Detect import mode based on presence of "Periode" column
+        val hasPeriodenColumn = normalizedHeaders.any { header ->
+            header.lowercase().contains("periode")
+        }
+
+        importStorage.isPositionBasedImport = hasPeriodenColumn
+
+        log.info("Import mode detected: ${if (hasPeriodenColumn) "Position-based" else "Header-only"} (Periode column ${if (hasPeriodenColumn) "found" else "not found"})")
+
+        return normalizedHeaders
     }
 
     override fun processField(
@@ -81,15 +90,25 @@ class IncomingInvoiceCsvImporter(
             }
 
             "kost1" -> {
-                // Parse KOST1 directly during CSV parsing
-                parseKost1FromString(value, entity, rowContext.importStorage)
-                true // Prevent standard processing since we've handled it
+                // Only parse KOST1 for position-based imports
+                if (rowContext.importStorage.isPositionBasedImport) {
+                    parseKost1FromString(value, entity, rowContext.importStorage)
+                    true // Prevent standard processing since we've handled it
+                } else {
+                    log.debug("Ignoring KOST1 field '$value' in header-only import mode")
+                    true // Prevent standard processing but don't parse
+                }
             }
 
             "kost2" -> {
-                // Parse KOST2 directly during CSV parsing
-                parseKost2FromString(value, entity, rowContext.importStorage)
-                true // Prevent standard processing since we've handled it
+                // Only parse KOST2 for position-based imports
+                if (rowContext.importStorage.isPositionBasedImport) {
+                    parseKost2FromString(value, entity, rowContext.importStorage)
+                    true // Prevent standard processing since we've handled it
+                } else {
+                    log.debug("Ignoring KOST2 field '$value' in header-only import mode")
+                    true // Prevent standard processing but don't parse
+                }
             }
 
             "datum" -> {
@@ -130,9 +149,15 @@ class IncomingInvoiceCsvImporter(
     ) {
         // Consolidate and validate after all rows are processed
         if (importStorage is EingangsrechnungImportStorage) {
-            consolidateInvoicesByRenr(records, importStorage)
+            if (importStorage.isPositionBasedImport) {
+                log.info("Position-based import: consolidating ${records.size} positions")
+                consolidateInvoicesByRenr(records, importStorage)
+            } else {
+                log.info("Header-only import: processing ${records.size} invoice headers")
+                consolidateHeaderOnlyInvoices(records, importStorage)
+            }
 
-            log.info("Import finalized: ${records.size} positions processed")
+            log.info("Import finalized: ${records.size} records processed")
             log.info("Found ${importStorage.consolidatedInvoices.size} consolidated invoices")
 
             if (importStorage.errorList.isNotEmpty()) {
@@ -330,6 +355,61 @@ class IncomingInvoiceCsvImporter(
         checkForDuplicateInvoices(records, importStorage)
     }
 
+    private fun consolidateHeaderOnlyInvoices(
+        records: List<EingangsrechnungPosImportDTO>,
+        importStorage: EingangsrechnungImportStorage
+    ) {
+        log.info("Starting consolidation of header-only invoices...")
+
+        // For header-only imports, each record represents a complete invoice
+        // Group by RENR+Kreditor+Datum to handle duplicates but don't create multiple positions
+        val groupedByInvoiceKey = records.groupBy {
+            val renr = it.referenz ?: "UNKNOWN"
+            val kreditor = it.kreditor ?: "UNKNOWN_KREDITOR"
+            val datum = it.datum?.toString() ?: "UNKNOWN_DATUM"
+            "$renr|$kreditor|$datum"
+        }
+
+        log.info("Found ${groupedByInvoiceKey.size} unique invoices (by RENR+Kreditor+Datum) from ${records.size} header records")
+
+        var consolidatedInvoices = mutableMapOf<String, List<EingangsrechnungPosImportDTO>>()
+
+        groupedByInvoiceKey.forEach { (invoiceKey, headerRecords) ->
+            val parts = invoiceKey.split("|")
+            val renr = parts[0]
+            val kreditor = parts[1]
+            val datum = parts[2]
+
+            log.debug("Processing header-only invoice RENR='$renr', Kreditor='$kreditor', Datum='$datum'")
+
+            if (headerRecords.size > 1) {
+                val warningMsg = "Multiple header records found for same invoice: RENR '$renr', Kreditor '$kreditor', Datum '$datum' (${headerRecords.size} records). Using first record."
+                importStorage.addWarning(warningMsg)
+                log.warn(warningMsg)
+            }
+
+            // For header-only import, use only the first record as single position
+            val primaryRecord = headerRecords.first()
+            primaryRecord.positionNummer = 1
+
+            // Validate header consistency within duplicate records
+            if (headerRecords.size > 1) {
+                validateInvoiceHeaderConsistency(renr, headerRecords, importStorage)
+            }
+
+            // Store by RENR for backward compatibility
+            if (renr != "UNKNOWN") {
+                consolidatedInvoices[renr] = listOf(primaryRecord)
+            }
+        }
+
+        importStorage.consolidatedInvoices = consolidatedInvoices
+        log.info("Header-only consolidation completed. ${importStorage.consolidatedInvoices.size} invoices consolidated.")
+
+        // Check for duplicate invoices (same RENR+datum, different kreditor)
+        checkForDuplicateInvoices(records, importStorage)
+    }
+
     private fun checkForDuplicateInvoices(
         records: List<EingangsrechnungPosImportDTO>,
         importStorage: EingangsrechnungImportStorage
@@ -354,7 +434,10 @@ class IncomingInvoiceCsvImporter(
                 val renr = parts[0]
                 val datum = parts[1]
 
-                val warningMsg = "Duplicate invoice detected: RENR '$renr', Datum '$datum' has ${kreditors.size} different creditors: ${kreditors.joinToString(", ")}"
+                val warningMsg =
+                    "Duplicate invoice detected: RENR '$renr', Datum '$datum' has ${kreditors.size} different creditors: ${
+                        kreditors.joinToString(", ")
+                    }"
                 importStorage.addWarning(warningMsg)
                 log.warn(warningMsg)
                 duplicatesFound++
@@ -390,6 +473,12 @@ class IncomingInvoiceCsvImporter(
         importStorage: EingangsrechnungImportStorage
     ) {
         if (positions.isEmpty()) return
+
+        // For header-only imports, validation is less strict as there's only one record per invoice
+        if (!importStorage.isPositionBasedImport) {
+            log.debug("Header-only import: skipping position consistency validation for RENR '$renr'")
+            return
+        }
 
         val invoiceHeaderFields = listOf(
             "kreditor", "konto", "referenz", "datum", "faelligkeit",

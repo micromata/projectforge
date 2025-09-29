@@ -121,14 +121,22 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             if (date != null) {
                 val readByDate = readInvoicesByDate[date] ?: emptyList()
                 val dbByDate = dbInvoicesByDate[date] ?: emptyList()
-                buildMatchingPairs(readByDate, dbByDate)
+                if (isPositionBasedImport) {
+                    buildMatchingPairs(readByDate, dbByDate)
+                } else {
+                    buildHeaderOnlyMatchingPairs(readByDate, dbByDate)
+                }
             }
         }
 
         // Handle imported invoices without date (mark as NEW)
         val readWithoutDate = readInvoicesByDate[null] ?: emptyList()
         if (readWithoutDate.isNotEmpty()) {
-            buildMatchingPairs(readWithoutDate, emptyList())
+            if (isPositionBasedImport) {
+                buildMatchingPairs(readWithoutDate, emptyList())
+            } else {
+                buildHeaderOnlyMatchingPairs(readWithoutDate, emptyList())
+            }
         }
     }
 
@@ -197,6 +205,77 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         }
 
         // Add unmatched database entries as deleted
+        for (j in dbInvoicesByDate.indices) {
+            if (!takenDbEntries.contains(j)) {
+                addEntry(ImportPairEntry(null, createImportDTO(dbInvoicesByDate[j])))
+            }
+        }
+    }
+
+    /**
+     * Builds matching pairs for header-only imports.
+     * Only matches based on header fields, preserves existing positions.
+     */
+    private fun buildHeaderOnlyMatchingPairs(
+        readByDate: List<EingangsrechnungPosImportDTO>,
+        dbInvoicesByDate: List<EingangsrechnungDO>
+    ) {
+        if (readByDate.isEmpty()) {
+            // Only database entries exist - mark as deleted (header-only, so just the header)
+            dbInvoicesByDate.forEach { dbInvoice ->
+                addEntry(ImportPairEntry(null, createImportDTO(dbInvoice)))
+            }
+            return
+        }
+
+        // For header-only import, match based on invoice header data only
+        // Each read entry represents a complete invoice header
+        val scoreMatrix = Array(readByDate.size) { IntArray(dbInvoicesByDate.size) }
+        for (i in readByDate.indices) {
+            for (j in dbInvoicesByDate.indices) {
+                // Use header-only matching score (higher weight on header fields)
+                scoreMatrix[i][j] = readByDate[i].headerMatchScore(dbInvoicesByDate[j])
+            }
+        }
+
+        val takenReadEntries = mutableSetOf<Int>()
+        val takenDbEntries = mutableSetOf<Int>()
+
+        // Match highest scoring pairs first
+        for (iteration in 0..(readByDate.size + dbInvoicesByDate.size)) {
+            var maxScore = 0
+            var maxReadIndex = -1
+            var maxDbIndex = -1
+
+            for (i in readByDate.indices) {
+                if (takenReadEntries.contains(i)) continue
+                for (j in dbInvoicesByDate.indices) {
+                    if (takenDbEntries.contains(j)) continue
+                    if (scoreMatrix[i][j] > maxScore) {
+                        maxScore = scoreMatrix[i][j]
+                        maxReadIndex = i
+                        maxDbIndex = j
+                    }
+                }
+            }
+
+            if (maxScore < 2) break // Lower threshold for header-only matching
+
+            takenReadEntries.add(maxReadIndex)
+            takenDbEntries.add(maxDbIndex)
+            // For header-only import, the matched entry updates header data only
+            val dbDto = createImportDTO(dbInvoicesByDate[maxDbIndex])
+            addEntry(ImportPairEntry(readByDate[maxReadIndex], dbDto))
+        }
+
+        // Add unmatched read entries as new
+        for (i in readByDate.indices) {
+            if (!takenReadEntries.contains(i)) {
+                addEntry(ImportPairEntry(readByDate[i], null))
+            }
+        }
+
+        // Add unmatched database entries as deleted (header-only)
         for (j in dbInvoicesByDate.indices) {
             if (!takenDbEntries.contains(j)) {
                 addEntry(ImportPairEntry(null, createImportDTO(dbInvoicesByDate[j])))

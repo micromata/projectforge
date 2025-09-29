@@ -49,9 +49,6 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
     private lateinit var accessChecker: AccessChecker
 
     @Autowired
-    private lateinit var eingangsrechnungDao: EingangsrechnungDao
-
-    @Autowired
     private lateinit var kostCache: KostCache
 
     @Autowired
@@ -132,7 +129,6 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
         } else {
             // Parse CSV file with consolidated importer that handles all processing in one step
             val csvImporter = IncomingInvoiceCsvImporter(
-                eingangsrechnungDao,
                 kostCache,
                 kontoCache
             )
