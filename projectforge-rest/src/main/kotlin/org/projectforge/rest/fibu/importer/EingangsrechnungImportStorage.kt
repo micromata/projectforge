@@ -113,30 +113,26 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         // Clear existing pair entries before rebuilding
         clearEntries()
 
-        // Group invoices by date for efficient day-by-day processing
-        val readInvoicesByDate = readInvoices.groupBy { it.datum }
-        val dbInvoicesByDate = databaseInvoices?.groupBy { it.datum } ?: emptyMap()
+        // Process all invoices together to allow cross-date matching
+        // The date matching score will handle date proximity properly
+        val readInvoicesWithDate = readInvoices.filter { it.datum != null }
+        val readInvoicesWithoutDate = readInvoices.filter { it.datum == null }
+        val dbInvoicesAll = databaseInvoices ?: emptyList()
 
-        // Process each date separately to reduce comparison complexity
-        readInvoicesByDate.keys.plus(dbInvoicesByDate.keys).distinct().forEach { date ->
-            if (date != null) {
-                val readByDate = readInvoicesByDate[date] ?: emptyList()
-                val dbByDate = dbInvoicesByDate[date] ?: emptyList()
-                if (isPositionBasedImport) {
-                    buildMatchingPairs(readByDate, dbByDate)
-                } else {
-                    buildHeaderOnlyMatchingPairs(readByDate, dbByDate)
-                }
+        if (readInvoicesWithDate.isNotEmpty() || dbInvoicesAll.isNotEmpty()) {
+            if (isPositionBasedImport) {
+                buildMatchingPairs(readInvoicesWithDate, dbInvoicesAll)
+            } else {
+                buildHeaderOnlyMatchingPairs(readInvoicesWithDate, dbInvoicesAll)
             }
         }
 
-        // Handle imported invoices without date (mark as NEW)
-        val readWithoutDate = readInvoicesByDate[null] ?: emptyList()
-        if (readWithoutDate.isNotEmpty()) {
+        // Handle imported invoices without date separately (mark as NEW)
+        if (readInvoicesWithoutDate.isNotEmpty()) {
             if (isPositionBasedImport) {
-                buildMatchingPairs(readWithoutDate, emptyList())
+                buildMatchingPairs(readInvoicesWithoutDate, emptyList())
             } else {
-                buildHeaderOnlyMatchingPairs(readWithoutDate, emptyList())
+                buildHeaderOnlyMatchingPairs(readInvoicesWithoutDate, emptyList())
             }
         }
     }
@@ -191,7 +187,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
                 }
             }
 
-            if (maxScore < 1) break // No more meaningful matches
+            if (maxScore < 25) break // Require meaningful match (creditor similarity + additional factors)
 
             takenReadEntries.add(maxReadIndex)
             takenDbEntries.add(maxDbIndex)
@@ -260,7 +256,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
                 }
             }
 
-            if (maxScore < 2) break // Lower threshold for header-only matching
+            if (maxScore < 25) break // Require meaningful match for header-only (same as position-based)
 
             takenReadEntries.add(maxReadIndex)
             takenDbEntries.add(maxDbIndex)
@@ -291,8 +287,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         // Calculate grossSum from invoice positions
         try {
             // Always calculate to ensure we have current values
-            org.projectforge.business.fibu.RechnungCalculator.calculate(eingangsrechnungDO, useCaches = false)
-            dto.grossSum = eingangsrechnungDO.info.grossSum
+            dto.grossSum = eingangsrechnungDO.ensuredInfo.grossSum
         } catch (e: Exception) {
             log.error("Could not calculate grossSum for invoice ${eingangsrechnungDO.id}, using zahlBetrag as fallback", e)
         }
