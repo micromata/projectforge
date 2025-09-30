@@ -28,6 +28,9 @@ import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.common.StringMatchUtils
 import org.projectforge.framework.configuration.ApplicationContextProvider
+import org.projectforge.rest.dto.Konto
+import org.projectforge.rest.dto.Kost1
+import org.projectforge.rest.dto.Kost2
 import org.projectforge.rest.importer.ImportPairEntry
 import org.projectforge.rest.importer.ImportSettings
 import org.projectforge.rest.importer.ImportStorage
@@ -450,19 +453,35 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             headerToConsolidated[consolidated.header] = consolidated
         }
 
-        // Process matches: expand to all positions
+        // Process matches: expand to positions and pair by index
         matches.forEach { (readIndex, dbIndex) ->
             val header = readHeaders[readIndex]
             val dbInvoice = dbInvoices[dbIndex]
-            val dbDto = createImportDTO(dbInvoice)
             val consolidated = headerToConsolidated[header]
 
             if (consolidated != null) {
-                log.debug { "  Match: Import invoice '${header.referenz}' (${consolidated.positions.size} positions) → DB invoice '${dbInvoice.referenz}'" }
+                val importPositions = consolidated.positions
+                val dbPositionCount = dbInvoice.positionen?.size ?: 0
+                val maxPositions = maxOf(importPositions.size, dbPositionCount)
 
-                // Create pair entry for EACH position of this invoice
-                consolidated.positions.forEach { position ->
-                    addEntry(ImportPairEntry(position, dbDto))
+                log.debug { "  Match: Import invoice '${header.referenz}' (${importPositions.size} positions) → DB invoice '${dbInvoice.referenz}' (${dbPositionCount} positions)" }
+
+                // Pair positions by index: Import[0]↔DB[0], Import[1]↔DB[1], etc.
+                for (i in 0 until maxPositions) {
+                    val importPos = importPositions.getOrNull(i)
+                    val dbDto = if (i < dbPositionCount) {
+                        createImportDTOForPosition(dbInvoice, i)
+                    } else {
+                        null  // DB position doesn't exist (import has more positions)
+                    }
+
+                    if (importPos != null) {
+                        // Import position exists
+                        addEntry(ImportPairEntry(importPos, dbDto))
+                    } else if (dbDto != null) {
+                        // Only DB position exists (import has fewer positions)
+                        addEntry(ImportPairEntry(null, dbDto))
+                    }
                 }
             } else {
                 log.warn { "  No consolidated invoice found for header: ${header.referenz}" }
@@ -586,16 +605,64 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         log.debug { "Header-only Stage 3 completed: ${matches.size - initialMatches} fallback matches found" }
     }
 
+    /**
+     * Creates an import DTO from a DB invoice header (without position-specific fields).
+     * Used for header-only imports and deleted invoice entries.
+     */
     private fun createImportDTO(eingangsrechnungDO: EingangsrechnungDO): EingangsrechnungPosImportDTO {
         val dto = EingangsrechnungPosImportDTO()
         dto.copyFrom(eingangsrechnungDO)
 
         // Calculate grossSum from invoice positions
         try {
-            // Always calculate to ensure we have current values
             dto.grossSum = eingangsrechnungDO.ensuredInfo.grossSum
         } catch (e: Exception) {
-            log.error(e) { "Could not calculate grossSum for invoice ${eingangsrechnungDO.id}, using zahlBetrag as fallback" }
+            log.error(e) { "Could not calculate grossSum for invoice ${eingangsrechnungDO.id}" }
+        }
+
+        return dto
+    }
+
+    /**
+     * Creates an import DTO for a specific position within a DB invoice.
+     * Pairs import positions with DB positions by index for position-based imports.
+     *
+     * @param eingangsrechnungDO The database invoice
+     * @param positionIndex The 0-based position index
+     * @return DTO with position-specific fields from the specified DB position
+     */
+    private fun createImportDTOForPosition(
+        eingangsrechnungDO: EingangsrechnungDO,
+        positionIndex: Int
+    ): EingangsrechnungPosImportDTO {
+        val dto = EingangsrechnungPosImportDTO()
+        dto.copyFrom(eingangsrechnungDO)
+
+        // Calculate grossSum from invoice positions
+        try {
+            dto.grossSum = eingangsrechnungDO.ensuredInfo.grossSum
+        } catch (e: Exception) {
+            log.error(e) { "Could not calculate grossSum for invoice ${eingangsrechnungDO.id}" }
+        }
+
+        // Get position by index (in order)
+        val dbPosition = eingangsrechnungDO.positionen?.getOrNull(positionIndex)
+
+        if (dbPosition != null) {
+            // Copy position-specific fields
+            dto.taxRate = dbPosition.vat
+            dto.positionNummer = dbPosition.number.toInt()
+
+            // Copy kost1/kost2 from first cost assignment
+            val firstKostZuweisung = dbPosition.kostZuweisungen?.firstOrNull()
+            if (firstKostZuweisung != null) {
+                firstKostZuweisung.kost1?.let { kost1 ->
+                    dto.kost1 = Kost1(kost1.nummer.toLong(), kost1.description)
+                }
+                firstKostZuweisung.kost2?.let { kost2 ->
+                    dto.kost2 = Kost2(kost2.nummer.toLong(), kost2.description)
+                }
+            }
         }
 
         return dto

@@ -24,6 +24,7 @@
 package org.projectforge.rest.importer
 
 import org.projectforge.common.BeanHelper
+import org.projectforge.common.extensions.formatForUser
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.rest.dto.BaseDTO
 import java.math.BigDecimal
@@ -55,9 +56,10 @@ class ImportPairEntry<O : ImportPairEntry.Modified<O>>(
   interface Modified<O> {
     fun buildOldDiffValue(map: MutableMap<String, Any>, property: String, value: Any?, old: Any?) {
       if (isModified(value, old)) {
-        var useOldValue = old ?: ""
-        if (useOldValue is String) {
-          useOldValue = useOldValue.trim()
+        var useOldValue: Any = old ?: ""
+        when (useOldValue) {
+          is String -> useOldValue = useOldValue.trim()
+          is Number -> useOldValue = useOldValue.formatForUser()
         }
         map["read.$property"] = useOldValue
       }
@@ -73,9 +75,10 @@ class ImportPairEntry<O : ImportPairEntry.Modified<O>>(
       val readValue = BeanHelper.getProperty(read, property.name)
       val oldValue = BeanHelper.getProperty(stored, property.name)
       if (isModified(readValue, oldValue)) {
-        var useOldValue = oldValue ?: ""
-        if (useOldValue is String) {
-          useOldValue = useOldValue.trim()
+        var useOldValue: Any = oldValue ?: ""
+        when (useOldValue) {
+          is String -> useOldValue = useOldValue.trim()
+          is Number -> useOldValue = useOldValue.formatForUser()
         }
         map["read.${property.name}"] = useOldValue
       }
