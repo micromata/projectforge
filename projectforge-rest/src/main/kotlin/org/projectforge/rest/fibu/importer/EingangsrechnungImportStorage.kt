@@ -51,8 +51,20 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
      * Map of consolidated invoices grouped by RENR (invoice number).
      * Key: RENR (invoice number)
      * Value: List of positions belonging to that invoice
+     * Used by IncomingInvoiceCsvImporter for backward compatibility.
      */
     var consolidatedInvoices = mapOf<String, List<EingangsrechnungPosImportDTO>>()
+
+    /**
+     * Internal data structure for header-based matching in position-based imports.
+     * Groups positions by (referenz, datum, kreditor) for accurate matching.
+     */
+    data class ConsolidatedInvoice(
+        val header: EingangsrechnungPosImportDTO,
+        val positions: List<EingangsrechnungPosImportDTO>
+    )
+
+    private var consolidatedInvoicesByHeader = mapOf<String, ConsolidatedInvoice>()
 
     /**
      * Database invoices within the import date range for reconciliation matching.
@@ -109,10 +121,16 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         if (rereadDatabaseEntries) {
             val eingangsrechnungDao = ApplicationContextProvider.getApplicationContext().getBean(EingangsrechnungDao::class.java)
             databaseInvoices = eingangsrechnungDao.getByDateRange(from, until)
+            log.info { "=== DATABASE INVOICES LOADED (Date range: $from to $until) ===" }
+            databaseInvoices?.forEachIndexed { index, invoice ->
+                log.info { "  DB[$index]: referenz='${invoice.referenz}', kreditor='${invoice.kreditor}', datum=${invoice.datum}, grossSum=${try { invoice.ensuredInfo.grossSum } catch (e: Exception) { "ERROR" }}" }
+            }
+            log.info { "=== TOTAL: ${databaseInvoices?.size ?: 0} DB invoices loaded ===" }
         }
 
-        // Clear existing pair entries before rebuilding
+        // Clear existing pair entries and consolidated invoices before rebuilding
         clearEntries()
+        consolidatedInvoicesByHeader = emptyMap()
 
         // Process all invoices together to allow cross-date matching
         // The date matching score will handle date proximity properly
@@ -122,8 +140,11 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
 
         if (readInvoicesWithDate.isNotEmpty() || dbInvoicesAll.isNotEmpty()) {
             if (isPositionBasedImport) {
-                buildMatchingPairs(readInvoicesWithDate, dbInvoicesAll)
+                // Use consolidated matching for position-based imports
+                // This prevents incorrect matches when number of positions differs between import and DB
+                buildConsolidatedMatchingPairs(readInvoicesWithDate, dbInvoicesAll)
             } else {
+                // Use header-only matching for header-only imports
                 buildHeaderOnlyMatchingPairs(readInvoicesWithDate, dbInvoicesAll)
             }
         }
@@ -131,7 +152,8 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         // Handle imported invoices without date separately (mark as NEW)
         if (readInvoicesWithoutDate.isNotEmpty()) {
             if (isPositionBasedImport) {
-                buildMatchingPairs(readInvoicesWithoutDate, emptyList())
+                // Consolidate and mark as new
+                buildConsolidatedMatchingPairs(readInvoicesWithoutDate, emptyList())
             } else {
                 buildHeaderOnlyMatchingPairs(readInvoicesWithoutDate, emptyList())
             }
@@ -151,6 +173,60 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         untilDate = readInvoices.last().datum!!
     }
 
+    /**
+     * Consolidates import positions by invoice header (referenz, datum, kreditor).
+     * Groups positions that belong to the same invoice and creates header representatives
+     * with aggregated grossSum.
+     *
+     * This is essential for position-based imports to prevent incorrect matching when
+     * the number of positions differs between import and database.
+     *
+     * @return Map with key="referenz|datum|kreditor" and value=ConsolidatedInvoice
+     */
+    private fun consolidateInvoicesByHeader(positions: List<EingangsrechnungPosImportDTO>): Map<String, ConsolidatedInvoice> {
+        val grouped = positions.groupBy { pos ->
+            val referenz = pos.referenz?.trim() ?: ""
+            val datum = pos.datum?.toString() ?: ""
+            val kreditor = pos.kreditor?.trim() ?: ""
+            "$referenz|$datum|$kreditor"
+        }
+
+        return grouped.mapValues { (key, positionList) ->
+            // Create header representative from first position (manual copy of header fields only)
+            val first = positionList.first()
+            val header = EingangsrechnungPosImportDTO(
+                kreditor = first.kreditor,
+                konto = first.konto,
+                referenz = first.referenz,
+                betreff = first.betreff,
+                datum = first.datum,
+                faelligkeit = first.faelligkeit,
+                bezahlDatum = first.bezahlDatum,
+                taxRate = first.taxRate,
+                currency = first.currency,
+                zahlBetrag = first.zahlBetrag,
+                discountMaturity = first.discountMaturity,
+                discountPercent = first.discountPercent,
+                iban = first.iban,
+                bic = first.bic,
+                receiver = first.receiver,
+                paymentType = first.paymentType,
+                customernr = first.customernr,
+                bemerkung = first.bemerkung
+                // Note: kost1, kost2, positionNummer are position-specific and not copied
+            )
+            header.id = first.id
+
+            // Aggregate grossSum from all positions
+            val totalGrossSum = positionList.mapNotNull { it.grossSum }.reduceOrNull { acc, sum -> acc.add(sum) }
+            header.grossSum = totalGrossSum
+
+            log.info { "Consolidated invoice: key='$key', positions=${positionList.size}, totalGrossSum=$totalGrossSum" }
+
+            ConsolidatedInvoice(header, positionList)
+        }
+    }
+
     private fun buildMatchingPairs(
         readByDate: List<EingangsrechnungPosImportDTO>,
         dbInvoicesByDate: List<EingangsrechnungDO>
@@ -165,6 +241,46 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
 
         // Use optimized multi-stage matching algorithm
         buildOptimizedMatchingPairs(readByDate, dbInvoicesByDate)
+    }
+
+    /**
+     * Builds matching pairs for position-based imports using consolidated invoice matching.
+     *
+     * This method addresses the problem where invoices have different numbers of positions
+     * in the import vs. database, which can cause incorrect matching of leftover positions.
+     *
+     * Process:
+     * 1. Consolidate import positions by (referenz, datum, kreditor) into invoices
+     * 2. Match consolidated invoices against DB invoices using header fields only
+     * 3. Expand invoice matches back to position-level pair entries
+     *
+     * @param readPositions All imported positions (may belong to different invoices)
+     * @param dbInvoices All database invoices in date range
+     */
+    private fun buildConsolidatedMatchingPairs(
+        readPositions: List<EingangsrechnungPosImportDTO>,
+        dbInvoices: List<EingangsrechnungDO>
+    ) {
+        if (readPositions.isEmpty()) {
+            // Only database entries exist - mark as deleted
+            dbInvoices.forEach { dbInvoice ->
+                addEntry(ImportPairEntry(null, createImportDTO(dbInvoice)))
+            }
+            return
+        }
+
+        log.info { "=== CONSOLIDATING IMPORT POSITIONS ===" }
+        log.info { "  Total positions to consolidate: ${readPositions.size}" }
+
+        // Step 1: Consolidate import positions by invoice header
+        consolidatedInvoicesByHeader = consolidateInvoicesByHeader(readPositions)
+        val consolidatedHeaders = consolidatedInvoicesByHeader.values.map { it.header }
+
+        log.info { "  Consolidated into ${consolidatedInvoicesByHeader.size} invoices" }
+
+        // Step 2: Match consolidated invoices against DB invoices (header-only)
+        log.info { "=== MATCHING CONSOLIDATED INVOICES (HEADER-ONLY) ===" }
+        buildOptimizedHeaderOnlyMatchingPairs(consolidatedHeaders, dbInvoices)
     }
 
     /**
@@ -183,15 +299,21 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         val matches = mutableListOf<Pair<Int, Int>>()
 
         // Stage 1: Exact matches - O(n)
-        log.debug("Stage 1: Looking for exact matches...")
+        log.debug { "Stage 1: Looking for exact matches..." }
         findExactMatches(readInvoices, dbInvoices, matchedReadIndices, matchedDbIndices, matches)
+        log.info { "=== AFTER STAGE 1: ${matches.size} matches found ===" }
+        log.info { "  Unmatched Import: ${readInvoices.size - matchedReadIndices.size} invoices" }
+        log.info { "  Unmatched DB: ${dbInvoices.size - matchedDbIndices.size} invoices" }
 
         // Stage 2: Grouped matches - O(n log n)
-        log.debug("Stage 2: Looking for grouped matches...")
+        log.debug { "Stage 2: Looking for grouped matches..." }
         findGroupedMatches(readInvoices, dbInvoices, matchedReadIndices, matchedDbIndices, matches)
+        log.info { "=== AFTER STAGE 2: ${matches.size} total matches found ===" }
+        log.info { "  Unmatched Import: ${readInvoices.size - matchedReadIndices.size} invoices" }
+        log.info { "  Unmatched DB: ${dbInvoices.size - matchedDbIndices.size} invoices" }
 
         // Stage 3: Fallback matches for remaining invoices
-        log.debug("Stage 3: Fallback matching for remaining invoices...")
+        log.debug { "Stage 3: Fallback matching for remaining invoices..." }
         findFallbackMatches(readInvoices, dbInvoices, matchedReadIndices, matchedDbIndices, matches)
 
         // Create ImportPairEntry objects from matches
@@ -236,6 +358,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
 
     /**
      * Optimized header-only matching using the same multi-stage approach.
+     * When used for consolidated position-based imports, expands matches to all positions.
      */
     private fun buildOptimizedHeaderOnlyMatchingPairs(
         readInvoices: List<EingangsrechnungPosImportDTO>,
@@ -246,36 +369,115 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         val matches = mutableListOf<Pair<Int, Int>>()
 
         // Stage 1: Exact matches - O(n)
-        log.debug("Header-only Stage 1: Looking for exact matches...")
+        log.debug { "Header-only Stage 1: Looking for exact matches..." }
         findExactMatches(readInvoices, dbInvoices, matchedReadIndices, matchedDbIndices, matches)
 
         // Stage 2: Grouped matches - O(n log n)
-        log.debug("Header-only Stage 2: Looking for grouped matches...")
+        log.debug { "Header-only Stage 2: Looking for grouped matches..." }
         findGroupedHeaderMatches(readInvoices, dbInvoices, matchedReadIndices, matchedDbIndices, matches)
 
         // Stage 3: Fallback matches for remaining invoices
-        log.debug("Header-only Stage 3: Fallback matching for remaining invoices...")
+        log.debug { "Header-only Stage 3: Fallback matching for remaining invoices..." }
         findFallbackHeaderMatches(readInvoices, dbInvoices, matchedReadIndices, matchedDbIndices, matches)
 
-        // Create ImportPairEntry objects from matches (header-only style)
-        matches.forEach { (readIndex, dbIndex) ->
-            val dbDto = createImportDTO(dbInvoices[dbIndex])
-            addEntry(ImportPairEntry(readInvoices[readIndex], dbDto))
+        // Check if we're in consolidated position-based mode
+        val isConsolidatedMode = consolidatedInvoicesByHeader.isNotEmpty()
+
+        if (isConsolidatedMode) {
+            // Expand header matches to position-level pair entries
+            log.info { "=== EXPANDING MATCHES TO POSITIONS ===" }
+            expandHeaderMatchesToPositions(readInvoices, dbInvoices, matches, matchedReadIndices, matchedDbIndices)
+        } else {
+            // Normal header-only mode
+            // Create ImportPairEntry objects from matches (header-only style)
+            matches.forEach { (readIndex, dbIndex) ->
+                val dbDto = createImportDTO(dbInvoices[dbIndex])
+                addEntry(ImportPairEntry(readInvoices[readIndex], dbDto))
+            }
+
+            // Add unmatched read entries as new
+            readInvoices.forEachIndexed { index, invoice ->
+                if (!matchedReadIndices.contains(index)) {
+                    addEntry(ImportPairEntry(invoice, null))
+                }
+            }
+
+            // Add unmatched database entries as deleted (header-only)
+            dbInvoices.forEachIndexed { index, invoice ->
+                if (!matchedDbIndices.contains(index)) {
+                    addEntry(ImportPairEntry(null, createImportDTO(invoice)))
+                }
+            }
+        }
+    }
+
+    /**
+     * Expands invoice-level matches to position-level pair entries.
+     * This is used after consolidating and matching positions as invoices.
+     *
+     * For each matched invoice:
+     * - Creates pair entries for ALL import positions of that invoice with the matched DB invoice
+     *
+     * @param readHeaders List of consolidated invoice headers
+     * @param dbInvoices List of database invoices
+     * @param matches List of (readIndex, dbIndex) pairs from matching
+     * @param matchedReadIndices Set of matched read indices
+     * @param matchedDbIndices Set of matched DB indices
+     */
+    private fun expandHeaderMatchesToPositions(
+        readHeaders: List<EingangsrechnungPosImportDTO>,
+        dbInvoices: List<EingangsrechnungDO>,
+        matches: List<Pair<Int, Int>>,
+        matchedReadIndices: Set<Int>,
+        matchedDbIndices: Set<Int>
+    ) {
+        // Create a map: header -> consolidated invoice
+        val headerToConsolidated = mutableMapOf<EingangsrechnungPosImportDTO, ConsolidatedInvoice>()
+        consolidatedInvoicesByHeader.values.forEach { consolidated ->
+            headerToConsolidated[consolidated.header] = consolidated
         }
 
-        // Add unmatched read entries as new
-        readInvoices.forEachIndexed { index, invoice ->
-            if (!matchedReadIndices.contains(index)) {
-                addEntry(ImportPairEntry(invoice, null))
+        // Process matches: expand to all positions
+        matches.forEach { (readIndex, dbIndex) ->
+            val header = readHeaders[readIndex]
+            val dbInvoice = dbInvoices[dbIndex]
+            val dbDto = createImportDTO(dbInvoice)
+            val consolidated = headerToConsolidated[header]
+
+            if (consolidated != null) {
+                log.info { "  Match: Import invoice '${header.referenz}' (${consolidated.positions.size} positions) → DB invoice '${dbInvoice.referenz}'" }
+
+                // Create pair entry for EACH position of this invoice
+                consolidated.positions.forEach { position ->
+                    addEntry(ImportPairEntry(position, dbDto))
+                }
+            } else {
+                log.warn { "  No consolidated invoice found for header: ${header.referenz}" }
             }
         }
 
-        // Add unmatched database entries as deleted (header-only)
+        // Add unmatched import invoices as new (expand to all positions)
+        readHeaders.forEachIndexed { index, header ->
+            if (!matchedReadIndices.contains(index)) {
+                val consolidated = headerToConsolidated[header]
+                if (consolidated != null) {
+                    log.info { "  New: Import invoice '${header.referenz}' (${consolidated.positions.size} positions) → NEW" }
+                    consolidated.positions.forEach { position ->
+                        addEntry(ImportPairEntry(position, null))
+                    }
+                }
+            }
+        }
+
+        // Add unmatched database invoices as deleted
         dbInvoices.forEachIndexed { index, invoice ->
             if (!matchedDbIndices.contains(index)) {
+                log.info { "  Deleted: DB invoice '${invoice.referenz}' → DELETED" }
                 addEntry(ImportPairEntry(null, createImportDTO(invoice)))
             }
         }
+
+        log.info { "=== EXPANSION COMPLETED ===" }
     }
 
     /**
@@ -294,7 +496,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         findHeaderMatchesInReferenzGroups(readInvoices, dbInvoices, matchedReadIndices, matchedDbIndices, matches)
         findHeaderMatchesInCreditorGroups(readInvoices, dbInvoices, matchedReadIndices, matchedDbIndices, matches)
 
-        log.debug("Header-only Stage 2 completed: ${matches.size - initialMatches} grouped matches found")
+        log.debug { "Header-only Stage 2 completed: ${matches.size - initialMatches} grouped matches found" }
     }
 
     /**
@@ -320,10 +522,10 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
 
         val scoreMatrix = Array(unmatchedRead.size) { IntArray(unmatchedDb.size) }
 
-        // Calculate header scores
+        // Calculate scores
         for (i in unmatchedRead.indices) {
             for (j in unmatchedDb.indices) {
-                val score = unmatchedRead[i].headerMatchScore(unmatchedDb[j])
+                val score = unmatchedRead[i].matchScore(unmatchedDb[j], logErrors = true)
                 scoreMatrix[i][j] = score
             }
         }
@@ -357,12 +559,16 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             val originalReadIndex = readToOriginalIndex[unmatchedRead[maxReadIndex]]!!
             val originalDbIndex = dbToOriginalIndex[unmatchedDb[maxDbIndex]]!!
 
+            val readInv = unmatchedRead[maxReadIndex]
+            val dbInv = unmatchedDb[maxDbIndex]
+            log.info { "STAGE 3 HEADER FALLBACK MATCH (score: $maxScore): Import='${readInv.referenz}' vs DB='${dbInv.referenz}' | ImportKreditor='${readInv.kreditor}' vs DBKreditor='${dbInv.kreditor}' | ImportDate=${readInv.datum} vs DBDate=${dbInv.datum}" }
+
             matches.add(Pair(originalReadIndex, originalDbIndex))
             matchedReadIndices.add(originalReadIndex)
             matchedDbIndices.add(originalDbIndex)
         }
 
-        log.debug("Header-only Stage 3 completed: ${matches.size - initialMatches} fallback matches found")
+        log.debug { "Header-only Stage 3 completed: ${matches.size - initialMatches} fallback matches found" }
     }
 
     private fun createImportDTO(eingangsrechnungDO: EingangsrechnungDO): EingangsrechnungPosImportDTO {
@@ -374,7 +580,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             // Always calculate to ensure we have current values
             dto.grossSum = eingangsrechnungDO.ensuredInfo.grossSum
         } catch (e: Exception) {
-            log.error("Could not calculate grossSum for invoice ${eingangsrechnungDO.id}, using zahlBetrag as fallback", e)
+            log.error(e) { "Could not calculate grossSum for invoice ${eingangsrechnungDO.id}, using zahlBetrag as fallback" }
         }
 
         return dto
@@ -391,15 +597,13 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         matchedDbIndices: MutableSet<Int>,
         matches: MutableList<Pair<Int, Int>>
     ) {
-        // Create hash maps for fast lookups - O(n)
+        // Create hash map for fast lookups - O(n)
         val dbByReferenzDateAmount = mutableMapOf<String, MutableList<Pair<Int, EingangsrechnungDO>>>()
-        val dbByReferenzCreditor = mutableMapOf<String, MutableList<Pair<Int, EingangsrechnungDO>>>()
 
-        // Build hash maps for database invoices
+        // Build hash map for database invoices using exact match key (referenz + datum + grossSum)
         dbInvoices.forEachIndexed { index, dbInvoice ->
             if (matchedDbIndices.contains(index)) return@forEachIndexed
 
-            // Primary key: referenz + datum + grossSum
             val referenz = dbInvoice.referenz?.trim()?.lowercase()
             val datum = dbInvoice.datum
             val grossSum = try { dbInvoice.ensuredInfo.grossSum } catch (e: Exception) { null }
@@ -407,13 +611,6 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             if (!referenz.isNullOrBlank() && datum != null && grossSum != null) {
                 val primaryKey = "$referenz|$datum|$grossSum"
                 dbByReferenzDateAmount.getOrPut(primaryKey) { mutableListOf() }.add(Pair(index, dbInvoice))
-            }
-
-            // Secondary key: referenz + kreditor
-            val kreditor = dbInvoice.kreditor?.trim()?.lowercase()
-            if (!referenz.isNullOrBlank() && !kreditor.isNullOrBlank()) {
-                val secondaryKey = "$referenz|$kreditor"
-                dbByReferenzCreditor.getOrPut(secondaryKey) { mutableListOf() }.add(Pair(index, dbInvoice))
             }
         }
 
@@ -425,37 +622,22 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             val datum = readInvoice.datum
             val grossSum = readInvoice.grossSum
 
-            // Try primary key match first (referenz + datum + grossSum)
+            // Only match if referenz + datum + grossSum are all identical
             if (!referenz.isNullOrBlank() && datum != null && grossSum != null) {
                 val primaryKey = "$referenz|$datum|$grossSum"
                 dbByReferenzDateAmount[primaryKey]?.firstOrNull { (dbIndex, _) ->
                     !matchedDbIndices.contains(dbIndex)
-                }?.let { (dbIndex, _) ->
+                }?.let { (dbIndex, dbInvoice) ->
                     matches.add(Pair(readIndex, dbIndex))
                     matchedReadIndices.add(readIndex)
                     matchedDbIndices.add(dbIndex)
-                    log.debug("Exact match (primary): ${readInvoice.referenz}")
-                    return@forEachIndexed
-                }
-            }
-
-            // Try secondary key match (referenz + kreditor)
-            val kreditor = readInvoice.kreditor?.trim()?.lowercase()
-            if (!referenz.isNullOrBlank() && !kreditor.isNullOrBlank()) {
-                val secondaryKey = "$referenz|$kreditor"
-                dbByReferenzCreditor[secondaryKey]?.firstOrNull { (dbIndex, _) ->
-                    !matchedDbIndices.contains(dbIndex)
-                }?.let { (dbIndex, _) ->
-                    matches.add(Pair(readIndex, dbIndex))
-                    matchedReadIndices.add(readIndex)
-                    matchedDbIndices.add(dbIndex)
-                    log.debug("Exact match (secondary): ${readInvoice.referenz}")
+                    log.info { "STAGE 1 EXACT MATCH: Import='${readInvoice.referenz}' vs DB='${dbInvoice.referenz}' | ImportKreditor='${readInvoice.kreditor}' vs DBKreditor='${dbInvoice.kreditor}' | ImportDate=${readInvoice.datum} vs DBDate=${dbInvoice.datum} | ImportAmount=${readInvoice.grossSum} vs DBAmount=${try { dbInvoice.ensuredInfo.grossSum } catch (e: Exception) { null }}" }
                     return@forEachIndexed
                 }
             }
         }
 
-        log.debug("Stage 1 completed: ${matches.size} exact matches found")
+        log.debug { "Stage 1 completed: ${matches.size} exact matches found" }
     }
 
     /**
@@ -477,7 +659,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         // Group by creditor for remaining unmatched invoices
         findMatchesInCreditorGroups(readInvoices, dbInvoices, matchedReadIndices, matchedDbIndices, matches)
 
-        log.debug("Stage 2 completed: ${matches.size - initialMatches} grouped matches found")
+        log.debug { "Stage 2 completed: ${matches.size - initialMatches} grouped matches found" }
     }
 
     /**
@@ -495,6 +677,16 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         val unmatchedRead = readInvoices.filterIndexed { index, _ -> !matchedReadIndices.contains(index) }
         val unmatchedDb = dbInvoices.filterIndexed { index, _ -> !matchedDbIndices.contains(index) }
 
+        log.info { "=== STAGE 3: Starting fallback matching ===" }
+        log.info { "  Unmatched Import invoices (${unmatchedRead.size}):" }
+        unmatchedRead.forEach { inv ->
+            log.info { "    Import: referenz='${inv.referenz}', kreditor='${inv.kreditor}', datum=${inv.datum}" }
+        }
+        log.info { "  Unmatched DB invoices (${unmatchedDb.size}):" }
+        unmatchedDb.forEach { inv ->
+            log.info { "    DB: referenz='${inv.referenz}', kreditor='${inv.kreditor}', datum=${inv.datum}" }
+        }
+
         if (unmatchedRead.isEmpty() || unmatchedDb.isEmpty()) {
             return
         }
@@ -507,7 +699,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         // Calculate scores
         for (i in unmatchedRead.indices) {
             for (j in unmatchedDb.indices) {
-                val score = unmatchedRead[i].matchScore(dbInvoices[j])
+                val score = unmatchedRead[i].matchScore(unmatchedDb[j])
                 scoreMatrix[i][j] = score
             }
         }
@@ -541,12 +733,16 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             val originalReadIndex = readToOriginalIndex[unmatchedRead[maxReadIndex]]!!
             val originalDbIndex = dbToOriginalIndex[unmatchedDb[maxDbIndex]]!!
 
+            val readInv = unmatchedRead[maxReadIndex]
+            val dbInv = unmatchedDb[maxDbIndex]
+            log.info { "STAGE 3 FALLBACK MATCH (score: $maxScore): Import='${readInv.referenz}' vs DB='${dbInv.referenz}' | ImportKreditor='${readInv.kreditor}' vs DBKreditor='${dbInv.kreditor}' | ImportDate=${readInv.datum} vs DBDate=${dbInv.datum} | ImportAmount=${readInv.grossSum} vs DBAmount=${try { dbInv.ensuredInfo.grossSum } catch (e: Exception) { null }}" }
+
             matches.add(Pair(originalReadIndex, originalDbIndex))
             matchedReadIndices.add(originalReadIndex)
             matchedDbIndices.add(originalDbIndex)
-    }
+        }
 
-        log.debug("Stage 3 completed: ${matches.size - initialMatches} fallback matches found")
+        log.debug { "Stage 3 completed: ${matches.size - initialMatches} fallback matches found" }
     }
 
     /**
@@ -576,7 +772,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             index to invoice
         }.filter { (index, _) -> !matchedDbIndices.contains(index) }
          .groupBy { (_, invoice) ->
-             invoice.referenz?.let {
+         invoice.referenz?.let {
                  val normalized = StringMatchUtils.normalizeString(it)
                  if (normalized.length >= 8) normalized.substring(0, 8) else normalized
              }?.takeIf { it.isNotBlank() }
@@ -617,10 +813,11 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
 
             // Add the best match if it meets our threshold
             bestMatch?.let { (readIdx, dbIdx) ->
+                val dbInvoice = candidateGroup.first { it.first == dbIdx }.second
                 matches.add(Pair(readIdx, dbIdx))
                 matchedReadIndices.add(readIdx)
                 matchedDbIndices.add(dbIdx)
-                log.debug("Referenz group match: ${readInvoice.referenz} (score: $bestScore)")
+                log.info { "STAGE 2 REFERENZ GROUP MATCH (score: $bestScore): Import='${readInvoice.referenz}' vs DB='${dbInvoice.referenz}' | ImportKreditor='${readInvoice.kreditor}' vs DBKreditor='${dbInvoice.kreditor}' | ImportDate=${readInvoice.datum} vs DBDate=${dbInvoice.datum} | ImportAmount=${readInvoice.grossSum} vs DBAmount=${try { dbInvoice.ensuredInfo.grossSum } catch (e: Exception) { null }}" }
             }
         }
     }
@@ -666,10 +863,11 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
 
             // Add the best match if it meets our threshold
             bestMatch?.let { (readIdx, dbIdx) ->
+                val dbInvoice = candidateGroup.first { it.first == dbIdx }.second
                 matches.add(Pair(readIdx, dbIdx))
                 matchedReadIndices.add(readIdx)
                 matchedDbIndices.add(dbIdx)
-                log.debug("Kreditor group match: ${readInvoice.kreditor} (score: $bestScore)")
+                log.info { "STAGE 2 KREDITOR GROUP MATCH (score: $bestScore): Import='${readInvoice.referenz}' vs DB='${dbInvoice.referenz}' | ImportKreditor='${readInvoice.kreditor}' vs DBKreditor='${dbInvoice.kreditor}' | ImportDate=${readInvoice.datum} vs DBDate=${dbInvoice.datum} | ImportAmount=${readInvoice.grossSum} vs DBAmount=${try { dbInvoice.ensuredInfo.grossSum } catch (e: Exception) { null }}" }
             }
         }
     }
@@ -703,7 +901,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             candidateGroup.forEach { (dbIndex, dbInvoice) ->
                 if (matchedDbIndices.contains(dbIndex)) return@forEach
 
-                val score = readInvoice.headerMatchScore(dbInvoice)
+                val score = readInvoice.matchScore(dbInvoice)
                 if (score > bestScore) {
                     bestScore = score
                     bestMatch = Pair(readIndex, dbIndex)
@@ -711,10 +909,11 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             }
 
             bestMatch?.let { (readIdx, dbIdx) ->
+                val dbInvoice = candidateGroup.first { it.first == dbIdx }.second
                 matches.add(Pair(readIdx, dbIdx))
                 matchedReadIndices.add(readIdx)
                 matchedDbIndices.add(dbIdx)
-                log.debug("Header referenz group match: ${readInvoice.referenz} (score: $bestScore)")
+                log.info { "STAGE 2 HEADER REFERENZ GROUP MATCH (score: $bestScore): Import='${readInvoice.referenz}' vs DB='${dbInvoice.referenz}' | ImportKreditor='${readInvoice.kreditor}' vs DBKreditor='${dbInvoice.kreditor}' | ImportDate=${readInvoice.datum} vs DBDate=${dbInvoice.datum}" }
             }
         }
     }
@@ -748,7 +947,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             candidateGroup.forEach { (dbIndex, dbInvoice) ->
                 if (matchedDbIndices.contains(dbIndex)) return@forEach
 
-                val score = readInvoice.headerMatchScore(dbInvoice)
+                val score = readInvoice.matchScore(dbInvoice)
                 if (score > bestScore) {
                     bestScore = score
                     bestMatch = Pair(readIndex, dbIndex)
@@ -756,10 +955,11 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             }
 
             bestMatch?.let { (readIdx, dbIdx) ->
+                val dbInvoice = candidateGroup.first { it.first == dbIdx }.second
                 matches.add(Pair(readIdx, dbIdx))
                 matchedReadIndices.add(readIdx)
                 matchedDbIndices.add(dbIdx)
-                log.debug("Header kreditor group match: ${readInvoice.kreditor} (score: $bestScore)")
+                log.info { "STAGE 2 HEADER KREDITOR GROUP MATCH (score: $bestScore): Import='${readInvoice.referenz}' vs DB='${dbInvoice.referenz}' | ImportKreditor='${readInvoice.kreditor}' vs DBKreditor='${dbInvoice.kreditor}' | ImportDate=${readInvoice.datum} vs DBDate=${dbInvoice.datum}" }
             }
         }
     }
@@ -769,7 +969,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
      * Sort order: Date, Creditor, Invoice Number, Position Number
      */
     private fun sortPairEntriesAfterMatching() {
-        log.debug("Sorting ${pairEntries.size} pair entries by date, creditor, invoice number, and position")
+        log.debug { "Sorting ${pairEntries.size} pair entries by date, creditor, invoice number, and position" }
 
         pairEntries.sortWith(compareBy<ImportPairEntry<EingangsrechnungPosImportDTO>> { pairEntry ->
             // Primary sort: Date (nulls last)
@@ -787,6 +987,6 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             pairEntry.read?.positionNummer ?: Int.MAX_VALUE
         })
 
-        log.debug("Sorting completed")
+        log.debug { "Sorting completed" }
     }
 }

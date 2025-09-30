@@ -169,72 +169,34 @@ class EingangsrechnungPosImportDTO(
      * - Date within 30 days: +2 points
      *
      * Uses StringMatchUtils for advanced similarity matching of invoice numbers and creditors.
-     */
-    fun matchScore(dbInvoice: EingangsrechnungDO): Int {
-        // Log all ISICO-related import attempts
-        if (this.referenz?.contains("325124610") == true || this.kreditor?.contains("isico", ignoreCase = true) == true) {
-            log.info("ISICO IMPORT ATTEMPT: Processing import invoice referenz='${this.referenz}', kreditor='${this.kreditor}', datum=${this.datum}, grossSum=${this.grossSum}")
-        }
-
-        var score = 0
-        val referenzScore = calculateReferenzMatchScore(dbInvoice)
-        val kreditorScore = calculateKreditorMatchScore(dbInvoice)
-        val dateScore = calculateDateMatchScore(dbInvoice)
-        val amountScore = calculateAmountMatchScore(dbInvoice)
-
-        score += referenzScore
-        score += kreditorScore
-        score += dateScore
-        score += amountScore
-
-        // Debug logging for failing matches - log all matches involving ISICO
-        if (score > 20 || this.referenz?.contains("325124610") == true || this.kreditor?.contains("ISICO", ignoreCase = true) == true) {
-            log.info("MATCH SCORE DEBUG: Import='${this.referenz}' vs DB='${dbInvoice.referenz}' | " +
-                    "ImportKreditor='${this.kreditor}' vs DBKreditor='${dbInvoice.kreditor}' | " +
-                    "ImportDate=${this.datum} vs DBDate=${dbInvoice.datum} | " +
-                    "ImportAmount=${this.grossSum} vs DBAmount=${try { dbInvoice.ensuredInfo.grossSum } catch(e: Exception) { "ERROR: ${e.message}" }} | " +
-                    "Scores: referenz=$referenzScore, kreditor=$kreditorScore, date=$dateScore, amount=$amountScore | " +
-                    "TOTAL=$score")
-        }
-
-        return score
-    }
-
-    /**
-     * Header-only matching score for invoice reconciliation.
-     * Focuses on header fields and ignores position-specific data.
-     * Scoring:
-     * - Exact invoice number: +50 points
-     * - Similar invoice number (normalized): +35-45 points
-     * - Exact creditor: +30 points
-     * - Similar creditor: +10-25 points
-     * - Exact date: +20 points
-     * - Date within 7 days: +5 points
-     * - Date within 30 days: +2 points
-     * - Amount exact match: +10 points
      *
-     * Uses StringMatchUtils for advanced similarity matching of invoice numbers and creditors.
+     * @param logErrors If true, logs errors when amount calculation fails
      */
-    fun headerMatchScore(dbInvoice: EingangsrechnungDO): Int {
+    fun matchScore(dbInvoice: EingangsrechnungDO, logErrors: Boolean = false): Int {
         var score = 0
         val referenzScore = calculateReferenzMatchScore(dbInvoice)
         val kreditorScore = calculateKreditorMatchScore(dbInvoice)
         val dateScore = calculateDateMatchScore(dbInvoice)
-        val amountScore = calculateAmountMatchScore(dbInvoice, logErrors = true)
+        val amountScore = calculateAmountMatchScore(dbInvoice, logErrors)
 
         score += referenzScore
         score += kreditorScore
         score += dateScore
         score += amountScore
 
-        // Debug logging for failing matches - log all matches involving ISICO
-        if (score > 20 || this.referenz?.contains("325124610") == true || this.kreditor?.contains("ISICO", ignoreCase = true) == true) {
-            log.info("HEADER MATCH SCORE DEBUG: Import='${this.referenz}' vs DB='${dbInvoice.referenz}' | " +
-                    "ImportKreditor='${this.kreditor}' vs DBKreditor='${dbInvoice.kreditor}' | " +
-                    "ImportDate=${this.datum} vs DBDate=${dbInvoice.datum} | " +
-                    "ImportAmount=${this.grossSum} vs DBAmount=${try { dbInvoice.ensuredInfo.grossSum } catch(e: Exception) { "ERROR: ${e.message}" }} | " +
-                    "Scores: referenz=$referenzScore, kreditor=$kreditorScore, date=$dateScore, amount=$amountScore | " +
-                    "TOTAL=$score")
+        // Log score calculation for debugging (only for significant scores to reduce noise)
+        if (score > 20) {
+            log.info {
+                val similarity = StringMatchUtils.calculateSimilarity(this.referenz, dbInvoice.referenz)
+                val kreditorSimilarity = StringMatchUtils.calculateCompanySimilarity(this.kreditor, dbInvoice.kreditor)
+                "MATCH SCORE: Import='${this.referenz}' vs DB='${dbInvoice.referenz}' | " +
+                        "ImportKreditor='${this.kreditor}' vs DBKreditor='${dbInvoice.kreditor}' | " +
+                        "ImportDate=${this.datum} vs DBDate=${dbInvoice.datum} | " +
+                        "ImportAmount=${this.grossSum} vs DBAmount=${try { dbInvoice.ensuredInfo.grossSum } catch(e: Exception) { "ERROR: ${e.message}" }} | " +
+                        "Scores: referenz=$referenzScore, kreditor=$kreditorScore, date=$dateScore, amount=$amountScore | " +
+                        "ReferenzSimilarity=$similarity, KreditorSimilarity=$kreditorSimilarity | " +
+                        "TOTAL=$score"
+            }
         }
 
         return score
