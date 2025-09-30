@@ -104,10 +104,7 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
 
         // Position Number - first column (only for position-based imports)
         if (isPositionBasedImport) {
-            val positionCol =
-                UIAgGridColumnDef.createCol(lc, "read.positionNummer", headerName = "label.position.short", width = 60)
-            positionCol.cellRenderer = "diffCell"
-            agGrid.add(positionCol)
+            addDiffColumn(agGrid, lc, "read.positionNummer", headerName = "label.position.short", width = 60)
         }
 
         // RENR (Invoice Number) - most important column
@@ -120,37 +117,26 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
         addReadColumn(agGrid, lc, EingangsrechnungDO::datum)
 
         // Betrag (erstelle custom column da grossSum nicht in EingangsrechnungDO ist)
-        val betragCol = UIAgGridColumnDef.createCol(lc, "read.grossSum", headerName = "fibu.common.betrag")
-        betragCol.setFormat(Formatter.CURRENCY_PLAIN)
-        betragCol.cellRenderer = "diffCell"
-        agGrid.add(betragCol)
+        addDiffColumn(agGrid, lc, "read.grossSum", headerName = "fibu.common.betrag")
+            .setFormat(Formatter.CURRENCY_PLAIN)
 
         // Währung (custom column)
-        val currencyCol =
-            UIAgGridColumnDef.createCol(lc, "read.currency", headerName = "fibu.rechnung.currency", width = 80)
-        currencyCol.cellRenderer = "diffCell"
-        agGrid.add(currencyCol)
+        addDiffColumn(agGrid, lc, "read.currency", headerName = "fibu.rechnung.currency", width = 80)
 
         // Betreff (Text/Ware/Leistung)
         addReadColumn(agGrid, lc, EingangsrechnungDO::betreff, wrapText = true)
 
         // Konto (custom column)
-        val kontoCol = UIAgGridColumnDef.createCol(lc, "read.konto.nummer", headerName = "fibu.konto", width = 100)
-        kontoCol.cellRenderer = "diffCell"
-        agGrid.add(kontoCol)
+        addDiffColumn(agGrid, lc, "read.konto.nummer", headerName = "fibu.konto", width = 100)
 
         // KOST1 (custom column) - only for position-based imports
         if (isPositionBasedImport) {
-            val kost1Col = UIAgGridColumnDef.createCol(lc, "read.kost1.description", headerName = "fibu.kost1", width = 150)
-            kost1Col.cellRenderer = "diffCell"
-            agGrid.add(kost1Col)
+            addDiffColumn(agGrid, lc, "read.kost1.description", headerName = "fibu.kost1", width = 150)
         }
 
         // KOST2 (custom column) - only for position-based imports
         if (isPositionBasedImport) {
-            val kost2Col = UIAgGridColumnDef.createCol(lc, "read.kost2.description", headerName = "fibu.kost2", width = 150)
-            kost2Col.cellRenderer = "diffCell"
-            agGrid.add(kost2Col)
+            addDiffColumn(agGrid, lc, "read.kost2.description", headerName = "fibu.kost2", width = 150)
         }
 
         // Fälligkeit
@@ -160,24 +146,17 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
         addReadColumn(agGrid, lc, EingangsrechnungDO::bezahlDatum)
 
         // Zahlbetrag
-        val zahlBetragCol = UIAgGridColumnDef.createCol(lc, "read.zahlBetrag", headerName = "fibu.rechnung.zahlBetrag")
-        zahlBetragCol.setFormat(Formatter.CURRENCY_PLAIN)
-        zahlBetragCol.cellRenderer = "diffCell"
-        agGrid.add(zahlBetragCol)
+        addDiffColumn(agGrid, lc, "read.zahlBetrag", headerName = "fibu.rechnung.zahlBetrag")
+            .setFormat(Formatter.CURRENCY_PLAIN)
 
         // TAX rate
-        val taxCol = UIAgGridColumnDef.createCol(
-            lc, "read.taxRate", headerName = "fibu.common.vat", width = 80,
+        addDiffColumn(
+            agGrid, lc, "read.taxRate", headerName = "fibu.common.vat", width = 80,
             formatter = Formatter.PERCENTAGE
         )
-        taxCol.cellRenderer = "diffCell"
-        agGrid.add(taxCol)
 
         // Customer
-        val customer2Col =
-            UIAgGridColumnDef.createCol(lc, "read.customernr", headerName = "fibu.kunde.nummer", width = 150)
-        customer2Col.cellRenderer = "diffCell"
-        agGrid.add(customer2Col)
+        addDiffColumn(agGrid, lc, "read.customernr", headerName = "fibu.kunde.nummer", width = 150)
 
         // Skonto %
         addReadColumn(

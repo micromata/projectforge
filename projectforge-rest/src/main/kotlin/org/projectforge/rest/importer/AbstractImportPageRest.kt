@@ -347,6 +347,27 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
         agGrid.add(lc, "stored.$field", lcField = field, width = width, wrapText = wrapText, formatter = formatter)
     }
 
+    protected fun addDiffColumn(
+        agGrid: UIAgGrid,
+        lc: LayoutContext,
+        field: String,
+        headerName: String,
+        width: Int? = null,
+        wrapText: Boolean = true,
+        formatter: UIAgGridColumnDef.Formatter? = null,
+    ): UIAgGridColumnDef {
+        val col = UIAgGridColumnDef.createCol(
+            lc, field,
+            headerName = headerName,
+            width = width,
+            wrapText = wrapText,
+            formatter = formatter
+        )
+        col.cellRenderer = "diffCell"
+        agGrid.add(col)
+        return col
+    }
+
     protected fun addIfNotZero(
         md: MarkdownBuilder,
         i18nKey: String,
