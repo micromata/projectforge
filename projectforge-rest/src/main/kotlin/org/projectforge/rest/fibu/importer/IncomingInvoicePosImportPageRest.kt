@@ -121,7 +121,7 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
 
         // Betrag (erstelle custom column da grossSum nicht in EingangsrechnungDO ist)
         val betragCol = UIAgGridColumnDef.createCol(lc, "read.grossSum", headerName = "fibu.common.betrag", width = 100)
-        //betragCol.setFormat(Formatter.CURRENCY_PLAIN)
+        betragCol.setFormat(Formatter.CURRENCY_PLAIN)
         betragCol.cellRenderer = "diffCell"
         agGrid.add(betragCol)
 

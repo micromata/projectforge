@@ -31,6 +31,8 @@ import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.rest.importer.ImportPairEntry
 import org.projectforge.rest.importer.ImportSettings
 import org.projectforge.rest.importer.ImportStorage
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
@@ -163,6 +165,9 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
 
         // Sort all pair entries after matching is complete
         sortPairEntriesAfterMatching()
+
+        // Enrich read objects with stored values that are not in import data
+        enrichReadWithStoredValues()
     }
 
     private fun analyzeReadInvoices() {
@@ -969,6 +974,65 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
                 matchedDbIndices.add(dbIdx)
                 log.debug { "STAGE 2 HEADER KREDITOR GROUP MATCH (score: $bestScore): Import='${readInvoice.referenz}' vs DB='${dbInvoice.referenz}' | ImportKreditor='${readInvoice.kreditor}' vs DBKreditor='${dbInvoice.kreditor}' | ImportDate=${readInvoice.datum} vs DBDate=${dbInvoice.datum}" }
             }
+        }
+    }
+
+    /**
+     * Enriches read objects with stored values that are not present in the import data.
+     * This prevents the frontend from showing deletions for fields that are simply not
+     * included in the import (e.g., bezahlDatum and zahlBetrag in position-based imports).
+     * Also calculates zahlBetrag if bezahlDatum is set but zahlBetrag is missing.
+     */
+    private fun enrichReadWithStoredValues() {
+        pairEntries.forEach { pairEntry ->
+            val read = pairEntry.read
+            val stored = pairEntry.stored
+
+            if (read != null && stored != null) {
+                // Preserve bezahlDatum if not in import
+                if (read.bezahlDatum == null && stored.bezahlDatum != null) {
+                    read.bezahlDatum = stored.bezahlDatum
+                }
+
+                // Preserve zahlBetrag if not in import
+                if (read.zahlBetrag == null && stored.zahlBetrag != null) {
+                    read.zahlBetrag = stored.zahlBetrag
+                }
+            }
+
+            // Calculate zahlBetrag if bezahlDatum is set but zahlBetrag is missing
+            if (read != null && read.bezahlDatum != null && read.zahlBetrag == null) {
+                read.zahlBetrag = calculateZahlBetrag(read)
+            }
+        }
+
+        log.debug { "Enriched ${pairEntries.size} pair entries with stored values" }
+    }
+
+    /**
+     * Calculates zahlBetrag based on bezahlDatum, grossSum, and discount settings.
+     * If bezahlDatum <= discountMaturity: zahlBetrag = grossSum - discount
+     * Otherwise: zahlBetrag = grossSum
+     */
+    private fun calculateZahlBetrag(dto: EingangsrechnungPosImportDTO): BigDecimal? {
+        val grossSum = dto.grossSum ?: return null
+        val bezahlDatum = dto.bezahlDatum ?: return null
+
+        val shouldApplyDiscount = dto.discountMaturity != null &&
+                dto.discountPercent != null &&
+                dto.discountPercent!!.compareTo(BigDecimal.ZERO) > 0 &&
+                !bezahlDatum.isAfter(dto.discountMaturity!!)
+
+        return if (shouldApplyDiscount) {
+            val discountPercent = dto.discountPercent!!
+            val discountAmount = grossSum.multiply(discountPercent).divide(
+                BigDecimal(100),
+                2,
+                RoundingMode.HALF_UP
+            )
+            grossSum.subtract(discountAmount).setScale(2, RoundingMode.HALF_UP)
+        } else {
+            grossSum
         }
     }
 
