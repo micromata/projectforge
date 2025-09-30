@@ -647,15 +647,19 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         val initializedKonto = PfCaches.instance.getKontoIfNotInitialized(eingangsrechnungDO.konto)
         initializedKonto?.let { dto.konto = Konto(it.id, it.nummer) }
 
+        // Ensure invoice info is calculated (this also calculates all position info)
+        val invoiceInfo = eingangsrechnungDO.ensuredInfo
+
         // Get position by index (in order)
         val dbPosition = eingangsrechnungDO.positionen?.getOrNull(positionIndex)
 
         if (dbPosition != null) {
-            // Copy position-specific grossSum (not the total invoice sum!)
-            try {
-                dto.grossSum = dbPosition.info.grossSum
-            } catch (e: Exception) {
-                log.error(e) { "Could not get grossSum for position ${dbPosition.number}" }
+            // Copy position-specific grossSum from calculated info
+            val positionInfo = invoiceInfo.positions?.getOrNull(positionIndex)
+            if (positionInfo != null) {
+                dto.grossSum = positionInfo.grossSum
+            } else {
+                log.warn { "Could not find position info for position index $positionIndex in invoice ${eingangsrechnungDO.referenz}" }
             }
 
             // Copy other position-specific fields
