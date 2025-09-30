@@ -30,6 +30,12 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
 ) {
   private var idCounter = 0
 
+  /**
+   * Indicates whether reconcileImportStorage has been called at least once.
+   * Used to control UI elements like the import button.
+   */
+  var hasBeenReconciled: Boolean = false
+
   var lastJobRun: AbstractImportJob? = null
     protected set
 
@@ -95,7 +101,22 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
       }
     }
 
-  open fun reconcileImportStorage(rereadDatabaseEntries: Boolean = true) {
+  /**
+   * Reconciles imported data with database entries.
+   * This method is final to ensure hasBeenReconciled flag is always set.
+   * Subclasses should override doReconcileImportStorage() instead.
+   */
+  fun reconcileImportStorage(rereadDatabaseEntries: Boolean = true) {
+    hasBeenReconciled = true
+    doReconcileImportStorage(rereadDatabaseEntries)
+  }
+
+  /**
+   * Template method hook for subclasses to implement reconciliation logic.
+   * Override this method in subclasses instead of reconcileImportStorage().
+   */
+  protected open fun doReconcileImportStorage(rereadDatabaseEntries: Boolean) {
+    // Default implementation does nothing
   }
 
   fun clearErrors() {

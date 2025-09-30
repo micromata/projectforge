@@ -60,7 +60,7 @@ class BankingImportStorage(importSettings: String? = null, targetEntity: BankAcc
   }
 
 
-  override fun reconcileImportStorage(rereadDatabaseEntries: Boolean) {
+  override fun doReconcileImportStorage(rereadDatabaseEntries: Boolean) {
     val from = fromDate
     val until = untilDate
     if (from == null || until == null || from > until) {
