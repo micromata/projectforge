@@ -24,6 +24,7 @@
 package org.projectforge.rest.fibu.importer
 
 import mu.KotlinLogging
+import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.common.StringMatchUtils
@@ -620,6 +621,10 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             log.error(e) { "Could not calculate grossSum for invoice ${eingangsrechnungDO.id}" }
         }
 
+        // Copy konto from header using cache to handle lazy loading
+        val initializedKonto = PfCaches.instance.getKontoIfNotInitialized(eingangsrechnungDO.konto)
+        initializedKonto?.let { dto.konto = Konto(it.id, description = it.nummer?.toString()) }
+
         return dto
     }
 
@@ -645,6 +650,10 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             log.error(e) { "Could not calculate grossSum for invoice ${eingangsrechnungDO.id}" }
         }
 
+        // Copy konto from header using cache to handle lazy loading
+        val initializedKonto = PfCaches.instance.getKontoIfNotInitialized(eingangsrechnungDO.konto)
+        initializedKonto?.let { dto.konto = Konto(it.id, description = it.nummer?.toString()) }
+
         // Get position by index (in order)
         val dbPosition = eingangsrechnungDO.positionen?.getOrNull(positionIndex)
 
@@ -653,15 +662,15 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             dto.taxRate = dbPosition.vat
             dto.positionNummer = dbPosition.number.toInt()
 
-            // Copy kost1/kost2 from first cost assignment
+            // Copy kost1/kost2 from first cost assignment using cache to handle lazy loading
             val firstKostZuweisung = dbPosition.kostZuweisungen?.firstOrNull()
             if (firstKostZuweisung != null) {
-                firstKostZuweisung.kost1?.let { kost1 ->
-                    dto.kost1 = Kost1(kost1.nummer.toLong(), kost1.description)
-                }
-                firstKostZuweisung.kost2?.let { kost2 ->
-                    dto.kost2 = Kost2(kost2.nummer.toLong(), kost2.description)
-                }
+                val initializedKost1 = PfCaches.instance.getKost1IfNotInitialized(firstKostZuweisung.kost1)
+                initializedKost1?.let { dto.kost1 = Kost1(it.id, description = it.formattedNumber) }
+
+                val initializedKost2 = PfCaches.instance.getKost2IfNotInitialized(firstKostZuweisung.kost2)
+                initializedKost2?.let { dto.kost2 = Kost2(it) }
+                initializedKost2?.let { dto.kost2 = Kost2(it.id, description = it.formattedNumber) }
             }
         }
 
