@@ -109,7 +109,7 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
             zahlungsZielInTagen=Zahlungsziel|:#0
             taxRate=Steuer in %|Steuer%|#.##0,0#|:#0
             iban=IBAN
-            konto=Konto
+            konto=LieferantKonto|Geschäftspartner-Konto
             kreditor=Geschäftspartner-Name|Kreditor|LieferantName
             paymentType=Zahlungsart
             receiver=Empfänger

@@ -623,7 +623,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
 
         // Copy konto from header using cache to handle lazy loading
         val initializedKonto = PfCaches.instance.getKontoIfNotInitialized(eingangsrechnungDO.konto)
-        initializedKonto?.let { dto.konto = Konto(it.id, description = it.nummer?.toString()) }
+        initializedKonto?.let { dto.konto = Konto(it.id, it.nummer) }
 
         return dto
     }
@@ -645,7 +645,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
 
         // Copy konto from header using cache to handle lazy loading
         val initializedKonto = PfCaches.instance.getKontoIfNotInitialized(eingangsrechnungDO.konto)
-        initializedKonto?.let { dto.konto = Konto(it.id, description = it.nummer?.toString()) }
+        initializedKonto?.let { dto.konto = Konto(it.id, it.nummer) }
 
         // Get position by index (in order)
         val dbPosition = eingangsrechnungDO.positionen?.getOrNull(positionIndex)
