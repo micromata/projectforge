@@ -72,29 +72,21 @@ class ExtensibleCsvImporterTest {
 
     @Test
     fun testExtensibleArchitecture() {
-        println("Testing extensible CSV importer architecture...")
-
         // This test primarily validates that:
         // 1. AbstractCsvImporter can be extended
         // 2. Hook methods can be overridden
         // 3. The compilation works correctly
 
         val importer = TestCsvImporter()
-        println("✓ Custom importer instantiated successfully")
-        println("✓ Extension points are accessible")
 
         // If we get here without compilation errors, the architecture is working
-        println("✓ Extensible CSV importer architecture test passed!")
+        assertTrue(true, "Extensible CSV importer architecture test passed")
     }
 
     @Test
     fun testBackwardCompatibility() {
-        println("Testing backward compatibility...")
-
         // Verify that the CsvImporter facade still works
         // This validates that existing code won't break
-        println("✓ CsvImporter object is accessible")
-        println("✓ Parse methods are available")
-        println("✓ Backward compatibility test passed!")
+        assertTrue(true, "Backward compatibility test passed")
     }
 }

@@ -165,12 +165,10 @@ class StringMatchUtilsTest {
         val referenz1 = "325124610"
         val referenz2 = "3251246-10 / Az.: IS-0017-10/KSR"
         val referenzSimilarity = StringMatchUtils.calculateSimilarity(referenz1, referenz2)
-        println("Invoice number similarity: '$referenz1' vs '$referenz2' = $referenzSimilarity")
 
         val kreditor1 = "ISICO Datenschutz GmbH"
         val kreditor2 = "ISICO GmbH"
         val kreditorSimilarity = StringMatchUtils.calculateCompanySimilarity(kreditor1, kreditor2)
-        println("Creditor similarity: '$kreditor1' vs '$kreditor2' = $kreditorSimilarity")
 
         // Calculate scores as per EingangsrechnungPosImportDTO logic
         val referenzScore = when {
@@ -195,9 +193,6 @@ class StringMatchUtilsTest {
         val totalScoreWithAmount = referenzScore + kreditorScore + 20 + 10 // date match + amount match
         val totalScoreWithoutAmount = referenzScore + kreditorScore + 20 + 0 // date match only
 
-        println("Total score with amount: referenz($referenzScore) + kreditor($kreditorScore) + date(20) + amount(10) = $totalScoreWithAmount")
-        println("Total score without amount: referenz($referenzScore) + kreditor($kreditorScore) + date(20) + amount(0) = $totalScoreWithoutAmount")
-
         assertTrue(referenzSimilarity > 0.3, "Invoice numbers should show meaningful similarity")
         assertTrue(kreditorSimilarity > 0.6, "Creditors should be similar")
         assertTrue(totalScoreWithoutAmount >= 25, "Score should be above threshold even without amount match")
@@ -208,25 +203,21 @@ class StringMatchUtilsTest {
     fun testFalsePositiveInvoiceNumbers() {
         // Real-world case that should NOT match: completely different invoices with some common digits
         val similarity1 = StringMatchUtils.calculateSimilarity("119977", "#17182991")
-        println("Similarity '119977' vs '#17182991': $similarity1")
         assertTrue(similarity1 < 0.3, "Different invoice numbers should have low similarity (was $similarity1)")
 
         // Another case with similar numbers but different invoices (2 digits differ)
         // This looks like a typo (0.8 similarity), but combined with different kreditor/date
         // should NOT match (score would be ~45 < threshold 50)
         val similarity2 = StringMatchUtils.calculateSimilarity("2025051909", "202505-2903")
-        println("Similarity '2025051909' vs '202505-2903': $similarity2")
         // Note: High similarity (0.8) is OK here, the threshold (50) will prevent false match
         // when combined with mismatched kreditor and date
 
         // This should still match: same number with different formatting
         val similarity3 = StringMatchUtils.calculateSimilarity("325124610", "3251246-10 / Az.: IS-0017-10/KSR")
-        println("Similarity '325124610' vs '3251246-10 / Az...': $similarity3")
         assertTrue(similarity3 > 0.8, "Same invoice number with extra text should match (was $similarity3)")
 
         // Typo case: should still be similar
         val similarity4 = StringMatchUtils.calculateSimilarity("119977", "119978")
-        println("Similarity '119977' vs '119978' (typo): $similarity4")
         assertTrue(similarity4 > 0.8, "Invoice numbers with typo should still match (was $similarity4)")
     }
 }
