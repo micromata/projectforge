@@ -24,7 +24,6 @@
 package org.projectforge.rest.importer
 
 import org.projectforge.common.BeanHelper
-import org.projectforge.common.extensions.formatForUser
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.rest.dto.BaseDTO
 import java.math.BigDecimal
@@ -58,9 +57,10 @@ class ImportPairEntry<O : ImportPairEntry.Modified<O>>(
         fun buildOldDiffValue(map: MutableMap<String, Any>, property: String, value: Any?, old: Any?) {
             if (isModified(value, old)) {
                 var useOldValue: Any = old ?: ""
-                when (useOldValue) {
-                    is String -> useOldValue = useOldValue.trim()
-                    is Number -> useOldValue = useOldValue.formatForUser()
+                // Keep numbers as numbers for frontend formatting
+                // Only trim strings
+                if (useOldValue is String) {
+                    useOldValue = useOldValue.trim()
                 }
                 map["read.$property"] = useOldValue
             }

@@ -19,22 +19,30 @@ function DynamicAgGridDiffCell(props) {
     } = props;
     const { field, formatter, dataType } = colDef;
     const { oldDiffValues } = data;
-    let oldValue;
+    let oldValueRaw;
     if (oldDiffValues) {
-        oldValue = oldDiffValues[field];
+        oldValueRaw = oldDiffValues[field];
     }
-    if (oldValue === undefined) {
+    if (oldValueRaw === undefined) {
         return <Formatter {...props} />;
     }
-    let useValue = '';
-    if (value !== undefined && value !== null) {
-        // Apply formatter to new value for consistent formatting with old value
-        // Use exact same logic as Formatter.jsx
-        const useFormatter = formatter || dataType;
+
+    const useFormatter = formatter || dataType;
+
+    // Helper function to format a value
+    const formatValue = (val) => {
+        if (val === undefined || val === null) {
+            return '';
+        }
+        // If value is already a string, return it as-is (e.g., for strings or pre-formatted values)
+        if (_.isString(val)) {
+            return val;
+        }
+        // If we have a formatter, use it for numbers and other types
         if (useFormatter) {
             try {
                 const formatted = formatterFormat(
-                    value,
+                    val,
                     useFormatter,
                     dateFormat,
                     timestampFormatSeconds,
@@ -42,18 +50,20 @@ function DynamicAgGridDiffCell(props) {
                     locale,
                     currency,
                 );
-                // Ensure result is a string
-                useValue = _.isString(formatted) ? formatted : _.toString(value);
+                return _.isString(formatted) ? formatted : _.toString(val);
             } catch (error) {
-                // Fallback to toString if formatting fails
                 console.warn('Formatter failed, using toString:', error);
-                useValue = _.toString(value);
+                return _.toString(val);
             }
-        } else {
-            useValue = _.toString(value);
         }
-    }
-    return <DiffText newValue={useValue} oldValue={oldValue} />;
+        return _.toString(val);
+    };
+
+    // Format both old and new values identically
+    const formattedOldValue = formatValue(oldValueRaw);
+    const formattedNewValue = formatValue(value);
+
+    return <DiffText newValue={formattedNewValue} oldValue={formattedOldValue} />;
 }
 
 DynamicAgGridDiffCell.propTypes = {
