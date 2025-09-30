@@ -116,7 +116,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
      *
      * @param rereadDatabaseEntries If true, reloads database entries; if false, uses cached data
      */
-    override fun reconcileImportStorage(rereadDatabaseEntries: Boolean) {
+    override fun doReconcileImportStorage(rereadDatabaseEntries: Boolean) {
         // Determine date range from imported invoices
         analyzeReadInvoices()
         val from = fromDate

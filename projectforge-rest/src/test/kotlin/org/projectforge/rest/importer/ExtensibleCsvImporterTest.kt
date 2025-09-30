@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.importer
 
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.io.StringReader
 import kotlin.reflect.KProperty
@@ -80,13 +81,13 @@ class ExtensibleCsvImporterTest {
         val importer = TestCsvImporter()
 
         // If we get here without compilation errors, the architecture is working
-        assertTrue(true, "Extensible CSV importer architecture test passed")
+        Assertions.assertTrue(true, "Extensible CSV importer architecture test passed")
     }
 
     @Test
     fun testBackwardCompatibility() {
         // Verify that the CsvImporter facade still works
         // This validates that existing code won't break
-        assertTrue(true, "Backward compatibility test passed")
+        Assertions.assertTrue(true, "Backward compatibility test passed")
     }
 }
