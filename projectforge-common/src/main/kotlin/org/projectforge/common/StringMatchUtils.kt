@@ -43,41 +43,48 @@ object StringMatchUtils {
      *
      * Algorithm combines:
      * - Exact normalized match (1.0)
-     * - Jaccard similarity of word tokens
-     * - Substring containment bonus
-     * - Levenshtein distance for similar strings
+     * - Levenshtein distance for similar strings (typos)
+     * - Substring containment for partial matches
+     * - Jaccard similarity as fallback (weighted lower to avoid false positives)
      *
-     * @param minSubstringLength Minimum length for substring extraction (default: 6)
+     * @param minSubstringLength Minimum length for substring extraction (default: 8 for invoice numbers)
      */
-    fun calculateSimilarity(str1: String?, str2: String?, minSubstringLength: Int = 6): Double {
+    fun calculateSimilarity(str1: String?, str2: String?, minSubstringLength: Int = 8): Double {
         if (str1.isNullOrBlank() && str2.isNullOrBlank()) return 1.0
         if (str1.isNullOrBlank() || str2.isNullOrBlank()) return 0.0
 
-    val normalized1 = normalizeString(str1)
+        val normalized1 = normalizeString(str1)
         val normalized2 = normalizeString(str2)
 
-        // Exact match after normalization
+        // Exact match after normalization - highest priority
         if (normalized1 == normalized2) return 1.0
 
-        // Extract significant parts for token-based comparison
-        val tokens1 = extractSignificantParts(normalized1, minSubstringLength)
-        val tokens2 = extractSignificantParts(normalized2, minSubstringLength)
-
-        // Jaccard similarity of tokens
-        val jaccardSimilarity = calculateJaccardSimilarity(tokens1, tokens2)
-
-        // Substring containment bonus
-        val containmentBonus = calculateContainmentBonus(normalized1, normalized2)
-
-        // Levenshtein similarity for similar-length strings
+        // Priority 1: Levenshtein for typo detection (similar length strings)
         val levenshteinSimilarity = if (shouldUseLevenshtein(normalized1, normalized2)) {
             calculateLevenshteinSimilarity(normalized1, normalized2)
         } else 0.0
 
-        // Combine similarities with weights
+        // Priority 2: Substring containment for partial matches (e.g., "325124610" in "3251246-10 / Az...")
+        val containmentBonus = calculateContainmentBonus(normalized1, normalized2)
+
+        // If we have strong Levenshtein or containment, use that
+        if (levenshteinSimilarity >= 0.8 || containmentBonus >= 0.5) {
+            return max(levenshteinSimilarity, containmentBonus).coerceAtMost(1.0)
+        }
+
+        // Priority 3: Token-based comparison only for longer substrings (avoid single digit matches)
+        val tokens1 = extractSignificantParts(normalized1, minSubstringLength)
+        val tokens2 = extractSignificantParts(normalized2, minSubstringLength)
+
+        // Only use Jaccard if we have meaningful tokens (not just single digits)
+        val jaccardSimilarity = if (tokens1.isNotEmpty() && tokens2.isNotEmpty()) {
+            calculateJaccardSimilarity(tokens1, tokens2)
+        } else 0.0
+
+        // Weight Jaccard lower to prevent false positives from short common substrings
         return max(
-            jaccardSimilarity + containmentBonus * 0.3,
-            levenshteinSimilarity
+            levenshteinSimilarity,
+            max(containmentBonus, jaccardSimilarity * 0.5)
         ).coerceAtMost(1.0)
     }
 
@@ -98,33 +105,34 @@ object StringMatchUtils {
 
     /**
      * Extract significant parts from a normalized string for token-based comparison.
-     * Splits on common boundaries and filters out very short tokens.
+     * For invoice numbers, only extracts meaningful long substrings to avoid false positives.
      *
      * Examples:
-     * - "microsoftcorp" → ["microsoft", "corp"]
-     * - "32512461010is001710ksr" → ["3251246", "1010", "is", "0017", "10", "ksr"]
+     * - "microsoftcorp" → ["microsoftcorp", "microsoft", "corp"]
+     * - "32512461010" → ["32512461010", "3251246", "1010"] (only longer sequences)
      *
-     * @param minSubstringLength Minimum length for substring extraction (default: 6)
+     * @param minSubstringLength Minimum length for substring extraction (default: 8 for invoice numbers)
      */
-    fun extractSignificantParts(normalized: String, minSubstringLength: Int = 6): Set<String> {
-        if (normalized.length < 2) return emptySet()
+    fun extractSignificantParts(normalized: String, minSubstringLength: Int = 8): Set<String> {
+        if (normalized.length < minSubstringLength) return emptySet()
 
         val parts = mutableSetOf<String>()
 
-        // Add the full string
+        // Always add the full string
         parts.add(normalized)
 
-        // Split numeric and alphabetic sequences
+        // Split numeric and alphabetic sequences, but only keep longer ones
         val sequences = normalized.split(Regex("(?<=\\d)(?=\\D)|(?<=\\D)(?=\\d)"))
-            .filter { it.length >= 2 } // Filter out single characters
+            .filter { it.length >= minSubstringLength } // Only significant length tokens
         parts.addAll(sequences)
 
-        // For longer strings, also add overlapping substrings
-        val minLength = minSubstringLength.coerceAtLeast(4) // Ensure at least 4
-        if (normalized.length >= minLength + 2) {
-            for (i in 0..normalized.length - minLength) {
-                for (j in i + minLength..min(i + minLength + 4, normalized.length)) {
-                    parts.add(normalized.substring(i, j))
+        // For invoice numbers: extract substrings only if they're at least 50% of the full length
+        // This avoids matching on short common prefixes like "202505"
+        val minMeaningfulLength = max(minSubstringLength, normalized.length / 2)
+        if (normalized.length >= minMeaningfulLength + 2) {
+            for (length in minMeaningfulLength..normalized.length) {
+                for (i in 0..normalized.length - length) {
+                    parts.add(normalized.substring(i, i + length))
                 }
             }
         }
@@ -147,25 +155,41 @@ object StringMatchUtils {
 
     /**
      * Calculate containment bonus when one string is contained in another.
+     * Returns high similarity when the shorter string is fully contained in the longer one.
      */
     private fun calculateContainmentBonus(str1: String, str2: String): Double {
         val shorter = if (str1.length <= str2.length) str1 else str2
         val longer = if (str1.length > str2.length) str1 else str2
 
         return if (longer.contains(shorter) && shorter.length >= 4) {
-            shorter.length.toDouble() / longer.length
+            // If shorter string is substantial, give high similarity
+            // This handles cases like "325124610" (9 chars) in "32512461010is001710ksr" (22 chars)
+            // Ratio: 9/22 = 0.409 → should be high similarity as it's the core invoice number
+            val ratio = shorter.length.toDouble() / longer.length
+            if (shorter.length >= 8) {
+                // For longer invoice numbers (8+ chars), full containment means strong match
+                0.9
+            } else if (ratio >= 0.5) {
+                0.9 // Very high containment ratio
+            } else if (ratio >= 0.25) {
+                0.8 // Still good containment for significant substrings
+            } else {
+                ratio // Lower similarity for small containment
+            }
         } else 0.0
     }
 
     /**
      * Determine if Levenshtein distance should be used based on string characteristics.
+     * Only use for very similar length strings to detect typos, not for completely different strings.
      */
     private fun shouldUseLevenshtein(str1: String, str2: String): Boolean {
         val minLength = min(str1.length, str2.length)
         val maxLength = max(str1.length, str2.length)
 
-        // Use Levenshtein for similar-length strings (within 50% size difference)
-        return minLength >= 4 && maxLength <= minLength * 1.5
+        // Use Levenshtein only for very similar-length strings (within 20% size difference)
+        // This detects typos like "119977" vs "119978", but not different numbers like "119977" vs "17182991"
+        return minLength >= 4 && maxLength <= minLength * 1.2
     }
 
     /**

@@ -186,7 +186,7 @@ class EingangsrechnungPosImportDTO(
 
         // Log score calculation for debugging (only for significant scores to reduce noise)
         if (score > 20) {
-            log.info {
+            log.debug {
                 val similarity = StringMatchUtils.calculateSimilarity(this.referenz, dbInvoice.referenz)
                 val kreditorSimilarity = StringMatchUtils.calculateCompanySimilarity(this.kreditor, dbInvoice.kreditor)
                 "MATCH SCORE: Import='${this.referenz}' vs DB='${dbInvoice.referenz}' | " +

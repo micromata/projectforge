@@ -94,7 +94,7 @@ class EingangsrechnungImportStorageTest {
         }
 
         // Test the header matching score
-        val headerScore = importInvoice.headerMatchScore(dbInvoice)
+        val headerScore = importInvoice.matchScore(dbInvoice)
 
         println("ISICO Header Matching Test:")
         println("Import: referenz='${importInvoice.referenz}', kreditor='${importInvoice.kreditor}'")
