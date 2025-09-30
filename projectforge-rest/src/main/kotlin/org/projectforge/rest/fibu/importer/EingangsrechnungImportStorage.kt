@@ -643,13 +643,6 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         val dto = EingangsrechnungPosImportDTO()
         dto.copyFrom(eingangsrechnungDO)
 
-        // Calculate grossSum from invoice positions
-        try {
-            dto.grossSum = eingangsrechnungDO.ensuredInfo.grossSum
-        } catch (e: Exception) {
-            log.error(e) { "Could not calculate grossSum for invoice ${eingangsrechnungDO.id}" }
-        }
-
         // Copy konto from header using cache to handle lazy loading
         val initializedKonto = PfCaches.instance.getKontoIfNotInitialized(eingangsrechnungDO.konto)
         initializedKonto?.let { dto.konto = Konto(it.id, description = it.nummer?.toString()) }
@@ -658,7 +651,14 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         val dbPosition = eingangsrechnungDO.positionen?.getOrNull(positionIndex)
 
         if (dbPosition != null) {
-            // Copy position-specific fields
+            // Copy position-specific grossSum (not the total invoice sum!)
+            try {
+                dto.grossSum = dbPosition.info.grossSum
+            } catch (e: Exception) {
+                log.error(e) { "Could not get grossSum for position ${dbPosition.number}" }
+            }
+
+            // Copy other position-specific fields
             dto.taxRate = dbPosition.vat
             dto.positionNummer = dbPosition.number.toInt()
 
@@ -669,7 +669,6 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
                 initializedKost1?.let { dto.kost1 = Kost1(it.id, description = it.formattedNumber) }
 
                 val initializedKost2 = PfCaches.instance.getKost2IfNotInitialized(firstKostZuweisung.kost2)
-                initializedKost2?.let { dto.kost2 = Kost2(it) }
                 initializedKost2?.let { dto.kost2 = Kost2(it.id, description = it.formattedNumber) }
             }
         }
