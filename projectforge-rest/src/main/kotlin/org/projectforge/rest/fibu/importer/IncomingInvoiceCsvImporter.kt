@@ -98,7 +98,7 @@ class IncomingInvoiceCsvImporter(
                     parseKost1FromString(value, entity, rowContext.importStorage)
                     true // Prevent standard processing since we've handled it
                 } else {
-                    log.debug("Ignoring KOST1 field '$value' in header-only import mode")
+                    log.debug { "Ignoring KOST1 field '$value' in header-only import mode" }
                     true // Prevent standard processing but don't parse
                 }
             }
@@ -109,7 +109,7 @@ class IncomingInvoiceCsvImporter(
                     parseKost2FromString(value, entity, rowContext.importStorage)
                     true // Prevent standard processing since we've handled it
                 } else {
-                    log.debug("Ignoring KOST2 field '$value' in header-only import mode")
+                    log.debug { "Ignoring KOST2 field '$value' in header-only import mode" }
                     true // Prevent standard processing but don't parse
                 }
             }
@@ -150,6 +150,17 @@ class IncomingInvoiceCsvImporter(
         // Parse DATEV account if stored as konto number
         if (entity.konto != null && entity.konto!!.nummer != null) {
             parseKonto(entity.konto!!.nummer.toString(), entity, importStorage)
+        }
+
+        // Normalize taxRate: CSV values > 1 are in percentage format (e.g., 19.00 for 19%)
+        // and need to be divided by 100 to match DB format (e.g., 0.19)
+        entity.taxRate?.let { taxRate ->
+            if (taxRate > java.math.BigDecimal.ONE) {
+                entity.taxRate = taxRate
+                    .divide(java.math.BigDecimal(100), 5, java.math.RoundingMode.HALF_UP)
+                    .stripTrailingZeros()
+                log.debug { "Normalized taxRate from $taxRate% to ${entity.taxRate} for invoice ${entity.referenz}" }
+            }
         }
 
         // KOST1 and KOST2 are now parsed during CSV processing in processField method
@@ -219,11 +230,11 @@ class IncomingInvoiceCsvImporter(
                     // Clean the date string and add the year
                     val cleanDateStr = dateStr.removeSuffix(".")
                     val dateWithYear = "$cleanDateStr.$yearFromPeriod"
-                    log.debug("Trying to parse invoice date '$dateStr' as '$dateWithYear' using year from period")
+                    log.debug { "Trying to parse invoice date '$dateStr' as '$dateWithYear' using year from period" }
 
                     return fieldSettings.parseLocalDate(dateWithYear)
                 } catch (e: Exception) {
-                    log.debug("Could not parse invoice date '$dateStr' with period year $yearFromPeriod", e)
+                    log.debug(e) { "Could not parse invoice date '$dateStr' with period year $yearFromPeriod" }
                 }
             }
         }
@@ -245,7 +256,7 @@ class IncomingInvoiceCsvImporter(
                     val firstDate = periodFieldSettings.parseLocalDate(parts[0].trim())
                     return firstDate?.year
                 } catch (e: Exception) {
-                    log.debug("Could not extract year from period string '$periodString'", e)
+                    log.debug(e) { "Could not extract year from period string '$periodString'" }
                 }
             }
         }
@@ -375,7 +386,7 @@ class IncomingInvoiceCsvImporter(
             val kreditor = parts[1]
             val datum = parts[2]
 
-            log.debug("Processing invoice RENR='$renr', Kreditor='$kreditor', Datum='$datum' with ${positions.size} positions")
+            log.debug { "Processing invoice RENR='$renr', Kreditor='$kreditor', Datum='$datum' with ${positions.size} positions" }
 
             // Assign position numbers (1, 2, 3, ...) in reading order
             assignPositionNumbers(renr, positions)
@@ -421,7 +432,7 @@ class IncomingInvoiceCsvImporter(
             val kreditor = parts[1]
             val datum = parts[2]
 
-            log.debug("Processing header-only invoice RENR='$renr', Kreditor='$kreditor', Datum='$datum'")
+            log.debug { "Processing header-only invoice RENR='$renr', Kreditor='$kreditor', Datum='$datum'" }
 
             if (headerRecords.size > 1) {
                 val warningMsg =
@@ -487,7 +498,7 @@ class IncomingInvoiceCsvImporter(
                 // Log details for each creditor
                 kreditors.forEach { kreditor ->
                     val positionsForKreditor = positions.filter { it.kreditor == kreditor }
-                    log.debug("  - Kreditor '$kreditor': ${positionsForKreditor.size} positions")
+                    log.debug { "  - Kreditor '$kreditor': ${positionsForKreditor.size} positions" }
                 }
             }
         }
@@ -500,13 +511,13 @@ class IncomingInvoiceCsvImporter(
     }
 
     private fun assignPositionNumbers(renr: String, positions: List<EingangsrechnungPosImportDTO>) {
-        log.debug("Assigning position numbers for RENR '$renr' with ${positions.size} positions")
+        log.debug { "Assigning position numbers for RENR '$renr' with ${positions.size} positions" }
         positions.forEachIndexed { index, position ->
             val posNumber = index + 1
             position.positionNummer = posNumber
-            log.debug("Assigned position number $posNumber to position in RENR '$renr' (creditor: ${position.kreditor}, amount: ${position.grossSum})")
+            log.debug { "Assigned position number $posNumber to position in RENR '$renr' (creditor: ${position.kreditor}, amount: ${position.grossSum})" }
         }
-        log.debug("Position number assignment completed for RENR '$renr'")
+        log.debug { "Position number assignment completed for RENR '$renr'" }
     }
 
     private fun validateInvoiceHeaderConsistency(
@@ -518,7 +529,7 @@ class IncomingInvoiceCsvImporter(
 
         // For header-only imports, validation is less strict as there's only one record per invoice
         if (!storage.isPositionBasedImport) {
-            log.debug("Header-only import: skipping position consistency validation for RENR '$renr'")
+            log.debug { "Header-only import: skipping position consistency validation for RENR '$renr'" }
             return
         }
 
