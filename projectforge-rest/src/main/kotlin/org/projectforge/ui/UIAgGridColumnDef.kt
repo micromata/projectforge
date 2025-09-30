@@ -110,6 +110,12 @@ open class UIAgGridColumnDef(
         TIMESTAMP_MINUTES,
         TIMESTAMP_SECONDS,
         PERCENTAGE,
+
+        /**
+         * Percentage formatting for decimal values (e.g., 0.19 → "19%").
+         * Use PERCENTAGE for integer percentage values (e.g., 19 → "19%").
+         */
+        PERCENTAGE_DECIMAL,
         RATING,
 
         /**

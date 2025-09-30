@@ -158,7 +158,7 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
         // TAX rate
         addDiffColumn(
             agGrid, lc, "read.taxRate", headerName = "fibu.common.vat", width = 80,
-            formatter = Formatter.PERCENTAGE
+            formatter = Formatter.PERCENTAGE_DECIMAL
         )
 
         // Customer
