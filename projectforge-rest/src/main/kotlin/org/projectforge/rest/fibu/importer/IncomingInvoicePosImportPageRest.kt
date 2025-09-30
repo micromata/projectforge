@@ -117,8 +117,11 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
         addReadColumn(agGrid, lc, EingangsrechnungDO::datum)
 
         // Betrag (erstelle custom column da grossSum nicht in EingangsrechnungDO ist)
-        addDiffColumn(agGrid, lc, "read.grossSum", headerName = "fibu.common.betrag")
-            .setFormat(Formatter.CURRENCY_PLAIN)
+        addDiffColumn(
+            agGrid, lc, "read.grossSum",
+            headerName = "fibu.common.betrag",
+            formatter = Formatter.CURRENCY_PLAIN
+        )
 
         // Währung (custom column)
         addDiffColumn(agGrid, lc, "read.currency", headerName = "fibu.rechnung.currency", width = 80)
@@ -146,8 +149,11 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
         addReadColumn(agGrid, lc, EingangsrechnungDO::bezahlDatum)
 
         // Zahlbetrag
-        addDiffColumn(agGrid, lc, "read.zahlBetrag", headerName = "fibu.rechnung.zahlBetrag")
-            .setFormat(Formatter.CURRENCY_PLAIN)
+        addDiffColumn(
+            agGrid, lc, "read.zahlBetrag",
+            headerName = "fibu.rechnung.zahlBetrag",
+            formatter = Formatter.CURRENCY_PLAIN
+        )
 
         // TAX rate
         addDiffColumn(
