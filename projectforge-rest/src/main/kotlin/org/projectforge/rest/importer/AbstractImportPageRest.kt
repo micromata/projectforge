@@ -236,7 +236,14 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
         if (selectedIds != null) {
             importStorage.pairEntries.forEach { entry ->
                 if (selectedIds.contains(entry.id)) {
-                    selectedEntries.add(entry)
+                    // Only allow NEW, MODIFIED, and DELETED entries to be imported
+                    // Filter out UNKNOWN, UNKNOWN_MODIFICATION, FAULTY, and UNMODIFIED
+                    when (entry.status) {
+                        ImportEntry.Status.NEW,
+                        ImportEntry.Status.MODIFIED,
+                        ImportEntry.Status.DELETED -> selectedEntries.add(entry)
+                        else -> { /* Ignore other statuses */ }
+                    }
                 }
             }
         }
