@@ -46,20 +46,22 @@ object StringMatchUtils {
      * - Jaccard similarity of word tokens
      * - Substring containment bonus
      * - Levenshtein distance for similar strings
+     *
+     * @param minSubstringLength Minimum length for substring extraction (default: 6)
      */
-    fun calculateSimilarity(str1: String?, str2: String?): Double {
+    fun calculateSimilarity(str1: String?, str2: String?, minSubstringLength: Int = 6): Double {
         if (str1.isNullOrBlank() && str2.isNullOrBlank()) return 1.0
         if (str1.isNullOrBlank() || str2.isNullOrBlank()) return 0.0
 
-        val normalized1 = normalizeString(str1)
+    val normalized1 = normalizeString(str1)
         val normalized2 = normalizeString(str2)
 
         // Exact match after normalization
         if (normalized1 == normalized2) return 1.0
 
         // Extract significant parts for token-based comparison
-        val tokens1 = extractSignificantParts(normalized1)
-        val tokens2 = extractSignificantParts(normalized2)
+        val tokens1 = extractSignificantParts(normalized1, minSubstringLength)
+        val tokens2 = extractSignificantParts(normalized2, minSubstringLength)
 
         // Jaccard similarity of tokens
         val jaccardSimilarity = calculateJaccardSimilarity(tokens1, tokens2)
@@ -101,8 +103,10 @@ object StringMatchUtils {
      * Examples:
      * - "microsoftcorp" → ["microsoft", "corp"]
      * - "32512461010is001710ksr" → ["3251246", "1010", "is", "0017", "10", "ksr"]
+     *
+     * @param minSubstringLength Minimum length for substring extraction (default: 6)
      */
-    fun extractSignificantParts(normalized: String): Set<String> {
+    fun extractSignificantParts(normalized: String, minSubstringLength: Int = 6): Set<String> {
         if (normalized.length < 2) return emptySet()
 
         val parts = mutableSetOf<String>()
@@ -116,9 +120,10 @@ object StringMatchUtils {
         parts.addAll(sequences)
 
         // For longer strings, also add overlapping substrings
-        if (normalized.length >= 6) {
-            for (i in 0..normalized.length - 4) {
-                for (j in i + 4..min(i + 8, normalized.length)) {
+        val minLength = minSubstringLength.coerceAtLeast(4) // Ensure at least 4
+        if (normalized.length >= minLength + 2) {
+            for (i in 0..normalized.length - minLength) {
+                for (j in i + minLength..min(i + minLength + 4, normalized.length)) {
                     parts.add(normalized.substring(i, j))
                 }
             }
