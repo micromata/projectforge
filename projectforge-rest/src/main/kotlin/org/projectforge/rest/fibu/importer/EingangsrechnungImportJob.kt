@@ -46,36 +46,84 @@ class EingangsrechnungImportJob(
     importStorage = importStorage,
 ) {
 
+    init {
+        totalNumber = selectedEntries.size
+        processedNumber = 0
+    }
+
+    override fun onBeforeStart() {
+        importStorage.reconcileImportStorage(rereadDatabaseEntries = true)
+        updateTotals(importStorage)
+    }
+
+    override fun onAfterTermination() {
+        importStorage.reconcileImportStorage(rereadDatabaseEntries = true)
+    }
+
     override suspend fun run() {
         log.info("Starting import of ${selectedEntries.size} incoming invoices.")
 
-        selectedEntries.forEachIndexed { index, entry ->
-            val dbEntity = EingangsrechnungDO()
-            entry.read?.copyTo(dbEntity)
+        for (entry in selectedEntries) {
+            if (!isActive) {
+                // Job is being cancelled
+                return
+            }
+            processedNumber += 1
 
-            val status = if (entry.stored?.id != null) {
-                val existingEntity = eingangsrechnungDao.find(entry.stored!!.id!!)
-                if (existingEntity != null) {
-                    entry.read?.copyTo(existingEntity)
-                    eingangsrechnungDao.update(existingEntity)
-                    EntityCopyStatus.MAJOR
-                } else {
-                    eingangsrechnungDao.insert(dbEntity)
-                    EntityCopyStatus.MAJOR
+            val storedId = entry.stored?.id
+            val readEntry = entry.read
+
+            if (readEntry == null) {
+                // Handle deletion
+                if (storedId != null) {
+                    val existingEntity = eingangsrechnungDao.find(storedId)
+                    if (existingEntity != null && !existingEntity.deleted) {
+                        eingangsrechnungDao.markAsDeleted(existingEntity)
+                        result.deleted += 1
+                    }
                 }
-            } else {
-                eingangsrechnungDao.insert(dbEntity)
-                EntityCopyStatus.MAJOR
+                continue
             }
 
-            //setProgress((index + 1).toDouble() / selectedEntries.size * 100)
+            if (storedId != null) {
+                // Update existing invoice
+                val existingEntity = eingangsrechnungDao.find(storedId)
+                if (existingEntity != null) {
+                    readEntry.copyTo(existingEntity)
+                    val modStatus = eingangsrechnungDao.update(existingEntity)
+                    if (modStatus != EntityCopyStatus.NONE) {
+                        result.updated += 1
+                    } else {
+                        result.unmodified += 1
+                    }
+                } else {
+                    // Stored entity not found, insert as new
+                    val dbEntity = EingangsrechnungDO()
+                    readEntry.copyTo(dbEntity)
+                    eingangsrechnungDao.insert(dbEntity)
+                    result.inserted += 1
+                }
+            } else {
+                // Insert new invoice
+                val dbEntity = EingangsrechnungDO()
+                readEntry.copyTo(dbEntity)
+                eingangsrechnungDao.insert(dbEntity)
+                result.inserted += 1
+            }
         }
 
-        //setResultMessage(translateMsg("fibu.eingangsrechnung.import.result", selectedEntries.size.toString()))
-        log.info("Import completed: ${selectedEntries.size} invoices processed")
+        log.info("Import completed: inserted=${result.inserted}, updated=${result.updated}, deleted=${result.deleted}, unmodified=${result.unmodified}")
+    }
+
+    override fun readAccess(user: PFUserDO?): Boolean {
+        user ?: return false
+        return isOwner || eingangsrechnungDao.hasUserSelectAccess(user, false)
     }
 
     override fun writeAccess(user: PFUserDO?): Boolean {
-        TODO("Not yet implemented")
+        user ?: return false
+        // For import operations, we need general insert/update access to incoming invoices
+        // Since this is a batch operation, we check general insert access
+        return isOwner || eingangsrechnungDao.hasLoggedInUserInsertAccess()
     }
 }
