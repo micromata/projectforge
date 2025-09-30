@@ -26,6 +26,7 @@ package org.projectforge.rest.fibu.importer
 import mu.KotlinLogging
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.PaymentType
+import org.projectforge.common.StringMatchUtils
 import org.projectforge.rest.dto.BaseDTO
 import org.projectforge.rest.dto.Konto
 import org.projectforge.rest.dto.Kost1
@@ -158,20 +159,44 @@ class EingangsrechnungPosImportDTO(
      * Higher score means better match. Score 0 means no match.
      *
      * Matching criteria (in order of importance):
-     * - Same invoice number (referenz): +50 points
-     * - Same creditor (kreditor): +30 points
-     * - Same date (datum): +20 points
-     * - Partial creditor match: +10 points
+     * - Exact invoice number (referenz): +50 points
+     * - Similar invoice number (normalized): +35-45 points
+     * - Exact creditor (kreditor): +30 points
+     * - Similar creditor: +10-25 points
+     * - Exact date (datum): +20 points
      * - Same amount (grossSum): +10 points
      * - Date within 7 days: +5 points
      * - Date within 30 days: +2 points
+     *
+     * Uses StringMatchUtils for advanced similarity matching of invoice numbers and creditors.
      */
     fun matchScore(dbInvoice: EingangsrechnungDO): Int {
+        // Log all ISICO-related import attempts
+        if (this.referenz?.contains("325124610") == true || this.kreditor?.contains("isico", ignoreCase = true) == true) {
+            log.info("ISICO IMPORT ATTEMPT: Processing import invoice referenz='${this.referenz}', kreditor='${this.kreditor}', datum=${this.datum}, grossSum=${this.grossSum}")
+        }
+
         var score = 0
-        score += calculateReferenzMatchScore(dbInvoice)
-        score += calculateKreditorMatchScore(dbInvoice)
-        score += calculateDateMatchScore(dbInvoice)
-        score += calculateAmountMatchScore(dbInvoice)
+        val referenzScore = calculateReferenzMatchScore(dbInvoice)
+        val kreditorScore = calculateKreditorMatchScore(dbInvoice)
+        val dateScore = calculateDateMatchScore(dbInvoice)
+        val amountScore = calculateAmountMatchScore(dbInvoice)
+
+        score += referenzScore
+        score += kreditorScore
+        score += dateScore
+        score += amountScore
+
+        // Debug logging for failing matches - log all matches involving ISICO
+        if (score > 20 || this.referenz?.contains("325124610") == true || this.kreditor?.contains("ISICO", ignoreCase = true) == true) {
+            log.info("MATCH SCORE DEBUG: Import='${this.referenz}' vs DB='${dbInvoice.referenz}' | " +
+                    "ImportKreditor='${this.kreditor}' vs DBKreditor='${dbInvoice.kreditor}' | " +
+                    "ImportDate=${this.datum} vs DBDate=${dbInvoice.datum} | " +
+                    "ImportAmount=${this.grossSum} vs DBAmount=${try { dbInvoice.ensuredInfo.grossSum } catch(e: Exception) { "ERROR: ${e.message}" }} | " +
+                    "Scores: referenz=$referenzScore, kreditor=$kreditorScore, date=$dateScore, amount=$amountScore | " +
+                    "TOTAL=$score")
+        }
+
         return score
     }
 
@@ -179,32 +204,73 @@ class EingangsrechnungPosImportDTO(
      * Header-only matching score for invoice reconciliation.
      * Focuses on header fields and ignores position-specific data.
      * Scoring:
-     * - Invoice number exact match: +50 points
-     * - Creditor exact match: +30 points
-     * - Creditor partial match: +10 points
-     * - Date exact match: +20 points
+     * - Exact invoice number: +50 points
+     * - Similar invoice number (normalized): +35-45 points
+     * - Exact creditor: +30 points
+     * - Similar creditor: +10-25 points
+     * - Exact date: +20 points
      * - Date within 7 days: +5 points
      * - Date within 30 days: +2 points
      * - Amount exact match: +10 points
+     *
+     * Uses StringMatchUtils for advanced similarity matching of invoice numbers and creditors.
      */
     fun headerMatchScore(dbInvoice: EingangsrechnungDO): Int {
         var score = 0
-        score += calculateReferenzMatchScore(dbInvoice)
-        score += calculateKreditorMatchScore(dbInvoice)
-        score += calculateDateMatchScore(dbInvoice)
-        score += calculateAmountMatchScore(dbInvoice, logErrors = true)
+        val referenzScore = calculateReferenzMatchScore(dbInvoice)
+        val kreditorScore = calculateKreditorMatchScore(dbInvoice)
+        val dateScore = calculateDateMatchScore(dbInvoice)
+        val amountScore = calculateAmountMatchScore(dbInvoice, logErrors = true)
+
+        score += referenzScore
+        score += kreditorScore
+        score += dateScore
+        score += amountScore
+
+        // Debug logging for failing matches - log all matches involving ISICO
+        if (score > 20 || this.referenz?.contains("325124610") == true || this.kreditor?.contains("ISICO", ignoreCase = true) == true) {
+            log.info("HEADER MATCH SCORE DEBUG: Import='${this.referenz}' vs DB='${dbInvoice.referenz}' | " +
+                    "ImportKreditor='${this.kreditor}' vs DBKreditor='${dbInvoice.kreditor}' | " +
+                    "ImportDate=${this.datum} vs DBDate=${dbInvoice.datum} | " +
+                    "ImportAmount=${this.grossSum} vs DBAmount=${try { dbInvoice.ensuredInfo.grossSum } catch(e: Exception) { "ERROR: ${e.message}" }} | " +
+                    "Scores: referenz=$referenzScore, kreditor=$kreditorScore, date=$dateScore, amount=$amountScore | " +
+                    "TOTAL=$score")
+        }
+
         return score
     }
 
     /**
      * Calculate referenz (invoice number) match score.
+     * Uses multi-level matching: exact, normalized, and similarity-based.
      */
     private fun calculateReferenzMatchScore(dbInvoice: EingangsrechnungDO): Int {
         val thisReferenz = this.referenz
         val dbReferenz = dbInvoice.referenz
         return if (!thisReferenz.isNullOrBlank() && !dbReferenz.isNullOrBlank()) {
-            if (thisReferenz.equals(dbReferenz, ignoreCase = true)) 50 else 0
+            // Level 1: Exact match (highest score)
+            if (thisReferenz.equals(dbReferenz, ignoreCase = true)) {
+                50
+            } else {
+                // Level 2: Use StringMatchUtils for similarity matching
+                val similarity = StringMatchUtils.calculateSimilarity(thisReferenz, dbReferenz)
+                convertReferenzSimilarityToScore(similarity)
+            }
         } else 0
+    }
+
+    /**
+     * Convert similarity percentage (0.0-1.0) to scoring points for referenz matching.
+     */
+    private fun convertReferenzSimilarityToScore(similarity: Double): Int {
+        return when {
+            similarity >= 1.0 -> 45   // Perfect normalized match: "325124610" = "3251246-10"
+            similarity >= 0.8 -> 40   // High similarity: significant common parts
+            similarity >= 0.6 -> 35   // Medium similarity: "325124610" vs "3251246-10 / Az.: IS-0017-10/KSR"
+            similarity >= 0.35 -> 25  // Low similarity: some common elements (lowered from 0.4 to 0.35)
+            similarity >= 0.2 -> 15   // Very low similarity: minimal but detectable match
+            else -> 0                 // No meaningful similarity
+        }
     }
 
     /**
@@ -214,8 +280,24 @@ class EingangsrechnungPosImportDTO(
         val thisKreditor = this.kreditor
         val dbKreditor = dbInvoice.kreditor
         return if (!thisKreditor.isNullOrBlank() && !dbKreditor.isNullOrBlank()) {
-            calculateKreditorSimilarity(thisKreditor, dbKreditor)
+            // Use StringMatchUtils for company similarity calculation
+            val similarity = StringMatchUtils.calculateCompanySimilarity(thisKreditor, dbKreditor)
+            convertSimilarityToScore(similarity)
         } else 0
+    }
+
+    /**
+     * Convert similarity percentage (0.0-1.0) to scoring points for kreditor matching.
+     */
+    private fun convertSimilarityToScore(similarity: Double): Int {
+        return when {
+            similarity >= 1.0 -> 30   // Perfect match
+            similarity >= 0.8 -> 25   // High similarity: "Firma ACME GmbH" vs "F. ACME"
+            similarity >= 0.6 -> 20   // Medium similarity: "Microsoft Corp." vs "Microsoft Corporation"
+            similarity >= 0.4 -> 15   // Low similarity: still worth considering
+            similarity >= 0.2 -> 10   // Very low similarity: minimal match
+            else -> 0                 // No meaningful similarity
+        }
     }
 
     /**
@@ -254,103 +336,5 @@ class EingangsrechnungPosImportDTO(
                 0
             }
         } else 0
-    }
-
-    /**
-     * Enhanced kreditor similarity matching with support for:
-     * - Company name variations ("Firma ACME GmbH" vs "F. ACME")
-     * - Legal form differences ("GmbH", "AG", "Inc", etc.)
-     * - Abbreviations ("F." -> "Firma")
-     * - Word-based similarity scoring
-     */
-    private fun calculateKreditorSimilarity(kreditor1: String, kreditor2: String): Int {
-        // Exact match gets highest score
-        if (kreditor1.equals(kreditor2, ignoreCase = true)) {
-            return 30
-        }
-
-        // Extract and normalize words from both company names
-        val words1 = normalizeAndExtractWords(kreditor1)
-        val words2 = normalizeAndExtractWords(kreditor2)
-
-        if (words1.isEmpty() || words2.isEmpty()) {
-            // Fallback to simple contains check if normalization fails
-            return if (kreditor1.contains(kreditor2, ignoreCase = true) ||
-                      kreditor2.contains(kreditor1, ignoreCase = true)) 10 else 0
-        }
-
-        // Calculate word-based similarity
-        val similarity = calculateWordSimilarity(words1, words2)
-
-        // Return score based on similarity percentage
-        return when {
-            similarity >= 0.8 -> 25  // High similarity: "Firma ACME GmbH" vs "F. ACME"
-            similarity >= 0.6 -> 20  // Medium similarity: "Microsoft Corp." vs "Microsoft Corporation"
-            similarity >= 0.4 -> 15  // Low similarity: still worth considering
-            kreditor1.contains(kreditor2, ignoreCase = true) ||
-            kreditor2.contains(kreditor1, ignoreCase = true) -> 10  // Fallback contains match
-            else -> 0
-        }
-    }
-
-    /**
-     * Normalize company name and extract meaningful words.
-     * Removes legal forms, handles abbreviations, and filters stop words.
-     */
-    private fun normalizeAndExtractWords(company: String): Set<String> {
-        // Common legal forms to ignore
-        val legalForms = setOf("gmbh", "ag", "e.k.", "ltd", "inc", "corp", "co", "kg", "ohg",
-                              "llc", "plc", "sa", "srl", "bv", "oy", "ab", "as", "aps")
-
-        // Common abbreviations for company types
-        val abbreviations = mapOf(
-            "f." to "firma",
-            "fa." to "firma",
-            "co." to "company",
-            "corp." to "corporation"
-        )
-
-        return company.lowercase()
-            .replace(Regex("[^a-zA-Z0-9\\s]"), " ")  // Replace special chars with spaces
-            .split(Regex("\\s+"))  // Split on whitespace
-            .map { word -> abbreviations[word] ?: word }  // Expand abbreviations
-            .filter { word ->
-                word.length > 1 &&  // Skip single characters
-                !legalForms.contains(word)  // Skip legal forms
-            }
-            .toSet()
-    }
-
-    /**
-     * Calculate similarity between two sets of words using Jaccard similarity.
-     * Also considers partial word matches for better flexibility.
-     */
-    private fun calculateWordSimilarity(words1: Set<String>, words2: Set<String>): Double {
-        if (words1.isEmpty() && words2.isEmpty()) return 1.0
-        if (words1.isEmpty() || words2.isEmpty()) return 0.0
-
-        // Exact word matches (Jaccard similarity)
-        val intersection = words1.intersect(words2)
-        val union = words1.union(words2)
-        val jaccardSimilarity = intersection.size.toDouble() / union.size
-
-        // Bonus for partial word matches (e.g., "microsoft" matches "microsystems")
-        var partialMatches = 0
-        val totalComparisons = words1.size * words2.size
-
-        words1.forEach { word1 ->
-            words2.forEach { word2 ->
-                if (word1.contains(word2) || word2.contains(word1)) {
-                    partialMatches++
-                }
-            }
-        }
-
-        val partialSimilarity = if (totalComparisons > 0) {
-            partialMatches.toDouble() / totalComparisons * 0.3  // Weight partial matches lower
-        } else 0.0
-
-        // Combine Jaccard similarity with partial match bonus
-        return jaccardSimilarity + partialSimilarity
     }
 }

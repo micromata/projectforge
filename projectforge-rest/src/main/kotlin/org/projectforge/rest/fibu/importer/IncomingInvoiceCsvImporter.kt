@@ -49,6 +49,7 @@ class IncomingInvoiceCsvImporter(
     private val kostCache: KostCache,
     private val kontoCache: KontoCache,
 ) : AbstractCsvImporter<EingangsrechnungPosImportDTO>() {
+    override val logErrorOnPropertyParsing: Boolean = false
 
     private lateinit var storage: EingangsrechnungImportStorage
 
@@ -133,6 +134,15 @@ class IncomingInvoiceCsvImporter(
         rowIndex: Int,
         importStorage: ImportStorage<EingangsrechnungPosImportDTO>
     ) {
+        // Debug logging for ISICO invoices
+        if (entity.referenz?.contains("325124610") == true || entity.kreditor?.contains(
+                "isico",
+                ignoreCase = true
+            ) == true
+        ) {
+            log.info("CSV IMPORT DEBUG: Found ISICO invoice in row $rowIndex - referenz='${entity.referenz}', kreditor='${entity.kreditor}', datum=${entity.datum}, grossSum=${entity.grossSum}")
+        }
+
         // Process fields that might have been stored as strings during standard parsing
 
         // Parse DATEV account if stored as konto number
@@ -147,6 +157,20 @@ class IncomingInvoiceCsvImporter(
         records: List<EingangsrechnungPosImportDTO>,
         importStorage: ImportStorage<EingangsrechnungPosImportDTO>
     ) {
+        // Debug logging for ISICO invoices
+        val isicoInvoices = records.filter {
+            it.referenz?.contains("325124610") == true || it.kreditor?.contains("isico", ignoreCase = true) == true
+        }
+        if (isicoInvoices.isNotEmpty()) {
+            log.info("FINALIZE IMPORT DEBUG: Found ${isicoInvoices.size} ISICO invoices in final records:")
+            isicoInvoices.forEach { invoice ->
+                log.info("  - referenz='${invoice.referenz}', kreditor='${invoice.kreditor}', datum=${invoice.datum}, grossSum=${invoice.grossSum}")
+            }
+        }
+
+        // Debug logging for import storage type
+        log.info("FINALIZE DEBUG: importStorage type is ${importStorage::class.simpleName}, isPositionBasedImport=${(importStorage as? EingangsrechnungImportStorage)?.isPositionBasedImport}")
+
         // Consolidate and validate after all rows are processed
         if (importStorage is EingangsrechnungImportStorage) {
             if (importStorage.isPositionBasedImport) {
@@ -163,6 +187,8 @@ class IncomingInvoiceCsvImporter(
             if (importStorage.errorList.isNotEmpty()) {
                 log.warn("Import has ${importStorage.errorList.size} errors: ${importStorage.errorList}")
             }
+        } else {
+            log.warn("FINALIZE DEBUG: importStorage is NOT EingangsrechnungImportStorage - no consolidation will occur!")
         }
     }
 
@@ -241,9 +267,11 @@ class IncomingInvoiceCsvImporter(
                     nummer = konto.nummer
                 }
             } else {
-                val errorMsg = "Konto '$datevAccountNumberStr' not found."
-                addError(invoicePos, errorMsg, importStorage)
-                log.warn(errorMsg)
+                if (datevAccountNumberStr.isNotBlank()) {
+                    val errorMsg = "Konto '$datevAccountNumberStr' not found."
+                    addError(invoicePos, errorMsg, importStorage)
+                    log.warn(errorMsg)
+                }
             }
         } catch (e: Exception) {
             val errorMsg = "Could not parse DATEV account '$datevAccountNumberStr'"
@@ -316,6 +344,17 @@ class IncomingInvoiceCsvImporter(
     ) {
         log.info("Starting consolidation of invoices by RENR, Kreditor, and Datum...")
 
+        // Debug logging for ISICO invoices
+        val isicoInvoices = records.filter {
+            it.referenz?.contains("325124610") == true || it.kreditor?.contains("isico", ignoreCase = true) == true
+        }
+        if (isicoInvoices.isNotEmpty()) {
+            log.info("POSITION CONSOLIDATION DEBUG: Found ${isicoInvoices.size} ISICO invoices in position consolidation:")
+            isicoInvoices.forEach { invoice ->
+                log.info("  - referenz='${invoice.referenz}', kreditor='${invoice.kreditor}', datum=${invoice.datum}, positionNummer=${invoice.positionNummer}")
+            }
+        }
+
         // Group by combination of RENR, Kreditor, and Datum to identify unique invoices
         val groupedByInvoiceKey = records.groupBy {
             val renr = it.referenz ?: "UNKNOWN"
@@ -383,7 +422,8 @@ class IncomingInvoiceCsvImporter(
             log.debug("Processing header-only invoice RENR='$renr', Kreditor='$kreditor', Datum='$datum'")
 
             if (headerRecords.size > 1) {
-                val warningMsg = "Multiple header records found for same invoice: RENR '$renr', Kreditor '$kreditor', Datum '$datum' (${headerRecords.size} records). Using first record."
+                val warningMsg =
+                    "Multiple header records found for same invoice: RENR '$renr', Kreditor '$kreditor', Datum '$datum' (${headerRecords.size} records). Using first record."
                 importStorage.addWarning(warningMsg)
                 log.warn(warningMsg)
             }

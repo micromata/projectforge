@@ -26,6 +26,7 @@ package org.projectforge.rest.fibu.importer
 import mu.KotlinLogging
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
+import org.projectforge.common.StringMatchUtils
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.rest.importer.ImportPairEntry
 import org.projectforge.rest.importer.ImportSettings
@@ -314,54 +315,51 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             return
         }
 
-        // Use headerMatchScore for fallback matching
-        if (unmatchedRead.size * unmatchedDb.size <= 1000) {
-            val readToOriginalIndex = readInvoices.mapIndexed { index, invoice -> invoice to index }.toMap()
-            val dbToOriginalIndex = dbInvoices.mapIndexed { index, invoice -> invoice to index }.toMap()
+        val readToOriginalIndex = readInvoices.mapIndexed { index, invoice -> invoice to index }.toMap()
+        val dbToOriginalIndex = dbInvoices.mapIndexed { index, invoice -> invoice to index }.toMap()
 
-            val scoreMatrix = Array(unmatchedRead.size) { IntArray(unmatchedDb.size) }
+        val scoreMatrix = Array(unmatchedRead.size) { IntArray(unmatchedDb.size) }
 
-            // Calculate header scores
-            for (i in unmatchedRead.indices) {
-                for (j in unmatchedDb.indices) {
-                    val score = unmatchedRead[i].headerMatchScore(unmatchedDb[j])
-                    scoreMatrix[i][j] = score
-                }
+        // Calculate header scores
+        for (i in unmatchedRead.indices) {
+            for (j in unmatchedDb.indices) {
+                val score = unmatchedRead[i].headerMatchScore(unmatchedDb[j])
+                scoreMatrix[i][j] = score
             }
+        }
 
-            val takenReadIndices = mutableSetOf<Int>()
-            val takenDbIndices = mutableSetOf<Int>()
+        val takenReadIndices = mutableSetOf<Int>()
+        val takenDbIndices = mutableSetOf<Int>()
 
-            // Find best matches iteratively
-            while (true) {
-                var maxScore = 0
-                var maxReadIndex = -1
-                var maxDbIndex = -1
+        // Find best matches iteratively
+        while (true) {
+            var maxScore = 0
+            var maxReadIndex = -1
+            var maxDbIndex = -1
 
-                for (i in unmatchedRead.indices) {
-                    if (takenReadIndices.contains(i)) continue
-                    for (j in unmatchedDb.indices) {
-                        if (takenDbIndices.contains(j)) continue
-                        if (scoreMatrix[i][j] > maxScore) {
-                            maxScore = scoreMatrix[i][j]
-                            maxReadIndex = i
-                            maxDbIndex = j
-                        }
+            for (i in unmatchedRead.indices) {
+                if (takenReadIndices.contains(i)) continue
+                for (j in unmatchedDb.indices) {
+                    if (takenDbIndices.contains(j)) continue
+                    if (scoreMatrix[i][j] > maxScore) {
+                        maxScore = scoreMatrix[i][j]
+                        maxReadIndex = i
+                        maxDbIndex = j
                     }
                 }
-
-                if (maxScore < 25) break // Same threshold for header-only
-
-                takenReadIndices.add(maxReadIndex)
-                takenDbIndices.add(maxDbIndex)
-
-                val originalReadIndex = readToOriginalIndex[unmatchedRead[maxReadIndex]]!!
-                val originalDbIndex = dbToOriginalIndex[unmatchedDb[maxDbIndex]]!!
-
-                matches.add(Pair(originalReadIndex, originalDbIndex))
-                matchedReadIndices.add(originalReadIndex)
-                matchedDbIndices.add(originalDbIndex)
             }
+
+            if (maxScore < 25) break
+
+            takenReadIndices.add(maxReadIndex)
+            takenDbIndices.add(maxDbIndex)
+
+            val originalReadIndex = readToOriginalIndex[unmatchedRead[maxReadIndex]]!!
+            val originalDbIndex = dbToOriginalIndex[unmatchedDb[maxDbIndex]]!!
+
+            matches.add(Pair(originalReadIndex, originalDbIndex))
+            matchedReadIndices.add(originalReadIndex)
+            matchedDbIndices.add(originalDbIndex)
         }
 
         log.debug("Header-only Stage 3 completed: ${matches.size - initialMatches} fallback matches found")
@@ -501,62 +499,59 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             return
         }
 
-        // For smaller remaining sets, use the original algorithm with optimizations
-        if (unmatchedRead.size * unmatchedDb.size <= 1000) { // Limit to reasonable comparison count
-            val readToOriginalIndex = readInvoices.mapIndexed { index, invoice -> invoice to index }.toMap()
-            val dbToOriginalIndex = dbInvoices.mapIndexed { index, invoice -> invoice to index }.toMap()
+        val readToOriginalIndex = readInvoices.mapIndexed { index, invoice -> invoice to index }.toMap()
+        val dbToOriginalIndex = dbInvoices.mapIndexed { index, invoice -> invoice to index }.toMap()
 
-            val scoreMatrix = Array(unmatchedRead.size) { IntArray(unmatchedDb.size) }
+        val scoreMatrix = Array(unmatchedRead.size) { IntArray(unmatchedDb.size) }
 
-            // Calculate scores with early exit optimization
-            for (i in unmatchedRead.indices) {
-                for (j in unmatchedDb.indices) {
-                    val score = unmatchedRead[i].matchScore(unmatchedDb[j])
-                    scoreMatrix[i][j] = score
-                }
-            }
-
-            val takenReadIndices = mutableSetOf<Int>()
-            val takenDbIndices = mutableSetOf<Int>()
-
-            // Find best matches iteratively
-            while (true) {
-                var maxScore = 0
-                var maxReadIndex = -1
-                var maxDbIndex = -1
-
-                for (i in unmatchedRead.indices) {
-                    if (takenReadIndices.contains(i)) continue
-                    for (j in unmatchedDb.indices) {
-                        if (takenDbIndices.contains(j)) continue
-                        if (scoreMatrix[i][j] > maxScore) {
-                            maxScore = scoreMatrix[i][j]
-                            maxReadIndex = i
-                            maxDbIndex = j
-                        }
-                    }
-                }
-
-                if (maxScore < 25) break // Require meaningful match
-
-                takenReadIndices.add(maxReadIndex)
-                takenDbIndices.add(maxDbIndex)
-
-                // Map back to original indices
-                val originalReadIndex = readToOriginalIndex[unmatchedRead[maxReadIndex]]!!
-                val originalDbIndex = dbToOriginalIndex[unmatchedDb[maxDbIndex]]!!
-
-                matches.add(Pair(originalReadIndex, originalDbIndex))
-                matchedReadIndices.add(originalReadIndex)
-                matchedDbIndices.add(originalDbIndex)
+        // Calculate scores
+        for (i in unmatchedRead.indices) {
+            for (j in unmatchedDb.indices) {
+                val score = unmatchedRead[i].matchScore(dbInvoices[j])
+                scoreMatrix[i][j] = score
             }
         }
+
+        val takenReadIndices = mutableSetOf<Int>()
+        val takenDbIndices = mutableSetOf<Int>()
+
+        // Find best matches iteratively
+        while (true) {
+            var maxScore = 0
+            var maxReadIndex = -1
+            var maxDbIndex = -1
+
+            for (i in unmatchedRead.indices) {
+                if (takenReadIndices.contains(i)) continue
+                for (j in unmatchedDb.indices) {
+                    if (takenDbIndices.contains(j)) continue
+                    if (scoreMatrix[i][j] > maxScore) {
+                        maxScore = scoreMatrix[i][j]
+                        maxReadIndex = i
+                        maxDbIndex = j
+                    }
+                }
+            }
+
+            if (maxScore < 25) break
+
+            takenReadIndices.add(maxReadIndex)
+            takenDbIndices.add(maxDbIndex)
+
+            val originalReadIndex = readToOriginalIndex[unmatchedRead[maxReadIndex]]!!
+            val originalDbIndex = dbToOriginalIndex[unmatchedDb[maxDbIndex]]!!
+
+            matches.add(Pair(originalReadIndex, originalDbIndex))
+            matchedReadIndices.add(originalReadIndex)
+            matchedDbIndices.add(originalDbIndex)
+    }
 
         log.debug("Stage 3 completed: ${matches.size - initialMatches} fallback matches found")
     }
 
     /**
      * Group by invoice number (referenz) and find matches within each group.
+     * Uses prefix-based grouping to catch variations like "325124610" matching "3251246-10 / Az.: IS-0017-10/KSR".
      */
     private fun findMatchesInReferenzGroups(
         readInvoices: List<EingangsrechnungPosImportDTO>,
@@ -565,21 +560,47 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         matchedDbIndices: MutableSet<Int>,
         matches: MutableList<Pair<Int, Int>>
     ) {
-        // Group database invoices by referenz
-        val dbByReferenz = dbInvoices.mapIndexed { index, invoice ->
+        // Create multiple grouping strategies to improve matching
+        // Strategy 1: Full normalized string (exact match)
+        val dbByExactReferenz = dbInvoices.mapIndexed { index, invoice ->
             index to invoice
         }.filter { (index, _) -> !matchedDbIndices.contains(index) }
-         .groupBy { (_, invoice) -> invoice.referenz?.trim()?.lowercase() }
+         .groupBy { (_, invoice) ->
+             invoice.referenz?.let { StringMatchUtils.normalizeString(it) }?.takeIf { it.isNotBlank() }
+         }
          .filterKeys { !it.isNullOrBlank() }
 
-        // Find matches for each read invoice within its referenz group
+        // Strategy 2: Prefix-based grouping (first 8 chars of normalized string)
+        // This catches variations like "325124610" matching "32512461010is001710ksr"
+    val dbByReferenzPrefix = dbInvoices.mapIndexed { index, invoice ->
+            index to invoice
+        }.filter { (index, _) -> !matchedDbIndices.contains(index) }
+         .groupBy { (_, invoice) ->
+             invoice.referenz?.let {
+                 val normalized = StringMatchUtils.normalizeString(it)
+                 if (normalized.length >= 8) normalized.substring(0, 8) else normalized
+             }?.takeIf { it.isNotBlank() }
+         }
+         .filterKeys { !it.isNullOrBlank() }
+
+        // Find matches for each read invoice
         readInvoices.forEachIndexed { readIndex, readInvoice ->
             if (matchedReadIndices.contains(readIndex)) return@forEachIndexed
 
-            val referenz = readInvoice.referenz?.trim()?.lowercase()
-            if (referenz.isNullOrBlank()) return@forEachIndexed
+            val normalizedReferenz = readInvoice.referenz?.let { StringMatchUtils.normalizeString(it) }
+            if (normalizedReferenz.isNullOrBlank()) return@forEachIndexed
 
-            val candidateGroup = dbByReferenz[referenz] ?: return@forEachIndexed
+            // Try exact match first
+            var candidateGroup = dbByExactReferenz[normalizedReferenz]
+
+            // If no exact match, try prefix-based match
+            if (candidateGroup == null && normalizedReferenz.length >= 8) {
+                val prefix = normalizedReferenz.substring(0, 8)
+                candidateGroup = dbByReferenzPrefix[prefix]
+            }
+
+            if (candidateGroup == null) return@forEachIndexed
+
             var bestMatch: Pair<Int, Int>? = null
             var bestScore = 24 // Just below our minimum threshold of 25
 

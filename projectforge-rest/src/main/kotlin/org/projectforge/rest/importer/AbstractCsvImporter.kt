@@ -45,7 +45,7 @@ private val log = KotlinLogging.logger {}
 data class CsvRowContext<O : ImportPairEntry.Modified<O>>(
     val rowValues: List<String>,
     val columnMapping: Map<Int, ImportFieldSettings>,
-    val importStorage: ImportStorage<O>
+    val importStorage: ImportStorage<O>,
 ) {
     /**
      * Get the value from a specific column by field property name.
@@ -75,6 +75,8 @@ data class CsvRowContext<O : ImportPairEntry.Modified<O>>(
  * @param O the type of objects being imported, must extend ImportPairEntry.Modified
  */
 abstract class AbstractCsvImporter<O : ImportPairEntry.Modified<O>> {
+
+    open val logErrorOnPropertyParsing: Boolean = true
 
     /**
      * Parse CSV from InputStream with charset detection.
@@ -333,7 +335,11 @@ abstract class AbstractCsvImporter<O : ImportPairEntry.Modified<O>> {
                 BeanHelper.setProperty(record, fieldSettings.property, targetValue)
             }
         } catch (ex: Exception) {
-            log.error("Can't parse property: '${fieldSettings.property}': ${ex.message}")
+            if (logErrorOnPropertyParsing) {
+                log.error("Can't parse property: '${fieldSettings.property}': ${ex.message}")
+            } else {
+                log.debug("Can't parse property: '${fieldSettings.property}': ${ex.message}")
+            }
         }
     }
 
