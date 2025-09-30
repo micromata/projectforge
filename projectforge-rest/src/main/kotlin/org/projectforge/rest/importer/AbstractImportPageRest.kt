@@ -169,9 +169,12 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
                 .withTooltipField("error")
             agGrid.add(col)
             createListLayout(request, layout, agGrid)
-            agGrid.withMultiRowSelection()
-            agGrid.multiSelectButtonTitle = translate("import")
-            agGrid.multiSelectButtonConfirmMessage = translate("import.confirmMessage")
+            // Only show import button if data has been reconciled with database
+            if (importStorage?.hasBeenReconciled == true) {
+                agGrid.withMultiRowSelection()
+                agGrid.multiSelectButtonTitle = translate("import")
+                agGrid.multiSelectButtonConfirmMessage = translate("import.confirmMessage")
+            }
             agGrid.paginationPageSize = 500
             agGrid.withGetRowClass(
                 """if (params.node.data.status === 'NEW') {
