@@ -47,6 +47,12 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             )
     ) {
 
+    /**
+     * Flag indicating whether this import contains individual positions (true) or only header data (false).
+     * For invoice imports: true if "Periode" column exists, false otherwise.
+     */
+    var isPositionBasedImport: Boolean = true
+
     var readInvoices = mutableListOf<EingangsrechnungPosImportDTO>()
 
     /**

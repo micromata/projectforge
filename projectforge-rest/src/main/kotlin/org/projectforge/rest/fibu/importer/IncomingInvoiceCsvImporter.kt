@@ -57,6 +57,8 @@ class IncomingInvoiceCsvImporter(
         headers: List<String>,
         importStorage: ImportStorage<EingangsrechnungPosImportDTO>
     ): List<String> {
+        // Store typed reference for later use
+        storage = importStorage as EingangsrechnungImportStorage
         val normalizedHeaders = headers.map { header -> normalizeHeader(header) }
 
         // Detect import mode based on presence of "Periode" column
@@ -64,7 +66,7 @@ class IncomingInvoiceCsvImporter(
             header.trim() == "Periode"
         }
 
-        importStorage.isPositionBasedImport = hasPeriodenColumn
+        storage.isPositionBasedImport = hasPeriodenColumn
 
         log.info("Import mode detected: ${if (hasPeriodenColumn) "Position-based" else "Header-only"} (Periode column ${if (hasPeriodenColumn) "found" else "not found"})")
 
@@ -92,7 +94,7 @@ class IncomingInvoiceCsvImporter(
 
             "kost1" -> {
                 // Only parse KOST1 for position-based imports
-                if (rowContext.importStorage.isPositionBasedImport) {
+                if (storage.isPositionBasedImport) {
                     parseKost1FromString(value, entity, rowContext.importStorage)
                     true // Prevent standard processing since we've handled it
                 } else {
@@ -103,7 +105,7 @@ class IncomingInvoiceCsvImporter(
 
             "kost2" -> {
                 // Only parse KOST2 for position-based imports
-                if (rowContext.importStorage.isPositionBasedImport) {
+                if (storage.isPositionBasedImport) {
                     parseKost2FromString(value, entity, rowContext.importStorage)
                     true // Prevent standard processing since we've handled it
                 } else {
@@ -173,7 +175,7 @@ class IncomingInvoiceCsvImporter(
 
         // Consolidate and validate after all rows are processed
         if (importStorage is EingangsrechnungImportStorage) {
-            if (importStorage.isPositionBasedImport) {
+            if (storage.isPositionBasedImport) {
                 log.info("Position-based import: consolidating ${records.size} positions")
                 consolidateInvoicesByRenr(records, importStorage)
             } else {
@@ -515,7 +517,7 @@ class IncomingInvoiceCsvImporter(
         if (positions.isEmpty()) return
 
         // For header-only imports, validation is less strict as there's only one record per invoice
-        if (!importStorage.isPositionBasedImport) {
+        if (!storage.isPositionBasedImport) {
             log.debug("Header-only import: skipping position consistency validation for RENR '$renr'")
             return
         }

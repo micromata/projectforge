@@ -61,11 +61,6 @@ class EingangsrechnungImportStorageTest {
         // Test the matching score
         val score = importInvoice.matchScore(dbInvoice)
 
-        println("ISICO Matching Test:")
-        println("Import: referenz='${importInvoice.referenz}', kreditor='${importInvoice.kreditor}'")
-        println("DB:     referenz='${dbInvoice.referenz}', kreditor='${dbInvoice.kreditor}'")
-        println("Match Score: $score")
-
         // Score should be sufficient for matching (without amount matching due to complexity)
         // Expected: referenz(25) + kreditor(20) + date(20) = 65
         assertTrue(score >= 60, "ISICO invoices should match with score >= 60, got $score")
@@ -95,11 +90,6 @@ class EingangsrechnungImportStorageTest {
 
         // Test the header matching score
         val headerScore = importInvoice.matchScore(dbInvoice)
-
-        println("ISICO Header Matching Test:")
-        println("Import: referenz='${importInvoice.referenz}', kreditor='${importInvoice.kreditor}'")
-        println("DB:     referenz='${dbInvoice.referenz}', kreditor='${dbInvoice.kreditor}'")
-        println("Header Match Score: $headerScore")
 
         // Score should be sufficient for matching (without amount matching due to complexity)
         // Expected: referenz(25) + kreditor(20) + date(20) = 65

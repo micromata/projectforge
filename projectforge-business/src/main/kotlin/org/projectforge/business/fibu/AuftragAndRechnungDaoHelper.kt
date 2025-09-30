@@ -84,7 +84,6 @@ object AuftragAndRechnungDaoHelper {
     fun onSaveOrModify(rechnung: AbstractRechnungDO) {
         checkAndCalculateFaelligkeit(rechnung)
         checkAndCalculateDiscountMaturity(rechnung)
-        validateFaelligkeit(rechnung)
         validateBezahlDatumAndZahlBetrag(rechnung)
     }
 
@@ -113,12 +112,6 @@ object AuftragAndRechnungDaoHelper {
                 day = day.plusDays(discountZahlungsZiel.toLong())
                 rechnung.discountMaturity = day.localDate
             }
-        }
-    }
-
-    private fun validateFaelligkeit(rechnung: AbstractRechnungDO) {
-        if (rechnung.faelligkeit == null) {
-            throw RequiredFieldIsEmptyException("fibu.rechnung.faelligkeit")
         }
     }
 
