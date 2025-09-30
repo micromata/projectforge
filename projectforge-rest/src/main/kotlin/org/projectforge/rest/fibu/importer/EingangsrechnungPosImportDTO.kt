@@ -155,6 +155,17 @@ class EingangsrechnungPosImportDTO(
         obj.bemerkung = this.bemerkung
     }
 
+    override fun buildOldDiffValues(map: MutableMap<String, Any>, old: EingangsrechnungPosImportDTO) {
+        // Handle custom properties that are not in EingangsrechnungDO
+        buildOldDiffValue(map, "grossSum", this.grossSum, old.grossSum)
+        buildOldDiffValue(map, "taxRate", this.taxRate, old.taxRate)
+        buildOldDiffValue(map, "currency", this.currency, old.currency)
+        buildOldDiffValue(map, "konto.nummer", this.konto?.nummer, old.konto?.nummer)
+        buildOldDiffValue(map, "kost1.description", this.kost1?.description, old.kost1?.description)
+        buildOldDiffValue(map, "kost2.description", this.kost2?.description, old.kost2?.description)
+        buildOldDiffValue(map, "positionNummer", this.positionNummer, old.positionNummer)
+    }
+
     /**
      * Calculate matching score with an existing EingangsrechnungDO for import reconciliation.
      * Higher score means better match. Score 0 means no match.

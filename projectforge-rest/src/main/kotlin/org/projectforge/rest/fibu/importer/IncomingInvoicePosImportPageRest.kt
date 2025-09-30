@@ -120,7 +120,7 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
         addReadColumn(agGrid, lc, EingangsrechnungDO::datum)
 
         // Betrag (erstelle custom column da grossSum nicht in EingangsrechnungDO ist)
-        val betragCol = UIAgGridColumnDef.createCol(lc, "read.grossSum", headerName = "fibu.common.betrag", width = 100)
+        val betragCol = UIAgGridColumnDef.createCol(lc, "read.grossSum", headerName = "fibu.common.betrag")
         betragCol.setFormat(Formatter.CURRENCY_PLAIN)
         betragCol.cellRenderer = "diffCell"
         agGrid.add(betragCol)
@@ -160,7 +160,10 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
         addReadColumn(agGrid, lc, EingangsrechnungDO::bezahlDatum)
 
         // Zahlbetrag
-        addReadColumn(agGrid, lc, EingangsrechnungDO::zahlBetrag)
+        val zahlBetragCol = UIAgGridColumnDef.createCol(lc, "read.zahlBetrag", headerName = "fibu.rechnung.zahlBetrag")
+        zahlBetragCol.setFormat(Formatter.CURRENCY_PLAIN)
+        zahlBetragCol.cellRenderer = "diffCell"
+        agGrid.add(zahlBetragCol)
 
         // TAX rate
         val taxCol = UIAgGridColumnDef.createCol(
