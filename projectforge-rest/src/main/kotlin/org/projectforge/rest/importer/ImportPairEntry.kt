@@ -47,6 +47,11 @@ class ImportPairEntry<O : ImportPairEntry.Modified<O>>(
    */
   val stored: O? = null,
 ) : ImportEntry<O>(read) {
+  /**
+   * Flag indicating whether this entry has been reconciled with the database.
+   * If false, status will be UNKNOWN until reconciliation occurs.
+   */
+  var reconciled: Boolean = false
   interface Modified<O> {
     fun buildOldDiffValue(map: MutableMap<String, Any>, property: String, value: Any?, old: Any?) {
       if (isModified(value, old)) {
@@ -106,6 +111,11 @@ class ImportPairEntry<O : ImportPairEntry.Modified<O>>(
 
   private val checkStatus: Status
     get() {
+      // If not yet reconciled, status is always UNKNOWN
+      if (!reconciled) {
+        return Status.UNKNOWN
+      }
+
       return if (!error.isNullOrBlank()) {
         Status.FAULTY
       } else if (read == null) {

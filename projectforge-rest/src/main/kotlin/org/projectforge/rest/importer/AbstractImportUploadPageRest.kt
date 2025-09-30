@@ -28,7 +28,6 @@ import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.FileCheck
 import org.projectforge.rest.core.AbstractDynamicPageRest
-import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.ui.*

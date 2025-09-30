@@ -109,6 +109,8 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
   fun reconcileImportStorage(rereadDatabaseEntries: Boolean = true) {
     hasBeenReconciled = true
     doReconcileImportStorage(rereadDatabaseEntries)
+    // Mark all entries as reconciled so their status can be properly determined
+    pairEntries.forEach { it.reconciled = true }
   }
 
   /**
