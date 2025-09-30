@@ -39,6 +39,18 @@ const formatterFormat = (
                 maximumFractionDigits: hasDecimals ? 2 : 0,
             }).format(value / 100);
         }
+        case 'PERCENTAGE_DECIMAL': {
+            // Display decimal percentage (e.g., 0.19 -> "19 %", 0.195 -> "19.5 %")
+            if (value == null || Number.isNaN(value)) {
+                return '???';
+            }
+            const hasDecimals = (value * 100) % 1 !== 0;
+            return Intl.NumberFormat(locale, {
+                style: 'percent',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: hasDecimals ? 2 : 0,
+            }).format(value); // No division by 100 - value is already decimal
+        }
         case 'SHOW_DISPLAYNAME':
         case 'COST1':
         case 'COST2':

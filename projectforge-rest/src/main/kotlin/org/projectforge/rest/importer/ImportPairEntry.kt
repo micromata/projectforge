@@ -38,143 +38,143 @@ import kotlin.reflect.KProperty
  *  - if both exist, it's unmodified or modified (depending on the diff check).º
  */
 class ImportPairEntry<O : ImportPairEntry.Modified<O>>(
-  /**
-   * If given, this entry was read from import file.
-   */
-  read: O? = null,
+    /**
+     * If given, this entry was read from import file.
+     */
+    read: O? = null,
 
-  /**
-   * If given, this entry does already exist in the database.
-   */
-  val stored: O? = null,
+    /**
+     * If given, this entry does already exist in the database.
+     */
+    val stored: O? = null,
 ) : ImportEntry<O>(read) {
-  /**
-   * Flag indicating whether this entry has been reconciled with the database.
-   * If false, status will be UNKNOWN until reconciliation occurs.
-   */
-  var reconciled: Boolean = false
-  interface Modified<O> {
-    fun buildOldDiffValue(map: MutableMap<String, Any>, property: String, value: Any?, old: Any?) {
-      if (isModified(value, old)) {
-        var useOldValue: Any = old ?: ""
-        when (useOldValue) {
-          is String -> useOldValue = useOldValue.trim()
-          is Number -> useOldValue = useOldValue.formatForUser()
-        }
-        map["read.$property"] = useOldValue
-      }
-    }
+    /**
+     * Flag indicating whether this entry has been reconciled with the database.
+     * If false, status will be UNKNOWN until reconciliation occurs.
+     */
+    var reconciled: Boolean = false
 
-    val properties: Array<KProperty<*>>?
-
-    fun buildOldDiffValues(map: MutableMap<String, Any>, old: O) {}
-  }
-
-  private fun buildOldDiffValue(map: MutableMap<String, Any>) {
-    read?.properties?.forEach { property ->
-      val readValue = BeanHelper.getProperty(read, property.name)
-      val oldValue = BeanHelper.getProperty(stored, property.name)
-      if (isModified(readValue, oldValue)) {
-        var useOldValue: Any = oldValue ?: ""
-        when (useOldValue) {
-          is String -> useOldValue = useOldValue.trim()
-          is Number -> useOldValue = useOldValue.formatForUser()
-        }
-        map["read.${property.name}"] = useOldValue
-      }
-    }
-  }
-
-  fun isModified(): Boolean? {
-    val read = read
-    val stored = stored
-    if (read == null || stored == null) {
-      return null
-    }
-    if (oldDiffValues == null) {
-      val map = mutableMapOf<String, Any>()
-      read.buildOldDiffValues(map, stored)
-      buildOldDiffValue(map)
-      oldDiffValues = map
-    }
-    return !oldDiffValues.isNullOrEmpty()
-  }
-
-  override var status: Status
-    get() {
-      if (super.status == Status.UNKNOWN) {
-        // Status unknown, try to find the status value:
-        super.status = checkStatus
-      }
-      return super.status
-    }
-    set(value) {
-      super.status = value
-    }
-
-  private val checkStatus: Status
-    get() {
-      // If not yet reconciled, status is always UNKNOWN
-      if (!reconciled) {
-        return Status.UNKNOWN
-      }
-
-      return if (!error.isNullOrBlank()) {
-        Status.FAULTY
-      } else if (read == null) {
-        if (stored == null) {
-          Status.UNKNOWN
-        } else {
-          if ((stored is AbstractBaseDO<*> && stored.deleted)
-            || (stored is BaseDTO<*> && stored.deleted)
-          ) {
-            Status.UNMODIFIED // Object is already deleted.
-          } else {
-            Status.DELETED
-          }
-        }
-      } else if (stored == null) {
-        Status.NEW
-      } else {
-        when (isModified()) {
-          null -> Status.UNKNOWN_MODIFICATION
-          true -> Status.MODIFIED
-          else -> Status.UNMODIFIED
-        }
-      }
-    }
-
-
-  companion object {
-    private fun isModified(value: Any?, dest: Any?): Boolean {
-      if (value == null) {
-        return isNotNullOrBlank(dest)
-      }
-      if (dest == null) {
-        return isNotNullOrBlank(value)
-      }
-      if (value::class.java != dest::class.java) {
-        return true
-      }
-      return when (value) {
-        is BigDecimal -> {
-          value.compareTo(dest as BigDecimal) != 0
+    interface Modified<O> {
+        fun buildOldDiffValue(map: MutableMap<String, Any>, property: String, value: Any?, old: Any?) {
+            if (isModified(value, old)) {
+                var useOldValue: Any = old ?: ""
+                when (useOldValue) {
+                    is String -> useOldValue = useOldValue.trim()
+                    is Number -> useOldValue = useOldValue.formatForUser()
+                }
+                map["read.$property"] = useOldValue
+            }
         }
 
-        is String -> {
-          (dest as String).trim() != value.trim()
+        val properties: Array<KProperty<*>>?
+
+        fun buildOldDiffValues(map: MutableMap<String, Any>, old: O) {}
+    }
+
+    private fun buildOldDiffValue(map: MutableMap<String, Any>) {
+        read?.properties?.forEach { property ->
+            val readValue = BeanHelper.getProperty(read, property.name)
+            val oldValue = BeanHelper.getProperty(stored, property.name)
+            if (isModified(readValue, oldValue)) {
+                var useOldValue = oldValue ?: ""
+                if (useOldValue is String) {
+                    useOldValue = useOldValue.trim()
+                }
+                map["read.${property.name}"] = useOldValue
+            }
+        }
+    }
+
+    fun isModified(): Boolean? {
+        val read = read
+        val stored = stored
+        if (read == null || stored == null) {
+            return null
+        }
+        if (oldDiffValues == null) {
+            val map = mutableMapOf<String, Any>()
+            read.buildOldDiffValues(map, stored)
+            buildOldDiffValue(map)
+            oldDiffValues = map
+        }
+        return !oldDiffValues.isNullOrEmpty()
+    }
+
+    override var status: Status
+        get() {
+            if (super.status == Status.UNKNOWN) {
+                // Status unknown, try to find the status value:
+                super.status = checkStatus
+            }
+            return super.status
+        }
+        set(value) {
+            super.status = value
         }
 
-        else -> dest != value
-      }
-    }
+    private val checkStatus: Status
+        get() {
+            // If not yet reconciled, status is always UNKNOWN
+            if (!reconciled) {
+                return Status.UNKNOWN
+            }
 
-    private fun isNotNullOrBlank(value: Any?): Boolean {
-      return when (value) {
-        null -> false
-        is String -> value.isNotBlank()
-        else -> true
-      }
+            return if (!error.isNullOrBlank()) {
+                Status.FAULTY
+            } else if (read == null) {
+                if (stored == null) {
+                    Status.UNKNOWN
+                } else {
+                    if ((stored is AbstractBaseDO<*> && stored.deleted)
+                        || (stored is BaseDTO<*> && stored.deleted)
+                    ) {
+                        Status.UNMODIFIED // Object is already deleted.
+                    } else {
+                        Status.DELETED
+                    }
+                }
+            } else if (stored == null) {
+                Status.NEW
+            } else {
+                when (isModified()) {
+                    null -> Status.UNKNOWN_MODIFICATION
+                    true -> Status.MODIFIED
+                    else -> Status.UNMODIFIED
+                }
+            }
+        }
+
+
+    companion object {
+        private fun isModified(value: Any?, dest: Any?): Boolean {
+            if (value == null) {
+                return isNotNullOrBlank(dest)
+            }
+            if (dest == null) {
+                return isNotNullOrBlank(value)
+            }
+            if (value::class.java != dest::class.java) {
+                return true
+            }
+            return when (value) {
+                is BigDecimal -> {
+                    value.compareTo(dest as BigDecimal) != 0
+                }
+
+                is String -> {
+                    (dest as String).trim() != value.trim()
+                }
+
+                else -> dest != value
+            }
+        }
+
+        private fun isNotNullOrBlank(value: Any?): Boolean {
+            return when (value) {
+                null -> false
+                is String -> value.isNotBlank()
+                else -> true
+            }
+        }
     }
-  }
 }
