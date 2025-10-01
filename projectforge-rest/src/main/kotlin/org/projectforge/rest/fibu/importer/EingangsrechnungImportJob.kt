@@ -194,15 +194,20 @@ class EingangsrechnungImportJob(
             position.menge = BigDecimal.ONE
             position.vat = read.taxRate
 
-            // Calculate einzelNetto from grossSum and taxRate BEFORE creating KostZuweisung
-            // This ensures kostZuweisung.netto has the correct calculated value
+            // Calculate einzelNetto (net amount) from grossSum (gross amount from CSV) BEFORE creating KostZuweisung
+            // The CSV contains the gross amount (Brutto), which must be converted to net amount (Netto)
+            // Formula: Netto = Brutto / (1 + MwSt-Satz)
+            // taxRate is already normalized as decimal (e.g., 0.19 for 19%)
+            // This ensures kostZuweisung.netto has the correct calculated value.
             val grossSum = read.grossSum
             val taxRate = read.taxRate
             if (grossSum != null) {
                 if (taxRate != null && taxRate.compareTo(BigDecimal.ZERO) != 0) {
-                    val divisor = BigDecimal.ONE.add(taxRate.divide(BigDecimal(100), 10, RoundingMode.HALF_UP))
+                    // Convert gross to net: Netto = Brutto / (1 + MwSt)
+                    val divisor = BigDecimal.ONE.add(taxRate)
                     position.einzelNetto = grossSum.divide(divisor, 2, RoundingMode.HALF_UP)
                 } else {
+                    // No VAT, gross = net
                     position.einzelNetto = grossSum
                 }
             }
