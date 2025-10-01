@@ -117,7 +117,6 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
             leistungsdatum=Leistungsdatum|:dd.MM.yyyy|:dd.MM.yy
             kost1=KOST 1|KOST1
             kost2=KOST 2|KOST2
-            buchungstext=Ware/Leistung|Buchungstext
             periode=Periode
         """.trimIndent()
 

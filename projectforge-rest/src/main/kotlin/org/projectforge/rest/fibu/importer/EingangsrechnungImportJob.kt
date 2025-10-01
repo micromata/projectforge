@@ -90,9 +90,9 @@ class EingangsrechnungImportJob(
                 return
             }
 
-            // Get header info from first entry
-            val firstEntry = entries.first()
-            val storedId = firstEntry.stored?.id
+            // Find the stored invoice ID from any entry that has stored data
+            // All entries with stored data should belong to the same invoice
+            val storedId = entries.firstNotNullOfOrNull { it.stored?.id }
 
             // Check if this is a deletion (all entries have read=null)
             if (entries.all { it.read == null }) {
@@ -119,21 +119,25 @@ class EingangsrechnungImportJob(
     }
 
     /**
-     * Groups entries by invoice. Uses stored.id for existing invoices,
-     * or referenz+datum+kreditor for new invoices.
+     * Groups entries by invoice. Uses invoice-level identification (referenz+datum+kreditor)
+     * to ensure all positions of the same invoice are grouped together, regardless of whether
+     * some positions exist in DB and others are new.
      */
     private fun groupEntriesByInvoice(): Map<String, List<ImportPairEntry<EingangsrechnungPosImportDTO>>> {
         return selectedEntries.groupBy { entry ->
-            val storedId = entry.stored?.id
-            if (storedId != null) {
-                "stored:$storedId"
-            } else {
-                val read = entry.read
-                val referenz = read?.referenz?.trim() ?: ""
-                val datum = read?.datum?.toString() ?: ""
-                val kreditor = read?.kreditor?.trim() ?: ""
-                "new:$referenz|$datum|$kreditor"
-            }
+            // Use read data for grouping to ensure positions of same invoice are together
+            // This handles cases where one position exists (has stored.id) and another is new (no stored.id)
+            val read = entry.read
+            val stored = entry.stored
+
+            // Use read data if available, otherwise fall back to stored data
+            val referenz = (read?.referenz ?: stored?.referenz)?.trim() ?: ""
+            val datum = (read?.datum ?: stored?.datum)?.toString() ?: ""
+            val kreditor = (read?.kreditor ?: stored?.kreditor)?.trim() ?: ""
+
+            // Always group by invoice-level identification (referenz+datum+kreditor)
+            // This ensures multiple positions of the same invoice are grouped together
+            "$referenz|$datum|$kreditor"
         }
     }
 
