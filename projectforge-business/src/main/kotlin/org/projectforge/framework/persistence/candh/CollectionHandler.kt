@@ -98,30 +98,36 @@ open class CollectionHandler : CandHIHandler {
             destCollection = createCollectionInstance(propertyContext.srcPropertyValue)
             property.set(dest, destCollection)
         }
+        // Check if collection is explicitly marked for soft-delete
+        val hasSoftDeleteAnnotation = AnnotationsUtils.getAnnotation(
+            propertyContext.property,
+            SoftDeleteCollection::class.java
+        ) != null
+
         compareResults.removed?.forEach { removeEntry ->
             log.debug { "process: Removing collection '${propertyContext.propertyName}' entry: $removeEntry" }
-            if (removeEntry is AbstractHistorizableBaseDO<*>) {
-                // Soft-delete for historizable entities: mark as deleted instead of physical removal
+            if (hasSoftDeleteAnnotation && removeEntry is AbstractHistorizableBaseDO<*>) {
+                // Soft-delete: Mark as deleted instead of physical removal
                 // This preserves history entries and avoids unique constraint violations during updates
                 removeEntry.deleted = true
-                log.debug { "process: Marked entry as deleted (soft-delete): $removeEntry" }
+                log.debug { "process: Marked entry as deleted (soft-delete, @SoftDeleteCollection): $removeEntry" }
             } else {
-                // Not historizable, physically remove from collection
+                // Physical removal (default behavior)
                 destCollection.remove(removeEntry)
                 log.debug { "process: Physically removed entry from collection '${propertyContext.propertyName}': $removeEntry" }
             }
         }
         compareResults.added?.forEach { addEntry ->
             log.debug { "process: Adding new collection entry: $addEntry" }
-            if (addEntry is AbstractHistorizableBaseDO<*> && addEntry.id != null) {
-                // Check if this is a reactivation of a deleted entry
+            if (hasSoftDeleteAnnotation && addEntry is AbstractHistorizableBaseDO<*> && addEntry.id != null) {
+                // Check if this is a reactivation of a deleted entry (only for @SoftDeleteCollection)
                 val existingDeleted = destCollection.firstOrNull {
                     it is AbstractHistorizableBaseDO<*> && it.id == addEntry.id && it.deleted
                 }
                 if (existingDeleted is AbstractHistorizableBaseDO<*>) {
                     // Reactivate: remove deleted flag instead of adding again
                     existingDeleted.deleted = false
-                    log.debug { "process: Reactivated deleted entry: $existingDeleted" }
+                    log.debug { "process: Reactivated deleted entry (@SoftDeleteCollection): $existingDeleted" }
                     return@forEach  // Don't add again
                 }
             }
@@ -230,6 +236,7 @@ open class CollectionHandler : CandHIHandler {
     companion object {
         /**
          * If collection is declared as OneToMany and not marked as @NoHistory, the collection is managed by the source class.
+         * This includes both 1:n (OneToMany) and n:m (ManyToMany) relationships for history tracking.
          */
         private fun collectionManagedBySrcClazz(property: KMutableProperty1<*, *>): Boolean {
             val annotations = AnnotationsUtils.getAnnotations(property)
