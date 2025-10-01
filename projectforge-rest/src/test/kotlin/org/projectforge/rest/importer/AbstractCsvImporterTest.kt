@@ -48,7 +48,7 @@ class AbstractCsvImporterTest {
     }
 
     // Mock ImportStorage for testing
-    class TestImportStorage : ImportStorage<TestDTO>(ImportSettings()) {
+    class TestImportStorage(settings: ImportSettings = ImportSettings()) : ImportStorage<TestDTO>(settings) {
         val entities = mutableListOf<TestDTO>()
 
         override fun prepareEntity(): TestDTO = TestDTO()
@@ -89,7 +89,10 @@ class AbstractCsvImporterTest {
         ): Boolean {
             return when (fieldSettings.property) {
                 "customField" -> {
-                    processedFields[fieldSettings.property] = value
+                    // Store first occurrence only for test verification
+                    if (!processedFields.containsKey(fieldSettings.property)) {
+                        processedFields[fieldSettings.property] = value
+                    }
                     entity.customField = "CUSTOM_$value"
                     true
                 }
@@ -117,19 +120,18 @@ class AbstractCsvImporterTest {
     @Test
     fun `test default importer with simple CSV`() {
         val csvData = """
-            "name","age","amount"
-            "John","25","100.50"
-            "Jane","30","200.75"
+            "name";"age";"amount"
+            "John";"25";"100.50"
+            "Jane";"30";"200.75"
         """.trimIndent()
 
-        val importStorage = TestImportStorage()
         val importSettings = ImportSettings()
-
         // Setup field mappings
         importSettings.addFieldSettings(ImportFieldSettings("name"))
         importSettings.addFieldSettings(ImportFieldSettings("age"))
         importSettings.addFieldSettings(ImportFieldSettings("amount"))
 
+        val importStorage = TestImportStorage(importSettings)
         val importer = DefaultTestImporter()
         importer.parse(StringReader(csvData), importStorage)
 
@@ -149,19 +151,18 @@ class AbstractCsvImporterTest {
     @Test
     fun `test custom importer with header processing`() {
         val csvData = """
-            "Name","Age","Amount"
-            "John","25","100.50"
-            "Jane","30","200.75"
+            "Name";"Age";"Amount"
+            "John";"25";"100.50"
+            "Jane";"30";"200.75"
         """.trimIndent()
 
-        val importStorage = TestImportStorage()
         val importSettings = ImportSettings()
-
         // Setup field mappings with original header names (will be transformed by processHeaders)
         importSettings.addFieldSettings(ImportFieldSettings("name").apply { aliasList.add("Name") })
         importSettings.addFieldSettings(ImportFieldSettings("age").apply { aliasList.add("Age") })
         importSettings.addFieldSettings(ImportFieldSettings("amount").apply { aliasList.add("Amount") })
 
+        val importStorage = TestImportStorage(importSettings)
         val importer = CustomTestImporter()
         importer.parse(StringReader(csvData), importStorage)
 
@@ -180,17 +181,16 @@ class AbstractCsvImporterTest {
     @Test
     fun `test custom field processing`() {
         val csvData = """
-            "name","customField"
-            "John","special_value"
-            "Jane","another_value"
+            "name";"customField"
+            "John";"special_value"
+            "Jane";"another_value"
         """.trimIndent()
 
-        val importStorage = TestImportStorage()
         val importSettings = ImportSettings()
-
         importSettings.addFieldSettings(ImportFieldSettings("name"))
         importSettings.addFieldSettings(ImportFieldSettings("customField"))
 
+        val importStorage = TestImportStorage(importSettings)
         val importer = CustomTestImporter()
         importer.parse(StringReader(csvData), importStorage)
 
@@ -216,10 +216,10 @@ class AbstractCsvImporterTest {
             "Jane"
         """.trimIndent()
 
-        val importStorage = TestImportStorage()
         val importSettings = ImportSettings()
         importSettings.addFieldSettings(ImportFieldSettings("name"))
 
+        val importStorage = TestImportStorage(importSettings)
         val importer = CustomTestImporter()
         importer.parse(StringReader(csvData), importStorage)
 
@@ -237,16 +237,16 @@ class AbstractCsvImporterTest {
     @Test
     fun `test backward compatibility with original CsvImporter`() {
         val csvData = """
-            "name","age","amount"
-            "John","25","100.50"
+            "name";"age";"amount"
+            "John";"25";"100.50"
         """.trimIndent()
 
-        val importStorage = TestImportStorage()
         val importSettings = ImportSettings()
         importSettings.addFieldSettings(ImportFieldSettings("name"))
         importSettings.addFieldSettings(ImportFieldSettings("age"))
         importSettings.addFieldSettings(ImportFieldSettings("amount"))
 
+        val importStorage = TestImportStorage(importSettings)
         // Test that the facade still works
         CsvImporter.parse(StringReader(csvData), importStorage)
 
@@ -263,10 +263,10 @@ class AbstractCsvImporterTest {
             "name"
         """.trimIndent()
 
-        val importStorage = TestImportStorage()
         val importSettings = ImportSettings()
         importSettings.addFieldSettings(ImportFieldSettings("name"))
 
+        val importStorage = TestImportStorage(importSettings)
         val importer = DefaultTestImporter()
         importer.parse(StringReader(csvData), importStorage)
 
@@ -276,15 +276,15 @@ class AbstractCsvImporterTest {
     @Test
     fun `test CSV with BOM handling`() {
         val csvData = "\uFEFF" + """
-            "name","age"
-            "John","25"
+            "name";"age"
+            "John";"25"
         """.trimIndent()
 
-        val importStorage = TestImportStorage()
         val importSettings = ImportSettings()
         importSettings.addFieldSettings(ImportFieldSettings("name"))
         importSettings.addFieldSettings(ImportFieldSettings("age"))
 
+        val importStorage = TestImportStorage(importSettings)
         val importer = DefaultTestImporter()
         importer.parse(StringReader(csvData), importStorage)
 
@@ -296,18 +296,18 @@ class AbstractCsvImporterTest {
     @Test
     fun `test multiline CSV content`() {
         val csvData = """
-            "name","description"
-            "Product A","High quality
+            "name";"description"
+            "Product A";"High quality
             product with
             multiple features"
-            "Product B","Simple product"
+            "Product B";"Simple product"
         """.trimIndent()
 
-        val importStorage = TestImportStorage()
         val importSettings = ImportSettings()
         importSettings.addFieldSettings(ImportFieldSettings("name"))
         importSettings.addFieldSettings(ImportFieldSettings("customField").apply { aliasList.add("description") })
 
+        val importStorage = TestImportStorage(importSettings)
         val importer = CustomTestImporter()
         importer.parse(StringReader(csvData), importStorage)
 

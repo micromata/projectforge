@@ -280,7 +280,8 @@ abstract class AbstractCsvImporter<O : ImportPairEntry.Modified<O>> {
         value: String,
         autodetectNumberFormatMap: AutodetectNumberMap<O>
     ): Any? {
-        return when (BeanHelper.determinePropertyType(record::class.java, fieldSettings.property)) {
+        val propertyType = BeanHelper.determinePropertyType(record::class.java, fieldSettings.property)
+        return when (propertyType) {
             LocalDate::class.java -> {
                 fieldSettings.parseLocalDate(value)
             }
@@ -300,15 +301,15 @@ abstract class AbstractCsvImporter<O : ImportPairEntry.Modified<O>> {
                 }
             }
 
-            Int::class.java -> {
+            Int::class.java, Integer::class.java -> {
                 fieldSettings.parseInt(value)
             }
 
-            Long::class.java -> {
+            Long::class.java, java.lang.Long::class.java -> {
                 fieldSettings.parseLong(value)
             }
 
-            Boolean::class.java -> {
+            Boolean::class.java, java.lang.Boolean::class.java -> {
                 fieldSettings.parseBoolean(value)
             }
 
