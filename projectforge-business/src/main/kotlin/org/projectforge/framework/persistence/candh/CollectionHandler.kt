@@ -36,6 +36,7 @@ import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.candh.CandHMaster.copyValues
 import org.projectforge.framework.persistence.candh.CandHMaster.propertyWasModified
+import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import org.projectforge.framework.persistence.history.*
 import org.projectforge.framework.persistence.utils.CollectionUtils
 import java.io.Serializable
@@ -99,13 +100,33 @@ open class CollectionHandler : CandHIHandler {
         }
         compareResults.removed?.forEach { removeEntry ->
             log.debug { "process: Removing collection '${propertyContext.propertyName}' entry: $removeEntry" }
-            destCollection.remove(removeEntry)
-            log.debug { "process: Removing entry $removeEntry from destPropertyValue from collection '${propertyContext.propertyName}'." }
+            if (removeEntry is AbstractHistorizableBaseDO<*>) {
+                // Soft-delete for historizable entities: mark as deleted instead of physical removal
+                // This preserves history entries and avoids unique constraint violations during updates
+                removeEntry.deleted = true
+                log.debug { "process: Marked entry as deleted (soft-delete): $removeEntry" }
+            } else {
+                // Not historizable, physically remove from collection
+                destCollection.remove(removeEntry)
+                log.debug { "process: Physically removed entry from collection '${propertyContext.propertyName}': $removeEntry" }
+            }
         }
         compareResults.added?.forEach { addEntry ->
             log.debug { "process: Adding new collection entry: $addEntry" }
+            if (addEntry is AbstractHistorizableBaseDO<*> && addEntry.id != null) {
+                // Check if this is a reactivation of a deleted entry
+                val existingDeleted = destCollection.firstOrNull {
+                    it is AbstractHistorizableBaseDO<*> && it.id == addEntry.id && it.deleted
+                }
+                if (existingDeleted is AbstractHistorizableBaseDO<*>) {
+                    // Reactivate: remove deleted flag instead of adding again
+                    existingDeleted.deleted = false
+                    log.debug { "process: Reactivated deleted entry: $existingDeleted" }
+                    return@forEach  // Don't add again
+                }
+            }
             destCollection.add(addEntry)
-            log.debug { "process: Adding entry to destPropertyValue: $addEntry" }
+            log.debug { "process: Added entry to destPropertyValue: $addEntry" }
         }
         val entry = compareResults.anyOrNull // Get any entry from the collections for extracting the class type.
         propertyContext.entriesHistorizable = HistoryServiceUtils.isHistorizable(entry)

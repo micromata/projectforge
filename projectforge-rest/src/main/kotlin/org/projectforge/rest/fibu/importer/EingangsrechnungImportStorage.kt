@@ -27,6 +27,7 @@ import mu.KotlinLogging
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
+import org.projectforge.business.fibu.RechnungCalculator
 import org.projectforge.common.StringMatchUtils
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.rest.dto.Konto
@@ -131,12 +132,21 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
 
         // Load database invoices within import date range
         if (rereadDatabaseEntries) {
-            val eingangsrechnungDao = ApplicationContextProvider.getApplicationContext().getBean(EingangsrechnungDao::class.java)
+            val eingangsrechnungDao =
+                ApplicationContextProvider.getApplicationContext().getBean(EingangsrechnungDao::class.java)
             databaseInvoices = eingangsrechnungDao.getByDateRange(from, until)
             log.debug { "=== DATABASE INVOICES LOADED (Date range: $from to $until) ===" }
             if (log.isDebugEnabled) {
                 databaseInvoices?.forEachIndexed { index, invoice ->
-                    log.debug { "  DB[$index]: referenz='${invoice.referenz}', kreditor='${invoice.kreditor}', datum=${invoice.datum}, grossSum=${try { invoice.ensuredInfo.grossSum } catch (e: Exception) { "ERROR" }}" }
+                    log.debug {
+                        "  DB[$index]: referenz='${invoice.referenz}', kreditor='${invoice.kreditor}', datum=${invoice.datum}, grossSum=${
+                            try {
+                                invoice.ensuredInfo.grossSum
+                            } catch (e: Exception) {
+                                "ERROR"
+                            }
+                        }"
+                    }
                 }
             }
             log.info { "=== TOTAL: ${databaseInvoices?.size ?: 0} DB invoices loaded ===" }
@@ -618,7 +628,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         try {
             dto.grossSum = eingangsrechnungDO.ensuredInfo.grossSum
         } catch (e: Exception) {
-            log.error(e) { "Could not calculate grossSum for invoice ${eingangsrechnungDO.id}" }
+            log.error(e) { "Could not calculate grossSum for invoice ${eingangsrechnungDO.id}: ${e.message}" }
         }
 
         // Copy konto from header using cache to handle lazy loading
@@ -654,13 +664,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         val dbPosition = eingangsrechnungDO.positionen?.getOrNull(positionIndex)
 
         if (dbPosition != null) {
-            // Copy position-specific grossSum from calculated info
-            val positionInfo = invoiceInfo.positions?.getOrNull(positionIndex)
-            if (positionInfo != null) {
-                dto.grossSum = positionInfo.grossSum
-            } else {
-                log.warn { "Could not find position info for position index $positionIndex in invoice ${eingangsrechnungDO.referenz}" }
-            }
+            dto.grossSum = RechnungCalculator.calculateGrossSum(dbPosition)
 
             // Copy other position-specific fields
             dto.taxRate = dbPosition.vat
@@ -700,7 +704,11 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
 
             val referenz = dbInvoice.referenz?.trim()?.lowercase()
             val datum = dbInvoice.datum
-            val grossSum = try { dbInvoice.ensuredInfo.grossSum } catch (e: Exception) { null }
+            val grossSum = try {
+                dbInvoice.ensuredInfo.grossSum
+            } catch (e: Exception) {
+                null
+            }
 
             if (!referenz.isNullOrBlank() && datum != null && grossSum != null) {
                 val primaryKey = "$referenz|$datum|$grossSum"
@@ -725,7 +733,15 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
                     matches.add(Pair(readIndex, dbIndex))
                     matchedReadIndices.add(readIndex)
                     matchedDbIndices.add(dbIndex)
-                    log.debug { "STAGE 1 EXACT MATCH: Import='${readInvoice.referenz}' vs DB='${dbInvoice.referenz}' | ImportKreditor='${readInvoice.kreditor}' vs DBKreditor='${dbInvoice.kreditor}' | ImportDate=${readInvoice.datum} vs DBDate=${dbInvoice.datum} | ImportAmount=${readInvoice.grossSum} vs DBAmount=${try { dbInvoice.ensuredInfo.grossSum } catch (e: Exception) { null }}" }
+                    log.debug {
+                        "STAGE 1 EXACT MATCH: Import='${readInvoice.referenz}' vs DB='${dbInvoice.referenz}' | ImportKreditor='${readInvoice.kreditor}' vs DBKreditor='${dbInvoice.kreditor}' | ImportDate=${readInvoice.datum} vs DBDate=${dbInvoice.datum} | ImportAmount=${readInvoice.grossSum} vs DBAmount=${
+                            try {
+                                dbInvoice.ensuredInfo.grossSum
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }"
+                    }
                     return@forEachIndexed
                 }
             }
@@ -833,7 +849,15 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
 
             val readInv = unmatchedRead[maxReadIndex]
             val dbInv = unmatchedDb[maxDbIndex]
-            log.debug { "STAGE 3 FALLBACK MATCH (score: $maxScore): Import='${readInv.referenz}' vs DB='${dbInv.referenz}' | ImportKreditor='${readInv.kreditor}' vs DBKreditor='${dbInv.kreditor}' | ImportDate=${readInv.datum} vs DBDate=${dbInv.datum} | ImportAmount=${readInv.grossSum} vs DBAmount=${try { dbInv.ensuredInfo.grossSum } catch (e: Exception) { null }}" }
+            log.debug {
+                "STAGE 3 FALLBACK MATCH (score: $maxScore): Import='${readInv.referenz}' vs DB='${dbInv.referenz}' | ImportKreditor='${readInv.kreditor}' vs DBKreditor='${dbInv.kreditor}' | ImportDate=${readInv.datum} vs DBDate=${dbInv.datum} | ImportAmount=${readInv.grossSum} vs DBAmount=${
+                    try {
+                        dbInv.ensuredInfo.grossSum
+                    } catch (e: Exception) {
+                        null
+                    }
+                }"
+            }
 
             matches.add(Pair(originalReadIndex, originalDbIndex))
             matchedReadIndices.add(originalReadIndex)
@@ -859,23 +883,23 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         val dbByExactReferenz = dbInvoices.mapIndexed { index, invoice ->
             index to invoice
         }.filter { (index, _) -> !matchedDbIndices.contains(index) }
-         .groupBy { (_, invoice) ->
-             invoice.referenz?.let { StringMatchUtils.normalizeString(it) }?.takeIf { it.isNotBlank() }
-         }
-         .filterKeys { !it.isNullOrBlank() }
+            .groupBy { (_, invoice) ->
+                invoice.referenz?.let { StringMatchUtils.normalizeString(it) }?.takeIf { it.isNotBlank() }
+            }
+            .filterKeys { !it.isNullOrBlank() }
 
         // Strategy 2: Prefix-based grouping (first 8 chars of normalized string)
         // This catches variations like "325124610" matching "32512461010is001710ksr"
-    val dbByReferenzPrefix = dbInvoices.mapIndexed { index, invoice ->
+        val dbByReferenzPrefix = dbInvoices.mapIndexed { index, invoice ->
             index to invoice
         }.filter { (index, _) -> !matchedDbIndices.contains(index) }
-         .groupBy { (_, invoice) ->
-         invoice.referenz?.let {
-                 val normalized = StringMatchUtils.normalizeString(it)
-                 if (normalized.length >= 8) normalized.substring(0, 8) else normalized
-             }?.takeIf { it.isNotBlank() }
-         }
-         .filterKeys { !it.isNullOrBlank() }
+            .groupBy { (_, invoice) ->
+                invoice.referenz?.let {
+                    val normalized = StringMatchUtils.normalizeString(it)
+                    if (normalized.length >= 8) normalized.substring(0, 8) else normalized
+                }?.takeIf { it.isNotBlank() }
+            }
+            .filterKeys { !it.isNullOrBlank() }
 
         // Find matches for each read invoice
         readInvoices.forEachIndexed { readIndex, readInvoice ->
@@ -915,7 +939,15 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
                 matches.add(Pair(readIdx, dbIdx))
                 matchedReadIndices.add(readIdx)
                 matchedDbIndices.add(dbIdx)
-                log.debug { "STAGE 2 REFERENZ GROUP MATCH (score: $bestScore): Import='${readInvoice.referenz}' vs DB='${dbInvoice.referenz}' | ImportKreditor='${readInvoice.kreditor}' vs DBKreditor='${dbInvoice.kreditor}' | ImportDate=${readInvoice.datum} vs DBDate=${dbInvoice.datum} | ImportAmount=${readInvoice.grossSum} vs DBAmount=${try { dbInvoice.ensuredInfo.grossSum } catch (e: Exception) { null }}" }
+                log.debug {
+                    "STAGE 2 REFERENZ GROUP MATCH (score: $bestScore): Import='${readInvoice.referenz}' vs DB='${dbInvoice.referenz}' | ImportKreditor='${readInvoice.kreditor}' vs DBKreditor='${dbInvoice.kreditor}' | ImportDate=${readInvoice.datum} vs DBDate=${dbInvoice.datum} | ImportAmount=${readInvoice.grossSum} vs DBAmount=${
+                        try {
+                            dbInvoice.ensuredInfo.grossSum
+                        } catch (e: Exception) {
+                            null
+                        }
+                    }"
+                }
             }
         }
     }
@@ -934,8 +966,8 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         val dbByKreditor = dbInvoices.mapIndexed { index, invoice ->
             index to invoice
         }.filter { (index, _) -> !matchedDbIndices.contains(index) }
-         .groupBy { (_, invoice) -> invoice.kreditor?.trim()?.lowercase() }
-         .filterKeys { !it.isNullOrBlank() }
+            .groupBy { (_, invoice) -> invoice.kreditor?.trim()?.lowercase() }
+            .filterKeys { !it.isNullOrBlank() }
 
         // Find matches for each read invoice within its kreditor group
         readInvoices.forEachIndexed { readIndex, readInvoice ->
@@ -965,7 +997,15 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
                 matches.add(Pair(readIdx, dbIdx))
                 matchedReadIndices.add(readIdx)
                 matchedDbIndices.add(dbIdx)
-                log.debug { "STAGE 2 KREDITOR GROUP MATCH (score: $bestScore): Import='${readInvoice.referenz}' vs DB='${dbInvoice.referenz}' | ImportKreditor='${readInvoice.kreditor}' vs DBKreditor='${dbInvoice.kreditor}' | ImportDate=${readInvoice.datum} vs DBDate=${dbInvoice.datum} | ImportAmount=${readInvoice.grossSum} vs DBAmount=${try { dbInvoice.ensuredInfo.grossSum } catch (e: Exception) { null }}" }
+                log.debug {
+                    "STAGE 2 KREDITOR GROUP MATCH (score: $bestScore): Import='${readInvoice.referenz}' vs DB='${dbInvoice.referenz}' | ImportKreditor='${readInvoice.kreditor}' vs DBKreditor='${dbInvoice.kreditor}' | ImportDate=${readInvoice.datum} vs DBDate=${dbInvoice.datum} | ImportAmount=${readInvoice.grossSum} vs DBAmount=${
+                        try {
+                            dbInvoice.ensuredInfo.grossSum
+                        } catch (e: Exception) {
+                            null
+                        }
+                    }"
+                }
             }
         }
     }
@@ -983,8 +1023,8 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         val dbByReferenz = dbInvoices.mapIndexed { index, invoice ->
             index to invoice
         }.filter { (index, _) -> !matchedDbIndices.contains(index) }
-         .groupBy { (_, invoice) -> invoice.referenz?.trim()?.lowercase() }
-         .filterKeys { !it.isNullOrBlank() }
+            .groupBy { (_, invoice) -> invoice.referenz?.trim()?.lowercase() }
+            .filterKeys { !it.isNullOrBlank() }
 
         readInvoices.forEachIndexed { readIndex, readInvoice ->
             if (matchedReadIndices.contains(readIndex)) return@forEachIndexed
@@ -1029,8 +1069,8 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         val dbByKreditor = dbInvoices.mapIndexed { index, invoice ->
             index to invoice
         }.filter { (index, _) -> !matchedDbIndices.contains(index) }
-         .groupBy { (_, invoice) -> invoice.kreditor?.trim()?.lowercase() }
-         .filterKeys { !it.isNullOrBlank() }
+            .groupBy { (_, invoice) -> invoice.kreditor?.trim()?.lowercase() }
+            .filterKeys { !it.isNullOrBlank() }
 
         readInvoices.forEachIndexed { readIndex, readInvoice ->
             if (matchedReadIndices.contains(readIndex)) return@forEachIndexed
