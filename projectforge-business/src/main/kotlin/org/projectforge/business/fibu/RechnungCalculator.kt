@@ -125,11 +125,7 @@ object RechnungCalculator {
         if (position.vat != null) {
             posInfo.vatAmount = CurrencyHelper.multiply(posInfo.netSum, position.vat, roundPositionsBeforeSum)
         }
-        posInfo.grossSum = posInfo.netSum
-        if (position.vat != null) {
-            posInfo.grossSum += CurrencyHelper.multiply(posInfo.netSum, position.vat, roundPositionsBeforeSum)
-        }
-        roundAmountIf(posInfo, RechnungPosInfo::grossSum, roundPositionsBeforeSum)
+        posInfo.grossSum = calculateGrossSum(position, posInfo.netSum)
         posInfo.kostZuweisungNetSum = BigDecimal.ZERO
         position.kostZuweisungen?.forEach { zuweisung ->
             zuweisung.netto?.let {
@@ -147,6 +143,16 @@ object RechnungCalculator {
         val netSum = roundAmountIf(posInfo.netSum, roundPositionsBeforeSum)
         posInfo.kostZuweisungNetFehlbetrag = (netSum - posInfo.kostZuweisungNetSum).negate()
         return posInfo
+    }
+
+    fun calculateGrossSum(position: IRechnungsPosition, netSum: BigDecimal? = null): BigDecimal {
+        val net = netSum ?: calculateNetSum(position)
+        val vat = position.vat
+        if (vat == null || NumberHelper.isZeroOrNull(vat)) {
+            return net
+        }
+        val vatAmount = CurrencyHelper.multiply(net, vat, roundPositionsBeforeSum)
+        return roundAmountIf(net.plus(vatAmount), roundPositionsBeforeSum)
     }
 
     private fun calculateNetSum(position: IRechnungsPosition): BigDecimal {
