@@ -118,6 +118,8 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
             kost1=KOST 1|KOST1
             kost2=KOST 2|KOST2
             periode=Periode
+            iban=IBAN
+            bic=BIC
         """.trimIndent()
 
         val storage = EingangsrechnungImportStorage(datevImportSettings)
