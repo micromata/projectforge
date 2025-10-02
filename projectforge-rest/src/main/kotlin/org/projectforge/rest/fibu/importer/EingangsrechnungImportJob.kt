@@ -225,22 +225,9 @@ class EingangsrechnungImportJob(
             position.vat = read.taxRate
             position.deleted = false  // Restore position if it was deleted
 
-            // Calculate einzelNetto (net amount) from grossSum (gross amount from CSV)
-            // The CSV contains the gross amount (Brutto), which must be converted to net amount (Netto)
-            // Formula: Netto = Brutto / (1 + MwSt-Satz)
-            // taxRate is already normalized as decimal (e.g., 0.19 for 19%)
-            val grossSum = read.grossSum
-            val taxRate = read.taxRate
-            if (grossSum != null) {
-                if (taxRate != null && taxRate.compareTo(BigDecimal.ZERO) != 0) {
-                    // Convert gross to net: Netto = Brutto / (1 + MwSt)
-                    val divisor = BigDecimal.ONE.add(taxRate)
-                    position.einzelNetto = grossSum.divide(divisor, 2, RoundingMode.HALF_UP)
-                } else {
-                    // No VAT, gross = net
-                    position.einzelNetto = grossSum
-                }
-            }
+            // Use netSum (net amount) from import DTO
+            // The netSum is already calculated from grossSum during import to avoid rounding errors
+            position.einzelNetto = read.netSum
 
             // Handle KostZuweisung
             if (read.kost1 != null || read.kost2 != null) {

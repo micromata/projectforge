@@ -246,11 +246,13 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             )
             header.id = first.id
 
-            // Aggregate grossSum from all positions
+            // Aggregate grossSum and netSum from all positions
             val totalGrossSum = positionList.mapNotNull { it.grossSum }.reduceOrNull { acc, sum -> acc.add(sum) }
+            val totalNetSum = positionList.mapNotNull { it.netSum }.reduceOrNull { acc, sum -> acc.add(sum) }
             header.grossSum = totalGrossSum
+            header.netSum = totalNetSum
 
-            log.debug { "Consolidated invoice: key='$key', positions=${positionList.size}, totalGrossSum=$totalGrossSum" }
+            log.debug { "Consolidated invoice: key='$key', positions=${positionList.size}, totalGrossSum=$totalGrossSum, totalNetSum=$totalNetSum" }
 
             ConsolidatedInvoice(header, positionList)
         }
@@ -676,7 +678,9 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         // Ensure invoice info is calculated (this also calculates all position info)
         val invoiceInfo = eingangsrechnungDO.ensuredInfo
 
-        dto.grossSum = RechnungCalculator.calculateGrossSum(dbPosition)
+        // Copy netSum directly from DB instead of recalculating to avoid rounding errors
+        dto.netSum = dbPosition.einzelNetto
+        dto.grossSum = RechnungCalculator.calculateGrossSum(dbPosition) // Keep for display
 
         // Copy other position-specific fields
         dto.taxRate = dbPosition.vat

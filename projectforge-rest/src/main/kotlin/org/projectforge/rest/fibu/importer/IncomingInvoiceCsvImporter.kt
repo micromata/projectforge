@@ -154,6 +154,10 @@ class IncomingInvoiceCsvImporter(
             }
         }
 
+        // Calculate netSum from grossSum to avoid rounding errors in comparison
+        // Use CurrencyHelper for consistent calculation with DB logic
+        entity.netSum = org.projectforge.framework.utils.CurrencyHelper.getNetAmount(entity.grossSum, entity.taxRate)
+
         // KOST1 and KOST2 are now parsed during CSV processing in processField method
     }
 

@@ -81,6 +81,7 @@ class EingangsrechnungPosImportDTO(
     var bezahlDatum: LocalDate? = null,
     var taxRate: BigDecimal? = null,
     var grossSum: BigDecimal? = null,
+    var netSum: BigDecimal? = null, // Net amount: for positions = grossSum / (1 + taxRate), for header = sum of all position netSums
     var currency: String? = null, // Währung (EUR, USD, ...)
     var zahlBetrag: BigDecimal? = null,
     var discountMaturity: LocalDate? = null, // Fällig mit Skonto 1
@@ -173,7 +174,9 @@ class EingangsrechnungPosImportDTO(
         // Handle custom properties that are not in EingangsrechnungDO
         // For header-only imports, skip grossSum and taxRate (they belong to positions)
         if (isPositionBasedImport) {
-            buildOldDiffValue(map, "grossSum", this.grossSum, old.grossSum)
+            // Compare netSum instead of grossSum to avoid rounding errors
+            // (grossSum is converted to netSum with potential rounding differences)
+            buildOldDiffValue(map, "netSum", this.netSum, old.netSum)
             buildOldDiffValue(map, "taxRate", this.taxRate, old.taxRate)
         }
         buildOldDiffValue(map, "currency", this.currency, old.currency)
