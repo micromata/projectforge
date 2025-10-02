@@ -99,6 +99,13 @@ class EingangsrechnungPosImportDTO(
      * Starts with 1 and is assigned in the order of reading.
      */
     var positionNummer: Int? = null,
+
+    /**
+     * Flag indicating whether this DTO belongs to a position-based import.
+     * When false (header-only import), grossSum and taxRate are not stored in DB
+     * (they are calculated from positions), but can still be used for matching.
+     */
+    var isPositionBasedImport: Boolean = true,
 ) : BaseDTO<EingangsrechnungDO>(), ImportPairEntry.Modified<EingangsrechnungPosImportDTO> {
 
     override val properties: Array<KProperty<*>>
@@ -159,8 +166,11 @@ class EingangsrechnungPosImportDTO(
 
     override fun buildOldDiffValues(map: MutableMap<String, Any>, old: EingangsrechnungPosImportDTO) {
         // Handle custom properties that are not in EingangsrechnungDO
-        buildOldDiffValue(map, "grossSum", this.grossSum, old.grossSum)
-        buildOldDiffValue(map, "taxRate", this.taxRate, old.taxRate)
+        // For header-only imports, skip grossSum and taxRate (they belong to positions)
+        if (isPositionBasedImport) {
+            buildOldDiffValue(map, "grossSum", this.grossSum, old.grossSum)
+            buildOldDiffValue(map, "taxRate", this.taxRate, old.taxRate)
+        }
         buildOldDiffValue(map, "currency", this.currency, old.currency)
         buildOldDiffValue(map, "konto.nummer", this.konto?.nummer, old.konto?.nummer)
         buildOldDiffValue(map, "kost1.description", this.kost1?.description, old.kost1?.description)
