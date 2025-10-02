@@ -617,6 +617,10 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         dto.taxRate = dbPosition.vat
         dto.positionNummer = dbPosition.number.toInt()
 
+        // Override betreff with position's text (not invoice header betreff)
+        // For position-based imports, each position's betreff should match position.text, not invoice.betreff
+        dto.betreff = dbPosition.text
+
         // Copy kost1/kost2 from first cost assignment using cache to handle lazy loading
         val firstKostZuweisung = dbPosition.kostZuweisungen?.firstOrNull()
         if (firstKostZuweisung != null) {
