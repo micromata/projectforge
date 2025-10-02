@@ -655,7 +655,16 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
     private fun createImportDTOForPosition(
         eingangsrechnungDO: EingangsrechnungDO,
         positionIndex: Int
-    ): EingangsrechnungPosImportDTO {
+    ): EingangsrechnungPosImportDTO? {
+        // Get position by index (in order)
+        val dbPosition = eingangsrechnungDO.positionen?.getOrNull(positionIndex)
+
+        // Return null for deleted positions - they should be treated as "not existing" during matching
+        // This allows import positions to be marked as "NEW" (restoration) instead of "UNMODIFIED"
+        if (dbPosition == null || dbPosition.deleted) {
+            return null
+        }
+
         val dto = EingangsrechnungPosImportDTO()
         dto.isPositionBasedImport = true  // Position DTOs are always position-based
         dto.copyFrom(eingangsrechnungDO)
@@ -667,25 +676,20 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         // Ensure invoice info is calculated (this also calculates all position info)
         val invoiceInfo = eingangsrechnungDO.ensuredInfo
 
-        // Get position by index (in order)
-        val dbPosition = eingangsrechnungDO.positionen?.getOrNull(positionIndex)
+        dto.grossSum = RechnungCalculator.calculateGrossSum(dbPosition)
 
-        if (dbPosition != null) {
-            dto.grossSum = RechnungCalculator.calculateGrossSum(dbPosition)
+        // Copy other position-specific fields
+        dto.taxRate = dbPosition.vat
+        dto.positionNummer = dbPosition.number.toInt()
 
-            // Copy other position-specific fields
-            dto.taxRate = dbPosition.vat
-            dto.positionNummer = dbPosition.number.toInt()
+        // Copy kost1/kost2 from first cost assignment using cache to handle lazy loading
+        val firstKostZuweisung = dbPosition.kostZuweisungen?.firstOrNull()
+        if (firstKostZuweisung != null) {
+            val initializedKost1 = PfCaches.instance.getKost1IfNotInitialized(firstKostZuweisung.kost1)
+            initializedKost1?.let { dto.kost1 = Kost1(it.id, description = it.formattedNumber) }
 
-            // Copy kost1/kost2 from first cost assignment using cache to handle lazy loading
-            val firstKostZuweisung = dbPosition.kostZuweisungen?.firstOrNull()
-            if (firstKostZuweisung != null) {
-                val initializedKost1 = PfCaches.instance.getKost1IfNotInitialized(firstKostZuweisung.kost1)
-                initializedKost1?.let { dto.kost1 = Kost1(it.id, description = it.formattedNumber) }
-
-                val initializedKost2 = PfCaches.instance.getKost2IfNotInitialized(firstKostZuweisung.kost2)
-                initializedKost2?.let { dto.kost2 = Kost2(it.id, description = it.formattedNumber) }
-            }
+            val initializedKost2 = PfCaches.instance.getKost2IfNotInitialized(firstKostZuweisung.kost2)
+            initializedKost2?.let { dto.kost2 = Kost2(it.id, description = it.formattedNumber) }
         }
 
         return dto
