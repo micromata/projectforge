@@ -143,7 +143,7 @@ class EingangsrechnungImportJob(
 
     /**
      * Updates an existing invoice with new positions.
-     * Reuses existing position IDs by position number to preserve history entries (no orphanRemoval).
+     * Reuses existing position objects by position number to preserve history entries (no orphanRemoval).
      */
     private fun updateInvoiceWithPositions(storedId: Long, entries: List<ImportPairEntry<EingangsrechnungPosImportDTO>>) {
         val existingEntity = eingangsrechnungDao.find(storedId)
@@ -158,15 +158,33 @@ class EingangsrechnungImportJob(
         firstRead?.copyTo(existingEntity)
 
         // Build map of existing positions by position number for ID reuse
+        // Include deleted positions so they can be restored
         val existingPositionsById = existingEntity.positionen
-            ?.filter { !it.deleted }  // Only consider non-deleted positions for matching
             ?.associateBy { it.number }
             ?: emptyMap()
 
-        // Create new positions, reusing IDs by position number
-        existingEntity.positionen = createPositions(entries, existingEntity, existingPositionsById)
+        // Modify the existing collection in-place to maintain Hibernate's PersistentList
+        val newPositions = createPositions(entries, existingEntity, existingPositionsById)
 
+        log.info { "Updating invoice ${existingEntity.id} with ${newPositions.size} positions" }
+        newPositions.forEachIndexed { index, pos ->
+            log.info { "  Position $index: id=${pos.id}, number=${pos.number}, text=${pos.text}, hasKostZuweisungen=${!pos.kostZuweisungen.isNullOrEmpty()}" }
+        }
+
+        val currentPositions = existingEntity.positionen
+        if (currentPositions != null) {
+            log.info { "Clearing ${currentPositions.size} existing positions from collection" }
+            currentPositions.clear()
+            log.info { "Adding ${newPositions.size} new/updated positions to collection" }
+            currentPositions.addAll(newPositions)
+        } else {
+            log.info { "No existing positions collection, creating new one with ${newPositions.size} positions" }
+            existingEntity.positionen = newPositions
+        }
+
+        log.info { "Calling eingangsrechnungDao.update() for invoice ${existingEntity.id}" }
         val modStatus = eingangsrechnungDao.update(existingEntity)
+        log.info { "Update completed with status: $modStatus" }
         if (modStatus != EntityCopyStatus.NONE) {
             result.updated += 1
         } else {
@@ -175,8 +193,9 @@ class EingangsrechnungImportJob(
     }
 
     /**
-     * Creates positions from import data, reusing existing position IDs by position number to preserve history.
-     * Positions not in the import will be marked as deleted by the CollectionHandler (soft-delete).
+     * Creates positions from import data, reusing existing managed position objects.
+     * Updates existing positions in-place and creates new ones only when needed.
+     * Positions not in the import will be marked as deleted by CollectionHandler (soft-delete).
      */
     private fun createPositions(
         entries: List<ImportPairEntry<EingangsrechnungPosImportDTO>>,
@@ -187,22 +206,24 @@ class EingangsrechnungImportJob(
 
         entries.forEachIndexed { index, entry ->
             val read = entry.read ?: return@forEachIndexed
-
-            val position = EingangsrechnungsPositionDO()
             val positionNumber = (index + 1).toShort()
 
-            // Set basic position fields first
+            // Reuse existing managed position object if available, otherwise create new one
+            val existingPos = existingPositionsById[positionNumber]
+            val position = existingPos ?: EingangsrechnungsPositionDO()
+
+            // Set/update basic position fields
             position.eingangsrechnung = invoice
             position.number = positionNumber
             position.text = read.betreff
             position.menge = BigDecimal.ONE
             position.vat = read.taxRate
+            position.deleted = false  // Restore position if it was deleted
 
-            // Calculate einzelNetto (net amount) from grossSum (gross amount from CSV) BEFORE creating KostZuweisung
+            // Calculate einzelNetto (net amount) from grossSum (gross amount from CSV)
             // The CSV contains the gross amount (Brutto), which must be converted to net amount (Netto)
             // Formula: Netto = Brutto / (1 + MwSt-Satz)
             // taxRate is already normalized as decimal (e.g., 0.19 for 19%)
-            // This ensures kostZuweisung.netto has the correct calculated value.
             val grossSum = read.grossSum
             val taxRate = read.taxRate
             if (grossSum != null) {
@@ -216,58 +237,35 @@ class EingangsrechnungImportJob(
                 }
             }
 
-            // Now reuse IDs and create KostZuweisung with correct netto value
-            val existingPos = existingPositionsById[positionNumber]
-            if (existingPos != null) {
-                position.id = existingPos.id
-
-                // Also reuse existing KostZuweisung IDs if present
-                val existingKostZuweisungen = existingPos.kostZuweisungen
-                if (!existingKostZuweisungen.isNullOrEmpty()) {
-                    val existingKostZuweisung = existingKostZuweisungen.first()
-
-                    if (read.kost1 != null || read.kost2 != null) {
-                        val kostZuweisung = KostZuweisungDO()
-                        kostZuweisung.id = existingKostZuweisung.id // Reuse ID to preserve history
-                        kostZuweisung.netto = position.einzelNetto // Now einzelNetto is correctly calculated
-                        kostZuweisung.eingangsrechnungsPosition = position
-
-                        if (read.kost1 != null) {
-                            val kost1 = Kost1DO()
-                            kost1.id = read.kost1!!.id
-                            kostZuweisung.kost1 = kost1
-                        }
-
-                        if (read.kost2 != null) {
-                            val kost2 = Kost2DO()
-                            kost2.id = read.kost2!!.id
-                            kostZuweisung.kost2 = kost2
-                        }
-
-                        position.ensureAndGetKostzuweisungen().add(kostZuweisung)
+            // Handle KostZuweisung
+            if (read.kost1 != null || read.kost2 != null) {
+                // Get or create KostZuweisung
+                val existingKostZuweisungen = position.kostZuweisungen
+                val kostZuweisung = if (!existingKostZuweisungen.isNullOrEmpty()) {
+                    existingKostZuweisungen.first()
+                } else {
+                    KostZuweisungDO().also {
+                        position.ensureAndGetKostzuweisungen().add(it)
                     }
+                }
+
+                kostZuweisung.netto = position.einzelNetto
+                // Don't set eingangsrechnungsPosition - Hibernate will handle it via the owning side (position.kostZuweisungen)
+
+                if (read.kost1 != null) {
+                    val kost1 = Kost1DO()
+                    kost1.id = read.kost1!!.id
+                    kostZuweisung.kost1 = kost1
+                }
+
+                if (read.kost2 != null) {
+                    val kost2 = Kost2DO()
+                    kost2.id = read.kost2!!.id
+                    kostZuweisung.kost2 = kost2
                 }
             } else {
-                // New position (no existing position with this number), create new KostZuweisung if needed
-                if (read.kost1 != null || read.kost2 != null) {
-                    val kostZuweisung = KostZuweisungDO()
-                    kostZuweisung.netto = position.einzelNetto // Now einzelNetto is correctly calculated
-                    kostZuweisung.eingangsrechnungsPosition = position
-
-                    if (read.kost1 != null) {
-                        val kost1 = Kost1DO()
-                        kost1.id = read.kost1!!.id
-                        kostZuweisung.kost1 = kost1
-                    }
-
-                    if (read.kost2 != null) {
-                        val kost2 = Kost2DO()
-                        kost2.id = read.kost2!!.id
-                        kostZuweisung.kost2 = kost2
-                    }
-
-                    position.ensureAndGetKostzuweisungen().add(kostZuweisung)
-                }
+                // Clear KostZuweisung if no kost1/kost2 in import
+                position.kostZuweisungen?.clear()
             }
 
             positions.add(position)
