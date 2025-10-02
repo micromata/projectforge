@@ -44,6 +44,27 @@ object CurrencyHelper {
         }
     }
 
+    /**
+     * Calculates net amount from gross amount and VAT rate.
+     * Formula: Net = Gross / (1 + VAT)
+     *
+     * @param gross If null then zero is returned.
+     * @param vat VAT rate as decimal (e.g., 0.19 for 19%)
+     * @return Net amount (rounded to 2 decimal places) or gross if vat is null or zero.
+     */
+    @JvmStatic
+    fun getNetAmount(gross: BigDecimal?, vat: BigDecimal?): BigDecimal {
+        if (gross == null) {
+            return BigDecimal.ZERO
+        }
+        return if (NumberHelper.isZeroOrNull(vat)) {
+            gross
+        } else {
+            val divisor = BigDecimal.ONE.add(vat)
+            gross.divide(divisor, 2, RoundingMode.HALF_UP)
+        }
+    }
+
     @JvmOverloads
     @JvmStatic
     fun multiply(val1: BigDecimal?, val2: BigDecimal?, round: Boolean = false): BigDecimal {
