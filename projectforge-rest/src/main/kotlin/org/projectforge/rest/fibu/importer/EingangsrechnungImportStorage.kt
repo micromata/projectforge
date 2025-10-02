@@ -88,7 +88,9 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
     private var untilDate: LocalDate? = null
 
     override fun prepareEntity(): EingangsrechnungPosImportDTO {
-        return EingangsrechnungPosImportDTO()
+        val dto = EingangsrechnungPosImportDTO()
+        dto.isPositionBasedImport = this.isPositionBasedImport
+        return dto
     }
 
     override fun commitEntity(obj: EingangsrechnungPosImportDTO) {
@@ -622,13 +624,17 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
      */
     private fun createImportDTO(eingangsrechnungDO: EingangsrechnungDO): EingangsrechnungPosImportDTO {
         val dto = EingangsrechnungPosImportDTO()
+        dto.isPositionBasedImport = this.isPositionBasedImport
         dto.copyFrom(eingangsrechnungDO)
 
-        // Calculate grossSum from invoice positions
-        try {
-            dto.grossSum = eingangsrechnungDO.ensuredInfo.grossSum
-        } catch (e: Exception) {
-            log.error(e) { "Could not calculate grossSum for invoice ${eingangsrechnungDO.id}: ${e.message}" }
+        // Calculate grossSum from invoice positions only for position-based imports
+        // For header-only imports, grossSum is calculated from positions in DB
+        if (isPositionBasedImport) {
+            try {
+                dto.grossSum = eingangsrechnungDO.ensuredInfo.grossSum
+            } catch (e: Exception) {
+                log.error(e) { "Could not calculate grossSum for invoice ${eingangsrechnungDO.id}: ${e.message}" }
+            }
         }
 
         // Copy konto from header using cache to handle lazy loading
@@ -651,6 +657,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         positionIndex: Int
     ): EingangsrechnungPosImportDTO {
         val dto = EingangsrechnungPosImportDTO()
+        dto.isPositionBasedImport = true  // Position DTOs are always position-based
         dto.copyFrom(eingangsrechnungDO)
 
         // Copy konto from header using cache to handle lazy loading

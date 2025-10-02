@@ -295,8 +295,11 @@ class EingangsrechnungImportJob(
 
     /**
      * Header-only import: Processes each entry independently without positions.
+     * New invoices (without stored.id) are skipped as they must be created via position-based import.
      */
     private suspend fun runHeaderOnlyImport() {
+        var skippedNewInvoices = 0
+
         for (entry in selectedEntries) {
             if (!isActive) {
                 return
@@ -319,10 +322,11 @@ class EingangsrechnungImportJob(
             }
 
             if (storedId != null) {
-                // Update existing invoice (header only)
+                // Update existing invoice (header only, preserve positions)
                 val existingEntity = eingangsrechnungDao.find(storedId)
                 if (existingEntity != null) {
                     readEntry.copyTo(existingEntity)
+                    // Positions remain unchanged (already loaded from DB)
                     val modStatus = eingangsrechnungDao.update(existingEntity)
                     if (modStatus != EntityCopyStatus.NONE) {
                         result.updated += 1
@@ -330,21 +334,20 @@ class EingangsrechnungImportJob(
                         result.unmodified += 1
                     }
                 } else {
-                    // Stored entity not found, insert as new (with empty position as fallback)
-                    val dbEntity = EingangsrechnungDO()
-                    readEntry.copyTo(dbEntity)
-                    addFallbackPosition(dbEntity)
-                    eingangsrechnungDao.insert(dbEntity)
-                    result.inserted += 1
+                    // Stored entity not found in DB - skip as new invoice
+                    log.warn { "Stored invoice with id=$storedId not found in DB, skipping as new invoice" }
+                    skippedNewInvoices += 1
                 }
             } else {
-                // Insert new invoice (header only, add fallback position)
-                val dbEntity = EingangsrechnungDO()
-                readEntry.copyTo(dbEntity)
-                addFallbackPosition(dbEntity)
-                eingangsrechnungDao.insert(dbEntity)
-                result.inserted += 1
+                // Skip new invoices - they must be created via position-based import
+                log.debug { "Skipping new invoice: referenz=${readEntry.referenz}, datum=${readEntry.datum}, kreditor=${readEntry.kreditor}" }
+                skippedNewInvoices += 1
             }
+        }
+
+        // Add warning if new invoices were skipped
+        if (skippedNewInvoices > 0) {
+            importStorage.addWarning(translateMsg("fibu.eingangsrechnung.import.headerOnly.newInvoicesSkipped", skippedNewInvoices.toString()))
         }
     }
 
