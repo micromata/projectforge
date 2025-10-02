@@ -208,7 +208,10 @@ class EingangsrechnungImportJob(
 
         entries.forEachIndexed { index, entry ->
             val read = entry.read ?: return@forEachIndexed
-            val positionNumber = (index + 1).toShort()
+
+            // Use position number from import DTO if available (for partial updates where only some positions are selected)
+            // Otherwise, use array index for full imports
+            val positionNumber = read.positionNummer?.toShort() ?: (index + 1).toShort()
 
             // Reuse existing managed position object if available, otherwise create new one
             val existingPos = existingPositionsById[positionNumber]
@@ -275,6 +278,17 @@ class EingangsrechnungImportJob(
 
             positions.add(position)
         }
+
+        // Preserve existing positions that are not in the import (for partial updates)
+        // This ensures that when only some positions are selected for update, the others remain unchanged
+        existingPositionsById.values.forEach { existingPos ->
+            if (!positions.any { it.number == existingPos.number }) {
+                positions.add(existingPos)
+            }
+        }
+
+        // Sort by position number to maintain correct order
+        positions.sortBy { it.number }
 
         return positions
     }
