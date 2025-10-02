@@ -148,6 +148,11 @@ class EingangsrechnungPosImportDTO(
     override fun copyTo(obj: EingangsrechnungDO) {
         if (this.id != null) obj.id = this.id
         obj.kreditor = this.kreditor
+        this.konto?.id?.let { kontoId ->
+            val kontoDO = org.projectforge.business.fibu.KontoDO()
+            kontoDO.id = kontoId
+            obj.konto = kontoDO
+        }
         obj.referenz = this.referenz
         obj.betreff = this.betreff
         obj.datum = this.datum

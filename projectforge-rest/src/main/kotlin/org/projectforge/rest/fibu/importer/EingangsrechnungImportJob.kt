@@ -166,25 +166,27 @@ class EingangsrechnungImportJob(
         // Modify the existing collection in-place to maintain Hibernate's PersistentList
         val newPositions = createPositions(entries, existingEntity, existingPositionsById)
 
-        log.info { "Updating invoice ${existingEntity.id} with ${newPositions.size} positions" }
-        newPositions.forEachIndexed { index, pos ->
-            log.info { "  Position $index: id=${pos.id}, number=${pos.number}, text=${pos.text}, hasKostZuweisungen=${!pos.kostZuweisungen.isNullOrEmpty()}" }
+        if (log.isDebugEnabled) {
+            log.debug { "Updating invoice ${existingEntity.id} with ${newPositions.size} positions" }
+            newPositions.forEachIndexed { index, pos ->
+                log.debug { "  Position $index: id=${pos.id}, number=${pos.number}, text=${pos.text}, hasKostZuweisungen=${!pos.kostZuweisungen.isNullOrEmpty()}" }
+            }
         }
 
         val currentPositions = existingEntity.positionen
         if (currentPositions != null) {
-            log.info { "Clearing ${currentPositions.size} existing positions from collection" }
+            log.debug { "Clearing ${currentPositions.size} existing positions from collection" }
             currentPositions.clear()
-            log.info { "Adding ${newPositions.size} new/updated positions to collection" }
+            log.debug { "Adding ${newPositions.size} new/updated positions to collection" }
             currentPositions.addAll(newPositions)
         } else {
-            log.info { "No existing positions collection, creating new one with ${newPositions.size} positions" }
+            log.debug { "No existing positions collection, creating new one with ${newPositions.size} positions" }
             existingEntity.positionen = newPositions
         }
 
-        log.info { "Calling eingangsrechnungDao.update() for invoice ${existingEntity.id}" }
+        log.debug { "Calling eingangsrechnungDao.update() for invoice ${existingEntity.id}" }
         val modStatus = eingangsrechnungDao.update(existingEntity)
-        log.info { "Update completed with status: $modStatus" }
+        log.debug { "Update completed with status: $modStatus" }
         if (modStatus != EntityCopyStatus.NONE) {
             result.updated += 1
         } else {
@@ -249,8 +251,11 @@ class EingangsrechnungImportJob(
                     }
                 }
 
+                // Set index (always 0 for imports as there's only one KostZuweisung per position)
+                kostZuweisung.index = 0
                 kostZuweisung.netto = position.einzelNetto
-                // Don't set eingangsrechnungsPosition - Hibernate will handle it via the owning side (position.kostZuweisungen)
+                // Set bidirectional relationship
+                kostZuweisung.eingangsrechnungsPosition = position
 
                 if (read.kost1 != null) {
                     val kost1 = Kost1DO()

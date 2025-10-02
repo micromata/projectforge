@@ -186,6 +186,9 @@ object RechnungCalculator {
         // Key is the vat percentage and value is the cumulative vat sum.
         val vatAmountSums = mutableMapOf<BigDecimal, BigDecimal>()
         rechnung.positionen?.forEach { pos ->
+            if (pos.deleted) {
+                return@forEach // Skip deleted positions
+            }
             pos as AbstractRechnungsPositionDO
             var vat = pos.vat
             if (!NumberHelper.isZeroOrNull(vat)) {
