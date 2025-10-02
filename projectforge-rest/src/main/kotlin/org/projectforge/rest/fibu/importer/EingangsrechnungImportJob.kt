@@ -157,6 +157,12 @@ class EingangsrechnungImportJob(
         val firstRead = entries.firstOrNull()?.read
         firstRead?.copyTo(existingEntity)
 
+        // Set betreff (subject) from first position's betreff for position-based imports
+        // This maps "Ware/Leistung" column to both invoice.betreff (header) and position.text
+        if (firstRead?.betreff != null) {
+            existingEntity.betreff = firstRead.betreff
+        }
+
         // Build map of existing positions by position number for ID reuse
         // Include deleted positions so they can be restored
         val existingPositionsById = existingEntity.positionen
@@ -289,6 +295,12 @@ class EingangsrechnungImportJob(
         // Copy header from first entry
         val firstRead = entries.firstOrNull()?.read
         firstRead?.copyTo(dbEntity)
+
+        // Set betreff (subject) from first position's betreff for position-based imports
+        // This maps "Ware/Leistung" column to both invoice.betreff (header) and position.text
+        if (firstRead?.betreff != null) {
+            dbEntity.betreff = firstRead.betreff
+        }
 
         // Create positions (no existing positions for new invoice)
         dbEntity.positionen = createPositions(entries, dbEntity, emptyMap())
