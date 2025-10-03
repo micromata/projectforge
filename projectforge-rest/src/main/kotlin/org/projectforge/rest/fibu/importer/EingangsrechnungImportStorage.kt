@@ -424,13 +424,34 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
 
                 log.debug { "  Match: Import invoice '${header.referenz}' (${importPositions.size} positions) → DB invoice '${dbInvoice.referenz}' (${dbPositionCount} positions)" }
 
-                // Pair positions by index: Import[0]↔DB[0], Import[1]↔DB[1], etc.
-                for (i in 0 until maxPositions) {
-                    val importPos = importPositions.getOrNull(i)
-                    val dbDto = if (i < dbPositionCount) {
-                        createImportDTOForPosition(dbInvoice, i)
+                // Pair positions by positionNummer, not by array index
+                // This ensures that Position 2 is matched with DB Position 2, not DB Position 1
+                val importPosByNumber = importPositions.associateBy { it.positionNummer }
+                val dbPositions = dbInvoice.positionen ?: emptyList()
+                val dbPosByNumber = dbPositions
+                    .filter { !it.deleted }
+                    .associateBy { it.number.toInt() }
+
+                // Get all position numbers (import + DB)
+                val allPositionNumbers = (importPosByNumber.keys + dbPosByNumber.keys).toSet()
+
+                allPositionNumbers.forEach { posNum ->
+                    val importPos = importPosByNumber[posNum]
+                    val dbPos = dbPosByNumber[posNum]
+
+                    val dbDto = if (dbPos != null) {
+                        // Position exists in DB - create full DTO from DB position
+                        val dbIndex = dbPositions.indexOf(dbPos)
+                        createImportDTOForPosition(dbInvoice, dbIndex)
+                    } else if (importPos != null) {
+                        // Position is new, but invoice exists in DB
+                        // Create minimal DTO with invoice ID so groupEntriesByInvoice() can find storedId
+                        val minimalDto = EingangsrechnungPosImportDTO()
+                        minimalDto.id = dbInvoice.id  // Set invoice ID for grouping
+                        minimalDto.isPositionBasedImport = true
+                        minimalDto
                     } else {
-                        null  // DB position doesn't exist (import has more positions)
+                        null
                     }
 
                     if (importPos != null) {
