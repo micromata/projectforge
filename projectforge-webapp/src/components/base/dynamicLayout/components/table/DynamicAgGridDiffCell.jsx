@@ -87,14 +87,6 @@ DynamicAgGridDiffCell.propTypes = {
     timestampFormatMinutes: PropTypes.string,
 };
 
-DynamicAgGridDiffCell.defaultProps = {
-    locale: undefined,
-    currency: undefined,
-    dateFormat: 'DD/MM/YYYY',
-    timestampFormatSeconds: 'DD.MM.YYYY HH:mm:ss',
-    timestampFormatMinutes: 'DD.MM.YYYY HH:mm',
-};
-
 const mapStateToProps = ({ authentication }) => ({
     locale: authentication.user.locale,
     currency: authentication.user.currency,
