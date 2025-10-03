@@ -23,12 +23,14 @@
 
 package org.projectforge.business.fibu
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
+import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.candh.CandHIgnore
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.history.NoHistory
@@ -111,7 +113,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "konto_id")
-    open var konto: KontoDO? = null
+    @JsonSerialize(using = IdOnlySerializer::class) open var konto: KontoDO? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.discountPercent")
     @get:Column
