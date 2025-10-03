@@ -802,18 +802,20 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             val read = pairEntry.read
             val stored = pairEntry.stored
 
-            if (read != null && stored != null) {
-                // For position-based imports: Always preserve bezahlDatum and zahlBetrag from DB (header fields)
-                // For header-only imports: Only preserve if not in import
+            if (read != null) {
+                // For position-based imports: Ignore bezahlDatum and zahlBetrag (header fields, not position fields)
+                // For header-only imports: Allow importing/updating these fields
                 if (read.isPositionBasedImport) {
-                    // Always use stored values for position-based imports
-                    if (stored.bezahlDatum != null) {
+                    if (stored == null) {
+                        // New invoice: clear these header fields to avoid validation errors
+                        read.bezahlDatum = null
+                        read.zahlBetrag = null
+                    } else {
+                        // Update existing invoice: preserve DB values
                         read.bezahlDatum = stored.bezahlDatum
-                    }
-                    if (stored.zahlBetrag != null) {
                         read.zahlBetrag = stored.zahlBetrag
                     }
-                } else {
+                } else if (stored != null) {
                     // Header-only: preserve only if not in import
                     if (read.bezahlDatum == null && stored.bezahlDatum != null) {
                         read.bezahlDatum = stored.bezahlDatum
@@ -822,6 +824,9 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
                         read.zahlBetrag = stored.zahlBetrag
                     }
                 }
+            }
+
+            if (read != null && stored != null) {
 
                 // Preserve bemerkung if not in import (e.g., position-based imports don't include this field)
                 if (read.bemerkung == null && stored.bemerkung != null) {

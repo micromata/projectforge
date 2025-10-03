@@ -100,7 +100,7 @@ class EingangsrechnungImportJob(
                     val existingEntity = eingangsrechnungDao.find(storedId)
                     if (existingEntity != null && !existingEntity.deleted) {
                         eingangsrechnungDao.markAsDeleted(existingEntity)
-                        result.deleted += 1
+                        result.deleted += entries.size  // Count positions, not invoices
                         processedNumber += entries.size
                     }
                 }
@@ -194,9 +194,9 @@ class EingangsrechnungImportJob(
         val modStatus = eingangsrechnungDao.update(existingEntity)
         log.debug { "Update completed with status: $modStatus" }
         if (modStatus != EntityCopyStatus.NONE) {
-            result.updated += 1
+            result.updated += entries.size  // Count positions, not invoices
         } else {
-            result.unmodified += 1
+            result.unmodified += entries.size  // Count positions, not invoices
         }
     }
 
@@ -306,7 +306,7 @@ class EingangsrechnungImportJob(
         dbEntity.positionen = createPositions(entries, dbEntity, emptyMap())
 
         eingangsrechnungDao.insert(dbEntity)
-        result.inserted += 1
+        result.inserted += entries.size  // Count positions, not invoices
     }
 
     /**
