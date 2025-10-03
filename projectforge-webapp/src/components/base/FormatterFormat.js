@@ -2,6 +2,39 @@ import moment from 'moment';
 import React from 'react';
 import { isObject } from 'lodash/lang';
 
+/**
+ * Normalizes currency symbols to ISO 4217 currency codes.
+ * Intl.NumberFormat requires ISO codes (EUR, USD) not symbols (€, $).
+ *
+ * @param {string} currency - Currency symbol or ISO code
+ * @returns {string} ISO 4217 currency code
+ */
+const normalizeCurrency = (currency) => {
+    if (!currency) {
+        return 'EUR'; // Default fallback
+    }
+
+    // If already an ISO code (3 uppercase letters), return as-is
+    if (/^[A-Z]{3}$/.test(currency)) {
+        return currency;
+    }
+
+    // Map common currency symbols to ISO codes
+    const symbolToCode = {
+        '€': 'EUR',
+        $: 'USD',
+        '£': 'GBP',
+        '¥': 'JPY',
+        '₹': 'INR',
+        '₽': 'RUB',
+        '₣': 'CHF',
+        Fr: 'CHF',
+        'Fr.': 'CHF',
+    };
+
+    return symbolToCode[currency] || 'EUR'; // Fallback to EUR if unknown
+};
+
 const formatterFormat = (
     value,
     dataType,
@@ -16,7 +49,7 @@ const formatterFormat = (
         case 'CURRENCY':
             return Intl.NumberFormat(locale, {
                 style: 'currency',
-                currency,
+                currency: normalizeCurrency(currency),
             }).format(value);
         case 'CURRENCY_PLAIN':
             return Intl.NumberFormat(locale, {
