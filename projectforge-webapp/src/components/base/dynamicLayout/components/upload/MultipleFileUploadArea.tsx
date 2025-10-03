@@ -127,7 +127,7 @@ export function MultipleFileUploadArea(
             return translations['file.upload.error.maxSizeOfExceeded'];
         }
         if (error.code === 'too-many-files') {
-            return translations['file.upload.error.toManyFiles'];
+            return translations['file.upload.error.tooManyFiles'];
         }
         return error.message;
     };
