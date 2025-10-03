@@ -382,11 +382,11 @@ DynamicAgGrid.propTypes = {
         title: PropTypes.string,
         titleIcon: PropTypes.arrayOf(PropTypes.string),
     })).isRequired,
-    selectionColumnDef: PropTypes.arrayOf(PropTypes.shape({
+    selectionColumnDef: PropTypes.shape({
         pinned: PropTypes.string,
         resizable: PropTypes.bool,
         sortable: PropTypes.bool,
-    })),
+    }),
     id: PropTypes.string,
     entries: PropTypes.arrayOf(PropTypes.shape()),
     sortModel: PropTypes.arrayOf(PropTypes.shape({
