@@ -107,6 +107,12 @@ internal class I18nKeysSourceAnalyzer {
             parseHtmlMailTemplates(path)
             parseReact(path)
         }
+        // Also parse projectforge-webapp/src directory (not following src/main structure)
+        val webappSrcDir = File(SourcesUtils.getBasePath().toFile(), "projectforge-webapp/src")
+        if (webappSrcDir.exists() && webappSrcDir.isDirectory) {
+            log.info { "Parsing projectforge-webapp/src for React files..." }
+            parseReact(webappSrcDir)
+        }
         getI18nEnums()
         getPropertyInfos()
         // Now, add all found occurrences of all i18n keys detected:
@@ -145,6 +151,7 @@ internal class I18nKeysSourceAnalyzer {
     private fun parseWicketHtml(path: File) {
         val files = SourcesUtils.listFiles(path, "html")
         for (file in files) {
+            if (shouldExcludeFile(file)) continue
             val content = getContent(file)
             find(file, content, "<wicket:message\\s+key=\"([a-zA-Z0-9\\.]+)\"\\s/>")
         }
@@ -154,6 +161,7 @@ internal class I18nKeysSourceAnalyzer {
     private fun parseHtmlMailTemplates(path: File) {
         val files = SourcesUtils.listFiles(path, "html")
         for (file in files) {
+            if (shouldExcludeFile(file)) continue
             val content = getContent(file)
             parseStringConstants(content, file)
             find(content, "pf.getI18nString\\(\"([a-zA-Z0-9\\.]+)\"\\)").forEach {
@@ -228,6 +236,7 @@ internal class I18nKeysSourceAnalyzer {
     private fun parseJava(path: File) {
         val files = SourcesUtils.listFiles(path, "java")
         for (file in files) {
+            if (shouldExcludeFile(file)) continue
             val content = getContent(file)
             parseStringConstants(content, file)
             find(file, content, "getString\\(\"([a-zA-Z0-9\\.]+)\"\\)") // getString("i18nKey")
@@ -309,6 +318,7 @@ internal class I18nKeysSourceAnalyzer {
     private fun parseKotlin(path: File) {
         val files = SourcesUtils.listFiles(path, "kt")
         for (file in files) {
+            if (shouldExcludeFile(file)) continue
             val content = getContent(file)
             parseStringConstants(content, file)
             find(file, content, "translate\\(\"([a-zA-Z0-9\\.]+)\"\\)") // translate("i18nKey")
@@ -322,24 +332,27 @@ internal class I18nKeysSourceAnalyzer {
         // Parse TypeScript React files (*.tsx)
         val tsxFiles = SourcesUtils.listFiles(path, "tsx")
         for (file in tsxFiles) {
+            if (shouldExcludeFile(file)) continue
             val content = getContent(file)
-            parseStringConstants(content, file)
+            // Note: No parseStringConstants() for React files - we search for specific patterns only
             find(file, content, "translations\\[['\"]([a-zA-Z0-9\\.]+)['\"]\\]") // translations['i18nKey'] or translations["i18nKey"]
             find(file, content, "ui\\.translations\\[['\"]([a-zA-Z0-9\\.]+)['\"]\\]") // ui.translations['i18nKey'] or ui.translations["i18nKey"]
         }
         // Parse JSX files (*.jsx)
         val jsxFiles = SourcesUtils.listFiles(path, "jsx")
         for (file in jsxFiles) {
+            if (shouldExcludeFile(file)) continue
             val content = getContent(file)
-            parseStringConstants(content, file)
+            // Note: No parseStringConstants() for React files - we search for specific patterns only
             find(file, content, "translations\\[['\"]([a-zA-Z0-9\\.]+)['\"]\\]") // translations['i18nKey'] or translations["i18nKey"]
             find(file, content, "ui\\.translations\\[['\"]([a-zA-Z0-9\\.]+)['\"]\\]") // ui.translations['i18nKey'] or ui.translations["i18nKey"]
         }
         // Parse JavaScript files (*.js)
         val jsFiles = SourcesUtils.listFiles(path, "js")
         for (file in jsFiles) {
+            if (shouldExcludeFile(file)) continue
             val content = getContent(file)
-            parseStringConstants(content, file)
+            // Note: No parseStringConstants() for React files - we search for specific patterns only
             find(file, content, "translations\\[['\"]([a-zA-Z0-9\\.]+)['\"]\\]") // translations['i18nKey'] or translations["i18nKey"]
             find(file, content, "ui\\.translations\\[['\"]([a-zA-Z0-9\\.]+)['\"]\\]") // ui.translations['i18nKey'] or ui.translations["i18nKey"]
         }
@@ -380,6 +393,45 @@ internal class I18nKeysSourceAnalyzer {
             i18nKeyMap[key] = info
         }
         return info
+    }
+
+    /**
+     * Checks if a file should be excluded from i18n key analysis.
+     * This filters out third-party libraries and build artifacts.
+     */
+    private fun shouldExcludeFile(file: File): Boolean {
+        val path = file.absolutePath
+
+        // Exclude directories with third-party libraries
+        val excludedDirs = listOf(
+            "/scripts/",           // Third-party scripts (jquery, ace, etc.)
+            "/include/",           // Third-party includes (bootstrap, etc.)
+            "/node_modules/",      // Node modules
+            "/webapp/scripts/",    // Webapp third-party scripts
+            "/lesscss/",          // LESS CSS compiler
+            "/build/",            // Build artifacts
+            "/dist/",             // Distribution artifacts
+        )
+
+        if (excludedDirs.any { path.contains(it) }) {
+            return true
+        }
+
+        // Exclude specific file patterns
+        val fileName = file.name
+        val excludedPatterns = listOf(
+            "jquery",             // jQuery library files
+            "bootstrap",          // Bootstrap library files
+            "ace.js",            // ACE editor
+            "ace-",              // ACE editor modules (ace-*.js)
+            ".min.js",           // Minified JavaScript files
+        )
+
+        if (excludedPatterns.any { fileName.contains(it, ignoreCase = true) }) {
+            return true
+        }
+
+        return false
     }
 
     @Throws(IOException::class)
