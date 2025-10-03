@@ -321,9 +321,11 @@ internal class I18nKeysSourceAnalyzer {
             if (shouldExcludeFile(file)) continue
             val content = getContent(file)
             parseStringConstants(content, file)
-            find(file, content, "translate\\(\"([a-zA-Z0-9\\.]+)\"\\)") // translate("i18nKey")
-            //find(file, content, "translateMsg\\(\"([a-zA-Z0-9\\.]+,") // translateMst("i18nKey",...)
-            //find(file, content, "addTranslations\\(\"([a-zA-Z0-9\\.]+)\"\\)") // addError("i18nkey")
+            find(file, content, "translate\\(\"([a-zA-Z0-9\\.]+)\"") // translate("i18nKey") or translate("i18nKey", params...)
+            find(file, content, "translate\\([a-zA-Z_]+,\\s*\"([a-zA-Z0-9\\.]+)\"") // translate(locale, "i18nKey") or translate(locale, "i18nKey", params...)
+            find(file, content, "translateMsg\\(\"([a-zA-Z0-9\\.]+)\"") // translateMsg("i18nKey") or translateMsg("i18nKey", params...)
+            find(file, content, "translateMsg\\([a-zA-Z_]+,\\s*\"([a-zA-Z0-9\\.]+)\"") // translateMsg(locale, "i18nKey") or translateMsg(locale, "i18nKey", params...)
+            // Note: addTranslations("key1", "key2", ...) keys are already captured by parseStringConstants() above
         }
     }
 
