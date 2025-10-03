@@ -189,6 +189,19 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
 
         // Enrich read objects with stored values that are not in import data
         enrichReadWithStoredValues()
+
+        // Add warning for header-only imports if new invoices are present
+        // New invoices cannot be imported in header-only mode (they need positions)
+        if (!isPositionBasedImport) {
+            val newInvoicesCount = pairEntries.count { it.stored == null && it.read != null }
+            if (newInvoicesCount > 0) {
+                val warningMsg = org.projectforge.framework.i18n.translateMsg("fibu.eingangsrechnung.import.headerOnly.newInvoicesSkipped", newInvoicesCount.toString())
+                // Only add warning if it's not already present (avoid duplicates on re-reconcile)
+                if (!warningList.contains(warningMsg)) {
+                    addWarning(warningMsg)
+                }
+            }
+        }
     }
 
     private fun analyzeReadInvoices() {

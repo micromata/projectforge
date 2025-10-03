@@ -314,8 +314,6 @@ class EingangsrechnungImportJob(
      * New invoices (without stored.id) are skipped as they must be created via position-based import.
      */
     private suspend fun runHeaderOnlyImport() {
-        var skippedNewInvoices = 0
-
         for (entry in selectedEntries) {
             if (!isActive) {
                 return
@@ -352,18 +350,11 @@ class EingangsrechnungImportJob(
                 } else {
                     // Stored entity not found in DB - skip as new invoice
                     log.warn { "Stored invoice with id=$storedId not found in DB, skipping as new invoice" }
-                    skippedNewInvoices += 1
                 }
             } else {
                 // Skip new invoices - they must be created via position-based import
                 log.debug { "Skipping new invoice: referenz=${readEntry.referenz}, datum=${readEntry.datum}, kreditor=${readEntry.kreditor}" }
-                skippedNewInvoices += 1
             }
-        }
-
-        // Add warning if new invoices were skipped
-        if (skippedNewInvoices > 0) {
-            importStorage.addWarning(translateMsg("fibu.eingangsrechnung.import.headerOnly.newInvoicesSkipped", skippedNewInvoices.toString()))
         }
     }
 

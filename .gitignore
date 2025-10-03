@@ -52,3 +52,4 @@ build
 .kotlin
 projectforge-webapp/node
 projectforge-business/src/main/kotlin/testscripts
+.claude
