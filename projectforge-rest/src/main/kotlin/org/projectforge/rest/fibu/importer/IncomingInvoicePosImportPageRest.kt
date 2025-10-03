@@ -144,15 +144,17 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
         // Fälligkeit
         addReadColumn(agGrid, lc, EingangsrechnungDO::faelligkeit)
 
-        // Bezahlt am
-        addReadColumn(agGrid, lc, EingangsrechnungDO::bezahlDatum)
+        if (!isPositionBasedImport) {
+            // Bezahlt am
+            addReadColumn(agGrid, lc, EingangsrechnungDO::bezahlDatum)
 
-        // Zahlbetrag
-        addDiffColumn(
-            agGrid, lc, "read.zahlBetrag",
-            headerName = "fibu.rechnung.zahlBetrag",
-            formatter = Formatter.CURRENCY_PLAIN
-        )
+            // Zahlbetrag
+            addDiffColumn(
+                agGrid, lc, "read.zahlBetrag",
+                headerName = "fibu.rechnung.zahlBetrag",
+                formatter = Formatter.CURRENCY_PLAIN
+            )
+        }
 
         // TAX rate
         addDiffColumn(
