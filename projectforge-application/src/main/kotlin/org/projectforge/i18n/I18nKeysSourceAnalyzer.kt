@@ -325,7 +325,19 @@ internal class I18nKeysSourceAnalyzer {
             find(file, content, "translate\\([a-zA-Z_]+,\\s*\"([a-zA-Z0-9\\.]+)\"") // translate(locale, "i18nKey") or translate(locale, "i18nKey", params...)
             find(file, content, "translateMsg\\(\"([a-zA-Z0-9\\.]+)\"") // translateMsg("i18nKey") or translateMsg("i18nKey", params...)
             find(file, content, "translateMsg\\([a-zA-Z_]+,\\s*\"([a-zA-Z0-9\\.]+)\"") // translateMsg(locale, "i18nKey") or translateMsg(locale, "i18nKey", params...)
+            // UI component constructors with i18n keys
+            // Note: Patterns require at least one dot to avoid matching simple strings like "Merlin", "Projects", etc.
+            find(file, content, "UILayout\\(\"([a-zA-Z0-9]+\\.[a-zA-Z0-9\\.]+)\"") // UILayout("i18nKey") - requires at least one dot
+            find(file, content, "title\\s*=\\s*\"([a-zA-Z0-9]+\\.[a-zA-Z0-9\\.]+)\"") // title = "i18nKey" in UI components - requires at least one dot
+            find(file, content, "UIFieldset\\(\\d+,\\s*\"([a-zA-Z0-9]+\\.[a-zA-Z0-9\\.]+)\"") // UIFieldset(12, "i18nKey") - requires at least one dot
+            find(file, content, "UIAlert\\(\"([a-zA-Z0-9]+\\.[a-zA-Z0-9\\.]+)\"") // UIAlert("i18nKey") - requires at least one dot
+            // Property assignments with i18n keys (not in annotations, those are handled by getPropertyInfos())
+            find(file, content, "\\bi18nKey\\s*=\\s*\"([a-zA-Z0-9]+\\.[a-zA-Z0-9\\.]+)\"") // i18nKey = "i18nKey"
             // Note: addTranslations("key1", "key2", ...) keys are already captured by parseStringConstants() above
+
+            // Abstract*PagesRest constructors that use i18nKeyPrefix parameter
+            // These constructors automatically generate derived keys with suffixes: .add, .edit, .list, .heading
+            findAbstractPagesRestKeys(file, content)
         }
     }
 
@@ -376,6 +388,25 @@ internal class I18nKeysSourceAnalyzer {
         return result
     }
 
+    /**
+     * Finds i18nKeyPrefix parameters passed to Abstract*PagesRest constructors.
+     * These constructors automatically generate derived keys with suffixes: .add, .edit, .list, .heading
+     * Example: AbstractDTOPagesRest(EmployeeDao::class.java, "fibu.employee.title")
+     * -> registers usage for fibu.employee.title.add, .edit, .list, .heading
+     */
+    private fun findAbstractPagesRestKeys(file: File, content: String) {
+        // Pattern matches: AbstractDTOPagesRest<...>(..., "i18nKeyPrefix") or AbstractDOPagesRest or AbstractPagesRest
+        val pattern = "Abstract(?:DTO|DO)?PagesRest<[^>]+>\\s*\\([^,]+,\\s*\"([a-zA-Z0-9\\.]+)\""
+        val baseKeys = find(content, pattern)
+
+        // For each base key, register the 4 derived keys
+        val suffixes = listOf(".add", ".edit", ".list", ".heading")
+        for (baseKey in baseKeys) {
+            for (suffix in suffixes) {
+                add(baseKey + suffix, file)
+            }
+        }
+    }
 
     private fun add(key: String, file: File) {
         val info = ensureI18nKeyUsage(key)
@@ -413,6 +444,7 @@ internal class I18nKeysSourceAnalyzer {
             "/lesscss/",          // LESS CSS compiler
             "/build/",            // Build artifacts
             "/dist/",             // Distribution artifacts
+            "/buildSrc/",         // Gradle build source (not in runtime classpath)
         )
 
         if (excludedDirs.any { path.contains(it) }) {
