@@ -39,6 +39,10 @@ open class ImportEntry<O : Any>(
     val error: String?
         get() = if (errors.isEmpty()) null else errors.joinToString("\n")
 
+    @get:JsonProperty
+    val hasError: Boolean
+        get() = errors.isNotEmpty()
+
     private val errors = mutableListOf<String>()
 
     /**
