@@ -137,7 +137,7 @@ class MerlinVariable : MerlinVariableBase() {
           if (type.isIn(VariableType.INT, VariableType.FLOAT, VariableType.STRING)) {
             if (minimumBD > bdValue) {
               return translateMsg(
-                "plugins.merlin.validation.valueToLow",
+                "plugins.merlin.validation.valueTooLow",
                 name,
                 value,
                 minimumValue
@@ -150,7 +150,7 @@ class MerlinVariable : MerlinVariableBase() {
           if (type.isIn(VariableType.INT, VariableType.FLOAT, VariableType.STRING)) {
             if (maximumBD < bdValue) {
               return translateMsg(
-                "plugins.merlin.validation.valueToHigh",
+                "plugins.merlin.validation.valueTooHigh",
                 name,
                 value,
                 maximumValue

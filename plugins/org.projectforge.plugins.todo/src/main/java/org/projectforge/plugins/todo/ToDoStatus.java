@@ -32,7 +32,7 @@ import org.projectforge.common.i18n.I18nEnum;
  */
 public enum ToDoStatus implements I18nEnum
 {
-  OPENED("opened"), IN_PROGRESS("inprogress"), RE_OPENED("reopend"), POSTPONED("postponed"), CLOSED("closed");
+  OPENED("opened"), IN_PROGRESS("inprogress"), RE_OPENED("reopened"), POSTPONED("postponed"), CLOSED("closed");
 
   private String key;
 
