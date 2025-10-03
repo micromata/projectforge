@@ -165,8 +165,9 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
             agGrid.handleCancelUrl = RestResolver.getRestUrl(this::class.java, "cancelAndGetUrl")
             agGrid.urlAfterMultiSelect = RestResolver.getRestUrl(this::class.java, "import")
             // agGrid.height = "window.screen.height - 400"
-            val col = UIAgGridColumnDef.createCol(field = "statusAsString", width = 120, headerName = "status")
+            val col = UIAgGridColumnDef.createCol(field = "statusAsString", width = 150, headerName = "status")
                 .withTooltipField("error")
+            col.cellRenderer = "importStatusCell" // Custom renderer for icon + tooltip
             agGrid.add(col)
             createListLayout(request, layout, agGrid)
             // Only show import button if data has been reconciled with database
