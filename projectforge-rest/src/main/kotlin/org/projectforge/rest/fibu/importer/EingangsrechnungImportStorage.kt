@@ -95,6 +95,10 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
     override fun commitEntity(obj: EingangsrechnungPosImportDTO) {
         readInvoices.add(obj)
         val pairEntry = ImportPairEntry(read = obj)
+        // Transfer errors from DTO to PairEntry
+        obj.getErrors().forEach { error ->
+            pairEntry.addError(error)
+        }
         addEntry(pairEntry)
     }
 
@@ -106,6 +110,10 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
     override fun commitEntity(pairEntry: ImportPairEntry<EingangsrechnungPosImportDTO>) {
         pairEntry.read?.let { dto ->
             readInvoices.add(dto)
+            // Transfer errors from DTO to PairEntry
+            dto.getErrors().forEach { error ->
+                pairEntry.addError(error)
+            }
         }
         addEntry(pairEntry)
     }
@@ -291,7 +299,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         if (readPositions.isEmpty()) {
             // Only database entries exist - mark as deleted
             dbInvoices.forEach { dbInvoice ->
-                addEntry(ImportPairEntry(null, createImportDTO(dbInvoice)))
+                addEntry(createPairEntryWithErrors(null, createImportDTO(dbInvoice)))
             }
             return
         }
@@ -321,7 +329,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         if (readByDate.isEmpty()) {
             // Only database entries exist - mark as deleted (header-only, so just the header)
             dbInvoicesByDate.forEach { dbInvoice ->
-                addEntry(ImportPairEntry(null, createImportDTO(dbInvoice)))
+                addEntry(createPairEntryWithErrors(null, createImportDTO(dbInvoice)))
             }
             return
         }
@@ -366,20 +374,20 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             // Create ImportPairEntry objects from matches (header-only style)
             matches.forEach { (readIndex, dbIndex) ->
                 val dbDto = createImportDTO(dbInvoices[dbIndex])
-                addEntry(ImportPairEntry(readInvoices[readIndex], dbDto))
+                addEntry(createPairEntryWithErrors(readInvoices[readIndex], dbDto))
             }
 
             // Add unmatched read entries as new
             readInvoices.forEachIndexed { index, invoice ->
                 if (!matchedReadIndices.contains(index)) {
-                    addEntry(ImportPairEntry(invoice, null))
+                    addEntry(createPairEntryWithErrors(invoice, null))
                 }
             }
 
             // Add unmatched database entries as deleted (header-only)
             dbInvoices.forEachIndexed { index, invoice ->
                 if (!matchedDbIndices.contains(index)) {
-                    addEntry(ImportPairEntry(null, createImportDTO(invoice)))
+                    addEntry(createPairEntryWithErrors(null, createImportDTO(invoice)))
                 }
             }
         }
@@ -456,10 +464,10 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
 
                     if (importPos != null) {
                         // Import position exists
-                        addEntry(ImportPairEntry(importPos, dbDto))
+                        addEntry(createPairEntryWithErrors(importPos, dbDto))
                     } else if (dbDto != null) {
                         // Only DB position exists (import has fewer positions)
-                        addEntry(ImportPairEntry(null, dbDto))
+                        addEntry(createPairEntryWithErrors(null, dbDto))
                     }
                 }
             } else {
@@ -474,7 +482,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
                 if (consolidated != null) {
                     log.debug { "  New: Import invoice '${header.referenz}' (${consolidated.positions.size} positions) → NEW" }
                     consolidated.positions.forEach { position ->
-                        addEntry(ImportPairEntry(position, null))
+                        addEntry(createPairEntryWithErrors(position, null))
                     }
                 }
             }
@@ -484,7 +492,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         dbInvoices.forEachIndexed { index, invoice ->
             if (!matchedDbIndices.contains(index)) {
                 log.debug { "  Deleted: DB invoice '${invoice.referenz}' → DELETED" }
-                addEntry(ImportPairEntry(null, createImportDTO(invoice)))
+                addEntry(createPairEntryWithErrors(null, createImportDTO(invoice)))
             }
         }
 
@@ -937,5 +945,20 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         })
 
         log.debug { "Sorting completed" }
+    }
+
+    /**
+     * Creates an ImportPairEntry and transfers errors from DTO to PairEntry.
+     * This ensures errors survive the reconcile process (which recreates PairEntries).
+     */
+    private fun createPairEntryWithErrors(
+        read: EingangsrechnungPosImportDTO?,
+        stored: EingangsrechnungPosImportDTO?
+    ): ImportPairEntry<EingangsrechnungPosImportDTO> {
+        val pairEntry = ImportPairEntry(read, stored)
+        read?.getErrors()?.forEach { error ->
+            pairEntry.addError(error)
+        }
+        return pairEntry
     }
 }

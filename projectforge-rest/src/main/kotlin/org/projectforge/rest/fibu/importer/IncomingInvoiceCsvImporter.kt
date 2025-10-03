@@ -562,15 +562,16 @@ class IncomingInvoiceCsvImporter(
         }
     }
 
+    /**
+     * Adds an error to the entity (DTO).
+     * Errors are stored in the DTO to survive the reconcile process.
+     */
     private fun addError(
         entity: EingangsrechnungPosImportDTO,
         errorMsg: String,
         importStorage: ImportStorage<EingangsrechnungPosImportDTO>
     ) {
-        if (importStorage is EingangsrechnungImportStorage) {
-            val pairEntry = importStorage.pairEntries.find { it.read == entity }
-            pairEntry?.addError(errorMsg)
-        }
+        entity.addError(errorMsg)
     }
 
     companion object {

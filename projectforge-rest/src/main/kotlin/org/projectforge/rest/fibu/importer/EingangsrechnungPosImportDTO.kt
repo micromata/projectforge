@@ -109,6 +109,24 @@ class EingangsrechnungPosImportDTO(
     var isPositionBasedImport: Boolean = true,
 ) : BaseDTO<EingangsrechnungDO>(), ImportPairEntry.Modified<EingangsrechnungPosImportDTO> {
 
+    /**
+     * Import errors that occurred during parsing.
+     * Stored in DTO to survive the reconcile process (which recreates PairEntries).
+     */
+    private val errors = mutableListOf<String>()
+
+    /**
+     * Adds an error message to this import entity.
+     */
+    fun addError(errorMessage: String) {
+        errors.add(errorMessage)
+    }
+
+    /**
+     * Gets all error messages as a list.
+     */
+    fun getErrors(): List<String> = errors.toList()
+
     override val properties: Array<KProperty<*>>
         get() = arrayOf(
             EingangsrechnungDO::kreditor,
