@@ -114,14 +114,17 @@ class ImportPairEntry<O : ImportPairEntry.Modified<O>>(
 
     private val checkStatus: Status
         get() {
-            // If not yet reconciled, status is always UNKNOWN
+            // Check for errors first - errors take priority over reconcile status
+            if (!error.isNullOrBlank()) {
+                return Status.FAULTY
+            }
+
+            // If not yet reconciled, status is UNKNOWN
             if (!reconciled) {
                 return Status.UNKNOWN
             }
 
-            return if (!error.isNullOrBlank()) {
-                Status.FAULTY
-            } else if (read == null) {
+            return if (read == null) {
                 if (stored == null) {
                     Status.UNKNOWN
                 } else {
