@@ -50,7 +50,7 @@ import kotlin.io.path.Path
 private val log = KotlinLogging.logger {}
 
 /**
- * Tries to get all used i18n keys from the sources (java and html). As result a file is written which will be checked
+ * Tries to get all used i18n keys from the sources (java, kotlin, html, tsx, jsx, js). As result a file is written which will be checked
  * by AdminAction.checkI18nProperties. Unused i18n keys should be detected.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -105,6 +105,7 @@ internal class I18nKeysSourceAnalyzer {
             parseKotlin(path)
             parseWicketHtml(path)
             parseHtmlMailTemplates(path)
+            parseReact(path)
         }
         getI18nEnums()
         getPropertyInfos()
@@ -313,6 +314,34 @@ internal class I18nKeysSourceAnalyzer {
             find(file, content, "translate\\(\"([a-zA-Z0-9\\.]+)\"\\)") // translate("i18nKey")
             //find(file, content, "translateMsg\\(\"([a-zA-Z0-9\\.]+,") // translateMst("i18nKey",...)
             //find(file, content, "addTranslations\\(\"([a-zA-Z0-9\\.]+)\"\\)") // addError("i18nkey")
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun parseReact(path: File) {
+        // Parse TypeScript React files (*.tsx)
+        val tsxFiles = SourcesUtils.listFiles(path, "tsx")
+        for (file in tsxFiles) {
+            val content = getContent(file)
+            parseStringConstants(content, file)
+            find(file, content, "translations\\[['\"]([a-zA-Z0-9\\.]+)['\"]\\]") // translations['i18nKey'] or translations["i18nKey"]
+            find(file, content, "ui\\.translations\\[['\"]([a-zA-Z0-9\\.]+)['\"]\\]") // ui.translations['i18nKey'] or ui.translations["i18nKey"]
+        }
+        // Parse JSX files (*.jsx)
+        val jsxFiles = SourcesUtils.listFiles(path, "jsx")
+        for (file in jsxFiles) {
+            val content = getContent(file)
+            parseStringConstants(content, file)
+            find(file, content, "translations\\[['\"]([a-zA-Z0-9\\.]+)['\"]\\]") // translations['i18nKey'] or translations["i18nKey"]
+            find(file, content, "ui\\.translations\\[['\"]([a-zA-Z0-9\\.]+)['\"]\\]") // ui.translations['i18nKey'] or ui.translations["i18nKey"]
+        }
+        // Parse JavaScript files (*.js)
+        val jsFiles = SourcesUtils.listFiles(path, "js")
+        for (file in jsFiles) {
+            val content = getContent(file)
+            parseStringConstants(content, file)
+            find(file, content, "translations\\[['\"]([a-zA-Z0-9\\.]+)['\"]\\]") // translations['i18nKey'] or translations["i18nKey"]
+            find(file, content, "ui\\.translations\\[['\"]([a-zA-Z0-9\\.]+)['\"]\\]") // ui.translations['i18nKey'] or ui.translations["i18nKey"]
         }
     }
 
