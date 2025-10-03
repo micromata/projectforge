@@ -11,7 +11,7 @@ function CustomizedJobsMonitor(props) {
     } = useContext(DynamicLayoutContext);
 
     const {
-        jobId, all, fetchUpdateInterval, cancelConfirmMessage,
+        jobId, all, fetchUpdateInterval, cancelConfirmMessage, caller,
     } = values;
 
     const interval = useRef();
@@ -19,6 +19,7 @@ function CustomizedJobsMonitor(props) {
     const jobIdRef = useRef(jobId);
     const allRef = useRef(all);
     const cancelConfirmMessageRef = useRef(cancelConfirmMessage);
+    const callerRef = useRef(caller);
 
     const jobs = Object.getByString(variables, 'jobs');
 
@@ -27,12 +28,13 @@ function CustomizedJobsMonitor(props) {
         allRef.current = all;
         fetchUpdateIntervalRef.current = fetchUpdateInterval;
         cancelConfirmMessageRef.current = cancelConfirmMessage;
-    }, [jobId, all, fetchUpdateInterval, cancelConfirmMessage]);
+        callerRef.current = caller;
+    }, [jobId, all, fetchUpdateInterval, cancelConfirmMessage, caller]);
 
     const fetchJobsList = () => {
         fetchJsonGet(
             'jobsMonitor/jobs',
-            { jobId: jobIdRef.current, all: allRef.current },
+            { jobId: jobIdRef.current, all: allRef.current, caller: callerRef.current },
             (json) => callAction({ responseAction: json }),
         );
     };

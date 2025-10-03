@@ -260,12 +260,14 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
             // TODO: merge UPDATE
             return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
         }
+        // Use current import page as caller for redirect after successful job completion
+        val caller = PagesResolver.getDynamicPageUrl(this::class.java, absolute = true)
         return ResponseEntity.ok(
             ResponseAction(
                 url = PagesResolver.getDynamicPageUrl(
                     JobsMonitorPageRest::class.java,
                     absolute = true,
-                    params = mapOf("jobId" to jobId),
+                    params = mapOf("jobId" to jobId, "caller" to caller),
                 ),
                 targetType = TargetType.REDIRECT,
             )
