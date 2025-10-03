@@ -70,13 +70,16 @@ const formatterFormat = (
             }
             return false;
         case 'DATE':
+            if (!value) return '';
             return moment(value).format(dateFormat);
         case 'TASK':
         case 'TASK_PATH':
             return value.title || value || '???';
         case 'TIMESTAMP':
+            if (!value) return '';
             return moment(value).format(timestampFormatSeconds);
         case 'TIMESTAMP_MINUTES':
+            if (!value) return '';
             return moment(value).format(timestampFormatMinutes);
         case 'USER':
             return value.displayName || value.fullname || value.username || value || '???';
