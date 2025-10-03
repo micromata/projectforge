@@ -81,7 +81,7 @@ class EingangsrechnungImportJob(
     /**
      * Positions-based import: Groups entries by invoice and creates positions for each invoice.
      */
-    private suspend fun runPositionBasedImport() {
+    private fun runPositionBasedImport() {
         // Group entries by invoice (same stored.id for updates, same referenz+datum+kreditor for new invoices)
         val invoiceGroups = groupEntriesByInvoice()
 
@@ -313,7 +313,7 @@ class EingangsrechnungImportJob(
      * Header-only import: Processes each entry independently without positions.
      * New invoices (without stored.id) are skipped as they must be created via position-based import.
      */
-    private suspend fun runHeaderOnlyImport() {
+    private fun runHeaderOnlyImport() {
         for (entry in selectedEntries) {
             if (!isActive) {
                 return

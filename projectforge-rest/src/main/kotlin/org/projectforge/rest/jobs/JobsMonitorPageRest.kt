@@ -25,6 +25,7 @@ package org.projectforge.rest.jobs
 
 import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.jobs.AbstractJob
 import org.projectforge.framework.jobs.JobHandler
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -53,11 +54,15 @@ class JobsMonitorPageRest : AbstractDynamicPageRest() {
     request: HttpServletRequest,
     @RequestParam("jobId") jobId: Int?,
     @RequestParam("all") all: Boolean?,
+    @RequestParam("caller") caller: String?,
   ): FormLayoutData {
     val layout = UILayout("jobs.monitor.title")
     val jobMonitor = UICustomized("jobs.monitor")
     if (jobId != null) {
       jobMonitor.add("jobId", jobId)
+    }
+    if (caller != null) {
+      jobMonitor.add("caller", caller)
     }
     jobMonitor.add("cancelConfirmMessage", translate("jobs.job.cancel.confirmationMessage"));
     layout.add(jobMonitor)
@@ -69,9 +74,34 @@ class JobsMonitorPageRest : AbstractDynamicPageRest() {
   /**
    * @param jobId Job id of [JobHandler] to get.
    * @param all If true, all jobs of the user will be returned.
+   * @param caller Optional caller URL for redirect after successful completion.
    */
   @GetMapping("jobs")
-  fun getJobs(@RequestParam("jobId") jobId: Int?, @RequestParam("all") all: Boolean?): ResponseAction {
+  fun getJobs(
+    @RequestParam("jobId") jobId: Int?,
+    @RequestParam("all") all: Boolean?,
+    @RequestParam("caller") caller: String?
+  ): ResponseAction {
+    val jobs = jobHandler.getJobsOfUser(jobId, all != false)
+
+    // Check if all jobs are finished (not running or waiting)
+    val allJobsFinished = jobs.isNotEmpty() && jobs.all { job ->
+      job.status != AbstractJob.Status.RUNNING && job.status != AbstractJob.Status.WAITING
+    }
+
+    // Check if all jobs were successful (status FINISHED)
+    val allJobsSuccessful = jobs.isNotEmpty() && jobs.all { job ->
+      job.status == AbstractJob.Status.FINISHED
+    }
+
+    // Redirect to caller page if all jobs are successfully finished and caller is provided
+    if (allJobsFinished && allJobsSuccessful && caller != null) {
+      return ResponseAction(
+        url = caller,
+        targetType = TargetType.REDIRECT,
+      )
+    }
+
     return ResponseAction(
       targetType = TargetType.UPDATE,
       merge = true,
