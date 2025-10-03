@@ -24,8 +24,10 @@
 package org.projectforge.framework.utils
 
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import org.projectforge.business.test.TestSetup.init
 import java.io.File
 
 class FileCheckTest {
@@ -33,11 +35,11 @@ class FileCheckTest {
     fun testCheckFile() {
         Assertions.assertNull(FileCheck.checkFile(mockFile(1024, "test.txt"), "txt", kiloBytes = 1))
         Assertions.assertEquals(
-            "file.upload.error.maxSizeOfExceeded",
+            "File upload rejected: maximum size of 1KB exceeded.",
             FileCheck.checkFile(mockFile(1025, "test.txt"), "txt", kiloBytes = 1)
         )
         Assertions.assertEquals(
-            "file.upload.error.unsupportedFormat",
+            "The file format is not supported. Supported file formats: txt",
             FileCheck.checkFile(mockFile(1024, "test.xls"), "txt", kiloBytes = 1)
         )
     }
@@ -47,5 +49,16 @@ class FileCheckTest {
         Mockito.`when`(file.length()).thenReturn(size)
         Mockito.`when`(file.absolutePath).thenReturn("/mock/path/$name")
         return file
+    }
+
+    companion object {
+        @BeforeAll
+        @JvmStatic
+        fun setUp() {
+            // Needed if this test runs before the ConfigurationTest.
+            val user = init()
+            // Override the default German locale set by init() to English for consistent test expectations
+            user.locale = java.util.Locale.ENGLISH
+        }
     }
 }
