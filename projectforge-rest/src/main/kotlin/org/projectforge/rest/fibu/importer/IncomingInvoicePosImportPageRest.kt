@@ -148,14 +148,12 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
         // Bezahlt am
         addReadColumn(agGrid, lc, EingangsrechnungDO::bezahlDatum)
 
-        if (!isPositionBasedImport) {
-            // Zahlbetrag
-            addDiffColumn(
-                agGrid, lc, "read.zahlBetrag",
-                headerName = "fibu.rechnung.zahlBetrag",
-                formatter = Formatter.CURRENCY_PLAIN
-            )
-        }
+        // Zahlbetrag
+        addDiffColumn(
+            agGrid, lc, "read.zahlBetrag",
+            headerName = "fibu.rechnung.zahlBetrag",
+            formatter = Formatter.CURRENCY_PLAIN
+        )
 
         // TAX rate
         addDiffColumn(
@@ -176,10 +174,18 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
         addReadColumn(agGrid, lc, EingangsrechnungDO::discountMaturity)
 
         if (!isPositionBasedImport) {
-            // Noti
+            // Comment
             addDiffColumn(
                 agGrid, lc, "read.bemerkung",
                 headerName = "comment",
+            )
+            addDiffColumn(
+                agGrid, lc, "read.iban",
+                headerName = "fibu.rechnung.iban",
+            )
+            addDiffColumn(
+                agGrid, lc, "read.bic",
+                headerName = "fibu.rechnung.bic",
             )
         }
     }

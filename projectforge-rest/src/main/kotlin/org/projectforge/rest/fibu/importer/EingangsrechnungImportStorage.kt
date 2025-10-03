@@ -28,7 +28,6 @@ import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.RechnungCalculator
-import org.projectforge.common.StringMatchUtils
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.rest.dto.Konto
 import org.projectforge.rest.dto.Kost1
@@ -812,6 +811,19 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
                 // Preserve zahlBetrag if not in import
                 if (read.zahlBetrag == null && stored.zahlBetrag != null) {
                     read.zahlBetrag = stored.zahlBetrag
+                }
+
+                // Preserve bemerkung if not in import (e.g., position-based imports don't include this field)
+                if (read.bemerkung == null && stored.bemerkung != null) {
+                    read.bemerkung = stored.bemerkung
+                }
+
+                if (read.iban == null && stored.iban != null) {
+                    read.iban = stored.iban
+                }
+
+                if (read.bic == null && stored.bic != null) {
+                    read.bic = stored.bic
                 }
             }
 

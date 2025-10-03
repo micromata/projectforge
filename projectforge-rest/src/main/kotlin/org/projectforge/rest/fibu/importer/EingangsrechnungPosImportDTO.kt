@@ -149,10 +149,10 @@ class EingangsrechnungPosImportDTO(
     override fun copyTo(obj: EingangsrechnungDO) {
         if (this.id != null) obj.id = this.id
         obj.kreditor = this.kreditor
-        this.konto?.id?.let { kontoId ->
+        obj.konto = this.konto?.id?.let { kontoId ->
             val kontoDO = org.projectforge.business.fibu.KontoDO()
             kontoDO.id = kontoId
-            obj.konto = kontoDO
+            kontoDO
         }
         obj.referenz = this.referenz
         obj.betreff = this.betreff
@@ -178,12 +178,12 @@ class EingangsrechnungPosImportDTO(
             // (grossSum is converted to netSum with potential rounding differences)
             buildOldDiffValue(map, "netSum", this.netSum, old.netSum)
             buildOldDiffValue(map, "taxRate", this.taxRate, old.taxRate)
+            buildOldDiffValue(map, "kost1.description", this.kost1?.description, old.kost1?.description)
+            buildOldDiffValue(map, "kost2.description", this.kost2?.description, old.kost2?.description)
+            buildOldDiffValue(map, "positionNummer", this.positionNummer, old.positionNummer)
         }
         buildOldDiffValue(map, "currency", this.currency, old.currency)
         buildOldDiffValue(map, "konto.nummer", this.konto?.nummer, old.konto?.nummer)
-        buildOldDiffValue(map, "kost1.description", this.kost1?.description, old.kost1?.description)
-        buildOldDiffValue(map, "kost2.description", this.kost2?.description, old.kost2?.description)
-        buildOldDiffValue(map, "positionNummer", this.positionNummer, old.positionNummer)
     }
 
     /**
