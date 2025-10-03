@@ -204,7 +204,7 @@ class UIAttachmentList(
       "file.upload.deleteSelected.confirm",
       "file.upload.downloadSelected",
       "file.upload.error.fileAlreadyExists",
-      "file.upload.error.toManyFiles",
+      "file.upload.error.tooManyFiles",
       "modified",
       "modifiedBy",
       "multiselection.aggrid.selection.info.message",
