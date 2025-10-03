@@ -803,14 +803,24 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             val stored = pairEntry.stored
 
             if (read != null && stored != null) {
-                // Preserve bezahlDatum if not in import
-                if (read.bezahlDatum == null && stored.bezahlDatum != null) {
-                    read.bezahlDatum = stored.bezahlDatum
-                }
-
-                // Preserve zahlBetrag if not in import
-                if (read.zahlBetrag == null && stored.zahlBetrag != null) {
-                    read.zahlBetrag = stored.zahlBetrag
+                // For position-based imports: Always preserve bezahlDatum and zahlBetrag from DB (header fields)
+                // For header-only imports: Only preserve if not in import
+                if (read.isPositionBasedImport) {
+                    // Always use stored values for position-based imports
+                    if (stored.bezahlDatum != null) {
+                        read.bezahlDatum = stored.bezahlDatum
+                    }
+                    if (stored.zahlBetrag != null) {
+                        read.zahlBetrag = stored.zahlBetrag
+                    }
+                } else {
+                    // Header-only: preserve only if not in import
+                    if (read.bezahlDatum == null && stored.bezahlDatum != null) {
+                        read.bezahlDatum = stored.bezahlDatum
+                    }
+                    if (read.zahlBetrag == null && stored.zahlBetrag != null) {
+                        read.zahlBetrag = stored.zahlBetrag
+                    }
                 }
 
                 // Preserve bemerkung if not in import (e.g., position-based imports don't include this field)
@@ -828,7 +838,8 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             }
 
             // Calculate zahlBetrag if bezahlDatum is set but zahlBetrag is missing
-            if (read != null && read.bezahlDatum != null && read.zahlBetrag == null) {
+            // (only for header-only imports; position-based imports already calculated above)
+            if (!isPositionBasedImport && read != null && read.bezahlDatum != null && read.zahlBetrag == null) {
                 read.zahlBetrag = calculateZahlBetrag(read)
             }
         }

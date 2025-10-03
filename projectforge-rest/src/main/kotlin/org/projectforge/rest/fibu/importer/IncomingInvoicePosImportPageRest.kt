@@ -35,7 +35,6 @@ import org.projectforge.rest.importer.ImportPairEntry
 import org.projectforge.rest.importer.ImportStorage
 import org.projectforge.ui.LayoutContext
 import org.projectforge.ui.UIAgGrid
-import org.projectforge.ui.UIAgGridColumnDef
 import org.projectforge.ui.UIAgGridColumnDef.Formatter
 import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
