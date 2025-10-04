@@ -204,7 +204,7 @@ class CurrencyPairPagesRest :
     }
 
     private fun createModalUrl(dto: CurrencyPair, isNew: Boolean = false): String {
-        val id = if (isNew) -1 else ":\${row.id}"
+        val id = if (isNew) "-1" else "{id}"
         return PagesResolver.getDynamicPageUrl(
             CurrencyConversionRatePageRest::class.java,
             id = id,
