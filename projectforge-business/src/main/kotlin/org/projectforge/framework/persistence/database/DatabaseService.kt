@@ -142,6 +142,7 @@ class DatabaseService {
             adminUser.addRight(UserRightDO(UserRightId.HR_EMPLOYEE, UserRightValue.READWRITE))
             adminUser.addRight(UserRightDO(UserRightId.HR_EMPLOYEE_SALARY, UserRightValue.READWRITE))
             adminUser.addRight(UserRightDO(UserRightId.FIBU_ACCOUNTS, UserRightValue.READWRITE))
+            adminUser.addRight(UserRightDO(UserRightId.FIBU_CURRENCY_CONVERSION, UserRightValue.READWRITE))
             adminUser.addRight(UserRightDO(UserRightId.ORGA_CONTRACTS, UserRightValue.READWRITE))
             adminUser.addRight(UserRightDO(UserRightId.ORGA_INCOMING_MAIL, UserRightValue.READWRITE))
             adminUser.addRight(UserRightDO(UserRightId.ORGA_OUTGOING_MAIL, UserRightValue.READWRITE))
