@@ -97,13 +97,18 @@ open class CurrencyConversionCache : AbstractCache(), BaseDOModifiedListener<Cur
      * Gets the conversion rate for a currency pair at a specific date.
      * @param currencyPairId The currency pair id.
      * @param validAtDate The date for which to get the rate. Defaults to today.
+     * @param useFallbackToOldestRate If true and no rate exists for validAtDate, use the oldest available rate as fallback.
      * @return The conversion rate or null if no rate is valid for the given date.
      */
-    fun getConversionRate(currencyPairId: Long?, validAtDate: LocalDate = LocalDate.now()): BigDecimal? {
+    fun getConversionRate(
+        currencyPairId: Long?,
+        validAtDate: LocalDate = LocalDate.now(),
+        useFallbackToOldestRate: Boolean = false
+    ): BigDecimal? {
         currencyPairId ?: return null
         checkRefresh()
         val currencyPair = currencyPairMap[currencyPairId] ?: return null
-        return findActiveRate(currencyPair, validAtDate)?.conversionRate
+        return findActiveRate(currencyPair, validAtDate, useFallbackToOldestRate)?.conversionRate
     }
 
     /**
@@ -122,13 +127,32 @@ open class CurrencyConversionCache : AbstractCache(), BaseDOModifiedListener<Cur
      * The active rate is the one with the latest validFrom date that is not after the given date.
      * @param currencyPair The currency pair (must contain loaded rates).
      * @param validAtDate The date for which to find the active rate.
+     * @param useFallbackToOldestRate If true and no rate exists for validAtDate, use the oldest available rate as fallback.
      * @return The active rate or null if no rate is valid for the given date.
      */
-    private fun findActiveRate(currencyPair: CurrencyPairDO, validAtDate: LocalDate): CurrencyConversionRateDO? {
+    private fun findActiveRate(
+        currencyPair: CurrencyPairDO,
+        validAtDate: LocalDate,
+        useFallbackToOldestRate: Boolean = false
+    ): CurrencyConversionRateDO? {
         // Rates are sorted by validFrom DESC, so we find the first one where validFrom <= validAtDate
-        return currencyPair.rates?.firstOrNull { rate ->
+        val rate = currencyPair.rates?.firstOrNull { rate ->
             rate.validFrom != null && !rate.validFrom!!.isAfter(validAtDate)
         }
+
+        // If no rate found and fallback is enabled, use the oldest rate (last in DESC sorted list)
+        if (rate == null && useFallbackToOldestRate) {
+            val oldestRate = currencyPair.rates?.lastOrNull()
+            if (oldestRate != null) {
+                log.warn {
+                    "No rate found for ${currencyPair.sourceCurrency}→${currencyPair.targetCurrency} " +
+                            "at date $validAtDate. Using oldest rate from ${oldestRate.validFrom} as fallback."
+                }
+            }
+            return oldestRate
+        }
+
+        return rate
     }
 
     /**

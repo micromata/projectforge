@@ -151,6 +151,8 @@ class CurrencyConversionService {
      * @param validAtDate The date for which to get the rate. Defaults to today.
      * @param scale The number of decimal places in the result. Defaults to 2.
      * @param roundingMode The rounding mode. Defaults to HALF_UP.
+     * @param useFallbackToOldestRate If true and no rate exists for validAtDate, use the oldest available rate as fallback.
+     *        CAUTION: Using this in financial accounting may violate compliance rules. Use only when approximate conversions are acceptable.
      * @param checkAccess If true, the logged-in user must have access to the currency pair.
      * @return The converted amount or null if no rate is available.
      */
@@ -161,6 +163,7 @@ class CurrencyConversionService {
         validAtDate: LocalDate = LocalDate.now(),
         scale: Int = 2,
         roundingMode: RoundingMode = RoundingMode.HALF_UP,
+        useFallbackToOldestRate: Boolean = false,
     ): BigDecimal? {
         amount ?: return null
         if (targetCurrency.isNullOrBlank()) {
@@ -181,7 +184,7 @@ class CurrencyConversionService {
         val currencyPair = cache.findCurrencyPair(effectiveSourceCurrency, targetCurrency) ?: return null
 
         // Get conversion rate from cache
-        val rate = cache.getConversionRate(currencyPair.id, validAtDate) ?: return null
+        val rate = cache.getConversionRate(currencyPair.id, validAtDate, useFallbackToOldestRate) ?: return null
 
         return amount.multiply(rate).setScale(scale, roundingMode)
     }
