@@ -175,8 +175,8 @@ class EingangsrechnungPosImportDTO(
         obj.referenz = this.referenz
         obj.betreff = this.betreff
         obj.datum = this.datum
-        obj.faelligkeit = this.faelligkeit
         // Nur überschreiben, wenn im Import gesetzt (verhindert Löschen beim Positions-Import)
+        this.faelligkeit?.let { obj.faelligkeit = it }
         this.bezahlDatum?.let { obj.bezahlDatum = it }
         this.zahlBetrag?.let { obj.zahlBetrag = it }
         obj.currency = this.currency

@@ -197,13 +197,35 @@ public class EingangsrechnungListPage
         columns.add(new CurrencyPropertyColumn<EingangsrechnungDO>(
                 getString("fibu.common.netto"),
                 getSortable("info.netSum", sortable), "info.netSum",
-                cellItemListener));
+                cellItemListener).setShowCurrencySymbol(false));
         columns.add(new CurrencyPropertyColumn<EingangsrechnungDO>(
 
                 getString("fibu.common.brutto"),
 
                 getSortable("info.grossSum", sortable),
-                "info.grossSum", cellItemListener));
+                "info.grossSum", cellItemListener).setShowCurrencySymbol(false));
+        columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(
+                getString("fibu.rechnung.currency"),
+                getSortable("currency", sortable),
+                "currency", cellItemListener) {
+            @Override
+            public void populateItem(final Item<ICellPopulator<EingangsrechnungDO>> item, final String componentId, final IModel<EingangsrechnungDO> rowModel) {
+                final EingangsrechnungDO eingangsrechnung = rowModel.getObject();
+                String currency = eingangsrechnung.getCurrency();
+                if (currency == null || currency.trim().isEmpty()) {
+                    // Fallback to ConfigurationService currency or EUR
+                    currency = org.projectforge.business.configuration.ConfigurationServiceAccessor.get().getCurrency();
+                    if (currency == null || currency.trim().isEmpty()) {
+                        currency = "EUR";
+                    }
+                }
+                final Label label = new org.projectforge.web.wicket.components.PlainLabel(componentId, currency);
+                item.add(label);
+                if (cellItemListener != null) {
+                    cellItemListener.populateItem(item, componentId, rowModel);
+                }
+            }
+        });
         columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(new Model<String>(
 
                 getString("comment")),
@@ -252,11 +274,15 @@ public class EingangsrechnungListPage
                         MyXlsContentProvider.LENGTH_STD);
                 sortedColumns.add(2, col);
                 col = new I18nExportColumn("netSum", "fibu.common.netto");
-                putCurrencyFormat(sheetProvider, col);
+                sheetProvider.putFormat(col, "#,##0.00;[Red]-#,##0.00");
+                col.setWidth(12);
                 sortedColumns.add(7, col);
                 col = new I18nExportColumn("grossSum", "fibu.common.brutto");
-                putCurrencyFormat(sheetProvider, col);
+                sheetProvider.putFormat(col, "#,##0.00;[Red]-#,##0.00");
+                col.setWidth(12);
                 sortedColumns.add(8, col);
+                col = new I18nExportColumn("currency", "fibu.rechnung.currency", MyXlsContentProvider.LENGTH_STD);
+                sortedColumns.add(9, col);
                 return sortedColumns;
             }
 
@@ -287,6 +313,15 @@ public class EingangsrechnungListPage
                 mapping.add("kontoBezeichnung", kontoBezeichnung != null ? kontoBezeichnung : "");
                 mapping.add("grossSum", invoice.getInfo().getGrossSum());
                 mapping.add("netSum", invoice.getInfo().getNetSum());
+                String currency = invoice.getCurrency();
+                if (currency == null || currency.trim().isEmpty()) {
+                    // Fallback to ConfigurationService currency or EUR
+                    currency = org.projectforge.business.configuration.ConfigurationServiceAccessor.get().getCurrency();
+                    if (currency == null || currency.trim().isEmpty()) {
+                        currency = "EUR";
+                    }
+                }
+                mapping.add("currency", currency);
             }
         };
     }

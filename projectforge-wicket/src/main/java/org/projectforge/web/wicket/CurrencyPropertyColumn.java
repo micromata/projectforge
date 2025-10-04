@@ -44,6 +44,8 @@ public class CurrencyPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
 
   private boolean displayRedNegativeValues = true;
 
+  private boolean showCurrencySymbol = true;
+
   public CurrencyPropertyColumn(final Class< ? > clazz, final String sortProperty, final String propertyExpression,
       final CellItemListener<T> cellItemListener)
   {
@@ -69,7 +71,19 @@ public class CurrencyPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
     if (this.suppressZeroValues == true && value != null && value.compareTo(BigDecimal.ZERO) == 0) {
       label = new PlainLabel(componentId, "");
     } else {
-      label = new PlainLabel(componentId, CurrencyFormatter.format(value));
+      final String formattedValue;
+      if (showCurrencySymbol) {
+        formattedValue = CurrencyFormatter.format(value);
+      } else {
+        // Format number without currency symbol
+        if (value == null) {
+          formattedValue = "";
+        } else {
+          formattedValue = org.projectforge.framework.utils.NumberHelper.getCurrencyFormat(
+              org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getLocale()).format(value);
+        }
+      }
+      label = new PlainLabel(componentId, formattedValue);
     }
     item.add(label);
     if (cellItemListener != null) {
@@ -96,6 +110,16 @@ public class CurrencyPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
   public CurrencyPropertyColumn<T> setDisplayRedNegativeValues(final boolean displayRedNegativeValues)
   {
     this.displayRedNegativeValues = displayRedNegativeValues;
+    return this;
+  }
+
+  /**
+   * @param showCurrencySymbol If false, only the number will be displayed without currency symbol
+   * @return this for chaining.
+   */
+  public CurrencyPropertyColumn<T> setShowCurrencySymbol(final boolean showCurrencySymbol)
+  {
+    this.showCurrencySymbol = showCurrencySymbol;
     return this;
   }
 }
