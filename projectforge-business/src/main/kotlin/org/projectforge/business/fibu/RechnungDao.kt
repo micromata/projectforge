@@ -66,6 +66,12 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     @Autowired
     private lateinit var rechnungCache: RechnungCache
 
+    @Autowired
+    private lateinit var currencyConversionService: CurrencyConversionService
+
+    @Autowired
+    private lateinit var configurationService: org.projectforge.business.configuration.ConfigurationService
+
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
 
@@ -93,6 +99,9 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         if (list == null) {
             return stats
         }
+        // Initialize companion object services for currency conversion
+        AbstractRechnungsStatistik.currencyConversionService = currencyConversionService
+        AbstractRechnungsStatistik.configurationService = configurationService
         for (rechnung in list) {
             stats.add(rechnung)
         }

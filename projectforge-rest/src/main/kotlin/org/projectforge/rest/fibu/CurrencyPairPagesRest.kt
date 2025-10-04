@@ -127,6 +127,11 @@ class CurrencyPairPagesRest :
             )
             .add(
                 "currentRate", headerName = "fibu.currencyConversion.currentRate",
+                formatter = UIAgGridColumnDef.Formatter.NUMBER, width = 200,
+            )
+            .add(
+                "currentInverseRate", headerName = "fibu.currencyConversion.currentInverseRate",
+                formatter = UIAgGridColumnDef.Formatter.NUMBER, width = 200,
             )
             .add(lc, "comment")
     }

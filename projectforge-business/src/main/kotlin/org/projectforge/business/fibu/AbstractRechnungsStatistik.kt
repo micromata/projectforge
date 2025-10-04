@@ -78,16 +78,24 @@ abstract class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializabl
             log.warn { "RechnungInfo not found for rechnungId=${rechnung?.id}." }
             return
         }
-        val netto = rechnungInfo.netSum // Das dauert
-        val brutto = rechnungInfo.grossSum
-        val bruttoMitSkonto = rechnungInfo.grossSumWithDiscount
-        val gezahlt = rechnungInfo.zahlBetrag
+
+        // Get system default currency
+        val systemCurrency = configurationService.currency ?: "EUR"
+        val rechnungCurrency = rechnung.currency ?: systemCurrency
+        val validAtDate = rechnung.datum // Use invoice date for conversion
+
+        // Convert amounts to system currency if needed
+        val netto = convertToSystemCurrency(rechnungInfo.netSum, rechnungCurrency, systemCurrency, validAtDate) // Das dauert
+        val brutto = convertToSystemCurrency(rechnungInfo.grossSum, rechnungCurrency, systemCurrency, validAtDate)
+        val bruttoMitSkonto = convertToSystemCurrency(rechnungInfo.grossSumWithDiscount, rechnungCurrency, systemCurrency, validAtDate)
+        val gezahlt = convertToSystemCurrency(rechnungInfo.zahlBetrag, rechnungCurrency, systemCurrency, validAtDate)
+
         this.netto = add(this.netto, netto)
         this.brutto = add(this.brutto, brutto)
         this.bruttoMitSkonto = add(this.bruttoMitSkonto, bruttoMitSkonto)
         if (gezahlt != null) {
             this.gezahlt = add(this.gezahlt, gezahlt)
-            if (gezahlt.compareTo(brutto) < 0) {
+            if (gezahlt.compareTo(brutto!!) < 0) {
                 skonto = add(skonto, brutto.subtract(gezahlt))
             }
         } else {
@@ -99,12 +107,52 @@ abstract class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializabl
         val datum = fromOrNow(rechnung.datum)
         val faelligDatum = fromOrNow(rechnung.faelligkeit)
         zahlungsZielSum += datum.daysBetween(faelligDatum)
-        if (rechnung.bezahlDatum != null) {
+        if (rechnung.bezahlDatum != null && brutto != null) {
             val bezahlDatum = fromOrNow(rechnung.bezahlDatum)
             tatsaechlichesZahlungsZiel.add(datum.daysBetween(bezahlDatum).toInt(), brutto.toInt())
             counterBezahlt++
         }
         counter++
+    }
+
+    /**
+     * Converts an amount to system currency if the source currency differs.
+     * Returns the original amount if currencies are the same or conversion fails.
+     *
+     * @param amount Amount to convert
+     * @param fromCurrency Source currency (e.g. "USD")
+     * @param toCurrency Target currency (e.g. "EUR")
+     * @param validAtDate Date for exchange rate lookup
+     * @return Converted amount, or original amount if conversion not possible
+     */
+    private fun convertToSystemCurrency(
+        amount: BigDecimal?,
+        fromCurrency: String,
+        toCurrency: String,
+        validAtDate: java.time.LocalDate?
+    ): BigDecimal? {
+        amount ?: return null
+
+        // No conversion needed if currencies are the same
+        if (fromCurrency.uppercase() == toCurrency.uppercase()) {
+            return amount
+        }
+
+        // Attempt conversion
+        val converted = currencyConversionService.convert(
+            amount = amount,
+            sourceCurrency = fromCurrency,
+            targetCurrency = toCurrency,
+            validAtDate = validAtDate ?: java.time.LocalDate.now(),
+            useFallbackToOldestRate = true // Use fallback for historical invoices
+        )
+
+        if (converted == null) {
+            log.warn { "Could not convert $amount $fromCurrency to $toCurrency for date $validAtDate. Using original amount." }
+            return amount
+        }
+
+        return converted
     }
 
     val zahlungszielAverage: Int
@@ -137,6 +185,10 @@ abstract class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializabl
     companion object {
         private const val serialVersionUID = 3695426728243488756L
         lateinit var rechnungCache: RechnungCache
+            internal set
+        lateinit var currencyConversionService: CurrencyConversionService
+            internal set
+        lateinit var configurationService: org.projectforge.business.configuration.ConfigurationService
             internal set
     }
 }
