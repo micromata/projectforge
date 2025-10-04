@@ -45,6 +45,12 @@ class CurrencyPair(
      */
     var currentRate: BigDecimal? = null
 
+    /**
+     * Read-only field containing the current (today's) inverse conversion rate.
+     * Used in list view for quick reference.
+     */
+    var currentInverseRate: BigDecimal? = null
+
     companion object {
         /**
          * Converts a collection of CurrencyPairDO to a list of CurrencyPair DTOs.

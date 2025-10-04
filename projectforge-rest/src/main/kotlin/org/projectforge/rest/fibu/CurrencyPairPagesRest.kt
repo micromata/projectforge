@@ -60,6 +60,13 @@ class CurrencyPairPagesRest :
         if (obj.id != null) {
             currencyPair.currentRate =
                 currencyConversionService.getConversionRate(obj, LocalDate.now(), checkAccess = false)
+            currencyPair.currentInverseRate =
+                currencyConversionService.getConversionRate(
+                    obj,
+                    LocalDate.now(),
+                    inverseRate = true,
+                    checkAccess = false,
+                )
         }
         return currencyPair
     }
@@ -158,9 +165,9 @@ class CurrencyPairPagesRest :
                                 UIFieldset(title = "fibu.currencyConversion.rates")
                                     .add(
                                         UIAgGrid("rateEntries")
-                                            .add(UIAgGridColumnDef.createCol(rateLc, "validFrom"))
-                                            .add(UIAgGridColumnDef.createCol(rateLc, "conversionRate"))
-                                            .add(UIAgGridColumnDef.createCol(rateLc, "inverseConversionRate"))
+                                            .add(UIAgGridColumnDef.createCol(rateLc, "validFrom", width = 150))
+                                            .add(UIAgGridColumnDef.createCol(rateLc, "conversionRate", width = 200))
+                                            .add(UIAgGridColumnDef.createCol(rateLc, "inverseConversionRate", width = 200))
                                             .add(UIAgGridColumnDef.createCol(rateLc, "comment"))
                                             .withRowClickRedirectUrl(
                                                 createModalUrl(dto),

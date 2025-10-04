@@ -107,18 +107,19 @@ class CurrencyConversionRatePageRest : AbstractDynamicPageRest() {
         layout.add(lc, "validFrom")
 
         // Add conversion rate fields (both directions)
+        // Create input elements with automatic metadata extraction
+        val conversionRateInput = LayoutUtils.buildLabelInputElement(lc, "conversionRate")
+        (conversionRateInput as? UIInput)?.label = ""
+
+        val inverseConversionRateInput = LayoutUtils.buildLabelInputElement(lc, "inverseConversionRate")
+        (inverseConversionRateInput as? UIInput)?.label = ""
+
         layout.add(
             UIRow()
                 .add(
-                    UICol(UILength(1))
+                    UIInlineGroup()
                         .add(UILabel(label = "1 $sourceCurrency ="))
-                )
-                .add(
-                    UICol(UILength(1))
-                        .add(lc, "conversionRate")
-                )
-                .add(
-                    UICol(UILength(2))
+                        .add(conversionRateInput)
                         .add(UILabel(label = targetCurrency))
                 )
         )
@@ -126,22 +127,12 @@ class CurrencyConversionRatePageRest : AbstractDynamicPageRest() {
         layout.add(
             UIRow()
                 .add(
-                    UICol(UILength(1))
+                    UIInlineGroup()
                         .add(UILabel(label = "1 $targetCurrency ="))
-                )
-                .add(
-                    UICol(UILength(1))
-                        .add(lc, "inverseConversionRate")
-                )
-                .add(
-                    UICol(UILength(2))
+                        .add(inverseConversionRateInput)
                         .add(UILabel(label = sourceCurrency))
                 )
         )
-
-        // Modify labels of rate inputs to remove redundant text
-        (layout.getElementById("conversionRate") as? UIInput)?.label = ""
-        (layout.getElementById("inverseConversionRate") as? UIInput)?.label = ""
 
         layout.add(lc, "comment")
 
@@ -272,16 +263,6 @@ class CurrencyConversionRatePageRest : AbstractDynamicPageRest() {
 
     private fun validate(dto: CurrencyConversionRate): ResponseEntity<ResponseAction>? {
         val validationErrors = mutableListOf<ValidationError>()
-
-        // At least one rate must be provided
-        if (dto.conversionRate == null && dto.inverseConversionRate == null) {
-            validationErrors.add(
-                ValidationError(
-                    translate("fibu.currencyConversion.error.atLeastOneRateRequired"),
-                    fieldId = "conversionRate",
-                )
-            )
-        }
 
         // Validate conversion rate (custom business logic)
         if (dto.conversionRate != null && dto.conversionRate!! <= BigDecimal.ZERO) {

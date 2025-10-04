@@ -84,11 +84,11 @@ open class CurrencyConversionRateDO : Serializable, AbstractBaseDO<Long>() {
     open var validFrom: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.currencyConversion.conversionRate")
-    @get:Column(name = "conversion_rate", scale = 8, precision = 18)
+    @get:Column(name = "conversion_rate", scale = 8, precision = 18, nullable = false)
     open var conversionRate: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "fibu.currencyConversion.inverseConversionRate")
-    @get:Column(name = "inverse_conversion_rate", scale = 8, precision = 18)
+    @get:Column(name = "inverse_conversion_rate", scale = 8, precision = 18, nullable = false)
     open var inverseConversionRate: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "comment")
