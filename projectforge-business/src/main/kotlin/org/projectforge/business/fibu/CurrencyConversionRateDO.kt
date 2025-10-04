@@ -84,21 +84,26 @@ open class CurrencyConversionRateDO : Serializable, AbstractBaseDO<Long>() {
     open var validFrom: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.currencyConversion.conversionRate")
-    @get:Column(name = "conversion_rate", scale = 8, precision = 18, nullable = false)
+    @get:Column(name = "conversion_rate", scale = 8, precision = 18)
     open var conversionRate: BigDecimal? = null
+
+    @PropertyInfo(i18nKey = "fibu.currencyConversion.inverseConversionRate")
+    @get:Column(name = "inverse_conversion_rate", scale = 8, precision = 18)
+    open var inverseConversionRate: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "comment")
     @get:Column(name = "comment", length = Constants.LENGTH_TEXT)
     open var comment: String? = null
 
     /**
-     * Copies validFrom, conversionRate and comment from other.
+     * Copies validFrom, conversionRate, inverseConversionRate and comment from other.
      * Please note: id and currencyPair are not copied.
      * @param other the other CurrencyConversionRateDO to copy from.
      */
     fun copyFrom(other: CurrencyConversionRateDO) {
         this.validFrom = other.validFrom
         this.conversionRate = other.conversionRate
+        this.inverseConversionRate = other.inverseConversionRate
         this.comment = other.comment
     }
 
