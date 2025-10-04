@@ -48,7 +48,7 @@ class CurrencyConversionService {
     private lateinit var serviceSupport: CurrencyConversionServiceSupport
 
     @Autowired
-    private lateinit var historyFormatService: HistoryFormatService
+    private lateinit var cache: CurrencyConversionCache
 
     @PostConstruct
     private fun postConstruct() {
@@ -257,7 +257,9 @@ class CurrencyConversionService {
         rateDO: CurrencyConversionRateDO,
         checkAccess: Boolean = true,
     ): Long? {
-        return serviceSupport.insert(currencyPairId, rateDO, checkAccess = checkAccess)
+        val result = serviceSupport.insert(currencyPairId, rateDO, checkAccess = checkAccess)
+        cache.setExpired()
+        return result
     }
 
     /**
@@ -272,7 +274,9 @@ class CurrencyConversionService {
         checkAccess: Boolean = true,
     ): org.projectforge.framework.persistence.api.EntityCopyStatus {
         val currencyPair = currencyPairDao.find(currencyPairId)!!
-        return serviceSupport.updateRate(currencyPair, rateDO, checkAccess = checkAccess)
+        val result = serviceSupport.updateRate(currencyPair, rateDO, checkAccess = checkAccess)
+        cache.setExpired()
+        return result
     }
 
     /**
@@ -286,7 +290,8 @@ class CurrencyConversionService {
         rateId: Long?,
         checkAccess: Boolean = true,
     ) {
-        return serviceSupport.markRateAsDeleted(currencyPairId, rateId, checkAccess = checkAccess)
+        serviceSupport.markRateAsDeleted(currencyPairId, rateId, checkAccess = checkAccess)
+        cache.setExpired()
     }
 
     companion object {

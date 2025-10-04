@@ -70,6 +70,13 @@ open class CurrencyPairDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column(length = Constants.COMMENT_LENGTH)
     open var comment: String? = null
 
+    /**
+     * Transient list of conversion rates for this currency pair.
+     * This is filled by CurrencyConversionCache and should not be persisted.
+     */
+    @Transient
+    open var rates: MutableList<CurrencyConversionRateDO>? = null
+
     override fun equals(other: Any?): Boolean {
         if (other !is CurrencyPairDO)
             return false

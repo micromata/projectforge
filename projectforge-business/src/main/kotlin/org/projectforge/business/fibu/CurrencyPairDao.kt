@@ -26,7 +26,6 @@ package org.projectforge.business.fibu
 import mu.KotlinLogging
 import org.apache.commons.lang3.ArrayUtils
 import org.projectforge.business.user.UserRightId
-import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -54,11 +53,6 @@ open class CurrencyPairDao : BaseDao<CurrencyPairDO>(CurrencyPairDO::class.java)
     override fun select(filter: BaseSearchFilter): List<CurrencyPairDO> {
         val queryFilter = QueryFilter(filter)
         return select(queryFilter)
-    }
-
-    override fun afterInsertOrModify(obj: CurrencyPairDO, operationType: OperationType) {
-        // Cache invalidation would go here if we implement a cache
-        log.info { "Currency pair ${obj.displayName} was ${operationType.name.lowercase()}" }
     }
 
     override fun newInstance(): CurrencyPairDO {
