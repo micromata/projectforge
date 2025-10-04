@@ -24,12 +24,15 @@
 package org.projectforge.rest.fibu
 
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
 import org.projectforge.business.fibu.CurrencyConversionRateDO
 import org.projectforge.business.fibu.CurrencyConversionService
 import org.projectforge.business.fibu.CurrencyPairDao
+import org.projectforge.business.fibu.ExchangeRateApiService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.time.PFDay
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
@@ -42,6 +45,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.math.BigDecimal
+import java.time.LocalDate
 
 /**
  * Dialog for registering a new currency conversion rate or modifying/deleting an existing one.
@@ -59,6 +63,9 @@ class CurrencyConversionRatePageRest : AbstractDynamicPageRest() {
     @Autowired
     private lateinit var currencyPairDao: CurrencyPairDao
 
+    @Autowired
+    private lateinit var exchangeRateApiService: ExchangeRateApiService
+
     @GetMapping("dynamic")
     fun getForm(
         request: HttpServletRequest,
@@ -67,19 +74,26 @@ class CurrencyConversionRatePageRest : AbstractDynamicPageRest() {
     ): FormLayoutData {
         val id = idString?.toLongOrNull()
         requiredFields(id, currencyPairId)
+
+        // Load currency pair once for both API call and UI customization
+        val currencyPair = currencyPairDao.find(currencyPairId, checkAccess = false)
+        val sourceCurrency = currencyPair?.sourceCurrency ?: ""
+        val targetCurrency = currencyPair?.targetCurrency ?: ""
+
         val data = if (id!! > 0) {
             CurrencyConversionRate(currencyConversionService.findRate(id))
         } else {
-            CurrencyConversionRate(currencyPairId = currencyPairId)
+            CurrencyConversionRate(currencyPairId = currencyPairId).apply {
+                validFrom = LocalDate.now()
+                // Try to fetch current exchange rate from external API
+                if (sourceCurrency.isNotBlank() && targetCurrency.isNotBlank()) {
+                    conversionRate = exchangeRateApiService.fetchCurrentRate(sourceCurrency, targetCurrency)
+                }
+            }
         }
         val lc = LayoutContext(CurrencyConversionRateDO::class.java)
         val layout = UILayout("fibu.currencyConversion.conversionRate")
         layout.add(lc, "validFrom")
-
-        // Load currency pair to customize conversion rate format: "USD 1 = [input] EUR"
-        val currencyPair = currencyPairDao.find(currencyPairId, checkAccess = false)
-        val sourceCurrency = currencyPair?.sourceCurrency ?: ""
-        val targetCurrency = currencyPair?.targetCurrency ?: ""
 
         // Add conversion rate field (will be modified below for custom format)
         layout.add(
@@ -102,6 +116,9 @@ class CurrencyConversionRatePageRest : AbstractDynamicPageRest() {
         (layout.getElementById("conversionRate") as? UIInput)?.label = ""
 
         layout.add(lc, "comment")
+
+        // Watch validFrom field to fetch exchange rate when date changes
+        layout.watchFields.add("validFrom")
 
         if (id < 0) {
             // New entry
@@ -137,6 +154,29 @@ class CurrencyConversionRatePageRest : AbstractDynamicPageRest() {
         LayoutUtils.process(layout)
 
         return FormLayoutData(data, layout, createServerData(request))
+    }
+
+    @PostMapping(RestPaths.WATCH_FIELDS)
+    fun watchFields(@Valid @RequestBody postData: PostData<CurrencyConversionRate>): ResponseEntity<ResponseAction> {
+        val data = postData.data
+
+        // Wenn validFrom geändert wurde, hole neuen Kurs von API
+        if (postData.watchFieldsTriggered?.contains("validFrom") == true && data.validFrom != null) {
+            val currencyPair = currencyPairDao.find(data.currencyPairId, checkAccess = false)
+            if (currencyPair?.sourceCurrency != null && currencyPair.targetCurrency != null) {
+                val newRate = exchangeRateApiService.fetchRateForDate(
+                    currencyPair.sourceCurrency!!,
+                    currencyPair.targetCurrency!!,
+                    data.validFrom!!
+                )
+                data.conversionRate = newRate
+            }
+        }
+
+        return ResponseEntity.ok(
+            ResponseAction(targetType = TargetType.UPDATE)
+                .addVariable("data", data)
+        )
     }
 
     @PostMapping("delete")
