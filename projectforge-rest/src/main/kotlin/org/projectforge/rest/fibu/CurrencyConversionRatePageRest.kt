@@ -37,6 +37,7 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
+import org.projectforge.rest.core.ValidationUtils
 import org.projectforge.rest.dto.CurrencyConversionRate
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
@@ -262,7 +263,9 @@ class CurrencyConversionRatePageRest : AbstractDynamicPageRest() {
     }
 
     private fun validate(dto: CurrencyConversionRate): ResponseEntity<ResponseAction>? {
-        val validationErrors = mutableListOf<ValidationError>()
+        // Validate required fields automatically
+        val rateDO = dto.cloneAsDO()
+        val validationErrors = ValidationUtils.validateRequiredFields(rateDO)
 
         // Validate conversion rate (custom business logic)
         if (dto.conversionRate != null && dto.conversionRate!! <= BigDecimal.ZERO) {
