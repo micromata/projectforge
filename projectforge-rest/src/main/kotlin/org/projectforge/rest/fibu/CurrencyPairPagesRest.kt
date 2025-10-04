@@ -24,6 +24,7 @@
 package org.projectforge.rest.fibu
 
 import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.business.fibu.CurrencyConversionRateDO
 import org.projectforge.business.fibu.CurrencyConversionService
 import org.projectforge.business.fibu.CurrencyPairDO
 import org.projectforge.business.fibu.CurrencyPairDao
@@ -148,6 +149,7 @@ class CurrencyPairPagesRest :
         if (dto.id == null) {
             layout.add(UIAlert("fibu.currencyPair.insert.hint", color = UIColor.INFO))
         } else {
+            val rateLc = LayoutContext(CurrencyConversionRateDO::class.java)
             layout.layoutBelowActions
                 .add(
                     UIRow()
@@ -156,28 +158,10 @@ class CurrencyPairPagesRest :
                                 UIFieldset(title = "fibu.currencyConversion.rates")
                                     .add(
                                         UIAgGrid("rateEntries")
-                                            .add(
-                                                UIAgGridColumnDef.createCol(
-                                                    lc,
-                                                    "validFrom",
-                                                    headerName = "attr.validSince"
-                                                )
-                                            )
-                                            .add(
-                                                UIAgGridColumnDef.createCol(
-                                                    lc,
-                                                    "conversionRate",
-                                                    headerName = "fibu.currencyConversion.conversionRate"
-                                                )
-                                            )
-                                            .add(
-                                                UIAgGridColumnDef.createCol(
-                                                    lc,
-                                                    "inverseConversionRate",
-                                                    headerName = "fibu.currencyConversion.inverseConversionRate"
-                                                )
-                                            )
-                                            .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
+                                            .add(UIAgGridColumnDef.createCol(rateLc, "validFrom"))
+                                            .add(UIAgGridColumnDef.createCol(rateLc, "conversionRate"))
+                                            .add(UIAgGridColumnDef.createCol(rateLc, "inverseConversionRate"))
+                                            .add(UIAgGridColumnDef.createCol(rateLc, "comment"))
                                             .withRowClickRedirectUrl(
                                                 createModalUrl(dto),
                                                 openModal = true,
