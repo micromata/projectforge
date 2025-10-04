@@ -317,47 +317,7 @@ constructor(
     }
 
     fun validate(dbObj: O): MutableList<ValidationError> {
-        val validationErrors = mutableListOf<ValidationError>()
-        val propertiesMap = ElementsRegistry.getProperties(dbObj::class.java)
-        if (propertiesMap.isNullOrEmpty()) {
-            log.error("Internal error, can't find propertiesMap for '${dbObj::class.java}' in ElementsRegistry. No validation errors will be built automatically.")
-            return validationErrors
-        }
-        propertiesMap.forEach {
-            val property = it.key
-            val elementInfo = it.value
-            val value =
-                try {
-                    PropertyUtils.getProperty(dbObj, property)
-                } catch (ex: NestedNullException) {
-                    null
-                } catch (ex: Exception) {
-                    log.warn("Unknown property '${dbObj::class.java}.$property': ${ex.message}.")
-                    null
-                }
-            if (elementInfo.required == true) {
-                var error = false
-                if (value == null) {
-                    error = true
-                } else {
-                    when (value) {
-                        is String -> {
-                            if (value.isBlank()) {
-                                error = true
-                            }
-                        }
-                    }
-                }
-                if (error)
-                    validationErrors.add(
-                        ValidationError(
-                            translateMsg("validation.error.fieldRequired", translate(elementInfo.i18nKey)),
-                            fieldId = property, messageId = elementInfo.i18nKey
-                        )
-                    )
-            }
-        }
-        return validationErrors
+        return ValidationUtils.validateRequiredFields(dbObj)
     }
 
     fun validate(dbObj: O, postData: PostData<DTO>): List<ValidationError>? {
