@@ -67,7 +67,7 @@ open class CurrencyPairDao : BaseDao<CurrencyPairDO>(CurrencyPairDO::class.java)
      * Gets history entries of super and adds all history entries of the CurrencyConversionRateDO children.
      */
     override fun addOwnHistoryEntries(obj: CurrencyPairDO, context: HistoryLoadContext) {
-        currencyConversionService.selectAllRates(obj, deleted = null).forEach { rateDO ->
+        currencyConversionService.selectAllRates(obj.id!!, deleted = null).forEach { rateDO ->
             historyService.loadAndMergeHistory(rateDO, context)
         }
     }

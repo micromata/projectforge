@@ -59,13 +59,12 @@ class CurrencyPairPagesRest :
         // Load current rate only for existing entries (id != null)
         if (obj.id != null) {
             currencyPair.currentRate =
-                currencyConversionService.getConversionRate(obj, LocalDate.now(), checkAccess = false)
+                currencyConversionService.getConversionRate(obj, LocalDate.now())
             currencyPair.currentInverseRate =
                 currencyConversionService.getConversionRate(
                     obj,
                     LocalDate.now(),
                     inverseRate = true,
-                    checkAccess = false,
                 )
         }
         return currencyPair
