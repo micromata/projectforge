@@ -70,16 +70,7 @@ class CurrencyConversionRatePageRest : AbstractDynamicPageRest() {
         }
         val lc = LayoutContext(CurrencyConversionRateDO::class.java)
         val layout = UILayout("fibu.currencyConversion.conversionRate")
-        layout.add(lc, "validFrom")
-        layout.add(
-            UIInput(
-                "conversionRate",
-                dataType = UIDataType.DECIMAL,
-                label = "fibu.currencyConversion.conversionRate",
-                required = true
-            )
-        )
-        layout.add(lc, "comment")
+        layout.add(lc, "validFrom", "conversionRate", "comment")
 
         if (id < 0) {
             // New entry
@@ -173,15 +164,8 @@ class CurrencyConversionRatePageRest : AbstractDynamicPageRest() {
     private fun validate(dto: CurrencyConversionRate): ResponseEntity<ResponseAction>? {
         val validationErrors = mutableListOf<ValidationError>()
 
-        // Validate conversion rate
-        if (dto.conversionRate == null) {
-            validationErrors.add(
-                ValidationError.createFieldRequired(
-                    fieldId = "conversionRate",
-                    fieldName = translate("fibu.currencyConversion.conversionRate")
-                )
-            )
-        } else if (dto.conversionRate!! <= BigDecimal.ZERO) {
+        // Validate conversion rate (custom business logic)
+        if (dto.conversionRate != null && dto.conversionRate!! <= BigDecimal.ZERO) {
             validationErrors.add(
                 ValidationError(
                     translateMsg("validation.error.greaterZero"),
@@ -190,23 +174,17 @@ class CurrencyConversionRatePageRest : AbstractDynamicPageRest() {
             )
         }
 
-        // Validate validFrom
-        if (dto.validFrom == null) {
-            validationErrors.add(
-                ValidationError.createFieldRequired(
-                    CurrencyConversionRateDO::class.java,
-                    fieldId = "validFrom",
-                )
-            )
-        } else {
-            val date = PFDay.fromOrNull(dto.validFrom)
+        // Validate validFrom (custom business logic)
+        dto.validFrom?.let { validFrom ->
+            val date = PFDay.fromOrNull(validFrom)
             if (date != null && PFDay.now().isBefore(date)) {
                 validationErrors.add(ValidationError(translate("error.dateInFuture"), fieldId = "validFrom"))
             }
-            // Check for duplicates
-            currencyConversionService.validateRate(dto.cloneAsDO())?.let { msg ->
-                validationErrors.add(ValidationError.create(msg))
-            }
+        }
+
+        // Check for duplicates (custom business logic)
+        currencyConversionService.validateRate(dto.cloneAsDO())?.let { msg ->
+            validationErrors.add(ValidationError.create(msg))
         }
 
         if (validationErrors.isNotEmpty()) {

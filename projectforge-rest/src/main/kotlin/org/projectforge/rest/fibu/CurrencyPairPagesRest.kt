@@ -56,7 +56,8 @@ class CurrencyPairPagesRest :
         val currencyPair = CurrencyPair()
         currencyPair.copyFrom(obj)
         // Load current rate for list view
-        currencyPair.currentRate = currencyConversionService.getConversionRate(obj, LocalDate.now(), checkAccess = false)
+        currencyPair.currentRate =
+            currencyConversionService.getConversionRate(obj, LocalDate.now(), checkAccess = false)
         return currencyPair
     }
 
@@ -81,31 +82,7 @@ class CurrencyPairPagesRest :
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: CurrencyPair) {
-        // Validate source currency
-        if (dto.sourceCurrency.isNullOrBlank()) {
-            validationErrors.add(ValidationError(translate("validation.required"), fieldId = "sourceCurrency"))
-        } else if (dto.sourceCurrency!!.length != 3) {
-            validationErrors.add(
-                ValidationError(
-                    translate("fibu.currencyPair.validation.currencyCodeLength"),
-                    fieldId = "sourceCurrency"
-                )
-            )
-        }
-
-        // Validate target currency
-        if (dto.targetCurrency.isNullOrBlank()) {
-            validationErrors.add(ValidationError(translate("validation.required"), fieldId = "targetCurrency"))
-        } else if (dto.targetCurrency!!.length != 3) {
-            validationErrors.add(
-                ValidationError(
-                    translate("fibu.currencyPair.validation.currencyCodeLength"),
-                    fieldId = "targetCurrency"
-                )
-            )
-        }
-
-        // Check if source and target are different
+        // Check if source and target currencies are different (custom business logic)
         if (!dto.sourceCurrency.isNullOrBlank() && !dto.targetCurrency.isNullOrBlank() &&
             dto.sourceCurrency!!.uppercase() == dto.targetCurrency!!.uppercase()
         ) {
@@ -137,10 +114,12 @@ class CurrencyPairPagesRest :
             .add(
                 lc,
                 "sourceCurrency",
-                "targetCurrency",
-                "currentRate",
-                "comment"
+                "targetCurrency"
             )
+            .add(
+                "currentRate", headerName = "fibu.currencyConversion.currentRate",
+            )
+            .add(lc, "comment")
     }
 
     /**
@@ -152,15 +131,11 @@ class CurrencyPairPagesRest :
                 UIRow()
                     .add(
                         UICol()
-                            .add(
-                                UIInput("sourceCurrency", lc, maxLength = 3, required = true)
-                            )
+                            .add(lc, "sourceCurrency")
                     )
                     .add(
                         UICol()
-                            .add(
-                                UIInput("targetCurrency", lc, maxLength = 3, required = true)
-                            )
+                            .add(lc, "targetCurrency")
                     )
             )
             .add(
