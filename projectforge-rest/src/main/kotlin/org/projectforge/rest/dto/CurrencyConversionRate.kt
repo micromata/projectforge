@@ -31,6 +31,7 @@ import java.time.LocalDate
 class CurrencyConversionRate(
     var validFrom: LocalDate? = null,
     var conversionRate: BigDecimal? = null,
+    var inverseConversionRate: BigDecimal? = null,
     var comment: String? = null,
     var currencyPairId: Long? = null,
     /**
@@ -43,6 +44,7 @@ class CurrencyConversionRate(
         id = src?.id
         validFrom = src?.validFrom
         conversionRate = src?.conversionRate
+        inverseConversionRate = src?.inverseConversionRate
         comment = src?.comment
         currencyPairId = src?.currencyPair?.id
     }
@@ -52,6 +54,7 @@ class CurrencyConversionRate(
         result.id = id
         result.validFrom = validFrom
         result.conversionRate = conversionRate
+        result.inverseConversionRate = inverseConversionRate
         result.comment = comment
         currencyPairId?.let {
             result.currencyPair = CurrencyPairDO().also { it.id = currencyPairId }

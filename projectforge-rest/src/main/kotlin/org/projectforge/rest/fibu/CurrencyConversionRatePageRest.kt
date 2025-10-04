@@ -86,10 +86,16 @@ class CurrencyConversionRatePageRest : AbstractDynamicPageRest() {
         } else {
             CurrencyConversionRate(currencyPairId = currencyPairId).apply {
                 validFrom = LocalDate.now()
-                // Try to fetch current exchange rate from external API
+                // Try to fetch current exchange rates (both directions) from external API
                 if (sourceCurrency.isNotBlank() && targetCurrency.isNotBlank()) {
-                    conversionRate = exchangeRateApiService.fetchCurrentRate(sourceCurrency, targetCurrency)
-                    if (conversionRate != null) {
+                    val (rate, inverseRate) = exchangeRateApiService.fetchBothRates(
+                        sourceCurrency,
+                        targetCurrency,
+                        LocalDate.now()
+                    )
+                    conversionRate = rate
+                    inverseConversionRate = inverseRate
+                    if (rate != null || inverseRate != null) {
                         apiSourceInfo =
                             translateMsg("fibu.currencyConversion.api.sourceInfo", LocalDate.now().formatForUser())
                     }
@@ -100,12 +106,12 @@ class CurrencyConversionRatePageRest : AbstractDynamicPageRest() {
         val layout = UILayout("fibu.currencyConversion.conversionRate")
         layout.add(lc, "validFrom")
 
-        // Add conversion rate field (will be modified below for custom format)
+        // Add conversion rate fields (both directions)
         layout.add(
             UIRow()
                 .add(
                     UICol(UILength(1))
-                        .add(UILabel(label = "$sourceCurrency 1 ="))  // Will be set below with target currency
+                        .add(UILabel(label = "1 $sourceCurrency ="))
                 )
                 .add(
                     UICol(UILength(1))
@@ -113,12 +119,29 @@ class CurrencyConversionRatePageRest : AbstractDynamicPageRest() {
                 )
                 .add(
                     UICol(UILength(2))
-                        .add(UILabel(label = targetCurrency))  // Will be set below with target currency
+                        .add(UILabel(label = targetCurrency))
                 )
         )
 
-        // Modify label of conversionRate input to show source currency
+        layout.add(
+            UIRow()
+                .add(
+                    UICol(UILength(1))
+                        .add(UILabel(label = "1 $targetCurrency ="))
+                )
+                .add(
+                    UICol(UILength(1))
+                        .add(lc, "inverseConversionRate")
+                )
+                .add(
+                    UICol(UILength(2))
+                        .add(UILabel(label = sourceCurrency))
+                )
+        )
+
+        // Modify labels of rate inputs to remove redundant text
         (layout.getElementById("conversionRate") as? UIInput)?.label = ""
+        (layout.getElementById("inverseConversionRate") as? UIInput)?.label = ""
 
         layout.add(lc, "comment")
 
@@ -168,17 +191,18 @@ class CurrencyConversionRatePageRest : AbstractDynamicPageRest() {
     fun watchFields(@Valid @RequestBody postData: PostData<CurrencyConversionRate>): ResponseEntity<ResponseAction> {
         val data = postData.data
 
-        // Wenn validFrom geändert wurde, hole neuen Kurs von API
+        // Wenn validFrom geändert wurde, hole beide Kurse von API
         if (postData.watchFieldsTriggered?.contains("validFrom") == true && data.validFrom != null) {
             val currencyPair = currencyPairDao.find(data.currencyPairId, checkAccess = false)
             if (currencyPair?.sourceCurrency != null && currencyPair.targetCurrency != null) {
-                val newRate = exchangeRateApiService.fetchRateForDate(
+                val (rate, inverseRate) = exchangeRateApiService.fetchBothRates(
                     currencyPair.sourceCurrency!!,
                     currencyPair.targetCurrency!!,
                     data.validFrom!!
                 )
-                data.conversionRate = newRate
-                if (newRate != null) {
+                data.conversionRate = rate
+                data.inverseConversionRate = inverseRate
+                if (rate != null || inverseRate != null) {
                     data.apiSourceInfo =
                         translateMsg("fibu.currencyConversion.api.sourceInfo", data.validFrom.formatForUser())
                 } else {
@@ -249,12 +273,32 @@ class CurrencyConversionRatePageRest : AbstractDynamicPageRest() {
     private fun validate(dto: CurrencyConversionRate): ResponseEntity<ResponseAction>? {
         val validationErrors = mutableListOf<ValidationError>()
 
+        // At least one rate must be provided
+        if (dto.conversionRate == null && dto.inverseConversionRate == null) {
+            validationErrors.add(
+                ValidationError(
+                    translate("fibu.currencyConversion.error.atLeastOneRateRequired"),
+                    fieldId = "conversionRate",
+                )
+            )
+        }
+
         // Validate conversion rate (custom business logic)
         if (dto.conversionRate != null && dto.conversionRate!! <= BigDecimal.ZERO) {
             validationErrors.add(
                 ValidationError(
                     translateMsg("validation.error.greaterZero"),
                     fieldId = "conversionRate",
+                )
+            )
+        }
+
+        // Validate inverse conversion rate (custom business logic)
+        if (dto.inverseConversionRate != null && dto.inverseConversionRate!! <= BigDecimal.ZERO) {
+            validationErrors.add(
+                ValidationError(
+                    translateMsg("validation.error.greaterZero"),
+                    fieldId = "inverseConversionRate",
                 )
             )
         }

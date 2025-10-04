@@ -170,6 +170,13 @@ class CurrencyPairPagesRest :
                                                     headerName = "fibu.currencyConversion.conversionRate"
                                                 )
                                             )
+                                            .add(
+                                                UIAgGridColumnDef.createCol(
+                                                    lc,
+                                                    "inverseConversionRate",
+                                                    headerName = "fibu.currencyConversion.inverseConversionRate"
+                                                )
+                                            )
                                             .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
                                             .withRowClickRedirectUrl(
                                                 createModalUrl(dto),

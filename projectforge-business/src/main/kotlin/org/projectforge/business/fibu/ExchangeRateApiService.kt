@@ -61,6 +61,24 @@ class ExchangeRateApiService {
     }
 
     /**
+     * Fetches both direction exchange rates from external API.
+     * @param sourceCurrency Source currency code (e.g. "USD")
+     * @param targetCurrency Target currency code (e.g. "EUR")
+     * @param date The date for which to fetch the rate (null = today/latest)
+     * @return Pair of (conversionRate, inverseConversionRate) fetched from API
+     */
+    fun fetchBothRates(
+        sourceCurrency: String,
+        targetCurrency: String,
+        date: java.time.LocalDate?
+    ): Pair<BigDecimal?, BigDecimal?> {
+        // Fetch both directions from API (not calculated, as actual rates may differ due to spreads/fees)
+        val rate = fetchRateForDate(sourceCurrency, targetCurrency, date)
+        val inverseRate = fetchRateForDate(targetCurrency, sourceCurrency, date)
+        return Pair(rate, inverseRate)
+    }
+
+    /**
      * Fetches the exchange rate for a specific date from external API.
      * @param sourceCurrency Source currency code (e.g. "USD")
      * @param targetCurrency Target currency code (e.g. "EUR")
