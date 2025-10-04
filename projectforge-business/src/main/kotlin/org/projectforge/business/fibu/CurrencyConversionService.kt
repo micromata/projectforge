@@ -71,9 +71,10 @@ class CurrencyConversionService {
 
     /**
      * Selects all rates for a currency pair.
+     * Uses cache for better performance when deleted=false.
      * @param currencyPairId The id of the currency pair.
      * @param deleted If true, only deleted rates will be returned, if false, only not deleted rates will be returned. If null, deleted and not deleted rates will be returned.
-     * @param checkAccess If true, the logged-in user must have access to the currency pair.
+     * @param checkAccess If true, the logged-in user must have access to the currency pair (only applies when querying DB for deleted rates).
      * @return List of rates sorted by validFrom desc.
      */
     fun selectAllRates(
@@ -81,40 +82,35 @@ class CurrencyConversionService {
         deleted: Boolean? = false,
         checkAccess: Boolean = true,
     ): List<CurrencyConversionRateDO> {
-        val currencyPair = currencyPairDao.find(currencyPairId, checkAccess = checkAccess) ?: return emptyList()
-        return selectAllRates(currencyPair, deleted, checkAccess)
-    }
-
-    /**
-     * Selects all rates for a currency pair.
-     * @param currencyPair The currency pair.
-     * @param deleted If true, only deleted rates will be returned, if false, only not deleted rates will be returned. If null, deleted and not deleted rates will be returned.
-     * @param checkAccess If true, the logged-in user must have access to the currency pair.
-     * @return List of rates sorted by validFrom desc.
-     */
-    internal fun selectAllRates(
-        currencyPair: CurrencyPairDO,
-        deleted: Boolean? = false,
-        checkAccess: Boolean = true,
-    ): List<CurrencyConversionRateDO> {
-        return serviceSupport.selectAllRates(currencyPair, deleted, checkAccess)
+        // For deleted rates, use DB (cache only contains active rates)
+        if (deleted != false) {
+            val currencyPair = currencyPairDao.find(currencyPairId, checkAccess = checkAccess) ?: return emptyList()
+            return serviceSupport.selectAllRates(currencyPair, deleted, checkAccess)
+        }
+        // For active rates, use cache (faster)
+        return cache.getRates(currencyPairId)
     }
 
     /**
      * Gets the conversion rate for a currency pair at a specific date.
+     * Uses cache for better performance.
      * @param currencyPair The currency pair.
      * @param validAtDate The date for which to get the rate. Defaults to today.
      * @param inverseRate If true, the inverse rate (target to source) will be returned.
-     * @param checkAccess If true, the logged-in user must have access to the currency pair.
      * @return The conversion rate or null if no rate is valid for the given date.
      */
     fun getConversionRate(
         currencyPair: CurrencyPairDO?,
         validAtDate: LocalDate? = null,
         inverseRate: Boolean = false,
-        checkAccess: Boolean = true,
     ): BigDecimal? {
-        return serviceSupport.getConversionRate(currencyPair, validAtDate, checkAccess, inverseRate)
+        currencyPair?.id ?: return null
+        return cache.getConversionRate(
+            currencyPair.id,
+            validAtDate ?: LocalDate.now(),
+            inverseRate,
+            useFallbackToOldestRate = false
+        )
     }
 
     /**

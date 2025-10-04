@@ -28,7 +28,6 @@ import org.projectforge.framework.persistence.api.BaseDOPersistenceService
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.math.BigDecimal
 import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
@@ -107,30 +106,6 @@ internal class CurrencyConversionServiceSupport {
             val validFrom = rateDO.validFrom
             validFrom != null && !validFrom.isAfter(date)
         }
-    }
-
-    /**
-     * Gets the conversion rate for a currency pair at a specific date.
-     * @param currencyPair The currency pair.
-     * @param validAtDate The date for which to get the rate. Defaults to today.
-     * @param inverseRate If true, the inverse rate (target to source) will be returned.
-     * @param checkAccess If true, the logged-in user must have access to the currency pair.
-     * @return The conversion rate or null if no rate is valid for the given date.
-     */
-    fun getConversionRate(
-        currencyPair: CurrencyPairDO?,
-        validAtDate: LocalDate? = null,
-        inverseRate: Boolean = false,
-        checkAccess: Boolean = true,
-    ): BigDecimal? {
-        if (currencyPair == null || validAtDate == null) {
-            return null
-        }
-        val activeRate = getActiveRate(
-            selectAllRates(currencyPair, deleted = false, checkAccess = checkAccess),
-            validAtDate
-        )
-        return if (inverseRate) activeRate?.inverseConversionRate else activeRate?.conversionRate
     }
 
     /**
