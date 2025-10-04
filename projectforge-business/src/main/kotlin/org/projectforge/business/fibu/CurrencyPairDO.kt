@@ -74,7 +74,7 @@ open class CurrencyPairDO : DefaultBaseDO(), DisplayNameCapable {
      * Transient list of conversion rates for this currency pair.
      * This is filled by CurrencyConversionCache and should not be persisted.
      */
-    @Transient
+    @get:Transient
     open var rates: MutableList<CurrencyConversionRateDO>? = null
 
     override fun equals(other: Any?): Boolean {

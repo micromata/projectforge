@@ -37,8 +37,8 @@ CREATE TABLE T_FIBU_CURRENCY_CONVERSION_RATE
     last_update               TIMESTAMP WITHOUT TIME ZONE,
     currency_pair_fk          INTEGER                      NOT NULL,
     valid_from                DATE                         NOT NULL,
-    conversion_rate           NUMERIC(18,8),
-    inverse_conversion_rate   NUMERIC(18,8),
+    conversion_rate           NUMERIC(18,8)                NOT NULL,
+    inverse_conversion_rate   NUMERIC(18,8)                NOT NULL,
     comment                   CHARACTER VARYING(4000)
 );
 

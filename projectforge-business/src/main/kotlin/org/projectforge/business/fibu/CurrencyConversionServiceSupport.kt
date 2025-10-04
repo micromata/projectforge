@@ -113,21 +113,24 @@ internal class CurrencyConversionServiceSupport {
      * Gets the conversion rate for a currency pair at a specific date.
      * @param currencyPair The currency pair.
      * @param validAtDate The date for which to get the rate. Defaults to today.
+     * @param inverseRate If true, the inverse rate (target to source) will be returned.
      * @param checkAccess If true, the logged-in user must have access to the currency pair.
      * @return The conversion rate or null if no rate is valid for the given date.
      */
     fun getConversionRate(
         currencyPair: CurrencyPairDO?,
         validAtDate: LocalDate? = null,
-        checkAccess: Boolean = true
+        inverseRate: Boolean = false,
+        checkAccess: Boolean = true,
     ): BigDecimal? {
         if (currencyPair == null || validAtDate == null) {
             return null
         }
-        return getActiveRate(
+        val activeRate = getActiveRate(
             selectAllRates(currencyPair, deleted = false, checkAccess = checkAccess),
             validAtDate
-        )?.conversionRate
+        )
+        return if (inverseRate) activeRate?.inverseConversionRate else activeRate?.conversionRate
     }
 
     /**
