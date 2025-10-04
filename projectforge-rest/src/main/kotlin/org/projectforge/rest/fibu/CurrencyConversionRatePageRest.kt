@@ -26,6 +26,7 @@ package org.projectforge.rest.fibu
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.fibu.CurrencyConversionRateDO
 import org.projectforge.business.fibu.CurrencyConversionService
+import org.projectforge.business.fibu.CurrencyPairDao
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.time.PFDay
@@ -55,6 +56,9 @@ class CurrencyConversionRatePageRest : AbstractDynamicPageRest() {
     @Autowired
     private lateinit var currencyConversionService: CurrencyConversionService
 
+    @Autowired
+    private lateinit var currencyPairDao: CurrencyPairDao
+
     @GetMapping("dynamic")
     fun getForm(
         request: HttpServletRequest,
@@ -70,7 +74,34 @@ class CurrencyConversionRatePageRest : AbstractDynamicPageRest() {
         }
         val lc = LayoutContext(CurrencyConversionRateDO::class.java)
         val layout = UILayout("fibu.currencyConversion.conversionRate")
-        layout.add(lc, "validFrom", "conversionRate", "comment")
+        layout.add(lc, "validFrom")
+
+        // Load currency pair to customize conversion rate format: "USD 1 = [input] EUR"
+        val currencyPair = currencyPairDao.find(currencyPairId, checkAccess = false)
+        val sourceCurrency = currencyPair?.sourceCurrency ?: ""
+        val targetCurrency = currencyPair?.targetCurrency ?: ""
+
+        // Add conversion rate field (will be modified below for custom format)
+        layout.add(
+            UIRow()
+                .add(
+                    UICol(UILength(1))
+                        .add(UILabel(label = "$sourceCurrency 1 ="))  // Will be set below with target currency
+                )
+                .add(
+                    UICol(UILength(1))
+                        .add(lc, "conversionRate")
+                )
+                .add(
+                    UICol(UILength(2))
+                        .add(UILabel(label = targetCurrency))  // Will be set below with target currency
+                )
+        )
+
+        // Modify label of conversionRate input to show source currency
+        (layout.getElementById("conversionRate") as? UIInput)?.label = ""
+
+        layout.add(lc, "comment")
 
         if (id < 0) {
             // New entry
