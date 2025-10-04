@@ -33,6 +33,11 @@ class CurrencyConversionRate(
     var conversionRate: BigDecimal? = null,
     var comment: String? = null,
     var currencyPairId: Long? = null,
+    /**
+     * Information about the source of the exchange rate (e.g., fetched from API).
+     * Not persisted, only for UI display.
+     */
+    var apiSourceInfo: String? = null,
 ) : BaseDTODisplayObject<CurrencyConversionRateDO>() {
     constructor(src: CurrencyConversionRateDO?) : this() {
         id = src?.id
