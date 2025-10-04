@@ -55,12 +55,12 @@ open class CurrencyPairDO : DefaultBaseDO(), DisplayNameCapable {
         @Transient
         get() = "$sourceCurrency → $targetCurrency"
 
-    @PropertyInfo(i18nKey = "fibu.currencyPair.sourceCurrency")
+    @PropertyInfo(i18nKey = "fibu.currencyPair.sourceCurrency", tooltip = "fibu.currencyPair.currencyCode.tooltip")
     @FullTextField
     @get:Column(name = "source_currency", length = 3, nullable = false)
     open var sourceCurrency: String? = null
 
-    @PropertyInfo(i18nKey = "fibu.currencyPair.targetCurrency")
+    @PropertyInfo(i18nKey = "fibu.currencyPair.targetCurrency", tooltip = "fibu.currencyPair.currencyCode.tooltip")
     @FullTextField
     @get:Column(name = "target_currency", length = 3, nullable = false)
     open var targetCurrency: String? = null
