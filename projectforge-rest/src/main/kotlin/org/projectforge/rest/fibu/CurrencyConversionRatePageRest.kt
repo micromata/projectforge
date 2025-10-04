@@ -29,6 +29,7 @@ import org.projectforge.business.fibu.CurrencyConversionRateDO
 import org.projectforge.business.fibu.CurrencyConversionService
 import org.projectforge.business.fibu.CurrencyPairDao
 import org.projectforge.business.fibu.ExchangeRateApiService
+import org.projectforge.common.extensions.formatForUser
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.time.PFDay
@@ -88,6 +89,10 @@ class CurrencyConversionRatePageRest : AbstractDynamicPageRest() {
                 // Try to fetch current exchange rate from external API
                 if (sourceCurrency.isNotBlank() && targetCurrency.isNotBlank()) {
                     conversionRate = exchangeRateApiService.fetchCurrentRate(sourceCurrency, targetCurrency)
+                    if (conversionRate != null) {
+                        apiSourceInfo =
+                            translateMsg("fibu.currencyConversion.api.sourceInfo", LocalDate.now().formatForUser())
+                    }
                 }
             }
         }
@@ -116,6 +121,9 @@ class CurrencyConversionRatePageRest : AbstractDynamicPageRest() {
         (layout.getElementById("conversionRate") as? UIInput)?.label = ""
 
         layout.add(lc, "comment")
+
+        // Add info alert if exchange rate was fetched from API
+        layout.add(UIAlert(id = "apiSourceInfo", color = UIColor.INFO, markdown = true))
 
         // Watch validFrom field to fetch exchange rate when date changes
         layout.watchFields.add("validFrom")
@@ -170,6 +178,12 @@ class CurrencyConversionRatePageRest : AbstractDynamicPageRest() {
                     data.validFrom!!
                 )
                 data.conversionRate = newRate
+                if (newRate != null) {
+                    data.apiSourceInfo =
+                        translateMsg("fibu.currencyConversion.api.sourceInfo", data.validFrom.formatForUser())
+                } else {
+                    data.apiSourceInfo = null
+                }
             }
         }
 
