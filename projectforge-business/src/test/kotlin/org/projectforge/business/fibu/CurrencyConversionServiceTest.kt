@@ -174,6 +174,21 @@ class CurrencyConversionServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun convertWithFallbackToOldestRate() {
+        // Request conversion for date before first rate entry, with fallback enabled
+        val result = currencyConversionService.convert(
+            BigDecimal("100"),
+            "EUR",
+            "USD",
+            LocalDate.of(2024, 12, 1), // Before first rate (2025-01-01)
+            useFallbackToOldestRate = true
+        )
+        // Should use oldest rate (2025-01-01: 0.85) as fallback
+        assertNotNull(result)
+        assertEquals(BigDecimal("85.00"), result) // 100 * 0.85 = 85.00
+    }
+
+    @Test
     fun convertWithCustomScale() {
         // 100 * 0.85 = 85.0000 with scale 4
         val result = currencyConversionService.convert(
