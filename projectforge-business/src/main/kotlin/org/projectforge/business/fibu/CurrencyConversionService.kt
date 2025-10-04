@@ -159,7 +159,12 @@ class CurrencyConversionService {
         val currencyPair = cache.findCurrencyPair(effectiveSourceCurrency, targetCurrency) ?: return null
 
         // Get conversion rate from cache
-        val rate = cache.getConversionRate(currencyPair.id, validAtDate, useFallbackToOldestRate) ?: return null
+        val rate = cache.getConversionRate(
+            currencyPair.id,
+            validAtDate,
+            inverseRate = false,
+            useFallbackToOldestRate = useFallbackToOldestRate
+        ) ?: return null
 
         return amount.multiply(rate).setScale(scale, roundingMode)
     }
@@ -194,7 +199,6 @@ class CurrencyConversionService {
         checkAccess: Boolean = true,
     ): Long? {
         val result = serviceSupport.insert(currencyPairId, rateDO, checkAccess = checkAccess)
-        cache.setExpired()
         return result
     }
 
@@ -211,7 +215,6 @@ class CurrencyConversionService {
     ): org.projectforge.framework.persistence.api.EntityCopyStatus {
         val currencyPair = currencyPairDao.find(currencyPairId)!!
         val result = serviceSupport.updateRate(currencyPair, rateDO, checkAccess = checkAccess)
-        cache.setExpired()
         return result
     }
 
@@ -227,7 +230,6 @@ class CurrencyConversionService {
         checkAccess: Boolean = true,
     ) {
         serviceSupport.markRateAsDeleted(currencyPairId, rateId, checkAccess = checkAccess)
-        cache.setExpired()
     }
 
     companion object {

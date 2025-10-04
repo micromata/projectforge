@@ -103,12 +103,14 @@ open class CurrencyConversionCache : AbstractCache(), BaseDOModifiedListener<Cur
     fun getConversionRate(
         currencyPairId: Long?,
         validAtDate: LocalDate = LocalDate.now(),
+        inverseRate: Boolean = false,
         useFallbackToOldestRate: Boolean = false
     ): BigDecimal? {
         currencyPairId ?: return null
         checkRefresh()
         val currencyPair = currencyPairMap[currencyPairId] ?: return null
-        return findActiveRate(currencyPair, validAtDate, useFallbackToOldestRate)?.conversionRate
+        val activeRate = findActiveRate(currencyPair, validAtDate, useFallbackToOldestRate)
+        return if (inverseRate) activeRate?.inverseConversionRate else activeRate?.conversionRate
     }
 
     /**

@@ -189,6 +189,75 @@ class CurrencyConversionServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun convertUsesCorrectRateForDate() {
+        // This test verifies that the cache correctly selects the most recent valid rate
+        // for a given date when multiple rates exist.
+
+        // Look up the EUR→GBP pair from cache
+        val eurToGbpPair = cache.findCurrencyPair("EUR", "GBP")
+        assertNotNull(eurToGbpPair, "EUR→GBP pair should exist in cache")
+
+        // Add two more rates to have three rates total:
+        // 2025-01-01: 0.87 (already exists from setup)
+        // 2025-06-01: 0.95 (new)
+        // 2025-12-01: 0.90 (new)
+        addConversionRate(
+            eurToGbpPair!!.id!!,
+            LocalDate.of(2025, 6, 1),
+            BigDecimal("0.95"),
+            BigDecimal("1.0526")
+        )
+        addConversionRate(
+            eurToGbpPair.id!!,
+            LocalDate.of(2025, 12, 1),
+            BigDecimal("0.90"),
+            BigDecimal("1.1111")
+        )
+        cache.setExpired()
+        cache.forceReload()
+
+        // Test 1: Date between first and second rate (should use first rate)
+        val result1 = currencyConversionService.convert(
+            BigDecimal("100"),
+            "GBP",
+            "EUR",
+            LocalDate.of(2025, 3, 15) // Between 2025-01-01 and 2025-06-01
+        )
+        assertNotNull(result1)
+        assertEquals(BigDecimal("87.00"), result1) // 100 * 0.87 = 87.00
+
+        // Test 2: Date between second and third rate (should use second rate)
+        val result2 = currencyConversionService.convert(
+            BigDecimal("100"),
+            "GBP",
+            "EUR",
+            LocalDate.of(2025, 8, 20) // Between 2025-06-01 and 2025-12-01
+        )
+        assertNotNull(result2)
+        assertEquals(BigDecimal("95.00"), result2) // 100 * 0.95 = 95.00
+
+        // Test 3: Date after third rate (should use third rate)
+        val result3 = currencyConversionService.convert(
+            BigDecimal("100"),
+            "GBP",
+            "EUR",
+            LocalDate.of(2025, 12, 15) // After 2025-12-01
+        )
+        assertNotNull(result3)
+        assertEquals(BigDecimal("90.00"), result3) // 100 * 0.90 = 90.00
+
+        // Test 4: Date far in the future (should still use third/latest rate)
+        val result4 = currencyConversionService.convert(
+            BigDecimal("100"),
+            "GBP",
+            "EUR",
+            LocalDate.of(2026, 6, 1) // Far in the future
+        )
+        assertNotNull(result4)
+        assertEquals(BigDecimal("90.00"), result4) // 100 * 0.90 = 90.00
+    }
+
+    @Test
     fun convertWithCustomScale() {
         // 100 * 0.85 = 85.0000 with scale 4
         val result = currencyConversionService.convert(
