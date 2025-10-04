@@ -55,9 +55,11 @@ class CurrencyPairPagesRest :
     override fun transformFromDB(obj: CurrencyPairDO, editMode: Boolean): CurrencyPair {
         val currencyPair = CurrencyPair()
         currencyPair.copyFrom(obj)
-        // Load current rate for list view
-        currencyPair.currentRate =
-            currencyConversionService.getConversionRate(obj, LocalDate.now(), checkAccess = false)
+        // Load current rate only for existing entries (id != null)
+        if (obj.id != null) {
+            currencyPair.currentRate =
+                currencyConversionService.getConversionRate(obj, LocalDate.now(), checkAccess = false)
+        }
         return currencyPair
     }
 
