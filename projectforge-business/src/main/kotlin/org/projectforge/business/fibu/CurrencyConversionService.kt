@@ -25,7 +25,6 @@ package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
-import org.projectforge.framework.persistence.history.HistoryFormatService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -49,6 +48,9 @@ class CurrencyConversionService {
 
     @Autowired
     private lateinit var cache: CurrencyConversionCache
+
+    @Autowired
+    private lateinit var configurationService: org.projectforge.business.configuration.ConfigurationService
 
     @PostConstruct
     private fun postConstruct() {
@@ -99,20 +101,6 @@ class CurrencyConversionService {
     }
 
     /**
-     * Finds the active rate for the given date from a list of rates.
-     * The active rate is the one with the latest validFrom date that is not after the given date.
-     * @param rates List of rates sorted by validFrom desc.
-     * @param validAtDate The date for which to find the active rate. Defaults to today.
-     * @return The active rate or null if no rate is valid for the given date.
-     */
-    fun findActiveRate(
-        rates: List<CurrencyConversionRateDO>,
-        validAtDate: LocalDate? = null,
-    ): CurrencyConversionRateDO? {
-        return serviceSupport.getActiveRate(rates, validAtDate)
-    }
-
-    /**
      * Gets the conversion rate for a currency pair at a specific date.
      * @param currencyPair The currency pair.
      * @param validAtDate The date for which to get the rate. Defaults to today.
@@ -125,23 +113,6 @@ class CurrencyConversionService {
         checkAccess: Boolean = true
     ): BigDecimal? {
         return serviceSupport.getConversionRate(currencyPair, validAtDate, checkAccess)
-    }
-
-    /**
-     * Gets the conversion rate for a currency pair at a specific date.
-     * @param currencyPairId The id of the currency pair.
-     * @param validAtDate The date for which to get the rate. Defaults to today.
-     * @param checkAccess If true, the logged-in user must have access to the currency pair.
-     * @return The conversion rate or null if no rate is valid for the given date.
-     */
-    fun getConversionRate(
-        currencyPairId: Long?,
-        validAtDate: LocalDate? = null,
-        checkAccess: Boolean = true
-    ): BigDecimal? {
-        currencyPairId ?: return null
-        val currencyPair = currencyPairDao.find(currencyPairId, checkAccess = checkAccess) ?: return null
-        return getConversionRate(currencyPair, validAtDate, checkAccess)
     }
 
     /**
@@ -173,9 +144,10 @@ class CurrencyConversionService {
 
     /**
      * Converts an amount from one currency to another using the rate valid at the given date.
+     * Uses cache for better performance.
      * @param amount The amount to convert.
-     * @param sourceCurrency The source currency (e.g. "USD").
      * @param targetCurrency The target currency (e.g. "EUR").
+     * @param sourceCurrency The source currency (e.g. "USD"). Defaults to system default currency.
      * @param validAtDate The date for which to get the rate. Defaults to today.
      * @param scale The number of decimal places in the result. Defaults to 2.
      * @param roundingMode The rounding mode. Defaults to HALF_UP.
@@ -184,48 +156,34 @@ class CurrencyConversionService {
      */
     fun convert(
         amount: BigDecimal?,
-        sourceCurrency: String?,
         targetCurrency: String?,
-        validAtDate: LocalDate? = null,
+        sourceCurrency: String? = null,
+        validAtDate: LocalDate = LocalDate.now(),
         scale: Int = 2,
         roundingMode: RoundingMode = RoundingMode.HALF_UP,
-        checkAccess: Boolean = true
     ): BigDecimal? {
-        if (amount == null || sourceCurrency.isNullOrBlank() || targetCurrency.isNullOrBlank()) {
+        amount ?: return null
+        if (targetCurrency.isNullOrBlank()) {
             return null
         }
+
+        // Use system default currency if sourceCurrency is not specified
+        val effectiveSourceCurrency = sourceCurrency?.takeIf { it.isNotBlank() }
+            ?: configurationService.currency
+            ?: "EUR"
+
         // If source and target are the same, return the amount unchanged
-        if (sourceCurrency.uppercase() == targetCurrency.uppercase()) {
+        if (effectiveSourceCurrency.uppercase() == targetCurrency.uppercase()) {
             return amount.setScale(scale, roundingMode)
         }
-        val currencyPair = findCurrencyPair(sourceCurrency, targetCurrency, checkAccess) ?: return null
-        val rate = getConversionRate(currencyPair, validAtDate, checkAccess) ?: return null
+
+        // Get currency pair - without checkAccess.
+        val currencyPair = cache.findCurrencyPair(effectiveSourceCurrency, targetCurrency) ?: return null
+
+        // Get conversion rate from cache
+        val rate = cache.getConversionRate(currencyPair.id, validAtDate) ?: return null
+
         return amount.multiply(rate).setScale(scale, roundingMode)
-    }
-
-    /**
-     * Saves or updates a currency conversion rate.
-     * @param rate The rate to save or update.
-     * @param checkAccess If true, the logged-in user must have insert/update access.
-     * @return The saved or updated rate.
-     */
-    fun saveOrUpdateRate(
-        rate: CurrencyConversionRateDO,
-        checkAccess: Boolean = true
-    ): CurrencyConversionRateDO {
-        return serviceSupport.saveOrUpdate(rate, checkAccess)
-    }
-
-    /**
-     * Deletes a currency conversion rate.
-     * @param rate The rate to delete.
-     * @param checkAccess If true, the logged-in user must have delete access.
-     */
-    fun deleteRate(
-        rate: CurrencyConversionRateDO,
-        checkAccess: Boolean = true
-    ) {
-        serviceSupport.delete(rate, checkAccess)
     }
 
     /**
