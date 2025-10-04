@@ -28,6 +28,7 @@ import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.PfCaches
 import org.projectforge.business.orga.VisitorbookDO
 import org.projectforge.business.orga.VisitorbookDao
+import org.projectforge.business.orga.VisitorbookEntryDO
 import org.projectforge.business.orga.VisitorbookService
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.JacksonConfiguration
@@ -150,6 +151,7 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
             )
             .add(lc, "comment")
         if (dto.id != null) {
+            val entryLc = LayoutContext(VisitorbookEntryDO::class.java)
             layout.layoutBelowActions.add(
                 UIFieldset(title = "orga.visitorbook.visits")
                     .add(
@@ -163,22 +165,10 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
                     )
                     .add(
                         UIAgGrid("entries")
-                            .add(UIAgGridColumnDef.createCol(lc, "dateOfVisit", headerName = "date"))
-                            .add(
-                                UIAgGridColumnDef.createCol(
-                                    lc,
-                                    "arrived",
-                                    headerName = "orga.visitorbook.arrive"
-                                )
-                            )
-                            .add(
-                                UIAgGridColumnDef.createCol(
-                                    lc,
-                                    "departed",
-                                    headerName = "orga.visitorbook.depart"
-                                )
-                            )
-                            .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
+                            .add(UIAgGridColumnDef.createCol(entryLc, "dateOfVisit"))
+                            .add(UIAgGridColumnDef.createCol(entryLc, "arrived"))
+                            .add(UIAgGridColumnDef.createCol(entryLc, "departed"))
+                            .add(UIAgGridColumnDef.createCol(entryLc, "comment"))
                             .withRowClickRedirectUrl(
                                 createModalUrl(dto),
                                 openModal = true,
