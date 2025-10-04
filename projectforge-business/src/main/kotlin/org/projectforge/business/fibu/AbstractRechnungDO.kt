@@ -30,6 +30,7 @@ import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.candh.CandHIgnore
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
@@ -40,7 +41,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 @MappedSuperclass
-abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
+abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung, DisplayNameCapable {
     @PropertyInfo(i18nKey = "fibu.rechnung.datum")
     @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(nullable = false)

@@ -25,6 +25,7 @@ package org.projectforge.business.fibu
 
 import mu.KotlinLogging
 import org.projectforge.business.utils.CurrencyFormatter
+import org.projectforge.common.extensions.formatForUser
 import org.projectforge.framework.time.PFDay.Companion.fromOrNow
 import org.projectforge.framework.utils.MarkdownBuilder
 import org.projectforge.framework.utils.NumberHelper.add
@@ -60,6 +61,13 @@ abstract class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializabl
     var counter: Int
         protected set
 
+    /**
+     * Set of invoice references with currency conversion warnings.
+     * Format: "invoiceRef (date): fromCurrency → toCurrency"
+     */
+    var currencyConversionWarnings: MutableSet<String>
+        protected set
+
     init {
         skonto = BigDecimal.ZERO
         ueberfaellig = skonto
@@ -70,6 +78,7 @@ abstract class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializabl
         bruttoMitSkonto = netto
         counterBezahlt = 0
         counter = counterBezahlt
+        currencyConversionWarnings = mutableSetOf()
     }
 
     fun add(rechnung: T) {
@@ -85,10 +94,10 @@ abstract class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializabl
         val validAtDate = rechnung.datum // Use invoice date for conversion
 
         // Convert amounts to system currency if needed
-        val netto = convertToSystemCurrency(rechnungInfo.netSum, rechnungCurrency, systemCurrency, validAtDate) // Das dauert
-        val brutto = convertToSystemCurrency(rechnungInfo.grossSum, rechnungCurrency, systemCurrency, validAtDate)
-        val bruttoMitSkonto = convertToSystemCurrency(rechnungInfo.grossSumWithDiscount, rechnungCurrency, systemCurrency, validAtDate)
-        val gezahlt = convertToSystemCurrency(rechnungInfo.zahlBetrag, rechnungCurrency, systemCurrency, validAtDate)
+        val netto = convertToSystemCurrency(rechnung, rechnungInfo.netSum, rechnungCurrency, systemCurrency, validAtDate) // Das dauert
+        val brutto = convertToSystemCurrency(rechnung, rechnungInfo.grossSum, rechnungCurrency, systemCurrency, validAtDate)
+        val bruttoMitSkonto = convertToSystemCurrency(rechnung, rechnungInfo.grossSumWithDiscount, rechnungCurrency, systemCurrency, validAtDate)
+        val gezahlt = convertToSystemCurrency(rechnung, rechnungInfo.zahlBetrag, rechnungCurrency, systemCurrency, validAtDate)
 
         this.netto = add(this.netto, netto)
         this.brutto = add(this.brutto, brutto)
@@ -117,8 +126,10 @@ abstract class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializabl
 
     /**
      * Converts an amount to system currency if the source currency differs.
+     * Tracks conversion failures for display to user.
      * Returns the original amount if currencies are the same or conversion fails.
      *
+     * @param rechnung The invoice for error tracking
      * @param amount Amount to convert
      * @param fromCurrency Source currency (e.g. "USD")
      * @param toCurrency Target currency (e.g. "EUR")
@@ -126,6 +137,7 @@ abstract class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializabl
      * @return Converted amount, or original amount if conversion not possible
      */
     private fun convertToSystemCurrency(
+        rechnung: T,
         amount: BigDecimal?,
         fromCurrency: String,
         toCurrency: String,
@@ -148,6 +160,10 @@ abstract class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializabl
         )
 
         if (converted == null) {
+            // Track warning for display
+            val invoiceRef = "${rechnung?.displayName} (${rechnung?.datum?.formatForUser() ?: "?"})"
+            currencyConversionWarnings.add("$invoiceRef: $fromCurrency → $toCurrency")
+
             log.warn { "Could not convert $amount $fromCurrency to $toCurrency for date $validAtDate. Using original amount." }
             return amount
         }
@@ -181,6 +197,19 @@ abstract class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializabl
 
     val tatsaechlichesZahlungzielAverage: Int
         get() = tatsaechlichesZahlungsZiel.weightedAverage
+
+    /**
+     * Returns true if there were currency conversion warnings during statistics calculation.
+     */
+    val hasCurrencyConversionWarnings: Boolean
+        get() = currencyConversionWarnings.isNotEmpty()
+
+    /**
+     * Returns formatted warning message list for Wicket display.
+     * @return List of warning strings, one per invoice
+     */
+    val currencyConversionWarningsList: List<String>
+        get() = currencyConversionWarnings.toList()
 
     companion object {
         private const val serialVersionUID = 3695426728243488756L
