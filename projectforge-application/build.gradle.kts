@@ -24,7 +24,6 @@ val projectVersion = libs.versions.org.projectforge.get() // Current version.
 val kotlinVersion = libs.versions.org.jetbrains.kotlin.get() // Current version.
 val kotlinxCoroutinesVersion = libs.versions.org.jetbrains.kotlinx.coroutines.core.get() // Current version.
 
-val glassfishJaxbVersion = libs.versions.org.glassfish.jaxb.get()
 val jacksonVersion = libs.versions.com.fasterxml.jackson.get()
 val springVersion = libs.versions.org.springframework.spring.get()
 val springBootVersion = libs.versions.org.springframework.boot.get()
@@ -102,8 +101,6 @@ dependencies {
     implementation("org.springframework:spring-jdbc:$springVersion")
     implementation("org.springframework:spring-web:$springVersion")
     implementation("org.springframework:spring-webflux:$springVersion")
-    implementation("org.glassfish.jaxb:jaxb-core:$glassfishJaxbVersion")
-    implementation("org.glassfish.jaxb:xsom:$glassfishJaxbVersion")
 
     // Logging:
     implementation(libs.ch.qos.logback.classic)
@@ -150,7 +147,6 @@ dependencies {
     implementation(libs.jakarta.servlet.jsp.api)
     implementation(libs.jakarta.validation.api)
     implementation(libs.jakarta.ws.rs.api)
-    implementation(libs.jakarta.xml.bind.api)
     implementation(libs.javax.jcr)
     implementation(libs.jboss.logging)
     implementation(libs.joda.time.joda.time)
@@ -186,8 +182,6 @@ dependencies {
     implementation(libs.org.flywaydb.core)
     implementation(libs.org.flywaydb.database.hsqldb)
     implementation(libs.org.flywaydb.database.postgresql)
-    implementation(libs.org.glassfish.jaxb.runtime)
-    implementation(libs.org.glassfish.jaxb.xjc)
     implementation(libs.org.hibernate.orm.core)
     implementation(libs.org.hibernate.search.backend.lucene)
     implementation(libs.org.hibernate.search.mapper.orm)

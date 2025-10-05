@@ -2,8 +2,8 @@
 <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.003.03">
     <CstmrCdtTrfInitn>
         <GrpHdr>
-            <MsgId>transfer-2025-10-05-21:16</MsgId>
-            <CreDtTm>2025-10-05T23:16:03.408+02:00</CreDtTm>
+            <MsgId>transfer-2025-10-05-21:33</MsgId>
+            <CreDtTm>2025-10-05T23:33:10.246+02:00</CreDtTm>
             <NbOfTxs>1</NbOfTxs>
             <CtrlSum>999.99</CtrlSum>
             <InitgPty>
@@ -11,7 +11,7 @@
             </InitgPty>
         </GrpHdr>
         <PmtInf>
-            <PmtInfId>transfer-2025-10-05-21:16-1</PmtInfId>
+            <PmtInfId>transfer-2025-10-05-21:33-1</PmtInfId>
             <PmtMtd>TRF</PmtMtd>
             <BtchBookg>true</BtchBookg>
             <NbOfTxs>1</NbOfTxs>
@@ -37,7 +37,7 @@
             </DbtrAgt>
             <CdtTrfTxInf>
                 <PmtId>
-                    <EndToEndId>transfer-2025-10-05-21:16-1-1</EndToEndId>
+                    <EndToEndId>transfer-2025-10-05-21:33-1-1</EndToEndId>
                 </PmtId>
                 <Amt>
                     <InstdAmt Ccy="EUR">999.99</InstdAmt>
