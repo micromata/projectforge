@@ -116,11 +116,9 @@ class SEPATransferValidationTest : AbstractTestBase() {
 
             val goldenFile = File("src/test/resources/sepa/golden/${testCase.name}")
             if (goldenFile.exists()) {
-                val goldenXml = goldenFile.readText(StandardCharsets.UTF_8)
-
-                // Compare structure (not exact match due to timestamps)
-                assertXmlStructureMatches(regeneratedXml, goldenXml, testCase.name)
-                println("✓ Structure validation passed: ${testCase.name}")
+                // Compare with golden file (ignoring timestamps via normalization)
+                assertXmlEquals(goldenFile, regeneratedXml, testCase.name)
+                println("✓ Golden file validation passed: ${testCase.name}")
             }
         }
     }
@@ -247,27 +245,19 @@ class SEPATransferValidationTest : AbstractTestBase() {
         return invoice
     }
 
-    private fun assertXmlStructureMatches(regenerated: String, golden: String, testName: String) {
-        val regenDoc = parseXml(regenerated)
-        val goldenDoc = parseXml(golden)
+    private fun normalizeXml(xml: String): String {
+        return xml
+            .replace(Regex("<MsgId>.*?</MsgId>"), "<MsgId>NORMALIZED</MsgId>")
+            .replace(Regex("<CreDtTm>.*?</CreDtTm>"), "<CreDtTm>NORMALIZED</CreDtTm>")
+            .replace(Regex("<PmtInfId>.*?</PmtInfId>"), "<PmtInfId>NORMALIZED</PmtInfId>")
+            .replace(Regex("<EndToEndId>.*?</EndToEndId>"), "<EndToEndId>NORMALIZED</EndToEndId>")
+            .replace(Regex("<ReqdExctnDt>.*?</ReqdExctnDt>"), "<ReqdExctnDt>NORMALIZED</ReqdExctnDt>")
+    }
 
-        // Compare key structural elements (ignoring timestamps and IDs)
-        val fieldsToCompare = listOf(
-            "//PmtMtd",
-            "//SvcLvl/Cd",
-            "//Cdtr/Nm",
-            "//CdtrAcct/Id/IBAN",
-            "//Ustrd",
-            "//InstdAmt",
-            "//@Ccy"
-        )
-
-        for (xpath in fieldsToCompare) {
-            val regenValue = getXPathValue(regenDoc, xpath)
-            val goldenValue = getXPathValue(goldenDoc, xpath)
-            assertEquals(goldenValue, regenValue,
-                "$testName: XPath $xpath should match golden file")
-        }
+    private fun assertXmlEquals(goldenFile: File, generatedXml: String, message: String = "") {
+        assertTrue(goldenFile.exists(), "Golden file should exist: ${goldenFile.absolutePath}")
+        val goldenXml = goldenFile.readText(StandardCharsets.UTF_8)
+        assertEquals(normalizeXml(goldenXml), normalizeXml(generatedXml), message)
     }
 
     private fun parseXml(xml: String): Document {
