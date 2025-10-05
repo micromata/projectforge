@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.003.03">
+    <CstmrCdtTrfInitn>
+        <GrpHdr>
+            <MsgId>transfer-2025-10-05-20:38</MsgId>
+            <CreDtTm>2025-10-05T22:38:04.729+02:00</CreDtTm>
+            <NbOfTxs>3</NbOfTxs>
+            <CtrlSum>1851.00</CtrlSum>
+            <InitgPty>
+                <Nm>Test Organization GmbH</Nm>
+            </InitgPty>
+        </GrpHdr>
+        <PmtInf>
+            <PmtInfId>transfer-2025-10-05-20:38-1</PmtInfId>
+            <PmtMtd>TRF</PmtMtd>
+            <BtchBookg>true</BtchBookg>
+            <NbOfTxs>3</NbOfTxs>
+            <CtrlSum>1851.00</CtrlSum>
+            <PmtTpInf>
+                <SvcLvl>
+                    <Cd>SEPA</Cd>
+                </SvcLvl>
+            </PmtTpInf>
+            <ReqdExctnDt>2025-10-05+02:00</ReqdExctnDt>
+            <Dbtr>
+                <Nm>Test Organization GmbH</Nm>
+            </Dbtr>
+            <DbtrAcct>
+                <Id>
+                    <IBAN>DE87200500001234567890</IBAN>
+                </Id>
+            </DbtrAcct>
+            <DbtrAgt>
+                <FinInstnId>
+                    <BIC>BANKDEFFXXX</BIC>
+                </FinInstnId>
+            </DbtrAgt>
+            <CdtTrfTxInf>
+                <PmtId>
+                    <EndToEndId>transfer-2025-10-05-20:38-1-1</EndToEndId>
+                </PmtId>
+                <Amt>
+                    <InstdAmt Ccy="EUR">100.00</InstdAmt>
+                </Amt>
+                <Cdtr>
+                    <Nm>Supplier A GmbH</Nm>
+                </Cdtr>
+                <CdtrAcct>
+                    <Id>
+                        <IBAN>DE12500105170648489890</IBAN>
+                    </Id>
+                </CdtrAcct>
+                <RmtInf>
+                    <Ustrd>Invoice A-123</Ustrd>
+                </RmtInf>
+            </CdtTrfTxInf>
+            <CdtTrfTxInf>
+                <PmtId>
+                    <EndToEndId>transfer-2025-10-05-20:38-1-2</EndToEndId>
+                </PmtId>
+                <Amt>
+                    <InstdAmt Ccy="EUR">250.75</InstdAmt>
+                </Amt>
+                <Cdtr>
+                    <Nm>Supplier B AG</Nm>
+                </Cdtr>
+                <CdtrAcct>
+                    <Id>
+                        <IBAN>DE98765432109876543210</IBAN>
+                    </Id>
+                </CdtrAcct>
+                <RmtInf>
+                    <Ustrd>Invoice B-456</Ustrd>
+                </RmtInf>
+            </CdtTrfTxInf>
+            <CdtTrfTxInf>
+                <PmtId>
+                    <EndToEndId>transfer-2025-10-05-20:38-1-3</EndToEndId>
+                </PmtId>
+                <Amt>
+                    <InstdAmt Ccy="EUR">1500.25</InstdAmt>
+                </Amt>
+                <Cdtr>
+                    <Nm>Supplier C KG</Nm>
+                </Cdtr>
+                <CdtrAcct>
+                    <Id>
+                        <IBAN>DE11222333444555666777</IBAN>
+                    </Id>
+                </CdtrAcct>
+                <RmtInf>
+                    <Ustrd>Invoice C-789</Ustrd>
+                </RmtInf>
+            </CdtTrfTxInf>
+        </PmtInf>
+    </CstmrCdtTrfInitn>
+</Document>
