@@ -69,6 +69,9 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
   @Autowired
   private lateinit var eingangsrechnungPagesRest: EingangsrechnungPagesRest
 
+  @Autowired
+  private lateinit var configurationService: org.projectforge.business.configuration.ConfigurationService
+
   override val layoutContext: LayoutContext = LayoutContext(EingangsrechnungDO::class.java)
 
   override fun getTitleKey(): String {
@@ -202,6 +205,28 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
     if (invoices.isNullOrEmpty()) {
       return RestUtils.downloadFile("error.txt", translate("massUpdate.error.noEntriesSelected"))
     }
+
+    // Check for foreign currency invoices
+    val systemCurrency = configurationService.currency ?: "EUR"
+    val foreignCurrencyInvoices = invoices.filter { invoice ->
+      val currency = invoice.currency
+      !currency.isNullOrBlank() && !currency.equals(systemCurrency, ignoreCase = true)
+    }
+
+    if (foreignCurrencyInvoices.isNotEmpty()) {
+      val sb = StringBuilder()
+      sb.appendLine(translateMsg("fibu.rechnung.transferExport.error.foreignCurrency", systemCurrency))
+        .appendLine()
+      foreignCurrencyInvoices.forEach { invoice ->
+        val date = PFDay.fromOrNull(invoice.datum)?.format() ?: ""
+        val kreditor = invoice.kreditor ?: ""
+        val referenz = invoice.referenz ?: ""
+        val currency = invoice.currency ?: ""
+        sb.appendLine("[$date $kreditor - $referenz]: $currency")
+      }
+      return RestUtils.downloadFile("error.txt", sb.toString())
+    }
+
     val filename = "transfer-${PFDateTime.now().format4Filenames()}.xml"
     val result: SEPATransferResult = this.SEPATransferGenerator.format(invoices)
     if (!result.isSuccessful) {

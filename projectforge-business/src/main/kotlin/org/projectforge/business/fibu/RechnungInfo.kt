@@ -41,10 +41,10 @@ class RechnungInfo(invoice: AbstractRechnungDO) : Serializable {
 
     val date = invoice.datum
 
-    @PropertyInfo(i18nKey = "fibu.common.netto", type = PropertyType.CURRENCY)
+    @PropertyInfo(i18nKey = "fibu.common.netto", type = PropertyType.CURRENCY_PLAIN)
     var netSum = BigDecimal.ZERO
 
-    @PropertyInfo(i18nKey = "fibu.common.brutto", type = PropertyType.CURRENCY)
+    @PropertyInfo(i18nKey = "fibu.common.brutto", type = PropertyType.CURRENCY_PLAIN)
     var grossSum = BigDecimal.ZERO
 
     var vatAmount: BigDecimal = BigDecimal.ZERO
@@ -53,7 +53,7 @@ class RechnungInfo(invoice: AbstractRechnungDO) : Serializable {
      * Returns the gross amount or the amount less the discount if the discount period has not yet expired.
      * If the invoice has already been paid, the amount actually paid will be returned.
      */
-    @PropertyInfo(i18nKey = "fibu.common.brutto", type = PropertyType.CURRENCY)
+    @PropertyInfo(i18nKey = "fibu.common.brutto", type = PropertyType.CURRENCY_PLAIN)
     var grossSumWithDiscount = BigDecimal.ZERO
 
     val bezahlDatum = invoice.bezahlDatum
@@ -80,7 +80,7 @@ class RechnungInfo(invoice: AbstractRechnungDO) : Serializable {
 
     var isUeberfaellig = false
 
-    @get:PropertyInfo(i18nKey = "fibu.rechnung.faelligkeit", type = PropertyType.CURRENCY)
+    @get:PropertyInfo(i18nKey = "fibu.rechnung.faelligkeit", type = PropertyType.CURRENCY_PLAIN)
     var faelligkeitOrDiscountMaturity: LocalDate? = null
 
     /**
