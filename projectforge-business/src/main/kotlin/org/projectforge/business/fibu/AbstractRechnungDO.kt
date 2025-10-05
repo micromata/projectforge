@@ -102,6 +102,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung, DisplayNameCapab
     override var zahlBetrag: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.currency")
+    @FullTextField
     @get:Column(length = 10)
     override var currency: String? = null
 
