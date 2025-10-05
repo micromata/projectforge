@@ -49,14 +49,6 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
     "fibu.eingangsrechnung.title"
 ) {
 
-    /**
-     * ########################################
-     * # Force usage only for selection mode: #
-     * #                                      #
-     * # If used in normal mode, please note: #
-     * # SEPA-export of NON-EUR amounts!!!!!  #
-     * ########################################
-     */
     override fun getInitialList(request: HttpServletRequest): InitialListData {
         MultiSelectionSupport.ensureMultiSelectionOnly(request, this, "/wa/incomingInvoiceList")
         return super.getInitialList(request)
@@ -89,6 +81,7 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
             .add(lc, "bezahlDatum")
             .add(lc, "ibanFormatted", lcField = "iban")
             .add(infoLC, "netSum", "grossSumWithDiscount")
+            .add(lc, "currency")
             .add(lc, "paymentTypeAsString", lcField = "paymentType", width = 100)
             .add(lc, "bemerkung")
             .add(field = "kost1List", headerName = translate("fibu.kost1"), tooltipField = "kost1Info")
