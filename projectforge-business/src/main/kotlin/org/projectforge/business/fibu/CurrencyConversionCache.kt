@@ -155,6 +155,25 @@ open class CurrencyConversionCache : AbstractCache(), BaseDOModifiedListener<Cur
     }
 
     /**
+     * Gets the validFrom date of the active conversion rate for a currency pair at a specific date.
+     * @param currencyPairId The currency pair id.
+     * @param validAtDate The date for which to get the rate. Defaults to today.
+     * @param useFallbackToOldestRate If true and no rate exists for validAtDate, use the oldest available rate as fallback.
+     * @return The validFrom date of the active rate or null if no rate is valid for the given date.
+     */
+    fun getActiveRateDate(
+        currencyPairId: Long?,
+        validAtDate: LocalDate = LocalDate.now(),
+        useFallbackToOldestRate: Boolean = false
+    ): LocalDate? {
+        currencyPairId ?: return null
+        checkRefresh()
+        val currencyPair = currencyPairMap[currencyPairId] ?: return null
+        val activeRate = findActiveRate(currencyPair, validAtDate, useFallbackToOldestRate)
+        return activeRate?.validFrom
+    }
+
+    /**
      * Gets all rates for a currency pair.
      * @param currencyPairId The currency pair id.
      * @return List of rates sorted by validFrom DESC, or empty list if currency pair not found.

@@ -66,6 +66,8 @@ class CurrencyPairPagesRest :
                     LocalDate.now(),
                     inverseRate = true,
                 )
+            currencyPair.currentRateDate =
+                currencyConversionService.getConversionRateDate(obj, LocalDate.now())
         }
         return currencyPair
     }
@@ -131,6 +133,10 @@ class CurrencyPairPagesRest :
                 lc,
                 "sourceCurrency",
                 "targetCurrency"
+            )
+            .add(
+                "currentRateDate", headerName = "attr.validSince",
+                formatter = UIAgGridColumnDef.Formatter.DATE, width = 150,
             )
             .add(
                 "currentRate", headerName = "fibu.currencyConversion.currentRate",
