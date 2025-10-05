@@ -113,6 +113,13 @@ class CurrencyPairPagesRest :
         magicFilter: MagicFilter,
         userAccess: UILayout.UserAccess
     ) {
+        layout.add(
+            UIAlert(
+                "fibu.currencyPair.onlineRates.info",
+                color = UIColor.INFO,
+                markdown = true
+            )
+        )
         agGridSupport.prepareUIGrid4ListPage(
             request,
             layout,
