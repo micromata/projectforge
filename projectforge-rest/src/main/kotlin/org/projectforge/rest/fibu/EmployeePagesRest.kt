@@ -194,6 +194,7 @@ class EmployeePagesRest :
         if (dto.id == null) {
             layout.add(UIAlert("fibu.employee.insert.hint", color = UIColor.INFO))
         } else {
+            val attrLc = LayoutContext(EmployeeValidSinceAttrDO::class.java)
             layout.layoutBelowActions
                 .add(
                     UIRow()
@@ -202,15 +203,9 @@ class EmployeePagesRest :
                                 UIFieldset(title = "fibu.employee.urlaubstage")
                                     .add(
                                         UIAgGrid("annualLeaveEntries")
-                                            .add(
-                                                UIAgGridColumnDef.createCol(
-                                                    lc,
-                                                    "validSince",
-                                                    headerName = "attr.validSince"
-                                                )
-                                            )
-                                            .add(UIAgGridColumnDef.createCol(lc, "value", headerName = "days"))
-                                            .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
+                                            .add(UIAgGridColumnDef.createCol(attrLc, "validSince"))
+                                            .add(UIAgGridColumnDef.createCol(attrLc, "value", headerName = "days"))
+                                            .add(UIAgGridColumnDef.createCol(attrLc, "comment"))
                                             .withRowClickRedirectUrl(
                                                 createModalUrl(dto, EmployeeValidSinceAttrType.ANNUAL_LEAVE),
                                                 openModal = true,
@@ -231,15 +226,9 @@ class EmployeePagesRest :
                                 UIFieldset(title = "fibu.employee.wochenstunden")
                                     .add(
                                         UIAgGrid("weeklyWorkingHoursEntries")
-                                            .add(
-                                                UIAgGridColumnDef.createCol(
-                                                    lc,
-                                                    "validSince",
-                                                    headerName = "attr.validSince"
-                                                )
-                                            )
-                                            .add(UIAgGridColumnDef.createCol(lc, "value", headerName = "days"))
-                                            .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
+                                            .add(UIAgGridColumnDef.createCol(attrLc, "validSince"))
+                                            .add(UIAgGridColumnDef.createCol(attrLc, "value", headerName = "fibu.employee.sollstunden"))
+                                            .add(UIAgGridColumnDef.createCol(attrLc, "comment"))
                                             .withRowClickRedirectUrl(
                                                 createModalUrl(dto, EmployeeValidSinceAttrType.WEEKLY_HOURS),
                                                 openModal = true,
@@ -265,15 +254,9 @@ class EmployeePagesRest :
                                     UIFieldset(title = "fibu.employee.status")
                                         .add(
                                             UIAgGrid("statusEntries")
-                                                .add(
-                                                    UIAgGridColumnDef.createCol(
-                                                        lc,
-                                                        "validSince",
-                                                        headerName = "attr.validSince"
-                                                    )
-                                                )
-                                                .add(UIAgGridColumnDef.createCol(lc, "value", headerName = "status"))
-                                                .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
+                                                .add(UIAgGridColumnDef.createCol(attrLc, "validSince"))
+                                                .add(UIAgGridColumnDef.createCol(attrLc, "value", headerName = "status"))
+                                                .add(UIAgGridColumnDef.createCol(attrLc, "comment"))
                                                 .withRowClickRedirectUrl(
                                                     createModalUrl(dto, EmployeeValidSinceAttrType.STATUS),
                                                     openModal = true,

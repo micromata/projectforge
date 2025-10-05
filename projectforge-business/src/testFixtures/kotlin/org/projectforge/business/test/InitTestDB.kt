@@ -304,6 +304,7 @@ class InitTestDB {
             .addRight(UserRightDO(UserRightId.FIBU_EINGANGSRECHNUNGEN, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.FIBU_ACCOUNTS, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.FIBU_COST_UNIT, UserRightValue.READWRITE)) //
+            .addRight(UserRightDO(UserRightId.FIBU_CURRENCY_CONVERSION, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.PM_PROJECT, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE)) //
@@ -326,6 +327,7 @@ class InitTestDB {
             .addRight(UserRightDO(UserRightId.HR_EMPLOYEE_SALARY, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.FIBU_ACCOUNTS, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.FIBU_COST_UNIT, UserRightValue.READWRITE)) //
+            .addRight(UserRightDO(UserRightId.FIBU_CURRENCY_CONVERSION, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.PM_PROJECT, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE)) //

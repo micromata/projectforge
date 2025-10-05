@@ -51,7 +51,6 @@ public class EingangsrechnungListForm extends AbstractRechnungListForm<Eingangsr
   @Override
   protected void onBeforeAddStatistics()
   {
-    gridBuilder.newGridPanel();
     final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.payment.type")).suppressLabelForWarning();
     fs.add(createPaymentTypeMultiChoice());
   }

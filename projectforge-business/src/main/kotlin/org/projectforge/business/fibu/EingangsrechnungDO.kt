@@ -57,7 +57,7 @@ import org.projectforge.framework.utils.StringComparator
         query = "select min(datum), max(datum) from EingangsrechnungDO"
     )
 )
-open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<EingangsrechnungDO>, DisplayNameCapable {
+open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<EingangsrechnungDO> {
 
     override val displayName: String
         @Transient

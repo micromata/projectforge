@@ -62,6 +62,34 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
 
   private void addStatistics() {
     gridBuilder.newGridPanel();
+
+    // Show currency conversion warnings if any - use lazy evaluation
+    final FieldsetPanel warningFs = gridBuilder.newFieldset("")
+        .setLabelSide(false)
+        .suppressLabelForWarning();
+
+    warningFs.add(new org.apache.wicket.markup.html.basic.Label(warningFs.newChildId(), new Model<String>() {
+      @Override
+      public String getObject() {
+        try {
+          if (getStats().getHasCurrencyConversionWarnings()) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("<span style='color: red; font-weight: bold;'>");
+            sb.append(getString("fibu.rechnung.currencyConversion.warnings.header"));
+            sb.append("</span><br/>");
+            for (String warning : getStats().getCurrencyConversionWarningsList()) {
+              sb.append("<span style='color: red;'>• ").append(warning).append("</span><br/>");
+            }
+            sb.append("<br/>");
+            return sb.toString();
+          }
+        } catch (Exception e) {
+          // List not yet available during init, will be shown on next render
+        }
+        return "";
+      }
+    }).setEscapeModelStrings(false));
+
     final FieldsetPanel fs = gridBuilder.newFieldset(getString("statistics")).suppressLabelForWarning();
     fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
       @Override
