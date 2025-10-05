@@ -46,7 +46,18 @@ public class CurrencyFormatter
    */
   public static String format(final BigDecimal value)
   {
-    return format(value, ThreadLocalUserContext.getLocale());
+    return format(value, ThreadLocalUserContext.getLocale(), true);
+  }
+
+  /**
+   * Uses the locale of the context user.
+   * @param value
+   * @param withCurrencySymbol If true, appends currency symbol (default true for backward compatibility)
+   * @return 1,234.00 € or 1,234.00 (without symbol)
+   */
+  public static String format(final BigDecimal value, final boolean withCurrencySymbol)
+  {
+    return format(value, ThreadLocalUserContext.getLocale(), withCurrencySymbol);
   }
 
   /**
@@ -57,10 +68,26 @@ public class CurrencyFormatter
    */
   public static String format(final BigDecimal value, final Locale locale)
   {
+    return format(value, locale, true);
+  }
+
+  /**
+   * Uses the currency symbol of ConfigXml.
+   * @param value
+   * @param locale
+   * @param withCurrencySymbol If true, appends currency symbol (default true for backward compatibility)
+   * @return 1,234.00 € or 1,234.00 (without symbol)
+   */
+  public static String format(final BigDecimal value, final Locale locale, final boolean withCurrencySymbol)
+  {
     if (value == null) {
       return "";
     }
     NumberFormat nf = NumberHelper.getCurrencyFormat(locale);
-    return nf.format(value) + " " + ConfigurationServiceAccessor.get().getCurrencySymbol();
+    if (withCurrencySymbol) {
+      return nf.format(value) + " " + ConfigurationServiceAccessor.get().getCurrencySymbol();
+    } else {
+      return nf.format(value);
+    }
   }
 }

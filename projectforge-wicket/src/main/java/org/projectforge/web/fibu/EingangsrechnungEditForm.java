@@ -35,9 +35,9 @@ import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.fibu.CurrencyConversionCache;
 import org.projectforge.business.fibu.CurrencyConversionService;
 import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
-import org.projectforge.framework.utils.NumberFormatter;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.common.IbanValidator;
 import org.projectforge.web.wicket.WebConstants;
@@ -194,8 +194,8 @@ public class EingangsrechnungEditForm extends
                   if (convertedAmount != null) {
                     // brutto: 145,45 USD = 123,00 EUR
                     final String bruttoInfo = getString("fibu.common.brutto") + ": "
-                      + NumberFormatter.format(grossSum, 2) + " " + invoiceCurrency + " = "
-                      + NumberFormatter.format(convertedAmount, 2) + " " + systemCurrency;
+                      + CurrencyFormatter.format(grossSum, false) + " " + invoiceCurrency + " = "
+                      + CurrencyFormatter.format(convertedAmount, false) + " " + systemCurrency;
                     return rateInfo + WebConstants.HTML_TEXT_DIVIDER + bruttoInfo;
                   }
                 }
