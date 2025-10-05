@@ -63,7 +63,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Long>>
  * The setting of the DO class is required.
  */
 protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceListener<O> {
-    protected val baseDOChangedRegistry = BaseDOChangedRegistry<O>(this)
+    private val baseDOChangedRegistry = BaseDOChangedRegistry<O>(this)
 
     /**
      * If true, the user is able to enter a comment in the edit pages: This comment is attached to the history entry.

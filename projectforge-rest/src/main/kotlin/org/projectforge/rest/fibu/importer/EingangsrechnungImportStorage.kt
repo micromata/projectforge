@@ -869,6 +869,10 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
             }
 
             if (read != null && stored != null) {
+                // Preserve faelligkeit if not in import (consistent with bezahlDatum/zahlBetrag logic)
+                if (read.faelligkeit == null && stored.faelligkeit != null) {
+                    read.faelligkeit = stored.faelligkeit
+                }
 
                 // Preserve bemerkung if not in import (e.g., position-based imports don't include this field)
                 if (read.bemerkung == null && stored.bemerkung != null) {

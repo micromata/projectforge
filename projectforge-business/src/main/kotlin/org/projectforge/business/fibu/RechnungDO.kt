@@ -60,6 +60,9 @@ import java.time.LocalDate
     NamedQuery(name = RechnungDO.FIND_OTHER_BY_NUMMER, query = "from RechnungDO where nummer=:nummer and id!=:id")
 )
 open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
+    override val displayName: String
+        @Transient
+        get() = "$nummer"
 
     @PropertyInfo(i18nKey = "fibu.rechnung.nummer")
     @GenericField // was: @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))

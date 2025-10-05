@@ -23,44 +23,13 @@
 
 package org.projectforge.ui
 
-enum class UIElementType {
-    ALERT,
-    /**
-     * Attachments including list view, downloading, uploading and deleting files.
-     */
-    ATTACHMENT_LIST,
-    AG_GRID,
-    AG_GRID_LIST_PAGE,
-    AG_GRID_COLUMN_DEF,
-    BADGE,
-    BADGE_LIST,
-    BUTTON,
-    CHECKBOX,
-    COL,
-    CREATABLE_SELECT,
-    CUSTOMIZED,
-    DROP_AREA,
-    EDITOR,
-    FIELDSET,
-    FILTER_ELEMENT,
-    GROUP,
-    /**
-     * Inline group for displaying elements side-by-side without wrapping (e.g. Label + Input + Label).
-     */
-    INLINE_GROUP,
-    INPUT,
-    LABEL,
-    LIST,
-    NAMED_CONTAINER,
-    PROGRESS,
-    RADIOBUTTON,
-    READONLY_FIELD,
-    RATING,
-    ROW,
-    SPACER,
-    SELECT,
-    TABLE,
-    TABLE_LIST_PAGE,
-    TABLE_COLUMN,
-    TEXTAREA
+/**
+ * An inline group displays UI elements side-by-side without wrapping, useful for compact layouts
+ * like "Label + Input + Label" combinations that should stay together on one line.
+ */
+data class UIInlineGroup(val content: MutableList<UIElement> = mutableListOf()) : UIElement(UIElementType.INLINE_GROUP) {
+    fun add(element: UIElement): UIInlineGroup {
+        content.add(element)
+        return this
+    }
 }
