@@ -93,7 +93,7 @@ public class CurrencyConverter extends BigDecimalConverter
   public BigDecimal convertToObject(String value, final Locale locale)
   {
     value = StringUtils.trimToEmpty(value);
-    if (value.endsWith(currency) == true) {
+    if (currency != null && value.endsWith(currency) == true) {
       value = value.substring(0, value.length() - 1).trim();
     } else if (totalAmount != null && value.endsWith("%") == true) {
       value = value.substring(0, value.length() - 1).trim();

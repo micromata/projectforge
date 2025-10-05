@@ -106,11 +106,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
     // GRID 50% - BLOCK
     gridBuilder.newSplitPanel(GridSize.COL50, true);
     gridBuilder.newSubSplitPanel(GridSize.COL50);
-    {
-      // Currency
-      final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "currency");
-      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "currency")));
-    }
+    addCurrencyField();
     gridBuilder.newSubSplitPanel(GridSize.COL50);
     {
       // Net sum
@@ -314,6 +310,9 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
     return new FieldProperties<>("fibu.rechnung.discountMaturity", new PropertyModel<>(super.data, "discountMaturity"));
   }
 
+  protected void addCurrencyField() {
+    // Override in subclasses if needed.
+  }
 
   protected void addCellAfterDiscount() {
     // Do nothing.

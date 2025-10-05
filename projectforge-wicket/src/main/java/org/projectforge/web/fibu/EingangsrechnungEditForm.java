@@ -30,6 +30,7 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.validation.IValidator;
+import org.apache.wicket.validation.ValidationError;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.fibu.CurrencyConversionCache;
@@ -233,6 +234,49 @@ public class EingangsrechnungEditForm extends
 
     getData().setBic(newestRechnung.getBic());
     target.add(bicField);
+  }
+
+  @Override
+  protected void addCurrencyField()
+  {
+    // Currency
+    final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "currency");
+    final MaxLengthTextField currencyField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "currency"));
+
+    // Convert to uppercase on blur
+    currencyField.add(new AjaxFormComponentUpdatingBehavior("blur")
+    {
+      @Override
+      protected void onUpdate(final AjaxRequestTarget target)
+      {
+        final String currency = data.getCurrency();
+        if (StringUtils.isNotBlank(currency)) {
+          data.setCurrency(currency.toUpperCase());
+          target.add(currencyField);
+        }
+      }
+    });
+
+    currencyField.add((IValidator<String>) validatable -> {
+      final String currency = validatable.getValue();
+      if (StringUtils.isNotBlank(currency)) {
+        final ConfigurationService configService = WicketSupport.get(ConfigurationService.class);
+        final String systemCurrency = configService.getCurrency() != null ? configService.getCurrency() : "EUR";
+
+        // Check if currency is system currency
+        if (!systemCurrency.equalsIgnoreCase(currency)) {
+          // Check if currency is known in currency conversion
+          final CurrencyConversionCache cache = WicketSupport.get(CurrencyConversionCache.class);
+          if (cache.findCurrencyPairForConversion(currency, systemCurrency) == null &&
+              cache.findCurrencyPairForConversion(systemCurrency, currency) == null) {
+            validatable.error(new ValidationError().addKey("fibu.rechnung.error.unknownCurrency").setVariable("currency", currency));
+          }
+        }
+      }
+    });
+
+    currencyField.setOutputMarkupId(true);
+    fs.add(currencyField);
   }
 
   @Override
