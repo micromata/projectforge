@@ -56,7 +56,7 @@ import javax.xml.validation.SchemaFactory
 class SEPATransferGenerator {
 
     enum class SEPATransferError {
-        JAXB_CONTEXT_MISSING, NO_INPUT, SUM, BANK_TRANSFER, BIC, IBAN, RECEIVER, REFERENCE, INVOICE_OR_DEBITOR_NOTEXISTING
+        NO_INPUT, SUM, BANK_TRANSFER, BIC, IBAN, RECEIVER, REFERENCE, INVOICE_OR_DEBITOR_NOTEXISTING
     }
 
     companion object {
