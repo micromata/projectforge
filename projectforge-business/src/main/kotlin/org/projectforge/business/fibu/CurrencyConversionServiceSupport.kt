@@ -43,6 +43,9 @@ internal class CurrencyConversionServiceSupport {
     private lateinit var baseDOPersistenceService: BaseDOPersistenceService
 
     @Autowired
+    private lateinit var cache: CurrencyConversionCache
+
+    @Autowired
     private lateinit var currencyPairDao: CurrencyPairDao
 
     @Autowired
@@ -122,6 +125,7 @@ internal class CurrencyConversionServiceSupport {
         } else {
             baseDOPersistenceService.update(rate, checkAccess = checkAccess)
         }
+        cache.setExpired()
         return rate
     }
 
@@ -135,6 +139,7 @@ internal class CurrencyConversionServiceSupport {
         checkAccess: Boolean = true
     ) {
         baseDOPersistenceService.markAsDeleted(obj = rate, checkAccess = checkAccess)
+        cache.setExpired()
     }
 
     /**
@@ -209,14 +214,18 @@ internal class CurrencyConversionServiceSupport {
             currencyPairDao.checkLoggedInUserInsertAccess(currencyPair)
         }
         val other = validate(rate)
-        if (other != null) {
-            // This algorithm is needed to handle deleted entries. Otherwise, they aren't visible for the users and
-            // the users can't add or modify entries with the validFrom date of the deleted ones.
-            other.copyFrom(rate)
-            baseDOPersistenceService.undelete(obj = other, checkAccess = checkAccess)
-            return other.id
+        try {
+            if (other != null) {
+                // This algorithm is needed to handle deleted entries. Otherwise, they aren't visible for the users and
+                // the users can't add or modify entries with the validFrom date of the deleted ones.
+                other.copyFrom(rate)
+                baseDOPersistenceService.undelete(obj = other, checkAccess = checkAccess)
+                return other.id
+            }
+            return baseDOPersistenceService.insert(rate, checkAccess = checkAccess)
+        } finally {
+            cache.setExpired()
         }
-        return baseDOPersistenceService.insert(rate, checkAccess = checkAccess)
     }
 
     /**
@@ -237,19 +246,23 @@ internal class CurrencyConversionServiceSupport {
             currencyPairDao.checkLoggedInUserUpdateAccess(currencyPair, currencyPair)
         }
         val other = validate(rate)
-        if (other != null) {
-            // This algorithm is needed to handle deleted entries. Otherwise, they aren't visible for the users and
-            // the users can't add or modify entries with the validFrom date of the deleted ones.
-            findRate(rate.id, checkAccess = checkAccess).let { dbEntry ->
-                requireNotNull(dbEntry) { "Can't update CurrencyConversionRate entry without existing id." }
-                // Mark current entry as deleted and modify existing deleted entry with desired validFrom date.
-                markRateAsDeleted(currencyPair, dbEntry, checkAccess)
+        try {
+            if (other != null) {
+                // This algorithm is needed to handle deleted entries. Otherwise, they aren't visible for the users and
+                // the users can't add or modify entries with the validFrom date of the deleted ones.
+                findRate(rate.id, checkAccess = checkAccess).let { dbEntry ->
+                    requireNotNull(dbEntry) { "Can't update CurrencyConversionRate entry without existing id." }
+                    // Mark current entry as deleted and modify existing deleted entry with desired validFrom date.
+                    markRateAsDeleted(currencyPair, dbEntry, checkAccess)
+                }
+                other.copyFrom(rate)
+                // Undeleting and updating existing entry instead of inserting new entry.
+                return baseDOPersistenceService.undelete(obj = other, checkAccess = checkAccess)
             }
-            other.copyFrom(rate)
-            // Undeleting and updating existing entry instead of inserting new entry.
-            return baseDOPersistenceService.undelete(obj = other, checkAccess = checkAccess)
+            return baseDOPersistenceService.update(rate, checkAccess = checkAccess)
+        } finally {
+            cache.setExpired()
         }
-        return baseDOPersistenceService.update(rate, checkAccess = checkAccess)
     }
 
     /**
@@ -266,6 +279,7 @@ internal class CurrencyConversionServiceSupport {
         val currencyPair = currencyPairDao.find(currencyPairId)!!
         val rate = findRate(rateId, checkAccess = checkAccess)!!
         markRateAsDeleted(currencyPair, rate, checkAccess)
+        cache.setExpired()
     }
 
     /**
@@ -285,5 +299,6 @@ internal class CurrencyConversionServiceSupport {
         }
         validate(rate)
         baseDOPersistenceService.markAsDeleted(obj = rate, checkAccess = checkAccess)
+        cache.setExpired()
     }
 }
