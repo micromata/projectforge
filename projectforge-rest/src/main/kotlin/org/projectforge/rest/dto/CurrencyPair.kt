@@ -25,6 +25,7 @@ package org.projectforge.rest.dto
 
 import org.projectforge.business.fibu.CurrencyPairDO
 import java.math.BigDecimal
+import java.time.LocalDate
 
 class CurrencyPair(
     id: Long? = null,
@@ -50,6 +51,12 @@ class CurrencyPair(
      * Used in list view for quick reference.
      */
     var currentInverseRate: BigDecimal? = null
+
+    /**
+     * Read-only field containing the validFrom date of the current rate.
+     * Used in list view for quick reference.
+     */
+    var currentRateDate: LocalDate? = null
 
     companion object {
         /**

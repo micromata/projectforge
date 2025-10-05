@@ -114,6 +114,25 @@ class CurrencyConversionService {
     }
 
     /**
+     * Gets the validFrom date of the active conversion rate for a currency pair at a specific date.
+     * Uses cache for better performance.
+     * @param currencyPair The currency pair.
+     * @param validAtDate The date for which to get the rate. Defaults to today.
+     * @return The validFrom date of the active rate or null if no rate is valid for the given date.
+     */
+    fun getConversionRateDate(
+        currencyPair: CurrencyPairDO?,
+        validAtDate: LocalDate? = null,
+    ): LocalDate? {
+        currencyPair?.id ?: return null
+        return cache.getActiveRateDate(
+            currencyPair.id,
+            validAtDate ?: LocalDate.now(),
+            useFallbackToOldestRate = false
+        )
+    }
+
+    /**
      * Converts an amount from one currency to another using the rate valid at the given date.
      * Uses cache for better performance.
      * @param amount The amount to convert.
