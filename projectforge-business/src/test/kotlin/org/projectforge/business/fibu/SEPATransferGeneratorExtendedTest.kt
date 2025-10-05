@@ -79,6 +79,7 @@ class SEPATransferGeneratorExtendedTest : AbstractTestBase() {
 
         val xmlBytes = result.xml ?: fail("XML should not be null")
         val xml = String(xmlBytes, StandardCharsets.UTF_8)
+        validateAgainstSchema(xmlBytes)
         validateXmlStructure(xml)
         assertXmlContains(xml, "DE89370400440532013000", "Max Mustermann", "1250.50")
 
@@ -102,6 +103,7 @@ class SEPATransferGeneratorExtendedTest : AbstractTestBase() {
 
         val xmlBytes = result.xml ?: fail("XML should not be null")
         val xml = String(xmlBytes, StandardCharsets.UTF_8)
+        validateAgainstSchema(xmlBytes)
         validateXmlStructure(xml)
         assertXmlContains(xml, "FR1420041010050500013M02606", "Jean Dupont", "5000.00", "BNPAFRPPXXX")
 
@@ -122,6 +124,7 @@ class SEPATransferGeneratorExtendedTest : AbstractTestBase() {
 
         val xmlBytes = result.xml ?: fail("XML should not be null")
         val xml = String(xmlBytes, StandardCharsets.UTF_8)
+        validateAgainstSchema(xmlBytes)
         validateXmlStructure(xml)
 
         // Verify total amount
@@ -150,6 +153,7 @@ class SEPATransferGeneratorExtendedTest : AbstractTestBase() {
 
         val xmlBytes = result.xml ?: fail("XML should not be null")
         val xml = String(xmlBytes, StandardCharsets.UTF_8)
+        validateAgainstSchema(xmlBytes)
         validateXmlStructure(xml)
 
         assertXmlEquals(File("src/test/resources/sepa/golden/invoice_with_special_characters.xml"), xml)
@@ -171,6 +175,7 @@ class SEPATransferGeneratorExtendedTest : AbstractTestBase() {
 
         val xmlBytes = result.xml ?: fail("XML should not be null")
         val xml = String(xmlBytes, StandardCharsets.UTF_8)
+        validateAgainstSchema(xmlBytes)
         validateXmlStructure(xml)
         assertXmlContains(xml, "999999.99")
 
@@ -193,6 +198,7 @@ class SEPATransferGeneratorExtendedTest : AbstractTestBase() {
 
         val xmlBytes = result.xml ?: fail("XML should not be null")
         val xml = String(xmlBytes, StandardCharsets.UTF_8)
+        validateAgainstSchema(xmlBytes)
         validateXmlStructure(xml)
         assertXmlContains(xml, "0.01")
 
@@ -214,6 +220,7 @@ class SEPATransferGeneratorExtendedTest : AbstractTestBase() {
         assertNotNull(result.xml)
 
         val xmlBytes = result.xml ?: fail("XML should not be null")
+        validateAgainstSchema(xmlBytes)
         val xml = String(xmlBytes, StandardCharsets.UTF_8)
 
         // Validate XML structure and content using XPath
@@ -335,5 +342,17 @@ class SEPATransferGeneratorExtendedTest : AbstractTestBase() {
         assertTrue(goldenFile.exists(), "Golden file should exist: ${goldenFile.absolutePath}")
         val goldenXml = goldenFile.readText(StandardCharsets.UTF_8)
         assertEquals(normalizeXml(goldenXml), normalizeXml(generatedXml), message)
+    }
+
+    private fun validateAgainstSchema(xmlBytes: ByteArray) {
+        val schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
+        val xsdUrl = javaClass.classLoader.getResource("misc/pain.001.003.03.xsd")
+        assertNotNull(xsdUrl, "XSD file should be available")
+        val schema = schemaFactory.newSchema(xsdUrl)
+        val validator = schema.newValidator()
+
+        assertDoesNotThrow({
+            validator.validate(StreamSource(xmlBytes.inputStream()))
+        }, "Generated XML should be valid against pain.001.003.03 schema")
     }
 }
