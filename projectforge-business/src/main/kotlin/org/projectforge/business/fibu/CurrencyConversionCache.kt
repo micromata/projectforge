@@ -37,6 +37,16 @@ import java.time.LocalDate
 private val log = KotlinLogging.logger {}
 
 /**
+ * Result of currency pair lookup for conversion.
+ * @param pair The currency pair found.
+ * @param useInverseRate True if the inverse rate should be used (e.g. when EUR->USD was found but USD->EUR was requested).
+ */
+data class CurrencyPairLookup(
+    val pair: CurrencyPairDO,
+    val useInverseRate: Boolean
+)
+
+/**
  * Caches currency pairs and their conversion rates for faster access.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -91,6 +101,37 @@ open class CurrencyConversionCache : AbstractCache(), BaseDOModifiedListener<Cur
         checkRefresh()
         val pairId = currencyPairLookupMap[Pair(sourceCurrency.uppercase(), targetCurrency.uppercase())]
         return pairId?.let { currencyPairMap[it] }
+    }
+
+    /**
+     * Finds a currency pair for conversion, automatically trying inverse direction if direct lookup fails.
+     * Example: If EUR->USD exists with rate 1.1, but USD->EUR is requested, this will find EUR->USD
+     * and return it with useInverseRate=true (meaning the rate 1/1.1 should be used).
+     *
+     * @param sourceCurrency Source currency code (e.g. "USD").
+     * @param targetCurrency Target currency code (e.g. "EUR").
+     * @return CurrencyPairLookup with the pair and a flag indicating if inverse rate should be used, or null if no pair found.
+     */
+    fun findCurrencyPairForConversion(sourceCurrency: String, targetCurrency: String): CurrencyPairLookup? {
+        checkRefresh()
+        val source = sourceCurrency.uppercase()
+        val target = targetCurrency.uppercase()
+
+        // Try direct lookup first (e.g. EUR->USD)
+        currencyPairLookupMap[Pair(source, target)]?.let { pairId ->
+            return currencyPairMap[pairId]?.let {
+                CurrencyPairLookup(it, useInverseRate = false)
+            }
+        }
+
+        // Try inverse lookup (e.g. find USD->EUR when EUR->USD was requested)
+        currencyPairLookupMap[Pair(target, source)]?.let { pairId ->
+            return currencyPairMap[pairId]?.let {
+                CurrencyPairLookup(it, useInverseRate = true)
+            }
+        }
+
+        return null
     }
 
     /**

@@ -151,14 +151,14 @@ class CurrencyConversionService {
             return amount.setScale(scale, roundingMode)
         }
 
-        // Get currency pair - without checkAccess.
-        val currencyPair = cache.findCurrencyPair(effectiveSourceCurrency, targetCurrency) ?: return null
+        // Get currency pair - tries both direct and inverse direction automatically
+        val lookup = cache.findCurrencyPairForConversion(effectiveSourceCurrency, targetCurrency) ?: return null
 
-        // Get conversion rate from cache
+        // Get conversion rate from cache (uses inverse rate if lookup found inverse pair)
         val rate = cache.getConversionRate(
-            currencyPair.id,
+            lookup.pair.id,
             validAtDate,
-            inverseRate = false,
+            inverseRate = lookup.useInverseRate,
             useFallbackToOldestRate = useFallbackToOldestRate
         ) ?: return null
 

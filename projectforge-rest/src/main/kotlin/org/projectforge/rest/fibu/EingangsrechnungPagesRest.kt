@@ -52,6 +52,9 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
     /**
      * ########################################
      * # Force usage only for selection mode: #
+     * #                                      #
+     * # If used in normal mode, please note: #
+     * # SEPA-export of NON-EUR amounts!!!!!  #
      * ########################################
      */
     override fun getInitialList(request: HttpServletRequest): InitialListData {
