@@ -112,6 +112,7 @@ class SEPATransferValidationTest : AbstractTestBase() {
             assertTrue(result.isSuccessful, "${testCase.name}: Generation should succeed")
 
             val xmlBytes = result.xml ?: fail("XML should not be null")
+            validateAgainstSchema(xmlBytes)
             val regeneratedXml = String(xmlBytes, StandardCharsets.UTF_8)
 
             val goldenFile = File("src/test/resources/sepa/golden/${testCase.name}")
@@ -137,6 +138,7 @@ class SEPATransferValidationTest : AbstractTestBase() {
         assertTrue(result.isSuccessful)
 
         val xmlBytes = result.xml ?: fail("XML should not be null")
+        validateAgainstSchema(xmlBytes)
         val xml = String(xmlBytes, StandardCharsets.UTF_8)
         val doc = parseXml(xml)
 
@@ -170,6 +172,7 @@ class SEPATransferValidationTest : AbstractTestBase() {
             assertTrue(result.isSuccessful)
 
             val xmlBytes = result.xml ?: fail("XML should not be null")
+            validateAgainstSchema(xmlBytes)
             val xml = String(xmlBytes, StandardCharsets.UTF_8)
             val doc = parseXml(xml)
 
@@ -195,6 +198,7 @@ class SEPATransferValidationTest : AbstractTestBase() {
         val result1 = generator.format(invoice)
         assertTrue(result1.isSuccessful)
         val xml1 = result1.xml ?: fail("First XML should not be null")
+        validateAgainstSchema(xml1)
 
         // Verify generated XML using XPath
         val xml1String = String(xml1, StandardCharsets.UTF_8)
@@ -209,6 +213,7 @@ class SEPATransferValidationTest : AbstractTestBase() {
         val result2 = generator.format(invoice)
         assertTrue(result2.isSuccessful)
         val xml2 = result2.xml ?: fail("Second XML should not be null")
+        validateAgainstSchema(xml2)
         val xml2String = String(xml2, StandardCharsets.UTF_8)
         val doc2 = parseXml(xml2String)
 
@@ -258,6 +263,18 @@ class SEPATransferValidationTest : AbstractTestBase() {
         assertTrue(goldenFile.exists(), "Golden file should exist: ${goldenFile.absolutePath}")
         val goldenXml = goldenFile.readText(StandardCharsets.UTF_8)
         assertEquals(normalizeXml(goldenXml), normalizeXml(generatedXml), message)
+    }
+
+    private fun validateAgainstSchema(xmlBytes: ByteArray) {
+        val schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
+        val xsdUrl = javaClass.classLoader.getResource("misc/pain.001.003.03.xsd")
+        assertNotNull(xsdUrl, "XSD file should be available")
+        val schema = schemaFactory.newSchema(xsdUrl)
+        val validator = schema.newValidator()
+
+        assertDoesNotThrow({
+            validator.validate(StreamSource(xmlBytes.inputStream()))
+        }, "Generated XML should be valid against pain.001.003.03 schema")
     }
 
     private fun parseXml(xml: String): Document {
