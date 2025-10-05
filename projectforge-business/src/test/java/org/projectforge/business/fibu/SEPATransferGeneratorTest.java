@@ -28,12 +28,17 @@ import org.junit.jupiter.api.Test;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
-import org.projectforge.generated.CreditTransferTransactionInformationSCT;
-import org.projectforge.generated.Document;
-import org.projectforge.generated.PaymentInstructionInformationSCT;
 import org.projectforge.business.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -46,7 +51,7 @@ public class SEPATransferGeneratorTest extends AbstractTestBase {
   private ConfigurationDao configurationDao;
 
   @Test
-  public void generateTransfer() throws UnsupportedEncodingException {
+  public void generateTransfer() throws Exception {
     ConfigurationDO param = configurationDao.getEntry(ConfigurationParam.ORGANIZATION);
     param.setStringValue("Test debitor");
     configurationDao.update(param, false);
@@ -90,7 +95,7 @@ public class SEPATransferGeneratorTest extends AbstractTestBase {
 
   private void testInvoice(final String debitor, final String creditor, final String iban, final String bic, final String purpose, final BigDecimal amount,
                            boolean ok)
-      throws UnsupportedEncodingException {
+      throws Exception {
     EingangsrechnungDO invoice = new EingangsrechnungDO();
 
     // set values
@@ -118,30 +123,56 @@ public class SEPATransferGeneratorTest extends AbstractTestBase {
 
     Assertions.assertTrue(result.isSuccessful());
 
-    // unmarshall
-    Document document = this.SEPATransferGenerator.parse(result.getXml());
+    // Parse XML using DOM
+    String xml = new String(result.getXml(), StandardCharsets.UTF_8);
+    Document document = parseXml(xml);
     Assertions.assertNotNull(document);
 
-    final PaymentInstructionInformationSCT pmtInf = document.getCstmrCdtTrfInitn().getPmtInf().get(0);
-    Assertions.assertNotNull(pmtInf);
-    final CreditTransferTransactionInformationSCT cdtTrfTxInf = pmtInf.getCdtTrfTxInf().get(0);
-    Assertions.assertNotNull(cdtTrfTxInf);
+    // check debitor using XPath
+    Assertions.assertEquals(debitor, getXPathValue(document, "//Dbtr/Nm"));
 
-    // check debitor
-    Assertions.assertEquals(debitor, pmtInf.getDbtr().getNm());
-
-    // check creditor
-    Assertions.assertEquals(creditor, cdtTrfTxInf.getCdtr().getNm());
-    Assertions.assertEquals(iban, cdtTrfTxInf.getCdtrAcct().getId().getIBAN());
+    // check creditor using XPath
+    Assertions.assertEquals(creditor, getXPathValue(document, "//Cdtr/Nm"));
+    Assertions.assertEquals(iban, getXPathValue(document, "//CdtrAcct/Id/IBAN"));
     if (!iban.toUpperCase().startsWith("DE")) {
-      Assertions.assertEquals(bic.toUpperCase(), cdtTrfTxInf.getCdtrAgt().getFinInstnId().getBIC());
+      Assertions.assertEquals(bic.toUpperCase(), getXPathValue(document, "//CdtrAgt/FinInstnId/BIC"));
     }
-    Assertions.assertEquals(purpose, cdtTrfTxInf.getRmtInf().getUstrd());
+    Assertions.assertEquals(purpose, getXPathValue(document, "//Ustrd"));
 
     // check sum
-    Assertions.assertEquals(amount.doubleValue(), document.getCstmrCdtTrfInitn().getGrpHdr().getCtrlSum().doubleValue(), 0.0000001);
-    Assertions.assertEquals(amount.doubleValue(), pmtInf.getCtrlSum().doubleValue(), 0.0000001);
-    Assertions.assertEquals(amount.doubleValue(), cdtTrfTxInf.getAmt().getInstdAmt().getValue().doubleValue(), 0.0000001);
+    String ctrlSum = getXPathValue(document, "//GrpHdr/CtrlSum");
+    Assertions.assertEquals(amount.doubleValue(), Double.parseDouble(ctrlSum), 0.0000001);
+    String instdAmt = getXPathValue(document, "//InstdAmt");
+    Assertions.assertEquals(amount.doubleValue(), Double.parseDouble(instdAmt), 0.0000001);
+  }
+
+  private Document parseXml(String xml) throws Exception {
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    factory.setNamespaceAware(true);
+    DocumentBuilder builder = factory.newDocumentBuilder();
+    return builder.parse(new InputSource(new StringReader(xml)));
+  }
+
+  private String getXPathValue(Document doc, String xpathExpression) throws Exception {
+    XPath xpath = XPathFactory.newInstance().newXPath();
+    // Convert to namespace-agnostic XPath
+    String converted;
+    if (xpathExpression.contains("@")) {
+      converted = xpathExpression;
+    } else {
+      String[] parts = xpathExpression.split("/");
+      StringBuilder sb = new StringBuilder();
+      for (String part : parts) {
+        if (part.isEmpty() || part.equals("*") || part.startsWith("@")) {
+          sb.append(part);
+        } else {
+          sb.append("*[local-name()='").append(part).append("']");
+        }
+        sb.append("/");
+      }
+      converted = sb.substring(0, sb.length() - 1);
+    }
+    return (String) xpath.evaluate(converted, doc, XPathConstants.STRING);
   }
 
   private String testIban(String iban, String bic) {

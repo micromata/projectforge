@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.003.03">
+    <CstmrCdtTrfInitn>
+        <GrpHdr>
+            <MsgId>transfer-2025-10-05-21:33</MsgId>
+            <CreDtTm>2025-10-05T23:33:10.232+02:00</CreDtTm>
+            <NbOfTxs>1</NbOfTxs>
+            <CtrlSum>999999.99</CtrlSum>
+            <InitgPty>
+                <Nm>Test Organization GmbH</Nm>
+            </InitgPty>
+        </GrpHdr>
+        <PmtInf>
+            <PmtInfId>transfer-2025-10-05-21:33-1</PmtInfId>
+            <PmtMtd>TRF</PmtMtd>
+            <BtchBookg>true</BtchBookg>
+            <NbOfTxs>1</NbOfTxs>
+            <CtrlSum>999999.99</CtrlSum>
+            <PmtTpInf>
+                <SvcLvl>
+                    <Cd>SEPA</Cd>
+                </SvcLvl>
+            </PmtTpInf>
+            <ReqdExctnDt>2025-10-05</ReqdExctnDt>
+            <Dbtr>
+                <Nm>Test Organization GmbH</Nm>
+            </Dbtr>
+            <DbtrAcct>
+                <Id>
+                    <IBAN>DE87200500001234567890</IBAN>
+                </Id>
+            </DbtrAcct>
+            <DbtrAgt>
+                <FinInstnId>
+                    <BIC>BANKDEFFXXX</BIC>
+                </FinInstnId>
+            </DbtrAgt>
+            <CdtTrfTxInf>
+                <PmtId>
+                    <EndToEndId>transfer-2025-10-05-21:33-1-1</EndToEndId>
+                </PmtId>
+                <Amt>
+                    <InstdAmt Ccy="EUR">999999.99</InstdAmt>
+                </Amt>
+                <Cdtr>
+                    <Nm>Big Customer Corp</Nm>
+                </Cdtr>
+                <CdtrAcct>
+                    <Id>
+                        <IBAN>DE89370400440532013000</IBAN>
+                    </Id>
+                </CdtrAcct>
+                <RmtInf>
+                    <Ustrd>Large project payment</Ustrd>
+                </RmtInf>
+            </CdtTrfTxInf>
+        </PmtInf>
+    </CstmrCdtTrfInitn>
+</Document>
