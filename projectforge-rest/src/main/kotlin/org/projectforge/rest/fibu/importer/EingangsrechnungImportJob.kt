@@ -59,6 +59,8 @@ class EingangsrechnungImportJob(
 
     override fun onBeforeStart() {
         importStorage.reconcileImportStorage(rereadDatabaseEntries = true)
+        // Mark all entries as not reconciled so they show status UNKNOWN until processed
+        importStorage.pairEntries.forEach { it.reconciled = false }
         updateTotals(importStorage)
     }
 
