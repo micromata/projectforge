@@ -344,6 +344,13 @@ open class MenuCreator {
                                 isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
                     })
             )
+            .add(
+                MenuItemDef(MenuItemDefId.CURRENCY_PAIR_LIST,
+                    checkAccess = {
+                        hasRight(CurrencyPairDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
+                                isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
+                    })
+            )
         if (Configuration.instance.isCostConfigured) {
             fibuMenu.add(
                 MenuItemDef(MenuItemDefId.CUSTOMER_LIST,
