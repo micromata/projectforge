@@ -82,8 +82,8 @@ class SEPATransferGeneratorExtendedTest : AbstractTestBase() {
         validateXmlStructure(xml)
         assertXmlContains(xml, "DE89370400440532013000", "Max Mustermann", "1250.50")
 
-        // Save as golden file
-        saveGoldenFile("single_invoice_german_iban.xml", xmlBytes)
+        // Compare with golden file
+        assertXmlEquals(File("src/test/resources/sepa/golden/single_invoice_german_iban.xml"), xml)
     }
 
     @Test
@@ -105,7 +105,7 @@ class SEPATransferGeneratorExtendedTest : AbstractTestBase() {
         validateXmlStructure(xml)
         assertXmlContains(xml, "FR1420041010050500013M02606", "Jean Dupont", "5000.00", "BNPAFRPPXXX")
 
-        saveGoldenFile("single_invoice_foreign_iban_with_bic.xml", xmlBytes)
+        assertXmlEquals(File("src/test/resources/sepa/golden/single_invoice_foreign_iban_with_bic.xml"), xml)
     }
 
     @Test
@@ -131,7 +131,7 @@ class SEPATransferGeneratorExtendedTest : AbstractTestBase() {
         // Verify number of transactions
         assertTrue(xml.contains("<NbOfTxs>3</NbOfTxs>"), "Should contain 3 transactions")
 
-        saveGoldenFile("multiple_invoices.xml", xmlBytes)
+        assertXmlEquals(File("src/test/resources/sepa/golden/multiple_invoices.xml"), xml)
     }
 
     @Test
@@ -152,7 +152,7 @@ class SEPATransferGeneratorExtendedTest : AbstractTestBase() {
         val xml = String(xmlBytes, StandardCharsets.UTF_8)
         validateXmlStructure(xml)
 
-        saveGoldenFile("invoice_with_special_characters.xml", xmlBytes)
+        assertXmlEquals(File("src/test/resources/sepa/golden/invoice_with_special_characters.xml"), xml)
     }
 
     @Test
@@ -174,7 +174,7 @@ class SEPATransferGeneratorExtendedTest : AbstractTestBase() {
         validateXmlStructure(xml)
         assertXmlContains(xml, "999999.99")
 
-        saveGoldenFile("invoice_with_maximum_amount.xml", xmlBytes)
+        assertXmlEquals(File("src/test/resources/sepa/golden/invoice_with_maximum_amount.xml"), xml)
     }
 
     @Test
@@ -196,7 +196,7 @@ class SEPATransferGeneratorExtendedTest : AbstractTestBase() {
         validateXmlStructure(xml)
         assertXmlContains(xml, "0.01")
 
-        saveGoldenFile("invoice_with_minimal_amount.xml", xmlBytes)
+        assertXmlEquals(File("src/test/resources/sepa/golden/invoice_with_minimal_amount.xml"), xml)
     }
 
     @Test
@@ -322,11 +322,18 @@ class SEPATransferGeneratorExtendedTest : AbstractTestBase() {
         }
     }
 
-    private fun saveGoldenFile(fileName: String, content: ByteArray) {
-        val goldenDir = File("src/test/resources/sepa/golden")
-        goldenDir.mkdirs()
-        val file = File(goldenDir, fileName)
-        file.writeBytes(content)
-        println("✓ Golden file saved: ${file.absolutePath}")
+    private fun normalizeXml(xml: String): String {
+        return xml
+            .replace(Regex("<MsgId>.*?</MsgId>"), "<MsgId>NORMALIZED</MsgId>")
+            .replace(Regex("<CreDtTm>.*?</CreDtTm>"), "<CreDtTm>NORMALIZED</CreDtTm>")
+            .replace(Regex("<PmtInfId>.*?</PmtInfId>"), "<PmtInfId>NORMALIZED</PmtInfId>")
+            .replace(Regex("<EndToEndId>.*?</EndToEndId>"), "<EndToEndId>NORMALIZED</EndToEndId>")
+            .replace(Regex("<ReqdExctnDt>.*?</ReqdExctnDt>"), "<ReqdExctnDt>NORMALIZED</ReqdExctnDt>")
+    }
+
+    private fun assertXmlEquals(goldenFile: File, generatedXml: String, message: String = "") {
+        assertTrue(goldenFile.exists(), "Golden file should exist: ${goldenFile.absolutePath}")
+        val goldenXml = goldenFile.readText(StandardCharsets.UTF_8)
+        assertEquals(normalizeXml(goldenXml), normalizeXml(generatedXml), message)
     }
 }
