@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.003.03">
     <CstmrCdtTrfInitn>
         <GrpHdr>
-            <MsgId>transfer-2025-10-05-20:38</MsgId>
-            <CreDtTm>2025-10-05T22:38:04.893+02:00</CreDtTm>
+            <MsgId>transfer-2025-10-05-21:16</MsgId>
+            <CreDtTm>2025-10-05T23:16:03.449+02:00</CreDtTm>
             <NbOfTxs>1</NbOfTxs>
             <CtrlSum>5000.00</CtrlSum>
             <InitgPty>
@@ -11,7 +11,7 @@
             </InitgPty>
         </GrpHdr>
         <PmtInf>
-            <PmtInfId>transfer-2025-10-05-20:38-1</PmtInfId>
+            <PmtInfId>transfer-2025-10-05-21:16-1</PmtInfId>
             <PmtMtd>TRF</PmtMtd>
             <BtchBookg>true</BtchBookg>
             <NbOfTxs>1</NbOfTxs>
@@ -21,7 +21,7 @@
                     <Cd>SEPA</Cd>
                 </SvcLvl>
             </PmtTpInf>
-            <ReqdExctnDt>2025-10-05+02:00</ReqdExctnDt>
+            <ReqdExctnDt>2025-10-05</ReqdExctnDt>
             <Dbtr>
                 <Nm>Test Organization GmbH</Nm>
             </Dbtr>
@@ -37,7 +37,7 @@
             </DbtrAgt>
             <CdtTrfTxInf>
                 <PmtId>
-                    <EndToEndId>transfer-2025-10-05-20:38-1-1</EndToEndId>
+                    <EndToEndId>transfer-2025-10-05-21:16-1-1</EndToEndId>
                 </PmtId>
                 <Amt>
                     <InstdAmt Ccy="EUR">5000.00</InstdAmt>

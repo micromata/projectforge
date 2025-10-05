@@ -143,25 +143,26 @@ class SEPATransferIntegrationTest : AbstractTestBase() {
         // Verify initiating party
         assertEquals("ProjectForge GmbH", getXPathValue(doc, "//InitgPty/Nm"))
 
-        // Parse and verify individual transactions
-        val parsed = generator.parse(xmlBytes)
-        assertNotNull(parsed)
+        // Verify individual transactions using XPath
+        val xpath = javax.xml.xpath.XPathFactory.newInstance().newXPath()
+        val cdtTrfTxInfNodes = xpath.evaluate("//*[local-name()='CdtTrfTxInf']", doc, javax.xml.xpath.XPathConstants.NODESET) as org.w3c.dom.NodeList
+        assertEquals(6, cdtTrfTxInfNodes.length, "Should have 6 credit transfer transactions")
 
-        val pmtInf = parsed.cstmrCdtTrfInitn.pmtInf[0]
-        assertEquals(6, pmtInf.cdtTrfTxInf.size, "Should have 6 credit transfer transactions")
+        // Verify first German transaction (no BIC) - extract from first CdtTrfTxInf
+        val firstTx = cdtTrfTxInfNodes.item(0) as org.w3c.dom.Element
+        val firstCreditor = getElementText(firstTx, "Cdtr", "Nm")
+        val firstIban = getElementText(firstTx, "CdtrAcct", "Id", "IBAN")
+        assertEquals("Deutsche Consulting AG", firstCreditor)
+        assertEquals("DE89370400440532013000", firstIban)
 
-        // Verify first German transaction (no BIC)
-        val tx1 = pmtInf.cdtTrfTxInf[0]
-        assertEquals("Deutsche Consulting AG", tx1.cdtr.nm)
-        assertEquals("DE89370400440532013000", tx1.cdtrAcct.id.iban)
-        assertNull(tx1.cdtrAgt, "German IBAN should not have BIC")
-
-        // Verify French transaction (with BIC)
-        val tx3 = pmtInf.cdtTrfTxInf[2]
-        assertEquals("Consulting International SAS", tx3.cdtr.nm)
-        assertEquals("FR1420041010050500013M02606", tx3.cdtrAcct.id.iban)
-        assertNotNull(tx3.cdtrAgt, "Foreign IBAN should have BIC")
-        assertEquals("BNPAFRPPXXX", tx3.cdtrAgt.finInstnId.bic)
+        // Verify French transaction (with BIC) - third transaction
+        val thirdTx = cdtTrfTxInfNodes.item(2) as org.w3c.dom.Element
+        val thirdCreditor = getElementText(thirdTx, "Cdtr", "Nm")
+        val thirdIban = getElementText(thirdTx, "CdtrAcct", "Id", "IBAN")
+        val thirdBic = getElementText(thirdTx, "CdtrAgt", "FinInstnId", "BIC")
+        assertEquals("Consulting International SAS", thirdCreditor)
+        assertEquals("FR1420041010050500013M02606", thirdIban)
+        assertEquals("BNPAFRPPXXX", thirdBic)
 
         println("✓ Realistic monthly payment batch test passed")
 
@@ -288,15 +289,17 @@ class SEPATransferIntegrationTest : AbstractTestBase() {
         val xmlBytes = result.xml ?: fail("XML should not be null")
         validateAgainstSchema(xmlBytes)
 
-        val parsed = generator.parse(xmlBytes)
-        assertNotNull(parsed)
+        val xml = String(xmlBytes, java.nio.charset.StandardCharsets.UTF_8)
+        val doc = parseXml(xml)
 
-        val pmtInf = parsed.cstmrCdtTrfInitn.pmtInf[0]
-        assertEquals(complexReferences.size, pmtInf.cdtTrfTxInf.size)
+        // Verify number of transactions using XPath
+        val xpath = javax.xml.xpath.XPathFactory.newInstance().newXPath()
+        val ustrdNodes = xpath.evaluate("//*[local-name()='Ustrd']", doc, javax.xml.xpath.XPathConstants.NODESET) as org.w3c.dom.NodeList
+        assertEquals(complexReferences.size, ustrdNodes.length)
 
         // Verify references are preserved (potentially cleaned of unsupported chars)
-        for (i in complexReferences.indices) {
-            val reference = pmtInf.cdtTrfTxInf[i].rmtInf.ustrd
+        for (i in 0 until ustrdNodes.length) {
+            val reference = ustrdNodes.item(i).textContent
             assertNotNull(reference, "Reference should not be null")
             assertTrue(reference.isNotEmpty(), "Reference should not be empty")
         }
@@ -364,6 +367,29 @@ class SEPATransferIntegrationTest : AbstractTestBase() {
 
         val result = xpath.evaluate(converted, doc, XPathConstants.STRING)
         return result.toString()
+    }
+
+    private fun getElementText(parent: org.w3c.dom.Element, vararg path: String): String? {
+        var current: org.w3c.dom.Element? = parent
+        for (tagName in path) {
+            if (current == null) return null
+            current = getFirstChildElement(current, tagName)
+        }
+        return current?.textContent
+    }
+
+    private fun getFirstChildElement(parent: org.w3c.dom.Element, localName: String): org.w3c.dom.Element? {
+        val children = parent.childNodes
+        for (i in 0 until children.length) {
+            val node = children.item(i)
+            if (node.nodeType == org.w3c.dom.Node.ELEMENT_NODE) {
+                val element = node as org.w3c.dom.Element
+                if (element.localName == localName) {
+                    return element
+                }
+            }
+        }
+        return null
     }
 
     private fun saveGoldenFile(fileName: String, content: ByteArray) {

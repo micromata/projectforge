@@ -13,41 +13,8 @@ tasks.withType<KotlinCompile> {
     }
 }
 
-tasks.named("compileKotlin") {
-    dependsOn("xjc")
-}
-
 tasks.test {
     useJUnitPlatform()
-}
-
-tasks.register<JavaExec>("xjc") {
-    group = "code generation"
-    description = "Generate Java classes from XSD schema"
-
-    mainClass.set("com.sun.tools.xjc.XJCFacade")
-    classpath = configurations.compileClasspath.get()
-    val outputDir = layout.buildDirectory.dir("generated-sources/xjc").get().asFile
-    inputs.file("src/main/resources/misc/pain.001.003.03.xsd") // Das XSD-Schema as input
-    outputs.dir(outputDir) // output folder of generated files.
-    args = listOf(
-        "-d", outputDir.absolutePath, // Output dir
-        "-p", "org.projectforge.generated",           // Destination package
-        "src/main/resources/misc/pain.001.003.03.xsd" // Schema file
-    )
-    doFirst {
-        if (!outputDir.exists()) {
-            outputDir.mkdirs()
-        }
-    }
-}
-
-sourceSets {
-    main {
-        java {
-            srcDir(layout.buildDirectory.dir("generated-sources/xjc"))
-        }
-    }
 }
 
 dependencies {
@@ -55,15 +22,12 @@ dependencies {
     api(project(":projectforge-model"))
     api(project(":projectforge-jcr"))
     api(libs.de.micromata.merlin.core)
-    api(libs.org.glassfish.jaxb.runtime)
-    api(libs.org.glassfish.jaxb.xjc)
     api(libs.com.googlecode.json.simple)
     api(libs.org.aspectj.aspectjtools)
     api(libs.jakarta.activation.api)
     api(libs.jakarta.annotation.api)
     api(libs.jakarta.persistence.api)
     api(libs.jakarta.servlet.api)
-    api(libs.jakarta.xml.bind.api)
     api(libs.joda.time.joda.time)
     api(libs.org.apache.commons.collections4)
     api(libs.org.eclipse.angus.jakarta.mail)
