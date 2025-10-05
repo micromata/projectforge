@@ -198,18 +198,27 @@ class SEPATransferValidationTest : AbstractTestBase() {
         assertTrue(result1.isSuccessful)
         val xml1 = result1.xml ?: fail("First XML should not be null")
 
-        // Parse and regenerate
-        val parsed = generator.parse(xml1)
-        assertNotNull(parsed)
+        // Verify generated XML using XPath
+        val xml1String = String(xml1, StandardCharsets.UTF_8)
+        val doc = parseXml(xml1String)
 
-        // Verify parsed data
-        val pmtInf = parsed.cstmrCdtTrfInitn.pmtInf[0]
-        val cdtTrfTxInf = pmtInf.cdtTrfTxInf[0]
+        assertEquals("Roundtrip Corp", getXPathValue(doc, "//Cdtr/Nm"))
+        assertEquals("DE89370400440532013000", getXPathValue(doc, "//CdtrAcct/Id/IBAN"))
+        assertEquals("Roundtrip consistency test", getXPathValue(doc, "//Ustrd"))
+        assertEquals("5432.10", getXPathValue(doc, "//InstdAmt"))
 
-        assertEquals("Roundtrip Corp", cdtTrfTxInf.cdtr.nm)
-        assertEquals("DE89370400440532013000", cdtTrfTxInf.cdtrAcct.id.iban)
-        assertEquals("Roundtrip consistency test", cdtTrfTxInf.rmtInf.ustrd)
-        assertEquals(BigDecimal("5432.10").setScale(2), cdtTrfTxInf.amt.instdAmt.value)
+        // Generate again with same input to verify consistency
+        val result2 = generator.format(invoice)
+        assertTrue(result2.isSuccessful)
+        val xml2 = result2.xml ?: fail("Second XML should not be null")
+        val xml2String = String(xml2, StandardCharsets.UTF_8)
+        val doc2 = parseXml(xml2String)
+
+        // Verify same key fields (ignoring timestamps and message IDs)
+        assertEquals(getXPathValue(doc, "//Cdtr/Nm"), getXPathValue(doc2, "//Cdtr/Nm"))
+        assertEquals(getXPathValue(doc, "//CdtrAcct/Id/IBAN"), getXPathValue(doc2, "//CdtrAcct/Id/IBAN"))
+        assertEquals(getXPathValue(doc, "//Ustrd"), getXPathValue(doc2, "//Ustrd"))
+        assertEquals(getXPathValue(doc, "//InstdAmt"), getXPathValue(doc2, "//InstdAmt"))
 
         println("✓ Roundtrip consistency validation passed")
     }

@@ -200,12 +200,12 @@ class SEPATransferGeneratorExtendedTest : AbstractTestBase() {
     }
 
     @Test
-    fun `roundtrip test - format and parse`() {
+    fun `validate generated XML structure and content`() {
         val invoice = createInvoice(
-            receiver = "Roundtrip Test GmbH",
+            receiver = "Validation Test GmbH",
             iban = "DE89370400440532013000",
             bic = null,
-            reference = "Roundtrip test payment",
+            reference = "Validation test payment",
             amount = BigDecimal("1234.56")
         )
 
@@ -214,18 +214,36 @@ class SEPATransferGeneratorExtendedTest : AbstractTestBase() {
         assertNotNull(result.xml)
 
         val xmlBytes = result.xml ?: fail("XML should not be null")
+        val xml = String(xmlBytes, StandardCharsets.UTF_8)
 
-        // Parse back
-        val document = generator.parse(xmlBytes)
-        assertNotNull(document, "Document should be parseable")
+        // Validate XML structure and content using XPath
+        val doc = parseXmlForValidation(xml)
 
-        val pmtInf = document.cstmrCdtTrfInitn.pmtInf[0]
-        val cdtTrfTxInf = pmtInf.cdtTrfTxInf[0]
+        assertEquals("Validation Test GmbH", getXPathValue(doc, "//Cdtr/Nm"))
+        assertEquals("DE89370400440532013000", getXPathValue(doc, "//CdtrAcct/Id/IBAN"))
+        assertEquals("Validation test payment", getXPathValue(doc, "//Ustrd"))
+        assertEquals("1234.56", getXPathValue(doc, "//InstdAmt"))
+    }
 
-        assertEquals("Roundtrip Test GmbH", cdtTrfTxInf.cdtr.nm)
-        assertEquals("DE89370400440532013000", cdtTrfTxInf.cdtrAcct.id.iban)
-        assertEquals("Roundtrip test payment", cdtTrfTxInf.rmtInf.ustrd)
-        assertEquals(BigDecimal("1234.56").setScale(2), cdtTrfTxInf.amt.instdAmt.value)
+    private fun parseXmlForValidation(xml: String): org.w3c.dom.Document {
+        val factory = javax.xml.parsers.DocumentBuilderFactory.newInstance()
+        factory.isNamespaceAware = true
+        val builder = factory.newDocumentBuilder()
+        return builder.parse(org.xml.sax.InputSource(java.io.StringReader(xml)))
+    }
+
+    private fun getXPathValue(doc: org.w3c.dom.Document, xpathExpression: String): String {
+        val xpath = javax.xml.xpath.XPathFactory.newInstance().newXPath()
+        val converted = if (xpathExpression.contains("@")) {
+            xpathExpression
+        } else {
+            xpathExpression.split("/").joinToString("/") { part ->
+                if (part.isEmpty() || part == "*" || part.startsWith("@")) part
+                else "*[local-name()='$part']"
+            }
+        }
+        val result = xpath.evaluate(converted, doc, javax.xml.xpath.XPathConstants.STRING)
+        return result.toString()
     }
 
     @Test
