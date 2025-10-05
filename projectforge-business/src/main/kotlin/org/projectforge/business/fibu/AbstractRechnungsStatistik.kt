@@ -164,7 +164,7 @@ abstract class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializabl
             val invoiceRef = "${rechnung?.displayName} (${rechnung?.datum?.formatForUser() ?: "?"})"
             currencyConversionWarnings.add("$invoiceRef: $fromCurrency → $toCurrency")
 
-            log.warn { "Could not convert $amount $fromCurrency to $toCurrency for date $validAtDate. Using original amount." }
+            log.warn { "$invoiceRef: $fromCurrency → $toCurrency. Could not convert $amount for date $validAtDate. Using original amount." }
             return amount
         }
 

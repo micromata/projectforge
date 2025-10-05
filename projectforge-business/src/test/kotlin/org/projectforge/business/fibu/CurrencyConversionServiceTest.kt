@@ -336,6 +336,75 @@ class CurrencyConversionServiceTest : AbstractTestBase() {
         assertEquals(0, BigDecimal("0.85").compareTo(cachedRate))
     }
 
+    @Test
+    fun convertUsesInverseRateAutomatically() {
+        // Test that inverse currency conversion works automatically
+        // We have USD → EUR pair with rate 0.85 (1 USD = 0.85 EUR) and inverse rate 1.1765 (1 EUR = 1.1765 USD)
+        // Converting EUR → USD should automatically use the inverse rate from USD → EUR pair
+
+        // Convert EUR → USD (inverse of the defined USD → EUR pair)
+        val result = currencyConversionService.convert(
+            BigDecimal("100"),
+            "USD", // target
+            "EUR", // source
+            LocalDate.of(2025, 1, 1)
+        )
+        assertNotNull(result, "Conversion should succeed using inverse rate")
+        assertEquals(BigDecimal("117.65"), result) // 100 * 1.1765 = 117.65
+
+        // Verify with the newer rate as well
+        val result2 = currencyConversionService.convert(
+            BigDecimal("100"),
+            "USD",
+            "EUR",
+            LocalDate.of(2025, 6, 15) // Uses rate from 2025-06-01
+        )
+        assertNotNull(result2)
+        assertEquals(BigDecimal("111.11"), result2) // 100 * 1.1111 = 111.11
+    }
+
+    @Test
+    fun convertInverseDirectionGbpToEur() {
+        // Test GBP → EUR using inverse of EUR → GBP pair
+        // We have EUR → GBP with rate 0.87 (1 EUR = 0.87 GBP) and inverse 1.1494 (1 GBP = 1.1494 EUR)
+
+        val result = currencyConversionService.convert(
+            BigDecimal("100"),
+            "EUR", // target
+            "GBP", // source
+            LocalDate.of(2025, 1, 1)
+        )
+        assertNotNull(result, "Conversion should succeed using inverse rate")
+        assertEquals(BigDecimal("114.94"), result) // 100 * 1.1494 = 114.94
+    }
+
+    @Test
+    fun findCurrencyPairForConversionFindsDirectPair() {
+        // Test that direct lookup works
+        val lookup = cache.findCurrencyPairForConversion("USD", "EUR")
+        assertNotNull(lookup, "Should find USD → EUR pair")
+        assertFalse(lookup!!.useInverseRate, "Should use direct rate")
+        assertEquals("USD", lookup.pair.sourceCurrency)
+        assertEquals("EUR", lookup.pair.targetCurrency)
+    }
+
+    @Test
+    fun findCurrencyPairForConversionFindsInversePair() {
+        // Test that inverse lookup works
+        val lookup = cache.findCurrencyPairForConversion("EUR", "USD")
+        assertNotNull(lookup, "Should find inverse of USD → EUR pair")
+        assertTrue(lookup!!.useInverseRate, "Should use inverse rate")
+        assertEquals("USD", lookup.pair.sourceCurrency) // The actual pair is still USD → EUR
+        assertEquals("EUR", lookup.pair.targetCurrency)
+    }
+
+    @Test
+    fun findCurrencyPairForConversionReturnsNullWhenNoPair() {
+        // Test that lookup returns null when no pair exists in either direction
+        val lookup = cache.findCurrencyPairForConversion("JPY", "CHF")
+        assertNull(lookup, "Should return null when no pair exists")
+    }
+
     /**
      * Helper method to add a conversion rate to a currency pair.
      */
