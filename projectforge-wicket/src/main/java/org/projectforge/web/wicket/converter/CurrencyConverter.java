@@ -44,11 +44,23 @@ public class CurrencyConverter extends BigDecimalConverter
 
   private final String currency;
 
+  private final boolean withCurrencySymbol;
+
   private BigDecimal totalAmount;
 
   public CurrencyConverter()
   {
-    currency = ConfigurationServiceAccessor.get().getCurrencySymbol();
+    this(true);
+  }
+
+  /**
+   * Constructor with optional currency symbol display.
+   * @param withCurrencySymbol If true, appends currency symbol (default true for backward compatibility)
+   */
+  public CurrencyConverter(final boolean withCurrencySymbol)
+  {
+    this.withCurrencySymbol = withCurrencySymbol;
+    currency = withCurrencySymbol ? ConfigurationServiceAccessor.get().getCurrencySymbol() : null;
   }
 
   /**
@@ -58,7 +70,18 @@ public class CurrencyConverter extends BigDecimalConverter
    */
   public CurrencyConverter(final BigDecimal totalAmount)
   {
-    this();
+    this(true);
+    this.totalAmount = totalAmount;
+  }
+
+  /**
+   * Constructor with total amount and optional currency symbol display.
+   * @param totalAmount If total amount is given the converter supports a percentage value
+   * @param withCurrencySymbol If true, appends currency symbol
+   */
+  public CurrencyConverter(final BigDecimal totalAmount, final boolean withCurrencySymbol)
+  {
+    this(withCurrencySymbol);
     this.totalAmount = totalAmount;
   }
 
@@ -92,6 +115,10 @@ public class CurrencyConverter extends BigDecimalConverter
     } else {
       nf = NumberHelper.getCurrencyFormat(ThreadLocalUserContext.getLocale());
     }
-    return nf.format(value) + " " + currency;
+    if (withCurrencySymbol && currency != null) {
+      return nf.format(value) + " " + currency;
+    } else {
+      return nf.format(value);
+    }
   }
 }

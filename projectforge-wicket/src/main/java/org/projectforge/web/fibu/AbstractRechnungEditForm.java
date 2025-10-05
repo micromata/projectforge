@@ -118,7 +118,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
       final DivTextPanel netPanel = new DivTextPanel(fs.newChildId(), new Model<String>() {
         @Override
         public String getObject() {
-          return CurrencyFormatter.format(data.getInfo().getNetSum());
+          return CurrencyFormatter.format(data.getInfo().getNetSum(), false);
         }
       }, TextStyle.FORM_TEXT);
       fs.add(netPanel);
@@ -132,7 +132,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
       final DivTextPanel vatPanel = new DivTextPanel(fs.newChildId(), new Model<String>() {
         @Override
         public String getObject() {
-          return CurrencyFormatter.format(data.getInfo().getVatAmount());
+          return CurrencyFormatter.format(data.getInfo().getVatAmount(), false);
         }
       }, TextStyle.FORM_TEXT);
       fs.add(vatPanel);
@@ -146,7 +146,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
       final DivTextPanel grossPanel = new DivTextPanel(fs.newChildId(), new Model<String>() {
         @Override
         public String getObject() {
-          return CurrencyFormatter.format(data.getInfo().getGrossSum());
+          return CurrencyFormatter.format(data.getInfo().getGrossSum(), false);
         }
       }, TextStyle.FORM_TEXT);
       fs.add(grossPanel);
@@ -170,7 +170,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
         @SuppressWarnings({"rawtypes", "unchecked"})
         @Override
         public IConverter getConverter(final Class type) {
-          return new CurrencyConverter();
+          return new CurrencyConverter(false);
         }
       };
       fs.add(zahlBetragField);
@@ -432,7 +432,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
             @SuppressWarnings({"rawtypes", "unchecked"})
             @Override
             public IConverter getConverter(final Class type) {
-              return new CurrencyConverter();
+              return new CurrencyConverter(false);
             }
           };
           netTextField.add(new AjaxFormComponentUpdatingBehavior("blur") {
@@ -475,7 +475,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
           final TextPanel netTextPanel = new TextPanel(fieldset.newChildId(), new Model<String>() {
             @Override
             public String getObject() {
-              return CurrencyFormatter.format(position.getInfo().getNetSum());
+              return CurrencyFormatter.format(position.getInfo().getNetSum(), false);
             }
           });
           ajaxUpdatePositionComponents.add(netTextPanel.getLabel4Ajax());
@@ -490,7 +490,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
           final TextPanel vatTextPanel = new TextPanel(fieldset.newChildId(), new Model<String>() {
             @Override
             public String getObject() {
-              return CurrencyFormatter.format(position.getInfo().getVatAmount());
+              return CurrencyFormatter.format(position.getInfo().getVatAmount(), false);
             }
           });
           fieldset.add(vatTextPanel);
@@ -505,7 +505,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
           final TextPanel grossTextPanel = new TextPanel(fieldset.newChildId(), new Model<String>() {
             @Override
             public String getObject() {
-              return CurrencyFormatter.format(position.getInfo().getGrossSum());
+              return CurrencyFormatter.format(position.getInfo().getGrossSum(), false);
             }
           });
           fieldset.add(grossTextPanel);
@@ -580,7 +580,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
             public String getObject() {
               final BigDecimal fehlbetrag = position.getInfo().getKostZuweisungNetFehlbetrag();
               if (NumberHelper.isNotZero(fehlbetrag) == true) {
-                return CurrencyFormatter.format(fehlbetrag);
+                return CurrencyFormatter.format(fehlbetrag, false);
               } else {
                 return "";
               }
@@ -633,7 +633,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
     }
     final StringBuilder heading = new StringBuilder();
     heading.append(escapeHtml(getString("label.position.short"))).append(" #").append(position.getNumber());
-    heading.append(": ").append(CurrencyFormatter.format(position.getInfo().getNetSum()));
+    heading.append(": ").append(CurrencyFormatter.format(position.getInfo().getNetSum(), false));
     if (StringHelper.isNotBlank(position.getText()) == true) {
       heading.append(" ").append(StringUtils.abbreviate(position.getText(), 80));
     }

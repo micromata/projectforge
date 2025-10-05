@@ -141,7 +141,7 @@ public class RechnungCostEditTablePanel extends Panel
       @Override
       public String getObject()
       {
-        return CurrencyFormatter.format(position.getInfo().getKostZuweisungNetFehlbetrag());
+        return CurrencyFormatter.format(position.getInfo().getKostZuweisungNetFehlbetrag(), false);
       }
     });
     form.add(restLabel);
@@ -214,7 +214,7 @@ public class RechnungCostEditTablePanel extends Panel
       public IConverter getConverter(final Class type)
       {
         RechnungCache.getInstance().ensureRechnungPosInfo(position);
-        return new CurrencyConverter(position.getInfo().getNetSum());
+        return new CurrencyConverter(position.getInfo().getNetSum(), false);
       }
     };
     netto.setLabel(new Model<String>(getString("fibu.common.netto")));

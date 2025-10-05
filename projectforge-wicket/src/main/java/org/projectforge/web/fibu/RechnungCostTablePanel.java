@@ -85,7 +85,7 @@ public class RechnungCostTablePanel extends Panel
         final Component kost2 = new Label("kost2", OldKostFormatter.format(zuweisung.getKost2()));
         WicketUtils.addTooltip(kost2, OldKostFormatter.formatToolTip(zuweisung.getKost2()));
         item.add(kost2);
-        item.add(new Label("netto", CurrencyFormatter.format(zuweisung.getNetto())));
+        item.add(new Label("netto", CurrencyFormatter.format(zuweisung.getNetto(), false)));
         final BigDecimal percentage;
         if (NumberHelper.isZeroOrNull(position.getInfo().getNetSum()) == true || NumberHelper.isZeroOrNull(zuweisung.getNetto()) == true) {
           percentage = BigDecimal.ZERO;
