@@ -27,13 +27,20 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.validation.IValidator;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.AccountingConfig;
+import org.projectforge.business.fibu.CurrencyConversionCache;
+import org.projectforge.business.fibu.CurrencyConversionService;
+import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.framework.time.DateTimeFormatter;
+import org.projectforge.framework.utils.NumberFormatter;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.common.IbanValidator;
+import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.bootstrap.GridSize;
@@ -41,6 +48,7 @@ import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.LocalDateModel;
 import org.projectforge.web.wicket.components.LocalDatePanel;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
+import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldProperties;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
@@ -130,6 +138,74 @@ public class EingangsrechnungEditForm extends
       kontoSelectPanel.setKontoNumberRanges(AccountingConfig.getInstance().getCreditorsAccountNumberRanges()).init();
       fs.add(kontoSelectPanel);
       fs.setLabelFor(kontoSelectPanel);
+    }
+    // Exchange rate info for foreign currency invoices
+    if (data.getId() != null && data.getDatum() != null && data.getCurrency() != null) {
+      final ConfigurationService configurationService = WicketSupport.get(ConfigurationService.class);
+      final String systemCurrency = configurationService.getCurrency() != null ? configurationService.getCurrency() : "EUR";
+      final String invoiceCurrency = data.getCurrency();
+
+      if (!systemCurrency.equalsIgnoreCase(invoiceCurrency)) {
+        final CurrencyConversionCache cache = WicketSupport.get(CurrencyConversionCache.class);
+        // Search from invoice currency to system currency (e.g. USD -> EUR)
+        final var lookup = cache.findCurrencyPairForConversion(invoiceCurrency, systemCurrency);
+
+        if (lookup != null) {
+          final BigDecimal rate = cache.getConversionRate(
+            lookup.getPair().getId(),
+            data.getDatum(),
+            lookup.getUseInverseRate(),
+            false
+          );
+          final LocalDate rateDate = cache.getActiveRateDate(
+            lookup.getPair().getId(),
+            data.getDatum(),
+            false
+          );
+
+          if (rate != null && rateDate != null) {
+            final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("fibu.currencyConversion.conversionRate"));
+
+            fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
+              @Override
+              public String getObject() {
+                final CurrencyConversionService conversionService = WicketSupport.get(CurrencyConversionService.class);
+                final DateTimeFormatter dateTimeFormatter = WicketSupport.get(DateTimeFormatter.class);
+                // Format rate without trailing zeros: 1 USD = 0,81 EUR (15.01.2025)
+                final String formattedRate = rate.stripTrailingZeros().toPlainString();
+                final String formattedDate = dateTimeFormatter.getFormattedDate(rateDate);
+                final String rateInfo = String.format("1 %s = %s %s (%s)",
+                  invoiceCurrency, formattedRate, systemCurrency, formattedDate);
+
+                // Convert gross sum from invoice currency to system currency
+                final BigDecimal grossSum = data.getInfo().getGrossSum();
+                final LocalDate datum = data.getDatum();
+                if (grossSum != null && datum != null) {
+                  final BigDecimal convertedAmount = conversionService.convert(
+                    grossSum,
+                    systemCurrency,
+                    invoiceCurrency,
+                    datum,
+                    2,
+                    java.math.RoundingMode.HALF_UP,
+                    false
+                  );
+
+                  if (convertedAmount != null) {
+                    // brutto: 145,45 USD = 123,00 EUR
+                    final String bruttoInfo = getString("fibu.common.brutto") + ": "
+                      + NumberFormatter.format(grossSum, 2) + " " + invoiceCurrency + " = "
+                      + NumberFormatter.format(convertedAmount, 2) + " " + systemCurrency;
+                    return rateInfo + WebConstants.HTML_TEXT_DIVIDER + bruttoInfo;
+                  }
+                }
+
+                return rateInfo;
+              }
+            }));
+          }
+        }
+      }
     }
   }
 
