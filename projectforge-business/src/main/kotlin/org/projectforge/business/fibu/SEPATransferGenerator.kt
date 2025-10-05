@@ -27,7 +27,7 @@ import org.apache.commons.lang3.StringUtils
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.PFDateTime
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -35,12 +35,10 @@ import org.xml.sax.SAXException
 import java.io.ByteArrayInputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.text.SimpleDateFormat
-import java.util.*
+import java.time.format.DateTimeFormatter
 import java.util.regex.Pattern
 import jakarta.annotation.PostConstruct
 import javax.xml.XMLConstants
-import javax.xml.datatype.DatatypeFactory
 import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.Schema
 import javax.xml.validation.SchemaFactory
@@ -62,10 +60,10 @@ class SEPATransferGenerator {
     companion object {
         private val log = LoggerFactory.getLogger(SEPATransferGenerator::class.java)
         private const val PAIN_001_003_03_XSD = "misc/pain.001.003.03.xsd"
+        private val MESSAGE_ID_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH:mm")
     }
 
     private var painSchema: Schema? = null
-    private val formatter = SimpleDateFormat("yyyy-MM-dd-HH:mm")
     private val patternBic = Pattern.compile("[A-Z]{6,6}[A-Z2-9][A-NP-Z0-9]([A-Z0-9]{3,3}){0,1}")
     private val patternIBAN = Pattern.compile("[A-Z]{2,2}[0-9]{2,2}[a-zA-Z0-9]{1,30}")
 
@@ -111,8 +109,8 @@ class SEPATransferGenerator {
         }
 
         // Generate message ID and get debtor info
-        val gc = GregorianCalendar(ThreadLocalUserContext.timeZone)
-        val msgId = "transfer-${formatter.format(Date())}"
+        val now = PFDateTime.now()
+        val msgId = "transfer-${now.dateTime.format(MESSAGE_ID_FORMATTER)}"
         val debitor = Configuration.instance.getStringValue(ConfigurationParam.ORGANIZATION)
 
         // Validate all invoices and create transactions
@@ -150,31 +148,9 @@ class SEPATransferGenerator {
 
         amount = amount.setScale(2, RoundingMode.HALF_UP)
 
-        // Format dates
-        val creationDateTime = try {
-            val xmlCal = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc)
-            xmlCal.toXMLFormat()
-        } catch (e: Exception) {
-            log.error("Exception occurred while formatting creation date.", e)
-            val year = gc.get(Calendar.YEAR)
-            val month = String.format("%02d", gc.get(Calendar.MONTH) + 1)
-            val day = String.format("%02d", gc.get(Calendar.DAY_OF_MONTH))
-            "$year-$month-$day"
-        }
-
-        val requiredExecutionDate = try {
-            val xmlCal = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc)
-            val year = xmlCal.year
-            val month = String.format("%02d", xmlCal.month)
-            val day = String.format("%02d", xmlCal.day)
-            "$year-$month-$day"
-        } catch (e: Exception) {
-            log.error("Exception occurred while formatting required execution date.", e)
-            val year = gc.get(Calendar.YEAR)
-            val month = String.format("%02d", gc.get(Calendar.MONTH) + 1)
-            val day = String.format("%02d", gc.get(Calendar.DAY_OF_MONTH))
-            "$year-$month-$day"
-        }
+        // Format dates using java.time
+        val creationDateTime = now.dateTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+        val requiredExecutionDate = now.dateTime.toLocalDate().format(DateTimeFormatter.ISO_LOCAL_DATE)
 
         // Build XML
         try {
