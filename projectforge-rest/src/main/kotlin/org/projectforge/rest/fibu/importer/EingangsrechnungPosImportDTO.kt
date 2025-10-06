@@ -89,7 +89,7 @@ class EingangsrechnungPosImportDTO(
     var iban: String? = null,
     var bic: String? = null,
     var receiver: String? = null,
-    var paymentType: PaymentType? = null,
+    var paymentTypeString: String? = null,
     var customernr: String? = null,
     var bemerkung: String? = null,
     var kost1: Kost1? = null,
@@ -139,7 +139,7 @@ class EingangsrechnungPosImportDTO(
             EingangsrechnungDO::iban,
             EingangsrechnungDO::bic,
             EingangsrechnungDO::receiver,
-            EingangsrechnungDO::paymentType,
+            EingangsrechnungDO::paymentTypeString,
             EingangsrechnungDO::customernr,
             EingangsrechnungDO::bemerkung
         )
@@ -157,7 +157,7 @@ class EingangsrechnungPosImportDTO(
         this.iban = src.iban
         this.bic = src.bic
         this.receiver = src.receiver
-        this.paymentType = src.paymentType
+        this.paymentTypeString = src.paymentTypeString
         this.customernr = src.customernr
         this.bemerkung = src.bemerkung
         // this.kost1 = src.kost1
@@ -183,7 +183,7 @@ class EingangsrechnungPosImportDTO(
         obj.iban = this.iban
         obj.bic = this.bic
         obj.receiver = this.receiver
-        obj.paymentType = this.paymentType
+        obj.paymentTypeString = this.paymentTypeString
         obj.customernr = this.customernr
         obj.bemerkung = this.bemerkung
     }

@@ -93,11 +93,32 @@ open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<Eingangsrechnun
     @get:Column(length = 255)
     open var kreditor: String? = null
 
+    /**
+     * Backing field for paymentType. Stores payment type as free text string.
+     * Can contain either standard PaymentType enum names or custom text values.
+     */
     @PropertyInfo(i18nKey = "fibu.payment.type")
-    @GenericField(valueBridge = ValueBridgeRef(type = HibernateSearchPaymentTypeBridge::class))
-    @get:Column(length = 20, name = "payment_type")
-    @get:Enumerated(EnumType.STRING)
-    open var paymentType: PaymentType? = null
+    @FullTextField
+    @get:Column(length = 30, name = "payment_type")
+    open var paymentTypeString: String? = null
+
+    /**
+     * Payment type as enum. Returns null if paymentTypeString is not a valid enum value.
+     * Setting this property will update paymentTypeString with the enum name.
+     */
+    open var paymentType: PaymentType?
+        @PropertyInfo(i18nKey = "fibu.payment.type")
+        @Transient
+        get() = paymentTypeString?.let {
+            try {
+                PaymentType.valueOf(it)
+            } catch (e: IllegalArgumentException) {
+                null
+            }
+        }
+        set(value) {
+            paymentTypeString = value?.name
+        }
 
     @PropertyInfo(i18nKey = "fibu.rechnung.customernr")
     @FullTextField

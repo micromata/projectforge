@@ -350,12 +350,18 @@ class IncomingInvoiceCsvImporter(
         try {
             val paymentType = mapPaymentTypeFromString(paymentTypeString)
             if (paymentType != null) {
-                invoicePos.paymentType = paymentType
+                // Known alias found - use mapped enum name
+                invoicePos.paymentTypeString = paymentType
                 log.debug { "Mapped payment type '$paymentTypeString' to $paymentType" }
             } else {
-                val errorMsg = "Payment type '$paymentTypeString' could not be mapped to a known type."
-                addError(invoicePos, errorMsg, importStorage)
-                log.warn(errorMsg)
+                // Unknown value - store as free text, truncated to max length
+                val truncated = if (paymentTypeString.length > PAYMENT_TYPE_MAX_LENGTH) {
+                    paymentTypeString.substring(0, PAYMENT_TYPE_MAX_LENGTH)
+                } else {
+                    paymentTypeString
+                }
+                invoicePos.paymentTypeString = truncated
+                log.debug { "Stored unknown payment type '$paymentTypeString' as free text (truncated to $PAYMENT_TYPE_MAX_LENGTH chars): '$truncated'" }
             }
         } catch (e: Exception) {
             val errorMsg = "Could not parse payment type '$paymentTypeString'"
@@ -365,18 +371,18 @@ class IncomingInvoiceCsvImporter(
     }
 
     /**
-     * Maps various text variations of payment types to PaymentType enum values.
+     * Maps various text variations of payment types to PaymentType enum names.
      * Uses the PAYMENT_TYPE_ALIASES mapping for case-insensitive matching.
      *
      * @param text The payment type text from import
-     * @return PaymentType enum value or null if no mapping found
+     * @return PaymentType enum name as String or null if no mapping found
      */
-    private fun mapPaymentTypeFromString(text: String): org.projectforge.business.fibu.PaymentType? {
+    private fun mapPaymentTypeFromString(text: String): String? {
         val normalized = text.trim().lowercase()
 
         return PAYMENT_TYPE_ALIASES.entries.firstOrNull { (_, aliases) ->
             aliases.any { alias -> normalized.contains(alias) }
-        }?.key
+        }?.key?.name
     }
 
 
@@ -600,7 +606,7 @@ class IncomingInvoiceCsvImporter(
             "iban" -> dto.iban
             "bic" -> dto.bic
             "receiver" -> dto.receiver
-            "paymentType" -> dto.paymentType
+            "paymentType" -> dto.paymentTypeString
             "customernr" -> dto.customernr
             "bemerkung" -> dto.bemerkung
             else -> null
@@ -620,6 +626,17 @@ class IncomingInvoiceCsvImporter(
     }
 
     companion object {
+        /**
+         * Maximum length for paymentType field in EingangsrechnungDO.
+         * Queried once from database metadata.
+         */
+        private val PAYMENT_TYPE_MAX_LENGTH: Int by lazy {
+            org.projectforge.framework.persistence.api.HibernateUtils.getPropertyLength(
+                org.projectforge.business.fibu.EingangsrechnungDO::class.java,
+                "paymentType"
+            ) ?: 30 // Fallback to 30 if length cannot be determined
+        }
+
         /**
          * Mapping of PaymentType enum values to their text variations (aliases).
          * All aliases are in lowercase for case-insensitive matching.
