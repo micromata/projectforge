@@ -26,6 +26,8 @@ package org.projectforge.rest.fibu.importer
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
+import org.projectforge.business.fibu.EingangsrechnungsPositionDO
+import org.projectforge.business.fibu.RechnungInfo
 import org.projectforge.framework.jobs.JobHandler
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ExpiringSessionAttributes
@@ -98,6 +100,8 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
         agGrid: UIAgGrid,
     ) {
         val lc = LayoutContext(EingangsrechnungDO::class.java)
+        val posLc = LayoutContext(EingangsrechnungsPositionDO::class.java)
+        val infoLc = LayoutContext(RechnungInfo::class.java)
         val importStorage = getImportStorage(request)
         val isPositionBasedImport = importStorage?.isPositionBasedImport ?: true
 
@@ -116,14 +120,10 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
         addReadColumn(agGrid, lc, EingangsrechnungDO::datum)
 
         // Betrag (erstelle custom column da grossSum nicht in EingangsrechnungDO ist)
-        addDiffColumn(
-            agGrid, lc, "read.grossSum",
-            headerName = "fibu.common.betrag",
-            formatter = Formatter.CURRENCY_PLAIN
-        )
+        addReadColumn(agGrid, infoLc, RechnungInfo::grossSum)
 
         // Währung (custom column)
-        addDiffColumn(agGrid, lc, "read.currency", headerName = "fibu.rechnung.currency", width = 80)
+        addReadColumn(agGrid, lc, EingangsrechnungDO::currency, width = 80)
 
         // Betreff (Text/Ware/Leistung)
         addReadColumn(agGrid, lc, EingangsrechnungDO::betreff, wrapText = true)
@@ -149,45 +149,28 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
             addReadColumn(agGrid, lc, EingangsrechnungDO::bezahlDatum)
 
             // Zahlbetrag
-            addDiffColumn(
-                agGrid, lc, "read.zahlBetrag",
-                headerName = "fibu.rechnung.zahlBetrag",
-                formatter = Formatter.CURRENCY_PLAIN
-            )
+            addReadColumn(agGrid, lc, EingangsrechnungDO::zahlBetrag)
+            // Payment Type (Belegtyp) - only for header-only imports
+            addReadColumn(agGrid, lc, EingangsrechnungDO::paymentType, width = 120)
         }
 
         // TAX rate
-        addDiffColumn(
-            agGrid, lc, "read.taxRate", headerName = "fibu.common.vat", width = 80,
-            formatter = Formatter.PERCENTAGE_DECIMAL
-        )
+        addReadColumn(agGrid, posLc, EingangsrechnungsPositionDO::vat)
+        addReadColumn(agGrid, lc, EingangsrechnungDO::bemerkung)
 
         // Customer
-        addDiffColumn(agGrid, lc, "read.customernr", headerName = "fibu.kunde.nummer", width = 150)
+        addReadColumn(agGrid, lc, EingangsrechnungDO::customernr, width = 150)
 
         // Skonto %
-        addReadColumn(
-            agGrid, lc, EingangsrechnungDO::discountPercent,
-            formatter = Formatter.PERCENTAGE
-        )
+        addReadColumn(agGrid, lc, EingangsrechnungDO::discountPercent, formatter = Formatter.PERCENTAGE)
 
         // Skontodatum
         addReadColumn(agGrid, lc, EingangsrechnungDO::discountMaturity)
 
         if (!isPositionBasedImport) {
-            // Comment
-            addDiffColumn(
-                agGrid, lc, "read.bemerkung",
-                headerName = "comment",
-            )
-            addDiffColumn(
-                agGrid, lc, "read.iban",
-                headerName = "fibu.rechnung.iban",
-            )
-            addDiffColumn(
-                agGrid, lc, "read.bic",
-                headerName = "fibu.rechnung.bic",
-            )
+            addReadColumn(agGrid, lc, EingangsrechnungDO::bemerkung)
+            addReadColumn(agGrid, lc, EingangsrechnungDO::iban)
+            addReadColumn(agGrid, lc, EingangsrechnungDO::bic)
         }
     }
 }

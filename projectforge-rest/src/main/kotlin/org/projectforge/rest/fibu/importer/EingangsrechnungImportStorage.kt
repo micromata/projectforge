@@ -886,6 +886,10 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
                 if (read.bic == null && stored.bic != null) {
                     read.bic = stored.bic
                 }
+
+                if (read.paymentType == null && stored.paymentType != null) {
+                    read.paymentType = stored.paymentType
+                }
             }
 
             // Calculate zahlBetrag if bezahlDatum is set but zahlBetrag is missing
