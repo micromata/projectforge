@@ -125,6 +125,12 @@ class IncomingInvoiceCsvImporter(
                 }
             }
 
+            "paymentType" -> {
+                // Parse payment type from various text variations
+                parsePaymentType(value, entity, rowContext.importStorage)
+                true // Prevent standard processing since we've handled it
+            }
+
             else -> {
                 false // Let standard processing handle the field normally
             }
@@ -332,6 +338,45 @@ class IncomingInvoiceCsvImporter(
             addError(invoicePos, errorMsg, importStorage)
             log.warn(errorMsg, e)
         }
+    }
+
+    private fun parsePaymentType(
+        paymentTypeString: String,
+        invoicePos: EingangsrechnungPosImportDTO,
+        importStorage: ImportStorage<EingangsrechnungPosImportDTO>
+    ) {
+        if (paymentTypeString.isBlank()) return
+
+        try {
+            val paymentType = mapPaymentTypeFromString(paymentTypeString)
+            if (paymentType != null) {
+                invoicePos.paymentType = paymentType
+                log.debug { "Mapped payment type '$paymentTypeString' to $paymentType" }
+            } else {
+                val errorMsg = "Payment type '$paymentTypeString' could not be mapped to a known type."
+                addError(invoicePos, errorMsg, importStorage)
+                log.warn(errorMsg)
+            }
+        } catch (e: Exception) {
+            val errorMsg = "Could not parse payment type '$paymentTypeString'"
+            addError(invoicePos, errorMsg, importStorage)
+            log.warn(errorMsg, e)
+        }
+    }
+
+    /**
+     * Maps various text variations of payment types to PaymentType enum values.
+     * Uses the PAYMENT_TYPE_ALIASES mapping for case-insensitive matching.
+     *
+     * @param text The payment type text from import
+     * @return PaymentType enum value or null if no mapping found
+     */
+    private fun mapPaymentTypeFromString(text: String): org.projectforge.business.fibu.PaymentType? {
+        val normalized = text.trim().lowercase()
+
+        return PAYMENT_TYPE_ALIASES.entries.firstOrNull { (_, aliases) ->
+            aliases.any { alias -> normalized.contains(alias) }
+        }?.key
     }
 
 
@@ -575,6 +620,40 @@ class IncomingInvoiceCsvImporter(
     }
 
     companion object {
+        /**
+         * Mapping of PaymentType enum values to their text variations (aliases).
+         * All aliases are in lowercase for case-insensitive matching.
+         * Supports German and English terms, plurals, and common variations.
+         */
+        private val PAYMENT_TYPE_ALIASES = mapOf(
+            org.projectforge.business.fibu.PaymentType.BANK_TRANSFER to listOf(
+                "überweisung", "überweisungen",
+                "ueberweisung", "ueberweisungen",
+                "bank transfer", "banktransfer",
+                "transfer", "wire", "wire transfer"
+            ),
+            org.projectforge.business.fibu.PaymentType.DEBIT to listOf(
+                "lastschrift", "lastschriften",
+                "debit", "direct debit", "sepa"
+            ),
+            org.projectforge.business.fibu.PaymentType.CREDIT_CARD to listOf(
+                "kreditkarte", "kreditkarten",
+                "kreditkartenbeleg", "kreditkartenbelege",
+                "credit card", "creditcard",
+                "cc", "visa", "mastercard", "amex"
+            ),
+            org.projectforge.business.fibu.PaymentType.CASH to listOf(
+                "barzahlung", "bar", "cash"
+            ),
+            org.projectforge.business.fibu.PaymentType.SALARY to listOf(
+                "gehalt", "salary", "wage", "lohn"
+            ),
+            org.projectforge.business.fibu.PaymentType.CREDIT to listOf(
+                "gutschrift", "gutschriften",
+                "credit note", "credit"
+            )
+        )
+
         /**
          * Stores the import storage in session and returns URL to navigate to import page.
          * Moved from IncomingInvoicePosCsvParser for consolidation.

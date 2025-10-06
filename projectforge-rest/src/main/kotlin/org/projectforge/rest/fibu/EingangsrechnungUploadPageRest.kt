@@ -111,7 +111,7 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
             iban=IBAN
             konto=LieferantKonto|Geschäftspartner-Konto
             kreditor=Geschäftspartner-Name|Kreditor|LieferantName
-            paymentType=Zahlungsart
+            paymentType=Zahlungsart|Belegtyp
             receiver=Empfänger
             referenz=Rechnungs-Nr.|Referenz|Interne Re.-Nr.|RENR
             leistungsdatum=Leistungsdatum|:dd.MM.yyyy|:dd.MM.yy

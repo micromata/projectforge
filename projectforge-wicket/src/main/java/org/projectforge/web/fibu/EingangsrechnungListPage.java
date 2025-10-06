@@ -227,12 +227,15 @@ public class EingangsrechnungListPage
             }
         });
         columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(new Model<String>(
-
                 getString("comment")),
-
                 getSortable("bemerkung",
                         sortable),
                 "bemerkung", cellItemListener));
+        columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(new Model<String>(
+                getString("fibu.rechnung.besonderheiten")),
+                getSortable("fibu.rechnung.besonderheiten",
+                        sortable),
+                "besonderheiten", cellItemListener));
         return columns;
     }
 
