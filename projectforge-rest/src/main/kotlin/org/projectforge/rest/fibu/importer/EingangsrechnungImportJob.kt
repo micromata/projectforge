@@ -50,6 +50,7 @@ class EingangsrechnungImportJob(
     queueName = "eingangsrechnungImport",
     timeoutSeconds = 600,
     importStorage = importStorage,
+    selectedEntries = selectedEntries,
 ) {
 
     init {
@@ -61,7 +62,6 @@ class EingangsrechnungImportJob(
         importStorage.reconcileImportStorage(rereadDatabaseEntries = true)
         // Mark all entries as not reconciled so they show status UNKNOWN until processed
         importStorage.pairEntries.forEach { it.reconciled = false }
-        updateTotals(importStorage)
     }
 
     override fun onAfterTermination() {

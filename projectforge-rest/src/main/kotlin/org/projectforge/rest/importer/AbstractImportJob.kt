@@ -54,6 +54,10 @@ abstract class AbstractImportJob(
    */
   timeoutSeconds: Int = 120,
     importStorage: ImportStorage<*>? = null,
+    /**
+   * The selected entries to import. If not given, all entries from importStorage will be used for totals calculation.
+   */
+  selectedEntries: List<ImportPairEntry<*>>? = null,
   ) : AbstractJob(
   title = title,
   area = area,
@@ -131,14 +135,27 @@ abstract class AbstractImportJob(
   val result = JobResult()
 
   init {
-    updateTotals(importStorage)
-  }
-
-  fun updateTotals(importStorage: ImportStorage<*>?) {
+    // Calculate totals once at job creation time - they remain constant during job execution
     if (importStorage != null) {
-      result.totalToBeInserted = importStorage.info.numberOfNewEntries
-      result.totalToBeDeleted = importStorage.info.numberOfDeletedEntries
-      result.totalToBeUpdated = importStorage.info.numberOfModifiedEntries
+      // Use selectedEntries if available, otherwise fall back to all entries from importStorage
+      val entriesToCount = selectedEntries ?: importStorage.pairEntries
+
+      var toBeInserted = 0
+      var toBeDeleted = 0
+      var toBeUpdated = 0
+
+      entriesToCount.forEach {
+        when (it.status) {
+          ImportEntry.Status.NEW -> toBeInserted++
+          ImportEntry.Status.DELETED -> toBeDeleted++
+          ImportEntry.Status.MODIFIED -> toBeUpdated++
+          else -> {} // UNMODIFIED, FAULTY, UNKNOWN don't count
+        }
+      }
+
+      result.totalToBeInserted = toBeInserted
+      result.totalToBeDeleted = toBeDeleted
+      result.totalToBeUpdated = toBeUpdated
     }
   }
 

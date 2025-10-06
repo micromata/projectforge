@@ -29,6 +29,7 @@ import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.RechnungCalculator
 import org.projectforge.framework.configuration.ApplicationContextProvider
+import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.dto.Konto
 import org.projectforge.rest.dto.Kost1
 import org.projectforge.rest.dto.Kost2
@@ -56,6 +57,16 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
      * For invoice imports: true if "Periode" column exists, false otherwise.
      */
     var isPositionBasedImport: Boolean = true
+
+    override val targetEntityTitle: String
+        get() {
+            val key = if (isPositionBasedImport) {
+                "fibu.eingangsrechnung.import.title.positions"
+            } else {
+                "fibu.eingangsrechnung.import.title.header"
+            }
+            return translate(key)
+        }
 
     var readInvoices = mutableListOf<EingangsrechnungPosImportDTO>()
 
