@@ -46,6 +46,7 @@ class BankingImportJob(
   queueStrategy = QueueStrategy.REFUSE_PER_QUEUE,
   timeoutSeconds = 600,
   importStorage = importStorage,
+  selectedEntries = selectedEntries,
 ) {
 
   init {
@@ -59,7 +60,6 @@ class BankingImportJob(
    */
   override fun onBeforeStart() {
     importStorage.reconcileImportStorage()
-    updateTotals(importStorage)
   }
 
   override fun onAfterTermination() {
