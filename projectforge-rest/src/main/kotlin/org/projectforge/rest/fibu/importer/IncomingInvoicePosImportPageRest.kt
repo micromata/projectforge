@@ -151,7 +151,7 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
             // Zahlbetrag
             addReadColumn(agGrid, lc, EingangsrechnungDO::zahlBetrag)
             // Payment Type (Belegtyp) - only for header-only imports
-            addReadColumn(agGrid, lc, EingangsrechnungDO::paymentType, width = 120)
+            addReadColumn(agGrid, lc, EingangsrechnungDO::paymentTypeString, width = 120)
         }
 
         // TAX rate

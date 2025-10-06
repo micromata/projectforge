@@ -270,7 +270,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
                 iban = first.iban,
                 bic = first.bic,
                 receiver = first.receiver,
-                paymentType = first.paymentType,
+                paymentTypeString = first.paymentTypeString,
                 customernr = first.customernr,
                 bemerkung = first.bemerkung
                 // Note: kost1, kost2, positionNummer are position-specific and not copied
@@ -886,20 +886,20 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
                 }
 
                 // Preserve bemerkung if not in import (e.g., position-based imports don't include this field)
-                if (read.bemerkung == null && stored.bemerkung != null) {
+                if (read.bemerkung == null && !stored.bemerkung.isNullOrBlank()) {
                     read.bemerkung = stored.bemerkung
                 }
 
-                if (read.iban == null && stored.iban != null) {
+                if (read.iban == null && !stored.iban.isNullOrBlank()) {
                     read.iban = stored.iban
                 }
 
-                if (read.bic == null && stored.bic != null) {
+                if (read.bic == null && !stored.bic.isNullOrBlank()) {
                     read.bic = stored.bic
                 }
 
-                if (read.paymentType == null && stored.paymentType != null) {
-                    read.paymentType = stored.paymentType
+                if (read.paymentTypeString == null && !stored.paymentTypeString.isNullOrBlank()) {
+                    read.paymentTypeString = stored.paymentTypeString
                 }
             }
 
