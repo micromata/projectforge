@@ -146,7 +146,7 @@ class CurrencyPairPagesRest :
                 "currentInverseRate", headerName = "fibu.currencyConversion.currentInverseRate",
                 formatter = UIAgGridColumnDef.Formatter.NUMBER, width = 200,
             )
-            .add(lc, "comment")
+            .add(lc, "comment", wrapText = true)
     }
 
     /**
@@ -185,7 +185,7 @@ class CurrencyPairPagesRest :
                                             .add(UIAgGridColumnDef.createCol(rateLc, "validFrom", width = 150))
                                             .add(UIAgGridColumnDef.createCol(rateLc, "conversionRate", width = 200))
                                             .add(UIAgGridColumnDef.createCol(rateLc, "inverseConversionRate", width = 200))
-                                            .add(UIAgGridColumnDef.createCol(rateLc, "comment"))
+                                            .add(UIAgGridColumnDef.createCol(rateLc, "comment", wrapText = true))
                                             .withRowClickRedirectUrl(
                                                 createModalUrl(dto),
                                                 openModal = true,
