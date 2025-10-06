@@ -352,9 +352,9 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
 
     protected fun addDiffColumn(
         agGrid: UIAgGrid,
-        lc: LayoutContext,
+        lc: LayoutContext? = null,
         field: String,
-        headerName: String,
+        headerName: String? = null,
         width: Int? = null,
         wrapText: Boolean = true,
         formatter: UIAgGridColumnDef.Formatter? = null,

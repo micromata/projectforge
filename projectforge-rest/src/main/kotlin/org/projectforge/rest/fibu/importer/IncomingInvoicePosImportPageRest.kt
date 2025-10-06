@@ -151,7 +151,7 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
             // Zahlbetrag
             addReadColumn(agGrid, lc, EingangsrechnungDO::zahlBetrag)
             // Payment Type (Belegtyp) - only for header-only imports
-            addReadColumn(agGrid, lc, EingangsrechnungDO::paymentType, width = 120)
+            addDiffColumn(agGrid, field = "read.paymentTypeAsString", headerName = "fibu.payment.type", width = 150)
         }
 
         // TAX rate
