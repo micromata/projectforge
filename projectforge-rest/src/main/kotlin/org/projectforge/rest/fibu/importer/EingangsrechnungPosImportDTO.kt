@@ -23,10 +23,12 @@
 
 package org.projectforge.rest.fibu.importer
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import mu.KotlinLogging
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.PaymentType
 import org.projectforge.common.StringMatchUtils
+import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.dto.BaseDTO
 import org.projectforge.rest.dto.Konto
 import org.projectforge.rest.dto.Kost1
@@ -108,6 +110,9 @@ class EingangsrechnungPosImportDTO(
      */
     var isPositionBasedImport: Boolean = true,
 ) : BaseDTO<EingangsrechnungDO>(), ImportPairEntry.Modified<EingangsrechnungPosImportDTO> {
+    val paymentTypeAsString: String
+        @JsonProperty
+        get() = if (paymentType != null) translate(paymentType) else ""
 
     /**
      * Import errors that occurred during parsing.
@@ -202,6 +207,8 @@ class EingangsrechnungPosImportDTO(
         }
         buildOldDiffValue(map, "currency", this.currency, old.currency)
         buildOldDiffValue(map, "konto.nummer", this.konto?.nummer, old.konto?.nummer)
+        // Build diff for translated paymentType string (used in UI as paymentTypeAsString)
+        buildOldDiffValue(map, "paymentTypeAsString", this.paymentTypeAsString, old.paymentTypeAsString)
     }
 
     /**
@@ -242,7 +249,13 @@ class EingangsrechnungPosImportDTO(
                 "MATCH SCORE: Import='${this.referenz}' vs DB='${dbInvoice.referenz}' | " +
                         "ImportKreditor='${this.kreditor}' vs DBKreditor='${dbInvoice.kreditor}' | " +
                         "ImportDate=${this.datum} vs DBDate=${dbInvoice.datum} | " +
-                        "ImportAmount=${this.grossSum} vs DBAmount=${try { dbInvoice.ensuredInfo.grossSum } catch(e: Exception) { "ERROR: ${e.message}" }} | " +
+                        "ImportAmount=${this.grossSum} vs DBAmount=${
+                            try {
+                                dbInvoice.ensuredInfo.grossSum
+                            } catch (e: Exception) {
+                                "ERROR: ${e.message}"
+                            }
+                        } | " +
                         "Scores: referenz=$referenzScore, kreditor=$kreditorScore, date=$dateScore, amount=$amountScore | " +
                         "ReferenzSimilarity=$similarity, KreditorSimilarity=$kreditorSimilarity | " +
                         "TOTAL=$score"

@@ -886,15 +886,15 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
                 }
 
                 // Preserve bemerkung if not in import (e.g., position-based imports don't include this field)
-                if (read.bemerkung == null && stored.bemerkung != null) {
+                if (read.bemerkung == null && !stored.bemerkung.isNullOrEmpty()) {
                     read.bemerkung = stored.bemerkung
                 }
 
-                if (read.iban == null && stored.iban != null) {
+                if (read.iban == null && !stored.iban.isNullOrEmpty()) {
                     read.iban = stored.iban
                 }
 
-                if (read.bic == null && stored.bic != null) {
+                if (read.bic == null && !stored.bic.isNullOrEmpty()) {
                     read.bic = stored.bic
                 }
 
