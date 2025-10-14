@@ -23,12 +23,14 @@
 
 package org.projectforge.framework.i18n
 
+import mu.KotlinLogging
 import org.projectforge.business.user.UserLocale
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.slf4j.LoggerFactory
 import java.text.MessageFormat
 import java.util.*
+
+private val log = KotlinLogging.logger {}
 
 /**
  * ThreadLocal context.
@@ -36,13 +38,26 @@ import java.util.*
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 object I18nHelper {
-  private val log = LoggerFactory.getLogger(I18nHelper::class.java)
-  private val BUNDLE_NAMES: MutableSet<String> = HashSet()
+  private val BUNDLE_NAMES: MutableSet<String> = LinkedHashSet()
   private lateinit var i18nService: I18nService
 
   @JvmStatic
   fun addBundleName(bundleName: String) {
     BUNDLE_NAMES.add(bundleName)
+  }
+
+  /**
+   * Adds a bundle name with highest priority (at the beginning of the list).
+   * Used for customer-specific bundles that should override all other translations.
+   */
+  @JvmStatic
+  fun addBundleNameWithHighestPriority(bundleName: String) {
+    // Create new LinkedHashSet with the new bundle first, then add all existing ones
+    val newBundles = LinkedHashSet<String>()
+    newBundles.add(bundleName)
+    newBundles.addAll(BUNDLE_NAMES)
+    BUNDLE_NAMES.clear()
+    BUNDLE_NAMES.addAll(newBundles)
   }
 
   @JvmStatic
@@ -90,13 +105,15 @@ object I18nHelper {
 
   private fun getLocalizedString(locale: Locale?, i18nKey: String): String {
     val lc = locale ?: ThreadLocalUserContext.locale!!
+    log.debug { "#### I18N LOOKUP: key='$i18nKey', locale='$lc', bundles=[${BUNDLE_NAMES.joinToString()}]" }
     for (bundleName in BUNDLE_NAMES) {
       val translation = getLocalizedString(bundleName, lc, i18nKey)
       if (translation != null) {
+        log.debug { "#### I18N FOUND: key='$i18nKey' in bundle='$bundleName' => '$translation'" }
         return translation
       }
     }
-    // log.warn("Resource key '$i18nKey' not found for locale '$locale' in bundles ${BUNDLE_NAMES.joinToString { it }}")
+    log.debug { "#### I18N NOT FOUND: key='$i18nKey', returning key itself" }
     // Is already translated (or key not found):
     return i18nKey
   }
@@ -108,7 +125,6 @@ object I18nHelper {
         bundle.getString(i18nKey)
       } else {
         null
-        //i18nService.getAdditionalString(i18nKey, locale)
       }
     } catch (ex: Exception) {
       log.warn("Exception while trying to access key '$i18nKey' for locale '$locale' and bundle '$bundleName': ${ex.message}")
@@ -122,6 +138,26 @@ object I18nHelper {
    * @param locale If null, then the context user's locale is assumed.
    */
   private fun getResourceBundle(bundleName: String, locale: Locale?): ResourceBundle {
-    return if (locale != null) ResourceBundle.getBundle(bundleName, locale) else ResourceBundle.getBundle(bundleName)
+    val effectiveLocale = locale ?: Locale.getDefault()
+
+    // Only load CustomerI18nResources from resourceDir via I18nService
+    // All other bundles are loaded from classpath via standard ResourceBundle mechanism
+    if (bundleName == "CustomerI18nResources") {
+      log.debug { "#### I18N BUNDLE: '$bundleName' is customer bundle, trying I18nService for locale='$effectiveLocale'" }
+      try {
+        val bundle = i18nService.getResourceBundleFor(bundleName, effectiveLocale)
+        log.debug { "#### I18N BUNDLE: Successfully loaded '$bundleName' from I18nService for locale='$effectiveLocale'" }
+        return bundle
+      } catch (ex: MissingResourceException) {
+        log.debug { "#### I18N BUNDLE: '$bundleName' not found in I18nService: ${ex.message}" }
+        throw ex
+      }
+    }
+
+    // Standard classpath lookup for all built-in bundles
+    log.debug { "#### I18N BUNDLE: '$bundleName' is built-in bundle, using standard classpath lookup for locale='$effectiveLocale'" }
+    val bundle = ResourceBundle.getBundle(bundleName, effectiveLocale)
+    log.debug { "#### I18N BUNDLE: Loaded '$bundleName' from classpath for locale='$effectiveLocale', actual locale='${bundle.locale}'" }
+    return bundle
   }
 }

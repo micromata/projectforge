@@ -186,6 +186,40 @@ projectforge.export.logoFile=
 ...
 ----
 
+==== Customizing i18n translations
+
+ProjectForge allows you to customize or override any translation text displayed in the user interface.
+This is useful if you want to adapt terminology to your organization's specific needs.
+
+To customize translations:
+
+. Create one or more properties files in the `~/ProjectForge/resources` directory:
+  * `CustomerI18nResources.properties` - for default/English translations
+  * `CustomerI18nResources_de.properties` - for German translations
+  * `CustomerI18nResources_en.properties` - for English translations (explicit)
+
+. Add your custom key-value pairs to override existing translations or add new ones:
++
+[source,properties,linenums]
+----
+# Example: Override existing translation
+menu.addressbook.title=Contacts
+# Example: Add custom translation
+myorganization.custom.greeting=Welcome to Acme Corp
+----
+
+. Restart ProjectForge to apply the changes.
+
+Your custom translations will take precedence over the default translations included in ProjectForge.
+
+To find available i18n keys that you can override, refer to:
+
+* Main application translations: https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/I18nResources.properties[I18nResources.properties]
+* Plugin translations: Search the GitHub repository for `*I18nResources.properties` files in the plugin directories, e.g.:
+** `plugins/org.projectforge.plugins.banking/src/main/resources/BankingI18nResources.properties`
+** `plugins/org.projectforge.plugins.skillmatrix/src/main/resources/SkillMatrixI18nResources.properties`
+** And other plugin-specific translation files
+
 === Configuration settings (web interface)
 
 Please go to this page for setting different parameters of
