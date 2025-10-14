@@ -186,7 +186,7 @@ projectforge.export.logoFile=
 ...
 ----
 
-==== Customizing i18n translations
+==== Customizing i18n translations (since 8.2)
 
 ProjectForge allows you to customize or override any translation text displayed in the user interface.
 This is useful if you want to adapt terminology to your organization's specific needs.
