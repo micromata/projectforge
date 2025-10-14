@@ -24,6 +24,7 @@
 package org.projectforge.framework.i18n
 
 import jakarta.annotation.PostConstruct
+import mu.KotlinLogging
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.user.UserLocale
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,6 +34,8 @@ import java.net.MalformedURLException
 import java.net.URL
 import java.net.URLClassLoader
 import java.util.*
+
+private val log = KotlinLogging.logger {}
 
 @Service
 class I18nServiceImpl : I18nService {
@@ -46,7 +49,40 @@ class I18nServiceImpl : I18nService {
     @PostConstruct
     fun init() {
         I18nHelper.setI18nService(this)
+        // Auto-discover CustomerI18nResources if present (highest priority)
+        registerCustomerBundleIfPresent()
         loadResourceBundles()
+    }
+
+    /**
+     * Auto-discovers and registers customer-specific i18n bundle if present in resourceDir.
+     * Convention: CustomerI18nResources*.properties files in resourceDir will be loaded
+     * with highest priority, allowing customers to override any translation without code changes.
+     */
+    private fun registerCustomerBundleIfPresent() {
+        val customerBundleName = "CustomerI18nResources"
+        val resourceDir = File(configurationService.resourceDirName)
+
+        if (!resourceDir.exists() || !resourceDir.isDirectory) {
+            return
+        }
+
+        // Check if any CustomerI18nResources*.properties exists
+        val hasCustomerBundle = resourceDir.listFiles()?.any { file ->
+            val found = file.isFile && (file.name == "$customerBundleName.properties" ||file.name.matches("""$customerBundleName(_.*)?\.properties""".toRegex()))
+            if (found) {
+                log.info { "Detected customer i18n bundle file: ${file.name}" }
+            }
+            found
+        } ?: false
+
+        if (hasCustomerBundle) {
+            // Register as FIRST bundle (highest priority)
+            I18nHelper.addBundleNameWithHighestPriority(customerBundleName)
+            log.info { "Customer i18n bundle detected and registered with highest priority: $customerBundleName" }
+        } else {
+            log.info { "No customer i18n bundle found in resourceDir '${resourceDir.absolutePath}' (OK): $customerBundleName{_de|_en}.properties" }
+        }
     }
 
     override fun loadResourceBundles() {
@@ -69,8 +105,10 @@ class I18nServiceImpl : I18nService {
         }
 
         val loader: ClassLoader = URLClassLoader(urls)
+        // Merge auto-discovered bundles and manually registered bundles (like CustomerI18nResources)
+        val allBundleNames = (resourceBundles + I18nHelper.bundleNames).toSet()
         for (locale in UserLocale.I18NSERVICE_LANGUAGES) {
-            for (bundleName in resourceBundles) {
+            for (bundleName in allBundleNames) {
                 try {
                     if (File(configurationService.resourceDirName + File.separator + bundleName + "_" + locale.toString() + ".properties").exists()) {
                         localeResourceBundleMap!![Pair(locale, bundleName)] =
@@ -134,6 +172,37 @@ class I18nServiceImpl : I18nService {
     }
 
     override fun getResourceBundleFor(name: String, locale: Locale): ResourceBundle {
-        return localeResourceBundleMap!![Pair(locale, name)]!!
+        log.debug { "#### I18N SERVICE: getResourceBundleFor(name='$name', locale='$locale')" }
+
+        // Try exact locale match first (e.g., de_DE)
+        localeResourceBundleMap!![Pair(locale, name)]?.let {
+            log.debug { "#### I18N SERVICE: Found exact match for ($locale, $name)" }
+            return it
+        }
+
+        // Fall back to language-only locale (e.g., de from de_DE)
+        if (!locale.country.isNullOrBlank() || !locale.variant.isNullOrBlank()) {
+            val languageOnlyLocale = Locale(locale.language)
+            log.debug { "#### I18N SERVICE: Trying language-only fallback: $languageOnlyLocale" }
+            localeResourceBundleMap!![Pair(languageOnlyLocale, name)]?.let {
+                log.debug { "#### I18N SERVICE: Found language-only match for ($languageOnlyLocale, $name)" }
+                return it
+            }
+        }
+
+        // Fall back to ROOT locale
+        log.debug { "#### I18N SERVICE: Trying ROOT locale fallback" }
+        localeResourceBundleMap!![Pair(Locale.ROOT, name)]?.let {
+            log.debug { "#### I18N SERVICE: Found ROOT match for (ROOT, $name)" }
+            return it
+        }
+
+        // No bundle found
+        log.debug { "#### I18N SERVICE: No bundle found for name='$name', locale='$locale'. Available keys: ${localeResourceBundleMap!!.keys.filter { it.second == name }}" }
+        throw MissingResourceException(
+            "No ResourceBundle found for name='$name', locale='$locale'",
+            name,
+            ""
+        )
     }
 }

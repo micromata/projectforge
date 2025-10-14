@@ -232,7 +232,7 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
                     ImportedSheet<?> sheet = sheetModel.getObject(); // Don't use sheet in inner classes due to Wicket serialization issues!
                     parentPage.reconcile(sheet.getName());
                 }
-            }, getString("common.import.action.reconcile"), getString("common.import.action.reconcile.tooltip"));
+            }, getString("common.import.action.reconcile"), getString("jobs.import.action.reconcile.tooltip"));
         } else if (outerSheet.isReconciled() == true) {
             addActionLink(actionLinkRepeater, new AjaxSubmitLink("actionLink", parentPage.form) {
                 @Override
