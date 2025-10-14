@@ -147,7 +147,7 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
                             RestResolver.getRestUrl(this::class.java, "reconcile"),
                             targetType = TargetType.POST,
                         ),
-                        title = "jobs.import.action.reconcile",
+                        title = "common.import.action.reconcile",
                         tooltip = "jobs.import.action.reconcile.tooltip",
                     )
                 )
