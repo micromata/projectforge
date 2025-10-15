@@ -142,30 +142,23 @@ class I18nServiceImpl : I18nService {
     }
 
     private fun getValueFromBundles(key: String, locale: Locale): String? {
-        for (resourceBundle in resourceBundles) {
-            // the pair searched for
-            var localeStringPair = Pair(locale, resourceBundle)
-            if (!localeResourceBundleMap!!.keys.contains(localeStringPair)) {
-                for (iterationPair in localeResourceBundleMap!!.keys) {
-                    if (!iterationPair.first.equals(Locale.ROOT) && locale.toString()
-                            .startsWith(iterationPair.second.toString())
-                    ) {
-                        // replace searched for with nearest candidate e.g. for de_de use de
-                        localeStringPair = iterationPair
-                        break
-                    }
-                }
-                // if no candidate was found use default
-                if (Pair(locale, resourceBundle).equals(localeStringPair)) {
-                    localeStringPair = Pair(Locale(Locale.getDefault().language), resourceBundle)
-                }
+        // Iterate in priority order: I18nHelper.bundleNames first (includes CustomerI18nResources with highest priority),
+        // then auto-discovered bundles
+        val allBundleNames = (I18nHelper.bundleNames + resourceBundles).toList()
+        for (bundleName in allBundleNames) {
+            // Try to get the resource bundle for this bundle name with proper locale fallback
+            val resourceBundle = try {
+                getResourceBundleFor(bundleName, locale)
+            } catch (e: MissingResourceException) {
+                // Bundle not found for this locale, try next bundle
+                continue
             }
 
-            val resourceBundleFile = localeResourceBundleMap!![localeStringPair]
+            // Try to get the key from this bundle
             try {
-                return resourceBundleFile!!.getObject(key) as String
+                return resourceBundle.getObject(key) as String
             } catch (ignored: MissingResourceException) {
-                // not found
+                // Key not found in this bundle, try next bundle
             }
         }
         return null

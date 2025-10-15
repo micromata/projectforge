@@ -216,9 +216,11 @@ public class WicketApplication extends WebApplication implements WicketApplicati
         WebRegistry.getInstance().init();
         pluginAdminService.initializeActivePlugins();
         setDefaultPage(DEFAULT_PAGE);
+        // ExternalResourceLoader must be registered FIRST to have highest priority
+        // This ensures custom i18n properties (CustomerI18nResources) override built-in translations
+        getResourceSettings().getStringResourceLoaders().add(new ExternalResourceLoader());
         addResourceBundle(RESOURCE_BUNDLE_NAME);
         addPluginResources();
-        getResourceSettings().getStringResourceLoaders().add(new ExternalResourceLoader());
         // Own error page for deployment mode and UserException and AccessException.
         getRequestCycleListeners().add(new IRequestCycleListener() {
 
