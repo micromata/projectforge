@@ -229,6 +229,11 @@ open class UIAgGridColumnDef(
                 }
             }
 
+            Formatter.ADDRESS_BOOK -> {
+                // Set valueFormatter to convert array of addressbook objects to string for AG Grid
+                this.valueFormatter = "params.value && params.value.map ? params.value.map(function(book) { return book.displayName; }).join(', ') : ''"
+            }
+
             else -> {
             }
         }
@@ -269,6 +274,7 @@ open class UIAgGridColumnDef(
 
         /**
          * @param width Column width in pixel.
+         * @param cellRenderer Custom cell renderer name (e.g., "formatter", "diffCell", or null for auto-detection of customized fields)
          */
         fun createCol(
             field: String,
@@ -283,6 +289,7 @@ open class UIAgGridColumnDef(
             valueIconMap: Map<Any, UIIconType?>? = null,
             tooltipField: String? = null,
             filter: Any? = null,
+            cellRenderer: String? = null,
         ): UIAgGridColumnDef {
             return createCol(
                 null,
@@ -298,6 +305,7 @@ open class UIAgGridColumnDef(
                 valueIconMap = valueIconMap,
                 tooltipField = tooltipField,
                 filter = filter,
+                cellRenderer = cellRenderer,
             )
         }
 
@@ -340,6 +348,7 @@ open class UIAgGridColumnDef(
         /**
          * @param lcField If field name of dto differs from do (e. g. kost2.project vs. kost2.projekt)
          * @param width Column width in pixel.
+         * @param cellRenderer Custom cell renderer name (e.g., "formatter", "diffCell", or null for auto-detection of customized fields)
          */
         fun createCol(
             lc: LayoutContext?,
@@ -357,6 +366,7 @@ open class UIAgGridColumnDef(
             tooltipField: String? = null,
             type: Type? = null,
             filter: Any? = null,
+            cellRenderer: String? = null,
         ): UIAgGridColumnDef {
             val col = UIAgGridColumnDef(
                 field,
@@ -466,6 +476,8 @@ open class UIAgGridColumnDef(
                     this["valueIconMap"] = valueIconMap
                 }
             }
+            // Set custom cellRenderer if provided (overrides auto-detection)
+            cellRenderer?.let { col.cellRenderer = it }
             return col
         }
 
