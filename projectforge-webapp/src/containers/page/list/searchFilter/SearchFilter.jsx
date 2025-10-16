@@ -162,6 +162,8 @@ function SearchFilter(props) {
                 className={styles.alert}
                 toggle={onErrorDismiss}
                 isOpen={error !== undefined}
+                fade
+                timeout={150}
             >
                 <h4>Oh Snap!</h4>
                 <p>Error while contacting the server. Please contact an administrator.</p>
