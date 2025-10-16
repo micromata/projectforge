@@ -150,24 +150,32 @@ class AGGridSupport {
     fun restoreColumnsFromUserPref(category: String, agGrid: UIAgGrid) {
         val columnStates = getColumnState(category)
         if (columnStates != null) {
-            val reorderedColumns = mutableListOf<UIAgGridColumnDef>()
+            // Separate locked and unlocked columns
+            val lockedColumns = agGrid.columnDefs.filter { it.lockPosition != null }
+            val unlockedColumnDefs = agGrid.columnDefs.filter { it.lockPosition == null }
+
+            // Reorder only unlocked columns based on user preferences
+            val reorderedUnlockedColumns = mutableListOf<UIAgGridColumnDef>()
             val processedColumns = mutableSetOf<String>()
             columnStates.forEach { columnState ->
-                agGrid.columnDefs.find { it.field == columnState.colId }?.let { colDef ->
-                    // ColumnDef found:
-                    reorderedColumns.add(colDef)
+                unlockedColumnDefs.find { it.field == columnState.colId }?.let { colDef ->
+                    reorderedUnlockedColumns.add(colDef)
                     colDef.field?.let {
                         processedColumns.add(it)
                     }
                 }
             }
-            // Add columns not part of columnStates
-            agGrid.columnDefs.forEach { colDef ->
+            // Add unlocked columns not part of columnStates
+            unlockedColumnDefs.forEach { colDef ->
                 if (!processedColumns.contains(colDef.field)) {
-                    reorderedColumns.add(colDef)
+                    reorderedUnlockedColumns.add(colDef)
                 }
             }
-            agGrid.columnDefs = reorderedColumns
+
+            // Combine: locked columns first (in original order), then reordered unlocked columns
+            agGrid.columnDefs = (lockedColumns + reorderedUnlockedColumns).toMutableList()
+
+            // Restore width, hide, pinned for all columns
             agGrid.columnDefs.forEach { colDef ->
                 columnStates.find { it.colId == colDef.field }?.let { columnState ->
                     // Only restore width if column is resizable
