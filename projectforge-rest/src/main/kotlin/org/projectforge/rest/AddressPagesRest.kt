@@ -265,13 +265,40 @@ class AddressPagesRest
             AddressMultiSelectedPageRest::class.java,
             userAccess,
         )
-        table.add(addressLC, "isFavoriteCard", width = 50)
+        // Add edit icon column first
+        table.add(
+            UIAgGridColumnDef(
+                field = "edit",
+                headerName = "",
+                width = 30,
+                sortable = false,
+                filter = false,
+                cellRenderer = "customized",
+                resizable = false
+            ).apply {
+                suppressSizeToFit = true
+                cellRendererParams = mapOf(
+                    "icon" to "edit",
+                    "tooltip" to translate("edit"),
+                    "onClick" to "history.push('${PagesResolver.getEditPageUrl(AddressPagesRest::class.java, absolute = true)}/' + data.address.id);"
+                )
+            }
+        )
+        table.add(addressLC, "isFavoriteCard", width = 30, resizable = false)
         table.add(addressLC, "lastUpdate")
         table.add(addressLC, "imagePreview", headerName = "address.image", cellRenderer = "customized")
         table.add(addressLC, "name", "firstName", "organization", "email")
         table.add(addressLC, "phoneNumbers", headerName = "address.phoneNumbers", sortable = false, cellRenderer = "customized", wrapText = true, autoHeight = true)
         table.add(lc, "address.addressbookList")
         table.withMultiRowSelection(request, magicFilter)
+
+        // Single click on row opens view page (modal)
+        table.rowClickRedirectUrl = PagesResolver.getDynamicPageUrl(
+            AddressViewPageRest::class.java,
+            absolute = true,
+            trailingSlash = false
+        ) + "/{id}"
+        table.rowClickOpenModal = true
         // Customize columns after adding them
         table.getColumnDefById("address.lastUpdate").setFormat(UIAgGridColumnDef.Formatter.DATE)
         table.getColumnDefById("address.imagePreview").apply {

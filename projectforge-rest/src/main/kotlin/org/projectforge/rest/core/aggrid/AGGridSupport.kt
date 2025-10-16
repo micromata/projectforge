@@ -170,7 +170,10 @@ class AGGridSupport {
             agGrid.columnDefs = reorderedColumns
             agGrid.columnDefs.forEach { colDef ->
                 columnStates.find { it.colId == colDef.field }?.let { columnState ->
-                    colDef.width = columnState.width
+                    // Only restore width if column is resizable
+                    if (colDef.resizable != false) {
+                        colDef.width = columnState.width
+                    }
                     colDef.hide = columnState.hide
                     colDef.pinned = columnState.pinned
                 }
