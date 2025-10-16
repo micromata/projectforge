@@ -274,9 +274,10 @@ class AddressPagesRest
                 sortable = false,
                 filter = false,
                 cellRenderer = "customized",
-                resizable = false
+                resizable = false,
             ).apply {
                 suppressSizeToFit = true
+                lockPosition = UIAgGridColumnDef.LockPosition.LEFT
                 cellRendererParams = mapOf(
                     "icon" to "edit",
                     "tooltip" to translate("edit"),
@@ -286,7 +287,7 @@ class AddressPagesRest
         )
         table.add(addressLC, "isFavoriteCard", width = 30, resizable = false)
         table.add(addressLC, "lastUpdate")
-        table.add(addressLC, "imagePreview", headerName = "address.image", cellRenderer = "customized")
+        table.add(addressLC, "imagePreview", headerName = "address.image", cellRenderer = "customized", width = 50, resizable = false)
         table.add(addressLC, "name", "firstName", "organization", "email")
         table.add(addressLC, "phoneNumbers", headerName = "address.phoneNumbers", sortable = false, cellRenderer = "customized", wrapText = true, autoHeight = true)
         table.add(lc, "address.addressbookList")
@@ -315,6 +316,7 @@ class AddressPagesRest
         }
         table.getColumnDefById("address.isFavoriteCard").apply {
             sortable = false
+            lockPosition = UIAgGridColumnDef.LockPosition.LEFT
             headerName = translate("address.columnHead.myFavorites")
             headerTooltip = translate("address.filter.myFavorites")
             cellRendererParams = mapOf("valueIconMap" to mapOf(true to UIIconType.STAR_REGULAR))

@@ -89,6 +89,19 @@ open class UIAgGridColumnDef(
 
     var suppressSizeToFit: Boolean? = null
 
+    /**
+     * Locks the column to the left or right side of the grid.
+     * https://www.ag-grid.com/react-data-grid/column-moving/
+     * When set, the column cannot be dragged by the user and other columns
+     * cannot be moved past it.
+     */
+    var lockPosition: LockPosition? = null
+
+    enum class LockPosition(@get:com.fasterxml.jackson.annotation.JsonValue val value: String) {
+        LEFT("left"),
+        RIGHT("right")
+    }
+
     var filterParams: FilterParams? = null
 
     /**
