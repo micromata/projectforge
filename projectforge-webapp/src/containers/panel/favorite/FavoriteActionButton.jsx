@@ -31,7 +31,7 @@ function FavoriteActionButton(
                 size={size}
             />
             {tooltip && id ? (
-                <UncontrolledTooltip placement="right" target={id}>
+                <UncontrolledTooltip placement="right" target={id} fade timeout={150}>
                     {tooltip}
                 </UncontrolledTooltip>
             ) : undefined}
