@@ -154,6 +154,7 @@ open class UIAgGrid(
      * For adding columns with the given ids
      * @param valueGetter Make only sense, if no multiple fields are given.
      * @param width
+     * @param cellRenderer Custom cell renderer name (e.g., "formatter", "diffCell", or null for auto-detection of customized fields)
      * @return this for chaining.
      */
     fun add(
@@ -167,6 +168,7 @@ open class UIAgGrid(
         autoHeight: Boolean? = wrapText,
         tooltipField: String? = null,
         type: UIAgGridColumnDef.Type? = null,
+        cellRenderer: String? = null,
     ): UIAgGrid {
         add(
             UIAgGridColumnDef.createCol(
@@ -181,6 +183,7 @@ open class UIAgGrid(
                 autoHeight = autoHeight,
                 tooltipField = tooltipField,
                 type = type,
+                cellRenderer = cellRenderer,
             )
         )
         return this
@@ -190,6 +193,7 @@ open class UIAgGrid(
      * For adding columns with the given ids
      * @param valueGetter Make only sense, if no multiple fields are given.
      * @param lcField Make only sense, if no multiple fields are given.
+     * @param cellRenderer Custom cell renderer name (e.g., "formatter", "diffCell", or null for auto-detection of customized fields)
      * @return this for chaining.
      */
     fun add(
@@ -204,6 +208,7 @@ open class UIAgGrid(
         wrapText: Boolean? = null,
         autoHeight: Boolean? = wrapText,
         type: UIAgGridColumnDef.Type? = null,
+        cellRenderer: String? = null,
     ): UIAgGrid {
         columnIds.forEach {
             add(
@@ -218,7 +223,8 @@ open class UIAgGrid(
                     lcField = lcField ?: it,
                     wrapText = wrapText,
                     autoHeight = autoHeight,
-                    type = type
+                    type = type,
+                    cellRenderer = cellRenderer,
                 )
             )
         }

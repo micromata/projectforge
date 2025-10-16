@@ -257,31 +257,42 @@ class AddressPagesRest
     ) {
         val addressLC = LayoutContext(lc)
         addressLC.idPrefix = "address."
-        layout.add(
-            UITable.createUIResultSetTable()
-                .add(addressLC, "isFavoriteCard", "lastUpdate")
-                .add(UITableColumn("address.imagePreview", "address.image", dataType = UIDataType.CUSTOMIZED))
-                .add(addressLC, "name", "firstName", "organization", "email")
-                .add(
-                    UITableColumn(
-                        "address.phoneNumbers",
-                        "address.phoneNumbers",
-                        dataType = UIDataType.CUSTOMIZED,
-                        sortable = false
-                    )
-                )
-                .add(lc, "address.addressbookList")
+        val table = agGridSupport.prepareUIGrid4ListPage(
+            request,
+            layout,
+            magicFilter,
+            this,
+            AddressMultiSelectedPageRest::class.java,
+            userAccess,
         )
-        layout.getTableColumnById("address.lastUpdate").formatter = UITableColumn.Formatter.DATE
-        layout.getTableColumnById("address.imagePreview").set(sortable = false)
-        layout.getTableColumnById("address.addressbookList")
-            .set(formatter = UITableColumn.Formatter.ADDRESS_BOOK, sortable = false)
-        layout.getTableColumnById("address.isFavoriteCard").set(
-            sortable = false,
-            title = "address.columnHead.myFavorites",
-            tooltip = "address.filter.myFavorites"
-        )
-            .valueIconMap = mapOf(true to UIIconType.STAR_REGULAR)
+        table.add(addressLC, "isFavoriteCard", width = 50)
+        table.add(addressLC, "lastUpdate")
+        table.add(addressLC, "imagePreview", headerName = "address.image", cellRenderer = "customized")
+        table.add(addressLC, "name", "firstName", "organization", "email")
+        table.add(addressLC, "phoneNumbers", headerName = "address.phoneNumbers", sortable = false, cellRenderer = "customized", wrapText = true, autoHeight = true)
+        table.add(lc, "address.addressbookList")
+        table.withMultiRowSelection(request, magicFilter)
+        // Customize columns after adding them
+        table.getColumnDefById("address.lastUpdate").setFormat(UIAgGridColumnDef.Formatter.DATE)
+        table.getColumnDefById("address.imagePreview").apply {
+            sortable = false
+            // cellRenderer is already set to "customized"
+        }
+        table.getColumnDefById("address.phoneNumbers").apply {
+            sortable = false
+            // cellRenderer is already set to "customized"
+        }
+        table.getColumnDefById("address.addressbookList").apply {
+            sortable = false
+            setFormat(UIAgGridColumnDef.Formatter.ADDRESS_BOOK)
+        }
+        table.getColumnDefById("address.isFavoriteCard").apply {
+            sortable = false
+            headerName = translate("address.columnHead.myFavorites")
+            headerTooltip = translate("address.filter.myFavorites")
+            cellRendererParams = mapOf("valueIconMap" to mapOf(true to UIIconType.STAR_REGULAR))
+            cellRenderer = "formatter"
+        }
         var menuIndex = 0
         if (sipgateConfiguration.isConfigured()) {
             layout.add(

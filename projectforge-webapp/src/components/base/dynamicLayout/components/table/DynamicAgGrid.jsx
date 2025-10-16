@@ -1,6 +1,6 @@
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import PropTypes from 'prop-types';
-import React, { useMemo, useRef, useEffect, useState } from 'react';
+import React, { useMemo, useRef, useEffect, useState, lazy, Suspense } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { LicenseManager, ModuleRegistry, AllEnterpriseModule, themeBalham } from 'ag-grid-enterprise';
 import { connect } from 'react-redux';
@@ -12,6 +12,18 @@ import { AG_GRID_LOCALE_DE } from './agGridLocalization_de';
 import formatterFormat from '../../../FormatterFormat';
 import DynamicAgGridDiffCell from './DynamicAgGridDiffCell';
 import ImportStatusCell from './ImportStatusCell';
+
+// Lazy load the customized cell renderer to avoid circular dependencies
+const DynamicAgGridCustomizedCellLazy = lazy(() => import('./DynamicAgGridCustomizedCell'));
+
+// Wrapper component that handles Suspense for the lazy-loaded customized cell renderer
+function CustomizedCellWrapper(props) {
+    return (
+        <Suspense fallback={<span>...</span>}>
+            <DynamicAgGridCustomizedCellLazy {...props} />
+        </Suspense>
+    );
+}
 
 LicenseManager.setLicenseKey('Using_this_{AG_Grid}_Enterprise_key_{AG-089620}_in_excess_of_the_licence_granted_is_not_permitted___Please_report_misuse_to_legal@ag-grid.com___For_help_with_changing_this_key_please_contact_info@ag-grid.com___{Micromata_GmbH}_is_granted_a_{Single_Application}_Developer_License_for_the_application_{ProjectForge}_only_for_{1}_Front-End_JavaScript_developer___All_Front-End_JavaScript_developers_working_on_{ProjectForge}_need_to_be_licensed___{ProjectForge}_has_not_been_granted_a_Deployment_License_Add-on___This_key_works_with_{AG_Grid}_Enterprise_versions_released_before_{14_July_2026}____[v3]_[01]_MTc4Mzk4MzYwMDAwMA==932cdb76359c2b516156ac62da0bd954');
 ModuleRegistry.registerModules([AllEnterpriseModule]);
@@ -287,6 +299,7 @@ function DynamicAgGrid(props) {
     const allComponents = useMemo(() => ({
         formatter: Formatter,
         diffCell: DynamicAgGridDiffCell,
+        customized: CustomizedCellWrapper,
         importStatusCell: ImportStatusCell,
         ...components,
     }), [components]);
