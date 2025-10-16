@@ -255,6 +255,7 @@ open class UIAgGridColumnDef(
             autoHeight: Boolean? = wrapText,
             valueIconMap: Map<Any, UIIconType?>? = null,
             tooltipField: String? = null,
+            resizable: Boolean? = null,
         ): UIAgGridColumnDef {
             return createCol(
                 null,
@@ -269,6 +270,7 @@ open class UIAgGridColumnDef(
                 autoHeight = autoHeight,
                 valueIconMap = valueIconMap,
                 tooltipField = tooltipField,
+                resizable = resizable,
             )
         }
 
@@ -290,6 +292,7 @@ open class UIAgGridColumnDef(
             tooltipField: String? = null,
             filter: Any? = null,
             cellRenderer: String? = null,
+            resizable: Boolean? = null,
         ): UIAgGridColumnDef {
             return createCol(
                 null,
@@ -306,6 +309,7 @@ open class UIAgGridColumnDef(
                 tooltipField = tooltipField,
                 filter = filter,
                 cellRenderer = cellRenderer,
+                resizable = resizable,
             )
         }
 
@@ -367,6 +371,7 @@ open class UIAgGridColumnDef(
             type: Type? = null,
             filter: Any? = null,
             cellRenderer: String? = null,
+            resizable: Boolean? = null,
         ): UIAgGridColumnDef {
             val col = UIAgGridColumnDef(
                 field,
@@ -374,6 +379,7 @@ open class UIAgGridColumnDef(
                 wrapText = wrapText,
                 autoHeight = autoHeight,
                 filter = filter,
+                resizable = resizable,
             )
             lc?.idPrefix?.let {
                 col.field = "${it}${col.field}"

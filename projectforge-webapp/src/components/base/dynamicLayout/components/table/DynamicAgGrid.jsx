@@ -183,9 +183,19 @@ function DynamicAgGrid(props) {
     };
 
     const modifyRedirectUrl = (redirectUrl, clickedId) => {
+        // Replace {id} placeholder (path parameter)
         if (redirectUrl.includes('{id}')) {
             return redirectUrl.replace('{id}', clickedId);
         }
+        // Replace :id placeholder (React Router style)
+        if (redirectUrl.includes(':id')) {
+            return redirectUrl.replace(':id', clickedId);
+        }
+        // Replace id=... query parameter
+        if (redirectUrl.includes('id=')) {
+            return redirectUrl.replace(/id=([^&]*)/, `id=${clickedId}`);
+        }
+        // Fallback: try to replace 'id' with the actual id
         return redirectUrl.replace('id', clickedId);
     };
 

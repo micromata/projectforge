@@ -209,6 +209,7 @@ open class UIAgGrid(
         autoHeight: Boolean? = wrapText,
         type: UIAgGridColumnDef.Type? = null,
         cellRenderer: String? = null,
+        resizable: Boolean? = null,
     ): UIAgGrid {
         columnIds.forEach {
             add(
@@ -225,6 +226,7 @@ open class UIAgGrid(
                     autoHeight = autoHeight,
                     type = type,
                     cellRenderer = cellRenderer,
+                    resizable = resizable,
                 )
             )
         }
