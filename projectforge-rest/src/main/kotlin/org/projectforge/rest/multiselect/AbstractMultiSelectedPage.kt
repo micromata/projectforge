@@ -522,11 +522,11 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
         massUpdateData[field] = param
         UIRow().let { row ->
             row.add(UICol(md = 7).add(el))
-            val optionsRow = UIRow()
-            row.add(UICol(md = 5).add(optionsRow))
-            val options = mutableListOf<UIElement>()
+            val optionsGroup = UIInlineGroup()
+            row.add(UICol(md = 5).add(optionsGroup))
+
             if (showDeleteOption) {
-                options.add(
+                optionsGroup.add(
                     UICheckbox(
                         "$field.delete",
                         label = "massUpdate.field.checkbox4deletion",
@@ -536,7 +536,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
             }
             // Show replace option only if showReplaceOption is true (default) or null (auto-detect)
             if (showReplaceOption != false && (el is UITextArea || (el is UIInput && el.dataType == UIDataType.STRING))) {
-                options.add(
+                optionsGroup.add(
                     UIInput(
                         "$field.replaceText",
                         label = "massUpdate.field.replace",
@@ -545,7 +545,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
                 )
             }
             if (el is UITextArea) {
-                options.add(
+                optionsGroup.add(
                     UICheckbox(
                         "$field.append",
                         label = "massUpdate.field.checkbox4appending",
@@ -553,13 +553,8 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
                     )
                 )
             }
-            myOptions?.let { options.addAll(it) }
-            options.forEachIndexed { index, uiElement ->
-                if (index > 0) {
-                    // Ugly: Add space:
-                    optionsRow.add(UISpacer())
-                }
-                optionsRow.add(uiElement)
+            myOptions?.let { options ->
+                options.forEach { optionsGroup.add(it) }
             }
             return row
         }

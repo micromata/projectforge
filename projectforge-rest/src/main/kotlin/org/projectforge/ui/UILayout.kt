@@ -285,6 +285,7 @@ class UILayout(
         return it
       val element = when (it) {
         is UIGroup -> getElementById(id, it.content)
+        is UIInlineGroup -> getElementById(id, it.content)
         is UIRow -> getElementById(id, it.content)
         is UICol -> getElementById(id, it.content)
         is UITable -> getElementById(id, it.columns)
@@ -305,6 +306,7 @@ class UILayout(
     list.add(element)
     when (element) {
       is UIGroup -> addAllElements(list, element.content)
+      is UIInlineGroup -> addAllElements(list, element.content)
       is UIRow -> addAllElements(list, element.content)
       is UICol -> addAllElements(list, element.content)
       is UISelect<*> -> {
