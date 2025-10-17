@@ -261,8 +261,8 @@ constructor(
     @PostMapping(RestPaths.REST_START_MULTI_SELECTION)
     fun startMultiSelections(request: HttpServletRequest, @RequestBody filter: MagicFilter): ResponseAction {
         log.info("User wants to start multiselection")
-        @Suppress("UNCHECKED_CAST")
-        val list = (getList(request, filter).resultSet as List<Project>).map { it.id }
+        val resultSet = getList(request, filter).resultSet
+        val list = resultSet.mapNotNull { getId(it) }
         MultiSelectionSupport.registerEntityIdsForSelection(request, this::class.java, list)
         return ResponseAction(url = PagesResolver.getMultiSelectionPageUrl(this::class.java, absolute = true))
     }
