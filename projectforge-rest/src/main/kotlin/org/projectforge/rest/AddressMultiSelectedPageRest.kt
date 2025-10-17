@@ -25,7 +25,10 @@ package org.projectforge.rest
 
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
-import org.projectforge.business.address.*
+import org.projectforge.business.address.AddressDO
+import org.projectforge.business.address.AddressDao
+import org.projectforge.business.address.AddressStatus
+import org.projectforge.business.address.ContactStatus
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
@@ -52,9 +55,6 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
 
     @Autowired
     private lateinit var addressPagesRest: AddressPagesRest
-
-    @Autowired
-    private lateinit var addressbookDao: AddressbookDao
 
     @Autowired
     private lateinit var addressServicesRest: AddressServicesRest
@@ -96,30 +96,6 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
             values = ContactStatus.values().map { UISelectValue(it.name, translate(it.i18nKey)) }
         )
         layout.add(createInputFieldRow("contactStatus", contactStatus, massUpdateData))
-
-        // Addressbooks
-        layout.add(
-            createInputFieldRow(
-                "addressbookList",
-                UISelect<Long>(
-                    "addressbookList.id", layoutContext,
-                    label = "address.addressbooks",
-                    multi = true,
-                    autoCompletion = AutoCompletion<Int>(
-                        url = AutoCompletion.getAutoCompletionUrl("addressBook"),
-                        type = AutoCompletion.Type.USER.name
-                    )
-                ),
-                massUpdateData,
-                myOptions = listOf(
-                    UICheckbox(
-                        "addressbookList.append",
-                        label = "massUpdate.field.checkbox4appending",
-                        tooltip = "massUpdate.field.checkbox4appending.info",
-                    )
-                )
-            )
-        )
 
         // Favorite
         /*layout.add(
@@ -199,17 +175,6 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
         )
     }
 
-    override fun checkParamHasAction(
-        params: Map<String, MassUpdateParameter>,
-        param: MassUpdateParameter,
-        field: String,
-    ): Boolean {
-        if (field == "addressbookList") {
-            return param.append == true && !param.id.toString().isNullOrBlank()
-        }
-        return super.checkParamHasAction(params, param, field)
-    }
-
     override fun proceedMassUpdate(
         request: HttpServletRequest,
         selectedIds: Collection<Serializable>,
@@ -242,29 +207,6 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
                     param.textValue?.let { textValue ->
                         address.contactStatus = ContactStatus.valueOf(textValue)
                     }
-                }
-            }
-
-            // Addressbooks
-            params["addressbookList"]?.let { param ->
-                if (param.append == true) {
-                    param.id?.let { addressbookId ->
-                        val addressbook = addressbookDao.find(addressbookId, checkAccess = false)
-                        addressbook?.let {
-                            if (address.addressbookList == null) {
-                                address.addressbookList = mutableSetOf()
-                            }
-                            if (!address.addressbookList!!.any { it.id == addressbookId }) {
-                                address.add(addressbook)
-                            }
-                        }
-                    }
-                } else if (param.delete == true) {
-                    param.id?.let { addressbookId ->
-                        address.addressbookList?.removeIf { it.id == addressbookId }
-                    }
-                } else {
-                    // Do nothing, as only append and delete are supported here
                 }
             }
 
