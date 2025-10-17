@@ -1309,7 +1309,7 @@ constructor(
     }
 
     /**
-     * Is this list page currentyl in multi selection mode?
+     * Is this list page currently in multi selection mode?
      */
     fun isMultiSelectionMode(request: HttpServletRequest, magicFilter: MagicFilter): Boolean {
         return MultiSelectionSupport.isMultiSelection(request, magicFilter)
