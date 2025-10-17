@@ -218,7 +218,8 @@ public class WicketApplication extends WebApplication implements WicketApplicati
         setDefaultPage(DEFAULT_PAGE);
         // ExternalResourceLoader must be registered FIRST to have highest priority
         // This ensures custom i18n properties (CustomerI18nResources) override built-in translations
-        getResourceSettings().getStringResourceLoaders().add(new ExternalResourceLoader());
+        // Use add(0, ...) to insert at beginning of loader chain for highest priority
+        getResourceSettings().getStringResourceLoaders().add(0, new ExternalResourceLoader());
         addResourceBundle(RESOURCE_BUNDLE_NAME);
         addPluginResources();
         // Own error page for deployment mode and UserException and AccessException.
