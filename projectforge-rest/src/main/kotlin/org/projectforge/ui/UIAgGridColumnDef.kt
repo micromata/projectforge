@@ -427,7 +427,9 @@ open class UIAgGridColumnDef(
                             col.width = DATE_WIDTH
                         }
                         useFormatter = Formatter.DATE
-                        col.filter = "agDateColumnFilter"
+                        if (col.filter == null || col.filter == true) {
+                            col.filter = "agDateColumnFilter"
+                        }
                         col.setApplyAndResetButton()
                     } else if (java.util.Date::class.java == elementInfo.propertyClass) {
                         if (field in arrayOf("created", "lastUpdate")) {
@@ -438,6 +440,9 @@ open class UIAgGridColumnDef(
                     } else if (elementInfo.propertyClass == String::class.java) {
                         if ((elementInfo.maxLength ?: 0) > 1000 && width == null) {
                             col.width = LONG_DESCRIPTION_WIDTH // Extra wide column
+                        }
+                        if (col.filter == null) {
+                            col.filter = true
                         }
                     } else if (elementInfo.propertyClass == Boolean::class.java || elementInfo.propertyClass == java.lang.Boolean::class.java) {
                         useFormatter = Formatter.BOOLEAN
