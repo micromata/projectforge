@@ -25,13 +25,7 @@ package org.projectforge.rest
 
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
-import org.projectforge.business.address.AddressDao
-import org.projectforge.business.address.AddressDO
-import org.projectforge.business.address.AddressStatus
-import org.projectforge.business.address.AddressbookDao
-import org.projectforge.business.address.ContactStatus
-import org.projectforge.business.address.PersonalAddressDao
-import org.projectforge.business.address.PersonalAddressDO
+import org.projectforge.business.address.*
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
@@ -63,9 +57,6 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
     private lateinit var addressbookDao: AddressbookDao
 
     @Autowired
-    private lateinit var personalAddressDao: PersonalAddressDao
-
-    @Autowired
     private lateinit var addressServicesRest: AddressServicesRest
 
     override val layoutContext: LayoutContext = LayoutContext(AddressDO::class.java)
@@ -90,14 +81,6 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
     ) {
         val addresses = addressDao.select(selectedIds)
         val numberOfAddresses = addresses?.size ?: 0
-
-        layout.add(
-            UIAlert(
-                "'${translate("address.multiselected.info")} $numberOfAddresses",
-                color = UIColor.INFO,
-                markdown = true
-            )
-        )
 
         // Status fields - manually created to ensure they're optional in mass update context
         val addressStatus = UISelect(
@@ -139,14 +122,14 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
         )
 
         // Favorite
-        layout.add(
+        /*layout.add(
             createInputFieldRow(
                 "isFavoriteCard",
                 UICheckbox("isFavoriteCard.booleanValue", label = "favorite"),
                 massUpdateData,
                 showDeleteOption = false,
             )
-        )
+        )*/
 
         // Communication language
         val communicationLanguage = UISelect(
@@ -324,13 +307,13 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
             )
 
             // Update favorite status separately through PersonalAddressDao
-            params["isFavoriteCard"]?.let { param ->
+            /*params["isFavoriteCard"]?.let { param ->
                 val personalAddress = PersonalAddressDO()
                 personalAddress.address = address
                 personalAddress.isFavoriteCard = param.booleanValue ?: false
                 personalAddressDao.setOwner(personalAddress, ThreadLocalUserContext.requiredLoggedInUserId)
                 personalAddressDao.saveOrUpdate(personalAddress)
-            }
+            }*/
         }
         return null
     }

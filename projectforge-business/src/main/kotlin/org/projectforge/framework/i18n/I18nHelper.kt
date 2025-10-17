@@ -106,15 +106,12 @@ object I18nHelper {
     @JvmStatic
     fun getLocalizedString(locale: Locale?, i18nKey: String): String {
         val lc = locale ?: ThreadLocalUserContext.locale!!
-        log.debug { "#### I18N LOOKUP: key='$i18nKey', locale='$lc', bundles=[${BUNDLE_NAMES.joinToString()}]" }
         for (bundleName in BUNDLE_NAMES) {
             val translation = getLocalizedString(bundleName, lc, i18nKey)
             if (translation != null) {
-                log.debug { "#### I18N FOUND: key='$i18nKey' in bundle='$bundleName' => '$translation'" }
                 return translation
             }
         }
-        log.debug { "#### I18N NOT FOUND: key='$i18nKey', returning key itself" }
         // Is already translated (or key not found):
         return i18nKey
     }
@@ -144,21 +141,14 @@ object I18nHelper {
         // Only load CustomerI18nResources from resourceDir via I18nService
         // All other bundles are loaded from classpath via standard ResourceBundle mechanism
         if (bundleName == "CustomerI18nResources") {
-            log.debug { "#### I18N BUNDLE: '$bundleName' is customer bundle, trying I18nService for locale='$effectiveLocale'" }
             try {
-                val bundle = i18nService.getResourceBundleFor(bundleName, effectiveLocale)
-                log.debug { "#### I18N BUNDLE: Successfully loaded '$bundleName' from I18nService for locale='$effectiveLocale'" }
-                return bundle
+                return i18nService.getResourceBundleFor(bundleName, effectiveLocale)
             } catch (ex: MissingResourceException) {
-                log.debug { "#### I18N BUNDLE: '$bundleName' not found in I18nService: ${ex.message}" }
                 throw ex
             }
         }
 
         // Standard classpath lookup for all built-in bundles
-        log.debug { "#### I18N BUNDLE: '$bundleName' is built-in bundle, using standard classpath lookup for locale='$effectiveLocale'" }
-        val bundle = ResourceBundle.getBundle(bundleName, effectiveLocale)
-        log.debug { "#### I18N BUNDLE: Loaded '$bundleName' from classpath for locale='$effectiveLocale', actual locale='${bundle.locale}'" }
-        return bundle
+        return ResourceBundle.getBundle(bundleName, effectiveLocale)
     }
 }
