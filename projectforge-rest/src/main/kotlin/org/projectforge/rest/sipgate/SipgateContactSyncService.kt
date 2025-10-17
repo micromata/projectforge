@@ -35,9 +35,12 @@ import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.utils.NumberHelper
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.scheduling.TaskScheduler
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
+import java.time.Instant
 import java.util.*
+import java.util.concurrent.ScheduledFuture
 import kotlin.reflect.KMutableProperty
 
 private val log = KotlinLogging.logger {}
@@ -134,7 +137,38 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
     @Autowired
     internal lateinit var persistenceService: PfPersistenceService
 
+    @Autowired
+    private lateinit var taskScheduler: TaskScheduler
+
     private var lastSyncInEpochMillis: Long? = null
+
+    /**
+     * Debouncing mechanism to prevent expensive sync operations on every address modification.
+     *
+     * Problem: During mass updates (e.g., 100 addresses), afterInsertOrModify() is called 100 times,
+     * which would trigger 100 expensive sync() operations.
+     *
+     * Solution: Intelligent debouncing with automatic batch detection:
+     * - Detects batch updates when modifications occur less than 1 second apart
+     * - For batch updates: Waits 5 seconds after the LAST modification before syncing
+     * - For single updates: Waits 10 seconds before syncing
+     * - Each new modification CANCELS the previous scheduled sync and reschedules
+     *
+     * Example with 10 address updates within 1 second:
+     * - Update 1 (t=0ms):    Schedule sync in 10s
+     * - Update 2 (t=100ms):  Cancel previous, schedule sync in 5s (batch detected!)
+     * - Update 3 (t=200ms):  Cancel previous, schedule sync in 5s
+     * - ...
+     * - Update 10 (t=900ms): Cancel previous, schedule sync in 5s
+     * - Result: sync() is called ONCE at t=5900ms (5s after last update)
+     *
+     * Benefits: 100 address updates → 1 sync call instead of 100!
+     */
+    private var scheduledSyncFuture: ScheduledFuture<*>? = null
+    private var lastUpdateTimestamp = 0L
+    private val batchDetectionThresholdMillis = 1000L // Updates within 1 second are considered batch
+    private val batchSyncDelayMillis = 5000L // Wait 5 seconds after last update in batch
+    private val singleSyncDelayMillis = 10000L // Wait 10 seconds for isolated single updates
 
     @PostConstruct
     private fun postConstruct() {
@@ -923,7 +957,50 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
         return "address '${SipgateContactSyncDO.getName(address)}' (id=${address.id}, contact-id=${contact.id})"
     }
 
+    /**
+     * Called after every address insert or modification. Uses intelligent debouncing to avoid
+     * excessive sync operations during mass updates.
+     *
+     * Behavior:
+     * - Single update: Syncs after 10 seconds
+     * - Batch updates: Detects automatically when updates occur < 1s apart, syncs 5s after LAST update
+     * - Each call CANCELS any previously scheduled sync and reschedules
+     *
+     * Result: During mass update of N addresses, sync() is called exactly ONCE (not N times!)
+     */
     override fun afterInsertOrModify(obj: AddressDO, operationType: OperationType) {
-        sync()
+        if (!configuration.isConfigured()) {
+            return // Without any logging.
+        }
+
+        synchronized(this) {
+            val now = System.currentTimeMillis()
+            val timeSinceLastUpdate = now - lastUpdateTimestamp
+            lastUpdateTimestamp = now
+
+            // Cancel any previously scheduled sync (this is the key to avoiding multiple syncs!)
+            scheduledSyncFuture?.cancel(false)
+
+            // Batch detection: If updates are less than 1 second apart, treat as batch update
+            val isBatchUpdate = timeSinceLastUpdate < batchDetectionThresholdMillis
+            val delayMillis = if (isBatchUpdate) {
+                batchSyncDelayMillis // 5s for batch
+            } else {
+                singleSyncDelayMillis // 10s for single
+            }
+
+            if (log.isDebugEnabled) {
+                log.debug {
+                    "Address #${obj.id} modified, scheduling sync in ${delayMillis}ms " +
+                            "(batch=$isBatchUpdate, timeSinceLastUpdate=${timeSinceLastUpdate}ms)"
+                }
+            }
+
+            // Schedule sync with appropriate delay - will be cancelled if another update comes in
+            scheduledSyncFuture = taskScheduler.schedule({
+                log.info { "Executing scheduled Sipgate sync after debouncing period" }
+                sync()
+            }, Instant.now().plusMillis(delayMillis))
+        }
     }
 }
