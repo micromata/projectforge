@@ -29,7 +29,6 @@ import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressStatus
 import org.projectforge.business.address.AddressbookDao
-import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.address.ContactStatus
 import org.projectforge.business.address.PersonalAddressDao
 import org.projectforge.business.address.PersonalAddressDO
@@ -100,14 +99,20 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
             )
         )
 
-        // Status fields
-        createAndAddFields(
-            layoutContext,
-            massUpdateData,
-            layout,
-            "addressStatus",
-            "contactStatus",
+        // Status fields - manually created to ensure they're optional in mass update context
+        val addressStatus = UISelect(
+            "addressStatus.textValue", layoutContext,
+            label = "address.addressStatus",
+            values = AddressStatus.values().map { UISelectValue(it.name, translate(it.i18nKey)) }
         )
+        layout.add(createInputFieldRow("addressStatus", addressStatus, massUpdateData))
+
+        val contactStatus = UISelect(
+            "contactStatus.textValue", layoutContext,
+            label = "address.contactStatus",
+            values = ContactStatus.values().map { UISelectValue(it.name, translate(it.i18nKey)) }
+        )
+        layout.add(createInputFieldRow("contactStatus", contactStatus, massUpdateData))
 
         // Addressbooks
         layout.add(
@@ -152,7 +157,7 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
         )
         layout.add(createInputFieldRow("communicationLanguage", communicationLanguage, massUpdateData))
 
-        // Organization, division, website
+        // Organization, division, website - hide delete and replace options
         createAndAddFields(
             layoutContext,
             massUpdateData,
@@ -160,6 +165,8 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
             "organization",
             "division",
             "website",
+            showDeleteOption = false,
+            showReplaceOption = false,
         )
 
         // Business address fields
@@ -174,6 +181,9 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
             "city",
             "country",
             "state",
+            showAppendOption = false,
+            showDeleteOption = false,
+            showReplaceOption = false,
         )
 
         // Postal address fields
@@ -188,6 +198,9 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
             "postalCity",
             "postalCountry",
             "postalState",
+            showAppendOption = false,
+            showDeleteOption = false,
+            showReplaceOption = false,
         )
 
         // Comment
@@ -264,6 +277,8 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
                     param.id?.let { addressbookId ->
                         address.addressbookList?.removeIf { it.id == addressbookId }
                     }
+                } else {
+                    // Do nothing, as only append and delete are supported here
                 }
             }
 

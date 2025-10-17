@@ -104,7 +104,7 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
         showDeleteOption = true
       )
     )
-    createAndAddFields(lc, massUpdateData, layout, "comment", append = true)
+    createAndAddFields(lc, massUpdateData, layout, "comment", showAppendOption = true)
   }
 
   override fun proceedMassUpdate(
