@@ -153,38 +153,41 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
         )
 
         // Business address fields
-        layout.add(UIFieldset(title = "address.heading.businessAddress"))
-        createAndAddFields(
-            layoutContext,
-            massUpdateData,
-            layout,
-            "addressText",
-            "addressText2",
-            "zipCode",
-            "city",
-            "country",
-            "state",
-            showAppendOption = false,
-            showDeleteOption = false,
-            showReplaceOption = false,
+        layout.add(UIFieldset(title = "address.heading.businessAddress", collapsed = true).also { fieldset ->
+            createAndAddFields(
+                layoutContext,
+                massUpdateData,
+                fieldset,
+                "addressText",
+                "addressText2",
+                "zipCode",
+                "city",
+                "country",
+                "state",
+                showAppendOption = false,
+                showDeleteOption = false,
+                showReplaceOption = false,
+            )
+        }
         )
 
         // Postal address fields
-        layout.add(UIFieldset(title = "address.heading.postalAddress"))
-        createAndAddFields(
-            layoutContext,
-            massUpdateData,
-            layout,
-            "postalAddressText",
-            "postalAddressText2",
-            "postalZipCode",
-            "postalCity",
-            "postalCountry",
-            "postalState",
-            showAppendOption = false,
-            showDeleteOption = false,
-            showReplaceOption = false,
-        )
+        layout.add(UIFieldset(title = "address.heading.postalAddress", collapsed = true).also { fieldset ->
+            createAndAddFields(
+                layoutContext,
+                massUpdateData,
+                fieldset,
+                "postalAddressText",
+                "postalAddressText2",
+                "postalZipCode",
+                "postalCity",
+                "postalCountry",
+                "postalState",
+                showAppendOption = false,
+                showDeleteOption = false,
+                showReplaceOption = false,
+            )
+        })
 
         // Comment
         createAndAddFields(

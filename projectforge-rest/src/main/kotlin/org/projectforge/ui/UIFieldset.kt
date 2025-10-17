@@ -34,6 +34,12 @@ class UIFieldset(
   offset: UILength? = null,
   var title: String? = null,
   /**
+   * If true, the fieldset will be rendered as collapsible and collapsed by default.
+   * If false, the fieldset will be rendered as collapsible and expanded by default.
+   * If null (default), the fieldset will not be collapsible.
+   */
+  var collapsed: Boolean? = null,
+  /**
    * Useless, if length is already given.
    */
   xs: Int? = null,
