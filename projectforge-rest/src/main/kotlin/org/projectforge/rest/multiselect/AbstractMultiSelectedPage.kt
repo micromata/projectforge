@@ -467,12 +467,16 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
 
     /**
      * @param minLengthOfTextArea See [LayoutUtils.buildLabelInputElement]
+     * @param showDeleteOption If set, controls whether the delete checkbox is shown (overrides default behavior)
+     * @param showReplaceOption If set to false, hides the replace text input (default is to show for text fields)
      */
     protected fun createInputFieldRow(
         lc: LayoutContext,
         field: String,
         massUpdateData: MutableMap<String, MassUpdateParameter>,
         minLengthOfTextArea: Int = LayoutUtils.DEFAULT_MIN_LENGTH_OF_TEXT_AREA,
+        showDeleteOption: Boolean? = null,
+        showReplaceOption: Boolean? = null,
     ): UIRow {
         val el = LayoutUtils.buildLabelInputElement(lc, field, minLengthOfTextArea)
         if (el is UIInput) {
@@ -498,7 +502,8 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
             field,
             el,
             massUpdateData,
-            showDeleteOption = elementInfo?.required != true,
+            showDeleteOption = showDeleteOption ?: (elementInfo?.required != true),
+            showReplaceOption = showReplaceOption,
         )
     }
 
@@ -507,6 +512,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
         el: UIElement,
         massUpdateData: MutableMap<String, MassUpdateParameter>,
         showDeleteOption: Boolean = false,
+        showReplaceOption: Boolean? = null,
         myOptions: List<UIElement>? = null,
         displayName: String? = null,
     ): UIRow {
@@ -528,7 +534,8 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
                     )
                 )
             }
-            if (el is UITextArea || (el is UIInput && el.dataType == UIDataType.STRING)) {
+            // Show replace option only if showReplaceOption is true (default) or null (auto-detect)
+            if (showReplaceOption != false && (el is UITextArea || (el is UIInput && el.dataType == UIDataType.STRING))) {
                 options.add(
                     UIInput(
                         "$field.replaceText",
@@ -560,7 +567,9 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
 
     /**
      * @param minLengthOfTextArea See [LayoutUtils.buildLabelInputElement]
-     * @param append If true, the append checkbox will be preset (without function for non-text-area-fields)
+     * @param showAppendOption If true, the append checkbox will be preset (without function for non-text-area-fields)
+     * @param showDeleteOption If set, controls whether the delete checkbox is shown (overrides default behavior)
+     * @param showReplaceOption If set to false, hides the replace text input (default is to show for text fields)
      */
     protected fun createAndAddFields(
         lc: LayoutContext,
@@ -568,14 +577,16 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
         container: IUIContainer,
         vararg fields: String,
         minLengthOfTextArea: Int = LayoutUtils.DEFAULT_MIN_LENGTH_OF_TEXT_AREA,
-        append: Boolean? = null,
+        showAppendOption: Boolean? = null,
+        showDeleteOption: Boolean? = null,
+        showReplaceOption: Boolean? = null,
     ) {
         fields.forEach { field ->
-            if (massUpdateData[field] == null && append == true) { // Only preset for initial call:
+            if (massUpdateData[field] == null && showAppendOption == true) { // Only preset for the initial call:
                 val displayName = ElementsRegistry.getElementInfo(lc, field)?.i18nKey ?: field
                 ensureMassUpdateParam(massUpdateData, field, displayName).append = true
             }
-            container.add(createInputFieldRow(lc, field, massUpdateData, minLengthOfTextArea))
+            container.add(createInputFieldRow(lc, field, massUpdateData, minLengthOfTextArea, showDeleteOption, showReplaceOption))
         }
     }
 
