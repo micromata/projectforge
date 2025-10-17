@@ -26,6 +26,9 @@ package org.projectforge.web.wicket;
 import org.apache.wicket.Component;
 import org.apache.wicket.resource.loader.IStringResourceLoader;
 import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Locale;
 
@@ -33,7 +36,16 @@ public class ExternalResourceLoader implements IStringResourceLoader
 {
   private String findResource(Locale locale, String key)
   {
-    return I18nHelper.getI18nService().getAdditionalString(key, locale);
+    // Use I18nHelper to search through ALL registered bundles (CustomerI18nResources, I18nResources, plugins)
+    // I18nHelper.getLocalizedString() handles proper locale resolution and bundle priority
+    String result = I18nHelper.getLocalizedString(locale, key);
+
+    // If the result is the key itself, it means the key was not found in any bundle
+    if (result != null && result.equals(key)) {
+      return null;
+    }
+
+    return result;
   }
 
   @Override
