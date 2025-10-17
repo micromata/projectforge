@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.projectforge.business.address.*
+import org.projectforge.framework.i18n.translate
 
 private val log = KotlinLogging.logger {}
 
@@ -141,6 +142,19 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
     row.add(emailsCol)
     addEMail(emailsCol, "address.business", address.email)
     addEMail(emailsCol, "address.private", address.privateEmail)
+
+    val statusCol = UIFieldset(12)
+    row.add(statusCol)
+    statusCol.add(
+      UIRow()
+        .add(UICol(6).add(UILabel("address.addressStatus")))
+        .add(UICol(6).add(UILabel("'${addressDO.addressStatus.i18nKey?.let { translate(it) } ?: addressDO.addressStatus.name}")))
+    )
+    statusCol.add(
+      UIRow()
+        .add(UICol(6).add(UILabel("address.contactStatus")))
+        .add(UICol(6).add(UILabel("'${addressDO.contactStatus.i18nKey?.let { translate(it) } ?: addressDO.contactStatus.name}")))
+    )
 
     row = UIRow()
     fieldSet.add(row)

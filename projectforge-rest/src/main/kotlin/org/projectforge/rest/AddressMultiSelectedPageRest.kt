@@ -114,7 +114,7 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
             values = addressServicesRest.getUsedLanguages().map { UISelectValue(it.value, it.label) },
             autoCompletion = AutoCompletion<String>(url = "address/acLang?search=:search")
         )
-        layout.add(createInputFieldRow("communicationLanguage", communicationLanguage, massUpdateData))
+        layout.add(createInputFieldRow("communicationLanguage", communicationLanguage, massUpdateData, showDeleteOption = true))
 
         // Organization, division, website - hide delete and replace options
         createAndAddFields(
@@ -124,7 +124,7 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
             "organization",
             "division",
             "website",
-            showDeleteOption = false,
+            showDeleteOption = true,
             showReplaceOption = false,
         )
 
@@ -141,7 +141,7 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
                 "country",
                 "state",
                 showAppendOption = false,
-                showDeleteOption = false,
+                showDeleteOption = true,
                 showReplaceOption = false,
             )
         }
@@ -160,7 +160,7 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
                 "postalCountry",
                 "postalState",
                 showAppendOption = false,
-                showDeleteOption = false,
+                showDeleteOption = true,
                 showReplaceOption = false,
             )
         })

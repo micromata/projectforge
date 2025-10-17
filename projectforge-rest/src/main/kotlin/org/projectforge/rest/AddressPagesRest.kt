@@ -299,6 +299,8 @@ class AddressPagesRest
         }
         table.add(addressLC, "isFavoriteCard", width = 30, resizable = false)
         table.add(addressLC, "lastUpdate")
+        table.add("address.addressStatusAsString", headerName = "address.addressStatus", width = 110)
+        table.add("address.contactStatusAsString", headerName = "address.contactStatus", width = 110)
         table.add(addressLC, "imagePreview", headerName = "address.image", cellRenderer = "customized", width = 50, resizable = false)
         table.add(addressLC, "name", "firstName", "organization", "email")
         table.add(addressLC, "phoneNumbers", headerName = "address.phoneNumbers", sortable = false, cellRenderer = "customized", wrapText = true, autoHeight = true)
