@@ -378,6 +378,7 @@ function DynamicAgGrid(props) {
         () => (
             <div
                 style={{ minWidth: '100%', height }}
+                className="ag-grid-wrapper-pagination-top"
             >
                 <AgGridReact
                     // Show popup (e.g. for choosing columns) in body, not in grid.
