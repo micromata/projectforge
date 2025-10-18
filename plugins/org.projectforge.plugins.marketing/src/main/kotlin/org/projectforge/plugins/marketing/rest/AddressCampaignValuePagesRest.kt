@@ -24,10 +24,15 @@
 package org.projectforge.plugins.marketing.rest
 
 import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.business.address.AddressStatus
+import org.projectforge.business.address.ContactStatus
+import org.projectforge.business.address.DoubletsResultFilter
+import org.projectforge.business.address.FavoritesResultFilter
 import org.projectforge.business.address.PersonalAddressDao
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.plugins.marketing.AddressCampaignDO
 import org.projectforge.plugins.marketing.AddressCampaignDao
 import org.projectforge.plugins.marketing.AddressCampaignValueDO
@@ -39,6 +44,7 @@ import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.*
+import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
@@ -73,9 +79,10 @@ class AddressCampaignValuePagesRest :
     }
 
     /**
-     * Add campaign selector to magic filter elements
+     * Add campaign selector and filter elements
      */
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        // Campaign selector (required for all queries)
         val campaigns = addressCampaignDao.select(deleted = false)
         val campaignValues = campaigns.map { UISelectValue(it.id.toString(), it.title ?: "unknown") }
 
@@ -86,8 +93,135 @@ class AddressCampaignValuePagesRest :
             multi = false,
             defaultFilter = true
         )
-
         elements.add(campaignFilter)
+
+        // Boolean filters (synthetic - use CustomResultFilter)
+        elements.add(
+            UIFilterElement(
+                "isFavorite",
+                UIFilterElement.FilterType.BOOLEAN,
+                translate("address.filter.myFavorites"),
+                defaultFilter = false
+            )
+        )
+        elements.add(
+            UIFilterElement(
+                "doublets",
+                UIFilterElement.FilterType.BOOLEAN,
+                translate("address.filter.doublets"),
+                defaultFilter = false
+            )
+        )
+
+        // Enum filters (database field predicates)
+        val contactStatusValues = ContactStatus.entries.map {
+            UISelectValue(it.name, translate(it.i18nKey))
+        }
+        elements.add(
+            UIFilterListElement(
+                id = "contactStatus",
+                values = contactStatusValues,
+                label = translate("address.contactStatus"),
+                multi = true,
+                defaultFilter = false
+            )
+        )
+
+        val addressStatusValues = AddressStatus.entries.map {
+            UISelectValue(it.name, translate(it.i18nKey))
+        }
+        elements.add(
+            UIFilterListElement(
+                id = "addressStatus",
+                values = addressStatusValues,
+                label = translate("address.addressStatus"),
+                multi = true,
+                defaultFilter = false
+            )
+        )
+
+        // Text filters (database field predicates)
+        elements.add(
+            UIFilterElement(
+                "organization",
+                UIFilterElement.FilterType.STRING,
+                translate("organization"),
+                defaultFilter = false
+            )
+        )
+        elements.add(
+            UIFilterElement(
+                "value",
+                UIFilterElement.FilterType.STRING,
+                translate("value"),
+                defaultFilter = true
+            )
+        )
+    }
+
+    /**
+     * Pre-process magic filter to set up synthetic filters and field predicates
+     */
+    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<AddressCampaignValueDO>>? {
+        val filters = mutableListOf<CustomResultFilter<AddressCampaignValueDO>>()
+
+        // Process synthetic filters (delegated to address filters via adapter)
+        val isFavoriteEntry = source.entries.find { it.field == "isFavorite" }
+        isFavoriteEntry?.synthetic = true
+        if (isFavoriteEntry?.isTrueValue == true) {
+            filters.add(CampaignValueFilterAdapter(FavoritesResultFilter(personalAddressDao)))
+        }
+
+        val doubletsEntry = source.entries.find { it.field == "doublets" }
+        doubletsEntry?.synthetic = true
+        if (doubletsEntry?.isTrueValue == true) {
+            filters.add(CampaignValueFilterAdapter(DoubletsResultFilter()))
+        }
+
+        // Process field-based filters (add as QueryFilter predicates)
+        val contactStatusEntry = source.entries.find { it.field == "contactStatus" }
+        if (contactStatusEntry != null && !contactStatusEntry.value.values.isNullOrEmpty()) {
+            val statuses = contactStatusEntry.value.values?.mapNotNull { value ->
+                try {
+                    ContactStatus.valueOf(value)
+                } catch (e: IllegalArgumentException) {
+                    null
+                }
+            }
+            if (!statuses.isNullOrEmpty()) {
+                target.add(QueryFilter.isIn("address.contactStatus", statuses))
+            }
+        }
+
+        val addressStatusEntry = source.entries.find { it.field == "addressStatus" }
+        if (addressStatusEntry != null && !addressStatusEntry.value.values.isNullOrEmpty()) {
+            val statuses = addressStatusEntry.value.values?.mapNotNull { value ->
+                try {
+                    AddressStatus.valueOf(value)
+                } catch (e: IllegalArgumentException) {
+                    null
+                }
+            }
+            if (!statuses.isNullOrEmpty()) {
+                target.add(QueryFilter.isIn("address.addressStatus", statuses))
+            }
+        }
+
+        val organizationEntry = source.entries.find { it.field == "organization" }
+        organizationEntry?.value?.value?.let { orgValue ->
+            if (orgValue.isNotBlank()) {
+                target.add(QueryFilter.like("address.organization", orgValue, autoWildcardSearch = true))
+            }
+        }
+
+        val valueEntry = source.entries.find { it.field == "value" }
+        valueEntry?.value?.value?.let { val1 ->
+            if (val1.isNotBlank()) {
+                target.add(QueryFilter.like("value", val1, autoWildcardSearch = true))
+            }
+        }
+
+        return filters.ifEmpty { null }
     }
 
     /**
