@@ -25,6 +25,7 @@ package org.projectforge.plugins.marketing.rest
 
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.address.PersonalAddressDao
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.plugins.marketing.AddressCampaignDO
@@ -81,7 +82,7 @@ class AddressCampaignValuePagesRest :
         val campaignFilter = UIFilterListElement(
             id = FILTER_CAMPAIGN_ID,
             values = campaignValues,
-            label = "plugins.marketing.addressCampaign.title",
+            label = translate("plugins.marketing.addressCampaign"),
             multi = false,
             defaultFilter = true
         )
@@ -143,10 +144,22 @@ class AddressCampaignValuePagesRest :
             AddressCampaignValueMultiSelectedPageRest::class.java,
             userAccess = userAccess,
         )
-            .add(lc, "name", "firstName", pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT)
-            .add(lc, "value", "organization")
-            .add(lc, "formattedAddress", wrapText = true, cellRenderer = "multilineCell")
-            .add(lc, "contactStatus", "addressStatus")
+            .add(lc, "name", headerName = "contact.name", pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT)
+            .add(lc, "firstName", headerName = "contact.firstname", pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT)
+            .add(lc, "value", headerName = "value")
+            .add(lc, "organization", headerName = "organization")
+            .add(lc, "formattedAddress", headerName = "address", wrapText = true, cellRenderer = "multilineCell")
+            .add(
+                UIAgGridColumnDef(
+                    "lastUpdate",
+                    headerName = "modified",
+                    valueFormatter = "data.timeAgo",
+                    sortable = true,
+                    width = UIAgGridColumnDef.DATE_WIDTH
+                )
+            )
+            .add("contactStatusAsString", headerName = "address.contactStatus", width = 110)
+            .add("addressStatusAsString", headerName = "address.addressStatus", width = 110)
             .add(lc, "comment")
             .withMultiRowSelection(request, magicFilter)
             .withGetRowClass(

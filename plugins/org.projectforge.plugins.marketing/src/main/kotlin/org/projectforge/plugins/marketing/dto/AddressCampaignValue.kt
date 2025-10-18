@@ -23,11 +23,16 @@
 
 package org.projectforge.plugins.marketing.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.persistence.Transient
 import org.projectforge.business.address.AddressStatus
 import org.projectforge.business.address.ContactStatus
 import org.projectforge.business.address.MailingAddress
+import org.projectforge.framework.i18n.TimeAgo
+import org.projectforge.framework.i18n.translate
 import org.projectforge.plugins.marketing.AddressCampaignValueDO
 import org.projectforge.rest.dto.BaseDTO
+import java.util.*
 
 class AddressCampaignValue(
     var addressCampaign: AddressCampaign? = null,
@@ -44,6 +49,26 @@ class AddressCampaignValue(
     var comment: String? = null,
     var isFavoriteCard: Boolean? = null,
 ) : BaseDTO<AddressCampaignValueDO>() {
+
+  @get:JsonProperty
+  val contactStatusAsString: String?
+    get() {
+      contactStatus?.let { return translate(it.i18nKey) }
+      return null
+    }
+
+  @get:JsonProperty
+  val addressStatusAsString: String?
+    get() {
+      addressStatus?.let { return translate(it.i18nKey) }
+      return null
+    }
+
+  @get:Transient
+  @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  val timeAgo: String?
+    get() = TimeAgo.getMessage(lastUpdate)
+
   override fun copyFrom(src: AddressCampaignValueDO) {
     this.id = src.id // Campaign value ID
     src.address?.let { addressDO ->
@@ -57,6 +82,7 @@ class AddressCampaignValue(
       this.organization = addressDO.organization
       this.contactStatus = addressDO.contactStatus
       this.addressStatus = addressDO.addressStatus
+      this.lastUpdate = addressDO.lastUpdate
 
       // Combine all emails as CSV (business, private)
       val emails = mutableListOf<String>()
