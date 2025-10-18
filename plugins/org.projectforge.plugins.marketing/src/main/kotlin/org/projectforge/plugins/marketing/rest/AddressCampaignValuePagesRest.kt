@@ -24,9 +24,6 @@
 package org.projectforge.plugins.marketing.rest
 
 import jakarta.servlet.http.HttpServletRequest
-import org.projectforge.business.address.AddressDO
-import org.projectforge.business.address.AddressDao
-import org.projectforge.business.address.PersonalAddressDO
 import org.projectforge.business.address.PersonalAddressDao
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -49,15 +46,12 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("${Rest.URL}/addressCampaignValue")
 class AddressCampaignValuePagesRest :
-    AbstractDTOPagesRest<AddressDO, AddressCampaignValue, AddressDao>(
-        baseDaoClazz = AddressDao::class.java,
+    AbstractDTOPagesRest<AddressCampaignValueDO, AddressCampaignValue, AddressCampaignValueDao>(
+        baseDaoClazz = AddressCampaignValueDao::class.java,
         i18nKeyPrefix = "plugins.marketing.addressCampaignValue.title"
     ) {
     @Autowired
     private lateinit var addressCampaignDao: AddressCampaignDao
-
-    @Autowired
-    private lateinit var addressCampaignValueDao: AddressCampaignValueDao
 
     @Autowired
     private lateinit var personalAddressDao: PersonalAddressDao
@@ -126,6 +120,9 @@ class AddressCampaignValuePagesRest :
         // Store in extended map for getAddressCampaignDO() to use
         if (campaignId != null) {
             source.extended["campaignId"] = campaignId
+
+            // Add filter condition to only select campaign values for this campaign
+            target.add(QueryFilter.eq("addressCampaign.id", campaignId))
         }
     }
 
@@ -146,13 +143,14 @@ class AddressCampaignValuePagesRest :
             AddressCampaignValueMultiSelectedPageRest::class.java,
             userAccess = userAccess,
         )
-            .add(lc, "address.name", "address.firstName", pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT)
-            .add(lc, "address.organization")
-            .add(lc, "address.contactStatus", "address.email", "address.addressText", "address.addressStatus")
-            .add(lc, "value", "comment")
+            .add(lc, "name", "firstName", pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT)
+            .add(lc, "value", "organization")
+            .add(lc, "formattedAddress", wrapText = true, cellRenderer = "multilineCell")
+            .add(lc, "contactStatus", "addressStatus")
+            .add(lc, "comment")
             .withMultiRowSelection(request, magicFilter)
             .withGetRowClass(
-                """if (params.node.data.favoriteAddress) { return 'ag-row-red'; }"""
+                """if (params.node.data.isFavoriteCard) { return 'ag-row-blue'; }"""
             )
     }
 
@@ -177,57 +175,31 @@ class AddressCampaignValuePagesRest :
     }*/
 
     override fun postProcessResultSet(
-        resultSet: ResultSet<AddressDO>,
+        resultSet: ResultSet<AddressCampaignValueDO>,
         request: HttpServletRequest,
         magicFilter: MagicFilter,
     ): ResultSet<*> {
         val newResultSet = super.postProcessResultSet(resultSet, request, magicFilter)
         @Suppress("UNCHECKED_CAST")
-        if (!processList(request, newResultSet.resultSet as List<AddressCampaignValue>)) {
-            newResultSet.resultSet = emptyList()
-        }
+        processList(request, newResultSet.resultSet as List<AddressCampaignValue>)
         return newResultSet
     }
 
-    fun processList(request: HttpServletRequest, list: List<AddressCampaignValue>): Boolean {
-        val addressCampaign = getAddressCampaign(request) ?: return false
-        val addressCampaignValueMap = getAddressCampaignValueMap(addressCampaign.id)
+    fun processList(request: HttpServletRequest, list: List<AddressCampaignValue>) {
         val personalAddressMap = personalAddressDao.personalAddressByAddressId
         list.forEach { entry ->
-            fillValues(entry, addressCampaignValueMap, personalAddressMap)
-        }
-        return true
-    }
-
-    private fun getAddressCampaignValueMap(addressCampaignId: Long?): Map<Long, AddressCampaignValueDO> {
-        val addressCampaignValueMap = mutableMapOf<Long, AddressCampaignValueDO>()
-        addressCampaignValueDao.getAddressCampaignValuesByAddressId(addressCampaignValueMap, addressCampaignId)
-        return addressCampaignValueMap
-    }
-
-    private fun fillValues(
-        dest: AddressCampaignValue,
-        addressCampaignValueMap: Map<Long, AddressCampaignValueDO>,
-        personalAddressMap: Map<Long, PersonalAddressDO>,
-        addressDO: AddressDO? = null,
-    ) {
-        if (addressDO != null) {
-            dest.copyFrom(addressDO)
-        }
-        dest.favoriteAddress = personalAddressMap[dest.id]?.isFavorite
-        addressCampaignValueMap[dest.address?.id]?.let { value ->
-            dest.value = value.value
-            dest.comment = value.comment
+            // Set the favoriteAddress flag from personal address data
+            entry.isFavoriteCard = personalAddressMap[entry.addressId]?.isFavorite
         }
     }
 
-    override fun transformForDB(dto: AddressCampaignValue): AddressDO {
-        val dbObj = AddressDO()
+    override fun transformForDB(dto: AddressCampaignValue): AddressCampaignValueDO {
+        val dbObj = AddressCampaignValueDO()
         dto.copyTo(dbObj)
         return dbObj
     }
 
-    override fun transformFromDB(obj: AddressDO, editMode: Boolean): AddressCampaignValue {
+    override fun transformFromDB(obj: AddressCampaignValueDO, editMode: Boolean): AddressCampaignValue {
         val dto = AddressCampaignValue()
         dto.copyFrom(obj)
         return dto
@@ -246,7 +218,8 @@ class AddressCampaignValuePagesRest :
 
         // 3. MultiSelectionSupport (legacy/compatibility for old workflow)
         if (addressCampaignId == null) {
-            val registeredData = MultiSelectionSupport.getRegisteredData(request, AddressCampaignValuePagesRest::class.java)
+            val registeredData =
+                MultiSelectionSupport.getRegisteredData(request, AddressCampaignValuePagesRest::class.java)
             if (registeredData is Long) {
                 addressCampaignId = registeredData
             }

@@ -23,28 +23,59 @@
 
 package org.projectforge.plugins.marketing.dto
 
-import org.projectforge.business.address.AddressDO
+import org.projectforge.business.address.AddressStatus
+import org.projectforge.business.address.ContactStatus
+import org.projectforge.business.address.MailingAddress
 import org.projectforge.plugins.marketing.AddressCampaignValueDO
-import org.projectforge.rest.dto.Address
 import org.projectforge.rest.dto.BaseDTO
 
 class AddressCampaignValue(
-  var addressCampaign: AddressCampaign? = null,
-  var address: Address? = null,
-  var value: String? = null,
-  var comment: String? = null,
-  var favoriteAddress: Boolean? = null,
-) : BaseDTO<AddressDO>() {
-  override fun copyFrom(src: AddressDO) {
-    this.id = src.id // Id is address id!!!!
-    val address = Address()
-    address.copyFrom(src)
-    this.address = address
-  }
+    var addressCampaign: AddressCampaign? = null,
+    var addressId: Long? = null,
+    var name: String? = null,
+    var fullLastName: String? = null,
+    var firstName: String? = null,
+    var organization: String? = null,
+    var email: String? = null,
+    var contactStatus: ContactStatus? = null,
+    var addressStatus: AddressStatus? = null,
+    var formattedAddress: String? = null,
+    var value: String? = null,
+    var comment: String? = null,
+    var isFavoriteCard: Boolean? = null,
+) : BaseDTO<AddressCampaignValueDO>() {
+  override fun copyFrom(src: AddressCampaignValueDO) {
+    this.id = src.id // Campaign value ID
+    src.address?.let { addressDO ->
+      // Store address ID for favorite lookup
+      this.addressId = addressDO.id
 
-  fun copyFrom(src: AddressCampaignValueDO) {
-    src.address?.let { copyFrom(it) }
+      // Copy address fields directly
+      this.name = addressDO.name
+      this.fullLastName = addressDO.fullLastName
+      this.firstName = addressDO.firstName
+      this.organization = addressDO.organization
+      this.contactStatus = addressDO.contactStatus
+      this.addressStatus = addressDO.addressStatus
+
+      // Combine all emails as CSV (business, private)
+      val emails = mutableListOf<String>()
+      addressDO.email?.let { if (it.isNotBlank()) emails.add(it) }
+      addressDO.privateEmail?.let { if (it.isNotBlank()) emails.add(it) }
+      this.email = if (emails.isNotEmpty()) emails.joinToString(", ") else null
+
+      // Use MailingAddress only for formatting, don't store the object
+      this.formattedAddress = MailingAddress(addressDO).formattedAddress
+    }
     this.value = src.value
     this.comment = src.comment
+  }
+
+  override fun copyTo(dest: AddressCampaignValueDO) {
+    dest.id = this.id
+    dest.value = this.value
+    dest.comment = this.comment
+    // Note: address and addressCampaign relationships should be set by the caller
+    // as they require proper entity references from the database
   }
 }

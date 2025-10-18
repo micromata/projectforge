@@ -12,6 +12,7 @@ import { AG_GRID_LOCALE_DE } from './agGridLocalization_de';
 import formatterFormat from '../../../FormatterFormat';
 import DynamicAgGridDiffCell from './DynamicAgGridDiffCell';
 import ImportStatusCell from './ImportStatusCell';
+import MultilineCell from './MultilineCell';
 
 // Lazy load the customized cell renderer to avoid circular dependencies
 const DynamicAgGridCustomizedCellLazy = lazy(() => import('./DynamicAgGridCustomizedCell'));
@@ -312,6 +313,7 @@ function DynamicAgGrid(props) {
         diffCell: DynamicAgGridDiffCell,
         customized: CustomizedCellWrapper,
         importStatusCell: ImportStatusCell,
+        multilineCell: MultilineCell,
         ...components,
     }), [components]);
 

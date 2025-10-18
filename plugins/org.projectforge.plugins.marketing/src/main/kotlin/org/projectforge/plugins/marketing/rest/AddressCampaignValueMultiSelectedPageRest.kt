@@ -62,7 +62,7 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
   override val layoutContext: LayoutContext = LayoutContext(AddressCampaignValueDO::class.java)
 
   override fun getId(obj: AddressCampaignValue): Long {
-    return obj.id ?: obj.address?.id ?: -1
+    return obj.id ?: obj.addressId ?: -1
   }
 
   override fun getTitleKey(): String {
@@ -156,7 +156,7 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
         }
       }
       massUpdateContext.commitUpdate(
-        identifier4Message = "${addressCampaignValue.address?.firstName} ${addressCampaignValue.address?.fullLastName} ${addressCampaignValue.address?.organization}",
+        identifier4Message = "${addressCampaignValue.firstName} ${addressCampaignValue.fullLastName} ${addressCampaignValue.organization}",
         addressCampaignValue,
         update = {
           if (addressCampaignValueDO.id != null) {
