@@ -72,10 +72,11 @@ class AGGridSupport {
     }
 
     /**
-     * Deletes the grid state of the userPrefService.
+     * Resets the grid state by storing an empty state in the userPrefService.
      */
     fun resetGridState(category: String) {
-        userPrefService.removeEntry(category, USER_PREF_PARAM_GRID_STATE)
+        val emptyGridState = GridState()
+        userPrefService.putEntry(category, USER_PREF_PARAM_GRID_STATE, emptyGridState)
     }
 
     fun prepareUIGrid4ListPage(
