@@ -333,30 +333,44 @@ function DynamicAgGrid(props) {
 
         // Find and replace the resetColumns menu item
         const resetIndex = menuItems.findIndex((item) => item === 'resetColumns');
-        if (resetIndex !== -1 && resetGridStateUrl) {
+        if (resetIndex !== -1 && resetGridStateUrl && gridApi) {
             menuItems[resetIndex] = {
                 name: getLocaleText({ key: 'resetColumns', defaultValue: 'Reset Columns' }),
                 action: () => {
-                    // Call backend to clear grid state
+                    // Call backend to clear grid state and get fresh column definitions
                     fetch(getServiceURL(resetGridStateUrl), {
                         method: 'GET',
                         credentials: 'include',
                     })
-                        .then(() => {
-                            // Reload the page to get default column state
-                            window.location.reload();
+                        .then((response) => response.json())
+                        .then((responseAction) => {
+                            // Server has already extracted columnDefs for us!
+                            const {
+                                columnDefs: resetColumnDefs,
+                                sortModel: resetSortModel,
+                            } = responseAction.variables || {};
+
+                            if (resetColumnDefs) {
+                                // Update AG Grid directly via API
+                                gridApi.setGridOption('columnDefs', resetColumnDefs);
+
+                                if (resetSortModel) {
+                                    gridApi.applyColumnState({
+                                        state: resetSortModel,
+                                        defaultState: { sort: null },
+                                    });
+                                }
+                            }
                         })
                         .catch((error) => {
                             console.error('Error resetting grid state:', error);
-                            // Reload anyway to attempt recovery
-                            window.location.reload();
                         });
                 },
             };
         }
 
         return menuItems;
-    }, [resetGridStateUrl, getLocaleText]);
+    }, [resetGridStateUrl, getLocaleText, gridApi]);
 
     return React.useMemo(
         () => (
