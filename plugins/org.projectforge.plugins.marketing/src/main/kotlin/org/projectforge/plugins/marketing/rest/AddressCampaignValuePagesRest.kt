@@ -29,6 +29,7 @@ import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.PersonalAddressDO
 import org.projectforge.business.address.PersonalAddressDao
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.plugins.marketing.AddressCampaignDO
 import org.projectforge.plugins.marketing.AddressCampaignDao
 import org.projectforge.plugins.marketing.AddressCampaignValueDO
@@ -39,10 +40,8 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.multiselect.MultiSelectionSupport
-import org.projectforge.ui.LayoutUtils
-import org.projectforge.ui.UIAgGridColumnDef
-import org.projectforge.ui.UILabel
-import org.projectforge.ui.UILayout
+import org.projectforge.ui.*
+import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -63,6 +62,11 @@ class AddressCampaignValuePagesRest :
     @Autowired
     private lateinit var personalAddressDao: PersonalAddressDao
 
+    companion object {
+        private const val USER_PREF_SELECTED_CAMPAIGN_ID = "AddressCampaignValuePagesRest.selectedCampaignId"
+        private const val FILTER_CAMPAIGN_ID = "AddressCampaignValuePagesRest.campaignId"
+    }
+
     /**
      * ########################################
      * # Force usage only for selection mode: #
@@ -71,6 +75,58 @@ class AddressCampaignValuePagesRest :
     override fun getInitialList(request: HttpServletRequest): InitialListData {
         MultiSelectionSupport.ensureMultiSelectionOnly(request, this, "/wa/addressCampaignValuesList")
         return super.getInitialList(request)
+    }
+
+    /**
+     * Add campaign selector to magic filter elements
+     */
+    override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        val campaigns = addressCampaignDao.select(deleted = false)
+        val campaignValues = campaigns.map { UISelectValue(it.id.toString(), it.title ?: "unknown") }
+
+        val campaignFilter = UIFilterListElement(
+            id = FILTER_CAMPAIGN_ID,
+            values = campaignValues,
+            label = "plugins.marketing.addressCampaign.title",
+            multi = false,
+            defaultFilter = true
+        )
+
+        elements.add(campaignFilter)
+    }
+
+    /**
+     * Process magic filter to handle campaign selection
+     */
+    override fun postProcessMagicFilter(target: QueryFilter, source: MagicFilter) {
+        super.postProcessMagicFilter(target, source)
+
+        // Find the campaign ID from filter entries
+        val campaignEntry = source.entries.find { it.field == FILTER_CAMPAIGN_ID }
+        var campaignId: Long? = null
+
+        if (campaignEntry != null && !campaignEntry.value.values.isNullOrEmpty()) {
+            // User has selected a campaign from the filter
+            val campaignIdStr = campaignEntry.value.values?.firstOrNull()
+            campaignId = campaignIdStr?.toLongOrNull()
+
+            if (campaignId != null) {
+                // Save to user preferences for persistence across sessions
+                userPrefService.putEntry(category, USER_PREF_SELECTED_CAMPAIGN_ID, campaignId)
+            }
+        } else {
+            // No filter entry, restore from user prefs or use first available
+            campaignId = userPrefService.getEntry(category, USER_PREF_SELECTED_CAMPAIGN_ID, Long::class.java)
+            if (campaignId == null) {
+                // Use first available campaign as default
+                campaignId = addressCampaignDao.selectAll(checkAccess = false).firstOrNull()?.id
+            }
+        }
+
+        // Store in extended map for getAddressCampaignDO() to use
+        if (campaignId != null) {
+            source.extended["campaignId"] = campaignId
+        }
     }
 
     /**
@@ -178,9 +234,25 @@ class AddressCampaignValuePagesRest :
     }
 
     internal fun getAddressCampaignDO(request: HttpServletRequest): AddressCampaignDO? {
-        val addressCampaignId =
-            MultiSelectionSupport.getRegisteredData(request, AddressCampaignValuePagesRest::class.java)
-        if (addressCampaignId != null && addressCampaignId is Long) {
+        // Try to get campaign ID from multiple sources in priority order:
+        // 1. Current filter's extended map (current session)
+        val currentFilter = getCurrentFilter()
+        var addressCampaignId = currentFilter.extended["campaignId"] as? Long
+
+        // 2. User preferences (saved across sessions)
+        if (addressCampaignId == null) {
+            addressCampaignId = userPrefService.getEntry(category, USER_PREF_SELECTED_CAMPAIGN_ID, Long::class.java)
+        }
+
+        // 3. MultiSelectionSupport (legacy/compatibility for old workflow)
+        if (addressCampaignId == null) {
+            val registeredData = MultiSelectionSupport.getRegisteredData(request, AddressCampaignValuePagesRest::class.java)
+            if (registeredData is Long) {
+                addressCampaignId = registeredData
+            }
+        }
+
+        if (addressCampaignId != null) {
             return addressCampaignDao.find(addressCampaignId)
         }
         return null
