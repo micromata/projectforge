@@ -281,7 +281,7 @@ class AddressPagesRest
                 UIAgGridColumnDef(
                     field = "edit",
                     headerName = "",
-                    width = 30,
+                    width = 20,
                     sortable = false,
                     filter = false,
                     cellRenderer = "customized",
@@ -306,7 +306,7 @@ class AddressPagesRest
         table.add(
             addressLC,
             "isFavoriteCard",
-            width = 30,
+            width = 20,
             resizable = false,
             pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT,
             sortable = false,

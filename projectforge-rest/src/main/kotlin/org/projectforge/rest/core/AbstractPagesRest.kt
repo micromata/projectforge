@@ -624,6 +624,16 @@ constructor(
     }
 
     /**
+     * Resets the AG Grid column states (position, width, pinning) from the server.
+     * This will clear all user preferences for the grid and reload the page.
+     */
+    @GetMapping("resetGridState")
+    fun resetGridState(): ResponseAction {
+        agGridSupport.resetGridState(category)
+        return ResponseAction(targetType = TargetType.RELOAD)
+    }
+
+    /**
      * Rebuilds the index by the search engine for the newest entries.
      * @see [BaseDao.rebuildDatabaseIndex4NewestEntries]
      */

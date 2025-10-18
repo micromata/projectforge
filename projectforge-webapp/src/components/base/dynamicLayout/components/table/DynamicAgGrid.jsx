@@ -45,6 +45,7 @@ function DynamicAgGrid(props) {
         rowClickOpenModal,
         onCellClicked,
         onColumnStatesChangedUrl,
+        resetGridStateUrl,
         onGridApiReady,
         pagination,
         paginationPageSize,
@@ -326,6 +327,37 @@ function DynamicAgGrid(props) {
         }
         return myClass;
     }, [data.highlightRowId, highlightId, getRowClass]);
+
+    const getMainMenuItems = React.useCallback((params) => {
+        const menuItems = params.defaultItems.slice();
+
+        // Find and replace the resetColumns menu item
+        const resetIndex = menuItems.findIndex((item) => item === 'resetColumns');
+        if (resetIndex !== -1 && resetGridStateUrl) {
+            menuItems[resetIndex] = {
+                name: getLocaleText({ key: 'resetColumns', defaultValue: 'Reset Columns' }),
+                action: () => {
+                    // Call backend to clear grid state
+                    fetch(getServiceURL(resetGridStateUrl), {
+                        method: 'GET',
+                        credentials: 'include',
+                    })
+                        .then(() => {
+                            // Reload the page to get default column state
+                            window.location.reload();
+                        })
+                        .catch((error) => {
+                            console.error('Error resetting grid state:', error);
+                            // Reload anyway to attempt recovery
+                            window.location.reload();
+                        });
+                },
+            };
+        }
+
+        return menuItems;
+    }, [resetGridStateUrl, getLocaleText]);
+
     return React.useMemo(
         () => (
             <div
@@ -360,6 +392,7 @@ function DynamicAgGrid(props) {
                     accentedSort
                     cellSelection
                     getLocaleText={getLocaleText}
+                    getMainMenuItems={getMainMenuItems}
                     processCellForClipboard={processCellForClipboard}
                     // processCellCallback={processCellCallback}
                     tooltipShowDelay={0}
@@ -426,6 +459,7 @@ DynamicAgGrid.propTypes = {
     rowClickOpenModal: PropTypes.bool,
     rowClickFunction: PropTypes.func,
     onColumnStatesChangedUrl: PropTypes.string,
+    resetGridStateUrl: PropTypes.string,
     pagination: PropTypes.bool,
     paginationPageSize: PropTypes.number,
     paginationPageSizeSelector: PropTypes.arrayOf(PropTypes.number),
