@@ -444,6 +444,7 @@ function DynamicAgGrid(props) {
             sortModel,
             rowSelection,
             paginationPageSize,
+            getMainMenuItems,
         ],
     );
 }

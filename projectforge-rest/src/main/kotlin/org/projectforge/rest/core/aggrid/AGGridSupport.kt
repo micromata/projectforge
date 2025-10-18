@@ -95,14 +95,16 @@ class AGGridSupport {
         layout.add(agGrid)
         if (MultiSelectionSupport.isMultiSelection(request, magicFilter)) {
             prepareUIGrid4MultiSelectionListPage(request, layout, agGrid, pagesRest, pageAfterMultiSelect)
-        } else if (userAccess.update == true) {
-            val redirectUrl =
-                rowClickUrl ?: "${PagesResolver.getEditPageUrl(pagesRest::class.java, absolute = true)}/id"
-            agGrid.withRowClickRedirectUrl(redirectUrl)
-            layout.add(UIAlert(message = "agGrid.sortInfo", color = UIColor.INFO, markdown = true))
-            if (pageAfterMultiSelect != null) {
-                layout.multiSelectionSupported = true
+        } else {
+            if (userAccess.update == true) {
+                val redirectUrl =
+                    rowClickUrl ?: "${PagesResolver.getEditPageUrl(pagesRest::class.java, absolute = true)}/id"
+                agGrid.withRowClickRedirectUrl(redirectUrl)
+                if (pageAfterMultiSelect != null) {
+                    layout.multiSelectionSupported = true
+                }
             }
+            layout.add(UIAlert(message = "agGrid.sortInfo", color = UIColor.INFO, markdown = true))
             // Done for multiselect by prepareUIGrid4MultiSelectionListPage:
             agGrid.onColumnStatesChangedUrl =
                 RestResolver.getRestUrl(pagesRest::class.java, RestPaths.SET_COLUMN_STATES)

@@ -643,6 +643,9 @@ constructor(
 
     private fun findAgGridElement(layout: UILayout?): UIAgGrid? {
         layout ?: return null
+        // Search in layout.layout first (where AG Grid is usually added)
+        findAgGridInContent(layout.layout)?.let { return it }
+        // Also search in namedContainers for completeness
         return findAgGridInContent(layout.namedContainers.flatMap { it.content })
     }
 
