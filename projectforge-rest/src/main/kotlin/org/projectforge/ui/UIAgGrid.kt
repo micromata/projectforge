@@ -111,6 +111,11 @@ open class UIAgGrid(
     var onColumnStatesChangedUrl: String? = null
 
     /**
+     * URL to call for resetting the AG Grid state (column positions, widths, etc.).
+     */
+    var resetGridStateUrl: String? = null
+
+    /**
      * https://www.ag-grid.com/react-data-grid/row-styles/#row-class
      */
     var getRowClass: String? = GET_ROW_CLASS

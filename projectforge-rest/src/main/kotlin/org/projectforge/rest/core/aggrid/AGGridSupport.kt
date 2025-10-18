@@ -105,6 +105,8 @@ class AGGridSupport {
             // Done for multiselect by prepareUIGrid4MultiSelectionListPage:
             agGrid.onColumnStatesChangedUrl =
                 RestResolver.getRestUrl(pagesRest::class.java, RestPaths.SET_COLUMN_STATES)
+            agGrid.resetGridStateUrl =
+                RestResolver.getRestUrl(pagesRest::class.java, "resetGridState")
         }
         return agGrid
     }
@@ -145,6 +147,7 @@ class AGGridSupport {
                 )
             )
         agGrid.onColumnStatesChangedUrl = RestResolver.getRestUrl(callerRest::class.java, RestPaths.SET_COLUMN_STATES)
+        agGrid.resetGridStateUrl = RestResolver.getRestUrl(callerRest::class.java, "resetGridState")
     }
 
     fun restoreColumnsFromUserPref(category: String, agGrid: UIAgGrid) {

@@ -15,6 +15,7 @@ function DynamicListPageAgGrid({
     rowMultiSelectWithClick,
     rowClickRedirectUrl,
     onColumnStatesChangedUrl,
+    resetGridStateUrl,
     multiSelectButtonTitle,
     multiSelectButtonConfirmMessage,
     urlAfterMultiSelect,
@@ -100,6 +101,7 @@ function DynamicListPageAgGrid({
                     rowSelection={rowSelection}
                     rowClickRedirectUrl={rowClickRedirectUrl}
                     onColumnStatesChangedUrl={onColumnStatesChangedUrl}
+                    resetGridStateUrl={resetGridStateUrl}
                     pagination={pagination}
                     paginationPageSize={paginationPageSize}
                     paginationPageSizeSelector={paginationPageSizeSelector}
@@ -147,6 +149,7 @@ DynamicListPageAgGrid.propTypes = {
     }),
     rowClickRedirectUrl: PropTypes.string,
     onColumnStatesChangedUrl: PropTypes.string,
+    resetGridStateUrl: PropTypes.string,
     multiSelectButtonTitle: PropTypes.string,
     multiSelectButtonConfirmMessage: PropTypes.string,
     urlAfterMultiSelect: PropTypes.string,
