@@ -29,8 +29,6 @@ import jakarta.validation.Valid
 import mu.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.user.service.UserPrefService
-import org.projectforge.common.NestedNullException
-import org.projectforge.common.PropertyUtils
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.access.AccessChecker
@@ -178,7 +176,7 @@ constructor(
     private lateinit var sessionCsrfService: SessionCsrfService
 
     @Autowired
-    private lateinit var userPrefService: UserPrefService
+    protected lateinit var userPrefService: UserPrefService
 
     protected fun getMaxFileSizeKB(): Int {
         return this.attachmentsAccessChecker.fileSizeChecker.maxFileSizeKB
