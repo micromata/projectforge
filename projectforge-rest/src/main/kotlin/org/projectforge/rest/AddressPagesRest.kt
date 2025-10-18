@@ -271,7 +271,10 @@ class AddressPagesRest
             this,
             AddressMultiSelectedPageRest::class.java,
             userAccess,
+        ).withGetRowClass(
+            """if (params.node.data.address.isFavoriteCard) { return 'ag-row-blue'; }"""
         )
+
 
         val isMultiSelection = isMultiSelectionMode(request, magicFilter)
 
