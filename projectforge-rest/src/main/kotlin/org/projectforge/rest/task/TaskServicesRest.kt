@@ -290,8 +290,8 @@ class TaskServicesRest {
                     sortable = false,
                     width = UIAgGridColumnDef.DESCRIPTION_WIDTH,
                     filter = false,
+                    pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT,
                 )
-                    .withPinnedLeft()
             )
             result.columnDefs.add(
                 UIAgGridColumnDef.createCol(

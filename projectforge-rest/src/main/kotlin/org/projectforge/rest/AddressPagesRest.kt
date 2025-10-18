@@ -288,23 +288,56 @@ class AddressPagesRest
                     resizable = false,
                 ).apply {
                     suppressSizeToFit = true
-                    lockPosition = UIAgGridColumnDef.LockPosition.LEFT
+                    pinned = "left"
+                    lockPosition = UIAgGridColumnDef.Orientation.LEFT
                     cellRendererParams = mapOf(
                         "icon" to "edit",
                         "tooltip" to translate("edit"),
-                        "onClick" to "history.push('${PagesResolver.getEditPageUrl(AddressPagesRest::class.java, absolute = true)}/' + data.address.id);"
+                        "onClick" to "history.push('${
+                            PagesResolver.getEditPageUrl(
+                                AddressPagesRest::class.java,
+                                absolute = true
+                            )
+                        }/' + data.address.id);"
                     )
                 }
             )
         }
-        table.add(addressLC, "isFavoriteCard", width = 30, resizable = false)
-        table.add(addressLC, "lastUpdate")
+        table.add(
+            addressLC,
+            "isFavoriteCard",
+            width = 30,
+            resizable = false,
+            pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT,
+            sortable = false,
+            headerName = translate("address.columnHead.myFavorites"),
+            headerTooltip = translate("address.filter.myFavorites"),
+            cellRenderer = "formatter",
+        )
+        table.add(addressLC, "name", "firstName", pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT)
+        table.add(addressLC, "lastUpdate", formatter = UIAgGridColumnDef.Formatter.DATE)
         table.add("address.addressStatusAsString", headerName = "address.addressStatus", width = 110)
         table.add("address.contactStatusAsString", headerName = "address.contactStatus", width = 110)
-        table.add(addressLC, "imagePreview", headerName = "address.image", cellRenderer = "customized", width = 50, resizable = false)
-        table.add(addressLC, "name", "firstName", "organization", "email")
-        table.add(addressLC, "phoneNumbers", headerName = "address.phoneNumbers", sortable = false, cellRenderer = "customized", wrapText = true, autoHeight = true)
-        table.add(lc, "address.addressbookList")
+        table.add(
+            addressLC,
+            "imagePreview",
+            headerName = "address.image",
+            sortable = false,
+            cellRenderer = "customized",
+            width = 50,
+            resizable = false
+        )
+        table.add(addressLC, "organization", "email")
+        table.add(
+            addressLC,
+            "phoneNumbers",
+            headerName = "address.phoneNumbers",
+            sortable = false,
+            cellRenderer = "customized",
+            wrapText = true,
+            autoHeight = true
+        )
+        table.add(lc, "address.addressbookList", sortable = false, formatter = UIAgGridColumnDef.Formatter.ADDRESS_BOOK)
         table.withMultiRowSelection(request, magicFilter)
 
         // Single click on row opens view page (modal) - only in normal mode, not in multiselection mode
@@ -317,26 +350,8 @@ class AddressPagesRest
             table.rowClickOpenModal = true
         }
         // Customize columns after adding them
-        table.getColumnDefById("address.lastUpdate").setFormat(UIAgGridColumnDef.Formatter.DATE)
-        table.getColumnDefById("address.imagePreview").apply {
-            sortable = false
-            // cellRenderer is already set to "customized"
-        }
-        table.getColumnDefById("address.phoneNumbers").apply {
-            sortable = false
-            // cellRenderer is already set to "customized"
-        }
-        table.getColumnDefById("address.addressbookList").apply {
-            sortable = false
-            setFormat(UIAgGridColumnDef.Formatter.ADDRESS_BOOK)
-        }
         table.getColumnDefById("address.isFavoriteCard").apply {
-            sortable = false
-            lockPosition = UIAgGridColumnDef.LockPosition.LEFT
-            headerName = translate("address.columnHead.myFavorites")
-            headerTooltip = translate("address.filter.myFavorites")
             cellRendererParams = mapOf("valueIconMap" to mapOf(true to UIIconType.STAR_REGULAR))
-            cellRenderer = "formatter"
         }
         var menuIndex = 0
         if (sipgateConfiguration.isConfigured()) {

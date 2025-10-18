@@ -183,7 +183,10 @@ class AGGridSupport {
                         colDef.width = columnState.width
                     }
                     colDef.hide = columnState.hide
-                    colDef.pinned = columnState.pinned
+                    // Don't restore pinned for locked columns - they should always be pinned according to lockPosition
+                    if (colDef.lockPosition == null) {
+                        colDef.pinned = columnState.pinned
+                    }
                 }
             }
         }
