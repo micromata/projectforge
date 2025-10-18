@@ -23,19 +23,20 @@
 
 package org.projectforge.plugins.marketing
 
-import org.projectforge.business.address.AddressDO
+import mu.KotlinLogging
 import org.projectforge.business.address.AddressDao
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
-import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry
-import org.projectforge.framework.persistence.history.HistoryEntry
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.util.CollectionUtils
+
+private val log = KotlinLogging.logger {}
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -57,6 +58,22 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
         )
     }
 
+    override fun select(
+        filter: QueryFilter,
+        customResultFilters: List<CustomResultFilter<AddressCampaignValueDO>>?,
+        checkAccess: Boolean,
+    ): List<AddressCampaignValueDO> {
+        // Safety check: AddressCampaignValue must always be filtered by campaign
+        // to avoid loading all values across all campaigns (performance + data isolation)
+        if (!filter.extended.containsKey("campaignId")) {
+            log.warn { "AddressCampaignValueDao.select called without campaignId. Returning empty list to prevent loading all campaign values." }
+            return emptyList()
+        }
+        // Add JOIN FETCH for address relationship to load all address data eagerly
+        filter.createJoin("address", fetch = true)
+        return super.select(filter, customResultFilters, checkAccess)
+    }
+
     override fun select(filter: BaseSearchFilter): List<AddressCampaignValueDO> {
         val myFilter = if (filter is AddressCampaignValueFilter) {
             filter
@@ -66,6 +83,8 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
         val queryFilter = QueryFilter(myFilter)
         if (myFilter.addressCampaign != null) {
             queryFilter.add(eq("address_campaign_fk", myFilter.addressCampaign.id!!))
+        } else {
+            return emptyList()
         }
         if (myFilter.addressCampaignValue != null) {
             queryFilter.add(eq("value", myFilter.addressCampaign.id!!))
@@ -136,9 +155,5 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
 
     fun setAddressDao(addressDao: AddressDao?) {
         this.addressDao = addressDao
-    }
-
-    companion object {
-        private val log: Logger = LoggerFactory.getLogger(AddressCampaignValueDao::class.java)
     }
 }
