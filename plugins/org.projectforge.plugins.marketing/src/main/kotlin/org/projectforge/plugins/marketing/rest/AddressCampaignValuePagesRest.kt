@@ -66,16 +66,6 @@ class AddressCampaignValuePagesRest :
     }
 
     /**
-     * ########################################
-     * # Force usage only for selection mode: #
-     * ########################################
-     */
-    override fun getInitialList(request: HttpServletRequest): InitialListData {
-        MultiSelectionSupport.ensureMultiSelectionOnly(request, this, "/wa/addressCampaignValuesList")
-        return super.getInitialList(request)
-    }
-
-    /**
      * Add campaign selector and filter elements
      */
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
@@ -353,8 +343,94 @@ class AddressCampaignValuePagesRest :
      * LAYOUT Edit page
      */
     override fun createEditLayout(dto: AddressCampaignValue, userAccess: UILayout.UserAccess): UILayout {
+        // Build campaign values for UISelect
+        val campaignValues = mutableListOf<UISelectValue<String>>()
+        campaignValues.add(UISelectValue("", "--")) // Empty option
+
+        // Add campaign values from the DTO (already parsed)
+        dto.addressCampaign?.values?.forEach { value ->
+            campaignValues.add(UISelectValue(value, value))
+        }
+
+        // Build business card style address display
+        val addressCard = MarkdownBuilder()
+
+        // Name (bold)
+        val fullName = buildString {
+            if (!dto.firstName.isNullOrBlank()) {
+                append(dto.firstName)
+                append(" ")
+            }
+            if (!dto.name.isNullOrBlank()) {
+                append(dto.name)
+            }
+        }.trim()
+
+        if (fullName.isNotBlank()) {
+            addressCard.appendLine(fullName, bold = true)
+        }
+
+        // Organization
+        if (!dto.organization.isNullOrBlank()) {
+            addressCard.appendLine(dto.organization)
+        }
+
+        // Mailing address
+        if (!dto.formattedAddress.isNullOrBlank()) {
+            addressCard.appendLine(dto.formattedAddress)
+        }
+
+        // Email
+        if (!dto.email.isNullOrBlank()) {
+            addressCard.appendLine(dto.email)
+        }
+
         val layout = super.createEditLayout(dto, userAccess)
-            .add(UILabel("TODO"))
+            .add(
+                UIRow()
+                    .add(
+                        UICol()
+                            .add(
+                                UIReadOnlyField(
+                                    "addressCampaign.title",
+                                    lc,
+                                    label = translate("plugins.marketing.addressCampaign")
+                                )
+                            )
+                    )
+            )
+            .add(
+                UIAlert(
+                    message = addressCard.toString(),
+                    color = UIColor.LIGHT,
+                    markdown = true
+                )
+            )
+            .add(
+                UIFieldset(UILength(12), title = translate("plugins.marketing.addressCampaignValue.title"))
+                    .add(
+                        UIRow()
+                            .add(
+                                UICol(12)
+                                    .add(
+                                        UISelect(
+                                            "value",
+                                            lc,
+                                            values = campaignValues,
+                                            label = translate("value")
+                                        )
+                                    )
+                            )
+                    )
+                    .add(
+                        UIRow()
+                            .add(
+                                UICol(12)
+                                    .add(UITextArea("comment", lc))
+                            )
+                    )
+            )
+
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 

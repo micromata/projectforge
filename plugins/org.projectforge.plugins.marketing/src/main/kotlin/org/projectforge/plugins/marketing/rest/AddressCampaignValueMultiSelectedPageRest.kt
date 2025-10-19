@@ -69,8 +69,6 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
     return "plugins.marketing.addressCampaignValue.multiselected.title"
   }
 
-  override val listPageUrl: String = "/wa/${MarketingPlugin.ADDRESS_CAMPAIGN_VALUE_ID}List"
-
   @PostConstruct
   private fun postConstruct() {
     pagesRest = addressCampaignValuePagesRest

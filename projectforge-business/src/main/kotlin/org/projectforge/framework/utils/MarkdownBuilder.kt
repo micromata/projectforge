@@ -51,20 +51,53 @@ class MarkdownBuilder {
             sb.append(text ?: "")
             return this
         }
-        if (color == null ) {
+        if (color == null) {
+            val escapedText = escapeMarkdown(text)
             if (bold == true) {
-                sb.append("**").append(text).append("**")
+                sb.append("**").append(escapedText).append("**")
             } else {
-                sb.append(text)
+                sb.append(escapedText)
             }
         } else {
+            val escapedText = escapeHtml(text)
             sb.append("<span style=\"color:${color.color};")
             if (bold == true) {
                 sb.append(" font-weight: bold;")
             }
-            sb.append("\">").append(text).append("</span>")
+            sb.append("\">").append(escapedText).append("</span>")
         }
         return this
+    }
+
+    /**
+     * Escapes markdown special characters to prevent them from being interpreted as formatting.
+     */
+    private fun escapeMarkdown(text: String): String {
+        return text
+            .replace("\\", "\\\\")  // Backslash must be first!
+            .replace("*", "\\*")
+            .replace("_", "\\_")
+            .replace("[", "\\[")
+            .replace("]", "\\]")
+            .replace("(", "\\(")
+            .replace(")", "\\)")
+            .replace("#", "\\#")
+            .replace("+", "\\+")
+            .replace("-", "\\-")
+            .replace("`", "\\`")
+            .replace("|", "\\|")
+    }
+
+    /**
+     * Escapes HTML special characters to prevent XSS attacks.
+     */
+    private fun escapeHtml(text: String): String {
+        return text
+            .replace("&", "&amp;")   // Ampersand must be first!
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\"", "&quot;")
+            .replace("'", "&#x27;")
     }
 
     fun appendListItem(text: String?, color: Color? = null): MarkdownBuilder {
@@ -72,10 +105,10 @@ class MarkdownBuilder {
         return appendLine(text, color)
     }
 
-    fun appendLine(text: String? = null, color: Color? = null): MarkdownBuilder {
+    fun appendLine(text: String? = null, color: Color? = null, bold: Boolean? = null): MarkdownBuilder {
         first = true
-        append(text, color)
-        sb.appendLine()
+        append(text, color, bold)
+        sb.appendLine("</br>")
         return this
     }
 
@@ -93,7 +126,10 @@ class MarkdownBuilder {
     fun row(vararg cell: String?): MarkdownBuilder {
         first = true
         sb.append("| ")
-        cell.forEach { sb.append(it ?: "").append(" | ") }
+        cell.forEach {
+            append(it)
+            sb.append(" | ")
+        }
         sb.appendLine()
         return this
     }
@@ -109,16 +145,18 @@ class MarkdownBuilder {
     @JvmOverloads
     fun appendPipedValue(i18nKey: String, value: String, color: Color? = null, totalValue: String? = null) {
         ensureSeparator()
-        if (color != null) {
-            sb.append("<span style=\"color:${color.color};\">")
+
+        val text = buildString {
+            append(translate(i18nKey))
+            append(": ")
+            append(value)
+            if (!totalValue.isNullOrBlank()) {
+                append("/")
+                append(totalValue)
+            }
         }
-        sb.append(translate(i18nKey)).append(": ").append(value)
-        if (!totalValue.isNullOrBlank()) {
-            sb.append("/").append(totalValue)
-        }
-        if (color != null) {
-            sb.append("</span>")
-        }
+
+        append(text, color)
     }
 
     private fun ensureSeparator() {
