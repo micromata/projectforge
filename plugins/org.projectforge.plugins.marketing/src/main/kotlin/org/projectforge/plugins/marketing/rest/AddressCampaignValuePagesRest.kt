@@ -202,7 +202,7 @@ class AddressCampaignValuePagesRest :
             filters.add(CampaignValueFilterAdapter(DoubletsResultFilter()))
         }
 
-        // Process field-based filters (add as QueryFilter predicates)
+        // Process field-based filters (add as QueryFilter predicates for AddressDO)
         val contactStatusEntry = source.entries.find { it.field == "contactStatus" }
         if (contactStatusEntry != null && !contactStatusEntry.value.values.isNullOrEmpty()) {
             val statuses = contactStatusEntry.value.values?.mapNotNull { value ->
@@ -213,7 +213,7 @@ class AddressCampaignValuePagesRest :
                 }
             }
             if (!statuses.isNullOrEmpty()) {
-                target.add(QueryFilter.isIn("address.contactStatus", statuses))
+                target.add(QueryFilter.isIn("contactStatus", statuses))
             }
         }
 
@@ -227,44 +227,29 @@ class AddressCampaignValuePagesRest :
                 }
             }
             if (!statuses.isNullOrEmpty()) {
-                target.add(QueryFilter.isIn("address.addressStatus", statuses))
+                target.add(QueryFilter.isIn("addressStatus", statuses))
             }
         }
 
         val organizationEntry = source.entries.find { it.field == "organization" }
         organizationEntry?.value?.value?.let { orgValue ->
             if (orgValue.isNotBlank()) {
-                target.add(QueryFilter.like("address.organization", orgValue, autoWildcardSearch = true))
+                target.add(QueryFilter.like("organization", orgValue, autoWildcardSearch = true))
             }
         }
 
+        // Value filter - applied after merge as CustomResultFilter
         val valueEntry = source.entries.find { it.field == "value" }
+        valueEntry?.synthetic = true
         if (valueEntry != null && !valueEntry.value.values.isNullOrEmpty()) {
             val selectedValues = valueEntry.value.values?.toMutableList() ?: mutableListOf()
 
             // Check if __EMPTY__ is selected
             val includeEmpty = selectedValues.remove("__EMPTY__")
 
-            if (selectedValues.isNotEmpty() && includeEmpty) {
-                // Both values and empty selected: (value IN (...) OR value IS NULL OR value = '')
-                target.add(
-                    QueryFilter.or(
-                        QueryFilter.isIn("value", selectedValues),
-                        QueryFilter.isNull("value"),
-                        QueryFilter.eq("value", "")
-                    )
-                )
-            } else if (selectedValues.isNotEmpty()) {
-                // Only values selected
-                target.add(QueryFilter.isIn("value", selectedValues))
-            } else if (includeEmpty) {
-                // Only empty selected: (value IS NULL OR value = '')
-                target.add(
-                    QueryFilter.or(
-                        QueryFilter.isNull("value"),
-                        QueryFilter.eq("value", "")
-                    )
-                )
+            // Add ValueResultFilter for post-merge filtering
+            if (selectedValues.isNotEmpty() || includeEmpty) {
+                filters.add(ValueResultFilter(selectedValues, includeEmpty))
             }
         }
 
@@ -308,12 +293,10 @@ class AddressCampaignValuePagesRest :
             }
         }
 
-        // Store in extended map for getAddressCampaignDO() to use
+        // Store in extended map for DAO to use in selectAddressesForCampaign()
         if (campaignId != null) {
             source.extended["campaignId"] = campaignId
-
-            // Add filter condition to only select campaign values for this campaign
-            target.add(QueryFilter.eq("addressCampaign.id", campaignId))
+            // Note: No QueryFilter needed here - campaignId is passed to DAO method directly
         }
     }
 
