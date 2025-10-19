@@ -33,6 +33,8 @@ class AddressCampaign(
 ) : BaseDTO<AddressCampaignDO>() {
   override fun copyFrom(src: AddressCampaignDO) {
     super.copyFrom(src)
+    title = src.title
     values = src.valuesArray
+    comment = src.comment
   }
 }

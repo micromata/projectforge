@@ -507,18 +507,25 @@ class AddressCampaignValuePagesRest :
     }
 
     override fun transformForDB(dto: AddressCampaignValue): AddressCampaignValueDO {
-        val dbObj = AddressCampaignValueDO()
+        // For updates, load existing entity to preserve relationships
+        val dbObj = if (dto.id != null) {
+            baseDao.find(dto.id) ?: AddressCampaignValueDO()
+        } else {
+            AddressCampaignValueDO()
+        }
+
+        // Copy editable fields
         dto.copyTo(dbObj)
 
-        // Set the address relationship (required foreign key)
-        if (dto.addressId != null) {
+        // Set the address relationship (required foreign key) - only for new records
+        if (dto.id == null && dto.addressId != null) {
             val address = AddressDO()
             address.id = dto.addressId
             dbObj.address = address
         }
 
-        // Set the campaign relationship (required foreign key)
-        if (dto.addressCampaign?.id != null) {
+        // Set the campaign relationship (required foreign key) - only for new records
+        if (dto.id == null && dto.addressCampaign?.id != null) {
             val campaign = AddressCampaignDO()
             campaign.id = dto.addressCampaign!!.id
             dbObj.addressCampaign = campaign
