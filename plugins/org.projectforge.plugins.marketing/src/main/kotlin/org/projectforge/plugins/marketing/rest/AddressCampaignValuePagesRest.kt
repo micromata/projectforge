@@ -24,15 +24,12 @@
 package org.projectforge.plugins.marketing.rest
 
 import jakarta.servlet.http.HttpServletRequest
-import org.projectforge.business.address.AddressStatus
-import org.projectforge.business.address.ContactStatus
-import org.projectforge.business.address.DoubletsResultFilter
-import org.projectforge.business.address.FavoritesResultFilter
-import org.projectforge.business.address.PersonalAddressDao
+import org.projectforge.business.address.*
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.utils.MarkdownBuilder
 import org.projectforge.plugins.marketing.AddressCampaignDO
 import org.projectforge.plugins.marketing.AddressCampaignDao
 import org.projectforge.plugins.marketing.AddressCampaignValueDO
@@ -95,6 +92,37 @@ class AddressCampaignValuePagesRest :
         )
         elements.add(campaignFilter)
 
+        // Dynamic value filter based on selected campaign
+        val currentCampaignId = userPrefService.getEntry(
+            category,
+            USER_PREF_SELECTED_CAMPAIGN_ID,
+            Long::class.java
+        )
+        if (currentCampaignId != null) {
+            val campaign = addressCampaignDao.find(currentCampaignId)
+            val valuesList = mutableListOf<UISelectValue<String>>()
+
+            // Add option for empty values
+            valuesList.add(UISelectValue("__EMPTY__", translate("filter.emptyValue")))
+
+            // Add values from campaign's valuesArray
+            campaign?.valuesArray?.forEach { value ->
+                valuesList.add(UISelectValue(value, value))
+            }
+
+            if (valuesList.size > 1) { // More than just __EMPTY__
+                elements.add(
+                    UIFilterListElement(
+                        id = "value",
+                        values = valuesList,
+                        label = translate("value"),
+                        multi = true,
+                        defaultFilter = true
+                    )
+                )
+            }
+        }
+
         // Boolean filters (synthetic - use CustomResultFilter)
         elements.add(
             UIFilterElement(
@@ -123,7 +151,7 @@ class AddressCampaignValuePagesRest :
                 values = contactStatusValues,
                 label = translate("address.contactStatus"),
                 multi = true,
-                defaultFilter = false
+                defaultFilter = true
             )
         )
 
@@ -136,7 +164,7 @@ class AddressCampaignValuePagesRest :
                 values = addressStatusValues,
                 label = translate("address.addressStatus"),
                 multi = true,
-                defaultFilter = false
+                defaultFilter = true
             )
         )
 
@@ -149,44 +177,15 @@ class AddressCampaignValuePagesRest :
                 defaultFilter = false
             )
         )
-
-        // Dynamic value filter based on selected campaign
-        val currentCampaignId = userPrefService.getEntry(
-            category,
-            USER_PREF_SELECTED_CAMPAIGN_ID,
-            Long::class.java
-        )
-
-        if (currentCampaignId != null) {
-            val campaign = addressCampaignDao.find(currentCampaignId)
-            val valuesList = mutableListOf<UISelectValue<String>>()
-
-            // Add option for empty values
-            valuesList.add(UISelectValue("__EMPTY__", translate("filter.emptyValue")))
-
-            // Add values from campaign's valuesArray
-            campaign?.valuesArray?.forEach { value ->
-                valuesList.add(UISelectValue(value, value))
-            }
-
-            if (valuesList.size > 1) { // More than just __EMPTY__
-                elements.add(
-                    UIFilterListElement(
-                        id = "value",
-                        values = valuesList,
-                        label = translate("value"),
-                        multi = true,
-                        defaultFilter = true
-                    )
-                )
-            }
-        }
     }
 
     /**
      * Pre-process magic filter to set up synthetic filters and field predicates
      */
-    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<AddressCampaignValueDO>>? {
+    override fun preProcessMagicFilter(
+        target: QueryFilter,
+        source: MagicFilter
+    ): List<CustomResultFilter<AddressCampaignValueDO>>? {
         val filters = mutableListOf<CustomResultFilter<AddressCampaignValueDO>>()
 
         // Process synthetic filters (delegated to address filters via adapter)
@@ -262,41 +261,22 @@ class AddressCampaignValuePagesRest :
     override fun postProcessMagicFilter(target: QueryFilter, source: MagicFilter) {
         super.postProcessMagicFilter(target, source)
 
-        // Get the previously stored campaign from user preferences
         val previousCampaignId = userPrefService.getEntry(category, USER_PREF_SELECTED_CAMPAIGN_ID, Long::class.java)
-
-        // Find the campaign ID from filter entries (sent by frontend)
         val campaignEntry = source.entries.find { it.field == FILTER_CAMPAIGN_ID }
-        var campaignId: Long? = null
 
-        if (campaignEntry != null && !campaignEntry.value.values.isNullOrEmpty()) {
-            // User has selected a campaign from the filter
-            val campaignIdStr = campaignEntry.value.values?.firstOrNull()
-            campaignId = campaignIdStr?.toLongOrNull()
-
-            if (campaignId != null) {
-                // Check if campaign changed
-                if (previousCampaignId != null && previousCampaignId != campaignId) {
-                    // Campaign changed - signal UI reload needed
-                    source.extended["reloadUI"] = true
-                }
-
-                // Save to user preferences for persistence across sessions
-                userPrefService.putEntry(category, USER_PREF_SELECTED_CAMPAIGN_ID, campaignId)
-            }
-        } else {
-            // No filter entry, restore from user prefs or use first available
-            campaignId = previousCampaignId
-            if (campaignId == null) {
-                // Use first available campaign as default
-                campaignId = addressCampaignDao.selectAll(checkAccess = false).firstOrNull()?.id
-            }
-        }
-
-        // Store in extended map for DAO to use in selectAddressesForCampaign()
+        val campaignId = campaignEntry?.value?.values?.firstOrNull()?.toLongOrNull()
         if (campaignId != null) {
+            // Check if campaign changed
+            if (previousCampaignId != campaignId) {
+                source.extended["reloadUI"] = true
+            }
+            // Save to user preferences
+            userPrefService.putEntry(category, USER_PREF_SELECTED_CAMPAIGN_ID, campaignId)
+            // Store for DAO
             source.extended["campaignId"] = campaignId
-            // Note: No QueryFilter needed here - campaignId is passed to DAO method directly
+        } else if (previousCampaignId != null) {
+            // Initial load - restore from user prefs or use first available
+            source.extended["campaignId"] = previousCampaignId
         }
     }
 
@@ -309,6 +289,30 @@ class AddressCampaignValuePagesRest :
         magicFilter: MagicFilter,
         userAccess: UILayout.UserAccess
     ) {
+        // Add alert box for selected campaign
+        val campaign = getAddressCampaignDO(request)
+        if (campaign != null) {
+            val mb = MarkdownBuilder()
+                .append(translate("plugins.marketing.addressCampaign"))
+                .append(": ")
+                .append(campaign.title, MarkdownBuilder.Color.RED, bold = true)
+            layout.add(
+                UIAlert(
+                    message = mb.toString(),
+                    color = UIColor.LIGHT,
+                    markdown = true
+                )
+            )
+        } else {
+            layout.add(
+                UIAlert(
+                    message = "plugins.marketing.addressCampaign.noCampaignSelected",
+                    color = UIColor.DANGER,
+                    markdown = false
+                )
+            )
+        }
+
         agGridSupport.prepareUIGrid4ListPage(
             request,
             layout,
@@ -318,7 +322,12 @@ class AddressCampaignValuePagesRest :
             userAccess = userAccess,
         )
             .add(lc, "name", headerName = "contact.name", pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT)
-            .add(lc, "firstName", headerName = "contact.firstname", pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT)
+            .add(
+                lc,
+                "firstName",
+                headerName = "contact.firstname",
+                pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT
+            )
             .add(lc, "value", headerName = "value")
             .add(lc, "organization", headerName = "organization")
             .add(lc, "formattedAddress", headerName = "address", wrapText = true, cellRenderer = "multilineCell")
