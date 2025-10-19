@@ -375,10 +375,8 @@ class AddressCampaignValuePagesRest :
             addressCard.appendLine(dto.organization)
         }
 
-        // Mailing address
-        if (!dto.formattedAddress.isNullOrBlank()) {
-            addressCard.appendLine(dto.formattedAddress)
-        }
+        // Mailing address (formatted with newlines)
+        addressCard.appendMultilineText(dto.formattedAddress)
 
         // Email
         if (!dto.email.isNullOrBlank()) {

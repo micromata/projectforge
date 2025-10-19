@@ -45,6 +45,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.projectforge.business.address.*
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.utils.MarkdownBuilder
 
 private val log = KotlinLogging.logger {}
 
@@ -320,19 +321,27 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
     state: String?,
     country: String?
   ) {
+    // Build MailingAddress and use its formatted output
+    val mailingAddress = MailingAddress(
+      addressText = addressText,
+      addressText2 = addressText2,
+      zipCode = zipCode,
+      city = city,
+      state = state,
+      country = country
+    )
+
+    // Use MarkdownBuilder to format the address
+    val addressCard = MarkdownBuilder()
+    addressCard.appendMultilineText(mailingAddress.formattedAddress)
+
     row.add(
       UIFieldset(UILength(md = 12 / numberOfAddresses), title = title)
         .add(
-          UICustomized(
-            "address.view",
-            mutableMapOf(
-              "address" to (addressText ?: ""),
-              "address2" to (addressText2 ?: ""),
-              "zipCode" to (zipCode ?: ""),
-              "city" to (city ?: ""),
-              "state" to (state ?: ""),
-              "country" to (country ?: "")
-            )
+          UIAlert(
+            message = addressCard.toString(),
+            color = UIColor.LIGHT,
+            markdown = true
           )
         )
     )
