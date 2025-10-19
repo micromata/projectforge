@@ -38,6 +38,7 @@ import org.projectforge.plugins.marketing.dto.AddressCampaign
 import org.projectforge.plugins.marketing.dto.AddressCampaignValue
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.*
@@ -56,6 +57,9 @@ class AddressCampaignValuePagesRest :
     ) {
     @Autowired
     private lateinit var addressCampaignDao: AddressCampaignDao
+
+    @Autowired
+    private lateinit var addressDao: AddressDao
 
     @Autowired
     private lateinit var personalAddressDao: PersonalAddressDao
@@ -282,17 +286,7 @@ class AddressCampaignValuePagesRest :
         // Add alert box for selected campaign
         val campaign = getAddressCampaignDO(request)
         if (campaign != null) {
-            val mb = MarkdownBuilder()
-                .append(translate("plugins.marketing.addressCampaign"))
-                .append(": ")
-                .append(campaign.title, MarkdownBuilder.Color.RED, bold = true)
-            layout.add(
-                UIAlert(
-                    message = mb.toString(),
-                    color = UIColor.LIGHT,
-                    markdown = true
-                )
-            )
+            layout.add(buildCampaignTitle(campaign.title))
         } else {
             layout.add(
                 UIAlert(
@@ -303,6 +297,20 @@ class AddressCampaignValuePagesRest :
             )
         }
 
+        // Build custom row click URL with campaignId and addressId parameters
+        // AG Grid will replace 'addressId' placeholder with actual row's addressId field value
+        val campaignId = campaign?.id
+        val rowClickUrl = if (campaignId != null) {
+            "${
+                PagesResolver.getEditPageUrl(
+                    this::class.java,
+                    absolute = true
+                )
+            }/id?campaignId=$campaignId&addressId=addressId"
+        } else {
+            null
+        }
+
         agGridSupport.prepareUIGrid4ListPage(
             request,
             layout,
@@ -310,6 +318,7 @@ class AddressCampaignValuePagesRest :
             this,
             AddressCampaignValueMultiSelectedPageRest::class.java,
             userAccess = userAccess,
+            rowClickUrl = rowClickUrl,
         )
             .add(lc, "name", headerName = "contact.name", pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT)
             .add(
@@ -384,19 +393,7 @@ class AddressCampaignValuePagesRest :
         }
 
         val layout = super.createEditLayout(dto, userAccess)
-            .add(
-                UIRow()
-                    .add(
-                        UICol()
-                            .add(
-                                UIReadOnlyField(
-                                    "addressCampaign.title",
-                                    lc,
-                                    label = translate("plugins.marketing.addressCampaign")
-                                )
-                            )
-                    )
-            )
+            .add(buildCampaignTitle(dto.addressCampaign?.title))
             .add(
                 UIAlert(
                     message = addressCard.toString(),
@@ -405,7 +402,7 @@ class AddressCampaignValuePagesRest :
                 )
             )
             .add(
-                UIFieldset(UILength(12), title = translate("plugins.marketing.addressCampaignValue.title"))
+                UIFieldset(UILength(12), title = translate("plugins.marketing.addressCampaignValue"))
                     .add(
                         UIRow()
                             .add(
@@ -430,6 +427,46 @@ class AddressCampaignValuePagesRest :
             )
 
         return LayoutUtils.processEditPage(layout, dto, this)
+    }
+
+    /**
+     * Override to handle campaignId and addressId parameters for new campaign values.
+     * When creating a new campaign value (transient object with no ID), we need to know
+     * which campaign to associate it with and which address it belongs to.
+     */
+    override fun onBeforeGetItemAndLayout(
+        request: HttpServletRequest,
+        dto: AddressCampaignValue,
+        userAccess: UILayout.UserAccess
+    ) {
+        super.onBeforeGetItemAndLayout(request, dto, userAccess)
+
+        // Extract parameters from request
+        val campaignIdParam = request.getParameter("campaignId")
+        val campaignId = campaignIdParam?.toLongOrNull()
+        val addressIdParam = request.getParameter("addressId")
+        val addressId = addressIdParam?.toLongOrNull()
+
+        // If this is a new object (no id), populate campaign and address data
+        if (dto.id == null) {
+            // Set the campaign
+            if (campaignId != null) {
+                val campaign = addressCampaignDao.find(campaignId)
+                if (campaign != null) {
+                    val campaignDto = AddressCampaign()
+                    campaignDto.copyFrom(campaign)
+                    dto.addressCampaign = campaignDto
+                }
+            }
+
+            // Set the address data
+            if (addressId != null) {
+                val addressDO = addressDao.find(addressId)
+                if (addressDO != null) {
+                    dto.populateFromAddress(addressDO)
+                }
+            }
+        }
     }
 
     /*
@@ -472,6 +509,21 @@ class AddressCampaignValuePagesRest :
     override fun transformForDB(dto: AddressCampaignValue): AddressCampaignValueDO {
         val dbObj = AddressCampaignValueDO()
         dto.copyTo(dbObj)
+
+        // Set the address relationship (required foreign key)
+        if (dto.addressId != null) {
+            val address = AddressDO()
+            address.id = dto.addressId
+            dbObj.address = address
+        }
+
+        // Set the campaign relationship (required foreign key)
+        if (dto.addressCampaign?.id != null) {
+            val campaign = AddressCampaignDO()
+            campaign.id = dto.addressCampaign!!.id
+            dbObj.addressCampaign = campaign
+        }
+
         return dbObj
     }
 
@@ -512,5 +564,17 @@ class AddressCampaignValuePagesRest :
         val campaign = AddressCampaign()
         campaign.copyFrom(addressCampaignDO)
         return campaign
+    }
+
+    private fun buildCampaignTitle(campaignTitle: String?): UIAlert {
+        val mb = MarkdownBuilder()
+            .append(translate("plugins.marketing.addressCampaign"))
+            .append(": ")
+            .append(campaignTitle, MarkdownBuilder.Color.RED, bold = true)
+        return UIAlert(
+            message = mb.toString(),
+            color = UIColor.LIGHT,
+            markdown = true
+        )
     }
 }
