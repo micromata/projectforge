@@ -46,11 +46,23 @@ class MarkdownBuilder {
         return this
     }
 
-    fun append(text: String?, color: Color? = null): MarkdownBuilder {
-        if (color == null || text.isNullOrBlank()) {
+    fun append(text: String?, color: Color? = null, bold: Boolean? = null): MarkdownBuilder {
+        if (text.isNullOrBlank()) {
             sb.append(text ?: "")
+            return this
+        }
+        if (color == null ) {
+            if (bold == true) {
+                sb.append("**").append(text).append("**")
+            } else {
+                sb.append(text)
+            }
         } else {
-            sb.append("<span style=\"color:${color.color};\">").append(text).append("</span>")
+            sb.append("<span style=\"color:${color.color};")
+            if (bold == true) {
+                sb.append(" font-weight: bold;")
+            }
+            sb.append("\">").append(text).append("</span>")
         }
         return this
     }
