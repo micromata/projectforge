@@ -149,14 +149,38 @@ class AddressCampaignValuePagesRest :
                 defaultFilter = false
             )
         )
-        elements.add(
-            UIFilterElement(
-                "value",
-                UIFilterElement.FilterType.STRING,
-                translate("value"),
-                defaultFilter = true
-            )
+
+        // Dynamic value filter based on selected campaign
+        val currentCampaignId = userPrefService.getEntry(
+            category,
+            USER_PREF_SELECTED_CAMPAIGN_ID,
+            Long::class.java
         )
+
+        if (currentCampaignId != null) {
+            val campaign = addressCampaignDao.find(currentCampaignId)
+            val valuesList = mutableListOf<UISelectValue<String>>()
+
+            // Add option for empty values
+            valuesList.add(UISelectValue("__EMPTY__", translate("filter.emptyValue")))
+
+            // Add values from campaign's valuesArray
+            campaign?.valuesArray?.forEach { value ->
+                valuesList.add(UISelectValue(value, value))
+            }
+
+            if (valuesList.size > 1) { // More than just __EMPTY__
+                elements.add(
+                    UIFilterListElement(
+                        id = "value",
+                        values = valuesList,
+                        label = translate("value"),
+                        multi = true,
+                        defaultFilter = true
+                    )
+                )
+            }
+        }
     }
 
     /**
@@ -215,9 +239,32 @@ class AddressCampaignValuePagesRest :
         }
 
         val valueEntry = source.entries.find { it.field == "value" }
-        valueEntry?.value?.value?.let { val1 ->
-            if (val1.isNotBlank()) {
-                target.add(QueryFilter.like("value", val1, autoWildcardSearch = true))
+        if (valueEntry != null && !valueEntry.value.values.isNullOrEmpty()) {
+            val selectedValues = valueEntry.value.values?.toMutableList() ?: mutableListOf()
+
+            // Check if __EMPTY__ is selected
+            val includeEmpty = selectedValues.remove("__EMPTY__")
+
+            if (selectedValues.isNotEmpty() && includeEmpty) {
+                // Both values and empty selected: (value IN (...) OR value IS NULL OR value = '')
+                target.add(
+                    QueryFilter.or(
+                        QueryFilter.isIn("value", selectedValues),
+                        QueryFilter.isNull("value"),
+                        QueryFilter.eq("value", "")
+                    )
+                )
+            } else if (selectedValues.isNotEmpty()) {
+                // Only values selected
+                target.add(QueryFilter.isIn("value", selectedValues))
+            } else if (includeEmpty) {
+                // Only empty selected: (value IS NULL OR value = '')
+                target.add(
+                    QueryFilter.or(
+                        QueryFilter.isNull("value"),
+                        QueryFilter.eq("value", "")
+                    )
+                )
             }
         }
 
@@ -230,7 +277,10 @@ class AddressCampaignValuePagesRest :
     override fun postProcessMagicFilter(target: QueryFilter, source: MagicFilter) {
         super.postProcessMagicFilter(target, source)
 
-        // Find the campaign ID from filter entries
+        // Get the previously stored campaign from user preferences
+        val previousCampaignId = userPrefService.getEntry(category, USER_PREF_SELECTED_CAMPAIGN_ID, Long::class.java)
+
+        // Find the campaign ID from filter entries (sent by frontend)
         val campaignEntry = source.entries.find { it.field == FILTER_CAMPAIGN_ID }
         var campaignId: Long? = null
 
@@ -240,12 +290,18 @@ class AddressCampaignValuePagesRest :
             campaignId = campaignIdStr?.toLongOrNull()
 
             if (campaignId != null) {
+                // Check if campaign changed
+                if (previousCampaignId != null && previousCampaignId != campaignId) {
+                    // Campaign changed - signal UI reload needed
+                    source.extended["reloadUI"] = true
+                }
+
                 // Save to user preferences for persistence across sessions
                 userPrefService.putEntry(category, USER_PREF_SELECTED_CAMPAIGN_ID, campaignId)
             }
         } else {
             // No filter entry, restore from user prefs or use first available
-            campaignId = userPrefService.getEntry(category, USER_PREF_SELECTED_CAMPAIGN_ID, Long::class.java)
+            campaignId = previousCampaignId
             if (campaignId == null) {
                 // Use first available campaign as default
                 campaignId = addressCampaignDao.selectAll(checkAccess = false).firstOrNull()?.id
@@ -329,6 +385,13 @@ class AddressCampaignValuePagesRest :
         val newResultSet = super.postProcessResultSet(resultSet, request, magicFilter)
         @Suppress("UNCHECKED_CAST")
         processList(request, newResultSet.resultSet as List<AddressCampaignValue>)
+
+        // Check if UI reload is needed (campaign changed)
+        if (magicFilter.extended["reloadUI"] == true) {
+            // Signal to frontend to reload UI
+            newResultSet.reloadUI = true
+        }
+
         return newResultSet
     }
 
