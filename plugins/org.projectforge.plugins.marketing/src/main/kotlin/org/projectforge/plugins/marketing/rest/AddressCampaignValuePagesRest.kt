@@ -168,7 +168,7 @@ class AddressCampaignValuePagesRest :
                 "organization",
                 UIFilterElement.FilterType.STRING,
                 translate("organization"),
-                defaultFilter = false
+                defaultFilter = true
             )
         )
     }
@@ -538,6 +538,65 @@ class AddressCampaignValuePagesRest :
         val dto = AddressCampaignValue()
         dto.copyFrom(obj)
         return dto
+    }
+
+    /**
+     * Override to handle both real campaign value IDs (positive) and synthetic IDs (negative).
+     * Negative IDs represent addressIds for transient campaign values (addresses without campaign values).
+     */
+    override fun getListByIds(entityIds: Collection<java.io.Serializable>?): List<AddressCampaignValueDO> {
+        if (entityIds.isNullOrEmpty()) {
+            return emptyList()
+        }
+
+        val result = mutableListOf<AddressCampaignValueDO>()
+        val realIds = mutableListOf<Long>()
+        val addressIds = mutableListOf<Long>()
+
+        // Separate real IDs from synthetic IDs
+        entityIds.forEach { id ->
+            val longId = (id as? Long) ?: (id as? String)?.toLongOrNull()
+            if (longId != null) {
+                if (longId > 0) {
+                    realIds.add(longId)
+                } else {
+                    // Negative ID = synthetic ID, convert back to addressId
+                    addressIds.add(-longId)
+                }
+            }
+        }
+
+        // Load real campaign values from database
+        if (realIds.isNotEmpty()) {
+            result.addAll(baseDao.select(realIds) ?: emptyList())
+        }
+
+        // Create transient campaign values for addresses without campaign values
+        if (addressIds.isNotEmpty()) {
+            // Get the current campaign
+            val campaignId = getCurrentFilter().extended["campaignId"] as? Long
+            val campaign = if (campaignId != null) {
+                addressCampaignDao.find(campaignId)
+            } else {
+                null
+            }
+
+            // Load addresses and create transient campaign values
+            addressIds.forEach { addressId ->
+                val address = addressDao.find(addressId)
+                if (address != null) {
+                    val transientValue = AddressCampaignValueDO()
+                    transientValue.id = -addressId // Synthetic ID
+                    transientValue.address = address
+                    transientValue.addressCampaign = campaign
+                    transientValue.value = null
+                    transientValue.comment = null
+                    result.add(transientValue)
+                }
+            }
+        }
+
+        return result
     }
 
     internal fun getAddressCampaignDO(request: HttpServletRequest): AddressCampaignDO? {
