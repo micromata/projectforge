@@ -92,7 +92,14 @@ const fetchData = (category, dispatch, listState, variables) => {
     )
         .then(handleHTTPErrors)
         .then((response) => response.json())
-        .then((data) => dispatch(callSuccess(category, { data })))
+        .then((data) => {
+            if (data.reloadUI) {
+                // Campaign or UI definitions changed - reload initial list
+                // to get updated filter definitions
+                return initialCall(category, dispatch);
+            }
+            return dispatch(callSuccess(category, { data }));
+        })
         .catch((error) => dispatch(fetchFailure(category, error.message)));
 };
 
