@@ -113,6 +113,27 @@ class MarkdownBuilder {
     }
 
     /**
+     * Appends text with newlines, converting \n to markdown line breaks (</br>).
+     * Each line will be escaped and appended via appendLine().
+     *
+     * @param text Text with newlines to append
+     * @param color Optional color for the entire text block
+     * @param bold Optional bold formatting for the entire text block
+     * @return this for chaining
+     */
+    fun appendMultilineText(text: String?, color: Color? = null, bold: Boolean? = null): MarkdownBuilder {
+        if (text.isNullOrBlank()) {
+            return this
+        }
+        text.split("\n").forEach { line ->
+            if (line.isNotBlank()) {
+                appendLine(line.trim(), color, bold)
+            }
+        }
+        return this
+    }
+
+    /**
      * @return this for chaining.
      */
     fun beginTable(vararg header: String?): MarkdownBuilder {
