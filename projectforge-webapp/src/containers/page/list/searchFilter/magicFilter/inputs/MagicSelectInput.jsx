@@ -57,6 +57,7 @@ MagicSelectInput.isEmpty = ({ values }) => !values || values.length === 0;
 MagicSelectInput.getLabel = (label, { values }, { values: dataValues }) => `${label}: ${values
     // Find Labels for selected items by values
     ?.map((v) => dataValues?.find((dv) => dv.id === v)?.displayName)
+    ?.filter((displayName) => displayName !== undefined && displayName !== null && displayName !== '')
     ?.join(', ')}`;
 
 export default MagicSelectInput;
