@@ -50,14 +50,14 @@ class AddressCampaignValue(
     var isFavoriteCard: Boolean? = null,
 ) : BaseDTO<AddressCampaignValueDO>() {
 
-  @get:JsonProperty
+  @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
   val contactStatusAsString: String?
     get() {
       contactStatus?.let { return translate(it.i18nKey) }
       return null
     }
 
-  @get:JsonProperty
+  @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
   val addressStatusAsString: String?
     get() {
       addressStatus?.let { return translate(it.i18nKey) }
@@ -103,5 +103,29 @@ class AddressCampaignValue(
     dest.comment = this.comment
     // Note: address and addressCampaign relationships should be set by the caller
     // as they require proper entity references from the database
+  }
+
+  /**
+   * Populate address fields from an AddressDO.
+   * Used when creating a new campaign value for an address that doesn't have one yet.
+   */
+  fun populateFromAddress(addressDO: org.projectforge.business.address.AddressDO) {
+    this.addressId = addressDO.id
+    this.name = addressDO.name
+    this.fullLastName = addressDO.fullLastName
+    this.firstName = addressDO.firstName
+    this.organization = addressDO.organization
+    this.contactStatus = addressDO.contactStatus
+    this.addressStatus = addressDO.addressStatus
+    this.lastUpdate = addressDO.lastUpdate
+
+    // Combine all emails as CSV (business, private)
+    val emails = mutableListOf<String>()
+    addressDO.email?.let { if (it.isNotBlank()) emails.add(it) }
+    addressDO.privateEmail?.let { if (it.isNotBlank()) emails.add(it) }
+    this.email = if (emails.isNotEmpty()) emails.joinToString(", ") else null
+
+    // Format mailing address
+    this.formattedAddress = MailingAddress(addressDO).formattedAddress
   }
 }

@@ -758,7 +758,9 @@ constructor(
     )
             : ResponseEntity<FormLayoutData> {
         val userAccess = UILayout.UserAccess()
-        val item = (if (null != id) {
+        // The frontend may send "undefined" as id for new items:
+        val effectiveId = if (id == "undefined") null else id
+        val item = (if (null != effectiveId) {
             getById(id, true, userAccess)
         } else {
             checkUserAccess(null, userAccess)

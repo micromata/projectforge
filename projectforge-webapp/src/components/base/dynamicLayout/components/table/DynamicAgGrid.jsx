@@ -184,21 +184,42 @@ function DynamicAgGrid(props) {
         return params.defaultValue;
     };
 
-    const modifyRedirectUrl = (redirectUrl, clickedId) => {
-        // Replace {id} placeholder (path parameter)
-        if (redirectUrl.includes('{id}')) {
-            return redirectUrl.replace('{id}', clickedId);
+    const modifyRedirectUrl = (redirectUrl, row) => {
+        let url = redirectUrl;
+
+        // Replace field placeholders in the URL with actual row data values
+        // Supports: {fieldName}, :fieldName, /fieldName in path, fieldName in query params
+        if (row) {
+            // Always process 'id' field first, even if not present in row
+            const idValue = (row.id == null) ? 'undefined' : String(row.id);
+            url = url.replace('{id}', idValue);
+            url = url.replace(':id', idValue);
+            url = url.replace(/\/id(?=[?/]|$)/g, `/${idValue}`);
+
+            // Process all other fields in the row
+            Object.keys(row).forEach((fieldName) => {
+                if (fieldName === 'id') return; // Already processed above
+
+                // Use 'undefined' string for null/undefined values, otherwise convert to string
+                const fieldValue = (row[fieldName] == null) ? 'undefined' : String(row[fieldName]);
+
+                // Replace {fieldName} placeholder (e.g., /edit/{campaignId})
+                url = url.replace(`{${fieldName}}`, fieldValue);
+
+                // Replace :fieldName placeholder (React Router style)
+                url = url.replace(`:${fieldName}`, fieldValue);
+
+                // Replace /fieldName in path segments
+                const pathSegmentPattern = new RegExp(`/${fieldName}(?=[?/]|$)`, 'g');
+                url = url.replace(pathSegmentPattern, `/${fieldValue}`);
+
+                // Replace fieldName=fieldName in query parameters
+                const queryParamPattern = new RegExp(`${fieldName}=${fieldName}(?=&|$)`, 'g');
+                url = url.replace(queryParamPattern, `${fieldName}=${fieldValue}`);
+            });
         }
-        // Replace :id placeholder (React Router style)
-        if (redirectUrl.includes(':id')) {
-            return redirectUrl.replace(':id', clickedId);
-        }
-        // Replace id=... query parameter
-        if (redirectUrl.includes('id=')) {
-            return redirectUrl.replace(/id=([^&]*)/, `id=${clickedId}`);
-        }
-        // Fallback: try to replace 'id' with the actual id
-        return redirectUrl.replace('id', clickedId);
+
+        return url;
     };
 
     const onRowClicked = (event) => {
@@ -210,7 +231,7 @@ function DynamicAgGrid(props) {
             // Do nothing
             return;
         }
-        const redirectUrl = modifyRedirectUrl(rowClickRedirectUrl, event.data.id);
+        const redirectUrl = modifyRedirectUrl(rowClickRedirectUrl, event.data);
         if (rowClickOpenModal) {
             const historyState = { };
 
@@ -232,12 +253,12 @@ function DynamicAgGrid(props) {
             // No row(s) selected.
             return;
         }
-        const firstSelectedRowId = selectedRows[0].id;
-        if (!firstSelectedRowId) {
+        const firstSelectedRow = selectedRows[0];
+        if (!firstSelectedRow || !firstSelectedRow.id) {
             // Can't detect id.
             return;
         }
-        history.push(modifyRedirectUrl(rowClickRedirectUrl, firstSelectedRowId));
+        history.push(modifyRedirectUrl(rowClickRedirectUrl, firstSelectedRow));
     };
 
     const postColumnStates = (event) => {
