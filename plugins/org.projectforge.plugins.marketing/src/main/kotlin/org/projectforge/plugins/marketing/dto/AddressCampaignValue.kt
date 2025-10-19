@@ -71,6 +71,14 @@ class AddressCampaignValue(
 
   override fun copyFrom(src: AddressCampaignValueDO) {
     this.id = src.id // Campaign value ID
+
+    // Copy address campaign relationship
+    src.addressCampaign?.let { campaignDO ->
+      val campaignDto = AddressCampaign()
+      campaignDto.copyFrom(campaignDO)
+      this.addressCampaign = campaignDto
+    }
+
     src.address?.let { addressDO ->
       // Store address ID for favorite lookup
       this.addressId = addressDO.id
