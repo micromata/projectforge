@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.multiselect
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import de.micromata.merlin.excel.ExcelCell
 import de.micromata.merlin.utils.ReplaceUtils
 import jakarta.servlet.http.HttpServletRequest
@@ -68,7 +69,24 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     private lateinit var dataTransferBridge: DataTransferBridge
 
     class MultiSelection {
-        var selectedIds: Collection<Serializable>? = null
+        private var _selectedIds: Collection<Serializable>? = null
+
+        @get:JsonProperty
+        var selectedIds: Collection<Serializable>?
+            get() = _selectedIds
+            set(value) {
+                // Convert all numeric types (Int, Integer, etc.) to Long for consistency
+                // ProjectForge entity IDs are always Long
+                // Jackson may deserialize numbers as Int by default
+                _selectedIds = value?.map { id ->
+                    when (id) {
+                        is Long -> id
+                        is Number -> id.toLong()  // Handles Int, Integer, Short, etc.
+                        is String -> id.toLongOrNull() ?: id
+                        else -> id
+                    } as Serializable
+                }
+            }
     }
 
     protected open fun getId(obj: T): Long {
