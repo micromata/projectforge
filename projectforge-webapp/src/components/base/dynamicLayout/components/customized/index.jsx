@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import BookLendOut from './components/BookLendOut';
 import CalendarEventRecurrency from './components/CalendarEventRecurrence';
-import CustomizedAddressView from './components/CustomizedAddressView';
 import CustomizedAddressImage from './components/CustomizedAddressImage';
 import CustomizedAddressPhoneNumbers from './components/CustomizedAddressPhoneNumbers';
 import CustomizedAddressPhoneNumber from './components/CustomizedAddressPhoneNumber';
@@ -35,9 +34,6 @@ function DynamicCustomized({ id, ...props }) {
     switch (id) {
         case 'access.table':
             Tag = AccessTableComponent;
-            break;
-        case 'address.view':
-            Tag = CustomizedAddressView;
             break;
         case 'address.edit.image':
             Tag = CustomizedAddressImage;

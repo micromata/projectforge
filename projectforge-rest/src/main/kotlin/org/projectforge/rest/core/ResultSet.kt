@@ -47,6 +47,11 @@ class ResultSet<O : Any>(
     var resultInfo: String? = null
         internal set
 
+    /**
+     * If true, signals to the frontend that the UI should be reloaded (e.g., filter definitions changed).
+     */
+    var reloadUI: Boolean = false
+
     val size = resultSet.size
 
     var paginationPageSize = magicFilter.paginationPageSize

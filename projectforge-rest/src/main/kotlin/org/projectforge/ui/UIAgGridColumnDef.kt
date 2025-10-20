@@ -89,6 +89,19 @@ open class UIAgGridColumnDef(
 
     var suppressSizeToFit: Boolean? = null
 
+    /**
+     * Locks the column to the left or right side of the grid.
+     * https://www.ag-grid.com/react-data-grid/column-moving/
+     * When set, the column cannot be dragged by the user and other columns
+     * cannot be moved past it.
+     */
+    var lockPosition: Orientation? = null
+
+    enum class Orientation(@get:com.fasterxml.jackson.annotation.JsonValue val value: String) {
+        LEFT("left"),
+        RIGHT("right")
+    }
+
     var filterParams: FilterParams? = null
 
     /**
@@ -151,16 +164,6 @@ open class UIAgGridColumnDef(
         return this
     }
 
-    fun withPinnedLeft(): UIAgGridColumnDef {
-        pinned = "left"
-        return this
-    }
-
-    fun withPinnedRight(): UIAgGridColumnDef {
-        pinned = "right"
-        return this
-    }
-
     fun withSuppressSizeToFit(): UIAgGridColumnDef {
         suppressSizeToFit = true
         return this
@@ -190,7 +193,7 @@ open class UIAgGridColumnDef(
      * @param formatter The formatter to set.
      * @return this for chaining.
      */
-    fun setFormat(formatter: Formatter): UIAgGridColumnDef {
+    fun setFormatter(formatter: Formatter): UIAgGridColumnDef {
         when (formatter) {
             Formatter.DATE -> {
                 if (width == null) {
@@ -229,6 +232,11 @@ open class UIAgGridColumnDef(
                 }
             }
 
+            Formatter.ADDRESS_BOOK -> {
+                // Set valueFormatter to convert array of addressbook objects to string for AG Grid
+                this.valueFormatter = "params.value && params.value.map ? params.value.map(function(book) { return book.displayName; }).join(', ') : ''"
+            }
+
             else -> {
             }
         }
@@ -250,6 +258,7 @@ open class UIAgGridColumnDef(
             autoHeight: Boolean? = wrapText,
             valueIconMap: Map<Any, UIIconType?>? = null,
             tooltipField: String? = null,
+            resizable: Boolean? = null,
         ): UIAgGridColumnDef {
             return createCol(
                 null,
@@ -264,11 +273,13 @@ open class UIAgGridColumnDef(
                 autoHeight = autoHeight,
                 valueIconMap = valueIconMap,
                 tooltipField = tooltipField,
+                resizable = resizable,
             )
         }
 
         /**
          * @param width Column width in pixel.
+         * @param cellRenderer Custom cell renderer name (e.g., "formatter", "diffCell", or null for auto-detection of customized fields)
          */
         fun createCol(
             field: String,
@@ -283,6 +294,9 @@ open class UIAgGridColumnDef(
             valueIconMap: Map<Any, UIIconType?>? = null,
             tooltipField: String? = null,
             filter: Any? = null,
+            cellRenderer: String? = null,
+            resizable: Boolean? = null,
+            pinnedAndLocked: Orientation? = null,
         ): UIAgGridColumnDef {
             return createCol(
                 null,
@@ -298,6 +312,9 @@ open class UIAgGridColumnDef(
                 valueIconMap = valueIconMap,
                 tooltipField = tooltipField,
                 filter = filter,
+                cellRenderer = cellRenderer,
+                resizable = resizable,
+                pinnedAndLocked = pinnedAndLocked,
             )
         }
 
@@ -340,6 +357,7 @@ open class UIAgGridColumnDef(
         /**
          * @param lcField If field name of dto differs from do (e. g. kost2.project vs. kost2.projekt)
          * @param width Column width in pixel.
+         * @param cellRenderer Custom cell renderer name (e.g., "formatter", "diffCell", or null for auto-detection of customized fields)
          */
         fun createCol(
             lc: LayoutContext?,
@@ -357,6 +375,15 @@ open class UIAgGridColumnDef(
             tooltipField: String? = null,
             type: Type? = null,
             filter: Any? = null,
+            cellRenderer: String? = null,
+            resizable: Boolean? = null,
+            minWidth: Int? = null,
+            maxWidth: Int? = null,
+            hide: Boolean? = null,
+            filterParams: FilterParams? = null,
+            pinnedAndLocked: Orientation? = null,
+            headerClass: Array<String>? = null,
+            suppressSizeToFit: Boolean? = null,
         ): UIAgGridColumnDef {
             val col = UIAgGridColumnDef(
                 field,
@@ -364,6 +391,7 @@ open class UIAgGridColumnDef(
                 wrapText = wrapText,
                 autoHeight = autoHeight,
                 filter = filter,
+                resizable = resizable,
             )
             lc?.idPrefix?.let {
                 col.field = "${it}${col.field}"
@@ -376,6 +404,28 @@ open class UIAgGridColumnDef(
             }
             if (tooltipField != null) {
                 col.tooltipField = tooltipField
+            }
+            if (minWidth != null) {
+                col.minWidth = minWidth
+            }
+            if (maxWidth != null) {
+                col.maxWidth = maxWidth
+            }
+            if (hide != null) {
+                col.hide = hide
+            }
+            if (filterParams != null) {
+                col.filterParams = filterParams
+            }
+            if (pinnedAndLocked != null) {
+                col.pinned = pinnedAndLocked.value
+                col.lockPosition = pinnedAndLocked
+            }
+            if (headerClass != null) {
+                col.headerClass = headerClass
+            }
+            if (suppressSizeToFit != null) {
+                col.suppressSizeToFit = suppressSizeToFit
             }
             val elementInfo = ElementsRegistry.getElementInfo(lc, lcField)
             var useFormatter = formatter
@@ -398,7 +448,9 @@ open class UIAgGridColumnDef(
                             col.width = DATE_WIDTH
                         }
                         useFormatter = Formatter.DATE
-                        col.filter = "agDateColumnFilter"
+                        if (col.filter == null || col.filter == true) {
+                            col.filter = "agDateColumnFilter"
+                        }
                         col.setApplyAndResetButton()
                     } else if (java.util.Date::class.java == elementInfo.propertyClass) {
                         if (field in arrayOf("created", "lastUpdate")) {
@@ -409,6 +461,9 @@ open class UIAgGridColumnDef(
                     } else if (elementInfo.propertyClass == String::class.java) {
                         if ((elementInfo.maxLength ?: 0) > 1000 && width == null) {
                             col.width = LONG_DESCRIPTION_WIDTH // Extra wide column
+                        }
+                        if (col.filter == null) {
+                            col.filter = true
                         }
                     } else if (elementInfo.propertyClass == Boolean::class.java || elementInfo.propertyClass == java.lang.Boolean::class.java) {
                         useFormatter = Formatter.BOOLEAN
@@ -447,7 +502,7 @@ open class UIAgGridColumnDef(
                 col.width = width
             }
             useFormatter?.let {
-                col.setFormat(it)
+                col.setFormatter(it)
             }
             if (useFormatter == null
                 && elementInfo?.propertyType?.isIn(PropertyType.INPUT, PropertyType.UNSPECIFIED) == true
@@ -466,6 +521,8 @@ open class UIAgGridColumnDef(
                     this["valueIconMap"] = valueIconMap
                 }
             }
+            // Set custom cellRenderer if provided (overrides auto-detection)
+            cellRenderer?.let { col.cellRenderer = it }
             return col
         }
 

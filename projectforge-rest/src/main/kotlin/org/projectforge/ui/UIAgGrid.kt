@@ -111,6 +111,11 @@ open class UIAgGrid(
     var onColumnStatesChangedUrl: String? = null
 
     /**
+     * URL to call for resetting the AG Grid state (column positions, widths, etc.).
+     */
+    var resetGridStateUrl: String? = null
+
+    /**
      * https://www.ag-grid.com/react-data-grid/row-styles/#row-class
      */
     var getRowClass: String? = GET_ROW_CLASS
@@ -154,6 +159,7 @@ open class UIAgGrid(
      * For adding columns with the given ids
      * @param valueGetter Make only sense, if no multiple fields are given.
      * @param width
+     * @param cellRenderer Custom cell renderer name (e.g., "formatter", "diffCell", or null for auto-detection of customized fields)
      * @return this for chaining.
      */
     fun add(
@@ -167,6 +173,7 @@ open class UIAgGrid(
         autoHeight: Boolean? = wrapText,
         tooltipField: String? = null,
         type: UIAgGridColumnDef.Type? = null,
+        cellRenderer: String? = null,
     ): UIAgGrid {
         add(
             UIAgGridColumnDef.createCol(
@@ -181,6 +188,7 @@ open class UIAgGrid(
                 autoHeight = autoHeight,
                 tooltipField = tooltipField,
                 type = type,
+                cellRenderer = cellRenderer,
             )
         )
         return this
@@ -190,6 +198,7 @@ open class UIAgGrid(
      * For adding columns with the given ids
      * @param valueGetter Make only sense, if no multiple fields are given.
      * @param lcField Make only sense, if no multiple fields are given.
+     * @param cellRenderer Custom cell renderer name (e.g., "formatter", "diffCell", or null for auto-detection of customized fields)
      * @return this for chaining.
      */
     fun add(
@@ -198,12 +207,24 @@ open class UIAgGrid(
         sortable: Boolean = true,
         width: Int? = null,
         headerName: String? = null,
+        headerTooltip: String? = null,
         formatter: UIAgGridColumnDef.Formatter? = null,
         valueGetter: String? = null,
         lcField: String? = null,
         wrapText: Boolean? = null,
         autoHeight: Boolean? = wrapText,
+        tooltipField: String? = null,
         type: UIAgGridColumnDef.Type? = null,
+        cellRenderer: String? = null,
+        resizable: Boolean? = null,
+        minWidth: Int? = null,
+        maxWidth: Int? = null,
+        hide: Boolean? = null,
+        filter: Any? = null,
+        filterParams: UIAgGridColumnDef.FilterParams? = null,
+        pinnedAndLocked: UIAgGridColumnDef.Orientation? = null,
+        headerClass: Array<String>? = null,
+        suppressSizeToFit: Boolean? = null,
     ): UIAgGrid {
         columnIds.forEach {
             add(
@@ -213,12 +234,24 @@ open class UIAgGrid(
                     sortable = sortable,
                     width = width,
                     headerName = headerName,
+                    headerTooltip = headerTooltip,
                     valueGetter = valueGetter,
                     formatter = formatter,
                     lcField = lcField ?: it,
                     wrapText = wrapText,
                     autoHeight = autoHeight,
-                    type = type
+                    tooltipField = tooltipField,
+                    type = type,
+                    cellRenderer = cellRenderer,
+                    resizable = resizable,
+                    minWidth = minWidth,
+                    maxWidth = maxWidth,
+                    hide = hide,
+                    filter = filter,
+                    filterParams = filterParams,
+                    pinnedAndLocked = pinnedAndLocked,
+                    headerClass = headerClass,
+                    suppressSizeToFit = suppressSizeToFit,
                 )
             )
         }
@@ -289,18 +322,6 @@ open class UIAgGrid(
     fun withMultiRowSelection(): UIAgGrid {
         rowSelection = RowSelection(true)
         multiSelectButtonTitle = translate("next")
-        return this
-    }
-
-    /**
-     * @return this for chaining.
-     */
-    fun withPinnedLeft(col: Int): UIAgGrid {
-        columnDefs.forEachIndexed { index, columnDef ->
-            if (index < col) {
-                columnDef.withPinnedLeft()
-            }
-        }
         return this
     }
 

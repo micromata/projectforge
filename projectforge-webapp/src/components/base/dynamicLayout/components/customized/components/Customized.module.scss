@@ -12,3 +12,17 @@ div.addressImageContainer {
     max-height: 200px;
   }
 }
+
+span.clickableLink {
+  color: var(--link-color, #007bff);
+  cursor: pointer;
+  text-decoration: underline;
+
+  &:hover {
+    color: var(--link-hover-color, #0056b3);
+  }
+}
+
+span.multiline {
+  white-space: pre-wrap;
+}

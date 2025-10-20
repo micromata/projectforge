@@ -72,7 +72,7 @@ function AdvancedPopper(
             // Get new active element after blur
             setCurrentTimeout(
                 setTimeout(() => {
-                    if (!reference.current.contains(document.activeElement)) {
+                    if (reference.current && !reference.current.contains(document.activeElement)) {
                         setIsOpen(false);
                     }
                 }, 1),

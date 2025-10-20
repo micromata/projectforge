@@ -23,11 +23,12 @@
 
 package org.projectforge.plugins.marketing.rest
 
+import jakarta.annotation.PostConstruct
+import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.address.AddressDao
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.plugins.marketing.AddressCampaignValueDO
 import org.projectforge.plugins.marketing.AddressCampaignValueDao
-import org.projectforge.plugins.marketing.MarketingPlugin
 import org.projectforge.plugins.marketing.dto.AddressCampaignValue
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
@@ -39,8 +40,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.io.Serializable
-import jakarta.annotation.PostConstruct
-import jakarta.servlet.http.HttpServletRequest
 
 
 /**
@@ -49,126 +48,182 @@ import jakarta.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("${Rest.URL}/addressCampaignValue${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
 class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<AddressCampaignValue>() {
+    @Autowired
+    private lateinit var addressDao: AddressDao
 
-  @Autowired
-  private lateinit var addressDao: AddressDao
+    @Autowired
+    private lateinit var addressCampaignValueDao: AddressCampaignValueDao
 
-  @Autowired
-  private lateinit var addressCampaignValueDao: AddressCampaignValueDao
+    @Autowired
+    private lateinit var addressCampaignValuePagesRest: AddressCampaignValuePagesRest
 
-  @Autowired
-  private lateinit var addressCampaignValuePagesRest: AddressCampaignValuePagesRest
+    override val layoutContext: LayoutContext = LayoutContext(AddressCampaignValueDO::class.java)
 
-  override val layoutContext: LayoutContext = LayoutContext(AddressCampaignValueDO::class.java)
-
-  override fun getId(obj: AddressCampaignValue): Long {
-    return obj.id ?: obj.address?.id ?: -1
-  }
-
-  override fun getTitleKey(): String {
-    return "plugins.marketing.addressCampaignValue.multiselected.title"
-  }
-
-  override val listPageUrl: String = "/wa/${MarketingPlugin.ADDRESS_CAMPAIGN_VALUE_ID}List"
-
-  @PostConstruct
-  private fun postConstruct() {
-    pagesRest = addressCampaignValuePagesRest
-  }
-
-  override fun fillForm(
-    request: HttpServletRequest,
-    layout: UILayout,
-    massUpdateData: MutableMap<String, MassUpdateParameter>,
-    selectedIds: Collection<Serializable>?,
-    variables: MutableMap<String, Any>,
-  ) {
-    /*
-          // Heading
-      gridBuilder.newFormHeading(
-          getString("plugins.marketing.addressCampaignValue") + ": " + data.getAddressCampaign().getTitle());
-
-     */
-    val lc = LayoutContext(AddressCampaignValueDO::class.java)
-
-    val addressCampaign = addressCampaignValuePagesRest.getAddressCampaign(request)
-    if (addressCampaign != null) {
-      layout.add(UIReadOnlyField(label = "plugins.marketing.addressCampaign", value = addressCampaign.title))
+    override fun getId(obj: AddressCampaignValue): Long {
+        return obj.id ?: obj.addressId ?: -1
     }
-    val values = addressCampaign?.values?.map { UISelectValue(it, it) }
-    layout.add(
-      createInputFieldRow(
-        "value",
-        UISelect("value.textValue", values = values),
-        massUpdateData,
-        showDeleteOption = true
-      )
-    )
-    createAndAddFields(lc, massUpdateData, layout, "comment", append = true)
-  }
 
-  override fun proceedMassUpdate(
-    request: HttpServletRequest,
-    selectedIds: Collection<Serializable>,
-    massUpdateContext: MassUpdateContext<AddressCampaignValue>,
-  ): ResponseEntity<*>? {
-    val params = massUpdateContext.massUpdateParams
-    val addressCampaign = addressCampaignValuePagesRest.getAddressCampaign(request)
-    params["value"]?.let { param ->
-      param.textValue?.let { value ->
-        if (!value.isEmpty() && addressCampaign?.values?.contains(value) != true) {
-          return showValidationErrors(
-            ValidationError(
-              "plugins.marketing.addressCampaignValue.error.unknownValue",
-              "value.textValue"
+    override fun getTitleKey(): String {
+        return "plugins.marketing.addressCampaignValue.multiselected.title"
+    }
+
+    @PostConstruct
+    private fun postConstruct() {
+        pagesRest = addressCampaignValuePagesRest
+    }
+
+    override fun fillForm(
+        request: HttpServletRequest,
+        layout: UILayout,
+        massUpdateData: MutableMap<String, MassUpdateParameter>,
+        selectedIds: Collection<Serializable>?,
+        variables: MutableMap<String, Any>,
+    ) {
+        /*
+              // Heading
+          gridBuilder.newFormHeading(
+              getString("plugins.marketing.addressCampaignValue") + ": " + data.getAddressCampaign().getTitle());
+
+         */
+        val lc = LayoutContext(AddressCampaignValueDO::class.java)
+
+        val addressCampaign = addressCampaignValuePagesRest.getAddressCampaign(request)
+        if (addressCampaign != null) {
+            layout.add(UIReadOnlyField(label = "plugins.marketing.addressCampaign", value = addressCampaign.title))
+        }
+        val values = addressCampaign?.values?.map { UISelectValue(it, it) }
+        layout.add(
+            createInputFieldRow(
+                "value",
+                UISelect("value.textValue", values = values),
+                massUpdateData,
+                showDeleteOption = true
             )
-          )
-        }
-      }
+        )
+        createAndAddFields(lc, massUpdateData, layout, "comment", showAppendOption = true)
     }
-    val addressCampaignDO = addressCampaignValuePagesRest.getAddressCampaignDO(request)
-    if (addressCampaignDO == null) {
-      return showValidationErrors(
-        ValidationError("plugins.marketing.addressCampaignValue.error.addressOrCampaignNotGiven")
-      )
-    }
-    addressDao.select(selectedIds)?.forEach { address ->
-      var addressCampaignValueDO = addressCampaignValueDao.get(address.id, addressCampaignDO.id)
-      if (addressCampaignValueDO == null) {
-        addressCampaignValueDO = AddressCampaignValueDO()
-        addressCampaignValueDao.setAddress(addressCampaignValueDO, address.id!!)
-        addressCampaignValueDO.addressCampaign = addressCampaignDO
-      }
-      val addressCampaignValue = AddressCampaignValue()
-      addressCampaignValue.copyFrom(addressCampaignValueDO)
-      massUpdateContext.startUpdate(addressCampaignValue)
 
-      processTextParameter(addressCampaignValueDO, "comment", params)
-      addressCampaignValue.comment = addressCampaignDO.comment
-      params["value"]?.let { param ->
-        if (param.delete == true) {
-          addressCampaignValueDO.value = null
-          addressCampaignValue.value = null
+    override fun proceedMassUpdate(
+        request: HttpServletRequest,
+        selectedIds: Collection<Serializable>,
+        massUpdateContext: MassUpdateContext<AddressCampaignValue>,
+    ): ResponseEntity<*>? {
+        val params = massUpdateContext.massUpdateParams
+        val addressCampaign = addressCampaignValuePagesRest.getAddressCampaign(request)
+        params["value"]?.let { param ->
+            param.textValue?.let { value ->
+                if (!value.isEmpty() && addressCampaign?.values?.contains(value) != true) {
+                    return showValidationErrors(
+                        ValidationError(
+                            "plugins.marketing.addressCampaignValue.error.unknownValue",
+                            "value.textValue"
+                        )
+                    )
+                }
+            }
         }
-        param.textValue?.let { value ->
-          addressCampaignValueDO.value = value
-          addressCampaignValue.value = value
+        val addressCampaignDO = addressCampaignValuePagesRest.getAddressCampaignDO(request)
+        if (addressCampaignDO == null) {
+            return showValidationErrors(
+                ValidationError("plugins.marketing.addressCampaignValue.error.addressOrCampaignNotGiven")
+            )
         }
-      }
-      massUpdateContext.commitUpdate(
-        identifier4Message = "${addressCampaignValue.address?.firstName} ${addressCampaignValue.address?.fullLastName} ${addressCampaignValue.address?.organization}",
-        addressCampaignValue,
-        update = {
-          if (addressCampaignValueDO.id != null) {
-            addressCampaignValueDO.deleted = false
-            addressCampaignValueDao.update(addressCampaignValueDO)
-          } else {
-            addressCampaignValueDao.insert(addressCampaignValueDO)
-            EntityCopyStatus.MAJOR
-          }
-        },
-      )
+
+        // Split selected IDs into positive (existing campaign values) and negative (address IDs)
+        val realCampaignValueIds = mutableListOf<Long>()
+        val addressIdsFromNegative = mutableListOf<Long>()
+
+        selectedIds.forEach { id ->
+            val longId = (id as? Long) ?: (id as? String)?.toLongOrNull()
+            if (longId != null) {
+                if (longId > 0) {
+                    realCampaignValueIds.add(longId)
+                } else {
+                    // Negative ID = synthetic ID, convert back to addressId
+                    addressIdsFromNegative.add(-longId)
+                }
+            }
+        }
+
+        // 1. Load existing campaign values (positive IDs)
+        val existingCampaignValues = if (realCampaignValueIds.isNotEmpty()) {
+            addressCampaignValueDao.select(realCampaignValueIds) ?: emptyList()
+        } else {
+            emptyList()
+        }
+
+        // Process existing campaign values
+        existingCampaignValues.forEach { addressCampaignValueDO ->
+            val addressCampaignValue = AddressCampaignValue()
+            addressCampaignValue.copyFrom(addressCampaignValueDO)
+            massUpdateContext.startUpdate(addressCampaignValue)
+
+            processTextParameter(addressCampaignValueDO, "comment", params)
+            addressCampaignValue.comment = addressCampaignValueDO.comment
+            params["value"]?.let { param ->
+                if (param.delete == true) {
+                    addressCampaignValueDO.value = null
+                    addressCampaignValue.value = null
+                }
+                param.textValue?.let { value ->
+                    addressCampaignValueDO.value = value
+                    addressCampaignValue.value = value
+                }
+            }
+            massUpdateContext.commitUpdate(
+                identifier4Message = "${addressCampaignValue.firstName} ${addressCampaignValue.fullLastName} ${addressCampaignValue.organization}",
+                addressCampaignValue,
+                update = {
+                    addressCampaignValueDO.deleted = false
+                    addressCampaignValueDao.update(addressCampaignValueDO)
+                },
+            )
+        }
+
+        // 2. Load addresses for negative IDs and create/update campaign values
+        if (addressIdsFromNegative.isNotEmpty()) {
+            val addresses = addressDao.select(addressIdsFromNegative) ?: emptyList()
+            addresses.forEach { address ->
+                // Check if campaign value exists for this address
+                var addressCampaignValueDO = addressCampaignValueDao.get(address.id, addressCampaignDO.id)
+                if (addressCampaignValueDO == null) {
+                    // Create new campaign value
+                    addressCampaignValueDO = AddressCampaignValueDO()
+                    addressCampaignValueDao.setAddress(addressCampaignValueDO, address.id!!)
+                    addressCampaignValueDO.addressCampaign = addressCampaignDO
+                }
+
+                val addressCampaignValue = AddressCampaignValue()
+                addressCampaignValue.copyFrom(addressCampaignValueDO)
+                massUpdateContext.startUpdate(addressCampaignValue)
+
+                processTextParameter(addressCampaignValueDO, "comment", params)
+                addressCampaignValue.comment = addressCampaignValueDO.comment
+                params["value"]?.let { param ->
+                    if (param.delete == true) {
+                        addressCampaignValueDO.value = null
+                        addressCampaignValue.value = null
+                    }
+                    param.textValue?.let { value ->
+                        addressCampaignValueDO.value = value
+                        addressCampaignValue.value = value
+                    }
+                }
+                massUpdateContext.commitUpdate(
+                    identifier4Message = "${addressCampaignValue.firstName} ${addressCampaignValue.fullLastName} ${addressCampaignValue.organization}",
+                    addressCampaignValue,
+                    update = {
+                        if (addressCampaignValueDO.id != null && addressCampaignValueDO.id!! > 0) {
+                            addressCampaignValueDO.deleted = false
+                            addressCampaignValueDao.update(addressCampaignValueDO)
+                        } else {
+                            addressCampaignValueDao.insert(addressCampaignValueDO)
+                            EntityCopyStatus.MAJOR
+                        }
+                    },
+                )
+            }
+        }
+        return null
     }
-    return null
-  }
 }

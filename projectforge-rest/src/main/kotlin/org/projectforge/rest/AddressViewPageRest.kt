@@ -44,6 +44,8 @@ import org.springframework.web.bind.annotation.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.projectforge.business.address.*
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.utils.MarkdownBuilder
 
 private val log = KotlinLogging.logger {}
 
@@ -141,6 +143,19 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
     row.add(emailsCol)
     addEMail(emailsCol, "address.business", address.email)
     addEMail(emailsCol, "address.private", address.privateEmail)
+
+    val statusCol = UIFieldset(12)
+    row.add(statusCol)
+    statusCol.add(
+      UIRow()
+        .add(UICol(6).add(UILabel("address.addressStatus")))
+        .add(UICol(6).add(UILabel("'${addressDO.addressStatus.i18nKey?.let { translate(it) } ?: addressDO.addressStatus.name}")))
+    )
+    statusCol.add(
+      UIRow()
+        .add(UICol(6).add(UILabel("address.contactStatus")))
+        .add(UICol(6).add(UILabel("'${addressDO.contactStatus.i18nKey?.let { translate(it) } ?: addressDO.contactStatus.name}")))
+    )
 
     row = UIRow()
     fieldSet.add(row)
@@ -306,19 +321,27 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
     state: String?,
     country: String?
   ) {
+    // Build MailingAddress and use its formatted output
+    val mailingAddress = MailingAddress(
+      addressText = addressText,
+      addressText2 = addressText2,
+      zipCode = zipCode,
+      city = city,
+      state = state,
+      country = country
+    )
+
+    // Use MarkdownBuilder to format the address
+    val addressCard = MarkdownBuilder()
+    addressCard.appendMultilineText(mailingAddress.formattedAddress)
+
     row.add(
       UIFieldset(UILength(md = 12 / numberOfAddresses), title = title)
         .add(
-          UICustomized(
-            "address.view",
-            mutableMapOf(
-              "address" to (addressText ?: ""),
-              "address2" to (addressText2 ?: ""),
-              "zipCode" to (zipCode ?: ""),
-              "city" to (city ?: ""),
-              "state" to (state ?: ""),
-              "country" to (country ?: "")
-            )
+          UIAlert(
+            message = addressCard.toString(),
+            color = UIColor.LIGHT,
+            markdown = true
           )
         )
     )

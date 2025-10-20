@@ -23,7 +23,9 @@
 
 package org.projectforge.rest.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.address.*
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.LabelValueBean
 import java.time.LocalDate
 import java.util.*
@@ -84,6 +86,20 @@ class Address(
      */
     var isFavoriteCard: Boolean = false
 ) : BaseDTO<AddressDO>() {
+
+    @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    val contactStatusAsString: String?
+        get() {
+            contactStatus?.let { return translate(it.i18nKey) }
+            return null
+        }
+
+    @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    val addressStatusAsString: String?
+        get() {
+            addressStatus?.let { return translate(it.i18nKey) }
+            return null
+        }
 
     override fun copyFrom(src: AddressDO) {
         super.copyFrom(src)

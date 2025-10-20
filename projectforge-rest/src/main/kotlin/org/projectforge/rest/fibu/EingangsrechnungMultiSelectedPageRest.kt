@@ -116,7 +116,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
       massUpdateData,
       layout,
       "bemerkung",
-      append = true,
+      showAppendOption = true,
     )
     layout.add(UIAlert("fibu.rechnung.multiselected.info", color = UIColor.INFO, markdown = true))
 

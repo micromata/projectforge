@@ -23,165 +23,717 @@
 
 package org.projectforge.plugins.marketing.rest
 
-import org.projectforge.business.address.AddressDO
-import org.projectforge.business.address.AddressDao
-import org.projectforge.business.address.PersonalAddressDO
-import org.projectforge.business.address.PersonalAddressDao
+import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.business.address.*
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
-import org.projectforge.plugins.marketing.AddressCampaignDO
-import org.projectforge.plugins.marketing.AddressCampaignDao
-import org.projectforge.plugins.marketing.AddressCampaignValueDO
-import org.projectforge.plugins.marketing.AddressCampaignValueDao
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUserId
+import org.projectforge.framework.utils.MarkdownBuilder
+import org.projectforge.plugins.marketing.*
 import org.projectforge.plugins.marketing.dto.AddressCampaign
 import org.projectforge.plugins.marketing.dto.AddressCampaignValue
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.multiselect.MultiSelectionSupport
-import org.projectforge.ui.LayoutUtils
-import org.projectforge.ui.UILabel
-import org.projectforge.ui.UILayout
+import org.projectforge.ui.*
+import org.projectforge.ui.filter.UIFilterElement
+import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import jakarta.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/addressCampaignValue")
 class AddressCampaignValuePagesRest :
-  AbstractDTOPagesRest<AddressDO, AddressCampaignValue, AddressDao>(
-    baseDaoClazz = AddressDao::class.java,
-    i18nKeyPrefix = "plugins.marketing.addressCampaignValue.title"
-  ) {
-  @Autowired
-  private lateinit var addressCampaignDao: AddressCampaignDao
+    AbstractDTOPagesRest<AddressCampaignValueDO, AddressCampaignValue, AddressCampaignValueDao>(
+        baseDaoClazz = AddressCampaignValueDao::class.java,
+        i18nKeyPrefix = "plugins.marketing.addressCampaignValue.title"
+    ) {
+    @Autowired
+    private lateinit var addressCampaignDao: AddressCampaignDao
 
-  @Autowired
-  private lateinit var addressCampaignValueDao: AddressCampaignValueDao
+    @Autowired
+    private lateinit var addressDao: AddressDao
 
-  @Autowired
-  private lateinit var personalAddressDao: PersonalAddressDao
+    @Autowired
+    private lateinit var personalAddressDao: PersonalAddressDao
 
-  /**
-   * ########################################
-   * # Force usage only for selection mode: #
-   * ########################################
-   */
-  override fun getInitialList(request: HttpServletRequest): InitialListData {
-    MultiSelectionSupport.ensureMultiSelectionOnly(request, this, "/wa/addressCampaignValuesList")
-    return super.getInitialList(request)
-  }
+    @Autowired
+    private lateinit var persistenceService: PfPersistenceService
 
-  /**
-   * LAYOUT List page
-   */
-  override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
-    agGridSupport.prepareUIGrid4ListPage(
-      request,
-      layout,
-      magicFilter,
-      this,
-      AddressCampaignValueMultiSelectedPageRest::class.java,
-      userAccess = userAccess,
-    )
-      .add(lc, "address.name", "address.firstName", "address.organization")
-      .add(lc, "address.contactStatus", "address.email", "address.addressText", "address.addressStatus")
-      .add(lc, "value", "comment")
-      .withMultiRowSelection(request, magicFilter)
-      .withPinnedLeft(2)
-      .withGetRowClass("""if (params.node.data.favoriteAddress) { return 'ag-row-red'; }"""
-      )
-  }
-
-  /**
-   * LAYOUT Edit page
-   */
-  override fun createEditLayout(dto: AddressCampaignValue, userAccess: UILayout.UserAccess): UILayout {
-    val layout = super.createEditLayout(dto, userAccess)
-      .add(UILabel("TODO"))
-    return LayoutUtils.processEditPage(layout, dto, this)
-  }
-
-  /*
-  override fun getListByIds(entityIds: Collection<Serializable>?): List<AddressCampaignValueDO> {
-    // return baseDao.getListByIds(entityIds) ?: listOf()
-    val addressList = baseDao.getListByIds(entityIds)
-    return addressList?.map {
-      val campaignValue = AddressCampaignValueDO()
-      campaignValue.address = it
-      campaignValue
-    } ?: emptyList()
-  }*/
-
-  override fun postProcessResultSet(
-    resultSet: ResultSet<AddressDO>,
-    request: HttpServletRequest,
-    magicFilter: MagicFilter,
-  ): ResultSet<*> {
-    val newResultSet = super.postProcessResultSet(resultSet, request, magicFilter)
-    @Suppress("UNCHECKED_CAST")
-    if (!processList(request, newResultSet.resultSet as List<AddressCampaignValue>)) {
-      newResultSet.resultSet = emptyList()
+    companion object {
+        private const val USER_PREF_SELECTED_CAMPAIGN_ID = "AddressCampaignValuePagesRest.selectedCampaignId"
+        private const val FILTER_CAMPAIGN_ID = "AddressCampaignValuePagesRest.campaignId"
     }
-    return newResultSet
-  }
 
-  fun processList(request: HttpServletRequest, list: List<AddressCampaignValue>): Boolean {
-    val addressCampaign = getAddressCampaign(request) ?: return false
-    val addressCampaignValueMap = getAddressCampaignValueMap(addressCampaign.id)
-    val personalAddressMap = personalAddressDao.personalAddressByAddressId
-    list.forEach { entry ->
-      fillValues(entry, addressCampaignValueMap, personalAddressMap)
+    /**
+     * Add campaign selector and filter elements
+     */
+    override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        // Campaign selector (required for all queries)
+        val campaigns = addressCampaignDao.select(deleted = false)
+        val campaignValues = campaigns.map { UISelectValue(it.id.toString(), it.title ?: "unknown") }
+
+        val campaignFilter = UIFilterListElement(
+            id = FILTER_CAMPAIGN_ID,
+            values = campaignValues,
+            label = translate("plugins.marketing.addressCampaign"),
+            multi = false,
+            defaultFilter = true
+        )
+        elements.add(campaignFilter)
+
+        // Dynamic value filter based on selected campaign
+        val currentCampaignId = userPrefService.getEntry(
+            category,
+            USER_PREF_SELECTED_CAMPAIGN_ID,
+            Long::class.java
+        )
+        if (currentCampaignId != null) {
+            val campaign = addressCampaignDao.find(currentCampaignId)
+            val valuesList = mutableListOf<UISelectValue<String>>()
+
+            // Add option for empty values
+            valuesList.add(UISelectValue("__EMPTY__", translate("filter.emptyValue")))
+
+            // Add values from campaign's valuesArray
+            campaign?.valuesArray?.forEach { value ->
+                valuesList.add(UISelectValue(value, value))
+            }
+
+            if (valuesList.size > 1) { // More than just __EMPTY__
+                elements.add(
+                    UIFilterListElement(
+                        id = "value",
+                        values = valuesList,
+                        label = translate("value"),
+                        multi = true,
+                        defaultFilter = true
+                    )
+                )
+            }
+        }
+
+        // Boolean filters (synthetic - use CustomResultFilter)
+        elements.add(
+            UIFilterElement(
+                "isFavorite",
+                UIFilterElement.FilterType.BOOLEAN,
+                translate("address.filter.myFavorites"),
+                defaultFilter = false
+            )
+        )
+        elements.add(
+            UIFilterElement(
+                "doublets",
+                UIFilterElement.FilterType.BOOLEAN,
+                translate("address.filter.doublets"),
+                defaultFilter = false
+            )
+        )
+        elements.add(
+            UIFilterElement(
+                "myEntries",
+                UIFilterElement.FilterType.BOOLEAN,
+                translate("plugins.marketing.addressCampaign.filter.myEntries"),
+                defaultFilter = true
+            )
+        )
+
+        // Enum filters (database field predicates)
+        val contactStatusValues = ContactStatus.entries.map {
+            UISelectValue(it.name, translate(it.i18nKey))
+        }
+        elements.add(
+            UIFilterListElement(
+                id = "contactStatus",
+                values = contactStatusValues,
+                label = translate("address.contactStatus"),
+                multi = true,
+                defaultFilter = true,
+            )
+        )
+
+        val addressStatusValues = AddressStatus.entries.map {
+            UISelectValue(it.name, translate(it.i18nKey))
+        }
+        elements.add(
+            UIFilterListElement(
+                id = "addressStatus",
+                values = addressStatusValues,
+                label = translate("address.addressStatus"),
+                multi = true,
+                defaultFilter = true
+            )
+        )
+
+        // Text filters (database field predicates)
+        elements.add(
+            UIFilterElement(
+                "organization",
+                UIFilterElement.FilterType.STRING,
+                translate("organization"),
+                defaultFilter = true
+            )
+        )
     }
-    return true
-  }
 
-  private fun getAddressCampaignValueMap(addressCampaignId: Long?): Map<Long, AddressCampaignValueDO> {
-    val addressCampaignValueMap = mutableMapOf<Long, AddressCampaignValueDO>()
-    addressCampaignValueDao.getAddressCampaignValuesByAddressId(addressCampaignValueMap, addressCampaignId)
-    return addressCampaignValueMap
-  }
+    /**
+     * Pre-process magic filter to set up synthetic filters and field predicates
+     */
+    override fun preProcessMagicFilter(
+        target: QueryFilter,
+        source: MagicFilter
+    ): List<CustomResultFilter<AddressCampaignValueDO>>? {
+        val filters = mutableListOf<CustomResultFilter<AddressCampaignValueDO>>()
 
-  private fun fillValues(
-    dest: AddressCampaignValue,
-    addressCampaignValueMap: Map<Long, AddressCampaignValueDO>,
-    personalAddressMap: Map<Long, PersonalAddressDO>,
-    addressDO: AddressDO? = null,
-  ) {
-    if (addressDO != null) {
-      dest.copyFrom(addressDO)
+        // Mark campaignId as synthetic (handled in postProcessMagicFilter via extended map)
+        val campaignEntry = source.entries.find { it.field == FILTER_CAMPAIGN_ID }
+        campaignEntry?.synthetic = true
+
+        // Process synthetic filters (delegated to address filters via adapter)
+        val isFavoriteEntry = source.entries.find { it.field == "isFavorite" }
+        isFavoriteEntry?.synthetic = true
+        if (isFavoriteEntry?.isTrueValue == true) {
+            filters.add(CampaignValueFilterAdapter(FavoritesResultFilter(personalAddressDao)))
+        }
+
+        val doubletsEntry = source.entries.find { it.field == "doublets" }
+        doubletsEntry?.synthetic = true
+        if (doubletsEntry?.isTrueValue == true) {
+            filters.add(CampaignValueFilterAdapter(DoubletsResultFilter()))
+        }
+
+        val myEntriesEntry = source.entries.find { it.field == "myEntries" }
+        myEntriesEntry?.synthetic = true
+        if (myEntriesEntry?.isTrueValue == true) {
+            filters.add(AddressCampaignValueMyEntriesResultFilter(persistenceService, requiredLoggedInUserId))
+        }
+
+        // Process field-based filters (add as QueryFilter predicates for AddressDO)
+        val contactStatusEntry = source.entries.find { it.field == "contactStatus" }
+        contactStatusEntry?.synthetic = true
+        if (contactStatusEntry != null && !contactStatusEntry.value.values.isNullOrEmpty()) {
+            val statuses = contactStatusEntry.value.values?.mapNotNull { value ->
+                try {
+                    ContactStatus.valueOf(value)
+                } catch (e: IllegalArgumentException) {
+                    null
+                }
+            }
+            if (!statuses.isNullOrEmpty()) {
+                target.add(QueryFilter.isIn("contactStatus", statuses))
+            }
+        }
+
+        val addressStatusEntry = source.entries.find { it.field == "addressStatus" }
+        addressStatusEntry?.synthetic = true
+        if (addressStatusEntry != null && !addressStatusEntry.value.values.isNullOrEmpty()) {
+            val statuses = addressStatusEntry.value.values?.mapNotNull { value ->
+                try {
+                    AddressStatus.valueOf(value)
+                } catch (e: IllegalArgumentException) {
+                    null
+                }
+            }
+            if (!statuses.isNullOrEmpty()) {
+                target.add(QueryFilter.isIn("addressStatus", statuses))
+            }
+        }
+
+        val organizationEntry = source.entries.find { it.field == "organization" }
+        organizationEntry?.synthetic = true
+        organizationEntry?.value?.value?.let { orgValue ->
+            if (orgValue.isNotBlank()) {
+                target.add(QueryFilter.like("organization", orgValue, autoWildcardSearch = true))
+            }
+        }
+
+        // Value filter - applied after merge as CustomResultFilter
+        val valueEntry = source.entries.find { it.field == "value" }
+        valueEntry?.synthetic = true
+        if (valueEntry != null && !valueEntry.value.values.isNullOrEmpty()) {
+            val selectedValues = valueEntry.value.values?.toMutableList() ?: mutableListOf()
+
+            // Check if __EMPTY__ is selected
+            val includeEmpty = selectedValues.remove("__EMPTY__")
+
+            // Add ValueResultFilter for post-merge filtering
+            if (selectedValues.isNotEmpty() || includeEmpty) {
+                filters.add(ValueResultFilter(selectedValues, includeEmpty))
+            }
+        }
+
+        return filters.ifEmpty { null }
     }
-    dest.favoriteAddress = personalAddressMap[dest.id]?.isFavorite
-    addressCampaignValueMap[dest.address?.id]?.let { value ->
-      dest.value = value.value
-      dest.comment = value.comment
+
+    /**
+     * Process magic filter to handle campaign selection
+     */
+    override fun postProcessMagicFilter(target: QueryFilter, source: MagicFilter) {
+        super.postProcessMagicFilter(target, source)
+
+        val previousCampaignId = userPrefService.getEntry(category, USER_PREF_SELECTED_CAMPAIGN_ID, Long::class.java)
+        val campaignEntry = source.entries.find { it.field == FILTER_CAMPAIGN_ID }
+
+        val campaignId = campaignEntry?.value?.values?.firstOrNull()?.toLongOrNull()
+        if (campaignId != null) {
+            // Check if campaign changed
+            if (previousCampaignId != campaignId) {
+                source.extended["reloadUI"] = true
+            }
+            // Save to user preferences
+            userPrefService.putEntry(category, USER_PREF_SELECTED_CAMPAIGN_ID, campaignId)
+            // Store for DAO
+            source.extended["campaignId"] = campaignId
+        } else if (previousCampaignId != null) {
+            // Initial load - restore from user prefs or use first available
+            source.extended["campaignId"] = previousCampaignId
+        }
     }
-  }
 
-  override fun transformForDB(dto: AddressCampaignValue): AddressDO {
-    val dbObj = AddressDO()
-    dto.copyTo(dbObj)
-    return dbObj
-  }
+    /**
+     * LAYOUT List page
+     */
+    override fun createListLayout(
+        request: HttpServletRequest,
+        layout: UILayout,
+        magicFilter: MagicFilter,
+        userAccess: UILayout.UserAccess
+    ) {
+        // Add alert box for selected campaign
+        val campaign = getAddressCampaignDO(request)
+        if (campaign != null) {
+            layout.add(buildCampaignTitle(campaign.title))
+        } else {
+            layout.add(
+                UIAlert(
+                    message = "plugins.marketing.addressCampaign.noCampaignSelected",
+                    color = UIColor.DANGER,
+                    markdown = false
+                )
+            )
+        }
 
-  override fun transformFromDB(obj: AddressDO, editMode: Boolean): AddressCampaignValue {
-    val dto = AddressCampaignValue()
-    dto.copyFrom(obj)
-    return dto
-  }
+        // Build custom row click URL with campaignId and addressId parameters
+        // AG Grid will replace 'addressId' placeholder with actual row's addressId field value
+        val campaignId = campaign?.id
+        val rowClickUrl = if (campaignId != null) {
+            "${
+                PagesResolver.getEditPageUrl(
+                    this::class.java,
+                    absolute = true
+                )
+            }/id?campaignId=$campaignId&addressId=addressId"
+        } else {
+            null
+        }
 
-  internal fun getAddressCampaignDO(request: HttpServletRequest): AddressCampaignDO? {
-    val addressCampaignId = MultiSelectionSupport.getRegisteredData(request, AddressCampaignValuePagesRest::class.java)
-    if (addressCampaignId != null && addressCampaignId is Long) {
-      return addressCampaignDao.find(addressCampaignId)
+        agGridSupport.prepareUIGrid4ListPage(
+            request,
+            layout,
+            magicFilter,
+            this,
+            AddressCampaignValueMultiSelectedPageRest::class.java,
+            userAccess = userAccess,
+            rowClickUrl = rowClickUrl,
+            legendText = translate("plugins.marketing.addressCampaign.list.legend")
+        )
+            .add(lc, "name", headerName = "contact.name", pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT)
+            .add(
+                lc,
+                "firstName",
+                headerName = "contact.firstname",
+                pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT
+            )
+            .add(lc, "value", headerName = "value")
+            .add(
+                UIAgGridColumnDef(
+                    "organization",
+                    headerName = translate("organization"),
+                    sortable = true,
+                    cellRenderer = "OpenModalLinkCell",
+                ).apply {
+                    cellRendererParams = mapOf(
+                        "urlPattern" to "/react/address/edit/{addressId}",
+                        "placeholder" to translate("emptyInBrackets")
+                    )
+                }
+            )
+            .add(
+                UIAgGridColumnDef(
+                    "formattedAddress",
+                    headerName = translate("address"),
+                    sortable = false,
+                    wrapText = true,
+                    cellRenderer = "OpenModalLinkCell",
+                ).apply {
+                    cellRendererParams = mapOf(
+                        "urlPattern" to "/react/address/edit/{addressId}",
+                        "multiline" to true,
+                        "placeholder" to translate("emptyInBrackets")
+                    )
+                }
+            )
+            .add(
+                UIAgGridColumnDef(
+                    "lastUpdate",
+                    headerName = "modified",
+                    valueFormatter = "data.timeAgo",
+                    sortable = true,
+                    width = UIAgGridColumnDef.DATE_WIDTH
+                )
+            )
+            .add(
+                UIAgGridColumnDef(
+                    "lastUpdateOfAddress",
+                    headerName = "plugins.marketing.addressCampaign.lastUpdateOfAddress",
+                    valueFormatter = "data.timeAgoOfAddress",
+                    sortable = true,
+                    width = UIAgGridColumnDef.DATE_WIDTH
+                )
+            )
+            .add("contactStatusAsString", headerName = "address.contactStatus", width = 110)
+            .add("addressStatusAsString", headerName = "address.addressStatus", width = 110)
+            .add(lc, "comment")
+            .withMultiRowSelection(request, magicFilter)
+            .withGetRowClass(
+                """if (params.node.data.isAddressValid === false) {
+            return 'ag-row-red';
+        } else if (params.node.data.isFavoriteCard) {
+            return 'ag-row-blue';
+        }"""
+            )
     }
-    return null
-  }
 
-  internal fun getAddressCampaign(request: HttpServletRequest): AddressCampaign? {
-    val addressCampaignDO = getAddressCampaignDO(request) ?: return null
-    val campaign = AddressCampaign()
-    campaign.copyFrom(addressCampaignDO)
-    return campaign
-  }
+    /**
+     * LAYOUT Edit page
+     */
+    override fun createEditLayout(dto: AddressCampaignValue, userAccess: UILayout.UserAccess): UILayout {
+        // Build campaign values for UISelect
+        val campaignValues = mutableListOf<UISelectValue<String>>()
+        campaignValues.add(UISelectValue("", "--")) // Empty option
+
+        // Add campaign values from the DTO (already parsed)
+        dto.addressCampaign?.values?.forEach { value ->
+            campaignValues.add(UISelectValue(value, value))
+        }
+
+        // Build business card style address display
+        val addressCard = MarkdownBuilder()
+
+        // Name (bold)
+        val fullName = buildString {
+            if (!dto.firstName.isNullOrBlank()) {
+                append(dto.firstName)
+                append(" ")
+            }
+            if (!dto.name.isNullOrBlank()) {
+                append(dto.name)
+            }
+        }.trim()
+
+        if (fullName.isNotBlank()) {
+            addressCard.appendLine(fullName, bold = true)
+        }
+
+        // Organization
+        if (!dto.organization.isNullOrBlank()) {
+            addressCard.appendLine(dto.organization)
+        }
+
+        // Mailing address (formatted with newlines)
+        addressCard.appendMultilineText(dto.formattedAddress)
+
+        // Email
+        if (!dto.email.isNullOrBlank()) {
+            addressCard.appendLine(dto.email)
+        }
+
+        val layout = super.createEditLayout(dto, userAccess)
+            .add(buildCampaignTitle(dto.addressCampaign?.title))
+            .add(
+                UIAlert(
+                    message = addressCard.toString(),
+                    color = UIColor.LIGHT,
+                    markdown = true
+                )
+            )
+            .add(
+                UIFieldset(UILength(12), title = translate("plugins.marketing.addressCampaignValue"))
+                    .add(
+                        UIRow()
+                            .add(
+                                UICol(12)
+                                    .add(
+                                        UISelect(
+                                            "value",
+                                            lc,
+                                            values = campaignValues,
+                                            label = translate("value")
+                                        )
+                                    )
+                            )
+                    )
+                    .add(
+                        UIRow()
+                            .add(
+                                UICol(12)
+                                    .add(UITextArea("comment", lc))
+                            )
+                    )
+            )
+
+        return LayoutUtils.processEditPage(layout, dto, this)
+    }
+
+    /**
+     * Override to handle negative IDs from transient campaign values.
+     * Negative IDs are synthetic IDs used for multi-selection tracking.
+     * When a negative ID is passed in the URL, treat it as a new object.
+     */
+    override fun getItemAndLayout(
+        request: HttpServletRequest,
+        @RequestParam("id") id: String?,
+        @RequestParam("returnToCaller") returnToCaller: String?
+    ): ResponseEntity<FormLayoutData> {
+        // If id is negative (synthetic ID from transient campaign value),
+        // treat it as a new object by passing null
+        val effectiveId = if (id?.toLongOrNull()?.let { it < 0 } == true) {
+            null
+        } else {
+            id
+        }
+
+        return super.getItemAndLayout(request, effectiveId, returnToCaller)
+    }
+
+    /**
+     * Override to handle campaignId and addressId parameters for new campaign values.
+     * When creating a new campaign value (transient object with no ID), we need to know
+     * which campaign to associate it with and which address it belongs to.
+     */
+    override fun onBeforeGetItemAndLayout(
+        request: HttpServletRequest,
+        dto: AddressCampaignValue,
+        userAccess: UILayout.UserAccess
+    ) {
+        super.onBeforeGetItemAndLayout(request, dto, userAccess)
+
+        // Extract parameters from request
+        val campaignIdParam = request.getParameter("campaignId")
+        val campaignId = campaignIdParam?.toLongOrNull()
+        val addressIdParam = request.getParameter("addressId")
+        val addressId = addressIdParam?.toLongOrNull()
+
+        // If this is a new object (no id), populate campaign and address data
+        if (dto.id == null) {
+            // Set the campaign
+            if (campaignId != null) {
+                val campaign = addressCampaignDao.find(campaignId)
+                if (campaign != null) {
+                    val campaignDto = AddressCampaign()
+                    campaignDto.copyFrom(campaign)
+                    dto.addressCampaign = campaignDto
+                }
+            }
+
+            // Set the address data
+            if (addressId != null) {
+                val addressDO = addressDao.find(addressId)
+                if (addressDO != null) {
+                    dto.populateFromAddress(addressDO)
+                }
+            }
+        }
+    }
+
+    /*
+    override fun getListByIds(entityIds: Collection<Serializable>?): List<AddressCampaignValueDO> {
+      // return baseDao.getListByIds(entityIds) ?: listOf()
+      val addressList = baseDao.getListByIds(entityIds)
+      return addressList?.map {
+        val campaignValue = AddressCampaignValueDO()
+        campaignValue.address = it
+        campaignValue
+      } ?: emptyList()
+    }*/
+
+    override fun postProcessResultSet(
+        resultSet: ResultSet<AddressCampaignValueDO>,
+        request: HttpServletRequest,
+        magicFilter: MagicFilter,
+    ): ResultSet<*> {
+        val newResultSet = super.postProcessResultSet(resultSet, request, magicFilter)
+        @Suppress("UNCHECKED_CAST")
+        processList(request, newResultSet.resultSet as List<AddressCampaignValue>)
+
+        // Check if UI reload is needed (campaign changed)
+        if (magicFilter.extended["reloadUI"] == true) {
+            // Signal to frontend to reload UI
+            newResultSet.reloadUI = true
+        }
+
+        return newResultSet
+    }
+
+    fun processList(request: HttpServletRequest, list: List<AddressCampaignValue>) {
+        val personalAddressMap = personalAddressDao.personalAddressByAddressId
+        list.forEach { entry ->
+            // Set the favoriteAddress flag from personal address data
+            entry.isFavoriteCard = personalAddressMap[entry.addressId]?.isFavorite
+        }
+    }
+
+    override fun transformForDB(dto: AddressCampaignValue): AddressCampaignValueDO {
+        // For updates, load existing entity to preserve relationships
+        val dbObj = if (dto.id != null) {
+            baseDao.find(dto.id) ?: AddressCampaignValueDO()
+        } else {
+            AddressCampaignValueDO()
+        }
+
+        // Copy editable fields
+        dto.copyTo(dbObj)
+
+        // If editing an existing deleted campaign value: restore it (set deleted=false)
+        // A campaign value is considered "edited" if value or comment is set
+        if (dto.id != null && dbObj.deleted && (dbObj.value != null || dbObj.comment != null)) {
+            dbObj.deleted = false
+        }
+
+        // Set the address relationship (required foreign key) - only for new records
+        if (dto.id == null && dto.addressId != null) {
+            val address = AddressDO()
+            address.id = dto.addressId
+            dbObj.address = address
+        }
+
+        // Set the campaign relationship (required foreign key) - only for new records
+        if (dto.id == null && dto.addressCampaign?.id != null) {
+            val campaign = AddressCampaignDO()
+            campaign.id = dto.addressCampaign!!.id
+            dbObj.addressCampaign = campaign
+        }
+
+        return dbObj
+    }
+
+    override fun transformFromDB(obj: AddressCampaignValueDO, editMode: Boolean): AddressCampaignValue {
+        val dto = AddressCampaignValue()
+        dto.copyFrom(obj)
+        return dto
+    }
+
+    /**
+     * Override to handle both real campaign value IDs (positive) and synthetic IDs (negative).
+     * Negative IDs represent addressIds for transient campaign values (addresses without campaign values).
+     */
+    override fun getListByIds(entityIds: Collection<java.io.Serializable>?): List<AddressCampaignValueDO> {
+        if (entityIds.isNullOrEmpty()) {
+            return emptyList()
+        }
+
+        val result = mutableListOf<AddressCampaignValueDO>()
+        val realIds = mutableListOf<Long>()
+        val addressIds = mutableListOf<Long>()
+
+        // Separate real IDs from synthetic IDs
+        entityIds.forEach { id ->
+            val longId = (id as? Long) ?: (id as? String)?.toLongOrNull()
+            if (longId != null) {
+                if (longId > 0) {
+                    realIds.add(longId)
+                } else {
+                    // Negative ID = synthetic ID, convert back to addressId
+                    addressIds.add(-longId)
+                }
+            }
+        }
+
+        // Load real campaign values from database
+        if (realIds.isNotEmpty()) {
+            result.addAll(baseDao.select(realIds) ?: emptyList())
+        }
+
+        // Create transient campaign values for addresses without campaign values
+        if (addressIds.isNotEmpty()) {
+            // Get the current campaign
+            val campaignId = getCurrentFilter().extended["campaignId"] as? Long
+            val campaign = if (campaignId != null) {
+                addressCampaignDao.find(campaignId)
+            } else {
+                null
+            }
+
+            // Load addresses and create transient campaign values
+            addressIds.forEach { addressId ->
+                val address = addressDao.find(addressId)
+                if (address != null) {
+                    val transientValue = AddressCampaignValueDO()
+                    transientValue.id = -addressId // Synthetic ID
+                    transientValue.address = address
+                    transientValue.addressCampaign = campaign
+                    transientValue.value = null
+                    transientValue.comment = null
+                    result.add(transientValue)
+                }
+            }
+        }
+
+        return result
+    }
+
+    internal fun getAddressCampaignDO(request: HttpServletRequest): AddressCampaignDO? {
+        // Try to get campaign ID from multiple sources in priority order:
+        // 1. Current filter's extended map (current session)
+        val currentFilter = getCurrentFilter()
+        var addressCampaignId = currentFilter.extended["campaignId"] as? Long
+
+        // 2. User preferences (saved across sessions)
+        if (addressCampaignId == null) {
+            addressCampaignId = userPrefService.getEntry(category, USER_PREF_SELECTED_CAMPAIGN_ID, Long::class.java)
+        }
+
+        // 3. MultiSelectionSupport (legacy/compatibility for old workflow)
+        if (addressCampaignId == null) {
+            val registeredData =
+                MultiSelectionSupport.getRegisteredData(request, AddressCampaignValuePagesRest::class.java)
+            if (registeredData is Long) {
+                addressCampaignId = registeredData
+            }
+        }
+
+        if (addressCampaignId != null) {
+            return addressCampaignDao.find(addressCampaignId)
+        }
+        return null
+    }
+
+    internal fun getAddressCampaign(request: HttpServletRequest): AddressCampaign? {
+        val addressCampaignDO = getAddressCampaignDO(request) ?: return null
+        val campaign = AddressCampaign()
+        campaign.copyFrom(addressCampaignDO)
+        return campaign
+    }
+
+    private fun buildCampaignTitle(campaignTitle: String?): UIAlert {
+        val mb = MarkdownBuilder()
+            .append(translate("plugins.marketing.addressCampaign"))
+            .append(": ")
+            .append(campaignTitle, MarkdownBuilder.Color.RED, bold = true)
+        return UIAlert(
+            message = mb.toString(),
+            color = UIColor.LIGHT,
+            markdown = true
+        )
+    }
 }

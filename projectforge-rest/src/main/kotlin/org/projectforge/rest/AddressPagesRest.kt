@@ -85,6 +85,13 @@ class AddressPagesRest
         var previewImageUrl: String? = null
     )
 
+    override fun getId(dto: Any): Long? {
+        return when (dto) {
+            is ListAddress -> dto.id
+            else -> super.getId(dto)
+        }
+    }
+
     @Autowired
     private lateinit var addressbookDao: AddressbookDao
 
@@ -150,6 +157,13 @@ class AddressPagesRest
 
     override fun onGetItemAndLayout(request: HttpServletRequest, dto: Address, formLayoutData: FormLayoutData) {
         ExpiringSessionAttributes.removeAttribute(request.getSession(false), SESSION_IMAGE_ATTR)
+        // Capture modal parameter from request and store in serverData so all button actions can access it
+        val modal = request.getParameter("modal")
+        if (modal == "true") {
+            val params = formLayoutData.serverData?.returnToCallerParams?.toMutableMap() ?: mutableMapOf()
+            params["modal"] = "true"
+            formLayoutData.serverData?.returnToCallerParams = params
+        }
     }
 
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
@@ -239,6 +253,18 @@ class AddressPagesRest
         }
     }
 
+    override fun onAfterEdit(obj: AddressDO, postData: PostData<Address>, event: RestButtonEvent): ResponseAction {
+        // Check if this was opened in modal context (captured from query param in onGetItemAndLayout)
+        val modal = postData.serverData?.returnToCallerParams?.get("modal")
+        if (modal == "true") {
+            // Close the modal instead of redirecting to list page
+            // This handles all button actions: save, update, delete, undelete, cancel, clone
+            return ResponseAction(targetType = TargetType.CLOSE_MODAL)
+        }
+        // Default behavior: redirect to list page
+        return super.onAfterEdit(obj, postData, event)
+    }
+
     /**
      * @return the address view page.
      */
@@ -257,31 +283,99 @@ class AddressPagesRest
     ) {
         val addressLC = LayoutContext(lc)
         addressLC.idPrefix = "address."
-        layout.add(
-            UITable.createUIResultSetTable()
-                .add(addressLC, "isFavoriteCard", "lastUpdate")
-                .add(UITableColumn("address.imagePreview", "address.image", dataType = UIDataType.CUSTOMIZED))
-                .add(addressLC, "name", "firstName", "organization", "email")
-                .add(
-                    UITableColumn(
-                        "address.phoneNumbers",
-                        "address.phoneNumbers",
-                        dataType = UIDataType.CUSTOMIZED,
-                        sortable = false
+        val table = agGridSupport.prepareUIGrid4ListPage(
+            request,
+            layout,
+            magicFilter,
+            this,
+            AddressMultiSelectedPageRest::class.java,
+            userAccess,
+            legendText = translate("address.list.legend")
+        ).withGetRowClass(
+            """if (params.node.data.address.isFavoriteCard) { return 'ag-row-blue'; }"""
+        )
+
+
+        val isMultiSelection = isMultiSelectionMode(request, magicFilter)
+
+        // Add edit icon column first (only in normal mode, not in multiselection mode)
+        if (!isMultiSelection) {
+            table.add(
+                UIAgGridColumnDef(
+                    field = "edit",
+                    headerName = "",
+                    width = 20,
+                    sortable = false,
+                    filter = false,
+                    cellRenderer = "customized",
+                    resizable = false,
+                ).apply {
+                    suppressSizeToFit = true
+                    pinned = "left"
+                    lockPosition = UIAgGridColumnDef.Orientation.LEFT
+                    cellRendererParams = mapOf(
+                        "icon" to "edit",
+                        "tooltip" to translate("edit"),
+                        "onClick" to "history.push('${
+                            PagesResolver.getEditPageUrl(
+                                AddressPagesRest::class.java,
+                                absolute = true
+                            )
+                        }/' + data.address.id);"
                     )
-                )
-                .add(lc, "address.addressbookList")
-        )
-        layout.getTableColumnById("address.lastUpdate").formatter = UITableColumn.Formatter.DATE
-        layout.getTableColumnById("address.imagePreview").set(sortable = false)
-        layout.getTableColumnById("address.addressbookList")
-            .set(formatter = UITableColumn.Formatter.ADDRESS_BOOK, sortable = false)
-        layout.getTableColumnById("address.isFavoriteCard").set(
+                }
+            )
+        }
+        table.add(
+            addressLC,
+            "isFavoriteCard",
+            width = 20,
+            resizable = false,
+            pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT,
             sortable = false,
-            title = "address.columnHead.myFavorites",
-            tooltip = "address.filter.myFavorites"
+            headerName = translate("address.columnHead.myFavorites"),
+            headerTooltip = translate("address.filter.myFavorites"),
+            cellRenderer = "formatter",
         )
-            .valueIconMap = mapOf(true to UIIconType.STAR_REGULAR)
+        table.add(addressLC, "name", "firstName", pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT)
+        table.add(addressLC, "lastUpdate", formatter = UIAgGridColumnDef.Formatter.DATE)
+        table.add("address.addressStatusAsString", headerName = "address.addressStatus", width = 110)
+        table.add("address.contactStatusAsString", headerName = "address.contactStatus", width = 110)
+        table.add(
+            addressLC,
+            "imagePreview",
+            headerName = "address.image",
+            sortable = false,
+            cellRenderer = "customized",
+            width = 50,
+            resizable = false
+        )
+        table.add(addressLC, "organization", "email")
+        table.add(
+            addressLC,
+            "phoneNumbers",
+            headerName = "address.phoneNumbers",
+            sortable = false,
+            cellRenderer = "customized",
+            wrapText = true,
+            autoHeight = true
+        )
+        table.add(lc, "address.addressbookList", sortable = false, formatter = UIAgGridColumnDef.Formatter.ADDRESS_BOOK)
+        table.withMultiRowSelection(request, magicFilter)
+
+        // Single click on row opens view page (modal) - only in normal mode, not in multiselection mode
+        if (!isMultiSelection) {
+            table.rowClickRedirectUrl = PagesResolver.getDynamicPageUrl(
+                AddressViewPageRest::class.java,
+                absolute = true,
+                trailingSlash = false
+            ) + "/{id}"
+            table.rowClickOpenModal = true
+        }
+        // Customize columns after adding them
+        table.getColumnDefById("address.isFavoriteCard").apply {
+            cellRendererParams = mapOf("valueIconMap" to mapOf(true to UIIconType.STAR_REGULAR))
+        }
         var menuIndex = 0
         if (sipgateConfiguration.isConfigured()) {
             layout.add(

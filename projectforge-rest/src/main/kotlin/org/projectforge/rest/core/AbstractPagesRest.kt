@@ -29,8 +29,6 @@ import jakarta.validation.Valid
 import mu.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.user.service.UserPrefService
-import org.projectforge.common.NestedNullException
-import org.projectforge.common.PropertyUtils
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.access.AccessChecker
@@ -178,7 +176,7 @@ constructor(
     private lateinit var sessionCsrfService: SessionCsrfService
 
     @Autowired
-    private lateinit var userPrefService: UserPrefService
+    protected lateinit var userPrefService: UserPrefService
 
     protected fun getMaxFileSizeKB(): Int {
         return this.attachmentsAccessChecker.fileSizeChecker.maxFileSizeKB
@@ -261,8 +259,8 @@ constructor(
     @PostMapping(RestPaths.REST_START_MULTI_SELECTION)
     fun startMultiSelections(request: HttpServletRequest, @RequestBody filter: MagicFilter): ResponseAction {
         log.info("User wants to start multiselection")
-        @Suppress("UNCHECKED_CAST")
-        val list = (getList(request, filter).resultSet as List<Project>).map { it.id }
+        val resultSet = getList(request, filter).resultSet
+        val list = resultSet.mapNotNull { getId(it) }
         MultiSelectionSupport.registerEntityIdsForSelection(request, this::class.java, list)
         return ResponseAction(url = PagesResolver.getMultiSelectionPageUrl(this::class.java, absolute = true))
     }
@@ -624,6 +622,49 @@ constructor(
     }
 
     /**
+     * Resets the AG Grid column states (position, width, pinning) from the server.
+     * This will clear all user preferences for the grid and update the UI with default column definitions.
+     */
+    @GetMapping("resetGridState")
+    fun resetGridState(request: HttpServletRequest): ResponseAction {
+        agGridSupport.resetGridState(category)
+        val initialList = getInitialList(request, getCurrentFilter())
+
+        // Extract AG Grid element and its column definitions
+        val agGridElement = findAgGridElement(initialList.ui)
+
+        return ResponseAction(targetType = TargetType.UPDATE).apply {
+            if (agGridElement != null) {
+                addVariable("columnDefs", agGridElement.columnDefs)
+                agGridElement.sortModel?.let { addVariable("sortModel", it) }
+            }
+        }
+    }
+
+    private fun findAgGridElement(layout: UILayout?): UIAgGrid? {
+        layout ?: return null
+        // Search in layout.layout first (where AG Grid is usually added)
+        findAgGridInContent(layout.layout)?.let { return it }
+        // Also search in namedContainers for completeness
+        return findAgGridInContent(layout.namedContainers.flatMap { it.content })
+    }
+
+    private fun findAgGridInContent(content: List<UIElement>): UIAgGrid? {
+        for (element in content) {
+            when (element) {
+                is UIAgGrid -> return element
+                is UIGroup -> findAgGridInContent(element.content)?.let { return it }
+                is UIInlineGroup -> findAgGridInContent(element.content)?.let { return it }
+                is UIRow -> findAgGridInContent(element.content)?.let { return it }
+                is UICol -> findAgGridInContent(element.content)?.let { return it }
+                is UIFieldset -> findAgGridInContent(element.content)?.let { return it }
+                is UIList -> findAgGridInContent(element.content)?.let { return it }
+            }
+        }
+        return null
+    }
+
+    /**
      * Rebuilds the index by the search engine for the newest entries.
      * @see [BaseDao.rebuildDatabaseIndex4NewestEntries]
      */
@@ -710,14 +751,16 @@ constructor(
      * the user will be redirected to this given returnToCaller.
      */
     @GetMapping(RestPaths.EDIT)
-    fun getItemAndLayout(
+    open fun getItemAndLayout(
         request: HttpServletRequest,
         @RequestParam("id") id: String?,
         @RequestParam("returnToCaller") returnToCaller: String?
     )
             : ResponseEntity<FormLayoutData> {
         val userAccess = UILayout.UserAccess()
-        val item = (if (null != id) {
+        // The frontend may send "undefined" as id for new items:
+        val effectiveId = if (id == "undefined") null else id
+        val item = (if (null != effectiveId) {
             getById(id, true, userAccess)
         } else {
             checkUserAccess(null, userAccess)
@@ -1309,7 +1352,7 @@ constructor(
     }
 
     /**
-     * Is this list page currentyl in multi selection mode?
+     * Is this list page currently in multi selection mode?
      */
     fun isMultiSelectionMode(request: HttpServletRequest, magicFilter: MagicFilter): Boolean {
         return MultiSelectionSupport.isMultiSelection(request, magicFilter)
