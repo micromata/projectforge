@@ -339,8 +339,32 @@ class AddressCampaignValuePagesRest :
                 pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT
             )
             .add(lc, "value", headerName = "value")
-            .add(lc, "organization", headerName = "organization")
-            .add(lc, "formattedAddress", headerName = "address", wrapText = true, cellRenderer = "multilineCell")
+            .add(
+                UIAgGridColumnDef(
+                    "organization",
+                    headerName = translate("organization"),
+                    sortable = true,
+                    cellRenderer = "OpenModalLinkCell",
+                ).apply {
+                    cellRendererParams = mapOf(
+                        "urlPattern" to "/react/address/edit/{addressId}"
+                    )
+                }
+            )
+            .add(
+                UIAgGridColumnDef(
+                    "formattedAddress",
+                    headerName = translate("address"),
+                    sortable = false,
+                    wrapText = true,
+                    cellRenderer = "OpenModalLinkCell",
+                ).apply {
+                    cellRendererParams = mapOf(
+                        "urlPattern" to "/react/address/edit/{addressId}",
+                        "multiline" to true
+                    )
+                }
+            )
             .add(
                 UIAgGridColumnDef(
                     "lastUpdate",

@@ -13,6 +13,7 @@ import formatterFormat from '../../../FormatterFormat';
 import DynamicAgGridDiffCell from './DynamicAgGridDiffCell';
 import ImportStatusCell from './ImportStatusCell';
 import MultilineCell from './MultilineCell';
+import OpenModalLinkCell from '../customized/components/OpenModalLinkCell';
 
 // Lazy load the customized cell renderer to avoid circular dependencies
 const DynamicAgGridCustomizedCellLazy = lazy(() => import('./DynamicAgGridCustomizedCell'));
@@ -335,6 +336,7 @@ function DynamicAgGrid(props) {
         customized: CustomizedCellWrapper,
         importStatusCell: ImportStatusCell,
         multilineCell: MultilineCell,
+        OpenModalLinkCell,
         ...components,
     }), [components]);
 
