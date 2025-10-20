@@ -148,7 +148,7 @@ class AddressCampaignValuePagesRest :
                 values = contactStatusValues,
                 label = translate("address.contactStatus"),
                 multi = true,
-                defaultFilter = true
+                defaultFilter = true,
             )
         )
 
@@ -185,6 +185,10 @@ class AddressCampaignValuePagesRest :
     ): List<CustomResultFilter<AddressCampaignValueDO>>? {
         val filters = mutableListOf<CustomResultFilter<AddressCampaignValueDO>>()
 
+        // Mark campaignId as synthetic (handled in postProcessMagicFilter via extended map)
+        val campaignEntry = source.entries.find { it.field == FILTER_CAMPAIGN_ID }
+        campaignEntry?.synthetic = true
+
         // Process synthetic filters (delegated to address filters via adapter)
         val isFavoriteEntry = source.entries.find { it.field == "isFavorite" }
         isFavoriteEntry?.synthetic = true
@@ -200,6 +204,7 @@ class AddressCampaignValuePagesRest :
 
         // Process field-based filters (add as QueryFilter predicates for AddressDO)
         val contactStatusEntry = source.entries.find { it.field == "contactStatus" }
+        contactStatusEntry?.synthetic = true
         if (contactStatusEntry != null && !contactStatusEntry.value.values.isNullOrEmpty()) {
             val statuses = contactStatusEntry.value.values?.mapNotNull { value ->
                 try {
@@ -214,6 +219,7 @@ class AddressCampaignValuePagesRest :
         }
 
         val addressStatusEntry = source.entries.find { it.field == "addressStatus" }
+        addressStatusEntry?.synthetic = true
         if (addressStatusEntry != null && !addressStatusEntry.value.values.isNullOrEmpty()) {
             val statuses = addressStatusEntry.value.values?.mapNotNull { value ->
                 try {
@@ -228,6 +234,7 @@ class AddressCampaignValuePagesRest :
         }
 
         val organizationEntry = source.entries.find { it.field == "organization" }
+        organizationEntry?.synthetic = true
         organizationEntry?.value?.value?.let { orgValue ->
             if (orgValue.isNotBlank()) {
                 target.add(QueryFilter.like("organization", orgValue, autoWildcardSearch = true))
@@ -338,6 +345,15 @@ class AddressCampaignValuePagesRest :
                     "lastUpdate",
                     headerName = "modified",
                     valueFormatter = "data.timeAgo",
+                    sortable = true,
+                    width = UIAgGridColumnDef.DATE_WIDTH
+                )
+            )
+            .add(
+                UIAgGridColumnDef(
+                    "lastUpdateOfAddress",
+                    headerName = "plugins.marketing.addressCampaign.lastUpdateOfAddress",
+                    valueFormatter = "data.timeAgoOfAddress",
                     sortable = true,
                     width = UIAgGridColumnDef.DATE_WIDTH
                 )
