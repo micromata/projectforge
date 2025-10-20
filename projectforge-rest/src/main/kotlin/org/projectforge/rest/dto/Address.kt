@@ -87,14 +87,14 @@ class Address(
     var isFavoriteCard: Boolean = false
 ) : BaseDTO<AddressDO>() {
 
-    @get:JsonProperty
+    @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
     val contactStatusAsString: String?
         get() {
             contactStatus?.let { return translate(it.i18nKey) }
             return null
         }
 
-    @get:JsonProperty
+    @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
     val addressStatusAsString: String?
         get() {
             addressStatus?.let { return translate(it.i18nKey) }
