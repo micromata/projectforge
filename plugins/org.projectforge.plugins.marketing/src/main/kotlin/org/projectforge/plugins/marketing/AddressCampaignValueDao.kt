@@ -96,9 +96,11 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
         val addresses = addressDao!!.select(filter, addressFilters, checkAccess)
 
         // 2. Load campaign values for this campaign (by ID map)
+        // Include deleted values so they keep their real IDs instead of getting synthetic negative IDs
         val campaignValuesMap = getAddressCampaignValuesByAddressId(
             mutableMapOf(),
-            campaignId
+            campaignId,
+            includeDeleted = true
         )
 
         // 3. Load the campaign object once
@@ -214,14 +216,20 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
 
     fun getAddressCampaignValuesByAddressId(
         map: MutableMap<Long, AddressCampaignValueDO>,
-        addressCampaignId: Long?
+        addressCampaignId: Long?,
+        includeDeleted: Boolean = false
     ): Map<Long, AddressCampaignValueDO> {
         map.clear()
         if (addressCampaignId == null) {
             return map
         }
+        val queryName = if (includeDeleted) {
+            AddressCampaignValueDO.FIND_BY_CAMPAIGN_INCLUDING_DELETED
+        } else {
+            AddressCampaignValueDO.FIND_BY_CAMPAIGN
+        }
         val list: List<AddressCampaignValueDO> = persistenceService.executeNamedQuery(
-            AddressCampaignValueDO.FIND_BY_CAMPAIGN,
+            queryName,
             AddressCampaignValueDO::class.java,
             Pair("addressCampaignId", addressCampaignId),
         )

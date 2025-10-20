@@ -444,9 +444,11 @@ class AddressCampaignValuePagesRest :
     ): ResponseEntity<FormLayoutData> {
         // If id is negative (synthetic ID from transient campaign value),
         // treat it as a new object by passing null
-        val effectiveId = id?.toLongOrNull()?.let { longId ->
-            if (longId < 0) null else id
-        } ?: id
+        val effectiveId = if (id?.toLongOrNull()?.let { it < 0 } == true) {
+            null
+        } else {
+            id
+        }
 
         return super.getItemAndLayout(request, effectiveId, returnToCaller)
     }
@@ -538,6 +540,12 @@ class AddressCampaignValuePagesRest :
 
         // Copy editable fields
         dto.copyTo(dbObj)
+
+        // If editing an existing deleted campaign value: restore it (set deleted=false)
+        // A campaign value is considered "edited" if value or comment is set
+        if (dto.id != null && dbObj.deleted && (dbObj.value != null || dbObj.comment != null)) {
+            dbObj.deleted = false
+        }
 
         // Set the address relationship (required foreign key) - only for new records
         if (dto.id == null && dto.addressId != null) {
