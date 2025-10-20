@@ -229,6 +229,10 @@ object MultiSelectionSupport {
   fun isMultiSelection(request: HttpServletRequest, magicFilter: MagicFilter): Boolean {
     if (request.getParameter(REQUEST_PARAM_MULTI_SELECTION) == "true") {
       magicFilter.multiSelection = true
+    } else {
+      // Reset multiSelection flag if request parameter is not present
+      // (it might be persisted from a previous session)
+      magicFilter.multiSelection = false
     }
     return magicFilter.multiSelection == true
   }

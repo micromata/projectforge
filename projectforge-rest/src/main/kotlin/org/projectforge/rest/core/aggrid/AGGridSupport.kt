@@ -25,6 +25,7 @@ package org.projectforge.rest.core.aggrid
 
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.user.service.UserPrefService
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.model.rest.RestPaths
@@ -72,12 +73,24 @@ class AGGridSupport {
     }
 
     /**
-     * Deletes the grid state of the userPrefService.
+     * Resets the grid state by storing an empty state in the userPrefService.
      */
     fun resetGridState(category: String) {
-        userPrefService.removeEntry(category, USER_PREF_PARAM_GRID_STATE)
+        val emptyGridState = GridState()
+        userPrefService.putEntry(category, USER_PREF_PARAM_GRID_STATE, emptyGridState)
     }
 
+    /**
+     * Prepares an AG-Grid for a list page, handling multi-selection if applicable.
+     * @param request The HTTP servlet request.
+     * @param layout The UI layout to which the grid will be added.
+     * @param magicFilter The magic filter for data retrieval.
+     * @param pagesRest The pages REST controller.
+     * @param pageAfterMultiSelect The page to navigate to after multi-selection (optional).
+     * @param userAccess The user's access rights.
+     * @param rowClickUrl The URL to redirect to on row click (optional).
+     * @param legendText Optional legend text to display below the grid in the UIAlert about sortinfo.
+     */
     fun prepareUIGrid4ListPage(
         request: HttpServletRequest,
         layout: UILayout,
@@ -86,6 +99,7 @@ class AGGridSupport {
         pageAfterMultiSelect: Class<out AbstractDynamicPageRest>? = null,
         userAccess: UILayout.UserAccess,
         rowClickUrl: String? = null,
+        legendText: String? = null,
     ): UIAgGrid {
         val agGrid = UIAgGrid.createUIResultSetTable()
         magicFilter.maxRows = QueryFilter.QUERY_FILTER_MAX_ROWS // Fix it from previous.
@@ -94,17 +108,26 @@ class AGGridSupport {
         layout.add(agGrid)
         if (MultiSelectionSupport.isMultiSelection(request, magicFilter)) {
             prepareUIGrid4MultiSelectionListPage(request, layout, agGrid, pagesRest, pageAfterMultiSelect)
-        } else if (userAccess.update == true) {
-            val redirectUrl =
-                rowClickUrl ?: "${PagesResolver.getEditPageUrl(pagesRest::class.java, absolute = true)}/id"
-            agGrid.withRowClickRedirectUrl(redirectUrl)
-            layout.add(UIAlert(message = "agGrid.sortInfo", color = UIColor.INFO, markdown = true))
-            if (pageAfterMultiSelect != null) {
-                layout.multiSelectionSupported = true
+        } else {
+            if (userAccess.update == true) {
+                val redirectUrl =
+                    rowClickUrl ?: "${PagesResolver.getEditPageUrl(pagesRest::class.java, absolute = true)}/id"
+                agGrid.withRowClickRedirectUrl(redirectUrl)
+                if (pageAfterMultiSelect != null) {
+                    layout.multiSelectionSupported = true
+                }
             }
+            val message = if (legendText.isNullOrBlank()) {
+                "agGrid.sortInfo"
+            } else {
+                "'$legendText\n${translate("agGrid.sortInfo")}"
+            }
+            layout.add(UIAlert(message = message, color = UIColor.INFO, markdown = true))
             // Done for multiselect by prepareUIGrid4MultiSelectionListPage:
             agGrid.onColumnStatesChangedUrl =
                 RestResolver.getRestUrl(pagesRest::class.java, RestPaths.SET_COLUMN_STATES)
+            agGrid.resetGridStateUrl =
+                RestResolver.getRestUrl(pagesRest::class.java, "resetGridState")
         }
         return agGrid
     }
@@ -145,34 +168,49 @@ class AGGridSupport {
                 )
             )
         agGrid.onColumnStatesChangedUrl = RestResolver.getRestUrl(callerRest::class.java, RestPaths.SET_COLUMN_STATES)
+        agGrid.resetGridStateUrl = RestResolver.getRestUrl(callerRest::class.java, "resetGridState")
     }
 
     fun restoreColumnsFromUserPref(category: String, agGrid: UIAgGrid) {
         val columnStates = getColumnState(category)
         if (columnStates != null) {
-            val reorderedColumns = mutableListOf<UIAgGridColumnDef>()
+            // Separate locked and unlocked columns
+            val lockedColumns = agGrid.columnDefs.filter { it.lockPosition != null }
+            val unlockedColumnDefs = agGrid.columnDefs.filter { it.lockPosition == null }
+
+            // Reorder only unlocked columns based on user preferences
+            val reorderedUnlockedColumns = mutableListOf<UIAgGridColumnDef>()
             val processedColumns = mutableSetOf<String>()
             columnStates.forEach { columnState ->
-                agGrid.columnDefs.find { it.field == columnState.colId }?.let { colDef ->
-                    // ColumnDef found:
-                    reorderedColumns.add(colDef)
+                unlockedColumnDefs.find { it.field == columnState.colId }?.let { colDef ->
+                    reorderedUnlockedColumns.add(colDef)
                     colDef.field?.let {
                         processedColumns.add(it)
                     }
                 }
             }
-            // Add columns not part of columnStates
-            agGrid.columnDefs.forEach { colDef ->
+            // Add unlocked columns not part of columnStates
+            unlockedColumnDefs.forEach { colDef ->
                 if (!processedColumns.contains(colDef.field)) {
-                    reorderedColumns.add(colDef)
+                    reorderedUnlockedColumns.add(colDef)
                 }
             }
-            agGrid.columnDefs = reorderedColumns
+
+            // Combine: locked columns first (in original order), then reordered unlocked columns
+            agGrid.columnDefs = (lockedColumns + reorderedUnlockedColumns).toMutableList()
+
+            // Restore width, hide, pinned for all columns
             agGrid.columnDefs.forEach { colDef ->
                 columnStates.find { it.colId == colDef.field }?.let { columnState ->
-                    colDef.width = columnState.width
+                    // Only restore width if column is resizable
+                    if (colDef.resizable != false) {
+                        colDef.width = columnState.width
+                    }
                     colDef.hide = columnState.hide
-                    colDef.pinned = columnState.pinned
+                    // Don't restore pinned for locked columns - they should always be pinned according to lockPosition
+                    if (colDef.lockPosition == null) {
+                        colDef.pinned = columnState.pinned
+                    }
                 }
             }
         }

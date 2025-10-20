@@ -62,6 +62,10 @@ import org.projectforge.framework.json.IdOnlySerializer
   NamedQuery(
     name = AddressCampaignValueDO.FIND_BY_CAMPAIGN,
     query = "from AddressCampaignValueDO where addressCampaign.id=:addressCampaignId and deleted=false"
+  ),
+  NamedQuery(
+    name = AddressCampaignValueDO.FIND_BY_CAMPAIGN_INCLUDING_DELETED,
+    query = "from AddressCampaignValueDO where addressCampaign.id=:addressCampaignId"
   )
 )
 open class AddressCampaignValueDO : DefaultBaseDO() {
@@ -100,5 +104,6 @@ open class AddressCampaignValueDO : DefaultBaseDO() {
     internal const val DELETE_BY_ADDRESS = "AddressCampaignValueDO_DeleteByAddress"
     internal const val FIND_BY_ADDRESS_AND_CAMPAIGN = "AddressCampaignValueDO_FindByAddressAndCampaign"
     internal const val FIND_BY_CAMPAIGN = "AddressCampaignValueDO_FindByCampaign"
+    internal const val FIND_BY_CAMPAIGN_INCLUDING_DELETED = "AddressCampaignValueDO_FindByCampaignIncludingDeleted"
   }
 }

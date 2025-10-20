@@ -72,7 +72,8 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
             EingangsrechnungMultiSelectedPageRest::class.java,
             userAccess,
         )
-            .add(lc, "kreditor", "referenz", "betreff", "konto", "datum")
+            .add(lc, "kreditor", "referenz", pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT)
+            .add(lc, "betreff", "konto", "datum")
             .add(
                 lc,
                 "faelligkeitOrDiscountMaturity",
@@ -86,7 +87,6 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
             .add(lc, "bemerkung")
             .add(field = "kost1List", headerName = translate("fibu.kost1"), tooltipField = "kost1Info")
             .add(field = "kost2List", headerName = translate("fibu.kost2"), tooltipField = "kost2Info")
-            .withPinnedLeft(2)
             .withMultiRowSelection(request, magicFilter)
             .withGetRowClass(
                 """if (params.node.data.ueberfaellig) {

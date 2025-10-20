@@ -2,7 +2,8 @@ import { faComment } from '@fortawesome/free-regular-svg-icons';
 import { faMobileAlt, faPhone } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router';
 import styles from './PhoneNumber.module.scss';
 
@@ -17,14 +18,35 @@ function PhoneNumber(
         callerPage,
     },
 ) {
+    const numberRef = useRef(null);
+    const [isHovered, setIsHovered] = useState(false);
     const stopPropagation = (event) => event.stopPropagation();
 
     const phoneIcon = phoneType === 'MOBILE' || phoneType === 'PRIVATE_MOBILE'
         ? faMobileAlt
         : faPhone;
 
+    useEffect(() => {
+        const element = numberRef.current;
+        if (!element) return undefined;
+
+        const handleMouseEnter = () => setIsHovered(true);
+        const handleMouseLeave = () => setIsHovered(false);
+
+        element.addEventListener('mouseenter', handleMouseEnter);
+        element.addEventListener('mouseleave', handleMouseLeave);
+
+        return () => {
+            element.removeEventListener('mouseenter', handleMouseEnter);
+            element.removeEventListener('mouseleave', handleMouseLeave);
+        };
+    }, []);
+
     return (
-        <div className={styles.number}>
+        <div
+            ref={numberRef}
+            className={styles.number}
+        >
             {phoneCallEnabled ? (
                 <Link
                     onClick={stopPropagation}
@@ -41,10 +63,13 @@ function PhoneNumber(
                     <FontAwesomeIcon icon={faComment} className={styles.smsIcon} />
                 </Link>
             ) : undefined}
-            <span className={styles.zoom}>
-                <FontAwesomeIcon icon={phoneIcon} className={styles.icon} />
-                {number}
-            </span>
+            {isHovered && createPortal(
+                <div className={styles.zoom}>
+                    <FontAwesomeIcon icon={phoneIcon} className={styles.icon} />
+                    {number}
+                </div>,
+                document.body,
+            )}
         </div>
     );
 }

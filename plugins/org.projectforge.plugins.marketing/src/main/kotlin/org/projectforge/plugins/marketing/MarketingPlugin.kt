@@ -23,7 +23,10 @@
 
 package org.projectforge.plugins.marketing
 
+import org.projectforge.Constants
 import org.projectforge.business.address.AddressDao
+import org.projectforge.menu.builder.MenuCreator
+import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDef.Companion.create
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
@@ -61,21 +64,29 @@ class MarketingPlugin : AbstractPlugin("marketing", "Marketing", "Marketing plug
             AddressCampaignListPage::class.java,
             AddressCampaignEditPage::class.java
         )
-        pluginWicketRegistrationService.registerWeb(
-            ADDRESS_CAMPAIGN_VALUE_ID,
-            AddressCampaignValueListPage::class.java,
-            AddressCampaignValueEditPage::class.java
-        )
+        // Commented out: Using React page instead of Wicket
+        // pluginWicketRegistrationService.registerWeb(
+        //     ADDRESS_CAMPAIGN_VALUE_ID,
+        //     AddressCampaignValueListPage::class.java,
+        //     AddressCampaignValueEditPage::class.java
+        // )
 
         // Register the menu entry as sub menu entry of the misc menu:
         pluginWicketRegistrationService.registerMenuItem(
             MenuItemDefId.MISC, create(ADDRESS_CAMPAIGN_ID, "plugins.marketing.addressCampaign.menu"),
             AddressCampaignListPage::class.java
         )
-        pluginWicketRegistrationService.registerMenuItem(
-            MenuItemDefId.MISC, create(ADDRESS_CAMPAIGN_VALUE_ID, "plugins.marketing.addressCampaignValue.menu"),
-            AddressCampaignValueListPage::class.java
-        )
+        // React page registration - URL points to the React route
+        val menuCreator = WicketSupport.get(MenuCreator::class.java)
+        menuCreator.register(
+            MenuItemDefId.MISC,
+            MenuItemDef(
+                ADDRESS_CAMPAIGN_VALUE_ID,
+                "plugins.marketing.addressCampaignValue.menu",
+                "${Constants.REACT_APP_PATH}addressCampaignValue"
+            )
+        );
+
 
         // Define the access management:
         registerRight(AddressCampaignRight())

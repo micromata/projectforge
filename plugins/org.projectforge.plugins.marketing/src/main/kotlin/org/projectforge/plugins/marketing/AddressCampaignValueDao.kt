@@ -23,19 +23,18 @@
 
 package org.projectforge.plugins.marketing
 
-import org.projectforge.business.address.AddressDO
+import mu.KotlinLogging
 import org.projectforge.business.address.AddressDao
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
-import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry
-import org.projectforge.framework.persistence.history.HistoryEntry
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.util.CollectionUtils
+
+private val log = KotlinLogging.logger {}
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -44,6 +43,9 @@ import org.springframework.util.CollectionUtils
 open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCampaignValueDO::class.java) {
     @Autowired
     private var addressDao: AddressDao? = null
+
+    @Autowired
+    private lateinit var addressCampaignDao: AddressCampaignDao
 
     init {
         userRightId = MarketingPluginUserRightId.PLUGIN_MARKETING_ADDRESS_CAMPAIGN_VALUE
@@ -57,6 +59,104 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
         )
     }
 
+    /**
+     * Selects all addresses for a given campaign, including addresses without campaign values.
+     * Uses AddressDao for proper access control and filtering, then merges with campaign values.
+     *
+     * @param campaignId The campaign ID to load values for
+     * @param filter QueryFilter for address filtering (contactStatus, addressStatus, organization, etc.)
+     * @param customResultFilters CustomResultFilters for addresses (favorites, doublets, images, etc.)
+     * @param checkAccess Whether to check access rights
+     * @return List of AddressCampaignValueDO with address data (value/comment null if no campaign value exists)
+     */
+    fun selectAddressesForCampaign(
+        campaignId: Long,
+        filter: QueryFilter,
+        customResultFilters: List<CustomResultFilter<AddressCampaignValueDO>>?,
+        checkAccess: Boolean = true,
+    ): List<AddressCampaignValueDO> {
+        // 1. Load all addresses matching the filter (with access control)
+        val addressFilters = customResultFilters?.mapNotNull { campaignFilter ->
+            // Extract address filters from campaign value filter adapters
+            if (campaignFilter is org.projectforge.plugins.marketing.rest.CampaignValueFilterAdapter) {
+                // Use reflection to get the wrapped address filter
+                try {
+                    val field = campaignFilter.javaClass.getDeclaredField("addressFilter")
+                    field.isAccessible = true
+                    field.get(campaignFilter) as? CustomResultFilter<org.projectforge.business.address.AddressDO>
+                } catch (e: Exception) {
+                    log.warn { "Could not extract address filter from CampaignValueFilterAdapter: ${e.message}" }
+                    null
+                }
+            } else {
+                null
+            }
+        }
+
+        val addresses = addressDao!!.select(filter, addressFilters, checkAccess)
+
+        // 2. Load campaign values for this campaign (by ID map)
+        // Include deleted values so they keep their real IDs instead of getting synthetic negative IDs
+        val campaignValuesMap = getAddressCampaignValuesByAddressId(
+            mutableMapOf(),
+            campaignId,
+            includeDeleted = true
+        )
+
+        // 3. Load the campaign object once
+        val campaign = addressCampaignDao.find(campaignId)
+
+        // 4. Merge: For each address, use existing campaign value or create transient one
+        val result = addresses.map { address ->
+            val existingValue = campaignValuesMap[address.id]
+            if (existingValue != null) {
+                existingValue
+            } else {
+                // Create transient campaign value (not persisted)
+                // Assign synthetic ID using negative addressId to enable multi-selection tracking
+                val newValue = AddressCampaignValueDO()
+                newValue.id = -address.id!! // Synthetic ID: negative addressId
+                newValue.address = address
+                newValue.addressCampaign = campaign
+                newValue.value = null
+                newValue.comment = null
+                newValue
+            }
+        }
+
+        // 5. Apply remaining custom filters (value filters that are not address filters)
+        val remainingFilters = customResultFilters?.filter { filter ->
+            filter !is org.projectforge.plugins.marketing.rest.CampaignValueFilterAdapter
+        }
+
+        if (!remainingFilters.isNullOrEmpty()) {
+            val mutableResult = result.toMutableList()
+            remainingFilters.forEach { filter ->
+                mutableResult.removeIf { !filter.match(mutableResult, it) }
+            }
+            return mutableResult
+        }
+
+        return result
+    }
+
+    override fun select(
+        filter: QueryFilter,
+        customResultFilters: List<CustomResultFilter<AddressCampaignValueDO>>?,
+        checkAccess: Boolean,
+    ): List<AddressCampaignValueDO> {
+        // Safety check: AddressCampaignValue must always be filtered by campaign
+        // to avoid loading all values across all campaigns (performance + data isolation)
+        val campaignId = filter.extended["campaignId"] as? Long
+        if (campaignId == null) {
+            log.warn { "AddressCampaignValueDao.select called without campaignId. Returning empty list to prevent loading all campaign values." }
+            return emptyList()
+        }
+
+        // Use address-based query with merge to include addresses without campaign values
+        return selectAddressesForCampaign(campaignId, filter, customResultFilters, checkAccess)
+    }
+
     override fun select(filter: BaseSearchFilter): List<AddressCampaignValueDO> {
         val myFilter = if (filter is AddressCampaignValueFilter) {
             filter
@@ -66,6 +166,8 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
         val queryFilter = QueryFilter(myFilter)
         if (myFilter.addressCampaign != null) {
             queryFilter.add(eq("address_campaign_fk", myFilter.addressCampaign.id!!))
+        } else {
+            return emptyList()
         }
         if (myFilter.addressCampaignValue != null) {
             queryFilter.add(eq("value", myFilter.addressCampaign.id!!))
@@ -114,14 +216,20 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
 
     fun getAddressCampaignValuesByAddressId(
         map: MutableMap<Long, AddressCampaignValueDO>,
-        addressCampaignId: Long?
+        addressCampaignId: Long?,
+        includeDeleted: Boolean = false
     ): Map<Long, AddressCampaignValueDO> {
         map.clear()
         if (addressCampaignId == null) {
             return map
         }
+        val queryName = if (includeDeleted) {
+            AddressCampaignValueDO.FIND_BY_CAMPAIGN_INCLUDING_DELETED
+        } else {
+            AddressCampaignValueDO.FIND_BY_CAMPAIGN
+        }
         val list: List<AddressCampaignValueDO> = persistenceService.executeNamedQuery(
-            AddressCampaignValueDO.FIND_BY_CAMPAIGN,
+            queryName,
             AddressCampaignValueDO::class.java,
             Pair("addressCampaignId", addressCampaignId),
         )
@@ -136,9 +244,5 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
 
     fun setAddressDao(addressDao: AddressDao?) {
         this.addressDao = addressDao
-    }
-
-    companion object {
-        private val log: Logger = LoggerFactory.getLogger(AddressCampaignValueDao::class.java)
     }
 }

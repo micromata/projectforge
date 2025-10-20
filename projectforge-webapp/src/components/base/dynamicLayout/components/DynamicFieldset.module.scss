@@ -1,0 +1,45 @@
+@import "../../../../assets/style/mixins";
+
+.collapsibleLegend {
+  // Reset button styles
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  width: 100%;
+  text-align: left;
+
+  // Interactive styles
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: var(--primary);
+  }
+
+  &:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  .chevronIcon {
+    margin-right: 0.5rem;
+    transition: transform 0.3s cubic-bezier(0.05, 0.45, 0.95, 0.55);
+    font-size: 0.875rem;
+
+    &.expanded {
+      transform: rotate(90deg);
+    }
+  }
+}
+
+.collapsibleFieldset {
+  .collapseContent {
+    // Smooth transition for collapse/expand
+    transition: height 0.3s ease;
+  }
+}

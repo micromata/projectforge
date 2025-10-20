@@ -23,28 +23,137 @@
 
 package org.projectforge.plugins.marketing.dto
 
-import org.projectforge.business.address.AddressDO
+import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.persistence.Transient
+import org.projectforge.business.address.AddressStatus
+import org.projectforge.business.address.ContactStatus
+import org.projectforge.business.address.MailingAddress
+import org.projectforge.framework.i18n.TimeAgo
+import org.projectforge.framework.i18n.translate
 import org.projectforge.plugins.marketing.AddressCampaignValueDO
-import org.projectforge.rest.dto.Address
 import org.projectforge.rest.dto.BaseDTO
 
 class AddressCampaignValue(
-  var addressCampaign: AddressCampaign? = null,
-  var address: Address? = null,
-  var value: String? = null,
-  var comment: String? = null,
-  var favoriteAddress: Boolean? = null,
-) : BaseDTO<AddressDO>() {
-  override fun copyFrom(src: AddressDO) {
-    this.id = src.id // Id is address id!!!!
-    val address = Address()
-    address.copyFrom(src)
-    this.address = address
-  }
+    var addressCampaign: AddressCampaign? = null,
+    var addressId: Long? = null,
+    var name: String? = null,
+    var fullLastName: String? = null,
+    var firstName: String? = null,
+    var organization: String? = null,
+    var email: String? = null,
+    var contactStatus: ContactStatus? = null,
+    var addressStatus: AddressStatus? = null,
+    var formattedAddress: String? = null,
+    var value: String? = null,
+    var comment: String? = null,
+    var isFavoriteCard: Boolean? = null,
+    var lastUpdateOfAddress: java.util.Date? = null,
+    var isAddressValid: Boolean? = null,
+) : BaseDTO<AddressCampaignValueDO>() {
 
-  fun copyFrom(src: AddressCampaignValueDO) {
-    src.address?.let { copyFrom(it) }
-    this.value = src.value
-    this.comment = src.comment
-  }
+    @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    val contactStatusAsString: String?
+        get() {
+            contactStatus?.let { return translate(it.i18nKey) }
+            return null
+        }
+
+    @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    val addressStatusAsString: String?
+        get() {
+            addressStatus?.let { return translate(it.i18nKey) }
+            return null
+        }
+
+    @get:Transient
+    @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    val timeAgo: String?
+        get() = TimeAgo.getMessage(lastUpdate)
+
+    @get:Transient
+    @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    val timeAgoOfAddress: String?
+        get() = TimeAgo.getMessage(lastUpdateOfAddress)
+
+    override fun copyFrom(src: AddressCampaignValueDO) {
+        this.id = src.id // Campaign value ID (including negative synthetic IDs for multi-selection)
+
+        // Copy address campaign relationship
+        src.addressCampaign?.let { campaignDO ->
+            val campaignDto = AddressCampaign()
+            campaignDto.copyFrom(campaignDO)
+            this.addressCampaign = campaignDto
+        }
+        this.lastUpdate = src.lastUpdate
+        src.address?.let { addressDO ->
+            // Store address ID for favorite lookup
+            this.addressId = addressDO.id
+
+            // Copy address fields directly
+            this.name = addressDO.name
+            this.fullLastName = addressDO.fullLastName
+            this.firstName = addressDO.firstName
+            this.organization = addressDO.organization
+            this.contactStatus = addressDO.contactStatus
+            this.addressStatus = addressDO.addressStatus
+            this.lastUpdateOfAddress = addressDO.lastUpdate
+
+            // Combine all emails as CSV (business, private)
+            val emails = mutableListOf<String>()
+            addressDO.email?.let { if (it.isNotBlank()) emails.add(it) }
+            addressDO.privateEmail?.let { if (it.isNotBlank()) emails.add(it) }
+            this.email = if (emails.isNotEmpty()) emails.joinToString(", ") else null
+
+            // Use MailingAddress for formatting and validation
+            MailingAddress(addressDO).let {
+                this.formattedAddress = it.formattedAddress
+                this.isAddressValid = it.isValid
+            }
+        }
+
+        // For deleted campaign values: keep ID but clear value and comment
+        // This makes them appear as "not set" to the user while preserving the entity for updates
+        if (src.deleted) {
+            this.value = null
+            this.comment = null
+        } else {
+            this.value = src.value
+            this.comment = src.comment
+        }
+    }
+
+    override fun copyTo(dest: AddressCampaignValueDO) {
+        dest.id = this.id
+        dest.value = this.value
+        dest.comment = this.comment
+        // Note: address and addressCampaign relationships should be set by the caller
+        // as they require proper entity references from the database
+    }
+
+    /**
+     * Populate address fields from an AddressDO.
+     * Used when creating a new campaign value for an address that doesn't have one yet.
+     */
+    fun populateFromAddress(addressDO: org.projectforge.business.address.AddressDO) {
+        this.addressId = addressDO.id
+        this.name = addressDO.name
+        this.fullLastName = addressDO.fullLastName
+        this.firstName = addressDO.firstName
+        this.organization = addressDO.organization
+        this.contactStatus = addressDO.contactStatus
+        this.addressStatus = addressDO.addressStatus
+        this.lastUpdateOfAddress = addressDO.lastUpdate
+
+        // Combine all emails as CSV (business, private)
+        val emails = mutableListOf<String>()
+        addressDO.email?.let { if (it.isNotBlank()) emails.add(it) }
+        addressDO.privateEmail?.let { if (it.isNotBlank()) emails.add(it) }
+        this.email = if (emails.isNotEmpty()) emails.joinToString(", ") else null
+
+        // Format and validate mailing address
+        MailingAddress(addressDO).let {
+            this.formattedAddress = it.formattedAddress
+            this.isAddressValid = it.isValid
+        }
+    }
 }

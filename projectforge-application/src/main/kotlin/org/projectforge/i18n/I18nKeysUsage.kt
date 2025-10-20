@@ -24,12 +24,14 @@
 package org.projectforge.i18n
 
 import de.micromata.merlin.excel.ExcelWorkbook
+import mu.KotlinLogging
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.i18n.I18nKeysUsageInterface
 import org.springframework.stereotype.Service
 import java.io.File
 
+private val log = KotlinLogging.logger {}
 
 fun main() {
   I18nKeysUsage(I18nKeysUsage.RUN_MODE.CREATE)
@@ -57,7 +59,12 @@ class I18nKeysUsage(runmode: RUN_MODE? = null, useTmpFile: Boolean = false) : I1
     if (runmode == RUN_MODE.CREATE) {
       i18nKeyMap = I18nKeysSourceAnalyzer().run(useTmpFile)
     } else {
-      i18nKeyMap = I18nKeysSourceAnalyzer.readJson(runmode == RUN_MODE.FILESYSTEM, useTmpFile)
+        i18nKeyMap = try {
+            I18nKeysSourceAnalyzer.readJson(runmode == RUN_MODE.FILESYSTEM, useTmpFile)
+        } catch (e: Exception) {
+            log.error(e) { "Error reading i18n keys usage json file (call DevelopmentMainForRelease.kt:main): ${e.message}" }
+            emptyMap()
+        }
     }
   }
 

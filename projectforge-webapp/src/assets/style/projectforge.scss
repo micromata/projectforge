@@ -35,6 +35,18 @@
   white-space: pre-wrap !important;
 }
 
+// AG Grid pagination at top
+.ag-grid-wrapper-pagination-top {
+  .ag-root-wrapper {
+    display: flex;
+    flex-direction: column;
+
+    .ag-paging-panel {
+      order: -1;
+    }
+  }
+}
+
 div.dropZone {
   :-moz-drag-over {
     border-radius: 5px;

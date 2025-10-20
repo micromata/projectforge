@@ -67,9 +67,15 @@ open class AddressCampaignDO : DefaultBaseDO() {
         const val MAX_VALUE_LENGTH = 100
 
         fun getValuesArray(values: String?): Array<String>? {
-            return if (StringUtils.isBlank(values)) {
-                null
-            } else StringUtils.split(values, "; ")
+            if (StringUtils.isBlank(values)) {
+                return null
+            }
+            // Split by semicolon only, then trim whitespace and filter out blank entries
+            val array = values!!.split(";")
+                .map { it.trim() }
+                .filter { it.isNotBlank() }
+                .toTypedArray()
+            return if (array.isEmpty()) null else array
         }
     }
 }

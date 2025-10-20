@@ -95,7 +95,7 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
       "status",
       "bezahlDatum",
     )
-    createAndAddFields(lc, massUpdateData, layout, "bemerkung", append = true)
+    createAndAddFields(lc, massUpdateData, layout, "bemerkung", showAppendOption = true)
     layout.add(UIAlert("fibu.rechnung.multiselected.info", color = UIColor.INFO, markdown = true))
   }
 

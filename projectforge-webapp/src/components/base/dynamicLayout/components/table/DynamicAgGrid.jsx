@@ -1,6 +1,6 @@
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import PropTypes from 'prop-types';
-import React, { useMemo, useRef, useEffect, useState } from 'react';
+import React, { useMemo, useRef, useEffect, useState, lazy, Suspense } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { LicenseManager, ModuleRegistry, AllEnterpriseModule, themeBalham } from 'ag-grid-enterprise';
 import { connect } from 'react-redux';
@@ -12,6 +12,20 @@ import { AG_GRID_LOCALE_DE } from './agGridLocalization_de';
 import formatterFormat from '../../../FormatterFormat';
 import DynamicAgGridDiffCell from './DynamicAgGridDiffCell';
 import ImportStatusCell from './ImportStatusCell';
+import MultilineCell from './MultilineCell';
+import OpenModalLinkCell from '../customized/components/OpenModalLinkCell';
+
+// Lazy load the customized cell renderer to avoid circular dependencies
+const DynamicAgGridCustomizedCellLazy = lazy(() => import('./DynamicAgGridCustomizedCell'));
+
+// Wrapper component that handles Suspense for the lazy-loaded customized cell renderer
+function CustomizedCellWrapper(props) {
+    return (
+        <Suspense fallback={<span>...</span>}>
+            <DynamicAgGridCustomizedCellLazy {...props} />
+        </Suspense>
+    );
+}
 
 LicenseManager.setLicenseKey('Using_this_{AG_Grid}_Enterprise_key_{AG-089620}_in_excess_of_the_licence_granted_is_not_permitted___Please_report_misuse_to_legal@ag-grid.com___For_help_with_changing_this_key_please_contact_info@ag-grid.com___{Micromata_GmbH}_is_granted_a_{Single_Application}_Developer_License_for_the_application_{ProjectForge}_only_for_{1}_Front-End_JavaScript_developer___All_Front-End_JavaScript_developers_working_on_{ProjectForge}_need_to_be_licensed___{ProjectForge}_has_not_been_granted_a_Deployment_License_Add-on___This_key_works_with_{AG_Grid}_Enterprise_versions_released_before_{14_July_2026}____[v3]_[01]_MTc4Mzk4MzYwMDAwMA==932cdb76359c2b516156ac62da0bd954');
 ModuleRegistry.registerModules([AllEnterpriseModule]);
@@ -33,6 +47,7 @@ function DynamicAgGrid(props) {
         rowClickOpenModal,
         onCellClicked,
         onColumnStatesChangedUrl,
+        resetGridStateUrl,
         onGridApiReady,
         pagination,
         paginationPageSize,
@@ -170,11 +185,42 @@ function DynamicAgGrid(props) {
         return params.defaultValue;
     };
 
-    const modifyRedirectUrl = (redirectUrl, clickedId) => {
-        if (redirectUrl.includes('{id}')) {
-            return redirectUrl.replace('{id}', clickedId);
+    const modifyRedirectUrl = (redirectUrl, row) => {
+        let url = redirectUrl;
+
+        // Replace field placeholders in the URL with actual row data values
+        // Supports: {fieldName}, :fieldName, /fieldName in path, fieldName in query params
+        if (row) {
+            // Always process 'id' field first, even if not present in row
+            const idValue = (row.id == null) ? 'undefined' : String(row.id);
+            url = url.replace('{id}', idValue);
+            url = url.replace(':id', idValue);
+            url = url.replace(/\/id(?=[?/]|$)/g, `/${idValue}`);
+
+            // Process all other fields in the row
+            Object.keys(row).forEach((fieldName) => {
+                if (fieldName === 'id') return; // Already processed above
+
+                // Use 'undefined' string for null/undefined values, otherwise convert to string
+                const fieldValue = (row[fieldName] == null) ? 'undefined' : String(row[fieldName]);
+
+                // Replace {fieldName} placeholder (e.g., /edit/{campaignId})
+                url = url.replace(`{${fieldName}}`, fieldValue);
+
+                // Replace :fieldName placeholder (React Router style)
+                url = url.replace(`:${fieldName}`, fieldValue);
+
+                // Replace /fieldName in path segments
+                const pathSegmentPattern = new RegExp(`/${fieldName}(?=[?/]|$)`, 'g');
+                url = url.replace(pathSegmentPattern, `/${fieldValue}`);
+
+                // Replace fieldName=fieldName in query parameters
+                const queryParamPattern = new RegExp(`${fieldName}=${fieldName}(?=&|$)`, 'g');
+                url = url.replace(queryParamPattern, `${fieldName}=${fieldValue}`);
+            });
         }
-        return redirectUrl.replace('id', clickedId);
+
+        return url;
     };
 
     const onRowClicked = (event) => {
@@ -186,7 +232,7 @@ function DynamicAgGrid(props) {
             // Do nothing
             return;
         }
-        const redirectUrl = modifyRedirectUrl(rowClickRedirectUrl, event.data.id);
+        const redirectUrl = modifyRedirectUrl(rowClickRedirectUrl, event.data);
         if (rowClickOpenModal) {
             const historyState = { };
 
@@ -208,12 +254,12 @@ function DynamicAgGrid(props) {
             // No row(s) selected.
             return;
         }
-        const firstSelectedRowId = selectedRows[0].id;
-        if (!firstSelectedRowId) {
+        const firstSelectedRow = selectedRows[0];
+        if (!firstSelectedRow || !firstSelectedRow.id) {
             // Can't detect id.
             return;
         }
-        history.push(modifyRedirectUrl(rowClickRedirectUrl, firstSelectedRowId));
+        history.push(modifyRedirectUrl(rowClickRedirectUrl, firstSelectedRow));
     };
 
     const postColumnStates = (event) => {
@@ -287,7 +333,10 @@ function DynamicAgGrid(props) {
     const allComponents = useMemo(() => ({
         formatter: Formatter,
         diffCell: DynamicAgGridDiffCell,
+        customized: CustomizedCellWrapper,
         importStatusCell: ImportStatusCell,
+        multilineCell: MultilineCell,
+        OpenModalLinkCell,
         ...components,
     }), [components]);
 
@@ -303,10 +352,56 @@ function DynamicAgGrid(props) {
         }
         return myClass;
     }, [data.highlightRowId, highlightId, getRowClass]);
+
+    const getMainMenuItems = React.useCallback((params) => {
+        const menuItems = params.defaultItems.slice();
+
+        // Find and replace the resetColumns menu item
+        const resetIndex = menuItems.findIndex((item) => item === 'resetColumns');
+        if (resetIndex !== -1 && resetGridStateUrl && gridApi) {
+            menuItems[resetIndex] = {
+                name: getLocaleText({ key: 'resetColumns', defaultValue: 'Reset Columns' }),
+                action: () => {
+                    // Call backend to clear grid state and get fresh column definitions
+                    fetch(getServiceURL(resetGridStateUrl), {
+                        method: 'GET',
+                        credentials: 'include',
+                    })
+                        .then((response) => response.json())
+                        .then((responseAction) => {
+                            // Server has already extracted columnDefs for us!
+                            const {
+                                columnDefs: resetColumnDefs,
+                                sortModel: resetSortModel,
+                            } = responseAction.variables || {};
+
+                            if (resetColumnDefs) {
+                                // Update AG Grid directly via API
+                                gridApi.setGridOption('columnDefs', resetColumnDefs);
+
+                                if (resetSortModel) {
+                                    gridApi.applyColumnState({
+                                        state: resetSortModel,
+                                        defaultState: { sort: null },
+                                    });
+                                }
+                            }
+                        })
+                        .catch((error) => {
+                            console.error('Error resetting grid state:', error);
+                        });
+                },
+            };
+        }
+
+        return menuItems;
+    }, [resetGridStateUrl, getLocaleText, gridApi]);
+
     return React.useMemo(
         () => (
             <div
                 style={{ minWidth: '100%', height }}
+                className="ag-grid-wrapper-pagination-top"
             >
                 <AgGridReact
                     // Show popup (e.g. for choosing columns) in body, not in grid.
@@ -337,6 +432,7 @@ function DynamicAgGrid(props) {
                     accentedSort
                     cellSelection
                     getLocaleText={getLocaleText}
+                    getMainMenuItems={getMainMenuItems}
                     processCellForClipboard={processCellForClipboard}
                     // processCellCallback={processCellCallback}
                     tooltipShowDelay={0}
@@ -372,6 +468,7 @@ function DynamicAgGrid(props) {
             sortModel,
             rowSelection,
             paginationPageSize,
+            getMainMenuItems,
         ],
     );
 }
@@ -403,6 +500,7 @@ DynamicAgGrid.propTypes = {
     rowClickOpenModal: PropTypes.bool,
     rowClickFunction: PropTypes.func,
     onColumnStatesChangedUrl: PropTypes.string,
+    resetGridStateUrl: PropTypes.string,
     pagination: PropTypes.bool,
     paginationPageSize: PropTypes.number,
     paginationPageSizeSelector: PropTypes.arrayOf(PropTypes.number),

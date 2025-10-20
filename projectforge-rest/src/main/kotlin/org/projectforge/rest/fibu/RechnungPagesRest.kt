@@ -71,12 +71,10 @@ class RechnungPagesRest :
             RechnungMultiSelectedPageRest::class.java,
             userAccess = userAccess,
         )
-            .add(lc, "nummer", width = 120)
-            .add(lc, "customer", lcField = "kunde")
-        var pinnedLeft = 2
+            .add(lc, "nummer", width = 120, pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT)
+            .add(lc, "customer", lcField = "kunde", pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT)
         if (Configuration.instance.isCostConfigured) {
-            grid.add(lc, "project", lcField = "projekt")
-            pinnedLeft = ++pinnedLeft
+            grid.add(lc, "project", lcField = "projekt", pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT)
         }
         grid.add(lc, "betreff", "datum", "faelligkeit", "bezahlDatum")
             .add(lc, "statusAsString", headerName = "fibu.rechnung.status", width = 100)
@@ -86,7 +84,6 @@ class RechnungPagesRest :
             .add(field = "kost1List", headerName = translate("fibu.kost1"), tooltipField = "kost1Info")
             .add(field = "kost2List", headerName = translate("fibu.kost2"), tooltipField = "kost2Info")
             .withMultiRowSelection(request, magicFilter)
-            .withPinnedLeft(pinnedLeft)
             .withGetRowClass(
                 """if (params.node.data.ueberfaellig) {
             return 'ag-row-red';

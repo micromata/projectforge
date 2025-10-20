@@ -78,9 +78,6 @@ class VacationPagesRest :
     private lateinit var employeeDao: EmployeeDao
 
     @Autowired
-    private lateinit var userPrefService: UserPrefService
-
-    @Autowired
     private lateinit var vacationDao: VacationDao
 
     @Autowired
