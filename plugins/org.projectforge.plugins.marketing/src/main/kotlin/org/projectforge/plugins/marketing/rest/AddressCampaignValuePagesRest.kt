@@ -347,7 +347,8 @@ class AddressCampaignValuePagesRest :
                     cellRenderer = "OpenModalLinkCell",
                 ).apply {
                     cellRendererParams = mapOf(
-                        "urlPattern" to "/react/address/edit/{addressId}"
+                        "urlPattern" to "/react/address/edit/{addressId}",
+                        "placeholder" to translate("emptyInBrackets")
                     )
                 }
             )
@@ -361,7 +362,8 @@ class AddressCampaignValuePagesRest :
                 ).apply {
                     cellRendererParams = mapOf(
                         "urlPattern" to "/react/address/edit/{addressId}",
-                        "multiline" to true
+                        "multiline" to true,
+                        "placeholder" to translate("emptyInBrackets")
                     )
                 }
             )
