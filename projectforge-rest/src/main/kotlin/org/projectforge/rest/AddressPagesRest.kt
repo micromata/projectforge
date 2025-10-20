@@ -157,6 +157,13 @@ class AddressPagesRest
 
     override fun onGetItemAndLayout(request: HttpServletRequest, dto: Address, formLayoutData: FormLayoutData) {
         ExpiringSessionAttributes.removeAttribute(request.getSession(false), SESSION_IMAGE_ATTR)
+        // Capture modal parameter from request and store in serverData so all button actions can access it
+        val modal = request.getParameter("modal")
+        if (modal == "true") {
+            val params = formLayoutData.serverData?.returnToCallerParams?.toMutableMap() ?: mutableMapOf()
+            params["modal"] = "true"
+            formLayoutData.serverData?.returnToCallerParams = params
+        }
     }
 
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
@@ -244,6 +251,18 @@ class AddressPagesRest
             addressImageDao.saveOrUpdate(obj.id!!, image.bytes, image.imageType)
             ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
         }
+    }
+
+    override fun onAfterEdit(obj: AddressDO, postData: PostData<Address>, event: RestButtonEvent): ResponseAction {
+        // Check if this was opened in modal context (captured from query param in onGetItemAndLayout)
+        val modal = postData.serverData?.returnToCallerParams?.get("modal")
+        if (modal == "true") {
+            // Close the modal instead of redirecting to list page
+            // This handles all button actions: save, update, delete, undelete, cancel, clone
+            return ResponseAction(targetType = TargetType.CLOSE_MODAL)
+        }
+        // Default behavior: redirect to list page
+        return super.onAfterEdit(obj, postData, event)
     }
 
     /**

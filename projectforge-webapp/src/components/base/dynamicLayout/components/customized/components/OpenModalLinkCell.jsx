@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import PropTypes from 'prop-types';
 import style from './Customized.module.scss';
 
@@ -7,6 +7,7 @@ function OpenModalLinkCell({
     value, data, urlPattern, multiline,
 }) {
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleClick = (e) => {
         e.stopPropagation();
@@ -24,7 +25,9 @@ function OpenModalLinkCell({
                     }
                 });
             }
-            navigate(url);
+            // Add modal=true query parameter so backend knows it was opened in modal context
+            url += url.includes('?') ? '&modal=true' : '?modal=true';
+            navigate(url, { state: { background: location } });
         }
     };
 
