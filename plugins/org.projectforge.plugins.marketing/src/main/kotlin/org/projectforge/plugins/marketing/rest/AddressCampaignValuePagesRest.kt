@@ -148,6 +148,14 @@ class AddressCampaignValuePagesRest :
                 defaultFilter = true
             )
         )
+        elements.add(
+            UIFilterElement(
+                "invalidAddresses",
+                UIFilterElement.FilterType.BOOLEAN,
+                translate("address.filter.invalidAddresses"),
+                defaultFilter = false
+            )
+        )
 
         // Enum filters (database field predicates)
         val contactStatusValues = ContactStatus.entries.map {
@@ -217,6 +225,12 @@ class AddressCampaignValuePagesRest :
         myEntriesEntry?.synthetic = true
         if (myEntriesEntry?.isTrueValue == true) {
             filters.add(AddressCampaignValueMyEntriesResultFilter(persistenceService, requiredLoggedInUserId))
+        }
+
+        val invalidAddressesEntry = source.entries.find { it.field == "invalidAddresses" }
+        invalidAddressesEntry?.synthetic = true
+        if (invalidAddressesEntry?.isTrueValue == true) {
+            filters.add(InvalidAddressesResultFilter())
         }
 
         // Process field-based filters (add as QueryFilter predicates for AddressDO)
