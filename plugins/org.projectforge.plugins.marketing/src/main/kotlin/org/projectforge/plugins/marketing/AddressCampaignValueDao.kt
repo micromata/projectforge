@@ -111,7 +111,9 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
                 existingValue
             } else {
                 // Create transient campaign value (not persisted)
+                // Assign synthetic ID using negative addressId to enable multi-selection tracking
                 val newValue = AddressCampaignValueDO()
+                newValue.id = -address.id!! // Synthetic ID: negative addressId
                 newValue.address = address
                 newValue.addressCampaign = campaign
                 newValue.value = null
