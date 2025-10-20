@@ -25,6 +25,7 @@ package org.projectforge.rest.core.aggrid
 
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.user.service.UserPrefService
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.model.rest.RestPaths
@@ -79,6 +80,17 @@ class AGGridSupport {
         userPrefService.putEntry(category, USER_PREF_PARAM_GRID_STATE, emptyGridState)
     }
 
+    /**
+     * Prepares an AG-Grid for a list page, handling multi-selection if applicable.
+     * @param request The HTTP servlet request.
+     * @param layout The UI layout to which the grid will be added.
+     * @param magicFilter The magic filter for data retrieval.
+     * @param pagesRest The pages REST controller.
+     * @param pageAfterMultiSelect The page to navigate to after multi-selection (optional).
+     * @param userAccess The user's access rights.
+     * @param rowClickUrl The URL to redirect to on row click (optional).
+     * @param legendText Optional legend text to display below the grid in the UIAlert about sortinfo.
+     */
     fun prepareUIGrid4ListPage(
         request: HttpServletRequest,
         layout: UILayout,
@@ -87,6 +99,7 @@ class AGGridSupport {
         pageAfterMultiSelect: Class<out AbstractDynamicPageRest>? = null,
         userAccess: UILayout.UserAccess,
         rowClickUrl: String? = null,
+        legendText: String? = null,
     ): UIAgGrid {
         val agGrid = UIAgGrid.createUIResultSetTable()
         magicFilter.maxRows = QueryFilter.QUERY_FILTER_MAX_ROWS // Fix it from previous.
@@ -104,7 +117,12 @@ class AGGridSupport {
                     layout.multiSelectionSupported = true
                 }
             }
-            layout.add(UIAlert(message = "agGrid.sortInfo", color = UIColor.INFO, markdown = true))
+            val message = if (legendText.isNullOrBlank()) {
+                "agGrid.sortInfo"
+            } else {
+                "'$legendText\n${translate("agGrid.sortInfo")}"
+            }
+            layout.add(UIAlert(message = message, color = UIColor.INFO, markdown = true))
             // Done for multiselect by prepareUIGrid4MultiSelectionListPage:
             agGrid.onColumnStatesChangedUrl =
                 RestResolver.getRestUrl(pagesRest::class.java, RestPaths.SET_COLUMN_STATES)

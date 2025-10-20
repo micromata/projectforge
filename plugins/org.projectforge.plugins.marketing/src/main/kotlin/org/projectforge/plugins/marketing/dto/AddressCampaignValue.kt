@@ -48,6 +48,7 @@ class AddressCampaignValue(
     var comment: String? = null,
     var isFavoriteCard: Boolean? = null,
     var lastUpdateOfAddress: java.util.Date? = null,
+    var isAddressValid: Boolean? = null,
 ) : BaseDTO<AddressCampaignValueDO>() {
 
     @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
@@ -103,8 +104,11 @@ class AddressCampaignValue(
             addressDO.privateEmail?.let { if (it.isNotBlank()) emails.add(it) }
             this.email = if (emails.isNotEmpty()) emails.joinToString(", ") else null
 
-            // Use MailingAddress only for formatting, don't store the object
-            this.formattedAddress = MailingAddress(addressDO).formattedAddress
+            // Use MailingAddress for formatting and validation
+            MailingAddress(addressDO).let {
+                this.formattedAddress = it.formattedAddress
+                this.isAddressValid = it.isValid
+            }
         }
 
         // For deleted campaign values: keep ID but clear value and comment
@@ -146,7 +150,10 @@ class AddressCampaignValue(
         addressDO.privateEmail?.let { if (it.isNotBlank()) emails.add(it) }
         this.email = if (emails.isNotEmpty()) emails.joinToString(", ") else null
 
-        // Format mailing address
-        this.formattedAddress = MailingAddress(addressDO).formattedAddress
+        // Format and validate mailing address
+        MailingAddress(addressDO).let {
+            this.formattedAddress = it.formattedAddress
+            this.isAddressValid = it.isValid
+        }
     }
 }

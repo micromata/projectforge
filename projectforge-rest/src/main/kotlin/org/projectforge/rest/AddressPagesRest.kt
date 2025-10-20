@@ -271,6 +271,7 @@ class AddressPagesRest
             this,
             AddressMultiSelectedPageRest::class.java,
             userAccess,
+            legendText = translate("address.list.legend")
         ).withGetRowClass(
             """if (params.node.data.address.isFavoriteCard) { return 'ag-row-blue'; }"""
         )
