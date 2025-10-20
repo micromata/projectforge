@@ -101,8 +101,16 @@ class AddressCampaignValue(
       // Use MailingAddress only for formatting, don't store the object
       this.formattedAddress = MailingAddress(addressDO).formattedAddress
     }
-    this.value = src.value
-    this.comment = src.comment
+
+    // For deleted campaign values: keep ID but clear value and comment
+    // This makes them appear as "not set" to the user while preserving the entity for updates
+    if (src.deleted) {
+      this.value = null
+      this.comment = null
+    } else {
+      this.value = src.value
+      this.comment = src.comment
+    }
   }
 
   override fun copyTo(dest: AddressCampaignValueDO) {
