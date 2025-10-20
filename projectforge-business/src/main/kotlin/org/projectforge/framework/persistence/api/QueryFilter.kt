@@ -286,7 +286,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
         @JvmOverloads
         @JvmStatic
         fun like(field: String, value: String, autoWildcardSearch: Boolean = false): DBPredicate.Like {
-            return DBPredicate.Like(field, value, autoWildcardSearch)
+            return DBPredicate.Like(field, value, autoWildcardSearch = autoWildcardSearch)
         }
 
         @JvmStatic
