@@ -29,11 +29,10 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUserId
 import org.projectforge.framework.utils.MarkdownBuilder
-import org.projectforge.plugins.marketing.AddressCampaignDO
-import org.projectforge.plugins.marketing.AddressCampaignDao
-import org.projectforge.plugins.marketing.AddressCampaignValueDO
-import org.projectforge.plugins.marketing.AddressCampaignValueDao
+import org.projectforge.plugins.marketing.*
 import org.projectforge.plugins.marketing.dto.AddressCampaign
 import org.projectforge.plugins.marketing.dto.AddressCampaignValue
 import org.projectforge.rest.config.Rest
@@ -66,6 +65,9 @@ class AddressCampaignValuePagesRest :
 
     @Autowired
     private lateinit var personalAddressDao: PersonalAddressDao
+
+    @Autowired
+    private lateinit var persistenceService: PfPersistenceService
 
     companion object {
         private const val USER_PREF_SELECTED_CAMPAIGN_ID = "AddressCampaignValuePagesRest.selectedCampaignId"
@@ -137,6 +139,14 @@ class AddressCampaignValuePagesRest :
                 defaultFilter = false
             )
         )
+        elements.add(
+            UIFilterElement(
+                "myEntries",
+                UIFilterElement.FilterType.BOOLEAN,
+                translate("plugins.marketing.addressCampaign.filter.myEntries"),
+                defaultFilter = true
+            )
+        )
 
         // Enum filters (database field predicates)
         val contactStatusValues = ContactStatus.entries.map {
@@ -200,6 +210,12 @@ class AddressCampaignValuePagesRest :
         doubletsEntry?.synthetic = true
         if (doubletsEntry?.isTrueValue == true) {
             filters.add(CampaignValueFilterAdapter(DoubletsResultFilter()))
+        }
+
+        val myEntriesEntry = source.entries.find { it.field == "myEntries" }
+        myEntriesEntry?.synthetic = true
+        if (myEntriesEntry?.isTrueValue == true) {
+            filters.add(AddressCampaignValueMyEntriesResultFilter(persistenceService, requiredLoggedInUserId))
         }
 
         // Process field-based filters (add as QueryFilter predicates for AddressDO)
