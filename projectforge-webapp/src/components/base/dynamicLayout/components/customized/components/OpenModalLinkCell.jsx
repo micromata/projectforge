@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import style from './Customized.module.scss';
 
 function OpenModalLinkCell({
-    value, data, urlPattern, multiline,
+    value, data, urlPattern, multiline, placeholder,
 }) {
     const navigate = useNavigate();
     const location = useLocation();
@@ -31,7 +31,10 @@ function OpenModalLinkCell({
         }
     };
 
-    if (!value) {
+    // Determine display value: use value if present, otherwise use placeholder
+    const displayValue = value || placeholder;
+
+    if (!displayValue) {
         return null;
     }
 
@@ -45,7 +48,7 @@ function OpenModalLinkCell({
                 if (e.key === 'Enter') handleClick(e);
             }}
         >
-            {multiline
+            {multiline && value
                 ? value.split('\n').map((line, index) => (
                     // eslint-disable-next-line react/no-array-index-key
                     <React.Fragment key={`line-${index}`}>
@@ -53,7 +56,7 @@ function OpenModalLinkCell({
                         {index < value.split('\n').length - 1 && <br />}
                     </React.Fragment>
                 ))
-                : value}
+                : displayValue}
         </span>
     );
 }
@@ -63,11 +66,13 @@ OpenModalLinkCell.propTypes = {
     data: PropTypes.shape({}).isRequired,
     urlPattern: PropTypes.string.isRequired,
     multiline: PropTypes.bool,
+    placeholder: PropTypes.string,
 };
 
 OpenModalLinkCell.defaultProps = {
     value: null,
     multiline: false,
+    placeholder: null,
 };
 
 export default OpenModalLinkCell;
