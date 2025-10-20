@@ -70,6 +70,12 @@ data class MailingAddress(
         }
 
     /**
+     * Returns true if the address is valid (has both zipCode and city).
+     */
+    val isValid: Boolean
+        get() = !zipCode.isNullOrBlank() && !city.isNullOrBlank()
+
+    /**
      * Constructor that creates a MailingAddress from an AddressDO.
      * Uses the mailing address methods to get the first available address (postal → business → private).
      */

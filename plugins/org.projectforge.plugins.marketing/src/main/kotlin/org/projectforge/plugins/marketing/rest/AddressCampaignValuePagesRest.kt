@@ -329,6 +329,7 @@ class AddressCampaignValuePagesRest :
             AddressCampaignValueMultiSelectedPageRest::class.java,
             userAccess = userAccess,
             rowClickUrl = rowClickUrl,
+            legendText = translate("plugins.marketing.addressCampaign.list.legend")
         )
             .add(lc, "name", headerName = "contact.name", pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT)
             .add(
@@ -363,7 +364,11 @@ class AddressCampaignValuePagesRest :
             .add(lc, "comment")
             .withMultiRowSelection(request, magicFilter)
             .withGetRowClass(
-                """if (params.node.data.isFavoriteCard) { return 'ag-row-blue'; }"""
+                """if (params.node.data.isAddressValid === false) {
+            return 'ag-row-red';
+        } else if (params.node.data.isFavoriteCard) {
+            return 'ag-row-blue';
+        }"""
             )
     }
 
