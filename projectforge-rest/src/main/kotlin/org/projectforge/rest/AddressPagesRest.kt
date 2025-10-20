@@ -131,6 +131,9 @@ class AddressPagesRest
     @Autowired
     private lateinit var smsSenderConfig: SmsSenderConfig
 
+    @Autowired
+    private lateinit var persistenceService: org.projectforge.framework.persistence.jpa.PfPersistenceService
+
     override fun transformForDB(dto: Address): AddressDO {
         val addressDO = AddressDO()
         dto.copyTo(addressDO)
@@ -183,6 +186,15 @@ class AddressPagesRest
             )
         )
         elements.add(UIFilterElement("images", UIFilterElement.FilterType.BOOLEAN, translate("address.filter.images")))
+        elements.add(
+            UIFilterElement(
+                "myEntries",
+                UIFilterElement.FilterType.BOOLEAN,
+                translate("address.filter.myEntries"),
+                tooltip = translate("address.filter.myEntries.tooltip"),
+                defaultFilter = false,
+            )
+        )
     }
 
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<AddressDO>>? {
@@ -192,6 +204,8 @@ class AddressPagesRest
         myFavoritesFilterEntry?.synthetic = true
         val imagesFilterEntry = source.entries.find { it.field == "images" }
         imagesFilterEntry?.synthetic = true
+        val myEntriesEntry = source.entries.find { it.field == "myEntries" }
+        myEntriesEntry?.synthetic = true
         val filters = mutableListOf<CustomResultFilter<AddressDO>>()
         if (doubletFilterEntry?.isTrueValue == true) {
             filters.add(DoubletsResultFilter())
@@ -201,6 +215,9 @@ class AddressPagesRest
         }
         if (imagesFilterEntry?.isTrueValue == true) {
             filters.add(ImagesResultFilter())
+        }
+        if (myEntriesEntry?.isTrueValue == true) {
+            filters.add(AddressMyEntriesResultFilter(persistenceService, org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUserId))
         }
         source.paginationPageSize?.let {
             // filter.limitResultSize is a workaround, because this rest page doesn't use Ag-Grid and

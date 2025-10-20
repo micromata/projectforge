@@ -143,7 +143,8 @@ class AddressCampaignValuePagesRest :
             UIFilterElement(
                 "myEntries",
                 UIFilterElement.FilterType.BOOLEAN,
-                translate("plugins.marketing.addressCampaign.filter.myEntries"),
+                translate("address.filter.myEntries"),
+                tooltip = translate("address.filter.myEntries.tooltip"),
                 defaultFilter = true
             )
         )

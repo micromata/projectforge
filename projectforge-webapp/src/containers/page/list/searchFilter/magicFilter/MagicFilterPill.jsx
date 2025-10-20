@@ -4,6 +4,7 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
+import { UncontrolledTooltip } from 'reactstrap';
 import { removeFilter, setFilter } from '../../../../../actions/list/filter';
 import AdvancedPopper from '../../../../../components/design/popper/AdvancedPopper';
 import AdvancedPopperAction from '../../../../../components/design/popper/AdvancedPopperAction';
@@ -18,6 +19,7 @@ function MagicFilterPill(
         label,
         onFilterDelete,
         onFilterSet,
+        tooltip,
         translations,
         filterType,
         value = {},
@@ -58,11 +60,14 @@ function MagicFilterPill(
         onFilterSet(id, tempValue);
     };
 
+    const tooltipId = `magic-filter-${id}`;
+
     return (
         <div className={styles.magicFilter}>
             <AdvancedPopper
                 setIsOpen={setIsOpen}
                 isOpen={isOpen}
+                id={tooltipId}
                 basic={(
                     <>
                         {value && Object.keys(value).length
@@ -114,6 +119,15 @@ function MagicFilterPill(
                     />
                 </div>
             </AdvancedPopper>
+            {tooltip && (
+                <UncontrolledTooltip
+                    placement="auto"
+                    target={tooltipId}
+                    delay={{ show: 500, hide: 0 }}
+                >
+                    {tooltip}
+                </UncontrolledTooltip>
+            )}
         </div>
     );
 }
@@ -123,6 +137,7 @@ MagicFilterPill.propTypes = {
     label: PropTypes.string.isRequired,
     onFilterDelete: PropTypes.func.isRequired,
     onFilterSet: PropTypes.func.isRequired,
+    tooltip: PropTypes.string,
     translations: PropTypes.shape({
         delete: PropTypes.string,
         save: PropTypes.string,
