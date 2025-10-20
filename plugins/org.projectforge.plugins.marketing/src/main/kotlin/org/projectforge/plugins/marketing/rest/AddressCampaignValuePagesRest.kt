@@ -40,12 +40,15 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -427,6 +430,25 @@ class AddressCampaignValuePagesRest :
             )
 
         return LayoutUtils.processEditPage(layout, dto, this)
+    }
+
+    /**
+     * Override to handle negative IDs from transient campaign values.
+     * Negative IDs are synthetic IDs used for multi-selection tracking.
+     * When a negative ID is passed in the URL, treat it as a new object.
+     */
+    override fun getItemAndLayout(
+        request: HttpServletRequest,
+        @RequestParam("id") id: String?,
+        @RequestParam("returnToCaller") returnToCaller: String?
+    ): ResponseEntity<FormLayoutData> {
+        // If id is negative (synthetic ID from transient campaign value),
+        // treat it as a new object by passing null
+        val effectiveId = id?.toLongOrNull()?.let { longId ->
+            if (longId < 0) null else id
+        } ?: id
+
+        return super.getItemAndLayout(request, effectiveId, returnToCaller)
     }
 
     /**

@@ -751,7 +751,7 @@ constructor(
      * the user will be redirected to this given returnToCaller.
      */
     @GetMapping(RestPaths.EDIT)
-    fun getItemAndLayout(
+    open fun getItemAndLayout(
         request: HttpServletRequest,
         @RequestParam("id") id: String?,
         @RequestParam("returnToCaller") returnToCaller: String?

@@ -70,7 +70,7 @@ class AddressCampaignValue(
     get() = TimeAgo.getMessage(lastUpdate)
 
   override fun copyFrom(src: AddressCampaignValueDO) {
-    this.id = src.id // Campaign value ID
+    this.id = src.id // Campaign value ID (including negative synthetic IDs for multi-selection)
 
     // Copy address campaign relationship
     src.addressCampaign?.let { campaignDO ->
