@@ -170,6 +170,16 @@ class SipgateContact {
     }
   }
 
+  /**
+   * Remove duplicates and empty emails.
+   */
+  fun fixEmails() {
+    // Remove empty emails.
+    emails?.removeIf { it.email.isNullOrBlank() }
+    // Remove equal emails of same type.
+    emails = emails?.distinctBy { "${it.email?.trim()?.lowercase()}:${it.type}" }?.toMutableList()
+  }
+
   private fun setEmail(emailAddress: String?, type: EmailType) {
     if (emails == null) {
       emails = mutableListOf()
@@ -177,9 +187,10 @@ class SipgateContact {
     var mail = emails?.firstOrNull { it.type == type }
     if (mail == null) {
       mail = Email(type = type)
-      emails?.add(mail)
+      emails?.let { it.add(mail) }
     }
     mail.email = emailAddress
+    fixEmails()
   }
 
   private fun setNumber(number: String?, type: Array<String>) {

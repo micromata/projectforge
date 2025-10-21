@@ -294,6 +294,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
             syncInfo: SipgateContactSyncDO.SyncInfo?,
         ): SyncResult {
             SipgateContactService.fixNumbers(contact, address, syncInfo)
+            contact.fixEmails()
             val result = SyncResult()
             if (contact.name != SipgateContactSyncDO.getName(address)) {
                 if (syncInfo != null && syncInfo.fieldsInfo["name"] != SipgateContactSyncDO.SyncInfo.hash(contact.name)) {
