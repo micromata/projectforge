@@ -308,7 +308,45 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
           + obj);
     }
     final String dn = origObject.getDn();
-    log.info("Modify attributes of " + getObjectClass() + ": " + dn + ": " + getLogInfo(obj));
+
+    // Build detailed change information for logging
+    StringBuilder changes = new StringBuilder();
+    for (ModificationItem mi : modificationItems) {
+      if (mi != null) {
+        if (changes.length() > 0) {
+          changes.append(", ");
+        }
+        String op = "";
+        switch (mi.getModificationOp()) {
+          case DirContext.ADD_ATTRIBUTE:
+            op = "ADD";
+            break;
+          case DirContext.REPLACE_ATTRIBUTE:
+            op = "REPLACE";
+            break;
+          case DirContext.REMOVE_ATTRIBUTE:
+            op = "REMOVE";
+            break;
+          default:
+            op = "UNKNOWN";
+        }
+        Attribute attr = mi.getAttribute();
+        String attrValue = "";
+        try {
+          if (attr.get() != null) {
+            attrValue = attr.get().toString();
+          } else {
+            attrValue = "null";
+          }
+        } catch (NamingException e) {
+          attrValue = "[error reading value]";
+        }
+        changes.append(attr.getID()).append("=").append(op).append(":").append(attrValue);
+      }
+    }
+
+    log.info("Modify attributes of " + getObjectClass() + ": " + dn + ": " + getLogInfo(obj)
+        + (changes.length() > 0 ? " | Changes: " + changes.toString() : " | No changes"));
 
     if (log.isDebugEnabled()) {
       for (ModificationItem mi : modificationItems) {
