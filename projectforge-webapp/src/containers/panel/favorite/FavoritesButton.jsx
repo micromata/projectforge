@@ -44,7 +44,12 @@ function FavoritesButton(
             >
                 {button}
             </Button>
-            <UncontrolledTooltip placement="bottom" target={id} fade timeout={150}>
+            <UncontrolledTooltip
+                placement="bottom"
+                target={id}
+                fade
+                transition={{ timeout: 150 }}
+            >
                 {favoriteButtonTooltip || translations.favorites}
             </UncontrolledTooltip>
         </>

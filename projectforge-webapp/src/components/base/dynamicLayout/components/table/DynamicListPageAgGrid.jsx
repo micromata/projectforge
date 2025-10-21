@@ -14,6 +14,7 @@ function DynamicListPageAgGrid({
     rowSelection,
     rowMultiSelectWithClick,
     rowClickRedirectUrl,
+    rowClickOpenModal,
     onColumnStatesChangedUrl,
     resetGridStateUrl,
     multiSelectButtonTitle,
@@ -100,6 +101,7 @@ function DynamicListPageAgGrid({
                     sortModel={sortModel}
                     rowSelection={rowSelection}
                     rowClickRedirectUrl={rowClickRedirectUrl}
+                    rowClickOpenModal={rowClickOpenModal}
                     onColumnStatesChangedUrl={onColumnStatesChangedUrl}
                     resetGridStateUrl={resetGridStateUrl}
                     pagination={pagination}
@@ -148,6 +150,7 @@ DynamicListPageAgGrid.propTypes = {
         enableSelectionWithoutKeys: PropTypes.bool,
     }),
     rowClickRedirectUrl: PropTypes.string,
+    rowClickOpenModal: PropTypes.bool,
     onColumnStatesChangedUrl: PropTypes.string,
     resetGridStateUrl: PropTypes.string,
     multiSelectButtonTitle: PropTypes.string,
@@ -158,6 +161,7 @@ DynamicListPageAgGrid.propTypes = {
     paginationPageSize: PropTypes.number,
     paginationPageSizeSelector: PropTypes.arrayOf(PropTypes.number),
     getRowClass: PropTypes.string,
+    rowMultiSelectWithClick: PropTypes.bool,
 };
 
 export default DynamicListPageAgGrid;

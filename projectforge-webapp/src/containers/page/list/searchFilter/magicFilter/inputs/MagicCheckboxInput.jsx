@@ -25,7 +25,7 @@ MagicCheckboxInput.propTypes = {
     label: PropTypes.string.isRequired,
     onChange: PropTypes.func.isRequired,
     value: PropTypes.shape({
-        value: PropTypes.shape({}),
+        value: PropTypes.string,
     }).isRequired,
 };
 

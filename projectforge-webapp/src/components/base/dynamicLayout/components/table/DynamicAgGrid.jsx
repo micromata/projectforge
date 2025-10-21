@@ -4,9 +4,9 @@ import React, { useMemo, useRef, useEffect, useState, lazy, Suspense } from 'rea
 import { AgGridReact } from 'ag-grid-react';
 import { LicenseManager, ModuleRegistry, AllEnterpriseModule, themeBalham } from 'ag-grid-enterprise';
 import { connect } from 'react-redux';
+import { useNavigate, useLocation } from 'react-router';
 import { DynamicLayoutContext } from '../../context';
 import Formatter from '../../../Formatter';
-import history from '../../../../../utilities/history';
 import { getServiceURL } from '../../../../../utilities/rest';
 import { AG_GRID_LOCALE_DE } from './agGridLocalization_de';
 import formatterFormat from '../../../FormatterFormat';
@@ -77,6 +77,8 @@ function DynamicAgGrid(props) {
     const getRowClassFunction = Function('params', getRowClass);
     const rowClass = 'ag-row-standard';
     const { data, variables } = React.useContext(DynamicLayoutContext);
+    const navigate = useNavigate();
+    const location = useLocation();
     const [gridApi, setGridApi] = useState();
     const gridRef = useRef();
     // const gridStyle = React.useMemo(() => ({ width: '100%' }), []);
@@ -232,15 +234,14 @@ function DynamicAgGrid(props) {
             // Do nothing
             return;
         }
-        const redirectUrl = modifyRedirectUrl(rowClickRedirectUrl, event.data);
+        let redirectUrl = modifyRedirectUrl(rowClickRedirectUrl, event.data);
         if (rowClickOpenModal) {
-            const historyState = { };
+            // Add modal=true query parameter so backend knows it was opened in modal context
+            redirectUrl += redirectUrl.includes('?') ? '&modal=true' : '?modal=true';
 
-            historyState.background = history.location;
-
-            history.push(redirectUrl, historyState);
+            navigate(redirectUrl, { state: { background: location } });
         } else {
-            history.push(redirectUrl);
+            navigate(redirectUrl);
         }
     };
 
@@ -259,7 +260,7 @@ function DynamicAgGrid(props) {
             // Can't detect id.
             return;
         }
-        history.push(modifyRedirectUrl(rowClickRedirectUrl, firstSelectedRow));
+        navigate(modifyRedirectUrl(rowClickRedirectUrl, firstSelectedRow));
     };
 
     const postColumnStates = (event) => {
