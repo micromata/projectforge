@@ -178,6 +178,12 @@ class SipgateContact {
     emails?.removeIf { it.email.isNullOrBlank() }
     // Remove equal emails of same type.
     emails = emails?.distinctBy { "${it.email?.trim()?.lowercase()}:${it.type}" }?.toMutableList()
+    // Remove emails without type if same email exists with a type:
+    emails?.removeIf { current ->
+      current.type == null && emails?.any {
+        it != current && it.email?.trim()?.lowercase() == current.email?.trim()?.lowercase() && it.type != null
+      } == true
+    }
   }
 
   private fun setEmail(emailAddress: String?, type: EmailType) {
