@@ -186,7 +186,7 @@ SearchFilter.propTypes = {
             multiSelectionSupported: PropTypes.bool,
         }),
         filter: PropTypes.shape({
-            id: PropTypes.string,
+            id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
             searchString: PropTypes.string,
         }),
         filterFavorites: PropTypes.arrayOf(PropTypes.shape({})),
