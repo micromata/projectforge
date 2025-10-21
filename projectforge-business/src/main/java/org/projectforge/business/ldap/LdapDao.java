@@ -233,6 +233,18 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
       list.add(createModificationItem(attrId, null));
       return;
     }
+    // Check if all values are empty - treat same as null to avoid endless sync loops
+    boolean allEmpty = true;
+    for (final String attrValue : attrValues) {
+      if (StringUtils.isNotEmpty(attrValue)) {
+        allEmpty = false;
+        break;
+      }
+    }
+    if (allEmpty) {
+      list.add(createModificationItem(attrId, null));
+      return;
+    }
     boolean added = false;
     for (final String attrValue : attrValues) {
       if (StringUtils.isEmpty(attrValue) && added) {
@@ -262,6 +274,18 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
       final Set<String> attrValues)
   {
     if (attrValues == null) {
+      list.add(createModificationItem(attrId, null));
+      return;
+    }
+    // Check if all values are empty - treat same as null to avoid endless sync loops
+    boolean allEmpty = true;
+    for (final String attrValue : attrValues) {
+      if (StringUtils.isNotEmpty(attrValue)) {
+        allEmpty = false;
+        break;
+      }
+    }
+    if (allEmpty) {
       list.add(createModificationItem(attrId, null));
       return;
     }
