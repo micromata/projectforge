@@ -56,8 +56,6 @@ function HistoryEntry(
 
     const { editHistoryComments } = userAccess;
 
-    console.log(userAccess);
-
     return (
         <div
             className={classNames(style.entry, { [style.active]: active })}

@@ -239,7 +239,7 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
         "EDIT",
         i18nKey = "address.title.edit",
         url = PagesResolver.getEditPageUrl(AddressPagesRest::class.java, address.id),
-        type = MenuItemTargetType.REDIRECT
+        type = MenuItemTargetType.MODAL
       )
     )
     layout.watchFields.addAll(arrayOf("isFavoriteCard"))
