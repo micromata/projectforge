@@ -46,20 +46,20 @@ class MarkdownBuilder {
         return this
     }
 
-    fun append(text: String?, color: Color? = null, bold: Boolean? = null): MarkdownBuilder {
+    fun append(text: String?, color: Color? = null, bold: Boolean? = null, escape: Boolean = true): MarkdownBuilder {
         if (text.isNullOrBlank()) {
             sb.append(text ?: "")
             return this
         }
         if (color == null) {
-            val escapedText = escapeMarkdown(text)
+            val escapedText = if (escape) escapeMarkdown(text) else text
             if (bold == true) {
                 sb.append("**").append(escapedText).append("**")
             } else {
                 sb.append(escapedText)
             }
         } else {
-            val escapedText = escapeHtml(text)
+            val escapedText = if (escape) escapeHtml(text) else text
             sb.append("<span style=\"color:${color.color};")
             if (bold == true) {
                 sb.append(" font-weight: bold;")
@@ -105,10 +105,19 @@ class MarkdownBuilder {
         return appendLine(text, color)
     }
 
-    fun appendLine(text: String? = null, color: Color? = null, bold: Boolean? = null): MarkdownBuilder {
+    fun appendLine(
+        text: String? = null,
+        color: Color? = null,
+        bold: Boolean? = null,
+        escape: Boolean = true
+    ): MarkdownBuilder {
         first = true
-        append(text, color, bold)
-        sb.appendLine("</br>")
+        append(text, color, bold = bold, escape = escape)
+        if (escape) {
+            sb.appendLine("</br>")
+        } else {
+            sb.appendLine()
+        }
         return this
     }
 
@@ -136,22 +145,46 @@ class MarkdownBuilder {
     /**
      * @return this for chaining.
      */
+    fun beginTable(numberOfCols: Int): MarkdownBuilder {
+        return beginTable(*Array(numberOfCols) { "" })
+    }
+
+    /**
+     * @return this for chaining.
+     */
     fun beginTable(vararg header: String?): MarkdownBuilder {
         first = true
         row(*header)
-        header.forEach { sb.append("---").append(" | ") }
+        sb.append("|")
+        header.forEach { sb.append(" ---").append(" |") }
         sb.appendLine()
         return this
     }
 
     fun row(vararg cell: String?): MarkdownBuilder {
+        beginRow()
+        cell.forEach {
+            cell(it)
+        }
+        endRow()
+        return this
+    }
+
+    fun beginRow() : MarkdownBuilder {
         first = true
         sb.append("| ")
-        cell.forEach {
-            append(it)
-            sb.append(" | ")
-        }
-        sb.appendLine()
+        return this
+    }
+
+    fun cell(cell: String?, color: Color? = null, bold: Boolean? = null, escape: Boolean = true): MarkdownBuilder {
+        ensureSeparator()
+        append(cell, color = color, bold = bold, escape = escape)
+        return this
+    }
+
+    fun endRow() : MarkdownBuilder {
+        first = true
+        sb.appendLine(" |")
         return this
     }
 

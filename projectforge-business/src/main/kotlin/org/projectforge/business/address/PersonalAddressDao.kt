@@ -203,9 +203,11 @@ class PersonalAddressDao {
         if (modified == EntityCopyStatus.MAJOR) {
             dbObj.setLastUpdate()
             context.update(dbObj)
-            personalAddressCache!!.setAsExpired(dbObj.ownerId!!)
             log.info("Object updated: $dbObj")
         }
+        // Always invalidate cache after any update attempt to ensure consistency. The modification of the isFavorite flag
+        // might not be a major change, but the cache must be updated.
+        personalAddressCache!!.setAsExpired(dbObj.ownerId!!)
         return true
     }
 
