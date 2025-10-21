@@ -47,6 +47,18 @@
   }
 }
 
+// AG Grid popup menus (column context menus, filter menus, etc.) should appear above modals
+.ag-popup,
+.ag-menu,
+.ag-column-select-panel {
+  z-index: 1050 !important; // Higher than modal (1010) and dropdown (1020)
+}
+
+// AG Grid overlay (loading overlay, etc.)
+.ag-overlay {
+  z-index: 1040 !important; // Just below AG menus but above modals
+}
+
 div.dropZone {
   :-moz-drag-over {
     border-radius: 5px;
