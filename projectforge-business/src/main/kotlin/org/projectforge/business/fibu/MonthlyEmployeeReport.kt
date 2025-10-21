@@ -35,7 +35,7 @@ import org.projectforge.business.timesheet.AITimeSavings
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.common.StringHelper
-import org.projectforge.common.extensions.formatPercent
+import org.projectforge.common.extensions.formatFractionAsPercent
 import org.projectforge.common.extensions.isZeroOrNull
 import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.calendar.MonthHolder
@@ -147,6 +147,9 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
         private set
 
     var totalTimeSavedByAI: Long = 0
+        private set
+
+    var invoicingQuota: BigDecimal? = null
         private set
 
     private var vacationCount: BigDecimal? = BigDecimal.ZERO
@@ -325,6 +328,10 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
                     stats.vacationDaysInProgress // was vacationService.getPlandVacationDaysForYearAtDate(this.employee, this.toDate.getLocalDate());
             }
         }
+        val invoicingQuotaService = WicketSupport.get(InvoicingQuotaService::class.java)
+        if (invoicingQuotaService?.isEnabled() == true) {
+            this.invoicingQuota = invoicingQuotaService.calculateQuota(kost2Durations)
+        }
     }
 
     /**
@@ -391,6 +398,9 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
 
     val formattedTimeSavedByAIPercentage: String
         get() = AITimeSavings.getFormattedPercentage(totalGrossDuration, totalTimeSavedByAI)
+
+    val formattedInvoicingQuota: String?
+        get() = invoicingQuota?.formatFractionAsPercent(true)
 
     companion object {
         private const val serialVersionUID = -4636357379552246075L

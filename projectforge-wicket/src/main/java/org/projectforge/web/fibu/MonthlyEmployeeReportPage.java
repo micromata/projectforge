@@ -192,6 +192,15 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
                     return WicketSupport.get(VacationService.class).getAverageWorkingTimeStats(user, startOfWorkContract, currentMonth).getLocalizedMessage();
                 }
             }));
+            fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
+                @Override
+                public String getObject() {
+                    if (report == null || report.getInvoicingQuota() == null) {
+                        return "";
+                    }
+                    return " " + getString("fibu.common.invoicingQuota") + ": " + report.getFormattedInvoicingQuota();
+                }
+            }));
         }
         gridBuilder.newSplitPanel(GridSize.COL25);
         {
