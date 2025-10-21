@@ -389,6 +389,7 @@ function DynamicAgGrid(props) {
                             }
                         })
                         .catch((error) => {
+                            // eslint-disable-next-line no-console
                             console.error('Error resetting grid state:', error);
                         });
                 },

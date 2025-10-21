@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
-import { Link } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import { loadUserStatus } from '../../../actions';
 import history from '../../../utilities/history';
 import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
@@ -22,6 +22,8 @@ function NavigationAction({
     type = 'LINK',
     url = '',
 }) {
+    const navigate = useNavigate();
+    const location = useLocation();
     const handleClick = (event) => {
         event.preventDefault();
 
@@ -118,25 +120,39 @@ function NavigationAction({
             );
         case 'LINK':
         case 'MODAL':
-        case 'REDIRECT':
+        case 'REDIRECT': {
+            const pathname = `/${url.split('?')[0]}`;
+            let search = url.split('?')[1] || '';
+
+            // Add modal=true query parameter for MODAL type
+            if (type === 'MODAL') {
+                search = search ? `${search}&modal=true` : 'modal=true';
+            }
+
+            const fullPath = `${pathname}${search ? `?${search}` : ''}`;
+            // If we're already in a modal, pass through the original background
+            // Otherwise, use current location as background
+            const backgroundLocation = location.state?.background || location;
+            const navigationOptions = type === 'MODAL' ? { state: { background: backgroundLocation } } : {};
+
+            const handleNavClick = (e) => {
+                e.preventDefault();
+                navigate(fullPath, navigationOptions);
+            };
+
             return (
                 <>
                     <NavLink
                         id={id}
-                        tag={Link}
-                        to={{
-                            pathname: `/${url.split('?')[0]}`,
-                            search: `?${url.split('?')[1] || ''}`,
-                            state: {
-                                background: type === 'MODAL' ? history.location : undefined,
-                            },
-                        }}
+                        href={fullPath}
+                        onClick={handleNavClick}
                     >
                         {content}
                     </NavLink>
                     {tooltipElement}
                 </>
             );
+        }
         case 'TEXT':
         default:
             return (

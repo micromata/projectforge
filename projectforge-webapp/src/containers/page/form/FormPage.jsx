@@ -105,7 +105,9 @@ function FormPage(
         return <LoadingContainer loading />;
     }
 
-    const formBaseUrl = `/react/${currentCategory}/edit/${id}`;
+    // Build base URL from current location to preserve nested routes (e.g., /calendar/)
+    // Remove /history suffix if present, and remove query parameters
+    const formBaseUrl = location.pathname.replace(/\/history$/, '').split('?')[0];
     const tabs = [
         {
             id: 'form',
