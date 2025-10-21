@@ -251,8 +251,15 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
         importStorage.clearErrors()
         if (selectedEntries.isEmpty()) {
             importStorage.addError(translate("import.error.noEntrySelected"))
-            // TODO: merge UPDATE
-            return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
+            return ResponseEntity.ok(
+                ResponseAction(
+                    message = ResponseAction.Message(
+                        message = translate("import.error.noEntrySelected"),
+                        color = UIColor.DANGER
+                    ),
+                    targetType = TargetType.TOAST
+                )
+            )
         }
         log.info { "User wants to import #${selectedEntries.size} entries..." }
         val jobId = import(importStorage, selectedEntries)

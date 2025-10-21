@@ -28,7 +28,7 @@ import org.projectforge.framework.i18n.translate
 abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
   val importSettings: ImportSettings
 ) {
-  private var idCounter = 0
+  private var idCounter = 0L
 
   /**
    * Indicates whether reconcileImportStorage has been called at least once.

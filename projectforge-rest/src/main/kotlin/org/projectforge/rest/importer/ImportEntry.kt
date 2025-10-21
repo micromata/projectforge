@@ -31,7 +31,7 @@ open class ImportEntry<O : Any>(
 ) {
     enum class Status { NEW, DELETED, MODIFIED, UNMODIFIED, UNKNOWN_MODIFICATION, UNKNOWN, FAULTY }
 
-    var id: Int = -1
+    var id: Long = -1
 
     open var status: Status = Status.UNKNOWN
 
