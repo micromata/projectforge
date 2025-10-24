@@ -82,8 +82,8 @@ class PhoneNumberUtilsTest {
 
     @Test
     fun `test normalize with special characters and formatting`() {
-        // Dots - no space before dot means no space in result
-        assertEquals("+49 561316793-0", PhoneNumberUtils.normalizePhoneNumber("0561.316793-0"))
+        // Dots - treated as separator between number blocks
+        assertEquals("+49 561 316793-0", PhoneNumberUtils.normalizePhoneNumber("0561.316793-0"))
 
         // Multiple spaces
         assertEquals("+49 561 316793-0", PhoneNumberUtils.normalizePhoneNumber("0561   316793 - 0"))

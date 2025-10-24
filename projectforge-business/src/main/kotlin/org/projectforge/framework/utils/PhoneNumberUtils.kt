@@ -100,9 +100,10 @@ object PhoneNumberUtils {
             return null
         }
 
-        // Clean up remaining part: remove slashes, dots, parentheses first, then normalize spaces
+        // Clean up remaining part: replace dots with spaces (separator), remove slashes/parentheses, then normalize spaces
         var remaining = remainingPart.trim()
-            .replace(Regex("[/().]"), "") // Remove slashes, parentheses, dots
+            .replace(".", " ") // Dot is a separator between number blocks
+            .replace(Regex("[/()]"), "") // Remove slashes, parentheses
             .replace(Regex("\\s+"), " ") // Normalize multiple spaces to single space
             .trim()
 
