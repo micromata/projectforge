@@ -24,6 +24,7 @@
 package org.projectforge.plugins.marketing.rest
 
 import jakarta.servlet.http.HttpServletRequest
+import mu.KotlinLogging
 import org.projectforge.business.address.*
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -31,14 +32,19 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUserId
+import org.projectforge.framework.time.DateHelper
+import org.projectforge.framework.utils.FileHelper
 import org.projectforge.framework.utils.MarkdownBuilder
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.marketing.*
 import org.projectforge.plugins.marketing.dto.AddressCampaign
 import org.projectforge.plugins.marketing.dto.AddressCampaignValue
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.core.getObjectList
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.*
@@ -46,9 +52,14 @@ import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.util.*
+
+private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/addressCampaignValue")
@@ -59,6 +70,9 @@ class AddressCampaignValuePagesRest :
     ) {
     @Autowired
     private lateinit var addressCampaignDao: AddressCampaignDao
+
+    @Autowired
+    private lateinit var addressCampaignValueExport: AddressCampaignValueExport
 
     @Autowired
     private lateinit var addressDao: AddressDao
@@ -351,6 +365,8 @@ class AddressCampaignValuePagesRest :
         } else {
             null
         }
+
+        layout.excelExportSupported = true
 
         agGridSupport.prepareUIGrid4ListPage(
             request,
@@ -750,5 +766,57 @@ class AddressCampaignValuePagesRest :
             color = UIColor.LIGHT,
             markdown = true
         )
+    }
+
+    @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
+    fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
+        // Get the current campaign from the current filter
+        val currentFilter = getCurrentFilter()
+        val campaignId = currentFilter.extended["campaignId"] as? Long
+        val campaign = campaignId?.let { addressCampaignDao.find(it) } ?: run {
+            log.warn { "No campaign selected for Excel export" }
+            return RestUtils.downloadFile("empty.txt", "No campaign selected.")
+        }
+
+        log.info { "Exporting address campaign values as Excel file for campaign '${campaign.title}'." }
+
+        // Get list of campaign values using the standard method
+        @Suppress("UNCHECKED_CAST")
+        val campaignValueList = getObjectList(this, baseDao, filter)
+        if (campaignValueList.isEmpty()) {
+            return RestUtils.downloadFile("empty.txt", "Nothing to export.")
+        }
+
+        // Extract address IDs and load full address objects from database
+        val addressIds = campaignValueList.mapNotNull { it.address?.id }
+        val addressList = if (addressIds.isNotEmpty()) {
+            addressDao.select(addressIds) ?: emptyList()
+        } else {
+            emptyList()
+        }
+
+        // Build map of addressId -> AddressCampaignValueDO
+        val campaignValueMap = campaignValueList.filter { it.address?.id != null }
+            .associateBy { it.address!!.id }
+
+        // Get personal address map
+        val personalAddressMap = personalAddressDao.personalAddressByAddressId
+
+        // Export using AddressCampaignValueExport
+        val xls = addressCampaignValueExport.export(
+            addressList,
+            personalAddressMap,
+            campaignValueMap,
+            campaign.title ?: "Campaign"
+        )
+
+        if (xls == null || xls.isEmpty()) {
+            return RestUtils.downloadFile("empty.txt", "Export failed.")
+        }
+
+        // Create filename with campaign name and date
+        val campaignName = FileHelper.createSafeFilename(campaign.title ?: "Campaign", 200)
+        val filename = "ProjectForge-AddressCampaignExport_${campaignName}_${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx"
+        return RestUtils.downloadFile(filename, xls)
     }
 }
