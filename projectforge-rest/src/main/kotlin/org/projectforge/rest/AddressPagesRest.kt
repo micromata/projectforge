@@ -393,32 +393,19 @@ class AddressPagesRest
         table.getColumnDefById("address.isFavoriteCard").apply {
             cellRendererParams = mapOf("valueIconMap" to mapOf(true to UIIconType.STAR_REGULAR))
         }
-        var menuIndex = 0
-        if (sipgateConfiguration.isConfigured()) {
-            layout.add(
-                MenuItem(
-                    "address.phoneCall",
-                    i18nKey = "menu.phoneCall",
-                    url = "wa/phoneCall?callerPage=addressList"
-                ), menuIndex++
-            )
-        }
-        if (smsSenderConfig.isSmsConfigured() || SystemStatus.isDevelopmentMode()) {
-            val sendSmsUrl = if (SystemStatus.isDevelopmentMode()) {
-                log.warn("********** React version of texting messages is only available in development mode.")
-                PagesResolver.getDynamicPageUrl(SendTextMessagePageRest::class.java)
-            } else {
-                "wa/sendSms"
-            }
-            layout.add(
-                MenuItem(
-                    "address.writeSMS",
-                    i18nKey = "address.tooltip.writeSMS",
-                    url = sendSmsUrl
+        // Add VCF Import menu item
+        /*layout.add(
+            MenuItem(
+                "address.vCardImport",
+                i18nKey = "address.book.vCardImports",
+                url = PagesResolver.getDynamicPageUrl(
+                    org.projectforge.rest.address.importer.AddressImportUploadPageRest::class.java,
+                    absolute = false
                 ),
-                menuIndex++
-            )
-        }
+                type = MenuItemTargetType.REDIRECT
+            ),
+            0,
+        )*/
         val exportMenu = MenuItem("address.export", i18nKey = "export")
         if (carddavServerEnabled) {
             exportMenu.add(
@@ -441,7 +428,8 @@ class AddressPagesRest
             )
         )
         layout.excelExportSupported = true
-        layout.add(exportMenu, menuIndex)
+        layout.add(exportMenu, 0)
+
         layout.getMenuById(GEAR_MENU)?.add(
             MenuItem(
                 "address.exportAppleScript4Notes",
