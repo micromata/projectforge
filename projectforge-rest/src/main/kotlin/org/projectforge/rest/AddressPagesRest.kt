@@ -217,7 +217,12 @@ class AddressPagesRest
             filters.add(ImagesResultFilter())
         }
         if (myEntriesEntry?.isTrueValue == true) {
-            filters.add(AddressMyEntriesResultFilter(persistenceService, org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUserId))
+            filters.add(
+                AddressMyEntriesResultFilter(
+                    persistenceService,
+                    org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUserId
+                )
+            )
         }
         source.paginationPageSize?.let {
             // filter.limitResultSize is a workaround, because this rest page doesn't use Ag-Grid and
@@ -393,19 +398,6 @@ class AddressPagesRest
         table.getColumnDefById("address.isFavoriteCard").apply {
             cellRendererParams = mapOf("valueIconMap" to mapOf(true to UIIconType.STAR_REGULAR))
         }
-        // Add VCF Import menu item
-        /*layout.add(
-            MenuItem(
-                "address.vCardImport",
-                i18nKey = "address.book.vCardImports",
-                url = PagesResolver.getDynamicPageUrl(
-                    org.projectforge.rest.address.importer.AddressImportUploadPageRest::class.java,
-                    absolute = false
-                ),
-                type = MenuItemTargetType.REDIRECT
-            ),
-            0,
-        )*/
         val exportMenu = MenuItem("address.export", i18nKey = "export")
         if (carddavServerEnabled) {
             exportMenu.add(
@@ -429,6 +421,23 @@ class AddressPagesRest
         )
         layout.excelExportSupported = true
         layout.add(exportMenu, 0)
+        if (SystemStatus.isDevelopmentMode()) {
+            log.info { "**** vCardsImport is only available on development mode. It's not yet finished." }
+            // Add VCF Import menu item
+            layout.add(
+                MenuItem(
+                    "address.vCardsImport",
+                    i18nKey = "address.book.vCardsImport.menu",
+                    url = PagesResolver.getDynamicPageUrl(
+                        org.projectforge.rest.address.importer.AddressImportUploadPageRest::class.java,
+                        absolute = false
+                    ),
+                    type = MenuItemTargetType.REDIRECT
+                ),
+                0,
+            )
+        }
+
 
         layout.getMenuById(GEAR_MENU)?.add(
             MenuItem(

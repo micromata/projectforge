@@ -78,7 +78,7 @@ class AddressImportServicesRest {
             return ResponseEntity.ok(
                 ResponseAction(
                     message = ResponseAction.Message(
-                        message = translate("address.book.vCardImports.wrongFileType"),
+                        message = translate("address.book.vCardsImport.wrongFileType"),
                         color = UIColor.DANGER
                     ),
                     targetType = TargetType.TOAST
