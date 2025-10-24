@@ -39,6 +39,7 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.Address
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
@@ -265,6 +266,14 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
                 i18nKey = "address.title.edit",
                 url = PagesResolver.getEditPageUrl(AddressPagesRest::class.java, address.id),
                 type = MenuItemTargetType.MODAL
+            )
+        )
+        layout.add(
+            MenuItem(
+                "address.vCardSingleExport",
+                i18nKey = "address.book.vCardSingleExport",
+                url = RestResolver.getRestUrl(AddressPagesRest::class, "/exportVCard/${address.id}"),
+                type = MenuItemTargetType.DOWNLOAD
             )
         )
         layout.watchFields.addAll(arrayOf("isFavoriteCard"))
