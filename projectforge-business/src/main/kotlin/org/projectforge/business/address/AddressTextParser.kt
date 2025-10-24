@@ -78,19 +78,27 @@ object AddressTextParser {
 
     // Phone regex (various formats with flexible separators)
     // Matches phone numbers with digits and common separators (spaces, -, /, ., parentheses)
+    // Supports both "Tel:" and "Tel" (with/without colon)
     private val PHONE_REGEX = Regex(
-        """(?:Tel\.?:|Telefon:|Phone:|Mobil:|Mobile:|Fax:)?\s*(\+?(?:\d+[\s\-./()]*)+\d)""",
+        """(?:Tel\.?:?|Telefon:?|Phone:?|Fon:?|Mobil:?|Mobile:?|Fax:?)\s*(\+?(?:\d+[\s\-./()]*)+\d)""",
         RegexOption.IGNORE_CASE
     )
 
-    // German ZIP + City (5 digits + city name, optionally with "D-" prefix)
+    // ZIP + City (4-5 digits + city name, optionally with "D-" or "CH-" prefix)
+    // Supports German (5 digits), Swiss (4 digits), and other formats
     private val ZIP_CITY_REGEX = Regex(
-        """(?:D-)?(\d{5})\s+([A-ZÄÖÜ][a-zäöüß]+(?:[\s-][A-ZÄÖÜ]?[a-zäöüß]+)*)""",
+        """(?:D-|CH-)?(\d{4,5})\s+([A-ZÄÖÜ][a-zäöüß]+(?:[\s-][A-ZÄÖÜ]?[a-zäöüß]+)*)""",
     )
 
     // Street address (street name + house number)
     private val STREET_REGEX = Regex(
         """([A-ZÄÖÜ][a-zäöüß]+(?:[\s-][A-ZÄÖÜ]?[a-zäöüß]+)*\.?(?:\s+|-)(?:\d+[a-zA-Z]?(?:\s*-\s*\d+[a-zA-Z]?)?))""",
+    )
+
+    // Country name (common countries in multiple languages, optionally with second name after /)
+    private val COUNTRY_REGEX = Regex(
+        """^(Deutschland|Germany|Schweiz|Switzerland|Österreich|Austria|France|Frankreich|Italia?|Italy|UK|USA|United States|United Kingdom|Nederland|Netherlands|Belgique|Belgium|España|Spain|Portugal|Sverige|Sweden|Norge|Norway|Danmark|Denmark|Polska|Poland|Česko|Czech Republic|Slovensko|Slovakia|Magyarország|Hungary|România|Romania|Bulgarien|Bulgaria|Ellinikí Demokratía|Greece|Türkiye|Turkey|Россия|Russia)(?:\s*/\s*(?:Deutschland|Germany|Schweiz|Switzerland|Österreich|Austria|France|Frankreich|Italia?|Italy|UK|USA|United States|United Kingdom|Nederland|Netherlands|Belgique|Belgium|España|Spain|Portugal|Sverige|Sweden|Norge|Norway|Danmark|Denmark|Polska|Poland|Česko|Czech Republic|Slovensko|Slovakia|Magyarország|Hungary|România|Romania|Bulgarien|Bulgaria|Ellinikí Demokratía|Greece|Türkiye|Turkey|Россия|Russia))?$""",
+        RegexOption.IGNORE_CASE
     )
 
     /**
@@ -134,7 +142,7 @@ object AddressTextParser {
             }
 
             // Extract phone numbers
-            if (line.matches(Regex(""".*(?:Tel\.?:|Telefon:|Phone:|Mobil:|Mobile:|Fax:).*""", RegexOption.IGNORE_CASE))) {
+            if (line.matches(Regex(""".*(?:Tel\.?:?|Telefon:?|Phone:?|Fon:?|Mobil:?|Mobile:?|Fax:?).*""", RegexOption.IGNORE_CASE))) {
                 val phoneMatch = PHONE_REGEX.find(line)
                 if (phoneMatch != null) {
                     val phone = phoneMatch.groupValues[1].trim()
@@ -179,6 +187,15 @@ object AddressTextParser {
                 }
             }
 
+            // Extract country name
+            COUNTRY_REGEX.find(line)?.let {
+                if (result.country == null) {
+                    // Extract first country name (before optional /)
+                    result.country = it.groupValues[1].trim()
+                    processed = true
+                }
+            }
+
             if (!processed) {
                 remainingLines.add(line)
             }
@@ -208,8 +225,9 @@ object AddressTextParser {
                     continue
                 }
 
-                // Check if line looks like street address
-                if (result.addressText == null && STREET_REGEX.find(line) != null) {
+                // Check if line looks like street address (with house number)
+                // Street addresses have priority and override previous addressText
+                if (STREET_REGEX.find(line) != null) {
                     result.addressText = line
                     lineIndex++
                     continue
