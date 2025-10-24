@@ -276,10 +276,12 @@ public class PFUserDOConverter
   {
     setMailNullArray(src);
     setMailNullArray(dest);
+    setMobilePhoneNullArray(src);
+    setMobilePhoneNullArray(dest);
     boolean modified;
     final List<String> properties = new LinkedList<>();
     ListHelper.addAll(properties, "commonName", "givenName", "surname", "mail", "description", "organization",
-        "deactivated", "restrictedUser", "mobilePhoneNumber"); // TODO: if mobilePhoneNumber is null
+        "deactivated", "restrictedUser", "mobilePhoneNumber", "telephoneNumber", "homePhoneNumber", "uid");
     if (ldapUserDao.isPosixAccountsConfigured() && !isPosixAccountValuesEmpty(src)) {
       ListHelper.addAll(properties, "uidNumber", "gidNumber", "homeDirectory", "loginShell");
     }
@@ -310,5 +312,19 @@ public class PFUserDOConverter
     }
     // All array entries are null, therefore set the mail value itself to null:
     ldapUser.setMail((String[]) null);
+  }
+
+  static void setMobilePhoneNullArray(final LdapUser ldapUser)
+  {
+    if (ldapUser.getMobilePhoneNumber() == null) {
+      return;
+    }
+    for (final String mobilePhone : ldapUser.getMobilePhoneNumber()) {
+      if (mobilePhone != null) {
+        return;
+      }
+    }
+    // All array entries are null, therefore set the mobilePhoneNumber value itself to null:
+    ldapUser.setMobilePhoneNumber((String[]) null);
   }
 }
