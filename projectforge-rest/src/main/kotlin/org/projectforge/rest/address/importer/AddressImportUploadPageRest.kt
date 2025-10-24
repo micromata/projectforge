@@ -45,14 +45,11 @@ private val log = KotlinLogging.logger {}
 class AddressImportUploadPageRest : AbstractImportUploadPageRest() {
 
     @Autowired
-    private lateinit var accessChecker: AccessChecker
-
-    @Autowired
     private lateinit var addressDao: AddressDao
 
-    override val title: String = "address.book.vCardImport"
+    override val title: String = "address.book.vCardsImport.title"
 
-    override val description: String = "address.import.upload.description"
+    override val description: String = "address.book.vCardsImport.description"
 
     override val fileExtensions = arrayOf("vcf")
 
