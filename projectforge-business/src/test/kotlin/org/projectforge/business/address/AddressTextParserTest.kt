@@ -333,4 +333,78 @@ class AddressTextParserTest {
         assertEquals("+49 561 123456-789", result.businessPhone)
         assertEquals("thomas.wagner@techsolutions.de", result.email)
     }
+
+    @Test
+    fun `test parse Swiss address with multiple empty lines`() {
+        val text = """
+            Hans Mueller
+
+
+
+
+
+
+            R2D2 AG
+            Peterstrasse 86
+            6312 Steinhausen
+            Schweiz / Switzerland
+
+            Tel        +41 41 234 56 78
+            Mobile  +49 177 123 45 67
+            E-Mail    hans.mueller@r2d2.group
+            Web       www.r2d2.group
+        """.trimIndent()
+
+        val result = AddressTextParser.parseAddressText(text)
+
+        assertEquals("Hans", result.firstName)
+        assertEquals("Mueller", result.name)
+        assertEquals("R2D2 AG", result.organization)
+        assertEquals("Peterstrasse 86", result.addressText)
+        assertEquals("6312", result.zipCode)
+        assertEquals("Steinhausen", result.city)
+        assertEquals("Schweiz", result.country) // First part before /
+        assertEquals("+41 41 234 56 78", result.businessPhone) // Normalized format
+        assertEquals("+49 177 123 45 67", result.mobilePhone) // Normalized format
+        assertEquals("hans.mueller@r2d2.group", result.email)
+        assertEquals("www.r2d2.group", result.website)
+    }
+
+    @Test
+    fun `test parse German company address with department info`() {
+        val text = """
+            Dr. Hans Weber
+            Abteilungsleiter
+            Abteilung 1120, ADM GK XYZ
+
+            Beispiel AG
+            SNL IT P&P
+            Musterstraße 7
+            53113 Bonn
+
+            Telefon  +49 228 123 45678
+            Mobil     +49 170 123456
+
+            hans.weber@beispiel.de
+            www.beispiel.de
+            Beispiel Gruppe
+        """.trimIndent()
+
+        val result = AddressTextParser.parseAddressText(text)
+
+        assertEquals("Dr.", result.title)
+        assertEquals("Hans", result.firstName)
+        assertEquals("Weber", result.name)
+        assertEquals("Abteilungsleiter", result.positionText)
+        // "Abteilung 1120, ADM GK XYZ" is parsed as addressText (appears after position, before org)
+        // This is a limitation - department info gets interpreted as address
+        assertEquals("Beispiel AG", result.organization)
+        assertEquals("Musterstraße 7", result.addressText)
+        assertEquals("53113", result.zipCode)
+        assertEquals("Bonn", result.city)
+        assertEquals("+49 228 123 45678", result.businessPhone) // Normalized format
+        assertEquals("+49 170 123456", result.mobilePhone) // Normalized format
+        assertEquals("hans.weber@beispiel.de", result.email)
+        assertEquals("www.beispiel.de", result.website)
+    }
 }
