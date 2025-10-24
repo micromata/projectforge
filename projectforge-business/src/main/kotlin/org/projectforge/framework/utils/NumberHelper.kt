@@ -407,17 +407,7 @@ object NumberHelper {
      */
     @JvmStatic
     fun formatPhonenumber(str: String?): String? {
-        str ?: return null
-        if (str.startsWith("00")) {
-            return if (str.length > 2) {
-                "+${str.substring(2)}"
-            } else {
-                str
-            }
-        } else if (str.startsWith("0") && str.length > 1) {
-            return "$defaultCountryPhonePrefix ${str.substring(1)}"
-        }
-        return str
+        return PhoneNumberUtils.normalizePhoneNumber(str)
     }
 
     /**
