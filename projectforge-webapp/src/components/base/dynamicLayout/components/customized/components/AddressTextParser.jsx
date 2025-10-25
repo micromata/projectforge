@@ -8,7 +8,7 @@ import { fetchJsonPost } from '../../../../../../utilities/rest';
 import { DynamicLayoutContext } from '../../../context';
 
 function AddressTextParser({ values }) {
-    const { setData, data } = React.useContext(DynamicLayoutContext);
+    const { ui, setData, data } = React.useContext(DynamicLayoutContext);
     const {
         title = 'Parse Address from Text',
         buttonText = 'Parse from Text',
@@ -20,8 +20,34 @@ function AddressTextParser({ values }) {
     const [inputText, setInputText] = useState('');
     const [parsedData, setParsedData] = useState(null);
     const [selectedFields, setSelectedFields] = useState({});
+    const [fieldMappings, setFieldMappings] = useState({});
+    const [addressBlockType, setAddressBlockType] = useState('business');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+
+    // Helper functions for field type detection
+    const isPhoneField = (fieldName) => [
+        'businessPhone',
+        'mobilePhone',
+        'fax',
+        'privatePhone',
+        'privateMobilePhone',
+    ].includes(fieldName);
+
+    const isEmailField = (fieldName) => ['email', 'privateEmail'].includes(fieldName);
+
+    const isAddressField = (fieldName) => [
+        'addressText',
+        'addressText2',
+        'zipCode',
+        'city',
+        'state',
+        'country',
+    ].includes(fieldName);
+
+    const isRemappableField = (fieldName) => isPhoneField(fieldName)
+        || isEmailField(fieldName)
+        || isAddressField(fieldName);
 
     const handleToggle = () => {
         setIsOpen(!isOpen);
@@ -43,15 +69,36 @@ function AddressTextParser({ values }) {
                 setLoading(false);
                 if (json && json.variables && json.variables.parsedData) {
                     const parsed = json.variables.parsedData;
-                    setParsedData(parsed);
 
-                    // Initialize selected fields based on parsed data
-                    const selected = {};
+                    // Filter out fields that already match current form values
+                    const filteredFields = {};
                     if (parsed.fields) {
                         Object.entries(parsed.fields).forEach(([fieldName, field]) => {
-                            selected[fieldName] = field.selected !== false;
+                            const currentValue = data[fieldName];
+                            const parsedValue = field.value;
+
+                            // Only include field if value is different from current
+                            // (both null/undefined/empty are considered same)
+                            const currentNormalized = currentValue?.trim() || '';
+                            const parsedNormalized = parsedValue?.trim() || '';
+
+                            if (parsedNormalized && currentNormalized !== parsedNormalized) {
+                                filteredFields[fieldName] = field;
+                            }
                         });
                     }
+
+                    const parsedWithFilteredFields = {
+                        ...parsed,
+                        fields: filteredFields,
+                    };
+                    setParsedData(parsedWithFilteredFields);
+
+                    // Initialize selected fields based on filtered parsed data
+                    const selected = {};
+                    Object.entries(filteredFields).forEach(([fieldName, field]) => {
+                        selected[fieldName] = field.selected !== false;
+                    });
                     setSelectedFields(selected);
                 } else {
                     setError('Failed to parse text. Please check the format.');
@@ -70,11 +117,54 @@ function AddressTextParser({ values }) {
     const handleApply = () => {
         if (!parsedData || !parsedData.fields) return;
 
-        // Build map of selected fields with their values
+        // Build map of selected fields with their values and apply remapping
         const fieldsToApply = {};
         Object.entries(parsedData.fields).forEach(([fieldName, field]) => {
             if (selectedFields[fieldName] && field.value) {
-                fieldsToApply[fieldName] = field.value;
+                let targetFieldName = fieldName;
+
+                // Apply address block remapping
+                if (isAddressField(fieldName)) {
+                    const addressFieldMap = {
+                        addressText: {
+                            business: 'addressText',
+                            postal: 'postalAddressText',
+                            private: 'privateAddressText',
+                        },
+                        addressText2: {
+                            business: 'addressText2',
+                            postal: 'postalAddressText2',
+                            private: 'privateAddressText2',
+                        },
+                        zipCode: {
+                            business: 'zipCode',
+                            postal: 'postalZipCode',
+                            private: 'privateZipCode',
+                        },
+                        city: {
+                            business: 'city',
+                            postal: 'postalCity',
+                            private: 'privateCity',
+                        },
+                        state: {
+                            business: 'state',
+                            postal: 'postalState',
+                            private: 'privateState',
+                        },
+                        country: {
+                            business: 'country',
+                            postal: 'postalCountry',
+                            private: 'privateCountry',
+                        },
+                    };
+                    targetFieldName = addressFieldMap[fieldName]?.[addressBlockType]
+                        || fieldName;
+                } else {
+                    // Apply individual field remapping (phone/email)
+                    targetFieldName = fieldMappings[fieldName] || fieldName;
+                }
+
+                fieldsToApply[targetFieldName] = field.value;
             }
         });
 
@@ -94,6 +184,8 @@ function AddressTextParser({ values }) {
                     setInputText('');
                     setParsedData(null);
                     setSelectedFields({});
+                    setFieldMappings({});
+                    setAddressBlockType('business');
                 } else {
                     setError('Error applying data');
                 }
@@ -140,6 +232,19 @@ function AddressTextParser({ values }) {
         return labels[fieldName] || fieldName;
     };
 
+    const getPhoneFieldOptions = () => [
+        { value: 'businessPhone', label: getFieldLabel('businessPhone') },
+        { value: 'mobilePhone', label: getFieldLabel('mobilePhone') },
+        { value: 'fax', label: getFieldLabel('fax') },
+        { value: 'privatePhone', label: getFieldLabel('privatePhone') },
+        { value: 'privateMobilePhone', label: getFieldLabel('privateMobilePhone') },
+    ];
+
+    const getEmailFieldOptions = () => [
+        { value: 'email', label: getFieldLabel('email') },
+        { value: 'privateEmail', label: getFieldLabel('privateEmail') },
+    ];
+
     return (
         <div className="address-text-parser mb-3">
             <Button
@@ -148,7 +253,9 @@ function AddressTextParser({ values }) {
                 className="mb-2"
             >
                 <i className={`fa fa-${buttonIcon} mr-2`} />
-                {isOpen ? `Hide ${buttonText}` : buttonText}
+                {isOpen
+                    ? `${ui.translations.hide || 'Hide'} ${buttonText}`
+                    : buttonText}
             </Button>
 
             <Collapse isOpen={isOpen}>
@@ -158,7 +265,7 @@ function AddressTextParser({ values }) {
 
                         <FormGroup>
                             <Label for="addressTextInput">
-                                Paste email signature or contact information:
+                                {ui.translations['address.parseText.inputLabel']}
                             </Label>
                             <Input
                                 type="textarea"
@@ -166,7 +273,10 @@ function AddressTextParser({ values }) {
                                 rows={10}
                                 value={inputText}
                                 onChange={(e) => setInputText(e.target.value)}
-                                placeholder="Paste address text here...&#10;&#10;Example:&#10;Dr. Max Mustermann&#10;Senior Manager&#10;Example GmbH&#10;Musterstraße 1-5&#10;12345 Musterstadt&#10;Tel: +49 30 12345678&#10;m.mustermann@example.com"
+                                placeholder={
+                                    (ui.translations['address.parseText.inputPlaceholder'] || '')
+                                        .replace(/\\n/g, '\n')
+                                }
                                 invalid={!!error && !parsedData}
                             />
                             {error && !parsedData && <FormFeedback>{error}</FormFeedback>}
@@ -180,19 +290,22 @@ function AddressTextParser({ values }) {
                             {loading ? (
                                 <>
                                     <i className="fa fa-spinner fa-spin mr-2" />
-                                    Parsing...
+                                    {ui.translations.parse || 'Parse'}
+                                    ...
                                 </>
                             ) : (
                                 <>
                                     <i className="fa fa-search mr-2" />
-                                    Parse
+                                    {ui.translations.parse || 'Parse'}
                                 </>
                             )}
                         </Button>
 
                         {parsedData && (
                             <div className="mt-4">
-                                <h6>Parsed Fields</h6>
+                                <h6>
+                                    {ui.translations['address.parseText.fieldsParsed']}
+                                </h6>
 
                                 {parsedData.warnings && parsedData.warnings.length > 0 && (
                                     <Alert color="warning" className="mt-2">
@@ -205,42 +318,149 @@ function AddressTextParser({ values }) {
                                     </Alert>
                                 )}
 
+                                {parsedData.fields
+                                    && Object.keys(parsedData.fields).length === 0 && (
+                                    <Alert color="info" className="mt-2">
+                                        {ui.translations['address.parseText.info.noChanges']}
+                                    </Alert>
+                                )}
+
                                 <div className="parsed-fields-list mt-3">
+                                    {parsedData.fields
+                                        && Object.keys(parsedData.fields).some(
+                                            (fn) => isAddressField(fn),
+                                        ) && (
+                                        <div className="mb-3 p-3 border rounded bg-light">
+                                            <FormGroup>
+                                                <Label for="addressBlockType">
+                                                    <strong>
+                                                        {ui.translations[
+                                                            'address.parseText.addressBlock'
+                                                        ] || 'Address Block'}
+                                                    </strong>
+                                                </Label>
+                                                <Input
+                                                    type="select"
+                                                    id="addressBlockType"
+                                                    value={addressBlockType}
+                                                    onChange={(e) => setAddressBlockType(
+                                                        e.target.value,
+                                                    )}
+                                                    style={{ maxWidth: '300px' }}
+                                                >
+                                                    <option value="business">
+                                                        {ui.translations[
+                                                            'address.parseText.addressType.business'
+                                                        ] || 'Business Address'}
+                                                    </option>
+                                                    <option value="postal">
+                                                        {ui.translations[
+                                                            'address.parseText.addressType.postal'
+                                                        ] || 'Postal/Mailing Address'}
+                                                    </option>
+                                                    <option value="private">
+                                                        {ui.translations[
+                                                            'address.parseText.addressType.private'
+                                                        ] || 'Private Address'}
+                                                    </option>
+                                                </Input>
+                                            </FormGroup>
+                                        </div>
+                                    )}
                                     {parsedData.fields
                                         && Object.entries(parsedData.fields)
                                             .filter(([, field]) => field.value)
                                             .map(([fieldName, field]) => (
-                                                <FormGroup check key={fieldName} className="mb-2">
-                                                    <Label check>
-                                                        <Input
-                                                            type="checkbox"
-                                                            checked={
-                                                                selectedFields[fieldName] || false
-                                                            }
-                                                            onChange={
-                                                                () => handleFieldToggle(fieldName)
-                                                            }
-                                                        />
-                                                        {' '}
-                                                        <strong>
-                                                            {getFieldLabel(fieldName)}
-                                                            :
-                                                        </strong>
-                                                        {' '}
-                                                        {field.value}
-                                                        {' '}
-                                                        <Badge
-                                                            color={
-                                                                getConfidenceBadgeColor(
-                                                                    field.confidence,
-                                                                )
-                                                            }
-                                                            className="ml-2"
-                                                        >
-                                                            {field.confidence}
-                                                        </Badge>
-                                                    </Label>
-                                                </FormGroup>
+                                                <div key={fieldName} className="mb-3">
+                                                    <FormGroup check className="mb-1">
+                                                        <Label check>
+                                                            <Input
+                                                                type="checkbox"
+                                                                checked={
+                                                                    selectedFields[fieldName]
+                                                                    || false
+                                                                }
+                                                                onChange={
+                                                                    () => handleFieldToggle(
+                                                                        fieldName,
+                                                                    )
+                                                                }
+                                                            />
+                                                            {' '}
+                                                            <strong>
+                                                                {getFieldLabel(fieldName)}
+                                                                :
+                                                            </strong>
+                                                            {' '}
+                                                            {field.value}
+                                                            {' '}
+                                                            <Badge
+                                                                color={
+                                                                    getConfidenceBadgeColor(
+                                                                        field.confidence,
+                                                                    )
+                                                                }
+                                                                className="ml-2"
+                                                            >
+                                                                {field.confidence}
+                                                            </Badge>
+                                                        </Label>
+                                                    </FormGroup>
+                                                    {isRemappableField(fieldName) && (
+                                                        <div className="ml-4">
+                                                            <Label
+                                                                for={`remap-${fieldName}`}
+                                                                className="mr-2 small"
+                                                            >
+                                                                {ui.translations[
+                                                                    'address.parseText.remapTo'
+                                                                ] || 'Map to:'}
+                                                            </Label>
+                                                            <Input
+                                                                type="select"
+                                                                id={`remap-${fieldName}`}
+                                                                value={
+                                                                    fieldMappings[fieldName]
+                                                                    || fieldName
+                                                                }
+                                                                onChange={(e) => setFieldMappings({
+                                                                    ...fieldMappings,
+                                                                    [fieldName]: e.target.value,
+                                                                })}
+                                                                style={{ width: '250px' }}
+                                                                className="d-inline-block"
+                                                            >
+                                                                {isPhoneField(fieldName)
+                                                                    && getPhoneFieldOptions().map(
+                                                                        (opt) => (
+                                                                            <option
+                                                                                key={opt.value}
+                                                                                value={opt.value}
+                                                                            >
+                                                                                {opt.label}
+                                                                            </option>
+                                                                        ),
+                                                                    )}
+                                                                {isEmailField(fieldName)
+                                                                    && getEmailFieldOptions().map(
+                                                                        (opt) => (
+                                                                            <option
+                                                                                key={opt.value}
+                                                                                value={opt.value}
+                                                                            >
+                                                                                {opt.label}
+                                                                            </option>
+                                                                        ),
+                                                                    )}
+                                                                {isAddressField(fieldName) && (
+                                                                    <option value={fieldName}>
+                                                                        {getFieldLabel(fieldName)}
+                                                                    </option>
+                                                                )}
+                                                            </Input>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             ))}
                                 </div>
 
@@ -251,7 +471,7 @@ function AddressTextParser({ values }) {
                                         className="mr-2"
                                     >
                                         <i className="fa fa-check mr-2" />
-                                        Apply Selected Fields
+                                        {ui.translations.apply || 'Apply'}
                                     </Button>
                                     <Button
                                         color="secondary"
@@ -261,7 +481,7 @@ function AddressTextParser({ values }) {
                                             setError(null);
                                         }}
                                     >
-                                        Cancel
+                                        {ui.translations.cancel || 'Cancel'}
                                     </Button>
                                 </div>
                             </div>
