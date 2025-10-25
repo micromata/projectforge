@@ -204,11 +204,19 @@ object AddressTextParser {
         // Second pass: Extract name, position, organization, address from remaining lines
         if (remainingLines.isNotEmpty()) {
             // First line: usually name (with or without title)
+            // BUT: Check if first line is a street address or organization - if so, don't parse as name
             val firstLine = remainingLines[0]
-            parseName(firstLine, result)
+            val isStreetAddress = STREET_REGEX.find(firstLine) != null
+            val isOrganization = containsCompanySuffix(firstLine)
+            var lineIndex = 0
+
+            if (!isStreetAddress && !isOrganization) {
+                parseName(firstLine, result)
+                lineIndex = 1  // Skip first line in subsequent processing
+            }
+            // else: lineIndex stays 0, first line will be processed as organization or street address
 
             // Subsequent lines: position, organization, address
-            var lineIndex = 1
             while (lineIndex < remainingLines.size) {
                 val line = remainingLines[lineIndex]
 
