@@ -152,6 +152,7 @@ class AddressPagesRest
 
     override fun onGetItemAndLayout(request: HttpServletRequest, dto: Address, formLayoutData: FormLayoutData) {
         ExpiringSessionAttributes.removeAttribute(request.getSession(false), SESSION_IMAGE_ATTR)
+
         // Capture modal parameter from request and store in serverData so all button actions can access it
         val modal = request.getParameter("modal")
         if (modal == "true") {
@@ -159,6 +160,125 @@ class AddressPagesRest
             params["modal"] = "true"
             formLayoutData.serverData?.returnToCallerParams = params
         }
+
+        // Check if this is opened from VCF import context
+        val importIndexStr = request.getParameter("importIndex")
+        if (!importIndexStr.isNullOrBlank()) {
+            try {
+                val importIndex = importIndexStr.toInt()
+                log.info { "Opening address edit in import context: importIndex=$importIndex, addressId=${dto.id}" }
+
+                // Store importIndex in returnToCallerParams so it persists across saves
+                val params = formLayoutData.serverData?.returnToCallerParams?.toMutableMap() ?: mutableMapOf()
+                params["importIndex"] = importIndexStr
+                formLayoutData.serverData?.returnToCallerParams = params
+
+                // Retrieve import storage from session
+                val sessionAttrName = "org.projectforge.rest.address.importer.AddressImportUploadPageRest.importStorage"
+                val importStorage = ExpiringSessionAttributes.getAttribute(
+                    request,
+                    sessionAttrName,
+                    org.projectforge.rest.address.importer.AddressImportStorage::class.java
+                )
+
+                if (importStorage != null) {
+                    val importEntry = importStorage.getImportEntryByIndex(importIndex)
+                    if (importEntry != null) {
+                        // Extract VCF data (read) and DB data (stored)
+                        val vcfData = importEntry.read
+                        val dbData = importEntry.stored
+
+                        // Add VCF comparison data to form layout variables
+                        val vcfComparisonData = buildVcfComparisonData(vcfData, dbData)
+                        val currentVariables = formLayoutData.variables?.toMutableMap() ?: mutableMapOf()
+                        currentVariables["vcfComparisonData"] = vcfComparisonData
+                        currentVariables["importIndex"] = importIndex
+                        formLayoutData.variables = currentVariables
+
+                        log.info { "Added VCF comparison data to form (${vcfComparisonData.size} fields)" }
+                    } else {
+                        log.warn { "Import entry not found at index $importIndex" }
+                    }
+                } else {
+                    log.warn { "Import storage not found in session (expired?)" }
+                }
+            } catch (e: NumberFormatException) {
+                log.error { "Invalid importIndex parameter: $importIndexStr" }
+            }
+        }
+    }
+
+    /**
+     * Builds VCF comparison data structure for AddressTextParser section.
+     * Returns a map with field name as key and a map with "vcf" and "db" values.
+     */
+    private fun buildVcfComparisonData(
+        vcfData: org.projectforge.rest.address.importer.AddressImportDTO?,
+        dbData: org.projectforge.rest.address.importer.AddressImportDTO?
+    ): Map<String, Map<String, String?>> {
+        val result = mutableMapOf<String, Map<String, String?>>()
+
+        // Helper function to add field if VCF or DB has a value
+        fun addField(fieldName: String, vcfValue: String?, dbValue: String?) {
+            if (!vcfValue.isNullOrBlank() || !dbValue.isNullOrBlank()) {
+                result[fieldName] = mapOf("vcf" to vcfValue, "db" to dbValue)
+            }
+        }
+
+        // Personal info
+        addField("title", vcfData?.title, dbData?.title)
+        addField("firstName", vcfData?.firstName, dbData?.firstName)
+        addField("name", vcfData?.name, dbData?.name)
+        addField("birthName", vcfData?.birthName, dbData?.birthName)
+        addField("birthday", vcfData?.birthday?.toString(), dbData?.birthday?.toString())
+
+        // Organization
+        addField("organization", vcfData?.organization, dbData?.organization)
+        addField("division", vcfData?.division, dbData?.division)
+        addField("positionText", vcfData?.positionText, dbData?.positionText)
+
+        // Business contact
+        addField("email", vcfData?.email, dbData?.email)
+        addField("businessPhone", vcfData?.businessPhone, dbData?.businessPhone)
+        addField("mobilePhone", vcfData?.mobilePhone, dbData?.mobilePhone)
+        addField("fax", vcfData?.fax, dbData?.fax)
+
+        // Private contact
+        addField("privateEmail", vcfData?.privateEmail, dbData?.privateEmail)
+        addField("privatePhone", vcfData?.privatePhone, dbData?.privatePhone)
+        addField("privateMobilePhone", vcfData?.privateMobilePhone, dbData?.privateMobilePhone)
+
+        // Business address
+        addField("addressText", vcfData?.addressText, dbData?.addressText)
+        addField("addressText2", vcfData?.addressText2, dbData?.addressText2)
+        addField("zipCode", vcfData?.zipCode, dbData?.zipCode)
+        addField("city", vcfData?.city, dbData?.city)
+        addField("state", vcfData?.state, dbData?.state)
+        addField("country", vcfData?.country, dbData?.country)
+
+        // Private address
+        addField("privateAddressText", vcfData?.privateAddressText, dbData?.privateAddressText)
+        addField("privateAddressText2", vcfData?.privateAddressText2, dbData?.privateAddressText2)
+        addField("privateZipCode", vcfData?.privateZipCode, dbData?.privateZipCode)
+        addField("privateCity", vcfData?.privateCity, dbData?.privateCity)
+        addField("privateState", vcfData?.privateState, dbData?.privateState)
+        addField("privateCountry", vcfData?.privateCountry, dbData?.privateCountry)
+
+        // Postal address
+        addField("postalAddressText", vcfData?.postalAddressText, dbData?.postalAddressText)
+        addField("postalAddressText2", vcfData?.postalAddressText2, dbData?.postalAddressText2)
+        addField("postalZipCode", vcfData?.postalZipCode, dbData?.postalZipCode)
+        addField("postalCity", vcfData?.postalCity, dbData?.postalCity)
+        addField("postalState", vcfData?.postalState, dbData?.postalState)
+        addField("postalCountry", vcfData?.postalCountry, dbData?.postalCountry)
+
+        // Other
+        addField("website", vcfData?.website, dbData?.website)
+        addField("comment", vcfData?.comment, dbData?.comment)
+        addField("fingerprint", vcfData?.fingerprint, dbData?.fingerprint)
+        addField("publicKey", vcfData?.publicKey, dbData?.publicKey)
+
+        return result
     }
 
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
@@ -264,6 +384,36 @@ class AddressPagesRest
             // The user uploaded an image, so save it now.
             addressImageDao.saveOrUpdate(obj.id!!, image.bytes, image.imageType)
             ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
+        }
+
+        // If this was opened from VCF import context, reconcile import storage
+        val importIndexStr = request.getParameter("importIndex")
+        if (!importIndexStr.isNullOrBlank()) {
+            try {
+                val importIndex = importIndexStr.toInt()
+                log.info { "Re-reconciling import storage after save/update (importIndex=$importIndex)" }
+
+                // Retrieve import storage from session
+                val sessionAttrName = "org.projectforge.rest.address.importer.AddressImportUploadPageRest.importStorage"
+                val importStorage = ExpiringSessionAttributes.getAttribute(
+                    request,
+                    sessionAttrName,
+                    org.projectforge.rest.address.importer.AddressImportStorage::class.java
+                )
+
+                if (importStorage != null) {
+                    // Re-reconcile to update the list with the new/updated address
+                    importStorage.reconcileImportStorage()
+
+                    // Save updated import storage back to session
+                    ExpiringSessionAttributes.setAttribute(request, sessionAttrName, importStorage, 30)
+                    log.info { "Import storage re-reconciled successfully" }
+                } else {
+                    log.warn { "Import storage not found in session (expired?)" }
+                }
+            } catch (e: NumberFormatException) {
+                log.error { "Invalid importIndex parameter: $importIndexStr" }
+            }
         }
     }
 
@@ -466,6 +616,7 @@ class AddressPagesRest
         val layout = super.createEditLayout(dto, userAccess)
             //autoCompletion = AutoCompletion(url = "addressBook/ac?search="))))
             // Add text parser collapse at the top
+            // Note: In VCF import mode, this will be expanded initially (controlled by vcfComparisonData variable)
             .add(
                 UICustomized(
                     "address.textParser",
