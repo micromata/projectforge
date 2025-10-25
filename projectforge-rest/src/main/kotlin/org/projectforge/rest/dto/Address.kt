@@ -84,7 +84,11 @@ class Address(
     /**
      * Is this address a personal favorite of the current logged-in user?
      */
-    var isFavoriteCard: Boolean = false
+    var isFavoriteCard: Boolean = false,
+    /**
+     * Warning message for duplicate addresses (populated by watchFields).
+     */
+    var duplicateWarning: String? = null
 ) : BaseDTO<AddressDO>() {
 
     @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)

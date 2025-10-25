@@ -24,6 +24,11 @@ function DynamicAlert(props) {
 
     let box = value || message;
 
+    // Don't render alert if no content
+    if (!box) {
+        return null;
+    }
+
     if (markdown === true) {
         box = (
             <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
@@ -51,9 +56,10 @@ function DynamicAlert(props) {
 }
 
 DynamicAlert.propTypes = {
-    message: PropTypes.string.isRequired,
+    message: PropTypes.string,
     markdown: PropTypes.bool,
     title: PropTypes.string,
+    id: PropTypes.string,
     color: colorPropType,
     icon: PropTypes.arrayOf(PropTypes.string),
 };

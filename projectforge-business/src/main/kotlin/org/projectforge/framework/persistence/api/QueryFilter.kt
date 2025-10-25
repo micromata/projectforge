@@ -273,9 +273,10 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
             return DBPredicate.IsNotNull(field)
         }
 
+        @JvmOverloads
         @JvmStatic
-        fun eq(field: String, value: Any): DBPredicate.Equal {
-            return DBPredicate.Equal(field, value)
+        fun eq(field: String, value: Any, ignoreCase: Boolean = false): DBPredicate.Equal {
+            return DBPredicate.Equal(field, value, ignoreCase)
         }
 
         @JvmStatic

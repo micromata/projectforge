@@ -478,62 +478,76 @@ class AddressPagesRest
             //autoCompletion = AutoCompletion(url = "addressBook/ac?search="))))
             // Add text parser collapse at the top
             .add(
+                UICustomized(
+                    "address.textParser",
+                    mutableMapOf(
+                        "type" to "collapsePanel",
+                        "title" to translate("address.parseText.title"),
+                        "buttonText" to translate("address.parseText.button"),
+                        "initiallyCollapsed" to true,
+                        "buttonIcon" to "paste"
+                    )
+                )
+            )
+
+        // Add duplicate warning alert (shown via watchFields when name/firstName changes)
+        if (dto.id == null) {
+            layout.add(
                 UIRow()
                     .add(
-                        UIFieldset(12)
+                        UICol(12)
                             .add(
-                                UICustomized(
-                                    "address.textParser",
-                                    mutableMapOf(
-                                        "type" to "collapsePanel",
-                                        "title" to translate("address.parseText.title"),
-                                        "buttonText" to translate("address.parseText.button"),
-                                        "initiallyCollapsed" to true,
-                                        "buttonIcon" to "paste"
-                                    )
+                                UIAlert(
+                                    id = "duplicateWarning",
+                                    title = translate("address.validation.duplicateFound"),
+                                    color = UIColor.WARNING,
+                                    markdown = true,
+                                    message = ""  // Will be populated dynamically via data.duplicateWarning
                                 )
                             )
                     )
             )
-            .add(
-                UIRow()
-                    .add(
-                        UIFieldset(12)
-                            .add(
-                                UIRow()
-                                    .add(
-                                        UICol(UILength(md = 6))
-                                            .add(
-                                                UIRow()
-                                                    .add(
-                                                        UICol(UILength(lg = 6))
-                                                            .add(lc, "addressStatus")
-                                                    )
-                                                    .add(
-                                                        UICol(UILength(lg = 6))
-                                                            .add(lc, "contactStatus")
-                                                    )
-                                            )
-                                    )
-                                    .add(
-                                        UICol(UILength(md = 6))
-                                            .add(
-                                                createFavoriteRow(
-                                                    "isFavoriteCard",
-                                                    UISelect<Long>(
-                                                        "addressbookList", lc,
-                                                        multi = true,
-                                                        autoCompletion = AutoCompletion<Int>(
-                                                            url = AutoCompletion.getAutoCompletionUrl("addressBook"),
-                                                            type = AutoCompletion.Type.USER.name
-                                                        )
+        }
+
+        layout.add(
+            UIRow()
+                .add(
+                    UIFieldset(12)
+                        .add(
+                            UIRow()
+                                .add(
+                                    UICol(UILength(md = 6))
+                                        .add(
+                                            UIRow()
+                                                .add(
+                                                    UICol(UILength(lg = 6))
+                                                        .add(lc, "addressStatus")
+                                                )
+                                                .add(
+                                                    UICol(UILength(lg = 6))
+                                                        .add(lc, "contactStatus")
+                                                )
+                                        )
+                                )
+                                .add(
+                                    UICol(UILength(md = 6))
+                                        .add(
+                                            createFavoriteRow(
+                                                "isFavoriteCard",
+                                                UISelect<Long>(
+                                                    "addressbookList", lc,
+                                                    multi = true,
+                                                    autoCompletion = AutoCompletion<Int>(
+                                                        url = AutoCompletion.getAutoCompletionUrl("addressBook"),
+                                                        type = AutoCompletion.Type.USER.name
                                                     )
                                                 )
                                             )
-                                    )
-                            )
-                    )
-            )
+                                        )
+                                )
+                        )
+                )
+        )
             .add(
                 UIRow()
                     .add(
@@ -679,6 +693,13 @@ class AddressPagesRest
 
         layout.getInputById("name").focus = true
         layout.getTextAreaById("comment").cssClass = CssClassnames.MT_5
+
+        // Watch name and firstName fields for duplicate detection (only for new addresses)
+        if (dto.id == null) {
+            layout.watchFields.add("name")
+            layout.watchFields.add("firstName")
+        }
+
         layout.addTranslations(
             "delete",
             "file.upload.dropArea",
@@ -713,7 +734,9 @@ class AddressPagesRest
             "address.website",
             "address.business",
             "address.private",
-            "address.postal"
+            "address.postal",
+            "address.validation.duplicateFound",
+            "address.validation.duplicateWarning"
         )
         layout.addTranslation(
             "address.image.upload.error",
@@ -891,5 +914,76 @@ class AddressPagesRest
                 .addVariable("data", address)
                 .addVariable("ui", UIToast.createToast(translate("address.parseText.applied")))
         )
+    }
+
+    /**
+     * Called when watched fields (name, firstName) are modified.
+     * Checks for duplicate addresses and shows warning if found.
+     */
+    override fun onWatchFieldsUpdate(
+        request: HttpServletRequest,
+        dto: Address,
+        watchFieldsTriggered: Array<String>?
+    ): ResponseEntity<ResponseAction> {
+        // Only check for new addresses
+        if (dto.id != null) {
+            return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
+        }
+
+        // Check if name or firstName was triggered
+        if (watchFieldsTriggered?.contains("name") != true && watchFieldsTriggered?.contains("firstName") != true) {
+            return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
+        }
+
+        val name = dto.name
+        val firstName = dto.firstName
+
+        // Both fields should have values for meaningful duplicate check
+        if (name.isNullOrBlank() && firstName.isNullOrBlank()) {
+            // Clear the warning
+            dto.duplicateWarning = ""
+            return ResponseEntity.ok(
+                ResponseAction(targetType = TargetType.UPDATE)
+                    .addVariable("data", dto)
+            )
+        }
+
+        // Search for duplicates using AddressDao
+        val duplicates = baseDao.findByNameAndFirstName(name, firstName, checkAccess = true)
+
+        if (duplicates.isEmpty()) {
+            // No duplicates: hide alert
+            dto.duplicateWarning = ""
+        } else {
+            // Duplicates found: build warning message
+            dto.duplicateWarning = buildDuplicateWarningMessage(duplicates)
+        }
+
+        return ResponseEntity.ok(
+            ResponseAction(targetType = TargetType.UPDATE)
+                .addVariable("data", dto)
+        )
+    }
+
+    /**
+     * Builds markdown-formatted warning message showing duplicate addresses.
+     */
+    private fun buildDuplicateWarningMessage(duplicates: List<AddressDO>): String {
+        val sb = StringBuilder()
+        sb.append("**${translate("address.validation.duplicateWarning")}**\n\n")
+
+        duplicates.forEach { addr ->
+            sb.append("- ")
+            sb.append(addr.fullName)
+
+            // Email (comma separated)
+            if (!addr.email.isNullOrBlank()) {
+                sb.append(", ${addr.email}")
+            }
+
+            sb.append("\n")
+        }
+
+        return sb.toString()
     }
 }
