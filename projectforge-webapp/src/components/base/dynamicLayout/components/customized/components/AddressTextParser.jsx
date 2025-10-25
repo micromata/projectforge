@@ -1,9 +1,12 @@
+/* eslint-disable max-len */
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import {
     Button, Card, CardBody, Collapse, FormGroup, Label, Input, FormFeedback,
     Alert, Badge,
 } from 'reactstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { fetchJsonPost } from '../../../../../../utilities/rest';
 import { DynamicLayoutContext } from '../../../context';
 
@@ -269,10 +272,15 @@ function AddressTextParser({ values }) {
                 onClick={handleToggle}
                 className="mb-2"
             >
-                <i className={`fa fa-${buttonIcon} mr-2`} />
-                {isOpen
-                    ? `${ui.translations.hide || 'Hide'} ${buttonText}`
-                    : buttonText}
+                <FontAwesomeIcon
+                    icon={faChevronRight}
+                    style={{
+                        transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+                        marginRight: '8px',
+                    }}
+                />
+                {buttonText}
             </Button>
 
             <Collapse isOpen={isOpen}>
@@ -304,18 +312,9 @@ function AddressTextParser({ values }) {
                             onClick={handleParse}
                             disabled={!inputText.trim() || loading}
                         >
-                            {loading ? (
-                                <>
-                                    <i className="fa fa-spinner fa-spin mr-2" />
-                                    {ui.translations.parse || 'Parse'}
-                                    ...
-                                </>
-                            ) : (
-                                <>
-                                    <i className="fa fa-search mr-2" />
-                                    {ui.translations.parse || 'Parse'}
-                                </>
-                            )}
+                            {loading
+                                ? `${ui.translations.parse || 'Parse'}...`
+                                : ui.translations.parse || 'Parse'}
                         </Button>
 
                         {parsedData && (
@@ -344,135 +343,211 @@ function AddressTextParser({ values }) {
 
                                 <div className="parsed-fields-list mt-3">
                                     {parsedData.fields
-                                        && Object.keys(parsedData.fields).some(
-                                            (fn) => isAddressField(fn),
-                                        ) && (
-                                        <div className="mb-3 p-3 border rounded bg-light">
-                                            <FormGroup>
-                                                <Label for="addressBlockType">
-                                                    <strong>
-                                                        {ui.translations[
-                                                            'address.parseText.addressBlock'
-                                                        ] || 'Address Block'}
-                                                    </strong>
-                                                </Label>
-                                                <Input
-                                                    type="select"
-                                                    id="addressBlockType"
-                                                    value={addressBlockType}
-                                                    onChange={(e) => setAddressBlockType(
-                                                        e.target.value,
-                                                    )}
-                                                    style={{ maxWidth: '300px' }}
-                                                >
-                                                    <option value="business">
-                                                        {ui.translations[
-                                                            'address.parseText.addressType.business'
-                                                        ] || 'Business Address'}
-                                                    </option>
-                                                    <option value="postal">
-                                                        {ui.translations[
-                                                            'address.parseText.addressType.postal'
-                                                        ] || 'Postal/Mailing Address'}
-                                                    </option>
-                                                    <option value="private">
-                                                        {ui.translations[
-                                                            'address.parseText.addressType.private'
-                                                        ] || 'Private Address'}
-                                                    </option>
-                                                </Input>
-                                            </FormGroup>
-                                        </div>
-                                    )}
-                                    {parsedData.fields
-                                        && Object.entries(parsedData.fields)
-                                            .filter(([, field]) => field.value)
-                                            .map(([fieldName, field]) => (
-                                                <FormGroup check key={fieldName} className="mb-2">
-                                                    <Label check>
-                                                        <Input
-                                                            type="checkbox"
-                                                            checked={
-                                                                selectedFields[fieldName] || false
-                                                            }
-                                                            onChange={
-                                                                () => handleFieldToggle(fieldName)
-                                                            }
-                                                        />
-                                                        {' '}
-                                                        {isPhoneField(fieldName)
-                                                            || isEmailField(fieldName) ? (
+                                        && (() => {
+                                            const entries = Object.entries(parsedData.fields)
+                                                .filter(([, field]) => field.value);
+                                            const addressFields = entries.filter(
+                                                ([fn]) => isAddressField(fn),
+                                            );
+                                            const nonAddressFields = entries.filter(
+                                                ([fn]) => !isAddressField(fn),
+                                            );
+                                            const hasAddressFields = addressFields.length > 0;
+
+                                            return (
+                                                <>
+                                                    {/* Non-address fields first */}
+                                                    {nonAddressFields.map(([fieldName, field]) => (
+                                                        <div
+                                                            key={fieldName}
+                                                            className="d-flex align-items-start mb-2"
+                                                        >
+                                                            <div style={{ minWidth: '30px' }}>
+                                                                <Input
+                                                                    type="checkbox"
+                                                                    checked={
+                                                                        selectedFields[fieldName]
+                                                                        || false
+                                                                    }
+                                                                    onChange={
+                                                                        () => handleFieldToggle(
+                                                                            fieldName,
+                                                                        )
+                                                                    }
+                                                                />
+                                                            </div>
+                                                            <div
+                                                                style={{
+                                                                    minWidth: '200px',
+                                                                    marginRight: '12px',
+                                                                }}
+                                                            >
+                                                                {isPhoneField(fieldName)
+                                                                    || isEmailField(fieldName) ? (
+                                                                        <Input
+                                                                            type="select"
+                                                                            value={
+                                                                                fieldMappings[
+                                                                                    fieldName
+                                                                                ] || fieldName
+                                                                            }
+                                                                            onChange={(e) => {
+                                                                                const newMappings = {
+                                                                                    ...fieldMappings,
+                                                                                    [fieldName]:
+                                                                                        e.target.value,
+                                                                                };
+                                                                                setFieldMappings(
+                                                                                    newMappings,
+                                                                                );
+                                                                            }}
+                                                                            style={{
+                                                                                width: '100%',
+                                                                            }}
+                                                                        >
+                                                                            {isPhoneField(fieldName)
+                                                                                && getPhoneFieldOptions()
+                                                                                    .map((opt) => (
+                                                                                        <option
+                                                                                            key={
+                                                                                                opt.value
+                                                                                            }
+                                                                                            value={
+                                                                                                opt.value
+                                                                                            }
+                                                                                        >
+                                                                                            {opt.label}
+                                                                                        </option>
+                                                                                    ))}
+                                                                            {isEmailField(fieldName)
+                                                                                && getEmailFieldOptions()
+                                                                                    .map((opt) => (
+                                                                                        <option
+                                                                                            key={
+                                                                                                opt.value
+                                                                                            }
+                                                                                            value={
+                                                                                                opt.value
+                                                                                            }
+                                                                                        >
+                                                                                            {opt.label}
+                                                                                        </option>
+                                                                                    ))}
+                                                                        </Input>
+                                                                    ) : (
+                                                                        <strong>
+                                                                            {getFieldLabel(fieldName)}
+                                                                            :
+                                                                        </strong>
+                                                                    )}
+                                                            </div>
+                                                            <div className="flex-grow-1">
+                                                                {field.value}
+                                                                {' '}
+                                                                <Badge
+                                                                    color={
+                                                                        getConfidenceBadgeColor(
+                                                                            field.confidence,
+                                                                        )
+                                                                    }
+                                                                    className="ml-2"
+                                                                >
+                                                                    {field.confidence}
+                                                                </Badge>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+
+                                                    {/* Address block with all address fields */}
+                                                    {hasAddressFields && (
+                                                        <div className="mb-3 p-3 border rounded bg-light">
+                                                            <FormGroup>
+                                                                <Label for="addressBlockType">
+                                                                    <strong>
+                                                                        {ui.translations[
+                                                                            'address.parseText.addressBlock'
+                                                                        ] || 'Address Block'}
+                                                                    </strong>
+                                                                </Label>
                                                                 <Input
                                                                     type="select"
-                                                                    value={
-                                                                        fieldMappings[fieldName]
-                                                                        || fieldName
-                                                                    }
-                                                                    onChange={(e) => {
-                                                                        const newMappings = {
-                                                                            ...fieldMappings,
-                                                                            [fieldName]:
-                                                                                e.target.value,
-                                                                        };
-                                                                        setFieldMappings(
-                                                                            newMappings,
-                                                                        );
-                                                                    }}
-                                                                    className="d-inline-block"
-                                                                    style={{
-                                                                        width: 'auto',
-                                                                        display: 'inline',
-                                                                        padding: '2px 8px',
-                                                                        marginRight: '8px',
-                                                                    }}
+                                                                    id="addressBlockType"
+                                                                    value={addressBlockType}
+                                                                    onChange={(e) => setAddressBlockType(
+                                                                        e.target.value,
+                                                                    )}
+                                                                    style={{ maxWidth: '300px' }}
+                                                                    className="mb-3"
                                                                 >
-                                                                    {isPhoneField(fieldName)
-                                                                        && getPhoneFieldOptions()
-                                                                            .map((opt) => (
-                                                                                <option
-                                                                                    key={opt.value}
-                                                                                    value={
-                                                                                        opt.value
-                                                                                    }
-                                                                                >
-                                                                                    {opt.label}
-                                                                                </option>
-                                                                            ))}
-                                                                    {isEmailField(fieldName)
-                                                                        && getEmailFieldOptions()
-                                                                            .map((opt) => (
-                                                                                <option
-                                                                                    key={opt.value}
-                                                                                    value={
-                                                                                        opt.value
-                                                                                    }
-                                                                                >
-                                                                                    {opt.label}
-                                                                                </option>
-                                                                            ))}
+                                                                    <option value="business">
+                                                                        {ui.translations[
+                                                                            'address.parseText.addressType.business'
+                                                                        ] || 'Business Address'}
+                                                                    </option>
+                                                                    <option value="postal">
+                                                                        {ui.translations[
+                                                                            'address.parseText.addressType.postal'
+                                                                        ] || 'Postal/Mailing Address'}
+                                                                    </option>
+                                                                    <option value="private">
+                                                                        {ui.translations[
+                                                                            'address.parseText.addressType.private'
+                                                                        ] || 'Private Address'}
+                                                                    </option>
                                                                 </Input>
-                                                            ) : (
-                                                                <strong>
-                                                                    {getFieldLabel(fieldName)}
-                                                                    :
-                                                                </strong>
-                                                            )}
-                                                        {' '}
-                                                        {field.value}
-                                                        {' '}
-                                                        <Badge
-                                                            color={
-                                                                getConfidenceBadgeColor(
-                                                                    field.confidence,
-                                                                )
-                                                            }
-                                                            className="ml-2"
-                                                        >
-                                                            {field.confidence}
-                                                        </Badge>
-                                                    </Label>
-                                                </FormGroup>
-                                            ))}
+                                                            </FormGroup>
+
+                                                            {addressFields.map(([fieldName, field]) => (
+                                                                <div
+                                                                    key={fieldName}
+                                                                    className="d-flex align-items-start mb-2"
+                                                                >
+                                                                    <div style={{ minWidth: '30px' }}>
+                                                                        <Input
+                                                                            type="checkbox"
+                                                                            checked={
+                                                                                selectedFields[fieldName]
+                                                                                || false
+                                                                            }
+                                                                            onChange={
+                                                                                () => handleFieldToggle(
+                                                                                    fieldName,
+                                                                                )
+                                                                            }
+                                                                        />
+                                                                    </div>
+                                                                    <div
+                                                                        style={{
+                                                                            minWidth: '200px',
+                                                                            marginRight: '12px',
+                                                                        }}
+                                                                    >
+                                                                        <strong>
+                                                                            {getFieldLabel(fieldName)}
+                                                                            :
+                                                                        </strong>
+                                                                    </div>
+                                                                    <div className="flex-grow-1">
+                                                                        {field.value}
+                                                                        {' '}
+                                                                        <Badge
+                                                                            color={
+                                                                                getConfidenceBadgeColor(
+                                                                                    field.confidence,
+                                                                                )
+                                                                            }
+                                                                            className="ml-2"
+                                                                        >
+                                                                            {field.confidence}
+                                                                        </Badge>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </>
+                                            );
+                                        })()}
                                 </div>
 
                                 <div className="mt-3">
@@ -481,7 +556,6 @@ function AddressTextParser({ values }) {
                                         onClick={handleApply}
                                         className="mr-2"
                                     >
-                                        <i className="fa fa-check mr-2" />
                                         {ui.translations.apply || 'Apply'}
                                     </Button>
                                     <Button
