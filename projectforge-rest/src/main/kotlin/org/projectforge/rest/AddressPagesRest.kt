@@ -841,8 +841,6 @@ class AddressPagesRest
         }
 
         layout.addTranslations(
-            "delete",
-            "file.upload.dropArea",
             "apply",
             "parse",
             "cancel",
@@ -858,7 +856,6 @@ class AddressPagesRest
             "address.parseText.info.noChanges",
             "address.parseText.inputLabel",
             "address.parseText.inputPlaceholder",
-            "address.parseText.remapTo",
             "address.parseText.warning.nameDifferent",
             "address.parseText.button.tooltip",
             "address.book.vCardsImport.dataLoaded",
@@ -886,11 +883,11 @@ class AddressPagesRest
             "address.state",
             "address.country",
             "address.website",
+            "address.comment",
+            "address.birthName",
+            "address.birthday",
             "address.business",
-            "address.private",
-            "address.postal",
-            "address.validation.duplicateFound",
-            "address.validation.duplicateWarning"
+            "address.private"
         )
         layout.addTranslation(
             "address.image.upload.error",

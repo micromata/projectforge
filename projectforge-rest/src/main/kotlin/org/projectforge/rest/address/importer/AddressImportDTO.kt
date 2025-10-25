@@ -332,13 +332,38 @@ class AddressImportDTO(
         val dbName = dbAddress.name
         val dbFirstName = dbAddress.firstName
 
-        // Both name and firstName must exist for matching
-        if (thisName.isNullOrBlank() || thisFirstName.isNullOrBlank() ||
-            dbName.isNullOrBlank() || dbFirstName.isNullOrBlank()
-        ) {
+        // Name (lastName) must exist in both addresses
+        if (thisName.isNullOrBlank() || dbName.isNullOrBlank()) {
             return 0
         }
 
+        val thisFirstNameBlank = thisFirstName.isNullOrBlank()
+        val dbFirstNameBlank = dbFirstName.isNullOrBlank()
+
+        // Case 1: Both firstNames are empty - match only on lastName
+        if (thisFirstNameBlank && dbFirstNameBlank) {
+            // Exact match (case-insensitive)
+            if (thisName.equals(dbName, ignoreCase = true)) {
+                return 45  // Slightly lower than full name match
+            }
+
+            // Normalized match using StringMatchUtils
+            val similarity = StringMatchUtils.calculateSimilarity(thisName, dbName)
+            return when {
+                similarity >= 1.0 -> 35   // Perfect normalized match
+                similarity >= 0.8 -> 30   // High similarity
+                similarity >= 0.6 -> 20   // Medium similarity (below threshold)
+                else -> 0                  // No meaningful similarity
+            }
+        }
+
+        // Case 2: One firstName is empty, the other is not - no match
+        // (Different person - one has firstName, the other doesn't)
+        if (thisFirstNameBlank != dbFirstNameBlank) {
+            return 0
+        }
+
+        // Case 3: Both firstNames exist - match on full name
         // Exact match (case-insensitive)
         if (thisName.equals(dbName, ignoreCase = true) &&
             thisFirstName.equals(dbFirstName, ignoreCase = true)
