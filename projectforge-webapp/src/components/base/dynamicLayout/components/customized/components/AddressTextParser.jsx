@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import {
     Button, Card, CardBody, Collapse, FormGroup, Label, Input, FormFeedback,
-    Alert, Badge, Row, Col,
+    Alert, Badge, Row, Col, UncontrolledTooltip,
 } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronRight } from '@fortawesome/free-solid-svg-icons';
@@ -364,6 +364,7 @@ function AddressTextParser({ values }) {
     return (
         <div className="address-text-parser mb-3">
             <Button
+                id="address-text-parser-btn"
                 color="warning"
                 onClick={handleToggle}
                 className="mb-2"
@@ -378,6 +379,12 @@ function AddressTextParser({ values }) {
                 />
                 {buttonText}
             </Button>
+            <UncontrolledTooltip
+                placement="top"
+                target="address-text-parser-btn"
+            >
+                {ui.translations['address.parseText.button.tooltip'] || 'Paste email signatures or other text, or drop a VCard file to import address data'}
+            </UncontrolledTooltip>
 
             <Collapse isOpen={isOpen}>
                 <Card>
