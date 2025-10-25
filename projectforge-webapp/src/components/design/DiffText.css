@@ -1,0 +1,25 @@
+/* Custom styles for DiffText component */
+
+/* Add strikethrough to deleted lines in multi-line diff view */
+.diff-gutter-delete,
+.diff-code-delete {
+    text-decoration: line-through;
+}
+
+/* Inline diff styles */
+.diff-text-inline {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.diff-text-old {
+    color: #d73a49;
+    font-family: monospace;
+}
+
+.diff-text-new {
+    color: #22863a;
+    font-family: monospace;
+}

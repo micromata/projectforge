@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import {
     FormGroup, Label, Input, Badge, Alert,
 } from 'reactstrap';
+import DiffText from '../../../../../design/DiffText';
 
 /**
  * Reusable component for selecting address fields with mapping options.
@@ -27,6 +28,7 @@ function AddressFieldSelector({
     translations,
     showConfidence = false,
     showComparison = true,
+    highlightNameFields = false,
 }) {
     // Helper functions for field type detection
     const isPhoneField = (fieldName) => [
@@ -47,6 +49,8 @@ function AddressFieldSelector({
         'state',
         'country',
     ].includes(fieldName);
+
+    const isNameField = (fieldName) => ['name', 'firstName'].includes(fieldName);
 
     const getFieldLabel = (fieldName) => {
         const i18nKeyMap = {
@@ -146,12 +150,19 @@ function AddressFieldSelector({
                 const fieldValue = typeof field === 'object' && field !== null ? field.value : field;
                 const confidence = typeof field === 'object' && field !== null ? field.confidence : null;
                 const currentValue = currentData?.[fieldName];
-                const isDifferent = currentValue !== fieldValue;
+                const isDifferent = currentValue != null && currentValue !== fieldValue;
+                const shouldHighlightName = highlightNameFields && isNameField(fieldName);
 
                 return (
                     <div
                         key={fieldName}
                         className="d-flex align-items-start mb-2"
+                        style={shouldHighlightName ? {
+                            padding: '8px',
+                            backgroundColor: '#fff3cd',
+                            border: '1px solid #ffc107',
+                            borderRadius: '4px',
+                        } : {}}
                     >
                         <div style={{ minWidth: '30px' }}>
                             <Input
@@ -189,30 +200,38 @@ function AddressFieldSelector({
                             )}
                         </div>
                         <div className="flex-grow-1">
-                            {fieldValue}
-                            {' '}
-                            {showConfidence && confidence && (
-                                <Badge
-                                    color={getConfidenceBadgeColor(confidence)}
-                                    className="ml-2"
-                                >
-                                    {confidence}
-                                </Badge>
-                            )}
-                            {showComparison && isDifferent && currentValue && (
-                                <Badge color="warning" className="ml-2">
-                                    {translations.different || 'Different'}
-                                </Badge>
-                            )}
-                            {showComparison && currentValue && (
-                                <div className="text-muted small mt-1">
-                                    <strong>
-                                        {translations.current || 'Current'}
-                                        :
-                                    </strong>
-                                    {' '}
-                                    {currentValue}
+                            {showComparison && isDifferent && currentValue ? (
+                                <div className="d-flex align-items-center">
+                                    <DiffText oldValue={currentValue} newValue={fieldValue} inline />
+                                    {shouldHighlightName && (
+                                        <Badge color="danger" className="ml-2">
+                                            <i className="fa fa-exclamation-triangle" />
+                                            {' '}
+                                            {translations['address.parseText.warning.nameDifferent'] || 'Name differs from current address'}
+                                        </Badge>
+                                    )}
+                                    {showConfidence && confidence && (
+                                        <Badge
+                                            color={getConfidenceBadgeColor(confidence)}
+                                            className="ml-2"
+                                        >
+                                            {confidence}
+                                        </Badge>
+                                    )}
                                 </div>
+                            ) : (
+                                <>
+                                    {fieldValue}
+                                    {' '}
+                                    {showConfidence && confidence && (
+                                        <Badge
+                                            color={getConfidenceBadgeColor(confidence)}
+                                            className="ml-2"
+                                        >
+                                            {confidence}
+                                        </Badge>
+                                    )}
+                                </>
                             )}
                         </div>
                     </div>
@@ -252,7 +271,7 @@ function AddressFieldSelector({
                         const fieldValue = typeof field === 'object' && field !== null ? field.value : field;
                         const confidence = typeof field === 'object' && field !== null ? field.confidence : null;
                         const currentValue = currentData?.[fieldName];
-                        const isDifferent = currentValue !== fieldValue;
+                        const isDifferent = currentValue != null && currentValue !== fieldValue;
 
                         return (
                             <div
@@ -273,30 +292,31 @@ function AddressFieldSelector({
                                     </strong>
                                 </div>
                                 <div className="flex-grow-1">
-                                    {fieldValue}
-                                    {' '}
-                                    {showConfidence && confidence && (
-                                        <Badge
-                                            color={getConfidenceBadgeColor(confidence)}
-                                            className="ml-2"
-                                        >
-                                            {confidence}
-                                        </Badge>
-                                    )}
-                                    {showComparison && isDifferent && currentValue && (
-                                        <Badge color="warning" className="ml-2">
-                                            {translations.different || 'Different'}
-                                        </Badge>
-                                    )}
-                                    {showComparison && currentValue && (
-                                        <div className="text-muted small mt-1">
-                                            <strong>
-                                                {translations.current || 'Current'}
-                                                :
-                                            </strong>
-                                            {' '}
-                                            {currentValue}
+                                    {showComparison && isDifferent && currentValue ? (
+                                        <div className="d-flex align-items-center">
+                                            <DiffText oldValue={currentValue} newValue={fieldValue} inline />
+                                            {showConfidence && confidence && (
+                                                <Badge
+                                                    color={getConfidenceBadgeColor(confidence)}
+                                                    className="ml-2"
+                                                >
+                                                    {confidence}
+                                                </Badge>
+                                            )}
                                         </div>
+                                    ) : (
+                                        <>
+                                            {fieldValue}
+                                            {' '}
+                                            {showConfidence && confidence && (
+                                                <Badge
+                                                    color={getConfidenceBadgeColor(confidence)}
+                                                    className="ml-2"
+                                                >
+                                                    {confidence}
+                                                </Badge>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             </div>
@@ -325,11 +345,13 @@ AddressFieldSelector.propTypes = {
         'address.parseText.addressType.business': PropTypes.string,
         'address.parseText.addressType.postal': PropTypes.string,
         'address.parseText.addressType.private': PropTypes.string,
+        'address.parseText.warning.nameDifferent': PropTypes.string,
         different: PropTypes.string,
         current: PropTypes.string,
     }).isRequired,
     showConfidence: PropTypes.bool,
     showComparison: PropTypes.bool,
+    highlightNameFields: PropTypes.bool,
 };
 
 export default AddressFieldSelector;

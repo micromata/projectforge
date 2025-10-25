@@ -704,6 +704,7 @@ class AddressPagesRest
             "address.parseText.inputLabel",
             "address.parseText.inputPlaceholder",
             "address.parseText.remapTo",
+            "address.parseText.warning.nameDifferent",
             "address.title",
             "firstName",
             "name",
