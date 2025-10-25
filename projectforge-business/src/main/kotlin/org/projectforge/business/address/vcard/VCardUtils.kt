@@ -221,7 +221,18 @@ object VCardUtils {
             address.birthday = PFDateTime.fromTemporalOrNull(birthday?.date)?.localDate
         }
         for (note in vcard.notes) {
-            address.comment = if (address.comment != null) address.comment else "" + note.value + " "
+            var noteValue = note.value ?: ""
+            // Remove "CLASS: WORK" that ProjectForge adds during export to avoid false change detection
+            // Case 1: "\nCLASS: WORK" at the end (after actual note text)
+            noteValue = noteValue.replace("\nCLASS: WORK", "")
+            // Case 2: Only "CLASS: WORK" without any note text
+            if (noteValue.trim() == "CLASS: WORK") {
+                noteValue = ""
+            }
+            noteValue = noteValue.trim()
+            if (noteValue.isNotBlank()) {
+                address.comment = if (address.comment != null) address.comment else "" + noteValue + " "
+            }
         }
         vcard.photos.firstOrNull { it.data != null }?.let { photo ->
             address.setTransientAttribute("image", AddressImageDO().also {
