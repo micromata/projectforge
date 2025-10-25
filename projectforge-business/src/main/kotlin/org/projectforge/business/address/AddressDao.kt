@@ -641,6 +641,47 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         return null
     }
 
+    /**
+     * Find addresses with matching name and/or firstName (case-insensitive).
+     * Used for duplicate detection when creating new addresses.
+     *
+     * @param name The last name to search for (optional)
+     * @param firstName The first name to search for (optional)
+     * @param checkAccess If true, only addresses the user has access to are returned
+     * @return List of matching addresses that are not deleted
+     */
+    fun findByNameAndFirstName(name: String?, firstName: String?, checkAccess: Boolean = true): List<AddressDO> {
+        if (name.isNullOrBlank() && firstName.isNullOrBlank()) {
+            return emptyList()
+        }
+
+        val filter = BaseSearchFilter()
+        filter.deleted = false
+        val queryFilter = QueryFilter(filter)
+
+        if (!name.isNullOrBlank() && !firstName.isNullOrBlank()) {
+            // Both fields provided: search for exact match on both
+            queryFilter.add(
+                QueryFilter.eq("name", name!!, ignoreCase = true)
+            )
+            queryFilter.add(
+                QueryFilter.eq("firstName", firstName!!, ignoreCase = true)
+            )
+        } else if (!name.isNullOrBlank()) {
+            // Only name provided
+            queryFilter.add(
+                QueryFilter.eq("name", name!!, ignoreCase = true)
+            )
+        } else {
+            // Only firstName provided
+            queryFilter.add(
+                QueryFilter.eq("firstName", firstName!!, ignoreCase = true)
+            )
+        }
+
+        return select(queryFilter, checkAccess = checkAccess)
+    }
+
     companion object {
         private val V_CARD_DATE_FORMAT: DateFormat = SimpleDateFormat("yyyy-MM-dd")
         private val ENABLED_AUTOCOMPLETION_PROPERTIES = arrayOf(
