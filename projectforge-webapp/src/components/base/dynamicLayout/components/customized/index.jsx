@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import AddressTextParser from './components/AddressTextParser';
 import BookLendOut from './components/BookLendOut';
 import CalendarEventRecurrency from './components/CalendarEventRecurrence';
 import CustomizedAddressImage from './components/CustomizedAddressImage';
@@ -46,6 +47,9 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'address.phoneNumber':
             Tag = CustomizedAddressPhoneNumber;
+            break;
+        case 'address.textParser':
+            Tag = AddressTextParser;
             break;
         case 'email':
             Tag = CustomizedEMail;
