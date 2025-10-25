@@ -3,12 +3,12 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import {
     Button, Card, CardBody, Collapse, FormGroup, Label, Input, FormFeedback,
-    Alert, Badge,
+    Alert, Badge, Row, Col,
 } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { useLocation } from 'react-router';
-import { fetchJsonPost } from '../../../../../../utilities/rest';
+import { fetchJsonPost, getServiceURL } from '../../../../../../utilities/rest';
 import { DynamicLayoutContext } from '../../../context';
 import AddressFieldSelector from './AddressFieldSelector';
 
@@ -58,6 +58,8 @@ function AddressTextParser({ values }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [isOpen, setIsOpen] = useState(!initiallyCollapsed);
+    const [dragActive, setDragActive] = useState(false);
+    const [vcfUploading, setVcfUploading] = useState(false);
 
     // Reset state completely when context key changes (address or import context changed)
     React.useEffect(() => {
@@ -203,6 +205,68 @@ function AddressTextParser({ values }) {
         });
     };
 
+    const handleVcfUpload = (file) => {
+        setVcfUploading(true);
+        setError(null);
+
+        // Reset manual mappings before uploading VCF
+        setFieldMappings({});
+        setAddressBlockType('business');
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('addressId', data.id || '0');
+
+        fetch(getServiceURL('address/parseVcf'), {
+            method: 'POST',
+            credentials: 'include',
+            body: formData,
+        })
+            .then((response) => response.json())
+            .then((json) => {
+                setVcfUploading(false);
+
+                if (json.variables?.error) {
+                    setError(json.variables.error);
+                    return;
+                }
+
+                if (json.variables?.parsedData) {
+                    const parsed = json.variables.parsedData;
+                    setParsedData(parsed);
+
+                    // Pre-select all fields
+                    const selected = {};
+                    Object.keys(parsed.fields || {}).forEach((fieldName) => {
+                        selected[fieldName] = true;
+                    });
+                    setSelectedFields(selected);
+                } else {
+                    setError(ui.translations['address.book.vCardsImport.error.parsing'] || 'Failed to parse VCF file');
+                }
+            })
+            .catch(() => {
+                setVcfUploading(false);
+                setError(ui.translations['address.book.vCardsImport.error.parsing'] || 'Failed to parse VCF file');
+            });
+    };
+
+    const handleVcfDrop = (e) => {
+        e.preventDefault();
+        setDragActive(false);
+
+        const file = e.dataTransfer.files[0];
+        if (!file) return;
+
+        // Check if file is VCF
+        if (!file.name.toLowerCase().endsWith('.vcf')) {
+            setError(ui.translations['address.book.vCardsImport.wrongFileType'] || 'Please drop a VCF file');
+            return;
+        }
+
+        handleVcfUpload(file);
+    };
+
     const handleApply = () => {
         // Apply parsed fields (works for both text parser and VCF import)
         if (!parsedData || !parsedData.fields) return;
@@ -319,24 +383,64 @@ function AddressTextParser({ values }) {
                         {/* Text Parser Mode: Show text input and parse button */}
                         {!isVcfImportMode && (
                             <>
-                                <FormGroup>
-                                    <Label for="addressTextInput">
-                                        {ui.translations['address.parseText.inputLabel']}
-                                    </Label>
-                                    <Input
-                                        type="textarea"
-                                        id="addressTextInput"
-                                        rows={10}
-                                        value={inputText}
-                                        onChange={(e) => setInputText(e.target.value)}
-                                        placeholder={
-                                            (ui.translations['address.parseText.inputPlaceholder'] || '')
-                                                .replace(/\\n/g, '\n')
-                                        }
-                                        invalid={!!error && !parsedData}
-                                    />
-                                    {error && !parsedData && <FormFeedback>{error}</FormFeedback>}
-                                </FormGroup>
+                                <Row>
+                                    <Col md={8}>
+                                        <FormGroup>
+                                            <Label for="addressTextInput">
+                                                {ui.translations['address.parseText.inputLabel']}
+                                            </Label>
+                                            <Input
+                                                type="textarea"
+                                                id="addressTextInput"
+                                                rows={10}
+                                                value={inputText}
+                                                onChange={(e) => setInputText(e.target.value)}
+                                                placeholder={
+                                                    (ui.translations['address.parseText.inputPlaceholder'] || '')
+                                                        .replace(/\\n/g, '\n')
+                                                }
+                                                invalid={!!error && !parsedData}
+                                            />
+                                            {error && !parsedData && <FormFeedback>{error}</FormFeedback>}
+                                        </FormGroup>
+                                    </Col>
+                                    <Col md={4}>
+                                        <Label>
+                                            {ui.translations['address.book.vCardsImport.dropLabel'] || 'Or drop VCF file'}
+                                        </Label>
+                                        <div
+                                            onDrop={handleVcfDrop}
+                                            onDragOver={(e) => e.preventDefault()}
+                                            onDragEnter={() => setDragActive(true)}
+                                            onDragLeave={() => setDragActive(false)}
+                                            style={{
+                                                border: dragActive ? '2px dashed #007bff' : '2px dashed #ccc',
+                                                borderRadius: '8px',
+                                                padding: '20px',
+                                                textAlign: 'center',
+                                                backgroundColor: dragActive ? '#f0f8ff' : '#f9f9f9',
+                                                minHeight: '200px',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                            }}
+                                        >
+                                            <i className="fa fa-upload fa-3x mb-2" style={{ color: '#6c757d' }} />
+                                            <p className="mb-1">{ui.translations['address.book.vCardsImport.dropHint'] || 'Drop VCF file here'}</p>
+                                            <small className="text-muted">
+                                                {ui.translations['address.book.vCardsImport.dropInfo'] || 'Matching address will be selected automatically'}
+                                            </small>
+                                        </div>
+                                        {vcfUploading && (
+                                            <Alert color="info" className="mt-2">
+                                                <i className="fa fa-spinner fa-spin mr-2" />
+                                                {ui.translations['address.book.vCardsImport.uploading'] || 'Parsing VCF file...'}
+                                            </Alert>
+                                        )}
+                                    </Col>
+                                </Row>
 
                                 <Button
                                     color="primary"
