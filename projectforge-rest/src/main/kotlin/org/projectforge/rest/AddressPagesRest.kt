@@ -682,7 +682,6 @@ class AddressPagesRest
         layout.addTranslations(
             "delete",
             "file.upload.dropArea",
-            "hide",
             "apply",
             "parse",
             "cancel",
