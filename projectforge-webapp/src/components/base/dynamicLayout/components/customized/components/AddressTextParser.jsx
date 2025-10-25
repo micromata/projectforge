@@ -268,7 +268,7 @@ function AddressTextParser({ values }) {
     return (
         <div className="address-text-parser mb-3">
             <Button
-                color="secondary"
+                color="warning"
                 onClick={handleToggle}
                 className="mb-2"
             >
