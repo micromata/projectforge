@@ -83,8 +83,17 @@ function AddressTextParser({ values }) {
 
                     // Initialize selected fields based on filtered parsed data
                     const selected = {};
+                    const isExistingAddress = data.id != null; // Check if this is an existing address
+                    const nameFields = ['name', 'firstName']; // Name fields that need special handling
+
                     Object.entries(filteredFields).forEach(([fieldName, field]) => {
-                        selected[fieldName] = field.selected !== false;
+                        // For existing addresses: Do NOT pre-select name fields (safety measure)
+                        // For new addresses: Pre-select all fields as before
+                        if (isExistingAddress && nameFields.includes(fieldName)) {
+                            selected[fieldName] = false; // Don't pre-select name fields for existing addresses
+                        } else {
+                            selected[fieldName] = field.selected !== false;
+                        }
                     });
                     setSelectedFields(selected);
                 } else {
@@ -268,7 +277,8 @@ function AddressTextParser({ values }) {
                                         onAddressBlockTypeChange={setAddressBlockType}
                                         translations={ui.translations}
                                         showConfidence
-                                        showComparison={false}
+                                        showComparison
+                                        highlightNameFields={data.id != null}
                                     />
                                 </div>
 
