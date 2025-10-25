@@ -87,6 +87,12 @@ open class UIAgGrid(
     var rowClickOpenModal: Boolean? = null
 
     /**
+     * JavaScript function name to call on row click (e.g., "window.myFunction").
+     * The function receives the AG-Grid row click event as parameter.
+     */
+    var rowClickFunction: String? = null
+
+    /**
      * Call this url (GET) for getting url to redirect to.
      */
     var handleCancelUrl: String? = null
