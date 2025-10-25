@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import {
     Button, Card, CardBody, Collapse, FormGroup, Label, Input, FormFeedback,
-    Alert,
+    Alert, Badge,
 } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronRight } from '@fortawesome/free-solid-svg-icons';
@@ -301,6 +301,28 @@ function AddressTextParser({ values }) {
                                         {ui.translations.cancel || 'Cancel'}
                                     </Button>
                                 </div>
+
+                                {/* Confidence legend - only show if there are fields with confidence values */}
+                                {parsedData.fields && Object.values(parsedData.fields).some((f) => typeof f === 'object' && f.confidence) && (
+                                    <div className="mt-3" style={{ fontSize: '0.85em', color: '#6c757d' }}>
+                                        <strong>
+                                            {ui.translations['address.parseText.confidence.legend'] || 'Confidence levels'}
+                                            :
+                                        </strong>
+                                        {' '}
+                                        <Badge color="success" className="ml-2">HIGH</Badge>
+                                        {' '}
+                                        {ui.translations['address.parseText.confidence.high'] || 'High confidence - value is very likely correct'}
+                                        {' / '}
+                                        <Badge color="warning" className="ml-2">MEDIUM</Badge>
+                                        {' '}
+                                        {ui.translations['address.parseText.confidence.medium'] || 'Medium confidence - please verify'}
+                                        {' / '}
+                                        <Badge color="danger" className="ml-2">LOW</Badge>
+                                        {' '}
+                                        {ui.translations['address.parseText.confidence.low'] || 'Low confidence - manual review recommended'}
+                                    </div>
+                                )}
                             </div>
                         )}
 
