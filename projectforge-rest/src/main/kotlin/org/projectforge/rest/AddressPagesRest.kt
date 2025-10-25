@@ -28,8 +28,6 @@ import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.SystemStatus
 import org.projectforge.business.address.*
-import org.projectforge.business.configuration.ConfigurationService
-import org.projectforge.business.image.ImageService
 import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.i18n.translate
@@ -109,15 +107,6 @@ class AddressPagesRest
 
     @Autowired
     private lateinit var addressImageServicesRest: AddressImageServicesRest
-
-    @Autowired
-    private lateinit var configurationService: ConfigurationService
-
-    @Autowired
-    private lateinit var imageService: ImageService
-
-    @Autowired
-    private lateinit var languageService: LanguageService
 
     @Autowired
     private lateinit var personalAddressCache: PersonalAddressCache
@@ -430,7 +419,7 @@ class AddressPagesRest
             layout.add(
                 MenuItem(
                     "address.vCardsImport",
-                    i18nKey = "address.book.vCardsImport.menu",
+                    i18nKey = "import",
                     url = PagesResolver.getDynamicPageUrl(
                         org.projectforge.rest.address.importer.AddressImportUploadPageRest::class.java,
                         absolute = false
