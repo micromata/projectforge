@@ -127,6 +127,57 @@ function AddressFieldSelector({
         }
     };
 
+    /**
+     * Get the mapped field name based on field mappings and address block type.
+     * This is used to retrieve the correct currentValue from currentData.
+     */
+    const getMappedFieldName = (fieldName) => {
+        // Phone/Email fields: Use fieldMappings from dropdown selection
+        if (isPhoneField(fieldName) || isEmailField(fieldName)) {
+            return fieldMappings[fieldName] || fieldName;
+        }
+
+        // Address fields: Map based on addressBlockType (Business/Postal/Private)
+        if (isAddressField(fieldName)) {
+            const addressFieldMap = {
+                addressText: {
+                    business: 'addressText',
+                    postal: 'postalAddressText',
+                    private: 'privateAddressText',
+                },
+                addressText2: {
+                    business: 'addressText2',
+                    postal: 'postalAddressText2',
+                    private: 'privateAddressText2',
+                },
+                zipCode: {
+                    business: 'zipCode',
+                    postal: 'postalZipCode',
+                    private: 'privateZipCode',
+                },
+                city: {
+                    business: 'city',
+                    postal: 'postalCity',
+                    private: 'privateCity',
+                },
+                state: {
+                    business: 'state',
+                    postal: 'postalState',
+                    private: 'privateState',
+                },
+                country: {
+                    business: 'country',
+                    postal: 'postalCountry',
+                    private: 'privateCountry',
+                },
+            };
+            return addressFieldMap[fieldName]?.[addressBlockType] || fieldName;
+        }
+
+        // Other fields: No mapping
+        return fieldName;
+    };
+
     if (!fields || Object.keys(fields).length === 0) {
         return (
             <Alert color="info" className="mt-2">
@@ -149,7 +200,8 @@ function AddressFieldSelector({
             {nonAddressFields.map(([fieldName, field]) => {
                 const fieldValue = typeof field === 'object' && field !== null ? field.value : field;
                 const confidence = typeof field === 'object' && field !== null ? field.confidence : null;
-                const currentValue = currentData?.[fieldName];
+                const targetFieldName = getMappedFieldName(fieldName);
+                const currentValue = currentData?.[targetFieldName];
                 const isDifferent = currentValue != null && currentValue !== fieldValue;
                 const shouldHighlightName = highlightNameFields && isNameField(fieldName);
 
@@ -270,7 +322,8 @@ function AddressFieldSelector({
                     {addressFields.map(([fieldName, field]) => {
                         const fieldValue = typeof field === 'object' && field !== null ? field.value : field;
                         const confidence = typeof field === 'object' && field !== null ? field.confidence : null;
-                        const currentValue = currentData?.[fieldName];
+                        const targetFieldName = getMappedFieldName(fieldName);
+                        const currentValue = currentData?.[targetFieldName];
                         const isDifferent = currentValue != null && currentValue !== fieldValue;
 
                         return (
