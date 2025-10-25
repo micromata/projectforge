@@ -132,6 +132,10 @@ function AddressTextParser({ values }) {
         setLoading(true);
         setError(null);
 
+        // Reset manual mappings before parsing new text
+        setFieldMappings({});
+        setAddressBlockType('business');
+
         fetchJsonPost(
             'address/parseText',
             { data: { inputText } },
@@ -401,6 +405,8 @@ function AddressTextParser({ values }) {
                                                 setParsedData(null);
                                                 setSelectedFields({});
                                                 setError(null);
+                                                setFieldMappings({});
+                                                setAddressBlockType('business');
                                             }}
                                         >
                                             {ui.translations.cancel || 'Cancel'}
