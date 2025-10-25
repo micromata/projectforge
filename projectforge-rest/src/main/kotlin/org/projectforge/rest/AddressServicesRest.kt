@@ -254,7 +254,9 @@ class AddressServicesRest {
             val bestMatch = matches.maxByOrNull { it.second }
 
             // 6. Prüfe ob Match gut genug ist (Score >= 50 oder neue Adresse)
-            if (currentAddress != null && (bestMatch == null || bestMatch.second < 50)) {
+            // Wenn nur eine einzige vCard vorhanden ist, verwende diese immer (auch bei niedrigem Score)
+            val singleVCardMatch = parsedAddresses.size == 1
+            if (currentAddress != null && !singleVCardMatch && (bestMatch == null || bestMatch.second < 50)) {
                 log.warn { "No matching address found in VCF file for: ${currentAddress.name}, ${currentAddress.firstName}" }
                 return ResponseEntity.ok(
                     ResponseAction(targetType = TargetType.NOTHING)
@@ -264,7 +266,7 @@ class AddressServicesRest {
 
             // 7. Konvertiere zu parsedData-Format
             val matchedDto = bestMatch?.first ?: matches.first().first
-            log.info { "Best match: ${matchedDto.name}, ${matchedDto.firstName} (score=${bestMatch?.second ?: 0})" }
+            log.info { "Best match: ${matchedDto.name}, ${matchedDto.firstName} (score=${bestMatch?.second ?: 0}, singleVCard=$singleVCardMatch)" }
             val parsedData = convertVcfToParsedDataFormat(matchedDto, currentAddress)
 
             return ResponseEntity.ok(

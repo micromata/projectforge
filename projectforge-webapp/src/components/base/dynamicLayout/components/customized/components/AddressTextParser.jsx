@@ -57,6 +57,7 @@ function AddressTextParser({ values }) {
     const [addressBlockType, setAddressBlockType] = useState('business');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [vcfError, setVcfError] = useState(null);
     const [isOpen, setIsOpen] = useState(!initiallyCollapsed);
     const [dragActive, setDragActive] = useState(false);
     const [vcfUploading, setVcfUploading] = useState(false);
@@ -72,6 +73,7 @@ function AddressTextParser({ values }) {
             setAddressBlockType('business');
             setLoading(false);
             setError(null);
+            setVcfError(null);
             setIsOpen(isVcfImportMode ? true : !initiallyCollapsed);
 
             prevContextKeyRef.current = contextKey;
@@ -207,7 +209,7 @@ function AddressTextParser({ values }) {
 
     const handleVcfUpload = (file) => {
         setVcfUploading(true);
-        setError(null);
+        setVcfError(null);
 
         // Reset manual mappings before uploading VCF
         setFieldMappings({});
@@ -227,7 +229,7 @@ function AddressTextParser({ values }) {
                 setVcfUploading(false);
 
                 if (json.variables?.error) {
-                    setError(json.variables.error);
+                    setVcfError(json.variables.error);
                     return;
                 }
 
@@ -242,12 +244,12 @@ function AddressTextParser({ values }) {
                     });
                     setSelectedFields(selected);
                 } else {
-                    setError(ui.translations['address.book.vCardsImport.error.parsing'] || 'Failed to parse VCF file');
+                    setVcfError(ui.translations['address.book.vCardsImport.error.parsing'] || 'Failed to parse VCF file');
                 }
             })
             .catch(() => {
                 setVcfUploading(false);
-                setError(ui.translations['address.book.vCardsImport.error.parsing'] || 'Failed to parse VCF file');
+                setVcfError(ui.translations['address.book.vCardsImport.error.parsing'] || 'Failed to parse VCF file');
             });
     };
 
@@ -260,11 +262,21 @@ function AddressTextParser({ values }) {
 
         // Check if file is VCF
         if (!file.name.toLowerCase().endsWith('.vcf')) {
-            setError(ui.translations['address.book.vCardsImport.wrongFileType'] || 'Please drop a VCF file');
+            setVcfError(ui.translations['address.book.vCardsImport.wrongFileType'] || 'Please drop a VCF file');
             return;
         }
 
         handleVcfUpload(file);
+    };
+
+    const getDropAreaBorderStyle = () => {
+        if (vcfError) {
+            return '2px solid #dc3545'; // Red border on error
+        }
+        if (dragActive) {
+            return '2px dashed #007bff'; // Blue border when dragging
+        }
+        return '2px dashed #ccc'; // Default gray border
     };
 
     const handleApply = () => {
@@ -414,12 +426,12 @@ function AddressTextParser({ values }) {
                                             onDragEnter={() => setDragActive(true)}
                                             onDragLeave={() => setDragActive(false)}
                                             style={{
-                                                border: dragActive ? '2px dashed #007bff' : '2px dashed #ccc',
+                                                border: getDropAreaBorderStyle(),
                                                 borderRadius: '8px',
                                                 padding: '20px',
                                                 textAlign: 'center',
                                                 backgroundColor: dragActive ? '#f0f8ff' : '#f9f9f9',
-                                                minHeight: '200px',
+                                                minHeight: '120px',
                                                 cursor: 'pointer',
                                                 display: 'flex',
                                                 flexDirection: 'column',
@@ -437,6 +449,11 @@ function AddressTextParser({ values }) {
                                             <Alert color="info" className="mt-2">
                                                 <i className="fa fa-spinner fa-spin mr-2" />
                                                 {ui.translations['address.book.vCardsImport.uploading'] || 'Parsing VCF file...'}
+                                            </Alert>
+                                        )}
+                                        {vcfError && (
+                                            <Alert color="danger" className="mt-2">
+                                                {vcfError}
                                             </Alert>
                                         )}
                                     </Col>
@@ -509,6 +526,7 @@ function AddressTextParser({ values }) {
                                                 setParsedData(null);
                                                 setSelectedFields({});
                                                 setError(null);
+                                                setVcfError(null);
                                                 setFieldMappings({});
                                                 setAddressBlockType('business');
                                             }}
