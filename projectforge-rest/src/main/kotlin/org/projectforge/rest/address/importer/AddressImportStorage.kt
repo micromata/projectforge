@@ -356,4 +356,18 @@ class AddressImportStorage : ImportStorage<AddressImportDTO>(
         }
         return pairEntry
     }
+
+    /**
+     * Gets an import entry by its index in the pairEntries list.
+     * @param index 0-based index
+     * @return ImportPairEntry or null if index is out of bounds
+     */
+    fun getImportEntryByIndex(index: Int): ImportPairEntry<AddressImportDTO>? {
+        return if (index >= 0 && index < pairEntries.size) {
+            pairEntries[index]
+        } else {
+            log.warn { "Import entry index $index out of bounds (size=${pairEntries.size})" }
+            null
+        }
+    }
 }
