@@ -860,6 +860,7 @@ class AddressPagesRest
             "address.parseText.inputPlaceholder",
             "address.parseText.remapTo",
             "address.parseText.warning.nameDifferent",
+            "address.parseText.button.tooltip",
             "address.book.vCardsImport.dataLoaded",
             "address.book.vCardsImport.dropLabel",
             "address.book.vCardsImport.dropHint",
