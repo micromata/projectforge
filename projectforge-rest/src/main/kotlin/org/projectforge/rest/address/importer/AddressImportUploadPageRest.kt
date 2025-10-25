@@ -206,10 +206,11 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
 
         // Action buttons
         layout.addAction(
-            UIButton.createDefaultButton(
-                "close",
-                ResponseAction(callerPage(), targetType = TargetType.REDIRECT),
-                title = "close"
+            UIButton.createCancelButton(
+                ResponseAction(
+                    RestResolver.getRestUrl(this::class.java, "cancel"),
+                    targetType = TargetType.GET,
+                )
             )
         )
 
@@ -434,6 +435,8 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
         val stored: AddressImportDTO?,
         // Add 'id' field for rowClickRedirectUrl :id placeholder
         val id: Long?,
+        // Add oldDiffValues for diff cell visualization (shows old values in modified cells)
+        val oldDiffValues: Map<String, Any>?,
     ) {
         constructor(pairEntry: org.projectforge.rest.importer.ImportPairEntry<AddressImportDTO>, index: Int) : this(
             importIndex = index,
@@ -443,6 +446,7 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
             read = pairEntry.read,
             stored = pairEntry.stored,
             id = pairEntry.stored?.id,
+            oldDiffValues = pairEntry.oldDiffValues,
         )
     }
 }
