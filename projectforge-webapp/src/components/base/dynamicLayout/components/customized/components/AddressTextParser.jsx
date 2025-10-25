@@ -45,10 +45,6 @@ function AddressTextParser({ values }) {
         'country',
     ].includes(fieldName);
 
-    const isRemappableField = (fieldName) => isPhoneField(fieldName)
-        || isEmailField(fieldName)
-        || isAddressField(fieldName);
-
     const handleToggle = () => {
         setIsOpen(!isOpen);
     };
@@ -207,29 +203,50 @@ function AddressTextParser({ values }) {
     };
 
     const getFieldLabel = (fieldName) => {
-        const labels = {
-            title: 'Title',
-            firstName: 'First Name',
-            name: 'Last Name',
-            organization: 'Organization',
-            division: 'Division',
-            positionText: 'Position',
-            businessPhone: 'Business Phone',
-            mobilePhone: 'Mobile Phone',
-            fax: 'Fax',
-            privatePhone: 'Private Phone',
-            privateMobilePhone: 'Private Mobile Phone',
-            email: 'Business Email',
-            privateEmail: 'Private Email',
-            addressText: 'Street',
-            addressText2: 'Street 2',
-            zipCode: 'ZIP Code',
-            city: 'City',
-            state: 'State',
-            country: 'Country',
-            website: 'Website',
+        // Map field names to i18n keys from AddressDO
+        const i18nKeyMap = {
+            title: 'address.title',
+            firstName: 'firstName',
+            name: 'name',
+            organization: 'organization',
+            division: 'address.division',
+            positionText: 'address.positionText',
+            businessPhone: 'address.phone',
+            mobilePhone: 'address.phoneType.mobile',
+            fax: 'address.phoneType.fax',
+            privatePhone: 'address.phone',
+            privateMobilePhone: 'address.phoneType.mobile',
+            email: 'email',
+            privateEmail: 'email',
+            addressText: 'address.addressText',
+            addressText2: 'address.addressText2',
+            zipCode: 'address.zipCode',
+            city: 'address.city',
+            state: 'address.state',
+            country: 'address.country',
+            website: 'address.website',
         };
-        return labels[fieldName] || fieldName;
+
+        const i18nKey = i18nKeyMap[fieldName];
+        const label = i18nKey ? ui.translations[i18nKey] : fieldName;
+
+        // Add context suffix for private fields
+        if (fieldName === 'privatePhone' || fieldName === 'privateMobilePhone') {
+            const privateLabel = ui.translations['address.private'];
+            return privateLabel ? `${label} (${privateLabel})` : label;
+        }
+        if (fieldName === 'privateEmail') {
+            const privateLabel = ui.translations['address.private'];
+            return privateLabel ? `${label} (${privateLabel})` : label;
+        }
+        // Add context suffix for business fields in dropdowns
+        if (fieldName === 'businessPhone' || fieldName === 'mobilePhone'
+            || fieldName === 'fax' || fieldName === 'email') {
+            const businessLabel = ui.translations['address.business'];
+            return businessLabel ? `${label} (${businessLabel})` : label;
+        }
+
+        return label || fieldName;
     };
 
     const getPhoneFieldOptions = () => [
@@ -371,96 +388,90 @@ function AddressTextParser({ values }) {
                                         && Object.entries(parsedData.fields)
                                             .filter(([, field]) => field.value)
                                             .map(([fieldName, field]) => (
-                                                <div key={fieldName} className="mb-3">
-                                                    <FormGroup check className="mb-1">
-                                                        <Label check>
-                                                            <Input
-                                                                type="checkbox"
-                                                                checked={
-                                                                    selectedFields[fieldName]
-                                                                    || false
-                                                                }
-                                                                onChange={
-                                                                    () => handleFieldToggle(
-                                                                        fieldName,
-                                                                    )
-                                                                }
-                                                            />
-                                                            {' '}
-                                                            <strong>
-                                                                {getFieldLabel(fieldName)}
-                                                                :
-                                                            </strong>
-                                                            {' '}
-                                                            {field.value}
-                                                            {' '}
-                                                            <Badge
-                                                                color={
-                                                                    getConfidenceBadgeColor(
-                                                                        field.confidence,
-                                                                    )
-                                                                }
-                                                                className="ml-2"
-                                                            >
-                                                                {field.confidence}
-                                                            </Badge>
-                                                        </Label>
-                                                    </FormGroup>
-                                                    {isRemappableField(fieldName) && (
-                                                        <div className="ml-4">
-                                                            <Label
-                                                                for={`remap-${fieldName}`}
-                                                                className="mr-2 small"
-                                                            >
-                                                                {ui.translations[
-                                                                    'address.parseText.remapTo'
-                                                                ] || 'Map to:'}
-                                                            </Label>
-                                                            <Input
-                                                                type="select"
-                                                                id={`remap-${fieldName}`}
-                                                                value={
-                                                                    fieldMappings[fieldName]
-                                                                    || fieldName
-                                                                }
-                                                                onChange={(e) => setFieldMappings({
-                                                                    ...fieldMappings,
-                                                                    [fieldName]: e.target.value,
-                                                                })}
-                                                                style={{ width: '250px' }}
-                                                                className="d-inline-block"
-                                                            >
-                                                                {isPhoneField(fieldName)
-                                                                    && getPhoneFieldOptions().map(
-                                                                        (opt) => (
-                                                                            <option
-                                                                                key={opt.value}
-                                                                                value={opt.value}
-                                                                            >
-                                                                                {opt.label}
-                                                                            </option>
-                                                                        ),
-                                                                    )}
-                                                                {isEmailField(fieldName)
-                                                                    && getEmailFieldOptions().map(
-                                                                        (opt) => (
-                                                                            <option
-                                                                                key={opt.value}
-                                                                                value={opt.value}
-                                                                            >
-                                                                                {opt.label}
-                                                                            </option>
-                                                                        ),
-                                                                    )}
-                                                                {isAddressField(fieldName) && (
-                                                                    <option value={fieldName}>
-                                                                        {getFieldLabel(fieldName)}
-                                                                    </option>
-                                                                )}
-                                                            </Input>
-                                                        </div>
-                                                    )}
-                                                </div>
+                                                <FormGroup check key={fieldName} className="mb-2">
+                                                    <Label check>
+                                                        <Input
+                                                            type="checkbox"
+                                                            checked={
+                                                                selectedFields[fieldName] || false
+                                                            }
+                                                            onChange={
+                                                                () => handleFieldToggle(fieldName)
+                                                            }
+                                                        />
+                                                        {' '}
+                                                        {isPhoneField(fieldName)
+                                                            || isEmailField(fieldName) ? (
+                                                                <Input
+                                                                    type="select"
+                                                                    value={
+                                                                        fieldMappings[fieldName]
+                                                                        || fieldName
+                                                                    }
+                                                                    onChange={(e) => {
+                                                                        const newMappings = {
+                                                                            ...fieldMappings,
+                                                                            [fieldName]:
+                                                                                e.target.value,
+                                                                        };
+                                                                        setFieldMappings(
+                                                                            newMappings,
+                                                                        );
+                                                                    }}
+                                                                    className="d-inline-block"
+                                                                    style={{
+                                                                        width: 'auto',
+                                                                        display: 'inline',
+                                                                        padding: '2px 8px',
+                                                                        marginRight: '8px',
+                                                                    }}
+                                                                >
+                                                                    {isPhoneField(fieldName)
+                                                                        && getPhoneFieldOptions()
+                                                                            .map((opt) => (
+                                                                                <option
+                                                                                    key={opt.value}
+                                                                                    value={
+                                                                                        opt.value
+                                                                                    }
+                                                                                >
+                                                                                    {opt.label}
+                                                                                </option>
+                                                                            ))}
+                                                                    {isEmailField(fieldName)
+                                                                        && getEmailFieldOptions()
+                                                                            .map((opt) => (
+                                                                                <option
+                                                                                    key={opt.value}
+                                                                                    value={
+                                                                                        opt.value
+                                                                                    }
+                                                                                >
+                                                                                    {opt.label}
+                                                                                </option>
+                                                                            ))}
+                                                                </Input>
+                                                            ) : (
+                                                                <strong>
+                                                                    {getFieldLabel(fieldName)}
+                                                                    :
+                                                                </strong>
+                                                            )}
+                                                        {' '}
+                                                        {field.value}
+                                                        {' '}
+                                                        <Badge
+                                                            color={
+                                                                getConfidenceBadgeColor(
+                                                                    field.confidence,
+                                                                )
+                                                            }
+                                                            className="ml-2"
+                                                        >
+                                                            {field.confidence}
+                                                        </Badge>
+                                                    </Label>
+                                                </FormGroup>
                                             ))}
                                 </div>
 
