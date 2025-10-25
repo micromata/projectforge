@@ -694,7 +694,27 @@ class AddressPagesRest
             "address.parseText.info.noChanges",
             "address.parseText.inputLabel",
             "address.parseText.inputPlaceholder",
-            "address.parseText.remapTo"
+            "address.parseText.remapTo",
+            "address.title",
+            "firstName",
+            "name",
+            "organization",
+            "address.division",
+            "address.positionText",
+            "address.phone",
+            "address.phoneType.mobile",
+            "address.phoneType.fax",
+            "email",
+            "address.addressText",
+            "address.addressText2",
+            "address.zipCode",
+            "address.city",
+            "address.state",
+            "address.country",
+            "address.website",
+            "address.business",
+            "address.private",
+            "address.postal"
         )
         layout.addTranslation(
             "address.image.upload.error",
