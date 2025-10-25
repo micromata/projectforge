@@ -134,6 +134,9 @@ class AddressPagesRest
     @Autowired
     private lateinit var persistenceService: org.projectforge.framework.persistence.jpa.PfPersistenceService
 
+    @Autowired
+    private lateinit var addressTextImportService: AddressTextImportService
+
     override fun transformForDB(dto: Address): AddressDO {
         val addressDO = AddressDO()
         dto.copyTo(addressDO)
@@ -473,6 +476,25 @@ class AddressPagesRest
         )
         val layout = super.createEditLayout(dto, userAccess)
             //autoCompletion = AutoCompletion(url = "addressBook/ac?search="))))
+            // Add text parser collapse at the top
+            .add(
+                UIRow()
+                    .add(
+                        UIFieldset(12)
+                            .add(
+                                UICustomized(
+                                    "address.textParser",
+                                    mutableMapOf(
+                                        "type" to "collapsePanel",
+                                        "title" to translate("address.parseText.title"),
+                                        "buttonText" to translate("address.parseText.button"),
+                                        "initiallyCollapsed" to true,
+                                        "buttonIcon" to "paste"
+                                    )
+                                )
+                            )
+                    )
+            )
             .add(
                 UIRow()
                     .add(
@@ -752,5 +774,72 @@ class AddressPagesRest
         }
         val filename = "ProjectForge-AddressExport_${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx"
         return RestUtils.downloadFile(filename, xls)
+    }
+
+    /**
+     * Parses address text (email signature) and returns structured field mapping.
+     */
+    @PostMapping("parseText")
+    fun parseText(@RequestBody data: PostData<Map<String, String>>): ResponseEntity<ResponseAction> {
+        val inputText = data.data["inputText"] ?: ""
+        log.info { "Parsing address text (${inputText.length} characters)" }
+
+        val parsed = addressTextImportService.parseText(inputText)
+
+        return ResponseEntity.ok(
+            ResponseAction(targetType = TargetType.UPDATE)
+                .addVariable("parsedData", parsed)
+        )
+    }
+
+    /**
+     * DTO for applying parsed address data.
+     */
+    data class ApplyParsedDataRequest(
+        val address: Address,
+        val selectedFields: Map<String, String>
+    )
+
+    /**
+     * Applies parsed data to address form fields.
+     */
+    @PostMapping("applyParsedData")
+    fun applyParsedData(@RequestBody request: ApplyParsedDataRequest): ResponseEntity<ResponseAction> {
+        val address = request.address
+        val selectedFields = request.selectedFields
+
+        // Apply only selected fields
+        selectedFields.forEach { (fieldName, value) ->
+            when (fieldName) {
+                "title" -> address.title = value
+                "firstName" -> address.firstName = value
+                "name" -> address.name = value
+                "organization" -> address.organization = value
+                "division" -> address.division = value
+                "positionText" -> address.positionText = value
+                "businessPhone" -> address.businessPhone = value
+                "mobilePhone" -> address.mobilePhone = value
+                "fax" -> address.fax = value
+                "privatePhone" -> address.privatePhone = value
+                "privateMobilePhone" -> address.privateMobilePhone = value
+                "email" -> address.email = value
+                "privateEmail" -> address.privateEmail = value
+                "addressText" -> address.addressText = value
+                "addressText2" -> address.addressText2 = value
+                "zipCode" -> address.zipCode = value
+                "city" -> address.city = value
+                "state" -> address.state = value
+                "country" -> address.country = value
+                "website" -> address.website = value
+            }
+        }
+
+        log.info { "Applied ${selectedFields.size} parsed fields to address" }
+
+        return ResponseEntity.ok(
+            ResponseAction(targetType = TargetType.UPDATE)
+                .addVariable("data", address)
+                .addVariable("ui", UIToast.createToast(translate("address.parseText.applied")))
+        )
     }
 }
