@@ -85,9 +85,9 @@ function AddressTextParser({ values }) {
                 selectedFields: fieldsToApply,
             },
             (json) => {
-                if (json && json.data) {
+                if (json && json.variables && json.variables.data) {
                     // Update form data with parsed values
-                    setData(json.data);
+                    setData(json.variables.data);
 
                     // Close collapse and reset
                     setIsOpen(false);
