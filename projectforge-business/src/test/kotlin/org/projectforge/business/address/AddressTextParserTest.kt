@@ -407,4 +407,136 @@ class AddressTextParserTest {
         assertEquals("hans.weber@beispiel.de", result.email)
         assertEquals("www.beispiel.de", result.website)
     }
+
+    @Test
+    fun `test parse without names`() {
+        val text = """
+            Musterstraße 7
+            53113 Bonn
+
+            Telefon  +49 228 123 45678
+            Mobil     +49 170 123456
+
+            hans.weber@beispiel.de
+            www.beispiel.de
+            Beispiel Gruppe
+        """.trimIndent()
+
+        val result = AddressTextParser.parseAddressText(text)
+
+        assertEquals("Musterstraße 7", result.addressText)
+        assertEquals("53113", result.zipCode)
+        assertEquals("Bonn", result.city)
+        assertEquals("+49 228 123 45678", result.businessPhone) // Normalized format
+        assertEquals("+49 170 123456", result.mobilePhone) // Normalized format
+        assertEquals("hans.weber@beispiel.de", result.email)
+        assertEquals("www.beispiel.de", result.website)
+    }
+
+    @Test
+    fun `test parse address only without name or phone`() {
+        val text = """
+            Hauptstraße 42
+            80331 München
+        """.trimIndent()
+
+        val result = AddressTextParser.parseAddressText(text)
+
+        // Name should be null
+        assertNull(result.firstName)
+        assertNull(result.name)
+
+        // Address should be parsed
+        assertEquals("Hauptstraße 42", result.addressText)
+        assertEquals("80331", result.zipCode)
+        assertEquals("München", result.city)
+
+        // Contact info should be null
+        assertNull(result.businessPhone)
+        assertNull(result.email)
+    }
+
+    @Test
+    fun `test parse phone numbers only`() {
+        val text = """
+            Tel: +49 30 12345678
+            Mobil: +49 170 1234567
+            Fax: +49 30 12345679
+        """.trimIndent()
+
+        val result = AddressTextParser.parseAddressText(text)
+
+        // Name should be null
+        assertNull(result.firstName)
+        assertNull(result.name)
+
+        // Phone numbers should be parsed
+        assertEquals("+49 30 12345678", result.businessPhone)
+        assertEquals("+49 170 1234567", result.mobilePhone)
+        assertEquals("+49 30 12345679", result.fax)
+
+        // Address should be null
+        assertNull(result.addressText)
+        assertNull(result.zipCode)
+        assertNull(result.city)
+    }
+
+    @Test
+    fun `test parse address with phone numbers without name`() {
+        val text = """
+            Hauptstraße 42
+            80331 München
+
+            Tel: +49 89 12345678
+            info@example.de
+        """.trimIndent()
+
+        val result = AddressTextParser.parseAddressText(text)
+
+        // Name should be null
+        assertNull(result.firstName)
+        assertNull(result.name)
+
+        // Address should be parsed
+        assertEquals("Hauptstraße 42", result.addressText)
+        assertEquals("80331", result.zipCode)
+        assertEquals("München", result.city)
+
+        // Contact info should be parsed
+        assertEquals("+49 89 12345678", result.businessPhone)
+        assertEquals("info@example.de", result.email)
+    }
+
+    @Test
+    fun `test parse organization with address without person name`() {
+        val text = """
+            Example GmbH
+            Musterstraße 1-5
+            12345 Musterstadt
+
+            Tel: +49 30 12345678
+            kontakt@example.de
+            www.example.de
+        """.trimIndent()
+
+        val result = AddressTextParser.parseAddressText(text)
+
+        // Person name should be null
+        assertNull(result.firstName)
+        assertNull(result.name)
+        assertNull(result.title)
+
+        // Organization should be parsed
+        assertEquals("Example GmbH", result.organization)
+
+        // Address should be parsed
+        assertEquals("Musterstraße 1-5", result.addressText)
+        assertEquals("12345", result.zipCode)
+        assertEquals("Musterstadt", result.city)
+
+        // Contact info should be parsed
+        assertEquals("+49 30 12345678", result.businessPhone)
+        assertEquals("kontakt@example.de", result.email)
+        assertEquals("www.example.de", result.website)
+    }
 }
