@@ -679,7 +679,23 @@ class AddressPagesRest
 
         layout.getInputById("name").focus = true
         layout.getTextAreaById("comment").cssClass = CssClassnames.MT_5
-        layout.addTranslations("delete", "file.upload.dropArea")
+        layout.addTranslations(
+            "delete",
+            "file.upload.dropArea",
+            "hide",
+            "apply",
+            "parse",
+            "cancel",
+            "address.parseText.addressBlock",
+            "address.parseText.addressType.business",
+            "address.parseText.addressType.postal",
+            "address.parseText.addressType.private",
+            "address.parseText.fieldsParsed",
+            "address.parseText.info.noChanges",
+            "address.parseText.inputLabel",
+            "address.parseText.inputPlaceholder",
+            "address.parseText.remapTo"
+        )
         layout.addTranslation(
             "address.image.upload.error",
             translateMsg(
@@ -824,12 +840,27 @@ class AddressPagesRest
                 "privateMobilePhone" -> address.privateMobilePhone = value
                 "email" -> address.email = value
                 "privateEmail" -> address.privateEmail = value
+                // Business address fields
                 "addressText" -> address.addressText = value
                 "addressText2" -> address.addressText2 = value
                 "zipCode" -> address.zipCode = value
                 "city" -> address.city = value
                 "state" -> address.state = value
                 "country" -> address.country = value
+                // Postal address fields
+                "postalAddressText" -> address.postalAddressText = value
+                "postalAddressText2" -> address.postalAddressText2 = value
+                "postalZipCode" -> address.postalZipCode = value
+                "postalCity" -> address.postalCity = value
+                "postalState" -> address.postalState = value
+                "postalCountry" -> address.postalCountry = value
+                // Private address fields
+                "privateAddressText" -> address.privateAddressText = value
+                "privateAddressText2" -> address.privateAddressText2 = value
+                "privateZipCode" -> address.privateZipCode = value
+                "privateCity" -> address.privateCity = value
+                "privateState" -> address.privateState = value
+                "privateCountry" -> address.privateCountry = value
                 "website" -> address.website = value
             }
         }
