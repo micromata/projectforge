@@ -23,8 +23,8 @@ function AddressFieldSelector({
     onFieldToggle,
     fieldMappings,
     onFieldMappingChange,
-    addressBlockType,
-    onAddressBlockTypeChange,
+    addressBlockMappings,
+    onAddressBlockMappingChange,
     translations,
     showConfidence = false,
     showComparison = true,
@@ -48,7 +48,49 @@ function AddressFieldSelector({
         'city',
         'state',
         'country',
+        'privateAddressText',
+        'privateAddressText2',
+        'privateZipCode',
+        'privateCity',
+        'privateState',
+        'privateCountry',
+        'postalAddressText',
+        'postalAddressText2',
+        'postalZipCode',
+        'postalCity',
+        'postalState',
+        'postalCountry',
     ].includes(fieldName);
+
+    const getAddressBlockType = (fieldName) => {
+        if (fieldName.startsWith('private')) return 'private';
+        if (fieldName.startsWith('postal')) return 'postal';
+        return 'business';
+    };
+
+    const getBaseFieldName = (fieldName) => {
+        // Extract base field name without prefix: "privateCity" → "city", "postalZipCode" → "zipCode"
+        if (fieldName.startsWith('private')) {
+            const withoutPrivate = fieldName.substring(7); // Remove "private"
+            return withoutPrivate.charAt(0).toLowerCase() + withoutPrivate.substring(1);
+        }
+        if (fieldName.startsWith('postal')) {
+            const withoutPostal = fieldName.substring(6); // Remove "postal"
+            return withoutPostal.charAt(0).toLowerCase() + withoutPostal.substring(1);
+        }
+        return fieldName;
+    };
+
+    const buildTargetFieldName = (baseFieldName, targetBlockType) => {
+        // Build target field name: "city" + "postal" → "postalCity"
+        if (targetBlockType === 'private') {
+            return `private${baseFieldName.charAt(0).toUpperCase()}${baseFieldName.substring(1)}`;
+        }
+        if (targetBlockType === 'postal') {
+            return `postal${baseFieldName.charAt(0).toUpperCase()}${baseFieldName.substring(1)}`;
+        }
+        return baseFieldName;
+    };
 
     const isNameField = (fieldName) => ['name', 'firstName'].includes(fieldName);
 
@@ -128,7 +170,7 @@ function AddressFieldSelector({
     };
 
     /**
-     * Get the mapped field name based on field mappings and address block type.
+     * Get the mapped field name based on field mappings and address block mappings.
      * This is used to retrieve the correct currentValue from currentData.
      */
     const getMappedFieldName = (fieldName) => {
@@ -137,41 +179,12 @@ function AddressFieldSelector({
             return fieldMappings[fieldName] || fieldName;
         }
 
-        // Address fields: Map based on addressBlockType (Business/Postal/Private)
+        // Address fields: Map based on addressBlockMappings
         if (isAddressField(fieldName)) {
-            const addressFieldMap = {
-                addressText: {
-                    business: 'addressText',
-                    postal: 'postalAddressText',
-                    private: 'privateAddressText',
-                },
-                addressText2: {
-                    business: 'addressText2',
-                    postal: 'postalAddressText2',
-                    private: 'privateAddressText2',
-                },
-                zipCode: {
-                    business: 'zipCode',
-                    postal: 'postalZipCode',
-                    private: 'privateZipCode',
-                },
-                city: {
-                    business: 'city',
-                    postal: 'postalCity',
-                    private: 'privateCity',
-                },
-                state: {
-                    business: 'state',
-                    postal: 'postalState',
-                    private: 'privateState',
-                },
-                country: {
-                    business: 'country',
-                    postal: 'postalCountry',
-                    private: 'privateCountry',
-                },
-            };
-            return addressFieldMap[fieldName]?.[addressBlockType] || fieldName;
+            const sourceBlockType = getAddressBlockType(fieldName);
+            const targetBlockType = addressBlockMappings[sourceBlockType] || sourceBlockType;
+            const baseFieldName = getBaseFieldName(fieldName);
+            return buildTargetFieldName(baseFieldName, targetBlockType);
         }
 
         // Other fields: No mapping
@@ -190,9 +203,14 @@ function AddressFieldSelector({
         const value = typeof field === 'object' && field !== null ? field.value : field;
         return value;
     });
-    const addressFields = entries.filter(([fn]) => isAddressField(fn));
     const nonAddressFields = entries.filter(([fn]) => !isAddressField(fn));
-    const hasAddressFields = addressFields.length > 0;
+
+    // Group address fields by block type (business/private/postal)
+    const addressFieldsByBlock = {
+        business: entries.filter(([fn]) => isAddressField(fn) && getAddressBlockType(fn) === 'business'),
+        private: entries.filter(([fn]) => isAddressField(fn) && getAddressBlockType(fn) === 'private'),
+        postal: entries.filter(([fn]) => isAddressField(fn) && getAddressBlockType(fn) === 'postal'),
+    };
 
     return (
         <div className="address-field-selector">
@@ -290,93 +308,104 @@ function AddressFieldSelector({
                 );
             })}
 
-            {/* Address block with all address fields */}
-            {hasAddressFields && (
-                <div className="mb-3 p-3 border rounded bg-light">
-                    <FormGroup>
-                        <Label for="addressBlockType">
-                            <strong>
-                                {translations['address.parseText.addressBlock'] || 'Address Block'}
-                            </strong>
-                        </Label>
-                        <Input
-                            type="select"
-                            id="addressBlockType"
-                            value={addressBlockType}
-                            onChange={(e) => onAddressBlockTypeChange(e.target.value)}
-                            style={{ maxWidth: '300px' }}
-                            className="mb-3"
-                        >
-                            <option value="business">
-                                {translations['address.parseText.addressType.business'] || 'Business Address'}
-                            </option>
-                            <option value="postal">
-                                {translations['address.parseText.addressType.postal'] || 'Postal/Mailing Address'}
-                            </option>
-                            <option value="private">
-                                {translations['address.parseText.addressType.private'] || 'Private Address'}
-                            </option>
-                        </Input>
-                    </FormGroup>
+            {/* Address blocks - separate block for each type (business/private/postal) */}
+            {['business', 'private', 'postal'].map((blockType) => {
+                const blockFields = addressFieldsByBlock[blockType];
+                if (blockFields.length === 0) return null;
 
-                    {addressFields.map(([fieldName, field]) => {
-                        const fieldValue = typeof field === 'object' && field !== null ? field.value : field;
-                        const confidence = typeof field === 'object' && field !== null ? field.confidence : null;
-                        const targetFieldName = getMappedFieldName(fieldName);
-                        const currentValue = currentData?.[targetFieldName];
-                        const isDifferent = currentValue != null && currentValue !== fieldValue;
+                const blockTypeLabel = {
+                    business: translations['address.parseText.addressType.business'] || 'Business Address',
+                    private: translations['address.parseText.addressType.private'] || 'Private Address',
+                    postal: translations['address.parseText.addressType.postal'] || 'Postal/Mailing Address',
+                };
 
-                        return (
-                            <div
-                                key={fieldName}
-                                className="d-flex align-items-start mb-2"
+                return (
+                    <div key={blockType} className="mb-3 p-3 border rounded bg-light">
+                        <FormGroup>
+                            <Label for={`addressBlockType-${blockType}`}>
+                                <strong>
+                                    {blockTypeLabel[blockType]}
+                                </strong>
+                            </Label>
+                            <Input
+                                type="select"
+                                id={`addressBlockType-${blockType}`}
+                                value={addressBlockMappings[blockType] || blockType}
+                                onChange={(e) => onAddressBlockMappingChange(blockType, e.target.value)}
+                                style={{ maxWidth: '300px' }}
+                                className="mb-3"
                             >
-                                <div style={{ minWidth: '30px' }}>
-                                    <Input
-                                        type="checkbox"
-                                        checked={selectedFields[fieldName] || false}
-                                        onChange={() => onFieldToggle(fieldName)}
-                                    />
+                                <option value="business">
+                                    {translations['address.parseText.addressType.business'] || 'Business Address'}
+                                </option>
+                                <option value="postal">
+                                    {translations['address.parseText.addressType.postal'] || 'Postal/Mailing Address'}
+                                </option>
+                                <option value="private">
+                                    {translations['address.parseText.addressType.private'] || 'Private Address'}
+                                </option>
+                            </Input>
+                        </FormGroup>
+
+                        {blockFields.map(([fieldName, field]) => {
+                            const fieldValue = typeof field === 'object' && field !== null ? field.value : field;
+                            const confidence = typeof field === 'object' && field !== null ? field.confidence : null;
+                            const targetFieldName = getMappedFieldName(fieldName);
+                            const currentValue = currentData?.[targetFieldName];
+                            const isDifferent = currentValue != null && currentValue !== fieldValue;
+
+                            return (
+                                <div
+                                    key={fieldName}
+                                    className="d-flex align-items-start mb-2"
+                                >
+                                    <div style={{ minWidth: '30px' }}>
+                                        <Input
+                                            type="checkbox"
+                                            checked={selectedFields[fieldName] || false}
+                                            onChange={() => onFieldToggle(fieldName)}
+                                        />
+                                    </div>
+                                    <div style={{ minWidth: '200px', marginRight: '12px' }}>
+                                        <strong>
+                                            {getFieldLabel(fieldName)}
+                                            :
+                                        </strong>
+                                    </div>
+                                    <div className="flex-grow-1">
+                                        {showComparison && isDifferent && currentValue ? (
+                                            <div className="d-flex align-items-center">
+                                                <DiffText oldValue={currentValue} newValue={fieldValue} inline />
+                                                {showConfidence && confidence && (
+                                                    <Badge
+                                                        color={getConfidenceBadgeColor(confidence)}
+                                                        className="ml-2"
+                                                    >
+                                                        {confidence}
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <>
+                                                {fieldValue}
+                                                {' '}
+                                                {showConfidence && confidence && (
+                                                    <Badge
+                                                        color={getConfidenceBadgeColor(confidence)}
+                                                        className="ml-2"
+                                                    >
+                                                        {confidence}
+                                                    </Badge>
+                                                )}
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
-                                <div style={{ minWidth: '200px', marginRight: '12px' }}>
-                                    <strong>
-                                        {getFieldLabel(fieldName)}
-                                        :
-                                    </strong>
-                                </div>
-                                <div className="flex-grow-1">
-                                    {showComparison && isDifferent && currentValue ? (
-                                        <div className="d-flex align-items-center">
-                                            <DiffText oldValue={currentValue} newValue={fieldValue} inline />
-                                            {showConfidence && confidence && (
-                                                <Badge
-                                                    color={getConfidenceBadgeColor(confidence)}
-                                                    className="ml-2"
-                                                >
-                                                    {confidence}
-                                                </Badge>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <>
-                                            {fieldValue}
-                                            {' '}
-                                            {showConfidence && confidence && (
-                                                <Badge
-                                                    color={getConfidenceBadgeColor(confidence)}
-                                                    className="ml-2"
-                                                >
-                                                    {confidence}
-                                                </Badge>
-                                            )}
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
+                            );
+                        })}
+                    </div>
+                );
+            })}
         </div>
     );
 }
@@ -388,8 +417,8 @@ AddressFieldSelector.propTypes = {
     onFieldToggle: PropTypes.func.isRequired,
     fieldMappings: PropTypes.shape({}).isRequired,
     onFieldMappingChange: PropTypes.func.isRequired,
-    addressBlockType: PropTypes.string.isRequired,
-    onAddressBlockTypeChange: PropTypes.func.isRequired,
+    addressBlockMappings: PropTypes.shape({}).isRequired,
+    onAddressBlockMappingChange: PropTypes.func.isRequired,
     translations: PropTypes.shape({
         'address.private': PropTypes.string,
         'address.business': PropTypes.string,

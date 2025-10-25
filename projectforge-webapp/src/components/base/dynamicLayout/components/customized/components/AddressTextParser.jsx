@@ -54,7 +54,11 @@ function AddressTextParser({ values }) {
     const [parsedData, setParsedData] = useState(null);
     const [selectedFields, setSelectedFields] = useState({});
     const [fieldMappings, setFieldMappings] = useState({});
-    const [addressBlockType, setAddressBlockType] = useState('business');
+    const [addressBlockMappings, setAddressBlockMappings] = useState({
+        business: 'business',
+        private: 'private',
+        postal: 'postal',
+    });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [vcfError, setVcfError] = useState(null);
@@ -70,7 +74,7 @@ function AddressTextParser({ values }) {
             setParsedData(null);
             setSelectedFields({});
             setFieldMappings({});
-            setAddressBlockType('business');
+            setAddressBlockMappings({ business: 'business', private: 'private', postal: 'postal' });
             setLoading(false);
             setError(null);
             setVcfError(null);
@@ -121,7 +125,49 @@ function AddressTextParser({ values }) {
         'city',
         'state',
         'country',
+        'privateAddressText',
+        'privateAddressText2',
+        'privateZipCode',
+        'privateCity',
+        'privateState',
+        'privateCountry',
+        'postalAddressText',
+        'postalAddressText2',
+        'postalZipCode',
+        'postalCity',
+        'postalState',
+        'postalCountry',
     ].includes(fieldName);
+
+    const getAddressBlockType = (fieldName) => {
+        if (fieldName.startsWith('private')) return 'private';
+        if (fieldName.startsWith('postal')) return 'postal';
+        return 'business';
+    };
+
+    const getBaseFieldName = (fieldName) => {
+        // Extract base field name without prefix: "privateCity" → "city", "postalZipCode" → "zipCode"
+        if (fieldName.startsWith('private')) {
+            const withoutPrivate = fieldName.substring(7); // Remove "private"
+            return withoutPrivate.charAt(0).toLowerCase() + withoutPrivate.substring(1); // lowercase first char
+        }
+        if (fieldName.startsWith('postal')) {
+            const withoutPostal = fieldName.substring(6); // Remove "postal"
+            return withoutPostal.charAt(0).toLowerCase() + withoutPostal.substring(1); // lowercase first char
+        }
+        return fieldName; // Already base name
+    };
+
+    const buildTargetFieldName = (baseFieldName, targetBlockType) => {
+        // Build target field name: "city" + "postal" → "postalCity"
+        if (targetBlockType === 'private') {
+            return `private${baseFieldName.charAt(0).toUpperCase()}${baseFieldName.substring(1)}`;
+        }
+        if (targetBlockType === 'postal') {
+            return `postal${baseFieldName.charAt(0).toUpperCase()}${baseFieldName.substring(1)}`;
+        }
+        return baseFieldName; // business uses base name
+    };
 
     const handleToggle = () => {
         setIsOpen(!isOpen);
@@ -138,7 +184,7 @@ function AddressTextParser({ values }) {
 
         // Reset manual mappings before parsing new text
         setFieldMappings({});
-        setAddressBlockType('business');
+        setAddressBlockMappings({ business: 'business', private: 'private', postal: 'postal' });
 
         fetchJsonPost(
             'address/parseText',
@@ -207,13 +253,20 @@ function AddressTextParser({ values }) {
         });
     };
 
+    const handleAddressBlockMappingChange = (blockType, newMapping) => {
+        setAddressBlockMappings({
+            ...addressBlockMappings,
+            [blockType]: newMapping,
+        });
+    };
+
     const handleVcfUpload = (file) => {
         setVcfUploading(true);
         setVcfError(null);
 
         // Reset manual mappings before uploading VCF
         setFieldMappings({});
-        setAddressBlockType('business');
+        setAddressBlockMappings({ business: 'business', private: 'private', postal: 'postal' });
 
         const formData = new FormData();
         formData.append('file', file);
@@ -291,39 +344,10 @@ function AddressTextParser({ values }) {
 
                 // Apply address block remapping
                 if (isAddressField(fieldName)) {
-                    const addressFieldMap = {
-                        addressText: {
-                            business: 'addressText',
-                            postal: 'postalAddressText',
-                            private: 'privateAddressText',
-                        },
-                        addressText2: {
-                            business: 'addressText2',
-                            postal: 'postalAddressText2',
-                            private: 'privateAddressText2',
-                        },
-                        zipCode: {
-                            business: 'zipCode',
-                            postal: 'postalZipCode',
-                            private: 'privateZipCode',
-                        },
-                        city: {
-                            business: 'city',
-                            postal: 'postalCity',
-                            private: 'privateCity',
-                        },
-                        state: {
-                            business: 'state',
-                            postal: 'postalState',
-                            private: 'privateState',
-                        },
-                        country: {
-                            business: 'country',
-                            postal: 'postalCountry',
-                            private: 'privateCountry',
-                        },
-                    };
-                    targetFieldName = addressFieldMap[fieldName]?.[addressBlockType] || fieldName;
+                    const sourceBlockType = getAddressBlockType(fieldName);
+                    const targetBlockType = addressBlockMappings[sourceBlockType] || sourceBlockType;
+                    const baseFieldName = getBaseFieldName(fieldName);
+                    targetFieldName = buildTargetFieldName(baseFieldName, targetBlockType);
                 } else {
                     // Apply individual field remapping (phone/email)
                     targetFieldName = fieldMappings[fieldName] || fieldName;
@@ -352,7 +376,7 @@ function AddressTextParser({ values }) {
                         setParsedData(null);
                         setSelectedFields({});
                         setFieldMappings({});
-                        setAddressBlockType('business');
+                        setAddressBlockMappings({ business: 'business', private: 'private', postal: 'postal' });
                     }
                 } else {
                     setError('Error applying data');
@@ -508,8 +532,8 @@ function AddressTextParser({ values }) {
                                         onFieldToggle={handleFieldToggle}
                                         fieldMappings={fieldMappings}
                                         onFieldMappingChange={handleFieldMappingChange}
-                                        addressBlockType={addressBlockType}
-                                        onAddressBlockTypeChange={setAddressBlockType}
+                                        addressBlockMappings={addressBlockMappings}
+                                        onAddressBlockMappingChange={handleAddressBlockMappingChange}
                                         translations={ui.translations}
                                         showConfidence
                                         showComparison
@@ -535,7 +559,7 @@ function AddressTextParser({ values }) {
                                                 setError(null);
                                                 setVcfError(null);
                                                 setFieldMappings({});
-                                                setAddressBlockType('business');
+                                                setAddressBlockMappings({ business: 'business', private: 'private', postal: 'postal' });
                                             }}
                                         >
                                             {ui.translations.cancel || 'Cancel'}
