@@ -175,6 +175,11 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
                 }
             });
 
+            // Special case: Unselect name and firstName.
+            // This prevents accidentally overwriting the name when VCF might be for a different person
+            selected.name = false;
+            selected.firstName = false;
+
             setParsedData({
                 fields,
                 warnings: [],
@@ -372,6 +377,12 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
                     Object.keys(parsed.fields || {}).forEach((fieldName) => {
                         selected[fieldName] = true;
                     });
+
+                    // Special case: Unselect name and firstName.
+                    // This prevents accidentally overwriting the name when VCF might be for a different person
+                    selected.name = false;
+                    selected.firstName = false;
+
                     setSelectedFields(selected);
                 } else {
                     setVcfError(ui.translations['address.book.vCardsImport.error.parsing'] || 'Failed to parse VCF file');
@@ -676,7 +687,6 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
                                 {/* VCF Image Import Section - only show in VCF mode when image exists */}
                                 {hasImage && (
                                     <div className="mt-3">
-                                        <h6>{ui.translations['address.book.vCardsImport.image'] || 'Image'}</h6>
                                         {imageTooLarge ? (
                                             <Alert color="warning">
                                                 {ui.translations['address.book.vCardsImport.imageTooLarge'] || 'Bild zu groß'}
