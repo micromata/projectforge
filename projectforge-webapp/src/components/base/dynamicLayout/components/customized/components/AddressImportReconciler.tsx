@@ -121,6 +121,9 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
     const [isOpen, setIsOpen] = useState<boolean>(!initiallyCollapsed);
     const [dragActive, setDragActive] = useState<boolean>(false);
     const [vcfUploading, setVcfUploading] = useState<boolean>(false);
+    const [hasImage, setHasImage] = useState<boolean>(false);
+    const [imageTooLarge, setImageTooLarge] = useState<boolean>(false);
+    const [applyImage, setApplyImage] = useState<boolean>(false);
 
     // Reset state completely when context key changes (address or import context changed)
     React.useEffect(() => {
@@ -135,6 +138,9 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
             setError(null);
             setVcfError(null);
             setIsOpen(isVcfImportMode ? true : !initiallyCollapsed);
+            setHasImage(false);
+            setImageTooLarge(false);
+            setApplyImage(false);
 
             prevContextKeyRef.current = contextKey;
         }
@@ -346,6 +352,18 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
                     const parsed = json.variables.parsedData;
                     setParsedData(parsed);
 
+                    // Handle image data from VCF
+                    if (json.variables.hasImage) {
+                        setHasImage(true);
+                        setImageTooLarge(json.variables.imageTooLarge || false);
+                        // Pre-check the apply image checkbox if image is not too large
+                        setApplyImage(!json.variables.imageTooLarge);
+                    } else {
+                        setHasImage(false);
+                        setImageTooLarge(false);
+                        setApplyImage(false);
+                    }
+
                     // Pre-select all fields
                     const selected: SelectedFields = {};
                     Object.keys(parsed.fields || {}).forEach((fieldName) => {
@@ -418,6 +436,7 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
             {
                 address: data,
                 selectedFields: fieldsToApply,
+                applyImage: hasImage && applyImage, // Only send true if VCF has image AND checkbox is checked
             },
             (json: ParseResponse) => {
                 if (json && json.variables && json.variables.data) {
@@ -596,6 +615,41 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
                                         highlightNameFields={(data as AddressData).id != null}
                                     />
                                 </div>
+
+                                {/* VCF Image Import Section - only show in VCF mode when image exists */}
+                                {hasImage && (
+                                    <div className="mt-3">
+                                        <h6>{ui.translations['address.book.vCardsImport.image'] || 'Image'}</h6>
+                                        {imageTooLarge ? (
+                                            <Alert color="warning">
+                                                {ui.translations['address.book.vCardsImport.imageTooLarge'] || 'Bild zu groß'}
+                                            </Alert>
+                                        ) : (
+                                            <div>
+                                                <FormGroup check className="mb-2">
+                                                    <Label check>
+                                                        <Input
+                                                            type="checkbox"
+                                                            checked={applyImage}
+                                                            onChange={(e) => setApplyImage(e.target.checked)}
+                                                        />
+                                                        {' '}
+                                                        {ui.translations['address.book.vCardsImport.importImage'] || 'Bild importieren'}
+                                                    </Label>
+                                                </FormGroup>
+                                                {applyImage && (
+                                                    <div className="mt-2">
+                                                        <img
+                                                            src={getServiceURL('address/vcfImagePreview')}
+                                                            alt="VCF Preview"
+                                                            style={{ maxWidth: '100px', maxHeight: '100px', border: '1px solid #ccc' }}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
                                 <div className="mt-3">
                                     <Button

@@ -44,6 +44,7 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.AddressImageServicesRest.Companion.SESSION_IMAGE_ATTR
+import org.projectforge.rest.AddressServicesRest.Companion.SESSION_VCF_IMAGE_ATTR
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.*
@@ -1017,16 +1018,39 @@ class AddressPagesRest
      */
     data class ApplyParsedDataRequest(
         val address: Address,
-        val selectedFields: Map<String, String>
+        val selectedFields: Map<String, String>,
+        val applyImage: Boolean = false
     )
 
     /**
      * Applies parsed data to address form fields.
      */
     @PostMapping("applyParsedData")
-    fun applyParsedData(@RequestBody request: ApplyParsedDataRequest): ResponseEntity<ResponseAction> {
+    fun applyParsedData(
+        @RequestBody request: ApplyParsedDataRequest,
+        httpRequest: HttpServletRequest
+    ): ResponseEntity<ResponseAction> {
         val address = request.address
         val selectedFields = request.selectedFields
+        val applyImage = request.applyImage
+
+        // Handle image from VCF if requested
+        if (applyImage) {
+            val session = httpRequest.getSession(false)
+            val vcfImage = ExpiringSessionAttributes.getAttribute(session, SESSION_VCF_IMAGE_ATTR)
+                as? AddressServicesRest.SessionVcfImage
+
+            if (vcfImage != null && !vcfImage.imageTooLarge) {
+                // Copy from VCF session to upload session
+                val uploadImage = AddressImageServicesRest.SessionImage(
+                    filename = vcfImage.filename,
+                    imageType = vcfImage.imageType,
+                    bytes = vcfImage.bytes
+                )
+                ExpiringSessionAttributes.setAttribute(session, SESSION_IMAGE_ATTR, uploadImage, 1)
+                log.info { "Copied VCF image to upload session: ${vcfImage.filename} (${vcfImage.bytes.size} bytes)" }
+            }
+        }
 
         // Apply only selected fields
         selectedFields.forEach { (fieldName, value) ->
