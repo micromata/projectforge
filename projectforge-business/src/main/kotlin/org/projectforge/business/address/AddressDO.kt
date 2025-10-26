@@ -523,6 +523,22 @@ open class AddressDO : DefaultBaseDO(), DisplayNameCapable {
         this.instantMessaging!!.add(LabelValueBean<InstantMessagingType, String>(type, value))
     }
 
+    /**
+     * Sets the transient image data for VCard export.
+     * @param image The image data or null to clear
+     */
+    fun setTransientImage(image: AddressImageDO?) {
+        setTransientAttribute("image", image)
+    }
+
+    /**
+     * Gets the transient image data for VCard export.
+     * @return The image data or null if not set
+     */
+    @get:Transient
+    val transientImage: AddressImageDO?
+        get() = getTransientAttribute("image") as? AddressImageDO
+
     companion object {
         /**
          * Used for representation in the data base and for hibernate search (lucene).

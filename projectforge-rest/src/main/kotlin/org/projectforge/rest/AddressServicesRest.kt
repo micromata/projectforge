@@ -113,7 +113,7 @@ class AddressServicesRest {
         val filename = ("ProjectForge-PersonalAddressBook_" + DateHelper.getDateAsFilenameSuffix(Date())
                 + ".vcf")
         val writer = StringWriter()
-        addressDao.exportFavoriteVCards(writer, list)
+        addressDao.exportFavoriteVCards(writer, list, embedImage = true)
 
         return RestUtils.downloadFile(filename, writer.toString())
     }
@@ -171,12 +171,14 @@ class AddressServicesRest {
 
     @GetMapping("exportVCard/{id}")
     fun exportVCard(@PathVariable("id") id: Long?): ResponseEntity<*> {
-        val address = addressDao.find(id) ?: return ResponseEntity<Any>(HttpStatus.NOT_FOUND)
-        val filename = ("ProjectForge-" + ReplaceUtils.encodeFilename(address.fullName, true) + "_"
-                + DateHelper.getDateAsFilenameSuffix(Date()) + ".vcf")
-        val writer = StringWriter()
-        addressDao.exportVCard(PrintWriter(writer), address)
-        return RestUtils.downloadFile(filename, writer.toString())
+        val addressDO = addressDao.find(id) ?: return ResponseEntity<Any>(HttpStatus.NOT_FOUND)
+
+        // Use AddressDao for VCard export (handles image fetching internally)
+        val vcardString = addressDao.exportVCard(addressDO, embedImage = true)
+
+        val filename = "ProjectForge-" + ReplaceUtils.encodeFilename(addressDO.fullName, true) + "_" +
+                DateHelper.getDateAsFilenameSuffix(Date()) + ".vcf"
+        return RestUtils.downloadFile(filename, vcardString)
     }
 
     /**
@@ -236,9 +238,9 @@ class AddressServicesRest {
                 dto.copyFrom(addressDO)
 
                 // Handle image from VCard (stored as transient attribute)
-                val imageData = addressDO.getTransientAttribute("image")
+                val imageData = addressDO.transientImage
                 if (imageData != null) {
-                    dto.setTransientAttribute("image", imageData)
+                    dto.setTransientImage(imageData)
                 }
 
                 val score = if (currentAddress != null) {

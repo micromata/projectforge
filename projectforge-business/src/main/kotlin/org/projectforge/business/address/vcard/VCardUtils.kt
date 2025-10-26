@@ -141,7 +141,7 @@ object VCardUtils {
             }
         } else {
             // Check for embedded image from AddressImageDO in transient attributes
-            (addressDO.getTransientAttribute("image") as? AddressImageDO)?.let { imageData ->
+            addressDO.transientImage?.let { imageData ->
                 imageData.image?.let { imageBytes ->
                     Photo(imageBytes, (imageData.imageType ?: ImageType.PNG).asVCardImageType()).let {
                         vcard.addPhoto(it)
@@ -278,7 +278,7 @@ object VCardUtils {
             }
         }
         vcard.photos.firstOrNull { it.data != null }?.let { photo ->
-            address.setTransientAttribute("image", AddressImageDO().also {
+            address.setTransientImage(AddressImageDO().also {
                 it.image = photo.data
                 photo.contentType?.let { contentType ->
                     it.imageType = ImageType.from(contentType) ?: ImageType.PNG
