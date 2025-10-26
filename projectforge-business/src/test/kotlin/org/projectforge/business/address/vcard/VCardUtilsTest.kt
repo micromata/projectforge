@@ -513,6 +513,41 @@ class VCardUtilsTest {
     }
 
     @Test
+    fun `test publicKey and fingerprint mapping`() {
+        TestSetup.init()
+        val testPublicKey = """
+            -----BEGIN PGP PUBLIC KEY BLOCK-----
+
+            mQENBGRzH8wBCADJqQj8Y8xvN8wKZ9nHqLNVJW1F5HtP9L+xC/dF8wX2Z9wY5vL3
+            -----END PGP PUBLIC KEY BLOCK-----
+        """.trimIndent()
+        val testFingerprint = "ABAF 11C6 5A29 70B1 30AB E3C4 79BE 3E43 0041 1886"
+
+        val original = AddressDO().apply {
+            uid = UUID.randomUUID().toString()
+            name = "PGP User"
+            firstName = "Test"
+            publicKey = testPublicKey
+            fingerprint = testFingerprint
+        }
+
+        // Test V4.0
+        val vcardString = VCardUtils.buildVCardString(original, VCardVersion.V_4_0)
+        assertTrue(vcardString.contains("KEY") && vcardString.contains("PGP"), "VCard should contain KEY with PGP type")
+        assertTrue(vcardString.contains("X-PGP-FPR"), "VCard should contain X-PGP-FPR property")
+
+        val imported = VCardUtils.buildAddressDO(VCardUtils.parseVCardsFromString(vcardString)[0])
+        assertEquals(testPublicKey, imported.publicKey)
+        assertEquals(testFingerprint, imported.fingerprint)
+
+        // Test V3.0
+        val vcardStringV3 = VCardUtils.buildVCardString(original, VCardVersion.V_3_0)
+        val importedV3 = VCardUtils.buildAddressDO(VCardUtils.parseVCardsFromString(vcardStringV3)[0])
+        assertEquals(testPublicKey, importedV3.publicKey)
+        assertEquals(testFingerprint, importedV3.fingerprint)
+    }
+
+    @Test
     fun `test parsing multiple contacts from single VCard string`() {
         TestSetup.init()
         val multipleVCards = """
@@ -662,17 +697,15 @@ class VCardUtilsTest {
         assertEquals(expected.website, actual.website, "website mismatch")
         assertEquals(expected.birthday, actual.birthday, "birthday mismatch")
         assertEquals(expected.comment?.trim(), actual.comment?.trim(), "comment mismatch")
-        // communicationLanguage: Only check if both are set (V3.0 may not support standalone LANG property)
-        if (expected.communicationLanguage != null && actual.communicationLanguage != null) {
-            assertEquals(expected.communicationLanguage, actual.communicationLanguage, "communicationLanguage mismatch")
-        }
+        assertEquals(expected.communicationLanguage, actual.communicationLanguage, "communicationLanguage mismatch")
+
+        // PGP fields
+        assertEquals(expected.publicKey, actual.publicKey, "publicKey mismatch")
+        assertEquals(expected.fingerprint, actual.fingerprint, "fingerprint mismatch")
 
         // Note: The following fields are NOT mapped in VCard and won't survive round-trip:
         // - contactStatus
         // - addressStatus
-        // - publicKey
-        // - fingerprint
-        // - communicationLanguage (may not work in VCard 3.0, only V4.0 has proper LANG support)
     }
 
     private fun testImageTypeRoundTrip(imageType: ImageType) {
