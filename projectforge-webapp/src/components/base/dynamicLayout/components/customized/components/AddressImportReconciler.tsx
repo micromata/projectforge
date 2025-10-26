@@ -60,6 +60,9 @@ interface ParseResponse {
         parsedData?: ParsedData;
         data?: any;
         error?: string;
+        vcfImageData?: string;
+        vcfImageFilename?: string;
+        vcfImageMimeType?: string;
     };
 }
 
@@ -442,6 +445,59 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
                 if (json && json.variables && json.variables.data) {
                     // Update form data with parsed values
                     (setData as any)(json.variables.data);
+
+                    // Handle VCF image upload if present
+                    if (json.variables.vcfImageData && json.variables.vcfImageFilename) {
+                        // Decode Base64 to binary
+                        const base64Data = json.variables.vcfImageData as string;
+                        const binaryString = atob(base64Data);
+                        const bytes = new Uint8Array(binaryString.length);
+                        for (let i = 0; i < binaryString.length; i += 1) {
+                            bytes[i] = binaryString.charCodeAt(i);
+                        }
+
+                        // Use correct MIME type from backend
+                        const mimeType = json.variables.vcfImageMimeType as string || 'image/png';
+
+                        // Determine correct file extension from MIME type
+                        let extension = 'png';
+                        if (mimeType === 'image/jpeg') {
+                            extension = 'jpg';
+                        } else if (mimeType === 'image/gif') {
+                            extension = 'gif';
+                        }
+
+                        // Create filename with correct extension (backend validates by extension)
+                        const filename = `vcf-image.${extension}`;
+
+                        // Create Blob from bytes with correct MIME type
+                        const blob = new Blob([bytes], { type: mimeType });
+                        const file = new File([blob], filename, { type: mimeType });
+
+                        // Create Data URL for immediate display
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            // Set the image data URL (for immediate display like manual upload)
+                            (setData as any)({
+                                hasUploadedImage: true,
+                                imageDataUrl: e.target?.result,
+                            });
+                        };
+                        reader.readAsDataURL(blob);
+
+                        // Upload image to session (same as manual upload in CustomizedAddressImage)
+                        const formData = new FormData();
+                        formData.append('file', file);
+
+                        fetch(getServiceURL('address/uploadImage/-1'), {
+                            credentials: 'include',
+                            method: 'POST',
+                            body: formData,
+                        })
+                            .catch(() => {
+                                // Silently ignore upload errors - image is already displayed via Data URL
+                            });
+                    }
 
                     // In VCF mode: keep collapse open for review
                     // In text parser mode: close collapse and reset
