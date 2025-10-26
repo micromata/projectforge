@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.address.importer
 
+import jakarta.persistence.Transient
 import mu.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressImageDO
@@ -131,6 +132,22 @@ class AddressImportDTO(
     fun getTransientAttribute(key: String): Any? {
         return transientAttributes[key]
     }
+
+    /**
+     * Sets the transient image data for VCard import.
+     */
+    fun setTransientImage(image: AddressImageDO?) {
+        if (image != null) {
+            setTransientAttribute("image", image)
+        }
+    }
+
+    /**
+     * Gets the transient image data for VCard import.
+     */
+    @get:Transient
+    val transientImage: AddressImageDO?
+        get() = getTransientAttribute("image") as? AddressImageDO
 
     override val properties: Array<KProperty<*>>
         get() = arrayOf(

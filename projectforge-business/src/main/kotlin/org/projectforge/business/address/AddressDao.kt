@@ -28,6 +28,8 @@ import jakarta.persistence.criteria.CriteriaBuilder
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.ArrayUtils
 import org.apache.commons.lang3.StringUtils
+import org.projectforge.business.address.vcard.VCardUtils
+import org.projectforge.business.address.vcard.VCardVersion
 import org.projectforge.business.sipgate.SipgateDeleteContactService
 import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.common.StringHelper
@@ -44,11 +46,11 @@ import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.time.PFDay.Companion.from
 import org.projectforge.framework.utils.NumberHelper.extractPhonenumber
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
 import java.io.PrintWriter
 import java.io.Writer
@@ -70,6 +72,17 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
 
     @Autowired
     private lateinit var addressbookCache: AddressbookCache
+
+    @Autowired
+    private lateinit var applicationContext: ApplicationContext
+
+    /**
+     * Lazy initialization to avoid circular dependency.
+     * AddressImageDao depends on AddressDao, so we cannot inject it directly via @Autowired.
+     */
+    private val addressImageDao: AddressImageDao by lazy {
+        applicationContext.getBean(AddressImageDao::class.java)
+    }
 
     private val addressbookRight = AddressbookRight()
 
@@ -387,106 +400,52 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
             return result
         }
 
-    fun exportFavoriteVCards(out: Writer, favorites: List<PersonalAddressDO>) {
+    fun exportFavoriteVCards(
+        out: Writer, favorites: List<PersonalAddressDO>,
+        embedImage: Boolean = true,
+        vCardVersion: VCardVersion = VCardVersion.V_3_0
+    ) {
         log.info("Exporting personal AddressBook.")
         val pw = PrintWriter(out)
         for (entry in favorites) {
             if (!entry.isFavoriteCard) {
-                // Entry is not marks as vCard-Entry.
+                // Entry is not marked as vCard-Entry.
                 continue
             }
             val addressDO = entry.address
-            exportVCard(pw, addressDO)
+            pw.println(exportVCard(addressDO, embedImage, vCardVersion))
         }
         pw.flush()
     }
 
     /**
-     * Exports a single vcard for the given addressDO
+     * Exports a single vCard for the given addressDO.
+     * Automatically fetches and includes image if available.
      *
-     * @param pw
-     * @param addressDO
-     * @return
+     * @param addressDO The address to export
+     * @return VCard string (VCard 3.0 format) with all fields including embedded image
      */
-    fun exportVCard(pw: PrintWriter, addressDO: AddressDO?) {
+    fun exportVCard(
+        addressDO: AddressDO?,
+        embedImage: Boolean = true,
+        vCardVersion: VCardVersion = VCardVersion.V_3_0
+    ): String {
+        addressDO ?: return ""
         if (log.isDebugEnabled) {
-            log.debug("Exporting vCard for addressDo : " + (addressDO?.id))
+            log.debug("Exporting vCard for addressDo: ${addressDO.id}")
         }
-        pw.println("BEGIN:VCARD")
-        pw.println("VERSION:3.0")
-        pw.print("N:")
-        out(pw, addressDO!!.name)
-        pw.print(';')
-        out(pw, addressDO.firstName)
-        pw.print(";;")
-        out(pw, addressDO.title)
-        pw.println(";")
-        print(pw, "FN:", getFullName(addressDO))
-        if (isGiven(addressDO.organization) || isGiven(addressDO.division)) {
-            pw.print("ORG:")
-            out(pw, addressDO.organization)
-            pw.print(';')
-            if (isGiven(addressDO.division)) {
-                out(pw, addressDO.division)
-            }
-            pw.println()
-        }
-        print(pw, "TITLE:", addressDO.positionText)
-        print(pw, "EMAIL;type=INTERNET;type=WORK;type=pref:", addressDO.email)
-        print(pw, "EMAIL;type=INTERNET;type=HOME;type=pref:", addressDO.privateEmail)
-        print(pw, "TEL;type=WORK;type=pref:", addressDO.businessPhone)
-        print(pw, "TEL;TYPE=CELL:", addressDO.mobilePhone)
-        print(pw, "TEL;type=WORK;type=FAX:", addressDO.fax)
-        print(pw, "TEL;TYPE=HOME:", addressDO.privatePhone)
-        print(pw, "TEL;TYPE=HOME;type=CELL:", addressDO.privateMobilePhone)
 
-        if (isGiven(addressDO.addressText) || isGiven(addressDO.addressText2) || isGiven(addressDO.city)
-            || isGiven(addressDO.zipCode)
-        ) {
-            pw.print("ADR;TYPE=WORK:;")
-            out(pw, addressDO.addressText)
-            pw.print(';')
-            out(pw, addressDO.addressText2)
-            pw.print(';')
-            out(pw, addressDO.city)
-            pw.print(";;")
-            out(pw, addressDO.zipCode)
-            pw.print(';')
-            out(pw, addressDO.country)
-            pw.println()
+        // Fetch image and attach as transient attribute if not already attached
+        if (embedImage && addressDO.transientImage == null) {
+            addressDO.id?.let { id ->
+                addressImageDao.findImage(id, fetchImage = true)?.let { imageData ->
+                    addressDO.setTransientImage(imageData)
+                }
+            }
         }
-        if (isGiven(addressDO.privateAddressText)
-            || isGiven(addressDO.privateAddressText2)
-            || isGiven(addressDO.privateCity)
-            || isGiven(addressDO.privateZipCode)
-        ) {
-            pw.print("ADR;TYPE=HOME:;")
-            out(pw, addressDO.privateAddressText)
-            pw.print(';')
-            out(pw, addressDO.privateAddressText2)
-            pw.print(';')
-            out(pw, addressDO.privateCity)
-            pw.print(";;")
-            out(pw, addressDO.privateZipCode)
-            pw.print(";")
-            pw.println()
-        }
-        print(pw, "URL;type=pref:", addressDO.website)
-        if (addressDO.birthday != null) {
-            print(pw, "BDAY;value=date:", V_CARD_DATE_FORMAT.format(from(addressDO.birthday!!).sqlDate))
-        }
-        if (isGiven(addressDO.comment)) {
-            print(pw, "NOTE:", addressDO.comment + "\\nCLASS: WORK")
-        } else {
-            print(pw, "NOTE:", "CLASS: WORK")
-        }
-        // pw.println("TZ:+00:00");
-        pw.println("CATEGORIES:ProjectForge")
-        pw.print("UID:U")
-        pw.println(addressDO.id)
-        pw.println("END:VCARD")
-        pw.println()
-        // Unused: addressDO.getState();
+
+        // Use VCardUtils for complete VCard export with all fields including embedded image
+        return VCardUtils.buildVCardString(addressDO, vCardVersion)
     }
 
     /**

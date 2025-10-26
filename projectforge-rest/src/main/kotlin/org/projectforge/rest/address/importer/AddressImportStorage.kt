@@ -94,9 +94,9 @@ class AddressImportStorage : ImportStorage<AddressImportDTO>(
                 dto.copyFrom(addressDO)
 
                 // Handle image from VCard (stored as transient attribute)
-                val imageData = addressDO.getTransientAttribute("image") as? AddressImageDO
+                val imageData = addressDO.transientImage
                 if (imageData != null) {
-                    dto.setTransientAttribute("image", imageData)
+                    dto.setTransientImage(imageData)
                 }
 
                 commitEntity(dto)

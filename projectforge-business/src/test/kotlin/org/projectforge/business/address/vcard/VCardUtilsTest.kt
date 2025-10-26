@@ -312,7 +312,7 @@ class VCardUtilsTest {
 
         // Create test image (1x1 PNG)
         val testImageBytes = Base64.getDecoder().decode(TINY_PNG_BASE64)
-        original.setTransientAttribute("image", AddressImageDO().apply {
+        original.setTransientImage(AddressImageDO().apply {
             image = testImageBytes
             imageType = ImageType.PNG
         })
@@ -324,7 +324,7 @@ class VCardUtilsTest {
         val imported = VCardUtils.buildAddressDO(vcard)
 
         // Verify image was imported
-        val importedImage = imported.getTransientAttribute("image") as? AddressImageDO
+        val importedImage = imported.transientImage
         assertNotNull(importedImage)
         assertNotNull(importedImage?.image)
         assertArrayEquals(testImageBytes, importedImage?.image)
@@ -717,7 +717,7 @@ class VCardUtilsTest {
             firstName = "Test"
         }
 
-        original.setTransientAttribute("image", AddressImageDO().apply {
+        original.setTransientImage(AddressImageDO().apply {
             image = testImageBytes
             this.imageType = imageType
         })
@@ -725,7 +725,7 @@ class VCardUtilsTest {
         val vcard = VCardUtils.buildVCard(original, null, null)
         val imported = VCardUtils.buildAddressDO(vcard)
 
-        val importedImage = imported.getTransientAttribute("image") as? AddressImageDO
+        val importedImage = imported.transientImage
         assertNotNull(importedImage, "Image should be imported for type $imageType")
         assertEquals(imageType, importedImage?.imageType, "Image type should be preserved")
     }
