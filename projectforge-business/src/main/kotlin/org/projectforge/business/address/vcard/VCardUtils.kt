@@ -95,7 +95,7 @@ object VCardUtils {
         organisation.values.add(addressDO.division ?: "")
         organisation.values.add(addressDO.positionText ?: "")
         vcard.addOrganization(organisation)
-        //Home address
+        //Postal address
         val postalAddress = Address()
         postalAddress.types.add(AddressType.POSTAL)
         postalAddress.streetAddress = addressDO.postalAddressText
@@ -104,16 +104,26 @@ object VCardUtils {
         postalAddress.locality = addressDO.postalCity
         postalAddress.region = addressDO.postalState
         postalAddress.country = addressDO.postalCountry
+        vcard.addAddress(postalAddress)
         addressDO.birthday?.let { birthday ->
             // PartialDate is not supported in V3.0, using java.util.Date:
             vcard.birthday = Birthday(birthday)
         }
         vcard.addUrl(addressDO.website)
         vcard.addNote(addressDO.comment)
+        // Handle photo - support both URL and embedded image from transient attribute
         if (imageUrl != null) {
-            // embedded: Photo(addressImageDao.getImage(addressDO.id!!), ImageType.JPEG).let { vcard.addPhoto(it) }
             Photo(imageUrl, (imageType ?: ImageType.PNG).asVCardImageType()).let {
                 vcard.addPhoto(it)
+            }
+        } else {
+            // Check for embedded image from AddressImageDO in transient attributes
+            (addressDO.getTransientAttribute("image") as? AddressImageDO)?.let { imageData ->
+                imageData.image?.let { imageBytes ->
+                    Photo(imageBytes, (imageData.imageType ?: ImageType.PNG).asVCardImageType()).let {
+                        vcard.addPhoto(it)
+                    }
+                }
             }
         }
         return vcard
