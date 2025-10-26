@@ -32,11 +32,14 @@ import ezvcard.property.*
 import mu.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressImageDO
+import org.projectforge.business.address.FormOfAddress
 import org.projectforge.business.address.ImageType
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.time.LocalDate
+import java.util.*
 
 private val log = KotlinLogging.logger {}
 
@@ -54,6 +57,11 @@ object VCardUtils {
         val n = StructuredName()
         n.family = addressDO.name
         n.given = addressDO.firstName
+        // Add form (salutation) first with i18n: "Herr", "Frau", "Firma", etc.
+        addressDO.form?.let {
+            n.prefixes.add(ThreadLocalUserContext.getLocalizedString(it.i18nKey))
+        }
+        // Add title (academic title) second: "Dr.", "Prof.", etc.
         addressDO.title?.let { n.prefixes.add(it) }
         vcard.structuredName = n
         //Home address
@@ -66,9 +74,9 @@ object VCardUtils {
         homeAddress.region = addressDO.privateState
         homeAddress.country = addressDO.privateCountry
         addressDO.communicationLanguage?.let { communicationLanguage ->
-            vcard.addLanguage(addressDO.communicationLanguage!!.getDisplayLanguage(communicationLanguage))
-            vcard.structuredName.language =
-                addressDO.communicationLanguage!!.getDisplayLanguage(communicationLanguage)
+            // Use language tag (e.g., "de", "en") instead of display name
+            vcard.addLanguage(communicationLanguage.toLanguageTag())
+            vcard.structuredName.language = communicationLanguage.toLanguageTag()
         }
         //adr.setLabel("123 Main St.\nAlbany, NY 54321\nUSA");
         vcard.addAddress(homeAddress)
@@ -93,8 +101,9 @@ object VCardUtils {
         val organisation = Organization()
         organisation.values.add(addressDO.organization ?: "")
         organisation.values.add(addressDO.division ?: "")
-        organisation.values.add(addressDO.positionText ?: "")
         vcard.addOrganization(organisation)
+        // Position/title as separate TITLE property
+        addressDO.positionText?.let { vcard.addTitle(it) }
         //Postal address
         val postalAddress = Address()
         postalAddress.types.add(AddressType.POSTAL)
@@ -111,6 +120,8 @@ object VCardUtils {
         }
         vcard.addUrl(addressDO.website)
         vcard.addNote(addressDO.comment)
+        // Add birthName as custom property
+        addressDO.birthName?.let { vcard.addExtendedProperty("X-BIRTHNAME", it) }
         // Handle photo - support both URL and embedded image from transient attribute
         if (imageUrl != null) {
             Photo(imageUrl, (imageType ?: ImageType.PNG).asVCardImageType()).let {
@@ -163,26 +174,36 @@ object VCardUtils {
         address.uid = vcard.uid?.value
         address.name = vcard.structuredName?.family
         address.firstName = vcard.structuredName?.given
-        if (vcard.structuredName?.prefixes?.isNotEmpty() == true) {
-            address.title = vcard.structuredName.prefixes[0]
+        // Parse prefixes: form (salutation) and title (academic title)
+        vcard.structuredName?.prefixes?.forEach { prefix ->
+            val parsedForm = parseFormOfAddress(prefix)
+            if (parsedForm != null) {
+                address.form = parsedForm
+            } else {
+                // Not a known form, treat as title (academic title like "Dr.", "Prof.")
+                address.title = prefix
+            }
         }
         for (vcardAddress in vcard.addresses) {
             if (vcardAddress.types.contains(AddressType.HOME)) {
-                address.privateAddressText = vcardAddress.streetAddressFull
+                address.privateAddressText = vcardAddress.streetAddress
+                address.privateAddressText2 = vcardAddress.extendedAddress
                 address.privateZipCode = vcardAddress.postalCode
                 address.privateCity = vcardAddress.locality
                 address.privateState = vcardAddress.region
                 address.privateCountry = vcardAddress.country
             }
             if (vcardAddress.types.contains(AddressType.WORK)) {
-                address.addressText = vcardAddress.streetAddressFull
+                address.addressText = vcardAddress.streetAddress
+                address.addressText2 = vcardAddress.extendedAddress
                 address.zipCode = vcardAddress.postalCode
                 address.city = vcardAddress.locality
                 address.state = vcardAddress.region
                 address.country = vcardAddress.country
             }
             if (vcardAddress.types.contains(AddressType.POSTAL)) {
-                address.postalAddressText = vcardAddress.streetAddressFull
+                address.postalAddressText = vcardAddress.streetAddress
+                address.postalAddressText2 = vcardAddress.extendedAddress
                 address.postalZipCode = vcardAddress.postalCode
                 address.postalCity = vcardAddress.locality
                 address.postalState = vcardAddress.region
@@ -255,6 +276,7 @@ object VCardUtils {
         if (vcard.organization?.values?.isNotEmpty() == true) {
             when (vcard.organization.values.size) {
                 3 -> {
+                    // Legacy support: old exports had positionText as 3rd value
                     address.positionText = vcard.organization.values[2]
                     address.division = vcard.organization.values[1]
                     address.organization = vcard.organization.values[0]
@@ -268,6 +290,22 @@ object VCardUtils {
                 1 -> address.organization = vcard.organization.values[0]
             }
         }
+        // Parse positionText from TITLE property (preferred over ORG 3rd value)
+        vcard.titles.firstOrNull()?.let { title ->
+            address.positionText = title.value
+        }
+        // Parse birthName from custom property
+        vcard.getExtendedProperty("X-BIRTHNAME")?.let { extProp ->
+            address.birthName = extProp.value
+        }
+        // Parse communicationLanguage from LANG property
+        vcard.languages.firstOrNull()?.let { lang ->
+            try {
+                address.communicationLanguage = Locale.forLanguageTag(lang.value)
+            } catch (e: Exception) {
+                log.warn("Failed to parse language tag: ${lang.value}", e)
+            }
+        }
         return address
     }
 
@@ -276,6 +314,16 @@ object VCardUtils {
             phonenumber.replaceFirst("0".toRegex(), "+49")
         } else {
             phonenumber
+        }
+    }
+
+    /**
+     * Parse a localized form of address string back to FormOfAddress enum.
+     * E.g. "Herr" -> MISTER, "Frau" -> MISS, "Firma" -> COMPANY
+     */
+    private fun parseFormOfAddress(localizedString: String): FormOfAddress? {
+        return FormOfAddress.values().firstOrNull { form ->
+            ThreadLocalUserContext.getLocalizedString(form.i18nKey) == localizedString
         }
     }
 
