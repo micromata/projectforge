@@ -1,11 +1,49 @@
 /* eslint-disable max-len */
 import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
 import {
     Button, Modal, ModalHeader, ModalBody, ModalFooter, Alert,
 } from 'reactstrap';
 import { fetchJsonPost } from '../../../../../../utilities/rest';
 import AddressFieldSelector from './AddressFieldSelector';
+
+interface AddressData {
+    [key: string]: any;
+}
+
+interface VCardImportResponse {
+    vcardAddress?: AddressData;
+    dbAddress?: AddressData;
+    hasMatch?: boolean;
+    success?: boolean;
+}
+
+interface Translations {
+    [key: string]: string;
+}
+
+interface SelectedFields {
+    [key: string]: boolean;
+}
+
+interface FieldMappings {
+    [key: string]: string;
+}
+
+interface AddressFieldMap {
+    [key: string]: {
+        business: string;
+        postal: string;
+        private: string;
+    };
+}
+
+interface VCardImportDialogProps {
+    isOpen: boolean;
+    toggle: () => void;
+    index?: number;
+    onApplySuccess?: () => void;
+    translations: Translations;
+}
 
 /**
  * Dialog component for VCard import field selection.
@@ -18,15 +56,15 @@ function VCardImportDialog({
     index,
     onApplySuccess,
     translations,
-}) {
-    const [vcardData, setVcardData] = useState(null);
-    const [dbData, setDbData] = useState(null);
-    const [hasMatch, setHasMatch] = useState(false);
-    const [selectedFields, setSelectedFields] = useState({});
-    const [fieldMappings, setFieldMappings] = useState({});
-    const [addressBlockType, setAddressBlockType] = useState('business');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+}: VCardImportDialogProps) {
+    const [vcardData, setVcardData] = useState<AddressData | null>(null);
+    const [dbData, setDbData] = useState<AddressData | null>(null);
+    const [hasMatch, setHasMatch] = useState<boolean>(false);
+    const [selectedFields, setSelectedFields] = useState<SelectedFields>({});
+    const [fieldMappings, setFieldMappings] = useState<FieldMappings>({});
+    const [addressBlockType, setAddressBlockType] = useState<string>('business');
+    const [loading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
 
     const loadAddressData = () => {
         setLoading(true);
@@ -35,7 +73,7 @@ function VCardImportDialog({
         fetchJsonPost(
             'importAddress/openAddressDialog',
             { index },
-            (json) => {
+            (json: VCardImportResponse) => {
                 setLoading(false);
                 if (json) {
                     setVcardData(json.vcardAddress || null);
@@ -43,7 +81,7 @@ function VCardImportDialog({
                     setHasMatch(json.hasMatch || false);
 
                     // Pre-select fields that differ from DB
-                    const selected = {};
+                    const selected: SelectedFields = {};
                     if (json.vcardAddress) {
                         Object.entries(json.vcardAddress).forEach(([fieldName, value]) => {
                             if (value && (!json.dbAddress || json.dbAddress[fieldName] !== value)) {
@@ -56,11 +94,10 @@ function VCardImportDialog({
                     setError('Failed to load address data');
                 }
             },
-            (err) => {
-                setLoading(false);
-                setError(err.message || 'Error loading address data');
-            },
-        );
+        ).catch((err: Error) => {
+            setLoading(false);
+            setError(err.message || 'Error loading address data');
+        });
     };
 
     // Load address data when dialog opens
@@ -71,21 +108,21 @@ function VCardImportDialog({
     // eslint-disable-next-line
     }, [isOpen, index]);
 
-    const handleFieldToggle = (fieldName) => {
+    const handleFieldToggle = (fieldName: string) => {
         setSelectedFields({
             ...selectedFields,
             [fieldName]: !selectedFields[fieldName],
         });
     };
 
-    const handleFieldMappingChange = (fieldName, newMapping) => {
+    const handleFieldMappingChange = (fieldName: string, newMapping: string) => {
         setFieldMappings({
             ...fieldMappings,
             [fieldName]: newMapping,
         });
     };
 
-    const isAddressField = (fieldName) => [
+    const isAddressField = (fieldName: string): boolean => [
         'addressText',
         'addressText2',
         'zipCode',
@@ -101,14 +138,14 @@ function VCardImportDialog({
         setError(null);
 
         // Build map of selected fields with their values
-        const fieldsToApply = {};
+        const fieldsToApply: Record<string, any> = {};
         Object.entries(vcardData).forEach(([fieldName, value]) => {
             if (selectedFields[fieldName] && value) {
                 let targetFieldName = fieldName;
 
                 // Apply address block remapping
                 if (isAddressField(fieldName)) {
-                    const addressFieldMap = {
+                    const addressFieldMap: AddressFieldMap = {
                         addressText: {
                             business: 'addressText',
                             postal: 'postalAddressText',
@@ -140,7 +177,7 @@ function VCardImportDialog({
                             private: 'privateCountry',
                         },
                     };
-                    targetFieldName = addressFieldMap[fieldName]?.[addressBlockType] || fieldName;
+                    targetFieldName = addressFieldMap[fieldName]?.[addressBlockType as keyof typeof addressFieldMap[string]] || fieldName;
                 } else {
                     // Apply individual field remapping (phone/email)
                     targetFieldName = fieldMappings[fieldName] || fieldName;
@@ -156,7 +193,7 @@ function VCardImportDialog({
                 index,
                 selectedFields: fieldsToApply,
             },
-            (json) => {
+            (json: VCardImportResponse) => {
                 setLoading(false);
                 if (json && json.success) {
                     toggle();
@@ -167,11 +204,10 @@ function VCardImportDialog({
                     setError('Error applying fields');
                 }
             },
-            (err) => {
-                setLoading(false);
-                setError(err.message || 'Error applying fields');
-            },
-        );
+        ).catch((err: Error) => {
+            setLoading(false);
+            setError(err.message || 'Error applying fields');
+        });
     };
 
     if (!vcardData && !loading && isOpen) {
@@ -231,13 +267,19 @@ function VCardImportDialog({
                         <div className="mt-3">
                             <AddressFieldSelector
                                 fields={vcardData}
-                                currentData={dbData}
+                                currentData={dbData || undefined}
                                 selectedFields={selectedFields}
                                 onFieldToggle={handleFieldToggle}
                                 fieldMappings={fieldMappings}
                                 onFieldMappingChange={handleFieldMappingChange}
-                                addressBlockType={addressBlockType}
-                                onAddressBlockTypeChange={setAddressBlockType}
+                                addressBlockMappings={{
+                                    business: addressBlockType === 'business' ? 'business' : addressBlockType,
+                                    private: addressBlockType === 'private' ? 'private' : 'business',
+                                    postal: addressBlockType === 'postal' ? 'postal' : 'business',
+                                }}
+                                onAddressBlockMappingChange={(blockType: string, newMapping: string) => {
+                                    setAddressBlockType(newMapping);
+                                }}
                                 translations={translations}
                                 showConfidence={false}
                                 showComparison
@@ -261,21 +303,5 @@ function VCardImportDialog({
         </Modal>
     );
 }
-
-VCardImportDialog.propTypes = {
-    isOpen: PropTypes.bool.isRequired,
-    toggle: PropTypes.func.isRequired,
-    index: PropTypes.number,
-    onApplySuccess: PropTypes.func,
-    translations: PropTypes.shape({
-        'address.book.vCardsImport.fieldSelection': PropTypes.string,
-        'address.book.vCardsImport.noData': PropTypes.string,
-        'address.book.vCardsImport.matchFound': PropTypes.string,
-        'address.book.vCardsImport.newAddress': PropTypes.string,
-        close: PropTypes.string,
-        apply: PropTypes.string,
-        cancel: PropTypes.string,
-    }).isRequired,
-};
 
 export default VCardImportDialog;

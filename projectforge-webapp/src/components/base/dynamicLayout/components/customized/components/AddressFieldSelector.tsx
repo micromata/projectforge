@@ -1,14 +1,51 @@
 /* eslint-disable max-len */
 import React from 'react';
-import PropTypes from 'prop-types';
 import {
     FormGroup, Label, Input, Badge, Alert,
 } from 'reactstrap';
 import DiffText from '../../../../../design/DiffText';
 
+interface ParsedField {
+    value: string;
+    confidence?: 'high' | 'medium' | 'low' | 'HIGH' | 'MEDIUM' | 'LOW';
+    currentValue?: string;
+    selected?: boolean;
+}
+
+interface FieldOption {
+    value: string;
+    label: string;
+}
+
+interface AddressBlockMappings {
+    business: string;
+    private: string;
+    postal: string;
+    [key: string]: string;
+}
+
+interface Translations {
+    [key: string]: string;
+}
+
+interface AddressFieldSelectorProps {
+    fields: Record<string, ParsedField | string>;
+    currentData?: Record<string, any>;
+    selectedFields: Record<string, boolean>;
+    onFieldToggle: (fieldName: string) => void;
+    fieldMappings: Record<string, string>;
+    onFieldMappingChange: (fieldName: string, newMapping: string) => void;
+    addressBlockMappings: AddressBlockMappings;
+    onAddressBlockMappingChange: (blockType: string, newMapping: string) => void;
+    translations: Translations;
+    showConfidence?: boolean;
+    showComparison?: boolean;
+    highlightNameFields?: boolean;
+}
+
 /**
  * Reusable component for selecting address fields with mapping options.
- * Used by both AddressTextParser and VCardImportDialog.
+ * Used by both AddressImportReconciler and VCardImportDialog.
  *
  * Features:
  * - Checkbox selection for each field
@@ -29,9 +66,9 @@ function AddressFieldSelector({
     showConfidence = false,
     showComparison = true,
     highlightNameFields = false,
-}) {
+}: AddressFieldSelectorProps) {
     // Helper functions for field type detection
-    const isPhoneField = (fieldName) => [
+    const isPhoneField = (fieldName: string): boolean => [
         'businessPhone',
         'mobilePhone',
         'fax',
@@ -39,9 +76,9 @@ function AddressFieldSelector({
         'privateMobilePhone',
     ].includes(fieldName);
 
-    const isEmailField = (fieldName) => ['email', 'privateEmail'].includes(fieldName);
+    const isEmailField = (fieldName: string): boolean => ['email', 'privateEmail'].includes(fieldName);
 
-    const isAddressField = (fieldName) => [
+    const isAddressField = (fieldName: string): boolean => [
         'addressText',
         'addressText2',
         'zipCode',
@@ -62,13 +99,13 @@ function AddressFieldSelector({
         'postalCountry',
     ].includes(fieldName);
 
-    const getAddressBlockType = (fieldName) => {
+    const getAddressBlockType = (fieldName: string): string => {
         if (fieldName.startsWith('private')) return 'private';
         if (fieldName.startsWith('postal')) return 'postal';
         return 'business';
     };
 
-    const getBaseFieldName = (fieldName) => {
+    const getBaseFieldName = (fieldName: string): string => {
         // Extract base field name without prefix: "privateCity" → "city", "postalZipCode" → "zipCode"
         if (fieldName.startsWith('private')) {
             const withoutPrivate = fieldName.substring(7); // Remove "private"
@@ -81,7 +118,7 @@ function AddressFieldSelector({
         return fieldName;
     };
 
-    const buildTargetFieldName = (baseFieldName, targetBlockType) => {
+    const buildTargetFieldName = (baseFieldName: string, targetBlockType: string): string => {
         // Build target field name: "city" + "postal" → "postalCity"
         if (targetBlockType === 'private') {
             return `private${baseFieldName.charAt(0).toUpperCase()}${baseFieldName.substring(1)}`;
@@ -92,10 +129,10 @@ function AddressFieldSelector({
         return baseFieldName;
     };
 
-    const isNameField = (fieldName) => ['name', 'firstName'].includes(fieldName);
+    const isNameField = (fieldName: string): boolean => ['name', 'firstName'].includes(fieldName);
 
-    const getFieldLabel = (fieldName) => {
-        const i18nKeyMap = {
+    const getFieldLabel = (fieldName: string): string => {
+        const i18nKeyMap: Record<string, string> = {
             title: 'address.title',
             firstName: 'firstName',
             name: 'name',
@@ -157,7 +194,7 @@ function AddressFieldSelector({
         return label || fieldName;
     };
 
-    const getPhoneFieldOptions = () => [
+    const getPhoneFieldOptions = (): FieldOption[] => [
         { value: 'businessPhone', label: getFieldLabel('businessPhone') },
         { value: 'mobilePhone', label: getFieldLabel('mobilePhone') },
         { value: 'fax', label: getFieldLabel('fax') },
@@ -165,13 +202,13 @@ function AddressFieldSelector({
         { value: 'privateMobilePhone', label: getFieldLabel('privateMobilePhone') },
     ];
 
-    const getEmailFieldOptions = () => [
+    const getEmailFieldOptions = (): FieldOption[] => [
         { value: 'email', label: getFieldLabel('email') },
         { value: 'privateEmail', label: getFieldLabel('privateEmail') },
     ];
 
-    const getConfidenceBadgeColor = (confidence) => {
-        switch (confidence) {
+    const getConfidenceBadgeColor = (confidence: string | undefined): string => {
+        switch (confidence?.toUpperCase()) {
             case 'HIGH':
                 return 'success';
             case 'MEDIUM':
@@ -187,7 +224,7 @@ function AddressFieldSelector({
      * Get the mapped field name based on field mappings and address block mappings.
      * This is used to retrieve the correct currentValue from currentData.
      */
-    const getMappedFieldName = (fieldName) => {
+    const getMappedFieldName = (fieldName: string): string => {
         // Phone/Email fields: Use fieldMappings from dropdown selection
         if (isPhoneField(fieldName) || isEmailField(fieldName)) {
             return fieldMappings[fieldName] || fieldName;
@@ -252,7 +289,7 @@ function AddressFieldSelector({
     });
 
     // Group address fields by block type (business/private/postal)
-    const addressFieldsByBlock = {
+    const addressFieldsByBlock: Record<string, [string, ParsedField | string][]> = {
         business: entries.filter(([fn]) => isAddressField(fn) && getAddressBlockType(fn) === 'business'),
         private: entries.filter(([fn]) => isAddressField(fn) && getAddressBlockType(fn) === 'private'),
         postal: entries.filter(([fn]) => isAddressField(fn) && getAddressBlockType(fn) === 'postal'),
@@ -318,7 +355,7 @@ function AddressFieldSelector({
                         <div className="flex-grow-1">
                             {showComparison && isDifferent && currentValue ? (
                                 <div className="d-flex align-items-center">
-                                    <DiffText oldValue={currentValue} newValue={fieldValue} inline />
+                                    <DiffText oldValue={currentValue} newValue={fieldValue as string} inline />
                                     {shouldHighlightName && (
                                         <Badge color="danger" className="ml-2">
                                             <i className="fa fa-exclamation-triangle" />
@@ -359,7 +396,7 @@ function AddressFieldSelector({
                 const blockFields = addressFieldsByBlock[blockType];
                 if (blockFields.length === 0) return null;
 
-                const blockTypeLabel = {
+                const blockTypeLabel: Record<string, string> = {
                     business: translations['address.parseText.addressType.business'] || 'Business Address',
                     private: translations['address.parseText.addressType.private'] || 'Private Address',
                     postal: translations['address.parseText.addressType.postal'] || 'Postal/Mailing Address',
@@ -421,7 +458,7 @@ function AddressFieldSelector({
                                     <div className="flex-grow-1">
                                         {showComparison && isDifferent && currentValue ? (
                                             <div className="d-flex align-items-center">
-                                                <DiffText oldValue={currentValue} newValue={fieldValue} inline />
+                                                <DiffText oldValue={currentValue} newValue={fieldValue as string} inline />
                                                 {showConfidence && confidence && (
                                                     <Badge
                                                         color={getConfidenceBadgeColor(confidence)}
@@ -455,36 +492,5 @@ function AddressFieldSelector({
         </div>
     );
 }
-
-AddressFieldSelector.propTypes = {
-    fields: PropTypes.shape({}).isRequired,
-    currentData: PropTypes.shape({}),
-    selectedFields: PropTypes.shape({}).isRequired,
-    onFieldToggle: PropTypes.func.isRequired,
-    fieldMappings: PropTypes.shape({}).isRequired,
-    onFieldMappingChange: PropTypes.func.isRequired,
-    addressBlockMappings: PropTypes.shape({}).isRequired,
-    onAddressBlockMappingChange: PropTypes.func.isRequired,
-    translations: PropTypes.shape({
-        'address.private': PropTypes.string,
-        'address.business': PropTypes.string,
-        'address.postal': PropTypes.string,
-        'address.parseText.info.noChanges': PropTypes.string,
-        'address.parseText.addressBlock': PropTypes.string,
-        'address.parseText.addressType.business': PropTypes.string,
-        'address.parseText.addressType.postal': PropTypes.string,
-        'address.parseText.addressType.private': PropTypes.string,
-        'address.parseText.warning.nameDifferent': PropTypes.string,
-        'address.parseText.confidence.legend': PropTypes.string,
-        'address.parseText.confidence.high': PropTypes.string,
-        'address.parseText.confidence.medium': PropTypes.string,
-        'address.parseText.confidence.low': PropTypes.string,
-        different: PropTypes.string,
-        current: PropTypes.string,
-    }).isRequired,
-    showConfidence: PropTypes.bool,
-    showComparison: PropTypes.bool,
-    highlightNameFields: PropTypes.bool,
-};
 
 export default AddressFieldSelector;
