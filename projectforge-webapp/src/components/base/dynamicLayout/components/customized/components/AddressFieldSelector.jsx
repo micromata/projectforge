@@ -115,8 +115,20 @@ function AddressFieldSelector({
             city: 'address.city',
             state: 'address.state',
             country: 'address.country',
+            privateAddressText: 'address.addressText',
+            privateAddressText2: 'address.addressText2',
+            privateZipCode: 'address.zipCode',
+            privateCity: 'address.city',
+            privateState: 'address.state',
+            privateCountry: 'address.country',
+            postalAddressText: 'address.addressText',
+            postalAddressText2: 'address.addressText2',
+            postalZipCode: 'address.zipCode',
+            postalCity: 'address.city',
+            postalState: 'address.state',
+            postalCountry: 'address.country',
             website: 'address.website',
-            comment: 'address.comment',
+            comment: 'comment',
             birthName: 'address.birthName',
             birthday: 'address.birthday',
         };
@@ -125,13 +137,15 @@ function AddressFieldSelector({
         const label = i18nKey ? translations[i18nKey] : fieldName;
 
         // Add context suffix for private fields
-        if (fieldName === 'privatePhone' || fieldName === 'privateMobilePhone') {
+        if (fieldName === 'privatePhone' || fieldName === 'privateMobilePhone' || fieldName === 'privateEmail'
+            || fieldName.startsWith('private')) {
             const privateLabel = translations['address.private'];
             return privateLabel ? `${label} (${privateLabel})` : label;
         }
-        if (fieldName === 'privateEmail') {
-            const privateLabel = translations['address.private'];
-            return privateLabel ? `${label} (${privateLabel})` : label;
+        // Add context suffix for postal fields
+        if (fieldName.startsWith('postal')) {
+            const postalLabel = translations['address.postal'];
+            return postalLabel ? `${label} (${postalLabel})` : label;
         }
         // Add context suffix for business fields in dropdowns
         if (fieldName === 'businessPhone' || fieldName === 'mobilePhone'
@@ -205,6 +219,38 @@ function AddressFieldSelector({
     });
     const nonAddressFields = entries.filter(([fn]) => !isAddressField(fn));
 
+    // Sort non-address fields: other fields first, then phone fields, then email fields
+    const phoneFieldOrder = ['businessPhone', 'mobilePhone', 'fax', 'privatePhone', 'privateMobilePhone'];
+    const emailFieldOrder = ['email', 'privateEmail'];
+
+    const sortedNonAddressFields = [...nonAddressFields].sort(([fieldNameA], [fieldNameB]) => {
+        const isPhoneA = isPhoneField(fieldNameA);
+        const isPhoneB = isPhoneField(fieldNameB);
+        const isEmailA = isEmailField(fieldNameA);
+        const isEmailB = isEmailField(fieldNameB);
+
+        // Both are phone fields → sort by phoneFieldOrder
+        if (isPhoneA && isPhoneB) {
+            return phoneFieldOrder.indexOf(fieldNameA) - phoneFieldOrder.indexOf(fieldNameB);
+        }
+
+        // Both are email fields → sort by emailFieldOrder
+        if (isEmailA && isEmailB) {
+            return emailFieldOrder.indexOf(fieldNameA) - emailFieldOrder.indexOf(fieldNameB);
+        }
+
+        // One phone, one email → phone comes first
+        if (isPhoneA && isEmailB) return -1;
+        if (isEmailA && isPhoneB) return 1;
+
+        // One is phone/email, other is neither → phone/email comes after
+        if ((isPhoneA || isEmailA) && !isPhoneB && !isEmailB) return 1;
+        if ((isPhoneB || isEmailB) && !isPhoneA && !isEmailA) return -1;
+
+        // Neither are phone/email → keep original order
+        return 0;
+    });
+
     // Group address fields by block type (business/private/postal)
     const addressFieldsByBlock = {
         business: entries.filter(([fn]) => isAddressField(fn) && getAddressBlockType(fn) === 'business'),
@@ -215,7 +261,7 @@ function AddressFieldSelector({
     return (
         <div className="address-field-selector">
             {/* Non-address fields first */}
-            {nonAddressFields.map(([fieldName, field]) => {
+            {sortedNonAddressFields.map(([fieldName, field]) => {
                 const fieldValue = typeof field === 'object' && field !== null ? field.value : field;
                 const confidence = typeof field === 'object' && field !== null ? field.confidence : null;
                 const targetFieldName = getMappedFieldName(fieldName);
@@ -422,6 +468,7 @@ AddressFieldSelector.propTypes = {
     translations: PropTypes.shape({
         'address.private': PropTypes.string,
         'address.business': PropTypes.string,
+        'address.postal': PropTypes.string,
         'address.parseText.info.noChanges': PropTypes.string,
         'address.parseText.addressBlock': PropTypes.string,
         'address.parseText.addressType.business': PropTypes.string,

@@ -883,11 +883,12 @@ class AddressPagesRest
             "address.state",
             "address.country",
             "address.website",
-            "address.comment",
             "address.birthName",
             "address.birthday",
             "address.business",
-            "address.private"
+            "address.private",
+            "address.postal",
+            "comment",
         )
         layout.addTranslation(
             "address.image.upload.error",
@@ -1055,6 +1056,7 @@ class AddressPagesRest
                 "privateState" -> address.privateState = value
                 "privateCountry" -> address.privateCountry = value
                 "website" -> address.website = value
+                "comment" -> address.comment = value
             }
         }
 

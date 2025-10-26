@@ -560,6 +560,7 @@ function AddressTextParser({ values }) {
                                                 setVcfError(null);
                                                 setFieldMappings({});
                                                 setAddressBlockMappings({ business: 'business', private: 'private', postal: 'postal' });
+                                                setIsOpen(false);
                                             }}
                                         >
                                             {ui.translations.cancel || 'Cancel'}
