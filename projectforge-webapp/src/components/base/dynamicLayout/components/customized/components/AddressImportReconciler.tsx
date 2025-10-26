@@ -1,6 +1,5 @@
 /* eslint-disable max-len */
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
 import {
     Button, Card, CardBody, Collapse, FormGroup, Label, Input, FormFeedback,
     Alert, Badge, Row, Col, UncontrolledTooltip,
@@ -12,7 +11,64 @@ import { fetchJsonPost, getServiceURL } from '../../../../../../utilities/rest';
 import { DynamicLayoutContext } from '../../../context';
 import AddressFieldSelector from './AddressFieldSelector';
 
-function AddressTextParser({ values }) {
+interface AddressImportReconcilerProps {
+    values?: {
+        title?: string;
+        buttonText?: string;
+        initiallyCollapsed?: boolean;
+    };
+}
+
+interface ParsedField {
+    value: string;
+    confidence?: 'high' | 'medium' | 'low';
+    currentValue?: string;
+    selected?: boolean;
+}
+
+interface ParsedData {
+    fields: Record<string, ParsedField>;
+    warnings?: string[];
+}
+
+interface FieldMappings {
+    [key: string]: string;
+}
+
+interface AddressBlockMappings {
+    business: string;
+    private: string;
+    postal: string;
+    [key: string]: string;
+}
+
+interface SelectedFields {
+    [key: string]: boolean;
+}
+
+interface VcfComparisonDataItem {
+    vcf?: string;
+    db?: string;
+}
+
+interface VcfComparisonData {
+    [key: string]: VcfComparisonDataItem;
+}
+
+interface ParseResponse {
+    variables?: {
+        parsedData?: ParsedData;
+        data?: any;
+        error?: string;
+    };
+}
+
+interface AddressData {
+    id?: number | string;
+    [key: string]: any;
+}
+
+function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
     const {
         ui, setData, data, variables,
     } = React.useContext(DynamicLayoutContext);
@@ -29,9 +85,9 @@ function AddressTextParser({ values }) {
     const urlParams = new URLSearchParams(location.search);
     const hasImportIndexInUrl = urlParams.has('importIndex');
 
-    const vcfComparisonData = variables?.vcfComparisonData;
+    const vcfComparisonData = variables?.vcfComparisonData as VcfComparisonData | undefined;
     const importIndex = variables?.importIndex;
-    const addressId = data?.id;
+    const addressId = (data as AddressData)?.id;
 
     // Only use VCF mode if importIndex is in URL AND vcfComparisonData exists
     const isVcfImportMode = hasImportIndexInUrl && !!vcfComparisonData;
@@ -48,23 +104,23 @@ function AddressTextParser({ values }) {
     );
 
     // Store the previous context key to detect changes
-    const prevContextKeyRef = React.useRef(contextKey);
+    const prevContextKeyRef = React.useRef<string>(contextKey);
 
-    const [inputText, setInputText] = useState('');
-    const [parsedData, setParsedData] = useState(null);
-    const [selectedFields, setSelectedFields] = useState({});
-    const [fieldMappings, setFieldMappings] = useState({});
-    const [addressBlockMappings, setAddressBlockMappings] = useState({
+    const [inputText, setInputText] = useState<string>('');
+    const [parsedData, setParsedData] = useState<ParsedData | null>(null);
+    const [selectedFields, setSelectedFields] = useState<SelectedFields>({});
+    const [fieldMappings, setFieldMappings] = useState<FieldMappings>({});
+    const [addressBlockMappings, setAddressBlockMappings] = useState<AddressBlockMappings>({
         business: 'business',
         private: 'private',
         postal: 'postal',
     });
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [vcfError, setVcfError] = useState(null);
-    const [isOpen, setIsOpen] = useState(!initiallyCollapsed);
-    const [dragActive, setDragActive] = useState(false);
-    const [vcfUploading, setVcfUploading] = useState(false);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
+    const [vcfError, setVcfError] = useState<string | null>(null);
+    const [isOpen, setIsOpen] = useState<boolean>(!initiallyCollapsed);
+    const [dragActive, setDragActive] = useState<boolean>(false);
+    const [vcfUploading, setVcfUploading] = useState<boolean>(false);
 
     // Reset state completely when context key changes (address or import context changed)
     React.useEffect(() => {
@@ -88,8 +144,8 @@ function AddressTextParser({ values }) {
     React.useEffect(() => {
         if (isVcfImportMode && vcfComparisonData) {
             // Convert VCF comparison data to parsedData format
-            const fields = {};
-            const selected = {};
+            const fields: Record<string, ParsedField> = {};
+            const selected: SelectedFields = {};
 
             Object.keys(vcfComparisonData).forEach((fieldName) => {
                 const vcfValue = vcfComparisonData[fieldName]?.vcf;
@@ -118,7 +174,7 @@ function AddressTextParser({ values }) {
         }
     }, [isVcfImportMode, vcfComparisonData]);
 
-    const isAddressField = (fieldName) => [
+    const isAddressField = (fieldName: string): boolean => [
         'addressText',
         'addressText2',
         'zipCode',
@@ -139,13 +195,13 @@ function AddressTextParser({ values }) {
         'postalCountry',
     ].includes(fieldName);
 
-    const getAddressBlockType = (fieldName) => {
+    const getAddressBlockType = (fieldName: string): string => {
         if (fieldName.startsWith('private')) return 'private';
         if (fieldName.startsWith('postal')) return 'postal';
         return 'business';
     };
 
-    const getBaseFieldName = (fieldName) => {
+    const getBaseFieldName = (fieldName: string): string => {
         // Extract base field name without prefix: "privateCity" → "city", "postalZipCode" → "zipCode"
         if (fieldName.startsWith('private')) {
             const withoutPrivate = fieldName.substring(7); // Remove "private"
@@ -158,7 +214,7 @@ function AddressTextParser({ values }) {
         return fieldName; // Already base name
     };
 
-    const buildTargetFieldName = (baseFieldName, targetBlockType) => {
+    const buildTargetFieldName = (baseFieldName: string, targetBlockType: string): string => {
         // Build target field name: "city" + "postal" → "postalCity"
         if (targetBlockType === 'private') {
             return `private${baseFieldName.charAt(0).toUpperCase()}${baseFieldName.substring(1)}`;
@@ -189,24 +245,24 @@ function AddressTextParser({ values }) {
         fetchJsonPost(
             'address/parseText',
             { data: { inputText } },
-            (json) => {
+            (json: ParseResponse) => {
                 setLoading(false);
                 if (json && json.variables && json.variables.parsedData) {
                     const parsed = json.variables.parsedData;
 
                     // Filter out fields that already match current form values
-                    const filteredFields = {};
+                    const filteredFields: Record<string, ParsedField> = {};
                     if (parsed.fields) {
                         Object.entries(parsed.fields).forEach(([fieldName, field]) => {
-                            const currentValue = data[fieldName];
-                            const parsedValue = field.value;
+                            const currentValue = (data as AddressData)[fieldName];
+                            const parsedValue = (field as ParsedField).value;
 
                             // Only include field if value is different from current
-                            const currentNormalized = currentValue?.trim() || '';
+                            const currentNormalized = (typeof currentValue === 'string' ? currentValue.trim() : String(currentValue || '')) || '';
                             const parsedNormalized = parsedValue?.trim() || '';
 
                             if (parsedNormalized && currentNormalized !== parsedNormalized) {
-                                filteredFields[fieldName] = field;
+                                filteredFields[fieldName] = field as ParsedField;
                             }
                         });
                     }
@@ -218,8 +274,8 @@ function AddressTextParser({ values }) {
                     setParsedData(parsedWithFilteredFields);
 
                     // Initialize selected fields based on filtered parsed data
-                    const selected = {};
-                    const isExistingAddress = data.id != null; // Check if this is an existing address
+                    const selected: SelectedFields = {};
+                    const isExistingAddress = (data as AddressData).id != null; // Check if this is an existing address
                     const nameFields = ['name', 'firstName']; // Name fields that need special handling
 
                     Object.entries(filteredFields).forEach(([fieldName, field]) => {
@@ -239,28 +295,28 @@ function AddressTextParser({ values }) {
         );
     };
 
-    const handleFieldToggle = (fieldName) => {
+    const handleFieldToggle = (fieldName: string) => {
         setSelectedFields({
             ...selectedFields,
             [fieldName]: !selectedFields[fieldName],
         });
     };
 
-    const handleFieldMappingChange = (fieldName, newMapping) => {
+    const handleFieldMappingChange = (fieldName: string, newMapping: string) => {
         setFieldMappings({
             ...fieldMappings,
             [fieldName]: newMapping,
         });
     };
 
-    const handleAddressBlockMappingChange = (blockType, newMapping) => {
+    const handleAddressBlockMappingChange = (blockType: string, newMapping: string) => {
         setAddressBlockMappings({
             ...addressBlockMappings,
             [blockType]: newMapping,
         });
     };
 
-    const handleVcfUpload = (file) => {
+    const handleVcfUpload = (file: File) => {
         setVcfUploading(true);
         setVcfError(null);
 
@@ -270,7 +326,7 @@ function AddressTextParser({ values }) {
 
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('addressId', data.id || '0');
+        formData.append('addressId', String((data as AddressData).id || '0'));
 
         fetch(getServiceURL('address/parseVcf'), {
             method: 'POST',
@@ -291,7 +347,7 @@ function AddressTextParser({ values }) {
                     setParsedData(parsed);
 
                     // Pre-select all fields
-                    const selected = {};
+                    const selected: SelectedFields = {};
                     Object.keys(parsed.fields || {}).forEach((fieldName) => {
                         selected[fieldName] = true;
                     });
@@ -306,7 +362,7 @@ function AddressTextParser({ values }) {
             });
     };
 
-    const handleVcfDrop = (e) => {
+    const handleVcfDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         setDragActive(false);
 
@@ -322,7 +378,7 @@ function AddressTextParser({ values }) {
         handleVcfUpload(file);
     };
 
-    const getDropAreaBorderStyle = () => {
+    const getDropAreaBorderStyle = (): string => {
         if (vcfError) {
             return '2px solid #dc3545'; // Red border on error
         }
@@ -337,7 +393,7 @@ function AddressTextParser({ values }) {
         if (!parsedData || !parsedData.fields) return;
 
         // Build map of selected fields with their values and apply remapping
-        const fieldsToApply = {};
+        const fieldsToApply: Record<string, string> = {};
         Object.entries(parsedData.fields).forEach(([fieldName, field]) => {
             if (selectedFields[fieldName] && field.value) {
                 let targetFieldName = fieldName;
@@ -345,7 +401,7 @@ function AddressTextParser({ values }) {
                 // Apply address block remapping
                 if (isAddressField(fieldName)) {
                     const sourceBlockType = getAddressBlockType(fieldName);
-                    const targetBlockType = addressBlockMappings[sourceBlockType] || sourceBlockType;
+                    const targetBlockType = addressBlockMappings[sourceBlockType as keyof AddressBlockMappings] || sourceBlockType;
                     const baseFieldName = getBaseFieldName(fieldName);
                     targetFieldName = buildTargetFieldName(baseFieldName, targetBlockType);
                 } else {
@@ -363,10 +419,10 @@ function AddressTextParser({ values }) {
                 address: data,
                 selectedFields: fieldsToApply,
             },
-            (json) => {
+            (json: ParseResponse) => {
                 if (json && json.variables && json.variables.data) {
                     // Update form data with parsed values
-                    setData(json.variables.data);
+                    (setData as any)(json.variables.data);
 
                     // In VCF mode: keep collapse open for review
                     // In text parser mode: close collapse and reset
@@ -537,7 +593,7 @@ function AddressTextParser({ values }) {
                                         translations={ui.translations}
                                         showConfidence
                                         showComparison
-                                        highlightNameFields={data.id != null}
+                                        highlightNameFields={(data as AddressData).id != null}
                                     />
                                 </div>
 
@@ -605,12 +661,4 @@ function AddressTextParser({ values }) {
     );
 }
 
-AddressTextParser.propTypes = {
-    values: PropTypes.shape({
-        title: PropTypes.string,
-        buttonText: PropTypes.string,
-        initiallyCollapsed: PropTypes.bool,
-    }),
-};
-
-export default AddressTextParser;
+export default AddressImportReconciler;

@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import AddressImportDialogWrapper from './components/AddressImportDialogWrapper';
-import AddressTextParser from './components/AddressTextParser';
+import AddressImportReconciler from './components/AddressImportReconciler';
 import BookLendOut from './components/BookLendOut';
 import CalendarEventRecurrency from './components/CalendarEventRecurrence';
 import CustomizedAddressImage from './components/CustomizedAddressImage';
@@ -53,7 +53,7 @@ function DynamicCustomized({ id, ...props }) {
             Tag = CustomizedAddressPhoneNumber;
             break;
         case 'address.textParser':
-            Tag = AddressTextParser;
+            Tag = AddressImportReconciler;
             break;
         case 'email':
             Tag = CustomizedEMail;
