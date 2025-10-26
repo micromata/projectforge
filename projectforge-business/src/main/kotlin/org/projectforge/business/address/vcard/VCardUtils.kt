@@ -74,9 +74,12 @@ object VCardUtils {
         homeAddress.region = addressDO.privateState
         homeAddress.country = addressDO.privateCountry
         addressDO.communicationLanguage?.let { communicationLanguage ->
-            // Use language tag (e.g., "de", "en") instead of display name
-            vcard.addLanguage(communicationLanguage.toLanguageTag())
-            vcard.structuredName.language = communicationLanguage.toLanguageTag()
+            val languageTag = communicationLanguage.toLanguageTag()
+            // Use standard LANG property (works in V4.0)
+            vcard.addLanguage(languageTag)
+            vcard.structuredName.language = languageTag
+            // Also add X-LANG custom property for V3.0 compatibility
+            vcard.addExtendedProperty("X-LANG", languageTag)
         }
         //adr.setLabel("123 Main St.\nAlbany, NY 54321\nUSA");
         vcard.addAddress(homeAddress)
@@ -122,6 +125,15 @@ object VCardUtils {
         vcard.addNote(addressDO.comment)
         // Add birthName as custom property
         addressDO.birthName?.let { vcard.addExtendedProperty("X-BIRTHNAME", it) }
+        // Add PGP public key as base64-encoded binary data
+        addressDO.publicKey?.let { keyText ->
+            // Store as binary data (ez-vcard will base64-encode it automatically)
+            val keyData = keyText.toByteArray(Charsets.UTF_8)
+            val keyProperty = Key(keyData, ezvcard.parameter.KeyType.PGP)
+            vcard.addKey(keyProperty)
+        }
+        // Add PGP fingerprint as custom property
+        addressDO.fingerprint?.let { vcard.addExtendedProperty("X-PGP-FPR", it) }
         // Handle photo - support both URL and embedded image from transient attribute
         if (imageUrl != null) {
             Photo(imageUrl, (imageType ?: ImageType.PNG).asVCardImageType()).let {
@@ -298,12 +310,24 @@ object VCardUtils {
         vcard.getExtendedProperty("X-BIRTHNAME")?.let { extProp ->
             address.birthName = extProp.value
         }
-        // Parse communicationLanguage from LANG property
-        vcard.languages.firstOrNull()?.let { lang ->
+        // Parse PGP public key from KEY property (base64-decoded binary data)
+        vcard.keys.firstOrNull()?.let { key ->
+            // ez-vcard stores keys - just take the first one and assume it's a PGP key
+            // Decode from binary data back to text
+            address.publicKey = key.data?.toString(Charsets.UTF_8) ?: key.text
+        }
+        // Parse PGP fingerprint from custom property
+        vcard.getExtendedProperty("X-PGP-FPR")?.let { extProp ->
+            address.fingerprint = extProp.value
+        }
+        // Parse communicationLanguage from X-LANG (V3.0) or LANG property (V4.0)
+        val languageTag = vcard.getExtendedProperty("X-LANG")?.value
+            ?: vcard.languages.firstOrNull()?.value
+        languageTag?.let { tag ->
             try {
-                address.communicationLanguage = Locale.forLanguageTag(lang.value)
+                address.communicationLanguage = Locale.forLanguageTag(tag)
             } catch (e: Exception) {
-                log.warn("Failed to parse language tag: ${lang.value}", e)
+                log.warn("Failed to parse language tag: $tag", e)
             }
         }
         return address
