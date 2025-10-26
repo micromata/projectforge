@@ -343,11 +343,24 @@ object VCardUtils {
 
     /**
      * Parse a localized form of address string back to FormOfAddress enum.
-     * E.g. "Herr" -> MISTER, "Frau" -> MISS, "Firma" -> COMPANY
+     * E.g. "Herr" -> PERSON_MALE, "Frau" -> PERSON_FEMALE, "Firma" -> ORGANIZATION
+     * Also accepts enum names directly (e.g., "PERSON_MALE").
+     * Checks against all available locales (de, en), not just the user's current locale.
      */
-    private fun parseFormOfAddress(localizedString: String): FormOfAddress? {
-        return FormOfAddress.values().firstOrNull { form ->
-            ThreadLocalUserContext.getLocalizedString(form.i18nKey) == localizedString
+    @JvmStatic
+    fun parseFormOfAddress(value: String?): FormOfAddress? {
+        if (value.isNullOrBlank()) return null
+
+        return try {
+            // Try parsing as enum name first
+            FormOfAddress.valueOf(value)
+        } catch (e: IllegalArgumentException) {
+            // If that fails, try matching by localized display name across all supported locales
+            FormOfAddress.values().firstOrNull { form ->
+                org.projectforge.business.user.UserLocale.I18NSERVICE_LANGUAGES.any { locale ->
+                    org.projectforge.framework.i18n.I18nHelper.getLocalizedMessage(locale, form.i18nKey) == value
+                }
+            }
         }
     }
 

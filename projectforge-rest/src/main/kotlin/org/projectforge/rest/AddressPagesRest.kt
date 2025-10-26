@@ -28,7 +28,10 @@ import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.SystemStatus
 import org.projectforge.business.address.*
+import org.projectforge.business.address.vcard.VCardUtils
 import org.projectforge.business.sipgate.SipgateConfiguration
+import org.projectforge.framework.time.PFDayUtils
+import org.projectforge.framework.utils.LocaleUtils
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -56,6 +59,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDate
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -279,6 +283,10 @@ class AddressPagesRest
         addField("comment", vcfData?.comment, dbData?.comment)
         addField("fingerprint", vcfData?.fingerprint, dbData?.fingerprint)
         addField("publicKey", vcfData?.publicKey, dbData?.publicKey)
+
+        // Form of address and communication language
+        addField("form", vcfData?.form?.toString(), dbData?.form?.toString())
+        addField("communicationLanguage", vcfData?.communicationLanguage?.displayName, dbData?.communicationLanguage?.displayName)
 
         return result
     }
@@ -1059,6 +1067,13 @@ class AddressPagesRest
                 "privateCountry" -> address.privateCountry = value
                 "website" -> address.website = value
                 "comment" -> address.comment = value
+                // Additional VCard fields
+                "birthName" -> address.birthName = value
+                "birthday" -> address.birthday = tryParseLocalDate(value)
+                "fingerprint" -> address.fingerprint = value
+                "publicKey" -> address.publicKey = value
+                "form" -> address.form = tryParseFormOfAddress(value)
+                "communicationLanguage" -> address.communicationLanguage = tryParseLocale(value)
             }
         }
 
@@ -1140,5 +1155,34 @@ class AddressPagesRest
         }
 
         return sb.toString()
+    }
+
+    /**
+     * Helper function to parse LocalDate from string using PFDayUtils.parseDate().
+     * Accepts ISO format (YYYY-MM-DD), user's date format, and other formats.
+     * Returns null if parsing fails.
+     */
+    private fun tryParseLocalDate(value: String?): LocalDate? {
+        if (value.isNullOrBlank()) return null
+        return PFDayUtils.parseDate(value)
+    }
+
+    /**
+     * Helper function to parse FormOfAddress from string representation.
+     * Uses VCardUtils.parseFormOfAddress() which checks all supported locales.
+     * Accepts both enum names (PERSON_MALE) and localized display strings (Herr, Mr.).
+     * Returns null if parsing fails.
+     */
+    private fun tryParseFormOfAddress(value: String?): FormOfAddress? {
+        return VCardUtils.parseFormOfAddress(value)
+    }
+
+    /**
+     * Helper function to parse Locale from language tag string.
+     * Uses LocaleUtils.parse() which handles language tags (e.g., "de", "en-US").
+     * Returns null if parsing fails.
+     */
+    private fun tryParseLocale(value: String?): Locale? {
+        return LocaleUtils.parse(value)
     }
 }
