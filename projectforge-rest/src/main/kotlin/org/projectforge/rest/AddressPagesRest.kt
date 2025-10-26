@@ -391,11 +391,22 @@ class AddressPagesRest
         personalAddressDao.saveOrUpdate(personalAddress)
 
         val session = request.getSession(false)
-        val image = ExpiringSessionAttributes.getAttribute(session, SESSION_IMAGE_ATTR)
-        if (image != null && image is AddressImageServicesRest.SessionImage) {
-            // The user uploaded an image, so save it now.
-            addressImageDao.saveOrUpdate(obj.id!!, image.bytes, image.imageType)
+
+        // Handle image deletion first (check imageDeleted flag before processing session upload)
+        if (dto.imageDeleted) {
+            // Clear any uploaded image from session (user uploaded then deleted before save)
             ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
+            // Delete from database if exists (for existing addresses with images)
+            addressImageDao.delete(obj.id!!)
+            log.info { "Deleted image for address ${obj.id} on form save (imageDeleted flag)" }
+        } else {
+            // Handle new image upload from session (only if not deleted)
+            val image = ExpiringSessionAttributes.getAttribute(session, SESSION_IMAGE_ATTR)
+            if (image != null && image is AddressImageServicesRest.SessionImage) {
+                // The user uploaded an image, so save it now.
+                addressImageDao.saveOrUpdate(obj.id!!, image.bytes, image.imageType)
+                ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
+            }
         }
 
         // If this was opened from VCF import context, reconcile import storage
