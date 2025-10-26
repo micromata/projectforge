@@ -289,6 +289,8 @@ class AddressServicesRest {
             // 8. Handle image from VCF (if present)
             var hasImage = false
             var imageTooLarge = false
+            val session = request.getSession(false)
+
             matchedDto.transientImage?.let { imageData ->
                 imageData.image?.let { imageBytes ->
                     hasImage = true
@@ -299,7 +301,6 @@ class AddressServicesRest {
                     log.info { "VCF contains image: ${imageBytes.size} bytes (max: $maxSize bytes, tooLarge: $imageTooLarge)" }
 
                     // Store in session for later use
-                    val session = request.getSession(false)
                     val sessionImage = SessionVcfImage(
                         filename = filename,
                         imageType = imageData.imageType ?: ImageType.PNG,
@@ -308,6 +309,12 @@ class AddressServicesRest {
                     )
                     ExpiringSessionAttributes.setAttribute(session, SESSION_VCF_IMAGE_ATTR, sessionImage, 1)
                 }
+            }
+
+            // Clear VCF image from session if no image in new VCF
+            if (!hasImage) {
+                ExpiringSessionAttributes.removeAttribute(session, SESSION_VCF_IMAGE_ATTR)
+                log.info { "No image in VCF - cleared session image" }
             }
 
             return ResponseEntity.ok(

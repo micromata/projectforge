@@ -62,6 +62,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 import java.util.*
+import java.util.Base64
 
 private val log = KotlinLogging.logger {}
 
@@ -853,6 +854,7 @@ class AddressPagesRest
 
         layout.addTranslations(
             "apply",
+            "delete",
             "parse",
             "cancel",
             "address.parseText.addressBlock",
@@ -1035,20 +1037,23 @@ class AddressPagesRest
         val applyImage = request.applyImage
 
         // Handle image from VCF if requested
+        var vcfImageBase64: String? = null
+        var vcfImageFilename: String? = null
+        var vcfImageMimeType: String? = null
         if (applyImage) {
             val session = httpRequest.getSession(false)
             val vcfImage = ExpiringSessionAttributes.getAttribute(session, SESSION_VCF_IMAGE_ATTR)
                 as? AddressServicesRest.SessionVcfImage
 
             if (vcfImage != null && !vcfImage.imageTooLarge) {
-                // Copy from VCF session to upload session
-                val uploadImage = AddressImageServicesRest.SessionImage(
-                    filename = vcfImage.filename,
-                    imageType = vcfImage.imageType,
-                    bytes = vcfImage.bytes
-                )
-                ExpiringSessionAttributes.setAttribute(session, SESSION_IMAGE_ATTR, uploadImage, 1)
-                log.info { "Copied VCF image to upload session: ${vcfImage.filename} (${vcfImage.bytes.size} bytes)" }
+                // Send image bytes to frontend (Base64-encoded)
+                vcfImageBase64 = Base64.getEncoder().encodeToString(vcfImage.bytes)
+                vcfImageFilename = vcfImage.filename
+                vcfImageMimeType = vcfImage.imageType.mimeType
+
+                // Clear VCF image from session (frontend will handle upload)
+                ExpiringSessionAttributes.removeAttribute(session, SESSION_VCF_IMAGE_ATTR)
+                log.info { "Sending VCF image to frontend: ${vcfImage.filename} (${vcfImage.bytes.size} bytes, ${vcfImage.imageType})" }
             }
         }
 
@@ -1103,11 +1108,18 @@ class AddressPagesRest
 
         log.info { "Applied ${selectedFields.size} parsed fields to address" }
 
-        return ResponseEntity.ok(
-            ResponseAction(targetType = TargetType.UPDATE)
-                .addVariable("data", address)
-                .addVariable("ui", UIToast.createToast(translate("address.parseText.applied")))
-        )
+        val response = ResponseAction(targetType = TargetType.UPDATE)
+            .addVariable("data", address)
+            .addVariable("ui", UIToast.createToast(translate("address.parseText.applied")))
+
+        // Include VCF image data if present (frontend will handle upload)
+        if (vcfImageBase64 != null) {
+            response.addVariable("vcfImageData", vcfImageBase64)
+            response.addVariable("vcfImageFilename", vcfImageFilename)
+            response.addVariable("vcfImageMimeType", vcfImageMimeType)
+        }
+
+        return ResponseEntity.ok(response)
     }
 
     /**
