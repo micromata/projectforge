@@ -418,6 +418,101 @@ class VCardUtilsTest {
     }
 
     @Test
+    fun `test form and title in prefixes`() {
+        TestSetup.init()
+        val original = AddressDO().apply {
+            uid = UUID.randomUUID().toString()
+            name = "Müller"
+            firstName = "Hans"
+            form = FormOfAddress.MISTER
+            title = "Dr."
+        }
+
+        val vcardString = VCardUtils.buildVCardString(original, VCardVersion.V_4_0)
+        val imported = VCardUtils.buildAddressDO(VCardUtils.parseVCardsFromString(vcardString)[0])
+
+        assertEquals(FormOfAddress.MISTER, imported.form)
+        assertEquals("Dr.", imported.title)
+    }
+
+    @Test
+    fun `test birthName mapping`() {
+        TestSetup.init()
+        val original = AddressDO().apply {
+            uid = UUID.randomUUID().toString()
+            name = "Müller"
+            firstName = "Anna"
+            birthName = "Schmidt"
+        }
+
+        val vcardString = VCardUtils.buildVCardString(original, VCardVersion.V_4_0)
+        assertTrue(vcardString.contains("X-BIRTHNAME:Schmidt"))
+
+        val imported = VCardUtils.buildAddressDO(VCardUtils.parseVCardsFromString(vcardString)[0])
+        assertEquals("Schmidt", imported.birthName)
+    }
+
+    @Test
+    fun `test addressText2 fields mapping`() {
+        TestSetup.init()
+        val original = AddressDO().apply {
+            uid = UUID.randomUUID().toString()
+            name = "Test"
+            firstName = "User"
+            addressText = "Hauptstraße 1"
+            addressText2 = "Gebäude A"
+            privateAddressText = "Nebenstraße 2"
+            privateAddressText2 = "Apartment 5"
+            postalAddressText = "Postfach 123"
+            postalAddressText2 = "c/o Firma"
+        }
+
+        val vcardString = VCardUtils.buildVCardString(original, VCardVersion.V_4_0)
+        val imported = VCardUtils.buildAddressDO(VCardUtils.parseVCardsFromString(vcardString)[0])
+
+        assertEquals("Gebäude A", imported.addressText2)
+        assertEquals("Apartment 5", imported.privateAddressText2)
+        assertEquals("c/o Firma", imported.postalAddressText2)
+    }
+
+    @Test
+    fun `test communicationLanguage mapping`() {
+        TestSetup.init()
+        val original = AddressDO().apply {
+            uid = UUID.randomUUID().toString()
+            name = "Test"
+            firstName = "User"
+            communicationLanguage = Locale.GERMAN
+        }
+
+        val vcardString = VCardUtils.buildVCardString(original, VCardVersion.V_4_0)
+        val imported = VCardUtils.buildAddressDO(VCardUtils.parseVCardsFromString(vcardString)[0])
+
+        assertEquals(Locale.GERMAN, imported.communicationLanguage)
+    }
+
+    @Test
+    fun `test positionText as TITLE property`() {
+        TestSetup.init()
+        val original = AddressDO().apply {
+            uid = UUID.randomUUID().toString()
+            name = "Developer"
+            firstName = "Senior"
+            positionText = "Lead Software Engineer"
+            organization = "Tech Corp"
+            division = "Engineering"
+        }
+
+        val vcardString = VCardUtils.buildVCardString(original, VCardVersion.V_4_0)
+        assertTrue(vcardString.contains("TITLE:Lead Software Engineer"))
+        // Should NOT be in ORG anymore (only organization and division)
+        assertFalse(vcardString.contains("ORG:Tech Corp;Engineering;Lead Software Engineer"))
+
+        val imported = VCardUtils.buildAddressDO(VCardUtils.parseVCardsFromString(vcardString)[0])
+        assertEquals("Lead Software Engineer", imported.positionText)
+    }
+
+    @Test
     fun `test parsing multiple contacts from single VCard string`() {
         TestSetup.init()
         val multipleVCards = """
@@ -519,10 +614,13 @@ class VCardUtilsTest {
         // Basic fields that are mapped
         assertEquals(expected.name, actual.name, "name mismatch")
         assertEquals(expected.firstName, actual.firstName, "firstName mismatch")
+        assertEquals(expected.birthName, actual.birthName, "birthName mismatch")
         assertEquals(expected.title, actual.title, "title mismatch")
+        assertEquals(expected.form, actual.form, "form mismatch")
 
         // Business address
         assertEquals(expected.addressText, actual.addressText, "addressText mismatch")
+        assertEquals(expected.addressText2, actual.addressText2, "addressText2 mismatch")
         assertEquals(expected.zipCode, actual.zipCode, "zipCode mismatch")
         assertEquals(expected.city, actual.city, "city mismatch")
         assertEquals(expected.state, actual.state, "state mismatch")
@@ -530,6 +628,7 @@ class VCardUtilsTest {
 
         // Private address
         assertEquals(expected.privateAddressText, actual.privateAddressText, "privateAddressText mismatch")
+        assertEquals(expected.privateAddressText2, actual.privateAddressText2, "privateAddressText2 mismatch")
         assertEquals(expected.privateZipCode, actual.privateZipCode, "privateZipCode mismatch")
         assertEquals(expected.privateCity, actual.privateCity, "privateCity mismatch")
         assertEquals(expected.privateState, actual.privateState, "privateState mismatch")
@@ -537,6 +636,7 @@ class VCardUtilsTest {
 
         // Postal address
         assertEquals(expected.postalAddressText, actual.postalAddressText, "postalAddressText mismatch")
+        assertEquals(expected.postalAddressText2, actual.postalAddressText2, "postalAddressText2 mismatch")
         assertEquals(expected.postalZipCode, actual.postalZipCode, "postalZipCode mismatch")
         assertEquals(expected.postalCity, actual.postalCity, "postalCity mismatch")
         assertEquals(expected.postalState, actual.postalState, "postalState mismatch")
@@ -562,16 +662,17 @@ class VCardUtilsTest {
         assertEquals(expected.website, actual.website, "website mismatch")
         assertEquals(expected.birthday, actual.birthday, "birthday mismatch")
         assertEquals(expected.comment?.trim(), actual.comment?.trim(), "comment mismatch")
+        // communicationLanguage: Only check if both are set (V3.0 may not support standalone LANG property)
+        if (expected.communicationLanguage != null && actual.communicationLanguage != null) {
+            assertEquals(expected.communicationLanguage, actual.communicationLanguage, "communicationLanguage mismatch")
+        }
 
         // Note: The following fields are NOT mapped in VCard and won't survive round-trip:
-        // - birthName
-        // - form
         // - contactStatus
         // - addressStatus
         // - publicKey
         // - fingerprint
-        // - communicationLanguage (only used during export)
-        // - addressText2, privateAddressText2, postalAddressText2 (not properly mapped)
+        // - communicationLanguage (may not work in VCard 3.0, only V4.0 has proper LANG support)
     }
 
     private fun testImageTypeRoundTrip(imageType: ImageType) {
