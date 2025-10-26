@@ -89,6 +89,11 @@ class Address(
      * Used by CustomizedAddressImage to show uploaded/imported images before save.
      */
     var imageDataUrl: String? = null,
+    /**
+     * Frontend-only: Marks the image as pending deletion (will be deleted on form save).
+     * Allows Cancel button to restore the image.
+     */
+    var imageDeleted: Boolean = false,
     var instantMessaging: MutableList<LabelValueBean<InstantMessagingType, String>>? = null,
     var addressbookList: MutableSet<Addressbook>? = null,
     /**

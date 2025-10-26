@@ -56,6 +56,7 @@ function CustomizedAddressImage() {
                             setData({
                                 hasUploadedImage: true,
                                 imageDataUrl: currentTarget.result,
+                                imageDeleted: false,
                             });
                             setLoading(false);
                         };
@@ -69,29 +70,16 @@ function CustomizedAddressImage() {
             };
 
             const deleteImage = () => {
-                setLoading(true);
-                setError(undefined);
-
-                fetch(
-                    // Delete the image with id -1, so the stored image in the session will be
-                    // removed.
-                    getServiceURL(`address/deleteImage/${data.id || -1}`),
-                    {
-                        credentials: 'include',
-                        method: 'DELETE',
-                    },
-                )
-                    .then(handleHTTPErrors)
-                    .then(() => setData({
-                        imageData: undefined,
-                        hasUploadedImage: false,
-                        imageDataUrl: undefined,
-                    }))
-                    .catch((fetchError) => setError(fetchError))
-                    .finally(() => setLoading(false));
+                // Mark image for deletion (transactional - actual delete happens on form save)
+                setData({
+                    imageData: undefined,
+                    hasUploadedImage: false,
+                    imageDataUrl: undefined,
+                    imageDeleted: true,
+                });
             };
 
-            if (data.imageData || data.hasUploadedImage) {
+            if ((data.imageData || data.hasUploadedImage) && !data.imageDeleted) {
                 image = (
                     <>
                         <img

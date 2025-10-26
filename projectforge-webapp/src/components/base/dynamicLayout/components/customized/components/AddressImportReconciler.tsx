@@ -481,6 +481,7 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
                             (setData as any)({
                                 hasUploadedImage: true,
                                 imageDataUrl: e.target?.result,
+                                imageDeleted: false,
                             });
                         };
                         reader.readAsDataURL(blob);
