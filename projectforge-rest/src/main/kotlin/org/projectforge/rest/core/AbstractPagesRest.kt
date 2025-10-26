@@ -106,6 +106,12 @@ constructor(
 
     open val addNewEntryUrl: String by lazy { "${Constants.REACT_APP_PATH}$category/edit" }
 
+    /**
+     * If true, edit pages will open in modal dialogs instead of full page navigation.
+     * This affects both the "Add New" button and row clicks in the grid.
+     */
+    open val useModalEditDialog = false
+
     @PostConstruct
     private fun postConstruct() {
         this.lc = LayoutContext(baseDao.doClass)
@@ -117,7 +123,7 @@ constructor(
         const val CLASSIC_VERSION_MENU = "CLASSIC"
         const val CREATE_MENU = "CREATE"
         const val USER_PREF_PARAM_HIGHLIGHT_ROW = "highlightedRow"
-        const val JCR_PATH_PREFIX: String = "org.projectforge"
+        private const val JCR_PATH_PREFIX: String = "org.projectforge"
 
         fun getJcrPath(identifier: String): String {
             return "$JCR_PATH_PREFIX.$identifier"
@@ -389,7 +395,14 @@ constructor(
                 )
             }
             if (ui.userAccess.insert != false) {
-                ui.add(MenuItem(CREATE_MENU, title = translate("add"), url = addNewEntryUrl))
+                ui.add(
+                    MenuItem(
+                        CREATE_MENU,
+                        title = translate("add"),
+                        url = addNewEntryUrl,
+                        type = if (useModalEditDialog) MenuItemTargetType.MODAL else null
+                    )
+                )
             }
         }
         return InitialListData(
