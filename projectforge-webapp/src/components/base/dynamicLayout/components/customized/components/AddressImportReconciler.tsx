@@ -330,6 +330,34 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
         });
     };
 
+    const handleSelectAll = () => {
+        const newSelected: SelectedFields = {};
+        Object.keys(parsedData?.fields || {}).forEach((fieldName) => {
+            // Exclude name and firstName from "Select All"
+            if (fieldName !== 'name' && fieldName !== 'firstName') {
+                newSelected[fieldName] = true;
+            } else {
+                // Preserve current state for name/firstName
+                newSelected[fieldName] = selectedFields[fieldName] || false;
+            }
+        });
+        setSelectedFields(newSelected);
+        // Also select image checkbox if available and not too large
+        if (hasImage && !imageTooLarge) {
+            setApplyImage(true);
+        }
+    };
+
+    const handleUnselectAll = () => {
+        const newSelected: SelectedFields = {};
+        Object.keys(parsedData?.fields || {}).forEach((fieldName) => {
+            newSelected[fieldName] = false;
+        });
+        setSelectedFields(newSelected);
+        // Also unselect image checkbox if present
+        setApplyImage(false);
+    };
+
     const handleVcfUpload = (file: File) => {
         setVcfUploading(true);
         setVcfError(null);
@@ -651,9 +679,9 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
                             <div className="mt-4">
                                 {/* Heading - only show in text parser mode */}
                                 {!isVcfImportMode && (
-                                    <h6>
+                                    <h4>
                                         {ui.translations['address.parseText.fieldsParsed']}
-                                    </h6>
+                                    </h4>
                                 )}
 
                                 {parsedData.warnings && parsedData.warnings.length > 0 && (
@@ -666,6 +694,41 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
                                         </ul>
                                     </Alert>
                                 )}
+
+                                {/* Select All / Unselect All controls */}
+                                <div className="mb-2">
+                                    <button
+                                        type="button"
+                                        onClick={handleSelectAll}
+                                        style={{
+                                            background: 'none',
+                                            border: 'none',
+                                            padding: 0,
+                                            color: '#007bff',
+                                            textDecoration: 'underline',
+                                            cursor: 'pointer',
+                                            marginRight: '10px',
+                                        }}
+                                    >
+                                        {ui.translations['address.parseText.selectAll'] || 'Select all'}
+                                    </button>
+                                    <span style={{ color: '#6c757d' }}>|</span>
+                                    <button
+                                        type="button"
+                                        onClick={handleUnselectAll}
+                                        style={{
+                                            background: 'none',
+                                            border: 'none',
+                                            padding: 0,
+                                            color: '#007bff',
+                                            textDecoration: 'underline',
+                                            cursor: 'pointer',
+                                            marginLeft: '10px',
+                                        }}
+                                    >
+                                        {ui.translations['address.parseText.unselectAll'] || 'Unselect all'}
+                                    </button>
+                                </div>
 
                                 <div className="mt-3">
                                     <AddressFieldSelector
@@ -693,6 +756,13 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
                                             </Alert>
                                         ) : (
                                             <div>
+                                                <div className="mt-2 mb-2">
+                                                    <img
+                                                        src={getServiceURL('address/vcfImagePreview')}
+                                                        alt="VCF Preview"
+                                                        style={{ maxWidth: '100px', maxHeight: '100px', border: '1px solid #ccc' }}
+                                                    />
+                                                </div>
                                                 <FormGroup check className="mb-2">
                                                     <Label check>
                                                         <Input
@@ -704,15 +774,6 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
                                                         {ui.translations['address.book.vCardsImport.importImage'] || 'Bild importieren'}
                                                     </Label>
                                                 </FormGroup>
-                                                {applyImage && (
-                                                    <div className="mt-2">
-                                                        <img
-                                                            src={getServiceURL('address/vcfImagePreview')}
-                                                            alt="VCF Preview"
-                                                            style={{ maxWidth: '100px', maxHeight: '100px', border: '1px solid #ccc' }}
-                                                        />
-                                                    </div>
-                                                )}
                                             </div>
                                         )}
                                     </div>
