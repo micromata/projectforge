@@ -72,6 +72,8 @@ class AddressPagesRest
         var carddavServerEnabled = false
     }
 
+    override val useModalEditDialog = true
+
     /**
      * For exporting list of addresses.
      */
@@ -485,7 +487,7 @@ class AddressPagesRest
                                 AddressPagesRest::class.java,
                                 absolute = true
                             )
-                        }/' + data.address.id);"
+                        }/' + data.address.id + '?modal=true', { background: history.location });"
                     )
                 }
             )

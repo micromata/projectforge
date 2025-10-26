@@ -112,7 +112,7 @@ class AGGridSupport {
             if (userAccess.update == true) {
                 val redirectUrl =
                     rowClickUrl ?: "${PagesResolver.getEditPageUrl(pagesRest::class.java, absolute = true)}/id"
-                agGrid.withRowClickRedirectUrl(redirectUrl)
+                agGrid.withRowClickRedirectUrl(redirectUrl, openModal = pagesRest.useModalEditDialog)
                 if (pageAfterMultiSelect != null) {
                     layout.multiSelectionSupported = true
                 }
