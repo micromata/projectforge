@@ -82,7 +82,11 @@ function CustomizedAddressImage() {
                     },
                 )
                     .then(handleHTTPErrors)
-                    .then(() => setData({ hasUploadedImage: false, imageDataUrl: undefined }))
+                    .then(() => setData({
+                        imageData: undefined,
+                        hasUploadedImage: false,
+                        imageDataUrl: undefined,
+                    }))
                     .catch((fetchError) => setError(fetchError))
                     .finally(() => setLoading(false));
             };
