@@ -29,6 +29,8 @@ import mu.KotlinLogging
 import org.apache.commons.io.IOUtils
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressExport
+import org.projectforge.business.address.AddressImageDO
+import org.projectforge.business.address.ImageType
 import org.projectforge.business.address.PersonalAddressDao
 import org.projectforge.business.address.vcard.VCardUtils
 import org.projectforge.common.BeanHelper
@@ -46,8 +48,10 @@ import org.projectforge.ui.TargetType
 import org.projectforge.ui.UIColor
 import org.projectforge.rest.ResponseData
 import org.projectforge.rest.MessageType
+import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
+import org.springframework.core.io.Resource
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -66,10 +70,17 @@ private val log = KotlinLogging.logger {}
 @RequestMapping("${Rest.URL}/address")
 class AddressServicesRest {
 
+    internal class SessionVcfImage(
+        val filename: String,
+        val imageType: ImageType,
+        val bytes: ByteArray,
+        val imageTooLarge: Boolean
+    )
+
     companion object {
-        internal const val SESSION_IMAGE_ATTR = "uploadedAddressImage"
         private const val APPLE_SCRIPT_DIR = "misc/"
         private const val APPLE_SCRIPT_FOR_ADDRESS_BOOK = "AddressBookRemoveNotesOfClassWork.scpt"
+        internal const val SESSION_VCF_IMAGE_ATTR = "vcfImage"
     }
 
     @Autowired
@@ -86,6 +97,9 @@ class AddressServicesRest {
 
     @Autowired
     private lateinit var languageService: LanguageService
+
+    @Autowired
+    private lateinit var addressImageServicesRest: AddressImageServicesRest
 
     @GetMapping("acLang")
     fun getLanguages(@RequestParam("search") search: String?): List<DisplayLanguage> {
@@ -188,7 +202,8 @@ class AddressServicesRest {
     @PostMapping("parseVcf")
     fun parseVcf(
         @RequestParam("file") file: MultipartFile,
-        @RequestParam("addressId") addressId: String?
+        @RequestParam("addressId") addressId: String?,
+        request: HttpServletRequest
     ): ResponseEntity<*> {
         // 1. Validierung
         if (file.isEmpty) {
@@ -271,9 +286,35 @@ class AddressServicesRest {
             log.info { "Best match: ${matchedDto.name}, ${matchedDto.firstName} (score=${bestMatch?.second ?: 0}, singleVCard=$singleVCardMatch)" }
             val parsedData = convertVcfToParsedDataFormat(matchedDto, currentAddress)
 
+            // 8. Handle image from VCF (if present)
+            var hasImage = false
+            var imageTooLarge = false
+            matchedDto.transientImage?.let { imageData ->
+                imageData.image?.let { imageBytes ->
+                    hasImage = true
+                    val imageSize = imageBytes.size.toLong()
+                    val maxSize = addressImageServicesRest.maxImageSize.toBytes()
+                    imageTooLarge = imageSize > maxSize
+
+                    log.info { "VCF contains image: ${imageBytes.size} bytes (max: $maxSize bytes, tooLarge: $imageTooLarge)" }
+
+                    // Store in session for later use
+                    val session = request.getSession(false)
+                    val sessionImage = SessionVcfImage(
+                        filename = filename,
+                        imageType = imageData.imageType ?: ImageType.PNG,
+                        bytes = imageBytes,
+                        imageTooLarge = imageTooLarge
+                    )
+                    ExpiringSessionAttributes.setAttribute(session, SESSION_VCF_IMAGE_ATTR, sessionImage, 1)
+                }
+            }
+
             return ResponseEntity.ok(
                 ResponseAction(targetType = TargetType.NOTHING)
                     .addVariable("parsedData", parsedData)
+                    .addVariable("hasImage", hasImage)
+                    .addVariable("imageTooLarge", imageTooLarge)
             )
 
         } catch (e: Exception) {
@@ -283,6 +324,24 @@ class AddressServicesRest {
                     .addVariable("error", translate("address.book.vCardsImport.error.parsing"))
             )
         }
+    }
+
+    /**
+     * Returns the image preview from a VCF import stored in the session.
+     * This is only available after parseVcf has been called and only if imageTooLarge is false.
+     */
+    @GetMapping("vcfImagePreview")
+    fun getVcfImagePreview(request: HttpServletRequest): ResponseEntity<Resource> {
+        val session = request.getSession(false)
+        val sessionImage = ExpiringSessionAttributes.getAttribute(session, SESSION_VCF_IMAGE_ATTR) as? SessionVcfImage
+            ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+
+        if (sessionImage.imageTooLarge) {
+            return ResponseEntity(HttpStatus.NOT_FOUND)
+        }
+
+        val resource = ByteArrayResource(sessionImage.bytes)
+        return RestUtils.downloadFile("vcf-image-preview.${sessionImage.imageType.extension}", resource)
     }
 
     /**
