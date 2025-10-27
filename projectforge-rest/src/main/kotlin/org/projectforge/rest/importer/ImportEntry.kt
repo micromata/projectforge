@@ -29,7 +29,7 @@ import org.projectforge.framework.i18n.translate
 open class ImportEntry<O : Any>(
     val read: O? = null,
 ) {
-    enum class Status { NEW, DELETED, MODIFIED, UNMODIFIED, UNKNOWN_MODIFICATION, UNKNOWN, FAULTY }
+    enum class Status { NEW, DELETED, MODIFIED, UNMODIFIED, IMPORTED, UNKNOWN_MODIFICATION, UNKNOWN, FAULTY }
 
     var id: Long = -1
 
@@ -77,6 +77,7 @@ open class ImportEntry<O : Any>(
             Status.DELETED -> displayOptions.deleted == true
             Status.MODIFIED -> displayOptions.modified == true
             Status.UNMODIFIED -> displayOptions.unmodified == true
+            Status.IMPORTED -> displayOptions.imported == true
             Status.UNKNOWN, Status.UNKNOWN_MODIFICATION -> displayOptions.unknown == true
             Status.FAULTY -> displayOptions.faulty == true
         }

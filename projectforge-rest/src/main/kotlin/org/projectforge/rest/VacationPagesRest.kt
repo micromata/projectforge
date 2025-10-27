@@ -132,13 +132,13 @@ class VacationPagesRest :
         return employee
     }
 
-    override fun onAfterSave(obj: VacationDO, postData: PostData<Vacation>): ResponseAction {
+    override fun onAfterSave(request: HttpServletRequest, obj: VacationDO, postData: PostData<Vacation>): ResponseAction {
         // Save current edited object as user preference for pre-filling the edit form for the next usage.
         val vacation = getUserPref()
         vacation.employee = obj.employee
         vacation.manager = obj.manager
         vacation.replacement = obj.replacement
-        return super.onAfterSave(obj, postData)
+        return super.onAfterSave(request, obj, postData)
     }
 
     /**

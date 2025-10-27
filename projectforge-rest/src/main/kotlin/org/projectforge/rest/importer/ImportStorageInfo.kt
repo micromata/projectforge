@@ -47,6 +47,7 @@ class ImportStorageInfo() {
         ImportEntry.Status.UNMODIFIED -> numberOfUnmodifiedEntries += 1
         ImportEntry.Status.DELETED -> numberOfDeletedEntries += 1
         ImportEntry.Status.FAULTY -> numberOfFaultyEntries += 1
+        ImportEntry.Status.IMPORTED -> {} // Imported entries are already processed, no counting needed
       }
     }
     detectedColumns = importStorage.detectedColumns.keys.sorted()

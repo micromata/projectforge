@@ -60,6 +60,14 @@ private val log = KotlinLogging.logger {}
 @RequestMapping("${Rest.URL}/addressImportUpload")
 class AddressImportUploadPageRest : AbstractDynamicPageRest() {
 
+    companion object {
+        /**
+         * Session attribute name for storing import data.
+         */
+        @JvmStatic
+        val SESSION_IMPORT_STORAGE_ATTR = "${AddressImportUploadPageRest::class.java.name}.importStorage"
+    }
+
     @Autowired
     private lateinit var addressDao: AddressDao
 
@@ -75,19 +83,12 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
     private val maxFileUploadSizeMB = 10L
 
     /**
-     * Returns the session attribute name for storing import data.
-     */
-    private fun getSessionAttributeName(): String {
-        return "${AddressImportUploadPageRest::class.java.name}.importStorage"
-    }
-
-    /**
      * Retrieves the import storage from session.
      */
     private fun getImportStorage(request: HttpServletRequest): AddressImportStorage? {
         return ExpiringSessionAttributes.getAttribute(
             request,
-            getSessionAttributeName(),
+            SESSION_IMPORT_STORAGE_ATTR,
             AddressImportStorage::class.java,
         )
     }
@@ -96,7 +97,7 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
      * Clears the import storage from session.
      */
     private fun clearImportStorage(request: HttpServletRequest) {
-        ExpiringSessionAttributes.removeAttribute(request, getSessionAttributeName())
+        ExpiringSessionAttributes.removeAttribute(request, SESSION_IMPORT_STORAGE_ATTR)
     }
 
     /**
@@ -199,6 +200,8 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
              return 'ag-row-red';
            } else if (params.node.data.status === 'MODIFIED') {
              return 'ag-row-blue';
+           } else if (params.node.data.status === 'IMPORTED') {
+             return 'ag-row-grey';
         }""".trimMargin()
         )
 
@@ -336,7 +339,7 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
                 importStorage.reconcileImportStorage()
 
                 // Store in session (expires after 30 minutes)
-                ExpiringSessionAttributes.setAttribute(request, getSessionAttributeName(), importStorage, 30)
+                ExpiringSessionAttributes.setAttribute(request, SESSION_IMPORT_STORAGE_ATTR, importStorage, 30)
                 log.info { "VCF parsed and reconciled successfully: ${importStorage.pairEntries.size} entries" }
             }
 
@@ -441,7 +444,7 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
         constructor(pairEntry: org.projectforge.rest.importer.ImportPairEntry<AddressImportDTO>, index: Int) : this(
             importIndex = index,
             status = pairEntry.status.name,
-            statusAsString = translate("import.entry.status.${pairEntry.status.name}"),
+            statusAsString = pairEntry.statusAsString,
             error = pairEntry.error,
             read = pairEntry.read,
             stored = pairEntry.stored,

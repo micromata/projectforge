@@ -43,6 +43,7 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
     var new: Boolean? = true,
     var modified: Boolean? = true,
     var unmodified: Boolean? = null,
+    var imported: Boolean? = null,
     var deleted: Boolean? = true,
     var faulty: Boolean? = true,
     var unknown: Boolean? = true,

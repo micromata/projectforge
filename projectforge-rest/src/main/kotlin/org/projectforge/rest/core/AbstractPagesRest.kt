@@ -1167,15 +1167,15 @@ constructor(
     /**
      * Will only be called on success. Simply call [onAfterEdit].
      */
-    internal open fun onAfterSave(obj: O, postData: PostData<DTO>): ResponseAction {
-        return onAfterEdit(obj, postData, RestButtonEvent.SAVE)
+    internal open fun onAfterSave(request: HttpServletRequest, obj: O, postData: PostData<DTO>): ResponseAction {
+        return onAfterEdit(request, obj, postData, RestButtonEvent.SAVE)
     }
 
     /**
      * Will only be called on success. Simply call [onAfterEdit].
      */
-    internal open fun onAfterUpdate(obj: O, postData: PostData<DTO>): ResponseAction {
-        return onAfterEdit(obj, postData, RestButtonEvent.UPDATE)
+    internal open fun onAfterUpdate(request: HttpServletRequest, obj: O, postData: PostData<DTO>): ResponseAction {
+        return onAfterEdit(request, obj, postData, RestButtonEvent.UPDATE)
     }
 
     /**
@@ -1187,8 +1187,8 @@ constructor(
     /**
      * Will only be called on success. Simply call [onAfterEdit].
      */
-    internal open fun onAfterDelete(obj: O, postData: PostData<DTO>): ResponseAction {
-        return onAfterEdit(obj, postData, RestButtonEvent.DELETE)
+    internal open fun onAfterDelete(request: HttpServletRequest, obj: O, postData: PostData<DTO>): ResponseAction {
+        return onAfterEdit(request, obj, postData, RestButtonEvent.DELETE)
     }
 
     /**
@@ -1200,8 +1200,8 @@ constructor(
     /**
      * Will only be called on success. Simply call [onAfterEdit].
      */
-    internal open fun onAfterMarkAsDeleted(obj: O, postData: PostData<DTO>): ResponseAction {
-        return onAfterEdit(obj, postData, RestButtonEvent.DELETE)
+    internal open fun onAfterMarkAsDeleted(request: HttpServletRequest, obj: O, postData: PostData<DTO>): ResponseAction {
+        return onAfterEdit(request, obj, postData, RestButtonEvent.DELETE)
     }
 
     /**
@@ -1213,8 +1213,8 @@ constructor(
     /**
      * Will only be called on success. Simply call [onAfterEdit].
      */
-    internal open fun onAfterUndelete(obj: O, postData: PostData<DTO>): ResponseAction {
-        return onAfterEdit(obj, postData, RestButtonEvent.UN_DELETE)
+    internal open fun onAfterUndelete(request: HttpServletRequest, obj: O, postData: PostData<DTO>): ResponseAction {
+        return onAfterEdit(request, obj, postData, RestButtonEvent.UN_DELETE)
     }
 
     /**
@@ -1226,14 +1226,14 @@ constructor(
         postData: PostData<DTO>,
         restPath: String
     ): ResponseAction {
-        return onAfterEdit(obj, postData, RestButtonEvent.CANCEL)
+        return onAfterEdit(request, obj, postData, RestButtonEvent.CANCEL)
     }
 
     /**
      * Will be called after create, update, delete, markAsDeleted, undelete and cancel.
      * @return ResponseAction with the url of the standard list page.
      */
-    internal open fun onAfterEdit(obj: O, postData: PostData<DTO>, event: RestButtonEvent): ResponseAction {
+    internal open fun onAfterEdit(request: HttpServletRequest, obj: O, postData: PostData<DTO>, event: RestButtonEvent): ResponseAction {
         obj.id?.let {
             userPrefService.putEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, it, false)
         }

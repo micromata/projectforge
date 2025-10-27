@@ -121,7 +121,8 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [vcfError, setVcfError] = useState<string | null>(null);
-    const [isOpen, setIsOpen] = useState<boolean>(!initiallyCollapsed);
+    // Initialize isOpen based on VCF import mode: open if in import mode, otherwise use initiallyCollapsed
+    const [isOpen, setIsOpen] = useState<boolean>(isVcfImportMode ? true : !initiallyCollapsed);
     const [dragActive, setDragActive] = useState<boolean>(false);
     const [vcfUploading, setVcfUploading] = useState<boolean>(false);
     const [hasImage, setHasImage] = useState<boolean>(false);

@@ -189,7 +189,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         }
     }
 
-    override fun onAfterEdit(obj: TimesheetDO, postData: PostData<Timesheet>, event: RestButtonEvent): ResponseAction {
+    override fun onAfterEdit(request: HttpServletRequest, obj: TimesheetDO, postData: PostData<Timesheet>, event: RestButtonEvent): ResponseAction {
         // Save time sheet as recent time sheet
         val timesheet = postData.data
         timesheetRecentService.addRecentTimesheet(transformForDB(timesheet))

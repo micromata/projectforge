@@ -111,9 +111,9 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
         baseDao.insertOrUpdate(obj) ?: obj.id
         pagesRest.onAfterSaveOrUpdate(request, obj, postData)
         if (isNew) {
-            return ResponseEntity(pagesRest.onAfterSave(obj, postData), HttpStatus.OK)
+            return ResponseEntity(pagesRest.onAfterSave(request, obj, postData), HttpStatus.OK)
         } else {
-            return ResponseEntity(pagesRest.onAfterUpdate(obj, postData), HttpStatus.OK)
+            return ResponseEntity(pagesRest.onAfterUpdate(request, obj, postData), HttpStatus.OK)
         }
     } catch (ex: Exception) {
         return handleException("Error while trying to save/update object '${obj::class.java}' with id #${obj.id}", ex)
@@ -135,7 +135,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
             pagesRest.onBeforeDatabaseAction(request, obj, postData, OperationType.UNDELETE)
             pagesRest.onBeforeUndelete(request, obj, postData)
             baseDao.undelete(obj)
-            return ResponseEntity(pagesRest.onAfterUndelete(obj, postData), HttpStatus.OK)
+            return ResponseEntity(pagesRest.onAfterUndelete(request, obj, postData), HttpStatus.OK)
         }
         // Validation error occurred:
         return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
@@ -159,7 +159,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
             pagesRest.onBeforeDatabaseAction(request, obj, postData, OperationType.DELETE)
             pagesRest.onBeforeMarkAsDeleted(request, obj, postData)
             baseDao.markAsDeleted(obj)
-            return ResponseEntity(pagesRest.onAfterMarkAsDeleted(obj, postData), HttpStatus.OK)
+            return ResponseEntity(pagesRest.onAfterMarkAsDeleted(request, obj, postData), HttpStatus.OK)
         }
         // Validation error occurred:
         return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
@@ -184,7 +184,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
         pagesRest.onBeforeDatabaseAction(request, obj, postData, OperationType.DELETE)
         pagesRest.onBeforeDelete(request, obj, postData)
         baseDao.forceDelete(obj)
-        return ResponseEntity(pagesRest.onAfterDelete(obj, postData), HttpStatus.OK)
+        return ResponseEntity(pagesRest.onAfterDelete(request, obj, postData), HttpStatus.OK)
     } catch (ex: Exception) {
         return handleException(
             "Error while trying to forced deleting object '${obj::class.java}' with id #${obj.id}",
@@ -208,7 +208,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
             pagesRest.onBeforeDatabaseAction(request, obj, postData, OperationType.DELETE)
             pagesRest.onBeforeDelete(request, obj, postData)
             baseDao.delete(obj)
-            return ResponseEntity(pagesRest.onAfterDelete(obj, postData), HttpStatus.OK)
+            return ResponseEntity(pagesRest.onAfterDelete(request, obj, postData), HttpStatus.OK)
         }
         // Validation error occurred:
         return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)

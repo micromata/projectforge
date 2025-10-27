@@ -182,10 +182,9 @@ class AddressPagesRest
                 formLayoutData.serverData?.returnToCallerParams = params
 
                 // Retrieve import storage from session
-                val sessionAttrName = "org.projectforge.rest.address.importer.AddressImportUploadPageRest.importStorage"
                 val importStorage = ExpiringSessionAttributes.getAttribute(
                     request,
-                    sessionAttrName,
+                    org.projectforge.rest.address.importer.AddressImportUploadPageRest.SESSION_IMPORT_STORAGE_ATTR,
                     org.projectforge.rest.address.importer.AddressImportStorage::class.java
                 )
 
@@ -417,10 +416,9 @@ class AddressPagesRest
                 log.info { "Re-reconciling import storage after save/update (importIndex=$importIndex)" }
 
                 // Retrieve import storage from session
-                val sessionAttrName = "org.projectforge.rest.address.importer.AddressImportUploadPageRest.importStorage"
                 val importStorage = ExpiringSessionAttributes.getAttribute(
                     request,
-                    sessionAttrName,
+                    org.projectforge.rest.address.importer.AddressImportUploadPageRest.SESSION_IMPORT_STORAGE_ATTR,
                     org.projectforge.rest.address.importer.AddressImportStorage::class.java
                 )
 
@@ -428,8 +426,17 @@ class AddressPagesRest
                     // Re-reconcile to update the list with the new/updated address
                     importStorage.reconcileImportStorage()
 
+                    // Mark this specific entry as IMPORTED
+                    val importEntry = importStorage.getImportEntryByIndex(importIndex)
+                    if (importEntry != null) {
+                        importEntry.status = org.projectforge.rest.importer.ImportEntry.Status.IMPORTED
+                        log.info { "Marked import entry at index $importIndex as IMPORTED" }
+                    } else {
+                        log.warn { "Could not find import entry at index $importIndex to mark as IMPORTED" }
+                    }
+
                     // Save updated import storage back to session
-                    ExpiringSessionAttributes.setAttribute(request, sessionAttrName, importStorage, 30)
+                    ExpiringSessionAttributes.setAttribute(request, org.projectforge.rest.address.importer.AddressImportUploadPageRest.SESSION_IMPORT_STORAGE_ATTR, importStorage, 30)
                     log.info { "Import storage re-reconciled successfully" }
                 } else {
                     log.warn { "Import storage not found in session (expired?)" }
@@ -440,16 +447,49 @@ class AddressPagesRest
         }
     }
 
-    override fun onAfterEdit(obj: AddressDO, postData: PostData<Address>, event: RestButtonEvent): ResponseAction {
+    override fun onAfterEdit(request: HttpServletRequest, obj: AddressDO, postData: PostData<Address>, event: RestButtonEvent): ResponseAction {
         // Check if this was opened in modal context (captured from query param in onGetItemAndLayout)
         val modal = postData.serverData?.returnToCallerParams?.get("modal")
         if (modal == "true") {
-            // Close the modal instead of redirecting to list page
+            // Check if we're in import context
+            val importIndexStr = postData.serverData?.returnToCallerParams?.get("importIndex")
+            if (!importIndexStr.isNullOrBlank()) {
+                // Import context: return updated import list data
+                try {
+                    val importIndex = importIndexStr.toInt()
+                    log.info { "Closing modal in import context (importIndex=$importIndex), returning updated import list" }
+
+                    // Retrieve import storage from session (it was already reconciled in onAfterSaveOrUpdate)
+                    val importStorage = ExpiringSessionAttributes.getAttribute(
+                        request,
+                        org.projectforge.rest.address.importer.AddressImportUploadPageRest.SESSION_IMPORT_STORAGE_ATTR,
+                        org.projectforge.rest.address.importer.AddressImportStorage::class.java
+                    )
+
+                    if (importStorage != null) {
+                        // Build updated import entries list
+                        val entries = importStorage.pairEntries.mapIndexed { index, pairEntry ->
+                            org.projectforge.rest.address.importer.AddressImportUploadPageRest.ImportEntryData(pairEntry, index)
+                        }
+
+                        // Return CLOSE_MODAL with updated import entries
+                        val responseAction = ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
+                        responseAction.addVariable("importEntries", entries)
+                        return responseAction
+                    } else {
+                        log.warn { "Import storage not found in session when closing modal (expired?)" }
+                    }
+                } catch (e: NumberFormatException) {
+                    log.error { "Invalid importIndex parameter: $importIndexStr" }
+                }
+            }
+
+            // Close the modal without additional data (normal mode or import storage not available)
             // This handles all button actions: save, update, delete, undelete, cancel, clone
             return ResponseAction(targetType = TargetType.CLOSE_MODAL)
         }
         // Default behavior: redirect to list page
-        return super.onAfterEdit(obj, postData, event)
+        return super.onAfterEdit(request, obj, postData, event)
     }
 
     /**
