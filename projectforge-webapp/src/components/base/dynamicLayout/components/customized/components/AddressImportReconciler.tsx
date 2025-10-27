@@ -158,16 +158,20 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
 
             Object.keys(vcfComparisonData).forEach((fieldName) => {
                 const vcfValue = vcfComparisonData[fieldName]?.vcf;
-                const dbValue = vcfComparisonData[fieldName]?.db;
+                const currentFormValue = (data as AddressData)[fieldName];
+
+                // Normalize values for comparison
+                const vcfNormalized = (vcfValue || '').trim();
+                const currentNormalized = (typeof currentFormValue === 'string' ? currentFormValue.trim() : String(currentFormValue || '')) || '';
 
                 // Only show fields that are new or changed
-                // New: vcfValue exists but dbValue is empty/null
-                // Changed: vcfValue differs from dbValue
-                if (vcfValue && vcfValue !== dbValue) {
+                // New: vcfValue exists but current form value is empty/null
+                // Changed: vcfValue differs from current form value
+                if (vcfNormalized && vcfNormalized !== currentNormalized) {
                     fields[fieldName] = {
                         value: vcfValue,
                         confidence: 'high', // VCF data is always high confidence
-                        currentValue: dbValue || '',
+                        currentValue: currentNormalized,
                     };
 
                     // Pre-select all fields (since they're all new or changed)
