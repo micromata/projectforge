@@ -409,7 +409,8 @@ class AddressPagesRest
         }
 
         // If this was opened from VCF import context, reconcile import storage
-        val importIndexStr = request.getParameter("importIndex")
+        val importIndexStr = postData.serverData?.returnToCallerParams?.get("importIndex")
+            ?: request.getParameter("importIndex")
         if (!importIndexStr.isNullOrBlank()) {
             try {
                 val importIndex = importIndexStr.toInt()

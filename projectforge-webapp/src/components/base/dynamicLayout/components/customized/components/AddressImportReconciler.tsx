@@ -559,10 +559,9 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
                             });
                     }
 
-                    // In VCF mode: keep collapse open for review
-                    // In text parser mode: close collapse and reset
+                    // Close collapse and reset state after applying
+                    setIsOpen(false);
                     if (!isVcfImportMode) {
-                        setIsOpen(false);
                         setInputText('');
                         setParsedData(null);
                         setSelectedFields({});
