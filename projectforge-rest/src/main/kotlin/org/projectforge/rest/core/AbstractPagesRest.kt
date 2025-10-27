@@ -146,6 +146,10 @@ constructor(
          * the autocompletion results for direct editing of the object.
          */
         val quickSelectUrl: String? = null,
+        /**
+         * If true, quick select and edit pages will open in modal dialogs instead of full page navigation.
+         */
+        val useModalEditDialog: Boolean = false,
         var variables: Map<String, Any>? = null
     )
 
@@ -409,6 +413,7 @@ constructor(
             ui = ui,
             standardEditPage = getStandardEditPage(),
             quickSelectUrl = quickSelectUrl,
+            useModalEditDialog = useModalEditDialog,
             data = resultSet,
             filter = filter,
             filterFavorites = favorites.idTitleList

@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Button, Navbar } from 'reactstrap';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import {
     createListFavorite,
     deleteListFavorite,
@@ -53,11 +53,23 @@ function SearchFilter(props) {
         quickSelectUrl,
         standardEditPage,
         ui,
+        useModalEditDialog,
     } = category;
 
     const navigate = useNavigate();
+    const location = useLocation();
 
-    const onSelectQuickSelection = ({ id }) => navigate(`/${standardEditPage.replace(':id', id)}`);
+    const onSelectQuickSelection = ({ id }) => {
+        let url = `/${standardEditPage.replace(':id', id)}`;
+
+        if (useModalEditDialog) {
+            // Add modal=true query parameter so backend knows it was opened in modal context
+            url += url.includes('?') ? '&modal=true' : '?modal=true';
+            navigate(url, { state: { background: location } });
+        } else {
+            navigate(url);
+        }
+    };
 
     return (
         <>
@@ -189,6 +201,7 @@ SearchFilter.propTypes = {
         newlySwitched: PropTypes.bool,
         quickSelectUrl: PropTypes.string,
         standardEditPage: PropTypes.string,
+        useModalEditDialog: PropTypes.bool,
     }).isRequired,
     onErrorDismiss: PropTypes.func.isRequired,
     onFavoriteCreate: PropTypes.func.isRequired,
