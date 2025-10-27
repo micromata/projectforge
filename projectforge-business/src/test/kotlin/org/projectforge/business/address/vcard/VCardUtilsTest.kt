@@ -429,6 +429,17 @@ class VCardUtilsTest {
         }
 
         val vcardString = VCardUtils.buildVCardString(original, VCardVersion.V_4_0)
+
+        // Verify X-FORM-OF-ADDRESS is present with enum name
+        assertTrue(vcardString.contains("X-FORM-OF-ADDRESS:MISTER"),
+            "VCard should contain X-FORM-OF-ADDRESS property")
+
+        // Verify only title is in prefixes (not the form "Herr")
+        assertTrue(vcardString.contains("N:Müller;Hans;;Dr.;"),
+            "VCard should contain title in prefixes")
+        assertFalse(vcardString.contains("Herr"),
+            "VCard should not contain localized form 'Herr' in prefixes")
+
         val imported = VCardUtils.buildAddressDO(VCardUtils.parseVCardsFromString(vcardString)[0])
 
         assertEquals(FormOfAddress.MISTER, imported.form)

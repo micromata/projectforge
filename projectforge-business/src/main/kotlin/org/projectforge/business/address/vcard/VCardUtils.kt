@@ -58,13 +58,11 @@ object VCardUtils {
         val n = StructuredName()
         n.family = addressDO.name
         n.given = addressDO.firstName
-        // Add form (salutation) first with i18n: "Herr", "Frau", "Firma", etc.
-        addressDO.form?.let {
-            n.prefixes.add(ThreadLocalUserContext.getLocalizedString(it.i18nKey))
-        }
-        // Add title (academic title) second: "Dr.", "Prof.", etc.
+        // Add title (academic title) to prefixes: "Dr.", "Prof.", etc.
         addressDO.title?.let { n.prefixes.add(it) }
         vcard.structuredName = n
+        // Add form of address as custom property (not in prefixes to avoid display issues in iOS)
+        addressDO.form?.let { vcard.addExtendedProperty("X-FORM-OF-ADDRESS", it.name) }
         //Home address
         val homeAddress = Address()
         homeAddress.types.add(AddressType.HOME)
@@ -187,11 +185,23 @@ object VCardUtils {
         address.uid = vcard.uid?.value
         address.name = vcard.structuredName?.family
         address.firstName = vcard.structuredName?.given
+        // Parse form of address from X-FORM-OF-ADDRESS property (preferred method)
+        vcard.getExtendedProperty("X-FORM-OF-ADDRESS")?.value?.let { formValue ->
+            try {
+                address.form = FormOfAddress.valueOf(formValue)
+            } catch (e: IllegalArgumentException) {
+                // Invalid enum value, will try parsing from prefixes below
+            }
+        }
         // Parse prefixes: form (salutation) and title (academic title)
+        // This provides fallback compatibility with VCards that store form in prefixes
         vcard.structuredName?.prefixes?.forEach { prefix ->
             val parsedForm = parseFormOfAddress(prefix)
             if (parsedForm != null) {
-                address.form = parsedForm
+                // Only set form from prefix if not already set from X-FORM-OF-ADDRESS
+                if (address.form == null) {
+                    address.form = parsedForm
+                }
             } else {
                 // Not a known form, treat as title (academic title like "Dr.", "Prof.")
                 address.title = prefix
