@@ -123,9 +123,9 @@ class VCardUtilsTest {
         assertEquals("Dr.", address.title)
         assertEquals("Schmidt", address.name)
         assertEquals("Maria", address.firstName)
-        assertEquals("+49-89-1234567", address.businessPhone)
-        assertEquals("+49-171-9876543", address.mobilePhone)
-        assertEquals("+49-89-1234568", address.fax)
+        assertEquals("+49 89 1234567", address.businessPhone)
+        assertEquals("+49 171 9876543", address.mobilePhone)
+        assertEquals("+49 89 1234568", address.fax)
         assertEquals("Hauptstraße 123", address.addressText)
         assertEquals("80333", address.zipCode)
         assertEquals("München", address.city)
@@ -176,11 +176,11 @@ class VCardUtilsTest {
 
         val address = VCardUtils.buildAddressDO(vcards[0])
 
-        assertEquals("+49-89-1111111", address.businessPhone)
-        assertEquals("+49-171-2222222", address.mobilePhone)
-        assertEquals("+49-89-3333333", address.fax)
-        assertEquals("+49-89-4444444", address.privatePhone)
-        assertEquals("+49-171-5555555", address.privateMobilePhone)
+        assertEquals("+49 89 1111111", address.businessPhone)
+        assertEquals("+49 171 2222222", address.mobilePhone)
+        assertEquals("+49 89 3333333", address.fax)
+        assertEquals("+49 89 4444444", address.privatePhone)
+        assertEquals("+49 171 5555555", address.privateMobilePhone)
     }
 
     @Test
@@ -617,12 +617,12 @@ class VCardUtilsTest {
             postalState = "Bayern"
             postalCountry = "Deutschland"
 
-            // Phone numbers
-            businessPhone = "+49-89-12345678"
-            mobilePhone = "+49-171-1234567"
-            fax = "+49-89-12345679"
-            privatePhone = "+49-89-98765432"
-            privateMobilePhone = "+49-171-9876543"
+            // Phone numbers (in normalized format as returned by PhoneNumberUtils)
+            businessPhone = "+49 89 12345678"
+            mobilePhone = "+49 171 1234567"
+            fax = "+49 89 12345679"
+            privatePhone = "+49 89 98765432"
+            privateMobilePhone = "+49 171 9876543"
 
             // Emails
             email = "hans.mueller@example.com"

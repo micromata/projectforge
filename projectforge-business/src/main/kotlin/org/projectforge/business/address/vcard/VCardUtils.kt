@@ -36,6 +36,7 @@ import org.projectforge.business.address.FormOfAddress
 import org.projectforge.business.address.ImageType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.utils.PhoneNumberUtils
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.time.LocalDate
@@ -122,7 +123,7 @@ object VCardUtils {
             vcard.birthday = Birthday(birthday)
         }
         vcard.addUrl(addressDO.website)
-        vcard.addNote(addressDO.comment)
+        vcard.addNote(addressDO.comment?.trim())
         // Add birthName as custom property
         addressDO.birthName?.let { vcard.addExtendedProperty("X-BIRTHNAME", it) }
         // Add PGP public key as base64-encoded binary data
@@ -225,22 +226,22 @@ object VCardUtils {
         for (telephone in vcard.telephoneNumbers) {
             if (telephone.types.contains(TelephoneType.HOME)) {
                 if (telephone.types.contains(TelephoneType.CELL)) {
-                    address.privateMobilePhone = addCountryCode(telephone.text)
+                    address.privateMobilePhone = PhoneNumberUtils.normalizePhoneNumber(telephone.text)
                 } else {
-                    address.privatePhone = addCountryCode(telephone.text)
+                    address.privatePhone = PhoneNumberUtils.normalizePhoneNumber(telephone.text)
                 }
             } else {
                 when {
                     telephone.types.contains(TelephoneType.FAX) -> {
-                        address.fax = addCountryCode(telephone.text)
+                        address.fax = PhoneNumberUtils.normalizePhoneNumber(telephone.text)
                     }
 
                     telephone.types.contains(TelephoneType.CELL) -> {
-                        address.mobilePhone = addCountryCode(telephone.text)
+                        address.mobilePhone = PhoneNumberUtils.normalizePhoneNumber(telephone.text)
                     }
 
                     else -> {
-                        address.businessPhone = addCountryCode(telephone.text)
+                        address.businessPhone = PhoneNumberUtils.normalizePhoneNumber(telephone.text)
                     }
                 }
             }
@@ -274,7 +275,7 @@ object VCardUtils {
             }
             noteValue = noteValue.trim()
             if (noteValue.isNotBlank()) {
-                address.comment = if (address.comment != null) address.comment else "" + noteValue + " "
+                address.comment = ((address.comment ?: "") + noteValue + " ").trim()
             }
         }
         vcard.photos.firstOrNull { it.data != null }?.let { photo ->
@@ -331,14 +332,6 @@ object VCardUtils {
             }
         }
         return address
-    }
-
-    private fun addCountryCode(phonenumber: String?): String? {
-        return if (phonenumber != null && phonenumber.startsWith("0")) {
-            phonenumber.replaceFirst("0".toRegex(), "+49")
-        } else {
-            phonenumber
-        }
     }
 
     /**
