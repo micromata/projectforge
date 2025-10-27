@@ -48,27 +48,33 @@ function FormPage(
 
     React.useEffect(
         () => {
-            if (location.state && location.state.noReload) {
+            // Check if this is a programmatic navigation with noReload flag
+            // Browser reloads should always fetch fresh data
+            const isNoReloadNavigation = location.state
+                && location.state.noReload
+                && window.performance
+                && window.performance.navigation.type !== 1; // 1 = TYPE_RELOAD
+
+            if (isNoReloadNavigation) {
                 onCategorySwitch(
                     currentCategory,
                     location.state.newVariables || {},
                     location.state.merge,
                 );
-                return;
+            } else {
+                onNewFormPage(
+                    currentCategory,
+                    id,
+                    getServiceURL(
+                        `${isPublic ? '/rsPublic/' : ''}${currentCategory}/${type || 'dynamic'}`,
+                        {
+                            ...Object.fromEntries(searchParams.entries()),
+                            id,
+                        },
+                    ),
+                    location.state,
+                );
             }
-
-            onNewFormPage(
-                currentCategory,
-                id,
-                getServiceURL(
-                    `${isPublic ? '/rsPublic/' : ''}${currentCategory}/${type || 'dynamic'}`,
-                    {
-                        ...Object.fromEntries(searchParams.entries()),
-                        id,
-                    },
-                ),
-                location.state,
-            );
         },
         [
             currentCategory,

@@ -292,7 +292,10 @@ export const loadFormPage = (category, id, url, params = {}) => (dispatch, getSt
 
             dispatch(callSuccess(category, Object.combine(params, json)));
         })
-        .catch((error) => callFailure(category, error));
+        .catch((error) => {
+            dispatch(callFailure(category, error));
+            throw error;
+        });
 };
 
 export const setCurrentData = (newData) => (dispatch, getState) => {
