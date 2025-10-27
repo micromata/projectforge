@@ -24,8 +24,11 @@
 .searchRow {
   display: flex;
   flex-direction: column;
+  align-items: center;
+
   @media (min-width: 768px) {
     flex-direction: row-reverse;
+    align-items: center;
   }
 
   .container, .searchContainer {
@@ -36,6 +39,12 @@
     @media (min-width: 768px) {
       margin-right: 0;
       align-self: center;
+    }
+  }
+
+  .container:not(.flex) {
+    @media (min-width: 768px) {
+      margin-top: -0.8em;
     }
   }
 

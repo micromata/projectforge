@@ -32,11 +32,15 @@ import ezvcard.property.*
 import mu.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressImageDO
+import org.projectforge.business.address.FormOfAddress
 import org.projectforge.business.address.ImageType
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.utils.PhoneNumberUtils
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.time.LocalDate
+import java.util.*
 
 private val log = KotlinLogging.logger {}
 
@@ -54,6 +58,11 @@ object VCardUtils {
         val n = StructuredName()
         n.family = addressDO.name
         n.given = addressDO.firstName
+        // Add form (salutation) first with i18n: "Herr", "Frau", "Firma", etc.
+        addressDO.form?.let {
+            n.prefixes.add(ThreadLocalUserContext.getLocalizedString(it.i18nKey))
+        }
+        // Add title (academic title) second: "Dr.", "Prof.", etc.
         addressDO.title?.let { n.prefixes.add(it) }
         vcard.structuredName = n
         //Home address
@@ -66,9 +75,12 @@ object VCardUtils {
         homeAddress.region = addressDO.privateState
         homeAddress.country = addressDO.privateCountry
         addressDO.communicationLanguage?.let { communicationLanguage ->
-            vcard.addLanguage(addressDO.communicationLanguage!!.getDisplayLanguage(communicationLanguage))
-            vcard.structuredName.language =
-                addressDO.communicationLanguage!!.getDisplayLanguage(communicationLanguage)
+            val languageTag = communicationLanguage.toLanguageTag()
+            // Use standard LANG property (works in V4.0)
+            vcard.addLanguage(languageTag)
+            vcard.structuredName.language = languageTag
+            // Also add X-LANG custom property for V3.0 compatibility
+            vcard.addExtendedProperty("X-LANG", languageTag)
         }
         //adr.setLabel("123 Main St.\nAlbany, NY 54321\nUSA");
         vcard.addAddress(homeAddress)
@@ -93,9 +105,10 @@ object VCardUtils {
         val organisation = Organization()
         organisation.values.add(addressDO.organization ?: "")
         organisation.values.add(addressDO.division ?: "")
-        organisation.values.add(addressDO.positionText ?: "")
         vcard.addOrganization(organisation)
-        //Home address
+        // Position/title as separate TITLE property
+        addressDO.positionText?.let { vcard.addTitle(it) }
+        //Postal address
         val postalAddress = Address()
         postalAddress.types.add(AddressType.POSTAL)
         postalAddress.streetAddress = addressDO.postalAddressText
@@ -104,16 +117,37 @@ object VCardUtils {
         postalAddress.locality = addressDO.postalCity
         postalAddress.region = addressDO.postalState
         postalAddress.country = addressDO.postalCountry
+        vcard.addAddress(postalAddress)
         addressDO.birthday?.let { birthday ->
             // PartialDate is not supported in V3.0, using java.util.Date:
             vcard.birthday = Birthday(birthday)
         }
         vcard.addUrl(addressDO.website)
-        vcard.addNote(addressDO.comment)
+        vcard.addNote(addressDO.comment?.trim())
+        // Add birthName as custom property
+        addressDO.birthName?.let { vcard.addExtendedProperty("X-BIRTHNAME", it) }
+        // Add PGP public key as base64-encoded binary data
+        addressDO.publicKey?.let { keyText ->
+            // Store as binary data (ez-vcard will base64-encode it automatically)
+            val keyData = keyText.toByteArray(Charsets.UTF_8)
+            val keyProperty = Key(keyData, ezvcard.parameter.KeyType.PGP)
+            vcard.addKey(keyProperty)
+        }
+        // Add PGP fingerprint as custom property
+        addressDO.fingerprint?.let { vcard.addExtendedProperty("X-PGP-FPR", it) }
+        // Handle photo - support both URL and embedded image from transient attribute
         if (imageUrl != null) {
-            // embedded: Photo(addressImageDao.getImage(addressDO.id!!), ImageType.JPEG).let { vcard.addPhoto(it) }
             Photo(imageUrl, (imageType ?: ImageType.PNG).asVCardImageType()).let {
                 vcard.addPhoto(it)
+            }
+        } else {
+            // Check for embedded image from AddressImageDO in transient attributes
+            addressDO.transientImage?.let { imageData ->
+                imageData.image?.let { imageBytes ->
+                    Photo(imageBytes, (imageData.imageType ?: ImageType.PNG).asVCardImageType()).let {
+                        vcard.addPhoto(it)
+                    }
+                }
             }
         }
         return vcard
@@ -153,26 +187,36 @@ object VCardUtils {
         address.uid = vcard.uid?.value
         address.name = vcard.structuredName?.family
         address.firstName = vcard.structuredName?.given
-        if (vcard.structuredName?.prefixes?.isNotEmpty() == true) {
-            address.title = vcard.structuredName.prefixes[0]
+        // Parse prefixes: form (salutation) and title (academic title)
+        vcard.structuredName?.prefixes?.forEach { prefix ->
+            val parsedForm = parseFormOfAddress(prefix)
+            if (parsedForm != null) {
+                address.form = parsedForm
+            } else {
+                // Not a known form, treat as title (academic title like "Dr.", "Prof.")
+                address.title = prefix
+            }
         }
         for (vcardAddress in vcard.addresses) {
             if (vcardAddress.types.contains(AddressType.HOME)) {
-                address.privateAddressText = vcardAddress.streetAddressFull
+                address.privateAddressText = vcardAddress.streetAddress
+                address.privateAddressText2 = vcardAddress.extendedAddress
                 address.privateZipCode = vcardAddress.postalCode
                 address.privateCity = vcardAddress.locality
                 address.privateState = vcardAddress.region
                 address.privateCountry = vcardAddress.country
             }
             if (vcardAddress.types.contains(AddressType.WORK)) {
-                address.addressText = vcardAddress.streetAddressFull
+                address.addressText = vcardAddress.streetAddress
+                address.addressText2 = vcardAddress.extendedAddress
                 address.zipCode = vcardAddress.postalCode
                 address.city = vcardAddress.locality
                 address.state = vcardAddress.region
                 address.country = vcardAddress.country
             }
             if (vcardAddress.types.contains(AddressType.POSTAL)) {
-                address.postalAddressText = vcardAddress.streetAddressFull
+                address.postalAddressText = vcardAddress.streetAddress
+                address.postalAddressText2 = vcardAddress.extendedAddress
                 address.postalZipCode = vcardAddress.postalCode
                 address.postalCity = vcardAddress.locality
                 address.postalState = vcardAddress.region
@@ -182,22 +226,22 @@ object VCardUtils {
         for (telephone in vcard.telephoneNumbers) {
             if (telephone.types.contains(TelephoneType.HOME)) {
                 if (telephone.types.contains(TelephoneType.CELL)) {
-                    address.privateMobilePhone = addCountryCode(telephone.text)
+                    address.privateMobilePhone = PhoneNumberUtils.normalizePhoneNumber(telephone.text)
                 } else {
-                    address.privatePhone = addCountryCode(telephone.text)
+                    address.privatePhone = PhoneNumberUtils.normalizePhoneNumber(telephone.text)
                 }
             } else {
                 when {
                     telephone.types.contains(TelephoneType.FAX) -> {
-                        address.fax = addCountryCode(telephone.text)
+                        address.fax = PhoneNumberUtils.normalizePhoneNumber(telephone.text)
                     }
 
                     telephone.types.contains(TelephoneType.CELL) -> {
-                        address.mobilePhone = addCountryCode(telephone.text)
+                        address.mobilePhone = PhoneNumberUtils.normalizePhoneNumber(telephone.text)
                     }
 
                     else -> {
-                        address.businessPhone = addCountryCode(telephone.text)
+                        address.businessPhone = PhoneNumberUtils.normalizePhoneNumber(telephone.text)
                     }
                 }
             }
@@ -221,10 +265,21 @@ object VCardUtils {
             address.birthday = PFDateTime.fromTemporalOrNull(birthday?.date)?.localDate
         }
         for (note in vcard.notes) {
-            address.comment = if (address.comment != null) address.comment else "" + note.value + " "
+            var noteValue = note.value ?: ""
+            // Remove "CLASS: WORK" that ProjectForge adds during export to avoid false change detection
+            // Case 1: "\nCLASS: WORK" at the end (after actual note text)
+            noteValue = noteValue.replace("\nCLASS: WORK", "")
+            // Case 2: Only "CLASS: WORK" without any note text
+            if (noteValue.trim() == "CLASS: WORK") {
+                noteValue = ""
+            }
+            noteValue = noteValue.trim()
+            if (noteValue.isNotBlank()) {
+                address.comment = ((address.comment ?: "") + noteValue + " ").trim()
+            }
         }
         vcard.photos.firstOrNull { it.data != null }?.let { photo ->
-            address.setTransientAttribute("image", AddressImageDO().also {
+            address.setTransientImage(AddressImageDO().also {
                 it.image = photo.data
                 photo.contentType?.let { contentType ->
                     it.imageType = ImageType.from(contentType) ?: ImageType.PNG
@@ -234,6 +289,7 @@ object VCardUtils {
         if (vcard.organization?.values?.isNotEmpty() == true) {
             when (vcard.organization.values.size) {
                 3 -> {
+                    // Legacy support: old exports had positionText as 3rd value
                     address.positionText = vcard.organization.values[2]
                     address.division = vcard.organization.values[1]
                     address.organization = vcard.organization.values[0]
@@ -247,14 +303,57 @@ object VCardUtils {
                 1 -> address.organization = vcard.organization.values[0]
             }
         }
+        // Parse positionText from TITLE property (preferred over ORG 3rd value)
+        vcard.titles.firstOrNull()?.let { title ->
+            address.positionText = title.value
+        }
+        // Parse birthName from custom property
+        vcard.getExtendedProperty("X-BIRTHNAME")?.let { extProp ->
+            address.birthName = extProp.value
+        }
+        // Parse PGP public key from KEY property (base64-decoded binary data)
+        vcard.keys.firstOrNull()?.let { key ->
+            // ez-vcard stores keys - just take the first one and assume it's a PGP key
+            // Decode from binary data back to text
+            address.publicKey = key.data?.toString(Charsets.UTF_8) ?: key.text
+        }
+        // Parse PGP fingerprint from custom property
+        vcard.getExtendedProperty("X-PGP-FPR")?.let { extProp ->
+            address.fingerprint = extProp.value
+        }
+        // Parse communicationLanguage from X-LANG (V3.0) or LANG property (V4.0)
+        val languageTag = vcard.getExtendedProperty("X-LANG")?.value
+            ?: vcard.languages.firstOrNull()?.value
+        languageTag?.let { tag ->
+            try {
+                address.communicationLanguage = Locale.forLanguageTag(tag)
+            } catch (e: Exception) {
+                log.warn("Failed to parse language tag: $tag", e)
+            }
+        }
         return address
     }
 
-    private fun addCountryCode(phonenumber: String?): String? {
-        return if (phonenumber != null && phonenumber.startsWith("0")) {
-            phonenumber.replaceFirst("0".toRegex(), "+49")
-        } else {
-            phonenumber
+    /**
+     * Parse a localized form of address string back to FormOfAddress enum.
+     * E.g. "Herr" -> PERSON_MALE, "Frau" -> PERSON_FEMALE, "Firma" -> ORGANIZATION
+     * Also accepts enum names directly (e.g., "PERSON_MALE").
+     * Checks against all available locales (de, en), not just the user's current locale.
+     */
+    @JvmStatic
+    fun parseFormOfAddress(value: String?): FormOfAddress? {
+        if (value.isNullOrBlank()) return null
+
+        return try {
+            // Try parsing as enum name first
+            FormOfAddress.valueOf(value)
+        } catch (e: IllegalArgumentException) {
+            // If that fails, try matching by localized display name across all supported locales
+            FormOfAddress.values().firstOrNull { form ->
+                org.projectforge.business.user.UserLocale.I18NSERVICE_LANGUAGES.any { locale ->
+                    org.projectforge.framework.i18n.I18nHelper.getLocalizedMessage(locale, form.i18nKey) == value
+                }
+            }
         }
     }
 

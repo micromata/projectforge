@@ -182,13 +182,13 @@ class SipgateSyncServiceMockTest : AbstractTestBase() {
         val list = mutableListOf<AddressDO>()
         list.add(
             SipgateSyncServiceTest.createAddress(
-                "Reinhard", "Kai", "+49123456789", organization = "ACME ltd.",
+                "Reinhard", "Kai", "+49 123456789", organization = "ACME ltd.",
                 id = ++addressCounter
             )
         )
         list.add(
             SipgateSyncServiceTest.createAddress(
-                "Müller", "Berta", "+492222222222", organization = "ACME ltd.",
+                "Müller", "Berta", "+49 2222222222", organization = "ACME ltd.",
                 id = ++addressCounter
             )
         )

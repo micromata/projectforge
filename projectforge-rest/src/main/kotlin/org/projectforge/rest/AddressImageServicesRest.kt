@@ -88,7 +88,7 @@ class AddressImageServicesRest {
             ResponseEntity<*> {
         val filename = file.originalFilename!!
         val imageType = addressImageDao.getSupportedImageType(filename) ?: run {
-            return ResponseEntity("Unsupported file: $filename. Only png files supported", HttpStatus.BAD_REQUEST)
+            return ResponseEntity("Unsupported file: $filename. Only files of types {${ImageType.entries.joinToString ()}} supported", HttpStatus.BAD_REQUEST)
         }
         fileSizeStandardChecker.checkSize(FileInfo(filename, fileSize = file.size), displayUserMessage = false)
         val bytes = file.bytes

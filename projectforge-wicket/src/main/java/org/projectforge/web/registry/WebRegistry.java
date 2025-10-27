@@ -240,10 +240,6 @@ public class WebRegistry
 
   public void init()
   {
-    // This order is used by SearchPage:
-    register(DaoConst.ADDRESS, AddressListPage.class);
-    addMountPages(DaoConst.ADDRESS, AddressListPage.class, AddressEditPage.class);
-
     register(DaoConst.TASK, TaskListPage.class);
     addMountPages(DaoConst.TASK, TaskListPage.class, TaskEditPage.class);
 

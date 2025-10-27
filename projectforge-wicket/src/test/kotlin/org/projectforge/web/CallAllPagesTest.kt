@@ -31,8 +31,6 @@ import org.projectforge.business.system.SystemInfoCache
 import org.projectforge.business.system.SystemInfoCache.Companion.internalInitialize
 import org.projectforge.common.logging.LoggerMemoryAppender
 import org.projectforge.menu.builder.MenuCreator.Companion.testCase
-import org.projectforge.web.address.AddressEditPage
-import org.projectforge.web.address.AddressListPage
 import org.projectforge.web.admin.SetupPage
 import org.projectforge.web.registry.WebRegistry
 import org.projectforge.web.task.TaskTreePage
@@ -47,8 +45,6 @@ class CallAllPagesTest : WicketPageTestBase() {
 
     private val skipPages: Array<Class<out WebPage>> = arrayOf(
         // Not yet checked:
-        AddressEditPage::class.java,  // Shouldn't be used anymore (only available for compilation of AddressListPage).
-        AddressListPage::class.java,  // Shouldn't be used anymore (AddressListPage.filter used in Marketing plugin).
         SetupPage::class.java,  // Tested separately (works only on empty database)
     )
 
