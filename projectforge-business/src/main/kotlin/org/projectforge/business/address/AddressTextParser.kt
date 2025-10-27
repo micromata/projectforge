@@ -70,6 +70,13 @@ object AddressTextParser {
         RegexOption.IGNORE_CASE
     )
 
+    // Bare phone regex (phone number without prefix label)
+    // Matches phone numbers that start with + or country code and have at least 8 digits
+    // This avoids false positives with regular numbers
+    private val BARE_PHONE_REGEX = Regex(
+        """^\+?(?:\d+[\s\-./()]*){8,}$"""
+    )
+
     // ZIP + City (4-5 digits + city name, optionally with "D-" or "CH-" prefix)
     // Supports German (5 digits), Swiss (4 digits), and other formats
     private val ZIP_CITY_REGEX = Regex(
@@ -135,7 +142,7 @@ object AddressTextParser {
                 }
             }
 
-            // Extract phone numbers
+            // Extract phone numbers with prefix (Tel:, Phone:, etc.)
             if (line.matches(Regex(""".*(?:Tel\.?:?|Telefon:?|Phone:?|Fon:?|Mobil:?|Mobile:?|Fax:?).*""", RegexOption.IGNORE_CASE))) {
                 val phoneMatch = PHONE_REGEX.find(line)
                 if (phoneMatch != null) {
@@ -159,6 +166,25 @@ object AddressTextParser {
                     }
                     processed = true
                 }
+            }
+
+            // Extract bare phone numbers (without prefix)
+            if (!processed && BARE_PHONE_REGEX.matches(line)) {
+                val phone = line.trim()
+                phoneNumbers.add(phone)
+
+                // Normalize phone number
+                val normalizedPhone = org.projectforge.framework.utils.PhoneNumberUtils.normalizePhoneNumber(phone)
+
+                // Without label, assume it's a business phone (unless we already have one, then mobile)
+                if (result.businessPhone == null) {
+                    result.businessPhone = normalizedPhone
+                } else if (result.mobilePhone == null) {
+                    result.mobilePhone = normalizedPhone
+                } else if (result.fax == null) {
+                    result.fax = normalizedPhone
+                }
+                processed = true
             }
 
             // Extract ZIP + City (might be combined with street in same line)

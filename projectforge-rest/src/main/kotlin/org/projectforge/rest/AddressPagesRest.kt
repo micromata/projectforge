@@ -914,6 +914,8 @@ class AddressPagesRest
             "address.private",
             "address.postal",
             "comment",
+            "common.import.action.selectAll",
+            "common.import.action.deselectAll",
         )
         layout.addTranslation(
             "address.image.upload.error",

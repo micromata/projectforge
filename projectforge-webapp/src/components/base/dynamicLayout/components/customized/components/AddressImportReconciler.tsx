@@ -729,7 +729,7 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
                                             marginRight: '10px',
                                         }}
                                     >
-                                        {ui.translations['address.parseText.selectAll'] || 'Select all'}
+                                        {ui.translations['common.import.action.selectAll'] || 'Select all'}
                                     </button>
                                     <span style={{ color: '#6c757d' }}>|</span>
                                     <button
@@ -745,7 +745,7 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
                                             marginLeft: '10px',
                                         }}
                                     >
-                                        {ui.translations['address.parseText.unselectAll'] || 'Unselect all'}
+                                        {ui.translations['common.import.action.deselectAll'] || 'Unselect all'}
                                     </button>
                                 </div>
 
