@@ -70,6 +70,7 @@ class AddressTextImportService {
 
         // Name fields
         addField(fields, "title", parsed.title, determineConfidence(parsed.title))
+        addField(fields, "form", parsed.form, determineConfidence(parsed.form))
         addField(fields, "firstName", parsed.firstName, determineConfidence(parsed.firstName))
         addField(fields, "name", parsed.name, determineConfidence(parsed.name))
 

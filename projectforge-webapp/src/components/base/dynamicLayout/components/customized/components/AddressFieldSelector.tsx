@@ -134,6 +134,7 @@ function AddressFieldSelector({
     const getFieldLabel = (fieldName: string): string => {
         const i18nKeyMap: Record<string, string> = {
             title: 'address.title',
+            form: 'address.form',
             firstName: 'firstName',
             name: 'name',
             organization: 'organization',

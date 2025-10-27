@@ -895,6 +895,7 @@ class AddressPagesRest
             "name",
             "organization",
             "address.division",
+            "address.form",
             "address.positionText",
             "address.phone",
             "address.phoneType.mobile",
