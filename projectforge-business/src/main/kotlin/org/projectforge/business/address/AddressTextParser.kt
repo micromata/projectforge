@@ -32,21 +32,6 @@ private val log = KotlinLogging.logger {}
  */
 object AddressTextParser {
 
-    // Common German and English academic/professional titles
-    private val TITLE_PATTERNS = listOf(
-        "Dr\\.",
-        "Prof\\.",
-        "Dipl\\.-Kfm\\.",
-        "Dipl\\.-Ing\\.",
-        "Dipl\\.-Inf\\.",
-        "Dipl\\.",
-        "B\\.Sc\\.",
-        "M\\.Sc\\.",
-        "B\\.A\\.",
-        "M\\.A\\.",
-        "Ph\\.D\\.",
-        "MBA"
-    )
 
     // Company suffixes
     private val COMPANY_SUFFIXES = listOf(
@@ -292,27 +277,20 @@ object AddressTextParser {
             remainingLine = remainingLine.substring(iAMatch.value.length).trim()
         }
 
-        // Extract title if present
-        for (titlePattern in TITLE_PATTERNS) {
-            val titleRegex = Regex("""^($titlePattern)\s*""")
-            val match = titleRegex.find(remainingLine)
-            if (match != null) {
-                result.title = match.groupValues[1]
-                remainingLine = remainingLine.substring(match.value.length).trim()
-                break
-            }
+        // Use NameParser to extract titles, form of address, first name and last name
+        val parsedName = NameParser.parse(remainingLine)
+
+        // Set title (join all titles with space)
+        if (parsedName.titles.isNotEmpty()) {
+            result.title = parsedName.titles.joinToString(" ")
         }
 
-        // Split remaining into first name and last name
-        val nameParts = remainingLine.split(Regex("""\s+"""))
-        when {
-            nameParts.size >= 2 -> {
-                result.firstName = nameParts[0]
-                result.name = nameParts.drop(1).joinToString(" ")
-            }
-            nameParts.size == 1 -> {
-                result.name = nameParts[0]
-            }
+        // Set first name and last name
+        if (parsedName.firstName.isNotEmpty()) {
+            result.firstName = parsedName.firstName
+        }
+        if (parsedName.name.isNotEmpty()) {
+            result.name = parsedName.name
         }
     }
 

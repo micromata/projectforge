@@ -178,9 +178,9 @@ class AddressTextParserTest {
 
         val result = AddressTextParser.parseAddressText(text)
 
-        assertEquals("Prof.", result.title)
-        assertEquals("Dr.", result.firstName) // Will parse "Dr." as first name
-        assertEquals("Lisa Schneider", result.name)
+        assertEquals("Prof. Dr.", result.title)
+        assertEquals("Lisa", result.firstName)
+        assertEquals("Schneider", result.name)
         assertEquals("l.schneider@university.de", result.email)
     }
 
@@ -538,5 +538,32 @@ class AddressTextParserTest {
         assertEquals("+49 30 12345678", result.businessPhone)
         assertEquals("kontakt@example.de", result.email)
         assertEquals("www.example.de", result.website)
+    }
+
+    @Test
+    fun `test parse signature with Dipl-Phys title`() {
+        val text = """
+            Dipl.-Phys. Klaus Müller
+            Senior Physicist
+
+            Research Institute AG
+            Hauptstraße 100
+            80331 München
+
+            Tel: +49 89 12345678
+            k.mueller@research.de
+        """.trimIndent()
+
+        val result = AddressTextParser.parseAddressText(text)
+
+        // Dipl.-Phys. should be recognized as a single title, not split into "Dipl." and "Phys." as firstName
+        assertTrue(result.title?.contains("Dipl") == true)
+        assertTrue(result.title?.contains("Phys") == true)
+        assertEquals("Klaus", result.firstName)
+        assertEquals("Müller", result.name)
+        assertEquals("Senior Physicist", result.positionText)
+        assertEquals("Research Institute AG", result.organization)
+        assertEquals("80331", result.zipCode)
+        assertEquals("München", result.city)
     }
 }
