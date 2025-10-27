@@ -165,7 +165,7 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
     }
   }
 
-  override fun onAfterEdit(obj: TeamEventDO, postData: PostData<TeamEvent>, event: RestButtonEvent): ResponseAction {
+  override fun onAfterEdit(request: HttpServletRequest, obj: TeamEventDO, postData: PostData<TeamEvent>, event: RestButtonEvent): ResponseAction {
     return CalendarServicesRest.redirectToCalendarWithDate(obj.startDate, event)
   }
 

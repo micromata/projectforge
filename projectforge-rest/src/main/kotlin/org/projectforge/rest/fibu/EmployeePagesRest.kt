@@ -277,7 +277,7 @@ class EmployeePagesRest :
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
-    override fun onAfterSave(obj: EmployeeDO, postData: PostData<Employee>): ResponseAction {
+    override fun onAfterSave(request: HttpServletRequest, obj: EmployeeDO, postData: PostData<Employee>): ResponseAction {
         // Redirect to edit page after insert for allowing user to add vacation, status and weekly hours entries.
         return ResponseAction(PagesResolver.getEditPageUrl(EmployeePagesRest::class.java, obj.id, absolute = true))
             .addVariable("id", obj.id ?: -1)

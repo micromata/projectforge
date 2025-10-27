@@ -622,7 +622,7 @@ class UserPagesRest
         log.info("onAfterSaveOrUpdate: ${(System.currentTimeMillis() - start) / 1000}s.")
     }
 
-    override fun onAfterSave(obj: PFUserDO, postData: PostData<User>): ResponseAction {
+    override fun onAfterSave(request: HttpServletRequest, obj: PFUserDO, postData: PostData<User>): ResponseAction {
         val dto = postData.data
         val password = dto.password
         val wlanPassword = dto.wlanPassword
@@ -634,7 +634,7 @@ class UserPagesRest
             log.info { "Admin user wants to create WLAN/Samba password of new user '${obj.userDisplayName}' with id ${obj.id}." }
             userService.changeWlanPasswordByAdmin(obj.id, wlanPassword.toCharArray())
         }
-        return super.onAfterSave(obj, postData)
+        return super.onAfterSave(request, obj, postData)
     }
 
     private fun addLdap(layout: UILayout, dto: User, lc: LayoutContext) {

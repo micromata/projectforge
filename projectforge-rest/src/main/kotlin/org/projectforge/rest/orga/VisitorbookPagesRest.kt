@@ -179,7 +179,7 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
-    override fun onAfterSave(obj: VisitorbookDO, postData: PostData<Visitorbook>): ResponseAction {
+    override fun onAfterSave(request: HttpServletRequest, obj: VisitorbookDO, postData: PostData<Visitorbook>): ResponseAction {
         // Redirect to edit page after insert for allowing user to add visit entries.
         return ResponseAction(PagesResolver.getEditPageUrl(VisitorbookPagesRest::class.java, obj.id, absolute = true))
             .addVariable("id", obj.id ?: -1)

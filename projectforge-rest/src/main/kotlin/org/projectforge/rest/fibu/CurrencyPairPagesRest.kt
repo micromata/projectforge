@@ -206,7 +206,7 @@ class CurrencyPairPagesRest :
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
-    override fun onAfterSave(obj: CurrencyPairDO, postData: PostData<CurrencyPair>): ResponseAction {
+    override fun onAfterSave(request: HttpServletRequest, obj: CurrencyPairDO, postData: PostData<CurrencyPair>): ResponseAction {
         // Redirect to edit page after insert for allowing user to add conversion rates.
         return ResponseAction(
             PagesResolver.getEditPageUrl(

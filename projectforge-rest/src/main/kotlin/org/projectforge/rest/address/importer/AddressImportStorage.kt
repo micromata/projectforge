@@ -30,6 +30,7 @@ import org.projectforge.business.address.AddressImageDO
 import org.projectforge.business.address.vcard.VCardUtils
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.framework.i18n.translate
+import org.projectforge.rest.importer.ImportEntry
 import org.projectforge.rest.importer.ImportPairEntry
 import org.projectforge.rest.importer.ImportSettings
 import org.projectforge.rest.importer.ImportStorage
@@ -126,6 +127,14 @@ class AddressImportStorage : ImportStorage<AddressImportDTO>(
             log.info("=== DATABASE ADDRESSES LOADED: ${databaseAddresses?.size ?: 0} addresses ===")
         }
 
+        // Save IMPORTED status for entries before clearing (preserve user-processed entries)
+        val importedStatuses = mutableMapOf<Int, ImportEntry.Status>()
+        pairEntries.forEachIndexed { index, entry ->
+            if (entry.status == ImportEntry.Status.IMPORTED) {
+                importedStatuses[index] = entry.status
+            }
+        }
+
         // Clear existing pair entries before rebuilding
         clearEntries()
 
@@ -163,6 +172,14 @@ class AddressImportStorage : ImportStorage<AddressImportDTO>(
 
         // Sort entries by name for better UI presentation
         sortPairEntriesByName()
+
+        // Restore IMPORTED status for entries that were previously marked
+        importedStatuses.forEach { (index, status) ->
+            if (index >= 0 && index < pairEntries.size) {
+                pairEntries[index].status = status
+                log.debug { "Restored IMPORTED status for entry at index $index" }
+            }
+        }
 
         log.info("Reconciliation completed: ${matches.size} matches, ${readAddresses.size - matchedReadIndices.size} new")
     }
