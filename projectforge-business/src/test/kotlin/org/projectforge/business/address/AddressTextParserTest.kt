@@ -181,6 +181,7 @@ class AddressTextParserTest {
         assertEquals("Prof. Dr.", result.title)
         assertEquals("Lisa", result.firstName)
         assertEquals("Schneider", result.name)
+        assertEquals("+49 6221 54-7890", result.businessPhone)
         assertEquals("l.schneider@university.de", result.email)
     }
 
@@ -206,6 +207,7 @@ class AddressTextParserTest {
         assertEquals("Förderverein e.V.", result.organization)
         assertEquals("50667", result.zipCode)
         assertEquals("Köln", result.city)
+        assertEquals("+49 221 123456", result.businessPhone) // Normalized format
     }
 
     @Test
@@ -241,6 +243,7 @@ class AddressTextParserTest {
         assertEquals("Karl-Marx-Straße 100-102", result.addressText)
         assertEquals("12043", result.zipCode)
         assertEquals("Berlin", result.city)
+        assertEquals("+49 30 555 1234", result.businessPhone)
     }
 
     @Test
@@ -565,6 +568,7 @@ class AddressTextParserTest {
         assertEquals("Research Institute AG", result.organization)
         assertEquals("80331", result.zipCode)
         assertEquals("München", result.city)
+        assertEquals("+49 89 12345678", result.businessPhone)
     }
 
     @Test
@@ -591,6 +595,7 @@ class AddressTextParserTest {
         assertEquals("Business Solutions GmbH", result.organization)
         assertEquals("60311", result.zipCode)
         assertEquals("Frankfurt", result.city)
+        assertEquals("+49 69 12345678", result.businessPhone)
     }
 
     @Test
@@ -617,6 +622,7 @@ class AddressTextParserTest {
         assertEquals("Research Center AG", result.organization)
         assertEquals("10969", result.zipCode)
         assertEquals("Berlin", result.city)
+        assertEquals("+49 30 987654321", result.businessPhone)
     }
 
     @Test
@@ -641,6 +647,7 @@ class AddressTextParserTest {
         assertEquals("Smith", result.name)
         assertEquals("Managing Director", result.positionText)
         assertEquals("Tech Corp Inc.", result.organization)
+        assertEquals("+1 212 555-1234", result.businessPhone)
     }
 
     @Test
@@ -669,6 +676,27 @@ class AddressTextParserTest {
         assertEquals("Micromata GmbH", result.organization)
         assertEquals("34131", result.zipCode)
         assertEquals("Kassel", result.city)
+        assertEquals("+49 561 12345678", result.businessPhone)
         assertEquals("k.reinhard@micromata.de", result.email)
+    }
+
+    @Test
+    fun `test parse number only`() {
+        val text = """
+            +49 173 2345678
+        """.trimIndent()
+        val result = AddressTextParser.parseAddressText(text)
+        assertEquals("+49 173 2345678", result.businessPhone)
+    }
+
+    @Test
+    fun `test parse numbers only`() {
+        val text = """
+            +49 173 2345678
+            0561 1234567
+        """.trimIndent()
+        val result = AddressTextParser.parseAddressText(text)
+        assertEquals("+49 173 2345678", result.businessPhone)
+        assertEquals("+49 561 1234567", result.mobilePhone)
     }
 }
