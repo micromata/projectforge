@@ -21,29 +21,32 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web.address;
+package org.projectforge.business.address
 
-import org.projectforge.business.address.AddressDO;
-import org.projectforge.framework.i18n.InternalErrorException;
-import org.projectforge.web.wicket.AbstractEditForm;
-import org.slf4j.Logger;
-
-public class AddressEditForm extends AbstractEditForm<AddressDO, AddressEditPage> {
-  private static final long serialVersionUID = 3881031215413525517L;
-
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressEditForm.class);
-
-  public AddressEditForm(final AddressEditPage parentPage, final AddressDO data) {
-    super(parentPage, data);
-  }
-
-  @Override
-  protected void init() {
-    throw new InternalErrorException("This edit page isn't available anymore.");
-  }
-
-  @Override
-  protected Logger getLogger() {
-    return log;
-  }
-}
+/**
+ * Data Transfer Object for parsed address text.
+ * Contains recognized fields from free text input (e.g., email signatures).
+ */
+data class ParsedAddressData(
+    var title: String? = null,
+    var firstName: String? = null,
+    var name: String? = null,
+    var positionText: String? = null,
+    var organization: String? = null,
+    var division: String? = null,
+    var addressText: String? = null,
+    var addressText2: String? = null,
+    var zipCode: String? = null,
+    var city: String? = null,
+    var state: String? = null,
+    var country: String? = null,
+    var businessPhone: String? = null,
+    var mobilePhone: String? = null,
+    var fax: String? = null,
+    var privatePhone: String? = null,
+    var privateMobilePhone: String? = null,
+    var email: String? = null,
+    var privateEmail: String? = null,
+    var website: String? = null,
+    var comment: String? = null
+)

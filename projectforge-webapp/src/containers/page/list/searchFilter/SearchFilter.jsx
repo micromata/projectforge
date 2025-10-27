@@ -1,5 +1,4 @@
 import { faSearch, faSync } from '@fortawesome/free-solid-svg-icons';
-import { faFileExcel } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
@@ -96,16 +95,11 @@ function SearchFilter(props) {
                     {ui && ui.excelExportSupported && (
                         <Button
                             id="excelExport"
-                            color="link"
-                            className="selectPanelIconLinks"
+                            color="primary"
                             onClick={onExportButtonClick}
+                            outline
                         >
                             {ui.translations.exportAsXls}
-                            {' '}
-                            <FontAwesomeIcon
-                                icon={faFileExcel}
-                                size="lg"
-                            />
                         </Button>
                     )}
                     {ui && ui.multiSelectionSupported && (

@@ -79,12 +79,31 @@ class Address(
     var birthday: LocalDate? = null,
     var imageData: ByteArray? = null,
     var imageDataPreview: ByteArray? = null,
+    /**
+     * Frontend-only: Indicates that an image has been uploaded to the session (for new addresses).
+     * Used by CustomizedAddressImage to determine image source.
+     */
+    var hasUploadedImage: Boolean = false,
+    /**
+     * Frontend-only: Data URL of the image for immediate display (from FileReader).
+     * Used by CustomizedAddressImage to show uploaded/imported images before save.
+     */
+    var imageDataUrl: String? = null,
+    /**
+     * Frontend-only: Marks the image as pending deletion (will be deleted on form save).
+     * Allows Cancel button to restore the image.
+     */
+    var imageDeleted: Boolean = false,
     var instantMessaging: MutableList<LabelValueBean<InstantMessagingType, String>>? = null,
     var addressbookList: MutableSet<Addressbook>? = null,
     /**
      * Is this address a personal favorite of the current logged-in user?
      */
-    var isFavoriteCard: Boolean = false
+    var isFavoriteCard: Boolean = false,
+    /**
+     * Warning message for duplicate addresses (populated by watchFields).
+     */
+    var duplicateWarning: String? = null
 ) : BaseDTO<AddressDO>() {
 
     @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)

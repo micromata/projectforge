@@ -16,10 +16,17 @@ function CustomizedAddressImage() {
     const [src, setSrc] = React.useState('');
 
     React.useEffect(() => {
-        if (data.id !== undefined) {
+        // Priority 1: Use Data URL if available (from VCF import or manual upload via FileReader)
+        if (data.imageDataUrl) {
+            setSrc(data.imageDataUrl);
+        } else if (data.id !== undefined) {
+            // Priority 2: Load from DB for existing addresses
             setSrc(getServiceURL(`address/image/${data.id}?${new Date().getTime()}`));
+        } else if (data.hasUploadedImage) {
+            // Priority 3: Load from session for new addresses with uploaded image
+            setSrc(getServiceURL(`address/image/-1?${new Date().getTime()}`));
         }
-    }, [data.id]);
+    }, [data.id, data.hasUploadedImage, data.imageData, data.imageDataUrl]);
 
     return React.useMemo(
         () => {
@@ -43,12 +50,14 @@ function CustomizedAddressImage() {
                 )
                     .then(handleHTTPErrors)
                     .then(() => {
-                        setData({ imageData: [1] });
-
                         const fileReader = new FileReader();
 
                         fileReader.onload = ({ currentTarget }) => {
-                            setSrc(currentTarget.result);
+                            setData({
+                                hasUploadedImage: true,
+                                imageDataUrl: currentTarget.result,
+                                imageDeleted: false,
+                            });
                             setLoading(false);
                         };
 
@@ -61,25 +70,16 @@ function CustomizedAddressImage() {
             };
 
             const deleteImage = () => {
-                setLoading(true);
-                setError(undefined);
-
-                fetch(
-                    // Delete the image with id -1, so the stored image in the session will be
-                    // removed.
-                    getServiceURL(`address/deleteImage/${data.id || -1}`),
-                    {
-                        credentials: 'include',
-                        method: 'DELETE',
-                    },
-                )
-                    .then(handleHTTPErrors)
-                    .then(() => setData({ imageData: undefined }))
-                    .catch((fetchError) => setError(fetchError))
-                    .finally(() => setLoading(false));
+                // Mark image for deletion (transactional - actual delete happens on form save)
+                setData({
+                    imageData: undefined,
+                    hasUploadedImage: false,
+                    imageDataUrl: undefined,
+                    imageDeleted: true,
+                });
             };
 
-            if (data.imageData) {
+            if ((data.imageData || data.hasUploadedImage) && !data.imageDeleted) {
                 image = (
                     <>
                         <img
@@ -120,6 +120,7 @@ function CustomizedAddressImage() {
         },
         [
             data.imageData,
+            data.hasUploadedImage,
             data.firstName,
             data.name,
             data.organization,

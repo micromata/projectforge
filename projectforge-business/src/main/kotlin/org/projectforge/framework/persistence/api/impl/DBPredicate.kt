@@ -133,9 +133,9 @@ abstract class DBPredicate(
         }
     }
 
-    class Equal(field: String, val value: Any) : DBPredicate(field, true) {
+    class Equal(field: String, val value: Any, val ignoreCase: Boolean = false) : DBPredicate(field, true) {
         override fun match(obj: Any): Boolean {
-            return fieldValueMatch(obj, field!!) { isEquals(value, it) }
+            return fieldValueMatch(obj, field!!) { isEquals(value, it, ignoreCase) }
         }
 
         /**
@@ -143,7 +143,11 @@ abstract class DBPredicate(
          */
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
             logDebugFunCall(log) {
-                it.mtd("Equal.asPredicate(ctx)").msg("entity=${ctx.entityName},field=$field,value=$value")
+                it.mtd("Equal.asPredicate(ctx)").msg("entity=${ctx.entityName},field=$field,value=$value,ignoreCase=$ignoreCase")
+            }
+            if (ignoreCase && value is String) {
+                // Case-insensitive comparison using LOWER
+                return ctx.cb.equal(ctx.cb.lower(ctx.getField(field!!)), value.lowercase())
             }
             return ctx.cb.equal(ctx.getField<Any>(field!!), value)
         }
@@ -778,11 +782,14 @@ abstract class DBPredicate(
         return false
     }
 
-    internal fun isEquals(val1: Any?, val2: Any?): Boolean {
+    internal fun isEquals(val1: Any?, val2: Any?, ignoreCase: Boolean = false): Boolean {
         if (val1 == null && val2 == null) return true   // null is equal null
         if (val1 == null || val2 == null) return false  // null isn't equal to non-null.
         if (val1::class.java.isEnum || val2::class.java.isEnum) {
             return Objects.equals(val1.toString(), val2.toString()) // enums should match their string representations.
+        }
+        if (ignoreCase && val1 is String && val2 is String) {
+            return val1.equals(val2, ignoreCase = true)
         }
         return Objects.equals(val1, val2)
     }

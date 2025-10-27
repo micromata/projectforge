@@ -188,8 +188,8 @@ class SipgateSyncServiceTest {
     Assertions.assertFalse(result.contactOutdated)
     Assertions.assertTrue(result.addressDOOutdated)
     assertEquals("+49 11111 1111", contact.cell, address.mobilePhone)
-    assertEquals("+49222222222", contact.work, address.businessPhone)
-    assertEquals("+555555", contact.home, address.privatePhone)
+    assertEquals("+49 222222222", contact.work, address.businessPhone)
+    assertEquals("+55 5555", contact.home, address.privatePhone)
   }
 
   @Test

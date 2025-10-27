@@ -39,8 +39,6 @@ import org.projectforge.web.plugin.PluginWicketRegistrationService;
 public class ToDoPlugin extends AbstractPlugin {
     public static final String ID = "toDo";
 
-    public static final String ADDRESS = "address";
-
     public static final String RESOURCE_BUNDLE_NAME = "ToDoI18nResources";
 
     static UserPrefArea USER_PREF_AREA;
@@ -65,10 +63,10 @@ public class ToDoPlugin extends AbstractPlugin {
         // DatabaseUpdateDao is needed by the updater:
         final RegistryEntry entry = new RegistryEntry(ID, ToDoDao.class, toDoDao, "plugins.todo");
         // The ToDoDao is automatically available by the scripting engine!
-        register(entry); // Insert at second position after Address entry (for SearchPage).
+        register(entry);
 
         // Register the web part:
-        pluginWicketRegistrationService.registerWeb(ID, ToDoListPage.class, ToDoEditPage.class, ADDRESS, false); // Insert at second position after Address entry (for SearchPage).
+        pluginWicketRegistrationService.registerWeb(ID, ToDoListPage.class, ToDoEditPage.class); // Address entry no longer exists (Wicket pages removed).
 
         // Register the menu entry as sub menu entry of the misc menu:
         MenuItemDef todomenu = MenuItemDef.create(ID, "plugins.todo.menu");
