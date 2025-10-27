@@ -29,6 +29,15 @@ import org.junit.jupiter.api.Test
 class PhoneNumberUtilsTest {
 
     @Test
+    fun `test phone numbers without country pefix or phone prefix`() {
+        assertEquals("0", PhoneNumberUtils.normalizePhoneNumber("0"))
+        assertEquals("00", PhoneNumberUtils.normalizePhoneNumber("00"))
+        assertEquals("123", PhoneNumberUtils.normalizePhoneNumber("123"), "Short numbers are just cleaned")
+        assertEquals("123456789", PhoneNumberUtils.normalizePhoneNumber("123456789"), "Number without phone prefix")
+        assertEquals("1234 56789", PhoneNumberUtils.normalizePhoneNumber("1234 56789","Number without phone prefix"))
+    }
+
+        @Test
     fun `test normalize German phone numbers with various formats`() {
         // National format with leading 0
         assertEquals("+49 561 316793-0", PhoneNumberUtils.normalizePhoneNumber("0561 / 316793-0"))
@@ -36,6 +45,12 @@ class PhoneNumberUtilsTest {
         assertEquals("+49 561316793-0", PhoneNumberUtils.normalizePhoneNumber("0561/316793-0")) // No space before slash
         assertEquals("+49 5613167930", PhoneNumberUtils.normalizePhoneNumber("05613167930"))
 
+        assertEquals("+49 89 1234567", PhoneNumberUtils.normalizePhoneNumber("+49-89-1234567"))
+        assertEquals(
+            "+49 89 123-4567",
+            PhoneNumberUtils.normalizePhoneNumber("+49-89-123-4567"),
+            "4567 should be preserved as extension part"
+        )
         // With (0) notation
         assertEquals("+49 561 316793-0", PhoneNumberUtils.normalizePhoneNumber("+49 (0) 561 / 316793-0"))
         assertEquals("+49 561 316793-0", PhoneNumberUtils.normalizePhoneNumber("+49 (0) 561 316793-0"))
@@ -88,8 +103,8 @@ class PhoneNumberUtilsTest {
         // Multiple spaces
         assertEquals("+49 561 316793-0", PhoneNumberUtils.normalizePhoneNumber("0561   316793 - 0"))
 
-        // Parentheses - leading 0 inside parentheses is not removed (country extraction happens first)
-        assertEquals("+49 0561 316793-0", PhoneNumberUtils.normalizePhoneNumber("(0561) 316793-0"))
+        // Parentheses - leading 0 inside parentheses is removed (after parentheses removal)
+        assertEquals("+49 561 316793-0", PhoneNumberUtils.normalizePhoneNumber("(0561) 316793-0"))
 
         // Mixed formatting
         assertEquals("+49 561 316793-0", PhoneNumberUtils.normalizePhoneNumber("+49 / 561 / 316793 - 0"))

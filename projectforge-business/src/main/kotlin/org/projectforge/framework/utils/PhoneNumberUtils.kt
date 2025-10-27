@@ -89,21 +89,50 @@ object PhoneNumberUtils {
         // Remove (0) in +49 (0) 123456789
         cleaned = cleaned.replace(Regex("\\(0\\)"), "")
 
+        // Remove parentheses and slashes early for country code detection
+        cleaned = cleaned.replace(Regex("[/()]"), "")
+
         if (cleaned.isEmpty()) {
             return null
         }
 
-        // Extract country code
-        val (countryCode, remainingPart) = extractCountryCode(cleaned, defaultCountryPrefix)
-
-        if (remainingPart.isBlank()) {
-            return null
+        // Return very short numbers (3 digits or less) unchanged - emergency numbers, short codes, etc.
+        // Examples: 0, 00, 110, 112
+        // But NOT if they start with 00X (international prefix) or +X
+        val digitCount = cleaned.count { it.isDigit() }
+        if (digitCount in 1..3) {
+            // Allow "0", "00", "110", "112" etc. to pass through unchanged
+            // But block "001", "0049" etc. (international format) - they need processing
+            if (cleaned == "0" || cleaned == "00" || !cleaned.startsWith("00") && !cleaned.startsWith("+")) {
+                return cleaned
+            }
         }
 
-        // Clean up remaining part: replace dots with spaces (separator), remove slashes/parentheses, then normalize spaces
+        // Extract country code
+        val (countryCode, remainingPart, hasPrefix) = extractCountryCode(cleaned, defaultCountryPrefix)
+
+        // If no prefix was detected (no +, no 00, no leading 0), return cleaned number unchanged
+        if (!hasPrefix) {
+            // Just clean up special chars and normalize spaces
+            val result = cleaned
+                .replace(".", " ")
+                .replace(Regex("\\s+"), " ")
+                .trim()
+            // But validate it contains at least some digits
+            if (!result.contains(Regex("\\d"))) {
+                return null
+            }
+            return result
+        }
+
+        if (remainingPart.isBlank()) {
+            // If only country code exists (e.g., "001" -> "+1"), return just the country code
+            return countryCode
+        }
+
+        // Clean up remaining part: replace dots with spaces (separator), then normalize spaces
         var remaining = remainingPart.trim()
             .replace(".", " ") // Dot is a separator between number blocks
-            .replace(Regex("[/()]"), "") // Remove slashes, parentheses
             .replace(Regex("\\s+"), " ") // Normalize multiple spaces to single space
             .trim()
 
@@ -119,8 +148,10 @@ object PhoneNumberUtils {
             }
         }
 
-        // Remove any remaining hyphens
-        remaining = remaining.replace("-", "")
+        // Replace any remaining hyphens with spaces (for number block separation)
+        remaining = remaining.replace("-", " ")
+        // Normalize multiple spaces to single space
+        remaining = remaining.replace(Regex("\\s+"), " ").trim()
 
         if (remaining.isEmpty()) {
             return null
@@ -174,9 +205,10 @@ object PhoneNumberUtils {
 
     /**
      * Extracts the country code from the phone number.
-     * Returns pair of (countryCode, remainingDigits)
+     * Returns triple of (countryCode, remainingDigits, hasPrefix)
+     * hasPrefix is true if the number had +, 00, or leading 0 prefix
      */
-    private fun extractCountryCode(cleaned: String, defaultCountryPrefix: String): Pair<String, String> {
+    private fun extractCountryCode(cleaned: String, defaultCountryPrefix: String): Triple<String, String, Boolean> {
         // Already has + prefix
         if (cleaned.startsWith("+")) {
             // Try to match known country codes (1-3 digits)
@@ -186,29 +218,29 @@ object PhoneNumberUtils {
             if (digitsAfterPlus.length >= 3) {
                 val code3 = digitsAfterPlus.substring(0, 3)
                 if (code3 in KNOWN_COUNTRY_CODES) {
-                    return Pair("+$code3", cleaned.substring(4))
+                    return Triple("+$code3", cleaned.substring(4), true)
                 }
             }
 
             if (digitsAfterPlus.length >= 2) {
                 val code2 = digitsAfterPlus.substring(0, 2)
                 if (code2 in KNOWN_COUNTRY_CODES) {
-                    return Pair("+$code2", cleaned.substring(3))
+                    return Triple("+$code2", cleaned.substring(3), true)
                 }
             }
 
             if (digitsAfterPlus.isNotEmpty()) {
                 val code1 = digitsAfterPlus.substring(0, 1)
                 if (code1 in KNOWN_COUNTRY_CODES) {
-                    return Pair("+$code1", cleaned.substring(2))
+                    return Triple("+$code1", cleaned.substring(2), true)
                 }
             }
 
             // Fallback: use first 2 digits as country code
             if (digitsAfterPlus.length >= 2) {
-                return Pair("+" + digitsAfterPlus.substring(0, 2), cleaned.substring(3))
+                return Triple("+" + digitsAfterPlus.substring(0, 2), cleaned.substring(3), true)
             } else if (digitsAfterPlus.isNotEmpty()) {
-                return Pair("+" + digitsAfterPlus.substring(0, 1), cleaned.substring(2))
+                return Triple("+" + digitsAfterPlus.substring(0, 1), cleaned.substring(2), true)
             }
         }
 
@@ -219,39 +251,39 @@ object PhoneNumberUtils {
             if (digitsAfter00.length >= 3) {
                 val code3 = digitsAfter00.substring(0, 3)
                 if (code3 in KNOWN_COUNTRY_CODES) {
-                    return Pair("+$code3", cleaned.substring(5))
+                    return Triple("+$code3", cleaned.substring(5), true)
                 }
             }
 
             if (digitsAfter00.length >= 2) {
                 val code2 = digitsAfter00.substring(0, 2)
                 if (code2 in KNOWN_COUNTRY_CODES) {
-                    return Pair("+$code2", cleaned.substring(4))
+                    return Triple("+$code2", cleaned.substring(4), true)
                 }
             }
 
             if (digitsAfter00.isNotEmpty()) {
                 val code1 = digitsAfter00.substring(0, 1)
                 if (code1 in KNOWN_COUNTRY_CODES) {
-                    return Pair("+$code1", cleaned.substring(3))
+                    return Triple("+$code1", cleaned.substring(3), true)
                 }
             }
 
             // Fallback: use first 2 digits as country code
             if (digitsAfter00.length >= 2) {
-                return Pair("+" + digitsAfter00.substring(0, 2), cleaned.substring(4))
+                return Triple("+" + digitsAfter00.substring(0, 2), cleaned.substring(4), true)
             } else if (digitsAfter00.isNotEmpty()) {
-                return Pair("+" + digitsAfter00.substring(0, 1), cleaned.substring(3))
+                return Triple("+" + digitsAfter00.substring(0, 1), cleaned.substring(3), true)
             }
         }
 
         // Starts with 0 (national format) - add default country prefix
         if (cleaned.startsWith("0")) {
-            return Pair(defaultCountryPrefix, cleaned.substring(1))
+            return Triple(defaultCountryPrefix, cleaned.substring(1), true)
         }
 
-        // No prefix - assume national format
-        return Pair(defaultCountryPrefix, cleaned)
+        // No prefix - return as-is (hasPrefix = false)
+        return Triple("", cleaned, false)
     }
 
 }
