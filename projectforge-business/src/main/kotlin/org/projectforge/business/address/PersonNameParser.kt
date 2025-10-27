@@ -30,13 +30,38 @@ data class ParsedName(
     val name: String,                 // Nachname
     val firstName: String,            // Vorname(n)
     val formOfAddress: String?,       // Anrede (Herr, Frau, Mr, ...)
-    val titles: List<String>          // Titel, z. B. ["Dipl.-Phys.", "Dr."]
-)
+    val titles: List<String>,         // Titel, z. B. ["Dipl.-Phys.", "Dr."]
+    val formOfAddressAsEnum: FormOfAddress? = mapToFormOfAddress(formOfAddress)
+) {
+    companion object {
+        /**
+         * Maps a form of address string to the FormOfAddress enum.
+         */
+        private fun mapToFormOfAddress(formOfAddress: String?): FormOfAddress? {
+            if (formOfAddress == null) return null
+
+            return when (formOfAddress.lowercase()) {
+                // MISTER
+                "herr", "mr", "sr", "m", "sig", "signor", "don", "sir"
+                -> FormOfAddress.MISTER
+
+                // MISS
+                "frau", "fr", "mrs", "ms", "miss", "mx", "dame",
+                "mme", "mlle", "sra", "srta", "señora", "señorita",
+                "sig.ra", "signora", "doña"
+                -> FormOfAddress.MISS
+
+                // UNKNOWN for unknown forms of address
+                else -> FormOfAddress.UNKNOWN
+            }
+        }
+    }
+}
 
 /**
  * Parser for extracting names with titles and forms of address.
  */
-object NameParser {
+object PersonNameParser {
     // 1) Anreden (international, erweiterbar)
     private val salutationRe = Regex(
         pattern = """^(?:\s*)(herr|frau|fr|mr|mrs|ms|miss|mx|sir|dame|m\.|mme|mlle|sr|sra|srta|señor|señora|señorita|sig\.?|sig\.ra|signor|signora|don|doña)\.?\s+""",

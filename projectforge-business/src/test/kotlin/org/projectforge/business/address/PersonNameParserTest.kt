@@ -30,17 +30,18 @@ class PersonNameParserTest {
 
     @Test
     fun `test parse simple name without title`() {
-        val result = NameParser.parse("Max Mustermann")
+        val result = PersonNameParser.parse("Max Mustermann")
 
         assertEquals("Mustermann", result.name)
         assertEquals("Max", result.firstName)
         assertNull(result.formOfAddress)
+        assertNull(result.formOfAddressAsEnum)
         assertTrue(result.titles.isEmpty())
     }
 
     @Test
     fun `test parse name with Dipl-Phys title`() {
-        val result = NameParser.parse("Dipl.-Phys. Max Mustermann")
+        val result = PersonNameParser.parse("Dipl.-Phys. Max Mustermann")
 
         assertEquals("Mustermann", result.name)
         assertEquals("Max", result.firstName)
@@ -51,7 +52,7 @@ class PersonNameParserTest {
 
     @Test
     fun `test parse name with Dipl-Ing title`() {
-        val result = NameParser.parse("Dipl.-Ing. Hans Weber")
+        val result = PersonNameParser.parse("Dipl.-Ing. Hans Weber")
 
         assertEquals("Weber", result.name)
         assertEquals("Hans", result.firstName)
@@ -62,7 +63,7 @@ class PersonNameParserTest {
 
     @Test
     fun `test parse name with Dipl-Kfm title`() {
-        val result = NameParser.parse("Dipl.-Kfm. Peter Schmidt")
+        val result = PersonNameParser.parse("Dipl.-Kfm. Peter Schmidt")
 
         assertEquals("Schmidt", result.name)
         assertEquals("Peter", result.firstName)
@@ -73,7 +74,7 @@ class PersonNameParserTest {
 
     @Test
     fun `test parse name with multiple titles`() {
-        val result = NameParser.parse("Prof. Dr. med. Hans Weber")
+        val result = PersonNameParser.parse("Prof. Dr. med. Hans Weber")
 
         assertEquals("Weber", result.name)
         assertEquals("Hans", result.firstName)
@@ -86,7 +87,7 @@ class PersonNameParserTest {
 
     @Test
     fun `test parse name with Dr rer nat title`() {
-        val result = NameParser.parse("Dr. rer. nat. Anna Schmidt")
+        val result = PersonNameParser.parse("Dr. rer. nat. Anna Schmidt")
 
         assertEquals("Schmidt", result.name)
         assertEquals("Anna", result.firstName)
@@ -99,11 +100,12 @@ class PersonNameParserTest {
 
     @Test
     fun `test parse name with form of address Herr`() {
-        val result = NameParser.parse("Herr Dr.-Ing. Peter Müller")
+        val result = PersonNameParser.parse("Herr Dr.-Ing. Peter Müller")
 
         assertEquals("Müller", result.name)
         assertEquals("Peter", result.firstName)
         assertEquals("Herr", result.formOfAddress)
+        assertEquals(FormOfAddress.MISTER, result.formOfAddressAsEnum)
         assertTrue(result.titles.isNotEmpty())
         // Dr.-Ing. wird als ein oder zwei Titel erkannt
         assertTrue(result.titles.any { it.contains("Dr") } && result.titles.any { it.contains("Ing") }
@@ -112,11 +114,12 @@ class PersonNameParserTest {
 
     @Test
     fun `test parse name with form of address Frau`() {
-        val result = NameParser.parse("Frau Prof. Dr. Lisa Schneider")
+        val result = PersonNameParser.parse("Frau Prof. Dr. Lisa Schneider")
 
         assertEquals("Schneider", result.name)
         assertEquals("Lisa", result.firstName)
         assertEquals("Frau", result.formOfAddress)
+        assertEquals(FormOfAddress.MISS, result.formOfAddressAsEnum)
         assertTrue(result.titles.size >= 2)
         assertTrue(result.titles.any { it.equals("Prof.", ignoreCase = true) })
         assertTrue(result.titles.any { it.equals("Dr.", ignoreCase = true) })
@@ -124,27 +127,29 @@ class PersonNameParserTest {
 
     @Test
     fun `test parse name with English form of address Mr`() {
-        val result = NameParser.parse("Mr. John Smith")
+        val result = PersonNameParser.parse("Mr. John Smith")
 
         assertEquals("Smith", result.name)
         assertEquals("John", result.firstName)
         assertEquals("Mr", result.formOfAddress)
+        assertEquals(FormOfAddress.MISTER, result.formOfAddressAsEnum)
         assertTrue(result.titles.isEmpty())
     }
 
     @Test
     fun `test parse name with English form of address Mrs`() {
-        val result = NameParser.parse("Mrs. Jane Doe")
+        val result = PersonNameParser.parse("Mrs. Jane Doe")
 
         assertEquals("Doe", result.name)
         assertEquals("Jane", result.firstName)
         assertEquals("Mrs", result.formOfAddress)
+        assertEquals(FormOfAddress.MISS, result.formOfAddressAsEnum)
         assertTrue(result.titles.isEmpty())
     }
 
     @Test
     fun `test parse name with PhD title`() {
-        val result = NameParser.parse("PhD Robert Fischer")
+        val result = PersonNameParser.parse("PhD Robert Fischer")
 
         assertEquals("Fischer", result.name)
         assertEquals("Robert", result.firstName)
@@ -155,7 +160,7 @@ class PersonNameParserTest {
 
     @Test
     fun `test parse name with MBA title`() {
-        val result = NameParser.parse("MBA Sarah Klein")
+        val result = PersonNameParser.parse("MBA Sarah Klein")
 
         assertEquals("Klein", result.name)
         assertEquals("Sarah", result.firstName)
@@ -166,7 +171,7 @@ class PersonNameParserTest {
 
     @Test
     fun `test parse name with MSc title`() {
-        val result = NameParser.parse("M.Sc. Thomas Wagner")
+        val result = PersonNameParser.parse("M.Sc. Thomas Wagner")
 
         assertEquals("Wagner", result.name)
         assertTrue(result.firstName.contains("Thomas"))
@@ -177,7 +182,7 @@ class PersonNameParserTest {
 
     @Test
     fun `test parse name with multiple first names`() {
-        val result = NameParser.parse("Dr. Hans Peter Weber")
+        val result = PersonNameParser.parse("Dr. Hans Peter Weber")
 
         assertEquals("Weber", result.name)
         assertEquals("Hans Peter", result.firstName)
@@ -188,7 +193,7 @@ class PersonNameParserTest {
 
     @Test
     fun `test parse name with only last name`() {
-        val result = NameParser.parse("Mustermann")
+        val result = PersonNameParser.parse("Mustermann")
 
         assertEquals("Mustermann", result.name)
         assertEquals("", result.firstName)
@@ -198,7 +203,7 @@ class PersonNameParserTest {
 
     @Test
     fun `test parse name with title and only last name`() {
-        val result = NameParser.parse("Dr. Mustermann")
+        val result = PersonNameParser.parse("Dr. Mustermann")
 
         assertEquals("Mustermann", result.name)
         assertEquals("", result.firstName)
@@ -209,7 +214,7 @@ class PersonNameParserTest {
 
     @Test
     fun `test parse complex German name with multiple titles`() {
-        val result = NameParser.parse("Herr Prof. Dr. Dr. h.c. Klaus Dieter Müller-Schmidt")
+        val result = PersonNameParser.parse("Herr Prof. Dr. Dr. h.c. Klaus Dieter Müller-Schmidt")
 
         assertEquals("Müller-Schmidt", result.name)
         assertEquals("Klaus Dieter", result.firstName)
@@ -222,7 +227,7 @@ class PersonNameParserTest {
 
     @Test
     fun `test parse name with Dipl space variant`() {
-        val result = NameParser.parse("Dipl. Kfm. Max Mustermann")
+        val result = PersonNameParser.parse("Dipl. Kfm. Max Mustermann")
 
         assertEquals("Mustermann", result.name)
         assertTrue(result.firstName.contains("Max"))
@@ -234,7 +239,7 @@ class PersonNameParserTest {
 
     @Test
     fun `test parse empty string`() {
-        val result = NameParser.parse("")
+        val result = PersonNameParser.parse("")
 
         assertEquals("", result.name)
         assertEquals("", result.firstName)
@@ -244,7 +249,7 @@ class PersonNameParserTest {
 
     @Test
     fun `test parse name with extra whitespace`() {
-        val result = NameParser.parse("  Dr.   Max    Mustermann  ")
+        val result = PersonNameParser.parse("  Dr.   Max    Mustermann  ")
 
         assertEquals("Mustermann", result.name)
         assertEquals("Max", result.firstName)
@@ -255,7 +260,7 @@ class PersonNameParserTest {
 
     @Test
     fun `test parse name with Prof Dr combination`() {
-        val result = NameParser.parse("Prof. Dr. Anna Schmidt")
+        val result = PersonNameParser.parse("Prof. Dr. Anna Schmidt")
 
         assertEquals("Schmidt", result.name)
         assertEquals("Anna", result.firstName)
@@ -267,7 +272,7 @@ class PersonNameParserTest {
 
     @Test
     fun `test parse name with Dr habil title`() {
-        val result = NameParser.parse("Dr. habil. Peter Müller")
+        val result = PersonNameParser.parse("Dr. habil. Peter Müller")
 
         assertEquals("Müller", result.name)
         assertEquals("Peter", result.firstName)
@@ -279,21 +284,23 @@ class PersonNameParserTest {
 
     @Test
     fun `test parse Spanish form of address`() {
-        val result = NameParser.parse("Sr. Carlos García")
+        val result = PersonNameParser.parse("Sr. Carlos García")
 
         assertEquals("García", result.name)
         assertEquals("Carlos", result.firstName)
         assertEquals("Sr", result.formOfAddress)
+        assertEquals(FormOfAddress.MISTER, result.formOfAddressAsEnum)
         assertTrue(result.titles.isEmpty())
     }
 
     @Test
     fun `test parse French form of address`() {
-        val result = NameParser.parse("M. Pierre Dupont")
+        val result = PersonNameParser.parse("M. Pierre Dupont")
 
         assertEquals("Dupont", result.name)
         assertEquals("Pierre", result.firstName)
         assertEquals("M", result.formOfAddress)
+        assertEquals(FormOfAddress.MISTER, result.formOfAddressAsEnum)
         assertTrue(result.titles.isEmpty())
     }
 }
