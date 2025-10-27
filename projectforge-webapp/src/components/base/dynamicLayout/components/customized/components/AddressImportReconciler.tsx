@@ -306,7 +306,7 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
                     const selected: SelectedFields = {};
                     const nameFields = ['name', 'firstName']; // Name fields that need special handling
 
-                    Object.entries(filteredFields).forEach(([fieldName, field]) => {
+                    Object.entries(filteredFields).forEach(([fieldName]) => {
                         // Protect name and firstName only if they already have values
                         // This prevents accidentally overwriting existing names, but allows setting them for new addresses
                         if (nameFields.includes(fieldName) && isOriginalValueNotBlank(fieldName)) {

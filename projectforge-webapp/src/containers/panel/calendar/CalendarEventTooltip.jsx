@@ -21,6 +21,7 @@ function CalendarEventTooltip({ forwardRef, event = null }) {
             ) }
             <CardBody>
                 <div
+                    /* eslint-disable-next-line react/no-danger */
                     dangerouslySetInnerHTML={{ __html: tooltip?.text }}
                 />
             </CardBody>

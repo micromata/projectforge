@@ -49,7 +49,7 @@ function DynamicTable(
                     }
                 };
 
-                eventSource.onerror = (error) => {
+                eventSource.onerror = () => {
                     // console.error('SSE connection error:', error);
                     eventSource.close(); // Close connection on error
                     setTimeout(() => connect(), 5000); // Attempt reconnect after 5 seconds

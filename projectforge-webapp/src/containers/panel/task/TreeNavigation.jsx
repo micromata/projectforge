@@ -23,7 +23,7 @@ TreeStatus.getIcon = (status) => {
 };
 
 function TreeNavigation({
-    id, treeStatus, indent = 1, title = '',
+    treeStatus, indent = 1, title = '',
 }) {
     const icon = TreeStatus.getIcon(treeStatus);
 
@@ -43,7 +43,6 @@ TreeNavigation.propTypes = {
         TreeStatus.CLOSED,
         TreeStatus.LEAF,
     ]).isRequired,
-    id: PropTypes.number,
     indent: PropTypes.number,
     title: PropTypes.string,
 };

@@ -1,6 +1,4 @@
 /* eslint-disable no-alert */
-import { faCheck } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { components } from 'react-select';
