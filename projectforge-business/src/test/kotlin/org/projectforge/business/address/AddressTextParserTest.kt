@@ -566,4 +566,80 @@ class AddressTextParserTest {
         assertEquals("80331", result.zipCode)
         assertEquals("München", result.city)
     }
+
+    @Test
+    fun `test parse signature with form of address Herr`() {
+        val text = """
+            Herr Dr. Thomas Weber
+            Geschäftsführer
+
+            Business Solutions GmbH
+            Hauptstraße 50
+            60311 Frankfurt
+
+            Tel: +49 69 12345678
+            t.weber@business-solutions.de
+        """.trimIndent()
+
+        val result = AddressTextParser.parseAddressText(text)
+
+        assertEquals("Herr", result.form)
+        assertEquals("Dr.", result.title)
+        assertEquals("Thomas", result.firstName)
+        assertEquals("Weber", result.name)
+        assertEquals("Geschäftsführer", result.positionText)
+        assertEquals("Business Solutions GmbH", result.organization)
+        assertEquals("60311", result.zipCode)
+        assertEquals("Frankfurt", result.city)
+    }
+
+    @Test
+    fun `test parse signature with form of address Frau`() {
+        val text = """
+            Frau Prof. Dr. Anna Schmidt
+            Direktorin
+
+            Research Center AG
+            Lindenstraße 100
+            10969 Berlin
+
+            Tel: +49 30 987654321
+            a.schmidt@research-center.de
+        """.trimIndent()
+
+        val result = AddressTextParser.parseAddressText(text)
+
+        assertEquals("Frau", result.form)
+        assertEquals("Prof. Dr.", result.title)
+        assertEquals("Anna", result.firstName)
+        assertEquals("Schmidt", result.name)
+        assertEquals("Direktorin", result.positionText)
+        assertEquals("Research Center AG", result.organization)
+        assertEquals("10969", result.zipCode)
+        assertEquals("Berlin", result.city)
+    }
+
+    @Test
+    fun `test parse signature with English form of address Mr`() {
+        val text = """
+            Mr. John Smith
+            Managing Director
+
+            Tech Corp Inc.
+            456 Main Street
+            10001 New York
+
+            Phone: +1 212 555-1234
+            john.smith@techcorp.com
+        """.trimIndent()
+
+        val result = AddressTextParser.parseAddressText(text)
+
+        assertEquals("Mr", result.form)
+        assertNull(result.title)
+        assertEquals("John", result.firstName)
+        assertEquals("Smith", result.name)
+        assertEquals("Managing Director", result.positionText)
+        assertEquals("Tech Corp Inc.", result.organization)
+    }
 }

@@ -51,6 +51,17 @@ class PersonNameParserTest {
     }
 
     @Test
+    fun `test parse name with DiplPhys title without hyphen`() {
+        val result = PersonNameParser.parse("Dipl.Phys. Max Mustermann")
+
+        assertEquals("Mustermann", result.name)
+        assertEquals("Max", result.firstName)
+        assertNull(result.formOfAddress)
+        assertEquals(1, result.titles.size)
+        assertTrue(result.titles.any { it.contains("Dipl") && it.contains("Phys") })
+    }
+
+    @Test
     fun `test parse name with Dipl-Ing title`() {
         val result = PersonNameParser.parse("Dipl.-Ing. Hans Weber")
 
