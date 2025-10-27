@@ -158,7 +158,7 @@ public class PFUserDOConverterTest extends AbstractTestBase
     dest = new LdapUser();
     assertTrue(pfUserDOConverter.copyUserFields(src, dest));
     LdapTestUtils.assertUser(src, "kai", "Kai", "Reinhard", "k.reinhard@acme.com", "Micromata", "Developer");
-    LdapTestUtils.assertUser(dest, null, "Kai", "Reinhard", "k.reinhard@acme.com", "Micromata", "Developer");
+    LdapTestUtils.assertUser(dest, "kai", "Kai", "Reinhard", "k.reinhard@acme.com", "Micromata", "Developer");
     assertTrue(pfUserDOConverter.copyUserFields(src,
         LdapTestUtils.createLdapUser("kai", "", "Reinhard", "k.reinhard@acme.com", "Micromata", "Developer")));
     assertTrue(pfUserDOConverter.copyUserFields(src,
