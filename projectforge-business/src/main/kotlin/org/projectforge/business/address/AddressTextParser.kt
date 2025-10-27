@@ -277,8 +277,8 @@ object AddressTextParser {
             remainingLine = remainingLine.substring(iAMatch.value.length).trim()
         }
 
-        // Use NameParser to extract titles, form of address, first name and last name
-        val parsedName = NameParser.parse(remainingLine)
+        // Use PersonNameParser to extract titles, form of address, first name and last name
+        val parsedName = PersonNameParser.parse(remainingLine)
 
         // Set title (join all titles with space)
         if (parsedName.titles.isNotEmpty()) {
