@@ -55,9 +55,10 @@ object AddressTextParser {
         RegexOption.IGNORE_CASE
     )
 
-    // Website regex
+    // Website regex with known TLDs to avoid false positives like "Dipl.Phys"
+    // Note: Longer TLDs are listed before shorter ones to ensure correct matching (e.g., "group" before "gr")
     private val WEBSITE_REGEX = Regex(
-        """(?:https?://)?(?:www\.)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:/[^\s]*)?""",
+        """(?:https?://)?(?:www\.)?[a-zA-Z0-9.-]+\.(?:solutions|company|academy|digital|center|online|store|group|cloud|gmbh|tech|info|shop|app|dev|pro|com|org|net|edu|gov|biz|aero|asia|coop|jobs|mobi|museum|name|post|tel|travel|xxx|de|uk|us|io|co|eu|ch|at|fr|it|es|nl|be|pl|ru|jp|cn|au|ca|nz|se|no|dk|fi|in|br|mx|za|kr|tw|hk|sg|my|th|vn|ph|id|ae|sa|il|tr|gr|cz|sk|hu|ro|bg|hr|si|lt|lv|ee|is|ie|pt|lu|mt|cy|ai)(?:/[^\s]*)?""",
         RegexOption.IGNORE_CASE
     )
 
@@ -118,10 +119,18 @@ object AddressTextParser {
 
             // Extract website (but not email)
             if (!line.contains("@")) {
-                WEBSITE_REGEX.find(line)?.let {
-                    if (result.website == null && !it.value.contains("@")) {
-                        result.website = it.value
-                        processed = true
+                WEBSITE_REGEX.find(line)?.let { match ->
+                    if (result.website == null && !match.value.contains("@")) {
+                        // Additional check: If 2+ words follow the match, it's likely a name with title (e.g., "Dipl.Phys Max Mustermann")
+                        val remainingText = line.substring(match.range.last + 1).trim()
+                        val wordsAfter = remainingText.split(Regex("""\s+""")).filter { it.isNotBlank() }
+
+                        if (wordsAfter.size < 2) {
+                            // Likely a real website
+                            result.website = match.value
+                            processed = true
+                        }
+                        // If 2+ words follow, skip this match (likely a title + name)
                     }
                 }
             }
@@ -283,6 +292,11 @@ object AddressTextParser {
         // Set title (join all titles with space)
         if (parsedName.titles.isNotEmpty()) {
             result.title = parsedName.titles.joinToString(" ")
+        }
+
+        // Set form of address (maps to AddressDO.form)
+        if (parsedName.formOfAddress != null) {
+            result.form = parsedName.formOfAddress
         }
 
         // Set first name and last name

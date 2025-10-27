@@ -642,4 +642,33 @@ class AddressTextParserTest {
         assertEquals("Managing Director", result.positionText)
         assertEquals("Tech Corp Inc.", result.organization)
     }
+
+    @Test
+    fun `test parse signature with Dipl-Phys title without hyphen - should not detect as website`() {
+        val text = """
+            Dipl.Phys Kai Reinhard
+            Senior Developer
+
+            Micromata GmbH
+            Hauptstraße 1
+            34131 Kassel
+
+            Tel: +49 561 12345678
+            k.reinhard@micromata.de
+        """.trimIndent()
+
+        val result = AddressTextParser.parseAddressText(text)
+
+        // Dipl.Phys should be recognized as a title, NOT as a website
+        assertNull(result.website, "Dipl.Phys should not be detected as website")
+        assertTrue(result.title?.contains("Dipl") == true, "Title should contain 'Dipl'")
+        assertTrue(result.title?.contains("Phys") == true, "Title should contain 'Phys'")
+        assertEquals("Kai", result.firstName)
+        assertEquals("Reinhard", result.name)
+        assertEquals("Senior Developer", result.positionText)
+        assertEquals("Micromata GmbH", result.organization)
+        assertEquals("34131", result.zipCode)
+        assertEquals("Kassel", result.city)
+        assertEquals("k.reinhard@micromata.de", result.email)
+    }
 }
