@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { useState } from 'react';
+import React from 'react';
 import { Alert } from 'reactstrap';
 import DynamicAgGrid from '../../../components/base/dynamicLayout/components/table/DynamicAgGrid';
 import TaskTreeContext from './TaskTreeContext';
@@ -11,14 +11,10 @@ function TaskTreeTable({
         highlightTaskId,
     } = React.useContext(TaskTreeContext);
 
-    const [gridApi, setGridApi] = useState();
-    const [columnApi, setColumnApi] = useState();
-
     const { toggleTask } = React.useContext(TaskTreeContext);
 
-    const onGridApiReady = React.useCallback((api, colApi) => {
-        setGridApi(api);
-        setColumnApi(colApi);
+    const onGridApiReady = React.useCallback(() => {
+        // Grid API ready callback - can be used for future enhancements
     }, []);
 
     const onCellClicked = (event) => {

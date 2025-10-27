@@ -59,6 +59,7 @@ function DynamicAgGridDiffCell(props) {
                 );
                 return _.isString(formatted) ? formatted : _.toString(val);
             } catch (error) {
+                // eslint-disable-next-line no-console
                 console.warn('Formatter failed for value:', val, 'formatter:', useFormatter, error);
                 return _.toString(val);
             }

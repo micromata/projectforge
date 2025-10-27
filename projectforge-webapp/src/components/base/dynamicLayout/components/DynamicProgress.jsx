@@ -1,9 +1,8 @@
 import PropTypes from 'prop-types';
-import React, { useContext, useEffect, useMemo, useRef } from 'react';
+import React, { useContext } from 'react';
 import { Progress } from 'reactstrap';
 import { colorPropType } from '../../../../utilities/propTypes';
 import { DynamicLayoutContext } from '../context';
-import { fetchJsonGet } from '../../../../utilities/rest';
 import DynamicButton from './DynamicButton';
 import DynamicAlert from './DynamicAlert';
 
@@ -36,7 +35,7 @@ function DynamicProgress(props) {
     }
     const {
         value: useValue, title: useTitle, color: useColor, animated: useAnimated,
-        cancelId: useCancelId, info: useInfo, infoColor: useInfoColor,
+        cancelId: useCancelId, info: useInfo,
     } = state;
 
     let cancelButton;

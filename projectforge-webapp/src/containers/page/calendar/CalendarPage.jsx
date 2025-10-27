@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React, { useEffect, useState } from 'react';
 import Select from 'react-select';
 import { Col, Container, Row } from '../../../components/design';
@@ -214,7 +213,7 @@ function CalendarPage() {
         fetchJsonGet(
             'calendar/refresh',
             undefined,
-            (json) => {
+            () => {
                 // const { reload } = json;
                 // if (reload) {
                 // Force reload page independent of refreshing subscribed calendars:
