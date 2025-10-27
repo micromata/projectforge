@@ -128,6 +128,13 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
     const [imageTooLarge, setImageTooLarge] = useState<boolean>(false);
     const [applyImage, setApplyImage] = useState<boolean>(false);
 
+    // Helper function to check if a field has a non-empty value
+    const isOriginalValueNotBlank = (fieldName: string): boolean => {
+        // Check if the field has a non-empty value in the current form data
+        const currentValue = (data as AddressData)[fieldName];
+        return currentValue != null && String(currentValue).trim() !== '';
+    };
+
     // Reset state completely when context key changes (address or import context changed)
     React.useEffect(() => {
         if (prevContextKeyRef.current !== contextKey) {
@@ -169,7 +176,7 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
                 // Changed: vcfValue differs from current form value
                 if (vcfNormalized && vcfNormalized !== currentNormalized) {
                     fields[fieldName] = {
-                        value: vcfValue,
+                        value: vcfValue || '',
                         confidence: 'high', // VCF data is always high confidence
                         currentValue: currentNormalized,
                     };
@@ -179,10 +186,14 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
                 }
             });
 
-            // Special case: Unselect name and firstName.
+            // Special case: Protect name and firstName if they already have values.
             // This prevents accidentally overwriting the name when VCF might be for a different person
-            selected.name = false;
-            selected.firstName = false;
+            if (isOriginalValueNotBlank('name')) {
+                selected.name = false;
+            }
+            if (isOriginalValueNotBlank('firstName')) {
+                selected.firstName = false;
+            }
 
             setParsedData({
                 fields,
@@ -293,16 +304,15 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
 
                     // Initialize selected fields based on filtered parsed data
                     const selected: SelectedFields = {};
-                    const isExistingAddress = (data as AddressData).id != null; // Check if this is an existing address
                     const nameFields = ['name', 'firstName']; // Name fields that need special handling
 
                     Object.entries(filteredFields).forEach(([fieldName, field]) => {
-                        // For existing addresses: Do NOT pre-select name fields (safety measure)
-                        // For new addresses: Pre-select all fields as before
-                        if (isExistingAddress && nameFields.includes(fieldName)) {
-                            selected[fieldName] = false; // Don't pre-select name fields for existing addresses
+                        // Protect name and firstName only if they already have values
+                        // This prevents accidentally overwriting existing names, but allows setting them for new addresses
+                        if (nameFields.includes(fieldName) && isOriginalValueNotBlank(fieldName)) {
+                            selected[fieldName] = false; // Don't pre-select name fields that already have a value
                         } else {
-                            selected[fieldName] = field.selected !== false;
+                            selected[fieldName] = true; // Pre-select all freshly parsed fields
                         }
                     });
                     setSelectedFields(selected);
@@ -337,12 +347,13 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
     const handleSelectAll = () => {
         const newSelected: SelectedFields = {};
         Object.keys(parsedData?.fields || {}).forEach((fieldName) => {
-            // Exclude name and firstName from "Select All"
-            if (fieldName !== 'name' && fieldName !== 'firstName') {
-                newSelected[fieldName] = true;
-            } else {
-                // Preserve current state for name/firstName
+            // Protect name and firstName only if they already have values
+            if ((fieldName === 'name' || fieldName === 'firstName') && isOriginalValueNotBlank(fieldName)) {
+                // Preserve current state for name/firstName when they have original values
                 newSelected[fieldName] = selectedFields[fieldName] || false;
+            } else {
+                // Select all other fields, including name/firstName if they are empty
+                newSelected[fieldName] = true;
             }
         });
         setSelectedFields(newSelected);
@@ -410,10 +421,14 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
                         selected[fieldName] = true;
                     });
 
-                    // Special case: Unselect name and firstName.
+                    // Special case: Protect name and firstName if they already have values.
                     // This prevents accidentally overwriting the name when VCF might be for a different person
-                    selected.name = false;
-                    selected.firstName = false;
+                    if (isOriginalValueNotBlank('name')) {
+                        selected.name = false;
+                    }
+                    if (isOriginalValueNotBlank('firstName')) {
+                        selected.firstName = false;
+                    }
 
                     setSelectedFields(selected);
                 } else {
