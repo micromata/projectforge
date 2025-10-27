@@ -73,8 +73,8 @@ object PersonNameParser {
     private const val titleTokenCore = """Prof|Dr|Mag|Ing|Dipl|Lic|PhD|MD|DDS|DVM|CPA|MBA|M\.?Sc|B\.?Sc|M\.?A|B\.?A|B\.?Eng|M\.?Eng|M\.?Phil|LL\.?M|LL\.?B"""
     private val titleToken = """(?:$titleTokenCore)\.?"""
 
-    // "Dipl."-Ketten inkl. Fach: Dipl.-Phys., Dipl.-Ing., Dipl. Kfm., …
-    private val diplChain = """Dipl\.?(?:[-\s]+[A-Za-zÄÖÜäöüß]{2,15}\.?)"""
+    // "Dipl."-Ketten inkl. Fach: Dipl.-Phys., Dipl.-Ing., Dipl.Phys., Dipl. Kfm., …
+    private val diplChain = """Dipl\.?(?:[-\s]?[A-Za-zÄÖÜäöüß]{2,15}\.?)"""
 
     // Zusätze wie "rer. nat.", "iur.", "med.", "h.c.", "habil." nach Dr./Prof. etc.
     private val specToken = """(?:rer\.?\s?nat\.?|rer\.?\s?pol\.?|iur\.?|jur\.?|med\.?|phil\.?|theol\.?|oec\.?|techn\.?|habil\.?|h\.?c\.?)"""

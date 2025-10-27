@@ -31,6 +31,7 @@ data class ParsedAddressData(
     var title: String? = null,
     var firstName: String? = null,
     var name: String? = null,
+    var form: String? = null,
     var positionText: String? = null,
     var organization: String? = null,
     var division: String? = null,
