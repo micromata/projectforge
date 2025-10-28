@@ -7,6 +7,7 @@ export const LIST_FETCH_FAILURE = 'LIST_FETCH_FAILURE';
 export const LIST_INITIAL_CALL_BEGIN = 'LIST_INITIAL_CALL_BEGIN';
 export const LIST_FETCH_DATA_BEGIN = 'LIST_FETCH_DATA_BEGIN';
 export const LIST_CALL_SUCCESS = 'LIST_CALL_SUCCESS';
+export const LIST_CATEGORY_RESET = 'LIST_CATEGORY_RESET';
 
 const dismissError = (category) => ({
     type: LIST_DISMISS_ERROR,
@@ -15,6 +16,11 @@ const dismissError = (category) => ({
 
 const switchCategory = (category) => ({
     type: LIST_SWITCH_CATEGORY,
+    payload: { category },
+});
+
+const resetCategory = (category) => ({
+    type: LIST_CATEGORY_RESET,
     payload: { category },
 });
 
@@ -68,6 +74,9 @@ const initialCall = (category, dispatch) => {
         .then((json) => {
             const { targetType, url: redirectUrl } = json;
             if (targetType === 'REDIRECT' && redirectUrl) {
+                // Reset category state completely before redirect
+                // This ensures fresh data load when returning to the page
+                dispatch(resetCategory(category));
                 history.push(redirectUrl);
                 return;
             }

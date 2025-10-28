@@ -19,6 +19,7 @@ export {
     LIST_INITIAL_CALL_BEGIN,
     LIST_FETCH_DATA_BEGIN,
     LIST_CALL_SUCCESS,
+    LIST_CATEGORY_RESET,
     LIST_FETCH_FAILURE,
     dismissCurrentError,
     loadList,

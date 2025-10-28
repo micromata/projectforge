@@ -5,6 +5,7 @@ export const LIST_FETCH_FAILURE: 'LIST_FETCH_FAILURE';
 export const LIST_INITIAL_CALL_BEGIN: 'LIST_INITIAL_CALL_BEGIN';
 export const LIST_FETCH_DATA_BEGIN: 'LIST_FETCH_DATA_BEGIN';
 export const LIST_CALL_SUCCESS: 'LIST_CALL_SUCCESS';
+export const LIST_CATEGORY_RESET: 'LIST_CATEGORY_RESET';
 
 // State interfaces
 interface CategoryState {
@@ -74,6 +75,13 @@ interface ListCallSuccessAction {
     };
 }
 
+interface ListCategoryResetAction {
+    type: typeof LIST_CATEGORY_RESET;
+    payload: {
+        category: string;
+    };
+}
+
 // Union type for all possible actions
 export type ListActionTypes =
     | ListDismissErrorAction
@@ -81,7 +89,8 @@ export type ListActionTypes =
     | ListFetchFailureAction
     | ListInitialCallBeginAction
     | ListFetchDataBeginAction
-    | ListCallSuccessAction;
+    | ListCallSuccessAction
+    | ListCategoryResetAction;
 
 // Action Creator Types
 type GetState = () => { list: ListState };
