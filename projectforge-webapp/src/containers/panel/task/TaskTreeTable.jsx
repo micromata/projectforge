@@ -5,7 +5,14 @@ import DynamicAgGrid from '../../../components/base/dynamicLayout/components/tab
 import TaskTreeContext from './TaskTreeContext';
 
 function TaskTreeTable({
-    columnDefs, nodes, selectTask, // visible,
+    columnDefs,
+    nodes,
+    selectTask,
+    sortModel,
+    filterModel,
+    onColumnStatesChangedUrl,
+    resetGridStateUrl,
+    // visible,
 }) {
     const {
         highlightTaskId,
@@ -42,6 +49,10 @@ function TaskTreeTable({
                     height={400}
                     onCellClicked={onCellClicked}
                     highlightId={highlightTaskId}
+                    sortModel={sortModel}
+                    filterModel={filterModel}
+                    onColumnStatesChangedUrl={onColumnStatesChangedUrl}
+                    resetGridStateUrl={resetGridStateUrl}
                     // visible={visible}
                 />
             </div>
@@ -60,6 +71,10 @@ TaskTreeTable.propTypes = {
     })).isRequired,
     nodes: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
     selectTask: PropTypes.func.isRequired,
+    sortModel: PropTypes.arrayOf(PropTypes.shape({})),
+    filterModel: PropTypes.shape({}),
+    onColumnStatesChangedUrl: PropTypes.string,
+    resetGridStateUrl: PropTypes.string,
     // visible: PropTypes.bool,
 };
 

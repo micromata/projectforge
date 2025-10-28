@@ -24,6 +24,7 @@
 package org.projectforge.rest.task
 
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.KostHelper
 import org.projectforge.business.task.*
@@ -38,10 +39,14 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDay
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ListFilterService
-import org.projectforge.ui.LayoutContext
-import org.projectforge.ui.UIAgGridColumnDef
+import org.projectforge.rest.core.RestResolver
+import org.projectforge.rest.core.aggrid.AGGridSupport
+import org.projectforge.rest.core.aggrid.SortModelEntry
+import org.projectforge.rest.dto.aggrid.AGGridStateRequest
+import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -123,13 +128,18 @@ class TaskServicesRest {
     class Result(
         val nodes: MutableList<Task> = mutableListOf(),
         var initFilter: TaskFilter? = null,
-        var translations: MutableMap<String, String>? = null
+        var translations: MutableMap<String, String>? = null,
+        var sortModel: List<SortModelEntry>? = null,
+        var filterModel: Map<String, Any>? = null,
+        var onColumnStatesChangedUrl: String? = null,
+        var resetGridStateUrl: String? = null
     ) {
         var columnDefs: MutableList<UIAgGridColumnDef> = mutableListOf()
     }
 
     companion object {
         private const val PREF_ARA = "task"
+        private const val GRID_CATEGORY = "taskTree"
 
         fun createTask(id: Long?): Task? {
             if (id == null)
@@ -198,6 +208,70 @@ class TaskServicesRest {
 
     @Autowired
     private lateinit var userPrefService: UserPrefService
+
+    @Autowired
+    private lateinit var agGridSupport: AGGridSupport
+
+    /**
+     * Creates default column definitions for the task tree grid.
+     * @return MutableList of UIAgGridColumnDef with all default columns
+     */
+    private fun createDefaultColumnDefs(): MutableList<UIAgGridColumnDef> {
+        val lc = LayoutContext(TaskDO::class.java)
+        val kost2Visible = Configuration.instance.isCostConfigured
+        val columnDefs = mutableListOf<UIAgGridColumnDef>()
+
+        columnDefs.add(
+            UIAgGridColumnDef.createCol(
+                "title",
+                headerName = translate("task"),
+                valueFormatter = UIAgGridColumnDef.Formatter.TREE_NAVIGATION,
+                sortable = false,
+                width = UIAgGridColumnDef.DESCRIPTION_WIDTH,
+                filter = false,
+                pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT,
+            )
+        )
+        columnDefs.add(
+            UIAgGridColumnDef.createCol(
+                "consumption",
+                headerName = translate("task.consumption"),
+                valueFormatter = UIAgGridColumnDef.Formatter.CONSUMPTION,
+                sortable = false,
+                filter = false,
+            )
+        )
+        if (kost2Visible) {
+            columnDefs.add(
+                UIAgGridColumnDef.createCol(
+                    "kost2WildCard",
+                    headerName = translate("fibu.kost2"),
+                    sortable = false,
+                    width = 80,
+                    filter = false,
+                )
+                    .withTooltipField("kost2ListAsLines")
+            )
+        }
+        columnDefs.add(
+            UIAgGridColumnDef.createCol(
+                lc,
+                "statusAsString",
+                lcField = "status",
+                sortable = false,
+                width = 100,
+                filter = false,
+            )
+        )
+        columnDefs.add(
+            UIAgGridColumnDef.createCol(lc, "shortDescription", sortable = false, filter = false)
+        )
+        columnDefs.add(
+            UIAgGridColumnDef.createCol(lc, "responsibleUser", sortable = false, filter = false)
+        )
+
+        return columnDefs
+    }
 
     /**
      * Gets the user's task tree as tree matching the filter. The open task nodes will be restored from the user's prefs.
@@ -281,55 +355,23 @@ class TaskServicesRest {
             if (!assignedUserVisible && task.responsibleUser != null) assignedUserVisible = true
         }
         if (initial == true) {
-            val lc = LayoutContext(TaskDO::class.java)
-            result.columnDefs.add(
-                UIAgGridColumnDef.createCol(
-                    "title",
-                    headerName = translate("task"),
-                    valueFormatter = UIAgGridColumnDef.Formatter.TREE_NAVIGATION,
-                    sortable = false,
-                    width = UIAgGridColumnDef.DESCRIPTION_WIDTH,
-                    filter = false,
-                    pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT,
-                )
-            )
-            result.columnDefs.add(
-                UIAgGridColumnDef.createCol(
-                    "consumption",
-                    headerName = translate("task.consumption"),
-                    valueFormatter = UIAgGridColumnDef.Formatter.CONSUMPTION,
-                    sortable = false,
-                    filter = false,
-                )
-            )
-            if (kost2Visible) {
-                result.columnDefs.add(
-                    UIAgGridColumnDef.createCol(
-                        "kost2WildCard",
-                        headerName = translate("fibu.kost2"),
-                        sortable = false,
-                        width = 80,
-                        filter = false,
-                    )
-                        .withTooltipField("kost2ListAsLines")
-                )
-            }
-            result.columnDefs.add(
-                UIAgGridColumnDef.createCol(
-                    lc,
-                    "statusAsString",
-                    lcField = "status",
-                    sortable = false,
-                    width = 100,
-                    filter = false,
-                )
-            )
-            result.columnDefs.add(
-                UIAgGridColumnDef.createCol(lc, "shortDescription", sortable = false, filter = false)
-            )
-            result.columnDefs.add(
-                UIAgGridColumnDef.createCol(lc, "responsibleUser", sortable = false, filter = false)
-            )
+            // Create default column definitions
+            result.columnDefs.addAll(createDefaultColumnDefs())
+
+            // Set grid state URLs (with tree/ prefix to avoid conflict with TaskPagesRest)
+            result.onColumnStatesChangedUrl = RestResolver.getRestUrl(this::class.java, "tree/${RestPaths.SET_COLUMN_STATES}")
+            result.resetGridStateUrl = RestResolver.getRestUrl(this::class.java, "tree/resetGridState")
+
+            // Create temporary UIAgGrid to restore user preferences
+            val agGrid = UIAgGrid("taskTree")
+            result.columnDefs.forEach { agGrid.add(it) }
+            agGridSupport.restoreColumnsFromUserPref(GRID_CATEGORY, agGrid)
+
+            // Copy restored state back to result
+            result.columnDefs = agGrid.columnDefs
+            result.sortModel = agGrid.sortModel
+            result.filterModel = agGrid.filterModel
+
             result.initFilter = filter
             result.translations = addTranslations(
                 "deleted",
@@ -452,5 +494,33 @@ class TaskServicesRest {
             return
         }
         ctx.openedNodes.remove(taskId)
+    }
+
+    /**
+     * Saves AG-Grid state (column order, width, visibility, filters, etc.) for task tree.
+     */
+    @PostMapping("tree/${RestPaths.SET_COLUMN_STATES}")
+    fun updateColumnStates(@Valid @RequestBody gridStateRequest: AGGridStateRequest): String {
+        agGridSupport.storeGridState(
+            GRID_CATEGORY,
+            gridStateRequest.columnState,
+            gridStateRequest.filterModel
+        )
+        return "OK"
+    }
+
+    /**
+     * Resets the AG Grid state to defaults and returns fresh column definitions for task tree.
+     */
+    @GetMapping("tree/resetGridState")
+    fun resetGridState(): ResponseAction {
+        agGridSupport.resetGridState(GRID_CATEGORY)
+
+        // Rebuild fresh columnDefs with defaults using shared function
+        val agGrid = UIAgGrid("taskTree")
+        createDefaultColumnDefs().forEach { agGrid.add(it) }
+
+        // Create ResponseAction using AGGridSupport helper
+        return agGridSupport.createResetGridStateResponse(agGrid)
     }
 }
