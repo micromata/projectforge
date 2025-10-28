@@ -287,7 +287,11 @@ class AddressPagesRest
 
         // Form of address and communication language
         addField("form", vcfData?.form?.toString(), dbData?.form?.toString())
-        addField("communicationLanguage", vcfData?.communicationLanguage?.displayName, dbData?.communicationLanguage?.displayName)
+        addField(
+            "communicationLanguage",
+            vcfData?.communicationLanguage?.displayName,
+            dbData?.communicationLanguage?.displayName
+        )
 
         return result
     }
@@ -437,7 +441,12 @@ class AddressPagesRest
                     }
 
                     // Save updated import storage back to session
-                    ExpiringSessionAttributes.setAttribute(request, org.projectforge.rest.address.importer.AddressImportUploadPageRest.SESSION_IMPORT_STORAGE_ATTR, importStorage, 30)
+                    ExpiringSessionAttributes.setAttribute(
+                        request,
+                        org.projectforge.rest.address.importer.AddressImportUploadPageRest.SESSION_IMPORT_STORAGE_ATTR,
+                        importStorage,
+                        30
+                    )
                     log.info { "Import storage re-reconciled successfully" }
                 } else {
                     log.warn { "Import storage not found in session (expired?)" }
@@ -448,7 +457,12 @@ class AddressPagesRest
         }
     }
 
-    override fun onAfterEdit(request: HttpServletRequest, obj: AddressDO, postData: PostData<Address>, event: RestButtonEvent): ResponseAction {
+    override fun onAfterEdit(
+        request: HttpServletRequest,
+        obj: AddressDO,
+        postData: PostData<Address>,
+        event: RestButtonEvent
+    ): ResponseAction {
         // Check if this was opened in modal context (captured from query param in onGetItemAndLayout)
         val modal = postData.serverData?.returnToCallerParams?.get("modal")
         if (modal == "true") {
@@ -470,8 +484,15 @@ class AddressPagesRest
                     if (importStorage != null) {
                         // Build updated import entries list
                         val entries = importStorage.pairEntries.mapIndexed { index, pairEntry ->
-                            val additionalChanges = org.projectforge.rest.address.importer.AddressImportUploadPageRest.calculateAdditionalChanges(pairEntry.oldDiffValues)
-                            org.projectforge.rest.address.importer.AddressImportUploadPageRest.ImportEntryData(pairEntry, index, additionalChanges)
+                            val additionalChanges =
+                                org.projectforge.rest.address.importer.AddressImportUploadPageRest.calculateAdditionalChanges(
+                                    pairEntry.oldDiffValues
+                                )
+                            org.projectforge.rest.address.importer.AddressImportUploadPageRest.ImportEntryData(
+                                pairEntry,
+                                index,
+                                additionalChanges
+                            )
                         }
 
                         // Return CLOSE_MODAL with updated import entries
@@ -628,23 +649,19 @@ class AddressPagesRest
         )
         layout.excelExportSupported = true
         layout.add(exportMenu, 0)
-        if (SystemStatus.isDevelopmentMode()) {
-            log.info { "**** vCardsImport is only available on development mode. It's not yet finished." }
-            // Add VCF Import menu item
-            layout.add(
-                MenuItem(
-                    "address.vCardsImport",
-                    i18nKey = "import",
-                    url = PagesResolver.getDynamicPageUrl(
-                        org.projectforge.rest.address.importer.AddressImportUploadPageRest::class.java,
-                        absolute = false
-                    ),
-                    type = MenuItemTargetType.REDIRECT
+        // Add VCF Import menu item
+        layout.add(
+            MenuItem(
+                "address.vCardsImport",
+                i18nKey = "import",
+                url = PagesResolver.getDynamicPageUrl(
+                    org.projectforge.rest.address.importer.AddressImportUploadPageRest::class.java,
+                    absolute = false
                 ),
-                0,
-            )
-        }
-
+                type = MenuItemTargetType.REDIRECT
+            ),
+            0,
+        )
 
         layout.getMenuById(GEAR_MENU)?.add(
             MenuItem(
@@ -1099,7 +1116,7 @@ class AddressPagesRest
         if (applyImage) {
             val session = httpRequest.getSession(false)
             val vcfImage = ExpiringSessionAttributes.getAttribute(session, SESSION_VCF_IMAGE_ATTR)
-                as? AddressServicesRest.SessionVcfImage
+                    as? AddressServicesRest.SessionVcfImage
 
             if (vcfImage != null && !vcfImage.imageTooLarge) {
                 // Send image bytes to frontend (Base64-encoded)
