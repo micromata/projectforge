@@ -85,13 +85,14 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
                 "read.name",
                 "read.firstName",
                 "read.organization",
+                "read.formattedBusinessAddress",
+                "read.formattedPrivateAddress",
+                "read.formattedPostalAddress",
                 "read.email",
                 "read.businessPhone",
                 "read.mobilePhone",
-                "read.city",
                 "read.privateEmail",
                 "read.privatePhone",
-                "read.privateCity",
                 "read.website",
                 "read.comment",
             )
@@ -312,6 +313,15 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
         // Organization
         addReadColumn(agGrid, lc, AddressDO::organization, width = 200, wrapText = true)
 
+        // Formatted Business Address
+        addFormattedAddressColumn(agGrid, "formattedBusinessAddress", "address.heading.businessAddress", width = 300)
+
+        // Formatted Private Address
+        addFormattedAddressColumn(agGrid, "formattedPrivateAddress", "address.heading.privateAddress", width = 300)
+
+        // Formatted Postal Address
+        addFormattedAddressColumn(agGrid, "formattedPostalAddress", "address.heading.postalAddress", width = 300)
+
         // Business Email
         addReadColumn(agGrid, lc, AddressDO::email, width = 200)
 
@@ -321,17 +331,11 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
         // Mobile Phone
         addReadColumn(agGrid, lc, AddressDO::mobilePhone, width = 150)
 
-        // City (Business)
-        addReadColumn(agGrid, lc, AddressDO::city, width = 150)
-
         // Private Email
         addReadColumn(agGrid, lc, AddressDO::privateEmail, width = 200)
 
         // Private Phone
         addReadColumn(agGrid, lc, AddressDO::privatePhone, width = 150)
-
-        // Private City
-        addReadColumn(agGrid, lc, AddressDO::privateCity, width = 150)
 
         // Website
         addReadColumn(agGrid, lc, AddressDO::website, width = 200)
@@ -366,6 +370,25 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
             lcField = field,
             width = width,
             wrapText = wrapText,
+        )
+        col.cellRenderer = "diffCell"
+        agGrid.add(col)
+    }
+
+    /**
+     * Helper method to add a formatted address column with diff rendering.
+     */
+    private fun addFormattedAddressColumn(
+        agGrid: UIAgGrid,
+        fieldName: String,
+        headerNameKey: String,
+        width: Int? = null,
+    ) {
+        val col = UIAgGridColumnDef.createCol(
+            field = "read.$fieldName",
+            headerName = headerNameKey,
+            width = width ?: 300,
+            wrapText = true,
         )
         col.cellRenderer = "diffCell"
         agGrid.add(col)

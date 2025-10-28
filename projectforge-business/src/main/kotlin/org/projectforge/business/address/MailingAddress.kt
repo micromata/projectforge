@@ -44,6 +44,45 @@ data class MailingAddress(
      */
     val formattedAddress: String?
         get() {
+            val formatted = format(addressText, addressText2, zipCode, city, country, state)
+            return if (formatted.isNotEmpty()) formatted else null
+        }
+
+    /**
+     * Returns true if the address is valid (has both zipCode and city).
+     */
+    val isValid: Boolean
+        get() = !zipCode.isNullOrBlank() && !city.isNullOrBlank()
+
+    /**
+     * Constructor that creates a MailingAddress from an AddressDO.
+     * Uses the mailing address methods to get the first available address (postal → business → private).
+     */
+    constructor(src: AddressDO) : this() {
+        addressText = src.mailingAddressText
+        addressText2 = src.mailingAddressText2
+        zipCode = src.mailingZipCode
+        city = src.mailingCity
+        country = src.mailingCountry
+        state = src.mailingState
+    }
+
+    companion object {
+        /**
+         * Formats an address from individual fields into a multi-line string.
+         * Format: addressText\naddressText2\nzipCode city\ncountry - state
+         * Only includes lines and fields if values are given.
+         *
+         * @return Formatted address string or empty string if no fields are present
+         */
+        fun format(
+            addressText: String?,
+            addressText2: String?,
+            zipCode: String?,
+            city: String?,
+            country: String?,
+            state: String?,
+        ): String {
             val lines = mutableListOf<String>()
 
             // Add address text lines
@@ -66,25 +105,7 @@ data class MailingAddress(
                 lines.add(countryLine.joinToString(" - "))
             }
 
-            return if (lines.isNotEmpty()) lines.joinToString("\n") else null
+            return lines.joinToString("\n")
         }
-
-    /**
-     * Returns true if the address is valid (has both zipCode and city).
-     */
-    val isValid: Boolean
-        get() = !zipCode.isNullOrBlank() && !city.isNullOrBlank()
-
-    /**
-     * Constructor that creates a MailingAddress from an AddressDO.
-     * Uses the mailing address methods to get the first available address (postal → business → private).
-     */
-    constructor(src: AddressDO) : this() {
-        addressText = src.mailingAddressText
-        addressText2 = src.mailingAddressText2
-        zipCode = src.mailingZipCode
-        city = src.mailingCity
-        country = src.mailingCountry
-        state = src.mailingState
     }
 }
