@@ -26,12 +26,9 @@ package org.projectforge.rest
 import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
-import org.projectforge.SystemStatus
 import org.projectforge.business.address.*
 import org.projectforge.business.address.vcard.VCardUtils
 import org.projectforge.business.sipgate.SipgateConfiguration
-import org.projectforge.framework.time.PFDayUtils
-import org.projectforge.framework.utils.LocaleUtils
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -40,6 +37,8 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUserId
 import org.projectforge.framework.time.DateHelper
+import org.projectforge.framework.time.PFDayUtils
+import org.projectforge.framework.utils.LocaleUtils
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
@@ -62,7 +61,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 import java.util.*
-import java.util.Base64
 
 private val log = KotlinLogging.logger {}
 

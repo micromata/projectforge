@@ -1,5 +1,6 @@
 import {
     LIST_CALL_SUCCESS,
+    LIST_CATEGORY_RESET,
     LIST_DISMISS_ERROR,
     LIST_FAVORITES_RECEIVED,
     LIST_FETCH_DATA_BEGIN,
@@ -170,6 +171,12 @@ const reducer = (state = initialState, action = {}) => {
     switch (type) {
         case USER_LOGIN_BEGIN:
             return initialState;
+        case LIST_CATEGORY_RESET: {
+            // Remove category from state to force fresh initialCall on next load
+            const { category } = payload;
+            const { [category]: _removed, ...rest } = state;
+            return rest;
+        }
         case LIST_DISMISS_ERROR:
         case LIST_INITIAL_CALL_BEGIN:
         case LIST_FETCH_DATA_BEGIN:
