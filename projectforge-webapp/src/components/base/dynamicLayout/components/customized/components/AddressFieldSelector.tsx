@@ -251,9 +251,16 @@ function AddressFieldSelector({
         );
     }
 
-    const entries = Object.entries(fields).filter(([, field]) => {
-        const value = typeof field === 'object' && field !== null ? field.value : field;
-        return value;
+    const entries = Object.entries(fields).filter(([fieldName, field]) => {
+        const fieldObj = typeof field === 'object' && field !== null ? field : null;
+        const value = fieldObj?.value || field;
+        const fieldCurrentValue = fieldObj?.currentValue;
+        const currentValue = fieldCurrentValue !== undefined ? fieldCurrentValue : currentData?.[fieldName];
+
+        // Show field if:
+        // - value is present (new or changed field)
+        // - OR value is empty but currentValue is filled (deletion)
+        return value || (!value && currentValue);
     });
     const nonAddressFields = entries.filter(([fn]) => !isAddressField(fn));
 
