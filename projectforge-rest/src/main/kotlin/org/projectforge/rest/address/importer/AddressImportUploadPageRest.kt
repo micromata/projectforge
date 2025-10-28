@@ -246,10 +246,11 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
         agGrid.onColumnStatesChangedUrl = RestResolver.getRestUrl(this::class.java, RestPaths.SET_COLUMN_STATES)
         agGrid.resetGridStateUrl = RestResolver.getRestUrl(this::class.java, "resetGridState")
 
+        // IMPORTANT: First create columns, THEN restore user preferences
+        createImportListColumns(agGrid)
+
         // Restore saved grid state (column order, width, filters, etc.)
         agGridSupport.restoreColumnsFromUserPref(category, agGrid)
-
-        createImportListColumns(agGrid)
 
         // Row styling based on status
         agGrid.withGetRowClass(
@@ -441,12 +442,27 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
     }
 
     /**
-     * POST endpoint: Resets grid state to defaults
+     * GET endpoint: Resets grid state to defaults.
+     * Returns ResponseAction with fresh columnDefs, sortModel, and empty filterModel.
      */
-    @PostMapping("resetGridState")
-    fun resetGridState(): String {
+    @GetMapping("resetGridState")
+    fun resetGridState(request: HttpServletRequest): ResponseAction {
         agGridSupport.resetGridState(category)
-        return "OK"
+
+        // Get import storage and rebuild layout to get fresh columnDefs
+        val importStorage = getImportStorage(request)
+        if (importStorage != null) {
+            val formLayoutData = createImportListFormLayoutData(request, importStorage)
+
+            // Extract AG Grid element using AGGridSupport helper
+            val agGridElement = agGridSupport.findAgGridElement(formLayoutData.ui)
+
+            // Create ResponseAction using AGGridSupport helper
+            return agGridSupport.createResetGridStateResponse(agGridElement)
+        }
+
+        // No import storage - return empty response
+        return ResponseAction(targetType = TargetType.UPDATE)
     }
 
     /**
