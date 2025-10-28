@@ -81,19 +81,43 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
             }
 
             // Fields that are already shown as individual columns (using "read." prefix from diffCell)
+            // Note: Individual address, email and phone fields are included here even though they don't have
+            // their own columns anymore - they're part of the formatted columns
+            // (formattedBusinessAddress, formattedPrivateAddress, formattedPostalAddress, formattedEmails, formattedPhones)
             val displayedFields = setOf(
                 "read.name",
                 "read.firstName",
                 "read.organization",
                 "read.formattedBusinessAddress",
+                "read.addressText",
+                "read.addressText2",
+                "read.zipCode",
+                "read.city",
+                "read.country",
+                "read.state",
                 "read.formattedPrivateAddress",
+                "read.privateAddressText",
+                "read.privateAddressText2",
+                "read.privateZipCode",
+                "read.privateCity",
+                "read.privateCountry",
+                "read.privateState",
                 "read.formattedPostalAddress",
+                "read.postalAddressText",
+                "read.postalAddressText2",
+                "read.postalZipCode",
+                "read.postalCity",
+                "read.postalCountry",
+                "read.postalState",
+                "read.formattedEmails",
                 "read.email",
+                "read.privateEmail",
+                "read.formattedPhones",
                 "read.businessPhone",
                 "read.mobilePhone",
-                "read.privateEmail",
                 "read.privatePhone",
-                "read.website",
+                "read.privateMobilePhone",
+                "read.fax",
                 "read.comment",
             )
 
@@ -316,29 +340,17 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
         // Formatted Business Address
         addFormattedAddressColumn(agGrid, "formattedBusinessAddress", "address.heading.businessAddress", width = 300)
 
+        // Formatted Emails (Business + Private)
+        addFormattedAddressColumn(agGrid, "formattedEmails", "address.emails", width = 250)
+
+        // Formatted Phones (Business + Mobile + Private + Private Mobile)
+        addFormattedAddressColumn(agGrid, "formattedPhones", "address.phoneNumbers", width = 250)
+
         // Formatted Private Address
         addFormattedAddressColumn(agGrid, "formattedPrivateAddress", "address.heading.privateAddress", width = 300)
 
         // Formatted Postal Address
         addFormattedAddressColumn(agGrid, "formattedPostalAddress", "address.heading.postalAddress", width = 300)
-
-        // Business Email
-        addReadColumn(agGrid, lc, AddressDO::email, width = 200)
-
-        // Business Phone
-        addReadColumn(agGrid, lc, AddressDO::businessPhone, width = 150)
-
-        // Mobile Phone
-        addReadColumn(agGrid, lc, AddressDO::mobilePhone, width = 150)
-
-        // Private Email
-        addReadColumn(agGrid, lc, AddressDO::privateEmail, width = 200)
-
-        // Private Phone
-        addReadColumn(agGrid, lc, AddressDO::privatePhone, width = 150)
-
-        // Website
-        addReadColumn(agGrid, lc, AddressDO::website, width = 200)
 
         // Comment
         addReadColumn(agGrid, lc, AddressDO::comment, width = 200, wrapText = true)

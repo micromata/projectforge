@@ -171,6 +171,50 @@ class AddressImportDTO(
     val formattedPostalAddress: String
         get() = MailingAddress.format(postalAddressText, postalAddressText2, postalZipCode, postalCity, postalCountry, postalState)
 
+    /**
+     * Returns formatted email addresses as multi-line string with labels.
+     * Format: "geschäftlich: abc@def.de\nprivat: xyz@example.com"
+     */
+    @get:Transient
+    val formattedEmails: String
+        get() {
+            val lines = mutableListOf<String>()
+
+            email?.trim()?.takeIf { it.isNotBlank() }?.let {
+                lines.add("${org.projectforge.framework.i18n.translate("address.business")}: $it")
+            }
+            privateEmail?.trim()?.takeIf { it.isNotBlank() }?.let {
+                lines.add("${org.projectforge.framework.i18n.translate("address.private")}: $it")
+            }
+
+            return lines.joinToString("\n")
+        }
+
+    /**
+     * Returns formatted phone numbers as multi-line string with labels.
+     * Format: "geschäftlich: +49...\nmobil: +49...\nprivat: +49...\nprivat mobil: +49..."
+     */
+    @get:Transient
+    val formattedPhones: String
+        get() {
+            val lines = mutableListOf<String>()
+
+            businessPhone?.trim()?.takeIf { it.isNotBlank() }?.let {
+                lines.add("${org.projectforge.framework.i18n.translate("address.phoneType.business.short")}: $it")
+            }
+            mobilePhone?.trim()?.takeIf { it.isNotBlank() }?.let {
+                lines.add("${org.projectforge.framework.i18n.translate("address.phoneType.mobile.short")}: $it")
+            }
+            privatePhone?.trim()?.takeIf { it.isNotBlank() }?.let {
+                lines.add("${org.projectforge.framework.i18n.translate("address.phoneType.private.short")}: $it")
+            }
+            privateMobilePhone?.trim()?.takeIf { it.isNotBlank() }?.let {
+                lines.add("${org.projectforge.framework.i18n.translate("address.phoneType.privateMobile.short")}: $it")
+            }
+
+            return lines.joinToString("\n")
+        }
+
     override val properties: Array<KProperty<*>>
         get() = arrayOf(
             AddressDO::name,
@@ -320,6 +364,20 @@ class AddressImportDTO(
         val oldPostalAddr = old.formattedPostalAddress
         if (newPostalAddr != oldPostalAddr) {
             map["read.formattedPostalAddress"] = oldPostalAddr
+        }
+
+        // Add formatted emails to diff if they differ
+        val newEmails = this.formattedEmails
+        val oldEmails = old.formattedEmails
+        if (newEmails != oldEmails) {
+            map["read.formattedEmails"] = oldEmails
+        }
+
+        // Add formatted phones to diff if they differ
+        val newPhones = this.formattedPhones
+        val oldPhones = old.formattedPhones
+        if (newPhones != oldPhones) {
+            map["read.formattedPhones"] = oldPhones
         }
     }
 
