@@ -22,6 +22,10 @@ const loadTasksBounced = (
         setNodes,
         setColumnDefs,
         setTranslations,
+        setSortModel,
+        setFilterModel,
+        setOnColumnStatesChangedUrl,
+        setResetGridStateUrl,
         showRootForAdmins,
     },
 ) => {
@@ -54,6 +58,10 @@ const loadTasksBounced = (
                 columnDefs,
                 translations: responseTranslations,
                 initFilter,
+                sortModel: responseSortModel,
+                filterModel: responseFilterModel,
+                onColumnStatesChangedUrl: responseOnColumnStatesChangedUrl,
+                resetGridStateUrl: responseResetGridStateUrl,
             },
         ) => {
             if (responseTranslations) {
@@ -70,6 +78,18 @@ const loadTasksBounced = (
                 }
                 if (columnDefs) {
                     setColumnDefs(columnDefs);
+                }
+                if (responseSortModel !== undefined) {
+                    setSortModel(responseSortModel);
+                }
+                if (responseFilterModel !== undefined) {
+                    setFilterModel(responseFilterModel);
+                }
+                if (responseOnColumnStatesChangedUrl) {
+                    setOnColumnStatesChangedUrl(responseOnColumnStatesChangedUrl);
+                }
+                if (responseResetGridStateUrl) {
+                    setResetGridStateUrl(responseResetGridStateUrl);
                 }
             }
             setLoading(false);
@@ -99,6 +119,10 @@ function TaskTreePanel(
     const [translations, setTranslations] = React.useState({});
     const [nodes, setNodes] = React.useState([]);
     const [columnDefs, setColumnDefs] = React.useState([]);
+    const [sortModel, setSortModel] = React.useState(undefined);
+    const [filterModel, setFilterModel] = React.useState(undefined);
+    const [onColumnStatesChangedUrl, setOnColumnStatesChangedUrl] = React.useState(undefined);
+    const [resetGridStateUrl, setResetGridStateUrl] = React.useState(undefined);
     const [loadTasksDebounced] = React.useState(
         () => AwesomeDebouncePromise(loadTasksBounced, debouncedWaitTime),
     );
@@ -129,6 +153,10 @@ function TaskTreePanel(
             setNodes,
             setColumnDefs,
             setTranslations,
+            setSortModel,
+            setFilterModel,
+            setOnColumnStatesChangedUrl,
+            setResetGridStateUrl,
             showRootForAdmins,
         });
     };
@@ -208,6 +236,10 @@ function TaskTreePanel(
                             columnDefs={columnDefs}
                             consumptionBarClickable={consumptionBarClickable}
                             selectTask={selectTask}
+                            sortModel={sortModel}
+                            filterModel={filterModel}
+                            onColumnStatesChangedUrl={onColumnStatesChangedUrl}
+                            resetGridStateUrl={resetGridStateUrl}
                         />
                     </TaskTreeContext.Provider>
                 </CardBody>
