@@ -28,6 +28,7 @@ import mu.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressImageDO
 import org.projectforge.business.address.FormOfAddress
+import org.projectforge.business.address.MailingAddress
 import org.projectforge.common.StringMatchUtils
 import org.projectforge.rest.dto.BaseDTO
 import org.projectforge.rest.importer.ImportPairEntry
@@ -148,6 +149,27 @@ class AddressImportDTO(
     @get:Transient
     val transientImage: AddressImageDO?
         get() = getTransientAttribute("image") as? AddressImageDO
+
+    /**
+     * Returns formatted business address as multi-line string.
+     */
+    @get:Transient
+    val formattedBusinessAddress: String
+        get() = MailingAddress.format(addressText, addressText2, zipCode, city, country, state)
+
+    /**
+     * Returns formatted private address as multi-line string.
+     */
+    @get:Transient
+    val formattedPrivateAddress: String
+        get() = MailingAddress.format(privateAddressText, privateAddressText2, privateZipCode, privateCity, privateCountry, privateState)
+
+    /**
+     * Returns formatted postal address as multi-line string.
+     */
+    @get:Transient
+    val formattedPostalAddress: String
+        get() = MailingAddress.format(postalAddressText, postalAddressText2, postalZipCode, postalCity, postalCountry, postalState)
 
     override val properties: Array<KProperty<*>>
         get() = arrayOf(
@@ -281,7 +303,24 @@ class AddressImportDTO(
     }
 
     override fun buildOldDiffValues(map: MutableMap<String, Any>, old: AddressImportDTO) {
-        // No custom diff values needed for addresses
+        // Add formatted addresses to diff if they differ
+        val newBusinessAddr = this.formattedBusinessAddress
+        val oldBusinessAddr = old.formattedBusinessAddress
+        if (newBusinessAddr != oldBusinessAddr) {
+            map["read.formattedBusinessAddress"] = oldBusinessAddr
+        }
+
+        val newPrivateAddr = this.formattedPrivateAddress
+        val oldPrivateAddr = old.formattedPrivateAddress
+        if (newPrivateAddr != oldPrivateAddr) {
+            map["read.formattedPrivateAddress"] = oldPrivateAddr
+        }
+
+        val newPostalAddr = this.formattedPostalAddress
+        val oldPostalAddr = old.formattedPostalAddress
+        if (newPostalAddr != oldPostalAddr) {
+            map["read.formattedPostalAddress"] = oldPostalAddr
+        }
     }
 
     /**
