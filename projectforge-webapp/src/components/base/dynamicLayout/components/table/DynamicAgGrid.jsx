@@ -41,6 +41,7 @@ function DynamicAgGrid(props) {
         id, // If given, data.id is used as entries
         entries, // own entries (not data.id)
         sortModel,
+        filterModel,
         rowSelection,
         rowClickRedirectUrl,
         rowClickFunction,
@@ -109,6 +110,12 @@ function DynamicAgGrid(props) {
             state: sortModel,
             defaultState: { sort: null },
         });
+
+        // Restore filter model from server if available
+        if (filterModel) {
+            params.api.setFilterModel(filterModel);
+        }
+
         if (onGridApiReady) {
             onGridApiReady(params.api, params.columnApi);
         }
@@ -116,7 +123,7 @@ function DynamicAgGrid(props) {
             // params.api.setDomLayout('autoHeight'); // Needed to get maximum height.
         }
         // showHighlightedRow();
-    }, [selectedEntityIds, setGridApi]);
+    }, [selectedEntityIds, setGridApi, filterModel]);
 
     React.useEffect(() => {
         if (gridApi && selectedEntityIds) {
@@ -266,13 +273,17 @@ function DynamicAgGrid(props) {
     const postColumnStates = (event) => {
         if (onColumnStatesChangedUrl) {
             const columnState = event.api.getColumnState();
+            const currentFilterModel = event.api.getFilterModel();
             fetch(getServiceURL(onColumnStatesChangedUrl), {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(columnState),
+                body: JSON.stringify({
+                    columnState,
+                    filterModel: currentFilterModel,
+                }),
             });
         }
     };
@@ -296,6 +307,10 @@ function DynamicAgGrid(props) {
     };
 
     const onColumnMoved = async (event) => {
+        await postColumnStatesDebounced(event);
+    };
+
+    const onFilterChanged = async (event) => {
         await postColumnStatesDebounced(event);
     };
 
@@ -374,17 +389,26 @@ function DynamicAgGrid(props) {
                             const {
                                 columnDefs: resetColumnDefs,
                                 sortModel: resetSortModel,
+                                filterModel: resetFilterModel,
                             } = responseAction.variables || {};
 
                             if (resetColumnDefs) {
                                 // Update AG Grid directly via API
                                 gridApi.setGridOption('columnDefs', resetColumnDefs);
 
+                                // Reset all column states (width, position, etc.) to defaults
+                                gridApi.resetColumnState();
+
                                 if (resetSortModel) {
                                     gridApi.applyColumnState({
                                         state: resetSortModel,
                                         defaultState: { sort: null },
                                     });
+                                }
+
+                                // Reset filters
+                                if (resetFilterModel !== undefined) {
+                                    gridApi.setFilterModel(resetFilterModel);
                                 }
                             }
                         })
@@ -423,6 +447,7 @@ function DynamicAgGrid(props) {
                     onColumnResized={onColumnResized}
                     onColumnVisible={onColumnVisible}
                     onColumnPinned={onColumnPinned}
+                    onFilterChanged={onFilterChanged}
                     onRowClicked={onRowClicked}
                     onCellClicked={onCellClicked}
                     pagination={pagination}

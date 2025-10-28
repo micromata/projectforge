@@ -21,13 +21,20 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.core.aggrid
+package org.projectforge.rest.dto.aggrid
 
 /**
- * For saving current gridState in user's pref.
+ * Request DTO for saving AG-Grid state (column state and filter model).
+ * This is sent from the frontend when grid state changes.
  */
-class GridState {
-  var columnState: List<ColumnStateEntry>? = null
-  var sortModel: MutableList<SortModelEntry>? = null
-  var filterModel: Map<String, Any>? = null
+class AGGridStateRequest {
+    /**
+     * Column state from AG-Grid (sorting, width, visibility, etc.)
+     */
+    var columnState: List<AGColumnState>? = null
+
+    /**
+     * Filter model from AG-Grid (all active filters)
+     */
+    var filterModel: Map<String, Any>? = null
 }

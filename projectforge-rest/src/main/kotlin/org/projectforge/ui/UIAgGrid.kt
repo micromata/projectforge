@@ -66,6 +66,8 @@ open class UIAgGrid(
 
     var sortModel: List<SortModelEntry>? = null
 
+    var filterModel: Map<String, Any>? = null
+
     /**
      * This url should be called with all selected rows to proceed the user action (mass update, export etc.)
      */

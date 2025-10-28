@@ -11,6 +11,7 @@ function DynamicListPageAgGrid({
     selectionColumnDef,
     id,
     sortModel,
+    filterModel,
     rowSelection,
     rowMultiSelectWithClick,
     rowClickRedirectUrl,
@@ -99,6 +100,7 @@ function DynamicListPageAgGrid({
                     selectionColumnDef={selectionColumnDef}
                     id={id}
                     sortModel={sortModel}
+                    filterModel={filterModel}
                     rowSelection={rowSelection}
                     rowClickRedirectUrl={rowClickRedirectUrl}
                     rowClickOpenModal={rowClickOpenModal}
@@ -118,6 +120,7 @@ function DynamicListPageAgGrid({
             columnDefs,
             selectionColumnDef,
             sortModel,
+            filterModel,
             rowSelection,
             rowMultiSelectWithClick,
             paginationPageSize,
@@ -144,6 +147,8 @@ DynamicListPageAgGrid.propTypes = {
         sort: PropTypes.string,
         sortIndex: PropTypes.number,
     })),
+    // eslint-disable-next-line react/forbid-prop-types
+    filterModel: PropTypes.object,
     rowSelection: PropTypes.shape({
         mode: PropTypes.string,
         enableClickSelection: PropTypes.bool,
