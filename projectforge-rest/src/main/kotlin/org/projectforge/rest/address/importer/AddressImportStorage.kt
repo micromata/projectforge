@@ -173,6 +173,12 @@ class AddressImportStorage : ImportStorage<AddressImportDTO>(
         // Sort entries by name for better UI presentation
         sortPairEntriesByName()
 
+        // Trigger oldDiffValues calculation for all entries
+        // This ensures additionalChanges can be calculated
+        pairEntries.forEach { entry ->
+            entry.isModified() // This populates oldDiffValues if not already set
+        }
+
         // Restore IMPORTED status for entries that were previously marked
         importedStatuses.forEach { (index, status) ->
             if (index >= 0 && index < pairEntries.size) {

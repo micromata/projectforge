@@ -470,7 +470,8 @@ class AddressPagesRest
                     if (importStorage != null) {
                         // Build updated import entries list
                         val entries = importStorage.pairEntries.mapIndexed { index, pairEntry ->
-                            org.projectforge.rest.address.importer.AddressImportUploadPageRest.ImportEntryData(pairEntry, index)
+                            val additionalChanges = org.projectforge.rest.address.importer.AddressImportUploadPageRest.calculateAdditionalChanges(pairEntry.oldDiffValues)
+                            org.projectforge.rest.address.importer.AddressImportUploadPageRest.ImportEntryData(pairEntry, index, additionalChanges)
                         }
 
                         // Return CLOSE_MODAL with updated import entries
