@@ -649,39 +649,11 @@ constructor(
         agGridSupport.resetGridState(category)
         val initialList = getInitialList(request, getCurrentFilter())
 
-        // Extract AG Grid element and its column definitions
-        val agGridElement = findAgGridElement(initialList.ui)
+        // Extract AG Grid element and its column definitions using AGGridSupport helper
+        val agGridElement = agGridSupport.findAgGridElement(initialList.ui)
 
-        return ResponseAction(targetType = TargetType.UPDATE).apply {
-            if (agGridElement != null) {
-                addVariable("columnDefs", agGridElement.columnDefs)
-                agGridElement.sortModel?.let { addVariable("sortModel", it) }
-                addVariable("filterModel", emptyMap<String, Any>())
-            }
-        }
-    }
-
-    private fun findAgGridElement(layout: UILayout?): UIAgGrid? {
-        layout ?: return null
-        // Search in layout.layout first (where AG Grid is usually added)
-        findAgGridInContent(layout.layout)?.let { return it }
-        // Also search in namedContainers for completeness
-        return findAgGridInContent(layout.namedContainers.flatMap { it.content })
-    }
-
-    private fun findAgGridInContent(content: List<UIElement>): UIAgGrid? {
-        for (element in content) {
-            when (element) {
-                is UIAgGrid -> return element
-                is UIGroup -> findAgGridInContent(element.content)?.let { return it }
-                is UIInlineGroup -> findAgGridInContent(element.content)?.let { return it }
-                is UIRow -> findAgGridInContent(element.content)?.let { return it }
-                is UICol -> findAgGridInContent(element.content)?.let { return it }
-                is UIFieldset -> findAgGridInContent(element.content)?.let { return it }
-                is UIList -> findAgGridInContent(element.content)?.let { return it }
-            }
-        }
-        return null
+        // Create ResponseAction using AGGridSupport helper
+        return agGridSupport.createResetGridStateResponse(agGridElement)
     }
 
     /**

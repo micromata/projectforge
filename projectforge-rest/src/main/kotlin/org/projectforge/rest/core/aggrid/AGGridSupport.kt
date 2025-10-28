@@ -234,6 +234,59 @@ class AGGridSupport {
         agGrid.filterModel = getFilterModel(category)
     }
 
+    /**
+     * Finds the AG Grid element in a UI layout.
+     * Searches recursively through all UI elements and containers.
+     *
+     * @param layout The UI layout to search in
+     * @return The first UIAgGrid found, or null if none exists
+     */
+    fun findAgGridElement(layout: UILayout?): UIAgGrid? {
+        layout ?: return null
+        // Search in layout.layout first (where AG Grid is usually added)
+        findAgGridInContent(layout.layout)?.let { return it }
+        // Also search in namedContainers for completeness
+        return findAgGridInContent(layout.namedContainers.flatMap { it.content })
+    }
+
+    /**
+     * Recursively searches for UIAgGrid in a list of UI elements.
+     *
+     * @param content List of UI elements to search
+     * @return The first UIAgGrid found, or null if none exists
+     */
+    fun findAgGridInContent(content: List<UIElement>): UIAgGrid? {
+        for (element in content) {
+            when (element) {
+                is UIAgGrid -> return element
+                is UIGroup -> findAgGridInContent(element.content)?.let { return it }
+                is UIInlineGroup -> findAgGridInContent(element.content)?.let { return it }
+                is UIRow -> findAgGridInContent(element.content)?.let { return it }
+                is UICol -> findAgGridInContent(element.content)?.let { return it }
+                is UIFieldset -> findAgGridInContent(element.content)?.let { return it }
+                is UIList -> findAgGridInContent(element.content)?.let { return it }
+            }
+        }
+        return null
+    }
+
+    /**
+     * Creates a ResponseAction for resetting grid state.
+     * Includes columnDefs, sortModel, and an empty filterModel.
+     *
+     * @param agGrid The AG Grid element with default column definitions
+     * @return ResponseAction with UPDATE target type and grid state variables
+     */
+    fun createResetGridStateResponse(agGrid: UIAgGrid?): ResponseAction {
+        return ResponseAction(targetType = TargetType.UPDATE).apply {
+            if (agGrid != null) {
+                addVariable("columnDefs", agGrid.columnDefs)
+                agGrid.sortModel?.let { addVariable("sortModel", it) }
+                addVariable("filterModel", emptyMap<String, Any>())
+            }
+        }
+    }
+
     companion object {
         const val USER_PREF_PARAM_GRID_STATE = "gridState"
     }
