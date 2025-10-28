@@ -24,11 +24,13 @@
 package org.projectforge.rest.address.importer
 
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
 import mu.KotlinLogging
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressDO
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.FileCheck
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.AddressPagesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -43,6 +45,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -66,6 +69,49 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
          */
         @JvmStatic
         val SESSION_IMPORT_STORAGE_ATTR = "${AddressImportUploadPageRest::class.java.name}.importStorage"
+
+        /**
+         * Calculates which fields have changed (are in oldDiffValues) but are not shown as individual columns.
+         * Returns a translated, comma-separated list of additional changed fields.
+         */
+        @JvmStatic
+        fun calculateAdditionalChanges(oldDiffValues: Map<String, Any>?): String? {
+            if (oldDiffValues.isNullOrEmpty()) {
+                return null
+            }
+
+            // Fields that are already shown as individual columns (using "read." prefix from diffCell)
+            val displayedFields = setOf(
+                "read.name",
+                "read.firstName",
+                "read.organization",
+                "read.email",
+                "read.businessPhone",
+                "read.mobilePhone",
+                "read.city",
+                "read.privateEmail",
+                "read.privatePhone",
+                "read.privateCity",
+                "read.website",
+                "read.comment",
+            )
+
+            // Find all changed fields that are NOT displayed as individual columns
+            val additionalChangedFields = oldDiffValues.keys
+                .filter { !displayedFields.contains(it) }
+                .map { fieldKey ->
+                    // Remove "read." prefix and translate field name
+                    val fieldName = fieldKey.removePrefix("read.")
+                    translate("address.$fieldName")
+                }
+                .sorted()
+
+            return if (additionalChangedFields.isEmpty()) {
+                null
+            } else {
+                additionalChangedFields.joinToString(", ")
+            }
+        }
     }
 
     @Autowired
@@ -77,6 +123,8 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
     private val title: String = "address.book.vCardsImport.title"
 
     private val description: String = "address.book.vCardsImport.description"
+
+    private val category: String = "addressImportUpload"
 
     private val fileExtensions = arrayOf("vcf")
 
@@ -166,11 +214,15 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
     /**
      * Creates the import list FormLayoutData with reconciled addresses.
      */
-    private fun createImportListFormLayoutData(request: HttpServletRequest, importStorage: AddressImportStorage): FormLayoutData {
+    private fun createImportListFormLayoutData(
+        request: HttpServletRequest,
+        importStorage: AddressImportStorage
+    ): FormLayoutData {
         val layout = UILayout(title)
 
         // Info fieldset
-        val fieldset = UIFieldset(title = "${importStorage.filename ?: "Import"} - ${importStorage.pairEntries.size} ${translate("address.title.list")}")
+        val fieldset =
+            UIFieldset(title = "${importStorage.filename ?: "Import"} - ${importStorage.pairEntries.size} ${translate("address.title.list")}")
         layout.add(fieldset)
 
         fieldset.add(
@@ -189,6 +241,13 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
         // Configure row click to open Address edit page in modal
         // The importIndex will be added from row data (see ImportEntryData below)
         agGrid.withRowClickRedirectUrl("$editPageUrl/:id?importIndex={importIndex}", openModal = true)
+
+        // Enable grid state persistence (column order, width, filters, etc.)
+        agGrid.onColumnStatesChangedUrl = RestResolver.getRestUrl(this::class.java, RestPaths.SET_COLUMN_STATES)
+        agGrid.resetGridStateUrl = RestResolver.getRestUrl(this::class.java, "resetGridState")
+
+        // Restore saved grid state (column order, width, filters, etc.)
+        agGridSupport.restoreColumnsFromUserPref(category, agGrid)
 
         createImportListColumns(agGrid)
 
@@ -221,7 +280,8 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
 
         // Add entries to variables with index
         val entries = importStorage.pairEntries.mapIndexed { index, pairEntry ->
-            ImportEntryData(pairEntry, index)
+            val additionalChanges = calculateAdditionalChanges(pairEntry.oldDiffValues)
+            ImportEntryData(pairEntry, index, additionalChanges)
         }
         val formLayoutData = FormLayoutData(ImportUploadData(), layout, createServerData(request))
         formLayoutData.variables = mapOf("importEntries" to entries)
@@ -236,8 +296,9 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
         val lc = LayoutContext(AddressDO::class.java)
 
         // Status column
-        val statusCol = UIAgGridColumnDef.createCol(field = "statusAsString", width = 150, headerName = "status")
-            .withTooltipField("error")
+        val statusCol =
+            UIAgGridColumnDef.createCol(field = "statusAsString", width = 150, headerName = "status", filter = true)
+                .withTooltipField("error")
         statusCol.cellRenderer = "importStatusCell"
         agGrid.add(statusCol)
 
@@ -276,6 +337,15 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
 
         // Comment
         addReadColumn(agGrid, lc, AddressDO::comment, width = 200, wrapText = true)
+
+        // Additional Changes - shows all other changed fields not displayed as individual columns
+        val additionalChangesCol = UIAgGridColumnDef.createCol(
+            field = "additionalChanges",
+            headerName = "common.import.additionalChanges",
+            width = 250,
+            wrapText = true,
+        )
+        agGrid.add(additionalChangesCol)
     }
 
     /**
@@ -355,6 +425,28 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
             log.error("Error processing uploaded file: $filename", ex)
             return result(translate("file.upload.error") + ": ${ex.message}", isStatusError = true)
         }
+    }
+
+    /**
+     * POST endpoint: Saves grid state (column order, width, filters, etc.)
+     */
+    @PostMapping(RestPaths.SET_COLUMN_STATES)
+    fun updateColumnStates(@Valid @RequestBody gridStateRequest: org.projectforge.rest.dto.aggrid.AGGridStateRequest): String {
+        agGridSupport.storeGridState(
+            category,
+            gridStateRequest.columnState,
+            gridStateRequest.filterModel
+        )
+        return "OK"
+    }
+
+    /**
+     * POST endpoint: Resets grid state to defaults
+     */
+    @PostMapping("resetGridState")
+    fun resetGridState(): String {
+        agGridSupport.resetGridState(category)
+        return "OK"
     }
 
     /**
@@ -440,8 +532,14 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
         val id: Long?,
         // Add oldDiffValues for diff cell visualization (shows old values in modified cells)
         val oldDiffValues: Map<String, Any>?,
+        // Translated list of additional changed fields not shown as individual columns
+        val additionalChanges: String?,
     ) {
-        constructor(pairEntry: org.projectforge.rest.importer.ImportPairEntry<AddressImportDTO>, index: Int) : this(
+        constructor(
+            pairEntry: org.projectforge.rest.importer.ImportPairEntry<AddressImportDTO>,
+            index: Int,
+            additionalChanges: String?,
+        ) : this(
             importIndex = index,
             status = pairEntry.status.name,
             statusAsString = pairEntry.statusAsString,
@@ -450,6 +548,7 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
             stored = pairEntry.stored,
             id = pairEntry.stored?.id,
             oldDiffValues = pairEntry.oldDiffValues,
+            additionalChanges = additionalChanges,
         )
     }
 }
