@@ -52,6 +52,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.aggrid.AGGridSupport
 import org.projectforge.rest.dto.*
 import org.projectforge.rest.dto.aggrid.AGColumnState
+import org.projectforge.rest.dto.aggrid.AGGridStateRequest
 import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
@@ -655,6 +656,7 @@ constructor(
             if (agGridElement != null) {
                 addVariable("columnDefs", agGridElement.columnDefs)
                 agGridElement.sortModel?.let { addVariable("sortModel", it) }
+                addVariable("filterModel", emptyMap<String, Any>())
             }
         }
     }
@@ -954,12 +956,16 @@ constructor(
     }
 
     /**
-     * Will be called by clone button. Sets the id of the form data object to null and deleted to false.
-     * @return ResponseAction with [TargetType.UPDATE] and variable "initial" with all the initial data of [getItemAndLayout] as given for new objects.
+     * Will be called when grid state changes (column order, width, visibility, sorting, filters).
+     * @return "OK" string response
      */
     @PostMapping(RestPaths.SET_COLUMN_STATES)
-    fun updateColumnStates(@Valid @RequestBody columnStates: List<AGColumnState>): String {
-        agGridSupport.storeColumnState(category, columnStates)
+    fun updateColumnStates(@Valid @RequestBody gridStateRequest: AGGridStateRequest): String {
+        agGridSupport.storeGridState(
+            category,
+            gridStateRequest.columnState,
+            gridStateRequest.filterModel
+        )
         return "OK"
     }
 

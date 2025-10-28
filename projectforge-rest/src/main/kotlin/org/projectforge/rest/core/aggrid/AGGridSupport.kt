@@ -48,20 +48,32 @@ class AGGridSupport {
     @Autowired
     private lateinit var userPrefService: UserPrefService
 
-    fun storeColumnState(category: String, columnState: List<AGColumnState>) {
+    fun storeGridState(category: String, columnState: List<AGColumnState>?, filterModel: Map<String, Any>?) {
         val gridState = userPrefService.ensureEntry(category, USER_PREF_PARAM_GRID_STATE, GridState())
-        gridState.columnState =
-            columnState.map { ColumnStateEntry(colId = it.colId, hide = it.hide, width = it.width, pinned = it.pinned) }
-        val newSortModel = mutableListOf<SortModelEntry>()
-        columnState.forEach { entry ->
-            val colId = entry.colId
-            val sort = entry.sort
-            val sortIndex = entry.sortIndex
-            if (colId != null && sort != null && sortIndex != null) {
-                newSortModel.add(SortModelEntry(colId, entry.sort, entry.sortIndex))
+
+        // Store column state if provided
+        if (columnState != null) {
+            gridState.columnState =
+                columnState.map { ColumnStateEntry(colId = it.colId, hide = it.hide, width = it.width, pinned = it.pinned) }
+            val newSortModel = mutableListOf<SortModelEntry>()
+            columnState.forEach { entry ->
+                val colId = entry.colId
+                val sort = entry.sort
+                val sortIndex = entry.sortIndex
+                if (colId != null && sort != null && sortIndex != null) {
+                    newSortModel.add(SortModelEntry(colId, entry.sort, entry.sortIndex))
+                }
             }
+            gridState.sortModel = newSortModel
         }
-        gridState.sortModel = newSortModel
+
+        // Store filter model if provided
+        if (filterModel != null) {
+            gridState.filterModel = filterModel
+        }
+
+        // Persist the modified grid state
+        userPrefService.putEntry(category, USER_PREF_PARAM_GRID_STATE, gridState, true)
     }
 
     private fun getColumnState(category: String): List<ColumnStateEntry>? {
@@ -70,6 +82,10 @@ class AGGridSupport {
 
     private fun getSortModel(category: String): List<SortModelEntry>? {
         return userPrefService.getEntry(category, USER_PREF_PARAM_GRID_STATE, GridState::class.java)?.sortModel
+    }
+
+    private fun getFilterModel(category: String): Map<String, Any>? {
+        return userPrefService.getEntry(category, USER_PREF_PARAM_GRID_STATE, GridState::class.java)?.filterModel
     }
 
     /**
@@ -215,6 +231,7 @@ class AGGridSupport {
             }
         }
         agGrid.sortModel = getSortModel(category)
+        agGrid.filterModel = getFilterModel(category)
     }
 
     companion object {
