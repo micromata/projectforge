@@ -172,17 +172,20 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
                 const vcfNormalized = (vcfValue || '').trim();
                 const currentNormalized = (typeof currentFormValue === 'string' ? currentFormValue.trim() : String(currentFormValue || '')) || '';
 
-                // Only show fields that are new or changed
-                // New: vcfValue exists but current form value is empty/null
-                // Changed: vcfValue differs from current form value
-                if (vcfNormalized && vcfNormalized !== currentNormalized) {
+                // Detect field changes:
+                // - Deletion: VCF field is empty but DB has a value
+                // - New/Changed: VCF field has a value different from DB
+                const isDeletion = !vcfNormalized && currentNormalized;
+                const isNewOrChanged = vcfNormalized && vcfNormalized !== currentNormalized;
+
+                if (isNewOrChanged || isDeletion) {
                     fields[fieldName] = {
-                        value: vcfValue || '',
+                        value: vcfValue || '', // Empty string for deletions
                         confidence: 'high', // VCF data is always high confidence
                         currentValue: currentNormalized,
                     };
 
-                    // Pre-select all fields (since they're all new or changed)
+                    // Pre-select all fields (new, changed, or to be deleted)
                     selected[fieldName] = true;
                 }
             });
