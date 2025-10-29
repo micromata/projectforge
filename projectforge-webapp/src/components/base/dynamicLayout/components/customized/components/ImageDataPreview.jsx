@@ -3,7 +3,10 @@ import React from 'react';
 import { getServiceURL } from '../../../../../../utilities/rest';
 
 function CustomizedImageDataPreview({ data }) {
-    const { address, previewImageUrl } = data;
+    const { address, read, previewImageUrl } = data;
+
+    // Support both address (for address list) and read (for import table)
+    const addr = address || read;
 
     return React.useMemo(() => {
         if (!previewImageUrl) {
@@ -13,16 +16,26 @@ function CustomizedImageDataPreview({ data }) {
         return (
             <img
                 src={getServiceURL(previewImageUrl)}
-                alt={`${address.firstName} ${address.name} (${address.organization})`}
+                alt={`${addr?.firstName || ''} ${addr?.name || ''} (${addr?.organization || ''})`}
+                style={{
+                    maxWidth: '100%',
+                    maxHeight: '50px',
+                    objectFit: 'contain',
+                }}
             />
         );
-    }, [previewImageUrl, address]);
+    }, [previewImageUrl, addr]);
 }
 
 CustomizedImageDataPreview.propTypes = {
     data: PropTypes.shape({
         previewImageUrl: PropTypes.string,
         address: PropTypes.shape({
+            firstName: PropTypes.string,
+            name: PropTypes.string,
+            organization: PropTypes.string,
+        }),
+        read: PropTypes.shape({
             firstName: PropTypes.string,
             name: PropTypes.string,
             organization: PropTypes.string,
