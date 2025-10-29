@@ -198,9 +198,38 @@ class AddressPagesRest
                         val currentVariables = formLayoutData.variables?.toMutableMap() ?: mutableMapOf()
                         currentVariables["vcfComparisonData"] = vcfComparisonData
                         currentVariables["importIndex"] = importIndex
-                        formLayoutData.variables = currentVariables
 
-                        log.info { "Added VCF comparison data to form (${vcfComparisonData.size} fields)" }
+                        // Handle image from VCF import - copy to session like single VCF import
+                        var hasImage = false
+                        var imageTooLarge = false
+
+                        vcfData?.addressImage?.let { addressImg ->
+                            hasImage = true
+                            val imageSize = addressImg.bytes.size.toLong()
+                            val maxSize = addressImageServicesRest.maxImageSize.toBytes()
+                            imageTooLarge = imageSize > maxSize
+
+                            // Store in session using same key as single VCF import (SESSION_VCF_IMAGE_ATTR)
+                            // This allows vcfImagePreview to work without changes
+                            val sessionImage = AddressServicesRest.SessionVcfImage(
+                                filename = importStorage.filename ?: "import.vcf",
+                                imageType = addressImg.imageType,
+                                bytes = addressImg.bytes,
+                                imageTooLarge = imageTooLarge
+                            )
+                            ExpiringSessionAttributes.setAttribute(
+                                request.getSession(false),
+                                AddressServicesRest.SESSION_VCF_IMAGE_ATTR,
+                                sessionImage,
+                                1
+                            )
+                        }
+
+                        // Add image flags to variables
+                        currentVariables["hasImage"] = hasImage
+                        currentVariables["imageTooLarge"] = imageTooLarge
+
+                        formLayoutData.variables = currentVariables
                     } else {
                         log.warn { "Import entry not found at index $importIndex" }
                     }
