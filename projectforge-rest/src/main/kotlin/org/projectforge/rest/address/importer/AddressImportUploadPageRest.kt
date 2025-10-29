@@ -33,6 +33,7 @@ import org.projectforge.framework.utils.FileCheck
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.AddressPagesRest
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.PagesResolver
@@ -44,6 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -337,6 +339,18 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
         // Organization
         addReadColumn(agGrid, lc, AddressDO::organization, width = 200, wrapText = true)
 
+        // Image preview column
+        val imageCol = UIAgGridColumnDef.createCol(
+            field = "address.imagePreview",
+            headerName = "address.image",
+            width = 50,
+            sortable = false,
+            resizable = false,
+            filter = false
+        )
+        imageCol.cellRenderer = "customized"
+        agGrid.add(imageCol)
+
         // Formatted Business Address
         addFormattedAddressColumn(agGrid, "formattedBusinessAddress", "address.heading.businessAddress", width = 300)
 
@@ -511,6 +525,27 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
     }
 
     /**
+     * GET endpoint: Returns image preview for an imported address by index.
+     */
+    @GetMapping("imagePreview/{importIndex}")
+    fun getImportImagePreview(
+        @PathVariable importIndex: Int,
+        request: HttpServletRequest
+    ): ResponseEntity<org.springframework.core.io.Resource> {
+        val importStorage = getImportStorage(request)
+            ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+
+        val importEntry = importStorage.getImportEntryByIndex(importIndex)
+            ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+
+        val addressImage = importEntry.read?.addressImage
+            ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+
+        val resource = org.springframework.core.io.ByteArrayResource(addressImage.bytes)
+        return RestUtils.downloadFile("image.${addressImage.imageType.extension}", resource)
+    }
+
+    /**
      * Helper method to return a ResponseEntity with status message.
      */
     private fun result(
@@ -585,6 +620,8 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
         val oldDiffValues: Map<String, Any>?,
         // Translated list of additional changed fields not shown as individual columns
         val additionalChanges: String?,
+        // Image preview URL if address has an image (renamed to match ImageDataPreview component expectations)
+        val previewImageUrl: String?,
     ) {
         constructor(
             pairEntry: org.projectforge.rest.importer.ImportPairEntry<AddressImportDTO>,
@@ -600,6 +637,11 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
             id = pairEntry.stored?.id,
             oldDiffValues = pairEntry.oldDiffValues,
             additionalChanges = additionalChanges,
+            previewImageUrl = if (pairEntry.read?.addressImage != null) {
+                "addressImportUpload/imagePreview/$index"
+            } else {
+                null
+            },
         )
     }
 }
