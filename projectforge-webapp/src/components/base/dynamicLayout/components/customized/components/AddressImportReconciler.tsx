@@ -160,6 +160,18 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
     // Load VCF data as parsedData (convert to same format as text parser)
     React.useEffect(() => {
         if (isVcfImportMode && vcfComparisonData) {
+            // Handle image flags from backend
+            if (variables?.hasImage) {
+                setHasImage(true);
+                const isTooLarge = variables.imageTooLarge === true;
+                setImageTooLarge(isTooLarge);
+                setApplyImage(!isTooLarge);
+            } else {
+                setHasImage(false);
+                setImageTooLarge(false);
+                setApplyImage(false);
+            }
+
             // Convert VCF comparison data to parsedData format
             const fields: Record<string, ParsedField> = {};
             const selected: SelectedFields = {};
@@ -205,7 +217,7 @@ function AddressImportReconciler({ values }: AddressImportReconcilerProps) {
             });
             setSelectedFields(selected);
         }
-    }, [isVcfImportMode, vcfComparisonData]);
+    }, [isVcfImportMode, vcfComparisonData, variables]);
 
     const isAddressField = (fieldName: string): boolean => [
         'addressText',

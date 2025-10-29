@@ -174,6 +174,7 @@ const reducer = (state = initialState, action = {}) => {
         case LIST_CATEGORY_RESET: {
             // Remove category from state to force fresh initialCall on next load
             const { category } = payload;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { [category]: _removed, ...rest } = state;
             return rest;
         }

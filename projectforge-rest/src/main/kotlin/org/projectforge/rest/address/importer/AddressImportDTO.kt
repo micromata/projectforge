@@ -23,11 +23,13 @@
 
 package org.projectforge.rest.address.importer
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.Transient
 import mu.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressImageDO
 import org.projectforge.business.address.FormOfAddress
+import org.projectforge.business.address.ImageType
 import org.projectforge.business.address.MailingAddress
 import org.projectforge.common.StringMatchUtils
 import org.projectforge.rest.dto.BaseDTO
@@ -37,6 +39,37 @@ import java.util.*
 import kotlin.reflect.KProperty
 
 private val log = KotlinLogging.logger {}
+
+/**
+ * Serializable image data container for VCard import.
+ * Not sent to client (property using this class is marked with @JsonIgnore).
+ */
+data class AddressImage(
+    val bytes: ByteArray,
+    val imageType: ImageType = ImageType.PNG
+) : java.io.Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as AddressImage
+
+        if (!bytes.contentEquals(other.bytes)) return false
+        if (imageType != other.imageType) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = bytes.contentHashCode()
+        result = 31 * result + imageType.hashCode()
+        return result
+    }
+}
 
 /**
  * Data Transfer Object for importing addresses from VCF files.
@@ -109,6 +142,12 @@ class AddressImportDTO(
     private val transientAttributes = mutableMapOf<String, Any>()
 
     /**
+     * Image data from VCard import (session-serializable but not sent to client).
+     */
+    @JsonIgnore
+    var addressImage: AddressImage? = null
+
+    /**
      * Adds an error message to this import entity.
      */
     fun addError(errorMessage: String) {
@@ -138,8 +177,11 @@ class AddressImportDTO(
      * Sets the transient image data for VCard import.
      */
     fun setTransientImage(image: AddressImageDO?) {
-        if (image != null) {
-            setTransientAttribute("image", image)
+        if (image?.image != null) {
+            this.addressImage = AddressImage(
+                bytes = image.image!!,
+                imageType = image.imageType ?: ImageType.PNG
+            )
         }
     }
 
@@ -148,7 +190,13 @@ class AddressImportDTO(
      */
     @get:Transient
     val transientImage: AddressImageDO?
-        get() = getTransientAttribute("image") as? AddressImageDO
+        get() {
+            val img = addressImage ?: return null
+            return AddressImageDO().also {
+                it.image = img.bytes
+                it.imageType = img.imageType
+            }
+        }
 
     /**
      * Returns formatted business address as multi-line string.
