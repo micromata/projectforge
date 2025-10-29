@@ -27,6 +27,7 @@ import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.SystemAlertMessage;
 import org.projectforge.SystemStatus;
+import org.projectforge.business.address.AddressImageDao;
 import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookDao;
 import org.projectforge.business.book.BookStatus;
@@ -217,6 +218,21 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
           .setTooltip(getString("system.admin.button.schemaExport.tooltip"));
       databaseActionsMenu.addSubMenuEntry(schemaExportLinkMenuItem);
     }
+    {
+      // Shrink address images.
+      final Link<Void> shrinkImagesLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
+        @Override
+        public void onClick() {
+          shrinkImages();
+        }
+      };
+      final ContentMenuEntryPanel shrinkImagesLinkMenuItem = new ContentMenuEntryPanel(
+          databaseActionsMenu.newSubMenuChildId(),
+          shrinkImagesLink, "Shrink all address images")
+          .setTooltip("All address images are minimized to reduce their file size.");
+      databaseActionsMenu.addSubMenuEntry(shrinkImagesLinkMenuItem);
+      shrinkImagesLink.add(WicketUtils.javaScriptConfirmDialogOnClick("Do you really want to minimize all address images?") );
+    }
   }
 
   @SuppressWarnings("serial")
@@ -381,6 +397,14 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     checkAccess();
     final String result = WicketSupport.get(SystemService.class).exportSchema();
     final String filename = "projectforge_schema" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".sql";
+    DownloadUtils.setDownloadTarget(result.getBytes(), filename);
+  }
+
+  protected void shrinkImages() {
+    log.info("Administration: shrink all address images.");
+    checkAccess();
+    final String result = WicketSupport.get(AddressImageDao.class).shrinkAllImages();
+    final String filename = "address-image-minimization-" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
     DownloadUtils.setDownloadTarget(result.getBytes(), filename);
   }
 
