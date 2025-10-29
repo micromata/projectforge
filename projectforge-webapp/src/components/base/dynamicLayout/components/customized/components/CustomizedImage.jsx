@@ -9,8 +9,14 @@ function CustomizedImage({ values }) {
             <img
                 className={style.addressImage}
                 src={getServiceURL(values.src)}
-                width={300}
                 alt={values.alt}
+                style={{
+                    maxWidth: '400px',
+                    maxHeight: '200px',
+                    width: 'auto',
+                    height: 'auto',
+                    objectFit: 'contain',
+                }}
             />
         ),
         [
