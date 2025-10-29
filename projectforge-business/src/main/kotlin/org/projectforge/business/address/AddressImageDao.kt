@@ -148,8 +148,9 @@ open class AddressImageDao {
 
         // Shrink image to maximum file size
         // Note: Also defined in AddressImageServicesRest.MAX_STORED_IMAGE_FILE_SIZE_KB
+        // Always convert to JPEG for better compression of photos
         val shrinkedImage =
-            imageService.shrinkToMaxFileSize(image, MAX_SIZE_BYTES_OF_SHRINKED_IMAGES, imageType.extension)
+            imageService.shrinkToMaxFileSize(image, MAX_SIZE_BYTES_OF_SHRINKED_IMAGES, "jpg")
 
         persistenceService.runInTransaction { context ->
             val addressImage = context.selectSingleResult(
@@ -161,7 +162,7 @@ open class AddressImageDao {
             addressImage.address = address
             addressImage.image = shrinkedImage
             addressImage.imagePreview = imageService.resizeImage(shrinkedImage)
-            addressImage.imageType = imageType
+            addressImage.imageType = ImageType.JPEG  // Always store as JPEG for better compression
             addressImage.lastUpdate = Date()
             if (addressImage.id != null) {
                 // Update
@@ -256,11 +257,11 @@ open class AddressImageDao {
             }
 
             try {
-                // Shrink image
+                // Shrink image - always convert to JPEG for better compression
                 val shrinkedBytes = imageService.shrinkToMaxFileSize(
                     imageBytes,
                     MAX_SIZE_BYTES_OF_SHRINKED_IMAGES,
-                    addressImage.imageType?.extension ?: "png"
+                    "jpg"
                 )
 
                 if (shrinkedBytes == null || shrinkedBytes.isEmpty()) {
@@ -285,6 +286,7 @@ open class AddressImageDao {
                         if (attached != null) {
                             attached.image = shrinkedBytes
                             attached.imagePreview = imageService.resizeImage(shrinkedBytes)
+                            attached.imageType = ImageType.JPEG  // Always store as JPEG for better compression
                             attached.lastUpdate = java.util.Date()
                             context.update(attached)
                         }
