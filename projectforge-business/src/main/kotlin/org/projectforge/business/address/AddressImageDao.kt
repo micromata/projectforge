@@ -25,7 +25,9 @@ package org.projectforge.business.address
 
 import jakarta.persistence.Tuple
 import mu.KotlinLogging
+import org.projectforge.Constants
 import org.projectforge.business.image.ImageService
+import org.projectforge.common.extensions.formatBytesForUser
 import org.projectforge.framework.persistence.database.TupleUtils
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
@@ -81,7 +83,8 @@ open class AddressImageDao {
         persistenceService.selectNamedSingleResult(namedQuery, Tuple::class.java, Pair("addressId", addressId))?.let {
             result.id = it[0] as? Long
             result.lastUpdate = TupleUtils.getDate(it, "lastUpdate")
-            result.imageType = it.get("imageType", ImageType::class.java) ?: ImageType.PNG // Default image type for older images (<=8.0).
+            result.imageType = it.get("imageType", ImageType::class.java)
+                ?: ImageType.PNG // Default image type for older images (<=8.0).
             if (fetchImage) {
                 result.image = it.get("image", ByteArray::class.java)
             } else if (fetchPreviewImage) {
@@ -142,6 +145,12 @@ open class AddressImageDao {
         }
         address.imageLastUpdate = Date()
         addressDao.update(address) // Throws an exception if the logged-in user has now access.
+
+        // Shrink image to maximum file size
+        // Note: Also defined in AddressImageServicesRest.MAX_STORED_IMAGE_FILE_SIZE_KB
+        val shrinkedImage =
+            imageService.shrinkToMaxFileSize(image, MAX_SIZE_BYTES_OF_SHRINKED_IMAGES, imageType.extension)
+
         persistenceService.runInTransaction { context ->
             val addressImage = context.selectSingleResult(
                 "from ${AddressImageDO::class.java.name} t where t.address = :address",
@@ -150,8 +159,8 @@ open class AddressImageDao {
                 attached = true,
             ) ?: AddressImageDO()
             addressImage.address = address
-            addressImage.image = image
-            addressImage.imagePreview = imageService.resizeImage(image)
+            addressImage.image = shrinkedImage
+            addressImage.imagePreview = imageService.resizeImage(shrinkedImage)
             addressImage.imageType = imageType
             addressImage.lastUpdate = Date()
             if (addressImage.id != null) {
@@ -194,5 +203,129 @@ open class AddressImageDao {
         }
         addressImageCache.setExpired()
         return success
+    }
+
+    /**
+     * Shrinks all existing images in the database to the maximum file size.
+     * This is useful after changing the MAX_STORED_IMAGE_FILE_SIZE_KB setting.
+     * @return Statistics about the shrinking operation
+     */
+    open fun shrinkAllImages(): String {
+        log.info("Starting shrinking of all address images...")
+        val startTime = System.currentTimeMillis()
+
+        val result = StringBuilder()
+        result.append("Address Image Shrinking Report\n")
+        result.append("=================================\n\n")
+        result.append("Maximum file size: ${MAX_SIZE_BYTES_OF_SHRINKED_IMAGES.formatBytesForUser()}\n\n")
+
+        var totalImages = 0
+        var shrinkedImages = 0
+        var skippedImages = 0
+        var failedImages = 0
+        var totalSizeBefore = 0L
+        var totalSizeAfter = 0L
+
+        // Load all address images with full image data
+        val allImages = persistenceService.executeQuery(
+            "from ${AddressImageDO::class.java.name} t",
+            AddressImageDO::class.java,
+        )
+
+        result.append("Found ${allImages.size} images in database.\n\n")
+
+        allImages.forEach { addressImage ->
+            totalImages++
+            val imageBytes = addressImage.image
+
+            if (imageBytes == null || imageBytes.isEmpty()) {
+                skippedImages++
+                result.append("Skipped image for address ${addressImage.address?.id} (no image data)\n")
+                return@forEach
+            }
+
+            val sizeBefore = imageBytes.size.toLong()
+            totalSizeBefore += sizeBefore
+
+            // Skip if already small enough
+            if (sizeBefore <= MAX_SIZE_BYTES_OF_SHRINKED_IMAGES) {
+                skippedImages++
+                totalSizeAfter += sizeBefore
+                result.append("Skipped image for address ${addressImage.address?.id} (already ${sizeBefore / 1024} KB)\n")
+                return@forEach
+            }
+
+            try {
+                // Shrink image
+                val shrinkedBytes = imageService.shrinkToMaxFileSize(
+                    imageBytes,
+                    MAX_SIZE_BYTES_OF_SHRINKED_IMAGES,
+                    addressImage.imageType?.extension ?: "png"
+                )
+
+                if (shrinkedBytes == null || shrinkedBytes.isEmpty()) {
+                    failedImages++
+                    totalSizeAfter += sizeBefore // Count original size
+                    result.append("Failed to shrink image for address ${addressImage.address?.id}\n")
+                    return@forEach
+                }
+
+                val sizeAfter = shrinkedBytes.size.toLong()
+                totalSizeAfter += sizeAfter
+
+                // Only update if shrinking was successful
+                if (sizeAfter < sizeBefore) {
+                    persistenceService.runInTransaction { context ->
+                        val attached = context.selectSingleResult(
+                            "from ${AddressImageDO::class.java.name} t where t.id = :id",
+                            AddressImageDO::class.java,
+                            Pair("id", addressImage.id),
+                            attached = true,
+                        )
+                        if (attached != null) {
+                            attached.image = shrinkedBytes
+                            attached.imagePreview = imageService.resizeImage(shrinkedBytes)
+                            attached.lastUpdate = java.util.Date()
+                            context.update(attached)
+                        }
+                    }
+                    shrinkedImages++
+                    val savedKB = (sizeBefore - sizeAfter) / 1024
+                    result.append("Shrinked image for address ${addressImage.address?.id}: ${sizeBefore / 1024} KB -> ${sizeAfter / 1024} KB (saved $savedKB KB)\n")
+                } else {
+                    skippedImages++
+                    result.append("Skipped image for address ${addressImage.address?.id} (shrinking would increase size)\n")
+                }
+            } catch (e: Exception) {
+                failedImages++
+                totalSizeAfter += sizeBefore // Count original size
+                result.append("Error shrinking image for address ${addressImage.address?.id}: ${e.message}\n")
+                log.error("Error shrinking image for address ${addressImage.address?.id}", e)
+            }
+        }
+
+        val duration = (System.currentTimeMillis() - startTime) / 1000
+        val savedBytes = totalSizeBefore - totalSizeAfter
+        val savedMB = savedBytes / (1024 * 1024)
+
+        result.append("\n=================================\n")
+        result.append("Summary:\n")
+        result.append("  Total images: $totalImages\n")
+        result.append("  Shrinked: $shrinkedImages\n")
+        result.append("  Skipped: $skippedImages\n")
+        result.append("  Failed: $failedImages\n")
+        result.append("  Total size before: ${totalSizeBefore / (1024 * 1024)} MB\n")
+        result.append("  Total size after: ${totalSizeAfter / (1024 * 1024)} MB\n")
+        result.append("  Saved: $savedMB MB (${(savedBytes * 100) / maxOf(totalSizeBefore, 1)}%)\n")
+        result.append("  Duration: $duration seconds\n")
+
+        log.info("Image shrinking completed: $shrinkedImages shrinked, $skippedImages skipped, $failedImages failed, saved $savedMB MB")
+        addressImageCache.setExpired()
+
+        return result.toString()
+    }
+
+    companion object {
+        private const val MAX_SIZE_BYTES_OF_SHRINKED_IMAGES = 100L * Constants.KB
     }
 }

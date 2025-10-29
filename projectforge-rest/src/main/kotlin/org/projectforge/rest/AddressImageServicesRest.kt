@@ -140,5 +140,11 @@ class AddressImageServicesRest {
     companion object {
         internal const val SESSION_IMAGE_ATTR = "uploadedAddressImage"
         private const val MAX_IMAGE_SIZE_SPRING_PROPERTY = "projectforge.address.maxImageSize"
+
+        /**
+         * Maximum file size for images stored in database.
+         * Images larger than this will be automatically compressed to fit.
+         */
+        const val MAX_STORED_IMAGE_FILE_SIZE_KB = 100L
     }
 }
