@@ -34,7 +34,6 @@ import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressImageDO
 import org.projectforge.business.address.FormOfAddress
 import org.projectforge.business.address.ImageType
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.PhoneNumberUtils
 import java.io.ByteArrayInputStream
@@ -186,7 +185,7 @@ object VCardUtils {
         // but ez-vcard generates lowercase (TYPE=jpeg, TYPE=png)
         vcardString = vcardString.replace("TYPE=jpeg", "TYPE=JPEG", ignoreCase = false)
         // Apple devices skip PNG images with TYPE=png; (with semicolon)
-        vcardString = vcardString.replace("TYPE=png;", "", ignoreCase = false)
+        vcardString = vcardString.replace(";TYPE=png", "", ignoreCase = false)
         vcardString = vcardString.replace("TYPE=gif", "TYPE=GIF", ignoreCase = false)
         return vcardString
     }
