@@ -74,10 +74,13 @@ class AddressImageServicesRest {
     @Autowired
     private lateinit var addressImageDao: AddressImageDao
 
+    @Autowired
+    private lateinit var imageService: org.projectforge.business.image.ImageService
 
     /**
      * If given and greater 0, the image will be added to the address with the given id (pk), otherwise the image is
      * stored in the user's session and will be used for the next update or save event.
+     * Images are automatically processed (shrunk and format-converted) before storage.
      */
     @PostMapping("uploadImage/{id}")
     fun uploadFile(
@@ -88,17 +91,22 @@ class AddressImageServicesRest {
             ResponseEntity<*> {
         val filename = file.originalFilename!!
         val imageType = addressImageDao.getSupportedImageType(filename) ?: run {
-            return ResponseEntity("Unsupported file: $filename. Only files of types {${ImageType.entries.joinToString ()}} supported", HttpStatus.BAD_REQUEST)
+            return ResponseEntity(
+                "Unsupported file: $filename. Only files of types {${ImageType.entries.joinToString()}} supported",
+                HttpStatus.BAD_REQUEST
+            )
         }
         fileSizeStandardChecker.checkSize(FileInfo(filename, fileSize = file.size), displayUserMessage = false)
         val bytes = file.bytes
-        if (id == null || id < 0) {
-            val session = request.getSession(false)
-            val image = SessionImage(filename, imageType, bytes)
-            ExpiringSessionAttributes.setAttribute(session, SESSION_IMAGE_ATTR, image, 1)
-        } else {
-            addressImageDao.saveOrUpdate(id, bytes, imageType)
-        }
+
+        // Process image (shrink and convert format) before storing
+        val maxSizeBytes = MAX_STORED_IMAGE_FILE_SIZE_KB * org.projectforge.Constants.KB
+        val imageResult = imageService.shrinkToMaxFileSize(bytes, maxSizeBytes)
+
+        val session = request.getSession(false)
+        // Store processed image in session with actual type
+        val image = SessionImage(filename, imageResult.imageType, imageResult.bytes)
+        ExpiringSessionAttributes.setAttribute(session, SESSION_IMAGE_ATTR, image, 1)
         return ResponseEntity("OK", HttpStatus.OK)
     }
 
@@ -107,7 +115,8 @@ class AddressImageServicesRest {
      */
     @GetMapping("image/{id}")
     fun getImage(@PathVariable("id") id: Long): ResponseEntity<Resource> {
-        val addressImage = addressImageDao.findImage(id, fetchImage = true) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+        val addressImage =
+            addressImageDao.findImage(id, fetchImage = true) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
         val image = addressImage.image
         if (image == null || image.isEmpty()) {
             log.warn("Image is null or empty for address $id")
@@ -125,7 +134,8 @@ class AddressImageServicesRest {
      */
     @GetMapping("imagePreview/{id}")
     fun getImagePreview(@PathVariable("id") id: Long): ResponseEntity<Resource> {
-        val addressImage = addressImageDao.findImage(id, fetchPreviewImage = true) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+        val addressImage =
+            addressImageDao.findImage(id, fetchPreviewImage = true) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
         val imagePreview = addressImage.imagePreview
         if (imagePreview == null || imagePreview.isEmpty()) {
             log.warn("Image preview is null or empty for address $id")
