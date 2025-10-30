@@ -29,6 +29,7 @@ import org.projectforge.business.address.*
 import org.projectforge.business.address.vcard.VCardUtils
 import org.projectforge.carddav.CardDavConfig
 import org.projectforge.carddav.CardDavUtils
+import org.projectforge.carddav.PhotoMode
 import org.projectforge.carddav.model.Contact
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
@@ -48,6 +49,9 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
 
     @Autowired
     private lateinit var addressImageCache: AddressImageCache
+
+    @Autowired
+    private lateinit var addressImageDao: AddressImageDao
 
     @Autowired
     private lateinit var cardDavConfig: CardDavConfig
@@ -74,18 +78,45 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
             addressDao.select(missedInCache, checkAccess = false)?.forEach {
                 val image = addressImageCache.getImage(it.id!!)
                 val imageType = image?.imageType
-                val imageUrl = if (image != null) {
-                    CardDavUtils.getImageUrl(it.id!!, imageType ?: ImageType.PNG)
-                } else {
-                    null
+
+                // Build VCard with image based on configured photo mode
+                val vcard = when (cardDavConfig.photoMode) {
+                    PhotoMode.URL -> {
+                        // Use URL reference (smaller VCard, but may have line-folding issues)
+                        val imageUrl = if (image != null) {
+                            CardDavUtils.getImageUrl(it.id!!, imageType ?: ImageType.PNG)
+                        } else {
+                            null
+                        }
+                        log.debug { "Building VCard for address ${it.id} (${it.fullName}): mode=URL, image=${image != null}, imageType=$imageType, imageUrl=$imageUrl" }
+                        VCardUtils.buildVCardString(
+                            it,
+                            cardDavConfig.vcardVersion,
+                            imageUrl = imageUrl,
+                            imageType = imageType
+                        )
+                    }
+                    PhotoMode.EMBEDDED -> {
+                        // Use embedded Base64 image (larger VCard, but no line-folding issues)
+                        if (image != null) {
+                            val imageDO = addressImageDao.findImage(it.id!!, fetchImage = true)
+                            if (imageDO != null && imageDO.image != null) {
+                                it.setTransientImage(imageDO)
+                                log.debug { "Building VCard for address ${it.id} (${it.fullName}): mode=EMBEDDED, imageType=$imageType, imageSize=${imageDO.image!!.size} bytes" }
+                            } else {
+                                log.debug { "Building VCard for address ${it.id} (${it.fullName}): mode=EMBEDDED, but no image data found" }
+                            }
+                        } else {
+                            log.debug { "Building VCard for address ${it.id} (${it.fullName}): mode=EMBEDDED, but no image in cache" }
+                        }
+                        VCardUtils.buildVCardString(
+                            it,
+                            cardDavConfig.vcardVersion,
+                            imageUrl = null,
+                            imageType = null
+                        )
+                    }
                 }
-                log.debug { "Building VCard for address ${it.id} (${it.fullName}): image=${image != null}, imageType=$imageType, imageUrl=$imageUrl" }
-                val vcard = VCardUtils.buildVCardString(
-                    it,
-                    cardDavConfig.vcardVersion,
-                    imageUrl = imageUrl,
-                    imageType = imageType
-                )
                 val contact =
                     Contact(
                         it.id,
