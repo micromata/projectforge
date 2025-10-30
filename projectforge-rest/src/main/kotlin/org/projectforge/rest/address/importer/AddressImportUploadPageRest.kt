@@ -346,7 +346,8 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
             width = 50,
             sortable = false,
             resizable = false,
-            filter = false
+            filter = false,
+            wrapText = true,
         )
         imageCol.cellRenderer = "customized"
         agGrid.add(imageCol)

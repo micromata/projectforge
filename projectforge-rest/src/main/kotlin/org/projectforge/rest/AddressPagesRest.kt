@@ -624,8 +624,9 @@ class AddressPagesRest
             headerName = "address.image",
             sortable = false,
             cellRenderer = "customized",
-            width = 50,
-            resizable = false
+            width = 60,
+            resizable = false,
+            wrapText = true,
         )
         table.add(addressLC, "organization", "email")
         table.add(
@@ -1002,6 +1003,7 @@ class AddressPagesRest
             "comment",
             "common.import.action.selectAll",
             "common.import.action.deselectAll",
+            "file.upload.dropArea",
         )
         layout.addTranslation(
             "address.image.upload.error",
