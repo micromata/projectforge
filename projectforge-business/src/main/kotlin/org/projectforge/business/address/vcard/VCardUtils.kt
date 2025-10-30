@@ -181,7 +181,13 @@ object VCardUtils {
         imageType: ImageType? = null,
     ): String { //See: https://github.com/mangstadt/ez-vcard
         val vcard = buildVCard(addressDO, imageUrl, imageType)
-        return Ezvcard.write(vcard).version(vCardVersion.ezVCardType).go()
+        var vcardString = Ezvcard.write(vcard).version(vCardVersion.ezVCardType).go()
+        // Fix TYPE parameter for iOS compatibility: Apple expects uppercase (TYPE=JPEG, TYPE=PNG)
+        // but ez-vcard generates lowercase (TYPE=jpeg, TYPE=png)
+        vcardString = vcardString.replace("TYPE=jpeg", "TYPE=JPEG", ignoreCase = false)
+        vcardString = vcardString.replace("TYPE=png", "TYPE=PNG", ignoreCase = false)
+        vcardString = vcardString.replace("TYPE=gif", "TYPE=GIF", ignoreCase = false)
+        return vcardString
     }
 
     @JvmStatic
