@@ -79,6 +79,7 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
                 } else {
                     null
                 }
+                log.debug { "Building VCard for address ${it.id} (${it.fullName}): image=${image != null}, imageType=$imageType, imageUrl=$imageUrl" }
                 val vcard = VCardUtils.buildVCardString(
                     it,
                     cardDavConfig.vcardVersion,

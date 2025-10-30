@@ -53,15 +53,21 @@ To fully complete your installation and use Wireshark
  */
 fun main(args: Array<String>) {
     if (args.size < 2) {
-        println("Usage: CardDavTestClient <username> <dav-token>")
+        println("Usage: CardDavTestClient <username> <dav-token> [--fetch-all]")
+        println("  --fetch-all: Fetch all VCards from server and save to /tmp/carddav-vcards/")
         return
     }
     val username = args[0]
     val davToken = args[1]
-    val baseUrl = "http://localhost:8080/carddav" // if (args.size > 2) args[2] else "http://localhost:8080/carddav"
-    val lastSyncToken = if (args.size > 3) args[3] else null
+    val fetchAll = args.contains("--fetch-all")
+    val baseUrl = if (args.size == 3) args[2] else "http://localhost:8080/carddav"
+    val lastSyncToken = if (args.size > 3 && !fetchAll) args[3] else null
     val client = CardDavTestClient(baseUrl, username = username, password = davToken, lastSyncToken = lastSyncToken)
-    client.run()
+    if (fetchAll) {
+        client.fetchAllVCards()
+    } else {
+        client.run()
+    }
 }
 
 // Request with method=OPTIONS for Milton (uri=/users/username/, session-id=null)
@@ -101,8 +107,9 @@ class CardDavTestClient(private val baseUrl: String, username: String, password:
             """.trimIndent().let { body ->
                 sendRequest("PROPFIND", requestBody = body, useAuthHeader = true)
             }*/
-            sendRequest("GET", path = "/users/kai/addressbooks/ProjectForge-1970264.vcf", useAuthHeader = true)
-            sendRequest("GET", path = "/photos/contact-1970264.jpg", useAuthHeader = true, logResponseContent = false)
+            sendRequest("GET", path = "/users/kai/addressbooks/ProjectForge-163.vcf", useAuthHeader = true)
+            //sendRequest("GET", path = "/users/kai/addressbooks/ProjectForge-723108.vcf", useAuthHeader = true)
+            sendRequest("GET", path = "/carddav/photos/contact-163.jpg", useAuthHeader = true, logResponseContent = false)
             /*
             """
                 <propfind xmlns="DAV:">
@@ -255,6 +262,165 @@ class CardDavTestClient(private val baseUrl: String, username: String, password:
             }
         }
         println("]")
+    }
+
+    /**
+     * Fetch all VCards from server, save them to disk, and analyze PHOTO entries.
+     * This helps identify differences between JPEG and PNG image handling.
+     */
+    fun fetchAllVCards() {
+        val outputDir = java.io.File("/tmp/carddav-vcards")
+        outputDir.mkdirs()
+
+        println("=".repeat(80))
+        println("CardDAV VCard Fetcher - Analyzing PHOTO entries")
+        println("=".repeat(80))
+        println("Server: $baseUrl")
+        println("Output: ${outputDir.absolutePath}")
+        println("=".repeat(80))
+
+        // Step 1: Get list of all contacts via REPORT
+        println("\n[1] Fetching contact list via REPORT...")
+        val contactUrls = fetchContactList()
+        println("Found ${contactUrls.size} contacts\n")
+
+        // Step 2: Fetch each VCard and analyze
+        println("[2] Fetching and analyzing VCards...")
+        val stats = mutableMapOf(
+            "jpeg_url" to 0,
+            "png_url" to 0,
+            "gif_url" to 0,
+            "embedded_jpeg" to 0,
+            "embedded_png" to 0,
+            "embedded_gif" to 0,
+            "no_photo" to 0,
+            "error" to 0
+        )
+
+        contactUrls.forEachIndexed { index, contactUrl ->
+            try {
+                val vcard = fetchVCardForAnalysis(contactUrl)
+                val filename = contactUrl.substringAfterLast("/")
+                val outputFile = java.io.File(outputDir, filename)
+                outputFile.writeText(vcard)
+
+                // Analyze PHOTO entry
+                val photoInfo = analyzePhoto(vcard)
+                println("  [${index + 1}/${contactUrls.size}] $filename - $photoInfo")
+
+                // Update statistics
+                when {
+                    photoInfo.contains("URL") && photoInfo.contains("JPEG", ignoreCase = true) -> stats["jpeg_url"] = stats["jpeg_url"]!! + 1
+                    photoInfo.contains("URL") && photoInfo.contains("PNG", ignoreCase = true) -> stats["png_url"] = stats["png_url"]!! + 1
+                    photoInfo.contains("URL") && photoInfo.contains("GIF", ignoreCase = true) -> stats["gif_url"] = stats["gif_url"]!! + 1
+                    photoInfo.contains("EMBEDDED") && photoInfo.contains("JPEG", ignoreCase = true) -> stats["embedded_jpeg"] = stats["embedded_jpeg"]!! + 1
+                    photoInfo.contains("EMBEDDED") && photoInfo.contains("PNG", ignoreCase = true) -> stats["embedded_png"] = stats["embedded_png"]!! + 1
+                    photoInfo.contains("EMBEDDED") && photoInfo.contains("GIF", ignoreCase = true) -> stats["embedded_gif"] = stats["embedded_gif"]!! + 1
+                    photoInfo.contains("No PHOTO") -> stats["no_photo"] = stats["no_photo"]!! + 1
+                }
+            } catch (e: Exception) {
+                println("  [${index + 1}/${contactUrls.size}] ERROR: ${contactUrl.substringAfterLast("/")} - ${e.message}")
+                stats["error"] = stats["error"]!! + 1
+            }
+        }
+
+        // Print summary
+        println("\n" + "=".repeat(80))
+        println("Summary:")
+        println("  JPEG URLs:       ${stats["jpeg_url"]}")
+        println("  PNG URLs:        ${stats["png_url"]}")
+        println("  GIF URLs:        ${stats["gif_url"]}")
+        println("  Embedded JPEG:   ${stats["embedded_jpeg"]}")
+        println("  Embedded PNG:    ${stats["embedded_png"]}")
+        println("  Embedded GIF:    ${stats["embedded_gif"]}")
+        println("  No photo:        ${stats["no_photo"]}")
+        println("  Errors:          ${stats["error"]}")
+        println("  Total:           ${contactUrls.size}")
+        println()
+        println("VCards saved to: ${outputDir.absolutePath}")
+        println("=".repeat(80))
+    }
+
+    private fun fetchContactList(): List<String> {
+        val path = ""
+        val reportXml = """
+            <?xml version="1.0" encoding="utf-8" ?>
+            <C:addressbook-query xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:carddav">
+              <D:prop>
+                <D:getetag/>
+              </D:prop>
+            </C:addressbook-query>
+        """.trimIndent()
+
+        val response = sendRequest("REPORT", path = path, requestBody = reportXml, useAuthHeader = true, logResponseContent = false)
+
+        // Extract hrefs from XML response
+        val hrefRegex = """<d:href>(.+?)</d:href>""".toRegex(RegexOption.IGNORE_CASE)
+        return hrefRegex.findAll(response)
+            .map { it.groupValues[1] }
+            .filter { it.endsWith(".vcf") }
+            .toList()
+    }
+
+    private fun fetchVCardForAnalysis(contactPath: String): String {
+        // contactPath is relative, e.g., "/carddav/users/admin/addressbooks/ProjectForge-123.vcf"
+        val path = contactPath.removePrefix(baseUrl)
+        return sendRequest("GET", path = path, useAuthHeader = true, logResponseContent = false)
+    }
+
+    private fun analyzePhoto(vcard: String): String {
+        // Check if PHOTO exists
+        if (!vcard.contains("PHOTO", ignoreCase = true)) {
+            return "No PHOTO"
+        }
+
+        // Extract PHOTO line(s) - VCard properties can span multiple lines
+        val photoLines = mutableListOf<String>()
+        var inPhoto = false
+        vcard.lines().forEach { line ->
+            when {
+                line.startsWith("PHOTO", ignoreCase = true) -> {
+                    inPhoto = true
+                    photoLines.add(line)
+                }
+                inPhoto && (line.startsWith(" ") || line.startsWith("\t")) -> {
+                    // Continuation line (folded)
+                    photoLines.add(line.trim())
+                }
+                inPhoto -> {
+                    // End of PHOTO property
+                    inPhoto = false
+                }
+            }
+        }
+
+        val photoProperty = photoLines.joinToString("")
+
+        // Analyze PHOTO property
+        return when {
+            photoProperty.contains("VALUE=URI", ignoreCase = true) || photoProperty.contains("VALUE=URL", ignoreCase = true) -> {
+                // URL mode
+                val urlMatch = """PHOTO[^:]*:(.+)""".toRegex(RegexOption.IGNORE_CASE).find(photoProperty)
+                val url = urlMatch?.groupValues?.get(1)?.trim() ?: "unknown"
+                val typeMatch = """TYPE=([^;:]+)""".toRegex(RegexOption.IGNORE_CASE).find(photoProperty)
+                val type = typeMatch?.groupValues?.get(1)?.toUpperCase() ?: "UNKNOWN"
+                "PHOTO URL ($type): ${url.take(60)}${if (url.length > 60) "..." else ""}"
+            }
+            photoProperty.contains("ENCODING=b", ignoreCase = true) ||
+            photoProperty.contains("ENCODING=B", ignoreCase = true) ||
+            photoProperty.contains("data:image/", ignoreCase = true) -> {
+                // Embedded mode (base64 or data URI)
+                val typeMatch = """TYPE=([^;:]+)""".toRegex(RegexOption.IGNORE_CASE).find(photoProperty)
+                    ?: """data:image/([^;]+)""".toRegex().find(photoProperty)
+                val type = typeMatch?.groupValues?.get(1)?.toUpperCase() ?: "UNKNOWN"
+                val dataLength = photoProperty.length
+                "PHOTO EMBEDDED ($type): ${dataLength} chars"
+            }
+            else -> {
+                // Unknown format
+                "PHOTO: ${photoProperty.take(100)}${if (photoProperty.length > 100) "..." else ""}"
+            }
+        }
     }
 
     /*
