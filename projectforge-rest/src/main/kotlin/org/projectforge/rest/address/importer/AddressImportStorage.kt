@@ -24,10 +24,12 @@
 package org.projectforge.rest.address.importer
 
 import mu.KotlinLogging
+import org.projectforge.Constants
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressImageDO
 import org.projectforge.business.address.vcard.VCardUtils
+import org.projectforge.business.image.ImageService
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.importer.ImportEntry
@@ -90,6 +92,9 @@ class AddressImportStorage : ImportStorage<AddressImportDTO>(
             val addresses = VCardUtils.parseFromByteArray(vcfBytes)
             log.info("Parsed ${addresses.size} addresses from VCF")
 
+            // Get ImageService for image processing
+            val imageService = ApplicationContextProvider.getApplicationContext().getBean(ImageService::class.java)
+
             addresses.forEach { addressDO ->
                 val dto = AddressImportDTO()
                 dto.copyFrom(addressDO)
@@ -97,7 +102,7 @@ class AddressImportStorage : ImportStorage<AddressImportDTO>(
                 // Handle image from VCard (stored as transient attribute)
                 val imageData = addressDO.transientImage
                 if (imageData != null) {
-                    dto.setTransientImage(imageData)
+                    dto.setTransientImage(imageData, imageService)
                 }
 
                 commitEntity(dto)

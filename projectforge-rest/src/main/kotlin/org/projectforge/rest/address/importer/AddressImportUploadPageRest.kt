@@ -343,7 +343,7 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
         val imageCol = UIAgGridColumnDef.createCol(
             field = "address.imagePreview",
             headerName = "address.image",
-            width = 50,
+            width = 60,
             sortable = false,
             resizable = false,
             filter = false,
@@ -542,8 +542,10 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
         val addressImage = importEntry.read?.addressImage
             ?: return ResponseEntity(HttpStatus.NOT_FOUND)
 
-        val resource = org.springframework.core.io.ByteArrayResource(addressImage.bytes)
-        return RestUtils.downloadFile("image.${addressImage.imageType.extension}", resource)
+        // Return preview image if available, otherwise fall back to full image
+        val imageBytes = addressImage.previewBytes ?: addressImage.bytes
+        val resource = org.springframework.core.io.ByteArrayResource(imageBytes)
+        return RestUtils.downloadFile("imagePreview.${addressImage.imageType.extension}", resource)
     }
 
     /**

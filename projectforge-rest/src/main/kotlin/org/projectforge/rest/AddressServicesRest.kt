@@ -101,6 +101,9 @@ class AddressServicesRest {
     @Autowired
     private lateinit var addressImageServicesRest: AddressImageServicesRest
 
+    @Autowired
+    private lateinit var imageService: org.projectforge.business.image.ImageService
+
     @GetMapping("acLang")
     fun getLanguages(@RequestParam("search") search: String?): List<DisplayLanguage> {
         return languageService.getLanguages(search).map { DisplayLanguage(it.value, it.label) }
@@ -255,7 +258,7 @@ class AddressServicesRest {
                 // Handle image from VCard (stored as transient attribute)
                 val imageData = addressDO.transientImage
                 if (imageData != null) {
-                    dto.setTransientImage(imageData)
+                    dto.setTransientImage(imageData, imageService)
                 }
 
                 val score = if (currentAddress != null) {

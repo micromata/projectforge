@@ -42,14 +42,16 @@ private val log = KotlinLogging.logger {}
 
 /**
  * Serializable image data container for VCard import.
+ * Contains both full-size image and preview thumbnail.
  * Not sent to client (property using this class is marked with @JsonIgnore).
  */
 data class AddressImage(
     val bytes: ByteArray,
-    val imageType: ImageType = ImageType.PNG
+    val imageType: ImageType = ImageType.PNG,
+    val previewBytes: ByteArray? = null
 ) : java.io.Serializable {
     companion object {
-        private const val serialVersionUID = 1L
+        private const val serialVersionUID = 2L  // Incremented due to schema change
     }
 
     override fun equals(other: Any?): Boolean {
@@ -60,6 +62,12 @@ data class AddressImage(
 
         if (!bytes.contentEquals(other.bytes)) return false
         if (imageType != other.imageType) return false
+        if (previewBytes != null) {
+            if (other.previewBytes == null) return false
+            if (!previewBytes.contentEquals(other.previewBytes)) return false
+        } else if (other.previewBytes != null) {
+            return false
+        }
 
         return true
     }
@@ -67,6 +75,7 @@ data class AddressImage(
     override fun hashCode(): Int {
         var result = bytes.contentHashCode()
         result = 31 * result + imageType.hashCode()
+        result = 31 * result + (previewBytes?.contentHashCode() ?: 0)
         return result
     }
 }
@@ -175,13 +184,40 @@ class AddressImportDTO(
 
     /**
      * Sets the transient image data for VCard import.
+     * Processes the image using ImageService to shrink and create preview.
+     * @param image The image data from VCard
+     * @param imageService The ImageService for image processing
      */
-    fun setTransientImage(image: AddressImageDO?) {
+    fun setTransientImage(image: AddressImageDO?, imageService: org.projectforge.business.image.ImageService) {
         if (image?.image != null) {
-            this.addressImage = AddressImage(
-                bytes = image.image!!,
-                imageType = image.imageType ?: ImageType.PNG
-            )
+            try {
+                // Shrink image to maximum file size (100KB)
+                val maxSizeBytes = 100L * org.projectforge.Constants.KB
+                val imageResult = imageService.shrinkToMaxFileSize(image.image!!, maxSizeBytes)
+
+                // Create preview thumbnail (50x50px)
+                val previewBytes = imageService.resizeImagePreserveRatio(
+                    imageResult.bytes,
+                    50,
+                    50,
+                    imageResult.imageType
+                )
+
+                this.addressImage = AddressImage(
+                    bytes = imageResult.bytes,
+                    imageType = imageResult.imageType,
+                    previewBytes = previewBytes
+                )
+                log.debug("Processed image for VCard import: ${imageResult.bytes.size} bytes (${imageResult.imageType}), preview: ${previewBytes?.size ?: 0} bytes")
+            } catch (e: Exception) {
+                log.error("Error processing image for VCard import: ${e.message}", e)
+                // Fallback: Use original image without processing
+                this.addressImage = AddressImage(
+                    bytes = image.image!!,
+                    imageType = image.imageType ?: ImageType.PNG,
+                    previewBytes = null
+                )
+            }
         }
     }
 
