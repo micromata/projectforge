@@ -69,16 +69,17 @@ internal object CardDavUtils {
 
     /**
      * Returns the URL for the given contact image.
+     * Uses relative path to avoid VCard line-folding issues with long URLs.
      * @param contactId The contact ID.
      * @param imageType The image type.
-     * @return The URL. Example: https://projectforge.acme.com/carddav/photos/contact-123.jpg
+     * @return The relative URL. Example: /carddav/photos/contact-123.jpg
      */
     fun getImageUrl(contactId: Long, imageType: ImageType): String {
         val path =
             concatPath(CardDavInit.CARD_DAV_BASE_PATH, "${CardDavInit.PHOTO_PATH}$contactId.${imageType.extension}")
         // Don't forget to change the regex in CardDavFilter.NORMALIZED_GET_PHOTO_REQUEST_REGEX.
-        val user = ThreadLocalUserContext.loggedInUser?.username ?: "unknown"
-        return concatPath(domain, path)
+        // Return relative path instead of absolute URL to avoid VCard 3.0 line-folding breaking the URL
+        return path
     }
 
     fun isImageUrl(requestUri: String): Boolean {

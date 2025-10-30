@@ -135,6 +135,7 @@ object VCardUtils {
         addressDO.fingerprint?.let { vcard.addExtendedProperty("X-PGP-FPR", it) }
         // Handle photo - support both URL and embedded image from transient attribute
         if (imageUrl != null) {
+            log.debug { "Adding PHOTO URL to VCard for ${addressDO.id}: $imageUrl (type: $imageType)" }
             Photo(imageUrl, (imageType ?: ImageType.PNG).asVCardImageType()).let {
                 vcard.addPhoto(it)
             }
@@ -142,10 +143,14 @@ object VCardUtils {
             // Check for embedded image from AddressImageDO in transient attributes
             addressDO.transientImage?.let { imageData ->
                 imageData.image?.let { imageBytes ->
+                    log.debug { "Adding embedded PHOTO to VCard for ${addressDO.id} (type: ${imageData.imageType})" }
                     Photo(imageBytes, (imageData.imageType ?: ImageType.PNG).asVCardImageType()).let {
                         vcard.addPhoto(it)
                     }
                 }
+            }
+            if (imageUrl == null && addressDO.transientImage == null) {
+                log.debug { "No PHOTO added to VCard for ${addressDO.id} (${addressDO.fullName})" }
             }
         }
         return vcard
