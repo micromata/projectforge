@@ -146,10 +146,10 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
 
         if (!isPositionBasedImport) {
             // Bezahlt am
-            addReadColumn(agGrid, lc, EingangsrechnungDO::bezahlDatum)
+            addReadColumn(agGrid, lc, EingangsrechnungDO::bezahlDatum, wrapText = true)
 
             // Zahlbetrag
-            addReadColumn(agGrid, lc, EingangsrechnungDO::zahlBetrag)
+            addReadColumn(agGrid, lc, EingangsrechnungDO::zahlBetrag, wrapText = true)
             // Payment Type (Belegtyp) - only for header-only imports
             addDiffColumn(agGrid, field = "read.paymentTypeAsString", headerName = "fibu.payment.type", width = 150)
         }
