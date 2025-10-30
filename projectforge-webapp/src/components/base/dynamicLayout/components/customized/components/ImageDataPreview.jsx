@@ -18,8 +18,10 @@ function CustomizedImageDataPreview({ data }) {
                 src={getServiceURL(previewImageUrl)}
                 alt={`${addr?.firstName || ''} ${addr?.name || ''} (${addr?.organization || ''})`}
                 style={{
-                    maxWidth: '100%',
+                    maxWidth: '50px',
                     maxHeight: '50px',
+                    width: 'auto',
+                    height: 'auto',
                     objectFit: 'contain',
                 }}
             />

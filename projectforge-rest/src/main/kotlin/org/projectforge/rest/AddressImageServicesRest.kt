@@ -108,7 +108,14 @@ class AddressImageServicesRest {
     @GetMapping("image/{id}")
     fun getImage(@PathVariable("id") id: Long): ResponseEntity<Resource> {
         val addressImage = addressImageDao.findImage(id, fetchImage = true) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
-        val resource = ByteArrayResource(addressImage.image)
+        val image = addressImage.image
+        if (image == null || image.isEmpty()) {
+            log.warn("Image is null or empty for address $id")
+            return ResponseEntity(HttpStatus.NOT_FOUND)
+        }
+        val resource = ByteArrayResource(image)
+
+
         val extension = addressImage.imageType?.extension ?: "jpg"
         return RestUtils.downloadFile("ProjectForge-addressImage_$id.$extension", resource)
     }
@@ -119,7 +126,12 @@ class AddressImageServicesRest {
     @GetMapping("imagePreview/{id}")
     fun getImagePreview(@PathVariable("id") id: Long): ResponseEntity<Resource> {
         val addressImage = addressImageDao.findImage(id, fetchPreviewImage = true) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
-        val resource = ByteArrayResource(addressImage.imagePreview)
+        val imagePreview = addressImage.imagePreview
+        if (imagePreview == null || imagePreview.isEmpty()) {
+            log.warn("Image preview is null or empty for address $id")
+            return ResponseEntity(HttpStatus.NOT_FOUND)
+        }
+        val resource = ByteArrayResource(imagePreview)
         val extension = addressImage.imageType?.extension ?: "jpg"
         return RestUtils.downloadFile("ProjectForge-addressImagePreview_$id.$extension", resource)
     }

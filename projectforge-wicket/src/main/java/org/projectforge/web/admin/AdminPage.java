@@ -219,19 +219,19 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
       databaseActionsMenu.addSubMenuEntry(schemaExportLinkMenuItem);
     }
     {
-      // Shrink address images.
-      final Link<Void> shrinkImagesLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
+      // Shrink address images and recreate preview images.
+      final Link<Void> optimizeAddressImagesLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
         @Override
         public void onClick() {
-          shrinkImages();
+          optimizeAddressImages();
         }
       };
-      final ContentMenuEntryPanel shrinkImagesLinkMenuItem = new ContentMenuEntryPanel(
+      final ContentMenuEntryPanel optimizeAddressImagesLinkMenuItem = new ContentMenuEntryPanel(
           databaseActionsMenu.newSubMenuChildId(),
-          shrinkImagesLink, "Shrink all address images")
-          .setTooltip("All address images are minimized to reduce their file size.");
-      databaseActionsMenu.addSubMenuEntry(shrinkImagesLinkMenuItem);
-      shrinkImagesLink.add(WicketUtils.javaScriptConfirmDialogOnClick("Do you really want to minimize all address images?") );
+          optimizeAddressImagesLink, "Optimize address images")
+          .setTooltip("All address images are minimized to reduce their file size, if needed. All preview images are re-created.");
+      databaseActionsMenu.addSubMenuEntry(optimizeAddressImagesLinkMenuItem);
+      optimizeAddressImagesLink.add(WicketUtils.javaScriptConfirmDialogOnClick("Do you really want to proceed all address images?") );
     }
   }
 
@@ -400,11 +400,11 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     DownloadUtils.setDownloadTarget(result.getBytes(), filename);
   }
 
-  protected void shrinkImages() {
-    log.info("Administration: shrink all address images.");
+  protected void optimizeAddressImages() {
+    log.info("Administration: shrink all address images, if necessary and recreate all preview images..");
     checkAccess();
-    final String result = WicketSupport.get(AddressImageDao.class).shrinkAllImages();
-    final String filename = "address-image-minimization-" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
+    final String result = WicketSupport.get(AddressImageDao.class).shrinkAllImagesAndRebuildPreviews();
+    final String filename = "address-image-processing-" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
     DownloadUtils.setDownloadTarget(result.getBytes(), filename);
   }
 

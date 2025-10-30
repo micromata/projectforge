@@ -59,9 +59,8 @@ open class AddressImageDao {
         fetchPreviewImage: Boolean = false,
         checkAccess: Boolean = true
     ): AddressImageDO? {
-        var address: AddressDO? = null
         if (checkAccess) {
-            address = addressDao.find(addressId, checkAccess = true) ?: return null // For access checking!
+            addressDao.find(addressId, checkAccess = true) ?: return null // For access checking!
         }
         if (fetchImage && fetchPreviewImage) {
             // Fetch all:
@@ -148,9 +147,8 @@ open class AddressImageDao {
 
         // Shrink image to maximum file size
         // Note: Also defined in AddressImageServicesRest.MAX_STORED_IMAGE_FILE_SIZE_KB
-        // Always convert to JPEG for better compression of photos
-        val shrinkedImage =
-            imageService.shrinkToMaxFileSize(image, MAX_SIZE_BYTES_OF_SHRINKED_IMAGES, "jpg")
+        // Try to convert to JPEG for better compression, falls back to PNG if needed (e.g., transparency)
+        val imageResult = imageService.shrinkToMaxFileSize(image, MAX_SIZE_BYTES_OF_SHRINKED_IMAGES)
 
         persistenceService.runInTransaction { context ->
             val addressImage = context.selectSingleResult(
@@ -160,9 +158,14 @@ open class AddressImageDao {
                 attached = true,
             ) ?: AddressImageDO()
             addressImage.address = address
-            addressImage.image = shrinkedImage
-            addressImage.imagePreview = imageService.resizeImage(shrinkedImage)
-            addressImage.imageType = ImageType.JPEG  // Always store as JPEG for better compression
+            addressImage.image = imageResult.bytes
+            addressImage.imagePreview = imageService.resizeImagePreserveRatio(
+                imageResult.bytes,
+                MAX_WIDTH_OF_PREVIEW_IMAGES,
+                MAX_HEIGHT_OF_PREVIEW_IMAGES,
+                imageResult.imageType,
+            )
+            addressImage.imageType = imageResult.imageType  // Use actual format (JPEG or PNG)
             addressImage.lastUpdate = Date()
             if (addressImage.id != null) {
                 // Update
@@ -207,11 +210,12 @@ open class AddressImageDao {
     }
 
     /**
-     * Shrinks all existing images in the database to the maximum file size.
+     * Shrinks all existing images in the database to the maximum file size
+     * and rebuilds the preview images.
      * This is useful after changing the MAX_STORED_IMAGE_FILE_SIZE_KB setting.
      * @return Statistics about the shrinking operation
      */
-    open fun shrinkAllImages(): String {
+    open fun shrinkAllImagesAndRebuildPreviews(): String {
         log.info("Starting shrinking of all address images...")
         val startTime = System.currentTimeMillis()
 
@@ -248,61 +252,77 @@ open class AddressImageDao {
             val sizeBefore = imageBytes.size.toLong()
             totalSizeBefore += sizeBefore
 
-            // Skip if already small enough
-            if (sizeBefore <= MAX_SIZE_BYTES_OF_SHRINKED_IMAGES) {
-                skippedImages++
-                totalSizeAfter += sizeBefore
-                result.append("Skipped image for address ${addressImage.address?.id} (already ${sizeBefore / 1024} KB)\n")
-                return@forEach
-            }
+            // Determine if shrinking is needed
+            val needsShrinking = sizeBefore > 1.1 * MAX_SIZE_BYTES_OF_SHRINKED_IMAGES // Add 10% tolerance
 
             try {
-                // Shrink image - always convert to JPEG for better compression
-                val shrinkedBytes = imageService.shrinkToMaxFileSize(
-                    imageBytes,
-                    MAX_SIZE_BYTES_OF_SHRINKED_IMAGES,
-                    "jpg"
-                )
-
-                if (shrinkedBytes == null || shrinkedBytes.isEmpty()) {
-                    failedImages++
-                    totalSizeAfter += sizeBefore // Count original size
-                    result.append("Failed to shrink image for address ${addressImage.address?.id}\n")
-                    return@forEach
+                // Convert all images and shrink if needed
+                val imageResult = if (needsShrinking) {
+                    // Shrink to size limit
+                    imageService.shrinkToMaxFileSize(
+                        imageBytes,
+                        MAX_SIZE_BYTES_OF_SHRINKED_IMAGES,
+                    )
+                } else {
+                    // Already small enough, but still convert format (JPEG or PNG depending on content)
+                    imageService.shrinkToMaxFileSize(
+                        imageBytes,
+                        Long.MAX_VALUE,
+                    )
                 }
 
-                val sizeAfter = shrinkedBytes.size.toLong()
+                val finalImageBytes = imageResult.bytes
+                val finalImageType = imageResult.imageType
+
+                val sizeAfter = finalImageBytes.size.toLong()
                 totalSizeAfter += sizeAfter
 
-                // Only update if shrinking was successful
-                if (sizeAfter < sizeBefore) {
-                    persistenceService.runInTransaction { context ->
-                        val attached = context.selectSingleResult(
-                            "from ${AddressImageDO::class.java.name} t where t.id = :id",
-                            AddressImageDO::class.java,
-                            Pair("id", addressImage.id),
-                            attached = true,
-                        )
-                        if (attached != null) {
-                            attached.image = shrinkedBytes
-                            attached.imagePreview = imageService.resizeImage(shrinkedBytes)
-                            attached.imageType = ImageType.JPEG  // Always store as JPEG for better compression
-                            attached.lastUpdate = java.util.Date()
-                            context.update(attached)
+                // Determine if image was changed (converted or shrinked)
+                val imageWasChanged = finalImageBytes !== imageBytes
+
+                // Update database with new image and/or preview
+                persistenceService.runInTransaction { context ->
+                    val attached = context.selectSingleResult(
+                        "from ${AddressImageDO::class.java.name} t where t.id = :id",
+                        AddressImageDO::class.java,
+                        Pair("id", addressImage.id),
+                        attached = true,
+                    )
+                    if (attached != null) {
+                        if (imageWasChanged) {
+                            attached.image = finalImageBytes
                         }
+                        attached.imageType = finalImageType  // Use actual format (JPEG or PNG)
+                        attached.imagePreview = imageService.resizeImagePreserveRatio(
+                            finalImageBytes,
+                            MAX_WIDTH_OF_PREVIEW_IMAGES,
+                            MAX_HEIGHT_OF_PREVIEW_IMAGES,
+                            finalImageType,
+                        )
+                        result.append("Preview image of address ${addressImage.address?.id} of size ${attached.imagePreview?.size.formatBytesForUser()} generated.\n")
+                        attached.lastUpdate = Date()
+                        context.update(attached)
                     }
+                }
+
+                // Log results
+                if (needsShrinking && sizeAfter < sizeBefore) {
                     shrinkedImages++
                     val savedKB = (sizeBefore - sizeAfter) / 1024
                     result.append("Shrinked image for address ${addressImage.address?.id}: ${sizeBefore / 1024} KB -> ${sizeAfter / 1024} KB (saved $savedKB KB)\n")
                 } else {
                     skippedImages++
-                    result.append("Skipped image for address ${addressImage.address?.id} (shrinking would increase size)\n")
+                    if (needsShrinking) {
+                        result.append("Skipped image for address ${addressImage.address?.id} (shrinking would increase size, preview regenerated)\n")
+                    } else {
+                        result.append("Regenerated preview for address ${addressImage.address?.id} (image already ${sizeBefore / 1024} KB)\n")
+                    }
                 }
             } catch (e: Exception) {
                 failedImages++
-                totalSizeAfter += sizeBefore // Count original size
-                result.append("Error shrinking image for address ${addressImage.address?.id}: ${e.message}\n")
-                log.error("Error shrinking image for address ${addressImage.address?.id}", e)
+                totalSizeAfter += sizeBefore
+                result.append("Error processing image for address ${addressImage.address?.id}: ${e.message}\n")
+                log.error("Error processing image for address ${addressImage.address?.id}", e)
             }
         }
 
@@ -329,5 +349,7 @@ open class AddressImageDao {
 
     companion object {
         private const val MAX_SIZE_BYTES_OF_SHRINKED_IMAGES = 100L * Constants.KB
+        private const val MAX_WIDTH_OF_PREVIEW_IMAGES = 50
+        private const val MAX_HEIGHT_OF_PREVIEW_IMAGES = 50
     }
 }
