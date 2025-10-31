@@ -184,8 +184,7 @@ object VCardUtils {
         // Fix TYPE parameter for iOS compatibility: Apple expects uppercase (TYPE=JPEG, TYPE=PNG)
         // but ez-vcard generates lowercase (TYPE=jpeg, TYPE=png)
         vcardString = vcardString.replace("TYPE=jpeg", "TYPE=JPEG", ignoreCase = false)
-        // Apple devices skip PNG images with TYPE=png; (with semicolon)
-        vcardString = vcardString.replace(";TYPE=png", "", ignoreCase = false)
+        vcardString = vcardString.replace("TYPE=png", "TYPE=PNG", ignoreCase = false)
         vcardString = vcardString.replace("TYPE=gif", "TYPE=GIF", ignoreCase = false)
         return vcardString
     }
