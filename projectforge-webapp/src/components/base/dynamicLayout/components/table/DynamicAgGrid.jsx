@@ -86,23 +86,52 @@ function DynamicAgGrid(props) {
     const [processedColumnDefs, setProcessedColumnDefs] = useState([]);
     const rowData = entries || Object.getByString(data, id) || Object.getByString(variables, id) || '';
     const { selectedEntityIds } = data;
-    /*
-    const showHighlightedRow = () => {
-        console.log('showHighlightedRow');
-        const highlightRowId = data.highlightRowId || highlightId;
-        if (gridApi && visible && highlightRowId) {
-            let highlightIndex;
-            gridApi.forEachNode((rowNode, index) => {
-                if (!highlightIndex && rowNode.data?.id === highlightRowId) {
-                    highlightIndex = index;
+    const lastScrolledId = useRef(null);
+    const pendingScrollId = useRef(null);
+
+    const scrollToHighlightedRow = React.useCallback(() => {
+        const highlightRowId = pendingScrollId.current;
+        if (!highlightRowId || !gridApi) {
+            return;
+        }
+
+        let highlightIndex;
+        gridApi.forEachNode((rowNode, index) => {
+            if (highlightIndex === undefined && rowNode.data?.id === highlightRowId) {
+                highlightIndex = index;
+            }
+        });
+
+        if (highlightIndex !== undefined) {
+            try {
+                // Since domLayout="autoHeight", the grid doesn't have
+                // internal scrolling
+                // We need to scroll the browser window to the row's DOM element
+                const rowElement = document.querySelector(
+                    `.ag-row[row-index="${highlightIndex}"]`,
+                );
+                if (rowElement) {
+                    rowElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center',
+                    });
+                    lastScrolledId.current = highlightRowId;
+                    pendingScrollId.current = null;
                 }
-            });
-            if (highlightIndex) {
-                console.log('scroll to', highlightIndex);
-                gridApi.ensureIndexVisible(highlightIndex);
+            } catch (error) {
+                // Silently ignore scroll errors
             }
         }
-    }; */
+    }, [gridApi]);
+
+    const showHighlightedRow = React.useCallback(() => {
+        const highlightRowId = data.highlightRowId || highlightId;
+
+        // Only scroll if we haven't already scrolled to this specific ID
+        if (highlightRowId && lastScrolledId.current !== highlightRowId) {
+            pendingScrollId.current = highlightRowId;
+        }
+    }, [data.highlightRowId, highlightId]);
 
     const onGridReady = React.useCallback((params) => {
         setGridApi(params.api);
@@ -122,8 +151,8 @@ function DynamicAgGrid(props) {
         if (!height) {
             // params.api.setDomLayout('autoHeight'); // Needed to get maximum height.
         }
-        // showHighlightedRow();
-    }, [selectedEntityIds, setGridApi, filterModel]);
+        showHighlightedRow();
+    }, [selectedEntityIds, setGridApi, filterModel, showHighlightedRow]);
 
     React.useEffect(() => {
         if (gridApi && selectedEntityIds) {
@@ -171,11 +200,9 @@ function DynamicAgGrid(props) {
         setProcessedColumnDefs(updatedColumnDefs);
     }, [columnDefs]);
 
-    /*
     React.useEffect(() => {
         showHighlightedRow();
-    }, [gridApi, data.highlightRowId, highlightId, visible]);
-    */
+    }, [showHighlightedRow]);
 
     const getLocaleText = (params) => {
         const { defaultValue, key } = params;
@@ -314,6 +341,14 @@ function DynamicAgGrid(props) {
         await postColumnStatesDebounced(event);
     };
 
+    const onModelUpdated = React.useCallback(() => {
+        // Grid model has been updated, rows are now rendered
+        // This is the perfect time to scroll to highlighted row
+        if (pendingScrollId.current) {
+            scrollToHighlightedRow();
+        }
+    }, [scrollToHighlightedRow]);
+
     // Needed, otherwise the cellRenderer output isn't used and
     // [object] is copied to clipboard.
     const processCellForClipboard = (params) => {
@@ -441,6 +476,7 @@ function DynamicAgGrid(props) {
                     selectionColumnDef={selectionColumnDef}
                     rowSelection={rowSelection}
                     onGridReady={onGridReady}
+                    onModelUpdated={onModelUpdated}
                     onSelectionChanged={onSelectionChanged}
                     onSortChanged={onSortChanged}
                     onColumnMoved={onColumnMoved}
