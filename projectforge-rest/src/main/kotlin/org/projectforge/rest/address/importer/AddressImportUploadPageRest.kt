@@ -86,6 +86,7 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
             // Note: Individual address, email and phone fields are included here even though they don't have
             // their own columns anymore - they're part of the formatted columns
             // (formattedBusinessAddress, formattedPrivateAddress, formattedPostalAddress, formattedEmails, formattedPhones)
+            // Also includes fields that should be excluded from "Additional Changes" (like form)
             val displayedFields = setOf(
                 "read.name",
                 "read.firstName",
@@ -121,6 +122,7 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
                 "read.privateMobilePhone",
                 "read.fax",
                 "read.comment",
+                "read.form", // Excluded from "Additional Changes" - VCards typically don't contain form of address
             )
 
             // Find all changed fields that are NOT displayed as individual columns

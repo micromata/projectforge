@@ -236,30 +236,38 @@ class AddressImportDTO(
 
     /**
      * Returns formatted business address as multi-line string.
+     * Note: @Transient prevents DB persistence, but Jackson will still serialize this for JSON.
      */
     @get:Transient
+    @get:com.fasterxml.jackson.annotation.JsonProperty
     val formattedBusinessAddress: String
         get() = MailingAddress.format(addressText, addressText2, zipCode, city, country, state)
 
     /**
      * Returns formatted private address as multi-line string.
+     * Note: @Transient prevents DB persistence, but Jackson will still serialize this for JSON.
      */
     @get:Transient
+    @get:com.fasterxml.jackson.annotation.JsonProperty
     val formattedPrivateAddress: String
         get() = MailingAddress.format(privateAddressText, privateAddressText2, privateZipCode, privateCity, privateCountry, privateState)
 
     /**
      * Returns formatted postal address as multi-line string.
+     * Note: @Transient prevents DB persistence, but Jackson will still serialize this for JSON.
      */
     @get:Transient
+    @get:com.fasterxml.jackson.annotation.JsonProperty
     val formattedPostalAddress: String
         get() = MailingAddress.format(postalAddressText, postalAddressText2, postalZipCode, postalCity, postalCountry, postalState)
 
     /**
      * Returns formatted email addresses as multi-line string with labels.
      * Format: "geschäftlich: abc@def.de\nprivat: xyz@example.com"
+     * Note: @Transient prevents DB persistence, but Jackson will still serialize this for JSON.
      */
     @get:Transient
+    @get:com.fasterxml.jackson.annotation.JsonProperty
     val formattedEmails: String
         get() {
             val lines = mutableListOf<String>()
@@ -277,8 +285,10 @@ class AddressImportDTO(
     /**
      * Returns formatted phone numbers as multi-line string with labels.
      * Format: "geschäftlich: +49...\nmobil: +49...\nprivat: +49...\nprivat mobil: +49..."
+     * Note: @Transient prevents DB persistence, but Jackson will still serialize this for JSON.
      */
     @get:Transient
+    @get:com.fasterxml.jackson.annotation.JsonProperty
     val formattedPhones: String
         get() {
             val lines = mutableListOf<String>()
@@ -307,7 +317,7 @@ class AddressImportDTO(
             AddressDO::division,
             AddressDO::positionText,
             AddressDO::title,
-            AddressDO::form,
+            // AddressDO::form, // Excluded from comparison - VCards typically don't contain form of address
             AddressDO::birthName,
             AddressDO::birthday,
             AddressDO::email,
