@@ -61,6 +61,7 @@ fun main(args: Array<String>) {
     val davToken = args[1]
     val fetchAll = args.contains("--fetch-all")
     val baseUrl = if (args.size == 3) args[2] else "http://localhost:8080/carddav"
+    // val baseUrl = "http://localhost:8080/carddav"
     val lastSyncToken = if (args.size > 3 && !fetchAll) args[3] else null
     val client = CardDavTestClient(baseUrl, username = username, password = davToken, lastSyncToken = lastSyncToken)
     if (fetchAll) {
@@ -107,7 +108,7 @@ class CardDavTestClient(private val baseUrl: String, username: String, password:
             """.trimIndent().let { body ->
                 sendRequest("PROPFIND", requestBody = body, useAuthHeader = true)
             }*/
-            sendRequest("GET", path = "/users/kai/addressbooks/ProjectForge-163.vcf", useAuthHeader = true)
+            sendRequest("GET", path = "/users/kai/addressbooks/ProjectForge-23468098.vcf", useAuthHeader = true)
             //sendRequest("GET", path = "/users/kai/addressbooks/ProjectForge-723108.vcf", useAuthHeader = true)
             sendRequest("GET", path = "/carddav/photos/contact-163.jpg", useAuthHeader = true, logResponseContent = false)
             /*
@@ -255,7 +256,7 @@ class CardDavTestClient(private val baseUrl: String, username: String, password:
         if (response.content.isNotEmpty()) {
             if (logResponseContent) {
                 println("   content=[")
-                println(response.content.abbreviate(2000))
+                println(response.content.abbreviate(8000))
                 println("   ]")
             } else {
                 println("   content-size=${response.content.length}")

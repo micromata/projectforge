@@ -254,8 +254,18 @@ class AddressPagesRest
 
         // Helper function to add field if VCF or DB has a value
         fun addField(fieldName: String, vcfValue: String?, dbValue: String?) {
-            if (!vcfValue.isNullOrBlank() || !dbValue.isNullOrBlank()) {
-                result[fieldName] = mapOf("vcf" to vcfValue, "db" to dbValue)
+            // Special handling for 'form' field: only show if VCF has a value
+            // This prevents showing "form to be deleted" when VCF simply doesn't contain it
+            if (fieldName == "form") {
+                // Only add if VCF has a value (ignore deletions for form field)
+                if (!vcfValue.isNullOrBlank()) {
+                    result[fieldName] = mapOf("vcf" to vcfValue, "db" to dbValue)
+                }
+            } else {
+                // Normal behavior for all other fields
+                if (!vcfValue.isNullOrBlank() || !dbValue.isNullOrBlank()) {
+                    result[fieldName] = mapOf("vcf" to vcfValue, "db" to dbValue)
+                }
             }
         }
 
