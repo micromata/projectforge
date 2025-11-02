@@ -74,12 +74,21 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
 
         /**
          * Calculates which fields have changed (are in oldDiffValues) but are not shown as individual columns.
+         * Also checks if the stored address is deleted (will be restored).
          * Returns a translated, comma-separated list of additional changed fields.
          */
         @JvmStatic
-        fun calculateAdditionalChanges(oldDiffValues: Map<String, Any>?): String? {
+        fun calculateAdditionalChanges(pairEntry: org.projectforge.rest.importer.ImportPairEntry<AddressImportDTO>): String? {
+            val additionalChanges = mutableListOf<String>()
+
+            // Check if stored address is deleted (will be restored by import)
+            if (pairEntry.stored?.deleted == true) {
+                additionalChanges.add(translate("undelete"))
+            }
+
+            val oldDiffValues = pairEntry.oldDiffValues
             if (oldDiffValues.isNullOrEmpty()) {
-                return null
+                return if (additionalChanges.isEmpty()) null else additionalChanges.joinToString(", ")
             }
 
             // Fields that are already shown as individual columns (using "read." prefix from diffCell)
@@ -135,10 +144,13 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
                 }
                 .sorted()
 
-            return if (additionalChangedFields.isEmpty()) {
+            // Combine deleted status (if any) with changed fields
+            additionalChanges.addAll(additionalChangedFields)
+
+            return if (additionalChanges.isEmpty()) {
                 null
             } else {
-                additionalChangedFields.joinToString(", ")
+                additionalChanges.joinToString(", ")
             }
         }
     }
@@ -310,7 +322,7 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
 
         // Add entries to variables with index
         val entries = importStorage.pairEntries.mapIndexed { index, pairEntry ->
-            val additionalChanges = calculateAdditionalChanges(pairEntry.oldDiffValues)
+            val additionalChanges = calculateAdditionalChanges(pairEntry)
             ImportEntryData(pairEntry, index, additionalChanges)
         }
         val formLayoutData = FormLayoutData(ImportUploadData(), layout, createServerData(request))

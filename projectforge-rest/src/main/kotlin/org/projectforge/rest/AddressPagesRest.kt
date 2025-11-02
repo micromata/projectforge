@@ -172,7 +172,7 @@ class AddressPagesRest
         if (!importIndexStr.isNullOrBlank()) {
             try {
                 val importIndex = importIndexStr.toInt()
-                log.info { "Opening address edit in import context: importIndex=$importIndex, addressId=${dto.id}" }
+                log.debug { "Opening address edit in import context: importIndex=$importIndex, addressId=${dto.id}" }
 
                 // Store importIndex in returnToCallerParams so it persists across saves
                 val params = formLayoutData.serverData?.returnToCallerParams?.toMutableMap() ?: mutableMapOf()
@@ -438,7 +438,7 @@ class AddressPagesRest
             ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
             // Delete from database if exists (for existing addresses with images)
             addressImageDao.delete(obj.id!!)
-            log.info { "Deleted image for address ${obj.id} on form save (imageDeleted flag)" }
+            log.debug { "Deleted image for address ${obj.id} on form save (imageDeleted flag)" }
         } else {
             // Handle new image upload from session (only if not deleted)
             val image = ExpiringSessionAttributes.getAttribute(session, SESSION_IMAGE_ATTR)
@@ -450,12 +450,38 @@ class AddressPagesRest
         }
 
         // If this was opened from VCF import context, reconcile import storage
+        reconcileImportStorageAfterAddressChange(request, postData)
+    }
+
+    override fun onAfterUndelete(request: HttpServletRequest, obj: AddressDO, postData: PostData<Address>): ResponseAction {
+        // Re-reconcile import storage if this was opened from import context
+        reconcileImportStorageAfterAddressChange(request, postData)
+        return super.onAfterUndelete(request, obj, postData)
+    }
+
+    override fun onAfterMarkAsDeleted(request: HttpServletRequest, obj: AddressDO, postData: PostData<Address>): ResponseAction {
+        // Re-reconcile import storage if this was opened from import context
+        reconcileImportStorageAfterAddressChange(request, postData)
+        return super.onAfterMarkAsDeleted(request, obj, postData)
+    }
+
+    override fun onAfterDelete(request: HttpServletRequest, obj: AddressDO, postData: PostData<Address>): ResponseAction {
+        // Re-reconcile import storage if this was opened from import context (forceDelete)
+        reconcileImportStorageAfterAddressChange(request, postData)
+        return super.onAfterDelete(request, obj, postData)
+    }
+
+    /**
+     * Re-reconciles import storage after an address has been created, updated, undeleted, marked as deleted, or deleted.
+     * This ensures the import list reflects the current database state.
+     */
+    private fun reconcileImportStorageAfterAddressChange(request: HttpServletRequest, postData: PostData<Address>) {
         val importIndexStr = postData.serverData?.returnToCallerParams?.get("importIndex")
             ?: request.getParameter("importIndex")
         if (!importIndexStr.isNullOrBlank()) {
             try {
                 val importIndex = importIndexStr.toInt()
-                log.info { "Re-reconciling import storage after save/update (importIndex=$importIndex)" }
+                log.debug { "Re-reconciling import storage after address change (importIndex=$importIndex)" }
 
                 // Retrieve import storage from session
                 val importStorage = ExpiringSessionAttributes.getAttribute(
@@ -472,7 +498,7 @@ class AddressPagesRest
                     val importEntry = importStorage.getImportEntryByIndex(importIndex)
                     if (importEntry != null) {
                         importEntry.status = org.projectforge.rest.importer.ImportEntry.Status.IMPORTED
-                        log.info { "Marked import entry at index $importIndex as IMPORTED" }
+                        log.debug { "Marked import entry at index $importIndex as IMPORTED" }
                     } else {
                         log.warn { "Could not find import entry at index $importIndex to mark as IMPORTED" }
                     }
@@ -509,7 +535,7 @@ class AddressPagesRest
                 // Import context: return updated import list data
                 try {
                     val importIndex = importIndexStr.toInt()
-                    log.info { "Closing modal in import context (importIndex=$importIndex), returning updated import list" }
+                    log.debug { "Closing modal in import context (importIndex=$importIndex), returning updated import list" }
 
                     // Retrieve import storage from session (it was already reconciled in onAfterSaveOrUpdate)
                     val importStorage = ExpiringSessionAttributes.getAttribute(
@@ -523,7 +549,7 @@ class AddressPagesRest
                         val entries = importStorage.pairEntries.mapIndexed { index, pairEntry ->
                             val additionalChanges =
                                 org.projectforge.rest.address.importer.AddressImportUploadPageRest.calculateAdditionalChanges(
-                                    pairEntry.oldDiffValues
+                                    pairEntry
                                 )
                             org.projectforge.rest.address.importer.AddressImportUploadPageRest.ImportEntryData(
                                 pairEntry,
@@ -1169,7 +1195,7 @@ class AddressPagesRest
 
                 // Clear VCF image from session (frontend will handle upload)
                 ExpiringSessionAttributes.removeAttribute(session, SESSION_VCF_IMAGE_ATTR)
-                log.info { "Sending VCF image to frontend: ${vcfImage.filename} (${vcfImage.bytes.size} bytes, ${vcfImage.imageType})" }
+                log.debug { "Sending VCF image to frontend: ${vcfImage.filename} (${vcfImage.bytes.size} bytes, ${vcfImage.imageType})" }
             }
         }
 
@@ -1222,7 +1248,7 @@ class AddressPagesRest
             }
         }
 
-        log.info { "Applied ${selectedFields.size} parsed fields to address" }
+        log.debug { "Applied ${selectedFields.size} parsed fields to address" }
 
         val response = ResponseAction(targetType = TargetType.UPDATE)
             .addVariable("data", address)

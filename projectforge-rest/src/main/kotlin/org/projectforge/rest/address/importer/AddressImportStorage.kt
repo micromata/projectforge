@@ -88,9 +88,9 @@ class AddressImportStorage : ImportStorage<AddressImportDTO>(
      */
     fun parseVcfData(vcfBytes: ByteArray) {
         try {
-            log.info("Parsing VCF data (${vcfBytes.size} bytes)")
+            log.debug { "Parsing VCF data (${vcfBytes.size} bytes)" }
             val addresses = VCardUtils.parseFromByteArray(vcfBytes)
-            log.info("Parsed ${addresses.size} addresses from VCF")
+            log.debug { "Parsed ${addresses.size} addresses from VCF" }
 
             // Get ImageService for image processing
             val imageService = ApplicationContextProvider.getApplicationContext().getBean(ImageService::class.java)
@@ -129,7 +129,7 @@ class AddressImportStorage : ImportStorage<AddressImportDTO>(
         if (rereadDatabaseEntries || databaseAddresses == null) {
             val addressDao = ApplicationContextProvider.getApplicationContext().getBean(AddressDao::class.java)
             databaseAddresses = addressDao.selectAll(checkAccess = false)
-            log.info("=== DATABASE ADDRESSES LOADED: ${databaseAddresses?.size ?: 0} addresses ===")
+            log.debug { "=== DATABASE ADDRESSES LOADED: ${databaseAddresses?.size ?: 0} addresses ===" }
         }
 
         // Save IMPORTED status for entries before clearing (preserve user-processed entries)
