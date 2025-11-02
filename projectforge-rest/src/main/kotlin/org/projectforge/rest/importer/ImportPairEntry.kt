@@ -139,10 +139,17 @@ class ImportPairEntry<O : ImportPairEntry.Modified<O>>(
             } else if (stored == null) {
                 Status.NEW
             } else {
-                when (isModified()) {
-                    null -> Status.UNKNOWN_MODIFICATION
-                    true -> Status.MODIFIED
-                    else -> Status.UNMODIFIED
+                // If stored address is deleted, importing will restore it -> MODIFIED
+                if ((stored is AbstractBaseDO<*> && stored.deleted)
+                    || (stored is BaseDTO<*> && stored.deleted)
+                ) {
+                    Status.MODIFIED
+                } else {
+                    when (isModified()) {
+                        null -> Status.UNKNOWN_MODIFICATION
+                        true -> Status.MODIFIED
+                        else -> Status.UNMODIFIED
+                    }
                 }
             }
         }
