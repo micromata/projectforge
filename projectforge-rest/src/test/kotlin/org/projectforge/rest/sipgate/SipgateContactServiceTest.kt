@@ -43,6 +43,12 @@ class SipgateContactServiceTest {
     check(AddressDO::fax, SipgateContact::faxWork)
   }
 
+  @Test
+  fun fixEmailsTest() {
+    checkEmail(AddressDO::email, SipgateContact.EmailType.WORK)
+    checkEmail(AddressDO::privateEmail, SipgateContact.EmailType.HOME)
+  }
+
   private fun check(addressField: KMutableProperty<*>, contactField: KMutableProperty<*>) {
     val otherNumber = "01234 56789"
     val number = "+49 123456789"
@@ -63,5 +69,34 @@ class SipgateContactServiceTest {
       Assertions.assertNull(contact.other)
     }
     Assertions.assertEquals(otherNumber, contactField.getter.call(contact))
+  }
+
+  private fun checkEmail(addressField: KMutableProperty<*>, expectedType: SipgateContact.EmailType) {
+    val emailAddress = "test@example.com"
+    val address = AddressDO()
+    addressField.setter.call(address, emailAddress)
+
+    // Create contact with email without type (as Sipgate sometimes returns)
+    val contact = SipgateContact()
+    contact.emails = mutableListOf(SipgateContact.Email(email = emailAddress, type = null))
+
+    // Fix emails should assign the correct type based on the address field
+    SipgateContactService.fixEmails(contact, address)
+
+    // Verify the email now has the correct type
+    Assertions.assertNotNull(contact.emails)
+    Assertions.assertEquals(1, contact.emails?.size)
+    Assertions.assertEquals(emailAddress, contact.emails?.first()?.email)
+    Assertions.assertEquals(expectedType, contact.emails?.first()?.type)
+
+    // Test with syncInfo
+    val syncInfo = SipgateContactSyncDO.SyncInfo()
+    syncInfo.setFieldsInfo(addressField.name, emailAddress)
+
+    // Reset contact email type
+    contact.emails = mutableListOf(SipgateContact.Email(email = emailAddress, type = null))
+
+    SipgateContactService.fixEmails(contact, address, syncInfo)
+    Assertions.assertEquals(expectedType, contact.emails?.first()?.type)
   }
 }
