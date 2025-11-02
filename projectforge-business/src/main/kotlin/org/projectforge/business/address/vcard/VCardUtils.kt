@@ -148,7 +148,7 @@ object VCardUtils {
                     }
                 }
             }
-            if (imageUrl == null && addressDO.transientImage == null) {
+            if (addressDO.transientImage == null) {
                 log.debug { "No PHOTO added to VCard for ${addressDO.id} (${addressDO.fullName})" }
             }
         }
