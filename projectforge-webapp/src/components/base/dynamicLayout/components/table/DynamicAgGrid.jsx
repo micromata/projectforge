@@ -113,7 +113,7 @@ function DynamicAgGrid(props) {
                 if (rowElement) {
                     rowElement.scrollIntoView({
                         behavior: 'smooth',
-                        block: 'center',
+                        block: 'start',
                     });
                     lastScrolledId.current = highlightRowId;
                     pendingScrollId.current = null;
@@ -342,8 +342,19 @@ function DynamicAgGrid(props) {
     };
 
     const onModelUpdated = React.useCallback(() => {
-        // Grid model has been updated, rows are now rendered
-        // This is the perfect time to scroll to highlighted row
+        // Grid model has been updated (fires reliably when returning from edit pages)
+        // For autoHeight with wraptext, row heights may still be calculating
+        // Use small delay to ensure heights are finalized
+        if (pendingScrollId.current) {
+            setTimeout(() => {
+                scrollToHighlightedRow();
+            }, 100);
+        }
+    }, [scrollToHighlightedRow]);
+
+    const onGridSizeChanged = React.useCallback(() => {
+        // Grid size has changed after height calculations (backup for autoHeight)
+        // This fires when row heights change significantly
         if (pendingScrollId.current) {
             scrollToHighlightedRow();
         }
@@ -486,6 +497,7 @@ function DynamicAgGrid(props) {
                     onFilterChanged={onFilterChanged}
                     onRowClicked={onRowClicked}
                     onCellClicked={onCellClicked}
+                    onGridSizeChanged={onGridSizeChanged}
                     pagination={pagination}
                     paginationPageSize={data.paginationPageSize || paginationPageSize}
                     paginationPageSizeSelector={paginationPageSizeSelector}
@@ -500,7 +512,6 @@ function DynamicAgGrid(props) {
                     // processCellCallback={processCellCallback}
                     tooltipShowDelay={0}
                     suppressScrollOnNewData
-                    // onFirstDataRendered={onFirstDataRendered}
                     domLayout="autoHeight"
                     sideBar={{
                         toolPanels: [
