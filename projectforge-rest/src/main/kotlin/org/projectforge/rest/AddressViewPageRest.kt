@@ -28,6 +28,7 @@ import jakarta.validation.Valid
 import mu.KotlinLogging
 import org.projectforge.business.address.*
 import org.projectforge.business.sipgate.SipgateConfiguration
+import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.extensions.formatForUser
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -69,6 +70,9 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
     @Autowired
     private lateinit var smsSenderConfig: SmsSenderConfig
 
+    @Autowired
+    private lateinit var userPrefService: UserPrefService
+
     enum class PhoneType { BUSINESS, MOBILE, PRIVATE, PRIVATE_MOBILE }
 
     class PhoneNumber(
@@ -89,6 +93,10 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
         @RequestParam("returnToCaller") returnToCaller: String?,
     ): FormLayoutData {
         val id = NumberHelper.parseLong(idString) ?: throw IllegalArgumentException("id not given.")
+
+        // Set the highlighted row preference so the list page highlights this address when the modal closes
+        userPrefService.putEntry("address", "highlightedRow", id, false)
+
         val addressDO = addressDao.find(id) ?: AddressDO()
         val address = Address()
         address.copyFrom(addressDO)

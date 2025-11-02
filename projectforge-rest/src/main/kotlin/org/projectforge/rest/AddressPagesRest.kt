@@ -546,6 +546,10 @@ class AddressPagesRest
 
             // Close the modal without additional data (normal mode or import storage not available)
             // This handles all button actions: save, update, delete, undelete, cancel, clone
+            // Set the highlighted row preference so the list page highlights this address when the modal closes
+            obj.id?.let {
+                userPrefService.putEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, it, false)
+            }
             return ResponseAction(targetType = TargetType.CLOSE_MODAL)
         }
         // Default behavior: redirect to list page
