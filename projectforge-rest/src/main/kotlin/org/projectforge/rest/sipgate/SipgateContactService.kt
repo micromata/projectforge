@@ -81,6 +81,35 @@ open class SipgateContactService :
       }
     }
 
+    /**
+     * Sipgate sometimes sends emails without type field.
+     * This method tries to assign email types by comparing the email addresses with
+     * the corresponding fields in the local address.
+     *
+     * Example: If Sipgate returns {"email":"test@example.com"} without type,
+     * and address.email == "test@example.com", then we set type = WORK.
+     * This prevents the sync logic from detecting false changes.
+     */
+    fun fixEmails(
+      contact: SipgateContact,
+      address: AddressDO? = null,
+      syncInfo: SipgateContactSyncDO.SyncInfo? = null
+    ) {
+      contact.emails?.filter { it.type == null }?.forEach { emailWithoutType ->
+        val email = emailWithoutType.email?.trim()?.lowercase()
+        if (email.isNullOrBlank()) {
+          return@forEach
+        }
+        if (checkEmail(syncInfo, AddressDO::email, email, address?.email)) {
+          emailWithoutType.type = SipgateContact.EmailType.WORK
+          return@forEach
+        } else if (checkEmail(syncInfo, AddressDO::privateEmail, email, address?.privateEmail)) {
+          emailWithoutType.type = SipgateContact.EmailType.HOME
+          return@forEach
+        }
+      }
+    }
+
     private fun checkNumber(
       syncInfo: SipgateContactSyncDO.SyncInfo?,
       field: KMutableProperty<*>,
@@ -89,6 +118,31 @@ open class SipgateContactService :
     ): Boolean {
       return number == NumberHelper.extractPhonenumber(addressNumber) ||
           syncInfo != null && syncInfo.fieldsInfo[field.name] == SipgateContactSyncDO.SyncInfo.hash(number)
+    }
+
+    /**
+     * Checks if an email address matches a specific field in the local address.
+     *
+     * Returns true if:
+     * 1. The email matches the corresponding address field (e.g., email matches address.email), OR
+     * 2. The syncInfo indicates this email was previously associated with this field
+     *
+     * This helps identify which type (WORK/HOME) should be assigned to emails without type.
+     *
+     * @param syncInfo The sync information containing field hashes from the last sync
+     * @param field The address field to check (e.g., AddressDO::email or AddressDO::privateEmail)
+     * @param email The email address from the contact (normalized: trimmed and lowercase)
+     * @param addressEmail The email address from the local address
+     * @return true if the email matches this field, false otherwise
+     */
+    private fun checkEmail(
+      syncInfo: SipgateContactSyncDO.SyncInfo?,
+      field: KMutableProperty<*>,
+      email: String?,
+      addressEmail: String?
+    ): Boolean {
+      return email == addressEmail?.trim()?.lowercase() ||
+          syncInfo != null && syncInfo.fieldsInfo[field.name] == SipgateContactSyncDO.SyncInfo.hash(email)
     }
   }
 }
