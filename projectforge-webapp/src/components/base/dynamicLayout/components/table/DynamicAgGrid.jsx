@@ -89,7 +89,7 @@ function DynamicAgGrid(props) {
     const lastScrolledId = useRef(null);
     const pendingScrollId = useRef(null);
 
-    const scrollToHighlightedRow = React.useCallback(() => {
+    const scrollToHighlightedRow = React.useCallback((clearPending = false) => {
         const highlightRowId = pendingScrollId.current;
         if (!highlightRowId || !gridApi) {
             return;
@@ -116,7 +116,9 @@ function DynamicAgGrid(props) {
                         block: 'start',
                     });
                     lastScrolledId.current = highlightRowId;
-                    pendingScrollId.current = null;
+                    if (clearPending) {
+                        pendingScrollId.current = null;
+                    }
                 }
             } catch (error) {
                 // Silently ignore scroll errors
@@ -343,20 +345,36 @@ function DynamicAgGrid(props) {
 
     const onModelUpdated = React.useCallback(() => {
         // Grid model has been updated (fires reliably when returning from edit pages)
-        // For autoHeight with wraptext, row heights may still be calculating
-        // Use small delay to ensure heights are finalized
+        // For autoHeight with wraptext and async image loading, use multiple attempts
+        // to ensure scrolling happens after all heights are calculated
         if (pendingScrollId.current) {
+            // First attempt: quick scroll for simple cases
             setTimeout(() => {
-                scrollToHighlightedRow();
+                if (pendingScrollId.current) {
+                    scrollToHighlightedRow(false);
+                }
             }, 100);
+            // Second attempt: medium delay for wraptext calculations
+            setTimeout(() => {
+                if (pendingScrollId.current) {
+                    scrollToHighlightedRow(false);
+                }
+            }, 300);
+            // Final attempt: long delay for async image loading, then clear pending
+            setTimeout(() => {
+                if (pendingScrollId.current) {
+                    scrollToHighlightedRow(true);
+                }
+            }, 500);
         }
     }, [scrollToHighlightedRow]);
 
     const onGridSizeChanged = React.useCallback(() => {
         // Grid size has changed after height calculations (backup for autoHeight)
-        // This fires when row heights change significantly
+        // This fires when row heights change significantly (e.g., images loaded)
+        // Clear pending since grid size change indicates rendering is complete
         if (pendingScrollId.current) {
-            scrollToHighlightedRow();
+            scrollToHighlightedRow(true);
         }
     }, [scrollToHighlightedRow]);
 
