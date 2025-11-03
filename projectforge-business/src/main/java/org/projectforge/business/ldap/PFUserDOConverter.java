@@ -278,6 +278,8 @@ public class PFUserDOConverter
     setMailNullArray(dest);
     setMobilePhoneNullArray(src);
     setMobilePhoneNullArray(dest);
+    normalizeStringFields(src);
+    normalizeStringFields(dest);
     boolean modified;
     final List<String> properties = new LinkedList<>();
     ListHelper.addAll(properties, "commonName", "givenName", "surname", "mail", "description", "organization",
@@ -306,11 +308,11 @@ public class PFUserDOConverter
       return;
     }
     for (final String mail : ldapUser.getMail()) {
-      if (mail != null) {
+      if (StringUtils.isNotEmpty(mail)) {
         return;
       }
     }
-    // All array entries are null, therefore set the mail value itself to null:
+    // All array entries are null or empty strings, therefore set the mail value itself to null:
     ldapUser.setMail((String[]) null);
   }
 
@@ -320,11 +322,36 @@ public class PFUserDOConverter
       return;
     }
     for (final String mobilePhone : ldapUser.getMobilePhoneNumber()) {
-      if (mobilePhone != null) {
+      if (StringUtils.isNotEmpty(mobilePhone)) {
         return;
       }
     }
-    // All array entries are null, therefore set the mobilePhoneNumber value itself to null:
+    // All array entries are null or empty strings, therefore set the mobilePhoneNumber value itself to null:
     ldapUser.setMobilePhoneNumber((String[]) null);
+  }
+
+  /**
+   * Normalizes empty strings to null for single-value string fields to avoid endless sync loops.
+   * This ensures that empty strings in the database are treated the same as null values in LDAP.
+   *
+   * @param ldapUser The user whose fields should be normalized
+   */
+  static void normalizeStringFields(final LdapUser ldapUser)
+  {
+    if (ldapUser == null) {
+      return;
+    }
+    // Normalize description
+    if (StringUtils.isEmpty(ldapUser.getDescription())) {
+      ldapUser.setDescription(null);
+    }
+    // Normalize telephoneNumber
+    if (StringUtils.isEmpty(ldapUser.getTelephoneNumber())) {
+      ldapUser.setTelephoneNumber(null);
+    }
+    // Normalize homePhoneNumber
+    if (StringUtils.isEmpty(ldapUser.getHomePhoneNumber())) {
+      ldapUser.setHomePhoneNumber(null);
+    }
   }
 }
