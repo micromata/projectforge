@@ -26,6 +26,8 @@ package org.projectforge.plugins.marketing.rest
 import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
 import org.projectforge.business.address.*
+import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -82,6 +84,9 @@ class AddressCampaignValuePagesRest :
 
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
+
+    @Autowired
+    private lateinit var accessChecker: AccessChecker
 
     companion object {
         private const val USER_PREF_SELECTED_CAMPAIGN_ID = "AddressCampaignValuePagesRest.selectedCampaignId"
@@ -366,7 +371,10 @@ class AddressCampaignValuePagesRest :
             null
         }
 
-        layout.excelExportSupported = true
+        layout.excelExportSupported = accessChecker.isLoggedInUserMemberOfGroup(
+            ProjectForgeGroup.FINANCE_GROUP,
+            ProjectForgeGroup.MARKETING_GROUP,
+        )
 
         agGridSupport.prepareUIGrid4ListPage(
             request,
