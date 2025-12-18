@@ -154,6 +154,249 @@ GROUP BY strftime('%w', start_time)
 ORDER BY CAST(strftime('%w', start_time) AS INTEGER);
 ```
 
+## Abfragen für Finanzbuchhaltung
+
+### 9. Auftragswert pro Kunde
+
+```sql
+SELECT
+    k.name as kunde,
+    k.identifier,
+    COUNT(a.pk) as anzahl_auftraege,
+    COUNT(ap.pk) as anzahl_positionen,
+    ROUND(SUM(ap.nettoSumme), 2) as gesamt_netto
+FROM T_FIBU_KUNDE k
+LEFT JOIN T_FIBU_AUFTRAG a ON a.kunde_fk = k.pk AND a.deleted = 0
+LEFT JOIN T_FIBU_AUFTRAG_POSITION ap ON ap.auftrag_fk = a.pk AND ap.deleted = 0
+WHERE k.deleted = 0
+GROUP BY k.pk
+ORDER BY gesamt_netto DESC;
+```
+
+### 10. Offene Rechnungen
+
+```sql
+SELECT
+    r.nummer as rechnung_nr,
+    k.name as kunde,
+    r.datum as rechnungsdatum,
+    r.faelligkeit,
+    r.status,
+    ROUND(SUM(rp.menge * rp.einzelNetto * (1 + rp.vat/100)), 2) as brutto_summe,
+    CASE
+        WHEN r.bezahl_datum IS NULL THEN 'Offen'
+        ELSE 'Bezahlt'
+    END as zahlstatus
+FROM T_FIBU_RECHNUNG r
+JOIN T_FIBU_KUNDE k ON r.kunde_id = k.pk
+LEFT JOIN T_FIBU_RECHNUNG_POSITION rp ON rp.rechnung_fk = r.pk AND rp.deleted = 0
+WHERE r.deleted = 0 AND r.bezahl_datum IS NULL
+GROUP BY r.pk
+ORDER BY r.faelligkeit;
+```
+
+### 11. Rechnungsumsatz pro Monat
+
+```sql
+SELECT
+    strftime('%Y-%m', r.datum) as monat,
+    COUNT(r.pk) as anzahl_rechnungen,
+    ROUND(SUM(rp.menge * rp.einzelNetto), 2) as netto_summe,
+    ROUND(SUM(rp.menge * rp.einzelNetto * (1 + rp.vat/100)), 2) as brutto_summe
+FROM T_FIBU_RECHNUNG r
+LEFT JOIN T_FIBU_RECHNUNG_POSITION rp ON rp.rechnung_fk = r.pk AND rp.deleted = 0
+WHERE r.deleted = 0
+GROUP BY monat
+ORDER BY monat DESC;
+```
+
+### 12. Projekt-Übersicht mit Aufträgen und Rechnungen
+
+```sql
+SELECT
+    p.name as projekt,
+    p.identifier,
+    k.name as kunde,
+    COUNT(DISTINCT a.pk) as anzahl_auftraege,
+    COUNT(DISTINCT r.pk) as anzahl_rechnungen,
+    ROUND(SUM(DISTINCT ap.nettoSumme), 2) as auftrag_summe,
+    ROUND(SUM(DISTINCT rp.menge * rp.einzelNetto), 2) as rechnung_summe,
+    p.status
+FROM T_FIBU_PROJEKT p
+LEFT JOIN T_FIBU_KUNDE k ON p.kunde_id = k.pk
+LEFT JOIN T_FIBU_AUFTRAG a ON a.projekt_fk = p.pk AND a.deleted = 0
+LEFT JOIN T_FIBU_AUFTRAG_POSITION ap ON ap.auftrag_fk = a.pk AND ap.deleted = 0
+LEFT JOIN T_FIBU_RECHNUNG r ON r.projekt_id = p.pk AND r.deleted = 0
+LEFT JOIN T_FIBU_RECHNUNG_POSITION rp ON rp.rechnung_fk = r.pk AND rp.deleted = 0
+WHERE p.deleted = 0
+GROUP BY p.pk
+ORDER BY projekt;
+```
+
+### 13. Zahlungspläne - Übersicht
+
+```sql
+SELECT
+    a.nummer as auftrag_nr,
+    a.titel,
+    ps.schedule_date,
+    ps.amount,
+    ps.reached,
+    ps.vollstaendigFakturiert,
+    CASE
+        WHEN ps.reached = 1 THEN 'Erreicht'
+        ELSE 'Offen'
+    END as status
+FROM T_FIBU_PAYMENT_SCHEDULE ps
+JOIN T_FIBU_AUFTRAG a ON ps.auftrag_fk = a.pk
+WHERE ps.deleted = 0
+ORDER BY ps.schedule_date;
+```
+
+## Abfragen für Kostenrechnung
+
+### 14. Buchungssätze nach Kostenträger (Kost2)
+
+```sql
+SELECT
+    k2.nummernkreis || '.' || k2.bereich || '.' || k2.teilbereich as kost2_nr,
+    k2.description as kost2_bezeichnung,
+    k2art.name as kost2_art,
+    COUNT(b.pk) as anzahl_buchungen,
+    ROUND(SUM(b.betrag), 2) as summe
+FROM T_FIBU_KOST2 k2
+LEFT JOIN T_FIBU_KOST2ART k2art ON k2.kost2_art_id = k2art.pk
+LEFT JOIN T_FIBU_BUCHUNGSSATZ b ON b.kost2_id = k2.pk AND b.deleted = 0
+WHERE k2.deleted = 0
+GROUP BY k2.pk
+ORDER BY kost2_nr;
+```
+
+### 15. Monatliche Buchungssätze
+
+```sql
+SELECT
+    b.year || '-' || printf('%02d', b.month) as monat,
+    COUNT(*) as anzahl_buchungen,
+    ROUND(SUM(CASE WHEN b.sh = 'S' THEN b.betrag ELSE 0 END), 2) as soll,
+    ROUND(SUM(CASE WHEN b.sh = 'H' THEN b.betrag ELSE 0 END), 2) as haben
+FROM T_FIBU_BUCHUNGSSATZ b
+WHERE b.deleted = 0
+GROUP BY b.year, b.month
+ORDER BY b.year DESC, b.month DESC;
+```
+
+### 16. Kost2 Auslastung (mit Timesheets)
+
+```sql
+SELECT
+    k2.nummernkreis || '.' || k2.bereich || '.' || k2.teilbereich as kost2_nr,
+    k2.description,
+    p.name as projekt,
+    COUNT(ts.pk) as anzahl_zeitberichte,
+    ROUND(SUM((julianday(ts.stop_time) - julianday(ts.start_time)) * 24), 2) as stunden
+FROM T_FIBU_KOST2 k2
+LEFT JOIN T_FIBU_PROJEKT p ON k2.projekt_id = p.pk
+LEFT JOIN T_TIMESHEET ts ON ts.kost2_id = k2.pk AND ts.deleted = 0
+WHERE k2.deleted = 0
+GROUP BY k2.pk
+HAVING stunden > 0
+ORDER BY stunden DESC;
+```
+
+## Abfragen für Personal & Urlaub
+
+### 17. Urlaubstage pro Employee
+
+```sql
+SELECT
+    e.staffNumber as personal_nr,
+    u.firstname || ' ' || u.lastname as name,
+    COUNT(v.pk) as anzahl_urlaube,
+    SUM(julianday(v.end_date) - julianday(v.start_date) + 1) as urlaubstage_gesamt,
+    v.vacation_status
+FROM T_FIBU_EMPLOYEE e
+JOIN T_PF_USER u ON e.user_id = u.pk
+LEFT JOIN T_EMPLOYEE_VACATION v ON v.employee_id = e.pk AND v.deleted = 0
+WHERE e.deleted = 0
+GROUP BY e.pk
+ORDER BY name;
+```
+
+### 18. Urlaubskalender (aktueller Monat)
+
+```sql
+SELECT
+    v.start_date,
+    v.end_date,
+    julianday(v.end_date) - julianday(v.start_date) + 1 as tage,
+    ue.staffNumber as employee_nr,
+    u.firstname || ' ' || u.lastname as employee,
+    v.vacation_status as status,
+    v.comment
+FROM T_EMPLOYEE_VACATION v
+JOIN T_FIBU_EMPLOYEE ue ON v.employee_id = ue.pk
+JOIN T_PF_USER u ON ue.user_id = u.pk
+WHERE v.deleted = 0
+  AND strftime('%Y-%m', v.start_date) = strftime('%Y-%m', 'now')
+ORDER BY v.start_date;
+```
+
+### 19. Urlaubsvertretungen - Übersicht
+
+```sql
+SELECT
+    v.start_date,
+    v.end_date,
+    ue.staffNumber as urlaub_employee,
+    u1.firstname || ' ' || u1.lastname as im_urlaub,
+    ve.staffNumber as vertretung_nr,
+    u2.firstname || ' ' || u2.lastname as vertretung
+FROM T_EMPLOYEE_VACATION v
+JOIN T_FIBU_EMPLOYEE ue ON v.employee_id = ue.pk
+JOIN T_PF_USER u1 ON ue.user_id = u1.pk
+JOIN T_FIBU_EMPLOYEE ve ON v.replacement_id = ve.pk
+JOIN T_PF_USER u2 ON ve.user_id = u2.pk
+WHERE v.deleted = 0
+ORDER BY v.start_date DESC;
+```
+
+### 20. Urlaubskonto-Entwicklung
+
+```sql
+SELECT
+    e.staffNumber,
+    u.firstname || ' ' || u.lastname as name,
+    lac.date,
+    lac.amount,
+    lac.description,
+    SUM(lac.amount) OVER (PARTITION BY e.pk ORDER BY lac.date) as kontostand
+FROM T_EMPLOYEE_LEAVE_ACCOUNT_ENTRY lac
+JOIN T_FIBU_EMPLOYEE e ON lac.employee_id = e.pk
+JOIN T_PF_USER u ON e.user_id = u.pk
+WHERE lac.deleted = 0
+ORDER BY e.staffNumber, lac.date;
+```
+
+### 21. Employee Übersicht mit Kost1
+
+```sql
+SELECT
+    e.staffNumber,
+    u.firstname || ' ' || u.lastname as name,
+    e.position_text as position,
+    e.division,
+    e.abteilung,
+    k1.nummernkreis || '.' || k1.bereich || '.' || k1.teilbereich || '.' || k1.endziffer as kost1,
+    e.eintritt as eintrittsdatum,
+    e.austritt as austrittsdatum
+FROM T_FIBU_EMPLOYEE e
+JOIN T_PF_USER u ON e.user_id = u.pk
+LEFT JOIN T_FIBU_KOST1 k1 ON e.kost1_id = k1.pk
+WHERE e.deleted = 0
+ORDER BY e.staffNumber;
+```
+
 ## Export-Befehle
 
 ### CSV Export
