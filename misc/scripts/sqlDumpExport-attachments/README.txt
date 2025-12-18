@@ -38,7 +38,7 @@ Inhalt:
 -------
 - README.txt: Diese Datei
 - QUERIES.md: Beispielabfragen und SQLite-Dokumentation
-- 00_schema.sql: CREATE TABLE Statements (20 Tabellen)
+- 00_schema.sql: CREATE TABLE Statements (20 Tabellen mit Foreign Keys und Indizes)
 - 01_users.sql: Benutzer (T_PF_USER)
 - 02_groups.sql: Gruppen (T_GROUP)
 - 03_tasks.sql: Tasks (T_TASK)
