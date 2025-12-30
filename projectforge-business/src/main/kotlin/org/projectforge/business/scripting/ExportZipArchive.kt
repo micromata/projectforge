@@ -27,6 +27,8 @@ import de.micromata.merlin.excel.ExcelWorkbook
 import org.projectforge.business.excel.ExportWorkbook
 import org.projectforge.export.ExportJFreeChart
 import org.projectforge.export.ExportZipFile
+import org.projectforge.jcr.ZipMode
+import org.projectforge.jcr.ZipUtils
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -48,6 +50,16 @@ class ExportZipArchive {
    */
   val filename: String
 
+  /**
+   * If set, the entire ZIP archive will be encrypted with this password
+   */
+  var encryptionPassword: String? = null
+
+  /**
+   * Encryption mode (default: AES-256)
+   */
+  var encryptionMode: ZipMode = ZipMode.ENCRYPTED_AES256
+
   constructor() {
     filename = "archive"
   }
@@ -59,6 +71,17 @@ class ExportZipArchive {
     this.filename = filename
   }
 
+  /**
+   * @param filename The filename of the zip archive (without extension), default is "archive".
+   * @param encryptionPassword Password for encrypting the entire archive (null = no encryption)
+   * @param encryptionMode Encryption mode (default: AES-256)
+   */
+  constructor(filename: String, encryptionPassword: String?, encryptionMode: ZipMode = ZipMode.ENCRYPTED_AES256) {
+    this.filename = filename
+    this.encryptionPassword = encryptionPassword
+    this.encryptionMode = encryptionMode
+  }
+
   fun asByteArray(): ByteArray {
     return ByteArrayOutputStream().use { out ->
       write(out)
@@ -67,6 +90,25 @@ class ExportZipArchive {
   }
 
   fun write(out: OutputStream) {
+    // If encryption is enabled, create unencrypted ZIP first, then encrypt it
+    if (encryptionPassword != null) {
+      val unencryptedZip = ByteArrayOutputStream()
+      writeUnencrypted(unencryptedZip)
+
+      // Encrypt the entire ZIP
+      ZipUtils.encryptZipFile(
+        "$filename.zip",
+        encryptionPassword!!,
+        unencryptedZip.toByteArray().inputStream(),
+        out,
+        encryptionMode
+      )
+    } else {
+      writeUnencrypted(out)
+    }
+  }
+
+  private fun writeUnencrypted(out: OutputStream) {
     ZipOutputStream(out).use { zipOut ->
       try {
         zipOut.putNextEntry(ZipEntry("$filename/"))
