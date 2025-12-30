@@ -73,15 +73,27 @@ Please note, that OpenJdk 17 is currently used in production for developing and 
 
 You may use PostgreSQL instead of the built-in data base.
 
-=== Using PostgresSQL (Docker)
+=== Using PostgresSQL (Podman)
 
 * Choose and set a database password: +
  `export PGPASSWORD=mypassword`
 * Run PostgreSQL: +
-`docker run --name projectforge-postgres -p 127.0.0.1:5432:5432 -e POSTGRES_PASSWORD=$PGPASSWORD -e POSTGRES_USER=projectforge -d postgres:13.18`
+[source,shell]
+----
+podman volume create projectforge-pgdata
+podman run -d \
+  --name projectforge-postgres \
+  -p 127.0.0.1:5432:5432 \
+  -e POSTGRES_DB=projectforge \
+  -e POSTGRES_USER=projectforge \
+  -e POSTGRES_PASSWORD=$PGPASSWORD \
+  -v projectforge-pgdata:/var/lib/postgresql/data \
+  docker.io/library/postgres:16
+----
 * Configure ProjectForge
 
 .$HOME/ProjectForge/projectforge.properties
+[source,shell]
 ----
 projectforge.base.dir=${user.home}/ProjectForge
 spring.datasource.url=jdbc:postgresql://localhost:5432/projectforge
@@ -94,15 +106,17 @@ spring.datasource.driver-class-name=org.postgresql.Driver
 
 .Some helpful docker commands
 |===
-|Stop|`docker stop projectforge-postgres`
-|Start|`docker start projectforge-postgres`
-|Import dump (optional)|`docker run -v ~/ProjectForgeBackup/pf.sql:/mnt/pf.sql -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:13.18 psql -h postgres -U projectforge -q -f /mnt/pf.sql`
-|PSQL|`docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:13.18 psql -h postgres -U projectforge`
+|Stop|`podman stop projectforge-postgres`
+|Start|`podman start projectforge-postgres`
+|Import dump (optional)|`podman exec -i projectforge-postgres psql -U projectforge -d projectforge < ~/ProjectForgeBackup/pf.sql`
+|PSQL|`podman exec -it projectforge-postgres psql -U projectforge -d projectforge`
 |Reset passwords (optional)|`update t_pf_user_password SET password_hash='SHA{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', password_salt=null; update t_pf_user SET password='SHA{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', password_salt=null, email='m.developer@localhost';` +
 password is now `test123`.
-|Clear calendar subscriptions (optional)|`update t_calendar set ext_subscription=false where owner_fk != ###;` +
+|Clear calendar subscriptions (optional)|`update t_calendar set ext_subscription=false where owner_fk != [pk];` +
 This is useful for avoiding a lot of external calendar calls of foreign users if your productive data contains a lot of users with calendar subscriptions.
-|Uninstall|`docker rm projectforge-postgres`
+|Uninstall|`podman stop projectforge-postgres` \
+           `podman rm projectforge-postgres` \
+           `podman volume rm projectforge-pgdata`
 |===
 
 
