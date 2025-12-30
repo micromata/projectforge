@@ -41,6 +41,7 @@ open class AccountingRecord(
   val customerGroup: String,
   val project: String,
   val projectId: Long,
+  val kost2String: String,
   val cost2: Int? = null,
   val account: Int? = null,
   val projectManagerGroup: String? = null,
@@ -58,6 +59,7 @@ open class AccountingRecord(
     customerGroup = record.customerGroup,
     project = record.project,
     projectId = record.projectId,
+    kost2String = record.kost2String,
     cost2 = record.cost2,
     account = record.account,
     projectManagerGroup = record.projectManagerGroup,
@@ -117,6 +119,7 @@ open class AccountingRecord(
       val date = PFDay.from(record.datum!!)
       val cost2 = record.kost2!!
       val projectId = cost2.projekt!!.id!!
+      val kost2String = cost2.formattedNumber
       val project = cost2.projekt!!
       val customerName = project.kunde?.name ?: "---"
       var revenue = BigDecimal.ZERO
@@ -136,6 +139,7 @@ open class AccountingRecord(
         customerGroup = customerGroup,
         project = project.name ?: "???",
         projectId = projectId,
+        kost2String = kost2String,
         revenue = revenue,
         costs = costs,
         cost2 = cost2.nummer,
@@ -152,6 +156,7 @@ open class AccountingRecord(
         customerGroup = customerGroup,
         project = invoice.projekt?.name ?: "???",
         projectId = invoice.projekt!!.id!!,
+        kost2String = invoice.projekt!!.kost,
         revenue = invoice.info.netSum,
         projectManagerGroup = invoice.projekt?.projektManagerGroup?.name,
         text = "Invoice #${invoice.nummer}",
@@ -170,6 +175,7 @@ open class AccountingRecord(
         customerGroup = customerGroup,
         project = projectName,
         projectId = project.id!!,
+        kost2String = ts.kost2!!.formattedNumber,
         costs = -BigDecimal(ts.duration).divide(TimePeriod.MILLIS_PER_HOUR, 2, RoundingMode.HALF_UP)
           .multiply(hourlyRate)
           .setScale(2, RoundingMode.HALF_UP),
