@@ -29,9 +29,11 @@ import jakarta.persistence.*
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
+import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.OldKostFormatter
 import org.projectforge.business.fibu.ProjektDO
+import org.projectforge.business.fibu.ProjektStatus
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.json.IdOnlySerializer
@@ -60,7 +62,7 @@ import java.math.BigDecimal
     ),
     NamedQuery(
         name = Kost2DO.FIND_ACTIVES_BY_NK_BEREICH_TEILBEREICH,
-        query = "from Kost2DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and (kostentraegerStatus='ACTIVE' or kostentraegerStatus is null) order by kost2Art.id"
+        query = "from Kost2DO k where k.nummernkreis=:nummernkreis and k.bereich=:bereich and k.teilbereich=:teilbereich order by k.kost2Art.id"
     )
 )
 open class Kost2DO : DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
@@ -91,6 +93,24 @@ open class Kost2DO : DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 30)
     open var kostentraegerStatus: KostentraegerStatus? = null
+
+    /**
+     * Effektiver Status unter Berücksichtigung der Vererbung vom Projekt.
+     * Logic:
+     * - Wenn projekt.status == ENDED oder projekt.deleted == true -> ENDED
+     * - Sonst -> eigener kostentraegerStatus (null = ACTIVE)
+     */
+    @get:Transient
+    val effectiveKostentraegerStatus: KostentraegerStatus?
+        get() {
+            val projektRef = PfCaches.instance.getProjekt(projekt?.id)
+            if (projektRef != null) {
+                if (projektRef.status == ProjektStatus.ENDED || projektRef.deleted == true) {
+                    return KostentraegerStatus.ENDED
+                }
+            }
+            return kostentraegerStatus
+        }
 
     /**
      * Nummernkreis entspricht der ersten Ziffer.

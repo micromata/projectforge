@@ -175,9 +175,10 @@ class KostFormatter {
         val useProjekt = projektCache.getProjektIfNotInitialized(useKost2.projekt)
         if (formatType == FormatType.LONG || formatType == FormatType.TEXT) {
             sb.append(": ")
-            if (useKost2.kostentraegerStatus != null && useKost2.kostentraegerStatus != KostentraegerStatus.ACTIVE) {
+            val effectiveStatus = useKost2.effectiveKostentraegerStatus
+            if (effectiveStatus != null && effectiveStatus != KostentraegerStatus.ACTIVE) {
                 sb.append("*")
-                    .append(translate(useKost2.kostentraegerStatus))
+                    .append(translate(effectiveStatus))
                     .append("* ")
             }
             useProjekt.let { projekt ->

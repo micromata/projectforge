@@ -37,6 +37,7 @@ class Kost2(
   var teilbereich: Int = 0,
   var endziffer: Int = 0,
   var kostentraegerStatus: KostentraegerStatus? = null,
+  var effectiveKostentraegerStatus: KostentraegerStatus? = null,
   var description: String? = null,
   var formattedNumber: String? = null,
   var project: Project? = null,
@@ -56,6 +57,8 @@ class Kost2(
     bereich = src.bereich
     teilbereich = src.teilbereich
     endziffer = src.kost2Art?.id?.toInt() ?: 0
+    kostentraegerStatus = src.kostentraegerStatus
+    effectiveKostentraegerStatus = src.effectiveKostentraegerStatus
     description = src.description
     this.project = src.projekt?.let {
       val project = Project()
@@ -68,6 +71,8 @@ class Kost2(
   override fun copyFrom(src: Kost2DO) {
     super.copyFrom(src)
     endziffer = src.kost2Art?.id?.toInt() ?: 0
+    kostentraegerStatus = src.kostentraegerStatus
+    effectiveKostentraegerStatus = src.effectiveKostentraegerStatus
     formattedNumber = src.formattedNumber
     displayName = KostFormatter.instance.formatKost2(src, KostFormatter.FormatType.TEXT)
     this.project = src.projekt?.let {

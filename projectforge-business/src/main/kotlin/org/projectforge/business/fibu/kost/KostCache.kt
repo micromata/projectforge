@@ -131,7 +131,7 @@ class KostCache : AbstractCache() {
         synchronized(kost2Map) {
             return kost2Map.values.filter { kost2 ->
                 kost2.nummernkreis == nummernkreis && kost2.bereich == bereich && kost2.teilbereich == teilbereich
-                        && (kost2.kostentraegerStatus == KostentraegerStatus.ACTIVE || kost2.kostentraegerStatus == null)
+                        && (kost2.effectiveKostentraegerStatus == KostentraegerStatus.ACTIVE || kost2.effectiveKostentraegerStatus == null)
             }
         }
     }

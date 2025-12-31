@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu.kost
 
+import jakarta.persistence.criteria.JoinType
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.KostHelper.parseKostString
@@ -135,23 +136,25 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
         }
         val queryFilter = QueryFilter(myFilter)
         queryFilter.createJoin("kost2Art")
-        if (myFilter.isActive) {
-            queryFilter.add(eq("kostentraegerStatus", KostentraegerStatus.ACTIVE))
-        } else if (myFilter.isNonActive) {
-            queryFilter.add(eq("kostentraegerStatus", KostentraegerStatus.NONACTIVE))
-        } else if (myFilter.isEnded) {
-            queryFilter.add(eq("kostentraegerStatus", KostentraegerStatus.ENDED))
-        } else if (myFilter.isNotEnded) {
-            queryFilter.add(
-                or(
-                    ne("kostentraegerStatus", KostentraegerStatus.ENDED),
-                    isNull("kostentraegerStatus")
-                )
-            )
-        }
+
         queryFilter.addOrder(asc("nummernkreis")).addOrder(asc("bereich")).addOrder(asc("teilbereich"))
             .addOrder(asc("kost2Art.id"))
-        return select(queryFilter)
+
+        val allKost2 = select(queryFilter)
+
+        // Kotlin-seitige Filterung nach effectiveKostentraegerStatus:
+        return if (myFilter.isActive) {
+            allKost2.filter { it.effectiveKostentraegerStatus == KostentraegerStatus.ACTIVE
+                              || it.effectiveKostentraegerStatus == null }
+        } else if (myFilter.isNonActive) {
+            allKost2.filter { it.effectiveKostentraegerStatus == KostentraegerStatus.NONACTIVE }
+        } else if (myFilter.isEnded) {
+            allKost2.filter { it.effectiveKostentraegerStatus == KostentraegerStatus.ENDED }
+        } else if (myFilter.isNotEnded) {
+            allKost2.filter { it.effectiveKostentraegerStatus != KostentraegerStatus.ENDED }
+        } else {
+            allKost2  // FILTER_ALL
+        }
     }
 
     override fun onInsertOrModify(obj: Kost2DO, operationType: OperationType) {
