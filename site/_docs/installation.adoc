@@ -9,7 +9,7 @@ tags: [installation]
 :toc:
 :toclevels: 4
 
-:last-update-label: Copyright (C) 2024, Last updated
+:last-update-label: Copyright (C) 2026, Last updated
 
 :sectnums:
 

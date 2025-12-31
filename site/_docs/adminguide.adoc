@@ -9,7 +9,7 @@ tags: [adminguide]
 :toc:
 :toclevels: 4
 
-:last-update-label: Copyright (C) 2021, Last updated
+:last-update-label: Copyright (C) 2026, Last updated
 
 :sectnums:
 
