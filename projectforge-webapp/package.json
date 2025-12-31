@@ -23,7 +23,7 @@
     "ace-builds": "^1.43.5",
     "ag-grid-community": "^34.3.1",
     "ag-grid-enterprise": "^34.3.1",
-    "ag-grid-react": "^33.3.2",
+    "ag-grid-react": "^34.3.1",
     "awesome-debounce-promise": "^2.1.0",
     "bootstrap": "^5.3.8",
     "classnames": "^2.5.1",
