@@ -41,46 +41,18 @@ import java.util.zip.ZipOutputStream
  * For exporting multiple objects by one script you may collect all objects within this zip archive.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @param filename The filename of the zip archive (without extension), default is "archive".
+ * @param encryptionPassword Password for encrypting the entire archive (null = no encryption)
+ * @param encryptionMode Encryption mode (default: AES-256)
+ * @param flatStructure If true, files are added directly to ZIP root without creating a subfolder
  */
-class ExportZipArchive {
+class ExportZipArchive(
+  val filename: String = "archive",
+  var encryptionPassword: String? = null,
+  var encryptionMode: ZipMode = ZipMode.ENCRYPTED_AES256,
+  val flatStructure: Boolean = false
+) {
   private val zipFiles: MutableCollection<ExportZipFile> = LinkedList()
-
-  /**
-   * @return the filename
-   */
-  val filename: String
-
-  /**
-   * If set, the entire ZIP archive will be encrypted with this password
-   */
-  var encryptionPassword: String? = null
-
-  /**
-   * Encryption mode (default: AES-256)
-   */
-  var encryptionMode: ZipMode = ZipMode.ENCRYPTED_AES256
-
-  constructor() {
-    filename = "archive"
-  }
-
-  /**
-   * @param filename The filename of the zip archive (without extension), default is "archive".
-   */
-  constructor(filename: String) {
-    this.filename = filename
-  }
-
-  /**
-   * @param filename The filename of the zip archive (without extension), default is "archive".
-   * @param encryptionPassword Password for encrypting the entire archive (null = no encryption)
-   * @param encryptionMode Encryption mode (default: AES-256)
-   */
-  constructor(filename: String, encryptionPassword: String?, encryptionMode: ZipMode = ZipMode.ENCRYPTED_AES256) {
-    this.filename = filename
-    this.encryptionPassword = encryptionPassword
-    this.encryptionMode = encryptionMode
-  }
 
   fun asByteArray(): ByteArray {
     return ByteArrayOutputStream().use { out ->
@@ -111,9 +83,17 @@ class ExportZipArchive {
   private fun writeUnencrypted(out: OutputStream) {
     ZipOutputStream(out).use { zipOut ->
       try {
-        zipOut.putNextEntry(ZipEntry("$filename/"))
+        // Create folder entry only if not using flat structure
+        if (!flatStructure) {
+          zipOut.putNextEntry(ZipEntry("$filename/"))
+        }
         for (file in zipFiles) {
-          val zipEntry = ZipEntry(filename + "/" + file.filename)
+          // Add files directly to root if flatStructure=true, otherwise add inside folder
+          val zipEntry = if (flatStructure) {
+            ZipEntry(file.filename)
+          } else {
+            ZipEntry(filename + "/" + file.filename)
+          }
           zipOut.putNextEntry(zipEntry)
           file.exportObject?.let { exportObject ->
             if (exportObject is ExportWorkbook) {
