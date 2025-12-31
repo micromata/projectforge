@@ -39,6 +39,7 @@ dependencies {
     api(libs.org.jetbrains.kotlin.reflect)
     api(libs.org.apache.commons.collections4)
     api(libs.org.apache.commons.lang3)
+    api(libs.net.lingala.zip4j.zip4j)
     testImplementation(project(":projectforge-commons-test"))
     testImplementation(libs.org.mockito.core)
 }

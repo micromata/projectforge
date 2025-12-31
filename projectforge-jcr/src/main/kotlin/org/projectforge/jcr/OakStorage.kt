@@ -36,6 +36,7 @@ import java.security.SecureRandom
 import java.util.*
 import javax.jcr.*
 import kotlinx.coroutines.*
+import org.projectforge.common.ZipMode
 
 private val log = KotlinLogging.logger {}
 

@@ -25,6 +25,7 @@ package org.projectforge.jcr
 
 import mu.KotlinLogging
 import org.projectforge.common.FormatterUtils
+import org.projectforge.common.ZipUtils
 import org.projectforge.common.extensions.format
 import org.projectforge.common.extensions.formatBytes
 import org.projectforge.common.extensions.formatMillis

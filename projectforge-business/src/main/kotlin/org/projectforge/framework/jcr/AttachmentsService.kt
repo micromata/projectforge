@@ -30,6 +30,8 @@ import org.projectforge.SystemStatus
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.DataSizeConfig
 import org.projectforge.common.FormatterUtils
+import org.projectforge.common.ZipMode
+import org.projectforge.common.ZipUtils
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao

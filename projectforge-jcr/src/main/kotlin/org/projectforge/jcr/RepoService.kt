@@ -25,6 +25,7 @@ package org.projectforge.jcr
 
 import jakarta.annotation.PreDestroy
 import mu.KotlinLogging
+import org.projectforge.common.ZipMode
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.File

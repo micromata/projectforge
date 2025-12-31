@@ -25,9 +25,9 @@ package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
+import org.projectforge.common.ZipMode
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.Attachment
-import org.projectforge.jcr.ZipMode
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest

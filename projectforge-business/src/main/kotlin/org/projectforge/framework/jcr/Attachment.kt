@@ -25,13 +25,13 @@ package org.projectforge.framework.jcr
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.common.DateFormatType
+import org.projectforge.common.ZipMode
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileObject
-import org.projectforge.jcr.ZipMode
 import java.util.*
 
 /**

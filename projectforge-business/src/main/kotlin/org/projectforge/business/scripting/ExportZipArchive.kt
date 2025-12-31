@@ -25,10 +25,10 @@ package org.projectforge.business.scripting
 
 import de.micromata.merlin.excel.ExcelWorkbook
 import org.projectforge.business.excel.ExportWorkbook
+import org.projectforge.common.ZipMode
+import org.projectforge.common.ZipUtils
 import org.projectforge.export.ExportJFreeChart
 import org.projectforge.export.ExportZipFile
-import org.projectforge.jcr.ZipMode
-import org.projectforge.jcr.ZipUtils
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
 import java.io.IOException
