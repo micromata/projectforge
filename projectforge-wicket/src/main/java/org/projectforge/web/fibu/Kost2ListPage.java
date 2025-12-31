@@ -147,9 +147,8 @@ public class Kost2ListPage extends AbstractListPage<Kost2ListForm, Kost2Dao, Kos
             sortable),
         "projekt.name", cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<Kost2DO>(new Model<String>(getString("status")),
-        getSortable("kostentraegerStatus",
-            sortable),
-        "kostentraegerStatus", cellItemListener));
+        null,  // Sorting disabled for computed property
+        "effectiveKostentraegerStatus", cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<Kost2DO>(new Model<String>(getString("description")),
         getSortable("description",
             sortable),
@@ -218,7 +217,7 @@ public class Kost2ListPage extends AbstractListPage<Kost2ListForm, Kost2Dao, Kos
       mapping.add(Col.ART, kost.getKost2Art().getName());
       mapping.add(Col.FAKTURIERT, kost.getKost2Art().getFakturiert() ? "X" : "");
       mapping.add(Col.PROJEKT, OldKostFormatter.formatProjekt(kost.getProjekt()));
-      mapping.add(Col.STATUS, kost.getKostentraegerStatus());
+      mapping.add(Col.STATUS, kost.getEffectiveKostentraegerStatus());
       mapping.add(Col.DESCRIPTION, kost.getDescription());
       mapping.add(Col.COMMENT, kost.getComment());
       sheet.addRow(mapping.getMapping(), 0);

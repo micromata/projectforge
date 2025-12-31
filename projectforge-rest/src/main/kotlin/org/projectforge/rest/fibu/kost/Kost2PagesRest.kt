@@ -123,7 +123,7 @@ class Kost2PagesRest : AbstractDTOPagesRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao::
         val searchString = filter.searchString?.replace(Regex("[*+]"), "")?.trim()
         if (onlyActiveEntries && !NumberHelper.isDigitsAndDotsOnly(searchString)) {
             list =
-                list.filter { it.kostentraegerStatus == null || it.kostentraegerStatus == KostentraegerStatus.ACTIVE }
+                list.filter { it.effectiveKostentraegerStatus == null || it.effectiveKostentraegerStatus == KostentraegerStatus.ACTIVE }
         }
         list.forEach { it.displayName = kostFormatter.formatKost2(it, KostFormatter.FormatType.LONG) }
         return list.sortedBy { it.displayName }
