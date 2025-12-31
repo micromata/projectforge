@@ -33,6 +33,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.projectforge.Constants
 import org.projectforge.ProjectForgeApp
 import org.projectforge.SystemStatus
+import org.projectforge.business.PfCaches
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.login.Login
 import org.projectforge.business.login.LoginDefaultHandler
@@ -166,6 +167,7 @@ abstract class AbstractTestBase protected constructor() {
                 }
             }
         }
+        PfCaches.internalSetupForTestCases()
     }
 
     protected var mCount: Int = 0
