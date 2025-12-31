@@ -23,6 +23,7 @@
 
 package org.projectforge.jcr
 
+import org.projectforge.common.ZipMode
 import java.util.*
 
 /**

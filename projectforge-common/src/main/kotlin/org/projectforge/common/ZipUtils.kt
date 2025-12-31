@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.jcr
+package org.projectforge.common
 
 import net.lingala.zip4j.exception.ZipException
 import net.lingala.zip4j.io.inputstream.ZipInputStream

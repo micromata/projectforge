@@ -26,6 +26,7 @@ package org.projectforge.jcr
 import com.fasterxml.jackson.annotation.JsonIgnore
 import mu.KotlinLogging
 import org.projectforge.common.FormatterUtils
+import org.projectforge.common.ZipMode
 import javax.jcr.Node
 
 private val log = KotlinLogging.logger {}

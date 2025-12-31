@@ -31,6 +31,8 @@ import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.common.ZipMode
+import org.projectforge.common.ZipUtils
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
@@ -39,8 +41,6 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.jcr.FileInfo
 import org.projectforge.jcr.FileObject
-import org.projectforge.jcr.ZipMode
-import org.projectforge.jcr.ZipUtils
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
