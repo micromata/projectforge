@@ -1,0 +1,2966 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Administration guide | ProjectForge</title>
+<meta name="generator" content="Jekyll v4.2.0" />
+<meta property="og:title" content="Administration guide" />
+<meta name="author" content="kai" />
+<meta property="og:locale" content="en" />
+<meta name="description" content="ProjectForge Documentation." />
+<meta property="og:description" content="ProjectForge Documentation." />
+<link rel="canonical" href="https://projectforge.org/docs/adminguide/" />
+<meta property="og:url" content="https://projectforge.org/docs/adminguide/" />
+<meta property="og:site_name" content="ProjectForge" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2025-12-31T23:25:16+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Administration guide" />
+<script type="application/ld+json">
+{"headline":"Administration guide","dateModified":"2025-12-31T23:25:16+00:00","datePublished":"2025-12-31T23:25:16+00:00","description":"ProjectForge Documentation.","mainEntityOfPage":{"@type":"WebPage","@id":"https://projectforge.org/docs/adminguide/"},"url":"https://projectforge.org/docs/adminguide/","@type":"BlogPosting","author":{"@type":"Person","name":"kai"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://projectforge.org/logo_projectforge.gif"},"name":"kai"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+  <meta property="og:image" content="https://projectforge.org/uploads/logo_projectforge.gif"/>
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="shortcut icon" type="image/png" href="/uploads/favicon.png" >
+  <link rel="alternate" type="application/rss+xml" title="ProjectForge" href="/feed.xml">
+  <script src="/assets/js/main.js"></script>
+  
+  
+  
+</head>
+
+
+    <body>
+
+    
+        <div data-uk-sticky="animation: uk-animation-slide-top; sel-target: .uk-navbar-container; cls-active: uk-navbar-sticky; cls-inactive: uk-navbar-transparent; top: 200">
+    <nav class="uk-navbar-container">
+        <div class="uk-container">
+            <div data-uk-navbar>
+                <div class="uk-navbar-left">
+                    <a class="uk-navbar-item uk-logo uk-visible@m" href="/"><img src="https://projectforge.org/uploads/logo_projectforge.gif" alt="ProjectForge"></a>
+                    
+                        <a class="uk-navbar-toggle uk-hidden@m" href="#offcanvas-docs" data-uk-toggle><span data-uk-navbar-toggle-icon></span> <span class="uk-margin-small-left">Docs</span></a>
+                    
+
+                    <ul class="uk-navbar-nav uk-visible@m">
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/" >Home</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="https://github.com/micromata/projectforge/" target="_blank" >GitHub</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/features/" >Features</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="#">Docs</a>
+                                        
+                                            <div class="uk-navbar-dropdown">
+                                                <ul class="uk-nav uk-navbar-dropdown-nav">
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/quickstart/">Quick Start</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/installation/">Installation</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li class="uk-active"><a href="/docs/adminguide/">Administration guide</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/userguide/">User guide</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/development/">Development</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/technologies/">Technologies</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/migration/">Migration</a></li>
+                                                    
+                                                    
+                                                </ul>
+                                            </div>
+                                        
+                                        </li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/misc/faqs" >FAQ</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/about/" >About</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/search/" >Search</a></li>
+                                                                                                        
+                                
+                            
+                        
+                    </ul>
+                </div>
+                <div class="uk-navbar-center uk-hidden@m">
+                    <a class="uk-navbar-item uk-logo" href="/"><img src="https://projectforge.org/uploads/logo_projectforge.gif" alt="ProjectForge"></a>
+                </div>
+                <div class="uk-navbar-right">
+                    
+
+                    <ul class="uk-navbar-nav uk-visible@m">
+                        
+                            
+                            
+                            
+                                
+                                    <li><div class="uk-navbar-item"><a class="uk-button uk-button-primary-outline" href="/changelog-posts/" >Changelog</a></div></li>
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    <li><div class="uk-navbar-item"><a class="uk-button uk-button-success" href="/download/" >Download</a></div></li>
+                                
+                            
+                        
+                    </ul>
+
+                    
+                        <a class="uk-navbar-toggle uk-hidden@m" href="#offcanvas" data-uk-toggle><span data-uk-navbar-toggle-icon></span> <span class="uk-margin-small-left">Menu</span></a>
+                    
+
+                </div>
+            </div>
+        </div>
+    </nav>
+</div>
+
+    
+
+    <div class="uk-section">
+    <div class="uk-container">
+        <div class="uk-grid-large" data-uk-grid>
+
+            <div class="sidebar-fixed-width uk-visible@m">
+                <div class="sidebar-docs uk-position-fixed uk-margin-top">
+                    
+                    <h5>Documentation</h5>
+                    <ul class="uk-nav uk-nav-default doc-nav">
+                    
+                      
+                      
+                      <li class=""><a href="/docs/quickstart/">Quick Start</a></li>
+                    
+                      
+                      
+                      <li class=""><a href="/docs/installation/">Installation</a></li>
+                    
+                      
+                      
+                      <li class=""><a href="/docs/userguide/">User guide</a></li>
+                    
+                      
+                      
+                      <li class="uk-active"><a href="/docs/adminguide/">Administration guide</a></li>
+                    
+                      
+                      
+                      <li class=""><a href="/docs/development/">Development</a></li>
+                    
+                      
+                      
+                      <li class=""><a href="/docs/technologies/">Technologies</a></li>
+                    
+                      
+                      
+                      <li class=""><a href="/docs/migration/">Migration</a></li>
+                    
+                    </ul>
+                    
+                </div>
+            </div>
+
+            <div class="uk-width-1-1 uk-width-expand@m">
+
+                <article class="uk-article">
+
+                    <h1 class="uk-article-title">Administration guide</h1>
+
+                    <p class="uk-text-lead uk-text-muted">Hints, tips and best practices for the administration of ProjectForge</p>
+
+                    <div class="uk-article-meta uk-margin-top uk-margin-medium-bottom uk-flex uk-flex-middle">
+                        
+
+
+  
+  <img class="uk-border-circle avatar" src="https://projectforge.org/uploads/kai.png" alt="Kai Reinhard">
+
+
+<div>
+  
+    Written by <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">Kai Reinhard</span></span><br>
+  
+  <time datetime="2025-12-31T23:25:16+00:00" itemprop="datePublished">
+    
+    Dec 31, 2025
+  </time>
+</div>
+                    </div>
+
+                    <div class="article-content link-primary">
+                        <div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#introduction">1. Introduction</a></li>
+<li><a href="#projectforge_setup">2. ProjectForge Setup</a>
+<ul class="sectlevel2">
+<li><a href="#database">2.1. Database</a></li>
+<li><a href="#initialization_first_login_and_set_up_dialogue">2.2. Initialization, first login and set-up dialogue</a></li>
+<li><a href="#ssl_https">2.3. SSL / Https</a>
+<ul class="sectlevel3">
+<li><a href="#self_signed_certificate">2.3.1. Self-signed certificate</a></li>
+<li><a href="#configure_the_file_projectforgeprojectforge_properties">2.3.2. Configure the file <code>~/ProjectForge/projectforge.properties</code></a></li>
+<li><a href="#trust_the_self_signed_certificate">2.3.3. Trust the self-signed certificate</a></li>
+</ul>
+</li>
+<li><a href="#postgresql">2.4. PostgreSQL</a>
+<ul class="sectlevel3">
+<li><a href="#setting_up_the_database">2.4.1. Setting up the database</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#configuration">3. Configuration</a>
+<ul class="sectlevel2">
+<li><a href="#base_directory_applications_home">3.1. Base directory (application&#8217;s home)</a></li>
+<li><a href="#configuration_file_application_properties">3.2. Configuration file application.properties</a></li>
+<li><a href="#customization">3.3. Customization</a>
+<ul class="sectlevel3">
+<li><a href="#logo_ant_title_in_pdf_outputs">3.3.1. Logo ant title in pdf outputs</a></li>
+<li><a href="#customizing_i18n_translations_since_8_2">3.3.2. Customizing i18n translations (since 8.2)</a></li>
+</ul>
+</li>
+<li><a href="#configuration_settings_web_interface">3.4. Configuration settings (web interface)</a></li>
+<li><a href="#using_ttf_fonts_for_pdf_render_engine">3.5. Using ttf fonts for PDF render engine</a></li>
+<li><a href="#html_formatted_e_mail_templates">3.6. HTML formatted E-Mail templates</a></li>
+<li><a href="#configuration_of_mobile_enterprise_blogging_meb">3.7. Configuration of Mobile Enterprise Blogging (MEB)</a>
+<ul class="sectlevel3">
+<li><a href="#servlet_call">3.7.1. Servlet-Call</a></li>
+</ul>
+</li>
+<li><a href="#phone_calls_and_texting_with_projectforge">3.8. phone calls and texting with ProjectForge</a>
+<ul class="sectlevel3">
+<li><a href="#phone_calls">3.8.1. Phone calls</a></li>
+<li><a href="#texting">3.8.2. Texting</a></li>
+<li><a href="#phonelookupservlet">3.8.3. PhoneLookupServlet</a></li>
+</ul>
+</li>
+<li><a href="#business_assessment_bwa">3.9. business assessment / BWA</a></li>
+<li><a href="#securityconfig">3.10. SecurityConfig</a>
+<ul class="sectlevel3">
+<li><a href="#secure_passwords">3.10.1. Secure passwords</a></li>
+<li><a href="#protection_against_brute_force_attacks">3.10.2. Protection against brute force attacks</a></li>
+<li><a href="#salted_passwords">3.10.3. Salted passwords</a></li>
+<li><a href="#salted_passwords_with_pepper">3.10.4. Salted passwords with pepper</a></li>
+<li><a href="#2fa_two_factor_authentication">3.10.5. 2FA (two-factor-authentication)</a></li>
+</ul>
+</li>
+<li><a href="#ldap">3.11. LDAP</a>
+<ul class="sectlevel3">
+<li><a href="#requirements">3.11.1. Requirements</a></li>
+<li><a href="#configuration_2">3.11.2. Configuration</a></li>
+<li><a href="#local_admin_users">3.11.3. Local (admin) users</a></li>
+<li><a href="#ldap_over_ssl">3.11.4. LDAP over SSL</a></li>
+<li><a href="#projectforge_as_ldap_master">3.11.5. ProjectForge as LDAP master</a>
+<ul class="sectlevel4">
+<li><a href="#ldap_entries">LDAP entries</a></li>
+<li><a href="#managing_posix_accounts">Managing POSIX accounts</a></li>
+</ul>
+</li>
+<li><a href="#managing_samba_accounts">3.11.6. Managing Samba accounts</a></li>
+<li><a href="#projectforge_as_ldap_client">3.11.7. ProjectForge as LDAP client</a>
+<ul class="sectlevel4">
+<li><a href="#simple_mode">Simple mode</a></li>
+<li><a href="#users_mode">Users mode</a></li>
+<li><a href="#users_groups_mode">Users-groups mode</a></li>
+</ul>
+</li>
+<li><a href="#projectforge_without_ldap">3.11.8. ProjectForge without LDAP</a></li>
+</ul>
+</li>
+<li><a href="#troubleshouting">3.12. Troubleshouting</a>
+<ul class="sectlevel3">
+<li><a href="#nullpointerexception_on_pages_with_diagrams_und_linux">3.12.1. NullPointerException on pages with diagrams und Linux</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#maintenance">4. Maintenance</a>
+<ul class="sectlevel2">
+<li><a href="#updating_by_simple_clicks">4.1. Updating by simple clicks</a></li>
+<li><a href="#re_indexing_the_database">4.2. Re-indexing the database</a></li>
+<li><a href="#analysing_tools">4.3. Analysing tools</a></li>
+<li><a href="#xml_backup_and_restore_and_data_base_migration_bug_we_guarantee_no_guarantee_but_work_on_the_solution_of_the_problem">4.4. XML-backup and restore and data-base migration ( BUG -&#8594; We guarantee no guarantee, but work on the solution of the problem )</a>
+<ul class="sectlevel3">
+<li><a href="#export">4.4.1. Export</a></li>
+<li><a href="#import">4.4.2. Import</a></li>
+<li><a href="#limitations">4.4.3. Limitations</a></li>
+</ul>
+</li>
+<li><a href="#backup">4.5. Backup</a></li>
+<li><a href="#restoring_a_backup">4.6. Restoring a backup</a>
+<ul class="sectlevel3">
+<li><a href="#data_base">4.6.1. Data base</a></li>
+<li><a href="#jcr_repository">4.6.2. JCR repository</a></li>
+</ul>
+</li>
+<li><a href="#automatical_backup">4.7. Automatical backup</a>
+<ul class="sectlevel3">
+<li><a href="#backup_script">4.7.1. Backup script</a></li>
+<li><a href="#adding_crontab">4.7.2. Adding crontab</a></li>
+<li><a href="#remote_backup">4.7.3. Remote backup</a></li>
+<li><a href="#polling_remote_backup">4.7.4. Polling remote backup</a></li>
+</ul>
+</li>
+<li><a href="#monitoring">4.8. Monitoring</a></li>
+<li><a href="#scheduler">4.9. Scheduler</a>
+<ul class="sectlevel3">
+<li><a href="#data_base_search_index">4.9.1. Data base search index</a></li>
+</ul>
+</li>
+<li><a href="#uninstalling_projectforge">4.10. Uninstalling ProjectForge</a></li>
+<li><a href="#security_improvements">4.11. Security improvements</a>
+<ul class="sectlevel3">
+<li><a href="#fail2ban">4.11.1. Fail2ban</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#plugins">5. Plugins</a>
+<ul class="sectlevel2">
+<li><a href="#liquidity_planning">5.1. Liquidity planning</a>
+<ul class="sectlevel3">
+<li><a href="#description">5.1.1. Description</a></li>
+</ul>
+</li>
+<li><a href="#software_license_management">5.2. Software license management</a>
+<ul class="sectlevel3">
+<li><a href="#description_2">5.2.1. Description</a></li>
+</ul>
+</li>
+<li><a href="#extendemployeedata">5.3. ExtendEmployeeData</a>
+<ul class="sectlevel3">
+<li><a href="#description_3">5.3.1. Description</a></li>
+<li><a href="#list_management">5.3.2. List management</a></li>
+<li><a href="#paying_office">5.3.3. Paying office</a></li>
+<li><a href="#configuration_3">5.3.4. Configuration</a></li>
+</ul>
+</li>
+<li><a href="#ihk_export">5.4. IHK Export</a>
+<ul class="sectlevel3">
+<li><a href="#description_4">5.4.1. Description</a></li>
+</ul>
+</li>
+<li><a href="#skillmatrix">5.5. Skillmatrix</a>
+<ul class="sectlevel3">
+<li><a href="#description_5">5.5.1. Description</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="sect1">
+<h2 id="introduction">1. Introduction</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This documents describes the administration of ProjectForge®.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="projectforge_setup">2. ProjectForge Setup</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="database">2.1. Database</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+</pre></td><td class="code"><pre><span class="c">#JDBC Java class</span>
+spring.datasource.driver-class-name<span class="o">=</span>org.hsqldb.jdbcDriver
+<span class="c">#spring.datasource.driver-class-name=org.postgresql.Driver</span>
+
+<span class="c">#Database user</span>
+spring.datasource.username<span class="o">=</span>sa
+
+<span class="c">#Database password for given user</span>
+spring.datasource.password<span class="o">=</span>
+
+<span class="c">#JDBC url to connect to DB</span>
+spring.datasource.url<span class="o">=</span>jdbc:hsqldb:file:projectforge<span class="p">;</span><span class="nv">shutdown</span><span class="o">=</span><span class="nb">true</span>
+<span class="c">#spring.datasource.url=jdbc:hsqldb:mem:projectforge</span>
+<span class="c">#spring.datasource.url=jdbc:postgresql://localhost:5432/projectforge</span>
+db.ds.projectForgeDs.extendedSettings<span class="o">=</span><span class="nb">false</span>
+
+<span class="c">#Sets the maximum number of active connections that can be allocated at the same time.</span>
+<span class="c">#Use a negative value for no limit.</span>
+spring.datasource.maxActive<span class="o">=</span>8
+
+<span class="c">#Sets the maximum number of connections that can remain idle in the pool.</span>
+spring.datasource.maxIdle<span class="o">=</span>8
+
+<span class="c"># Sets the minimum number of idle connections in the pool.</span>
+spring.datasource.minIdle<span class="o">=</span>0
+
+<span class="c">#Max milleseconds waiting while obtaining connection. Use -1 to make the pool wait indefinitely.</span>
+spring.datasource.maxWait<span class="o">=</span><span class="nt">-1</span>
+
+<span class="c">#Sets the initial size of the connection pool.</span>
+spring.datasource.intialSize<span class="o">=</span>0
+
+<span class="c">#Sets the default catalog.</span>
+spring.datasource.default-catalog<span class="o">=</span>
+
+<span class="c">#Sets default auto-commit state of connections returned by this datasource.</span>
+spring.datasource.defaultAutoCommit<span class="o">=</span><span class="nb">true</span>
+
+<span class="c">#Validation query to test if connection is valid.</span>
+spring.datasource.validation-query<span class="o">=</span>
+
+<span class="c">#Sets the validation query timeout, the amount of time, in seconds, that connection validation will wait for a response from the database when executing a validation query.</span>
+<span class="c">#Use a value less than or equal to 0 for no timeout.</span>
+spring.datasource.validation-query-timeout<span class="o">=</span><span class="nt">-1</span>
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="initialization_first_login_and_set_up_dialogue">2.2. Initialization, first login and set-up dialogue</h3>
+<div class="paragraph">
+<p>After the first start of ProjectForge® you will see
+ProjectForge®'s set-up dialogue. Please configure at minimum the
+adminstrator&#8217;s password and the target (empty data-base for a productive
+system or pre-filled with test data). You can configure or change all
+other settings such as time zone, e-mail addresses etc. any time later.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="ssl_https">2.3. SSL / Https</h3>
+<div class="paragraph">
+<p>It&#8217;s recommended to start ProjectForge on a localhost http port and to handle https over nginx or apache.</p>
+</div>
+<div class="paragraph">
+<p>For testing purposes you can use the following configuration:</p>
+</div>
+<div class="sect3">
+<h4 id="self_signed_certificate">2.3.1. Self-signed certificate</h4>
+<div class="paragraph">
+<p>Generate a self-signed certificate:`keytool -genkeypair -alias selfsigned -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore keystore.p12 -validity 365`</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="configure_the_file_projectforgeprojectforge_properties">2.3.2. Configure the file <code>~/ProjectForge/projectforge.properties</code></h4>
+<div class="paragraph">
+<p><strong>File:</strong> <code>application.properties</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="code"><pre>...
+<span class="c"># Bind to all interfaces, or localhost</span>
+server.address<span class="o">=</span>0.0.0.0
+server.port<span class="o">=</span>8443
+server.ssl.key-store<span class="o">=</span>file:/home/joe/keystore.p12
+server.ssl.key-store-password<span class="o">=</span>&lt;password of your certificate&gt;
+server.ssl.key-store-type<span class="o">=</span>PKCS12
+..
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="trust_the_self_signed_certificate">2.3.3. Trust the self-signed certificate</h4>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Extract: <code>keytool -exportcert -alias selfsigned -keystore keystore.p12 -storetype PKCS12 -file selfsigned.crt -rfc</code></p>
+</li>
+<li>
+<p>Copy it e. g. to MacOS key-chain system certificates and trust it.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="postgresql">2.4. PostgreSQL</h3>
+<div class="sect3">
+<h4 id="setting_up_the_database">2.4.1. Setting up the database</h4>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Edit <code>postgresql.conf:</code> <code>max_connections =  50                   # (change requires restart)</code></p>
+</li>
+<li>
+<p><code>createuser -U postgres -P projectforge</code> as e.g. admin user.</p>
+</li>
+<li>
+<p><code>createdb -U postgres -E UTF-8 -O projectforge projectforge</code> as e.g.
+admin user.</p>
+</li>
+<li>
+<p>You can drop any existing user and database
+with: <code>dropdb projectforge</code> and <code>dropuser projectforge</code></p>
+</li>
+<li>
+<p><strong>Re-use of existing database (use a dump -&#8594; 5.5 or 5.6)</strong> <br>
+<code>psql -q -f projectforge_2008-04-02_02-00.sql -U postgres projectforge 2&gt;&amp;1 &gt; log.txt</code></p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Recommended settings in <code>postgresql.conf</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code>statement_timeout =  300000 # 300s
+lock_timeout = 300000       # 300s</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configuration">3. Configuration</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="base_directory_applications_home">3.1. Base directory (application&#8217;s home)</h3>
+<div class="paragraph">
+<p>ProjectForge® needs a base directory which is set
+in <code>application.properties</code> of the web server. By default it
+is <code>${user.home}/ProjectForge</code> . You should prepare this directory for
+use-age of ProjectForge®. The following directories will be created
+if not exist:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ProjectForge/hibernate-search</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Here the lucene indices are stored. If
+corrupted, delete all files and directories in this directory and
+re-build data base indices via the web admin console.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ProjectForge/resources/fonts</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">For additional fonts used e. g. by the
+pdf renderers.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ProjectForge/resources/images</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">For images e. g. by the pdf renderers.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ProjectForge/work</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">For uploaded files etc.<br>
+<br></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="configuration_file_application_properties">3.2. Configuration file application.properties</h3>
+<div class="paragraph">
+<p>ProjectForge® is a SpringBoot-Application, you can get more
+information <a href="http://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html">here</a>.</p>
+</div>
+<div class="paragraph">
+<p>The format of the file is:</p>
+</div>
+<div class="paragraph">
+<p><strong>File:</strong> <code>application.properties</code>:
+<a href="https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/application.properties">here</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="customization">3.3. Customization</h3>
+<div class="sect3">
+<h4 id="logo_ant_title_in_pdf_outputs">3.3.1. Logo ant title in pdf outputs</h4>
+<div class="paragraph">
+<p>At default the pdf outputs file is not present. The logo is placed at
+the top right. <br>
+Under the configuration menu of the web application you can enter your
+organization name. This name will be used as headline for the pdf
+outputs.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+</pre></td><td class="code"><pre>The files must be located <span class="k">in </span>the Resources/Images folder.
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>File:</strong> <code>projectforge.properties</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="code"><pre>...
+projectforge.logoFile<span class="o">=</span>
+projectforge.export.logoFile<span class="o">=</span>
+...
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="customizing_i18n_translations_since_8_2">3.3.2. Customizing i18n translations (since 8.2)</h4>
+<div class="paragraph">
+<p>ProjectForge allows you to customize or override any translation text displayed in the user interface.
+This is useful if you want to adapt terminology to your organization&#8217;s specific needs.</p>
+</div>
+<div class="paragraph">
+<p>To customize translations:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create one or more properties files in the <code>~/ProjectForge/resources</code> directory:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>CustomerI18nResources.properties</code> - for default/English translations</p>
+</li>
+<li>
+<p><code>CustomerI18nResources_de.properties</code> - for German translations</p>
+</li>
+<li>
+<p><code>CustomerI18nResources_en.properties</code> - for English translations (explicit)</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Add your custom key-value pairs to override existing translations or add new ones:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="properties"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="code"><pre><span class="c"># Example: Override existing translation
+</span><span class="py">menu.addressbook.title</span><span class="p">=</span><span class="s">Contacts</span>
+<span class="c"># Example: Add custom translation
+</span><span class="py">myorganization.custom.greeting</span><span class="p">=</span><span class="s">Welcome to Acme Corp</span>
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Restart ProjectForge to apply the changes.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Your custom translations will take precedence over the default translations included in ProjectForge.</p>
+</div>
+<div class="paragraph">
+<p>To find available i18n keys that you can override, refer to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Main application translations: <a href="https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/I18nResources.properties">I18nResources.properties</a></p>
+</li>
+<li>
+<p>Plugin translations: Search the GitHub repository for <code>*I18nResources.properties</code> files in the plugin directories, e.g.:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>plugins/org.projectforge.plugins.banking/src/main/resources/BankingI18nResources.properties</code></p>
+</li>
+<li>
+<p><code>plugins/org.projectforge.plugins.skillmatrix/src/main/resources/SkillMatrixI18nResources.properties</code></p>
+</li>
+<li>
+<p>And other plugin-specific translation files</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="configuration_settings_web_interface">3.4. Configuration settings (web interface)</h3>
+<div class="paragraph">
+<p>Please go to this page for setting different parameters of
+ProjectForge® such as default time zone etc. You&#8217;ll find the
+documentation there.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="using_ttf_fonts_for_pdf_render_engine">3.5. Using ttf fonts for PDF render engine</h3>
+<div class="paragraph">
+<p>FOP is used as internal render engine. For enabling True Type Fonts
+please refer the FOP documentation.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+2
+</pre></td><td class="code"><pre>java <span class="nt">-cp</span> build/fop.jar:lib/avalon-framework-4.2.0.jar:lib/commons-logging-1.0.4.jar:lib/commons-io-1.3.1.jar <span class="se">\ </span>+
+          org.apache.fop.fonts.apps.PFMReader &lt;path&gt;/&lt;font&gt;.pfm ttf&lt;font&gt;.xml
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="html_formatted_e_mail_templates">3.6. HTML formatted E-Mail templates</h3>
+<div class="paragraph">
+<p>ProjectForge works with Groovy templates for generating e-mails (as
+notifications). You&#8217;ll find the templates inside your web archive of the
+ProjectForge
+installation: <code>plugins/projectforge-business-X.X.X.jar/mail/.</code> You can
+modify any template of this directory if needed by simply copying the
+file(s) you want to modify into your ProjectForge application dir, which
+is also the destination of <code>application.properties:</code></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>cp projectforge-business-X.X.X.jar/mail/</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Afterwards you can edit this file. ProjectForge looks first in this
+ProjectForge app directory for loading templates and if not found it
+uses the resources path.</p>
+</div>
+<div class="paragraph">
+<p>The templates are internationalized with the locale of the receiving
+user.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="html"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+</pre></td><td class="code"><pre><span class="nt">&lt;html&gt;</span>
+<span class="nt">&lt;html&gt;</span>
+#INCLUDE{mail/mailHead.html}
+<span class="nt">&lt;body&gt;</span>
+#INCLUDE{mail/mailOpening.html}
+<span class="nt">&lt;br</span> <span class="nt">/&gt;</span>
+Here you can place content (don't forget to use i18n keys for supporting internationalized e-mails).
+...
+<span class="nt">&lt;br</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;</span><span class="err">%=</span> <span class="na">pf.getString</span><span class="err">("</span><span class="na">link</span><span class="err">")</span> <span class="err">%</span><span class="nt">&gt;</span>: <span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"${requestUrl}"</span><span class="nt">&gt;</span>${requestUrl}<span class="nt">&lt;/a&gt;</span>
+<span class="nt">&lt;br</span> <span class="nt">/&gt;</span>
+This is an example of using dynamic data (here a list of positions will be printed):
+<span class="nt">&lt;table&gt;</span>
+  <span class="nt">&lt;</span><span class="err">%</span> <span class="na">for</span> <span class="err">(</span><span class="na">position</span> <span class="na">in</span> <span class="na">order.positions</span><span class="err">)</span> <span class="err">{</span> <span class="err">%</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;tr&gt;</span>
+      <span class="nt">&lt;th&gt;&lt;</span><span class="err">%=</span> <span class="na">pf.getString</span><span class="err">("</span><span class="na">title</span><span class="err">")</span> <span class="err">%</span><span class="nt">&gt;&lt;/th&gt;</span>
+      <span class="nt">&lt;td&gt;</span>${position.title}<span class="nt">&lt;/td&gt;</span>
+      ...
+    <span class="nt">&lt;/tr&gt;</span>
+  <span class="nt">&lt;</span><span class="err">%</span> <span class="err">}</span> <span class="err">%</span><span class="nt">&gt;</span>
+<span class="nt">&lt;/table&gt;</span>
+
+#INCLUDE{mail/mailHistoryTable.html}
+
+#INCLUDE{mail/mailClosing.html}
+#INCLUDE{mail/mailFooter.html}
+<span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span>
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you don&#8217;t like html-formatted e-mails, you can simply remove all html
+tags (ignore the html suffix then).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="configuration_of_mobile_enterprise_blogging_meb">3.7. Configuration of Mobile Enterprise Blogging (MEB)</h3>
+<div class="paragraph">
+<p>ProjectForge supports two ways of receiving SMS: e-mail and/or
+servlet-call. You can use both or at least one of the two ways:</p>
+</div>
+<div class="paragraph">
+<p><strong>File:</strong> <code>application.properties</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="code"><pre>...
+projectforge.receiveSmsKey<span class="o">=</span><span class="k">*******</span>SECRET<span class="k">********</span>
+...
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>ProjectForges ensures that messages will be imported only once.</p>
+</div>
+<div class="sect3">
+<h4 id="servlet_call">3.7.1. Servlet-Call</h4>
+<div class="paragraph">
+<p>You can implement a servlet call whenever your system receives an
+SMS: <br>
+<code><a href="https://pf.acme.com/secure/SMSReceiver?key=kds8uijkqw6idg&amp;date=20101105171233&amp;sender=01234567&amp;msg=Hello&#8230;&#8203" class="bare">pf.acme.com/secure/SMSReceiver?key=kds8uijkqw6idg&amp;date=20101105171233&amp;sender=01234567&amp;msg=Hello&#8230;&#8203</a>;</code> <br>
+The format of the values are the same as described above. The encoding
+should be UTF-8. The key is a communication key and should be configured
+in your  (see above). <br>
+Please deploy the following php script on your Asterisk web server (many
+thanks to Thomas Koch for this great work):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="php"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+</pre></td><td class="code"><pre><span class="c1">#!/usr/bin/php</span>
+<span class="o">&lt;?</span>
+<span class="c1"># SMS2ProjectForge</span>
+
+<span class="nv">$SMS_DIR</span><span class="o">=</span><span class="s2">"/var/spool/asterisk/sms/mtrx/"</span><span class="p">;</span>
+<span class="nv">$PF_EMAIL</span><span class="o">=</span><span class="s2">"projectforge@change-to-your-domain.de"</span><span class="p">;</span>
+<span class="nv">$FROM</span><span class="o">=</span><span class="s2">"smsgateway@change-to-your-domain.de"</span><span class="p">;</span>
+<span class="nv">$PF_URL</span><span class="o">=</span><span class="s2">"https://change-to-your-domain.de/secure/SMSReceiver?key=&lt;change-to-your-key&gt;&amp;date=%s&amp;sender=%s&amp;msg=%s"</span><span class="p">;</span>
+
+<span class="k">function</span> <span class="n">parseFile</span><span class="p">(</span><span class="nv">$file</span><span class="p">,</span> <span class="nv">$recipient</span><span class="p">)</span> <span class="p">{</span>
+
+  <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nv">$file</span><span class="p">)</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="k">if</span><span class="p">(</span><span class="nb">is_file</span><span class="p">(</span><span class="nv">$file</span><span class="p">))</span> <span class="p">{</span>
+    <span class="nv">$content</span> <span class="o">=</span> <span class="nb">file</span><span class="p">(</span><span class="nv">$file</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">"</span><span class="nv">$file</span><span class="s2"> is missing</span><span class="se">\n</span><span class="s2">"</span><span class="p">);</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">foreach</span><span class="p">(</span><span class="nv">$content</span> <span class="k">as</span> <span class="nv">$line</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span><span class="nb">preg_match</span><span class="p">(</span><span class="s2">"/oa=(\d+)/"</span><span class="p">,</span> <span class="nv">$line</span><span class="p">,</span> <span class="nv">$match</span><span class="p">))</span> <span class="p">{</span>
+<span class="c1">#print("Absender " . $match[1] . "\n");</span>
+      <span class="nv">$oa</span> <span class="o">=</span> <span class="nv">$match</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="nb">preg_match</span><span class="p">(</span><span class="s2">"/ud=(.*)/"</span><span class="p">,</span> <span class="nv">$line</span><span class="p">,</span> <span class="nv">$match</span><span class="p">))</span> <span class="p">{</span>
+<span class="c1">#print("Text " . $match[1] . "\n");</span>
+      <span class="nv">$text</span> <span class="o">=</span> <span class="nv">$match</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="k">if</span><span class="p">(</span><span class="nv">$recipient</span> <span class="o">==</span> <span class="s2">"pf"</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nv">$time</span> <span class="o">=</span> <span class="nb">time</span><span class="p">();</span>
+<span class="c1">#$mailtext = sprintf("date=%s\nsender=%s\nmsg=%s\n", time(), $oa, utf8_encode($text));</span>
+    <span class="nv">$mailtext</span> <span class="o">=</span> <span class="nb">sprintf</span><span class="p">(</span><span class="s2">"date=%s</span><span class="se">\n</span><span class="s2">sender=%s</span><span class="se">\n</span><span class="s2">msg=%s</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="nb">time</span><span class="p">(),</span> <span class="nv">$oa</span><span class="p">,</span> <span class="nv">$text</span><span class="p">);</span>
+    <span class="nb">mail</span><span class="p">(</span><span class="nv">$PF_EMAIL</span><span class="p">,</span> <span class="s2">"SMS"</span><span class="p">,</span> <span class="nv">$mailtext</span><span class="p">,</span> <span class="s2">"From: smsgateway &lt;</span><span class="nv">$FROM</span><span class="s2">&gt;"</span><span class="p">);</span>
+    <span class="nv">$url</span> <span class="o">=</span> <span class="nb">sprintf</span><span class="p">(</span><span class="nv">$PF_URL</span><span class="p">),</span>
+        <span class="nv">$time</span><span class="p">,</span>
+        <span class="nv">$oa</span><span class="p">,</span>
+        <span class="nb">urlencode</span><span class="p">(</span><span class="nv">$text</span><span class="p">));</span>
+    <span class="nv">$pig</span> <span class="o">=</span> <span class="nb">fopen</span><span class="p">(</span><span class="nv">$url</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">);</span>
+    <span class="c1"># XXX check answer!</span>
+    <span class="c1">#$ret = stream_get_contents($pig);</span>
+  <span class="p">}</span>
+  <span class="k">return</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">function</span> <span class="n">getRecipient</span><span class="p">(</span><span class="nv">$file</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nv">$file</span><span class="p">)</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="c1"># pf.2010-05-04T16:46:01-11</span>
+  <span class="k">if</span><span class="p">(</span><span class="nb">preg_match</span><span class="p">(</span><span class="s2">"/(\w+)\.\d\d\d\d-\d\d-\d\d.\d\d:\d\d:\d\d-\d+/"</span><span class="p">,</span> <span class="nv">$file</span><span class="p">,</span> <span class="nv">$match</span><span class="p">))</span> <span class="p">{</span>
+    <span class="k">return</span><span class="p">(</span><span class="nv">$match</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+  <span class="p">}</span>
+  <span class="k">return</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">##</span>
+<span class="c1"># Main</span>
+<span class="c1">#</span>
+<span class="nv">$content</span> <span class="o">=</span> <span class="k">array</span><span class="p">();</span>
+<span class="k">if</span><span class="p">(</span><span class="nb">is_dir</span><span class="p">(</span><span class="nv">$SMS_DIR</span><span class="p">))</span> <span class="p">{</span>
+  <span class="k">if</span><span class="p">(</span><span class="nv">$dh</span> <span class="o">=</span> <span class="nb">opendir</span><span class="p">(</span><span class="nv">$SMS_DIR</span><span class="p">))</span> <span class="p">{</span>
+    <span class="k">while</span><span class="p">((</span><span class="nv">$file</span> <span class="o">=</span> <span class="nb">readdir</span><span class="p">(</span><span class="nv">$dh</span><span class="p">))</span> <span class="o">!==</span> <span class="kc">false</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span><span class="p">(</span><span class="nv">$file</span> <span class="o">!=</span> <span class="s2">"."</span> <span class="o">&amp;&amp;</span> <span class="nv">$file</span> <span class="o">!=</span> <span class="s2">".."</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span><span class="p">(</span><span class="nf">parseFile</span><span class="p">(</span><span class="nv">$SMS_DIR</span> <span class="mf">.</span> <span class="nv">$file</span><span class="p">,</span> <span class="nf">getRecipient</span><span class="p">(</span><span class="nv">$file</span><span class="p">)))</span> <span class="p">{</span>
+          <span class="nb">unlink</span><span class="p">(</span><span class="nv">$SMS_DIR</span> <span class="mf">.</span> <span class="nv">$file</span><span class="p">);</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+<span class="cp">?&gt;</span>
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="phone_calls_and_texting_with_projectforge">3.8. phone calls and texting with ProjectForge</h3>
+<div class="sect3">
+<h4 id="phone_calls">3.8.1. Phone calls</h4>
+<div class="paragraph">
+<p>If configured the users are able to initiate phone calls directly by
+clicking on a phone number of an address or by entering a name or a
+phone number in the direct phone call
+page.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/adminguide/directCall.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 1:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">You can initiate a phone call by simply clicking on a phone
+number of an address or by entering a name or number into the number
+field.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Please deploy the following php script on your Asterisk web server (many
+thanks to Thomas Koch for this great work):</p>
+</div>
+<div class="paragraph">
+<p><strong>File:</strong> <code>originatecall.php</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="php"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+</pre></td><td class="code"><pre><span class="o">&lt;?</span>
+<span class="c1"># originates call from ProjectForge</span>
+<span class="c1"># 03/09 by t.koch@micromata.de</span>
+
+<span class="nv">$USERNAME</span> <span class="o">=</span> <span class="s2">"admin"</span><span class="p">;</span>
+<span class="nv">$PASSWORD</span> <span class="o">=</span> <span class="s2">"secret"</span><span class="p">;</span>
+
+<span class="k">function</span> <span class="n">doCall</span><span class="p">(</span><span class="nv">$source</span><span class="p">,</span> <span class="nv">$target</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">global</span> <span class="nv">$USERNAME</span><span class="p">,</span> <span class="nv">$PASSWORD</span><span class="p">;</span>
+  <span class="nv">$socket</span> <span class="o">=</span> <span class="nb">fsockopen</span><span class="p">(</span><span class="s2">"127.0.0.1"</span><span class="p">,</span><span class="s2">"5038"</span><span class="p">,</span> <span class="nv">$errno</span><span class="p">,</span> <span class="nv">$errstr</span><span class="p">,</span> <span class="nv">$timeout</span><span class="p">);</span>
+  <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nv">$socket</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="nb">fputs</span><span class="p">(</span><span class="nv">$socket</span><span class="p">,</span> <span class="s2">"Action: Login</span><span class="se">\r\n</span><span class="s2">"</span><span class="p">);</span>
+  <span class="nb">fputs</span><span class="p">(</span><span class="nv">$socket</span><span class="p">,</span> <span class="s2">"UserName: </span><span class="nv">$USERNAME</span><span class="se">\r\n</span><span class="s2">"</span><span class="p">);</span>
+  <span class="nb">fputs</span><span class="p">(</span><span class="nv">$socket</span><span class="p">,</span> <span class="s2">"Secret: </span><span class="nv">$PASSWORD</span><span class="se">\r\n\r\n</span><span class="s2">"</span><span class="p">);</span>
+  <span class="nb">fputs</span><span class="p">(</span><span class="nv">$socket</span><span class="p">,</span> <span class="nb">sprintf</span><span class="p">(</span><span class="s2">"Action: Originate</span><span class="se">\r\n</span><span class="s2">Channel: Local/%s@intern</span><span class="se">\r\n</span><span class="s2">Context: intern</span><span class="se">\r\n</span><span class="s2">Exten: %s</span><span class="se">\r\n</span><span class="s2">Priority: 1</span><span class="se">\r\n</span><span class="s2">Callerid: %s</span><span class="se">\r\n</span><span class="s2">Timeout: 8000</span><span class="se">\r\n</span><span class="s2">Variable: var1=23|var2=24|var3=25</span><span class="se">\r\n</span><span class="s2">ActionID: ABC45678901234567890</span><span class="se">\r\n\r\n</span><span class="s2">Action: Logoff</span><span class="se">\r\n\r\n</span><span class="s2">"</span><span class="p">,</span> <span class="nv">$source</span><span class="p">,</span> <span class="nv">$target</span><span class="p">,</span> <span class="nv">$source</span><span class="p">));</span>
+  <span class="k">return</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+
+  <span class="k">if</span><span class="p">(</span><span class="nv">$debug</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="nb">feof</span><span class="p">(</span><span class="nv">$socket</span><span class="p">))</span> <span class="p">{</span>
+      <span class="k">print</span><span class="p">(</span><span class="nb">fread</span><span class="p">(</span><span class="nv">$socket</span><span class="p">,</span> <span class="mi">8192</span><span class="p">));</span>
+    <span class="p">}</span>
+    <span class="nb">fclose</span><span class="p">(</span><span class="nv">$socket</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="nv">$SOURCE</span> <span class="o">=</span> <span class="nv">$_GET</span><span class="p">{</span><span class="n">source</span><span class="p">};</span>
+<span class="nv">$TARGET</span> <span class="o">=</span> <span class="nv">$_GET</span><span class="p">{</span><span class="n">target</span><span class="p">};</span>
+
+<span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nb">is_numeric</span><span class="p">(</span><span class="nv">$SOURCE</span><span class="p">))</span> <span class="p">{</span>
+  <span class="k">print</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+  <span class="k">exit</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nb">is_numeric</span><span class="p">(</span><span class="nv">$TARGET</span><span class="p">))</span> <span class="p">{</span>
+  <span class="k">print</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span>
+  <span class="k">exit</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="k">if</span><span class="p">(</span><span class="nf">doCall</span><span class="p">(</span><span class="nv">$SOURCE</span><span class="p">,</span> <span class="nv">$TARGET</span><span class="p">))</span>
+  <span class="k">print</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="k">else</span>
+  <span class="k">print</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="cp">?&gt;</span>
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Please check this servlet manually. It has to be available from your
+ProjectForge server. Then configure your servlet:</p>
+</div>
+<div class="paragraph">
+<p><strong>File:</strong> <code>application.properties:</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="code"><pre>...
+projectforge.telephoneSystemUrl<span class="o">=</span>http://asterisk.yourserver.org/originatecall.php?source<span class="o">=</span><span class="c">#source&amp;target=#target</span>
+projectforge.telephoneSystemNumber<span class="o">=</span>0123456789
+...
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="texting">3.8.2. Texting</h4>
+<div class="paragraph">
+<p>If configured the users are able to text by clicking on the SMS symbol
+of an address or by entering a name or a cell phone
+number.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/adminguide/texting.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 2:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">You can send text messages by simply clicking on the SMS
+symbol of an address or by entering a name or cell phone number.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Please deploy the following php script on your Asterisk web server (many
+thanks to Thomas Koch for this great work):</p>
+</div>
+<div class="paragraph">
+<p><strong>File:</strong> <code>sms.php</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="php"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+</pre></td><td class="code"><pre><span class="o">&lt;?</span>
+<span class="cm">/*
+   Texting with ProjectForge and Asterisk
+   07.09.2009 by t.koch@micromata.de v1
+*/</span>
+
+<span class="nv">$NUMBER</span> <span class="o">=</span> <span class="nv">$_REQUEST</span><span class="p">{</span><span class="n">number</span><span class="p">};</span>
+<span class="nv">$MESSAGE</span> <span class="o">=</span> <span class="nv">$_REQUEST</span><span class="p">{</span><span class="n">message</span><span class="p">};</span>
+
+<span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nb">is_numeric</span><span class="p">(</span><span class="nv">$NUMBER</span><span class="p">))</span> <span class="p">{</span>
+  <span class="k">print</span><span class="p">(</span><span class="s2">"2</span><span class="se">\n</span><span class="s2">wrong destination number"</span><span class="p">);</span>
+  <span class="k">return</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nv">$MESSAGE</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">print</span><span class="p">(</span><span class="s2">"1</span><span class="se">\n</span><span class="s2">missing message"</span><span class="p">);</span>
+  <span class="k">return</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="k">if</span><span class="p">(</span><span class="nb">strlen</span><span class="p">(</span><span class="nv">$MESSAGE</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">160</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">print</span><span class="p">(</span><span class="s2">"3</span><span class="se">\n</span><span class="s2">message &gt; 160"</span><span class="p">);</span>
+  <span class="k">return</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="nv">$rand</span> <span class="o">=</span> <span class="nb">rand</span><span class="p">(</span><span class="mi">100000</span><span class="p">,</span> <span class="mi">4000000</span><span class="p">);</span>
+<span class="nb">usleep</span><span class="p">(</span><span class="nv">$rand</span><span class="p">);</span>
+
+<span class="c1"># XXX concurrent == maximum number of b channels</span>
+<span class="nb">system</span><span class="p">(</span><span class="nb">sprintf</span><span class="p">(</span><span class="s2">"/usr/sbin/smsq '--concurrent=8' '--spool-dir=/var/spool/asterisk/' '--motx-channel=DIALOGICDIVA/contr1/0193010' '--da=%s' '--motx-callerid=&lt;callerid&gt;' '--ud=%s' &gt;/tmp/sms.</span><span class="nv">$rand</span><span class="s2"> 2&gt;/tmp/sms.</span><span class="nv">$rand</span><span class="s2">"</span><span class="p">,</span> <span class="nv">$NUMBER</span><span class="p">,</span> <span class="nv">$MESSAGE</span><span class="p">));</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">"0</span><span class="se">\n</span><span class="s2">ok"</span><span class="p">);</span>
+<span class="cp">?&gt;</span>
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Please check this servlet manually. It has to be available from your
+ProjectForge server. Then configure your servlet:</p>
+</div>
+<div class="paragraph">
+<p><strong>File:</strong> <code>application.properties:</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="code"><pre>...
+projectforge.smsUrl<span class="o">=</span>http://asterisk.yourserver.org/sms.php?number<span class="o">=</span><span class="c">#number&amp;message=#message</span>
+...
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To use the full functionality of ProjectForge please configure the
+address book feature. Don&#8217;t forget to configure your default country
+phone prefix in the configuration web page.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="phonelookupservlet">3.8.3. PhoneLookupServlet</h4>
+<div class="paragraph">
+<p>With the phone lookup servlet a telephony system (such as Asterix) may
+lookup incoming phone calls:</p>
+</div>
+<div class="paragraph">
+<p><strong>File:</strong> <code>application.properties</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="code"><pre>...
+projectforge.phoneLookupKey<span class="o">=</span><span class="k">*******</span>SECRET<span class="k">********</span>
+...
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="business_assessment_bwa">3.9. business assessment / BWA</h3>
+<div class="paragraph">
+<p>If you work with accounting records (DATEV) you may be want to have
+business assessments (BWA in German). The business assessments of DATEV
+consists of rows. Each row has a line number (no) and a title (for
+displaying). The <code>accountRange</code> defines which DATEV accounts matches the
+row. Please note, that a record is assigned to the first row found. <br>
+If the priority of a row is not high, the row will not be shown in the
+short form of business assessments. The value defines row amounts which
+are calculated (see example below).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="securityconfig">3.10. SecurityConfig</h3>
+<div class="sect3">
+<h4 id="secure_passwords">3.10.1. Secure passwords</h4>
+<div class="paragraph">
+<p>Every password is stored in the database as SHA256 hashed password. For
+reducing brute force attacks several security mechanism are implemented.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="protection_against_brute_force_attacks">3.10.2. Protection against brute force attacks</h4>
+<div class="paragraph">
+<p>If the user login failed (via web page or rest service) a penalty time
+is given for usernames and IP addresses. For every failed login for an
+username the penalty time is increased by one second before the next try
+of an username/password combination for that username is allowed. <br>
+The same mechanism is used for failed login failures from an IP address
+(one second penalty per thousand failed logins). <br>
+Please refer the source code for more information.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="salted_passwords">3.10.3. Salted passwords</h4>
+<div class="paragraph">
+<p>Since version 5.3 of ProjectForge® salted passwords are used. This
+means, that every password is first concatenated with an salt value
+(random string per user) and then hashed. Therefore so called rainbow
+tables are useless for attacking passwords. After migrating to version
+5.3 every password is salted after login of the user or if the user is
+changing his password.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="salted_passwords_with_pepper">3.10.4. Salted passwords with pepper</h4>
+<div class="paragraph">
+<p>Since version 5.3 of ProjectForge® the administrator is able to
+configure a pepper string in the <code>application.properties</code>. Before
+hashing a password the pepper string is concatenated to the salt and
+password. Therefore no brute force attack is possible if an attacker has
+access to the database dump etc. <br>
+Please configure the pepper string like this:</p>
+</div>
+<div class="paragraph">
+<p><strong>File:</strong> <code>application.properties:</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="code"><pre>...
+projectforge.security.passwordPepper<span class="o">=</span><span class="k">*******</span>SECRET<span class="k">********</span>
+....
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>All passwords are automatically updated after any login of an user (if
+no pepper and/or salt was yet used for the user&#8217;s password) or after any
+password change.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="2fa_two_factor_authentication">3.10.5. 2FA (two-factor-authentication)</h4>
+<div class="paragraph">
+<p>2FA (two factor authentication) is supported:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>by using RFC6238, used by e. g. Google or Microsoft Authenticator.</p>
+</li>
+<li>
+<p>SMS if configured</p>
+</li>
+<li>
+<p>Fido2/WebAuthn (e. g. Yubikey)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You may specify the expiry periods of 2FA for different expiry periods URL&#8217;s by shortcuts for
+predefined sets of uri matchers and/or own regular expressions (as uri matchers).
+A web filter checks for every request, if a 2FA is required and if the last
+successful 2FA of the current session is not older than the specified expiry period.
+The timestamp of a successful 2FA is stored in the user&#8217;s session as well as in any user&#8217;s
+stay-logged-in-session.</p>
+</div>
+<div class="paragraph">
+<p>Recoomended example configuration:</p>
+</div>
+<div class="paragraph">
+<p><strong>File:</strong> <code>application.properties:</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+</pre></td><td class="code"><pre>...
+<span class="c"># Recommended setup</span>
+projectforge.2fa.expiryPeriod.minutes1<span class="o">=</span>PASSWORD
+projectforge.2fa.expiryPeriod.hours1<span class="o">=</span>ADMIN_WRITE<span class="p">;</span>MY_ACCOUNT<span class="p">;</span>SCRIPT_WRITE
+projectforge.2fa.expiryPeriod.hours8<span class="o">=</span>ADMIN<span class="p">;</span>SCRIPT<span class="p">;</span>FINANCE_WRITE<span class="p">;</span>ORGA_WRITE<span class="p">;</span>HR_WRITE
+projectforge.2fa.expiryPeriod.days30<span class="o">=</span>HR<span class="p">;</span>FINANCE<span class="p">;</span>ORGA
+projectforge.2fa.expiryPeriod.days90<span class="o">=</span>
+<span class="c"># Number of days a 2FA is required, when stay-logged-in is used. Without stay-logged-in and given, a 2FA is required</span>
+<span class="c"># after every login.</span>
+projectforge.2fa.loginExpiryPeriod<span class="o">=</span>30
+....
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Rules</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Expression starting with <code>/</code> means absolute path of uri.</p>
+</li>
+<li>
+<p>If expressions do start with <code>/</code> they will be replaced by their regex: <code>/rs/user</code> &#8594; <code>^/rs/user.*</code>:
+Any uri <strong>starting</strong> with <code>/rs/user</code> is matching.</p>
+</li>
+<li>
+<p>Empty entries means: no 2nd factor</p>
+</li>
+<li>
+<p>Regular expressions and shortcuts should be separated by ';'.</p>
+</li>
+<li>
+<p>Supported shortcuts are <code>ADMIN</code>, <code>HR</code>, <code>FINANCE</code>, <code>ORGA</code>, <code>SCRIPTING</code>, <code>MY_ACCOUNT</code>, <code>PASSWORD</code>
+containing a bunch of regex.</p>
+</li>
+<li>
+<p>You may also use <code>WRITE:&lt;entity-name&gt;</code> for specifying only all write access calls of an entity (rest calls of React and
+Wicket actions). Reading of entities / detail
+view is not affected.</p>
+</li>
+<li>
+<p>For entities (also) available in Wicket version, use <code>/wa/user</code> for specifying read/write access and <code>/wa/userEdit</code> for specifying
+detail view and write access.
+such entities is allowed. For specifying all entity activities, use <code>/rs/&lt;entity-name&gt;</code> instead.</p>
+</li>
+<li>
+<p>You may also define own regex, such as: <code>ADMIN;/wa/report;WRITE:user</code></p>
+</li>
+</ul>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Please refer the admin&#8217;s web page &#8594; configuration &#8594; Export 2FA configuration for verifying your
+configuration.</p>
+</div>
+</blockquote>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="ldap">3.11. LDAP</h3>
+<div class="sect3">
+<h4 id="requirements">3.11.1. Requirements</h4>
+<div class="paragraph">
+<p>The LDAP must support the following additional schemas (example of
+slapd.conf of OpenLDAP):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+2
+</pre></td><td class="code"><pre>include /sw/etc/openldap/schema/cosine.schema +
+include /sw/etc/openldap/schema/inetorgperson.schema
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="configuration_2">3.11.2. Configuration</h4>
+<div class="paragraph">
+<p>The groupBase setting is only needed in master mode. The managerUser is
+not needed in simple slave mode. For further information see below.</p>
+</div>
+<div class="paragraph">
+<p><strong>File:</strong> <code>application.properties:</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+</pre></td><td class="code"><pre>...
+projectforge.ldap.server<span class="o">=</span>
+projectforge.ldap.baseDN<span class="o">=</span>
+projectforge.ldap.managerUser<span class="o">=</span>
+projectforge.ldap.managerPassword<span class="o">=</span>
+projectforge.ldap.port<span class="o">=</span>
+projectforge.ldap.sslCertificateFile<span class="o">=</span>
+projectforge.ldap.groupBase<span class="o">=</span>
+projectforge.ldap.userBase<span class="o">=</span>
+projectforge.ldap.authentication<span class="o">=</span>
+projectforge.ldap.posixAccountsDefaultGidNumber<span class="o">=</span>
+projectforge.ldap.sambaAccountsSIDPrefix<span class="o">=</span>
+projectforge.ldap.sambaAccountsPrimaryGroupSID<span class="o">=</span>
+...
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="local_admin_users">3.11.3. Local (admin) users</h4>
+<div class="paragraph">
+<p>Please login by using the stay-logged-in checkbox on the login screen as
+administrator (no LDAP should be configured). Restart ProjectForge with
+LDAP configured and use the same browser. You should be logged-in.
+Please go to the user list and select option local user for every user
+who should be authenticated against ProjectForge (instead of LDAP) and
+save them. Now the local users may log-in without LDAP credentials. This
+is especially use-ful for administrator users of ProjectForge.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="ldap_over_ssl">3.11.4. LDAP over SSL</h4>
+<div class="paragraph">
+<p><code>openssl s_client -showcerts -connect ldap.acme.priv:636 &gt; ldap.pem</code> Copy
+the lines
+including <code>-----BEGIN CERTIFICATE-----</code> until <code>-----END CERTIFICATE-----</code> (including)
+to a file called <code>ldap.cert.</code> Now you can configure the certificate file
+in <code>application.properties</code> or you can import the certificate to your
+java keystore. The first solution is independent of your JAVA version
+and is recommended first.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="projectforge_as_ldap_master">3.11.5. ProjectForge as LDAP master</h4>
+<div class="paragraph">
+<p>The LDAP master mode is the most tested mode of ProjectForge and is used
+in production mode at the ProjectForge developer&#8217;s company. In this
+mode, ProjectForge needs a LDAP user with write access to groups and
+users. The ProjectForge user&#8217;s will be synchronized in LDAP. If there is
+any conflict between LDAP and ProjectForge, the ProjectForge settings
+are used. The configuration of this mode is simple:</p>
+</div>
+<div class="paragraph">
+<p><strong>File:</strong> <code>application.properties:</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="code"><pre>...
+projectforge.login.handlerClass<span class="o">=</span>LdapMasterLoginHandler
+...
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>This LDAP login handler has read-write access to the LDAP server and
+acts as master of the user and group data. All changes of ProjectForge&#8217;s
+users and groups will be written through.</p>
+</li>
+<li>
+<p>Any change of the LDAP server will be ignored and may be overwritten
+by ProjectForge.</p>
+</li>
+<li>
+<p><strong>Passwords</strong> <br>
+After each successful login-in at ProjectForge (via LoginForm)
+ProjectForges tries to authenticate the user with the given
+username/password credentials at LDAP. If the LDAP authentication fails
+ProjectForge changes the password with the actual password of the user
+(given in the LoginForm). If the user changes his password (my account
+&#8594; change password), the LDAP password will be changed respectively. In
+LDAP master mode, the user is also able to change his "WLAN/Samba
+password" (my account &#8594; change password). The password entered there,
+will be written to the LDAP attribute "sambaNTPassword".</p>
+</li>
+<li>
+<p><strong>Deactivated users</strong> <br>
+Deactivated users will be moved to an sub userbase called "deactivated".
+The e-mail will be invalidated and the password will be deleted. Deleted
+and deactivated users are removed from any LDAP group. After
+reactivating the user, the password has to be reset if the user logins
+the next time via LoginForm.</p>
+</li>
+<li>
+<p><strong>Deleted Users</strong> <br>
+Deleted users will not be synchronized and removed in LDAP if exist.</p>
+</li>
+<li>
+<p><strong>New users</strong> <br>
+New users (created with ProjectForge&#8217;s UserEditPage) will be created
+first without password in the LDAP system directly but with "WLAN/Samba
+password". Such users need to log-in first at ProjectForge, otherwise
+their LDAP passwords aren&#8217;t set (no log-in at any other system
+connecting to the LDAP is possible until the first log-in at
+ProjectForge).</p>
+</li>
+<li>
+<p><strong>Modifiing fields in LDAP</strong> <br>
+ProjectForge does only modify supported fields of known LDAP users. If
+any modification is done in LDAP of fields and users/groups known by
+ProjectForge they will be overwritten by ProjectForge during the next
+synchronization run. If any modification in other fields of LDAP users
+are done, the should be left untouched by ProjectForge.</p>
+</li>
+<li>
+<p><strong>Synchronization</strong> <br>
+After any modification of any ProjectForge user or group, the
+synchronization is started for all LDAP users and groups. If no
+modification is done, the synchronization is done approximately hourly,
+but only if any user activity is detected in ProjectForge. You can force
+a synchronization by refreshing all caches (including the
+UserGroupCache) in the system web page or by restarting ProjectForge.</p>
+</li>
+<li>
+<p><strong>Groups and assigned users</strong> <br>
+Users will be added as <code>uniqueMember</code> entries in the LDAP groups if also
+assigned in ProjectForge to the same ProjectForge group.</p>
+</li>
+</ol>
+</div>
+<div class="sect4">
+<h5 id="ldap_entries">LDAP entries</h5>
+<div class="paragraph">
+<p>See figures <span class="external-link">3</span> and <span class="external-link">4</span> for detailed
+information of how does ProjectForge stores and expect LDAP fields and
+object classes.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/adminguide/LDAP-user-entry.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 3:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ProjectForge uses the fields and object classes shown in
+this figure for users. The object class <code>posixAccount</code> with the
+fields <code>uidNumber, gidNumber, homeDirectory</code> and <code>loginShell</code> are only
+used and managed if configured).
+The field <code>employeeNumber</code> is used by ProjectForge for storing the
+primary key of the ProjectForge user entry in LDAP (for a better
+synchronization). So the renaming of user names should work.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/adminguide/LDAP-group-entry.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 4:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ProjectForge uses the fields and object classes shown in
+this figure for groups. The field <code>businessCategory</code> is used by
+ProjectForge for storing the primary key of the ProjectForge group entry
+in LDAP (for a better synchronization). So the renaming of group names
+should work.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="managing_posix_accounts">Managing POSIX accounts</h5>
+<div class="paragraph">
+<p>ProjectForge supports the management of POSIX accounts with the
+data <code>uidNumber,</code> <code>gidNumber,</code> <code>homeDirectory,</code> and <code>loginShell.</code></p>
+</div>
+<div class="paragraph">
+<p>You can administer the POSIX account data in the UserEditPage after
+configuring the <strong><code>application.properties</code></strong> like the above example.
+Pleaser refer the tool-tips for further information:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/adminguide/LDAP-POSIX-accounts.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 5:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ProjectForge is able to manage POSIX accounts in LDAP
+master mode.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="ulist">
+<ul>
+<li>
+<p>After clicking the Button <code>create</code> beside the UID number field
+ProjectForge will prefill all POSIX account fields:</p>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The UID number will be the next free number (ProjectForge searches the
+highest used UID and increments it by one). If no such number found,
+1,000 is assumed.</p>
+</li>
+<li>
+<p>The GID number will be preset with the defaultGidNumber configured
+in <code>application.properties</code>.</p>
+</li>
+<li>
+<p>The home directory will be the prefix <code>/home/</code> (configured
+in <code>application.properties</code>) followed by the user-name: e. g. <code>/home/kai</code></p>
+</li>
+<li>
+<p>The login-shell will be preset with <code>/bin/bash</code> or any other which is
+configured in <code>application.properties</code>.</p>
+<div class="paragraph">
+<p>Don&#8217;t forge to save this user by clicking the save or update button on
+the bottom of the edit page. After changing any of these POSIX account
+fields the LDAP entries are update immediately.</p>
+</div>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>ProjectForge presets a new UID number automatically (see above).</p>
+</li>
+<li>
+<p>ProjectForge assures that no UID number is given twice.</p>
+</li>
+<li>
+<p>Every LDAP entry gets the <code>object-class</code> <code>posixAccount</code> only if the
+POSIX account data were created in ProjectForge for this user.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="managing_samba_accounts">3.11.6. Managing Samba accounts</h4>
+<div class="paragraph">
+<p><strong>File:</strong> <code>application.properties:</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="code"><pre>...
+projectforge.ldap.sambaAccountsSIDPrefix<span class="o">=</span>
+projectforge.ldap.sambaAccountsPrimaryGroupSID<span class="o">=</span>
+...
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/adminguide/LDAP-POSIX-SAMBA-Accounts.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 6:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ProjectForge is able to manage POSIX and Samba accounts in
+LDAP master mode.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="ulist">
+<ul>
+<li>
+<p>After clicking the Button <code>create</code> beside the UID number field
+ProjectForge will prefill all SAMBA account fields:</p>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The UID number will be the next free number (ProjectForge searches the
+highest used UID and increments it by one). If no such number found,
+1,000 is assumed.</p>
+</li>
+<li>
+<p>The GID number will be preset with the defaultSambaPrimaryGroupSID
+configured in <code>application.properties</code>.</p>
+</li>
+<li>
+<p>Parallel usage with <strong>POSIX, which is recommended:</strong> <br>
+Please click the 'create' button near to the UID of the POSIX account,
+the suffix of SAMBASID will be the same UID. ProjectForge&#8217;s tries first
+to get the same UID for SAMBA as for POSIX if no conflict was found.</p>
+<div class="paragraph">
+<p>Don&#8217;t forge to save this user by clicking the save or update button on
+the bottom of the edit page. After changing any of these Samba account
+fields the LDAP entries are update immediately.</p>
+</div>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>Every LDAP entry gets the <code>object-class</code> <code>sambaSamAccount</code> only if the
+Samba account data were created in ProjectForge for this user.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="projectforge_as_ldap_client">3.11.7. ProjectForge as LDAP client</h4>
+<div class="paragraph">
+<p>This LDAP login handler acts as a LDAP slave, meaning, that LDAP will be
+accessed in read-only mode. There are 3 modes
+available: <code>simple,</code> <code>users</code> and <code>users-groups.</code> The configuration of
+this mode is simple:</p>
+</div>
+<div class="paragraph">
+<p><strong>File:</strong> <code>application.properties</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="code"><pre>...
+projectforge.login.handlerClass<span class="o">=</span>LdapSlaveLoginHandler
+...
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="sect4">
+<h5 id="simple_mode">Simple mode</h5>
+<div class="paragraph">
+<p>The simple mode is assumed if no ldap managerUser is given in the
+application.properties.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Simple means that only username and password is checked, all other
+user settings such as assigned groups and user name etc. are managed by
+ProjectForge.</p>
+</li>
+<li>
+<p>No ldap user is needed for accessing users or groups of LDAP, only the
+user&#8217;s login-name and password is checked by trying to authenticate!</p>
+</li>
+<li>
+<p>If a user is deactivated in LDAP the user has the possibility to work
+with ProjectForge unlimited as long as he uses his
+stay-logged-in-method! (If not acceptable please use the normal user
+mode instead.)</p>
+</li>
+<li>
+<p>For local users any LDAP setting is ignored.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="users_mode">Users mode</h5>
+<div class="paragraph">
+<p>The normal user mode is assumed if a LDAP managerUser is given in
+the <code>application.properties.</code></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Normal means that username and password is checked and all other user
+settings such as user name etc. are read by a given LDAP manager user.</p>
+</li>
+<li>
+<p>If a user is deleted in LDAP the user will be marked as deleted also
+in ProjectForge&#8217;s data-base. Any login after synchronizing isn&#8217;t allowed
+(the stay-logged-in-feature fails also for deleted users).</p>
+</li>
+<li>
+<p>For local users any LDAP setting is ignored.</p>
+</li>
+<li>
+<p>All known LDAP user fields of the users are synchronized (given name,
+surname, e-mail etc.).</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="users_groups_mode">Users-groups mode</h5>
+<div class="paragraph">
+<p>This mode is not yet implemented, the users-mode is used instead.</p>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="projectforge_without_ldap">3.11.8. ProjectForge without LDAP</h4>
+<div class="paragraph">
+<p>You can also use PF without LADP.</p>
+</div>
+<div class="paragraph">
+<p><strong>File:</strong> <code>application.properties:</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="code"><pre>...
+projectforge.login.handlerClass<span class="o">=</span>LoginDefaultHandler
+...
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="troubleshouting">3.12. Troubleshouting</h3>
+<div class="sect3">
+<h4 id="nullpointerexception_on_pages_with_diagrams_und_linux">3.12.1. NullPointerException on pages with diagrams und Linux</h4>
+<div class="paragraph">
+<p>If you will receive exceptions while calling pages with diagrams such as under menu project management &#8594; my statistics:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Caused by: java.lang.NullPointerException
+        at java.desktop/sun.awt.FontConfiguration.getVersion(FontConfiguration.java:1262)</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>you probably use JDK11+ and the linux package <strong>fontconfig</strong> isn&#8217;t installed. Please install this package and restart ProjectForge.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="maintenance">4. Maintenance</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="updating_by_simple_clicks">4.1. Updating by simple clicks</h3>
+<div class="paragraph">
+<p>ProjectForge provides automatically updates as built-in scripts with every new version.
+Refer the migration guide for required, manual changes.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="re_indexing_the_database">4.2. Re-indexing the database</h3>
+<div class="paragraph">
+<p>Should be done after setup: Use the administration menu.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="analysing_tools">4.3. Analysing tools</h3>
+<div class="paragraph">
+<p>Useful commandes are:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+</pre></td><td class="code"><pre>...
+projectforge@vprojectforge:~<span class="nv">$ </span>jps
+19533 Bootstrap
+2261 Jps
+projectforge@vprojectforge:~<span class="nv">$ </span>jstack 19533
+2008-02-14 09:58:28
+Full thread dump Java HotSpot<span class="o">(</span>TM<span class="o">)</span> 64-Bit Server VM <span class="o">(</span>1.6.0_03-b05 mixed mode<span class="o">)</span>:
+
+<span class="s2">"Attach Listener"</span> daemon <span class="nv">prio</span><span class="o">=</span>10 <span class="nv">tid</span><span class="o">=</span>0x00002aaaf4a6e800 <span class="nv">nid</span><span class="o">=</span>0x8fa waiting on condition <span class="o">[</span>0x0000000000000000..0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+<span class="s2">"http-8443-10"</span> daemon <span class="nv">prio</span><span class="o">=</span>10 <span class="nv">tid</span><span class="o">=</span>0x00002aaaf4a94800 <span class="nv">nid</span><span class="o">=</span>0x716c <span class="k">in </span>Object.wait<span class="o">()</span> <span class="o">[</span>0x0000000041f47000..0x0000000041f47e40]
+   java.lang.Thread.State: WAITING <span class="o">(</span>on object monitor<span class="o">)</span>
+  at java.lang.Object.wait<span class="o">(</span>Native Method<span class="o">)</span>
+  - waiting on &lt;0x00002aaaee262530&gt; <span class="o">(</span>a org.apache.tomcat.util.net.JIoEndpoint<span class="nv">$Worker</span><span class="o">)</span>
+  at java.lang.Object.wait<span class="o">(</span>Object.java:485<span class="o">)</span>
+  at org.apache.tomcat.util.net.JIoEndpoint<span class="nv">$Worker</span>.await<span class="o">(</span>JIoEndpoint.java:416<span class="o">)</span>
+
+...
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="xml_backup_and_restore_and_data_base_migration_bug_we_guarantee_no_guarantee_but_work_on_the_solution_of_the_problem">4.4. XML-backup and restore and data-base migration ( BUG -&#8594; We guarantee no guarantee, but work on the solution of the problem )</h3>
+<div class="paragraph">
+<p>ProjectForge supports the import and export of its whole data-base as
+XML. It&#8217;s independent from the data-base (Hypersonic, PostgreSQL, MySQL,
+Oracle etc.). You can choose this method to migrate your data-base from
+one data-base to any other data-base supported by ProjectForge.</p>
+</div>
+<div class="sect3">
+<h4 id="export">4.4.1. Export</h4>
+<div class="paragraph">
+<p>It&#8217;s possible to export an XML-Dump from your data-base using the system
+administration dialogue (web). This backup contains all data of
+ProjectForge in one zipped xml file.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="import">4.4.2. Import</h4>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>First you need a fresh data-base (without any tables and data).</p>
+</li>
+<li>
+<p>Afterwards start ProjectForge with the connection data to your new
+data-base.</p>
+</li>
+<li>
+<p>Upload the XML or zipped XML file inside the setup-page (which is
+shown automatically in your web-browser for empty data-bases). Leave any
+other input fields such as password etc. untouched.</p>
+</li>
+<li>
+<p>Press the upload button.</p>
+</li>
+<li>
+<p>Watch the results in the log messages. ProjectForge will verify each
+single entry by comparing each object of the XML file with the imported
+data-base objects (each single field of every object is compared.) Any
+inconsistency or difference is shown in the log file.</p>
+</li>
+<li>
+<p>Now you can login into ProjectForge.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="limitations">4.4.3. Limitations</h4>
+<div class="paragraph">
+<p>The limitation is the web servers memory. It&#8217;s planned to support very
+large ProjectForge data-bases using different xml files. Please request
+this feature e. g. inside the help forum if needed. For migration
+without changing the data-base vendor the data-base specific dump and
+restore mechanism are recommended for large data-bases.</p>
+</div>
+<div class="paragraph">
+<p><strong>Hint</strong></p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Please note: After an import of a dump file into a new ProjectForge
+installation all primary keys are changed! ProjectForge ensures the
+integrity of all data including the history entries.</p>
+</div>
+</blockquote>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="backup">4.5. Backup</h3>
+<div class="paragraph">
+<p>All datasets of ProjectForge® will be stored in the underlaying
+database (e. g. PostgreSQL). <br>
+You should install an Unix cron script making frequently a backup of the
+database. A dump of containing table entries as SQL statements for
+PostgreSQL is possible by using:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">pg_dump -D -U projectforge -f pf_dump_`date '+%Y-%m-%d_%H-%M'`.sql</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="restoring_a_backup">4.6. Restoring a backup</h3>
+<div class="sect3">
+<h4 id="data_base">4.6.1. Data base</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+</pre></td><td class="code"><pre>psql <span class="nt">-q</span> <span class="nt">-f</span> projectforge_2008-05-12_02-00.sql <span class="nt">-U</span> postgres projectforge 2&gt;&amp;1 <span class="o">&gt;</span> log.txt
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For further details concerning dropping and creating a new data base. <br>
+Don&#8217;t forget to create indices (thru admin web page)!</p>
+</div>
+<div class="paragraph">
+<p><strong>Hint</strong></p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>If you want to use productive data in your develepment system for
+testing, it&#8217;s recommended to set all e-mail addresses of the users to
+your developers e-mail. Also all passwords can be easily set
+to <code>test123</code> if you user following sql statement in your test database
+(not productive!):</p>
+</div>
+</blockquote>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="sql"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+</pre></td><td class="code"><pre><span class="k">update</span> <span class="n">t_pf_user</span> <span class="k">SET</span> <span class="n">password</span><span class="o">=</span><span class="s1">'SHA</span><span class="se">\{</span><span class="s1">BC871652288E56E306CFA093BEFC3FFCD0ED8872}'</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="s1">'m.developer@acme.com/'</span><span class="p">;</span>
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="jcr_repository">4.6.2. JCR repository</h4>
+<div class="paragraph">
+<p>The JCR repository contains all uploaded files (contracts, orders etc.). The file of the data transfer boxes is not included (it&#8217;s normally to large for backup). The data transfer boxes are used for exchanging very large
+files between users and/or customers.</p>
+</div>
+<div class="paragraph">
+<p>For restoring a JCR backup, please refer the file <code>backupReadme.txt</code> inside the backup zip file.</p>
+</div>
+<div class="paragraph">
+<p>If you have a corrupted JCR repository or if you want to make a full backup, refer <code>backupReadme.txt</code> as well. You will also find the readme here: <code><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-jcr/src/main/resources/backupReadme.txt" class="bare">github.com/micromata/projectforge/blob/develop/projectforge-jcr/src/main/resources/backupReadme.txt</a></code>.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="automatical_backup">4.7. Automatical backup</h3>
+<div class="sect3">
+<h4 id="backup_script">4.7.1. Backup script</h4>
+<div class="paragraph">
+<p>Install crontab entry as user projectforge on your ProjectForge®
+server starting the following script:</p>
+</div>
+<div class="paragraph">
+<p><strong>File:</strong> <code>pforgebackup.sh:</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+</pre></td><td class="code"><pre><span class="c">#!/bin/bash</span>
+
+<span class="nv">PGSQL_DIR</span><span class="o">=</span>/usr/bin
+<span class="nv">BACKUPDIR</span><span class="o">=</span>/home/projectforge/backup
+<span class="nv">BASENAME</span><span class="o">=</span>projectforge <span class="nv">PASSWD</span><span class="o">=</span>...
+
+<span class="nb">echo </span>Starting backup of ProjectForge ...
+<span class="nv">BACKUPFILE</span><span class="o">=</span><span class="nv">$BACKUPDIR</span>/<span class="k">${</span><span class="nv">BASENAME</span><span class="k">}</span>_<span class="sb">`</span><span class="nb">date</span> <span class="s1">'+%Y-%m-%d_%H-%M'</span><span class="sb">`</span>.sql
+
+<span class="nb">echo </span>Using filename <span class="nv">$BACKUPFILE</span> ...
+<span class="nb">echo </span>Exporting ...
+<span class="nv">$PGSQL_DIR</span>/pg_dump <span class="nt">-D</span> <span class="nt">-U</span> projectforge <span class="nt">-W</span> <span class="nv">$PASSWD</span> <span class="nt">-f</span> <span class="nv">$BACKUPFILE</span>
+
+<span class="nb">echo </span>Zipping backupfile ...
+<span class="nb">gzip</span> <span class="nv">$BACKUPFILE</span>
+
+<span class="c"># For using scp for remote backup:</span>
+<span class="c">#scp $BACKUPFILE &lt;user&gt;@backup.mydomain:backup/</span>
+
+<span class="nb">echo </span>Deleting backups older than 14 days
+find <span class="nv">$BACKUPDIR</span> <span class="nt">-mtime</span> +14 | xargs <span class="nb">rm
+
+echo </span>Backup of ProjectForge finished.
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For allowing <code>pg_dump</code> without prompting password (if set), you can add
+the following line to:</p>
+</div>
+<div class="paragraph">
+<p><strong>File:</strong> <code>pg_hba.conf:</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+</pre></td><td class="code"><pre><span class="nb">local </span>projectforge projectforge ident sameuser
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="adding_crontab">4.7.2. Adding crontab</h4>
+<div class="paragraph">
+<p>Adding following entry to the Unix crontab:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+2
+</pre></td><td class="code"><pre><span class="c"># run every day at 2:00 am +</span>
+0 2 <span class="k">*</span> <span class="k">*</span> <span class="k">*</span> /home/projectforge/bin/pforgebackup.sh
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="remote_backup">4.7.3. Remote backup</h4>
+<div class="paragraph">
+<p>For remote backup via <code>scp</code> you need to use key authorization:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Generate keys (using empty password) ssh-keygen</p>
+</li>
+<li>
+<p>Copy your public key, e. g. <code>identity.pub</code> to your backup server.</p>
+</li>
+<li>
+<p>Add this key on the backup server to the authorized keys.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="polling_remote_backup">4.7.4. Polling remote backup</h4>
+<div class="paragraph">
+<p>For security reasons it&#8217;s also possible to get the backup files from the
+ProjectForge® server with a cronjob starting e. g. one hour later:</p>
+</div>
+<div class="paragraph">
+<p><strong>File:</strong> <code>pforgePollBackup.sh</code>:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>#!/bin/bash
+SERVER=projectforge.mydomain
+DIR=/home/projectforge/backup
+REMOTE_DIR=backup REMOTE_USER=projectforge
+rsync -avz -e "ssh -P" -C $REMOTE_USER@$SERVER:$REMOTE_DIR $DIR</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In that case you have to generate ssh key on your backup server and to
+add it to the authorized keys on your ProjectForge® server.<br>
+Add the following entry to your crontab on the backup server:
+# run every day at 3:00 am 0 3 * * * /home/projectforge/bin/pforgePollBackup.sh</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="monitoring">4.8. Monitoring</h3>
+<div class="paragraph">
+<p>You may monitor the login page with your monitoring tool (such as
+Nagios). If ProjectForge® is up and running and is full available
+the following comment is included in the login page:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+</pre></td><td class="code"><pre>&lt;<span class="nt">--</span> ProjectForge is alive. <span class="nt">--</span><span class="o">&gt;</span>
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If ProjectForge® isn&#8217;t full available the following html comment is
+embedded:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+</pre></td><td class="code"><pre>&lt;<span class="nt">--</span> ProjectForge is not full available <span class="o">(</span>perhaps <span class="k">in </span>maintenance mode or <span class="k">in </span>start-up phase<span class="o">)</span><span class="nb">.</span> <span class="nt">--</span><span class="o">&gt;</span>
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="scheduler">4.9. Scheduler</h3>
+<div class="sect3">
+<h4 id="data_base_search_index">4.9.1. Data base search index</h4>
+<div class="paragraph">
+<p>The re-index job starts every night at 4 AM (UTC). If an error occurs an
+e-mail is sent to the admin e-mail addresses configured via web
+administration. If not configured, no e-mail is sent.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="uninstalling_projectforge">4.10. Uninstalling ProjectForge</h3>
+<div class="paragraph">
+<p>You only need to delete the Jar-File and the working directory you&#8217;ve
+chosen / configured. If you&#8217;re not sure, where ProjectForge&#8217;s working
+directory is located, please restart ProjectForge and see for the
+directory in the log output or configuration tab of the standalone
+version.</p>
+</div>
+<div class="paragraph">
+<p><strong>Hint</strong></p>
+</div>
+<div class="paragraph">
+<p>Please note: If you delete the working directory, all your data base
+entries are deleted as well!</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="security_improvements">4.11. Security improvements</h3>
+<div class="sect3">
+<h4 id="fail2ban">4.11.1. Fail2ban</h4>
+<div class="paragraph">
+<p><code>LoginDefaultHandler   : User login failed:</code></p>
+</div>
+<div class="paragraph">
+<p><code>LoginDefaultHandler[ \t]+\: User login failed\:</code></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="plugins">5. Plugins</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Some plugins which are part of the ProjectForge web app but not
+automatically enabled are described here.</p>
+</div>
+<div class="paragraph">
+<p>The plugins-jar must be in another folder(plugins) next to the
+ProcetForgeJar.</p>
+</div>
+<div class="paragraph">
+<p>The plugins are managed under Administration -&#8594; Plugins in the
+ProjectForge web app. After the activation, they have to restart
+ ProjectForge.</p>
+</div>
+<div class="sect2">
+<h3 id="liquidity_planning">5.1. Liquidity planning</h3>
+<div class="sect3">
+<h4 id="description">5.1.1. Description</h4>
+<div class="paragraph">
+<p>This plugins supports the cash flow forecast for a very easy to use
+liquidity planning. Please refer the UserGuide for further information</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="software_license_management">5.2. Software license management</h3>
+<div class="sect3">
+<h4 id="description_2">5.2.1. Description</h4>
+<div class="paragraph">
+<p>In most companies you&#8217;ve to deal with lots of Software and license keys.
+This plugin allows administrators and users to organize license keys:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Every user is able to add a Software entry with license keys.</p>
+</li>
+<li>
+<p>The administrator is able to view and edit all license keys.</p>
+</li>
+<li>
+<p>Only users which are assigned to a Software entry (owners) are able to
+see the license key.</p>
+</li>
+<li>
+<p>The history of every entry allows to track license usage over time by
+the users.</p>
+</li>
+<li>
+<p>The history of changes is only visible for administrators and software
+owners.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Planned features are:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Upload of license files.</p>
+</li>
+<li>
+<p>Restricted entries (owners are only assignable by administrators).</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="extendemployeedata">5.3. ExtendEmployeeData</h3>
+<div class="sect3">
+<h4 id="description_3">5.3.1. Description</h4>
+<div class="paragraph">
+<p>This plugin supports the HR processing of the employee data as well as
+in the monthly work with the employment office.</p>
+</div>
+<div class="paragraph">
+<p><span class="short_text">The new menu items are located in the HR menu.</span></p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="list_management">5.3.2. List management</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Under the menu item list maintenance, you can carry out mass changes
+on all data records in your system. You only have to select one category
+and then you can change it for all records. <br>
+Furthermore, an Exel export of the selected category can be used to
+change the data offline in Exel. ( <span class="short_text">File format must be
+.xls</span> )<br></p>
+</li>
+<li>
+<p>Under the menu item list maintenance import you can import the
+exported and changed data quickly and easily.<br></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="paying_office">5.3.3. Paying office</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>You can export all available data for a month for the
+<span class="short_text">paying office</span> in the menu
+item <span class="short_text">paying-office</span>-export.</p>
+</li>
+<li>
+<p>In the <span class="short_text">paying-office-i#mport menu, you can import the
+columns for salary and remarks from [.short_text]#paying office</span> to PF.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="configuration_3">5.3.4. Configuration</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Here you can create special payments and perks that apply to all
+employees. These records are always kept in time.</p>
+</li>
+<li>
+<p>Furthermore, you can adjust the headings of
+the [.short_text]#paying-office-i#mport here.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="ihk_export">5.4. IHK Export</h3>
+<div class="sect3">
+<h4 id="description_4">5.4.1. Description</h4>
+<div class="paragraph">
+<p>Export of working hours for the IHK</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="skillmatrix">5.5. Skillmatrix</h3>
+<div class="sect3">
+<h4 id="description_5">5.5.1. Description</h4>
+<div class="paragraph">
+<p>Capture and represent the skills of the employees</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+                        
+                    </div>
+
+                    
+
+                    <hr class="uk-margin-medium">
+
+                    
+
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="uk-margin-large-top paginate-post">
+        <div class="uk-child-width-expand@s uk-grid-large uk-pagi" data-uk-grid>
+            <div>
+                
+                  
+                  
+                  
+                    <h5>User guide</h5>
+                    <div><a class="remove-underline hvr-back" href="/docs/userguide/">&larr; Previous</a></div>
+                
+            </div>
+            <div>
+                
+                  
+                  
+                  
+                    <h5 style="float: right;">Development</h5>
+                    <div class="uk-text-right" style="clear: right;"><a class="remove-underline hvr-forward" href="/docs/development/">Next &rarr;</a></div>
+                
+            </div>
+        </div>
+    </div>
+    
+
+
+                    <div class="uk-margin-large-top">
+    <h3>Related Docs</h3>
+
+    
+    
+    
+
+    <ul class="uk-list link-secondary">
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+    </ul>
+</div>
+
+
+                    
+                </article>
+
+                <script>
+                    // Table of contents scroll to
+                    UIkit.scroll('#markdown-toc a', {
+                        duration: 400,
+                        offset: 120
+                    });
+                </script>
+
+            </div>
+
+    </div>
+</div>
+
+
+    <div id="offcanvas-docs" data-uk-offcanvas="overlay: true">
+    <div class="uk-offcanvas-bar">
+
+        <button class="uk-offcanvas-close" type="button" data-uk-close></button>
+
+        
+        <h5 class="uk-margin-top">Documentation</h5>
+        <ul class="uk-nav uk-nav-default doc-nav">
+        
+          
+          
+          <li class=""><a href="/docs/quickstart/">Quick Start</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/installation/">Installation</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/userguide/">User guide</a></li>
+        
+          
+          
+          <li class="uk-active"><a href="/docs/adminguide/">Administration guide</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/development/">Development</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/technologies/">Technologies</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/migration/">Migration</a></li>
+        
+        </ul>
+        
+
+    </div>
+</div>
+
+
+    <div id="offcanvas" data-uk-offcanvas="flip: true; overlay: true">
+    <div class="uk-offcanvas-bar">
+
+        <a class="uk-logo uk-margin-small-bottom" href="/"><img src="https://projectforge.org/uploads/logo_projectforge.gif" alt="ProjectForge"></a>
+     
+        <button class="uk-offcanvas-close" type="button" data-uk-close></button>
+      
+        <ul class="uk-nav uk-nav-primary uk-margin-top">
+            
+                
+
+                
+
+                
+                    <li><a href="/" >Home</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/features/" >Features</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/changelog-posts/" >Changelog</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/download/" >Download</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/misc/faqs" >FAQ</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/about/" >About</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/search/" >Search</a></li>
+                
+            
+        </ul>
+
+        <div class="uk-margin-top uk-text-center">
+            <div data-uk-grid class="uk-child-width-auto uk-grid-small uk-flex-center uk-grid">
+                
+<div class="uk-first-column">
+    <a href="https://twitter.com/micromata" data-uk-icon="icon: twitter" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+
+
+<div>
+    <a href="https://www.instagram.com/micromata/" data-uk-icon="icon: instagram" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+
+
+<div>
+    <a href="https://vimeo.com/user44553474" data-uk-icon="icon: vimeo" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+<div>
+    <a href="https://github.com/micromata/projectforge" data-uk-icon="icon: github" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+<div>
+    <a href="https://projectforge.org" data-uk-icon="icon: link" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+    
+
+    
+        
+    
+
+    
+
+    </body>
+
+</html>

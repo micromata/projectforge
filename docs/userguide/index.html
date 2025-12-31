@@ -1,0 +1,3403 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>User guide | ProjectForge</title>
+<meta name="generator" content="Jekyll v4.2.0" />
+<meta property="og:title" content="User guide" />
+<meta name="author" content="kai" />
+<meta property="og:locale" content="en" />
+<meta name="description" content="ProjectForge Documentation." />
+<meta property="og:description" content="ProjectForge Documentation." />
+<link rel="canonical" href="https://projectforge.org/docs/userguide/" />
+<meta property="og:url" content="https://projectforge.org/docs/userguide/" />
+<meta property="og:site_name" content="ProjectForge" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2025-12-31T23:25:16+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="User guide" />
+<script type="application/ld+json">
+{"headline":"User guide","dateModified":"2025-12-31T23:25:16+00:00","datePublished":"2025-12-31T23:25:16+00:00","description":"ProjectForge Documentation.","mainEntityOfPage":{"@type":"WebPage","@id":"https://projectforge.org/docs/userguide/"},"url":"https://projectforge.org/docs/userguide/","@type":"BlogPosting","author":{"@type":"Person","name":"kai"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://projectforge.org/logo_projectforge.gif"},"name":"kai"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+  <meta property="og:image" content="https://projectforge.org/uploads/logo_projectforge.gif"/>
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="shortcut icon" type="image/png" href="/uploads/favicon.png" >
+  <link rel="alternate" type="application/rss+xml" title="ProjectForge" href="/feed.xml">
+  <script src="/assets/js/main.js"></script>
+  
+  
+  
+</head>
+
+
+    <body>
+
+    
+        <div data-uk-sticky="animation: uk-animation-slide-top; sel-target: .uk-navbar-container; cls-active: uk-navbar-sticky; cls-inactive: uk-navbar-transparent; top: 200">
+    <nav class="uk-navbar-container">
+        <div class="uk-container">
+            <div data-uk-navbar>
+                <div class="uk-navbar-left">
+                    <a class="uk-navbar-item uk-logo uk-visible@m" href="/"><img src="https://projectforge.org/uploads/logo_projectforge.gif" alt="ProjectForge"></a>
+                    
+                        <a class="uk-navbar-toggle uk-hidden@m" href="#offcanvas-docs" data-uk-toggle><span data-uk-navbar-toggle-icon></span> <span class="uk-margin-small-left">Docs</span></a>
+                    
+
+                    <ul class="uk-navbar-nav uk-visible@m">
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/" >Home</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="https://github.com/micromata/projectforge/" target="_blank" >GitHub</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/features/" >Features</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="#">Docs</a>
+                                        
+                                            <div class="uk-navbar-dropdown">
+                                                <ul class="uk-nav uk-navbar-dropdown-nav">
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/quickstart/">Quick Start</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/installation/">Installation</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/adminguide/">Administration guide</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li class="uk-active"><a href="/docs/userguide/">User guide</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/development/">Development</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/technologies/">Technologies</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/migration/">Migration</a></li>
+                                                    
+                                                    
+                                                </ul>
+                                            </div>
+                                        
+                                        </li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/misc/faqs" >FAQ</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/about/" >About</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/search/" >Search</a></li>
+                                                                                                        
+                                
+                            
+                        
+                    </ul>
+                </div>
+                <div class="uk-navbar-center uk-hidden@m">
+                    <a class="uk-navbar-item uk-logo" href="/"><img src="https://projectforge.org/uploads/logo_projectforge.gif" alt="ProjectForge"></a>
+                </div>
+                <div class="uk-navbar-right">
+                    
+
+                    <ul class="uk-navbar-nav uk-visible@m">
+                        
+                            
+                            
+                            
+                                
+                                    <li><div class="uk-navbar-item"><a class="uk-button uk-button-primary-outline" href="/changelog-posts/" >Changelog</a></div></li>
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    <li><div class="uk-navbar-item"><a class="uk-button uk-button-success" href="/download/" >Download</a></div></li>
+                                
+                            
+                        
+                    </ul>
+
+                    
+                        <a class="uk-navbar-toggle uk-hidden@m" href="#offcanvas" data-uk-toggle><span data-uk-navbar-toggle-icon></span> <span class="uk-margin-small-left">Menu</span></a>
+                    
+
+                </div>
+            </div>
+        </div>
+    </nav>
+</div>
+
+    
+
+    <div class="uk-section">
+    <div class="uk-container">
+        <div class="uk-grid-large" data-uk-grid>
+
+            <div class="sidebar-fixed-width uk-visible@m">
+                <div class="sidebar-docs uk-position-fixed uk-margin-top">
+                    
+                    <h5>Documentation</h5>
+                    <ul class="uk-nav uk-nav-default doc-nav">
+                    
+                      
+                      
+                      <li class=""><a href="/docs/quickstart/">Quick Start</a></li>
+                    
+                      
+                      
+                      <li class=""><a href="/docs/installation/">Installation</a></li>
+                    
+                      
+                      
+                      <li class="uk-active"><a href="/docs/userguide/">User guide</a></li>
+                    
+                      
+                      
+                      <li class=""><a href="/docs/adminguide/">Administration guide</a></li>
+                    
+                      
+                      
+                      <li class=""><a href="/docs/development/">Development</a></li>
+                    
+                      
+                      
+                      <li class=""><a href="/docs/technologies/">Technologies</a></li>
+                    
+                      
+                      
+                      <li class=""><a href="/docs/migration/">Migration</a></li>
+                    
+                    </ul>
+                    
+                </div>
+            </div>
+
+            <div class="uk-width-1-1 uk-width-expand@m">
+
+                <article class="uk-article">
+
+                    <h1 class="uk-article-title">User guide</h1>
+
+                    <p class="uk-text-lead uk-text-muted">Hints, tips and best practices for the usage of ProjectForge</p>
+
+                    <div class="uk-article-meta uk-margin-top uk-margin-medium-bottom uk-flex uk-flex-middle">
+                        
+
+
+  
+  <img class="uk-border-circle avatar" src="https://projectforge.org/uploads/kai.png" alt="Kai Reinhard">
+
+
+<div>
+  
+    Written by <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">Kai Reinhard</span></span><br>
+  
+  <time datetime="2025-12-31T23:25:16+00:00" itemprop="datePublished">
+    
+    Dec 31, 2025
+  </time>
+</div>
+                    </div>
+
+                    <div class="article-content link-primary">
+                        <div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#introduction">1. Introduction</a></li>
+<li><a href="#common_concepts">2. Common concepts</a>
+<ul class="sectlevel2">
+<li><a href="#full_indexed_search">2.1. Full-indexed search</a>
+<ul class="sectlevel3">
+<li><a href="#automatical_wildcards">2.1.1. Automatical wildcards</a></li>
+<li><a href="#search_for_structure_elements">2.1.2. Search for structure elements</a></li>
+</ul>
+</li>
+<li><a href="#quick_select">2.2. Quick-select</a></li>
+<li><a href="#filter_for_search_in_history_of_changes">2.3. Filter for search in history of changes</a></li>
+<li><a href="#auto_completion">2.4. Auto completion</a></li>
+<li><a href="#favorites_bookmarks">2.5. Favorites / bookmarks</a>
+<ul class="sectlevel3">
+<li><a href="#favorites_bookmarks_in_list_views">2.5.1. Favorites / bookmarks in list views</a></li>
+<li><a href="#favorites_bookmarks_of_time_sheets">2.5.2. Favorites / bookmarks of time-sheets</a></li>
+</ul>
+</li>
+<li><a href="#stay_logged_in">2.6. Stay logged-in</a></li>
+</ul>
+</li>
+<li><a href="#calendar">3. Calendar</a>
+<ul class="sectlevel2">
+<li><a href="#quick_time_period_selection">3.1. Quick-time-period-selection</a></li>
+<li><a href="#holidays">3.2. Holidays</a></li>
+<li><a href="#support_of_different_time_zones">3.3. Support of different time zones</a></li>
+<li><a href="#view_modes">3.4. View modes</a>
+<ul class="sectlevel3">
+<li><a href="#calendar_views_month_week_day">3.4.1. Calendar views: month, week, day</a></li>
+<li><a href="#customizable_views_with_fast_switch">3.4.2. Customizable views with fast switch</a></li>
+</ul>
+</li>
+<li><a href="#drag_drop_and_range_select_functionality">3.5. Drag &amp; drop and range-select functionality</a></li>
+<li><a href="#roadmap">3.6. Roadmap</a></li>
+</ul>
+</li>
+<li><a href="#address_book">4. Address book</a>
+<ul class="sectlevel2">
+<li><a href="#reverse_search_of_phone_numbers">4.1. Reverse search of phone numbers</a></li>
+<li><a href="#personal_favorites">4.2. Personal favorites</a>
+<ul class="sectlevel3">
+<li><a href="#export_of_vcards">4.2.1. Export of vcards</a>
+<ul class="sectlevel4">
+<li><a href="#hint_for_apple_contacts">Hint for Apple contacts</a></li>
+</ul>
+</li>
+<li><a href="#export_of_personal_list_of_telephone_numbers">4.2.2. Export of personal list of telephone numbers</a></li>
+<li><a href="#personal_list_of_phone_numbers_for_your_snom_telephone">4.2.3. Personal list of phone numbers for your Snom telephone</a></li>
+</ul>
+</li>
+<li><a href="#export_of_the_list_of_addresses">4.3. Export of the list of addresses</a></li>
+<li><a href="#animation_of_phone_number_zoom">4.4. Animation of phone number / zoom</a></li>
+<li><a href="#direct_call_via_telephony_system">4.5. Direct call via telephony system</a>
+<ul class="sectlevel3">
+<li><a href="#configuration">4.5.1. Configuration</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#structure_elements_in_projectforge_former_tasks">5. Structure elements in ProjectForge (former tasks)</a>
+<ul class="sectlevel2">
+<li><a href="#consumption">5.1. Consumption</a>
+<ul class="sectlevel3">
+<li><a href="#consumption_bars_for_open_structure_elements">5.1.1. Consumption bars for open structure elements</a></li>
+<li><a href="#consumption_bars_for_finished_structure_elements">5.1.2. Consumption bars for finished structure elements</a></li>
+<li><a href="#suppressing_the_status_of_consumption_bars">5.1.3. Suppressing the status of consumption bars</a></li>
+</ul>
+</li>
+<li><a href="#booking_of_time_sheets">5.2. Booking of time sheets</a></li>
+</ul>
+</li>
+<li><a href="#order_book">6. Order book</a>
+<ul class="sectlevel2">
+<li><a href="#e_mail_notification">6.1. E-mail notification</a></li>
+</ul>
+</li>
+<li><a href="#scripting_in_projectforge">7. Scripting in ProjectForge®</a>
+<ul class="sectlevel2">
+<li><a href="#examples">7.1. Examples</a>
+<ul class="sectlevel3">
+<li><a href="#example_easy_excel_file_generation">7.1.1. Example: Easy Excel-file generation</a></li>
+<li><a href="#example_usage_of_projectforge_filters">7.1.2. Example: Usage of ProjectForge® filters</a></li>
+</ul>
+</li>
+<li><a href="#access_rights_daos">7.2. Access rights (DAOs)</a></li>
+<li><a href="#creation_of_diagrams_and_charts">7.3. Creation of diagrams and charts</a></li>
+<li><a href="#creation_of_zip_archives_containing_multiple_files">7.4. Creation of zip archives containing multiple files</a></li>
+<li><a href="#nested_and_indexed_properties">7.5. Nested and indexed properties</a></li>
+<li><a href="#import_of_excel_files">7.6. Import of Excel files</a></li>
+</ul>
+</li>
+<li><a href="#financial_administration_with_projectforge">8. Financial administration with ProjectForge®</a>
+<ul class="sectlevel2">
+<li><a href="#invoices">8.1. Invoices</a>
+<ul class="sectlevel3">
+<li><a href="#assignment_of_cost_units">8.1.1. Assignment of cost units</a></li>
+<li><a href="#clone_functionality_for_invoices_inbound_and_outbound">8.1.2. Clone functionality for invoices (inbound and outbound)</a></li>
+</ul>
+</li>
+<li><a href="#liquidity_planning_forecast">8.2. Liquidity planning / forecast</a>
+<ul class="sectlevel3">
+<li><a href="#calculation_of_expected_dates_of_payments">8.2.1. Calculation of expected dates of payments</a></li>
+</ul>
+</li>
+<li><a href="#datev_import_german">8.3. Datev-Import (German)</a>
+<ul class="sectlevel3">
+<li><a href="#grundsätzliches_zum_projectforge_excel_import">8.3.1. Grundsätzliches zum ProjectForge®-Excel-Import</a>
+<ul class="sectlevel4">
+<li><a href="#schritt_1_auswahl_der_zu_importierenden_excel_datei">Schritt 1: Auswahl der zu importierenden Excel-Datei</a></li>
+<li><a href="#schritt_2_daten_werden_eingelesen">Schritt 2: Daten werden eingelesen</a></li>
+<li><a href="#schritt_3_verproben">Schritt 3: Verproben</a></li>
+<li><a href="#schritt_3_verprobenprüfen_selektieren_und_übernahme">Schritt 3: VerprobenPrüfen, selektieren und Übernahme</a></li>
+<li><a href="#schritt_5_import_abgeschlossen">Schritt 5: Import abgeschlossen</a></li>
+</ul>
+</li>
+<li><a href="#import_der_buchungskonten_kontenplan">8.3.2. Import der Buchungskonten (Kontenplan)</a>
+<ul class="sectlevel4">
+<li><a href="#format">Format</a></li>
+</ul>
+</li>
+<li><a href="#import_der_buchungssätze_01_12">8.3.3. Import der Buchungssätze (01-12)</a>
+<ul class="sectlevel4">
+<li><a href="#format_2">Format</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#other_imports">8.4. Other imports</a>
+<ul class="sectlevel3">
+<li><a href="#salaries_of_employees">8.4.1. Salaries of employees</a></li>
+</ul>
+</li>
+<li><a href="#time_sheets">8.5. Time sheets</a>
+<ul class="sectlevel3">
+<li><a href="#protection">8.5.1. Protection</a></li>
+<li><a href="#cost_units">8.5.2. Cost units</a></li>
+<li><a href="#booking_of_time_sheets_2">8.5.3. Booking of time sheets</a></li>
+<li><a href="#monthly_employee_reports">8.5.4. Monthly employee reports</a></li>
+<li><a href="#jira_support">8.5.5. JIRA support</a></li>
+</ul>
+</li>
+<li><a href="#cost_unit_accounting">8.6. Cost unit accounting</a>
+<ul class="sectlevel3">
+<li><a href="#fraction_of_working_time">8.6.1. Fraction of working time</a></li>
+</ul>
+</li>
+<li><a href="#reporting_via_report_objectives_in_progress">8.7. Reporting via Report objectives (in progress)</a></li>
+</ul>
+</li>
+<li><a href="#data_protection">9. Data protection</a>
+<ul class="sectlevel2">
+<li><a href="#passwords">9.1. Passwords</a></li>
+<li><a href="#history_of_changes">9.2. History of changes</a></li>
+<li><a href="#logging">9.3. Logging</a></li>
+<li><a href="#phone_call_numbers">9.4. Phone call - numbers</a></li>
+</ul>
+</li>
+<li><a href="#glossary">10. Glossary</a></li>
+</ul>
+</div>
+<div class="sect1">
+<h2 id="introduction">1. Introduction</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This document includes some hints tips and best practices for the usage
+of ProjectForge®. It will never contain the whole functionality of
+ProjectForge® because a well-designed web application is easy to use
+and self-explained by tool tips etc.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="common_concepts">2. Common concepts</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="full_indexed_search">2.1. Full-indexed search</h3>
+<div class="paragraph">
+<p>All list views support a search field. Refer the tool tip to see which
+fields of the data objects are part of the index. (see figure 1).</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/searchfield.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 1:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enter a free text in the search field to start a full text
+query. Part of words are as well supported as logical expressions.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>A detailed description of the possibilities may be find on Lucene
+page <a href="https://lucene.apache.org/core/2_9_4/queryparsersyntax.html" class="bare" target="_blank" rel="noopener">lucene.apache.org/core/2_9_4/queryparsersyntax.html</a>.</p>
+</div>
+<div class="paragraph">
+<p>The following table shows some common used queries.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Expression</th>
+<th class="tableblock halign-left valign-top">Function</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">abc</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The search result contains all objects with fields contain words
+beginning with 'abc'. The search isn&#8217;t case-sensitive.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">*abc*</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The search result contains all objects with fields contain words
+containing 'abc'. The search isn&#8217;t case-sensitive.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">meier~</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Phonetic search: Fields containing e. g. 'mayer' will also be
+found as 'meier'!</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">abc def</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Searches for fields which contain words beginning with 'abc'
+and/or 'def'.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+abc -def</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Search for fields containing words beginning with 'abc' but
+not with 'def'.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">name:abc def</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Search for all objects where the field 'name' contains
+words beginning with 'abc' and searches for 'def' in all object fields.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect3">
+<h4 id="automatical_wildcards">2.1.1. Automatical wildcards</h4>
+<div class="paragraph">
+<p><strong>Hint</strong></p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>If the search field contains only sub-string with alphanumerical
+characters (including @._* and spaces) ProjectForge® appends
+automatically the wildcard character '*'. For all other expressions the
+entered term will be leaved untouched. Logical expressions of Lucene
+(the keywords AND, OR and NOT) will also be leaved untouched).</p>
+</div>
+</blockquote>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Expression</th>
+<th class="tableblock halign-left valign-top">Modification by ProjectForge</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">hello</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">hello*</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">hello ProjectForge</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">hello* ProjectForge*</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">k.reinhard@projectforge</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">k.reinhard@projectforge*</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">hello AND 2008-11-21 NOT hurz OR test</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">hello* AND 2008-11-21 NOT hurz*
+OR test*<br>
+(Expressions containing special characters such as -+, will be leaved
+untouched.)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">hello AND name:hurzel</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">hello AND name:hurzel hello AND name:hurzel<br>
+(no substitution because of ':'.)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+hello and hurzel</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">hello and hurzel +
+(no substitution because of ''.)</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>If in doubt, ProjectForge® displays any substitution of the user&#8217;s
+input below the search field.d).</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="search_for_structure_elements">2.1.2. Search for structure elements</h4>
+<div class="paragraph">
+<p>ProjectForge® searches also for names of ancestor structure
+elements. If you search for time-sheets for 'Yellow logistics' all
+time-sheets assigned to the structure element 'Yellow logistics' or
+descendant structure elements will be found.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="quick_select">2.2. Quick-select</h3>
+<div class="paragraph">
+<p>If you choose any list view for selection (e. g. structure element) and
+only one entry is found by the search this entry will be selected
+automatically and ProjectForge® returns to the caller page.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="filter_for_search_in_history_of_changes">2.3. Filter for search in history of changes</h3>
+<div class="paragraph">
+<p>Almost all list pages supports an extended filter for searching for
+objects regarding the history of changes, e. g. the user wants to find
+any object which was changed during the last 10 minutes etc. Click on
+the plus sign at the right bottom of the search field&#8217;s label to see the
+opportunities. <br>
+All other filter criteria will also be used. (see figure 2)</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/extendedFilter.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 2:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Through the extended search filter you may search for
+objects which were changed during a given time period.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>_ _</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="auto_completion">2.4. Auto completion</h3>
+<div class="paragraph">
+<p>For more and more fields an auto-completion is supported. After entering
+2 characters a list of entries suggested by the server will be displayed
+for a convenient selection. You may enter the cursor up- and down-keys
+to select entries without using your mouse. <br>
+A double-mouse-click, if supported by the input field, will show recent
+used entries or a list of all available objects.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="favorites_bookmarks">2.5. Favorites / bookmarks</h3>
+<div class="paragraph">
+<p>For sending pages of ProjectForge® as link via e-mail or for
+bookmarking them in your browser, you should use the menu entry 'Show as
+bookmark'. ProjectForge® offers a link including all settings of the
+page (e. g. the filter settings of the list view). <br>
+Please do not use the displayed url in your browser because this URL
+isn&#8217;t valid outside your current session.</p>
+</div>
+<div class="sect3">
+<h4 id="favorites_bookmarks_in_list_views">2.5.1. Favorites / bookmarks in list views</h4>
+<div class="paragraph">
+<p>As figure 3 shows ProjectForge® offers two links in list views:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Direct link for list view without preset of the filter parameter (the
+default view is used with the recent parameters).</p>
+</li>
+<li>
+<p>Direct link for list view with preset of the filter parameters.</p>
+</li>
+</ol>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/Bookmark-list.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 3:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">This figure demonstrates the bookmarking functionality of
+the list views. The first link contains only a bookmark for the list
+view without the preset of any parameters (the default view is used).
+The second link contains a bookmark with the preset of all filter
+parameters.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="favorites_bookmarks_of_time_sheets">2.5.2. Favorites / bookmarks of time-sheets</h4>
+<div class="paragraph">
+<p>As figure 4 shows, ProjectForge® offers also two links in time-sheet
+edit pages:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Direct link for displaying an object by id.</p>
+</li>
+<li>
+<p>Direct link including parameters for calling the edit page with
+pre-filled parameters. This is useful for adding new time-sheets with
+pre-filled parameters.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The second link may be used for creation of new time-sheets with
+templates (e. g. in JIRA or e-mails).</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/Bookmark-edit.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 4:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bookmarks</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="stay_logged_in">2.6. Stay logged-in</h3>
+<div class="paragraph">
+<p>On the login-screen the user may choose the 'stay-logged-in' option.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>ProjectForge® creates a browser cookie with a validity of 30 days.</p>
+</li>
+<li>
+<p>At the next login from the same browser ProjectForge® detects this
+cookie, renews it and proceed the automatical login.</p>
+</li>
+<li>
+<p>If the user chooses the menu entry 'log-out' the cookie will be
+deleted (if exists) and the user/passwort authentication is required
+again in this browser.</p>
+</li>
+<li>
+<p>The cookie will be invalid if the user haven&#8217;t used it for 30 or more
+day or the user&#8217;s password and/or username has been changed.</p>
+</li>
+<li>
+<p>The cooky stores the user id, the username and a code. All three
+parameters are checked by ProjectForge®.</p>
+</li>
+<li>
+<p>Under 'My account' the user may renew the previous mentioned code. All
+stay-logged-in-sessions in all browsers are invalid directly after
+renewing this code. Please note: Any valid session isn&#8217;t effected by
+this action.</p>
+</li>
+<li>
+<p>The stay-logged-in option may be re-activated at any time after
+entering username and password on the login-screen.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="calendar">3. Calendar</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The calendar is one of the most important functionalities of
+ProjectForge®. You may organize your time-sheets and personal events
+as well as team events in a convenient way. ProjectForge® is
+designed to improve the efficiency of projects and project teams from
+single-person-projects up to large-sized projects.</p>
+</div>
+<div class="sect2">
+<h3 id="quick_time_period_selection">3.1. Quick-time-period-selection</h3>
+<div class="paragraph">
+<p>You may browse very fast through month and/or weeks with the following
+element of ProjectForge®. (see figure 5)</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/Zeitblaettern.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 5:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Quick-time-period selection with browse mode for months and
+weeks</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="holidays">3.2. Holidays</h3>
+<div class="paragraph">
+<p>ProjectForge® support holidays and you may configure own holidays
+in <code>config.xml.</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="support_of_different_time_zones">3.3. Support of different time zones</h3>
+<div class="paragraph">
+<p>ProjectForge® supports different time-zones at once. The user may
+change his time-zone if he travels through different time-zones.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="view_modes">3.4. View modes</h3>
+<div class="sect3">
+<h4 id="calendar_views_month_week_day">3.4.1. Calendar views: month, week, day</h4>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/PF-TeamCal-MonthView.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 6:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Month display mode of team calendar.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/PF-TeamCal-Weekview-preview.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 7:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Week display mode of team calendar. The red line is the
+current time-line.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="customizable_views_with_fast_switch">3.4.2. Customizable views with fast switch</h4>
+<div class="paragraph">
+<p>You&#8217;re able to customize different filters of your calendars to show and
+use. Switch the view with only two clicks. You may give your different
+calendars different colors.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/PF-TeamCal-filters-preview.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 8:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Customize your view filters with own colors etc. You may
+switch the view with only two clicks.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="drag_drop_and_range_select_functionality">3.5. Drag &amp; drop and range-select functionality</h3>
+<div class="paragraph">
+<p>You may create, move, resize and copy events by drag&amp;drop and
+range-select functionality. The the videos or demo system for experience
+this convenient feature.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Download and subscription of calendars</strong> <br>
+You can download or subscribe all calendars as ics files. Subscribe
+ProjectForge&#8217;s calendars in Google calendar, MS Outlook oder Apples
+iCal.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/PF-TeamCal-Subscription.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 9:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">An example of subscribed calendars of ProjectForge in
+Apple&#8217;s ical.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/PF-TeamCal-ical.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 10:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">An example of subscribed calendars of ProjectForge in
+Apple&#8217;s ical.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Share your calendars</strong> <br>
+Use ProjectForge for team calendars. How to add a new calendar.</p>
+</li>
+<li>
+<p><strong>Recurrence</strong> <br>
+ProjectForge supports recurrence of events. You may remove or modify
+single events or future events of recurrence events.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/PF-TeamCal-RecurrenceDialog.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 11:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">You may remove or modify single events or future events of
+recurrence events</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p><strong>3 access modes</strong></p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Full access</strong> <br>
+The assigned groups and users are able to read, insert, update and
+delete any event of the calendar.-</p>
+</li>
+<li>
+<p><strong>Read-only access</strong> <br>
+The assigned groups and users are only able to read all events including
+the subscription and download.</p>
+</li>
+<li>
+<p><strong>Minimal access</strong> <br>
+The assigned groups and users are only able to read all event start and
+stop times including the subscription and download. All other properties
+of events such as title, notes etc. are removed and aren&#8217;t visible.</p>
+</li>
+</ol>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/PF-TeamCal-Access.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 12:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">You may configure the access to any calendar for groups
+and/or users.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Import new events per Drag&#8217;n drop</strong> <br>
+You may import new events by simply dropping the ics files into the drop
+area at the top of the calendar page.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="roadmap">3.6. Roadmap</h3>
+<div class="paragraph">
+<p>Further planned developments are described here.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Attendees</strong> <br></p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>ProjectForge user&#8217;s as attendees</strong> <br>
+Badge with new invitations.</p>
+</li>
+<li>
+<p><strong>External user&#8217;s as attendees</strong> <br></p>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Invitation per e-mail</strong> <br>
+Send e-mail with an ics attachment, a summary and a link to accept/deny
+and comment an invitation.</p>
+</li>
+<li>
+<p><strong>User&#8217;s e-mail as return-to-address</strong> <br>
+The return-to-address will be the user&#8217;s e-mail address, so any response
+of invitation is sent to the user and has to be handled by the user.</p>
+</li>
+<li>
+<p><strong>ProjectForge&#8217;s e-mail as return-to-address</strong> <br>
+The return-to-address will be ProjectForge&#8217;s e-mail address, so any
+response of invitations is parsed by ProjectForge and the event is
+updated.</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>Update events and multi event import</strong> <br>
+Currently ics files can be dropped as files into ProjectForge only if
+the contain only a single event which isn&#8217;t already present. Later an
+update dialog with differences to accept/deny will be shown and a
+multi-import should be supported.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>More complex recurrence pattern</strong></p>
+</li>
+<li>
+<p><strong>Subscription of external calendars in ProjectForge</strong> <br>
+Starting with icloud. An user is able to share his icloud calendars via
+ProjectForge.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="address_book">4. Address book</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="reverse_search_of_phone_numbers">4.1. Reverse search of phone numbers</h3>
+<div class="paragraph">
+<p>ProjectForge® adds every phone number without any special characters
+and white spaces to the search index. You may enter any sub string of
+the phone number to find the address connected to this phone number (if
+exist).</p>
+</div>
+<div class="paragraph">
+<p><strong>Hint</strong></p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Sometimes you may omit the country prefix of the phone number to find
+the address.</p>
+</div>
+</blockquote>
+</div>
+</div>
+<div class="sect2">
+<h3 id="personal_favorites">4.2. Personal favorites</h3>
+<div class="paragraph">
+<p>You may import addresses of the list view in your personal address book
+(e. g. Apple contacts) and synchronize the addresses with your mobile
+device. The export format is VCard (vcf) for addresses and a csv format
+for phone numbers (e. g. for your telephony system). <br>
+Your favorite addresses will be highlighted in the list view.</p>
+</div>
+<div class="sect3">
+<h4 id="export_of_vcards">4.2.1. Export of vcards</h4>
+<div class="paragraph">
+<p>You may choose the check-box 'Favorite' beside the form of address in
+the edit view of an address for marking the whole address as favorite
+(see figure 13). Click the button 'Export vCards' for downloading all
+marked addresses. You may choose single phone number for exporting them
+in csv format by clicking the check-box '*' right after the desired
+phone number.</p>
+</div>
+<div class="paragraph">
+<p><strong>Hint</strong></p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Please use UTF-8 as encoding in your address book software!</p>
+</div>
+</blockquote>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/AddressEdit-Favorites.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 13:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">This figure demonstrates the possibility to mark addresses
+or phone numbers as favorites.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect4">
+<h5 id="hint_for_apple_contacts">Hint for Apple contacts</h5>
+<div class="paragraph">
+<p>Multiple exports of addresses may result in multiple note entries.
+Please use the following Apple script for removing such multiple note
+entries:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="linenums"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="code"><pre>tell application "Address Book"
+repeat with thisPerson in every person
+if (exists (note of thisPerson)) and ((note of thisPerson) contains "CLASS: WORK") then
+log "Name: " &amp; (name of thisPerson)
+delete note of thisPerson
+end if
+end repeat
+save
+end tell
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>You may excecute this script directly in your Apple-Script editor.
+(The result 'missing value' is expected.)</p>
+</li>
+<li>
+<p>Afterwards you should import the ProjectForge® download (vCard).</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="export_of_personal_list_of_telephone_numbers">4.2.2. Export of personal list of telephone numbers</h4>
+<div class="paragraph">
+<p>You may export telephone numbers of addresses (marked in the address
+edit page by clicking the check-box '*', refer
+fig. 13).
+You may import phone numbers to your mobile device or system telephone
+(e. g. SNOM telephone) if vCard isn&#8217;t supported. <br>
+Via the button 'Export phone list' all' all marked phone numbers will be
+exported with ISO-8859 encoding as csv file. ProjectForge® extends
+the names of the contacts automatically with "mobile" or "private", if the
+number is not the business phone number.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="personal_list_of_phone_numbers_for_your_snom_telephone">4.2.3. Personal list of phone numbers for your Snom telephone</h4>
+<div class="paragraph">
+<p>The exported list may be uploaded directly via the web site of the
+desired Snom telephone. The following figures 14 and 15 demonstrate the
+procedure of such an import.</p>
+</div>
+<div class="paragraph">
+<p><strong>Hint</strong></p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Any previous imported phone number will be overwritten (no multiple
+entries are expected).</p>
+</div>
+</blockquote>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="export_of_the_list_of_addresses">4.3. Export of the list of addresses</h3>
+<div class="paragraph">
+<p>You may export the current displayed list of addresses for usage with
+LibreOffice or MS Excel. For reasons of data-protection only the user&#8217;s
+favorite addresses will be exported. Members of the
+groups <code>PF_Finance</code> or <code>PF_Marketing</code> are able to download all address
+for using them for marketing events etc.</p>
+</div>
+<div class="paragraph">
+<p><strong>Hint</strong></p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>The first address of each row is the mailing address. It&#8217;s the postal
+address if exist, otherwise the business address.</p>
+</div>
+</blockquote>
+</div>
+</div>
+<div class="sect2">
+<h3 id="animation_of_phone_number_zoom">4.4. Animation of phone number / zoom</h3>
+<div class="paragraph">
+<p>Figure 16 shows the Mouse-over-functionality, if the mouse cursor is
+positioned over a phone number. You may dial the number with your phone
+now.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/AddressList-NumberZoom.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 16:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Animated zoom of phone numbers</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="direct_call_via_telephony_system">4.5. Direct call via telephony system</h3>
+<div class="paragraph">
+<p>The user may configure one or more telephone numbers under 'My account'.
+Afterwards he is able to initiate phone calls directly from
+ProjectForge® if configured by the administrators and supported by
+the telephony system. Figure <br>
+17 demonstrates the possibility to initiate a phone call directly from
+ProjectForge®.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/Direktwahl-Adressbuch.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 17:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">shows the auto-completion functionality to initiate phone
+calls very easy.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p><strong>Hint</strong></p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Please use the 'return' key for initiating the phone call. Like on most
+pages the 'return' key result in the default action.</p>
+</div>
+</blockquote>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/Direktwahl.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 18:</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+</tbody>
+</table>
+<div class="sect3">
+<h4 id="configuration">4.5.1. Configuration</h4>
+<div class="paragraph">
+<p>Please add your personal phone number (or a list of phone number) under
+'My account'.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="structure_elements_in_projectforge_former_tasks">5. Structure elements in ProjectForge (former tasks)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The term 'structure element' is used in a generic way and represents
+customers, projects, releases, structure elements etc. They&#8217;re organized
+hierarchical. Access rights may depend on structure elements (and are
+derived from ancestor structure elements if configured). Figure 19 shows
+a typical tree view of structure elements in ProjectForge®.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/TaskTree.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 19:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Hierarchy of structure elements in ProjectForge®</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following table describes the fields of structure elements:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Field</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Parent structure element</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The structure element is a descendant
+structure element of the parent structure element. The structure
+elements at the top of the hierarchy is the root node which is the
+onliest structure element without a parent structure element.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Name</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Referenz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Multi purpose field, optional. This field is derived for all
+descendant structure elements if not overwritten in such structure
+elements. This is useful for exports etc.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Status</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Priority</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Short description</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Progress</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">optional without further functionality.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Maximum hours</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If given, the consumption will be displayed in the
+structure tree as well as during booking a time sheet, see 5.1 .</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Responsible</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ProjectForge®-User for information</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cost2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">All cost2 values are project specific if a project was assigned
+to this structure element or any ancestor structure element. The black
+list defines cost 2 entries which should be excluded of the assigned
+project. If no project is assigned, cost 2 value are configurable by
+using a white list.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Protect time sheets until</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If set, only time sheets with start dates
+after the given date may-be inserted and updated. Members of the
+financial staff are able to insert, update and delete older time-sheets
+of other users (not own time sheets).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Protection of privacy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If checked the time sheets of this structure
+element and any descendent structure elements are invisible for other
+users (except the members of the financial staff).</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect2">
+<h3 id="consumption">5.1. Consumption</h3>
+<div class="paragraph">
+<p>Consumptions are displayed as part of the structure tree as well as
+during every booking process of time sheets. The consumption of already
+used hours of a structure element including all structure sub elements
+is displayed as a tool tip.</p>
+</div>
+<div class="sect3">
+<h4 id="consumption_bars_for_open_structure_elements">5.1.1. Consumption bars for open structure elements</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 14.2857%;">
+<col style="width: 42.8571%;">
+<col style="width: 42.8572%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Color</th>
+<th class="tableblock halign-left valign-top">Meaning</th>
+<th class="tableblock halign-left valign-top">Tool tip</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="image"><img src="/uploads/userguide/Consumption-empty.png" alt="image" width="100"></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No budget given</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Total consumption in man-days.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="image"><img src="/uploads/userguide/Consumption-green.png" alt="image" width="100"></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Consumption 0-80%</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Total consumption in man-days and percent, green
+bar.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="image"><img src="/uploads/userguide/Consumption-yellow.png" alt="image" width="100"></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Consumption 80%-90%</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Total consumption in man-days and percent.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="image"><img src="/uploads/userguide/Consumption-orange.png" alt="image" width="100"></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Consumption 90%-100%</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Total consumption in man-days and percent.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="image"><img src="/uploads/userguide/Consumption-orange-red.png" alt="image" width="100"></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Consumption over 100%</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Total consumption in man-days and percent.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="consumption_bars_for_finished_structure_elements">5.1.2. Consumption bars for finished structure elements</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 14.2857%;">
+<col style="width: 42.8571%;">
+<col style="width: 42.8572%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Color</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Meaning</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tool tip</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="image"><img src="/uploads/userguide/Consumption-empty.png" alt="image" width="100"></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No budget given</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Total consumption in man-days.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="image"><img src="/uploads/userguide/Consumption-green.png" alt="image" width="100"></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Consumption 0-100%</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Total consumption in man-days and percent.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="image"><img src="/uploads/userguide/Consumption-red.png" alt="image" width="100"></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Consumption 100%-110%</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Total consumption in man-days and percent.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="image"><img src="/uploads/userguide/Consumption-orange-red.png" alt="image" width="100"></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Consumption über 110%</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Total consumption in man-days and percent.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="suppressing_the_status_of_consumption_bars">5.1.3. Suppressing the status of consumption bars</h4>
+<div class="paragraph">
+<p>Enter 0 as maximum hours of a structure element for suppressing the
+status (color and percentage) of a consumption bar. This is use-ful for
+not demotivating a team or if not all orders with budgets are assigned
+to a structure element.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="booking_of_time_sheets">5.2. Booking of time sheets</h3>
+<div class="paragraph">
+<p>Time sheets must be assigned to a structure element. For improving the
+quality of time sheets different rules may be defined in
+ProjectForge®. <br>
+Following rules are implemented, if the user doesn&#8217;t hit the rules he
+won&#8217;t be able to book his working time on such structure elements.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The user needs the access to this structure element or any ancestor
+structure element including the right of booking time sheets.</p>
+</li>
+<li>
+<p>The structure element or any ancestor structure element may not have a
+time-protection setting. The users will not be able to modify or add
+time sheets for a day before time-protection (date field).</p>
+</li>
+<li>
+<p>The structure element or any ancestor structure element is closed or
+deleted.</p>
+</li>
+<li>
+<p>The booking status of a structure element or any ancestor structure
+element is 'completely closed'.</p>
+</li>
+<li>
+<p>If the structure element is not a structure leaf element (has
+descendents) and the booking status is configured as 'only leaf nodes'.</p>
+</li>
+<li>
+<p>If any descendent structure element has an assigned order. This rule
+is important because otherwise ProjectForge® won&#8217;t be able to
+calculate the consumption of budgets defined by orders.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>If a structure element is closed for booking of time sheets the user may
+modify fields not affecting financial parameters (such as description
+but not times, duration, cost settings etc.) The user may therefore
+correct typos etc. in time sheets.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="order_book">6. Order book</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Offers and orders may be managed by ProjectForge®. The may-be
+assigned to project managers having access to their orders and offers.
+Administrative staff members may have access to all orders if they have
+the right to do (see user administration of ProjectForge®).</p>
+</div>
+<div class="sect2">
+<h3 id="e_mail_notification">6.1. E-mail notification</h3>
+<div class="paragraph">
+<p>All modifications of orders, if not done by the project manager itself
+will be sent by e-mail including a quick link to the order, see figure
+20, a notification is suppressed if the check-box is disabled..</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/Auftragsbuch-Notification.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 20:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Order book with e-mail notification</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="scripting_in_projectforge">7. Scripting in ProjectForge®</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You may edit, store and execute scripts in ProjectForge for generating
+Excel files out of the database of ProjectForge® as well as charts
+etc. It&#8217;s also possible to upload Excel master file to scripts for
+modifiing existing Excel files. <br>
+A script editor is built-in in ProjectForge®.</p>
+</div>
+<div class="sect2">
+<h3 id="examples">7.1. Examples</h3>
+<div class="paragraph">
+<p>You may use some predefined scripts for getting an idea how powerful the scripting
+in ProjectForge® is.</p>
+</div>
+<div class="sect3">
+<h4 id="example_easy_excel_file_generation">7.1.1. Example: Easy Excel-file generation</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="kotlin"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+</pre></td><td class="code"><pre><span class="c1">// Simple otlin script</span>
+<span class="kd">val</span> <span class="py">users</span> <span class="p">=</span> <span class="n">userDao</span><span class="p">.</span><span class="nf">getList</span><span class="p">()</span>
+<span class="kd">val</span> <span class="py">workbook</span> <span class="p">=</span> <span class="nc">ExcelUtils</span><span class="p">.</span><span class="nf">prepareWorkbook</span><span class="p">(</span><span class="s">"Userlist.xlsx"</span><span class="p">)</span>
+<span class="kd">val</span> <span class="py">sheet</span> <span class="p">=</span> <span class="n">workbook</span><span class="p">.</span><span class="nf">createOrGetSheet</span><span class="p">(</span><span class="s">"Users"</span><span class="p">)</span>
+<span class="n">sheet</span><span class="p">.</span><span class="nf">registerColumns</span><span class="p">(</span>
+  <span class="s">"Username|20"</span><span class="p">,</span> <span class="c1">// Title Username is also property name, length = 20</span>
+  <span class="s">"Full name|fullname|30"</span><span class="p">,</span> <span class="c1">// Title differs from property name</span>
+  <span class="s">"Email|30"</span><span class="p">,</span>
+  <span class="s">"Id|10|:integer"</span><span class="p">,</span>
+  <span class="s">"Description|50"</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">sheet</span><span class="p">.</span><span class="nf">createRow</span><span class="p">().</span><span class="nf">fillHeadRow</span><span class="p">()</span>
+<span class="n">users</span><span class="p">.</span><span class="nf">forEach</span> <span class="p">{</span> <span class="n">user</span> <span class="p">-&gt;</span>
+  <span class="kd">val</span> <span class="py">row</span> <span class="p">=</span> <span class="n">sheet</span><span class="p">.</span><span class="nf">createRow</span><span class="p">()</span>
+  <span class="nc">ExcelUtils</span><span class="p">.</span><span class="nf">autoFill</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="n">sheet</span><span class="p">.</span><span class="nf">setAutoFilter</span><span class="p">()</span> <span class="c1">// optional Excel auto filter</span>
+<span class="n">workbook</span>
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="example_usage_of_projectforge_filters">7.1.2. Example: Usage of ProjectForge® filters</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="kotlin"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="code"><pre><span class="kd">val</span> <span class="py">filter</span> <span class="p">=</span> <span class="nc">TimesheetFilter</span><span class="p">()</span>
+<span class="n">filter</span><span class="p">.</span><span class="n">startTime</span> <span class="p">=</span> <span class="nc">PFDateTime</span><span class="p">.</span><span class="nf">withDate</span><span class="p">(</span><span class="mi">2022</span><span class="p">,</span> <span class="nc">Month</span><span class="p">.</span><span class="nc">JANUARY</span><span class="p">,</span> <span class="mi">1</span><span class="p">).</span><span class="n">utilDate</span>
+<span class="n">filter</span><span class="p">.</span><span class="n">stopTime</span> <span class="p">=</span> <span class="nc">PFDateTime</span><span class="p">.</span><span class="nf">withDate</span><span class="p">(</span><span class="mi">2022</span><span class="p">,</span> <span class="nc">Month</span><span class="p">.</span><span class="nc">JUNE</span><span class="p">,</span> <span class="mi">30</span><span class="p">).</span><span class="n">utilDate</span>
+<span class="kd">val</span> <span class="py">list</span> <span class="p">=</span> <span class="n">timesheetDao</span><span class="p">.</span><span class="nf">getList</span><span class="p">(</span><span class="n">filter</span><span class="p">)</span>
+
+<span class="s">"Number of found time sheets: ${list?.size}"</span>
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>PFDateTime and PFDay uses automatically the time zone of the current logged-in
+user as default.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="access_rights_daos">7.2. Access rights (DAOs)</h3>
+<div class="paragraph">
+<p>You may access all database entries by using the DAOs
+(DataAccessObjects) of ProjectForge®. The DAOs ensures that only
+such entities are returned for those the user has access to. All
+entities without the user&#8217;s access are removed by the DAOs of the result
+lists.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="creation_of_diagrams_and_charts">7.3. Creation of diagrams and charts</h3>
+<div class="paragraph">
+<p>You may create charts using (www.jfree.org).</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/ExportJFreeChart.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 21:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Example of a script producing a chart</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+</pre></td><td class="code"><pre><span class="kn">import</span> <span class="nn">org.jfree.chart.*</span>
+<span class="kn">import</span> <span class="nn">org.jfree.chart.plot.*</span>
+<span class="kn">import</span> <span class="nn">org.jfree.data.general.*</span>
+<span class="kn">import</span> <span class="nn">org.jfree.util.*</span>
+<span class="kn">import</span> <span class="nn">org.projectforge.excel.*</span>
+
+<span class="nc">DefaultPieDataset</span> <span class="n">dataset</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">DefaultPieDataset</span><span class="o">()</span>
+<span class="n">dataset</span><span class="o">.</span><span class="na">setValue</span><span class="o">(</span><span class="s">"Linux"</span><span class="o">,</span> <span class="mi">15</span><span class="o">)</span>
+<span class="n">dataset</span><span class="o">.</span><span class="na">setValue</span><span class="o">(</span><span class="s">"Mac"</span><span class="o">,</span> <span class="mi">8</span><span class="o">)</span>
+<span class="n">dataset</span><span class="o">.</span><span class="na">setValue</span><span class="o">(</span><span class="s">"Windows"</span><span class="o">,</span> <span class="mi">70</span><span class="o">)</span>
+<span class="n">dataset</span><span class="o">.</span><span class="na">setValue</span><span class="o">(</span><span class="s">"Others"</span><span class="o">,</span> <span class="mi">7</span><span class="o">)</span>
+<span class="nc">JFreeChart</span> <span class="n">chart</span> <span class="o">=</span> <span class="nc">ChartFactory</span><span class="o">.</span><span class="na">createPieChart3D</span><span class="o">(</span><span class="s">"Users on www.heise.de"</span><span class="o">,</span> <span class="n">dataset</span><span class="o">,</span> <span class="kc">true</span><span class="o">,</span> <span class="kc">true</span><span class="o">,</span> <span class="kc">false</span><span class="o">)</span>
+<span class="nc">PiePlot3D</span> <span class="n">plot</span> <span class="o">=</span> <span class="o">(</span><span class="nc">PiePlot3D</span><span class="o">)</span> <span class="n">chart</span><span class="o">.</span><span class="na">getPlot</span><span class="o">()</span>
+
+<span class="nc">ExportJFreeChart</span> <span class="n">export</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ExportJFreeChart</span><span class="o">(</span><span class="n">chart</span><span class="o">,</span> <span class="mi">800</span><span class="o">,</span> <span class="mi">600</span><span class="o">)</span>
+<span class="k">return</span> <span class="n">export</span>
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="creation_of_zip_archives_containing_multiple_files">7.4. Creation of zip archives containing multiple files</h3>
+<div class="paragraph">
+<p>You may create zip files containing multiple files (Excel sheets and
+diagrams).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="code"><pre><span class="kn">import</span> <span class="nn">...</span>
+<span class="nc">ExportZipArchive</span> <span class="n">zip</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ExportZipArchive</span><span class="o">(</span><span class="s">"my-first-archive"</span><span class="o">)</span> <span class="c1">// File name will be: my-first-archive.zip</span>
+<span class="nc">ExportWorkbook</span> <span class="n">workbook</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ExportWorkbook</span><span class="o">(...)</span>
+<span class="n">zip</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="s">"sheet.xls"</span><span class="o">,</span> <span class="n">workbook</span><span class="o">)</span>
+<span class="nc">ExportJFreeChart</span> <span class="n">chart</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ExportJFreeChart</span><span class="o">(...)</span>
+<span class="n">zip</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="s">"chart.jpg"</span><span class="o">,</span> <span class="n">chart</span><span class="o">)</span>
+<span class="k">return</span> <span class="n">zip</span>
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="nested_and_indexed_properties">7.5. Nested and indexed properties</h3>
+<div class="paragraph">
+<p>You may use bean properties using the common used notation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+2
+</pre></td><td class="code"><pre><span class="n">sheet</span><span class="o">.</span><span class="na">propertyNames</span> <span class="o">=</span> <span class="o">[</span><span class="s">"user.username"</span><span class="o">,</span> <span class="s">"description"</span><span class="o">,</span> <span class="s">"startTime"</span><span class="o">,</span> <span class="s">"stopTime"</span><span class="o">,</span> <span class="o">+</span>
+         <span class="s">"kost2.kost2Art.fakturiert"</span><span class="o">]</span>
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>as well as indexed properties (such as the property username of the
+user). <br>
+Nested and indexed properties are supported as
+well: <code>users[3].name</code> or <code>result.userList[0].</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="import_of_excel_files">7.6. Import of Excel files</h3>
+<div class="paragraph">
+<p>Figure 22 shows an example file.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/Excel-import-example.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 22:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Example file for an Excel import</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+</pre></td><td class="code"><pre><span class="kn">import</span> <span class="nn">java.text.*</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.projectforge.excel.*</span>
+<span class="nc">NumberFormat</span> <span class="n">nf</span> <span class="o">=</span> <span class="nc">NumberFormat</span><span class="o">.</span><span class="na">getCurrencyInstance</span><span class="o">(</span><span class="nc">Locale</span><span class="o">.</span><span class="na">UK</span><span class="o">);</span>
+
+<span class="n">xls</span> <span class="o">=</span> <span class="n">reportScriptingStorage</span><span class="o">.</span><span class="na">getFile</span><span class="o">(</span><span class="s">"import-example.xls"</span><span class="o">)</span> <span class="c1">// Was uploaded with this name.</span>
+<span class="nc">ExportWorkbook</span> <span class="n">workbook</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ExportWorkbook</span><span class="o">(</span><span class="n">xls</span><span class="o">);</span><span class="c1">// Use script.file instead of xls in script list.</span>
+<span class="nc">ExportSheet</span> <span class="n">sheet</span> <span class="o">=</span> <span class="n">workbook</span><span class="o">.</span><span class="na">getSheet</span><span class="o">(</span><span class="s">"Sheet-1"</span><span class="o">);</span> <span class="c1">// Gets sheet with the given title.</span>
+<span class="n">rows</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="na">rows</span><span class="o">;</span> <span class="c1">// Get all rows.</span>
+<span class="n">result</span> <span class="o">=</span> <span class="s">""</span><span class="o">;</span>
+<span class="n">total</span> <span class="o">=</span> <span class="mf">0.0</span><span class="o">;</span>
+
+<span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">sheet</span><span class="o">.</span><span class="na">rows</span><span class="o">.</span><span class="na">size</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+  <span class="n">row</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="na">getRow</span><span class="o">(</span><span class="n">i</span><span class="o">);</span>
+  <span class="n">no</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="na">getCell</span><span class="o">(</span><span class="mi">0</span><span class="o">).</span><span class="na">getNumericCellValue</span><span class="o">();</span>
+  <span class="n">name</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="na">getCell</span><span class="o">(</span><span class="mi">1</span><span class="o">).</span><span class="na">getStringCellValue</span><span class="o">();</span>
+  <span class="n">amount</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="na">getCell</span><span class="o">(</span><span class="mi">2</span><span class="o">).</span><span class="na">getNumericCellValue</span><span class="o">();</span>
+  <span class="n">total</span> <span class="o">+=</span> <span class="n">amount</span><span class="o">;</span>
+  <span class="n">result</span> <span class="o">+=</span> <span class="o">(</span><span class="kt">int</span><span class="o">)</span><span class="n">no</span> <span class="o">+</span> <span class="s">". The amount of "</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">" is: "</span> <span class="o">+</span> <span class="n">nf</span><span class="o">.</span><span class="na">format</span><span class="o">(</span><span class="n">amount</span><span class="o">)</span> <span class="o">+</span> <span class="s">"\n"</span><span class="o">;</span>
+<span class="o">}</span>
+<span class="n">result</span> <span class="o">+=</span> <span class="s">"The total amount is: "</span> <span class="o">+</span> <span class="n">nf</span><span class="o">.</span><span class="na">format</span><span class="o">(</span><span class="n">total</span><span class="o">);</span>
+<span class="k">return</span> <span class="n">result</span><span class="o">;</span>
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The output is:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="linenums"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="code"><pre> The amount of Susan is: £50.23
+ The amount of Hugo is: £17.00
+ The amount of Lisa is: £15.00
+ The amount of Mona is: £10.00
+The total amount is: £92.23
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="financial_administration_with_projectforge">8. Financial administration with ProjectForge®</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="invoices">8.1. Invoices</h3>
+<div class="paragraph">
+<p>ProjectForge® supports the management of invoices (inbound and
+outbound, creditors and debitors):</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Inovices may contain an unlimited number of positions.</p>
+</li>
+<li>
+<p>If the cost-module is configured you may assign the amount to one or
+an unlimited number of cost units (as amount or as percent).</p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="assignment_of_cost_units">8.1.1. Assignment of cost units</h4>
+<div class="paragraph">
+<p>It&#8217;s recommended to try this feature for a better understanding. <br>
+You may assign positions of invoices to cost1 and cost2 units. An
+autocomplete functionality helps you to distribute the amounts to cost
+units very fast. You may enter numbers of cost units as well as text (e.
+g. text fields of a cost unit such as description. customer, type
+etc.). <br>
+An unlimitited number of assignments are supported. After adding new
+assignments ProjectForge® prefills the amount of the invoice which
+wasn&#8217;t assigned yet. The amount may be given as amount or as percent
+value. <br>
+For better tracebility you may not delete positions (after stored in the
+database). If an entry should be removed, enter '0' as amount.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="clone_functionality_for_invoices_inbound_and_outbound">8.1.2. Clone functionality for invoices (inbound and outbound)</h4>
+<div class="paragraph">
+<p>You may clone existing invoices for a faster process of inserting new
+invoices:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The date will be replaced by 'today'.</p>
+</li>
+<li>
+<p>The positions as well as any existing assignment to cost units will be
+copied.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="liquidity_planning_forecast">8.2. Liquidity planning / forecast</h3>
+<div class="paragraph">
+<p>Based on invoices and additional liquidity entries (others than
+invoices) ProjectForge® gives you the opportunity to manage your
+cash flow very easy including a forecast of your cash flow.</p>
+</div>
+<div class="sect3">
+<h4 id="calculation_of_expected_dates_of_payments">8.2.1. Calculation of expected dates of payments</h4>
+<div class="paragraph">
+<p>ProjectForge® uses due dates for forecasting the cash flow and
+account balance. For invoices ProjectForge® calculates the expected
+dates of payment based on already paid invoices in the last 12 month of
+the same:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Project: Do paid invoices already exist for the same project?</p>
+</li>
+<li>
+<p>Customer number: Do paid invoices already exist for the customer
+(given by the cost number)?</p>
+</li>
+<li>
+<p>Customer text: Do paid invoices already exist for the customer (full
+text)?</p>
+</li>
+<li>
+<p>Customer short text: Do paid invoices already exist for the customer
+(the beginning of the customer text will be used)?</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>If any paid invoice was found (starting with project) a mean time of
+payment of the paid invoices is used for calculating the expected date
+of payment.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/PF-liquidity.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 23:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Liquidity with forecast of the cash flow</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Please refer the AdministrationGuide for enabling the liquidity plugin of ProjectForge®.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="datev_import_german">8.3. Datev-Import (German)</h3>
+<div class="paragraph">
+<p>Über diese Funktion werden die Konten (Kontenplan) und die Buchungssätze
+eingelesen. Diese Daten werden vom Steuerbüro in Form eines
+Excel-Exports geliefert.</p>
+</div>
+<div class="sect3">
+<h4 id="grundsätzliches_zum_projectforge_excel_import">8.3.1. Grundsätzliches zum ProjectForge®-Excel-Import</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>ProjectForge® liest Tabellenblätter mit bestimmten Namen bzw.
+Namensmustern ein. Tabellenblätter, deren Namen ProjectForge® im
+Import nicht unterstützt, werden ignoriert.</p>
+</li>
+<li>
+<p>ProjectForge® erkennt die Werte in den Spalten anhand des Namens
+der Kopfspalte</p>
+</li>
+<li>
+<p>Die Reihenfolge der Spalten ist variabel.</p>
+</li>
+<li>
+<p>Es können zusätzliche Spalten enthalten sein. Diese Spalten werden
+ignoriert.</p>
+</li>
+<li>
+<p>Die Importdaten werden im Import-Storage innerhalb der Benutzersitzung
+gespeichert. Der Anwender kann beliebige Schritte innerhalb seiner
+Benutzersitzung durchführen, ohne dass die Importdaten verloren gehen.
+Auch die Reihenfolge beim Import von mehreren Tabellenblättern
+(Verproben, Prüfen, Selektieren, Speichern etc.) ist beliebig.
+ProjectForge® stellt sicher, dass nur fehlerfreie und verprobte
+Datensätze importiert werden können.</p>
+</li>
+<li>
+<p>Die Übernahme von Daten kann auch schrittweise erfolgen (s. Beispiel
+unten: Schritt 3 bis 5 können beliebig oft wiederholt werden, solange
+noch nicht alle Daten auch in ProjectForge® nicht übernommen
+wurden.)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Im folgenden wird anhand des Kontenplans der Import und die notwendigen
+Prüfschritte erläutert.</p>
+</div>
+<div class="sect4">
+<h5 id="schritt_1_auswahl_der_zu_importierenden_excel_datei">Schritt 1: Auswahl der zu importierenden Excel-Datei</h5>
+<div class="ulist">
+<ul>
+<li>
+<p>Figure 24 zeigt den ersten Schritt: Es wird die zu importierende
+Excel-Datei über den Browserknopf "Datei auswählen" im lokalen
+Dateisystem selektiert. Anschließend wird die gewünschte Importfunktion
+(z. B. "Import Kontenplan") gewählt.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/Datev-Import-step1.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 24:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Datev-Import, Schritt 1: Auswahl der Importdatei</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="schritt_2_daten_werden_eingelesen">Schritt 2: Daten werden eingelesen</h5>
+<div class="ulist">
+<ul>
+<li>
+<p>Figure 25 zeigt den zweiten Schritt: Die Daten wurden erfolgreich
+eingelesen und die importierten Tabellenblätter (Sheets) untereinander
+angezeigt (standardmäßig sind alle Blätter zugeklappt). Im Fehlerfalle
+wird der Fehler mit Tabellenblatt, Zeilennummer und Spaltennummer
+angezeigt (z. B. wenn ein nicht passendes Zahlenformat in einer Zelle
+erkannt wurde.) Fehlerhafte Datensätze können bereits eingesehen werden
+(durch Aufklappen des Importbereichs).</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/Datev-Import-step2.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 25:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Datev-Import, Schritt 2: Einlesen der Datei</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="schritt_3_verproben">Schritt 3: Verproben</h5>
+<div class="ulist">
+<ul>
+<li>
+<p>Figure 26 zeigt den zweiten Schritt: Die Daten wurden erfolgreich
+eingelesen und die importierten Tabellenblätter (Sheets) untereinander
+angezeigt (standardmäßig sind alle Blätter zugeklappt). Nun sollte die
+Funktion "Verproben" für das gewünschte Tabellenblatt / die gewünschten
+Tabellenblätter gewählt werden. <br>
+Beim Verproben gleicht ProjectForge® die importierten Datensätze mit
+evtl. bereits vorhandenen Datensätzen ab. Nach dem Verproben werden auch
+neue und modifizierte Datensätze angezeigt.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/Datev-Import-step3.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 26:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Datev-Import, Schritt 3: Verproben</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="schritt_3_verprobenprüfen_selektieren_und_übernahme">Schritt 3: VerprobenPrüfen, selektieren und Übernahme</h5>
+<div class="ulist">
+<ul>
+<li>
+<p>Figure 27 zeigt den vierten Schritt: Nach der Verprobung können nun
+die zu speichernden Datensätze einer Sichtprüfung unterzogen werden. Bei
+modifizierten Einträgen wird über einen Tool tip der ursprüngliche Wert
+angezeigt.<br>
+Nach der Prüfung können die Datensätze selektiert werden, die in
+ProjectForge® übernommen werden sollen. Mit der Funktion "Select
+all" können auch alle angezeigten Datensätze markiert werden.
+Anschließend kann über "Commit" eine Übernahme bestätigt und angestoßen
+werden.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/Datev-Import-step4.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 27:__</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Datev-Import, Schritt 4: Prüfen, Selektion und
+Übernahme</em></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="schritt_5_import_abgeschlossen">Schritt 5: Import abgeschlossen</h5>
+<div class="ulist">
+<ul>
+<li>
+<p>Figure 28 zeigt den fünften Schritt: Nach dem Import wird angezeigt,
+wieviel Datensätze übernommen wurden. Ein abschließendes "Verproben"
+sollte aufgerufen werden. Wenn alle Änderungen erfolgreich übernommen
+wurden und alle Datensätze selektiert worden waren, so müsste
+abschließend für das Tabellenblatt "nichts zu tun" angezeigt werden.
+Wurde nur ein Teilsatz der Daten selektiert, so werden die übrigen noch
+zur Auswahl angeboten.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/Datev-Import-step5.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 28:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Datev-Import, Schritt 5: Abschluss</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="import_der_buchungskonten_kontenplan">8.3.2. Import der Buchungskonten (Kontenplan)</h4>
+<div class="paragraph">
+<p>Für den Import der Buchungskonten wird im zu importierenden
+Exceldokument ein Tabellenreiter mit dem Namen "Kontenplan" erwartet.
+Dieses Tabellenblatt wird für den Import verwendet. Alle anderen
+Tabellenblätter werden ignoriert.</p>
+</div>
+<div class="sect4">
+<h5 id="format">Format</h5>
+<div class="paragraph">
+<p>Folgendes Format wird erwartet (see figure 29).</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/Datev-Import-Kontenplan.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 29:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Excelformat für Datev-Import des Kontenplans</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>In Zeile 2 wird die Kopfspalte mit den Namen "Konto" und "Bezeichnung"
+erwartet. Vorhandene Konten werden nicht gelöscht, sondern bei
+Vorhandensein modifiziert.</p>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="import_der_buchungssätze_01_12">8.3.3. Import der Buchungssätze (01-12)</h4>
+<div class="paragraph">
+<p>Für den Import der Buchungssätze werden im zu importierenden
+Exceldokument die Tabellenblätter mit dem Namen "01", "02", &#8230;&#8203;, "12"
+berücksichtigt. Diese Blätter stehen für die zu importierenden
+Buchungsmonate.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Beim Import werden die Buchungssätze unabhängig vom Datum dem
+Buchungsmonat zugeordnet.</p>
+</li>
+<li>
+<p>Datumsangaben von Buchungssätzen dürfen nicht in der Zukunft bezüglich
+des Buchungsmonats liegen.</p>
+</li>
+<li>
+<p>Das Kalenderjahr zum Buchungsmonat erkennt ProjectForge®
+automatisch anhand des Datums der Buchungssätze.</p>
+</li>
+<li>
+<p>Die Spalte "Kostenstelle/-träger" wird als "Kost2" interpretiert.
+Alternativ kann diese Spalte auch in "Kost2" umbenannt werden.</p>
+</li>
+<li>
+<p>Die Spalte "Alt.-Kst." wird "Kost1" interpretiert. Alternativ kann
+diese Spalte auch in "Kost1" umbenannt werden.</p>
+</li>
+<li>
+<p>Die Spalten "SH" tauchen Datev-bedingt doppelt auf. Die Reihenfolge
+darf nicht vertauscht werden, da die erste Spalte "SH" für die Übernahme
+"Soll/Haben" verwendet wird.</p>
+</li>
+<li>
+<p>Die Spalte Bemerkung ist optional. Hier können Zusatzinformationen,
+Hinweise oder Marker zu einzelnen Zeilen angegeben werden.</p>
+</li>
+</ul>
+</div>
+<div class="sect4">
+<h5 id="format_2">Format</h5>
+<div class="paragraph">
+<p>Folgendes Format wird erwartet (see figure 30).</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/Datev-Import-Buchungssaetze.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 30:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Excelformat für Datev-Import der Buchungssätze</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>In Zeile 2 wird die Kopfspalte mit den Namen "Konto" und "Bezeichnung"
+erwartet. Vorhandene Konten werden nicht gelöscht, sondern bei
+Vorhandensein modifiziert.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="other_imports">8.4. Other imports</h3>
+<div class="sect3">
+<h4 id="salaries_of_employees">8.4.1. Salaries of employees</h4>
+<div class="paragraph">
+<p>The following Excel format is assumed:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>A monthly sheet has the title of format 'yyyy-mm', e. g. "2009-05".</p>
+</li>
+<li>
+<p>The columns are:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha" type="a">
+<li>
+<p>Cost1 unit of the employee, e. g. '3.050.00.00'</p>
+</li>
+<li>
+<p>Employee: Last name, surname</p>
+</li>
+<li>
+<p>Gross salary including taxes and insurance, e. g. '1,846.77'</p>
+</li>
+<li>
+<p>bonus, royalty, overtime premium etc. as decimal value</p>
+</li>
+<li>
+<p>Special payment as decimal value</p>
+</li>
+<li>
+<p>Car as decimal value</p>
+</li>
+<li>
+<p>Total will be ignored</p>
+</li>
+<li>
+<p>Comment as text field</p>
+</li>
+</ol>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The following script generates the database SQL-Statement for importing
+the salaries:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+</pre></td><td class="code"><pre><span class="kn">import</span> <span class="nn">org.projectforge.core.*</span>
+<span class="kn">import</span> <span class="nn">org.projectforge.excel.*</span>
+<span class="kn">import</span> <span class="nn">java.text.*</span>
+
+<span class="n">year</span> <span class="o">=</span> <span class="mi">2009</span><span class="o">;</span> <span class="n">month</span> <span class="o">=</span> <span class="mi">4</span><span class="o">;</span>
+
+<span class="k">if</span> <span class="o">(</span><span class="n">month</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="o">)</span> <span class="n">monthString</span> <span class="o">=</span> <span class="s">"0"</span> <span class="o">+</span> <span class="n">month</span>
+<span class="k">else</span> <span class="n">monthString</span> <span class="o">=</span> <span class="s">""</span> <span class="o">+</span> <span class="n">month</span>
+<span class="nc">NumberFormat</span> <span class="n">nf</span> <span class="o">=</span> <span class="nc">NumberFormat</span><span class="o">.</span><span class="na">getNumberInstance</span><span class="o">(</span><span class="nc">Locale</span><span class="o">.</span><span class="na">GERMANY</span><span class="o">);</span>
+<span class="n">nf</span><span class="o">.</span><span class="na">setMaximumFractionDigits</span><span class="o">(</span><span class="mi">2</span><span class="o">);</span>
+<span class="n">nf</span><span class="o">.</span><span class="na">setMinimumFractionDigits</span><span class="o">(</span><span class="mi">2</span><span class="o">);</span>
+
+<span class="n">xls</span> <span class="o">=</span> <span class="n">reportScriptingStorage</span><span class="o">.</span><span class="na">getFile</span><span class="o">(</span><span class="s">"2009-Gehaltslisten.xls"</span><span class="o">)</span> <span class="c1">// Was uploaded with this name.</span>
+<span class="nc">ExportWorkbook</span> <span class="n">workbook</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ExportWorkbook</span><span class="o">(</span><span class="n">xls</span><span class="o">);</span> <span class="c1">// Uses the uploaded Excel file.</span>
+<span class="nc">ExportSheet</span> <span class="n">sheet</span> <span class="o">=</span> <span class="n">workbook</span><span class="o">.</span><span class="na">getSheet</span><span class="o">(</span><span class="n">year</span> <span class="o">+</span> <span class="s">"-"</span> <span class="o">+</span> <span class="n">monthString</span><span class="o">);</span> <span class="c1">// Gets the sheet.</span>
+<span class="n">rows</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="na">rows</span><span class="o">;</span> <span class="c1">// get all rows</span>
+<span class="nc">String</span> <span class="n">result</span> <span class="o">=</span> <span class="s">""</span><span class="o">;</span>
+
+<span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">4</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">sheet</span><span class="o">.</span><span class="na">rows</span><span class="o">.</span><span class="na">size</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+  <span class="n">row</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="na">getRow</span><span class="o">(</span><span class="n">i</span><span class="o">);</span>
+  <span class="n">cost1String</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="na">getCell</span><span class="o">(</span><span class="mi">0</span><span class="o">).</span><span class="na">getStringCellValue</span><span class="o">();</span>
+  <span class="n">employeeName</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="na">getCell</span><span class="o">(</span><span class="mi">1</span><span class="o">).</span><span class="na">getStringCellValue</span><span class="o">();</span>
+  <span class="n">gross</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="na">getCell</span><span class="o">(</span><span class="mi">2</span><span class="o">).</span><span class="na">getNumericCellValue</span><span class="o">();</span>
+  <span class="n">bonus</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="na">getCell</span><span class="o">(</span><span class="mi">3</span><span class="o">).</span><span class="na">getNumericCellValue</span><span class="o">();</span>
+  <span class="n">special</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="na">getCell</span><span class="o">(</span><span class="mi">4</span><span class="o">).</span><span class="na">getNumericCellValue</span><span class="o">();</span>
+  <span class="n">car</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="na">getCell</span><span class="o">(</span><span class="mi">5</span><span class="o">).</span><span class="na">getNumericCellValue</span><span class="o">();</span>
+  <span class="n">comment</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="na">getCell</span><span class="o">(</span><span class="mi">7</span><span class="o">).</span><span class="na">getStringCellValue</span><span class="o">();</span>
+  <span class="n">total</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">BigDecimal</span><span class="o">(</span><span class="n">gross</span> <span class="o">+</span> <span class="n">bonus</span> <span class="o">+</span> <span class="n">special</span> <span class="o">+</span> <span class="n">car</span><span class="o">).</span><span class="na">setScale</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="n">java</span><span class="o">.</span><span class="na">math</span><span class="o">.</span><span class="na">RoundingMode</span><span class="o">.</span><span class="na">HALF_UP</span><span class="o">);</span>
+  <span class="k">if</span> <span class="o">(</span><span class="n">employeeName</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span>
+    <span class="n">employee</span> <span class="o">=</span> <span class="n">employeeDao</span><span class="o">.</span><span class="na">getByName</span><span class="o">(</span><span class="n">employeeName</span><span class="o">);</span>
+  <span class="k">if</span> <span class="o">(</span><span class="n">kost1String</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span>
+    <span class="k">break</span><span class="o">;</span>
+  <span class="n">kost1</span> <span class="o">=</span> <span class="n">kost1Dao</span><span class="o">.</span><span class="na">getKost1</span><span class="o">(</span><span class="n">kost1String</span><span class="o">);</span>
+  <span class="k">if</span> <span class="o">(</span><span class="n">kost1</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">result</span> <span class="o">+=</span> <span class="s">"\n-- **********"</span> <span class="o">+</span> <span class="n">kost1String</span><span class="o">;</span>
+  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">kost1</span><span class="o">.</span><span class="na">getDescription</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="n">employeeName</span><span class="o">)</span> <span class="o">==</span> <span class="kc">false</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">result</span> <span class="o">+=</span> <span class="s">"\n-- **********"</span> <span class="o">+</span> <span class="n">kost1</span><span class="o">.</span><span class="na">getDescription</span><span class="o">()</span> <span class="o">+</span> <span class="s">" != "</span> <span class="o">+</span> <span class="n">employeeName</span><span class="o">;</span>
+  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">employee</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">result</span> <span class="o">+=</span> <span class="s">"\n-- ********** Employee '"</span> <span class="o">+</span> <span class="n">employeeName</span> <span class="o">+</span> <span class="s">"' not found."</span><span class="o">;</span>
+  <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="s">"Excel-Import Kai"</span><span class="o">;</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">tantieme_zv</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="n">text</span> <span class="o">+=</span> <span class="s">"; bonus/royalty/overtime: "</span> <span class="o">+</span> <span class="n">nf</span><span class="o">.</span><span class="na">format</span><span class="o">(</span><span class="n">bonus</span><span class="o">);</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">special</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="n">text</span> <span class="o">+=</span> <span class="s">"; Special: "</span> <span class="o">+</span> <span class="n">nf</span><span class="o">.</span><span class="na">format</span><span class="o">(</span><span class="n">special</span><span class="o">);</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">car</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="n">text</span> <span class="o">+=</span> <span class="s">"; car: "</span> <span class="o">+</span> <span class="n">nf</span><span class="o">.</span><span class="na">format</span><span class="o">(</span><span class="n">car</span><span class="o">);</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">comment</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="n">comment</span><span class="o">.</span><span class="na">trim</span><span class="o">().</span><span class="na">size</span><span class="o">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="n">text</span> <span class="o">+=</span> <span class="s">"; "</span> <span class="o">+</span> <span class="n">comment</span><span class="o">;</span>
+    <span class="n">result</span> <span class="o">+=</span> <span class="s">"\ninsert into t_fibu_employee_salary (pk,created,last_update,deleted,gross,month,type,year,comment,employee_id) values (nextval('hibernate_sequence'),now(), now(),false,"</span> <span class="o">+</span> <span class="n">total</span> <span class="o">+</span> <span class="s">", "</span> <span class="o">+</span> <span class="o">(</span><span class="n">month</span> <span class="o">-</span> <span class="mi">1</span><span class="o">)+</span> <span class="s">", 'SALARY', "</span> <span class="o">+</span> <span class="n">year</span> <span class="o">+</span> <span class="s">",'"</span> <span class="o">+</span> <span class="n">text</span> <span class="o">+</span> <span class="s">"',"</span> <span class="o">+</span> <span class="n">employee</span><span class="o">.</span><span class="na">id</span> <span class="o">+</span> <span class="s">");"</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+<span class="k">return</span> <span class="n">result</span><span class="o">;</span>
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="time_sheets">8.5. Time sheets</h3>
+<div class="sect3">
+<h4 id="protection">8.5.1. Protection</h4>
+<div class="paragraph">
+<p>You may protect time sheets by date for structure elements (including
+all descendent structure elements). This protection ensures that no
+employee is able to modify time sheets with dates before the date where
+the protection ends. <br>
+This is useful if the time sheets are invoiced or taken over by other
+accounting systems. Figure 31 shows a structure element with a
+protection of time sheets until 30/06/2013. <br>
+Time sheets with dates before the date of protection may only be changed
+by members of the financial administration staff (regarding times and
+cost assignements).</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/Zeitberichtsschutz.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 31:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Time sheet protection for structure elements (incl.
+structure sub elements)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="cost_units">8.5.2. Cost units</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>You may assign projects and/or cost2 units to a structure element.</p>
+</li>
+<li>
+<p>If a project is assigned, all existing cost2 units of this projects
+are automatically assigned to this structure element.</p>
+</li>
+<li>
+<p>If there is now project or cost unit assigned to a structure element,
+all settings of the parent structure element are used. If no such
+setting found for the parent element the grand parent element is used
+and so on.</p>
+</li>
+<li>
+<p>Only such cost units are used which have no status value or the status
+value 'ACTIVE'.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If there is any cost2 unit associated with a structure element (directly
+or derived), an user has to select a suitable cost unit while booking
+time sheets.<br>
+Figure 32 shows a structure element with the assigned project '5.200.00
+- ProjectForge®' and the cost unit '5.200.00.*'.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/Aufgabe_Kost2.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 32:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Assigning cost2 units to structure elements.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p><strong>Hint</strong></p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>If you are missing cost units you may add them via project edit page
+(with status 'ACTIVE'). <br>
+If you want to disable cost units you may change the status of such
+units to 'INACTIVE' or 'ENDED' or you may remove them by using the
+black- or white list (see fig. ref label="fig:aufgabeKost2" type="full"
+/&gt;).</p>
+</div>
+</blockquote>
+</div>
+</div>
+<div class="sect3">
+<h4 id="booking_of_time_sheets_2">8.5.3. Booking of time sheets</h4>
+<div class="paragraph">
+<p>For time sheets assigned to structure elements with assigned cost units
+a selection of a cost unit is required as shown in figure 33.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/userguide/Zeitbericht_anlegen_kost2.png" alt="image">
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Figure 33:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Booking of time sheets to structure elements with given
+cost units</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="monthly_employee_reports">8.5.4. Monthly employee reports</h4>
+<div class="paragraph">
+<p>A monthly employee report for users with all time sheets ordered by cost
+units, structure element, user and weeks are also available as PDF for
+download. These reports may me used for e. g. signing monthly reports of
+employees by their managers.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="jira_support">8.5.5. JIRA support</h4>
+<div class="paragraph">
+<p>JIRA issues are supported if configured. If JIRA issues are contained in
+e. g. time sheets or description of structure elements then the will be
+displayed with links to the configured JIRA system.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="cost_unit_accounting">8.6. Cost unit accounting</h3>
+<div class="sect3">
+<h4 id="fraction_of_working_time">8.6.1. Fraction of working time</h4>
+<div class="paragraph">
+<p>You may configure a fraction for single cost units or cost unit types
+(default is 1). Example: if the travelling time should be counted only
+as half regarding the employees working time, you may configure the
+fraction as 0,5.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="reporting_via_report_objectives_in_progress">8.7. Reporting via Report objectives (in progress)</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="xml"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+</pre></td><td class="code"><pre><span class="nt">&lt;ReportObjective</span> <span class="na">title=</span><span class="s">"Customer ACME"</span> <span class="na">id=</span><span class="s">"ACME"</span> <span class="na">suppressOther=</span><span class="s">"true"</span> <span class="na">suppressDuplicates=</span><span class="s">"true"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;kost1-include&gt;</span>3.*<span class="nt">&lt;/kost1-include&gt;</span>
+  <span class="nt">&lt;kost1-exclude&gt;</span>*.01<span class="nt">&lt;/kost1-exclude&gt;</span>
+  <span class="nt">&lt;kost1-exclude&gt;</span>*.12<span class="nt">&lt;/kost1-exclude&gt;</span>
+  <span class="nt">&lt;kost2-include&gt;</span>5.*<span class="nt">&lt;/kost2-include&gt;</span>
+  <span class="nt">&lt;kost2-exclude&gt;</span>*.02<span class="nt">&lt;/kost2-exclude&gt;</span>
+  <span class="nt">&lt;kost2-exclude&gt;</span>*.11<span class="nt">&lt;/kost2-exclude&gt;</span>
+  <span class="nt">&lt;ReportObjective</span> <span class="na">title=</span><span class="s">"Project ACME-WEB-Portal"</span> <span class="na">id=</span><span class="s">"ACME-WEB-Portal"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;kost2-include&gt;</span>5.020.01.*<span class="nt">&lt;/kost2-include&gt;</span>
+  <span class="nt">&lt;/ReportObjective&gt;</span>
+  <span class="nt">&lt;ReportObjective</span> <span class="na">title=</span><span class="s">"Project ACME-Java-Migration"</span> <span class="na">id=</span><span class="s">"ACME-Java-Migration"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;kost2-include&gt;</span>5.020.02.*<span class="nt">&lt;/kost2-include&gt;</span>
+  <span class="nt">&lt;/ReportObjective&gt;</span>
+<span class="nt">&lt;/ReportObjective&gt;</span>
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>If an include list is empty, all records will match for this include
+list (wildcard).</p>
+</li>
+<li>
+<p>If an include list isn&#8217;t empty, at least one entry must match.</p>
+</li>
+<li>
+<p>For multiple include lists a record must match all include lists
+(logical 'and').</p>
+</li>
+<li>
+<p>If a record matches at least one entry of any exclude list, this
+record will be excluded.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The method <code>String.matches(regExp)</code> is used for evaluating the regular
+expressions. You may refer the expression syntax of the Java
+class <code>java.util.regex.Pattern</code> for a better understanding. For your
+convenience ProjectForge® modifies automatically the configured
+expressions before usage: All points ('.') will be escaped and the
+wildcard character '<strong>' is replaced by '.</strong>'. You may suppress the
+automatical modification by prepending an apostrophe, e. g. "'^5\.510.*"
+will not be modified (only the apostrophe itself is removed before
+evaluation). <br>
+Examples:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>"3.*" &#8594; "3\..*" (matches all strings beginning with "3.".</p>
+</li>
+<li>
+<p>"*.02" &#8594; ".*.02" (matches all strings ending with ".02".</p>
+</li>
+<li>
+<p>"'^5.02.*" &#8594; "^5.02.*" (matches all strings starting with "5?02".</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>(This strategy of replacement is for convenience purposes because '.'
+means normally any character and '<strong>' means a multiple occurrence of the
+character before the asterisk: for example "3.1</strong>" will match "3x1111"
+but not "3.120.08.02".)</p>
+</div>
+<div class="paragraph">
+<p><strong>Hint</strong></p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>A child ReportObjective may only consist of entries of the parent
+ReportObjective (only a subset)!</p>
+</div>
+</blockquote>
+</div>
+<div class="paragraph">
+<p>You may access the ReportObjectives directly.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+</pre></td><td class="code"><pre><span class="kn">import</span> <span class="nn">org.fibu.*</span>
+<span class="kn">import</span> <span class="nn">org.fibu.kost.*</span>
+<span class="kn">import</span> <span class="nn">org.projectforge.excel.*</span>
+<span class="kn">import</span> <span class="nn">org.projectforge.core.*</span>
+
+<span class="kd">class</span> <span class="nc">JoinedObject</span> <span class="o">{</span>
+  <span class="nc">BuchungssatzDO</span> <span class="n">satz</span>
+  <span class="nc">EmployeeDO</span> <span class="n">employee</span>
+<span class="o">}</span>
+
+<span class="c1">// Loading the list with all accounting records:</span>
+<span class="n">def</span> <span class="n">records</span> <span class="o">=</span> <span class="n">reportStorage</span><span class="o">.</span><span class="na">getCurrentReport</span><span class="o">().</span><span class="na">getBuchungssaetze</span><span class="o">()</span>
+<span class="n">records</span> <span class="o">=</span> <span class="n">records</span><span class="o">.</span><span class="na">findAll</span><span class="o">{</span> <span class="n">satz</span> <span class="o">-&gt;</span> <span class="o">(</span><span class="mi">5000</span><span class="o">..</span><span class="mi">5999</span><span class="o">).</span><span class="na">contains</span><span class="o">(</span><span class="n">satz</span><span class="o">.</span><span class="na">konto</span><span class="o">.</span><span class="na">nummer</span><span class="o">)</span> <span class="o">}</span>
+
+<span class="c1">// Loading the list of employees:</span>
+<span class="n">def</span> <span class="n">employees</span> <span class="o">=</span> <span class="n">employeeDao</span><span class="o">.</span><span class="na">getList</span><span class="o">().</span><span class="na">findAll</span><span class="o">{</span><span class="n">it</span><span class="o">.</span><span class="na">kost1</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">}</span>
+
+<span class="n">def</span> <span class="n">result</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ArrayList</span><span class="o">()</span>
+<span class="n">records</span><span class="o">.</span><span class="na">each</span><span class="o">{</span><span class="n">bs</span> <span class="o">-&gt;</span>
+  <span class="n">el</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">JoinedObject</span><span class="o">()</span>
+  <span class="n">el</span><span class="o">.</span><span class="na">satz</span> <span class="o">=</span> <span class="n">bs</span>
+  <span class="n">el</span><span class="o">.</span><span class="na">employee</span> <span class="o">=</span> <span class="n">employees</span><span class="o">.</span><span class="na">find</span><span class="o">{</span><span class="n">employee</span> <span class="o">-&gt;</span> <span class="n">employee</span><span class="o">.</span><span class="na">kost1Id</span> <span class="o">==</span> <span class="n">bs</span><span class="o">.</span><span class="na">kost1</span><span class="o">.</span><span class="na">id</span><span class="o">}</span>
+  <span class="n">result</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">el</span><span class="o">)</span>
+<span class="o">}</span>
+
+<span class="c1">// Generation of an Excel workbook:</span>
+<span class="nc">ExportWorkbook</span> <span class="n">workbook</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ExportWorkbook</span><span class="o">();</span>
+<span class="nc">ExportSheet</span> <span class="n">sheet</span> <span class="o">=</span> <span class="n">workbook</span><span class="o">.</span><span class="na">addSheet</span><span class="o">(</span><span class="s">"Ergebnis"</span><span class="o">)</span>
+<span class="n">sheet</span><span class="o">.</span><span class="na">contentProvider</span><span class="o">.</span><span class="na">colWidths</span> <span class="o">=</span> <span class="o">[</span><span class="mi">10</span><span class="o">,</span> <span class="mi">10</span><span class="o">,</span> <span class="mi">8</span><span class="o">,</span> <span class="mi">8</span><span class="o">,</span> <span class="mi">10</span><span class="o">,</span> <span class="mi">10</span><span class="o">,</span> <span class="mi">20</span><span class="o">,</span> <span class="mi">20</span><span class="o">]</span>
+<span class="n">sheet</span><span class="o">.</span><span class="na">addRow</span><span class="o">().</span><span class="na">setValues</span><span class="o">(</span><span class="s">"Date"</span><span class="o">,</span> <span class="s">"Amount"</span><span class="o">,</span> <span class="s">"Account"</span><span class="o">,</span> <span class="s">"Contra account"</span><span class="o">,</span> <span class="s">"Cost 1"</span><span class="o">,</span> <span class="s">"Cost 2"</span><span class="o">,</span> <span class="s">"Name"</span><span class="o">)</span>
+<span class="n">sheet</span><span class="o">.</span><span class="na">contentProvider</span><span class="o">.</span><span class="na">putFormat</span><span class="o">(</span><span class="s">"satz.datum"</span><span class="o">,</span> <span class="s">"DD.MM.YYYY"</span><span class="o">)</span>
+<span class="n">sheet</span><span class="o">.</span><span class="na">contentProvider</span><span class="o">.</span><span class="na">putFormat</span><span class="o">(</span><span class="s">"satz.betrag"</span><span class="o">,</span> <span class="s">"#,##0.00$;[Red]-#,##0.00$"</span><span class="o">)</span> <span class="c1">// English format</span>
+<span class="n">sheet</span><span class="o">.</span><span class="na">contentProvider</span><span class="o">.</span><span class="na">putFormat</span><span class="o">(</span><span class="s">"satz.konto.nummer"</span><span class="o">,</span> <span class="s">"0"</span><span class="o">)</span>
+<span class="n">sheet</span><span class="o">.</span><span class="na">contentProvider</span><span class="o">.</span><span class="na">putFormat</span><span class="o">(</span><span class="s">"satz.gegenKonto.nummer"</span><span class="o">,</span> <span class="s">"0"</span><span class="o">)</span>
+<span class="n">sheet</span><span class="o">.</span><span class="na">propertyNames</span> <span class="o">=</span> <span class="o">[</span><span class="s">"satz.datum"</span><span class="o">,</span> <span class="s">"satz.betrag"</span><span class="o">,</span> <span class="s">"satz.konto.nummer"</span><span class="o">,</span> <span class="s">"satz.gegenKonto.nummer"</span><span class="o">,</span>
+  <span class="s">"satz.kost1.formattedNumber"</span><span class="o">,</span> <span class="s">"satz.kost2.formattedNumber"</span><span class="o">,</span> <span class="s">"employee.user.fullname"</span><span class="o">]</span>
+<span class="n">sheet</span><span class="o">.</span><span class="na">addRows</span><span class="o">(</span><span class="n">result</span><span class="o">)</span>
+
+<span class="k">return</span> <span class="n">workbook</span>
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="data_protection">9. Data protection</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="passwords">9.1. Passwords</h3>
+<div class="paragraph">
+<p>Passwords will be stored SHA-encrypted in the database. Directly after
+usage of passwords (such as in the login screen) all password variables
+will be deleted. Passwords are not part of any log file entry.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="history_of_changes">9.2. History of changes</h3>
+<div class="paragraph">
+<p>All modifications of entities (create, update, delete) are stored with
+time stamp, user who cause the modification and the modified fields with
+the old and new value. The history of changes is displayed at the edit
+page of an entity. There are single special fields which are not part of
+this history mechanism.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="logging">9.3. Logging</h3>
+<div class="paragraph">
+<p>Access violations and actions of users (such as modification of
+entities) as well as any error message are stored in log files. The log
+file is important for analyzing error etc.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="phone_call_numbers">9.4. Phone call - numbers</h3>
+<div class="paragraph">
+<p>Every phone call will be logged. A log file entry contains:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>User causes the phone call</p>
+</li>
+<li>
+<p>Source phone number</p>
+</li>
+<li>
+<p>Destination phone number without the last 3 digits, eg 012345xxx.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="glossary">10. Glossary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The developers of ProjectForge® were using the German language until
+several years ago for some financial terms. Nowadays English is the main
+language of the development (for Java classes, documentation etc.). Here
+you may find translation and description of common used terms.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">German</th>
+<th class="tableblock halign-left valign-top">English</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aufgabe</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">task</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Since mid of 2013 the term task was replaced by
+'structure elements' because such elements may represent not only tasks,
+they represent customers, projects, releases, tasks etc.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Auftrag</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">order</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Beleg</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">receipt</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Betrag</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">amount</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Brutto</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">gross (amount)</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Buchungssatz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">accounting records</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Accounting records are entities which
+are imported by external financial systems (e. g. DATEV in Germany). The
+recommended workflow is to organize invoices, salaries of the employees
+etc. with ProjectForge® and then to import the data in the external
+financial system. The re-imported accounting records should match the
+data in ProjectForge.<br>
+ProjectForge® and the scripts also work if you don&#8217;t have accounting
+records, you may use the origin entities such as invoices etc. directly
+in your scripts.<br>
+The plural of accounting record is: Buchungssaetze</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BWA</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">business assessment</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Term used inside the financial module of
+ProjectForge®.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DATEV</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Software common used in Germany for financial administration.
+ProjectForge® offers import and export interfaces.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Datum</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">date</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Eingangsrechnung</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">invoice</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Used for incoming invoices (creditors).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">fakturiert</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">invoiced</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fibu</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">financial administration</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fibu is the abbreviation of the German
+term 'Finanzbuchhaltung'.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gegenkonto</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">contra account</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Term used inside the financial module of
+ProjectForge®.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Kontenplan</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">account structure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Term used inside the financial module of
+ProjectForge®.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Konto</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">account</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Term used inside the financial module of ProjectForge®.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Kost</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">cost</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Term used inside the financial module of ProjectForge®.
+Kost1/Kost2 &#8594; cost1/cost2 is the short form of 'cost unit'.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Kostenträger</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">cost unit</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Term used inside the financial module of
+ProjectForge®.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Kostenträgerart</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">type of cost unit</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Term used inside the financial
+module of ProjectForge®. Examples for types of cost units are:
+'Travelling', 'Acquisition', 'Meetings' etc. Types are customizable and
+used for specifying different types of costs in projects and/or company
+wide.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Kostenzuweisung</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">cost assignment</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Term used inside the financial module
+of ProjectForge®. Costs, such as employee salaries, position of invoices
+(incoming and outgoing) etc. are assigned to cost units.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Kunde</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">customer</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Menge</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">amount</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Netto</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">net (amount)</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Projekt</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">project</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Rechnung</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">invoice</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Used for outgoing invoices (debitors).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+                        
+                    </div>
+
+                    
+
+                    <hr class="uk-margin-medium">
+
+                    
+
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="uk-margin-large-top paginate-post">
+        <div class="uk-child-width-expand@s uk-grid-large uk-pagi" data-uk-grid>
+            <div>
+                
+                  
+                  
+                  
+                    <h5>Installation</h5>
+                    <div><a class="remove-underline hvr-back" href="/docs/installation/">&larr; Previous</a></div>
+                
+            </div>
+            <div>
+                
+                  
+                  
+                  
+                    <h5 style="float: right;">Administration guide</h5>
+                    <div class="uk-text-right" style="clear: right;"><a class="remove-underline hvr-forward" href="/docs/adminguide/">Next &rarr;</a></div>
+                
+            </div>
+        </div>
+    </div>
+    
+
+
+                    <div class="uk-margin-large-top">
+    <h3>Related Docs</h3>
+
+    
+    
+    
+
+    <ul class="uk-list link-secondary">
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+    </ul>
+</div>
+
+
+                    
+                </article>
+
+                <script>
+                    // Table of contents scroll to
+                    UIkit.scroll('#markdown-toc a', {
+                        duration: 400,
+                        offset: 120
+                    });
+                </script>
+
+            </div>
+
+    </div>
+</div>
+
+
+    <div id="offcanvas-docs" data-uk-offcanvas="overlay: true">
+    <div class="uk-offcanvas-bar">
+
+        <button class="uk-offcanvas-close" type="button" data-uk-close></button>
+
+        
+        <h5 class="uk-margin-top">Documentation</h5>
+        <ul class="uk-nav uk-nav-default doc-nav">
+        
+          
+          
+          <li class=""><a href="/docs/quickstart/">Quick Start</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/installation/">Installation</a></li>
+        
+          
+          
+          <li class="uk-active"><a href="/docs/userguide/">User guide</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/adminguide/">Administration guide</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/development/">Development</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/technologies/">Technologies</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/migration/">Migration</a></li>
+        
+        </ul>
+        
+
+    </div>
+</div>
+
+
+    <div id="offcanvas" data-uk-offcanvas="flip: true; overlay: true">
+    <div class="uk-offcanvas-bar">
+
+        <a class="uk-logo uk-margin-small-bottom" href="/"><img src="https://projectforge.org/uploads/logo_projectforge.gif" alt="ProjectForge"></a>
+     
+        <button class="uk-offcanvas-close" type="button" data-uk-close></button>
+      
+        <ul class="uk-nav uk-nav-primary uk-margin-top">
+            
+                
+
+                
+
+                
+                    <li><a href="/" >Home</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/features/" >Features</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/changelog-posts/" >Changelog</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/download/" >Download</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/misc/faqs" >FAQ</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/about/" >About</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/search/" >Search</a></li>
+                
+            
+        </ul>
+
+        <div class="uk-margin-top uk-text-center">
+            <div data-uk-grid class="uk-child-width-auto uk-grid-small uk-flex-center uk-grid">
+                
+<div class="uk-first-column">
+    <a href="https://twitter.com/micromata" data-uk-icon="icon: twitter" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+
+
+<div>
+    <a href="https://www.instagram.com/micromata/" data-uk-icon="icon: instagram" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+
+
+<div>
+    <a href="https://vimeo.com/user44553474" data-uk-icon="icon: vimeo" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+<div>
+    <a href="https://github.com/micromata/projectforge" data-uk-icon="icon: github" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+<div>
+    <a href="https://projectforge.org" data-uk-icon="icon: link" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+    
+
+    
+        
+    
+
+    
+
+    </body>
+
+</html>

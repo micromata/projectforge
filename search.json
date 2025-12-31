@@ -1,0 +1,59 @@
+[
+  
+    {
+      "title"    : "Administration guide",
+      "category" : "",
+      "tags"     : "adminguide",
+      "url"      : "/docs/adminguide/",
+      "date"     : "2025-12-31 23:25:16 +0000"
+    } ,
+  
+    {
+      "title"    : "Development",
+      "category" : "",
+      "tags"     : "development",
+      "url"      : "/docs/development/",
+      "date"     : "2025-12-31 23:25:16 +0000"
+    } ,
+  
+    {
+      "title"    : "Installation",
+      "category" : "",
+      "tags"     : "installation",
+      "url"      : "/docs/installation/",
+      "date"     : "2025-12-31 23:25:16 +0000"
+    } ,
+  
+    {
+      "title"    : "Migration",
+      "category" : "",
+      "tags"     : "migration, config",
+      "url"      : "/docs/migration/",
+      "date"     : "2025-12-31 23:25:16 +0000"
+    } ,
+  
+    {
+      "title"    : "Quick Start",
+      "category" : "",
+      "tags"     : "setup",
+      "url"      : "/docs/quickstart/",
+      "date"     : "2025-12-31 23:25:16 +0000"
+    } ,
+  
+    {
+      "title"    : "Technologies",
+      "category" : "",
+      "tags"     : "technologies",
+      "url"      : "/docs/technologies/",
+      "date"     : "2025-12-31 23:25:16 +0000"
+    } ,
+  
+    {
+      "title"    : "User guide",
+      "category" : "",
+      "tags"     : "userguide",
+      "url"      : "/docs/userguide/",
+      "date"     : "2025-12-31 23:25:16 +0000"
+    } 
+  
+]

@@ -1,0 +1,2070 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Development | ProjectForge</title>
+<meta name="generator" content="Jekyll v4.2.0" />
+<meta property="og:title" content="Development" />
+<meta name="author" content="kai" />
+<meta property="og:locale" content="en" />
+<meta name="description" content="ProjectForge Documentation." />
+<meta property="og:description" content="ProjectForge Documentation." />
+<link rel="canonical" href="https://projectforge.org/docs/development/" />
+<meta property="og:url" content="https://projectforge.org/docs/development/" />
+<meta property="og:site_name" content="ProjectForge" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2025-12-31T23:25:16+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Development" />
+<script type="application/ld+json">
+{"headline":"Development","dateModified":"2025-12-31T23:25:16+00:00","datePublished":"2025-12-31T23:25:16+00:00","description":"ProjectForge Documentation.","mainEntityOfPage":{"@type":"WebPage","@id":"https://projectforge.org/docs/development/"},"url":"https://projectforge.org/docs/development/","@type":"BlogPosting","author":{"@type":"Person","name":"kai"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://projectforge.org/logo_projectforge.gif"},"name":"kai"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+  <meta property="og:image" content="https://projectforge.org/uploads/logo_projectforge.gif"/>
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="shortcut icon" type="image/png" href="/uploads/favicon.png" >
+  <link rel="alternate" type="application/rss+xml" title="ProjectForge" href="/feed.xml">
+  <script src="/assets/js/main.js"></script>
+  
+  
+  
+</head>
+
+
+    <body>
+
+    
+        <div data-uk-sticky="animation: uk-animation-slide-top; sel-target: .uk-navbar-container; cls-active: uk-navbar-sticky; cls-inactive: uk-navbar-transparent; top: 200">
+    <nav class="uk-navbar-container">
+        <div class="uk-container">
+            <div data-uk-navbar>
+                <div class="uk-navbar-left">
+                    <a class="uk-navbar-item uk-logo uk-visible@m" href="/"><img src="https://projectforge.org/uploads/logo_projectforge.gif" alt="ProjectForge"></a>
+                    
+                        <a class="uk-navbar-toggle uk-hidden@m" href="#offcanvas-docs" data-uk-toggle><span data-uk-navbar-toggle-icon></span> <span class="uk-margin-small-left">Docs</span></a>
+                    
+
+                    <ul class="uk-navbar-nav uk-visible@m">
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/" >Home</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="https://github.com/micromata/projectforge/" target="_blank" >GitHub</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/features/" >Features</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="#">Docs</a>
+                                        
+                                            <div class="uk-navbar-dropdown">
+                                                <ul class="uk-nav uk-navbar-dropdown-nav">
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/quickstart/">Quick Start</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/installation/">Installation</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/adminguide/">Administration guide</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/userguide/">User guide</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li class="uk-active"><a href="/docs/development/">Development</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/technologies/">Technologies</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/migration/">Migration</a></li>
+                                                    
+                                                    
+                                                </ul>
+                                            </div>
+                                        
+                                        </li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/misc/faqs" >FAQ</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/about/" >About</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/search/" >Search</a></li>
+                                                                                                        
+                                
+                            
+                        
+                    </ul>
+                </div>
+                <div class="uk-navbar-center uk-hidden@m">
+                    <a class="uk-navbar-item uk-logo" href="/"><img src="https://projectforge.org/uploads/logo_projectforge.gif" alt="ProjectForge"></a>
+                </div>
+                <div class="uk-navbar-right">
+                    
+
+                    <ul class="uk-navbar-nav uk-visible@m">
+                        
+                            
+                            
+                            
+                                
+                                    <li><div class="uk-navbar-item"><a class="uk-button uk-button-primary-outline" href="/changelog-posts/" >Changelog</a></div></li>
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    <li><div class="uk-navbar-item"><a class="uk-button uk-button-success" href="/download/" >Download</a></div></li>
+                                
+                            
+                        
+                    </ul>
+
+                    
+                        <a class="uk-navbar-toggle uk-hidden@m" href="#offcanvas" data-uk-toggle><span data-uk-navbar-toggle-icon></span> <span class="uk-margin-small-left">Menu</span></a>
+                    
+
+                </div>
+            </div>
+        </div>
+    </nav>
+</div>
+
+    
+
+    <div class="uk-section">
+    <div class="uk-container">
+        <div class="uk-grid-large" data-uk-grid>
+
+            <div class="sidebar-fixed-width uk-visible@m">
+                <div class="sidebar-docs uk-position-fixed uk-margin-top">
+                    
+                    <h5>Documentation</h5>
+                    <ul class="uk-nav uk-nav-default doc-nav">
+                    
+                      
+                      
+                      <li class=""><a href="/docs/quickstart/">Quick Start</a></li>
+                    
+                      
+                      
+                      <li class=""><a href="/docs/installation/">Installation</a></li>
+                    
+                      
+                      
+                      <li class=""><a href="/docs/userguide/">User guide</a></li>
+                    
+                      
+                      
+                      <li class=""><a href="/docs/adminguide/">Administration guide</a></li>
+                    
+                      
+                      
+                      <li class="uk-active"><a href="/docs/development/">Development</a></li>
+                    
+                      
+                      
+                      <li class=""><a href="/docs/technologies/">Technologies</a></li>
+                    
+                      
+                      
+                      <li class=""><a href="/docs/migration/">Migration</a></li>
+                    
+                    </ul>
+                    
+                </div>
+            </div>
+
+            <div class="uk-width-1-1 uk-width-expand@m">
+
+                <article class="uk-article">
+
+                    <h1 class="uk-article-title">Development</h1>
+
+                    
+
+                    <div class="uk-article-meta uk-margin-top uk-margin-medium-bottom uk-flex uk-flex-middle">
+                        
+
+
+  
+  <img class="uk-border-circle avatar" src="https://projectforge.org/uploads/kai.png" alt="Kai Reinhard">
+
+
+<div>
+  
+    Written by <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">Kai Reinhard</span></span><br>
+  
+  <time datetime="2025-12-31T23:25:16+00:00" itemprop="datePublished">
+    
+    Dec 31, 2025
+  </time>
+</div>
+                    </div>
+
+                    <div class="article-content link-primary">
+                        <div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#want_to_see_it_live">1. Want to see it live?</a></li>
+<li><a href="#architecture">2. Architecture</a>
+<ul class="sectlevel2">
+<li><a href="#the_layers">2.1. The layers</a>
+<ul class="sectlevel3">
+<li><a href="#business_layer_business">2.1.1. Business layer (business)</a></li>
+<li><a href="#rest_api_and_front_end_support_rest">2.1.2. REST API and front-end support (rest)</a></li>
+<li><a href="#reactjs_webapp">2.1.3. ReactJS (webapp)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#backend">3. Backend</a>
+<ul class="sectlevel2">
+<li><a href="#why_kotlin_in_addition_to_java">3.1. Why Kotlin in addition to Java?</a>
+<ul class="sectlevel3">
+<li><a href="#base_entities_basedo">3.1.1. Base entities (BaseDO)</a></li>
+<li><a href="#basedao">3.1.2. BaseDao</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#rest_api">4. REST API</a></li>
+<li><a href="#ui">5. UI</a>
+<ul class="sectlevel2">
+<li><a href="#responsive">5.1. Responsive</a></li>
+<li><a href="#standard_list_views">5.2. Standard list views</a>
+<ul class="sectlevel3">
+<li><a href="#example_of_json_format">5.2.1. Example of json format</a></li>
+</ul>
+</li>
+<li><a href="#standard_edit_pages">5.3. Standard edit pages</a>
+<ul class="sectlevel3">
+<li><a href="#example_of_json_format_2">5.3.1. Example of json format</a></li>
+<li><a href="#magic_filter">5.3.2. Magic filter</a></li>
+<li><a href="#rest_api_jpa_entities_vs_dto">5.3.3. REST-API: JPA entities vs. DTO</a></li>
+<li><a href="#putting_all_together_in_kotlin_code">5.3.4. Putting all together in Kotlin code</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#writing_own_plugins">6. Writing own plugins</a>
+<ul class="sectlevel2">
+<li><a href="#starting_your_plugin_from_command_line">6.1. Starting your plugin from command line</a></li>
+<li><a href="#starting_and_debugging_in_intellij">6.2. Starting and debugging in IntelliJ</a></li>
+<li><a href="#limitations_in_plugins">6.3. Limitations in Plugins</a></li>
+</ul>
+</li>
+<li><a href="#misc">7. Misc</a>
+<ul class="sectlevel2">
+<li><a href="#code_style">7.1. Code style</a></li>
+<li><a href="#working_with_different_data_bases_for_testing">7.2. Working with different data bases for testing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="sect1">
+<h2 id="want_to_see_it_live">1. Want to see it live?</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You&#8217;re welcome to run ProjectForge by simply doing:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Download the current version 7 snapshot (beta version): <a href="https://sourceforge.net/projects/pforge/files/ProjectForge/Snapshots/projectforge-application-7.0-SNAPSHOT.jar/download">projectforge-application-7.0-SNAPSHOT.jar</a></p>
+</li>
+<li>
+<p>Run <code>java -jar projectforge-application-7.0-SNAPSHOT.jar</code> (Java 8 is needed).</p>
+</li>
+<li>
+<p>Visit <a href="http://localhost:8080/wa/setup" class="bare">localhost:8080/wa/setup</a></p>
+</li>
+<li>
+<p>Choose and enter a password for the admin and submit.</p>
+</li>
+<li>
+<p>ProjectForge is now creating a system with some test data in a few seconds.</p>
+</li>
+<li>
+<p>Enjoy it and test the REST API.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="architecture">2. Architecture</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="the_layers">2.1. The layers</h3>
+<div class="paragraph">
+<p>The main functionality of ProjectForge is to display and search data list and to modify data (CRUD - create, read, update and delete). Therefore the
+goal of the architecture is not to write thousands lines of code for same base functionality.</p>
+</div>
+<div class="sect3">
+<h4 id="business_layer_business">2.1.1. Business layer (business)</h4>
+<div class="paragraph">
+<p>The business layer handles all entities including access checking for CRUD operations as well as well as user services (storage for preferences etc.).</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="rest_api_and_front_end_support_rest">2.1.2. REST API and front-end support (rest)</h4>
+<div class="paragraph">
+<p>The REST layer provides CRUD services etc. and also front-end support functionality. These both parts might be separated, but regarding code efficiency both are combined.
+For using only CRUD operations (without interest in the front-end support functionality), so simply ignore some additional information in the result data (json).</p>
+</div>
+<div class="paragraph">
+<p>Yes, you&#8217;re totally right: Should you not separate front-end from back-end code more strictly? But, the code is separated and despite the fact, that UI layout info and CRUD services are combined, it should be allowed
+to have a server-side application support. So this REST-API is a result of efficient development without dozens of front-end and back-end developers.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="reactjs_webapp">2.1.3. ReactJS (webapp)</h4>
+<div class="paragraph">
+<p>The ReactJS layer handles the data and UI layout information provided by the REST API. A dynamic layout management system is used to visualize the
+html pages defined by the server. In addition customized components are provided for specialized functionality.</p>
+</div>
+<div class="paragraph">
+<p>Except for the customized components and pages, the client has no clue, of what entities are provided by the server. The client gets the menu from the server and
+calls the server for how to proceed for given entities (e. g. list or edit view of users, addresses, book, time sheets etc.). The server provides both, the data
+to display (model) and the layout information of how to display (view).
+The users actions (clicking on buttons or menu entries) results in most cases in server calls, and the server responses how to proceed:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The front-end supports defined state manipulations by the server (see below, e. g. selecting favorite filter etc., or list of calendar events after selecting calendars etc.)</p>
+</li>
+<li>
+<p>The server may respond in addition on URLs to redirect to by the front-end.</p>
+</li>
+<li>
+<p>The server provides also validation information (e. g. max-length of text input fields) as well as errors after complex server-side validations after submitting a form.</p>
+</li>
+<li>
+<p>The front-end defines customized pages and components (non standard components are not ruled by the server). Examples: Image upload for addresses or lend-out functionality for books.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="backend">3. Backend</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Java is the language used since the very beginning of ProjectForge in 2001.</p>
+</div>
+<div class="paragraph">
+<p>With ProjectForge 7.x Kotlin and ReactJS is introduced.</p>
+</div>
+<div class="sect2">
+<h3 id="why_kotlin_in_addition_to_java">3.1. Why Kotlin in addition to Java?</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Kotlin is used for smarter and less code, especially for BaseDO objects as well as for easier creation of data transfer classes for the new introduced REST API.</p>
+</li>
+<li>
+<p>Other advantages:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Smart operations on collections (map, find, sort etc.)</p>
+</li>
+<li>
+<p>Immutable objects, classes and functions as default.</p>
+</li>
+<li>
+<p>Null safety</p>
+</li>
+<li>
+<p>Compatibility with JAVA code.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Java and Kotlin will both exist. Only most BaseDO classes were migrated and new functionality will mostly be written in Kotlin.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Please note: Kotlin must be compiled with target 1.8 (Java version) but is fully runnable on Java 9, 10 and 11 VMs.</p>
+</div>
+<div class="sect3">
+<h4 id="base_entities_basedo">3.1.1. Base entities (BaseDO)</h4>
+<div class="paragraph">
+<p>The BaseDO objects are the entities of ProjectForge stored in the data base. As default, all modification of entity attributes are available in a history with the information about the modification (user, timestamp, old and new value).</p>
+</div>
+<div class="listingblock">
+<div class="title">AddressDO.kt</div>
+<div class="content">
+<pre class="rouge highlight"><code data-lang="kotlin"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+</pre></td><td class="code"><pre><span class="k">open</span> <span class="kd">class</span> <span class="nc">AddressDO</span> <span class="p">:</span> <span class="nc">DefaultBaseWithAttrDO</span><span class="p">&lt;</span><span class="nc">AddressDO</span><span class="p">&gt;()</span> <span class="p">{</span>
+
+    <span class="nd">@PropertyInfo</span><span class="p">(</span><span class="n">i18nKey</span> <span class="p">=</span> <span class="s">"address.contactStatus"</span><span class="p">)</span>
+    <span class="nd">@Field</span>
+    <span class="k">open</span> <span class="kd">var</span> <span class="py">contactStatus</span> <span class="p">=</span> <span class="nc">ContactStatus</span><span class="p">.</span><span class="nc">ACTIVE</span>
+
+    <span class="nd">@PropertyInfo</span><span class="p">(</span><span class="n">i18nKey</span> <span class="p">=</span> <span class="s">"name"</span><span class="p">,</span> <span class="n">required</span> <span class="p">=</span> <span class="k">true</span><span class="p">)</span>
+    <span class="nd">@Field</span>
+    <span class="err">@</span><span class="k">get</span><span class="p">:</span><span class="nc">Column</span><span class="p">(</span><span class="n">length</span> <span class="p">=</span> <span class="mi">255</span><span class="p">)</span>
+    <span class="k">open</span> <span class="kd">var</span> <span class="py">name</span><span class="p">:</span> <span class="nc">String</span><span class="p">?</span> <span class="p">=</span> <span class="k">null</span>
+
+    <span class="nd">@PropertyInfo</span><span class="p">(</span><span class="n">i18nKey</span> <span class="p">=</span> <span class="s">"address.phone"</span><span class="p">,</span> <span class="n">additionalI18nKey</span> <span class="p">=</span> <span class="s">"address.business"</span><span class="p">)</span>
+    <span class="nd">@Field</span>
+    <span class="err">@</span><span class="k">get</span><span class="p">:</span><span class="nc">Column</span><span class="p">(</span><span class="n">length</span> <span class="p">=</span> <span class="mi">255</span><span class="p">)</span>
+    <span class="k">open</span> <span class="kd">var</span> <span class="py">businessPhone</span><span class="p">:</span> <span class="nc">String</span><span class="p">?</span> <span class="p">=</span> <span class="k">null</span>
+    <span class="o">..</span><span class="p">.</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>BaseDO classes must be declared as open as well as all properties. Otherwise JPA/Hibernate isn&#8217;t able to proxy these objects and lazy loading isn&#8217;t supported.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>As example some parts of <code>AddressDO.kt</code> are shown and described below:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@PropertyInfo</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The given <code>i18nKey</code> is used for translating the field label and will be served for the frontend(s).
+The optional given <code>additionalI18nKey</code> is used for having an additional translated label, in the example there are different phone numbers, categorized as business or private.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@Field</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">This database field will be indexed and available for a full text search as well as for specifying search values for this field by the user.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@get:Column(length=255)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JPA annotations. The JPA annotations are available as Meta information from all parts and will be served for the frontends, e. g. for
+defining the html field <code>max-length</code> of input fields.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Property type</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The property type is also available as Meta information also for the clients. The input fields of the frontend may be autodetected (string, date picker, user selectors, drop down choices for enums etc.)</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="title">ContactStatus.java</div>
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+</pre></td><td class="code"><pre><span class="kd">public</span> <span class="kd">enum</span> <span class="nc">ContactStatus</span> <span class="kd">implements</span> <span class="nc">I18nEnum</span>
+<span class="o">{</span>
+  <span class="no">ACTIVE</span><span class="o">(</span><span class="s">"active"</span><span class="o">),</span> <span class="no">NON_ACTIVE</span><span class="o">(</span><span class="s">"nonActive"</span><span class="o">),</span> <span class="no">DEPARTED</span><span class="o">(</span><span class="s">"departed"</span><span class="o">);</span>
+
+  <span class="kd">public</span> <span class="nc">String</span> <span class="nf">getI18nKey</span><span class="o">()</span>
+  <span class="o">{</span>
+    <span class="k">return</span> <span class="s">"address.contactStatus."</span> <span class="o">+</span> <span class="n">key</span><span class="o">;</span>
+  <span class="o">}</span>
+  <span class="o">...</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The enumerations of type <code>I18nEnum</code> are also designed for auto translation purposes. The field <code>contactStatus</code> will be presented as a drop down choice field with translated
+labels.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="basedao">3.1.2. BaseDao</h4>
+<div class="paragraph">
+<p>The BaseDao classes provide all CRUD operations for the BaseDO entities and will handle the access rights. No user is able to select or modify entities without the required access rights.</p>
+</div>
+<div class="paragraph">
+<p>The implementation of BaseDao for entities, such as users, addresses, books etc. extends the BaseDao object by defining the access rights and additional special functionality. The base CRUD functionality including access
+checks, history service etc. will be inherited.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="rest_api">4. REST API</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Since version 7.0 ProjectForge provides all CRUD operations through a REST API and much more. The user&#8217;s access rights will be checked. For available standard REST calls you
+may refer the REST calls described in the UI section below.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="ui">5. UI</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The new UI is based on REST and ReactJS. The ReactJS code includes a dynamic auto layout component for standard components, such as:</p>
+</div>
+<div class="paragraph">
+<p>For developing ProjectForge&#8217;s frontend, please refer: <a href="https://github.com/micromata/projectforge/tree/develop/projectforge-webapp" class="bare">github.com/micromata/projectforge/tree/develop/projectforge-webapp</a></p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Input</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Html input fields (text, date picker with text input etc.)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Select boxes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">For selecting values for e. g. enums (auto completion and asynchronous are calls supported.)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Multi select</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Select field for selecting multi values (auto completion, asynchronous). This may be used for selecting values as well as of selecting entities assigned to current object, e. g. users may assigned to groups or calendars are selectable for displaying.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fieldset</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fieldsets with titles and length settings (Bootstrap grid system is supported)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Columns</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Columns with length settings (Bootstrap grid system is supported)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tables</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">For displaying result sets etc.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Customized fields</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">You may register customized UI components which will be used for displaying and modifiing values. Refer the image upload for addresses as an example.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&#8230;&#8203;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&#8230;&#8203;</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect2">
+<h3 id="responsive">5.1. Responsive</h3>
+<div class="paragraph">
+<p>Bootstrap is used and responsive layout control is fully supported.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="standard_list_views">5.2. Standard list views</h3>
+<div class="paragraph">
+<p>Available REST calls:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Rest call</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Return values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>rs/address/initialList</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Initial call for displaying a list including layout, recent filter settings, result data and favorites.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
+<ul>
+<li>
+<p>UI layout (available filter options, columns of the result data, page menu items, &#8230;&#8203;)</p>
+</li>
+<li>
+<p>Recent used filter settings by the user.</p>
+</li>
+<li>
+<p>Available personal favorites.</p>
+</li>
+<li>
+<p>Result set for recent filter.</p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>rs/address/list</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Call with current filter settings as POST parameter after clicking the search button.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
+<ul>
+<li>
+<p>Result set matching the given filter settings.</p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>rs/address/filter/create</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">For creating a new favorite filter. The current filter settings of the UI including the specified name of the new filter are required.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
+<ul>
+<li>
+<p>filter (new current filter)</p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>rs/address/filter/select?id={filterId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">For selecting a previous stored favorite filter. Same parameter as for initialList will be returned.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
+<ul>
+<li>
+<p>UI layout</p>
+</li>
+<li>
+<p>New filter settings from selected favorite.</p>
+</li>
+<li>
+<p>Result set matching the new selected filter.</p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>rs/address/filter/update</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">For updating the current filter with the new filter settings done by the user.</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>rs/address/filter/delete</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">For deleting a favorite filter.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
+<ul>
+<li>
+<p>Modified list of available favorites.</p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>rs/address/filter/reset</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Resets the current filter by default values.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
+<ul>
+<li>
+<p>The default filter.</p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>rs/address/reindexFull</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">For rebuilding the full search index for the enties (e. g. all addresses).</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+</tbody>
+</table>
+<div class="sect3">
+<h4 id="example_of_json_format">5.2.1. Example of json format</h4>
+<div class="listingblock">
+<div class="title">rs/address/initialList</div>
+<div class="content">
+<pre class="rouge highlight"><code data-lang="json"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+ 23
+ 24
+ 25
+ 26
+ 27
+ 28
+ 29
+ 30
+ 31
+ 32
+ 33
+ 34
+ 35
+ 36
+ 37
+ 38
+ 39
+ 40
+ 41
+ 42
+ 43
+ 44
+ 45
+ 46
+ 47
+ 48
+ 49
+ 50
+ 51
+ 52
+ 53
+ 54
+ 55
+ 56
+ 57
+ 58
+ 59
+ 60
+ 61
+ 62
+ 63
+ 64
+ 65
+ 66
+ 67
+ 68
+ 69
+ 70
+ 71
+ 72
+ 73
+ 74
+ 75
+ 76
+ 77
+ 78
+ 79
+ 80
+ 81
+ 82
+ 83
+ 84
+ 85
+ 86
+ 87
+ 88
+ 89
+ 90
+ 91
+ 92
+ 93
+ 94
+ 95
+ 96
+ 97
+ 98
+ 99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+</pre></td><td class="code"><pre><span class="p">{</span><span class="w">
+  </span><span class="nl">"ui"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Address list"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"layout"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"resultSet"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TABLE"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"el-1"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"columns"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"address.lastUpdate"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"modified"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"dataType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DATE"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"sortable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"formatter"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DATE"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TABLE_COLUMN"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"el-2"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+     </span><span class="err">...</span><span class="w">
+    </span><span class="s2">"namedContainers"</span><span class="err">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+     </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"searchFilter"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"content"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"name"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"filterType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"STRING"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"label"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Name"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"FILTER_ELEMENT"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"name"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"contactStatus"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SELECT"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"key"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"required"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"multi"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"label"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Contact status"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"labelProperty"</span><span class="p">:</span><span class="w"> </span><span class="s2">"label"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"valueProperty"</span><span class="p">:</span><span class="w"> </span><span class="s2">"value"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"values"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+              </span><span class="p">{</span><span class="w">
+                </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ACTIVE"</span><span class="p">,</span><span class="w">
+                </span><span class="nl">"label"</span><span class="p">:</span><span class="w"> </span><span class="s2">"active"</span><span class="w">
+              </span><span class="p">},</span><span class="w">
+              </span><span class="p">{</span><span class="w">
+                </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"NON_ACTIVE"</span><span class="p">,</span><span class="w">
+                </span><span class="nl">"label"</span><span class="p">:</span><span class="w"> </span><span class="s2">"non-active"</span><span class="w">
+              </span><span class="p">},</span><span class="w">
+              </span><span class="err">...</span><span class="w">
+            </span><span class="p">]</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"modifiedByUser"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"label"</span><span class="p">:</span><span class="w"> </span><span class="s2">"modified by"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"autoCompletion"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+              </span><span class="nl">"minChars"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+              </span><span class="nl">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"user/ac"</span><span class="w">
+            </span><span class="p">},</span><span class="w">
+            </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"FILTER_ELEMENT"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"modifiedByUser"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"filterType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OBJECT"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"modifiedInterval"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"label"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Time of modification"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"openInterval"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"selectors"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+              </span><span class="s2">"YEAR"</span><span class="p">,</span><span class="w">
+              </span><span class="s2">"MONTH"</span><span class="p">,</span><span class="w">
+              </span><span class="s2">"WEEK"</span><span class="p">,</span><span class="w">
+              </span><span class="s2">"DAY"</span><span class="p">,</span><span class="w">
+              </span><span class="s2">"UNTIL_NOW"</span><span class="w">
+            </span><span class="p">],</span><span class="w">
+            </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"FILTER_ELEMENT"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"modifiedInterval"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"filterType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TIME_STAMP"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+       </span><span class="err">...</span><span class="w">
+   </span><span class="s2">"actions"</span><span class="err">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"reset"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Reset"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"style"</span><span class="p">:</span><span class="w"> </span><span class="s2">"danger"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BUTTON"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"el-17"</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"search"</span><span class="p">,</span><span class="w">
+    </span><span class="err">...</span><span class="w">
+    </span><span class="nl">"translations"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"select.placeholder"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Select..."</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"task.title.list.select"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Select structure element"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"favorites"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Favorites"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"favorite.addNew"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Add new favorite"</span><span class="p">,</span><span class="w">
+     </span><span class="err">...</span><span class="w">
+    </span><span class="nl">"pageMenu"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"address.writeSMS"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Write a text message"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"i18nKey"</span><span class="p">:</span><span class="w"> </span><span class="s2">"address.tooltip.writeSMS"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"wa/sendSms"</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="err">...</span><span class="w">
+  </span><span class="s2">"data"</span><span class="err">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"resultSet"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"address"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Reinhard"</span><span class="p">,</span><span class="w">
+        </span><span class="err">...</span><span class="w">
+  </span><span class="nl">"filterFavorites"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"People of Kassel"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="err">...</span>
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Explanation</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ui</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Contains the page title and the layout information for the dynamic layout render engine (ReactJS).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>namedContainer</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Contains containers usable by the front-end, such as search filter and filter options.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>actions</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The action buttons to display and handle by the front-end.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>translations</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">All required translations usable by the front-end for i18n.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>pageMenu</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The context menu to show on the list page including the actions to execute by the front-end.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Contains the result set with all result data matching the current filter settings.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>filterFavorites</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List of personal named filter favorites customizable by the user.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>key</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The key attribute is a service for the React client: a unique key for elements of a collection is needed by ReactJS.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Visit <a href="http://localhost:8080/rs/address/initialList" class="bare">localhost:8080/rs/address/initialList</a> for a full example. Please login in your browser first: <a href="http://localhost:8080" class="bare">localhost:8080</a></p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="standard_edit_pages">5.3. Standard edit pages</h3>
+<div class="paragraph">
+<p>Available REST calls:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Rest call</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Return values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>rs/address/{id}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Only the entity with the given id will be returned (not used by React frontend).</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
+<ul>
+<li>
+<p>The pure data object.</p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>rs/address/edit?id={id}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Initial call for editing. If id is not given, the layout for creating a new object is returned.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
+<ul>
+<li>
+<p>UI layout including action buttons.</p>
+</li>
+<li>
+<p>The object data (default values for new objects or all values for editing existing objects).</p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>rs/address/history/{id}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">For getting the complete history of changes of the given object.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
+<ul>
+<li>
+<p>All entries of the history of changes.</p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>rs/address/ac?property={property}&amp;search={search}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Autocompletion: for searching all used property values (e. g. used locations of time sheets).</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
+<ul>
+<li>
+<p>All matching property values.</p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>rs/address/ac?&amp;search={search}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Autocompletion: for full text searching all objects matching the given search string.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
+<ul>
+<li>
+<p>All matching objects (e. g. addresses).</p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>rs/address/history/{id}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">For getting the complete history of changes of the given object.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
+<ul>
+<li>
+<p>All entries of the history of changes.</p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>rs/address/saveorupdate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">For saving or updating objects.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
+<ul>
+<li>
+<p>The new URL to redirect, if any.</p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>rs/address/clone</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">For cloning the current displayed object. Returns the initial UI layout for new objects including the create button instead of delete and update.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
+<ul>
+<li>
+<p>UI layout including action buttons.</p>
+</li>
+<li>
+<p>The object as clone without id.</p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>rs/address/markAsDeleted</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">For marking historizable objects as deleted. Fails for non historizable entities.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>rs/address/delete</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">For deleting objects from the data base without undo option. Fails for historizable entities.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>rs/address/cancel</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cancel the edit page.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
+<ul>
+<li>
+<p>The new URL to redirect to.</p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<div class="sect3">
+<h4 id="example_of_json_format_2">5.3.1. Example of json format</h4>
+<div class="listingblock">
+<div class="title">rs/address/edit?id={id}</div>
+<div class="content">
+<pre class="rouge highlight"><code data-lang="json"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+</pre></td><td class="code"><pre><span class="p">{</span><span class="w">
+  </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"contactStatus"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ACTIVE"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Schmidt"</span><span class="p">,</span><span class="w">
+    </span><span class="err">...</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"ui"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Edit address"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"layout"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"content"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"length"</span><span class="p">:</span><span class="w"> </span><span class="mi">12</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"FIELDSET"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"el-2"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"content"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+              </span><span class="err">...</span><span class="w">
+            </span><span class="p">{</span><span class="w">
+              </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"addressStatus"</span><span class="p">,</span><span class="w">
+              </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SELECT"</span><span class="p">,</span><span class="w">
+              </span><span class="nl">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"el-9"</span><span class="p">,</span><span class="w">
+              </span><span class="nl">"required"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+              </span><span class="nl">"label"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Address status"</span><span class="p">,</span><span class="w">
+              </span><span class="nl">"values"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+                  </span><span class="p">{</span><span class="w">
+                     </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"UPTODATE"</span><span class="p">,</span><span class="w">
+                     </span><span class="err">...</span><span class="w">
+                  </span><span class="p">}]</span><span class="w">
+            </span><span class="p">},</span><span class="w">
+            </span><span class="err">...</span><span class="w">
+            </span><span class="p">{</span><span class="w">
+              </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"name"</span><span class="p">,</span><span class="w">
+              </span><span class="nl">"maxLength"</span><span class="p">:</span><span class="w"> </span><span class="mi">255</span><span class="p">,</span><span class="w">
+              </span><span class="nl">"required"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+              </span><span class="nl">"focus"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+              </span><span class="nl">"dataType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"STRING"</span><span class="p">,</span><span class="w">
+              </span><span class="nl">"label"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Name"</span><span class="p">,</span><span class="w">
+              </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"INPUT"</span><span class="p">,</span><span class="w">
+              </span><span class="nl">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"el-24"</span><span class="w">
+            </span><span class="p">},</span><span class="w">
+            </span><span class="err">...</span><span class="w">
+    </span><span class="s2">"actions"</span><span class="err">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"cancel"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Cancel"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"style"</span><span class="p">:</span><span class="w"> </span><span class="s2">"danger"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BUTTON"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"el-137"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"responseAction"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"address/cancel"</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"targetType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"POST"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"markAsDeleted"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Mark as deleted"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"style"</span><span class="p">:</span><span class="w"> </span><span class="s2">"warning"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BUTTON"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"el-138"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"responseAction"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"address/markAsDeleted"</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"targetType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DELETE"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"update"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Save"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"style"</span><span class="p">:</span><span class="w"> </span><span class="s2">"primary"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"default"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BUTTON"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"el-140"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"responseAction"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"address/saveorupdate"</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"targetType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"POST"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+      </span><span class="err">...</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="s2">"pageMenu"</span><span class="err">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"address.printView"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"print view"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"i18nKey"</span><span class="p">:</span><span class="w"> </span><span class="s2">"printView"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"wa/addressView?id=2"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"REDIRECT"</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="err">...</span><span class="w">
+    </span><span class="s2">"translations"</span><span class="err">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"file.upload.dropArea"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Select a file, or drop it here."</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"label.historyOfChanges"</span><span class="p">:</span><span class="w"> </span><span class="s2">"History of changes"</span><span class="p">,</span><span class="w">
+      </span><span class="err">...</span>
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Explanation</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Contains the result set with all result data matching the current filter settings.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ui</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Contains the page title and the layout information for the dynamic layout render engine (ReactJS).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>actions</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The action buttons to display and handle by the front-end.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>pageMenu</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The context menu to show on the list page including the actions to execute by the front-end.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>translations</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">All required translations usable by the front-end for i18n.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>key</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The key attribute is a service for the React client: a unique key for elements of a collection is needed by ReactJS.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Visit <a href="http://localhost:8080/rs/address/edit?id=128" class="bare">localhost:8080/rs/address/edit?id=128</a> for a full example. May-be another id is needed, so refer the initilList for address id&#8217;s
+ (<code>data.resultSet.address.id</code>, not tenant&#8217;s id)!  Please login in your browser first: <a href="http://localhost:8080" class="bare">localhost:8080</a></p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="magic_filter">5.3.2. Magic filter</h4>
+<div class="paragraph">
+<p>An example filter for querying a result set:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/uploads/development/Books-magicfilter.png" alt="Books magicfilter">
+</div>
+</div>
+<div class="listingblock">
+<div class="title">MagicFilter.json</div>
+<div class="content">
+<pre class="rouge highlight"><code data-lang="json"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+</pre></td><td class="code"><pre><span class="w">   </span><span class="nl">"entries"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"search"</span><span class="p">:</span><span class="w"> </span><span class="s2">"fin"</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"field"</span><span class="p">:</span><span class="w"> </span><span class="s2">"modifiedByUser"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"deleted"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"field"</span><span class="p">:</span><span class="w"> </span><span class="s2">"title"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"search"</span><span class="p">:</span><span class="w"> </span><span class="s2">"java"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"matchType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"STARTS_WITH"</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"field"</span><span class="p">:</span><span class="w"> </span><span class="s2">"modifiedInterval"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"fromValue"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2019-04-28'T'10:00:05.000Z"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"toValue"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2019-04-28'T'17:00:05.000Z"</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"field"</span><span class="p">:</span><span class="w"> </span><span class="s2">"yearOfPublishing"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"fromValue"</span><span class="p">:</span><span class="w"> </span><span class="mi">2010</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"field"</span><span class="p">:</span><span class="w"> </span><span class="s2">"type"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"values"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+          </span><span class="s2">"BOOK"</span><span class="p">,</span><span class="w">
+          </span><span class="s2">"MAGAZINE"</span><span class="w">
+        </span><span class="p">]</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">]</span>
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Explanation for filter settings:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"search": "fin"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Full text search (for all fields) with standard <code>matchType=STARTS_WITH</code>: <code>fin*</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"field": "modifiedByUser"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Selects all entries modified by the given user.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"field": "title"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Selects entries with the matching title.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"field": "modifiedInterval"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Selects entries modified in the given time interval.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"field": "yearOfPublishing"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Selects entries with the <code>yearOfPublishing</code> 2010 and newer.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"field": "type"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Selects entries with the type matching one of the given values.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="rest_api_jpa_entities_vs_dto">5.3.3. REST-API: JPA entities vs. DTO</h4>
+<div class="paragraph">
+<p>For simple objects the JPA objects (BaseDO) may be used for the CRUD functionality through the REST-API. For more complex objects, especially if these objects
+are embedded by other entities (users, tasks etc.) a DTO (data transfer object) has to be used.</p>
+</div>
+<div class="paragraph">
+<p>In thanks to Kotlin, the creation of a DTO is very simple and efficient. Examples:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/Address.kt"><code>Address.kt</code></a>
+The DTO for addresses is needed, because addresses may contain images with a special handling.</p>
+</li>
+<li>
+<p><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/User.kt"><code>User.kt</code></a>
+The DTO for users is needed, because user objects are embedded in other JPA entities.</p>
+</li>
+<li>
+<p><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/Task.kt"><code>Task.kt</code></a>
+Task is embedded by other entities as well.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The base class <code>BaseDTO</code> provides base functionality for the automatically transformation of DTO and BaseDO.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="putting_all_together_in_kotlin_code">5.3.4. Putting all together in Kotlin code</h4>
+<div class="paragraph">
+<p>Simple example (books)</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Class (Link)</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/book/BookDO.kt"><code>BookDO.kt</code></a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Defines the entity</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/java/org/projectforge/business/book/BookDao.java"><code>BookDao.java</code></a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Defines access rights and special functionality for books</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/BookRest.kt"><code>BookRest.kt</code></a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Books with support of ReactJS as well as REST API for CRUD operations</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/book/BookStatus.kt"><code>BookStatus.kt</code></a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enumeration of book status including i18n</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Nothing more is needed to have a simple entity provided by ProjectForge!!! No HTML, no JavaScript, nothing else.</p>
+</div>
+<div class="paragraph">
+<p>Simple example (addresses) with more fields and UI layout with more fieldsets and columns (supporting different screen resolutions, responsive).</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Class (Link)</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/address/AddressDO.kt"><code>AddressDO.kt</code></a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Defines the entity</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/java/org/projectforge/business/address/AddressDao.java"><code>AddressDao.java</code></a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Defines access rights and special functionality for addresses</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/AddressRest.kt"><code>AddressRest.kt</code></a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Addresses with support of ReactJS (responsive) as well as REST API for CRUD operations</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/Address.kt"><code>Address.kt</code></a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Data transfer object for the client. For simple objects, the BaseDO object may be used for the REST-CRUD functionality. For more complex objects providing special functionality, the usage of a DTO is required/recommended.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="writing_own_plugins">6. Writing own plugins</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Refer <a href="https://github.com/micromata/projectforge-plugins">ProjectForge-plugins on GitHub</a> for examples.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>KTMemo as an Kotlin plugin.</p>
+</li>
+<li>
+<p>JMemo as an Java plugin.</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="starting_your_plugin_from_command_line">6.1. Starting your plugin from command line</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Build jar file by calling <code>mvn clean install</code>.</p>
+</li>
+<li>
+<p>Copy jar file to plugins folder of ProjectForge home, e. g. <code>/home/kai/ProjectForge/plugins</code>.</p>
+</li>
+<li>
+<p>Tell ProjectForge where it is. You may have to options:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Run ProjectForge from command line with option <code>-Dloader.home=/home/kai/ProjectForge</code>, or</p>
+</li>
+<li>
+<p>Set the environment variable before starting ProjectForge: <code>export LOADER_HOME=/home/kai/ProjectForge</code>.</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>Start ProjectForge and activate the plugin as admin in the ProjectForge&#8217;s web app under menu Admin&#8594;plugins.</p>
+</li>
+<li>
+<p>Restart ProjectForge.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="starting_and_debugging_in_intellij">6.2. Starting and debugging in IntelliJ</h3>
+<div class="paragraph">
+<p>The loader home stuff doesn&#8217;t work if you start ProjectForge&#8217;s main in IntelliJ.
+Following the solution described in <a href="https://stackoverflow.com/questions/37833877/intellij-spring-boot-propertieslauncher">Stack overflow</a>:
+1. Enable profile <code>intellij-properties-launcher</code> in maven tab.
+2. Edit launch configuration:
+  a. Main class: <code>org.springframework.boot.loader.PropertiesLauncher</code>. Please note, the configuration is marked faulty, but it works.
+  b. VM options: <code>-Xms2000m -Xmx2000m -Dloader.home=/home/kai/ProjectForge -Dloader.main=org.projectforge.start.ProjectForgeApplication</code>
+  c. Environment variables: <code>LOADER_HOME=/home/kai/ProjectForge</code></p>
+</div>
+<div class="paragraph">
+<p>For debugging you may attach the plugin to your IntelliJ classpath.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="limitations_in_plugins">6.3. Limitations in Plugins</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Own customized components are not yet supported in UILayout for external plugins. We&#8217;re working on this issue.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>All other functionality
+seems to be available.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="misc">7. Misc</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="code_style">7.1. Code style</h3>
+<div class="paragraph">
+<p>The standard IntelliJ coding style is used, but tab width and indent with is 2 and continuation indent is 4.</p>
+</div>
+<div class="paragraph">
+<p>Please import code style: <code>misc/IntelliJ/CodeStyle.xml</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="working_with_different_data_bases_for_testing">7.2. Working with different data bases for testing</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code>docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U projectforge</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code>create user pf2 password 'secret';
+CREATE DATABASE pf2;
+GRANT ALL PRIVILEGES ON DATABASE pf2 TO pf2;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+                        
+                    </div>
+
+                    
+
+                    <hr class="uk-margin-medium">
+
+                    
+
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+    <div class="uk-margin-large-top paginate-post">
+        <div class="uk-child-width-expand@s uk-grid-large uk-pagi" data-uk-grid>
+            <div>
+                
+                  
+                  
+                  
+                    <h5>Administration guide</h5>
+                    <div><a class="remove-underline hvr-back" href="/docs/adminguide/">&larr; Previous</a></div>
+                
+            </div>
+            <div>
+                
+                  
+                  
+                  
+                    <h5 style="float: right;">Technologies</h5>
+                    <div class="uk-text-right" style="clear: right;"><a class="remove-underline hvr-forward" href="/docs/technologies/">Next &rarr;</a></div>
+                
+            </div>
+        </div>
+    </div>
+    
+
+
+                    <div class="uk-margin-large-top">
+    <h3>Related Docs</h3>
+
+    
+    
+    
+
+    <ul class="uk-list link-secondary">
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+    </ul>
+</div>
+
+
+                    
+                </article>
+
+                <script>
+                    // Table of contents scroll to
+                    UIkit.scroll('#markdown-toc a', {
+                        duration: 400,
+                        offset: 120
+                    });
+                </script>
+
+            </div>
+
+    </div>
+</div>
+
+
+    <div id="offcanvas-docs" data-uk-offcanvas="overlay: true">
+    <div class="uk-offcanvas-bar">
+
+        <button class="uk-offcanvas-close" type="button" data-uk-close></button>
+
+        
+        <h5 class="uk-margin-top">Documentation</h5>
+        <ul class="uk-nav uk-nav-default doc-nav">
+        
+          
+          
+          <li class=""><a href="/docs/quickstart/">Quick Start</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/installation/">Installation</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/userguide/">User guide</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/adminguide/">Administration guide</a></li>
+        
+          
+          
+          <li class="uk-active"><a href="/docs/development/">Development</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/technologies/">Technologies</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/migration/">Migration</a></li>
+        
+        </ul>
+        
+
+    </div>
+</div>
+
+
+    <div id="offcanvas" data-uk-offcanvas="flip: true; overlay: true">
+    <div class="uk-offcanvas-bar">
+
+        <a class="uk-logo uk-margin-small-bottom" href="/"><img src="https://projectforge.org/uploads/logo_projectforge.gif" alt="ProjectForge"></a>
+     
+        <button class="uk-offcanvas-close" type="button" data-uk-close></button>
+      
+        <ul class="uk-nav uk-nav-primary uk-margin-top">
+            
+                
+
+                
+
+                
+                    <li><a href="/" >Home</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/features/" >Features</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/changelog-posts/" >Changelog</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/download/" >Download</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/misc/faqs" >FAQ</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/about/" >About</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/search/" >Search</a></li>
+                
+            
+        </ul>
+
+        <div class="uk-margin-top uk-text-center">
+            <div data-uk-grid class="uk-child-width-auto uk-grid-small uk-flex-center uk-grid">
+                
+<div class="uk-first-column">
+    <a href="https://twitter.com/micromata" data-uk-icon="icon: twitter" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+
+
+<div>
+    <a href="https://www.instagram.com/micromata/" data-uk-icon="icon: instagram" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+
+
+<div>
+    <a href="https://vimeo.com/user44553474" data-uk-icon="icon: vimeo" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+<div>
+    <a href="https://github.com/micromata/projectforge" data-uk-icon="icon: github" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+<div>
+    <a href="https://projectforge.org" data-uk-icon="icon: link" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+    
+
+    
+        
+    
+
+    
+
+    </body>
+
+</html>

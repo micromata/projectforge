@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Installation | ProjectForge</title>
+<meta name="generator" content="Jekyll v4.2.0" />
+<meta property="og:title" content="Installation" />
+<meta name="author" content="kai" />
+<meta property="og:locale" content="en" />
+<meta name="description" content="ProjectForge Documentation." />
+<meta property="og:description" content="ProjectForge Documentation." />
+<link rel="canonical" href="https://projectforge.org/docs/installation/" />
+<meta property="og:url" content="https://projectforge.org/docs/installation/" />
+<meta property="og:site_name" content="ProjectForge" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2025-12-31T23:25:16+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Installation" />
+<script type="application/ld+json">
+{"headline":"Installation","dateModified":"2025-12-31T23:25:16+00:00","datePublished":"2025-12-31T23:25:16+00:00","description":"ProjectForge Documentation.","mainEntityOfPage":{"@type":"WebPage","@id":"https://projectforge.org/docs/installation/"},"url":"https://projectforge.org/docs/installation/","@type":"BlogPosting","author":{"@type":"Person","name":"kai"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://projectforge.org/logo_projectforge.gif"},"name":"kai"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+  <meta property="og:image" content="https://projectforge.org/uploads/logo_projectforge.gif"/>
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="shortcut icon" type="image/png" href="/uploads/favicon.png" >
+  <link rel="alternate" type="application/rss+xml" title="ProjectForge" href="/feed.xml">
+  <script src="/assets/js/main.js"></script>
+  
+  
+  
+</head>
+
+
+    <body>
+
+    
+        <div data-uk-sticky="animation: uk-animation-slide-top; sel-target: .uk-navbar-container; cls-active: uk-navbar-sticky; cls-inactive: uk-navbar-transparent; top: 200">
+    <nav class="uk-navbar-container">
+        <div class="uk-container">
+            <div data-uk-navbar>
+                <div class="uk-navbar-left">
+                    <a class="uk-navbar-item uk-logo uk-visible@m" href="/"><img src="https://projectforge.org/uploads/logo_projectforge.gif" alt="ProjectForge"></a>
+                    
+                        <a class="uk-navbar-toggle uk-hidden@m" href="#offcanvas-docs" data-uk-toggle><span data-uk-navbar-toggle-icon></span> <span class="uk-margin-small-left">Docs</span></a>
+                    
+
+                    <ul class="uk-navbar-nav uk-visible@m">
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/" >Home</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="https://github.com/micromata/projectforge/" target="_blank" >GitHub</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/features/" >Features</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="#">Docs</a>
+                                        
+                                            <div class="uk-navbar-dropdown">
+                                                <ul class="uk-nav uk-navbar-dropdown-nav">
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/quickstart/">Quick Start</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li class="uk-active"><a href="/docs/installation/">Installation</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/adminguide/">Administration guide</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/userguide/">User guide</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/development/">Development</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/technologies/">Technologies</a></li>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                        
+                                                        <li><a href="/docs/migration/">Migration</a></li>
+                                                    
+                                                    
+                                                </ul>
+                                            </div>
+                                        
+                                        </li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/misc/faqs" >FAQ</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/about/" >About</a></li>
+                                                                                                        
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    
+                                        <li><a href="/search/" >Search</a></li>
+                                                                                                        
+                                
+                            
+                        
+                    </ul>
+                </div>
+                <div class="uk-navbar-center uk-hidden@m">
+                    <a class="uk-navbar-item uk-logo" href="/"><img src="https://projectforge.org/uploads/logo_projectforge.gif" alt="ProjectForge"></a>
+                </div>
+                <div class="uk-navbar-right">
+                    
+
+                    <ul class="uk-navbar-nav uk-visible@m">
+                        
+                            
+                            
+                            
+                                
+                                    <li><div class="uk-navbar-item"><a class="uk-button uk-button-primary-outline" href="/changelog-posts/" >Changelog</a></div></li>
+                                
+                            
+                        
+                            
+                            
+                            
+                                
+                                    <li><div class="uk-navbar-item"><a class="uk-button uk-button-success" href="/download/" >Download</a></div></li>
+                                
+                            
+                        
+                    </ul>
+
+                    
+                        <a class="uk-navbar-toggle uk-hidden@m" href="#offcanvas" data-uk-toggle><span data-uk-navbar-toggle-icon></span> <span class="uk-margin-small-left">Menu</span></a>
+                    
+
+                </div>
+            </div>
+        </div>
+    </nav>
+</div>
+
+    
+
+    <div class="uk-section">
+    <div class="uk-container">
+        <div class="uk-grid-large" data-uk-grid>
+
+            <div class="sidebar-fixed-width uk-visible@m">
+                <div class="sidebar-docs uk-position-fixed uk-margin-top">
+                    
+                    <h5>Documentation</h5>
+                    <ul class="uk-nav uk-nav-default doc-nav">
+                    
+                      
+                      
+                      <li class=""><a href="/docs/quickstart/">Quick Start</a></li>
+                    
+                      
+                      
+                      <li class="uk-active"><a href="/docs/installation/">Installation</a></li>
+                    
+                      
+                      
+                      <li class=""><a href="/docs/userguide/">User guide</a></li>
+                    
+                      
+                      
+                      <li class=""><a href="/docs/adminguide/">Administration guide</a></li>
+                    
+                      
+                      
+                      <li class=""><a href="/docs/development/">Development</a></li>
+                    
+                      
+                      
+                      <li class=""><a href="/docs/technologies/">Technologies</a></li>
+                    
+                      
+                      
+                      <li class=""><a href="/docs/migration/">Migration</a></li>
+                    
+                    </ul>
+                    
+                </div>
+            </div>
+
+            <div class="uk-width-1-1 uk-width-expand@m">
+
+                <article class="uk-article">
+
+                    <h1 class="uk-article-title">Installation</h1>
+
+                    <p class="uk-text-lead uk-text-muted">Easy and fast installation with an new setup wizard (test versions as well as productive setups)</p>
+
+                    <div class="uk-article-meta uk-margin-top uk-margin-medium-bottom uk-flex uk-flex-middle">
+                        
+
+
+  
+  <img class="uk-border-circle avatar" src="https://projectforge.org/uploads/kai.png" alt="Kai Reinhard">
+
+
+<div>
+  
+    Written by <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">Kai Reinhard</span></span><br>
+  
+  <time datetime="2025-12-31T23:25:16+00:00" itemprop="datePublished">
+    
+    Dec 31, 2025
+  </time>
+</div>
+                    </div>
+
+                    <div class="article-content link-primary">
+                        <div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#express_installation">1. Express installation</a>
+<ul class="sectlevel2">
+<li><a href="#docker">1.1. Docker</a>
+<ul class="sectlevel3">
+<li><a href="#running_single_docker_container">1.1.1. Running single docker container</a></li>
+<li><a href="#running_as_stack_docker_compose">1.1.2. Running as stack (docker-compose)</a></li>
+</ul>
+</li>
+<li><a href="#java_installation_without_docker">1.2. Java-Installation (without docker)</a></li>
+<li><a href="#the_installation_setup_wizard_for_all_installations">1.3. The installation setup wizard (for all installations)</a></li>
+<li><a href="#the_setup_page">1.4. The setup page</a></li>
+<li><a href="#activation_of_built_in_plugins">1.5. Activation of built-in-plugins</a></li>
+</ul>
+</li>
+<li><a href="#customization">2. Customization</a>
+<ul class="sectlevel2">
+<li><a href="#main_configuration_file_projectforge_properties">2.1. Main configuration file <code>projectforge.properties</code></a></li>
+<li><a href="#configuration_parameters">2.2. Configuration parameters</a></li>
+<li><a href="#special_configurations_file_config_xml">2.3. Special configurations, file <code>config.xml</code></a></li>
+</ul>
+</li>
+<li><a href="#secure_http_connection_sslhttps">3. Secure http connection (SSL/https)</a>
+<ul class="sectlevel2">
+<li><a href="#using_built_in_functionality">3.1. Using built-in functionality</a></li>
+<li><a href="#nginx">3.2. Nginx</a>
+<ul class="sectlevel3">
+<li><a href="#prepare">3.2.1. Prepare</a>
+<ul class="sectlevel4">
+<li><a href="#secure_domain_for_setup_through_htpasswd_optional">secure domain for setup through htpasswd (optional)</a></li>
+</ul>
+</li>
+<li><a href="#configure_nginx">3.2.2. Configure Nginx</a></li>
+</ul>
+</li>
+<li><a href="#apache_httpd">3.3. Apache httpd</a></li>
+</ul>
+</li>
+<li><a href="#using_carddav_and_webdav_with_milton">4. Using CardDAV and WebDAV with Milton</a></li>
+<li><a href="#start_projectforge_without_docker">5. Start ProjectForge (without docker)</a></li>
+<li><a href="#adding_external_plugins">6. Adding external plugins</a></li>
+<li><a href="#backups">7. Backups</a>
+<ul class="sectlevel2">
+<li><a href="#jcr">7.1. JCR</a></li>
+<li><a href="#db_backup">7.2. DB backup</a></li>
+</ul>
+</li>
+<li><a href="#supported_java_versions">8. Supported Java versions</a></li>
+</ul>
+</div>
+<div class="sect1">
+<h2 id="express_installation">1. Express installation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You may choose now between Docker based installation or normal installation.</p>
+</div>
+<div class="paragraph">
+<p>Or, as a developer, you may also refer <a href="https://github.com/micromata/projectforge/">ProjectForge on GitHub</a>.</p>
+</div>
+<div class="sect2">
+<h3 id="docker">1.1. Docker</h3>
+<div class="paragraph">
+<p>You may install ProjectForge as docker image. You may run ProjectForge as docker image since version 8.0
+on Linux (amd64 and arm64) as well as on MacOS (Intel or Silicon).</p>
+</div>
+<div class="paragraph">
+<p>We assume <code>/home/projectforge/ProjectForge</code> as ProjectForge&#8217;s home in this documentation, but you may choose anything else (will be created or should be empty if already exists).</p>
+</div>
+<div class="paragraph">
+<p>For test or small installations you may use the built-in database (embedded).</p>
+</div>
+<div class="sect3">
+<h4 id="running_single_docker_container">1.1.1. Running single docker container</h4>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>First start <code>docker run -t -i -p 127.0.0.1:8080:8080 -v $HOME/ProjectForge:/ProjectForge --name projectforge micromata/projectforge</code></p>
+</li>
+<li>
+<p>Follow setup wizard below.</p>
+</li>
+<li>
+<p>Enjoy.</p>
+</li>
+<li>
+<p>Stop ProjectForge by pressing <code>CTRL-C</code> or <code>docker stop projectforge</code>.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>You may monitor the log file: <code>tail -f ~/ProjectForge/logs/ProjectForge.log</code></p>
+</div>
+<div class="paragraph">
+<p>To stop and start use <code>docker start/stop projectforge</code>.</p>
+</div>
+<div class="paragraph">
+<p>For full functionality of all plugins, you should restart the docker container:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>docker stop projectforge</code></p>
+</li>
+<li>
+<p><code>docker start projectforge</code></p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="running_as_stack_docker_compose">1.1.2. Running as stack (docker-compose)</h4>
+<div class="paragraph">
+<p>In this docker-compose case ProjectForge is composed with a PostgreSQL docker container (for productive and larger installations).</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Copy and modify <a href="https://github.com/micromata/projectforge/blob/master/docker/compose/docker-compose.yml">docker-compose.yml</a> (change data base password).</p>
+</li>
+<li>
+<p>First start: <code>docker-compose run projectforge-app</code></p>
+</li>
+<li>
+<p>Follow setup wizard below (choose PostgreSQL connection settings).</p>
+</li>
+<li>
+<p>Enjoy.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>To stop and start user <code>docker-compose up/down</code>.</p>
+</div>
+<div class="paragraph">
+<p>You may monitor the log file: <code>tail -f ~/ProjectForge/logs/ProjectForge.log</code></p>
+</div>
+<div class="paragraph">
+<p>For configuring ProjectForge, go to ProjectForge base dir:
+1. <code>projectforge.properties</code> for customizing settings of ProjectForge.
+2. <code>environment.sh</code> for customizing settings of Java options (increasing memory size etc.).</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="java_installation_without_docker">1.2. Java-Installation (without docker)</h3>
+<div class="paragraph">
+<p>If you don&#8217;t want to use Docker, you&#8217;re able to install ProjectForge from the executable jar file.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Install openjdk 17.</p>
+</li>
+<li>
+<p>Get projectForge-application_version.jar</p>
+</li>
+<li>
+<p>First start: java -jar projectForge-application_version.jar</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Here you will find the supported versions of Java: <a href="#supported_java_versions">Supported Java versions</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="the_installation_setup_wizard_for_all_installations">1.3. The installation setup wizard (for all installations)</h3>
+<div class="paragraph">
+<p>After first start, you&#8217;ll be asked for entering the setup wizard. Go for it.
+There is an console setup wizard available as well as a graphical wizard as desktop application, depending on your environment. You may choose
+the version if your system supports both (graphical output and terminal output).</p>
+</div>
+<div class="paragraph">
+<p>Both editions have the same functionality.</p>
+</div>
+<div id="img-setup-wizard-1" class="imageblock">
+<div class="content">
+<a class="image" href="/uploads/setup-wizard-step-1.png"><img src="/uploads/setup-wizard-step-1.png" alt="Setup wizard - step 1" width="400"></a>
+</div>
+<div class="title">Figure 1. The setup wizard (terminal edition) for choosing ProjectForge&#8217;s home directory. This step is skipped on docker based installation.</div>
+</div>
+<div class="paragraph">
+<p>We assume <code>/home/projectforge/ProjectForge</code> as ProjectForge&#8217;s home in this documentation, but you may choose anything else (will be created or should be empty if already exists).</p>
+</div>
+<div id="img-setup-wizard-2" class="imageblock">
+<div class="content">
+<a class="image" href="/uploads/setup-wizard-step-2.png"><img src="/uploads/setup-wizard-step-2.png" alt="Setup wizard - step 2" width="400"></a>
+</div>
+<div class="title">Figure 2. The setup wizard (terminal edition) for configuring the basic settings.</div>
+</div>
+<div id="img-setup-wizard-jdbc" class="imageblock">
+<div class="content">
+<a class="image" href="/uploads/setup-wizard-gui-jdbc.png"><img src="/uploads/setup-wizard-gui-jdbc.png" alt="Setup wizard - data base settings" width="400"></a>
+</div>
+<div class="title">Figure 3. The setup wizard (graphical edition) for configuring and testing the data base connection.</div>
+</div>
+<div class="paragraph">
+<p>You may leave the most settings as they are. You are able to change these settings later in <code>projectforge.properties</code> or <code>config.xml</code>.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Directory</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ProjectForge&#8217;s home directory including configuration, database and working directory.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Domain</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The domain of your system (<a href="http://localhost:8080" class="bare">localhost:8080</a> for test systems). This is needed e. g. for sending e-mail-notification to users including direct links to your installation of ProjectForge.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Port</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ProjectForge starts the server on this port (8080 should be OK for most cases and can&#8217;t be modified for docker installation).</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Database</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Choose the data base. Embedded uses the built-in data base of ProjectForge (Hsql DB) and should be OK for test, development or small instances. In docker mode only PostgreSQL is available.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Jdbc settings</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If you choose PostgreSQL you are able to enter the data base connection values and test them by clicking <strong>Test connection</strong>.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Currency</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The default currency to use.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Locale</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The default locale to use. Your users are able to choose their own language.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">First day</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The first day of week to use in the calendar views.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Time</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The default time notation to use (customizable by the users).</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Setting</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Start ProjectForge - If checked, ProjectForge will be started after clicking <strong>Finish</strong>. For embedded data base, the data base is created.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Setting</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enable CORS filter - Please check only for development (React development using yarn or npm). Do not use for productive systems!!!</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>After clicking finish, ProjectForge will be initialized and started. You may proceed with your web browser with <code><a href="http://localhost:8080" class="bare">localhost:8080</a></code> or <code><a href="https://projectforge.acme.com" class="bare">projectforge.acme.com</a></code>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If your browser doesn&#8217;t support <code><a href="http://localhost:8080" class="bare">localhost:8080</a></code>, try 'http://127.0.0.1:8080/' or 'http://127.0.0.1:8080/wa/setup' or another browser.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>ProjectForge is only available on port 8080 from localhost due to security reasons. For using https, please refer <a href="#Reverse Proxy Setup (https)">[Reverse Proxy Setup (https)]</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="the_setup_page">1.4. The setup page</h3>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Please be aware, that after your first start of ProjectForge, your page might be public and be configured by anybody else! So proceed immediately with the configuration if your new ProjectForge instance is
+public available.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="img-setup-webpage" class="imageblock">
+<div class="content">
+<a class="image" href="/uploads/setup-webpage.png"><img src="/uploads/setup-webpage.png" alt="Setup web page" width="400"></a>
+</div>
+<div class="title">Figure 4. After starting ProjectForge the first time, a setup page is displayed.</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Target</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Choose <strong>Productive system</strong> for starting with an empty initialized data base. Choose <strong>Test system</strong> for installing a test system with lots of test data.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">User name</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The user name of the initial admin user of ProjectForge.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Password</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Admin&#8217;s password.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Default time zone</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Default time zone for all users, if not configured by an user und MyAccount.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Calendar domain</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ProjectForge provides calendar and events. For having world-wide unique event id&#8217;s, choose here your personal name.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Administrators</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ProjectForge sends e-mails to this address(es) in the case of special errors. You can specify one or more (coma separated) addresses (RFC822).</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Feed-back</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If this e-mail is given then a feedback panel will be shown if an error occurs. The user has the possibility to send an e-mail feedback (e. g. JIRA-system or help desk).</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Just click finish to have your ready-to-use installation.</p>
+</div>
+<div id="img-setup-webpage-finished" class="imageblock">
+<div class="content">
+<a class="image" href="/uploads/setup-webpage-finished.png"><img src="/uploads/setup-webpage-finished.png" alt="Setup finished" width="400"></a>
+</div>
+<div class="title">Figure 5. After initialization you will get this screen. Enjoy it!</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Wait until ProjectForge&#8217;s initialization is finished and enjoy it!</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="activation_of_built_in_plugins">1.5. Activation of built-in-plugins</h3>
+<div id="img-admin-plugins" class="imageblock">
+<div class="content">
+<a class="image" href="/uploads/admin-plugins.png"><img src="/uploads/admin-plugins.png" alt="Activation of built-in plugins (Menu Administration &#8594; Plugins)" width="400"></a>
+</div>
+<div class="title">Figure 6. You have to activate some built-in plugins if you want to use them. The plugin "Data transfer" is recommended.</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="customization">2. Customization</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="main_configuration_file_projectforge_properties">2.1. Main configuration file <code>projectforge.properties</code></h3>
+<div class="paragraph">
+<p>You&#8217;ll find an overview of all configuration options here: <a href="https://github.com/micromata/projectforge/blob/master/projectforge-business/src/main/resources/application.properties">application.properties</a></p>
+</div>
+<div class="paragraph">
+<p>A minimal set of <code>projectforge.properties</code> will be installed automatically by the setup wizard.</p>
+</div>
+<div class="paragraph">
+<p>Here you may define your company logo.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="configuration_parameters">2.2. Configuration parameters</h3>
+<div class="paragraph">
+<p>You&#8217;ll find further configuration params through the web application under the menu 'Administration' &#8594; 'Configuration'.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="special_configurations_file_config_xml">2.3. Special configurations, file <code>config.xml</code></h3>
+<div class="paragraph">
+<p>A minimal set of <code>config.xml</code> will be installed automatically by the setup wizard. Here you may define your specific holidays.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="secure_http_connection_sslhttps">3. Secure http connection (SSL/https)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The recommended way of setting up ProjectForge is to use a reverse proxy to do the SSL termination.</p>
+</div>
+<div class="paragraph">
+<p>There are different ways to do so.</p>
+</div>
+<div class="sect2">
+<h3 id="using_built_in_functionality">3.1. Using built-in functionality</h3>
+<div class="paragraph">
+<p>Without nginx, Apache etc. you may use the ProjectForge&#8217;s built-in functionalities, see e. g. <a href="https://www.baeldung.com/spring-boot-https-self-signed-certificate" class="bare">www.baeldung.com/spring-boot-https-self-signed-certificate</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="nginx">3.2. Nginx</h3>
+<div class="sect3">
+<h4 id="prepare">3.2.1. Prepare</h4>
+<div class="paragraph">
+<p>All of the commands below should be run with <code>root</code> privileges.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Install Nginx: <code>$ apt-get install nginx</code></p>
+</li>
+<li>
+<p>Get an SSL certificate(use only one of the options below)</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Create self signed certificate: <code>$ openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/projectforge.key -out /etc/ssl/projectforge.crt</code></p>
+</li>
+<li>
+<p>Generate an SSL certificate <a href="https://letsencrypt.org/getting-started/">using Letsencrypt</a>, note that the path in the NGINX configuration below needs to be changed when using Letsencrypt.</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>Generate secure Diffie-Hellman parameters for key exchange (this will take a long time): <code>$ openssl dhparam -out /etc/nginx/dhparam.pem 4096</code></p>
+</li>
+</ol>
+</div>
+<div class="sect4">
+<h5 id="secure_domain_for_setup_through_htpasswd_optional">secure domain for setup through htpasswd (optional)</h5>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>$ apt-get install apache2-utils</code></p>
+</li>
+<li>
+<p><code>$ htpasswd -c /etc/nginx/.htpasswd projectforge</code></p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="configure_nginx">3.2.2. Configure Nginx</h4>
+<div class="paragraph">
+<p>To use NGINX as a reverse proxy, it&#8217;s necessary to create a configuration file. The standard path for NGINX configurations is <code>/etc/nginx/sites-available/</code>, so let&#8217;s create the file <a href="misc/nginx_sites-available_projectforge"><code>/etc/nginx/sites-available/projectforge</code></a>.
+If you want to use <code>.htaccess</code> to block access to the installation, you need to remove the comment character (<code><mark></code>) in front of the <code>auth_basic</code> and <code>auth_basic_file</code> parameters.
+If you want to use HSTS (which makes browsers show an error page when the SSL certificate is invalid and/or nonexistent), remove the comment character (<code></mark></code>) in front of the <code>add_header Strict-Transport-Security</code> parameter.</p>
+</div>
+<div class="paragraph">
+<p><strong>Remember to replace <strong>projectforge.example.com</strong> with the actual domain you&#8217;ll run ProjectForge on!</strong></p>
+</div>
+<div class="paragraph">
+<p>To activate the NGINX configuration, you&#8217;ll need to symlink the configuration file we just created to <code>/etc/nginx/sites-enabled</code>. This can be done by using the following command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash"><span class="nv">$ </span><span class="nb">ln</span> <span class="nt">-sv</span> /etc/nginx/sites-available/projectforge /etc/nginx/sites-enabled/projectforge</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="apache_httpd">3.3. Apache httpd</h3>
+<div class="paragraph">
+<p>to be defined.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="using_carddav_and_webdav_with_milton">4. Using CardDAV and WebDAV with Milton</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Place files <code>milton.license.properties</code> and <code>milton.license.sig</code> to directory <code>~/ProjectForge/resources/milton/</code> and start ProjectForge with
+loader path:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash"><span class="k">${</span><span class="nv">JAVA</span><span class="k">}</span> ... <span class="nt">-Dloader</span>.path<span class="o">=</span><span class="k">${</span><span class="nv">HOME</span><span class="k">}</span>/ProjectForge/resources/milton <span class="k">${</span><span class="nv">DEBUGOPTS</span><span class="k">}</span> <span class="nt">-jar</span> projectforge-application.jar &amp;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="start_projectforge_without_docker">5. Start ProjectForge (without docker)</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Start ProjectForge server (e.g. on <code><a href="http://localhost:8080" class="bare">localhost:8080</a></code>, update the NGINX config if you use another port).</p>
+</li>
+<li>
+<p>Follow the configuration instruction (setup wizard in console ui or as Desktop app).</p>
+</li>
+<li>
+<p>(Re-)start Nginx:
+3.1. SysVInit: <code>/etc/init.d/nginx restart</code>
+3.2. SystemD: <code>systemctl restart nginx</code></p>
+</li>
+<li>
+<p>Navigate to ProjectForge with your browser and finalize the setup.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Example start script: <a href="/uploads/startProjectForge.sh">startProjectForge.sh</a></p>
+</li>
+<li>
+<p>Example stop script: <a href="/uploads/stopProjectForge.sh">stopProjectForge.sh</a></p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="adding_external_plugins">6. Adding external plugins</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>ProjectForge supports external 3rd party plugins:
+1. Place your jars e. g. in <code>/home/kai/ProjectForge/plugins</code>
+2. Tell ProjectForge where it is. You may have to options:
+a. Run ProjectForge from command line with option <code>-Dloader.home=/home/kai/ProjectForge</code>, or
+b. Set the environment variable before starting ProjectForge: <code>export LOADER_HOME=/home/kai/ProjectForge</code>.
+3. Start ProjectForge and activate the plugin as admin in the ProjectForge&#8217;s web app under menu Admin&#8594;plugins.
+4. Restart ProjectForge.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="backups">7. Backups</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="jcr">7.1. JCR</h3>
+<div class="paragraph">
+<p>Attachments will be handled through the built-in JCR module. The backups are placed in <code>ProjectForge/backup</code>, the daily backups will
+purged after 30 days keeping each first monthly backup.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="db_backup">7.2. DB backup</h3>
+<div class="paragraph">
+<p>You may configure a purge job in <code>projectforge.properties</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="shell"><table class="linenotable"><tbody><tr><td class="linenos gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="code"><pre><span class="c">### If purgeBackupDir is given and exists, ProjectForge will purge daily backups older than 30 days keeping each first monthly backup.</span>
+<span class="c">### The filenames must contain the date in ISO format (...yyyy-MM-dd....).</span>
+<span class="c"># This is the backup dir to look for:</span>
+projectforge.cron.purgeBackupDir<span class="o">=</span>/home/projectforge/backup
+<span class="c"># You may optional specify the prefix of the backup files (if not given, all files containing a date in its filename will be processed):</span>
+projectforge.cron.purgeBackupFilesPrefix<span class="o">=</span>projectforge_
+</pre></td></tr></tbody></table></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Your daily data base backups should contain the date of backup in ISO format in its file name.
+Daily backups (not monthly) will be deleted after 30 days.
+Refer config file for all options: [<a href="https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/application.properties" class="bare">github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/application.properties</a>]</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="supported_java_versions">8. Supported Java versions</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. Java Compatibility (2021/04/12)</caption>
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 50.0002%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Java version</th>
+<th class="tableblock halign-left valign-top">V7.5+</th>
+<th class="tableblock halign-left valign-top">V8.0+</th>
+<th class="tableblock halign-left valign-top">Comments</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">OpenJDK 11</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+++</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">OpenJDK 11 was used in development (MacOS) and in production since version 7.0.0. (Linux)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">OpenJDK 17</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+++</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Since version 8.0 OpenJDK 17 is used in development and in production.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 2. Legend</caption>
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">-</th>
+<th class="tableblock halign-left valign-top">?</th>
+<th class="tableblock halign-left valign-top">+</th>
+<th class="tableblock halign-left valign-top">+++</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">doesn&#8217;t run</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">not tested</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">should run, shortly tested</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">recommended, tested in production</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+                        
+                    </div>
+
+                    
+
+                    <hr class="uk-margin-medium">
+
+                    
+
+
+  
+  
+
+  
+  
+    <div class="uk-margin-large-top paginate-post">
+        <div class="uk-child-width-expand@s uk-grid-large uk-pagi" data-uk-grid>
+            <div>
+                
+                  
+                  
+                  
+                    <h5>Quick Start</h5>
+                    <div><a class="remove-underline hvr-back" href="/docs/quickstart/">&larr; Previous</a></div>
+                
+            </div>
+            <div>
+                
+                  
+                  
+                  
+                    <h5 style="float: right;">User guide</h5>
+                    <div class="uk-text-right" style="clear: right;"><a class="remove-underline hvr-forward" href="/docs/userguide/">Next &rarr;</a></div>
+                
+            </div>
+        </div>
+    </div>
+    
+
+
+                    <div class="uk-margin-large-top">
+    <h3>Related Docs</h3>
+
+    
+    
+    
+
+    <ul class="uk-list link-secondary">
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+    </ul>
+</div>
+
+
+                    
+                </article>
+
+                <script>
+                    // Table of contents scroll to
+                    UIkit.scroll('#markdown-toc a', {
+                        duration: 400,
+                        offset: 120
+                    });
+                </script>
+
+            </div>
+
+    </div>
+</div>
+
+
+    <div id="offcanvas-docs" data-uk-offcanvas="overlay: true">
+    <div class="uk-offcanvas-bar">
+
+        <button class="uk-offcanvas-close" type="button" data-uk-close></button>
+
+        
+        <h5 class="uk-margin-top">Documentation</h5>
+        <ul class="uk-nav uk-nav-default doc-nav">
+        
+          
+          
+          <li class=""><a href="/docs/quickstart/">Quick Start</a></li>
+        
+          
+          
+          <li class="uk-active"><a href="/docs/installation/">Installation</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/userguide/">User guide</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/adminguide/">Administration guide</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/development/">Development</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/technologies/">Technologies</a></li>
+        
+          
+          
+          <li class=""><a href="/docs/migration/">Migration</a></li>
+        
+        </ul>
+        
+
+    </div>
+</div>
+
+
+    <div id="offcanvas" data-uk-offcanvas="flip: true; overlay: true">
+    <div class="uk-offcanvas-bar">
+
+        <a class="uk-logo uk-margin-small-bottom" href="/"><img src="https://projectforge.org/uploads/logo_projectforge.gif" alt="ProjectForge"></a>
+     
+        <button class="uk-offcanvas-close" type="button" data-uk-close></button>
+      
+        <ul class="uk-nav uk-nav-primary uk-margin-top">
+            
+                
+
+                
+
+                
+                    <li><a href="/" >Home</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/features/" >Features</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/changelog-posts/" >Changelog</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/download/" >Download</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/misc/faqs" >FAQ</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/about/" >About</a></li>
+                
+            
+                
+
+                
+
+                
+                    <li><a href="/search/" >Search</a></li>
+                
+            
+        </ul>
+
+        <div class="uk-margin-top uk-text-center">
+            <div data-uk-grid class="uk-child-width-auto uk-grid-small uk-flex-center uk-grid">
+                
+<div class="uk-first-column">
+    <a href="https://twitter.com/micromata" data-uk-icon="icon: twitter" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+
+
+<div>
+    <a href="https://www.instagram.com/micromata/" data-uk-icon="icon: instagram" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+
+
+<div>
+    <a href="https://vimeo.com/user44553474" data-uk-icon="icon: vimeo" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+<div>
+    <a href="https://github.com/micromata/projectforge" data-uk-icon="icon: github" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+
+<div>
+    <a href="https://projectforge.org" data-uk-icon="icon: link" class="uk-icon-link uk-icon" target="_blank"></a>
+</div>
+
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+    
+
+    
+        
+    
+
+    
+
+    </body>
+
+</html>

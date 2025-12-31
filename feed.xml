@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="https://projectforge.org/feed.xml" rel="self" type="application/atom+xml" /><link href="https://projectforge.org/" rel="alternate" type="text/html" hreflang="en" /><updated>2025-12-31T23:25:16+00:00</updated><id>https://projectforge.org/feed.xml</id><title type="html">ProjectForge</title><subtitle>ProjectForge Documentation.</subtitle><author><name>Kai Reinhard</name></author><entry><title type="html">Welcome to Jekyll!</title><link href="https://projectforge.org/welcome-to-jekyll/" rel="alternate" type="text/html" title="Welcome to Jekyll!" /><published>2021-08-09T13:04:06+00:00</published><updated>2021-08-09T13:04:06+00:00</updated><id>https://projectforge.org/welcome-to-jekyll</id><content type="html" xml:base="https://projectforge.org/welcome-to-jekyll/">&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;You’ll find this post in your &lt;code&gt;_posts&lt;/code&gt; directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run &lt;code&gt;jekyll serve&lt;/code&gt;, which launches a web server and auto-regenerates your site when a file is updated.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Jekyll requires blog post files to be named according to the following format:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;&lt;code&gt;YEAR-MONTH-DAY-title.MARKUP&lt;/code&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Where &lt;code&gt;YEAR&lt;/code&gt; is a four-digit number, &lt;code&gt;MONTH&lt;/code&gt; and &lt;code&gt;DAY&lt;/code&gt; are both two-digit numbers, and &lt;code&gt;MARKUP&lt;/code&gt; is the file extension representing the format used in the file. After that, include the necessary front matter. Take a look at the source for this post to get an idea about how it works.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Jekyll also offers powerful support for code snippets:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;{% highlight ruby %}
+def print_hi(name)
+  puts &quot;Hi, #{name}&quot;
+end
+print_hi('Tom')
+#&amp;#8658; prints 'Hi, Tom' to STDOUT.
+{% endhighlight %}&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Check out the [Jekyll docs][jekyll-docs] for more info on how to get the most out of Jekyll. File all bugs/feature requests at [Jekyll’s GitHub repo][jekyll-gh]. If you have questions, you can ask them on [Jekyll Talk][jekyll-talk].&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;[jekyll-docs]: &lt;a href=&quot;https://jekyllrb.com/docs/home&quot; class=&quot;bare&quot;&gt;https://jekyllrb.com/docs/home&lt;/a&gt;
+[jekyll-gh]:   &lt;a href=&quot;https://github.com/jekyll/jekyll&quot; class=&quot;bare&quot;&gt;https://github.com/jekyll/jekyll&lt;/a&gt;
+[jekyll-talk]: &lt;a href=&quot;https://talk.jekyllrb.com/&quot; class=&quot;bare&quot;&gt;https://talk.jekyllrb.com/&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;</content><author><name>Kai Reinhard</name></author><category term="jekyll" /><summary type="html">You’ll find this post in your _posts directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run jekyll serve, which launches a web server and auto-regenerates your site when a file is updated.</summary></entry></feed>
