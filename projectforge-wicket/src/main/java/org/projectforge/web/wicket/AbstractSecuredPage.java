@@ -113,9 +113,23 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage {
     if (isBreadCrumbVisible() == true) {
       final RepeatingView breadcrumbItems = new RepeatingView("li");
       breadcrumbContainer.add(breadcrumbItems);
-      final WebPage returnTo = this.getReturnToPage();
-      if (returnTo != null && returnTo instanceof AbstractSecuredPage) {
-        addBreadCrumbs(breadcrumbItems, (AbstractSecuredPage) returnTo);
+
+      // Check if we have return info (either instance or class-based)
+      final WebPage returnTo = this.returnToPage;
+      final boolean hasReturnInfo = returnTo != null || returnToPageClass != null;
+
+      if (hasReturnInfo) {
+        // Create a temporary holder page that contains the return information
+        if (returnTo != null && returnTo instanceof AbstractSecuredPage) {
+          addBreadCrumbs(breadcrumbItems, (AbstractSecuredPage) returnTo);
+        } else if (returnToPageClass != null) {
+          // Create temporary page instance just to get title and check for further parents
+          final WebPage tempPage = (WebPage) org.projectforge.framework.utils.ReflectionHelper.newInstance(
+              returnToPageClass, PageParameters.class, returnToPageParameters != null ? returnToPageParameters : new PageParameters());
+          if (tempPage instanceof AbstractSecuredPage) {
+            addBreadCrumbs(breadcrumbItems, (AbstractSecuredPage) tempPage);
+          }
+        }
       } else {
         breadcrumbItems.setVisible(false);
       }
@@ -133,11 +147,30 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage {
     }
     final WebMarkupContainer li = new WebMarkupContainer(breadcrumbItems.newChildId());
     breadcrumbItems.add(li);
-    final Link<Void> pageLink = new Link<Void>("link") {
 
+    // CRITICAL: Use returnToPageClass from page.getReturnToPage() to get fresh instance
+    // Don't use page.returnToPageClass directly as it might be null in deserialized pages
+    final Class<? extends IRequestablePage> pageClass;
+    final PageParameters pageParams;
+
+    // Try to get Class-based return info by creating a fresh instance first
+    if (page.returnToPageClass != null) {
+      // Current page has Class-based return info
+      pageClass = page.returnToPageClass;
+      pageParams = page.returnToPageParameters;
+    } else {
+      // Fallback: Try to get class from the actual page instance
+      pageClass = page.getClass();
+      pageParams = page.getPageParameters();
+    }
+
+    final Link<Void> pageLink = new Link<Void>("link") {
       @Override
       public void onClick() {
-        setResponsePage(page);
+        // ALWAYS create fresh instance to avoid using stale deserialized pages
+        final WebPage freshPage = (WebPage) org.projectforge.framework.utils.ReflectionHelper.newInstance(
+            pageClass, PageParameters.class, pageParams != null ? pageParams : new PageParameters());
+        setResponsePage(freshPage);
       }
     };
     li.add(pageLink);
@@ -156,9 +189,19 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage {
   }
 
   /**
-   * @return the returnToPage
+   * @return the returnToPage - either the stored instance or a new instance from returnToPageClass
    */
   public WebPage getReturnToPage() {
+    // If returnToPageClass is set, create a new instance instead of using the serialized one
+    if (returnToPageClass != null) {
+      try {
+        return (WebPage) org.projectforge.framework.utils.ReflectionHelper.newInstance(
+            returnToPageClass, PageParameters.class, returnToPageParameters != null ? returnToPageParameters : new PageParameters());
+      } catch (Exception e) {
+        log.error("Failed to create return page from class: " + returnToPageClass, e);
+        return returnToPage;
+      }
+    }
     return returnToPage;
   }
 
