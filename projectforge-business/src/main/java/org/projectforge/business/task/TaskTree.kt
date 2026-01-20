@@ -449,10 +449,26 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
         node.setTask(task)
         if (task.parentTaskId != null && task.parentTaskId != node.getParent().id) {
             log.debug { "Task hierarchy was changed for task: $task" }
+
+            // Defensive check: Verify that the new parent relationship doesn't create a cycle
+            // This is a safety net in case corrupted data made it through validation
+            val newParent = getTaskNodeById(task.parentTaskId)
+            if (newParent != null && node.isParentOf(newParent)) {
+                log.error {
+                    "Cyclic reference detected in addOrUpdateTaskNode! Task ${task.id} cannot be parent of ${newParent.id}. " +
+                    "This indicates corrupted data. Refreshing TaskTree to recover."
+                }
+                // Mark cache as expired to force a complete reload on next access
+                setExpired()
+                throw IllegalStateException(
+                    "Cyclic reference detected for task ${task.id} -> parent ${task.parentTaskId}. " +
+                    "TaskTree has been marked for refresh."
+                )
+            }
+
             val oldParent = node.getParent()
             requireNotNull(oldParent)
             oldParent.removeChild(node)
-            val newParent = getTaskNodeById(task.parentTaskId)
             node.setParent(newParent)
             newParent!!.addChild(node)
         }
