@@ -53,3 +53,6 @@ build
 projectforge-webapp/node
 projectforge-business/src/main/kotlin/testscripts
 .claude
+
+# MCP Server Configuration (contains secrets)
+.mcp.json
