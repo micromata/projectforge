@@ -72,10 +72,17 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
     }
 
     /**
-     * Checks constraint violation.
+     * Checks constraint violation and cyclic references.
+     * This method is called within a transaction and is synchronized to prevent race conditions.
      */
     override fun onInsertOrModify(obj: TaskDO, operationType: OperationType) {
         synchronized(this) {
+            // Check for cyclic references during update operations
+            // This must be done under lock to prevent race conditions where two threads
+            // could both pass the check and create a cycle in the task tree
+            if (operationType == OperationType.UPDATE && obj.parentTaskId != null) {
+                checkCyclicReference(obj)
+            }
             checkConstraintVioloation(obj)
         }
     }
@@ -316,8 +323,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
         }
         taskTree.getTaskNodeById(obj.parentTaskId)
             ?: throw UserException(I18N_KEY_ERROR_PARENT_TASK_NOT_FOUND)
-        // Checks cyclic and self reference. The parent task is not allowed to be a self reference.
-        checkCyclicReference(obj)
+        // Cyclic reference check is now done in onInsertOrModify under lock to prevent race conditions
         if (accessChecker.isUserMemberOfGroup(
                 user, ProjectForgeGroup.ADMIN_GROUP,
                 ProjectForgeGroup.FINANCE_GROUP
