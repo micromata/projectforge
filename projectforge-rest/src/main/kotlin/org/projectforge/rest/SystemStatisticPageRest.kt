@@ -44,14 +44,35 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
     @Autowired
     private lateinit var systemStatistics: SystemStatistics
 
+    @Autowired
+    private lateinit var accessChecker: org.projectforge.framework.access.AccessChecker
+
     @GetMapping("dynamic")
     fun getForm(request: HttpServletRequest): FormLayoutData {
         val statsData = systemStatistics.getSystemStatistics()
         val layout = UILayout("system.statistics.title")
 
-        statsData.groups.forEach { group ->
+        // Filter sensitive system information for non-admin users
+        // Whitelist approach: Only explicitly allowed groups are visible to non-admins
+        val isAdmin = accessChecker.isLoggedInUserMemberOfAdminGroup
+        val allowedGroupsForNonAdmins = setOf("database")
+        val restrictedEntryIds = setOf("databasePool")
+
+        val visibleGroups = if (isAdmin) {
+            statsData.groups
+        } else {
+            statsData.groups.filter { it in allowedGroupsForNonAdmins }
+        }
+
+        visibleGroups.forEach { group ->
             val fieldset = UIFieldset(title = "'${group.capitalize()}")
-            statsData.filterEntries(group).forEach {
+            val entries = statsData.filterEntries(group)
+            val visibleEntries = if (isAdmin) {
+                entries
+            } else {
+                entries.filter { it.id !in restrictedEntryIds }
+            }
+            visibleEntries.forEach {
                 fieldset.add(createRow(it.title, it.valueAsString()))
             }
             layout.add(fieldset)
