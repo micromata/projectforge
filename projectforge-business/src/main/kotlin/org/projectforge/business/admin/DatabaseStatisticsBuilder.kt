@@ -75,16 +75,16 @@ class DatabaseStatisticsBuilder : SystemsStatisticsBuilderInterface {
       )
     }
     stats.add(
-      "totalNumberOfTimesheets", "data base", "system.statistics.totalNumberOfTimesheets",
+      "totalNumberOfTimesheets", "database", "system.statistics.totalNumberOfTimesheets",
       getTableCount(jdbc, TimesheetDO::class.java)
     )
-    stats.add("totalTimesheetDurations", "data base", "system.statistics.totalTimesheetDurations", totalPersonDays)
+    stats.add("totalTimesheetDurations", "database", "system.statistics.totalTimesheetDurations", totalPersonDays)
     stats.add(
-      "totalNumberOfUsers", "data base", "system.statistics.totalNumberOfUsers",
+      "totalNumberOfUsers", "database", "system.statistics.totalNumberOfUsers",
       getTableCount(jdbc, PFUserDO::class.java)
     )
     stats.add(
-      "totalNumberOfTasks", "data base", "system.statistics.totalNumberOfTasks",
+      "totalNumberOfTasks", "database", "system.statistics.totalNumberOfTasks",
       getTableCount(jdbc, TaskDO::class.java)
     )
     val totalNumberOfHistoryEntries = getTableCount(jdbc, HistoryEntryDO::class.java) + getTableCount(
@@ -92,12 +92,12 @@ class DatabaseStatisticsBuilder : SystemsStatisticsBuilderInterface {
       HistoryEntryDO::class.java
     )
     stats.add(
-      "totalNumberOfHistoryEntries", "data base", "system.statistics.totalNumberOfHistoryEntries",
+      "totalNumberOfHistoryEntries", "database", "system.statistics.totalNumberOfHistoryEntries",
       totalNumberOfHistoryEntries
     )
 
     stats.add(
-      "databasePool", "data base", "system.statistics.databasePool",
+      "databasePool", "database", "system.statistics.databasePool",
       "total=${databaseStatistics.total}, active=${databaseStatistics.active}, idle=${databaseStatistics.idle}, threadsAwaitingConnection=${databaseStatistics.threadsAwaitingConnection}"
     )
   }
