@@ -27,6 +27,8 @@ import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.ProjectForgeVersion
 import org.projectforge.business.PfCaches
+import org.projectforge.business.fibu.EmployeeScriptingService
+import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.fibu.ForecastExport
 import org.projectforge.business.fibu.kost.reporting.ReportGeneratorList
 import org.projectforge.business.task.ScriptingTaskTree
@@ -98,6 +100,9 @@ abstract class ScriptExecutor(
         variables["caches"] = PfCaches.instance
         variables["forecastExport"] =
             ApplicationContextProvider.getApplicationContext().getBean(ForecastExport::class.java)
+        variables["employeeService"] = EmployeeScriptingService(
+            ApplicationContextProvider.getApplicationContext().getBean(EmployeeService::class.java)
+        )
         for (entry in Registry.getInstance().orderedList) {
             val scriptingDao = entry.scriptingDao
             if (scriptingDao != null) {
@@ -299,6 +304,7 @@ abstract class ScriptExecutor(
             "import de.micromata.merlin.excel.ExcelWriterContext",
             "import de.micromata.merlin.I18n",
             "import org.projectforge.business.fibu.*",
+            "import org.projectforge.business.fibu.EmployeeStatus",
             "import org.projectforge.business.fibu.kost.*",
             "import org.projectforge.business.scripting.ExportFile",
             "import org.projectforge.business.scripting.ExportJson",
