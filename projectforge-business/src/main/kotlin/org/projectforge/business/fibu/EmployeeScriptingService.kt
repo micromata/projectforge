@@ -162,4 +162,23 @@ class EmployeeScriptingService(private val __employeeService: EmployeeService) {
     fun findByStaffnumber(staffnumber: String?): EmployeeDO? {
         return __employeeService.findByStaffnumber(staffnumber)
     }
+
+    /**
+     * Gets all time-dependent attributes (ValidSinceAttr) for an employee.
+     * This includes annual leave days, weekly working hours, and status entries with their validity dates.
+     *
+     * @param employee The employee to get attributes for.
+     * @param type Optional type filter (ANNUAL_LEAVE, WEEKLY_HOURS, or STATUS). If null, all types are returned.
+     * @param deleted If true, only deleted attributes are returned. If false, only non-deleted. If null, all are returned.
+     * @param checkAccess If true, check access rights for the logged-in user.
+     * @return List of all ValidSinceAttr entries for the employee.
+     */
+    fun selectAllValidSinceAttrs(
+        employee: EmployeeDO,
+        type: EmployeeValidSinceAttrType? = null,
+        deleted: Boolean? = false,
+        checkAccess: Boolean = true
+    ): List<EmployeeValidSinceAttrDO> {
+        return __employeeService.selectAllValidSinceAttrs(employee, type, deleted, checkAccess)
+    }
 }
