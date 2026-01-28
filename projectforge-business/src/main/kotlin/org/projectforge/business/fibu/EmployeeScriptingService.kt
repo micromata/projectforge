@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu
 
 import org.projectforge.business.PfCaches
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -180,5 +181,18 @@ class EmployeeScriptingService(private val __employeeService: EmployeeService) {
         checkAccess: Boolean = true
     ): List<EmployeeValidSinceAttrDO> {
         return __employeeService.selectAllValidSinceAttrs(employee, type, deleted, checkAccess)
+    }
+
+    /**
+     * Gets the monthly employee report for a specific month.
+     * This report contains aggregated time sheet data by Kost2.
+     *
+     * @param year The year (e.g., 2025).
+     * @param month The month (1-based: 1=January, 12=December).
+     * @param user The user/employee to get the report for.
+     * @return MonthlyEmployeeReport with calculated kost2Durations.
+     */
+    fun getReportOfMonth(year: Int, month: Int, user: PFUserDO): MonthlyEmployeeReport {
+        return __employeeService.getReportOfMonth(year, month, user)
     }
 }
