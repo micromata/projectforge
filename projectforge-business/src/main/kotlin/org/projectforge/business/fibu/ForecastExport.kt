@@ -353,7 +353,7 @@ open class ForecastExport { // open needed by Wicket.
             auftragDO.projekt?.id?.let { projektId ->
                 ctx.projectIds.add(projektId)
             }
-            val orderInfo = if (planningData) {
+            val orderInfo = if (planningData || ctx.snapshot) {
                 auftragDO.info // Can't load planning data from cache (it's read from snapshots).
             } else {
                 ordersCache.getOrderInfo(auftragDO)
@@ -584,8 +584,10 @@ open class ForecastExport { // open needed by Wicket.
                 ?: BigDecimal.ZERO
         ).cellStyle = ctx.currencyCellStyle
 
-        val orderInfo = if (useAuftragsCache) order else {
+        val orderInfo = if (useAuftragsCache) {
             ordersCache.getOrderInfo(order.id)
+        } else {
+            order
         }
         val posInfo = orderInfo?.getInfoPosition(pos.id)
         val netSum = pos.netSum ?: BigDecimal.ZERO
@@ -619,16 +621,25 @@ open class ForecastExport { // open needed by Wicket.
         )
         val leistungsZeitraumColDef = sheet.getColumnDef(ForecastCol.LEISTUNGSZEITRAUM.header)!!
         if (PeriodOfPerformanceType.OWN == pos.periodOfPerformanceType) { // use "own" period -> from pos
+            // Log warning if position dates are null but type is OWN (data integrity issue)
+            if (pos.periodOfPerformanceBegin == null || pos.periodOfPerformanceEnd == null) {
+                log.warn {
+                    "Order position #${pos.number} (Order #${order.nummer}) has periodOfPerformanceType=OWN " +
+                    "but null dates. Falling back to order dates. " +
+                    "Position dates: begin=${pos.periodOfPerformanceBegin}, end=${pos.periodOfPerformanceEnd}"
+                }
+            }
+
             sheet.setDateValue(
                 row,
                 leistungsZeitraumColDef,
-                PFDay(pos.periodOfPerformanceBegin!!).localDate,
+                PFDay.fromOrNull(pos.periodOfPerformanceBegin ?: order.periodOfPerformanceBegin)?.localDate,
                 ctx.excelDateFormat
             )
             sheet.setDateValue(
                 row,
                 leistungsZeitraumColDef.columnNumber + 1,
-                PFDay(pos.periodOfPerformanceEnd!!).localDate,
+                PFDay.fromOrNull(pos.periodOfPerformanceEnd ?: order.periodOfPerformanceEnd)?.localDate,
                 ctx.excelDateFormat
             )
         } else { // use "see above" period -> from order
