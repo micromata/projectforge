@@ -195,14 +195,24 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
                     while (pollResponse.responses!![index].answers!!.size <= index2) {
                         pollResponse.responses!![index].answers!!.add(false)
                     }
-                    col.add(
-                        UIRadioButton(
-                            id = "responses[$index].answers[$index2]",
-                            name = "single-$index",
-                            value = "true",
-                            label = answer
+                    
+                    if (field.type == BaseType.PollSingleResponseQuestion) {
+                        col.add(
+                            UIRadioButton(
+                                id = "responses[$index].answers[$index2]",
+                                name = "single-$index",
+                                value = "true",
+                                label = answer
+                            )
                         )
-                    )
+                    } else {
+                        col.add(
+                            UICheckbox(
+                                id = "responses[$index].answers[$index2]",
+                                label = answer
+                            )
+                        )
+                    }
                 }
             }
 
