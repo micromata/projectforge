@@ -44,6 +44,9 @@ class PollMailService {
     @Autowired
     private lateinit var groupService: GroupService
 
+    @Autowired
+    private lateinit var pollResponseDao: PollResponseDao
+
     fun sendMail(
         from: String,
         to: List<String>,
@@ -119,5 +122,43 @@ class PollMailService {
 
         User.restoreEmails(userList)
         return userList!!.mapNotNull { it.email }
+    }
+
+    /**
+     * Get emails for reminder and end mails:
+     * - All Full Access Users (always get all mails)
+     * - Only Attendees who haven't responded yet
+     */
+    fun getFilteredEmails(poll: Poll, pollId: Long): List<String> {
+        // Full Access Users always get all mails
+        val fullAccessEmails = getAllFullAccessEmails(poll)
+        
+        // Attendees who haven't responded yet
+        val attendeesWithoutResponse = getEmailsOfUsersWhoHaventResponded(poll, pollId)
+        
+        // Combine both lists (remove duplicates)
+        return (fullAccessEmails + attendeesWithoutResponse).distinct()
+    }
+
+    /**
+     * Get emails of attendees who haven't responded yet
+     */
+    private fun getEmailsOfUsersWhoHaventResponded(poll: Poll, pollId: Long): List<String> {
+        // All attendee emails
+        val allAttendeesEmails = getAllAttendeesEmails(poll)
+        
+        // All responses for this poll
+        val allResponses = pollResponseDao.selectAll(checkAccess = false)
+            .filter { response -> response.poll?.id == pollId }
+        
+        // Emails of users who have already responded
+        val respondedUserEmails = allResponses.mapNotNull { response ->
+            response.owner?.email
+        }.toSet()
+        
+        // Only emails of users who haven't responded yet
+        return allAttendeesEmails.filter { email ->
+            email !in respondedUserEmails
+        }
     }
 }

@@ -73,23 +73,6 @@ class PollCronJobs {
         }.start()
     }
 
-    private fun getEmailsOfUsersWhoHaventResponded(poll: Poll, pollId: Long): List<String> {
-        // Alle E-Mail-Adressen der Teilnehmer abrufen
-        val allAttendeesEmails = pollMailService.getAllAttendeesEmails(poll)
-        // Alle Antworten für diese Umfrage abrufen
-        val allResponses = pollResponseDao.selectAll(checkAccess = false)
-            .filter { response ->
-                response.poll?.id == pollId
-            }
-        // E-Mail-Adressen von Benutzern, die bereits geantwortet haben
-        val respondedUserEmails = allResponses.mapNotNull { response ->
-            response.owner?.email
-        }.toSet()
-        // Nur E-Mails von Benutzern zurückgeben, die noch nicht geantwortet haben
-        return allAttendeesEmails.filter { email ->
-            email !in respondedUserEmails
-        }
-    }
 
 
     /**
@@ -112,7 +95,8 @@ class PollCronJobs {
 
                         val mailAttachment = MailAttachment("${pollDO.title}_${LocalDateTime.now().year}_Result.xlsx", excel)
                         val owner = userService.getUser(poll.owner?.id)
-                        val mailTo = pollMailService.getAllAttendeesEmails(poll)
+                        // Only send to Full Access Users and Attendees who haven't responded yet
+                        val mailTo = pollMailService.getFilteredEmails(poll, pollDO.id!!)
                         val mailFrom = pollDO.owner?.email.toString()
                         val mailSubject = translateMsg("poll.mail.endedafterdeadline.subject", poll.title)
                         val mailContent = translateMsg("poll.mail.endedafterdeadline.content", pollDO.title, owner?.displayName, )
@@ -134,11 +118,10 @@ class PollCronJobs {
             poll.copyFrom(pollDO)
             val daysDifference = ChronoUnit.DAYS.between(LocalDate.now(), pollDO.deadline)
             if (daysDifference == 1L || daysDifference == 7L) {
-                // add all attendees mails
-                val mailToFiltered = getEmailsOfUsersWhoHaventResponded(poll, pollDO.id!!)
+                // Only send to Full Access Users and Attendees who haven't responded yet
+                val mailTo = pollMailService.getFilteredEmails(poll, pollDO.id!!)
 
-                if (mailToFiltered.isNotEmpty()) {
-                    val mailTo = pollMailService.getAllAttendeesEmails(poll)
+                if (mailTo.isNotEmpty()) {
                     val mailFrom = pollDO.owner?.email.toString()
                     val mailSubject = translateMsg("poll.mail.endingSoon.subject", daysDifference)
                     val mailContent = translateMsg(
@@ -149,7 +132,7 @@ class PollCronJobs {
                         pollDO.id.toString(),
                     )
                     pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
-                    log.info("Sent reminder mail for poll (${pollDO.id}) to ${mailToFiltered.size} users who haven't responded yet")
+                    log.info("Sent reminder mail for poll (${pollDO.id}) to ${mailTo.size} users (Full Access + not responded yet)")
                 } else {
                     log.info("No reminder mail sent for poll (${pollDO.id}) - all users have already responded")
                 }
