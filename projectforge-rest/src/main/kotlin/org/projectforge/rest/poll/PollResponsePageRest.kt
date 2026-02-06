@@ -190,29 +190,33 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
                 )
             }
 
-            if (field.type == BaseType.PollMultiResponseQuestion || field.type == BaseType.PollSingleResponseQuestion) {
+            if (field.type == BaseType.PollMultiResponseQuestion) {
                 field.answers?.forEachIndexed { index2, answer ->
                     while (pollResponse.responses!![index].answers!!.size <= index2) {
                         pollResponse.responses!![index].answers!!.add(false)
                     }
-                    
-                    if (field.type == BaseType.PollSingleResponseQuestion) {
-                        col.add(
-                            UIRadioButton(
-                                id = "responses[$index].answers[$index2]",
-                                name = "single-$index",
-                                value = "true",
-                                label = answer
-                            )
+                    col.add(
+                        UICheckbox(
+                            id = "responses[$index].answers[$index2]",
+                            label = answer
                         )
-                    } else {
-                        col.add(
-                            UICheckbox(
-                                id = "responses[$index].answers[$index2]",
-                                label = answer
-                            )
-                        )
+                    )
+                }
+            }
+
+            if (field.type == BaseType.PollSingleResponseQuestion) {
+                field.answers?.forEachIndexed { index2, answer ->
+                    while (pollResponse.responses!![index].answers!!.size <= index2) {
+                        pollResponse.responses!![index].answers!!.add(false)
                     }
+                    col.add(
+                        UIPollRadioButton(
+                            id = "responses[$index].answers[$index2]",
+                            name = "single-$index",
+                            value = "true",
+                            label = answer
+                        )
+                    )
                 }
             }
 
@@ -269,22 +273,26 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
         postData.data.responses?.forEachIndexed { index, response ->
             val question = inputFields[index] as Map<*, *>
             if (question["type"] == "PollSingleResponseQuestion") {
+                // for single choice: ensure only one option is true
                 val originalAnswers = question["answers"] as List<*>
-                val boolList = MutableList(originalAnswers.size) { false }
+                val boolList = MutableList<Any>(originalAnswers.size) { false }
                 response.answers?.forEachIndexed { idx, ans ->
                     if (ans == true && idx in originalAnswers.indices) {
                         boolList[idx] = true
                     }
                 }
+                response.answers = boolList
             }
             else if (question["type"] == "PollMultiResponseQuestion") {
+                // for multiple choice: all variants are allowed
                 val originalAnswers = question["answers"] as List<*>
-                val boolList = MutableList(originalAnswers.size) { false }
+                val boolList = MutableList<Any>(originalAnswers.size) { false }
                 response.answers?.forEachIndexed { idx, ans ->
                     if (ans == true && idx in originalAnswers.indices) {
                         boolList[idx] = true
                     }
                 }
+                response.answers = boolList
             }
         }
 
@@ -295,6 +303,10 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
             .firstOrNull { response ->
                 response.owner?.id == questionOwner && response.poll?.id == postData.data.poll?.id
             }
+        
+        if (existingResponse != null) {
+            pollResponseDO.id = existingResponse.id
+        }
 
         pollResponseDao.insertOrUpdate(pollResponseDO)
 
