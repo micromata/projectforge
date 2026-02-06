@@ -58,9 +58,13 @@ class PollMailService {
                 mail.contentType = Mail.CONTENTTYPE_HTML
                 mail.content = content
                 mail.from = from
-                to.forEach { mail.addTo(it) }
-                sendMail.send(mail, attachments = mailAttachments)
-                log.info("Mail with subject $subject sent to $to")
+                // Set sender as TO (required for a mail to have at least one "to")
+                mail.addTo(from)
+                // Add all recipients to CC (will be sent as BCC by SendMail.sendBcc())
+                to.forEach { mail.addCC(it) }
+                // Use sendBcc() to send CC recipients as BCC (only for Poll emails)
+                sendMail.sendBcc(mail, null, mailAttachments, true)
+                log.info("Mail with subject $subject sent to $to (as BCC)")
             } else {
                 log.error("There are missing parameters for sending mail: from: $from, to: $to, subject: $subject, content: $content")
             }
