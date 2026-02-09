@@ -133,15 +133,52 @@ class PollCronJobs {
                     // Group recipients by locale and send localized emails
                     val recipientsByLocale = pollMailService.groupRecipientsByLocale(mailTo)
                     recipientsByLocale.forEach { (locale, recipients) ->
-                        val mailSubject = translateMsg(locale, "poll.mail.endingSoon.subject", daysDifference)
-                        val mailContent = translateMsg(
-                            locale,
-                            "poll.mail.endingSoon.content",
-                            pollDO.title,
-                            pollDO.owner?.displayName,
-                            pollDO.deadline?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString(),
-                            pollDO.id.toString(),
-                        )
+                        // Create HTML link for placeholder {3}
+                        val pollLink = "<p><a href=\"https://projectforge.micromata.de/react/pollResponse/dynamic/?pollId=${pollDO.id}\">" +
+                                translateMsg(locale, "poll.mail.link.text") + "</a></p>"
+                        
+                        // Use custom reminder texts if available, otherwise use default i18n keys
+                        // Placeholders: {0}=title, {1}=owner, {2}=deadline, {3}=link
+                        val mailSubject = if (!pollDO.customReminderSubject.isNullOrEmpty()) {
+                            translateMsg(
+                                locale,
+                                pollDO.customReminderSubject!!,
+                                pollDO.title,
+                                pollDO.owner?.displayName,
+                                pollDO.deadline?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString(),
+                                pollLink
+                            )
+                        } else {
+                            translateMsg(
+                                locale,
+                                "poll.mail.endingSoon.subject.default",
+                                pollDO.title,
+                                pollDO.owner?.displayName,
+                                pollDO.deadline?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString(),
+                                pollLink
+                            )
+                        }
+                        
+                        val mailContent = if (!pollDO.customReminderContent.isNullOrEmpty()) {
+                            translateMsg(
+                                locale,
+                                pollDO.customReminderContent!!,
+                                pollDO.title,
+                                pollDO.owner?.displayName,
+                                pollDO.deadline?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString(),
+                                pollLink
+                            )
+                        } else {
+                            translateMsg(
+                                locale,
+                                "poll.mail.endingSoon.content.default",
+                                pollDO.title,
+                                pollDO.owner?.displayName,
+                                pollDO.deadline?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString(),
+                                pollLink
+                            )
+                        }
+                        
                         pollMailService.sendMail(mailFrom, recipients, mailSubject, mailContent)
                         log.info("Sent reminder mail for poll (${pollDO.id}) to ${recipients.size} users in locale $locale (Full Access + not responded yet)")
                     }

@@ -298,6 +298,26 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                     )
                 )
                 .add(UISpacer(width = 100))
+                .add(UISpacer(width = 100))
+                .add(UILabel("poll.headline.reminderMailConfiguration", cssClass = "poll-section-headline"))
+                .add(
+                    UIInput(
+                        "customReminderSubject",
+                        required = false,
+                        label = "poll.email-reminder-subject-field",
+                        tooltip = "poll.email-reminder-subject-tooltip"
+                    )
+                )
+                .add(
+                    UITextArea(
+                        "customReminderContent",
+                        label = "poll.email-reminder-content-field",
+                        tooltip = "poll.email-reminder-content-tooltip",
+                        rows = 12,
+                        maxRows = 60
+                    )
+                )
+                .add(UISpacer(width = 100))
                 .add(UILabel("poll.headline.questionConfiguration", cssClass = "poll-section-headline"))
                 .add(UISpacer(width = 100))
                 .add(UIAlert("poll.template.description", color = UIColor.INFO))
@@ -391,21 +411,22 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         }
 
 
-        val content = "Liebe Teilnehmer:innen\n" +
-                "Wir möchten Ihnen mitteilen, dass eine Umfrage erstellt wurde mit dem Titel \"{0}\", und Sie wurden herzlichst eingeladen bei dieser Abzustimmen.\n" +
-                "\n" +
-                "Die Umfrage zu welcher sie Eingeladen wurden, endet am {4}. Eine Kurze Beschreibung des Themas finden sie hier: \"{3}\"\n" +
-                "{2}\n" +
-                "Mit Freundlichen Grüßen\n" +
-                "{1}"
+        // Invitation mail default texts
         if (dto.customemailcontent.isNullOrEmpty()) {
-            dto.customemailcontent = content
+            dto.customemailcontent = translate("poll.mail.created.content.default")
         }
 
-        val subject = "Sie wurden zu einer Umfrage mit dem Titel \"{0}\" eingeladen."
-
         if (dto.customemailsubject.isNullOrEmpty()) {
-            dto.customemailsubject = subject
+            dto.customemailsubject = translate("poll.mail.created.subject.default")
+        }
+
+        // Reminder mail default texts
+        if (dto.customReminderSubject.isNullOrEmpty()) {
+            dto.customReminderSubject = translate("poll.mail.endingSoon.subject.default")
+        }
+
+        if (dto.customReminderContent.isNullOrEmpty()) {
+            dto.customReminderContent = translate("poll.mail.endingSoon.content.default")
         }
 
         addQuestionFieldset(layout, dto, fieldset)
