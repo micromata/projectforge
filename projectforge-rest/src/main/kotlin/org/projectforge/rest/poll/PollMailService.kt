@@ -25,6 +25,7 @@ package org.projectforge.rest.poll
 
 import mu.KotlinLogging
 import org.projectforge.business.group.service.GroupService
+import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.mail.Mail
 import org.projectforge.mail.MailAttachment

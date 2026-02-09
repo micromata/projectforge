@@ -218,7 +218,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         fieldset
             .add(UISpacer(width = 100))
             .add(UISpacer(width = 100))
-            .add(UILabel("poll.headline.userConfiguration"))
+            .add(UILabel("poll.headline.userConfiguration", cssClass = "poll-section-headline"))
             .add(
                 UIRow()
                     .add(
@@ -279,7 +279,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             fieldset
                 .add(UISpacer(width = 100))
                 .add(UISpacer(width = 100))
-                .add(UILabel("poll.headline.mailConfiguration"))
+                .add(UILabel("poll.headline.mailConfiguration", cssClass = "poll-section-headline"))
                 .add(
                     UIInput(
                         "customemailsubject",
@@ -298,11 +298,13 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                     )
                 )
                 .add(UISpacer(width = 100))
-                .add(UILabel("poll.headline.questionConfiguration"))
+                .add(UILabel("poll.headline.questionConfiguration", cssClass = "poll-section-headline"))
+                .add(UISpacer(width = 100))
+                .add(UIAlert("poll.template.description", color = UIColor.INFO))
                 .add(
                     UIRow()
                         .add(
-                            UICol(colWidth)
+                            UICol(UILength(12))
                                 .add(
                                     UISelect(
                                         "prequestionType",
@@ -313,23 +315,11 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                                     )
                                 )
                         )
-                        .add(
-                            UICol(colWidth)
-                                .add(
-                                    UISelect(
-                                        "questionType",
-                                        values = BaseType.values()
-                                            .map { UISelectValue(it, translateMsg("poll.question." + it.name)) },
-                                        label = "poll.questionType",
-                                        tooltip = "poll.questionType.tooltip"
-                                    )
-                                )
-                        )
                 )
                 .add(
                     UIRow()
                         .add(
-                            UICol(colWidth)
+                            UICol(UILength(12))
                                 .add(
                                     UIButton.createDefaultButton(
                                         id = "template-button",
@@ -342,14 +332,55 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                                     )
                                 )
                         )
+                )
+                .add(UISpacer(width = 100))
+                .add(UIAlert("poll.question.add.description", color = UIColor.INFO))
+                .add(
+                    UIRow()
                         .add(
-                            UICol(colWidth)
+                            UICol(UILength(12))
                                 .add(
                                     UIButton.createDefaultButton(
-                                        id = "add-question-button",
-                                        title = "poll.button.addQuestion",
+                                        id = "add-text-question-button",
+                                        title = "poll.button.addTextQuestion",
                                         responseAction = ResponseAction(
-                                            "${Rest.URL}/poll/add",
+                                            "${Rest.URL}/poll/addTextQuestion",
+                                            targetType = TargetType.PUT
+                                        ),
+                                        default = false
+                                    )
+                                )
+                        )
+                )
+                .add(UISpacer(width = 10))
+                .add(
+                    UIRow()
+                        .add(
+                            UICol(UILength(12))
+                                .add(
+                                    UIButton.createDefaultButton(
+                                        id = "add-single-choice-button",
+                                        title = "poll.button.addSingleChoiceQuestion",
+                                        responseAction = ResponseAction(
+                                            "${Rest.URL}/poll/addSingleChoiceQuestion",
+                                            targetType = TargetType.PUT
+                                        ),
+                                        default = false
+                                    )
+                                )
+                        )
+                )
+                .add(UISpacer(width = 10))
+                .add(
+                    UIRow()
+                        .add(
+                            UICol(UILength(12))
+                                .add(
+                                    UIButton.createDefaultButton(
+                                        id = "add-multiple-choice-button",
+                                        title = "poll.button.addMultipleChoiceQuestion",
+                                        responseAction = ResponseAction(
+                                            "${Rest.URL}/poll/addMultipleChoiceQuestion",
                                             targetType = TargetType.PUT
                                         ),
                                         default = false
@@ -602,25 +633,49 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         )
     }
 
-    // PostMapping add
-    @PutMapping("/add")
-    fun addQuestionField(
+    @PutMapping("/addTextQuestion")
+    fun addTextQuestion(
         @RequestBody postData: PostData<Poll>
     ): ResponseEntity<ResponseAction> {
         val dto = postData.data
-
-        val type = dto.questionType?.let { BaseType.valueOf(it) } ?: BaseType.PollTextQuestion
-        val question = Question(uid = UUID.randomUUID().toString(), type = type)
-        if (type == BaseType.PollSingleResponseQuestion) {
-            question.answers = mutableListOf("", "")
-        } else if (type == BaseType.PollMultiResponseQuestion) {
-            question.answers = mutableListOf("", "", "")
-        }
-
+        val question = Question(uid = UUID.randomUUID().toString(), type = BaseType.PollTextQuestion)
         dto.inputFields?.add(question)
         dto.owner = userService.getUser(dto.owner?.id)
         return ResponseEntity.ok(
-            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto)
+            ResponseAction(targetType = TargetType.UPDATE)
+                .addVariable("data", dto)
+                .addVariable("ui", createEditLayout(dto, getUserAccess(dto)))
+        )
+    }
+
+    @PutMapping("/addSingleChoiceQuestion")
+    fun addSingleChoiceQuestion(
+        @RequestBody postData: PostData<Poll>
+    ): ResponseEntity<ResponseAction> {
+        val dto = postData.data
+        val question = Question(uid = UUID.randomUUID().toString(), type = BaseType.PollSingleResponseQuestion)
+        question.answers = mutableListOf("", "")
+        dto.inputFields?.add(question)
+        dto.owner = userService.getUser(dto.owner?.id)
+        return ResponseEntity.ok(
+            ResponseAction(targetType = TargetType.UPDATE)
+                .addVariable("data", dto)
+                .addVariable("ui", createEditLayout(dto, getUserAccess(dto)))
+        )
+    }
+
+    @PutMapping("/addMultipleChoiceQuestion")
+    fun addMultipleChoiceQuestion(
+        @RequestBody postData: PostData<Poll>
+    ): ResponseEntity<ResponseAction> {
+        val dto = postData.data
+        val question = Question(uid = UUID.randomUUID().toString(), type = BaseType.PollMultiResponseQuestion)
+        question.answers = mutableListOf("", "", "")
+        dto.inputFields?.add(question)
+        dto.owner = userService.getUser(dto.owner?.id)
+        return ResponseEntity.ok(
+            ResponseAction(targetType = TargetType.UPDATE)
+                .addVariable("data", dto)
                 .addVariable("ui", createEditLayout(dto, getUserAccess(dto)))
         )
     }
@@ -700,6 +755,9 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 dto.inputFields?.add(entry.value)
             }
         }
+
+        // Clear dropdown after submit
+        dto.prequestionType = null
 
         return ResponseEntity.ok(
             ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto)
@@ -876,7 +934,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val colWidth = UILength(xs = 12, sm = 12, md = 6, lg = 6)
         if (isRunning) {
             fieldset
-                .add(UILabel("poll.headline.generalConfiguration"))
+                .add(UILabel("poll.headline.generalConfiguration", cssClass = "poll-section-headline"))
                 .add(lc, "title", "description")
                 .add(
                     UIRow()
@@ -892,7 +950,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
         } else {
             fieldset
-                .add(UILabel("poll.headline.generalConfiguration"))
+                .add(UILabel("poll.headline.generalConfiguration", cssClass = "poll-section-headline"))
                 .add(UIReadOnlyField(value = pollDto.title, label = "title", dataType = UIDataType.STRING))
                 .add(UIReadOnlyField(value = pollDto.description, label = "description", dataType = UIDataType.STRING))
                 .add(
