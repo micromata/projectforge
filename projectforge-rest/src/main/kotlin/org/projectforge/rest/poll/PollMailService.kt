@@ -26,6 +26,7 @@ package org.projectforge.rest.poll
 import mu.KotlinLogging
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.poll.PollResponseDao
+import org.projectforge.business.user.UserLocale
 import org.projectforge.business.user.service.UserService
 import org.projectforge.mail.Mail
 import org.projectforge.mail.MailAttachment
@@ -33,6 +34,7 @@ import org.projectforge.mail.SendMail
 import org.projectforge.rest.dto.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.util.Locale
 
 private val log = KotlinLogging.logger {}
 
@@ -47,6 +49,9 @@ class PollMailService {
 
     @Autowired
     private lateinit var pollResponseDao: PollResponseDao
+
+    @Autowired
+    private lateinit var userService: UserService
 
     fun sendMail(
         from: String,
@@ -161,5 +166,23 @@ class PollMailService {
         return allAttendeesEmails.filter { email ->
             email !in respondedUserEmails
         }
+    }
+
+    /**
+     * Group recipients by their locale for sending localized emails.
+     * Returns a map of Locale to List of email addresses.
+     */
+    fun groupRecipientsByLocale(emails: List<String>): Map<Locale, List<String>> {
+        return emails.mapNotNull { email ->
+            // Find user by email
+            val users = userService.findUserByMail(email)
+            val user = users?.firstOrNull()
+            
+            user?.let {
+                // Determine user's locale
+                val locale = UserLocale.determineUserLocale(it)
+                locale to email
+            }
+        }.groupBy({ it.first }, { it.second })
     }
 }

@@ -98,10 +98,16 @@ class PollCronJobs {
                         // Only send to Full Access Users and Attendees who haven't responded yet
                         val mailTo = pollMailService.getFilteredEmails(poll, pollDO.id!!)
                         val mailFrom = pollDO.owner?.email.toString()
-                        val mailSubject = translateMsg("poll.mail.endedafterdeadline.subject", poll.title)
-                        val mailContent = translateMsg("poll.mail.endedafterdeadline.content", pollDO.title, owner?.displayName, )
 
-                        pollMailService.sendMail(mailFrom, mailTo, mailContent, mailSubject, listOf(mailAttachment))
+                        // Group recipients by locale and send localized emails
+                        val recipientsByLocale = pollMailService.groupRecipientsByLocale(mailTo)
+                        recipientsByLocale.forEach { (locale, recipients) ->
+                            val mailSubject = translateMsg(locale, "poll.mail.endedafterdeadline.subject", poll.title)
+                            val mailContent = translateMsg(locale, "poll.mail.endedafterdeadline.content", pollDO.title, owner?.displayName)
+                            
+                            pollMailService.sendMail(mailFrom, recipients, mailSubject, mailContent, listOf(mailAttachment))
+                            log.info("Sent end-of-poll mail for poll (${pollDO.id}) to ${recipients.size} users in locale $locale")
+                        }
                         pollDO.state = PollDO.State.FINISHED_AND_MAIL_SENT
                         log.info("Set state of poll (${pollDO.id}) ${pollDO.title} to FINISHED_AND_MAIL_SENT")
                         pollDao.insertOrUpdate(pollDO, checkAccess = false)
@@ -123,16 +129,22 @@ class PollCronJobs {
 
                 if (mailTo.isNotEmpty()) {
                     val mailFrom = pollDO.owner?.email.toString()
-                    val mailSubject = translateMsg("poll.mail.endingSoon.subject", daysDifference)
-                    val mailContent = translateMsg(
-                        "poll.mail.endingSoon.content",
-                        pollDO.title,
-                        pollDO.owner?.displayName,
-                        pollDO.deadline?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString(),
-                        pollDO.id.toString(),
-                    )
-                    pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
-                    log.info("Sent reminder mail for poll (${pollDO.id}) to ${mailTo.size} users (Full Access + not responded yet)")
+                    
+                    // Group recipients by locale and send localized emails
+                    val recipientsByLocale = pollMailService.groupRecipientsByLocale(mailTo)
+                    recipientsByLocale.forEach { (locale, recipients) ->
+                        val mailSubject = translateMsg(locale, "poll.mail.endingSoon.subject", daysDifference)
+                        val mailContent = translateMsg(
+                            locale,
+                            "poll.mail.endingSoon.content",
+                            pollDO.title,
+                            pollDO.owner?.displayName,
+                            pollDO.deadline?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString(),
+                            pollDO.id.toString(),
+                        )
+                        pollMailService.sendMail(mailFrom, recipients, mailSubject, mailContent)
+                        log.info("Sent reminder mail for poll (${pollDO.id}) to ${recipients.size} users in locale $locale (Full Access + not responded yet)")
+                    }
                 } else {
                     log.info("No reminder mail sent for poll (${pollDO.id}) - all users have already responded")
                 }
