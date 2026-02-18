@@ -93,7 +93,9 @@ open class UserGroupCache : AbstractCache() {
 
     /**
      * Must be synchronized because it is mutable.
+     * @Volatile ensures memory visibility across threads when the map reference is replaced in refresh().
      */
+    @Volatile
     private var userMap = mutableMapOf<Long, PFUserDO>()
 
     internal var adminUsers = setOf<Long>()
