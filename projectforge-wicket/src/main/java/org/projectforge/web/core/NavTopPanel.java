@@ -42,6 +42,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
@@ -108,7 +109,15 @@ public class NavTopPanel extends NavAbstractPanel {
       addBookmarkDialog();
     }
     {
-      add(new Label("user", ThreadLocalUserContext.getLoggedInUser().getFullname()));
+      // Use a dynamic model to always reflect the current session user, not a stale serialized value.
+      // This prevents showing a wrong username if a serialized page is restored from disk (DiskPageStore).
+      add(new Label("user", new Model<String>() {
+        @Override
+        public String getObject() {
+          final PFUserDO user = MySession.get().getUser();
+          return user != null ? user.getFullname() : "???";
+        }
+      }));
 
       final RepeatingView pluginPersonalMenuEntriesRepeater = new RepeatingView("pluginPersonalMenuEntriesRepeater");
       add(pluginPersonalMenuEntriesRepeater);

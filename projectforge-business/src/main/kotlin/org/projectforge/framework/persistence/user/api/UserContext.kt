@@ -26,6 +26,7 @@ package org.projectforge.framework.persistence.user.api
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.security.SessionUserMismatchHandler
 import org.slf4j.LoggerFactory
 import java.io.Serializable
 
@@ -90,9 +91,31 @@ class UserContext @JvmOverloads constructor(var user: PFUserDO?, nofresh: Boolea
      * @return this for chaining.
      */
     fun refreshUser(): UserContext {
-        val updatedUser = UserGroupCache.getInstance().getUser(user!!.id)
+        val originalUserId = user!!.id
+        val updatedUser = UserGroupCache.getInstance().getUser(originalUserId)
         if (updatedUser == null) {
             log.warn("Couldn't update user from UserCache, should only occur in maintenance mode!")
+            return this
+        }
+        if (updatedUser.id != originalUserId) {
+            val originalUser = user!!
+            val incidentDetails = SessionUserMismatchHandler.buildIncidentDetails(
+                expectedUser = originalUser,
+                actualUser = updatedUser,
+                expectedLabel = "Expected user (original)",
+                actualLabel = "Returned user (from cache)",
+            )
+            SessionUserMismatchHandler.handleUserMismatch(
+                title = "UserContext.refreshUser() returned a different user",
+                description = listOf(
+                    "UserGroupCache.getUser($originalUserId) returned a user with a different ID!",
+                    "This indicates a severe cache corruption or concurrency issue in UserGroupCache.",
+                    "The original user will be kept and logged out.",
+                ),
+                incidentDetails = incidentDetails,
+                action = "Keeping original user and forcing logout.",
+            )
+            user = null
             return this
         }
         user = updatedUser

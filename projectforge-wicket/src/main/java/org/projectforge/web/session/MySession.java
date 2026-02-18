@@ -39,6 +39,7 @@ import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.login.LoginService;
+import org.projectforge.security.SessionUserMismatchHandler;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.Serializable;
@@ -124,6 +125,50 @@ public class MySession extends WebSession {
         }
         log.info("User '" + userContext.getUser().getUsername() + "' now also logged-in for Wicket stuff.");
         userContext = sessionUserContext;
+      }
+    } else if (userContext.getUser() != null) {
+      // Validate: Wicket session user must match the authoritative HTTP session user (set by WicketUserFilter).
+      // This detects inconsistencies that could occur after DiskPageStore deserialization or session corruption.
+      final UserContext threadLocalContext = ThreadLocalUserContext.getUserContext();
+      if (threadLocalContext != null && threadLocalContext.getUser() != null
+              && !Objects.equals(userContext.getUser().getId(), threadLocalContext.getUser().getId())) {
+        final PFUserDO wicketUser = userContext.getUser();
+        final PFUserDO httpSessionUser = threadLocalContext.getUser();
+        // Gather request context for incident details.
+        String sessionId = null;
+        String clientIp = null;
+        String requestUri = null;
+        try {
+          final HttpServletRequest request = ((ServletWebRequest) RequestCycle.get().getRequest()).getContainerRequest();
+          sessionId = request.getSession(false) != null ? request.getSession(false).getId() : "no-session";
+          clientIp = request.getRemoteAddr();
+          requestUri = request.getRequestURI();
+        } catch (Exception ex) {
+          // Ignore, best-effort request info gathering.
+        }
+        final java.util.LinkedHashMap<String, String> additionalInfo = new java.util.LinkedHashMap<>();
+        additionalInfo.put("HTTP Session ID", sessionId);
+        additionalInfo.put("Client IP", clientIp);
+        additionalInfo.put("Request URI", requestUri);
+        additionalInfo.put("Wicket Session ID", getId());
+        additionalInfo.put("User Agent", userAgent);
+        final String incidentDetails = SessionUserMismatchHandler.buildIncidentDetails(
+                httpSessionUser, wicketUser,
+                "HTTP session user", "Wicket session user",
+                additionalInfo);
+        SessionUserMismatchHandler.handleUserMismatch(
+                "Wicket session user mismatch detected",
+                java.util.List.of(
+                        "The user stored in the Wicket session (MySession) does NOT match the user",
+                        "from the HTTP session (set by WicketUserFilter from the authoritative servlet session).",
+                        "This indicates a potential session corruption, DiskPageStore deserialization issue,",
+                        "or cross-session data leak. The user will be logged out immediately."),
+                incidentDetails,
+                "Invalidating Wicket session and forcing re-login.");
+        // Invalidate the Wicket session to force a fresh login.
+        userContext = null;
+        internalLogout();
+        return null;
       }
     }
     return userContext != null ? userContext.getUser() : null;
