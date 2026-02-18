@@ -373,12 +373,25 @@ a.timesheet-break, a.vacation-event {
 
 .calendar-filter {
   margin-bottom: 0.2em;
+  overflow: visible;
 
-  .col-sm-10 {
+  // Support current grid layout: sm="9" md="10" xl="10" for select
+  .col-sm-9, .col-md-10, .col-xl-10 {
     padding-right: 10px;
   }
 
-  .col-sm-2 {
+  // Support current grid layout: sm="3" md="2" xl="2" for icons
+  .col-sm-3, .col-md-2, .col-xl-2 {
+    padding-left: 0px;
+    overflow: visible;
+  }
+
+  // Legacy support (for backwards compatibility)
+  .col-sm-10, .col-xl-11 {
+    padding-right: 10px;
+  }
+
+  .col-sm-2, .col-xl-1 {
     padding-left: 0px;
   }
 }
