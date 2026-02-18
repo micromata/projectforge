@@ -258,7 +258,7 @@ function CalendarPage() {
                     <div className="calendar-filter">
                         <form>
                             <Row>
-                                <Col sm="9" md="10" xl="11">
+                                <Col sm="9" md="10" xl="10">
                                     {options && (
                                         <Select
                                             closeMenuOnSelect={false}
@@ -279,7 +279,7 @@ function CalendarPage() {
                                         />
                                     )}
                                 </Col>
-                                <Col sm="3" md="2" xl="1" className="d-flex justify-content-end">
+                                <Col sm="3" md="2" xl="2" className="d-flex justify-content-end">
                                     <FavoritesPanel
                                         onFavoriteCreate={onFavoriteCreate}
                                         onFavoriteDelete={onFavoriteDelete}
