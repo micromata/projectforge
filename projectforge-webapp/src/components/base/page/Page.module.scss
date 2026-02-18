@@ -1,4 +1,4 @@
-@import "../../../assets/style/mixins";
+@use "../../../assets/style/mixins";
 
 .title {
   color: #000;
@@ -15,7 +15,7 @@
 
 .navTab {
   padding: 1rem 20px 1rem 20px;
-  @include linear-gradient-background(to bottom, #e6ecef, #d0d6da);
+  @include mixins.linear-gradient-background(to bottom, #e6ecef, #d0d6da);
   background: #ededed;
   color: #676767;
   font-size: 14px;
