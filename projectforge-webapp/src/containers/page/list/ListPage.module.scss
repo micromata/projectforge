@@ -1,4 +1,5 @@
-@import './src/assets/style/theming.scss';
+@use 'sass:color';
+@import '../../../assets/style/theming';
 
 // Use :global(...) to force css-modules to not convert #searchFilter.
 :global(#searchString), :global(#magicFiltersSearch) {
@@ -89,7 +90,7 @@
     cursor: pointer;
 
     &:hover {
-      color: darken(map_get($theme-colors, primary), 15%);
+      color: color.adjust(map_get($theme-colors, primary), $lightness: -15%);
     }
   }
 

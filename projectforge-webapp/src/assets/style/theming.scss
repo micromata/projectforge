@@ -1,7 +1,8 @@
-@import "~bootstrap/scss/functions";
-@import "~bootstrap/scss/variables";
+// Import Bootstrap variables and functions that we need
+@import '~bootstrap/scss/functions';
+@import '~bootstrap/scss/variables';
 
-$theme-colors: map_merge(
+$theme-colors: map-merge(
                 (
                         "success": #32912E,
                 ),

@@ -1,6 +1,6 @@
 @import '../fonts/roboto/index.css';
-@import './theming.scss';
 @import '~bootstrap/scss/bootstrap';
+@import './theming';
 @import '@fortawesome/fontawesome-free/scss/solid';
 
 :root {
@@ -105,9 +105,11 @@ div.job-progress {
   font: var(--fa-font-solid);
 }
 
-.icon-paperclip::before {
-  content: fa-content($fa-var-paperclip);
-}
+// FontAwesome v7 doesn't export $fa-var-* variables in SCSS
+// Use CSS classes or SVG icons instead
+// .icon-paperclip::before {
+//   content: fa-content($fa-var-paperclip);
+// }
 
 html {
   font-size: 62.5%;
@@ -639,7 +641,7 @@ span.mm-select {
           border-radius: 0 2px 2px 0;
 
           &:hover {
-            background-color: map_get($theme-colors, danger);
+            background-color: map-get($theme-colors, danger);
           }
         }
       }
@@ -675,27 +677,27 @@ span.mm-select {
     }
 
     &.primary {
-      @include color(map_get($theme-colors, primary));
+      @include color(map-get($theme-colors, primary));
     }
 
     &.secondary {
-      @include color(map_get($theme-colors, secondary));
+      @include color(map-get($theme-colors, secondary));
     }
 
     &.success {
-      @include color(map_get($theme-colors, success));
+      @include color(map-get($theme-colors, success));
     }
 
     &.danger {
-      @include color(map_get($theme-colors, danger));
+      @include color(map-get($theme-colors, danger));
     }
 
     &.warning {
-      @include color(map_get($theme-colors, warning));
+      @include color(map-get($theme-colors, warning));
     }
 
     &.info {
-      @include color(map_get($theme-colors, info));
+      @include color(map-get($theme-colors, info));
     }
   }
 

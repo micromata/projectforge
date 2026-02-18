@@ -1,5 +1,5 @@
 import { faChevronDown, faCog, faEllipsis } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome/index';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React, { useContext, useEffect, useState } from 'react';
 import {
