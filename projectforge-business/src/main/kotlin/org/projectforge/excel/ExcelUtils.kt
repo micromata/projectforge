@@ -27,6 +27,7 @@ import de.micromata.merlin.excel.*
 import mu.KotlinLogging
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.ss.util.CellRangeAddress
+import org.apache.poi.ss.util.CellReference
 import org.projectforge.common.BeanHelper
 import org.projectforge.common.ClassUtils
 import org.projectforge.common.DateFormatType
@@ -442,6 +443,38 @@ object ExcelUtils {
             style.borderRight = it
         }
         return style
+    }
+
+    /**
+     * Converts the column number of the given ExcelCell to its corresponding column string in Excel notation.
+     *
+     * @param cell The ExcelCell containing the column number to be converted. The column number is 0-based,
+     *             where 0 corresponds to column 'A'.
+     * @return A string representing the column in Excel notation (e.g., "A", "B", "Z", "AA").
+     */
+    fun getColString(cell: ExcelCell): String {
+        return getColString(cell.colNumber) // 0-basiert (0 = A)
+    }
+
+    /**
+     * Converts the column number of the given ExcelCell to its corresponding column string in Excel notation.
+     *
+     * @param cell The ExcelCell containing the column number to be converted. The column number is 0-based,
+     *             where 0 corresponds to column 'A'.
+     * @return A string representing the column in Excel notation (e.g., "A", "B", "Z", "AA").
+     */
+    fun getColString(col: ExcelColumnDef): String {
+        return getColString(col.columnNumber) // 0-basiert (0 = A)
+    }
+
+    /**
+     * Converts a column index (0-based) to its corresponding column string in Excel notation.
+     *
+     * @param idx The 0-based column index to be converted, where 0 corresponds to column 'A'.
+     * @return A string representing the column in Excel notation (e.g., "A", "B", "Z", "AA").
+     */
+    fun getColString(idx: Int): String {
+        return CellReference.convertNumToColString(idx)
     }
 
     object Size {
