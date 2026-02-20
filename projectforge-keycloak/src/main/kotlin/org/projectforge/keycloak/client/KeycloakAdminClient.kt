@@ -48,11 +48,15 @@ private val log = KotlinLogging.logger {}
  *   GET /admin/realms/{realm}/users/{id}/groups → getUserGroups()
  *
  * Writes (migration + password sync):
- *   POST /admin/realms/{realm}/users         → createUser()
- *   PUT  /admin/realms/{realm}/users/{id}    → updateUser()
- *   POST /admin/realms/{realm}/groups        → createGroup()
- *   PUT  /admin/realms/{realm}/users/{id}/groups/{groupId} → addUserToGroup()
- *   PUT  /admin/realms/{realm}/users/{id}/reset-password   → resetPassword()
+ *   POST   /admin/realms/{realm}/users                          → createUser()
+ *   PUT    /admin/realms/{realm}/users/{id}                     → updateUser()
+ *   POST   /admin/realms/{realm}/groups                         → createGroup()
+ *   PUT    /admin/realms/{realm}/users/{id}/groups/{groupId}    → addUserToGroup()
+ *   DELETE /admin/realms/{realm}/users/{id}/groups/{groupId}    → removeUserFromGroup()
+ *   PUT    /admin/realms/{realm}/users/{id}/reset-password      → resetPassword()
+ *
+ * Group membership reads (for master-mode sync):
+ *   GET /admin/realms/{realm}/groups/{groupId}/members          → getGroupMembers()
  */
 @Service
 open class KeycloakAdminClient(
@@ -121,6 +125,22 @@ open class KeycloakAdminClient(
     fun addUserToGroup(userId: String, groupId: String) {
         val url = "$adminBaseUrl/users/$userId/groups/$groupId"
         restTemplate.exchange(url, HttpMethod.PUT, HttpEntity<Void>(bearerHeaders()), Void::class.java)
+    }
+
+    /** Removes a user from a group in Keycloak. */
+    fun removeUserFromGroup(userId: String, groupId: String) {
+        val url = "$adminBaseUrl/users/$userId/groups/$groupId"
+        restTemplate.exchange(url, HttpMethod.DELETE, HttpEntity<Void>(bearerHeaders()), Void::class.java)
+    }
+
+    /**
+     * Returns all members of a group.
+     * Used by the master-mode sync to compare current KC memberships with desired PF memberships.
+     */
+    fun getGroupMembers(groupId: String): List<KeycloakUser> {
+        val url = "$adminBaseUrl/groups/$groupId/members"
+        val response = restTemplate.exchange(url, HttpMethod.GET, HttpEntity<Void>(bearerHeaders()), Array<KeycloakUser>::class.java)
+        return response.body?.toList() ?: emptyList()
     }
 
     /**
