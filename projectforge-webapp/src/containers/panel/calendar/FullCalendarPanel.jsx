@@ -110,7 +110,7 @@ function FullCalendarPanel({
                 const viewStart = Date.toIsoDateString(currentApi.view.activeStart);
                 const viewEnd = Date.toIsoDateString(currentApi.view.activeEnd);
                 // console.log(date, viewStart, viewEnd, date < viewStart);
-                if (date < viewStart || date > viewEnd) {
+                if (date < viewStart || date >= viewEnd) {
                     // console.log('gotoDate', date);
                     currentApi.gotoDate(date);
                     refetchTriggerd = true;
