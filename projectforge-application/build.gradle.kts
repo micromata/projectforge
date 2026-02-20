@@ -37,6 +37,7 @@ dependencies {
     implementation(project(":projectforge-wicket"))
     implementation(project(":projectforge-rest"))
     implementation(project(":projectforge-carddav"))
+    implementation(project(":projectforge-keycloak"))
     implementation(project(":projectforge-webapp"))
     implementation(project(":org.projectforge.plugins.datatransfer"))
     implementation(project(":org.projectforge.plugins.ihk"))

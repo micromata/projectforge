@@ -88,6 +88,13 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
     open var lastWlanPasswordChange: Date? = null
 
     /**
+     * Timestamp of the last successful password sync to Keycloak.
+     * Null means the password has never been synced to Keycloak.
+     */
+    @get:Column(name = "last_keycloak_password_sync")
+    open var lastKeycloakPasswordSync: Date? = null
+
+    /**
      * JIRA user name (if differ from the ProjectForge's user name).
      */
     @PropertyInfo(i18nKey = "user.jiraUsername", tooltip = "user.jiraUsername.tooltip")
