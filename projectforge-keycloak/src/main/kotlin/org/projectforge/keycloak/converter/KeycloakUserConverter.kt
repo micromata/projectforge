@@ -64,6 +64,10 @@ open class KeycloakUserConverter {
     /**
      * Converts a [PFUserDO] to a Keycloak user representation for the initial population.
      * Stores the PF user's ID in the 'pfId' attribute for cross-reference.
+     *
+     * Special case: the placeholder address [DEVELOPER_PLACEHOLDER_EMAIL] is replaced by
+     * `firstname.lastname@localhost` (falling back to `username@localhost`) so that each
+     * user gets a unique, syntactically valid email in Keycloak.
      */
     fun toKeycloakUser(pfUser: PFUserDO): KeycloakUser {
         val attrs = pfUser.id?.let { mapOf("pfId" to listOf(it.toString())) }
@@ -71,9 +75,31 @@ open class KeycloakUserConverter {
             username = pfUser.username,
             firstName = pfUser.firstname,
             lastName = pfUser.lastname,
-            email = pfUser.email,
+            email = resolveEmail(pfUser),
             enabled = pfUser.hasSystemAccess(),
             attributes = attrs
         )
+    }
+
+    /**
+     * Returns the effective email for Keycloak.
+     * Replaces the generic developer placeholder with a per-user address derived from
+     * first/last name (or username as fallback).
+     */
+    private fun resolveEmail(pfUser: PFUserDO): String? {
+        val email = pfUser.email ?: return null
+        if (email != DEVELOPER_PLACEHOLDER_EMAIL) return email
+        val first = pfUser.firstname?.trim()?.lowercase()
+        val last = pfUser.lastname?.trim()?.lowercase()
+        return if (!first.isNullOrBlank() && !last.isNullOrBlank()) {
+            "$first.$last@localhost"
+        } else {
+            "${pfUser.username}@localhost"
+        }
+    }
+
+    companion object {
+        /** Placeholder email used in development/test setups — replaced per user during KC sync. */
+        const val DEVELOPER_PLACEHOLDER_EMAIL = "m.developer@localhost"
     }
 }
