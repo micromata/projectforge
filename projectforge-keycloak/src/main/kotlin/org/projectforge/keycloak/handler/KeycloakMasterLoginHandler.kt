@@ -118,8 +118,10 @@ open class KeycloakMasterLoginHandler : LoginHandler {
         }
         val user = result.user ?: return result
 
-        // Sync password to Keycloak if not yet done
-        if (user.lastKeycloakPasswordSync == null && !user.localUser && !user.deleted) {
+        // Phase 2: sync password to Keycloak on first login if syncPasswords is enabled
+        if (keycloakConfig.syncPasswords && user.lastKeycloakPasswordSync == null
+            && !user.localUser && !user.deleted
+        ) {
             syncPasswordToKeycloak(user, password)
         }
 
@@ -177,7 +179,7 @@ open class KeycloakMasterLoginHandler : LoginHandler {
      * Pushes the new password to Keycloak and LDAP.
      */
     override fun passwordChanged(user: PFUserDO, newPassword: CharArray) {
-        if (!user.localUser && !user.deleted) {
+        if (keycloakConfig.syncPasswords && !user.localUser && !user.deleted) {
             syncPasswordToKeycloak(user, newPassword)
         }
         try {

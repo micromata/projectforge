@@ -28,7 +28,23 @@ import org.springframework.context.annotation.Configuration
 
 /**
  * Configuration properties for the Keycloak integration.
- * Activate via: projectforge.login.handlerClass=KeycloakLoginHandler
+ *
+ * ## Betriebsphasen (KeycloakMasterLoginHandler)
+ *
+ * **Phase 1 — PF als Master, kein Passwort-Sync** (`syncPasswords=false`, default):
+ *   PF befüllt Keycloak mit Usern/Gruppen/Zuordnungen. Passwörter bleiben ausschließlich in PF.
+ *   projectforge.login.handlerClass=KeycloakMasterLoginHandler
+ *   projectforge.keycloak.syncPasswords=false
+ *
+ * **Phase 2 — PF als Master, mit Passwort-Sync** (`syncPasswords=true`):
+ *   Zusätzlich werden Passwortänderungen und der erste Login nach Keycloak übertragen.
+ *   projectforge.login.handlerClass=KeycloakMasterLoginHandler
+ *   projectforge.keycloak.syncPasswords=true
+ *
+ * **Phase 3 — Keycloak als Master, SSO** (separater Handler, spätere Implementierung):
+ *   Keycloak ist führendes System. Gruppen-/User-Sync von Keycloak nach PF.
+ *   Passwortänderung in PF deaktiviert. Anmeldung ausschließlich über Keycloak SSO.
+ *   projectforge.login.handlerClass=KeycloakLoginHandler  (+ OIDC-Konfiguration, TODO)
  */
 @Configuration
 @ConfigurationProperties(prefix = "projectforge.keycloak")
@@ -48,6 +64,13 @@ open class KeycloakConfig {
 
     /** Page size for paginated Keycloak API calls */
     var pageSize: Int = 100
+
+    /**
+     * Phase 1→2 switch for [KeycloakMasterLoginHandler]:
+     * - false (default, Phase 1): users/groups/assignments are synced to Keycloak, passwords are NOT.
+     * - true (Phase 2): additionally pushes passwords to Keycloak on login and on password change.
+     */
+    var syncPasswords: Boolean = false
 
     fun isConfigured() = serverUrl.isNotBlank() && realm.isNotBlank()
             && clientId.isNotBlank() && clientSecret.isNotBlank()
