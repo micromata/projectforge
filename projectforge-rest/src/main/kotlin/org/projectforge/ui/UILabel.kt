@@ -41,4 +41,20 @@ data class UILabel(
         @Transient
         override val ignoreTooltip: Boolean = false,
         val dataType: UIDataType? = null)
-    : UIElement(UIElementType.LABEL), UILabelledElement
+    : UIElement(UIElementType.LABEL), UILabelledElement {
+    
+    constructor(
+        label: String? = null,
+        labelFor: String? = null,
+        layoutContext: LayoutContext? = null,
+        reference: UIElement? = null,
+        additionalLabel: String? = null,
+        tooltip: String? = null,
+        ignoreAdditionalLabel: Boolean = false,
+        ignoreTooltip: Boolean = false,
+        dataType: UIDataType? = null,
+        cssClass: String? = null
+    ) : this(label, labelFor, layoutContext, reference, additionalLabel, tooltip, ignoreAdditionalLabel, ignoreTooltip, dataType) {
+        this.cssClass = cssClass
+    }
+}
