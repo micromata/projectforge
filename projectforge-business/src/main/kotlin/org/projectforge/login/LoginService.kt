@@ -94,7 +94,20 @@ open class LoginService {
         loginHandler = when (loginHandlerClass) {
             "LdapMasterLoginHandler" -> applicationContext.getBean(LdapMasterLoginHandler::class.java)
             "LdapSlaveLoginHandler" -> applicationContext.getBean(LdapSlaveLoginHandler::class.java)
-            else -> applicationContext.getBean(LoginDefaultHandler::class.java)
+            else -> {
+                // For extensibility (e.g. KeycloakLoginHandler in projectforge-keycloak module):
+                // discover handler by simple class name to avoid circular module dependencies.
+                if (!loginHandlerClass.isNullOrBlank() && loginHandlerClass != "LoginDefaultHandler") {
+                    applicationContext.getBeansOfType(LoginHandler::class.java).values
+                        .find { it::class.simpleName == loginHandlerClass }
+                        ?: run {
+                            log.warn { "No LoginHandler found for class '$loginHandlerClass', falling back to LoginDefaultHandler." }
+                            applicationContext.getBean(LoginDefaultHandler::class.java)
+                        }
+                } else {
+                    applicationContext.getBean(LoginDefaultHandler::class.java)
+                }
+            }
         }
         Login.getInstance().setLoginHandler(loginHandler)
         loginHandler.initialize()
