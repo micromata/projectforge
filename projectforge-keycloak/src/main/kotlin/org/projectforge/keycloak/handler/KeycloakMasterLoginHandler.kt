@@ -24,6 +24,7 @@
 package org.projectforge.keycloak.handler
 
 import mu.KotlinLogging
+import org.projectforge.business.ldap.LdapConfig
 import org.projectforge.business.ldap.LdapMasterLoginHandler
 import org.projectforge.business.login.LoginDefaultHandler
 import org.projectforge.business.login.LoginHandler
@@ -75,6 +76,9 @@ open class KeycloakMasterLoginHandler : LoginHandler {
     private lateinit var ldapMasterLoginHandler: LdapMasterLoginHandler
 
     @Autowired
+    private lateinit var ldapConfig: LdapConfig
+
+    @Autowired
     private lateinit var userDao: UserDao
 
     @Autowired
@@ -99,10 +103,14 @@ open class KeycloakMasterLoginHandler : LoginHandler {
                 "PF is master — all changes will be pushed to Keycloak and LDAP."
             )
         }
-        try {
-            ldapMasterLoginHandler.initialize()
-        } catch (ex: Exception) {
-            log.warn("LDAP initialization failed (ignored): ${ex.message}")
+        if (isLdapConfigured()) {
+            try {
+                ldapMasterLoginHandler.initialize()
+            } catch (ex: Exception) {
+                log.warn("LDAP initialization failed (ignored): ${ex.message}")
+            }
+        } else {
+            log.info("LDAP not configured, skipping LDAP initialization.")
         }
     }
 
@@ -126,10 +134,12 @@ open class KeycloakMasterLoginHandler : LoginHandler {
         }
 
         // LDAP master behavior: create/update user in LDAP if credentials differ
-        try {
-            ldapMasterLoginHandler.checkLogin(username, password)
-        } catch (ex: Exception) {
-            log.error("LDAP master checkLogin failed (ignoring): ${ex.message}", ex)
+        if (isLdapConfigured()) {
+            try {
+                ldapMasterLoginHandler.checkLogin(username, password)
+            } catch (ex: Exception) {
+                log.error("LDAP master checkLogin failed (ignoring): ${ex.message}", ex)
+            }
         }
 
         return result
@@ -147,8 +157,10 @@ open class KeycloakMasterLoginHandler : LoginHandler {
                 try {
                     syncInProgress = true
                     syncToKeycloak(users, groups)
-                    // After Keycloak is updated, also push to LDAP
-                    ldapMasterLoginHandler.afterUserGroupCacheRefresh(users, groups)
+                    // After Keycloak is updated, also push to LDAP (if configured)
+                    if (isLdapConfigured()) {
+                        ldapMasterLoginHandler.afterUserGroupCacheRefresh(users, groups)
+                    }
                 } catch (ex: Exception) {
                     log.error("Keycloak master sync failed: ${ex.message}", ex)
                 } finally {
@@ -182,18 +194,22 @@ open class KeycloakMasterLoginHandler : LoginHandler {
         if (keycloakConfig.syncPasswords && !user.localUser && !user.deleted) {
             syncPasswordToKeycloak(user, newPassword)
         }
-        try {
-            ldapMasterLoginHandler.passwordChanged(user, newPassword)
-        } catch (ex: Exception) {
-            log.error("LDAP password change failed for user '${user.username}' (ignoring): ${ex.message}", ex)
+        if (isLdapConfigured()) {
+            try {
+                ldapMasterLoginHandler.passwordChanged(user, newPassword)
+            } catch (ex: Exception) {
+                log.error("LDAP password change failed for user '${user.username}' (ignoring): ${ex.message}", ex)
+            }
         }
     }
 
     override fun wlanPasswordChanged(user: PFUserDO, newPassword: CharArray) {
-        try {
-            ldapMasterLoginHandler.wlanPasswordChanged(user, newPassword)
-        } catch (ex: Exception) {
-            log.error("LDAP WLAN password change failed for user '${user.username}' (ignoring): ${ex.message}", ex)
+        if (isLdapConfigured()) {
+            try {
+                ldapMasterLoginHandler.wlanPasswordChanged(user, newPassword)
+            } catch (ex: Exception) {
+                log.error("LDAP WLAN password change failed for user '${user.username}' (ignoring): ${ex.message}", ex)
+            }
         }
     }
 
@@ -373,6 +389,9 @@ open class KeycloakMasterLoginHandler : LoginHandler {
             log.error("Failed to sync password to Keycloak for user '${user.username}' (ignoring): ${ex.message}", ex)
         }
     }
+
+    /** Returns true if LDAP is configured (projectforge.ldap.server is set). */
+    private fun isLdapConfigured(): Boolean = !ldapConfig.server.isNullOrBlank()
 
     /**
      * Checks whether the desired KC user representation differs from the current KC user.
