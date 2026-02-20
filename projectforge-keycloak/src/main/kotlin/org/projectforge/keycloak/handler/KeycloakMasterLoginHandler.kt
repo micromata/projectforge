@@ -24,8 +24,8 @@
 package org.projectforge.keycloak.handler
 
 import mu.KotlinLogging
-import org.projectforge.business.ldap.LdapConfig
 import org.projectforge.business.ldap.LdapMasterLoginHandler
+import org.projectforge.business.ldap.LdapService
 import org.projectforge.business.login.LoginDefaultHandler
 import org.projectforge.business.login.LoginHandler
 import org.projectforge.business.login.LoginResult
@@ -76,7 +76,7 @@ open class KeycloakMasterLoginHandler : LoginHandler {
     private lateinit var ldapMasterLoginHandler: LdapMasterLoginHandler
 
     @Autowired
-    private lateinit var ldapConfig: LdapConfig
+    private lateinit var ldapService: LdapService
 
     @Autowired
     private lateinit var userDao: UserDao
@@ -391,7 +391,7 @@ open class KeycloakMasterLoginHandler : LoginHandler {
     }
 
     /** Returns true if LDAP is configured (projectforge.ldap.server is set). */
-    private fun isLdapConfigured(): Boolean = !ldapConfig.server.isNullOrBlank()
+    private fun isLdapConfigured(): Boolean = !ldapService.ldapConfig?.server.isNullOrBlank()
 
     /**
      * Checks whether the desired KC user representation differs from the current KC user.
