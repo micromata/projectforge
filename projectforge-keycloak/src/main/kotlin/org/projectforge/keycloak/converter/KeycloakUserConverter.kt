@@ -100,8 +100,8 @@ open class KeycloakUserConverter(private val keycloakConfig: KeycloakConfig) {
 
         return KeycloakUser(
             username   = pfUser.username,
-            firstName  = pfUser.firstname,
-            lastName   = pfUser.lastname,
+            firstName  = sanitizeName(pfUser.firstname),
+            lastName   = sanitizeName(pfUser.lastname),
             email      = resolveEmail(pfUser),
             enabled    = pfUser.hasSystemAccess(),
             attributes = attrs.ifEmpty { null }
@@ -113,6 +113,14 @@ open class KeycloakUserConverter(private val keycloakConfig: KeycloakConfig) {
      * Replaces the generic developer placeholder with a per-user address derived from
      * first/last name (or username as fallback).
      */
+    /**
+     * Sanitizes a person name for Keycloak: replaces characters not accepted by Keycloak's
+     * name validation (e.g. parentheses as in "Reinhard (Admin)") with underscores.
+     * Returns null if the input is null.
+     */
+    private fun sanitizeName(name: String?): String? =
+        name?.replace(Regex("[()\\[\\]{}<>]"), "_")
+
     private fun resolveEmail(pfUser: PFUserDO): String {
         val email = pfUser.email
         // null and the literal string "null" both mean no email — send empty string to clear the field in Keycloak
