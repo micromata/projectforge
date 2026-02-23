@@ -395,11 +395,25 @@ open class KeycloakMasterLoginHandler : LoginHandler {
 
     /**
      * Checks whether the desired KC user representation differs from the current KC user.
-     * Only compares fields that PF manages (firstName, lastName, email, enabled).
+     * Compares core fields and all PF-managed attributes (configured mappings + pfId).
      */
     private fun isUserChanged(desired: KeycloakUser, current: KeycloakUser): Boolean =
         desired.firstName != current.firstName ||
-        desired.lastName != current.lastName ||
-        desired.email != current.email ||
-        desired.enabled != current.enabled
+        desired.lastName  != current.lastName  ||
+        desired.email     != current.email     ||
+        desired.enabled   != current.enabled   ||
+        isAttributesChanged(desired.attributes, current.attributes)
+
+    /**
+     * Returns true if any PF-managed attribute key differs between desired and current.
+     * Only compares keys from the configured userAttributes mapping plus the built-in pfId.
+     * Ignores attributes managed by other systems.
+     */
+    private fun isAttributesChanged(
+        desired: Map<String, List<String>>?,
+        current: Map<String, List<String>>?
+    ): Boolean {
+        val managedKeys = keycloakConfig.userAttributes.values.toSet() + "pfId"
+        return managedKeys.any { key -> desired?.get(key) != current?.get(key) }
+    }
 }
