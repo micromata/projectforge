@@ -95,6 +95,14 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
     open var lastKeycloakPasswordSync: Date? = null
 
     /**
+     * The Keycloak user ID (UUID) for this user.
+     * Set when the user is first created in or synced from Keycloak.
+     * Used to look up and update the user in Keycloak without relying on username matching.
+     */
+    @get:Column(name = "keycloak_id", length = 36)
+    open var keycloakId: String? = null
+
+    /**
      * JIRA user name (if differ from the ProjectForge's user name).
      */
     @PropertyInfo(i18nKey = "user.jiraUsername", tooltip = "user.jiraUsername.tooltip")

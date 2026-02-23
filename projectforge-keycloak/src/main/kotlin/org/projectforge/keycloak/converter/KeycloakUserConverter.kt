@@ -49,6 +49,7 @@ open class KeycloakUserConverter(private val keycloakConfig: KeycloakConfig) {
         user.lastname = kcUser.lastName
         user.email = kcUser.email
         user.deactivated = !kcUser.enabled
+        user.keycloakId = kcUser.id
         return user
     }
 
@@ -65,6 +66,10 @@ open class KeycloakUserConverter(private val keycloakConfig: KeycloakConfig) {
         if (target.email != sourceEmail) { target.email = sourceEmail; modified = true }
         val shouldBeDeactivated = !source.enabled
         if (target.deactivated != shouldBeDeactivated) { target.deactivated = shouldBeDeactivated; modified = true }
+        if (source.id != null && target.keycloakId != source.id) {
+            log.debug { "User '${target.username}': keycloakId '${target.keycloakId}' → '${source.id}'" }
+            target.keycloakId = source.id; modified = true
+        }
 
         // Keycloak attributes → PF fields (Phase 3: KC is master)
         for ((pfField, kcAttr) in keycloakConfig.userAttributes) {
