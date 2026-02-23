@@ -237,7 +237,12 @@ open class KeycloakLoginHandler : LoginHandler {
 
         kcUsers.forEach { kcUser ->
             try {
-                val existing = dbUsers.find { it.username == kcUser.username }
+                // Prefer keycloakId match so username renames in Keycloak are handled correctly
+                val byKcId = dbUsers.find { it.keycloakId != null && it.keycloakId == kcUser.id }
+                val existing = byKcId ?: dbUsers.find { it.username == kcUser.username }
+                if (byKcId != null && byKcId.username != kcUser.username) {
+                    log.debug { "User matched by keycloakId '${kcUser.id}': PF username '${byKcId.username}' ≠ KC username '${kcUser.username}' (username rename detected)" }
+                }
                 if (existing == null) {
                     val newUser = keycloakUserConverter.toPFUser(kcUser)
                     newUser.id = null
@@ -373,12 +378,19 @@ open class KeycloakLoginHandler : LoginHandler {
 
     private fun syncPasswordToKeycloak(user: PFUserDO, password: CharArray) {
         try {
-            val kcUser = keycloakAdminClient.findUserByUsername(user.username ?: return)
-            val kcId = kcUser?.id ?: run {
-                log.debug("Keycloak user not found for '${user.username}', skipping password sync.")
-                return
+            val kcId = user.keycloakId?.also {
+                log.debug { "Password sync for '${user.username}': using cached keycloakId '$it'" }
+            } ?: run {
+                log.debug { "Password sync for '${user.username}': keycloakId not cached, resolving via username lookup" }
+                val found = keycloakAdminClient.findUserByUsername(user.username ?: return)?.id
+                if (found == null) {
+                    log.info("Keycloak user not found for '${user.username}', skipping password sync.")
+                    return
+                }
+                found
             }
             keycloakAdminClient.resetPassword(kcId, password)
+            user.keycloakId = kcId  // cache for future calls if it was missing
             user.lastKeycloakPasswordSync = Date()
             userDao.update(user, false)
             log.info("Password synced to Keycloak for user: ${user.username}")

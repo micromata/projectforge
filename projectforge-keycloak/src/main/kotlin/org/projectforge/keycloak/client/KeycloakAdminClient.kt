@@ -151,14 +151,12 @@ open class KeycloakAdminClient(
     }
 
     /**
-     * Returns all members of a group.
+     * Returns all members of a group, fetching all pages automatically.
      * Used by the master-mode sync to compare current KC memberships with desired PF memberships.
+     * Paginated to handle groups with more than [KeycloakConfig.pageSize] members.
      */
-    fun getGroupMembers(groupId: String): List<KeycloakUser> {
-        val url = "$adminBaseUrl/groups/$groupId/members"
-        val response = restTemplate.exchange(url, HttpMethod.GET, HttpEntity<Void>(bearerHeaders()), Array<KeycloakUser>::class.java)
-        return response.body?.toList() ?: emptyList()
-    }
+    fun getGroupMembers(groupId: String): List<KeycloakUser> =
+        getAll("$adminBaseUrl/groups/$groupId/members", Array<KeycloakUser>::class.java)
 
     /**
      * Sets (resets) the password for a user in Keycloak.

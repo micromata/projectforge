@@ -24,6 +24,7 @@
 package org.projectforge.keycloak.handler
 
 import mu.KotlinLogging
+import org.projectforge.common.logging.LogDuration
 import org.projectforge.business.ldap.LdapMasterLoginHandler
 import org.projectforge.business.ldap.LdapService
 import org.projectforge.business.login.LoginDefaultHandler
@@ -37,6 +38,7 @@ import org.projectforge.keycloak.client.KeycloakAdminClient
 import org.projectforge.keycloak.config.KeycloakConfig
 import org.projectforge.keycloak.converter.KeycloakGroupConverter
 import org.projectforge.keycloak.converter.KeycloakUserConverter
+import org.projectforge.keycloak.model.KeycloakGroup
 import org.projectforge.keycloak.model.KeycloakUser
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -230,6 +232,7 @@ open class KeycloakMasterLoginHandler : LoginHandler {
             log.debug("Keycloak not configured, skipping push sync.")
             return
         }
+        val duration = LogDuration()
         log.info("Starting PF DB -> Keycloak push sync...")
 
         // --- Sync users ---
@@ -257,6 +260,12 @@ open class KeycloakMasterLoginHandler : LoginHandler {
                     val newKcUser = keycloakUserConverter.toKeycloakUser(pfUser)
                     val newId = keycloakAdminClient.createUser(newKcUser)
                     kcUserIdByUsername[username] = newId
+                    // Store Keycloak ID back in PF for future lookups
+                    if (pfUser.keycloakId != newId) {
+                        log.debug { "User '$username': storing new keycloakId '$newId' in PF" }
+                        pfUser.keycloakId = newId
+                        userDao.update(pfUser, false)
+                    }
                     uCreated++
                 } else {
                     // Existing user → update if fields changed
@@ -267,8 +276,15 @@ open class KeycloakMasterLoginHandler : LoginHandler {
                     } else {
                         uUnmodified++
                     }
-                    // Ensure ID is in map (may have been fetched before create)
-                    if (kcUser.id != null) kcUserIdByUsername[username] = kcUser.id!!
+                    // Store KC ID in PF if not yet set (first sync after feature was added)
+                    if (kcUser.id != null) {
+                        kcUserIdByUsername[username] = kcUser.id!!
+                        if (pfUser.keycloakId != kcUser.id) {
+                            log.debug { "User '$username': backfilling keycloakId '${kcUser.id}' into PF" }
+                            pfUser.keycloakId = kcUser.id
+                            userDao.update(pfUser, false)
+                        }
+                    }
                 }
             } catch (ex: Exception) {
                 log.error("Error syncing user '$username' to Keycloak (continuing): ${ex.message}", ex)
@@ -286,8 +302,8 @@ open class KeycloakMasterLoginHandler : LoginHandler {
         val kcGroupIdByName = mutableMapOf<String, String>()
         kcGroups.forEach { g -> if (g.name != null && g.id != null) kcGroupIdByName[g.name!!] = g.id!! }
 
-        var gCreated = 0; var gUpdated = 0; var gErrors = 0
-        // Group attributes are not returned by getAllGroups() — always update when attributes are configured
+        var gCreated = 0; var gUpdated = 0; var gUnmodified = 0; var gErrors = 0
+        // getAllGroups() does not return attributes — fetch each group individually to compare
         val syncGroupAttributes = keycloakConfig.groupAttributes.isNotEmpty()
 
         for (group in groups) {
@@ -302,11 +318,17 @@ open class KeycloakMasterLoginHandler : LoginHandler {
                     gCreated++
                 } else {
                     if (existing.id != null) kcGroupIdByName[groupName] = existing.id!!
-                    // getAllGroups() does not return attributes — always push when groupAttributes are configured
                     if (syncGroupAttributes && existing.id != null) {
-                        val kcGroup = keycloakGroupConverter.toKeycloakGroup(group)
-                        keycloakAdminClient.updateGroup(existing.id!!, kcGroup.copy(id = existing.id))
-                        gUpdated++
+                        val desired = keycloakGroupConverter.toKeycloakGroup(group)
+                        val fullKcGroup = keycloakAdminClient.getGroup(existing.id!!)
+                        if (isGroupChanged(groupName, desired, fullKcGroup)) {
+                            keycloakAdminClient.updateGroup(existing.id!!, desired.copy(id = existing.id))
+                            gUpdated++
+                        } else {
+                            gUnmodified++
+                        }
+                    } else {
+                        gUnmodified++
                     }
                 }
             } catch (ex: Exception) {
@@ -315,14 +337,14 @@ open class KeycloakMasterLoginHandler : LoginHandler {
             }
         }
         log.info(
-            "Keycloak group push: $gCreated created, $gUpdated updated" +
+            "Keycloak group push: $gCreated created, $gUpdated updated, $gUnmodified unmodified" +
             (if (gErrors > 0) ", *** $gErrors errors ***" else "")
         )
 
         // --- Sync memberships ---
         syncMembershipsToKeycloak(groups, kcUserIdByUsername, kcGroupIdByName)
 
-        log.info("PF DB -> Keycloak push sync complete.")
+        log.info("PF DB -> Keycloak push sync complete in ${duration.toSeconds()}.")
     }
 
     private fun syncMembershipsToKeycloak(
@@ -385,12 +407,19 @@ open class KeycloakMasterLoginHandler : LoginHandler {
 
     private fun syncPasswordToKeycloak(user: PFUserDO, password: CharArray) {
         try {
-            val kcUser = keycloakAdminClient.findUserByUsername(user.username ?: return)
-            val kcId = kcUser?.id ?: run {
-                log.debug("Keycloak user not found for '${user.username}', skipping password sync.")
-                return
+            val kcId = user.keycloakId?.also {
+                log.debug { "Password sync for '${user.username}': using cached keycloakId '$it'" }
+            } ?: run {
+                log.debug { "Password sync for '${user.username}': keycloakId not cached, resolving via username lookup" }
+                val found = keycloakAdminClient.findUserByUsername(user.username ?: return)?.id
+                if (found == null) {
+                    log.info("Keycloak user not found for '${user.username}', skipping password sync.")
+                    return
+                }
+                found
             }
             keycloakAdminClient.resetPassword(kcId, password)
+            user.keycloakId = kcId  // cache for future calls if it was missing
             user.lastKeycloakPasswordSync = Date()
             userDao.update(user, false)
             log.info("Password synced to Keycloak for user: ${user.username}")
@@ -407,15 +436,19 @@ open class KeycloakMasterLoginHandler : LoginHandler {
      * Logs the first detected change at DEBUG level for diagnostics.
      */
     private fun isUserChanged(username: String, desired: KeycloakUser, current: KeycloakUser): Boolean {
-        if (desired.firstName != current.firstName) {
+        // Normalize blank/null — Keycloak may return null where PF sends "" and vice versa
+        if (desired.firstName?.takeIf { it.isNotBlank() } != current.firstName?.takeIf { it.isNotBlank() }) {
             log.debug { "User '$username': firstName '${current.firstName}' → '${desired.firstName}'" }
             return true
         }
-        if (desired.lastName != current.lastName) {
+        if (desired.lastName?.takeIf { it.isNotBlank() } != current.lastName?.takeIf { it.isNotBlank() }) {
             log.debug { "User '$username': lastName '${current.lastName}' → '${desired.lastName}'" }
             return true
         }
-        if (desired.email != current.email) {
+        // Normalize: Keycloak returns null for empty email, we send ""; treat both as "no email"
+        val desiredEmail = desired.email?.takeIf { it.isNotBlank() }
+        val currentEmail = current.email?.takeIf { it.isNotBlank() }
+        if (desiredEmail != currentEmail) {
             log.debug { "User '$username': email '${current.email}' → '${desired.email}'" }
             return true
         }
@@ -436,10 +469,28 @@ open class KeycloakMasterLoginHandler : LoginHandler {
         desired: Map<String, List<String>>?,
         current: Map<String, List<String>>?
     ): Boolean {
-        val managedKeys = keycloakConfig.userAttributes.values.toSet() + "pfId"
+        // pfId never changes (it's the PF user's DB ID), so it is written on create/update
+        // but intentionally excluded from the change-detection keys to avoid false positives
+        // when getAllUsers() returns users without attributes (e.g. first sync after feature was added).
+        val managedKeys = keycloakConfig.userAttributes.values.toSet()
         for (key in managedKeys) {
             if (desired?.get(key) != current?.get(key)) {
                 log.debug { "User '$username': attribute '$key' ${current?.get(key)} → ${desired?.get(key)}" }
+                return true
+            }
+        }
+        return false
+    }
+
+    /**
+     * Returns true if any PF-managed attribute differs between desired and current KC group.
+     * Only compares keys from the configured groupAttributes mapping (pfId excluded — it never changes).
+     */
+    private fun isGroupChanged(groupName: String, desired: KeycloakGroup, current: KeycloakGroup): Boolean {
+        val managedKeys = keycloakConfig.groupAttributes.values.toSet()
+        for (key in managedKeys) {
+            if (desired.attributes?.get(key) != current.attributes?.get(key)) {
+                log.debug { "Group '$groupName': attribute '$key' ${current.attributes?.get(key)} → ${desired.attributes?.get(key)}" }
                 return true
             }
         }
