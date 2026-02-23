@@ -61,7 +61,8 @@ open class KeycloakUserConverter(private val keycloakConfig: KeycloakConfig) {
         var modified = false
         if (target.firstname != source.firstName) { target.firstname = source.firstName; modified = true }
         if (target.lastname != source.lastName) { target.lastname = source.lastName; modified = true }
-        if (target.email != source.email) { target.email = source.email; modified = true }
+        val sourceEmail = source.email?.takeIf { it.isNotBlank() && it != "null" }
+        if (target.email != sourceEmail) { target.email = sourceEmail; modified = true }
         val shouldBeDeactivated = !source.enabled
         if (target.deactivated != shouldBeDeactivated) { target.deactivated = shouldBeDeactivated; modified = true }
 
@@ -112,15 +113,17 @@ open class KeycloakUserConverter(private val keycloakConfig: KeycloakConfig) {
      * Replaces the generic developer placeholder with a per-user address derived from
      * first/last name (or username as fallback).
      */
-    private fun resolveEmail(pfUser: PFUserDO): String? {
-        val email = pfUser.email ?: return null
+    private fun resolveEmail(pfUser: PFUserDO): String {
+        val email = pfUser.email
+        // null and the literal string "null" both mean no email — send empty string to clear the field in Keycloak
+        if (email == null || email.isBlank() || email == "null") return ""
         if (email != DEVELOPER_PLACEHOLDER_EMAIL) return email
         val first = pfUser.firstname?.trim()?.lowercase()
         val last = pfUser.lastname?.trim()?.lowercase()
-        val raw = if (!first.isNullOrBlank() && !last.isNullOrBlank()) "$first.$last" else pfUser.username ?: return null
+        val raw = if (!first.isNullOrBlank() && !last.isNullOrBlank()) "$first.$last" else pfUser.username ?: return ""
         // Remove any character not valid in an email local part (letters, digits, dot, dash, underscore)
         val localPart = raw.replace(Regex("[^a-z0-9._-]"), "").trimEnd('.')
-        return if (localPart.isBlank()) "${pfUser.username}@localhost" else "$localPart@localhost"
+        return if (localPart.isBlank()) "${pfUser.username ?: ""}@localhost" else "$localPart@localhost"
     }
 
     /** Bidirectional accessor for a single PF user field. */
