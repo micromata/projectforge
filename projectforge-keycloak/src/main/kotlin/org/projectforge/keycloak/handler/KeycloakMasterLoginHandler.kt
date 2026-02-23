@@ -286,20 +286,28 @@ open class KeycloakMasterLoginHandler : LoginHandler {
         val kcGroupIdByName = mutableMapOf<String, String>()
         kcGroups.forEach { g -> if (g.name != null && g.id != null) kcGroupIdByName[g.name!!] = g.id!! }
 
-        var gCreated = 0; var gErrors = 0
+        var gCreated = 0; var gUpdated = 0; var gErrors = 0
+        // Group attributes are not returned by getAllGroups() — always update when attributes are configured
+        val syncGroupAttributes = keycloakConfig.groupAttributes.isNotEmpty()
 
         for (group in groups) {
             val groupName = group.name ?: continue
             if (group.deleted || group.localGroup) continue
             try {
-                if (!kcGroupByName.containsKey(groupName)) {
+                val existing = kcGroupByName[groupName]
+                if (existing == null) {
                     val kcGroup = keycloakGroupConverter.toKeycloakGroup(group)
                     val newId = keycloakAdminClient.createGroup(kcGroup)
                     kcGroupIdByName[groupName] = newId
                     gCreated++
                 } else {
-                    val existing = kcGroupByName[groupName]!!
                     if (existing.id != null) kcGroupIdByName[groupName] = existing.id!!
+                    // getAllGroups() does not return attributes — always push when groupAttributes are configured
+                    if (syncGroupAttributes && existing.id != null) {
+                        val kcGroup = keycloakGroupConverter.toKeycloakGroup(group)
+                        keycloakAdminClient.updateGroup(existing.id!!, kcGroup.copy(id = existing.id))
+                        gUpdated++
+                    }
                 }
             } catch (ex: Exception) {
                 log.error("Error syncing group '$groupName' to Keycloak (continuing): ${ex.message}", ex)
@@ -307,7 +315,8 @@ open class KeycloakMasterLoginHandler : LoginHandler {
             }
         }
         log.info(
-            "Keycloak group push: $gCreated created" + (if (gErrors > 0) ", *** $gErrors errors ***" else "")
+            "Keycloak group push: $gCreated created, $gUpdated updated" +
+            (if (gErrors > 0) ", *** $gErrors errors ***" else "")
         )
 
         // --- Sync memberships ---

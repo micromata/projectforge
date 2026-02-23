@@ -110,6 +110,23 @@ open class KeycloakAdminClient(
     }
 
     /**
+     * Returns a single group by ID including its attributes.
+     * Use this instead of getAllGroups() when group attributes are needed,
+     * as the list endpoint does not return attributes.
+     */
+    fun getGroup(groupId: String): KeycloakGroup {
+        val url = "$adminBaseUrl/groups/$groupId"
+        val response = restTemplate.exchange(url, HttpMethod.GET, HttpEntity<Void>(bearerHeaders()), KeycloakGroup::class.java)
+        return response.body ?: throw IllegalStateException("Empty response for group id '$groupId'")
+    }
+
+    /** Updates an existing group in Keycloak. */
+    fun updateGroup(groupId: String, group: KeycloakGroup) {
+        val url = "$adminBaseUrl/groups/$groupId"
+        restTemplate.exchange(url, HttpMethod.PUT, HttpEntity(group, jsonBearerHeaders()), Void::class.java)
+    }
+
+    /**
      * Creates a group in Keycloak and returns the newly assigned Keycloak group ID.
      * The ID is extracted from the Location header of the 201 response.
      */
