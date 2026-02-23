@@ -261,7 +261,7 @@ open class KeycloakMasterLoginHandler : LoginHandler {
                 } else {
                     // Existing user → update if fields changed
                     val desired = keycloakUserConverter.toKeycloakUser(pfUser)
-                    if (isUserChanged(desired, kcUser)) {
+                    if (isUserChanged(username, desired, kcUser)) {
                         keycloakAdminClient.updateUser(kcUser.id!!, desired.copy(id = kcUser.id))
                         uUpdated++
                     } else {
@@ -337,16 +337,16 @@ open class KeycloakMasterLoginHandler : LoginHandler {
             val groupName = group.name ?: continue
             val kcGroupId = kcGroupIdByName[groupName] ?: continue
 
-            // Desired members: only active PF users that have system access
-            val desiredUsernames = group.assignedUsers
+            // Desired members as KC user IDs (avoids username mismatch when users were matched by email)
+            val desiredKcUserIds = group.assignedUsers
                 ?.filter { it.hasSystemAccess() && !it.localUser }
-                ?.mapNotNull { it.username }
+                ?.mapNotNull { it.username?.let { u -> kcUserIdByUsername[u] } }
                 ?.toSet() ?: emptySet()
 
-            // Current members in Keycloak
-            val currentKcMembers: Set<String> = try {
+            // Current members in Keycloak as KC user IDs
+            val currentKcMemberIds: Set<String> = try {
                 keycloakAdminClient.getGroupMembers(kcGroupId)
-                    .mapNotNull { it.username }
+                    .mapNotNull { it.id }
                     .toSet()
             } catch (ex: Exception) {
                 log.error("Error fetching members of KC group '$groupName' (skipping membership sync): ${ex.message}", ex)
@@ -354,25 +354,25 @@ open class KeycloakMasterLoginHandler : LoginHandler {
             }
 
             // Add missing members
-            for (username in desiredUsernames - currentKcMembers) {
-                val kcUserId = kcUserIdByUsername[username] ?: continue
+            for (kcUserId in desiredKcUserIds - currentKcMemberIds) {
                 try {
                     keycloakAdminClient.addUserToGroup(kcUserId, kcGroupId)
+                    log.debug { "Added user (kcId=$kcUserId) to KC group '$groupName'" }
                     added++
                 } catch (ex: Exception) {
-                    log.error("Error adding user '$username' to KC group '$groupName': ${ex.message}", ex)
+                    log.error("Error adding user (kcId=$kcUserId) to KC group '$groupName': ${ex.message}", ex)
                     mErrors++
                 }
             }
 
             // Remove surplus members
-            for (username in currentKcMembers - desiredUsernames) {
-                val kcUserId = kcUserIdByUsername[username] ?: continue
+            for (kcUserId in currentKcMemberIds - desiredKcUserIds) {
                 try {
                     keycloakAdminClient.removeUserFromGroup(kcUserId, kcGroupId)
+                    log.debug { "Removed user (kcId=$kcUserId) from KC group '$groupName'" }
                     removed++
                 } catch (ex: Exception) {
-                    log.error("Error removing user '$username' from KC group '$groupName': ${ex.message}", ex)
+                    log.error("Error removing user (kcId=$kcUserId) from KC group '$groupName': ${ex.message}", ex)
                     mErrors++
                 }
             }
@@ -404,14 +404,27 @@ open class KeycloakMasterLoginHandler : LoginHandler {
 
     /**
      * Checks whether the desired KC user representation differs from the current KC user.
-     * Compares core fields and all PF-managed attributes (configured mappings + pfId).
+     * Logs the first detected change at DEBUG level for diagnostics.
      */
-    private fun isUserChanged(desired: KeycloakUser, current: KeycloakUser): Boolean =
-        desired.firstName != current.firstName ||
-        desired.lastName  != current.lastName  ||
-        desired.email     != current.email     ||
-        desired.enabled   != current.enabled   ||
-        isAttributesChanged(desired.attributes, current.attributes)
+    private fun isUserChanged(username: String, desired: KeycloakUser, current: KeycloakUser): Boolean {
+        if (desired.firstName != current.firstName) {
+            log.debug { "User '$username': firstName '${current.firstName}' → '${desired.firstName}'" }
+            return true
+        }
+        if (desired.lastName != current.lastName) {
+            log.debug { "User '$username': lastName '${current.lastName}' → '${desired.lastName}'" }
+            return true
+        }
+        if (desired.email != current.email) {
+            log.debug { "User '$username': email '${current.email}' → '${desired.email}'" }
+            return true
+        }
+        if (desired.enabled != current.enabled) {
+            log.debug { "User '$username': enabled ${current.enabled} → ${desired.enabled}" }
+            return true
+        }
+        return isAttributesChanged(username, desired.attributes, current.attributes)
+    }
 
     /**
      * Returns true if any PF-managed attribute key differs between desired and current.
@@ -419,10 +432,17 @@ open class KeycloakMasterLoginHandler : LoginHandler {
      * Ignores attributes managed by other systems.
      */
     private fun isAttributesChanged(
+        username: String,
         desired: Map<String, List<String>>?,
         current: Map<String, List<String>>?
     ): Boolean {
         val managedKeys = keycloakConfig.userAttributes.values.toSet() + "pfId"
-        return managedKeys.any { key -> desired?.get(key) != current?.get(key) }
+        for (key in managedKeys) {
+            if (desired?.get(key) != current?.get(key)) {
+                log.debug { "User '$username': attribute '$key' ${current?.get(key)} → ${desired?.get(key)}" }
+                return true
+            }
+        }
+        return false
     }
 }
