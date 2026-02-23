@@ -154,7 +154,7 @@ open class KeycloakUserConverter(private val keycloakConfig: KeycloakConfig) {
          * Each entry provides a getter (PF → KC) and a setter (KC → PF) for bidirectional sync.
          */
         val SUPPORTED_USER_FIELDS: Map<String, UserFieldAccessor> = mapOf(
-            "jiraUsername"             to UserFieldAccessor({ it.jiraUsername },             { u, v -> u.jiraUsername = v }),
+            "jiraUsername"             to UserFieldAccessor({ it.jiraUsernameOrUsername },   { u, v -> u.jiraUsername = v }),
             "mobilePhone"              to UserFieldAccessor({ it.mobilePhone },              { u, v -> u.mobilePhone = v }),
             "organization"             to UserFieldAccessor({ it.organization },             { u, v -> u.organization = v }),
             "description"              to UserFieldAccessor({ it.description },              { u, v -> u.description = v }),
