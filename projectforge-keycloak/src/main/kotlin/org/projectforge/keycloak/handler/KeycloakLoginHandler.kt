@@ -286,8 +286,17 @@ open class KeycloakLoginHandler : LoginHandler {
         var gCreated = 0; var gUpdated = 0; var gErrors = 0
         val kcIdToPfGroup = mutableMapOf<String, GroupDO>()
 
-        kcGroups.forEach { kcGroup ->
+        // getAllGroups() does not return group attributes — fetch individually when groupAttributes are configured
+        val syncGroupAttributes = keycloakConfig.groupAttributes.isNotEmpty()
+
+        kcGroups.forEach { kcGroupShallow ->
             try {
+                // Load full group (with attributes) if needed, otherwise use the shallow list entry
+                val kcGroup = if (syncGroupAttributes && kcGroupShallow.id != null) {
+                    keycloakAdminClient.getGroup(kcGroupShallow.id!!)
+                } else {
+                    kcGroupShallow
+                }
                 val existing = dbGroups.find { it.name == kcGroup.name }
                 if (existing == null) {
                     val newGroup = keycloakGroupConverter.toGroupDO(kcGroup)
@@ -308,7 +317,7 @@ open class KeycloakLoginHandler : LoginHandler {
                     kcGroup.id?.let { kcIdToPfGroup[it] = existing }
                 }
             } catch (ex: Exception) {
-                log.error("Error syncing group '${kcGroup.name}' from Keycloak (continuing): ${ex.message}", ex)
+                log.error("Error syncing group '${kcGroupShallow.name}' from Keycloak (continuing): ${ex.message}", ex)
                 gErrors++
             }
         }
