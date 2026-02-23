@@ -23,18 +23,23 @@
 
 package org.projectforge.keycloak.converter
 
+import mu.KotlinLogging
+import org.projectforge.framework.persistence.user.entities.Gender
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.keycloak.config.KeycloakConfig
 import org.projectforge.keycloak.model.KeycloakUser
 import org.springframework.stereotype.Service
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Converts between Keycloak user representations and ProjectForge's [PFUserDO].
  */
 @Service
-open class KeycloakUserConverter {
+open class KeycloakUserConverter(private val keycloakConfig: KeycloakConfig) {
 
     /**
-     * Converts a Keycloak user to a [PFUserDO].
+     * Converts a Keycloak user to a new [PFUserDO].
      * Never sets password fields — passwords are handled separately.
      */
     fun toPFUser(kcUser: KeycloakUser): PFUserDO {
@@ -49,6 +54,7 @@ open class KeycloakUserConverter {
 
     /**
      * Copies fields from a Keycloak user into an existing [PFUserDO].
+     * Applies configured attribute mappings (KC attributes → PF fields) in addition to core fields.
      * Returns true if any field was changed.
      */
     fun copyFields(source: KeycloakUser, target: PFUserDO): Boolean {
@@ -58,26 +64,46 @@ open class KeycloakUserConverter {
         if (target.email != source.email) { target.email = source.email; modified = true }
         val shouldBeDeactivated = !source.enabled
         if (target.deactivated != shouldBeDeactivated) { target.deactivated = shouldBeDeactivated; modified = true }
+
+        // Keycloak attributes → PF fields (Phase 3: KC is master)
+        for ((pfField, kcAttr) in keycloakConfig.userAttributes) {
+            val accessor = SUPPORTED_USER_FIELDS[pfField] ?: continue
+            val kcValue = source.attributes?.get(kcAttr)?.firstOrNull()
+            val pfValue = accessor.get(target)
+            if (pfValue != kcValue) {
+                accessor.set(target, kcValue)
+                modified = true
+            }
+        }
         return modified
     }
 
     /**
-     * Converts a [PFUserDO] to a Keycloak user representation for the initial population.
-     * Stores the PF user's ID in the 'pfId' attribute for cross-reference.
-     *
-     * Special case: the placeholder address [DEVELOPER_PLACEHOLDER_EMAIL] is replaced by
-     * `firstname.lastname@localhost` (falling back to `username@localhost`) so that each
-     * user gets a unique, syntactically valid email in Keycloak.
+     * Converts a [PFUserDO] to a Keycloak user representation.
+     * Always includes the pfId attribute. Additionally maps any PF fields configured
+     * via [KeycloakConfig.userAttributes] to Keycloak attributes (Phase 1/2: PF is master).
      */
     fun toKeycloakUser(pfUser: PFUserDO): KeycloakUser {
-        val attrs = pfUser.id?.let { mapOf("pfId" to listOf(it.toString())) }
+        val attrs = mutableMapOf<String, List<String>>()
+        pfUser.id?.let { attrs["pfId"] = listOf(it.toString()) }
+
+        for ((pfField, kcAttr) in keycloakConfig.userAttributes) {
+            val accessor = SUPPORTED_USER_FIELDS[pfField]
+            if (accessor == null) {
+                log.warn("Unknown PF user field '$pfField' in userAttributes mapping, skipping.")
+                continue
+            }
+            accessor.get(pfUser)?.takeIf { it.isNotBlank() }
+                ?.let { attrs[kcAttr] = listOf(it) }
+        }
+
         return KeycloakUser(
-            username = pfUser.username,
-            firstName = pfUser.firstname,
-            lastName = pfUser.lastname,
-            email = resolveEmail(pfUser),
-            enabled = pfUser.hasSystemAccess(),
-            attributes = attrs
+            username   = pfUser.username,
+            firstName  = pfUser.firstname,
+            lastName   = pfUser.lastname,
+            email      = resolveEmail(pfUser),
+            enabled    = pfUser.hasSystemAccess(),
+            attributes = attrs.ifEmpty { null }
         )
     }
 
@@ -91,15 +117,36 @@ open class KeycloakUserConverter {
         if (email != DEVELOPER_PLACEHOLDER_EMAIL) return email
         val first = pfUser.firstname?.trim()?.lowercase()
         val last = pfUser.lastname?.trim()?.lowercase()
-        return if (!first.isNullOrBlank() && !last.isNullOrBlank()) {
-            "$first.$last@localhost"
-        } else {
-            "${pfUser.username}@localhost"
-        }
+        val raw = if (!first.isNullOrBlank() && !last.isNullOrBlank()) "$first.$last" else pfUser.username ?: return null
+        // Remove any character not valid in an email local part (letters, digits, dot, dash, underscore)
+        val localPart = raw.replace(Regex("[^a-z0-9._-]"), "").trimEnd('.')
+        return if (localPart.isBlank()) "${pfUser.username}@localhost" else "$localPart@localhost"
     }
+
+    /** Bidirectional accessor for a single PF user field. */
+    data class UserFieldAccessor(
+        val get: (PFUserDO) -> String?,
+        val set: (PFUserDO, String?) -> Unit
+    )
 
     companion object {
         /** Placeholder email used in development/test setups — replaced per user during KC sync. */
         const val DEVELOPER_PLACEHOLDER_EMAIL = "m.developer@localhost"
+
+        /**
+         * Supported PF user fields that can be mapped to Keycloak attributes via configuration.
+         * Each entry provides a getter (PF → KC) and a setter (KC → PF) for bidirectional sync.
+         */
+        val SUPPORTED_USER_FIELDS: Map<String, UserFieldAccessor> = mapOf(
+            "jiraUsername"             to UserFieldAccessor({ it.jiraUsername },             { u, v -> u.jiraUsername = v }),
+            "mobilePhone"              to UserFieldAccessor({ it.mobilePhone },              { u, v -> u.mobilePhone = v }),
+            "organization"             to UserFieldAccessor({ it.organization },             { u, v -> u.organization = v }),
+            "description"              to UserFieldAccessor({ it.description },              { u, v -> u.description = v }),
+            "gender"                   to UserFieldAccessor({ it.gender?.name },             { u, v -> u.gender = v?.let { runCatching { enumValueOf<Gender>(it) }.getOrNull() } }),
+            "nickname"                 to UserFieldAccessor({ it.nickname },                 { u, v -> u.nickname = v }),
+            "locale"                   to UserFieldAccessor({ it.locale?.toString() },       { u, v -> u.locale = v?.let { runCatching { java.util.Locale.forLanguageTag(it) }.getOrNull() } }),
+            "timeZone"                 to UserFieldAccessor({ it.timeZoneString },           { u, v -> u.timeZoneString = v }),
+            "personalPhoneIdentifiers" to UserFieldAccessor({ it.personalPhoneIdentifiers }, { u, v -> u.personalPhoneIdentifiers = v }),
+        )
     }
 }

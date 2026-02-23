@@ -66,6 +66,29 @@ open class KeycloakConfig {
     var pageSize: Int = 100
 
     /**
+     * User attribute mappings: key = PF field name, value = Keycloak attribute name.
+     *
+     * Supported PF field names:
+     *   jiraUsername, mobilePhone, organization, description, gender,
+     *   nickname, locale, timeZone, personalPhoneIdentifiers
+     *
+     * Example (application.properties):
+     *   projectforge.keycloak.userAttributes.jiraUsername=jiraUsername
+     *   projectforge.keycloak.userAttributes.mobilePhone=mobilePhone
+     */
+    var userAttributes: Map<String, String> = emptyMap()
+
+    /**
+     * Group attribute mappings: key = PF field name, value = Keycloak attribute name.
+     *
+     * Supported PF field names: description, organization
+     *
+     * Example:
+     *   projectforge.keycloak.groupAttributes.description=description
+     */
+    var groupAttributes: Map<String, String> = emptyMap()
+
+    /**
      * Phase 1→2 switch for [KeycloakMasterLoginHandler]:
      * - false (default, Phase 1): users/groups/assignments are synced to Keycloak, passwords are NOT.
      * - true (Phase 2): additionally pushes passwords to Keycloak on login and on password change.
