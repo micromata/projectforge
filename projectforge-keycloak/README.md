@@ -2,7 +2,7 @@
 
 ## Keycloak Admin: Realm Setup
 
-- Create realm (e.g. `micromata.de`)
+- Create realm (e.g. `acme.com`)
 - Enable locales globally for the realm: `de`, `en`
 - Create client `projectforge` (confidential, service account enabled)
 - Note down client secret
@@ -33,7 +33,7 @@ Create the following custom user attributes with validators:
 
 ## ProjectForge Admin: Duplicate E-Mail Addresses
 
-- Remove duplicate email addresses from inactive/deactivated users (e.g. replaced with `devnull@micromata.de`)
+- Remove duplicate email addresses from inactive/deactivated users (e.g. replaced with `devnull@acme.com`)
 - When deactivating a user: either delete the email or leave it unchanged — do not reuse it
 
 ## Migration Phases
@@ -49,8 +49,8 @@ Create the following custom user attributes with validators:
 ```properties
 projectforge.login.handlerClass=KeycloakMasterLoginHandler
 
-projectforge.keycloak.serverUrl=https://auth1.micromata.de
-projectforge.keycloak.realm=micromata.de
+projectforge.keycloak.serverUrl=https://auth1.acme.com
+projectforge.keycloak.realm=acme.com
 projectforge.keycloak.clientId=projectforge
 projectforge.keycloak.clientSecret=<secret>
 
@@ -93,8 +93,8 @@ projectforge.keycloak.syncPasswords=true
 ```properties
 projectforge.login.handlerClass=KeycloakLoginHandler
 
-projectforge.keycloak.serverUrl=https://auth1.micromata.de
-projectforge.keycloak.realm=micromata.de
+projectforge.keycloak.serverUrl=https://auth1.acme.com
+projectforge.keycloak.realm=acme.com
 projectforge.keycloak.clientId=projectforge
 projectforge.keycloak.clientSecret=<secret>
 
@@ -135,7 +135,7 @@ Users can log in directly at:
 https://<keycloak-host>/realms/<realm>/account
 ```
 
-Example: `https://auth1.micromata.de/realms/micromata.de/account`
+Example: `https://auth1.acme.com/realms/acme.com/account`
 
 ## Status
 
