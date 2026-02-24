@@ -49,7 +49,7 @@ Create the following custom user attributes with validators:
 ```properties
 projectforge.login.handlerClass=KeycloakMasterLoginHandler
 
-projectforge.keycloak.serverUrl=https://auth1.acme.com
+projectforge.keycloak.serverUrl=https://auth.acme.com
 projectforge.keycloak.realm=acme.com
 projectforge.keycloak.clientId=projectforge
 projectforge.keycloak.clientSecret=<secret>
@@ -93,7 +93,7 @@ projectforge.keycloak.syncPasswords=true
 ```properties
 projectforge.login.handlerClass=KeycloakLoginHandler
 
-projectforge.keycloak.serverUrl=https://auth1.acme.com
+projectforge.keycloak.serverUrl=https://auth.acme.com
 projectforge.keycloak.realm=acme.com
 projectforge.keycloak.clientId=projectforge
 projectforge.keycloak.clientSecret=<secret>
@@ -135,7 +135,7 @@ Users can log in directly at:
 https://<keycloak-host>/realms/<realm>/account
 ```
 
-Example: `https://auth1.acme.com/realms/acme.com/account`
+Example: `https://auth.acme.com/realms/acme.com/account`
 
 ## Status
 
