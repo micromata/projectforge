@@ -78,6 +78,19 @@ class CalendarFilter(
   var vacationUserIds: Set<Long?>? = null,
 
   /**
+   * All availabilities of any employee assigned to at least one of this
+   * availabilityGroups (group ids) will be displayed.
+   * Null items should only occur on (de)serialization issues.
+   */
+  var availabilityGroupIds: Set<Long?>? = null,
+
+  /**
+   * All availabilities of the given employees (by id) will be displayed.
+   * Null items should only occur on (de)serialization issues.
+   */
+  var availabilityUserIds: Set<Long?>? = null,
+
+  /**
    * If true, breaks between time sheets of a day will be displayed. If the user clicks on a break, a time sheet
    * with the start and stop time of the break could easily be created.
    */
@@ -111,6 +124,8 @@ class CalendarFilter(
     //this.showVacations = src.showVacations
     this.vacationGroupIds = copySet(src.vacationGroupIds)
     this.vacationUserIds = copySet(src.vacationUserIds)
+    this.availabilityGroupIds = copySet(src.availabilityGroupIds)
+    this.availabilityUserIds = copySet(src.availabilityUserIds)
     this.gridSize = src.gridSize
     this.firstHour = src.firstHour
     this.showBreaks = src.showBreaks
@@ -189,6 +204,8 @@ class CalendarFilter(
         // this.showVacations != other.showVacations ||
         isModified(this.vacationGroupIds, other.vacationGroupIds) ||
         isModified(this.vacationUserIds, other.vacationUserIds) ||
+        isModified(this.availabilityGroupIds, other.availabilityGroupIds) ||
+        isModified(this.availabilityUserIds, other.availabilityUserIds) ||
         this.gridSize != other.gridSize ||
         this.firstHour != other.firstHour ||
         this.showBreaks != other.showBreaks ||

@@ -35,6 +35,8 @@ function CalendarFilterSettings({
     onFirstHourChange,
     onVacationGroupsChange,
     onVacationUsersChange,
+    onAvailabilityGroupsChange,
+    onAvailabilityUsersChange,
     refresh,
     defaultCalendarId,
     timesheetUser,
@@ -46,6 +48,8 @@ function CalendarFilterSettings({
     translations,
     vacationGroups = [],
     vacationUsers = [],
+    availabilityGroups = [],
+    availabilityUsers = [],
 }) {
     // Modal dialog with calendars, vacations and other option such first hour of day etc.
     const [open, setOpen] = useState(false);
@@ -127,6 +131,44 @@ function CalendarFilterSettings({
             (users || []).map(({ id }) => id),
             (json) => {
                 onVacationUsersChange(users);
+                saveUpdateResponseInState(json);
+            },
+        );
+    };
+
+    const loadAvailabilityGroupsOptions = (search, callback) => {
+        fetchJsonGet(
+            'group/autosearch',
+            { search },
+            callback,
+        );
+    };
+
+    const loadAvailabilityUsersOptions = (search, callback) => {
+        fetchJsonGet(
+            'vacation/users',
+            { search },
+            callback,
+        );
+    };
+
+    const handleAvailabilityGroupsChange = (groups) => {
+        fetchJsonPost(
+            'calendar/changeAvailabilityGroups',
+            (groups || []).map(({ id }) => id),
+            (json) => {
+                onAvailabilityGroupsChange(groups);
+                saveUpdateResponseInState(json);
+            },
+        );
+    };
+
+    const handleAvailabilityUsersChange = (users) => {
+        fetchJsonPost(
+            'calendar/changeAvailabilityUsers',
+            (users || []).map(({ id }) => id),
+            (json) => {
+                onAvailabilityUsersChange(users);
                 saveUpdateResponseInState(json);
             },
         );
@@ -366,6 +408,38 @@ function CalendarFilterSettings({
                             </Col>
                         </Row>
                         <Row>
+                            <Col>
+                                <ReactSelect
+                                    id="availabilityGroups"
+                                    loadOptions={loadAvailabilityGroupsOptions}
+                                    value={availabilityGroups}
+                                    label={translations['calendar.filter.availability.groups']}
+                                    tooltip={translations['calendar.filter.availability.groups.tooltip']}
+                                    translations={translations}
+                                    valueProperty="id"
+                                    labelProperty="displayName"
+                                    multi
+                                    onChange={handleAvailabilityGroupsChange}
+                                />
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col>
+                                <ReactSelect
+                                    id="availabilityUsers"
+                                    loadOptions={loadAvailabilityUsersOptions}
+                                    value={availabilityUsers}
+                                    label={translations['calendar.filter.availability.users']}
+                                    tooltip={translations['calendar.filter.availability.users.tooltip']}
+                                    translations={translations}
+                                    valueProperty="id"
+                                    labelProperty="displayName"
+                                    multi
+                                    onChange={handleAvailabilityUsersChange}
+                                />
+                            </Col>
+                        </Row>
+                        <Row>
                             <Col md={6}>
                                 <ReactSelect
                                     id="gridSize"
@@ -404,6 +478,8 @@ CalendarFilterSettings.propTypes = {
     onFirstHourChange: PropTypes.func.isRequired,
     onVacationGroupsChange: PropTypes.func.isRequired,
     onVacationUsersChange: PropTypes.func.isRequired,
+    onAvailabilityGroupsChange: PropTypes.func.isRequired,
+    onAvailabilityUsersChange: PropTypes.func.isRequired,
     refresh: PropTypes.func.isRequired,
     defaultCalendarId: PropTypes.oneOfType([
         PropTypes.string,
@@ -428,6 +504,10 @@ CalendarFilterSettings.propTypes = {
         'calendar.filter.vacation.groups.tooltip': PropTypes.string,
         'calendar.filter.vacation.users': PropTypes.string,
         'calendar.filter.vacation.users.tooltip': PropTypes.string,
+        'calendar.filter.availability.groups': PropTypes.string,
+        'calendar.filter.availability.groups.tooltip': PropTypes.string,
+        'calendar.filter.availability.users': PropTypes.string,
+        'calendar.filter.availability.users.tooltip': PropTypes.string,
         'calendar.view.oldVersion': PropTypes.string,
         'calendar.view.oldVersion.tooltip': PropTypes.string,
         'calendar.option.firstHour': PropTypes.string,
@@ -445,6 +525,14 @@ CalendarFilterSettings.propTypes = {
         id: PropTypes.number,
     })),
     vacationUsers: PropTypes.arrayOf(PropTypes.shape({
+        title: PropTypes.string,
+        id: PropTypes.number,
+    })),
+    availabilityGroups: PropTypes.arrayOf(PropTypes.shape({
+        title: PropTypes.string,
+        id: PropTypes.number,
+    })),
+    availabilityUsers: PropTypes.arrayOf(PropTypes.shape({
         title: PropTypes.string,
         id: PropTypes.number,
     })),

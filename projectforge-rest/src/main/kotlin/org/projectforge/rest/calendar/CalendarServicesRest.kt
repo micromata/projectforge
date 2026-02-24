@@ -111,6 +111,9 @@ class CalendarServicesRest {
     private lateinit var userPrefService: UserPrefService
 
     @Autowired
+    private lateinit var availabilityProvider: AvailabilityProvider
+
+    @Autowired
     private lateinit var vacationProvider: VacationProvider
 
     @PostMapping("events")
@@ -122,6 +125,8 @@ class CalendarServicesRest {
         val currentFilter = calendarFilterServicesRest.getCurrentFilter()
         filter.vacationGroupIds = currentFilter.vacationGroupIds?.toMutableSet()
         filter.vacationUserIds = currentFilter.vacationUserIds?.toMutableSet()
+        filter.availabilityGroupIds = currentFilter.availabilityGroupIds?.toMutableSet()
+        filter.availabilityUserIds = currentFilter.availabilityUserIds?.toMutableSet()
         return ResponseEntity(buildEvents(filter), HttpStatus.OK)
     }
 
@@ -320,6 +325,14 @@ class CalendarServicesRest {
             events,
             filter.vacationGroupIds,
             filter.vacationUserIds,
+            settings,
+        )
+        availabilityProvider.addEvents(
+            range.start,
+            range.end!!,
+            events,
+            filter.availabilityGroupIds,
+            filter.availabilityUserIds,
             settings,
         )
 

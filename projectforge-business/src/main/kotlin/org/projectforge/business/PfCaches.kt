@@ -35,6 +35,7 @@ import org.projectforge.business.teamcal.admin.TeamCalCache
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.business.availability.AvailabilityDO
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.user.entities.GroupDO
@@ -164,6 +165,16 @@ class PfCaches {
         vacation.otherReplacements =
             vacation.otherReplacements?.mapNotNull { getEmployeeIfNotInitialized(it) }?.toMutableSet()
         return vacation
+    }
+
+    /**
+     * Fills the employee of the given availability.
+     * @param availability The availability to fill.
+     * @return The filled availability for chaining.
+     */
+    fun initialize(availability: AvailabilityDO): AvailabilityDO {
+        availability.employee = getEmployeeIfNotInitialized(availability.employee)
+        return availability
     }
 
     /**
