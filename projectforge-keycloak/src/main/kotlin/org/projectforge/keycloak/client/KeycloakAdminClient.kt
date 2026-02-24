@@ -50,6 +50,9 @@ private val log = KotlinLogging.logger {}
  * Writes (migration + password sync):
  *   POST   /admin/realms/{realm}/users                          → createUser()
  *   PUT    /admin/realms/{realm}/users/{id}                     → updateUser()
+ *
+ * Single-user read:
+ *   GET /admin/realms/{realm}/users/{id}                        → getUserById()
  *   POST   /admin/realms/{realm}/groups                         → createGroup()
  *   PUT    /admin/realms/{realm}/users/{id}/groups/{groupId}    → addUserToGroup()
  *   DELETE /admin/realms/{realm}/users/{id}/groups/{groupId}    → removeUserFromGroup()
@@ -174,6 +177,15 @@ open class KeycloakAdminClient(
             // but the original char array is owned by the caller and should be cleared there.
             log.info { "Password reset sent to Keycloak for user id '$userId'" }
         }
+    }
+
+    /**
+     * Returns a single Keycloak user by their ID, or null if not found.
+     */
+    fun getUserById(userId: String): KeycloakUser? {
+        val url = "$adminBaseUrl/users/$userId"
+        val response = restTemplate.exchange(url, HttpMethod.GET, HttpEntity<Void>(bearerHeaders()), KeycloakUser::class.java)
+        return response.body
     }
 
     /**

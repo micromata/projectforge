@@ -23,6 +23,7 @@
 
 package org.projectforge.keycloak.handler
 
+import arlut.csd.crypto.SmbEncrypt
 import mu.KotlinLogging
 import org.projectforge.common.logging.LogDuration
 import org.projectforge.business.ldap.LdapMasterLoginHandler
@@ -210,6 +211,12 @@ open class KeycloakMasterLoginHandler : LoginHandler {
     }
 
     override fun wlanPasswordChanged(user: PFUserDO, newPassword: CharArray) {
+        val wlanAttr = keycloakConfig.wlanPasswordAttribute
+        if (keycloakConfig.isConfigured() && !wlanAttr.isNullOrBlank()
+            && !user.localUser && !user.deleted
+        ) {
+            syncWlanPasswordToKeycloak(user, newPassword, wlanAttr)
+        }
         if (isLdapConfigured()) {
             try {
                 ldapMasterLoginHandler.wlanPasswordChanged(user, newPassword)
@@ -429,6 +436,30 @@ open class KeycloakMasterLoginHandler : LoginHandler {
             log.info("Password synced to Keycloak for user: ${user.username}")
         } catch (ex: Exception) {
             log.error("Failed to sync password to Keycloak for user '${user.username}' (ignoring): ${ex.message}", ex)
+        }
+    }
+
+    private fun syncWlanPasswordToKeycloak(user: PFUserDO, password: CharArray, attributeName: String) {
+        try {
+            val kcId = user.keycloakId ?: run {
+                val found = keycloakAdminClient.findUserByUsername(user.username ?: return)?.id
+                if (found == null) {
+                    log.info("Keycloak user not found for '${user.username}', skipping WLAN password sync.")
+                    return
+                }
+                found
+            }
+            val ntHash = SmbEncrypt.NTUNICODEHash(password)
+            val currentUser = keycloakAdminClient.getUserById(kcId) ?: run {
+                log.warn("Keycloak user id '$kcId' not found, skipping WLAN password sync.")
+                return
+            }
+            val updatedAttrs = (currentUser.attributes ?: emptyMap()).toMutableMap()
+            updatedAttrs[attributeName] = listOf(ntHash)
+            keycloakAdminClient.updateUser(kcId, currentUser.copy(attributes = updatedAttrs))
+            log.info("WLAN password (NT hash) synced to Keycloak attribute '$attributeName' for user: ${user.username}")
+        } catch (ex: Exception) {
+            log.error("Failed to sync WLAN password to Keycloak for user '${user.username}' (ignoring): ${ex.message}", ex)
         }
     }
 
