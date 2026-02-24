@@ -25,9 +25,12 @@ package org.projectforge.keycloak.model
 
 /**
  * DTO for Keycloak's reset-password endpoint payload.
+ *
+ * Keycloak's PUT /admin/realms/{realm}/users/{id}/reset-password endpoint requires
+ * the plaintext password in [value]. Pre-hashed formats are not supported by this endpoint.
  */
 data class KeycloakCredential(
     val type: String = "password",
     val value: String,
-    val temporary: Boolean = false
+    val temporary: Boolean = false,
 )

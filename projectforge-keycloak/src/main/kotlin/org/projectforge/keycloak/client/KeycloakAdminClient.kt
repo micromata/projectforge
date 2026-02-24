@@ -160,7 +160,8 @@ open class KeycloakAdminClient(
 
     /**
      * Sets (resets) the password for a user in Keycloak.
-     * The password char array is converted to String only for serialization and immediately cleared afterward.
+     * Keycloak's reset-password endpoint requires the plaintext password; it handles hashing internally.
+     * The char array is converted to String only for serialization.
      */
     fun resetPassword(userId: String, password: CharArray) {
         val url = "$adminBaseUrl/users/$userId/reset-password"
@@ -169,9 +170,9 @@ open class KeycloakAdminClient(
             val credential = KeycloakCredential(value = passwordString)
             restTemplate.exchange(url, HttpMethod.PUT, HttpEntity(credential, jsonBearerHeaders()), Void::class.java)
         } finally {
-            // Overwrite the local String is not possible in Java/Kotlin due to String immutability,
+            // Overwriting the local String is not possible in Java/Kotlin due to String immutability,
             // but the original char array is owned by the caller and should be cleared there.
-            log.debug("Password reset sent to Keycloak for user id '{}'", userId)
+            log.info { "Password reset sent to Keycloak for user id '$userId'" }
         }
     }
 
