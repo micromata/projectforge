@@ -31,6 +31,7 @@ import mu.KotlinLogging
 import org.projectforge.business.ldap.LdapMasterLoginHandler
 import org.projectforge.business.ldap.LdapSlaveLoginHandler
 import org.projectforge.business.login.*
+import org.springframework.util.ClassUtils
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserPrefCache
 import org.projectforge.business.user.UserTokenType
@@ -99,7 +100,7 @@ open class LoginService {
                 // discover handler by simple class name to avoid circular module dependencies.
                 if (!loginHandlerClass.isNullOrBlank() && loginHandlerClass != "LoginDefaultHandler") {
                     applicationContext.getBeansOfType(LoginHandler::class.java).values
-                        .find { it::class.simpleName == loginHandlerClass }
+                        .find { ClassUtils.getUserClass(it.javaClass).simpleName == loginHandlerClass }
                         ?: run {
                             log.warn { "No LoginHandler found for class '$loginHandlerClass', falling back to LoginDefaultHandler." }
                             applicationContext.getBean(LoginDefaultHandler::class.java)

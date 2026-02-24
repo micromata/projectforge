@@ -129,10 +129,14 @@ open class KeycloakMasterLoginHandler : LoginHandler {
         val user = result.user ?: return result
 
         // Phase 2: sync password to Keycloak on first login if syncPasswords is enabled
-        if (keycloakConfig.syncPasswords && user.lastKeycloakPasswordSync == null
-            && !user.localUser && !user.deleted
-        ) {
-            syncPasswordToKeycloak(user, password)
+        if (keycloakConfig.syncPasswords) {
+            when {
+                user.localUser  -> log.debug { "Password sync skipped for '${user.username}': localUser=true" }
+                user.deleted    -> log.debug { "Password sync skipped for '${user.username}': deleted=true" }
+                user.lastKeycloakPasswordSync != null ->
+                    log.debug { "Password sync skipped for '${user.username}': already synced on ${user.lastKeycloakPasswordSync}" }
+                else -> syncPasswordToKeycloak(user, password)
+            }
         }
 
         // LDAP master behavior: create/update user in LDAP if credentials differ
