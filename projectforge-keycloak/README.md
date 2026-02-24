@@ -31,7 +31,7 @@ Create the following custom user attributes with validators:
 - Users must **not** be allowed to edit their own attributes (name, first name, etc.)
 - No Exceptions in phase 1 and 2.
 
-## Keycloak Admin: Duplicate E-Mail Addresses
+## ProjectForge Admin: Duplicate E-Mail Addresses
 
 - Remove duplicate email addresses from inactive/deactivated users (e.g. replaced with `devnull@micromata.de`)
 - When deactivating a user: either delete the email or leave it unchanged — do not reuse it
