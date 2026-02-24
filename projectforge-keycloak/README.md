@@ -29,14 +29,22 @@ Create the following custom user attributes with validators:
 ## Keycloak Admin: User Permissions
 
 - Users must **not** be allowed to edit their own attributes (name, first name, etc.)
-- Exception: `locale` and mobile phone may be editable by the user later
+- No Exceptions in phase 1 and 2.
 
 ## Keycloak Admin: Duplicate E-Mail Addresses
 
 - Remove duplicate email addresses from inactive/deactivated users (e.g. replaced with `devnull@micromata.de`)
 - When deactivating a user: either delete the email or leave it unchanged — do not reuse it
 
-## ProjectForge: `projectforge.properties`
+## Migration Phases
+
+### Phase 1 — PF as Master (ramp-up)
+
+**Handler:** `KeycloakMasterLoginHandler`
+
+- PF is authoritative; all user/group data is pushed from PF → Keycloak on every cache refresh
+- PF → LDAP sync continues in parallel (via `LdapMasterLoginHandler` delegation)
+- Passwords are **not** synced automatically; users cannot yet log in directly at Keycloak
 
 ```properties
 projectforge.login.handlerClass=KeycloakMasterLoginHandler
@@ -45,9 +53,6 @@ projectforge.keycloak.serverUrl=https://auth1.micromata.de
 projectforge.keycloak.realm=micromata.de
 projectforge.keycloak.clientId=projectforge
 projectforge.keycloak.clientSecret=<secret>
-
-# Optional: sync hashed passwords to Keycloak on PF login
-# projectforge.keycloak.syncPasswords=true
 
 # User attribute mappings: pfFieldName=keycloakAttributeName
 projectforge.keycloak.userAttributes.jiraUsername=jiraUsername
@@ -59,7 +64,49 @@ projectforge.keycloak.userAttributes.description=description
 projectforge.keycloak.userAttributes.nickname=nickname
 
 # Group attribute mappings: pfFieldName=keycloakAttributeName
-# Supported fields: description, organization
+projectforge.keycloak.groupAttributes.description=description
+```
+
+### Phase 2 — PF as Master + Password Sync
+
+**Handler:** `KeycloakMasterLoginHandler` (unchanged)
+
+- Same as Phase 1, plus: on every successful PF login the user's password is pushed to Keycloak
+- Users can then log in directly at Keycloak
+- Tracked per user via `PFUserDO.lastKeycloakPasswordSync`
+
+Additional property:
+
+```properties
+projectforge.keycloak.syncPasswords=true
+```
+
+### Phase 3 — Keycloak as Master (target state)
+
+**Handler:** `KeycloakLoginHandler`
+
+- Keycloak becomes authoritative; user/group data is pulled from Keycloak → PF on every cache refresh
+- PF → LDAP sync continues via `LdapMasterLoginHandler` delegation
+- Passwords are managed entirely in Keycloak; PF no longer stores or syncs passwords
+
+```properties
+projectforge.login.handlerClass=KeycloakLoginHandler
+
+projectforge.keycloak.serverUrl=https://auth1.micromata.de
+projectforge.keycloak.realm=micromata.de
+projectforge.keycloak.clientId=projectforge
+projectforge.keycloak.clientSecret=<secret>
+
+# User attribute mappings: pfFieldName=keycloakAttributeName
+projectforge.keycloak.userAttributes.jiraUsername=jiraUsername
+projectforge.keycloak.userAttributes.mobilePhone=mobilePhone
+projectforge.keycloak.userAttributes.gender=gender
+projectforge.keycloak.userAttributes.locale=locale
+projectforge.keycloak.userAttributes.organization=organization
+projectforge.keycloak.userAttributes.description=description
+projectforge.keycloak.userAttributes.nickname=nickname
+
+# Group attribute mappings: pfFieldName=keycloakAttributeName
 projectforge.keycloak.groupAttributes.description=description
 ```
 
@@ -67,17 +114,15 @@ projectforge.keycloak.groupAttributes.description=description
 
 Group attributes are written automatically per group during sync — no global pre-configuration needed.
 
-| Attribute     | Max Length | Notes                    |
-|---------------|-----------|--------------------------|
-| `description` | 1000      |                          |
+| Attribute     | Max Length | Notes |
+|---------------|-----------|-------|
+| `description` | 1000      |       |
 
 ## Sync Behavior
 
-- User and group changes in PF are automatically synced to Keycloak (Phase 1)
 - `jiraUsername`: if not set in PF, falls back to `username` (same behavior as LDAP)
 - `locale`: stored as lowercase BCP 47 tag (`de`, `en`); set per user by PF
-- Group attributes (e.g. `description`) do not need to be pre-configured in Keycloak — they are written automatically per group during sync
-- Password sync: only when `syncPasswords=true`; passwords are transmitted correctly but users need appropriate login roles in Keycloak to sign in directly
+- Group attributes do not need to be pre-configured in Keycloak — written automatically per group
 
 ## Keycloak Direct Login URL
 
@@ -89,7 +134,7 @@ https://<keycloak-host>/realms/<realm>/account
 
 Example: `https://auth1.micromata.de/realms/micromata.de/account`
 
-## Notes
+## Status
 
-- Phase 1 is functional: user/group sync to Keycloak works
+- Phase 1 functional: user/group sync PF → Keycloak works
 - Not yet released to production PF
