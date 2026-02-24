@@ -65,6 +65,7 @@ projectforge.keycloak.userAttributes.nickname=nickname
 
 # Group attribute mappings: pfFieldName=keycloakAttributeName
 projectforge.keycloak.groupAttributes.description=description
+projectforge.keycloak.groupAttributes.organization=organization
 ```
 
 ### Phase 2 — PF as Master + Password Sync
@@ -108,15 +109,17 @@ projectforge.keycloak.userAttributes.nickname=nickname
 
 # Group attribute mappings: pfFieldName=keycloakAttributeName
 projectforge.keycloak.groupAttributes.description=description
+projectforge.keycloak.groupAttributes.organization=organization
 ```
 
 ## Keycloak Admin: Group Attributes
 
 Group attributes are written automatically per group during sync — no global pre-configuration needed.
 
-| Attribute     | Max Length | Notes |
-|---------------|-----------|-------|
-| `description` | 1000      |       |
+| Attribute      | Max Length | Notes |
+|----------------|-----------|-------|
+| `description`  | 1000      |       |
+| `organization` | 100       |       |
 
 ## Sync Behavior
 
