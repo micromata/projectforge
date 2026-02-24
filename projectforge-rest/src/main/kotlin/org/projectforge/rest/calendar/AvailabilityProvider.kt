@@ -72,6 +72,7 @@ open class AvailabilityProvider {
                     title = title,
                     start = availability.startDate!!,
                     end = availability.endDate!!,
+                    dbId = availability.id,
                     style = settings.availabilityStyle,
                     classNames = "availability-event",
                     calendarSettings = settings,

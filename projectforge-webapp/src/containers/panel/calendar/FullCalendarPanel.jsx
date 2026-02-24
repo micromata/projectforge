@@ -247,6 +247,8 @@ function FullCalendarPanel({
             // Do nothing
         } else if (category === 'vacation') {
             navigate(`/react/calendar/vacation/edit/${id}?returnToCaller=%2Freact%2Fcalendar`);
+        } else if (category === 'availability') {
+            navigate(`/react/calendar/availability/edit/${id}?returnToCaller=%2Freact%2Fcalendar`);
         } else if (category === 'address') {
             // start date is send to the server and is needed for series events to detect the
             // current selected event of a series.
