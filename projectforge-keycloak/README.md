@@ -11,15 +11,15 @@
 
 Create the following custom user attributes with validators:
 
-| Attribute      | Min Length | Max Length | Notes                                        |
-|----------------|-----------|-----------|----------------------------------------------|
-| `jiraUsername` | 0         | 100       |                                              |
-| `mobilePhone`  | 0         | 255       |                                              |
-| `gender`       | 0         | 100       | Enum: `MALE`, `FEMALE`, `DIVERSE`, `UNKNOWN` |
-| `locale`       | 0         | —         | Validated automatically (`de`, `en`)         |
-| `organization` | 0         | 255       |                                              |
-| `description`  | 0         | 255       |                                              |
-| `nickname`     | 0         | 255       |                                              |
+| Attribute      | Min Length | Max Length | Notes                                           |
+|----------------|------------|------------|-------------------------------------------------|
+| `jiraUsername` | 0          | 100        | length                                          |
+| `mobilePhone`  | 0          | 255        | length                                          |
+| `gender`       |            |            | options: `MALE`, `FEMALE`, `DIVERSE`, `UNKNOWN` |
+| `locale`       | 0          | —          | Validated automatically (`de`, `en`)            |
+| `organization` | 0          | 255        | length                                          |
+| `description`  | 0          | 255        | length                                          |
+| `nickname`     | 0          | 255        | length                                          |
 
 ## Keycloak Admin: Username Validator
 
