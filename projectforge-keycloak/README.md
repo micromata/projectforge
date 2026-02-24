@@ -11,15 +11,16 @@
 
 Create the following custom user attributes with validators:
 
-| Attribute      | Min Length | Max Length | Notes                                           |
-|----------------|------------|------------|-------------------------------------------------|
-| `jiraUsername` | 0          | 100        | length                                          |
-| `mobilePhone`  | 0          | 255        | length                                          |
-| `gender`       |            |            | options: `MALE`, `FEMALE`, `DIVERSE`, `UNKNOWN` |
-| `locale`       | 0          | —          | Validated automatically (`de`, `en`)            |
-| `organization` | 0          | 255        | length                                          |
-| `description`  | 0          | 255        | length                                          |
-| `nickname`     | 0          | 255        | length                                          |
+| Attribute        | Min Length | Max Length | Notes                                           |
+|------------------|------------|------------|-------------------------------------------------|
+| `jiraUsername`   | 0          | 100        | length                                          |
+| `mobilePhone`    | 0          | 255        | length                                          |
+| `gender`         |            |            | options: `MALE`, `FEMALE`, `DIVERSE`, `UNKNOWN` |
+| `locale`         | 0          | —          | Validated automatically (`de`, `en`)            |
+| `organization`   | 0          | 255        | length                                          |
+| `description`    | 0          | 255        | length                                          |
+| `nickname`       | 0          | 255        | length                                          |
+| `sambaNTWlanPassword`| 0          | 255        | WLAN password (Samba NT hash); see below        |
 
 ## Keycloak Admin: Username Validator
 
@@ -81,6 +82,24 @@ Additional property:
 ```properties
 projectforge.keycloak.syncPasswords=true
 ```
+
+#### WLAN Password Sync (optional)
+
+If WLAN passwords are managed in PF (e.g. for RADIUS/WPA2-Enterprise), the Samba NT hash can be
+written to a custom Keycloak user attribute on every WLAN password change:
+
+```properties
+# Keycloak attribute name that receives the Samba NT hash on every WLAN password change.
+projectforge.keycloak.wlanPasswordAttribute=sambaNTWlanPassword
+```
+
+- The value stored is the **Samba NT hash** of the WLAN password (same format as LDAP `sambaNTWlanPassword`).
+- A RADIUS server can read this attribute from Keycloak to perform MS-CHAPv2 authentication.
+- The attribute must be created in the Keycloak realm beforehand (see User Attributes table above).
+- If `wlanPasswordAttribute` is not set, no WLAN password is written to Keycloak (default behaviour).
+- **Migration note:** The sync is triggered only when a user actively changes their WLAN password in PF.
+  There is no bulk-sync of existing WLAN passwords. During migration, all users must therefore
+  set a new WLAN password once so that the NT hash is written to Keycloak.
 
 ### Phase 3 — Keycloak as Master (target state)
 

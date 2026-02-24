@@ -95,6 +95,13 @@ open class KeycloakConfig {
      */
     var syncPasswords: Boolean = false
 
+    /**
+     * Keycloak attribute name for the WLAN (Samba NT) password hash.
+     * If set, the NT hash is written to this Keycloak user attribute on every WLAN password change.
+     * Example: projectforge.keycloak.wlanPasswordAttribute=sambaNTPassword
+     */
+    var wlanPasswordAttribute: String? = null
+
     fun isConfigured() = serverUrl.isNotBlank() && realm.isNotBlank()
             && clientId.isNotBlank() && clientSecret.isNotBlank()
 }
