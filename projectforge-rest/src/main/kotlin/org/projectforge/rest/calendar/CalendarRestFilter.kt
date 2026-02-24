@@ -56,6 +56,18 @@ class CalendarRestFilter(
    * Null items should only occur on (de)serialization issues.
    */
   var vacationUserIds: MutableSet<Long?>? = null,
+
+  /**
+   * All availabilities of any employee assigned to at least one of this
+   * availabilityGroups will be displayed.
+   */
+  var availabilityGroupIds: MutableSet<Long?>? = null,
+
+  /**
+   * All availabilities of the given employees (by user) will be displayed.
+   * Null items should only occur on (de)serialization issues.
+   */
+  var availabilityUserIds: MutableSet<Long?>? = null,
   /**
    *  The team calendarIds to display.
    * Null items should only occur on (de)serialization issues.
@@ -81,5 +93,7 @@ class CalendarRestFilter(
     activeCalendarIds?.removeIf { it == null }
     vacationGroupIds?.removeIf { it == null }
     vacationUserIds?.removeIf { it == null }
+    availabilityGroupIds?.removeIf { it == null }
+    availabilityUserIds?.removeIf { it == null }
   }
 }

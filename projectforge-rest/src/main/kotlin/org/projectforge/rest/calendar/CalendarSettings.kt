@@ -39,6 +39,7 @@ class CalendarSettings {
   var timesheetsBreaksColor: String? = TIMESHEETS_BREAKS_DEFAULT_COLOR
   var timesheetsStatsColor: String? = TIMESHEETS_STATS_DEFAULT_COLOR
   var vacationsColor: String? = VACATIONS_DEFAULT_COLOR
+  var availabilityColor: String? = AVAILABILITY_DEFAULT_COLOR
   var colorScheme: CalendarEventColorScheme? = CalendarEventColorScheme.STANDARD
 
   val timesheetsColorOrDefault: String
@@ -53,6 +54,12 @@ class CalendarSettings {
   val vacationsColorOrDefault: String
     get() = vacationsColor ?: VACATIONS_DEFAULT_COLOR
 
+  val availabilityColorOrDefault: String
+    get() = availabilityColor ?: AVAILABILITY_DEFAULT_COLOR
+
+  val availabilityStyle: CalendarStyle
+    get() = CalendarStyle(availabilityColorOrDefault)
+
   /**
    * Removes default values before saving as user preference.
    */
@@ -61,6 +68,7 @@ class CalendarSettings {
     this.timesheetsBreaksColor = getValueOrNull(src.timesheetsBreaksColor, TIMESHEETS_BREAKS_DEFAULT_COLOR)
     this.timesheetsStatsColor = getValueOrNull(src.timesheetsStatsColor, TIMESHEETS_STATS_DEFAULT_COLOR)
     this.vacationsColor = getValueOrNull(src.vacationsColor, VACATIONS_DEFAULT_COLOR)
+    this.availabilityColor = getValueOrNull(src.availabilityColor, AVAILABILITY_DEFAULT_COLOR)
     this.alternateHoursBackground = src.alternateHoursBackground
     this.colorScheme = src.colorScheme
   }
@@ -75,6 +83,7 @@ class CalendarSettings {
     clone.timesheetsBreaksColor = timesheetsBreaksColorOrDefault
     clone.timesheetsStatsColor = timesheetsStatsColorOrDefault
     clone.vacationsColor = vacationsColorOrDefault
+    clone.availabilityColor = availabilityColorOrDefault
     clone.alternateHoursBackground = alternateHoursBackground
     clone.colorScheme = colorScheme
     return clone
@@ -99,5 +108,6 @@ class CalendarSettings {
     internal const val TIMESHEETS_BREAKS_DEFAULT_COLOR = "#f9f9f9"
     internal const val TIMESHEETS_STATS_DEFAULT_COLOR = "#2f65c8"
     internal const val VACATIONS_DEFAULT_COLOR = "#f6d9ab"
+    internal const val AVAILABILITY_DEFAULT_COLOR = "#b8d4e3"
   }
 }

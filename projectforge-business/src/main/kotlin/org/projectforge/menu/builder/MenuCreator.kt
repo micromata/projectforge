@@ -249,6 +249,7 @@ open class MenuCreator {
                 MenuItemDef(MenuItemDefId.VACATION,
                     badgeCounter = { vacationMenuCounterCache.getOpenLeaveApplicationsForUser(ThreadLocalUserContext.loggedInUser) })
             )
+            .add(MenuItemDef(MenuItemDefId.AVAILABILITY))
             .add(MenuItemDef(MenuItemDefId.BOOK_LIST))
             .add(MenuItemDef(MenuItemDefId.ADDRESSBOOK_LIST))
             .add(MenuItemDef(MenuItemDefId.ADDRESS_LIST))

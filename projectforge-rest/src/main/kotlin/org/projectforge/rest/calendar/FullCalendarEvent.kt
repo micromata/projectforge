@@ -54,6 +54,7 @@ class FullCalendarEvent(
     TIMESHEET_BREAK("timesheet-break"),
     TIMESHEET_STATS("timesheet-stats"),
     VACATION("vacation"),
+    AVAILABILITY("availability"),
     CAL_EVENT("calEvent"),
     TEAM_CAL_EVENT("teamEvent"),
     HOLIDAY("holiday"),

@@ -65,6 +65,8 @@ class CalendarFilterServicesRest {
     var activeCalendars: MutableList<StyledTeamCalendar>? = null,
     var vacationGroups: List<Group>? = null,
     var vacationUsers: List<User>? = null,
+    var availabilityGroups: List<Group>? = null,
+    var availabilityUsers: List<User>? = null,
     /**
      * This is the list of possible default calendars (with full access). The user may choose one which is
      * used as default if creating a new event. The pseudo calendar -1 for own time sheets is
@@ -159,6 +161,22 @@ class CalendarFilterServicesRest {
       }
       user
     }?.filter { it.id != null }
+    initial.availabilityGroups = currentFilter.availabilityGroupIds?.map {
+      val group = Group()
+      val dbGroup = userGroupCache.getGroup(it)
+      if (dbGroup != null) {
+        group.copyFromMinimal(dbGroup)
+      }
+      group
+    }?.filter { it.id != null }
+    initial.availabilityUsers = currentFilter.availabilityUserIds?.map {
+      val user = User()
+      val dbUser = userGroupCache.getUser(it)
+      if (dbUser != null) {
+        user.copyFromMinimal(dbUser)
+      }
+      user
+    }?.filter { it.id != null }
 
     val favorites = getFilterFavorites()
     initial.filterFavorites = favorites.idTitleList
@@ -191,6 +209,10 @@ class CalendarFilterServicesRest {
       "calendar.filter.vacation.groups.tooltip",
       "calendar.filter.vacation.users",
       "calendar.filter.vacation.users.tooltip",
+      "calendar.filter.availability.groups",
+      "calendar.filter.availability.groups.tooltip",
+      "calendar.filter.availability.users",
+      "calendar.filter.availability.users.tooltip",
       "calendar.filter.visible",
       "calendar.defaultCalendar",
       "calendar.defaultCalendar.tooltip",
@@ -363,6 +385,20 @@ class CalendarFilterServicesRest {
   fun changeVacationUsers(@RequestBody userIds: Set<Long>?): Map<String, Any> {
     val currentFilter = getCurrentFilter()
     currentFilter.vacationUserIds = userIds
+    return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
+  }
+
+  @PostMapping("changeAvailabilityGroups")
+  fun changeAvailabilityGroups(@RequestBody groupIds: Set<Long>?): Map<String, Any> {
+    val currentFilter = getCurrentFilter()
+    currentFilter.availabilityGroupIds = groupIds
+    return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
+  }
+
+  @PostMapping("changeAvailabilityUsers")
+  fun changeAvailabilityUsers(@RequestBody userIds: Set<Long>?): Map<String, Any> {
+    val currentFilter = getCurrentFilter()
+    currentFilter.availabilityUserIds = userIds
     return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
   }
 

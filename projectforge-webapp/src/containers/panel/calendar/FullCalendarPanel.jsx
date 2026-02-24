@@ -35,6 +35,8 @@ function FullCalendarPanel({
     timeNotation = 'H24',
     vacationGroups = [],
     vacationUsers = [],
+    availabilityGroups = [],
+    availabilityUsers = [],
     topHeight = '0px',
     alternateHoursBackground = true,
 }) {
@@ -86,7 +88,8 @@ function FullCalendarPanel({
         // eslint-disable-next-line max-len
         // console.log('refetch', activeCalendars, timesheetUserId, vacationGroups, vacationUsers);
         refetch(currentApi);
-    }, [activeCalendars, timesheetUserId, showBreaks, vacationGroups, vacationUsers]);
+        // eslint-disable-next-line max-len
+    }, [activeCalendars, timesheetUserId, showBreaks, vacationGroups, vacationUsers, availabilityGroups, availabilityUsers]);
 
     useEffect(() => {
         const currentApi = calendarRef?.current?.getApi();
@@ -110,7 +113,7 @@ function FullCalendarPanel({
                 const viewStart = Date.toIsoDateString(currentApi.view.activeStart);
                 const viewEnd = Date.toIsoDateString(currentApi.view.activeEnd);
                 // console.log(date, viewStart, viewEnd, date < viewStart);
-                if (date < viewStart || date >= viewEnd) {
+                if (date < viewStart || date > viewEnd) {
                     // console.log('gotoDate', date);
                     currentApi.gotoDate(date);
                     refetchTriggerd = true;
@@ -514,6 +517,8 @@ FullCalendarPanel.propTypes = {
     timeNotation: PropTypes.string,
     vacationGroups: PropTypes.arrayOf(PropTypes.shape()),
     vacationUsers: PropTypes.arrayOf(PropTypes.shape()),
+    availabilityGroups: PropTypes.arrayOf(PropTypes.shape()),
+    availabilityUsers: PropTypes.arrayOf(PropTypes.shape()),
     topHeight: PropTypes.string,
     alternateHoursBackground: PropTypes.bool,
 };
