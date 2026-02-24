@@ -160,7 +160,7 @@ open class KeycloakUserConverter(private val keycloakConfig: KeycloakConfig) {
             "description"              to UserFieldAccessor({ it.description },              { u, v -> u.description = v }),
             "gender"                   to UserFieldAccessor({ it.gender?.name },             { u, v -> u.gender = v?.let { runCatching { enumValueOf<Gender>(it) }.getOrNull() } }),
             "nickname"                 to UserFieldAccessor({ it.nickname },                 { u, v -> u.nickname = v }),
-            "locale"                   to UserFieldAccessor({ it.locale?.toString() },       { u, v -> u.locale = v?.let { runCatching { java.util.Locale.forLanguageTag(it) }.getOrNull() } }),
+            "locale"                   to UserFieldAccessor({ it.locale?.language },          { u, v -> u.locale = v?.let { runCatching { java.util.Locale.forLanguageTag(it) }.getOrNull() } }),
             "timeZone"                 to UserFieldAccessor({ it.timeZoneString },           { u, v -> u.timeZoneString = v }),
             "personalPhoneIdentifiers" to UserFieldAccessor({ it.personalPhoneIdentifiers }, { u, v -> u.personalPhoneIdentifiers = v }),
         )
