@@ -28,9 +28,12 @@ import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
 import mu.KotlinLogging
 import org.apache.poi.ss.usermodel.BorderStyle
+import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.ss.util.CellRangeAddress
+import org.projectforge.business.availability.AvailabilityDO
+import org.projectforge.business.availability.AvailabilityStatus
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
@@ -88,12 +91,21 @@ object VacationExcelExporter {
       workbook,
       "vacationDay",
       fillForegroundColor = IndexedColors.GREEN,
+      alignment = HorizontalAlignment.CENTER,
       borderStyle = BorderStyle.THIN,
     )
     val unapprovedVacationStyle = ExcelUtils.createCellStyle(
       workbook,
       "unapprovedVacationDay",
       fillForegroundColor = IndexedColors.GREY_40_PERCENT,
+      alignment = HorizontalAlignment.CENTER,
+      borderStyle = BorderStyle.THIN,
+    )
+    val availabilityStyle = ExcelUtils.createCellStyle(
+      workbook,
+      "availabilityDay",
+      fillForegroundColor = IndexedColors.LIGHT_BLUE,
+      alignment = HorizontalAlignment.CENTER,
       borderStyle = BorderStyle.THIN,
     )
 
@@ -108,13 +120,14 @@ object VacationExcelExporter {
   fun export(
     date: LocalDate = LocalDate.now(),
     vacationsByEmployee: List<VacationService.VacationsByEmployee>,
+    availabilitiesByEmployee: Map<Long, List<AvailabilityDO>> = emptyMap(),
   ): ByteArray {
     log.info { "Exporting Excel sheet with vacations of users: ${vacationsByEmployee.joinToString { it.employee.user?.getFullname() ?: "???" }}" }
     ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
       val context = Context(workbook)
       val startDate = PFDay.from(date).beginOfMonth
       getSheetsData(startDate).forEach { sheetData ->
-        createSheet(context, sheetData, vacationsByEmployee)
+        createSheet(context, sheetData, vacationsByEmployee, availabilitiesByEmployee)
       }
       // Legend
       val sheet = workbook.createOrGetSheet(translate("legend"))
@@ -124,6 +137,9 @@ object VacationExcelExporter {
       row = sheet.createRow()
       row.getCell(0).setCellStyle(context.vacationStyle)
       row.getCell(1).setCellValue(translate("vacation.status.approved"))
+      row = sheet.createRow()
+      row.getCell(0).setCellStyle(context.availabilityStyle)
+      row.getCell(1).setCellValue(translate("availability.title"))
       sheet.setColumnWidth(0, COL_WIDTH_DAY)
       return workbook.asByteArrayOutputStream.toByteArray()
     }
@@ -133,6 +149,7 @@ object VacationExcelExporter {
     context: Context,
     sheetData: SheetData,
     vacationsByEmployee: List<VacationService.VacationsByEmployee>,
+    availabilitiesByEmployee: Map<Long, List<AvailabilityDO>>,
   ) {
     val startDate = sheetData.startDate
     val endDate = sheetData.endDate
@@ -199,7 +216,9 @@ object VacationExcelExporter {
         }
         currentDate = currentDate.plusDays(1)
       }
-      var firstRowWritten = false
+      val occupiedCols = mutableSetOf<Int>()
+      var hasEntries = false
+      // Process vacations first (higher priority).
       entry.vacations.forEach { vacation ->
         val vacationStart = PFDay.fromOrNull(vacation.startDate)
         val vacationEnd = PFDay.fromOrNull(vacation.endDate)
@@ -209,25 +228,121 @@ object VacationExcelExporter {
           } else {
             context.unapprovedVacationStyle
           }
+          val label = if (vacation.status == VacationStatus.APPROVED) {
+            translate("vacation")
+          } else {
+            "${translate("vacation")} (${translate("vacation.status.inProgress")})"
+          }
+          val cols = mutableListOf<Int>()
           paranoiaCounter = 0
           var current: PFDay = vacationStart
           while (current <= vacationEnd && current <= endDate && paranoiaCounter++ < 500) {
-            val col = columnIndexMap[current.date] ?: continue
-            if (!firstRowWritten) {
-              // Mark row as user with vacation entries:
-              firstRowWritten = true
-              employeeRow.getCell(1).setCellValue("X")
+            val col = columnIndexMap[current.date]
+            if (col != null) {
+              employeeRow.getCell(col).setCellStyle(style)
+              cols.add(col)
+              occupiedCols.add(col)
+              hasEntries = true
             }
-            employeeRow.getCell(col).setCellStyle(style)
             current = current.plusDays(1)
           }
+          mergeConsecutiveColumns(context, sheet, employeeRow, cols, label, style)
         }
+      }
+      // Process availability entries.
+      availabilitiesByEmployee[employee.id]?.forEach { availability ->
+        val availStart = PFDay.fromOrNull(availability.startDate)
+        val availEnd = PFDay.fromOrNull(availability.endDate)
+        if (availStart != null && availEnd != null) {
+          val label = getAvailabilityLabel(availability)
+          val cols = mutableListOf<Int>()
+          paranoiaCounter = 0
+          var current: PFDay = availStart
+          while (current <= availEnd && current <= endDate && paranoiaCounter++ < 500) {
+            val col = columnIndexMap[current.date]
+            if (col != null && col !in occupiedCols) {
+              employeeRow.getCell(col).setCellStyle(context.availabilityStyle)
+              cols.add(col)
+              occupiedCols.add(col)
+              hasEntries = true
+            }
+            current = current.plusDays(1)
+          }
+          mergeConsecutiveColumns(context, sheet, employeeRow, cols, label, context.availabilityStyle)
+        }
+      }
+      if (hasEntries) {
+        employeeRow.getCell(1).setCellValue("X")
       }
     }
     sheet.createRow().getCell(0).setCellValue("(${PFDay.now().isoString})")
     sheet.createFreezePane(1, 3)
     sheet.setAutoFilter()
     sheet.poiSheet.setAutoFilter(CellRangeAddress(0, 0, 0, 1))
+  }
+
+  /**
+   * Merges consecutive columns in the given row and sets the label text.
+   * Bridges across month separator columns so that entries spanning multiple months
+   * are merged into a single region (including the separator column).
+   */
+  private fun mergeConsecutiveColumns(
+    context: Context,
+    sheet: ExcelSheet,
+    row: ExcelRow,
+    cols: List<Int>,
+    label: String,
+    style: CellStyle,
+  ) {
+    if (cols.isEmpty()) return
+    val sorted = cols.sorted()
+    val groups = mutableListOf<MutableList<Int>>()
+    var currentGroup = mutableListOf(sorted[0])
+    for (i in 1 until sorted.size) {
+      val prev = sorted[i - 1]
+      val curr = sorted[i]
+      if (curr == prev + 1 || (curr == prev + 2 && context.monthSeparatorCols.contains(prev + 1))) {
+        // Consecutive, or bridging across a month separator column.
+        currentGroup.add(curr)
+      } else {
+        groups.add(currentGroup)
+        currentGroup = mutableListOf(curr)
+      }
+    }
+    groups.add(currentGroup)
+    for (group in groups) {
+      val firstCol = group.first()
+      val lastCol = group.last()
+      if (firstCol < lastCol) {
+        sheet.setMergedRegion(row.rowNum, row.rowNum, firstCol, lastCol, label)
+          .setCellStyle(style)
+      } else {
+        // Single cell - just set value, no merge needed.
+        row.getCell(firstCol).setCellValue(label)
+      }
+    }
+  }
+
+  /**
+   * Builds a human-readable label for an availability entry.
+   * Combines the type and status information.
+   */
+  private fun getAvailabilityLabel(availability: AvailabilityDO): String {
+    val type = availability.type
+    val status = availability.status
+    return if (!type.isNullOrBlank()) {
+      if (status != null && status != AvailabilityStatus.NOT_AVAILABLE) {
+        "$type (${translate(status.i18nKey)})"
+      } else {
+        type
+      }
+    } else {
+      if (status != null) {
+        translate(status.i18nKey)
+      } else {
+        translate("availability.title")
+      }
+    }
   }
 
   private fun getWeekDayString(day: PFDay): String {

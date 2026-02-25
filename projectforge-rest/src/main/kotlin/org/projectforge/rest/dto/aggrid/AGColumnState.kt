@@ -36,6 +36,7 @@ class AGColumnState {
   var flex: Int? = null
   var sort: String? = null
   var sortIndex: Int? = null
+  var sortType: String? = null
 
   @JsonIgnore
   var aggFunc: Any? = null

@@ -24,7 +24,9 @@
 package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
 import mu.KotlinLogging
+import org.projectforge.business.availability.AvailabilityDao
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
@@ -51,7 +53,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
-import jakarta.validation.Valid
 
 private val log = KotlinLogging.logger {}
 
@@ -62,13 +63,20 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
         var startDate: LocalDate? = null
         var groups: List<Group>? = null
         var employees: List<Employee>? = null
+        var availabilityEmployees: List<Employee>? = null
+        var availabilityGroups: List<Group>? = null
 
         fun copyFrom(other: Data) {
             startDate = other.startDate
             groups = other.groups
             employees = other.employees
+            availabilityEmployees = other.availabilityEmployees
+            availabilityGroups = other.availabilityGroups
         }
     }
+
+    @Autowired
+    private lateinit var availabilityDao: AvailabilityDao
 
     @Autowired
     private lateinit var employeeCache: EmployeeCache
@@ -116,6 +124,21 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
                     autoCompletion = AutoCompletion.getAutoCompletion4Groups(),
                 )
             )
+            .add(
+                UISelect<Long>(
+                    Data::availabilityEmployees.name,
+                    multi = true,
+                    label = "${translate("availability.title")} ${translate("fibu.employees")}",
+                    autoCompletion = AutoCompletion.getAutoCompletion4Employees(true),
+                )
+            )
+            .add(
+                UISelect<Long>(
+                    Data::availabilityGroups.name, multi = true,
+                    label = "${translate("availability.title")} ${translate("group.groups")}",
+                    autoCompletion = AutoCompletion.getAutoCompletion4Groups(),
+                )
+            )
         layout.addAction(
             UIButton.createDownloadButton(
                 id = "excelExport",
@@ -132,9 +155,10 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
         layout.watchFields.addAll(
             arrayOf(
                 Data::startDate.name,
-                Data::startDate.name,
                 Data::groups.name,
-                Data::employees.name
+                Data::employees.name,
+                Data::availabilityEmployees.name,
+                Data::availabilityGroups.name,
             )
         )
         val data = ensureUserPref()
@@ -190,7 +214,45 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
                     VacationStatus.IN_PROGRESS,
                 )
             }
-            val excel = VacationExcelExporter.export(startDate, vacations)
+            // Collect employees for availability from the separate availability fields.
+            val availabilityEmployees = mutableSetOf<EmployeeDO>()
+            data?.availabilityEmployees?.forEach { employee ->
+                if (availabilityEmployees.none { it.id == employee.id }) {
+                    employeeDao.find(employee.id, checkAccess = false)?.let {
+                        availabilityEmployees.add(it)
+                    }
+                }
+            }
+            data?.availabilityGroups?.forEach { group ->
+                userGroupCache.getGroup(group.id)?.assignedUsers?.forEach { user ->
+                    employeeCache.getEmployeeByUserId(user.id)?.let { employeeDO ->
+                        availabilityEmployees.add(employeeDO)
+                    }
+                }
+            }
+            availabilityEmployees.removeIf { !it.active || it.user?.deactivated == true || it.user?.deleted == true }
+            // Ensure availability employees also appear in the vacation list (for row creation).
+            availabilityEmployees.forEach { availEmployee ->
+                if (employees.none { it.id == availEmployee.id }) {
+                    employees.add(availEmployee)
+                }
+            }
+            // Load availability entries for the selected availability employees in the period.
+            val availEmployeeIds = availabilityEmployees.mapNotNull { it.id }.toSet()
+            val availabilitiesByEmployee = if (availEmployeeIds.isNotEmpty()) {
+                availabilityDao.selectAll(checkAccess = false)
+                    .filter { avail ->
+                        !avail.deleted
+                            && avail.employee?.id in availEmployeeIds
+                            && avail.endDate != null && avail.startDate != null
+                            && avail.endDate!! >= periodBegin.date
+                            && avail.startDate!! <= periodEnd.date
+                    }
+                    .groupBy { it.employee?.id ?: -1L }
+            } else {
+                emptyMap()
+            }
+            val excel = VacationExcelExporter.export(startDate, vacations, availabilitiesByEmployee)
             RestUtils.downloadFile("${translate("vacation")}-${PFDateTime.now().format4Filenames()}.xlsx", excel)
 
         }
@@ -208,6 +270,8 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
         }
         Employee.restoreDisplayNames(data.employees)
         Group.restoreDisplayNames(data.groups)
+        Employee.restoreDisplayNames(data.availabilityEmployees)
+        Group.restoreDisplayNames(data.availabilityGroups)
     }
 
     private fun setSessionData(request: HttpServletRequest, data: Data) {
