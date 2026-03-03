@@ -281,6 +281,15 @@ class OrderbookSnapshotsService {
         }
     }
 
+    /**
+     * Returns the serialized (gzipped) order book bytes for a given date.
+     * @param date The date of the snapshot.
+     * @return The gzipped byte array, or null if not found.
+     */
+    fun getSerializedOrderBook(date: LocalDate): ByteArray? {
+        return findEntry(date)?.serializedOrderBook
+    }
+
     private fun findEntry(date: LocalDate): OrderbookSnapshotDO? {
         return persistenceService.find(OrderbookSnapshotDO::class.java, date)
     }
