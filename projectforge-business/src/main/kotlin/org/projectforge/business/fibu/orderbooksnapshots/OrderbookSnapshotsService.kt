@@ -290,6 +290,18 @@ class OrderbookSnapshotsService {
         return findEntry(date)?.serializedOrderBook
     }
 
+    /**
+     * Returns the order book snapshot as uncompressed JSON string for a given date.
+     * @param date The date of the snapshot.
+     * @return The JSON string, or null if not found or empty.
+     */
+    fun getSnapshotAsJson(date: LocalDate): String? {
+        val entry = findEntry(date) ?: return null
+        val serialized = entry.serializedOrderBook ?: return null
+        if (serialized.isEmpty()) return null
+        return gunzip(serialized)
+    }
+
     private fun findEntry(date: LocalDate): OrderbookSnapshotDO? {
         return persistenceService.find(OrderbookSnapshotDO::class.java, date)
     }

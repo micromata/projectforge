@@ -73,4 +73,14 @@ class OrderbookSnapshotScriptingService(private val __service: OrderbookSnapshot
     fun getSerializedOrderBook(date: LocalDate): ByteArray? {
         return __service.getSerializedOrderBook(date)
     }
+
+    /**
+     * Returns the order book snapshot as uncompressed JSON string for a given date.
+     *
+     * @param date The date of the snapshot.
+     * @return The JSON string containing all orders, or null if not found.
+     */
+    fun getSnapshotAsJson(date: LocalDate): String? {
+        return __service.getSnapshotAsJson(date)
+    }
 }
