@@ -6,7 +6,7 @@ function RedirectToWicket() {
     const location = useLocation();
 
     useEffect(() => {
-        if (process.env.NODE_ENV !== 'development') {
+        if (!import.meta.env.DEV) {
             window.location.reload();
         }
     }, []);

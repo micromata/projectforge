@@ -7,7 +7,7 @@ export const debouncedWaitTime = (
     navigator && navigator.connection && navigator.connection.saveData
 ) ? 1000 : 250;
 
-export const baseURL = process.env.NODE_ENV === 'development' ? testServer : '';
+export const baseURL = import.meta.env.MODE === 'development' ? testServer : '';
 export const baseRestURL = `${baseURL}/rs`;
 
 export const createQueryParams = (params) => Object.keys(params)

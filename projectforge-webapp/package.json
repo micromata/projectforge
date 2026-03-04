@@ -56,7 +56,6 @@
     "react-redux": "^9.2.0",
     "react-router": "^7.13.0",
     "react-rrule-generator": "^1.2.0",
-    "react-scripts": "^5.0.1",
     "react-select": "^5.10.2",
     "reactstrap": "^9.2.3",
     "redux": "^5.0.1",
@@ -68,23 +67,14 @@
     "qs": "^6.15.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "CI=false && react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "postbuild": "mv build/index.html build/react-app.html",
     "eslint": "eslint \"src/**/**/*.{js,jsx,tsx}\"",
     "eslint.fix": "eslint \"src/**/**/*.{js,jsx,tsx}\" --fix"
-  },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
-  "jest": {
-    "collectCoverageFrom": [
-      "src/**/*.{js,jsx}",
-      "!src/index.js",
-      "!src/serviceWorker.js"
-    ]
   },
   "browserslist": [
     ">0.2%",
@@ -101,8 +91,11 @@
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.5",
     "react-test-renderer": "^18.3.1",
-    "react-testing-library": "^8.0.1",
     "sass": "^1.97.3",
-    "typescript": "^4.9.5"
+    "typescript": "^4.9.5",
+    "vite": "^6.3.5",
+    "@vitejs/plugin-react": "^4.5.2",
+    "vitest": "^3.2.1",
+    "jsdom": "^26.1.0"
   }
 }
