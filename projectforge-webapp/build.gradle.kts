@@ -61,7 +61,7 @@ tasks {
             // Exclude the target directory to prevent recursion
             exclude("resources/main/static/**")
         }
-        from(file("src")) {
+        from(layout.projectDirectory) {
             include("index.html")
         }
         into(layout.buildDirectory.dir("resources/main/static")) // Target directory in the Gradle project
@@ -84,8 +84,8 @@ tasks {
             exclude("libs")
             exclude("tmp")
         }
-        // Include additional files (e.g., src/index.html)
-        from(layout.projectDirectory.file("src/index.html")) {
+        // Include additional files (e.g., index.html from project root)
+        from(layout.projectDirectory.file("index.html")) {
             into("static") // Copy index.html to /static
         }
         dependsOn("copyReactBuild") // Ensure React build and copy are done first
