@@ -73,23 +73,6 @@ class PollCronJobs {
         }.start()
     }
 
-    private fun getEmailsOfUsersWhoHaventResponded(poll: Poll, pollId: Long): List<String> {
-        // Alle E-Mail-Adressen der Teilnehmer abrufen
-        val allAttendeesEmails = pollMailService.getAllAttendeesEmails(poll)
-        // Alle Antworten für diese Umfrage abrufen
-        val allResponses = pollResponseDao.selectAll(checkAccess = false)
-            .filter { response ->
-                response.poll?.id == pollId
-            }
-        // E-Mail-Adressen von Benutzern, die bereits geantwortet haben
-        val respondedUserEmails = allResponses.mapNotNull { response ->
-            response.owner?.email
-        }.toSet()
-        // Nur E-Mails von Benutzern zurückgeben, die noch nicht geantwortet haben
-        return allAttendeesEmails.filter { email ->
-            email !in respondedUserEmails
-        }
-    }
 
 
     /**
@@ -112,12 +95,19 @@ class PollCronJobs {
 
                         val mailAttachment = MailAttachment("${pollDO.title}_${LocalDateTime.now().year}_Result.xlsx", excel)
                         val owner = userService.getUser(poll.owner?.id)
-                        val mailTo = pollMailService.getAllAttendeesEmails(poll)
+                        // Only send to Full Access Users and Attendees who haven't responded yet
+                        val mailTo = pollMailService.getFilteredEmails(poll, pollDO.id!!)
                         val mailFrom = pollDO.owner?.email.toString()
-                        val mailSubject = translateMsg("poll.mail.endedafterdeadline.subject", poll.title)
-                        val mailContent = translateMsg("poll.mail.endedafterdeadline.content", pollDO.title, owner?.displayName, )
 
-                        pollMailService.sendMail(mailFrom, mailTo, mailContent, mailSubject, listOf(mailAttachment))
+                        // Group recipients by locale and send localized emails
+                        val recipientsByLocale = pollMailService.groupRecipientsByLocale(mailTo)
+                        recipientsByLocale.forEach { (locale, recipients) ->
+                            val mailSubject = translateMsg(locale, "poll.mail.endedafterdeadline.subject", poll.title)
+                            val mailContent = translateMsg(locale, "poll.mail.endedafterdeadline.content", pollDO.title, owner?.displayName)
+                            
+                            pollMailService.sendMail(mailFrom, recipients, mailSubject, mailContent, listOf(mailAttachment))
+                            log.info("Sent end-of-poll mail for poll (${pollDO.id}) to ${recipients.size} users in locale $locale")
+                        }
                         pollDO.state = PollDO.State.FINISHED_AND_MAIL_SENT
                         log.info("Set state of poll (${pollDO.id}) ${pollDO.title} to FINISHED_AND_MAIL_SENT")
                         pollDao.insertOrUpdate(pollDO, checkAccess = false)
@@ -134,22 +124,64 @@ class PollCronJobs {
             poll.copyFrom(pollDO)
             val daysDifference = ChronoUnit.DAYS.between(LocalDate.now(), pollDO.deadline)
             if (daysDifference == 1L || daysDifference == 7L) {
-                // add all attendees mails
-                val mailToFiltered = getEmailsOfUsersWhoHaventResponded(poll, pollDO.id!!)
+                // Only send to Full Access Users and Attendees who haven't responded yet
+                val mailTo = pollMailService.getFilteredEmails(poll, pollDO.id!!)
 
-                if (mailToFiltered.isNotEmpty()) {
-                    val mailTo = pollMailService.getAllAttendeesEmails(poll)
+                if (mailTo.isNotEmpty()) {
                     val mailFrom = pollDO.owner?.email.toString()
-                    val mailSubject = translateMsg("poll.mail.endingSoon.subject", daysDifference)
-                    val mailContent = translateMsg(
-                        "poll.mail.endingSoon.content",
-                        pollDO.title,
-                        pollDO.owner?.displayName,
-                        pollDO.deadline?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString(),
-                        pollDO.id.toString(),
-                    )
-                    pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
-                    log.info("Sent reminder mail for poll (${pollDO.id}) to ${mailToFiltered.size} users who haven't responded yet")
+                    
+                    // Group recipients by locale and send localized emails
+                    val recipientsByLocale = pollMailService.groupRecipientsByLocale(mailTo)
+                    recipientsByLocale.forEach { (locale, recipients) ->
+                        // Create HTML link for placeholder {3}
+                        val pollLink = "<p><a href=\"https://projectforge.micromata.de/react/pollResponse/dynamic/?pollId=${pollDO.id}\">" +
+                                translateMsg(locale, "poll.mail.link.text") + "</a></p>"
+                        
+                        // Use custom reminder texts if available, otherwise use default i18n keys
+                        // Placeholders: {0}=title, {1}=owner, {2}=deadline, {3}=link
+                        val mailSubject = if (!pollDO.customReminderSubject.isNullOrEmpty()) {
+                            translateMsg(
+                                locale,
+                                pollDO.customReminderSubject!!,
+                                pollDO.title,
+                                pollDO.owner?.displayName,
+                                pollDO.deadline?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString(),
+                                pollLink
+                            )
+                        } else {
+                            translateMsg(
+                                locale,
+                                "poll.mail.endingSoon.subject.default",
+                                pollDO.title,
+                                pollDO.owner?.displayName,
+                                pollDO.deadline?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString(),
+                                pollLink
+                            )
+                        }
+                        
+                        val mailContent = if (!pollDO.customReminderContent.isNullOrEmpty()) {
+                            translateMsg(
+                                locale,
+                                pollDO.customReminderContent!!,
+                                pollDO.title,
+                                pollDO.owner?.displayName,
+                                pollDO.deadline?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString(),
+                                pollLink
+                            )
+                        } else {
+                            translateMsg(
+                                locale,
+                                "poll.mail.endingSoon.content.default",
+                                pollDO.title,
+                                pollDO.owner?.displayName,
+                                pollDO.deadline?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString(),
+                                pollLink
+                            )
+                        }
+                        
+                        pollMailService.sendMail(mailFrom, recipients, mailSubject, mailContent)
+                        log.info("Sent reminder mail for poll (${pollDO.id}) to ${recipients.size} users in locale $locale (Full Access + not responded yet)")
+                    }
                 } else {
                     log.info("No reminder mail sent for poll (${pollDO.id}) - all users have already responded")
                 }

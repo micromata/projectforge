@@ -86,6 +86,22 @@ open class PollDO : DefaultBaseDO() {
     @get:Column(name = "inputFields", length = 1000)
     open var inputFields: String? = null
 
+    @PropertyInfo(i18nKey = "poll.customemailsubject")
+    @get:Column(name = "custom_email_subject", length = 1000)
+    open var customemailsubject: String? = null
+
+    @PropertyInfo(i18nKey = "poll.customemailcontent")
+    @get:Column(name = "custom_email_content", length = 10000)
+    open var customemailcontent: String? = null
+
+    @PropertyInfo(i18nKey = "poll.customReminderSubject")
+    @get:Column(name = "custom_reminder_subject", length = 1000)
+    open var customReminderSubject: String? = null
+
+    @PropertyInfo(i18nKey = "poll.customReminderContent")
+    @get:Column(name = "custom_reminder_content", length = 10000)
+    open var customReminderContent: String? = null
+
     @PropertyInfo(i18nKey = "poll.state")
     @get:Column(name = "state", nullable = false)
     open var state: State = State.RUNNING
