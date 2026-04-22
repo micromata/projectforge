@@ -21,10 +21,10 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.keycloak.client
+package org.projectforge.idp.keycloak
 
 import mu.KotlinLogging
-import org.projectforge.keycloak.config.KeycloakConfig
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -40,6 +40,7 @@ private val log = KotlinLogging.logger {}
  * Tokens are renewed automatically 30 seconds before expiry.
  */
 @Service
+@ConditionalOnProperty(name = ["projectforge.idp.provider"], havingValue = "keycloak", matchIfMissing = true)
 open class KeycloakTokenClient(private val keycloakConfig: KeycloakConfig) {
 
     private val restTemplate = RestTemplate()
@@ -50,10 +51,6 @@ open class KeycloakTokenClient(private val keycloakConfig: KeycloakConfig) {
     @Volatile
     private var tokenExpiresAt: Instant = Instant.EPOCH
 
-    /**
-     * Returns a valid Bearer token for the Keycloak Admin API.
-     * Thread-safe: renews the token if expired or about to expire.
-     */
     @Synchronized
     fun getAccessToken(): String {
         if (cachedToken != null && Instant.now().isBefore(tokenExpiresAt)) {

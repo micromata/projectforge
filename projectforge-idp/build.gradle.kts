@@ -22,4 +22,4 @@ dependencies {
     testImplementation(libs.org.springframework.boot.starter.test)
 }
 
-description = "projectforge-keycloak"
+description = "projectforge-idp"

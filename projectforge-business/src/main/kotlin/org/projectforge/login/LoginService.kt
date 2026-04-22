@@ -96,7 +96,7 @@ open class LoginService {
             "LdapMasterLoginHandler" -> applicationContext.getBean(LdapMasterLoginHandler::class.java)
             "LdapSlaveLoginHandler" -> applicationContext.getBean(LdapSlaveLoginHandler::class.java)
             else -> {
-                // For extensibility (e.g. KeycloakLoginHandler in projectforge-keycloak module):
+                // For extensibility (e.g. IdpLoginHandler in projectforge-idp module):
                 // discover handler by simple class name to avoid circular module dependencies.
                 if (!loginHandlerClass.isNullOrBlank() && loginHandlerClass != "LoginDefaultHandler") {
                     applicationContext.getBeansOfType(LoginHandler::class.java).values

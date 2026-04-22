@@ -88,19 +88,19 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
     open var lastWlanPasswordChange: Date? = null
 
     /**
-     * Timestamp of the last successful password sync to Keycloak.
-     * Null means the password has never been synced to Keycloak.
+     * Timestamp of the last successful password sync to the external IdP (Keycloak, Authentik, etc.).
+     * Null means the password has never been synced.
      */
-    @get:Column(name = "last_keycloak_password_sync")
-    open var lastKeycloakPasswordSync: Date? = null
+    @get:Column(name = "last_idp_password_sync")
+    open var lastIdpPasswordSync: Date? = null
 
     /**
-     * The Keycloak user ID (UUID) for this user.
-     * Set when the user is first created in or synced from Keycloak.
-     * Used to look up and update the user in Keycloak without relying on username matching.
+     * The external IdP user ID (UUID or PK) for this user.
+     * Set when the user is first created in or synced from the IdP.
+     * Used to look up and update the user in the IdP without relying on username matching.
      */
-    @get:Column(name = "keycloak_id", length = 36)
-    open var keycloakId: String? = null
+    @get:Column(name = "idp_external_id", length = 100)
+    open var idpExternalId: String? = null
 
     /**
      * JIRA user name (if differ from the ProjectForge's user name).

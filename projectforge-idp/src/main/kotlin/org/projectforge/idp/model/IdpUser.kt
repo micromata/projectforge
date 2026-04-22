@@ -21,18 +21,19 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.keycloak.model
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+package org.projectforge.idp.model
 
 /**
- * DTO matching Keycloak's group representation from the Admin REST API.
+ * Provider-neutral user representation used by the shared IdP sync handlers.
+ * Each provider's [org.projectforge.idp.IdpAdminClient] converts between its
+ * native API DTOs and this neutral model.
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class KeycloakGroup(
+data class IdpUser(
     val id: String? = null,
-    val name: String? = null,
-    val path: String? = null,
+    val username: String? = null,
+    val firstName: String? = null,
+    val lastName: String? = null,
+    val email: String? = null,
+    val enabled: Boolean = true,
     val attributes: Map<String, List<String>>? = null,
-    val subGroups: List<KeycloakGroup>? = null
 )

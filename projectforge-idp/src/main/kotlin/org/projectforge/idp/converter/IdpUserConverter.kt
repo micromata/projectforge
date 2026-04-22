@@ -21,44 +21,45 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.keycloak.converter
+package org.projectforge.idp.converter
 
 import mu.KotlinLogging
 import org.projectforge.framework.persistence.user.entities.Gender
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.keycloak.config.KeycloakConfig
-import org.projectforge.keycloak.model.KeycloakUser
+import org.projectforge.idp.IdpConfig
+import org.projectforge.idp.model.IdpUser
 import org.springframework.stereotype.Service
 
 private val log = KotlinLogging.logger {}
 
 /**
- * Converts between Keycloak user representations and ProjectForge's [PFUserDO].
+ * Converts between provider-neutral [IdpUser] and ProjectForge's [PFUserDO].
+ * Used by both IdpLoginHandler (IdP → PF) and IdpMasterLoginHandler (PF → IdP).
  */
 @Service
-open class KeycloakUserConverter(private val keycloakConfig: KeycloakConfig) {
+open class IdpUserConverter(private val idpConfig: IdpConfig) {
 
     /**
-     * Converts a Keycloak user to a new [PFUserDO].
+     * Converts an IdP user to a new [PFUserDO].
      * Never sets password fields — passwords are handled separately.
      */
-    fun toPFUser(kcUser: KeycloakUser): PFUserDO {
+    fun toPFUser(idpUser: IdpUser): PFUserDO {
         val user = PFUserDO()
-        user.username = kcUser.username
-        user.firstname = kcUser.firstName
-        user.lastname = kcUser.lastName
-        user.email = kcUser.email
-        user.deactivated = !kcUser.enabled
-        user.keycloakId = kcUser.id
+        user.username = idpUser.username
+        user.firstname = idpUser.firstName
+        user.lastname = idpUser.lastName
+        user.email = idpUser.email
+        user.deactivated = !idpUser.enabled
+        user.idpExternalId = idpUser.id
         return user
     }
 
     /**
-     * Copies fields from a Keycloak user into an existing [PFUserDO].
-     * Applies configured attribute mappings (KC attributes → PF fields) in addition to core fields.
+     * Copies fields from an IdP user into an existing [PFUserDO].
+     * Applies configured attribute mappings (IdP attributes → PF fields) in addition to core fields.
      * Returns true if any field was changed.
      */
-    fun copyFields(source: KeycloakUser, target: PFUserDO): Boolean {
+    fun copyFields(source: IdpUser, target: PFUserDO): Boolean {
         var modified = false
         if (target.firstname != source.firstName) { target.firstname = source.firstName; modified = true }
         if (target.lastname != source.lastName) { target.lastname = source.lastName; modified = true }
@@ -66,18 +67,18 @@ open class KeycloakUserConverter(private val keycloakConfig: KeycloakConfig) {
         if (target.email != sourceEmail) { target.email = sourceEmail; modified = true }
         val shouldBeDeactivated = !source.enabled
         if (target.deactivated != shouldBeDeactivated) { target.deactivated = shouldBeDeactivated; modified = true }
-        if (source.id != null && target.keycloakId != source.id) {
-            log.debug { "User '${target.username}': keycloakId '${target.keycloakId}' → '${source.id}'" }
-            target.keycloakId = source.id; modified = true
+        if (source.id != null && target.idpExternalId != source.id) {
+            log.debug { "User '${target.username}': idpExternalId '${target.idpExternalId}' → '${source.id}'" }
+            target.idpExternalId = source.id; modified = true
         }
 
-        // Keycloak attributes → PF fields (Phase 3: KC is master)
-        for ((pfField, kcAttr) in keycloakConfig.userAttributes) {
+        // IdP attributes → PF fields (Phase 3: IdP is master)
+        for ((pfField, idpAttr) in idpConfig.userAttributes) {
             val accessor = SUPPORTED_USER_FIELDS[pfField] ?: continue
-            val kcValue = source.attributes?.get(kcAttr)?.firstOrNull()
+            val idpValue = source.attributes?.get(idpAttr)?.firstOrNull()
             val pfValue = accessor.get(target)
-            if (pfValue != kcValue) {
-                accessor.set(target, kcValue)
+            if (pfValue != idpValue) {
+                accessor.set(target, idpValue)
                 modified = true
             }
         }
@@ -85,25 +86,25 @@ open class KeycloakUserConverter(private val keycloakConfig: KeycloakConfig) {
     }
 
     /**
-     * Converts a [PFUserDO] to a Keycloak user representation.
+     * Converts a [PFUserDO] to a provider-neutral [IdpUser].
      * Always includes the pfId attribute. Additionally maps any PF fields configured
-     * via [KeycloakConfig.userAttributes] to Keycloak attributes (Phase 1/2: PF is master).
+     * via [IdpConfig.userAttributes] to IdP attributes (Phase 1/2: PF is master).
      */
-    fun toKeycloakUser(pfUser: PFUserDO): KeycloakUser {
+    fun toIdpUser(pfUser: PFUserDO): IdpUser {
         val attrs = mutableMapOf<String, List<String>>()
         pfUser.id?.let { attrs["pfId"] = listOf(it.toString()) }
 
-        for ((pfField, kcAttr) in keycloakConfig.userAttributes) {
+        for ((pfField, idpAttr) in idpConfig.userAttributes) {
             val accessor = SUPPORTED_USER_FIELDS[pfField]
             if (accessor == null) {
                 log.warn("Unknown PF user field '$pfField' in userAttributes mapping, skipping.")
                 continue
             }
             accessor.get(pfUser)?.takeIf { it.isNotBlank() }
-                ?.let { attrs[kcAttr] = listOf(it) }
+                ?.let { attrs[idpAttr] = listOf(it) }
         }
 
-        return KeycloakUser(
+        return IdpUser(
             username   = pfUser.username,
             firstName  = sanitizeName(pfUser.firstname),
             lastName   = sanitizeName(pfUser.lastname),
@@ -114,27 +115,24 @@ open class KeycloakUserConverter(private val keycloakConfig: KeycloakConfig) {
     }
 
     /**
-     * Returns the effective email for Keycloak.
-     * Replaces the generic developer placeholder with a per-user address derived from
-     * first/last name (or username as fallback).
-     */
-    /**
-     * Sanitizes a person name for Keycloak: replaces characters not accepted by Keycloak's
+     * Sanitizes a person name: replaces characters not accepted by some IdPs'
      * name validation (e.g. parentheses as in "Reinhard (Admin)") with underscores.
-     * Returns null if the input is null.
      */
     private fun sanitizeName(name: String?): String? =
         name?.replace(Regex("[()\\[\\]{}<>]"), "_")
 
+    /**
+     * Returns the effective email.
+     * Replaces the generic developer placeholder with a per-user address derived from
+     * first/last name (or username as fallback).
+     */
     private fun resolveEmail(pfUser: PFUserDO): String {
         val email = pfUser.email
-        // null and the literal string "null" both mean no email — send empty string to clear the field in Keycloak
         if (email == null || email.isBlank() || email == "null") return ""
         if (email != DEVELOPER_PLACEHOLDER_EMAIL) return email
         val first = pfUser.firstname?.trim()?.lowercase()
         val last = pfUser.lastname?.trim()?.lowercase()
         val raw = if (!first.isNullOrBlank() && !last.isNullOrBlank()) "$first.$last" else pfUser.username ?: return ""
-        // Remove any character not valid in an email local part (letters, digits, dot, dash, underscore)
         val localPart = raw.replace(Regex("[^a-z0-9._-]"), "").trimEnd('.')
         return if (localPart.isBlank()) "${pfUser.username ?: ""}@localhost" else "$localPart@localhost"
     }
@@ -146,13 +144,8 @@ open class KeycloakUserConverter(private val keycloakConfig: KeycloakConfig) {
     )
 
     companion object {
-        /** Placeholder email used in development/test setups — replaced per user during KC sync. */
         const val DEVELOPER_PLACEHOLDER_EMAIL = "m.developer@localhost"
 
-        /**
-         * Supported PF user fields that can be mapped to Keycloak attributes via configuration.
-         * Each entry provides a getter (PF → KC) and a setter (KC → PF) for bidirectional sync.
-         */
         val SUPPORTED_USER_FIELDS: Map<String, UserFieldAccessor> = mapOf(
             "jiraUsername"             to UserFieldAccessor({ it.jiraUsernameOrUsername },   { u, v -> u.jiraUsername = v }),
             "mobilePhone"              to UserFieldAccessor({ it.mobilePhone },              { u, v -> u.mobilePhone = v }),
