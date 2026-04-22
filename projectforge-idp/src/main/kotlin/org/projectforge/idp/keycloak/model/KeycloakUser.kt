@@ -21,16 +21,20 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.keycloak.model
+package org.projectforge.idp.keycloak.model
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
 /**
- * DTO for Keycloak's reset-password endpoint payload.
- *
- * Keycloak's PUT /admin/realms/{realm}/users/{id}/reset-password endpoint requires
- * the plaintext password in [value]. Pre-hashed formats are not supported by this endpoint.
+ * DTO matching Keycloak's user representation from the Admin REST API.
  */
-data class KeycloakCredential(
-    val type: String = "password",
-    val value: String,
-    val temporary: Boolean = false,
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class KeycloakUser(
+    val id: String? = null,
+    val username: String? = null,
+    val firstName: String? = null,
+    val lastName: String? = null,
+    val email: String? = null,
+    val enabled: Boolean = true,
+    val attributes: Map<String, List<String>>? = null
 )

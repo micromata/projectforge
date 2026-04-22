@@ -21,20 +21,28 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.keycloak.model
+package org.projectforge.idp.authentik.model
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
 
 /**
- * DTO matching Keycloak's user representation from the Admin REST API.
+ * DTO matching Authentik's group representation from the Core API v3.
+ *
+ * Authentik API: GET /api/v3/core/groups/
+ * Key differences from Keycloak:
+ * - Uses `pk` (UUID string) as primary key
+ * - `users` is an array of user PKs (integers) — membership is stored on the group
+ * - `attributes` is a flat JSON object
+ * - `is_superuser` indicates admin groups
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class KeycloakUser(
-    val id: String? = null,
-    val username: String? = null,
-    val firstName: String? = null,
-    val lastName: String? = null,
-    val email: String? = null,
-    val enabled: Boolean = true,
-    val attributes: Map<String, List<String>>? = null
+data class AuthentikGroup(
+    val pk: String? = null,
+    val name: String? = null,
+    @JsonProperty("is_superuser")
+    val isSuperuser: Boolean = false,
+    val users: List<Int>? = null,
+    val attributes: Map<String, Any?>? = null,
+    val parent: String? = null,
 )

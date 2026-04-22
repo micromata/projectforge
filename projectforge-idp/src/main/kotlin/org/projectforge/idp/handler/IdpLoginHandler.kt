@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.keycloak.handler
+package org.projectforge.idp.handler
 
 import mu.KotlinLogging
 import org.projectforge.business.group.service.GroupService
@@ -36,10 +36,11 @@ import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.keycloak.client.KeycloakAdminClient
-import org.projectforge.keycloak.config.KeycloakConfig
-import org.projectforge.keycloak.converter.KeycloakGroupConverter
-import org.projectforge.keycloak.converter.KeycloakUserConverter
+import org.projectforge.idp.IdpAdminClient
+import org.projectforge.idp.IdpConfig
+import org.projectforge.idp.converter.IdpGroupConverter
+import org.projectforge.idp.converter.IdpUserConverter
+import org.projectforge.idp.model.IdpUser
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.Date
@@ -47,27 +48,27 @@ import java.util.Date
 private val log = KotlinLogging.logger {}
 
 /**
- * LoginHandler that reads users and groups from Keycloak (via Admin REST API) and acts as
+ * LoginHandler that reads users and groups from an external IdP (via Admin REST API) and acts as
  * LDAP master by delegating writes to [LdapMasterLoginHandler].
  *
  * Data flow:
- *  - Keycloak  →  PF database  (syncFromKeycloak, called from afterUserGroupCacheRefresh)
+ *  - IdP  →  PF database  (syncFromIdp, called from afterUserGroupCacheRefresh)
  *  - PF database  →  LDAP      (via LdapMasterLoginHandler.afterUserGroupCacheRefresh)
  *
- * Activation: Set projectforge.login.handlerClass=KeycloakLoginHandler
+ * Activation: Set projectforge.login.handlerClass=IdpLoginHandler
  *
  * Password sync:
- *  On first successful login the user's password is pushed to Keycloak if not yet synced
- *  (tracked via PFUserDO.lastKeycloakPasswordSync).
+ *  On first successful login the user's password is pushed to the IdP if not yet synced
+ *  (tracked via PFUserDO.lastIdpPasswordSync).
  */
 @Service
-open class KeycloakLoginHandler : LoginHandler {
+open class IdpLoginHandler : LoginHandler {
 
     @Autowired
-    private lateinit var keycloakAdminClient: KeycloakAdminClient
+    private lateinit var idpAdminClient: IdpAdminClient
 
     @Autowired
-    private lateinit var keycloakConfig: KeycloakConfig
+    private lateinit var idpConfig: IdpConfig
 
     @Autowired
     private lateinit var loginDefaultHandler: LoginDefaultHandler
@@ -91,24 +92,24 @@ open class KeycloakLoginHandler : LoginHandler {
     private lateinit var userGroupCache: UserGroupCache
 
     @Autowired
-    private lateinit var keycloakUserConverter: KeycloakUserConverter
+    private lateinit var idpUserConverter: IdpUserConverter
 
     @Autowired
-    private lateinit var keycloakGroupConverter: KeycloakGroupConverter
+    private lateinit var idpGroupConverter: IdpGroupConverter
 
     @Volatile
     private var syncInProgress = false
 
     override fun initialize() {
-        if (!keycloakConfig.isConfigured()) {
+        val providerName = idpAdminClient.providerName()
+        if (!idpAdminClient.isConfigured()) {
             log.warn(
-                "Keycloak is not fully configured (serverUrl/realm/clientId/clientSecret missing). " +
-                "KeycloakLoginHandler will not be able to sync with Keycloak."
+                "$providerName is not fully configured. " +
+                "IdpLoginHandler will not be able to sync with $providerName."
             )
         } else {
-            log.info("KeycloakLoginHandler initialized (serverUrl=${keycloakConfig.serverUrl}, realm=${keycloakConfig.realm})")
+            log.info("IdpLoginHandler initialized (provider=$providerName)")
         }
-        // Delegate LDAP OU creation to LdapMasterLoginHandler
         try {
             ldapMasterLoginHandler.initialize()
         } catch (ex: Exception) {
@@ -116,11 +117,6 @@ open class KeycloakLoginHandler : LoginHandler {
         }
     }
 
-    /**
-     * Authenticates via the PF database (source of truth for login).
-     * On success, syncs the password to Keycloak if not yet done, then delegates LDAP sync.
-     * Keycloak and LDAP errors never cause the login to fail.
-     */
     override fun checkLogin(username: String, password: CharArray): LoginResult {
         val result = loginDefaultHandler.checkLogin(username, password)
         if (result.loginResultStatus != LoginResultStatus.SUCCESS) {
@@ -128,12 +124,10 @@ open class KeycloakLoginHandler : LoginHandler {
         }
         val user = result.user ?: return result
 
-        // Sync password to Keycloak if not yet done
-        if (user.lastKeycloakPasswordSync == null && !user.localUser && !user.deleted) {
-            syncPasswordToKeycloak(user, password)
+        if (user.lastIdpPasswordSync == null && !user.localUser && !user.deleted) {
+            syncPasswordToIdp(user, password)
         }
 
-        // Delegate LDAP master behavior (updates/creates user in LDAP if credentials differ)
         try {
             ldapMasterLoginHandler.checkLogin(username, password)
         } catch (ex: Exception) {
@@ -143,11 +137,6 @@ open class KeycloakLoginHandler : LoginHandler {
         return result
     }
 
-    /**
-     * Syncs all users, groups and memberships from Keycloak into the PF database,
-     * then triggers the LDAP master sync.
-     * Runs in a background thread (like LdapMasterLoginHandler).
-     */
     override fun afterUserGroupCacheRefresh(users: Collection<PFUserDO>, groups: Collection<GroupDO>) {
         if (syncInProgress) return
         Thread {
@@ -155,13 +144,12 @@ open class KeycloakLoginHandler : LoginHandler {
                 if (syncInProgress) return@synchronized
                 try {
                     syncInProgress = true
-                    syncFromKeycloak()
-                    // After PF DB is up-to-date, push everything to LDAP
+                    syncFromIdp()
                     val freshUsers = userService.selectAll(false)
                     val freshGroups = groupService.getAllGroups()
                     ldapMasterLoginHandler.afterUserGroupCacheRefresh(freshUsers, freshGroups)
                 } catch (ex: Exception) {
-                    log.error("Keycloak sync failed: ${ex.message}", ex)
+                    log.error("IdP sync failed: ${ex.message}", ex)
                 } finally {
                     syncInProgress = false
                 }
@@ -169,10 +157,8 @@ open class KeycloakLoginHandler : LoginHandler {
         }.start()
     }
 
-    /** Returns all users from PF database (already synced from Keycloak). */
     override fun getAllUsers(): List<PFUserDO> = loginDefaultHandler.getAllUsers()
 
-    /** Returns all groups from PF database (already synced from Keycloak). */
     override fun getAllGroups(): List<GroupDO> = loginDefaultHandler.getAllGroups()
 
     override fun isAdminUser(user: PFUserDO): Boolean = loginDefaultHandler.isAdminUser(user)
@@ -181,18 +167,13 @@ open class KeycloakLoginHandler : LoginHandler {
 
     override fun hasExternalUsermanagementSystem(): Boolean = true
 
-    /** Password change is supported for now; set to false later when SSO is exclusive. */
     override fun isPasswordChangeSupported(user: PFUserDO): Boolean = true
 
     override fun isWlanPasswordChangeSupported(user: PFUserDO): Boolean = true
 
-    /**
-     * Pushes the new password to both Keycloak and LDAP.
-     * Errors are logged but do not interrupt the operation.
-     */
     override fun passwordChanged(user: PFUserDO, newPassword: CharArray) {
         if (!user.localUser && !user.deleted) {
-            syncPasswordToKeycloak(user, newPassword)
+            syncPasswordToIdp(user, newPassword)
         }
         try {
             ldapMasterLoginHandler.passwordChanged(user, newPassword)
@@ -202,7 +183,6 @@ open class KeycloakLoginHandler : LoginHandler {
     }
 
     override fun wlanPasswordChanged(user: PFUserDO, newPassword: CharArray) {
-        // WLAN password is an LDAP-specific concept; delegate to LDAP master only
         try {
             ldapMasterLoginHandler.wlanPasswordChanged(user, newPassword)
         } catch (ex: Exception) {
@@ -214,62 +194,54 @@ open class KeycloakLoginHandler : LoginHandler {
     // Internal sync logic
     // -------------------------------------------------------------------------
 
-    /**
-     * Syncs users, groups, and memberships from Keycloak into PF's database.
-     * - Users missing in Keycloak are deactivated in PF (not deleted).
-     * - localUser / localGroup entries are never touched.
-     */
-    private fun syncFromKeycloak() {
-        if (!keycloakConfig.isConfigured()) {
-            log.debug("Keycloak not configured, skipping sync.")
+    private fun syncFromIdp() {
+        if (!idpAdminClient.isConfigured()) {
+            log.debug("IdP not configured, skipping sync.")
             return
         }
-        log.info("Starting Keycloak -> PF DB sync...")
+        val providerName = idpAdminClient.providerName()
+        log.info("Starting $providerName -> PF DB sync...")
 
         // --- Sync users ---
-        val kcUsers = keycloakAdminClient.getAllUsers()
+        val idpUsers = idpAdminClient.getAllUsers()
         val dbUsers = userService.selectAll(false)
 
         var created = 0; var updated = 0; var deactivated = 0; var errors = 0
 
-        // Build a map of Keycloak user ID -> PF user (for membership sync below)
-        val kcIdToPfUser = mutableMapOf<String, PFUserDO>()
+        val idpIdToPfUser = mutableMapOf<String, PFUserDO>()
 
-        kcUsers.forEach { kcUser ->
+        idpUsers.forEach { idpUser ->
             try {
-                // Prefer keycloakId match so username renames in Keycloak are handled correctly
-                val byKcId = dbUsers.find { it.keycloakId != null && it.keycloakId == kcUser.id }
-                val existing = byKcId ?: dbUsers.find { it.username == kcUser.username }
-                if (byKcId != null && byKcId.username != kcUser.username) {
-                    log.debug { "User matched by keycloakId '${kcUser.id}': PF username '${byKcId.username}' ≠ KC username '${kcUser.username}' (username rename detected)" }
+                val byIdpId = dbUsers.find { it.idpExternalId != null && it.idpExternalId == idpUser.id }
+                val existing = byIdpId ?: dbUsers.find { it.username == idpUser.username }
+                if (byIdpId != null && byIdpId.username != idpUser.username) {
+                    log.debug { "User matched by idpExternalId '${idpUser.id}': PF username '${byIdpId.username}' ≠ IdP username '${idpUser.username}' (username rename detected)" }
                 }
                 if (existing == null) {
-                    val newUser = keycloakUserConverter.toPFUser(kcUser)
+                    val newUser = idpUserConverter.toPFUser(idpUser)
                     newUser.id = null
                     userDao.insert(newUser, false)
-                    // Fetch persisted user to get the DB-assigned ID
-                    val persisted = userService.getInternalByUsername(kcUser.username!!)
+                    val persisted = userService.getInternalByUsername(idpUser.username!!)
                     if (persisted != null) {
-                        kcUser.id?.let { kcIdToPfUser[it] = persisted }
+                        idpUser.id?.let { idpIdToPfUser[it] = persisted }
                     }
                     created++
                 } else {
-                    val modified = keycloakUserConverter.copyFields(kcUser, existing)
+                    val modified = idpUserConverter.copyFields(idpUser, existing)
                     if (modified) {
                         userDao.update(existing, false)
                         updated++
                     }
-                    kcUser.id?.let { kcIdToPfUser[it] = existing }
+                    idpUser.id?.let { idpIdToPfUser[it] = existing }
                 }
             } catch (ex: Exception) {
-                log.error("Error syncing user '${kcUser.username}' from Keycloak (continuing): ${ex.message}", ex)
+                log.error("Error syncing user '${idpUser.username}' from $providerName (continuing): ${ex.message}", ex)
                 errors++
             }
         }
 
-        // Deactivate PF users that are no longer in Keycloak
-        val kcUsernames = kcUsers.mapNotNull { it.username }.toSet()
-        dbUsers.filter { !it.localUser && !it.deleted && !kcUsernames.contains(it.username) }.forEach { user ->
+        val idpUsernames = idpUsers.mapNotNull { it.username }.toSet()
+        dbUsers.filter { !it.localUser && !it.deleted && !idpUsernames.contains(it.username) }.forEach { user ->
             try {
                 if (!user.deactivated) {
                     user.deactivated = true
@@ -281,87 +253,82 @@ open class KeycloakLoginHandler : LoginHandler {
                 errors++
             }
         }
-        log.info("Keycloak user sync: $created created, $updated updated, $deactivated deactivated" +
+        log.info("$providerName user sync: $created created, $updated updated, $deactivated deactivated" +
                 (if (errors > 0) ", *** $errors errors ***" else ""))
 
         // --- Sync groups ---
-        val kcGroups = keycloakAdminClient.getAllGroups()
+        val idpGroups = idpAdminClient.getAllGroups()
         val dbGroups = groupService.getAllGroups().toMutableList()
 
         var gCreated = 0; var gUpdated = 0; var gErrors = 0
-        val kcIdToPfGroup = mutableMapOf<String, GroupDO>()
+        val idpIdToPfGroup = mutableMapOf<String, GroupDO>()
 
-        // getAllGroups() does not return group attributes — fetch individually when groupAttributes are configured
-        val syncGroupAttributes = keycloakConfig.groupAttributes.isNotEmpty()
+        val syncGroupAttributes = idpConfig.groupAttributes.isNotEmpty()
 
-        kcGroups.forEach { kcGroupShallow ->
+        idpGroups.forEach { idpGroupShallow ->
             try {
-                // Load full group (with attributes) if needed, otherwise use the shallow list entry
-                val kcGroup = if (syncGroupAttributes && kcGroupShallow.id != null) {
-                    keycloakAdminClient.getGroup(kcGroupShallow.id!!)
+                val idpGroup = if (syncGroupAttributes && idpGroupShallow.id != null) {
+                    idpAdminClient.getGroup(idpGroupShallow.id!!)
                 } else {
-                    kcGroupShallow
+                    idpGroupShallow
                 }
-                val existing = dbGroups.find { it.name == kcGroup.name }
+                val existing = dbGroups.find { it.name == idpGroup.name }
                 if (existing == null) {
-                    val newGroup = keycloakGroupConverter.toGroupDO(kcGroup)
+                    val newGroup = idpGroupConverter.toGroupDO(idpGroup)
                     newGroup.id = null
                     groupDao.insert(newGroup, false)
-                    val persisted = groupDao.getByName(kcGroup.name)
+                    val persisted = groupDao.getByName(idpGroup.name)
                     if (persisted != null) {
-                        kcGroup.id?.let { kcIdToPfGroup[it] = persisted }
+                        idpGroup.id?.let { idpIdToPfGroup[it] = persisted }
                         dbGroups.add(persisted)
                     }
                     gCreated++
                 } else {
-                    val modified = keycloakGroupConverter.copyFields(kcGroup, existing)
+                    val modified = idpGroupConverter.copyFields(idpGroup, existing)
                     if (modified) {
                         groupDao.update(existing, false)
                         gUpdated++
                     }
-                    kcGroup.id?.let { kcIdToPfGroup[it] = existing }
+                    idpGroup.id?.let { idpIdToPfGroup[it] = existing }
                 }
             } catch (ex: Exception) {
-                log.error("Error syncing group '${kcGroupShallow.name}' from Keycloak (continuing): ${ex.message}", ex)
+                log.error("Error syncing group '${idpGroupShallow.name}' from $providerName (continuing): ${ex.message}", ex)
                 gErrors++
             }
         }
-        log.info("Keycloak group sync: $gCreated created, $gUpdated updated" +
+        log.info("$providerName group sync: $gCreated created, $gUpdated updated" +
                 (if (gErrors > 0) ", *** $gErrors errors ***" else ""))
 
         // --- Sync memberships ---
-        syncMemberships(kcUsers, kcIdToPfUser, kcIdToPfGroup)
+        syncMemberships(idpUsers, idpIdToPfUser, idpIdToPfGroup)
 
-        // Force UserGroupCache to refresh with the new data
         userGroupCache.setExpired()
-        log.info("Keycloak -> PF DB sync complete.")
+        log.info("$providerName -> PF DB sync complete.")
     }
 
     private fun syncMemberships(
-        kcUsers: List<org.projectforge.keycloak.model.KeycloakUser>,
-        kcIdToPfUser: Map<String, PFUserDO>,
-        kcIdToPfGroup: Map<String, GroupDO>
+        idpUsers: List<IdpUser>,
+        idpIdToPfUser: Map<String, PFUserDO>,
+        idpIdToPfGroup: Map<String, GroupDO>
     ) {
-        if (kcIdToPfGroup.isEmpty()) return
-        // Build desired group → members map from Keycloak
+        if (idpIdToPfGroup.isEmpty()) return
         val groupToMembers = mutableMapOf<GroupDO, MutableSet<PFUserDO>>()
-        kcIdToPfGroup.values.forEach { groupToMembers[it] = mutableSetOf() }
+        idpIdToPfGroup.values.forEach { groupToMembers[it] = mutableSetOf() }
 
-        kcUsers.forEach { kcUser ->
-            val kcUserId = kcUser.id ?: return@forEach
-            val pfUser = kcIdToPfUser[kcUserId] ?: return@forEach
+        idpUsers.forEach { idpUser ->
+            val idpUserId = idpUser.id ?: return@forEach
+            val pfUser = idpIdToPfUser[idpUserId] ?: return@forEach
             try {
-                val userGroups = keycloakAdminClient.getUserGroups(kcUserId)
-                userGroups.forEach { kcGroup ->
-                    val pfGroup = kcIdToPfGroup[kcGroup.id] ?: return@forEach
+                val userGroups = idpAdminClient.getUserGroups(idpUserId)
+                userGroups.forEach { idpGroup ->
+                    val pfGroup = idpIdToPfGroup[idpGroup.id] ?: return@forEach
                     groupToMembers.getOrPut(pfGroup) { mutableSetOf() }.add(pfUser)
                 }
             } catch (ex: Exception) {
-                log.error("Error fetching groups for Keycloak user '${kcUser.username}' (continuing): ${ex.message}", ex)
+                log.error("Error fetching groups for IdP user '${idpUser.username}' (continuing): ${ex.message}", ex)
             }
         }
 
-        // Apply membership changes via GroupDao
         var mErrors = 0
         groupToMembers.forEach { (pfGroup, members) ->
             try {
@@ -376,26 +343,26 @@ open class KeycloakLoginHandler : LoginHandler {
         }
     }
 
-    private fun syncPasswordToKeycloak(user: PFUserDO, password: CharArray) {
+    private fun syncPasswordToIdp(user: PFUserDO, password: CharArray) {
         try {
-            val kcId = user.keycloakId?.also {
-                log.debug { "Password sync for '${user.username}': using cached keycloakId '$it'" }
+            val idpId = user.idpExternalId?.also {
+                log.debug { "Password sync for '${user.username}': using cached idpExternalId '$it'" }
             } ?: run {
-                log.debug { "Password sync for '${user.username}': keycloakId not cached, resolving via username lookup" }
-                val found = keycloakAdminClient.findUserByUsername(user.username ?: return)?.id
+                log.debug { "Password sync for '${user.username}': idpExternalId not cached, resolving via username lookup" }
+                val found = idpAdminClient.findUserByUsername(user.username ?: return)?.id
                 if (found == null) {
-                    log.info("Keycloak user not found for '${user.username}', skipping password sync.")
+                    log.info("IdP user not found for '${user.username}', skipping password sync.")
                     return
                 }
                 found
             }
-            keycloakAdminClient.resetPassword(kcId, password)
-            user.keycloakId = kcId  // cache for future calls if it was missing
-            user.lastKeycloakPasswordSync = Date()
+            idpAdminClient.resetPassword(idpId, password)
+            user.idpExternalId = idpId
+            user.lastIdpPasswordSync = Date()
             userDao.update(user, false)
-            log.info("Password synced to Keycloak for user: ${user.username}")
+            log.info("Password synced to IdP for user: ${user.username}")
         } catch (ex: Exception) {
-            log.error("Failed to sync password to Keycloak for user '${user.username}' (ignoring): ${ex.message}", ex)
+            log.error("Failed to sync password to IdP for user '${user.username}' (ignoring): ${ex.message}", ex)
         }
     }
 }
