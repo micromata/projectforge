@@ -744,6 +744,63 @@ div[class$="-multiValue"] {
   }
 }
 
+// Bootstrap 4 compatibility shim for react-rrule-generator (built for BS4, project uses BS5)
+.rrule-generator {
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-group.row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .col-form-label {
+    padding-top: calc(0.375rem + 1px);
+    padding-bottom: calc(0.375rem + 1px);
+    font-weight: 500;
+  }
+
+  // BS4 btn-group-toggle was removed in BS5
+  .btn-group-toggle {
+    .btn {
+      cursor: pointer;
+
+      input[type="checkbox"],
+      input[type="radio"] {
+        position: absolute;
+        clip: rect(0, 0, 0, 0);
+        pointer-events: none;
+      }
+    }
+
+    .btn.active,
+    .btn:active {
+      background-color: var(--bs-primary);
+      border-color: var(--bs-primary);
+      color: #fff;
+    }
+
+    .btn:not(.active):not(:active) {
+      background-color: transparent;
+      color: var(--bs-primary);
+    }
+  }
+
+  // BS4 pl-0 renamed to ps-0 in BS5
+  .pl-0 {
+    padding-left: 0 !important;
+  }
+
+  // BS4 text-sm-right renamed to text-sm-end in BS5
+  .text-sm-right {
+    @media (min-width: 576px) {
+      text-align: right !important;
+    }
+  }
+}
+
 // Needed for scripting editor (for correct placing of cursor).
 .ace_editor * {
   font: 12px/normal 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace !important;
