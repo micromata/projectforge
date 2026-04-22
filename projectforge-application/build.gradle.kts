@@ -87,8 +87,8 @@ dependencies {
     implementation("org.springframework.data:spring-data-jpa:$springBootVersion") // springBoot!!!
     implementation("org.springframework.data:spring-data-commons:$springBootVersion") // springBoot!!!
 
-    implementation("org.yaml:snakeyaml:2.3") // springboot
-    implementation("com.zaxxer:HikariCP:5.0.1") // springboot
+    implementation(libs.org.yaml.snakeyaml)
+    implementation(libs.com.zaxxer.hikaricp)
     implementation("org.springframework.security:spring-security-config:$springSecurityVersion")
     implementation("org.springframework.security:spring-security-core:$springSecurityVersion")
     implementation("org.springframework.security:spring-security-crypto:$springSecurityVersion")

@@ -44,6 +44,13 @@ tasks.withType<Javadoc>() {
 configurations.all {
     resolutionStrategy {
         preferProjectModules() // Prioritize local modules.
+        // Force all Jackson module versions to match project's explicit Jackson version.
+        // Transitive dependencies (e.g. ez-vcard, groovy-yaml, flyway) may pull in newer Jackson versions.
+        val jacksonVersion = libs.findVersion("com.fasterxml.jackson").get().requiredVersion
+        force("com.fasterxml.jackson:jackson-bom:$jacksonVersion")
+        force("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
+        force("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
+        force("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
     }
 }
 
