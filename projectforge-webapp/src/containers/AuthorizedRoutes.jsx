@@ -1,6 +1,5 @@
-import Helmet from 'react-helmet';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { connect } from 'react-redux';
 import { Route, Routes } from 'react-router';
 import GlobalNavigation from '../components/base/navigation/GlobalNavigation';
@@ -36,6 +35,10 @@ function AuthorizedRoutes(
         locale = 'en',
     },
 ) {
+    useEffect(() => {
+        document.documentElement.lang = locale;
+    }, [locale]);
+
     const getRoutesWithLocation = (location) => (
         <Routes location={location}>
             {wicketRoute}
@@ -75,9 +78,6 @@ function AuthorizedRoutes(
 
     return (
         <>
-            <Helmet>
-                <html lang={locale} />
-            </Helmet>
             <GlobalNavigation />
             {alertMessage ? (
                 <Container fluid>
