@@ -4,7 +4,7 @@
 [versions]
 org-projectforge = "8.0.0-SNAPSHOT"
 
-com-fasterxml-jackson = "2.18.2"
+com-fasterxml-jackson = "2.18.5"
 com-google-zxing-core = "3.5.4"
 com-google-zxing-javase = "3.5.4"
 com-googlecode-ez-vcard = "0.12.2"
@@ -57,7 +57,7 @@ org-bouncycastle-bcprov-jdk18on = "1.84"
 org-dom4j = "2.2.0"
 org-flywaydb = "10.22.0"
 org-hibernate-search = "7.2.6.Final"
-org-hibernate-orm = "6.6.4.Final"
+org-hibernate-orm = "6.6.39.Final"
 org-hibernate-validator = "8.0.2.Final"
 org-hsqldb-hsqldb = "2.7.4"
 org-jetbrains-kotlin = "2.0.21"
@@ -72,9 +72,9 @@ org-mockito-kotlin = "5.4.0"
 org-mozilla-rhino = "1.7.15" # Can't upgrade: 1.8+ removed tools.shell.Global used by LessCompiler
 org-postgresql = "42.7.10"
 org-reflections = "0.10.2"
-org-springframework-boot = "3.3.13"
-org-apache-tomcat-embed = "10.1.54" # must match spring-boot
-org-springframework-spring = "6.1.21"
+org-springframework-boot = "3.4.13"
+org-apache-tomcat-embed = "10.1.50" # must match spring-boot
+org-springframework-spring = "6.2.15"
 org-springframework-security = "6.4.13"
 org-yaml-snakeyaml = "2.6"
 se-sawano-java-alphanumeric-comparator = "1.4.1"
