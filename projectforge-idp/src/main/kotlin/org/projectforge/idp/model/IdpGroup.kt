@@ -32,4 +32,6 @@ data class IdpGroup(
     val id: String? = null,
     val name: String? = null,
     val attributes: Map<String, List<String>>? = null,
+    /** Member user IDs as known by the IdP. Populated by getAllGroups() to avoid per-group API calls. */
+    val memberIds: Set<String>? = null,
 )

@@ -78,9 +78,11 @@ Create the following custom user attributes with validators:
 ## Authentik Setup
 
 ### Application & Provider
-- Create an OAuth2/OpenID provider in Authentik
-- Create an API token: Admin → Directory → Tokens and App passwords → Create
-- The token needs permissions for core user and group management
+- Create new role, e. g. `projectforge-sync` with the following access:
+  - Group: add, change, delete, view
+  - User: add, change, delete, view, add/remove user to group, 
+- Create an sync-user in Admin with this role.
+- Create an API token for the user `projectforge-sync`: Admin → Directory → Tokens and App passwords → Create
 
 ### User Attributes
 Authentik stores custom attributes as a JSON object on users/groups. No pre-configuration needed.

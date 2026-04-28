@@ -357,6 +357,7 @@ open class AuthentikAdminClient(
             id = pk,
             name = name,
             attributes = idpAttrs,
+            memberIds = users?.map { it.toString() }?.toSet(),
         )
     }
 
