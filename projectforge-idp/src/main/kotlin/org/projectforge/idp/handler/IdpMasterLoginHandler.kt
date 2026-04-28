@@ -28,6 +28,7 @@ import mu.KotlinLogging
 import org.projectforge.common.logging.LogDuration
 import org.projectforge.business.ldap.LdapMasterLoginHandler
 import org.projectforge.business.ldap.LdapService
+import org.projectforge.business.ldap.LdapUserDao
 import org.projectforge.business.login.LoginDefaultHandler
 import org.projectforge.business.login.LoginHandler
 import org.projectforge.business.login.LoginResult
@@ -84,6 +85,9 @@ open class IdpMasterLoginHandler : LoginHandler {
 
     @Autowired
     private lateinit var idpGroupConverter: IdpGroupConverter
+
+    @Autowired
+    private lateinit var ldapUserDao: LdapUserDao
 
     @Volatile
     private var syncInProgress = false
@@ -271,6 +275,9 @@ open class IdpMasterLoginHandler : LoginHandler {
             "$uUnmodified unmodified" + (if (uErrors > 0) ", *** $uErrors errors ***" else "")
         )
 
+        // --- Migrate WLAN password hashes from LDAP to IdP (one-time migration) ---
+        migrateWlanPasswordsFromLdap(users, idpUserByUsername, idpUserIdByUsername)
+
         // --- Sync groups ---
         val idpGroups = idpAdminClient.getAllGroups()
         val idpGroupByName = idpGroups.filter { it.name != null }.associateBy { it.name!! }
@@ -427,6 +434,66 @@ open class IdpMasterLoginHandler : LoginHandler {
         } catch (ex: Exception) {
             log.error("Failed to sync WLAN password to IdP for user '${user.username}' (ignoring): ${ex.message}", ex)
         }
+    }
+
+    /**
+     * One-time migration: copies existing WLAN password hashes (sambaNTPassword) from LDAP
+     * to the IdP for users that have set a WLAN password but don't have the hash in IdP yet.
+     */
+    private fun migrateWlanPasswordsFromLdap(
+        users: Collection<PFUserDO>,
+        idpUserByUsername: Map<String, IdpUser>,
+        idpUserIdByUsername: Map<String, String>,
+    ) {
+        val wlanAttr = idpConfig.wlanPasswordAttribute
+        if (wlanAttr.isNullOrBlank() || !isLdapConfigured()) return
+
+        val candidates = users.filter { pfUser ->
+            pfUser.lastWlanPasswordChange != null
+                && !pfUser.deleted && !pfUser.localUser
+                && pfUser.username != null
+                && idpUserIdByUsername.containsKey(pfUser.username)
+                && idpUserByUsername[pfUser.username]
+                    ?.attributes?.get(wlanAttr)?.firstOrNull().isNullOrBlank()
+        }
+        if (candidates.isEmpty()) return
+
+        log.info("Migrating WLAN password hashes from LDAP to IdP for ${candidates.size} users...")
+
+        val userBase = ldapService.ldapConfig?.userBase ?: return
+        val ldapUsers = try {
+            ldapUserDao.findAll(userBase)
+        } catch (ex: Exception) {
+            log.error("Failed to read LDAP users for WLAN hash migration: ${ex.message}", ex)
+            return
+        }
+        val ldapUserByUid = ldapUsers.associateBy { it.uid }
+
+        var migrated = 0; var skipped = 0; var errors = 0
+        for (pfUser in candidates) {
+            val username = pfUser.username!!
+            val ntHash = ldapUserByUid[username]?.sambaNTPassword
+            if (ntHash.isNullOrBlank()) {
+                skipped++
+                continue
+            }
+            val idpId = idpUserIdByUsername[username] ?: continue
+            try {
+                val currentUser = idpAdminClient.getUserById(idpId) ?: continue
+                val updatedAttrs = (currentUser.attributes ?: emptyMap()).toMutableMap()
+                updatedAttrs[wlanAttr] = listOf(ntHash)
+                idpAdminClient.updateUser(idpId, currentUser.copy(attributes = updatedAttrs))
+                migrated++
+                log.debug { "Migrated WLAN hash from LDAP to IdP for user '$username'" }
+            } catch (ex: Exception) {
+                log.error("Error migrating WLAN hash for user '$username': ${ex.message}", ex)
+                errors++
+            }
+        }
+        log.info(
+            "WLAN hash migration: $migrated migrated, $skipped skipped (no hash in LDAP)" +
+            (if (errors > 0) ", *** $errors errors ***" else "")
+        )
     }
 
     private fun isLdapConfigured(): Boolean = !ldapService.ldapConfig?.server.isNullOrBlank()
