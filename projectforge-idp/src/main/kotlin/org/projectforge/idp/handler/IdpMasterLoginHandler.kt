@@ -276,6 +276,9 @@ open class IdpMasterLoginHandler : LoginHandler {
         val idpGroupByName = idpGroups.filter { it.name != null }.associateBy { it.name!! }
         val idpGroupIdByName = mutableMapOf<String, String>()
         idpGroups.forEach { g -> if (g.name != null && g.id != null) idpGroupIdByName[g.name!!] = g.id!! }
+        // Cache memberIds from the already-fetched groups to avoid per-group API calls during membership sync.
+        val idpGroupMemberIds = mutableMapOf<String, Set<String>>()
+        idpGroups.forEach { g -> if (g.id != null) idpGroupMemberIds[g.id!!] = g.memberIds ?: emptySet() }
 
         var gCreated = 0; var gUpdated = 0; var gUnmodified = 0; var gErrors = 0
         val syncGroupAttributes = idpConfig.groupAttributes.isNotEmpty()
@@ -289,13 +292,13 @@ open class IdpMasterLoginHandler : LoginHandler {
                     val idpGroup = idpGroupConverter.toIdpGroup(group)
                     val newId = idpAdminClient.createGroup(idpGroup)
                     idpGroupIdByName[groupName] = newId
+                    idpGroupMemberIds[newId] = emptySet()
                     gCreated++
                 } else {
                     if (existing.id != null) idpGroupIdByName[groupName] = existing.id!!
                     if (syncGroupAttributes && existing.id != null) {
                         val desired = idpGroupConverter.toIdpGroup(group)
-                        val fullIdpGroup = idpAdminClient.getGroup(existing.id!!)
-                        if (isGroupChanged(groupName, desired, fullIdpGroup)) {
+                        if (isGroupChanged(groupName, desired, existing)) {
                             idpAdminClient.updateGroup(existing.id!!, desired.copy(id = existing.id))
                             gUpdated++
                         } else {
@@ -316,7 +319,7 @@ open class IdpMasterLoginHandler : LoginHandler {
         )
 
         // --- Sync memberships ---
-        syncMembershipsToIdp(groups, idpUserIdByUsername, idpGroupIdByName)
+        syncMembershipsToIdp(groups, idpUserIdByUsername, idpGroupIdByName, idpGroupMemberIds)
 
         log.info("PF DB -> $providerName push sync complete in ${duration.toSeconds()}.")
     }
@@ -324,9 +327,11 @@ open class IdpMasterLoginHandler : LoginHandler {
     private fun syncMembershipsToIdp(
         groups: Collection<GroupDO>,
         idpUserIdByUsername: Map<String, String>,
-        idpGroupIdByName: Map<String, String>
+        idpGroupIdByName: Map<String, String>,
+        idpGroupMemberIds: Map<String, Set<String>>,
     ) {
         val providerName = idpAdminClient.providerName()
+        val usernameByIdpId = idpUserIdByUsername.entries.associate { (k, v) -> v to k }
         var added = 0; var removed = 0; var mErrors = 0
 
         for (group in groups) {
@@ -339,33 +344,34 @@ open class IdpMasterLoginHandler : LoginHandler {
                 ?.mapNotNull { it.username?.let { u -> idpUserIdByUsername[u] } }
                 ?.toSet() ?: emptySet()
 
-            val currentIdpMemberIds: Set<String> = try {
-                idpAdminClient.getGroupMembers(idpGroupId)
-                    .mapNotNull { it.id }
-                    .toSet()
+            val currentIdpMemberIds = idpGroupMemberIds[idpGroupId] ?: try {
+                // Fallback for providers (e.g. Keycloak) that don't include memberIds in getAllGroups().
+                idpAdminClient.getGroupMembers(idpGroupId).mapNotNull { it.id }.toSet()
             } catch (ex: Exception) {
                 log.error("Error fetching members of IdP group '$groupName' (skipping membership sync): ${ex.message}", ex)
                 continue
             }
 
             for (idpUserId in desiredIdpUserIds - currentIdpMemberIds) {
+                val username = usernameByIdpId[idpUserId] ?: idpUserId
                 try {
                     idpAdminClient.addUserToGroup(idpUserId, idpGroupId)
-                    log.debug { "Added user (idpId=$idpUserId) to $providerName group '$groupName'" }
+                    log.debug { "Added user '$username' (idpId=$idpUserId) to $providerName group '$groupName'" }
                     added++
                 } catch (ex: Exception) {
-                    log.error("Error adding user (idpId=$idpUserId) to $providerName group '$groupName': ${ex.message}", ex)
+                    log.error("Error adding user '$username' (idpId=$idpUserId) to $providerName group '$groupName': ${ex.message}", ex)
                     mErrors++
                 }
             }
 
             for (idpUserId in currentIdpMemberIds - desiredIdpUserIds) {
+                val username = usernameByIdpId[idpUserId] ?: idpUserId
                 try {
                     idpAdminClient.removeUserFromGroup(idpUserId, idpGroupId)
-                    log.debug { "Removed user (idpId=$idpUserId) from $providerName group '$groupName'" }
+                    log.debug { "Removed user '$username' (idpId=$idpUserId) from $providerName group '$groupName'" }
                     removed++
                 } catch (ex: Exception) {
-                    log.error("Error removing user (idpId=$idpUserId) from $providerName group '$groupName': ${ex.message}", ex)
+                    log.error("Error removing user '$username' (idpId=$idpUserId) from $providerName group '$groupName': ${ex.message}", ex)
                     mErrors++
                 }
             }
@@ -426,12 +432,16 @@ open class IdpMasterLoginHandler : LoginHandler {
     private fun isLdapConfigured(): Boolean = !ldapService.ldapConfig?.server.isNullOrBlank()
 
     private fun isUserChanged(username: String, desired: IdpUser, current: IdpUser): Boolean {
-        if (desired.firstName?.takeIf { it.isNotBlank() } != current.firstName?.takeIf { it.isNotBlank() }) {
-            log.debug { "User '$username': firstName '${current.firstName}' → '${desired.firstName}'" }
-            return true
-        }
-        if (desired.lastName?.takeIf { it.isNotBlank() } != current.lastName?.takeIf { it.isNotBlank() }) {
-            log.debug { "User '$username': lastName '${current.lastName}' → '${desired.lastName}'" }
+        // Compare combined display name rather than split first/last individually.
+        // Authentik stores a single "name" field; splitName() can't reliably reconstruct
+        // the original first/last boundary (e.g. "Jan Henrik Peters" → "Jan" + "Henrik Peters"
+        // vs. PF's "Jan Henrik" + "Peters"). Comparing the combined string avoids
+        // false positives that cause unnecessary updates on every sync.
+        // Fall back to username when name is blank, matching the createUser/updateUser payload logic.
+        val desiredName = "${desired.firstName ?: ""} ${desired.lastName ?: ""}".trim().ifBlank { desired.username ?: "" }
+        val currentName = "${current.firstName ?: ""} ${current.lastName ?: ""}".trim().ifBlank { current.username ?: "" }
+        if (desiredName != currentName) {
+            log.debug { "User '$username': name '$currentName' → '$desiredName'" }
             return true
         }
         val desiredEmail = desired.email?.takeIf { it.isNotBlank() }
