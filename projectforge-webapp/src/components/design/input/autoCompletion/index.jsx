@@ -17,8 +17,9 @@ const loadCompletionsBounced = (
         signal,
     },
 ) => {
+    const finalUrl = getServiceURL(url.replace(`:${searchParameter}`, encodeURIComponent(search)));
     fetch(
-        getServiceURL(url.replace(`:${searchParameter}`, encodeURIComponent(search))),
+        finalUrl,
         {
             method: 'GET',
             credentials: 'include',
@@ -28,8 +29,14 @@ const loadCompletionsBounced = (
     )
         .then(handleHTTPErrors)
         .then((response) => response.json())
-        .then(setCompletions)
-        .catch(() => undefined);
+        .then((json) => {
+            setCompletions(json);
+        })
+        .catch((error) => {
+            if (error?.name !== 'AbortError') {
+                console.error('[AutoCompletion] fetch error:', error);
+            }
+        });
 };
 
 function AutoCompletion(

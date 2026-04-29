@@ -43,10 +43,7 @@ function AdvancedPopper(
                 setBasicHeight(basicReference.current.clientHeight);
             }
         },
-        [
-            basicReference.current && basicReference.current.clientHeight,
-            basicReference.current && basicReference.current.clientWidth,
-        ],
+        [isOpen],
     );
     React.useLayoutEffect(
         () => {
@@ -57,10 +54,7 @@ function AdvancedPopper(
                 setAdditionalWidth(document.body.clientWidth - left - 16);
             }
         },
-        [
-            reference.current && Math.floor(reference.current.getBoundingClientRect().top),
-            reference.current && Math.floor(reference.current.getBoundingClientRect().left),
-        ],
+        [isOpen],
     );
 
     const handleBlur = (event) => {
@@ -127,8 +121,8 @@ function AdvancedPopper(
                     style={{
                         top: basicHeight + (withInput ? 0 : 10),
                         minWidth: basicWidth,
-                        maxWidth: additionalWidth,
-                        maxHeight: additionalHeight,
+                        maxWidth: additionalWidth || undefined,
+                        maxHeight: additionalHeight || undefined,
                     }}
                 >
                     {children}
