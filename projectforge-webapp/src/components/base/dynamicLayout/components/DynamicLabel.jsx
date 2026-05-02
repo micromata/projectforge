@@ -4,10 +4,11 @@ import { UncontrolledTooltip } from 'reactstrap';
 import { Label } from '../../../design';
 import TooltipIcon from '../../../design/TooltipIcon';
 
-function DynamicLabel({ label, tooltip }) {
+function DynamicLabel({ label, tooltip, cssClass }) {
     const id = tooltip ? String.idify(label) : undefined;
+    const className = cssClass ? `ui-label ${cssClass}` : 'ui-label';
     return (
-        <Label className="ui-label" id={id}>
+        <Label className={className} id={id}>
             {label}
             {tooltip && (
                 <>
@@ -24,6 +25,7 @@ function DynamicLabel({ label, tooltip }) {
 DynamicLabel.propTypes = {
     label: PropTypes.string.isRequired,
     tooltip: PropTypes.string,
+    cssClass: PropTypes.string,
 };
 
 export default DynamicLabel;

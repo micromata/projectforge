@@ -42,6 +42,8 @@ class Poll(
     var questionType: String? = null,
     var customemailsubject: String? = null,
     var customemailcontent: String? = null,
+    var customReminderSubject: String? = null,
+    var customReminderContent: String? = null,
     var prequestionType: String? = null,
     var inputFields: MutableList<Question>? = mutableListOf(),
     var fullAccessGroups: List<Group>? = null,

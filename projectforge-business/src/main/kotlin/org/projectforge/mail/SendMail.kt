@@ -167,6 +167,42 @@ open class SendMail {
     return true
   }
 
+  /**
+   * Send email with CC recipients as BCC (for Poll emails)
+   * @param composedMessage the message to send
+   * @param icalContent     the ical content to add
+   * @param attachments     other attachments to add
+   * @return true for successful sending, otherwise an exception will be thrown.
+   * @throws UserException          if to address is not given.
+   * @throws InternalErrorException due to technical failures.
+   */
+  @JvmOverloads
+  fun sendBcc(
+    composedMessage: Mail?,
+    icalContent: String? = null,
+    attachments: Collection<IMailAttachment>? = null,
+    async: Boolean = true
+  ): Boolean {
+    if (composedMessage == null) {
+      log.error("No message object of type org.projectforge.mail.Mail given. E-Mail not sent.")
+      return false
+    }
+    if (!isConfigured) {
+      log.error { "Sending of mails is not configured. Mail is ignored: $composedMessage" }
+    }
+    val to = composedMessage.to
+    if (to == null || to.size == 0) {
+      log.error("No to address given. Sending of mail cancelled: $composedMessage")
+      throw UserException("mail.error.missingToAddress")
+    }
+    if (async) {
+      CompletableFuture.runAsync { sendItBcc(composedMessage, icalContent, attachments) }
+    } else {
+      sendItBcc(composedMessage, icalContent, attachments)
+    }
+    return true
+  }
+
   val isConfigured: Boolean
     get() = this.mailingEnabled == "true" && !this.mailSmtpHost.isNullOrBlank()
 
@@ -212,59 +248,96 @@ open class SendMail {
   ) {
     log.info("Start sending e-mail message: " + StringUtils.join(composedMessage.to, ", "))
     try {
-      val session = session
-      /*if (SystemStatus.isDevelopmentMode()) {
-        session!!.setDebug(true)
-      }*/
-      val message = MimeMessage(session)
-      if (composedMessage.from != null) {
-        message.setFrom(InternetAddress(composedMessage.from))
-      } else {
-        mailFromStandardEmailSender
-          ?.takeIf { it.isNotBlank() }
-          ?.let { message.setFrom(InternetAddress(it)) }
-          ?: message.setFrom()
-      }
-      message.setRecipients(
-        Message.RecipientType.TO,
-        composedMessage.to.toTypedArray<Address>()
-      )
+      val message = prepareMessage(composedMessage, icalContent, attachments)
+      // Normal behavior: Send CC as CC
       if (CollectionUtils.isNotEmpty(composedMessage.cc)) {
         message.setRecipients(
           Message.RecipientType.CC,
           composedMessage.cc.toTypedArray<Address>()
         )
       }
-      //message.setHeader("Return-Path", "")
-      //message.setHeader("Reply-To", "")
-      val subject = composedMessage.subject
-      message.setSubject(subject, CHARSET)
-      message.sentDate = Date()
-      if (StringUtils.isBlank(icalContent) && attachments == null) {
-        // create message without attachments
-        if (composedMessage.contentType != null) {
-          message.setText(composedMessage.content, composedMessage.charset, composedMessage.contentType)
-        } else {
-          message.setText(composedMessage.content, CHARSET)
-        }
-        // message.setContent("Dies ist eine einfache Testnachricht.", "text/plain; charset=UTF-8");
-        // message.setText("Einfache Textnachricht")
-      } else {
-        // create message with attachments
-        val mp = createMailAttachmentContent(message, composedMessage, icalContent, attachments, CHARSET)
-        message.setContent(mp)
-      }
-      message.saveChanges() // don't forget this
-      if (testMode) {
-        log.info("Test mode, do not really send e-mails (OK only for test cases).")
-      } else {
-        Transport.send(message)
-      }
+      sendMessage(message)
     } catch (ex: Exception) {
       log.error("While creating and sending message: $composedMessage", ex)
       throw InternalErrorException("mail.error.exception")
     }
     log.info("E-Mail successfully sent: $composedMessage")
+  }
+
+  private fun sendItBcc(
+    composedMessage: Mail, icalContent: String?,
+    attachments: Collection<IMailAttachment>?
+  ) {
+    log.info("Start sending e-mail message (BCC): " + StringUtils.join(composedMessage.to, ", "))
+    try {
+      val message = prepareMessage(composedMessage, icalContent, attachments)
+      if (CollectionUtils.isNotEmpty(composedMessage.cc)) {
+        message.setRecipients(
+          Message.RecipientType.BCC,
+          composedMessage.cc.toTypedArray<Address>()
+        )
+      }
+      sendMessage(message)
+    } catch (ex: Exception) {
+      log.error("While creating and sending message: $composedMessage", ex)
+      throw InternalErrorException("mail.error.exception")
+    }
+    log.info("E-Mail successfully sent (BCC): $composedMessage")
+  }
+
+  /**
+   * Prepare MimeMessage with common settings (from, to, subject, content, attachments)
+   */
+  private fun prepareMessage(
+    composedMessage: Mail,
+    icalContent: String?,
+    attachments: Collection<IMailAttachment>?
+  ): MimeMessage {
+    val session = session
+    val message = MimeMessage(session)
+    if (composedMessage.from != null) {
+      message.setFrom(InternetAddress(composedMessage.from))
+    } else {
+      mailFromStandardEmailSender
+        ?.takeIf { it.isNotBlank() }
+        ?.let { message.setFrom(InternetAddress(it)) }
+        ?: message.setFrom()
+    }
+    message.setRecipients(
+      Message.RecipientType.TO,
+      composedMessage.to.toTypedArray<Address>()
+    )
+    
+    val subject = composedMessage.subject
+    message.setSubject(subject, CHARSET)
+    message.sentDate = Date()
+    
+    if (StringUtils.isBlank(icalContent) && attachments == null) {
+      // create message without attachments
+      if (composedMessage.contentType != null) {
+        message.setText(composedMessage.content, composedMessage.charset, composedMessage.contentType)
+      } else {
+        message.setText(composedMessage.content, CHARSET)
+      }
+    } else {
+      // create message with attachments
+      val mp = createMailAttachmentContent(message, composedMessage, icalContent, attachments, CHARSET)
+      message.setContent(mp)
+    }
+    
+    message.saveChanges()
+    return message
+  }
+
+  /**
+   * Send the prepared MimeMessage
+   */
+  private fun sendMessage(message: MimeMessage) {
+    if (testMode) {
+      log.info("Test mode, do not really send e-mails (OK only for test cases).")
+    } else {
+      Transport.send(message)
+    }
   }
 
   @Throws(MessagingException::class)

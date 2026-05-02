@@ -25,6 +25,8 @@ package org.projectforge.rest.poll
 
 import mu.KotlinLogging
 import org.projectforge.business.group.service.GroupService
+import org.projectforge.business.poll.PollResponseDao
+import org.projectforge.business.user.UserLocale
 import org.projectforge.business.user.service.UserService
 import org.projectforge.mail.Mail
 import org.projectforge.mail.MailAttachment
@@ -32,6 +34,7 @@ import org.projectforge.mail.SendMail
 import org.projectforge.rest.dto.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.util.Locale
 
 private val log = KotlinLogging.logger {}
 
@@ -43,6 +46,12 @@ class PollMailService {
 
     @Autowired
     private lateinit var groupService: GroupService
+
+    @Autowired
+    private lateinit var pollResponseDao: PollResponseDao
+
+    @Autowired
+    private lateinit var userService: UserService
 
     fun sendMail(
         from: String,
@@ -58,9 +67,13 @@ class PollMailService {
                 mail.contentType = Mail.CONTENTTYPE_HTML
                 mail.content = content
                 mail.from = from
-                to.forEach { mail.addTo(it) }
-                sendMail.send(mail, attachments = mailAttachments)
-                log.info("Mail with subject $subject sent to $to")
+                // Set sender as TO (required for a mail to have at least one "to")
+                mail.addTo(from)
+                // Add all recipients to CC (will be sent as BCC by SendMail.sendBcc())
+                to.forEach { mail.addCC(it) }
+                // Use sendBcc() to send CC recipients as BCC (only for Poll emails)
+                sendMail.sendBcc(mail, null, mailAttachments, true)
+                log.info("Mail with subject $subject sent to $to (as BCC)")
             } else {
                 log.error("There are missing parameters for sending mail: from: $from, to: $to, subject: $subject, content: $content")
             }
@@ -115,5 +128,61 @@ class PollMailService {
 
         User.restoreEmails(userList)
         return userList!!.mapNotNull { it.email }
+    }
+
+    /**
+     * Get emails for reminder and end mails:
+     * - All Full Access Users (always get all mails)
+     * - Only Attendees who haven't responded yet
+     */
+    fun getFilteredEmails(poll: Poll, pollId: Long): List<String> {
+        // Full Access Users always get all mails
+        val fullAccessEmails = getAllFullAccessEmails(poll)
+        
+        // Attendees who haven't responded yet
+        val attendeesWithoutResponse = getEmailsOfUsersWhoHaventResponded(poll, pollId)
+        
+        // Combine both lists (remove duplicates)
+        return (fullAccessEmails + attendeesWithoutResponse).distinct()
+    }
+
+    /**
+     * Get emails of attendees who haven't responded yet
+     */
+    private fun getEmailsOfUsersWhoHaventResponded(poll: Poll, pollId: Long): List<String> {
+        // All attendee emails
+        val allAttendeesEmails = getAllAttendeesEmails(poll)
+        
+        // All responses for this poll
+        val allResponses = pollResponseDao.selectAll(checkAccess = false)
+            .filter { response -> response.poll?.id == pollId }
+        
+        // Emails of users who have already responded
+        val respondedUserEmails = allResponses.mapNotNull { response ->
+            response.owner?.email
+        }.toSet()
+        
+        // Only emails of users who haven't responded yet
+        return allAttendeesEmails.filter { email ->
+            email !in respondedUserEmails
+        }
+    }
+
+    /**
+     * Group recipients by their locale for sending localized emails.
+     * Returns a map of Locale to List of email addresses.
+     */
+    fun groupRecipientsByLocale(emails: List<String>): Map<Locale, List<String>> {
+        return emails.mapNotNull { email ->
+            // Find user by email
+            val users = userService.findUserByMail(email)
+            val user = users?.firstOrNull()
+            
+            user?.let {
+                // Determine user's locale
+                val locale = UserLocale.determineUserLocale(it)
+                locale to email
+            }
+        }.groupBy({ it.first }, { it.second })
     }
 }
