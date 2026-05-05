@@ -37,7 +37,14 @@ class Customer(id: Long? = null,
                var status: KundeStatus? = null,
                var description: String? = null,
                var konto: Konto? = null,
-               var kost: String? = null
+               var kost: String? = null,
+               var vatId: String? = null,
+               var street: String? = null,
+               var zipCode: String? = null,
+               var city: String? = null,
+               var country: String? = null,
+               var leitwegId: String? = null,
+               var eInvoiceEmail: String? = null,
 ) : BaseDTODisplayObject<KundeDO>(id, displayName = displayName) {
 
     @get:JsonProperty

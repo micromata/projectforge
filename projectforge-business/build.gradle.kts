@@ -93,6 +93,7 @@ dependencies {
     api(libs.com.fasterxml.jackson.datatype.jsr310)
     api(libs.se.sawano.java.alphanumeric.comparator)
     api(libs.com.webauthn4j.core)
+    api(libs.org.mustangproject.library)
     /*api(libs.com.webauthn4j.spring.security.core) {
         exclude("org.springframework")
         exclude("org.springframework.security")

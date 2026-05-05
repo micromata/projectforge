@@ -88,6 +88,26 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
                 }.setDefaultFormProcessing(false), title);
                 exportMenu.addSubMenuEntry(menu);
             }
+            // E-Rechnung (XRechnung) export
+            if (WicketSupport.get(EInvoiceExportService.class).getSellerConfig().isConfigured()) {
+                final ContentMenuEntryPanel eInvoiceMenu = new ContentMenuEntryPanel(getNewContentMenuChildId(), new SubmitLink(
+                        ContentMenuEntryPanel.LINK_ID, form) {
+                    @Override
+                    public void onSubmit() {
+                        log.debug("Export XRechnung.");
+                        final EInvoiceExportService service = WicketSupport.get(EInvoiceExportService.class);
+                        final List<String> errors = service.validate(getData());
+                        if (!errors.isEmpty()) {
+                            error(getString("fibu.rechnung.eInvoice.validationErrors") + ": " + String.join("; ", errors));
+                            return;
+                        }
+                        byte[] xml = service.exportAsXRechnung(getData());
+                        String filename = service.getExportFilename(getData());
+                        DownloadUtils.setDownloadTarget(xml, filename);
+                    }
+                }, getString("fibu.rechnung.exportEInvoice"));
+                addContentMenuEntry(eInvoiceMenu);
+            }
         }
         getData().recalculate(); // Muss immer gemacht werden, damit das Zahlungsziel in Tagen berechnet wird.
     }
@@ -175,13 +195,43 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
                 if (projekt != null) {
                     getBaseDao().setKunde(getData(), projekt.getKunde());
                     form.customerSelectPanel.getTextField().modelChanged();
+                    prefillCustomerAddressFields();
                 }
             }
         } else if ("kundeId".equals(property)) {
             getBaseDao().setKunde(getData(), (Long) selectedValue);
             form.customerSelectPanel.getTextField().modelChanged();
+            prefillCustomerAddressFields();
         } else {
             log.error("Property '" + property + "' not supported for selection.");
+        }
+    }
+
+    private void prefillCustomerAddressFields() {
+        final KundeDO kunde = getData().getKunde();
+        if (kunde == null) {
+            return;
+        }
+        if (StringUtils.isBlank(getData().getCustomerAddress())) {
+            getData().setCustomerAddress(kunde.getStreet());
+        }
+        if (StringUtils.isBlank(getData().getCustomerZipCode())) {
+            getData().setCustomerZipCode(kunde.getZipCode());
+        }
+        if (StringUtils.isBlank(getData().getCustomerCity())) {
+            getData().setCustomerCity(kunde.getCity());
+        }
+        if (StringUtils.isBlank(getData().getCustomerCountry())) {
+            getData().setCustomerCountry(kunde.getCountry());
+        }
+        if (StringUtils.isBlank(getData().getCustomerVatId())) {
+            getData().setCustomerVatId(kunde.getVatId());
+        }
+        if (StringUtils.isBlank(getData().getCustomerLeitwegId())) {
+            getData().setCustomerLeitwegId(kunde.getLeitwegId());
+        }
+        if (StringUtils.isBlank(getData().getCustomerEInvoiceEmail())) {
+            getData().setCustomerEInvoiceEmail(kunde.getEInvoiceEmail());
         }
     }
 

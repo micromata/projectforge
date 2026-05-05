@@ -70,6 +70,7 @@ org-mock-server-mockserver-netty-no-dependencies = "5.15.0"
 org-mockito = "5.23.0"
 org-mockito-kotlin = "5.4.0"
 org-mozilla-rhino = "1.7.15" # Can't upgrade: 1.8+ removed tools.shell.Global used by LessCompiler
+org-mustangproject = "2.15.2"
 org-postgresql = "42.7.10"
 org-reflections = "0.10.2"
 org-springframework-boot = "3.4.13"
@@ -188,6 +189,7 @@ org-jetbrains-kotlinx-coroutines-slf4j = { module = "org.jetbrains.kotlinx:kotli
 org-jfree-jfreechart = { module = "org.jfree:jfreechart", version.ref = "org-jfree-jfreechart" }
 org-mnode-ical4j-ical4j = { module = "org.mnode.ical4j:ical4j", version.ref = "org-mnode-ical4j-ical4j" }
 org-mozilla-rhino = { module = "org.mozilla:rhino", version.ref = "org-mozilla-rhino" }
+org-mustangproject-library = { module = "org.mustangproject:library", version.ref = "org-mustangproject" }
 org-postgresql = { module = "org.postgresql:postgresql", version.ref = "org-postgresql" }
 org-reflections = { module = "org.reflections:reflections", version.ref = "org-reflections" }
 org-slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "org-slf4j" }

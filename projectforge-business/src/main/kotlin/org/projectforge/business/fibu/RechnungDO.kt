@@ -118,10 +118,38 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
     @get:Column(name = "attachment")
     open var attachment: String? = null
 
-    @PropertyInfo(i18nKey = "fibu.customer.address")
+    @PropertyInfo(i18nKey = "fibu.kunde.street")
     @FullTextField
     @get:Column(name = "customeraddress")
     open var customerAddress: String? = null
+
+    @PropertyInfo(i18nKey = "fibu.kunde.zipCode")
+    @get:Column(name = "customer_zip_code", length = 10)
+    open var customerZipCode: String? = null
+
+    @PropertyInfo(i18nKey = "fibu.kunde.city")
+    @get:Column(name = "customer_city", length = 100)
+    open var customerCity: String? = null
+
+    @PropertyInfo(i18nKey = "fibu.kunde.country")
+    @get:Column(name = "customer_country", length = 2)
+    open var customerCountry: String? = null
+
+    @PropertyInfo(i18nKey = "fibu.kunde.vatId")
+    @get:Column(name = "customer_vat_id", length = 20)
+    open var customerVatId: String? = null
+
+    @PropertyInfo(i18nKey = "fibu.kunde.leitwegId")
+    @get:Column(name = "customer_leitweg_id", length = 50)
+    open var customerLeitwegId: String? = null
+
+    @PropertyInfo(i18nKey = "fibu.kunde.eInvoiceEmail")
+    @get:Column(name = "customer_e_invoice_email", length = 255)
+    open var customerEInvoiceEmail: String? = null
+
+    @PropertyInfo(i18nKey = "fibu.rechnung.sellerBankAccount")
+    @get:Column(name = "seller_bank_account", length = 34)
+    open var sellerBankAccount: String? = null
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.from")
     @GenericField // was: @FullTextField(analyze = Analyze.NO)

@@ -174,10 +174,67 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
       fs.addHelpIcon(getString("fibu.rechnung.hint.kannVonProjektKundenAbweichen"));
     }
     {
-      // Customer address
-      final FieldsetPanel fs1 = gridBuilder.newFieldset(RechnungDO.class, "customerAddress");
-      final MaxLengthTextArea customerAddress = new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "customerAddress"));
-      fs1.add(customerAddress);
+      // Customer address (street, multi-line for backwards compatibility with old free-text entries)
+      final FieldsetPanel fs1 = gridBuilder.newFieldset(getString("fibu.kunde.street"));
+      fs1.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "customerAddress")));
+    }
+    {
+      final FieldsetPanel fs1 = gridBuilder.newFieldset(getString("fibu.kunde.zipCode"));
+      final MaxLengthTextField zipField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerZipCode"));
+      WicketUtils.setSize(zipField, 10);
+      fs1.add(zipField);
+    }
+    {
+      final FieldsetPanel fs1 = gridBuilder.newFieldset(getString("fibu.kunde.city"));
+      fs1.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerCity")));
+    }
+    {
+      final FieldsetPanel fs1 = gridBuilder.newFieldset(getString("fibu.kunde.country"));
+      final MaxLengthTextField countryField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerCountry"));
+      WicketUtils.setSize(countryField, 2);
+      fs1.add(countryField);
+    }
+    {
+      final FieldsetPanel fs1 = gridBuilder.newFieldset(getString("fibu.kunde.vatId"));
+      fs1.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerVatId")));
+    }
+    {
+      final FieldsetPanel fs1 = gridBuilder.newFieldset(getString("fibu.kunde.leitwegId"));
+      fs1.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerLeitwegId")));
+    }
+    {
+      final FieldsetPanel fs1 = gridBuilder.newFieldset(getString("fibu.kunde.eInvoiceEmail"));
+      fs1.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerEInvoiceEmail")));
+    }
+    {
+      // Seller bank account selection
+      final EInvoiceSellerConfig sellerConfig = WicketSupport.get(EInvoiceSellerConfig.class);
+      if (!sellerConfig.getBankAccounts().isEmpty()) {
+        final FieldsetPanel fs1 = gridBuilder.newFieldset(getString("fibu.rechnung.sellerBankAccount"));
+        final java.util.List<String> ibanChoices = new java.util.ArrayList<>();
+        for (BankAccountConfig account : sellerConfig.getBankAccounts()) {
+          ibanChoices.add(account.getIban());
+        }
+        final DropDownChoice<String> bankAccountChoice = new DropDownChoice<>(fs1.getDropDownChoiceId(),
+            new PropertyModel<>(data, "sellerBankAccount"), ibanChoices,
+            new org.apache.wicket.markup.html.form.IChoiceRenderer<String>() {
+              @Override
+              public Object getDisplayValue(String iban) {
+                BankAccountConfig account = WicketSupport.get(EInvoiceSellerConfig.class).findBankAccount(iban);
+                return account != null ? account.getDisplayName() : iban;
+              }
+              @Override
+              public String getIdValue(String iban, int index) {
+                return iban;
+              }
+              @Override
+              public String getObject(String id, org.apache.wicket.model.IModel<? extends java.util.List<? extends String>> choices) {
+                return id;
+              }
+            });
+        bankAccountChoice.setNullValid(true);
+        fs1.add(bankAccountChoice);
+      }
     }
     {
       // Customer reference
