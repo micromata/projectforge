@@ -29,6 +29,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.AccountingConfig;
@@ -37,6 +38,7 @@ import org.projectforge.business.fibu.kost.KostZuweisungDO;
 import org.projectforge.business.fibu.kost.KundeCache;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.WicketSupport;
+import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
@@ -60,6 +62,10 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
   NewCustomerSelectPanel customerSelectPanel;
 
   NewProjektSelectPanel projektSelectPanel;
+
+  private org.apache.wicket.markup.html.basic.Label eInvoiceSummaryLabel;
+
+  EInvoiceModalDialog eInvoiceDialog;
 
   public RechnungEditForm(final RechnungEditPage parentPage, final RechnungDO data)
   {
@@ -174,67 +180,23 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
       fs.addHelpIcon(getString("fibu.rechnung.hint.kannVonProjektKundenAbweichen"));
     }
     {
-      // Customer address (street, multi-line for backwards compatibility with old free-text entries)
-      final FieldsetPanel fs1 = gridBuilder.newFieldset(getString("fibu.kunde.street"));
-      fs1.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "customerAddress")));
-    }
-    {
-      final FieldsetPanel fs1 = gridBuilder.newFieldset(getString("fibu.kunde.zipCode"));
-      final MaxLengthTextField zipField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerZipCode"));
-      WicketUtils.setSize(zipField, 10);
-      fs1.add(zipField);
-    }
-    {
-      final FieldsetPanel fs1 = gridBuilder.newFieldset(getString("fibu.kunde.city"));
-      fs1.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerCity")));
-    }
-    {
-      final FieldsetPanel fs1 = gridBuilder.newFieldset(getString("fibu.kunde.country"));
-      final MaxLengthTextField countryField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerCountry"));
-      WicketUtils.setSize(countryField, 2);
-      fs1.add(countryField);
-    }
-    {
-      final FieldsetPanel fs1 = gridBuilder.newFieldset(getString("fibu.kunde.vatId"));
-      fs1.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerVatId")));
-    }
-    {
-      final FieldsetPanel fs1 = gridBuilder.newFieldset(getString("fibu.kunde.leitwegId"));
-      fs1.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerLeitwegId")));
-    }
-    {
-      final FieldsetPanel fs1 = gridBuilder.newFieldset(getString("fibu.kunde.eInvoiceEmail"));
-      fs1.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerEInvoiceEmail")));
-    }
-    {
-      // Seller bank account selection
-      final EInvoiceSellerConfig sellerConfig = WicketSupport.get(EInvoiceSellerConfig.class);
-      if (!sellerConfig.getBankAccounts().isEmpty()) {
-        final FieldsetPanel fs1 = gridBuilder.newFieldset(getString("fibu.rechnung.sellerBankAccount"));
-        final java.util.List<String> ibanChoices = new java.util.ArrayList<>();
-        for (BankAccountConfig account : sellerConfig.getBankAccounts()) {
-          ibanChoices.add(account.getIban());
+      // E-Invoice summary (read-only display of filled e-invoice fields)
+      final FieldsetPanel fs1 = gridBuilder.newFieldset(getString("fibu.kunde.eInvoice"));
+      eInvoiceSummaryLabel = new org.apache.wicket.markup.html.basic.Label(fs1.newChildId(),
+          new org.apache.wicket.model.LoadableDetachableModel<String>() {
+            @Override
+            protected String load() {
+              return buildEInvoiceSummary();
+            }
+          }) {
+        @Override
+        public boolean isVisible() {
+          return hasEInvoiceData();
         }
-        final DropDownChoice<String> bankAccountChoice = new DropDownChoice<>(fs1.getDropDownChoiceId(),
-            new PropertyModel<>(data, "sellerBankAccount"), ibanChoices,
-            new org.apache.wicket.markup.html.form.IChoiceRenderer<String>() {
-              @Override
-              public Object getDisplayValue(String iban) {
-                BankAccountConfig account = WicketSupport.get(EInvoiceSellerConfig.class).findBankAccount(iban);
-                return account != null ? account.getDisplayName() : iban;
-              }
-              @Override
-              public String getIdValue(String iban, int index) {
-                return iban;
-              }
-              @Override
-              public String getObject(String id, org.apache.wicket.model.IModel<? extends java.util.List<? extends String>> choices) {
-                return id;
-              }
-            });
-        bankAccountChoice.setNullValid(true);
-        fs1.add(bankAccountChoice);
-      }
+      };
+      eInvoiceSummaryLabel.setEscapeModelStrings(false);
+      eInvoiceSummaryLabel.setOutputMarkupPlaceholderTag(true);
+      fs1.add(eInvoiceSummaryLabel);
     }
     {
       // Customer reference
@@ -331,5 +293,182 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
   protected RechnungsPositionDO newPositionInstance()
   {
     return new RechnungsPositionDO();
+  }
+
+  void addEInvoiceModalDialog() {
+    eInvoiceDialog = new EInvoiceModalDialog();
+    eInvoiceDialog.setOutputMarkupId(true);
+    parentPage.add(eInvoiceDialog);
+    eInvoiceDialog.init();
+  }
+
+  private boolean hasEInvoiceData() {
+    return StringUtils.isNotBlank(data.getCustomerAddress())
+        || StringUtils.isNotBlank(data.getCustomerZipCode())
+        || StringUtils.isNotBlank(data.getCustomerCity())
+        || StringUtils.isNotBlank(data.getCustomerVatId())
+        || StringUtils.isNotBlank(data.getCustomerLeitwegId())
+        || StringUtils.isNotBlank(data.getCustomerEInvoiceEmail())
+        || StringUtils.isNotBlank(data.getSellerBankAccount());
+  }
+
+  private String buildEInvoiceSummary() {
+    final java.util.List<String> parts = new java.util.ArrayList<>();
+    final StringBuilder addr = new StringBuilder();
+    if (StringUtils.isNotBlank(data.getCustomerAddress())) {
+      addr.append(data.getCustomerAddress().trim().replace("\n", ", ").replaceAll("\\s*,\\s*", ", "));
+    }
+    if (StringUtils.isNotBlank(data.getCustomerZipCode()) || StringUtils.isNotBlank(data.getCustomerCity())) {
+      if (addr.length() > 0) addr.append(", ");
+      if (StringUtils.isNotBlank(data.getCustomerZipCode())) addr.append(data.getCustomerZipCode()).append(" ");
+      if (StringUtils.isNotBlank(data.getCustomerCity())) addr.append(data.getCustomerCity());
+    }
+    if (StringUtils.isNotBlank(data.getCustomerCountry())) {
+      if (addr.length() > 0) addr.append(", ");
+      addr.append(data.getCustomerCountry());
+    }
+    if (addr.length() > 0) parts.add(addr.toString());
+    if (StringUtils.isNotBlank(data.getCustomerVatId())) parts.add(getString("fibu.kunde.vatId") + ": " + data.getCustomerVatId());
+    if (StringUtils.isNotBlank(data.getCustomerLeitwegId())) parts.add(getString("fibu.kunde.leitwegId") + ": " + data.getCustomerLeitwegId());
+    if (StringUtils.isNotBlank(data.getCustomerEInvoiceEmail())) parts.add(getString("fibu.kunde.eInvoiceEmail") + ": " + data.getCustomerEInvoiceEmail());
+    if (StringUtils.isNotBlank(data.getSellerBankAccount())) {
+      final EInvoiceSellerConfig cfg = WicketSupport.get(EInvoiceSellerConfig.class);
+      final BankAccountConfig ba = cfg.findBankAccount(data.getSellerBankAccount());
+      parts.add(getString("fibu.rechnung.sellerBankAccount") + ": " + (ba != null ? ba.getDisplayName() : data.getSellerBankAccount()));
+    }
+    return String.join(" | ", parts);
+  }
+
+  @SuppressWarnings("serial")
+  class EInvoiceModalDialog extends ModalDialog {
+    private static final long serialVersionUID = 1L;
+
+    EInvoiceModalDialog() {
+      super(parentPage.newModalDialogId());
+      setBigWindow();
+      setShowCancelButton();
+      setCloseButtonLabel(getString("save"));
+    }
+
+    @Override
+    public void init() {
+      setTitle(getString("fibu.kunde.eInvoice"));
+      super.init(new Form<String>(getFormId()));
+      // Download behavior for XRechnung export
+      final org.apache.wicket.behavior.AbstractAjaxBehavior downloadBehavior = new org.apache.wicket.behavior.AbstractAjaxBehavior() {
+        @Override
+        public void onRequest() {
+          final EInvoiceExportService service = WicketSupport.get(EInvoiceExportService.class);
+          byte[] xml = service.exportAsXRechnung(data);
+          String filename = service.getExportFilename(data);
+          org.apache.wicket.request.handler.resource.ResourceStreamRequestHandler handler =
+              new org.apache.wicket.request.handler.resource.ResourceStreamRequestHandler(
+                  new org.apache.wicket.util.resource.AbstractResourceStream() {
+                    @Override
+                    public java.io.InputStream getInputStream() {
+                      return new java.io.ByteArrayInputStream(xml);
+                    }
+                    @Override
+                    public void close() {}
+                  }, filename);
+          handler.setContentDisposition(org.apache.wicket.request.resource.ContentDisposition.ATTACHMENT);
+          getRequestCycle().scheduleRequestHandlerAfterCurrent(handler);
+        }
+      };
+      add(downloadBehavior);
+      // Export button: validates via Ajax, then triggers download
+      appendNewAjaxActionButton(new de.micromata.wicket.ajax.AjaxFormSubmitCallback() {
+        @Override
+        public void callback(final AjaxRequestTarget target) {
+          parentPage.getBaseDao().update(data);
+          final EInvoiceExportService service = WicketSupport.get(EInvoiceExportService.class);
+          final java.util.List<String> errors = service.validate(data);
+          if (!errors.isEmpty()) {
+            error(getString("fibu.rechnung.eInvoice.validationErrors") + ": " + String.join("; ", errors));
+            target.add(formFeedback);
+            return;
+          }
+          target.appendJavaScript("window.location.href='" + downloadBehavior.getCallbackUrl() + "';");
+          close(target);
+        }
+        @Override
+        public void onError(final AjaxRequestTarget target, final org.apache.wicket.markup.html.form.Form<?> form) {
+          target.add(formFeedback);
+        }
+      }, getString("fibu.rechnung.exportEInvoice"), SingleButtonPanel.NORMAL);
+      gridBuilder.newSplitPanel(GridSize.COL100);
+      // Street (multi-line)
+      {
+        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.street"));
+        final MaxLengthTextArea streetArea = new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "customerAddress"));
+        streetArea.add(AttributeModifier.replace("style", "width: 100%; box-sizing: border-box;"));
+        fs.add(streetArea, false);
+      }
+      {
+        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.zipCode"));
+        final MaxLengthTextField zipField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerZipCode"));
+        WicketUtils.setSize(zipField, 10);
+        fs.add(zipField);
+      }
+      {
+        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.city"));
+        fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerCity")));
+      }
+      {
+        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.country"));
+        final MaxLengthTextField countryField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerCountry"));
+        WicketUtils.setSize(countryField, 2);
+        fs.add(countryField);
+      }
+      {
+        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.vatId"));
+        fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerVatId")));
+      }
+      {
+        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.leitwegId"));
+        fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerLeitwegId")));
+      }
+      {
+        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.eInvoiceEmail"));
+        fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerEInvoiceEmail")));
+      }
+      {
+        // Seller bank account selection
+        final EInvoiceSellerConfig sellerConfig = WicketSupport.get(EInvoiceSellerConfig.class);
+        if (!sellerConfig.getBankAccounts().isEmpty()) {
+          final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.rechnung.sellerBankAccount"));
+          final java.util.List<String> ibanChoices = new java.util.ArrayList<>();
+          for (BankAccountConfig account : sellerConfig.getBankAccounts()) {
+            ibanChoices.add(account.getIban());
+          }
+          final DropDownChoice<String> bankAccountChoice = new DropDownChoice<>(fs.getDropDownChoiceId(),
+              new PropertyModel<>(data, "sellerBankAccount"), ibanChoices,
+              new org.apache.wicket.markup.html.form.IChoiceRenderer<String>() {
+                @Override
+                public Object getDisplayValue(String iban) {
+                  BankAccountConfig account = WicketSupport.get(EInvoiceSellerConfig.class).findBankAccount(iban);
+                  return account != null ? account.getDisplayName() : iban;
+                }
+                @Override
+                public String getIdValue(String iban, int index) {
+                  return iban;
+                }
+                @Override
+                public String getObject(String id, org.apache.wicket.model.IModel<? extends java.util.List<? extends String>> choices) {
+                  return id;
+                }
+              });
+          bankAccountChoice.setNullValid(true);
+          fs.add(bankAccountChoice);
+        }
+      }
+    }
+
+    @Override
+    protected boolean onCloseButtonSubmit(final AjaxRequestTarget target) {
+      parentPage.getBaseDao().update(data);
+      target.add(eInvoiceSummaryLabel);
+      return true;
+    }
   }
 }

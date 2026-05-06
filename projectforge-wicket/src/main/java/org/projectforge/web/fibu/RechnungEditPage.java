@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.fibu.*;
+import org.projectforge.business.fibu.kost.KundeCache;
 import org.projectforge.business.fibu.kost.ProjektCache;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.web.WicketSupport;
@@ -88,26 +89,32 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
                 }.setDefaultFormProcessing(false), title);
                 exportMenu.addSubMenuEntry(menu);
             }
-            // E-Rechnung (XRechnung) export
-            if (WicketSupport.get(EInvoiceExportService.class).getSellerConfig().isConfigured()) {
-                final ContentMenuEntryPanel eInvoiceMenu = new ContentMenuEntryPanel(getNewContentMenuChildId(), new SubmitLink(
-                        ContentMenuEntryPanel.LINK_ID, form) {
+        }
+        // E-Rechnung (XRechnung): button "Speichern und E-Rechnung" / "Anlegen und E-Rechnung"
+        if (WicketSupport.get(EInvoiceExportService.class).getSellerConfig().isConfigured()) {
+            form.addEInvoiceModalDialog();
+            final String buttonLabel = isNew() ? getString("fibu.rechnung.eInvoice.createAndOpen") : getString("fibu.rechnung.eInvoice.saveAndOpen");
+            final ContentMenuEntryPanel eInvoiceMenu = new ContentMenuEntryPanel(getNewContentMenuChildId(),
+                new org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink(ContentMenuEntryPanel.LINK_ID, form) {
                     @Override
-                    public void onSubmit() {
-                        log.debug("Export XRechnung.");
-                        final EInvoiceExportService service = WicketSupport.get(EInvoiceExportService.class);
-                        final List<String> errors = service.validate(getData());
-                        if (!errors.isEmpty()) {
-                            error(getString("fibu.rechnung.eInvoice.validationErrors") + ": " + String.join("; ", errors));
-                            return;
+                    protected void onSubmit(org.apache.wicket.ajax.AjaxRequestTarget target) {
+                        log.debug("Save/create and open E-Rechnung dialog.");
+                        prefillCustomerAddressFields();
+                        if (isNew()) {
+                            onSaveOrUpdate();
+                            getBaseDao().insert(getData());
+                        } else {
+                            getBaseDao().update(getData());
                         }
-                        byte[] xml = service.exportAsXRechnung(getData());
-                        String filename = service.getExportFilename(getData());
-                        DownloadUtils.setDownloadTarget(xml, filename);
+                        form.eInvoiceDialog.addContent(target);
+                        form.eInvoiceDialog.open(target);
                     }
-                }, getString("fibu.rechnung.exportEInvoice"));
-                addContentMenuEntry(eInvoiceMenu);
-            }
+                    @Override
+                    protected void onError(org.apache.wicket.ajax.AjaxRequestTarget target) {
+                        target.add(form.getFeedbackPanel());
+                    }
+                }, buttonLabel);
+            addContentMenuEntry(eInvoiceMenu);
         }
         getData().recalculate(); // Muss immer gemacht werden, damit das Zahlungsziel in Tagen berechnet wird.
     }
@@ -208,9 +215,15 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
     }
 
     private void prefillCustomerAddressFields() {
-        final KundeDO kunde = getData().getKunde();
+        KundeDO kunde = getData().getKunde();
         if (kunde == null) {
             return;
+        }
+        if (kunde.getId() != null) {
+            final KundeDO loaded = WicketSupport.get(KundeDao.class).find(kunde.getId());
+            if (loaded != null) {
+                kunde = loaded;
+            }
         }
         if (StringUtils.isBlank(getData().getCustomerAddress())) {
             getData().setCustomerAddress(kunde.getStreet());
