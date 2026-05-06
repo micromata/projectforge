@@ -395,6 +395,47 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
           target.add(formFeedback);
         }
       }, getString("fibu.rechnung.exportEInvoice"), SingleButtonPanel.NORMAL);
+      // ZUGFeRD download behavior
+      final org.apache.wicket.behavior.AbstractAjaxBehavior zugferdDownloadBehavior = new org.apache.wicket.behavior.AbstractAjaxBehavior() {
+        @Override
+        public void onRequest() {
+          final EInvoiceExportService service = WicketSupport.get(EInvoiceExportService.class);
+          byte[] xml = service.exportAsZUGFeRD(data);
+          String filename = service.getZUGFeRDExportFilename(data);
+          org.apache.wicket.request.handler.resource.ResourceStreamRequestHandler handler =
+              new org.apache.wicket.request.handler.resource.ResourceStreamRequestHandler(
+                  new org.apache.wicket.util.resource.AbstractResourceStream() {
+                    @Override
+                    public java.io.InputStream getInputStream() {
+                      return new java.io.ByteArrayInputStream(xml);
+                    }
+                    @Override
+                    public void close() {}
+                  }, filename);
+          handler.setContentDisposition(org.apache.wicket.request.resource.ContentDisposition.ATTACHMENT);
+          getRequestCycle().scheduleRequestHandlerAfterCurrent(handler);
+        }
+      };
+      add(zugferdDownloadBehavior);
+      // ZUGFeRD export button
+      appendNewAjaxActionButton(new de.micromata.wicket.ajax.AjaxFormSubmitCallback() {
+        @Override
+        public void callback(final AjaxRequestTarget target) {
+          parentPage.getBaseDao().update(data);
+          final EInvoiceExportService service = WicketSupport.get(EInvoiceExportService.class);
+          final java.util.List<String> errors = service.validate(data);
+          if (!errors.isEmpty()) {
+            form.error(getString("fibu.rechnung.eInvoice.validationErrors") + ": " + String.join("; ", errors));
+            target.add(formFeedback);
+            return;
+          }
+          target.appendJavaScript("window.location.href='" + zugferdDownloadBehavior.getCallbackUrl() + "';");
+        }
+        @Override
+        public void onError(final AjaxRequestTarget target, final org.apache.wicket.markup.html.form.Form<?> form) {
+          target.add(formFeedback);
+        }
+      }, getString("fibu.rechnung.exportZUGFeRD"), SingleButtonPanel.NORMAL);
       gridBuilder.newSplitPanel(GridSize.COL100);
       // Street (multi-line)
       {

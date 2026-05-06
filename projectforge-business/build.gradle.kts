@@ -94,6 +94,7 @@ dependencies {
     api(libs.se.sawano.java.alphanumeric.comparator)
     api(libs.com.webauthn4j.core)
     api(libs.org.mustangproject.library)
+    api(libs.fr.opensagres.xdocrepor.poi.xwpf.converter.pdf)
     /*api(libs.com.webauthn4j.spring.security.core) {
         exclude("org.springframework")
         exclude("org.springframework.security")

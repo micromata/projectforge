@@ -23,6 +23,9 @@
 
 package org.projectforge.business.fibu
 
+import de.micromata.merlin.word.WordDocument
+import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter
+import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions
 import mu.KotlinLogging
 import org.mustangproject.BankDetails
 import org.mustangproject.CashDiscount
@@ -35,7 +38,9 @@ import org.mustangproject.SchemedID
 import org.mustangproject.ZUGFeRD.Profiles
 import org.mustangproject.ZUGFeRD.XRExporter
 import org.mustangproject.ZUGFeRD.ZUGFeRD2PullProvider
+import org.mustangproject.ZUGFeRD.ZUGFeRDExporterFromA3
 import org.springframework.stereotype.Service
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -47,6 +52,7 @@ private val log = KotlinLogging.logger {}
 @Service
 class EInvoiceExportService(
     val sellerConfig: EInvoiceSellerConfig,
+    private val invoiceService: InvoiceService,
 ) {
     fun exportAsXRechnung(invoice: RechnungDO): ByteArray {
         val validationErrors = validate(invoice)
@@ -57,13 +63,54 @@ class EInvoiceExportService(
         }
 
         val mustangInvoice = buildMustangInvoice(invoice)
-        val exporter = createXRExporter()
+        val exporter = createXRExporter("XRechnung")
         exporter.setTransaction(mustangInvoice)
 
         val baos = ByteArrayOutputStream()
         exporter.export(baos)
         log.info { "XRechnung XML exported for invoice #${invoice.nummer}" }
         return baos.toByteArray()
+    }
+
+    fun exportAsZUGFeRD(invoice: RechnungDO): ByteArray {
+        val validationErrors = validate(invoice)
+        if (validationErrors.isNotEmpty()) {
+            throw IllegalStateException(
+                "Invoice ${invoice.nummer} cannot be exported as ZUGFeRD: ${validationErrors.joinToString("; ")}"
+            )
+        }
+
+        val pdfBytes = generateInvoicePdf(invoice)
+            ?: throw IllegalStateException("Could not generate PDF for invoice #${invoice.nummer} (no template configured?)")
+
+        val mustangInvoice = buildMustangInvoice(invoice)
+
+        val baos = ByteArrayOutputStream()
+        val zugFeRDExporter = ZUGFeRDExporterFromA3()
+            .ignorePDFAErrors()
+            .load(ByteArrayInputStream(pdfBytes))
+            .setProducer("ProjectForge")
+            .setCreator("ProjectForge")
+            .setZUGFeRDVersion(2)
+            .setProfile(Profiles.getByName("EN16931"))
+            .setTransaction(mustangInvoice)
+        zugFeRDExporter.export(baos)
+        log.info { "ZUGFeRD PDF exported for invoice #${invoice.nummer}" }
+        return baos.toByteArray()
+    }
+
+    private fun generateInvoicePdf(invoice: RechnungDO): ByteArray? {
+        val docxStream = invoiceService.getInvoiceWordDocument(invoice, null) ?: return null
+        val docxBytes = docxStream.toByteArray()
+        ByteArrayInputStream(docxBytes).use { bais ->
+            WordDocument(bais, "invoice.docx").use { word ->
+                val options = PdfOptions.create()
+                ByteArrayOutputStream().use { pdfBaos ->
+                    PdfConverter.getInstance().convert(word.document, pdfBaos, options)
+                    return pdfBaos.toByteArray()
+                }
+            }
+        }
     }
 
     fun validate(invoice: RechnungDO): List<String> {
@@ -264,9 +311,9 @@ class EInvoiceExportService(
         return parts.joinToString(" ")
     }
 
-    private fun createXRExporter(): XRExporter {
+    private fun createXRExporter(profileName: String): XRExporter {
         val provider = ZUGFeRD2PullProvider().apply {
-            setProfile(Profiles.getByName("XRechnung"))
+            setProfile(Profiles.getByName(profileName))
         }
         val exporter = XRExporter()
         val field = XRExporter::class.java.getDeclaredField("xmlProvider")
@@ -281,5 +328,9 @@ class EInvoiceExportService(
 
     fun getExportFilename(invoice: RechnungDO): String {
         return "XRechnung_${invoice.nummer ?: "draft"}.xml"
+    }
+
+    fun getZUGFeRDExportFilename(invoice: RechnungDO): String {
+        return "ZUGFeRD_${invoice.nummer ?: "draft"}.pdf"
     }
 }
