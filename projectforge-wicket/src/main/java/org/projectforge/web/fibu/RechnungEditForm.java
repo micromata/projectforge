@@ -384,12 +384,11 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
           final EInvoiceExportService service = WicketSupport.get(EInvoiceExportService.class);
           final java.util.List<String> errors = service.validate(data);
           if (!errors.isEmpty()) {
-            error(getString("fibu.rechnung.eInvoice.validationErrors") + ": " + String.join("; ", errors));
+            form.error(getString("fibu.rechnung.eInvoice.validationErrors") + ": " + String.join("; ", errors));
             target.add(formFeedback);
             return;
           }
           target.appendJavaScript("window.location.href='" + downloadBehavior.getCallbackUrl() + "';");
-          close(target);
         }
         @Override
         public void onError(final AjaxRequestTarget target, final org.apache.wicket.markup.html.form.Form<?> form) {
@@ -467,8 +466,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
     @Override
     protected boolean onCloseButtonSubmit(final AjaxRequestTarget target) {
       parentPage.getBaseDao().update(data);
-      target.add(eInvoiceSummaryLabel);
-      return true;
+      throw new org.apache.wicket.RestartResponseException(new RechnungEditPage(data));
     }
   }
 }
