@@ -204,10 +204,13 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
       fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "customerAddress")));
     }
     {
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.zipCode") + " / " + getString("fibu.kunde.city"));
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.zipCode"));
       final MaxLengthTextField zipField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerZipCode"));
       WicketUtils.setSize(zipField, 10);
       fs.add(zipField);
+    }
+    {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.city"));
       fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerCity")));
     }
     {
@@ -454,16 +457,17 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
           target.add(formFeedback);
         }
       }, getString("fibu.rechnung.exportZUGFeRD"), SingleButtonPanel.NORMAL);
-      gridBuilder.newSplitPanel(GridSize.COL100);
+      gridBuilder.newGridPanel();
       {
         final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.street"));
-        fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "customerAddress")));
+        fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "customerAddress")), true);
       }
       {
-        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.zipCode") + " / " + getString("fibu.kunde.city"));
-        final MaxLengthTextField zipField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerZipCode"));
-        WicketUtils.setSize(zipField, 10);
-        fs.add(zipField);
+        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.zipCode"));
+        fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerZipCode")));
+      }
+      {
+        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.city"));
         fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerCity")));
       }
       {
