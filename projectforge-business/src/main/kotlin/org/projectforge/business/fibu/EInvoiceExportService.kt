@@ -239,9 +239,10 @@ class EInvoiceExportService(
         }
         mustangInvoice.setDocumentCode(documentCode)
 
-        // Delivery period (BR-FX-EN-04: required if no line-level periods)
+        // Delivery date and period (BR-FX-EN-04)
         val deliveryBegin = invoice.periodOfPerformanceBegin ?: invoice.datum!!
         val deliveryEnd = invoice.periodOfPerformanceEnd ?: deliveryBegin
+        mustangInvoice.setDeliveryDate(toDate(deliveryEnd))
         mustangInvoice.setDetailedDeliveryPeriod(toDate(deliveryBegin), toDate(deliveryEnd))
 
         // Buyer reference: Leitweg-ID (BT-10, required for XRechnung to public sector)
@@ -317,7 +318,11 @@ class EInvoiceExportService(
             seller.setEmail(sellerConfig.email)
         }
         val contactName = sellerConfig.contactName.ifBlank { sellerConfig.name }
-        seller.setContact(Contact(contactName, sellerConfig.phone, sellerConfig.email))
+        val contactPhone = sellerConfig.phone.ifBlank { null }
+        val contactEmail = sellerConfig.email.ifBlank { null }
+        if (contactPhone != null || contactEmail != null) {
+            seller.setContact(Contact(contactName, contactPhone, contactEmail))
+        }
         val bankAccount = sellerConfig.findBankAccount(invoice.sellerBankAccount)
         if (bankAccount != null) {
             val bankDetails = BankDetails(bankAccount.iban, bankAccount.bic)
@@ -370,9 +375,10 @@ class EInvoiceExportService(
 
     private fun buildItem(pos: RechnungsPositionDO, invoice: RechnungDO): Item {
         val vatPercent = pos.vat?.multiply(BigDecimal(100)) ?: BigDecimal.ZERO
+        val posText = pos.text ?: "Position ${pos.number}"
         val product = Product(
-            pos.text ?: "Position ${pos.number}",
-            ".",
+            posText,
+            posText,
             "C62",
             vatPercent
         )

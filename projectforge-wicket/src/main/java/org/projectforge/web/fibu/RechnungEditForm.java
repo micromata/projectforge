@@ -549,6 +549,32 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
           fs.add(bankAccountChoice);
         }
       }
+      {
+        // Show attachments that will be embedded in the e-invoice
+        if (data.getId() != null) {
+          final org.projectforge.rest.fibu.RechnungPagesRest rechnungPagesRest = WicketSupport.get(org.projectforge.rest.fibu.RechnungPagesRest.class);
+          final org.projectforge.framework.jcr.AttachmentsService attachmentsService = WicketSupport.get(org.projectforge.framework.jcr.AttachmentsService.class);
+          final java.util.List<org.projectforge.framework.jcr.Attachment> attachments = attachmentsService.getAttachments(
+              rechnungPagesRest.getJcrPath(),
+              data.getId(),
+              rechnungPagesRest.getAttachmentsAccessChecker()
+          );
+          if (attachments != null && !attachments.isEmpty()) {
+            final FieldsetPanel fs = gridBuilder.newFieldset(getString("attachments"));
+            final StringBuilder html = new StringBuilder();
+            html.append("<ul style=\"margin: 0; padding-left: 1.5em;\">");
+            for (org.projectforge.framework.jcr.Attachment att : attachments) {
+              html.append("<li>").append(org.apache.commons.text.StringEscapeUtils.escapeHtml4(att.getName()))
+                  .append(" <span style=\"color: #666;\">(").append(att.getSizeHumanReadable()).append(")</span></li>");
+            }
+            html.append("</ul>");
+            final org.projectforge.web.wicket.flowlayout.DivTextPanel panel =
+                new org.projectforge.web.wicket.flowlayout.DivTextPanel(fs.newChildId(), html.toString());
+            panel.setEscapeModelStringsInLabel(false);
+            fs.add(panel);
+          }
+        }
+      }
     }
 
     @Override
