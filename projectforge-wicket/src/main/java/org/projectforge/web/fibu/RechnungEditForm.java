@@ -199,6 +199,24 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
       fs1.add(eInvoiceSummaryLabel);
     }
     {
+      // Customer address fields (used for invoice export and e-invoice)
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.street"));
+      fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "customerAddress")));
+    }
+    {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.zipCode") + " / " + getString("fibu.kunde.city"));
+      final MaxLengthTextField zipField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerZipCode"));
+      WicketUtils.setSize(zipField, 10);
+      fs.add(zipField);
+      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerCity")));
+    }
+    {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.country"));
+      final MaxLengthTextField countryField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerCountry"));
+      WicketUtils.setSize(countryField, 2);
+      fs.add(countryField);
+    }
+    {
       // Customer reference
       final FieldsetPanel fs1 = gridBuilder.newFieldset(RechnungDO.class, "customerref1");
       final MaxLengthTextArea customerref1 = new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "customerref1"));
@@ -437,28 +455,16 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
         }
       }, getString("fibu.rechnung.exportZUGFeRD"), SingleButtonPanel.NORMAL);
       gridBuilder.newSplitPanel(GridSize.COL100);
-      // Street (multi-line)
       {
         final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.street"));
-        final MaxLengthTextArea streetArea = new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "customerAddress"));
-        streetArea.add(AttributeModifier.replace("style", "width: 100%; box-sizing: border-box;"));
-        fs.add(streetArea, false);
+        fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "customerAddress")));
       }
       {
-        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.zipCode"));
+        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.zipCode") + " / " + getString("fibu.kunde.city"));
         final MaxLengthTextField zipField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerZipCode"));
         WicketUtils.setSize(zipField, 10);
         fs.add(zipField);
-      }
-      {
-        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.city"));
         fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerCity")));
-      }
-      {
-        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.country"));
-        final MaxLengthTextField countryField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerCountry"));
-        WicketUtils.setSize(countryField, 2);
-        fs.add(countryField);
       }
       {
         final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.vatId"));

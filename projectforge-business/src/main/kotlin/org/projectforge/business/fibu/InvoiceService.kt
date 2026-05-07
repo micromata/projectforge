@@ -114,7 +114,7 @@ open class InvoiceService {
             }
             val variables = Variables()
             variables.put("table", "") // Marker for finding table (should be removed).
-            variables.put("Rechnungsadresse", data.customerAddress)
+            variables.put("Rechnungsadresse", buildFullCustomerAddress(data))
             val type = if (variant.isNullOrEmpty()) {
                 I18nHelper.getLocalizedMessage(data.typ?.i18nKey)
             } else {
@@ -182,6 +182,28 @@ open class InvoiceService {
             }
         }
         return sharedVat
+    }
+
+    private fun buildFullCustomerAddress(data: RechnungDO): String {
+        val hasStructuredFields = !data.customerZipCode.isNullOrBlank() || !data.customerCity.isNullOrBlank()
+        if (!hasStructuredFields) {
+            return data.customerAddress ?: ""
+        }
+        val lines = mutableListOf<String>()
+        if (!data.customerAddress.isNullOrBlank()) {
+            lines.add(data.customerAddress!!)
+        }
+        val zipCity = listOfNotNull(
+            data.customerZipCode?.takeIf { it.isNotBlank() },
+            data.customerCity?.takeIf { it.isNotBlank() }
+        ).joinToString(" ")
+        if (zipCity.isNotBlank()) {
+            lines.add(zipCity)
+        }
+        if (!data.customerCountry.isNullOrBlank() && data.customerCountry != "DE") {
+            lines.add(data.customerCountry!!)
+        }
+        return lines.joinToString("\r\n")
     }
 
     private fun getReplacementForAttachment(data: RechnungDO): String {

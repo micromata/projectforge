@@ -145,8 +145,12 @@ class EInvoiceExportService(
         val street = invoice.customerAddress ?: kunde?.street
         val zip = invoice.customerZipCode ?: kunde?.zipCode
         val city = invoice.customerCity ?: kunde?.city
-        if (street.isNullOrBlank() || zip.isNullOrBlank() || city.isNullOrBlank()) {
-            errors.add("Customer address incomplete (street, zip, city required)")
+        if (street.isNullOrBlank()) {
+            errors.add("Customer address/street is missing")
+        } else if (zip.isNullOrBlank() || city.isNullOrBlank()) {
+            if (!street.contains("\n") && !street.contains(",")) {
+                errors.add("Customer address incomplete (zip and city required)")
+            }
         }
         val buyerEmail = invoice.customerEInvoiceEmail ?: kunde?.eInvoiceEmail
         if (buyerEmail.isNullOrBlank()) {
@@ -174,11 +178,10 @@ class EInvoiceExportService(
         }
         mustangInvoice.setDocumentCode(documentCode)
 
-        // Delivery period
-        invoice.periodOfPerformanceBegin?.let { begin ->
-            val end = invoice.periodOfPerformanceEnd ?: begin
-            mustangInvoice.setDetailedDeliveryPeriod(toDate(begin), toDate(end))
-        }
+        // Delivery period (BR-FX-EN-04: required if no line-level periods)
+        val deliveryBegin = invoice.periodOfPerformanceBegin ?: invoice.datum!!
+        val deliveryEnd = invoice.periodOfPerformanceEnd ?: deliveryBegin
+        mustangInvoice.setDetailedDeliveryPeriod(toDate(deliveryBegin), toDate(deliveryEnd))
 
         // Buyer reference: Leitweg-ID (BT-10, required for XRechnung to public sector)
         val buyerReference = invoice.customerLeitwegId ?: invoice.kunde?.leitwegId ?: invoice.customerref1
@@ -199,12 +202,10 @@ class EInvoiceExportService(
             }
         }
 
-        // Payment terms description
-        if (invoice.faelligkeit != null) {
-            val paymentTerms = buildPaymentTermsDescription(invoice)
-            if (paymentTerms.isNotBlank()) {
-                mustangInvoice.setPaymentTermDescription(paymentTerms)
-            }
+        // Payment terms description (BR-CO-25: required if amount due is positive)
+        val paymentTerms = buildPaymentTermsDescription(invoice)
+        if (paymentTerms.isNotBlank()) {
+            mustangInvoice.setPaymentTermDescription(paymentTerms)
         }
 
         // Line items
@@ -247,12 +248,30 @@ class EInvoiceExportService(
 
     private fun buildBuyer(invoice: RechnungDO): TradeParty {
         val kunde = invoice.kunde
+        var street = invoice.customerAddress ?: kunde?.street ?: ""
+        var zip = invoice.customerZipCode ?: kunde?.zipCode ?: ""
+        var city = invoice.customerCity ?: kunde?.city ?: ""
+        val country = invoice.customerCountry ?: kunde?.country ?: "DE"
+        if (zip.isBlank() && city.isBlank() && street.contains("\n")) {
+            val lines = street.lines().map { it.trim() }.filter { it.isNotBlank() }
+            if (lines.size >= 2) {
+                street = lines.dropLast(1).joinToString(", ")
+                val lastLine = lines.last()
+                val match = Regex("^(\\d{4,5})\\s+(.+)$").find(lastLine)
+                if (match != null) {
+                    zip = match.groupValues[1]
+                    city = match.groupValues[2]
+                } else {
+                    city = lastLine
+                }
+            }
+        }
         val buyer = TradeParty(
             kunde?.name ?: invoice.kundeText ?: "",
-            invoice.customerAddress ?: kunde?.street ?: "",
-            invoice.customerZipCode ?: kunde?.zipCode ?: "",
-            invoice.customerCity ?: kunde?.city ?: "",
-            invoice.customerCountry ?: kunde?.country ?: "DE"
+            street,
+            zip,
+            city,
+            country
         )
         val vatId = invoice.customerVatId ?: kunde?.vatId
         if (!vatId.isNullOrBlank()) {
@@ -270,7 +289,7 @@ class EInvoiceExportService(
         val vatPercent = pos.vat?.multiply(BigDecimal(100)) ?: BigDecimal.ZERO
         val product = Product(
             pos.text ?: "Position ${pos.number}",
-            "",
+            ".",
             "C62",
             vatPercent
         )
@@ -307,6 +326,8 @@ class EInvoiceExportService(
         if (invoice.faelligkeit != null) {
             val netDays = java.time.temporal.ChronoUnit.DAYS.between(invoice.datum, invoice.faelligkeit).toInt()
             parts.add("Zahlbar innerhalb $netDays Tagen.")
+        } else {
+            parts.add("Zahlbar sofort.")
         }
         return parts.joinToString(" ")
     }
