@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
@@ -30,7 +31,9 @@ import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.json.IdOnlySerializer
+import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.persistence.history.PersistenceBehavior
 import java.time.LocalDate
 
@@ -59,7 +62,7 @@ import java.time.LocalDate
     NamedQuery(name = RechnungDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from RechnungDO"),
     NamedQuery(name = RechnungDO.FIND_OTHER_BY_NUMMER, query = "from RechnungDO where nummer=:nummer and id!=:id")
 )
-open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
+open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO>, AttachmentsInfo {
     override val displayName: String
         @Transient
         get() = "$nummer"
@@ -220,6 +223,33 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
         if (cmp != 0) return cmp
         return compareValues(this.nummer, other.nummer)
     }
+
+    @JsonIgnore
+    @FullTextField
+    @NoHistory
+    @get:Column(length = 10000, name = "attachments_names")
+    override var attachmentsNames: String? = null
+
+    @JsonIgnore
+    @FullTextField
+    @NoHistory
+    @get:Column(length = 10000, name = "attachments_ids")
+    override var attachmentsIds: String? = null
+
+    @JsonIgnore
+    @NoHistory
+    @get:Column(name = "attachments_counter")
+    override var attachmentsCounter: Int? = null
+
+    @JsonIgnore
+    @NoHistory
+    @get:Column(name = "attachments_size")
+    override var attachmentsSize: Long? = null
+
+    @PropertyInfo(i18nKey = "attachment")
+    @JsonIgnore
+    @get:Column(length = 10000, name = "attachments_last_user_action")
+    override var attachmentsLastUserAction: String? = null
 
     companion object {
         internal const val SELECT_MIN_MAX_DATE = "RechnungDO_SelectMinMaxDate"

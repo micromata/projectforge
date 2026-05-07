@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.fibu
 
+import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
@@ -42,6 +43,11 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("${Rest.URL}/outgoingInvoice")
 class RechnungPagesRest :
     AbstractDTOPagesRest<RechnungDO, Rechnung, RechnungDao>(RechnungDao::class.java, "fibu.rechnung.title") {
+
+    @PostConstruct
+    private fun postConstruct() {
+        enableJcr()
+    }
 
     /**
      * ########################################
@@ -94,60 +100,39 @@ class RechnungPagesRest :
     }
 
     /**
-     * LAYOUT Edit page
+     * LAYOUT Edit page: Only usable for attachments
      */
     override fun createEditLayout(dto: Rechnung, userAccess: UILayout.UserAccess): UILayout {
+        userAccess.delete = false
+        userAccess.update = false
+        userAccess.cancel = false
         val layout = super.createEditLayout(dto, userAccess)
-            .add(lc, "betreff")
             .add(
                 UIRow()
                     .add(
                         UICol()
-                            .add(lc, "nummer", "typ")
+                            .add(UIReadOnlyField("nummer", lc))
+                            .add(UIReadOnlyField("customer.displayName", lc, label = "fibu.kunde"))
                     )
                     .add(
                         UICol()
-                            .add(lc, "status", "konto")
+                            .add(UIReadOnlyField("datum", lc))
+                            .add(UIReadOnlyField("betreff", lc))
                     )
                     .add(
                         UICol()
-                            .add(lc, "datum", "vatAmountSum", "bezahlDatum", "faelligkeit")
-                    )
-                    .add(
-                        UICol()
-                            .add(lc, "netSum", "grossSum", "zahlBetrag", "discountMaturity", "discountPercent")
+                            .add(UIReadOnlyField("netSum", lc, label = "fibu.common.netto"))
+                            .add(UIReadOnlyField("grossSum", lc, label = "fibu.rechnung.bruttoBetrag"))
                     )
             )
             .add(
-                UIRow()
+                UIFieldset(title = "attachment.list")
                     .add(
-                        UICol()
-                            .add(UISelect.createProjectSelect(lc, "projekt", false))
-                            .add(UISelect.createCustomerSelect(lc, "kunde", false))
-                            .add(
-                                lc,
-                                "kundeText",
-                                "customerAddress",
-                                "customerref1",
-                                "attachment",
-                                "periodOfPerformanceBegin",
-                                "periodOfPerformanceEnd"
-                            )
+                        UIAttachmentList(
+                            category, dto.id, maxSizeInKB = getMaxFileSizeKB()
+                        )
                     )
             )
-            .add(
-                UIRow()
-                    .add(
-                        UICol()
-                            .add(lc, "bemerkung")
-                    )
-                    .add(
-                        UICol()
-                            .add(lc, "besonderheiten")
-                    )
-            )
-            // Positionen
-            .add(UICustomized("invoice.outgoingPosition"))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 

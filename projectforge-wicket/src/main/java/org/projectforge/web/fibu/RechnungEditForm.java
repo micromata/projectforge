@@ -238,6 +238,43 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
           new PropertyModel<>(data, "periodOfPerformanceBegin"),
           new PropertyModel<>(data, "periodOfPerformanceEnd"));
     }
+    {
+      // Attachments (JCR file attachments with download links + edit link to React page)
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("attachments"));
+      final StringBuilder attachmentsHtml = new StringBuilder();
+      if (data.getAttachmentsCounter() != null && data.getAttachmentsCounter() > 0) {
+        final org.projectforge.rest.fibu.RechnungPagesRest rechnungPagesRest = WicketSupport.get(org.projectforge.rest.fibu.RechnungPagesRest.class);
+        final org.projectforge.framework.jcr.AttachmentsService attachmentsService = WicketSupport.get(org.projectforge.framework.jcr.AttachmentsService.class);
+        final java.util.List<org.projectforge.framework.jcr.Attachment> attachments = attachmentsService.getAttachments(
+            rechnungPagesRest.getJcrPath(),
+            data.getId(),
+            rechnungPagesRest.getAttachmentsAccessChecker()
+        );
+        if (attachments != null) {
+          for (org.projectforge.framework.jcr.Attachment att : attachments) {
+            final String downloadUrl = org.projectforge.rest.core.RestResolver.getRestUrl(
+                org.projectforge.rest.AttachmentsServicesRest.class,
+                org.projectforge.rest.AttachmentsServicesRest.getDownloadUrl(
+                    att,
+                    rechnungPagesRest.getCategory(),
+                    data.getId(),
+                    "attachments"
+                )
+            );
+            attachmentsHtml.append("<a href=\"").append(downloadUrl).append("\">")
+                .append(att.getName())
+                .append(" (").append(att.getSizeHumanReadable()).append(")")
+                .append("</a><br/>");
+          }
+          attachmentsHtml.append("<br/>");
+        }
+      }
+      final String editLink = "<a href=\"/react/outgoingInvoice/edit/" + data.getId() + "\" target=\"_blank\">" + getString("edit") + "</a>";
+      final org.projectforge.web.wicket.flowlayout.DivTextPanel divTextPanel =
+          new org.projectforge.web.wicket.flowlayout.DivTextPanel(fs.newChildId(), attachmentsHtml.toString() + editLink);
+      divTextPanel.setEscapeModelStringsInLabel(false);
+      fs.add(divTextPanel);
+    }
     add(periodOfPerformanceHelper.createValidator());
   }
 

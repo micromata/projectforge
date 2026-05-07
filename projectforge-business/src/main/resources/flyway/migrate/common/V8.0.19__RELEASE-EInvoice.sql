@@ -16,6 +16,13 @@ ALTER TABLE t_fibu_rechnung ADD COLUMN customer_leitweg_id VARCHAR(50);
 ALTER TABLE t_fibu_rechnung ADD COLUMN customer_e_invoice_email VARCHAR(255);
 ALTER TABLE t_fibu_rechnung ADD COLUMN seller_bank_account VARCHAR(34);
 
+-- RechnungDO: JCR attachment columns
+ALTER TABLE t_fibu_rechnung ADD COLUMN attachments_names VARCHAR(10000);
+ALTER TABLE t_fibu_rechnung ADD COLUMN attachments_ids VARCHAR(10000);
+ALTER TABLE t_fibu_rechnung ADD COLUMN attachments_counter INTEGER;
+ALTER TABLE t_fibu_rechnung ADD COLUMN attachments_size BIGINT;
+ALTER TABLE t_fibu_rechnung ADD COLUMN attachments_last_user_action VARCHAR(10000);
+
 -- Rollback:
 -- ALTER TABLE T_FIBU_KUNDE DROP COLUMN IF EXISTS vat_id;
 -- ALTER TABLE T_FIBU_KUNDE DROP COLUMN IF EXISTS street;
@@ -31,4 +38,9 @@ ALTER TABLE t_fibu_rechnung ADD COLUMN seller_bank_account VARCHAR(34);
 -- ALTER TABLE t_fibu_rechnung DROP COLUMN IF EXISTS customer_leitweg_id;
 -- ALTER TABLE t_fibu_rechnung DROP COLUMN IF EXISTS customer_e_invoice_email;
 -- ALTER TABLE t_fibu_rechnung DROP COLUMN IF EXISTS seller_bank_account;
+-- ALTER TABLE t_fibu_rechnung DROP COLUMN IF EXISTS attachments_names;
+-- ALTER TABLE t_fibu_rechnung DROP COLUMN IF EXISTS attachments_ids;
+-- ALTER TABLE t_fibu_rechnung DROP COLUMN IF EXISTS attachments_counter;
+-- ALTER TABLE t_fibu_rechnung DROP COLUMN IF EXISTS attachments_size;
+-- ALTER TABLE t_fibu_rechnung DROP COLUMN IF EXISTS attachments_last_user_action;
 -- DELETE FROM t_flyway_schema_version WHERE version = '8.0.19';

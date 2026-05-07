@@ -30,6 +30,7 @@ import mu.KotlinLogging
 import org.mustangproject.BankDetails
 import org.mustangproject.CashDiscount
 import org.mustangproject.Contact
+import org.mustangproject.FileAttachment
 import org.mustangproject.Invoice
 import org.mustangproject.Item
 import org.mustangproject.Product
@@ -39,6 +40,14 @@ import org.mustangproject.ZUGFeRD.Profiles
 import org.mustangproject.ZUGFeRD.XRExporter
 import org.mustangproject.ZUGFeRD.ZUGFeRD2PullProvider
 import org.mustangproject.ZUGFeRD.ZUGFeRDExporterFromA3
+import org.apache.pdfbox.Loader
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.pdmodel.PDDocumentNameDictionary
+import org.apache.pdfbox.pdmodel.PDEmbeddedFilesNameTreeNode
+import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification
+import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile
+import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.jcr.RepoService
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -53,7 +62,13 @@ private val log = KotlinLogging.logger {}
 class EInvoiceExportService(
     val sellerConfig: EInvoiceSellerConfig,
     private val invoiceService: InvoiceService,
+    private val attachmentsService: AttachmentsService,
+    private val repoService: RepoService,
 ) {
+    companion object {
+        const val JCR_PATH = "org.projectforge.rechnung"
+    }
+
     fun exportAsXRechnung(invoice: RechnungDO): ByteArray {
         val validationErrors = validate(invoice)
         if (validationErrors.isNotEmpty()) {
@@ -93,10 +108,56 @@ class EInvoiceExportService(
             .setCreator("ProjectForge")
             .setZUGFeRDVersion(2)
             .setProfile(Profiles.getByName("EN16931"))
-            .setTransaction(mustangInvoice)
+        zugFeRDExporter.setTransaction(mustangInvoice)
         zugFeRDExporter.export(baos)
         log.info { "ZUGFeRD PDF exported for invoice #${invoice.nummer}" }
-        return baos.toByteArray()
+        return embedAttachmentsInPdf(baos.toByteArray(), invoice)
+    }
+
+    private fun embedAttachmentsInPdf(pdfBytes: ByteArray, invoice: RechnungDO): ByteArray {
+        val invoiceId = invoice.id ?: return pdfBytes
+        val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
+        if (attachments.isEmpty()) return pdfBytes
+
+        val doc = Loader.loadPDF(pdfBytes)
+        try {
+            val efTree = PDEmbeddedFilesNameTreeNode()
+            val existingNames = mutableMapOf<String, PDComplexFileSpecification>()
+            doc.documentCatalog.names?.embeddedFiles?.names?.let { existingNames.putAll(it) }
+
+            attachments.forEach { attachment ->
+                val fileId = attachment.fileId ?: return@forEach
+                val nodePath = attachmentsService.getPath(JCR_PATH, invoiceId)
+                val fileObject = repoService.getFileInfo(nodePath, AttachmentsService.DEFAULT_NODE, fileId = fileId)
+                    ?: return@forEach
+                if (!repoService.retrieveFile(fileObject)) return@forEach
+                val content = fileObject.content ?: return@forEach
+                val fileName = attachment.name ?: "attachment"
+                val mimeType = java.net.URLConnection.guessContentTypeFromName(fileName) ?: "application/octet-stream"
+
+                val embeddedFile = PDEmbeddedFile(doc, ByteArrayInputStream(content))
+                embeddedFile.subtype = mimeType
+                embeddedFile.size = content.size
+
+                val fileSpec = PDComplexFileSpecification()
+                fileSpec.file = fileName
+                fileSpec.embeddedFile = embeddedFile
+
+                existingNames[fileName] = fileSpec
+                log.info { "Embedded attachment '$fileName' (${content.size} bytes) into ZUGFeRD PDF for invoice #${invoice.nummer}" }
+            }
+
+            efTree.names = existingNames
+            val names = doc.documentCatalog.names ?: PDDocumentNameDictionary(doc.documentCatalog)
+            names.embeddedFiles = efTree
+            doc.documentCatalog.names = names
+
+            val output = ByteArrayOutputStream()
+            doc.save(output)
+            return output.toByteArray()
+        } finally {
+            doc.close()
+        }
     }
 
     private fun generateInvoicePdf(invoice: RechnungDO): ByteArray? {
@@ -213,7 +274,29 @@ class EInvoiceExportService(
             mustangInvoice.addItem(buildItem(pos, invoice))
         }
 
+        // Embed file attachments from JCR
+        embedAttachments(mustangInvoice, invoice)
+
         return mustangInvoice
+    }
+
+    private fun embedAttachments(mustangInvoice: Invoice, invoice: RechnungDO) {
+        val invoiceId = invoice.id ?: return
+        val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
+        attachments.forEach { attachment ->
+            val fileId = attachment.fileId ?: return@forEach
+            val nodePath = attachmentsService.getPath(JCR_PATH, invoiceId)
+            val fileObject = repoService.getFileInfo(nodePath, AttachmentsService.DEFAULT_NODE, fileId = fileId)
+                ?: return@forEach
+            if (repoService.retrieveFile(fileObject)) {
+                val content = fileObject.content ?: return@forEach
+                val fileName = attachment.name ?: "attachment"
+                val mimeType = java.net.URLConnection.guessContentTypeFromName(fileName) ?: "application/octet-stream"
+                val fileAttachment = FileAttachment(fileName, mimeType, "Data", content)
+                mustangInvoice.embedFileInXML(fileAttachment)
+                log.debug { "Embedded attachment '$fileName' in invoice #${invoice.nummer}" }
+            }
+        }
     }
 
     private fun buildSeller(invoice: RechnungDO): TradeParty {
