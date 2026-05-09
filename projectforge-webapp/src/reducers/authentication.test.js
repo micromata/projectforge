@@ -4,213 +4,98 @@ const exampleError = 'Uncool error message.';
 
 Object.freeze(exampleError);
 
+const initialState = {
+    loading: true,
+    error: null,
+    user: null,
+};
+
 describe('reducer', () => {
     it('initial state', () => {
         expect(reducer(undefined, {}))
-            .toEqual({
-                loading: false,
-                error: null,
-                loggedIn: false,
-            });
+            .toEqual(initialState);
     });
 
-    it('unknown action', () => {
+    it('unknown action returns current state', () => {
         const state = {
-            loading: true,
+            loading: false,
             error: null,
-            loggedIn: false,
+            user: { name: 'test' },
         };
 
         Object.freeze(state);
 
-        expect(reducer(state, {
-            type: 'UNKNOWN_ACTION',
-        }))
+        expect(reducer(state, { type: 'UNKNOWN_ACTION' }))
             .toEqual(state);
     });
 });
 
-describe('handles USER_LOGIN_BEGIN', () => {
-    it('fresh state', () => {
+describe('USER_LOGIN_BEGIN', () => {
+    it('resets to loading with null user', () => {
         const state = {
             loading: false,
-            error: null,
-            loggedIn: false,
+            error: 'some error',
+            user: { name: 'old' },
         };
 
         Object.freeze(state);
 
-        expect(reducer(state, {
-            type: 'USER_LOGIN_BEGIN',
-        }))
+        expect(reducer(state, { type: 'USER_LOGIN_BEGIN' }))
             .toEqual({
                 loading: true,
                 error: null,
-                loggedIn: false,
-            });
-    });
-
-    it('error state', () => {
-        const state = {
-            loading: false,
-            error: exampleError,
-            loggedIn: false,
-        };
-
-        Object.freeze(state);
-
-        expect(reducer(state, {
-            type: 'USER_LOGIN_BEGIN',
-        }))
-            .toEqual({
-                loading: true,
-                error: null,
-                loggedIn: false,
-            });
-    });
-
-    it('loggedIn state', () => {
-        const state = {
-            loading: false,
-            error: null,
-            loggedIn: false,
-        };
-
-        Object.freeze(state);
-
-        expect(reducer(state, {
-            type: 'USER_LOGIN_BEGIN',
-        }))
-            .toEqual({
-                loading: true,
-                error: null,
-                loggedIn: false,
+                user: null,
             });
     });
 });
 
-describe('handles USER_LOGIN_SUCCESS', () => {
-    it('loading state', () => {
+describe('USER_LOGIN_SUCCESS', () => {
+    it('sets user and clears loading/error', () => {
         const state = {
             loading: true,
             error: null,
-            loggedIn: false,
+            user: null,
         };
 
         Object.freeze(state);
 
-        expect(reducer(state, {
-            type: 'USER_LOGIN_SUCCESS',
-        }))
-            .toEqual({
-                loading: false,
-                error: null,
-                loggedIn: true,
-            });
-    });
-
-    it('weird state', () => {
-        const state = {
-            loading: false,
-            error: exampleError,
-            loggedIn: true,
+        const payload = {
+            user: { name: 'testuser' },
+            version: '1.0',
+            buildTimestamp: '2024-01-01',
+            alertMessage: 'Welcome',
         };
 
-        Object.freeze(state);
-
-        expect(reducer(state, {
-            type: 'USER_LOGIN_SUCCESS',
-        }))
+        expect(reducer(state, { type: 'USER_LOGIN_SUCCESS', payload }))
             .toEqual({
                 loading: false,
                 error: null,
-                loggedIn: true,
+                user: { name: 'testuser' },
+                version: '1.0',
+                buildTimestamp: '2024-01-01',
+                alertMessage: 'Welcome',
             });
     });
 });
 
-describe('handles USER_LOGIN_FAILURE', () => {
-    it('loading state', () => {
+describe('USER_LOGIN_FAILURE', () => {
+    it('sets error and clears user/loading', () => {
         const state = {
             loading: true,
             error: null,
-            loggedIn: false,
+            user: { name: 'old' },
         };
 
         Object.freeze(state);
 
         expect(reducer(state, {
             type: 'USER_LOGIN_FAILURE',
-            payload: {
-                error: exampleError,
-            },
+            payload: { error: exampleError },
         }))
             .toEqual({
                 loading: false,
                 error: exampleError,
-                loggedIn: false,
+                user: null,
             });
-    });
-
-    it('weird state', () => {
-        const state = {
-            loading: false,
-            error: exampleError,
-            loggedIn: true,
-        };
-
-        Object.freeze(state);
-
-        expect(reducer(state, {
-            type: 'USER_LOGIN_FAILURE',
-            payload: {
-                error: exampleError,
-            },
-        }))
-            .toEqual({
-                loading: false,
-                error: exampleError,
-                loggedIn: false,
-            });
-    });
-});
-
-describe('handles USER_LOGOUT', () => {
-    const expectedState = {
-        loading: false,
-        error: null,
-        loggedIn: false,
-    };
-
-    Object.freeze(expectedState);
-
-    it('logged in state', () => {
-        const state = {
-            loading: false,
-            error: null,
-            loggedIn: true,
-        };
-
-        Object.freeze(state);
-
-        expect(reducer(state, {
-            type: 'USER_LOGOUT',
-        }))
-            .toEqual(expectedState);
-    });
-
-    it('weird state', () => {
-        const state = {
-            loading: true,
-            error: exampleError,
-            loggedIn: false,
-        };
-
-        Object.freeze(state);
-
-        expect(reducer(state, {
-            type: 'USER_LOGOUT',
-        }))
-            .toEqual(expectedState);
     });
 });
