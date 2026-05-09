@@ -1,237 +1,157 @@
 /* eslint-disable */
-import fetchMock from 'fetch-mock/es5/client';
-import cookies from 'react-cookies';
+import { vi } from 'vitest';
 import configureMockStore from 'redux-mock-store';
-import thunk from 'redux-thunk';
+import { thunk } from 'redux-thunk';
 import {
-    loadSessionIfAvailable,
-    login,
-    logout,
     USER_LOGIN_BEGIN,
     USER_LOGIN_FAILURE,
     USER_LOGIN_SUCCESS,
-    USER_LOGOUT,
     userLoginBegin,
     userLoginFailure,
     userLoginSuccess,
-    userLogout,
+    login,
+    loadUserStatus,
 } from './authentication';
 
+const mockStore = configureMockStore([thunk]);
+
+describe('action creators', () => {
+    it('userLoginBegin', () => {
+        expect(userLoginBegin()).toEqual({ type: USER_LOGIN_BEGIN });
+    });
+
+    it('userLoginSuccess', () => {
+        expect(userLoginSuccess('user', '1.0', '2024', undefined))
+            .toEqual({
+                type: USER_LOGIN_SUCCESS,
+                payload: { user: 'user', version: '1.0', buildTimestamp: '2024', alertMessage: undefined },
+            });
+    });
+
+    it('userLoginFailure', () => {
+        expect(userLoginFailure('Some error'))
+            .toEqual({
+                type: USER_LOGIN_FAILURE,
+                payload: { error: 'Some error' },
+            });
+    });
+});
+
 describe('login', () => {
-    const username = 'demo';
-    const password = 'demo123';
-
-    Object.freeze(username);
-    Object.freeze(password);
-
-    const mockStore = configureMockStore([thunk]);
-
-    afterEach(() => fetchMock.restore());
-
-    it('should create an action to start the login', () => {
-        const expectedAction = {
-            type: USER_LOGIN_BEGIN,
-        };
-
-        expect(userLoginBegin())
-            .toEqual(expectedAction);
+    beforeEach(() => {
+        vi.restoreAllMocks();
     });
 
-    it('should create an action to mark the login as success', () => {
-        const expectedAction = {
-            type: USER_LOGIN_SUCCESS,
-        };
+    it('dispatches BEGIN + BEGIN + SUCCESS for valid credentials', async () => {
+        const userData = { username: 'demo', admin: false };
+        const systemData = { version: '2.0.0', buildTimestamp: '2025-01-01 00:00' };
 
-        expect(userLoginSuccess())
-            .toEqual(expectedAction);
-    });
-
-    it('should create an action to mark the login as success', () => {
-        const expectedAction = {
-            type: USER_LOGIN_FAILURE,
-            payload: {
-                error: 'Some uncool error message',
-            },
-        };
-
-        expect(userLoginFailure('Some uncool error message'))
-            .toEqual(expectedAction);
-    });
-
-    it('creates USER_LOGIN_SUCCESS when fetching login has been done without keepSignedIn', () => {
-        fetchMock
-            .mock(
-                (url, options) => {
-                    if (url !== '/rsPublic/login' || options.method !== 'POST') {
-                        return false;
-                    }
-
-                    const body = JSON.parse(options.body);
-
-                    return body.username === username
-                        && body.password === password
-                        && !body.stayLoggedIn;
-                },
-                {
-                    status: 200,
-                    headers: { 'Set-Cookie': 'JSESSIONID=ABCDEF0123456789' },
-                },
+        global.fetch = vi.fn()
+            .mockResolvedValueOnce(
+                { ok: true, status: 200, json: () => Promise.resolve({}) },
             )
-            .catch({ throws: new Error('mock failed') });
-
-        const expectedActions = [
-            { type: USER_LOGIN_BEGIN },
-            { type: USER_LOGIN_SUCCESS },
-        ];
+            .mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                json: () => Promise.resolve({ userData, systemData, alertMessage: undefined }),
+            });
 
         const store = mockStore({});
+        await store.dispatch(login('demo', 'demo123', false));
 
-        return store.dispatch(login(username, password, false))
-            .then(() => {
-                expect(store.getActions())
-                    .toEqual(expectedActions);
-
-                expect(cookies.loadAll())
-                    .toEqual({});
-            });
-    });
-
-    it('creates USER_LOGIN_SUCCESS when fetching login has been done with keepSignedIn', () => {
-        fetchMock
-            .mock(
-                (url, options) => {
-                    if (url !== '/√/login' || options.method !== 'POST') {
-                        return false;
-                    }
-
-                    const body = JSON.parse(options.body);
-
-                    return body.username === username
-                        && body.password === password
-                        && body.stayLoggedIn;
-                },
-                {
-                    status: 200,
-                    headers: { 'Set-Cookie': 'JSESSIONID=ABCDEF0123456789' },
-                },
-            )
-            .catch({ throws: new Error('mock failed') });
-
-        const expectedActions = [
+        expect(store.getActions()).toEqual([
             { type: USER_LOGIN_BEGIN },
-            { type: USER_LOGIN_SUCCESS },
-        ];
-
-        const store = mockStore({});
-
-        return store.dispatch(login(username, password, true))
-            .then(() => {
-                expect(store.getActions())
-                    .toEqual(expectedActions);
-
-                expect(cookies.loadAll())
-                    .toEqual({
-                        KEEP_SIGNED_IN: true,
-                    });
-            });
-    });
-
-    it('creates USER_LOGIN_FAILURE when fetching login has been failed', () => {
-        fetchMock
-            .mock('/rsPublic/login', 401)
-            .catch(() => {
-                throw new Error('mock failed');
-            });
-
-        const expectedActions = [
             { type: USER_LOGIN_BEGIN },
             {
-                type: USER_LOGIN_FAILURE,
-                payload: { error: 'Unauthorized' },
+                type: USER_LOGIN_SUCCESS,
+                payload: {
+                    user: userData,
+                    version: systemData.version,
+                    buildTimestamp: systemData.buildTimestamp,
+                    alertMessage: undefined,
+                },
             },
-        ];
-
-        const store = mockStore({});
-
-        return store.dispatch(login(username, password, false))
-            .then(() => {
-                expect(store.getActions())
-                    .toEqual(expectedActions);
-            });
-    });
-});
-
-describe('logout', () => {
-    const mockStore = configureMockStore([thunk]);
-
-    it('should create USER_LOGOUT action', () => {
-        const expectedAction = {
-            type: USER_LOGOUT,
-        };
-
-        expect(userLogout())
-            .toEqual(expectedAction);
+        ]);
     });
 
-    it('creates USER_LOGOUT during logout', () => {
-        const expectedActions = [
-            { type: USER_LOGOUT },
-        ];
-
-        const store = mockStore({});
-
-        cookies.save('KEEP_SIGNED_IN', 'ABCDEF');
-
-        store.dispatch(logout());
-
-        expect(store.getActions())
-            .toEqual(expectedActions);
-
-        expect(cookies.loadAll())
-            .toEqual({});
-    });
-});
-
-describe('check session', () => {
-    const mockStore = configureMockStore([thunk]);
-
-    afterEach(() => fetchMock.restore());
-
-    it('creates no action at all', () => {
-        const store = mockStore({});
-
-        expect(store.dispatch(loadSessionIfAvailable()))
-            .toEqual(null);
-        expect(store.getActions())
-            .toEqual([]);
-    });
-
-    it('creates USER_LOGIN_SUCCESS', () => {
-        fetchMock
-        // TODO: ADD AUTHENTICATION TEST ENDPOINT
-            .getOnce('/rs/userStatus', 200)
-            .catch((url, a, b) => {
-                throw new Error('mock failed');
+    it('dispatches BEGIN + FAILURE for invalid credentials', async () => {
+        global.fetch = vi.fn()
+            .mockResolvedValue({
+                ok: false,
+                status: 401,
+                json: () => Promise.resolve({}),
             });
 
-        const expectedActions = [
+        const store = mockStore({});
+        await store.dispatch(login('demo', 'wrong', false));
+
+        expect(store.getActions()).toEqual([
             { type: USER_LOGIN_BEGIN },
-            { type: USER_LOGIN_SUCCESS },
-        ];
+            { type: USER_LOGIN_FAILURE, payload: { error: 'Fetch failed: Error 401' } },
+        ]);
+    });
 
-        cookies.save('KEEP_SIGNED_IN', true);
+    it('dispatches BEGIN + FAILURE for network error', async () => {
+        global.fetch = vi.fn()
+            .mockRejectedValue(new Error('Network error'));
 
         const store = mockStore({});
+        await store.dispatch(login('demo', 'demo123', false));
 
-        return store.dispatch(loadSessionIfAvailable())
-            .then(() => {
-                expect(store.getActions())
-                    .toEqual(expectedActions);
+        expect(store.getActions()).toEqual([
+            { type: USER_LOGIN_BEGIN },
+            { type: USER_LOGIN_FAILURE, payload: { error: 'Network error' } },
+        ]);
+    });
+});
 
-                expect(cookies.loadAll())
-                    .toEqual({
-                        KEEP_SIGNED_IN: true,
-                    });
+describe('loadUserStatus', () => {
+    beforeEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('dispatches BEGIN + SUCCESS on valid session', async () => {
+        const userData = { username: 'existinguser', admin: true };
+        const systemData = { version: '2.0.0', buildTimestamp: '2025-05-05 10:00' };
+        const alertMessage = 'Some alert';
+
+        global.fetch = vi.fn()
+            .mockResolvedValue({
+                ok: true,
+                status: 200,
+                json: () => Promise.resolve({ userData, systemData, alertMessage }),
             });
+
+        const store = mockStore({});
+        await store.dispatch(loadUserStatus());
+
+        expect(store.getActions()).toEqual([
+            { type: USER_LOGIN_BEGIN },
+            {
+                type: USER_LOGIN_SUCCESS,
+                payload: {
+                    user: userData,
+                    version: systemData.version,
+                    buildTimestamp: systemData.buildTimestamp,
+                    alertMessage,
+                },
+            },
+        ]);
+    });
+
+    it('dispatches BEGIN + FAILURE on session expired', async () => {
+        global.fetch = vi.fn()
+            .mockResolvedValue({
+                ok: false,
+                status: 401,
+                json: () => Promise.resolve({}),
+            });
+
+        const store = mockStore({});
+        await store.dispatch(loadUserStatus());
+
+        const actions = store.getActions();
+        expect(actions[0]).toEqual({ type: USER_LOGIN_BEGIN });
+        expect(actions[1]).toEqual({ type: USER_LOGIN_FAILURE, payload: { error: undefined } });
     });
 });
