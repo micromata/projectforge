@@ -52,6 +52,7 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
     public RechnungEditPage(final RechnungDO data) {
         super(new PageParameters(), "fibu.rechnung");
         init(data);
+        addEInvoiceMenu();
         getData().recalculate(); // Muss immer gemacht werden, damit das Zahlungsziel in Tagen berechnet wird.
     }
 
@@ -90,7 +91,11 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
                 exportMenu.addSubMenuEntry(menu);
             }
         }
-        // E-Rechnung (XRechnung): button "Speichern und E-Rechnung" / "Anlegen und E-Rechnung"
+        addEInvoiceMenu();
+        getData().recalculate(); // Muss immer gemacht werden, damit das Zahlungsziel in Tagen berechnet wird.
+    }
+
+    private void addEInvoiceMenu() {
         if (WicketSupport.get(EInvoiceExportService.class).getSellerConfig().isConfigured()) {
             form.addEInvoiceModalDialog();
             final String buttonLabel = isNew() ? getString("fibu.rechnung.eInvoice.createAndOpen") : getString("fibu.rechnung.eInvoice.saveAndOpen");
@@ -116,7 +121,6 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
                 }, buttonLabel);
             addContentMenuEntry(eInvoiceMenu);
         }
-        getData().recalculate(); // Muss immer gemacht werden, damit das Zahlungsziel in Tagen berechnet wird.
     }
 
     @Override

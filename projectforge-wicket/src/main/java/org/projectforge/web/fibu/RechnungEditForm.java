@@ -400,6 +400,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
   @SuppressWarnings("serial")
   class EInvoiceModalDialog extends ModalDialog {
     private static final long serialVersionUID = 1L;
+    private org.apache.wicket.markup.html.form.upload.FileUploadField invoicePdfUploadField;
 
     EInvoiceModalDialog() {
       super(parentPage.newModalDialogId());
@@ -412,6 +413,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
     public void init() {
       setTitle(getString("fibu.kunde.eInvoice"));
       super.init(new Form<String>(getFormId()));
+      form.setMultiPart(true);
       // Download behavior for XRechnung export
       final org.apache.wicket.behavior.AbstractAjaxBehavior downloadBehavior = new org.apache.wicket.behavior.AbstractAjaxBehavior() {
         @Override
@@ -439,6 +441,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
         @Override
         public void callback(final AjaxRequestTarget target) {
           parentPage.getBaseDao().update(data);
+          processInvoicePdfUpload();
           final EInvoiceExportService service = WicketSupport.get(EInvoiceExportService.class);
           final java.util.List<String> errors = service.validate(data);
           if (!errors.isEmpty()) {
@@ -480,6 +483,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
         @Override
         public void callback(final AjaxRequestTarget target) {
           parentPage.getBaseDao().update(data);
+          processInvoicePdfUpload();
           final EInvoiceExportService service = WicketSupport.get(EInvoiceExportService.class);
           final java.util.List<String> errors = service.validate(data);
           if (!errors.isEmpty()) {
@@ -550,6 +554,43 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
         }
       }
       {
+        // Invoice PDF upload (used as base for ZUGFeRD instead of docx conversion)
+        if (data.getId() != null) {
+          final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.rechnung.invoicePdf"));
+          final EInvoiceExportService eInvoiceService = WicketSupport.get(EInvoiceExportService.class);
+          final org.projectforge.framework.jcr.Attachment existingPdf = eInvoiceService.getUploadedInvoicePdfInfo(data.getId());
+          final StringBuilder pdfHtml = new StringBuilder();
+          if (existingPdf != null) {
+            pdfHtml.append("<span>")
+                .append(org.apache.commons.text.StringEscapeUtils.escapeHtml4(existingPdf.getName()))
+                .append(" (").append(existingPdf.getSizeHumanReadable()).append(")")
+                .append("</span> ");
+          }
+          pdfHtml.append("<br/><small>").append(getString("fibu.rechnung.invoicePdf.hint")).append("</small>");
+          final org.projectforge.web.wicket.flowlayout.DivTextPanel pdfInfoPanel =
+              new org.projectforge.web.wicket.flowlayout.DivTextPanel(fs.newChildId(), pdfHtml.toString());
+          pdfInfoPanel.setEscapeModelStringsInLabel(false);
+          fs.add(pdfInfoPanel);
+          final org.apache.wicket.markup.html.form.upload.FileUploadField pdfUploadField =
+              new org.apache.wicket.markup.html.form.upload.FileUploadField(org.projectforge.web.wicket.flowlayout.FileUploadPanel.WICKET_ID);
+          fs.add(new org.projectforge.web.wicket.flowlayout.FileUploadPanel(fs.newChildId(), pdfUploadField));
+          if (existingPdf != null) {
+            appendNewAjaxActionButton(new de.micromata.wicket.ajax.AjaxFormSubmitCallback() {
+              @Override
+              public void callback(final AjaxRequestTarget target) {
+                eInvoiceService.deleteUploadedInvoicePdf(data.getId());
+                throw new org.apache.wicket.RestartResponseException(new RechnungEditPage(data));
+              }
+              @Override
+              public void onError(final AjaxRequestTarget target, final org.apache.wicket.markup.html.form.Form<?> form) {
+                target.add(formFeedback);
+              }
+            }, getString("delete"), SingleButtonPanel.DANGER);
+          }
+          this.invoicePdfUploadField = pdfUploadField;
+        }
+      }
+      {
         // Show attachments that will be embedded in the e-invoice
         if (data.getId() != null) {
           final org.projectforge.rest.fibu.RechnungPagesRest rechnungPagesRest = WicketSupport.get(org.projectforge.rest.fibu.RechnungPagesRest.class);
@@ -560,18 +601,37 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
               rechnungPagesRest.getAttachmentsAccessChecker()
           );
           if (attachments != null && !attachments.isEmpty()) {
-            final FieldsetPanel fs = gridBuilder.newFieldset(getString("attachments"));
-            final StringBuilder html = new StringBuilder();
-            html.append("<ul style=\"margin: 0; padding-left: 1.5em;\">");
-            for (org.projectforge.framework.jcr.Attachment att : attachments) {
-              html.append("<li>").append(org.apache.commons.text.StringEscapeUtils.escapeHtml4(att.getName()))
-                  .append(" <span style=\"color: #666;\">(").append(att.getSizeHumanReadable()).append(")</span></li>");
+            final java.util.List<org.projectforge.framework.jcr.Attachment> embeddableAttachments = attachments.stream()
+                .filter(att -> !EInvoiceExportService.INVOICE_PDF_MARKER.equals(att.getDescription()))
+                .collect(java.util.stream.Collectors.toList());
+            if (!embeddableAttachments.isEmpty()) {
+              final FieldsetPanel fs = gridBuilder.newFieldset(getString("attachments"));
+              final StringBuilder html = new StringBuilder();
+              html.append("<ul style=\"margin: 0; padding-left: 1.5em;\">");
+              for (org.projectforge.framework.jcr.Attachment att : embeddableAttachments) {
+                html.append("<li>").append(org.apache.commons.text.StringEscapeUtils.escapeHtml4(att.getName()))
+                    .append(" <span style=\"color: #666;\">(").append(att.getSizeHumanReadable()).append(")</span></li>");
+              }
+              html.append("</ul>");
+              final org.projectforge.web.wicket.flowlayout.DivTextPanel panel =
+                  new org.projectforge.web.wicket.flowlayout.DivTextPanel(fs.newChildId(), html.toString());
+              panel.setEscapeModelStringsInLabel(false);
+              fs.add(panel);
             }
-            html.append("</ul>");
-            final org.projectforge.web.wicket.flowlayout.DivTextPanel panel =
-                new org.projectforge.web.wicket.flowlayout.DivTextPanel(fs.newChildId(), html.toString());
-            panel.setEscapeModelStringsInLabel(false);
-            fs.add(panel);
+          }
+        }
+      }
+    }
+
+    private void processInvoicePdfUpload() {
+      if (invoicePdfUploadField != null) {
+        final org.apache.wicket.markup.html.form.upload.FileUpload upload = invoicePdfUploadField.getFileUpload();
+        if (upload != null) {
+          final String fileName = upload.getClientFileName();
+          log.info("Invoice PDF upload received: " + fileName + " (" + upload.getSize() + " bytes)");
+          if (fileName != null && fileName.toLowerCase().endsWith(".pdf")) {
+            final EInvoiceExportService eInvoiceService = WicketSupport.get(EInvoiceExportService.class);
+            eInvoiceService.uploadInvoicePdf(data.getId(), fileName, upload.getBytes());
           }
         }
       }
@@ -580,6 +640,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
     @Override
     protected boolean onCloseButtonSubmit(final AjaxRequestTarget target) {
       parentPage.getBaseDao().update(data);
+      processInvoicePdfUpload();
       throw new org.apache.wicket.RestartResponseException(new RechnungEditPage(data));
     }
   }

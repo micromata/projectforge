@@ -67,6 +67,7 @@ class EInvoiceExportService(
 ) {
     companion object {
         const val JCR_PATH = "org.projectforge.rechnung"
+        const val INVOICE_PDF_MARKER = "__INVOICE_PDF__"
     }
 
     fun exportAsXRechnung(invoice: RechnungDO): ByteArray {
@@ -95,8 +96,9 @@ class EInvoiceExportService(
             )
         }
 
-        val pdfBytes = generateInvoicePdf(invoice)
-            ?: throw IllegalStateException("Could not generate PDF for invoice #${invoice.nummer} (no template configured?)")
+        val pdfBytes = getUploadedInvoicePdf(invoice.id)
+            ?: generateInvoicePdf(invoice)
+            ?: throw IllegalStateException("Could not generate PDF for invoice #${invoice.nummer} (no template configured and no PDF uploaded)")
 
         val mustangInvoice = buildMustangInvoice(invoice)
 
@@ -117,6 +119,7 @@ class EInvoiceExportService(
     private fun embedAttachmentsInPdf(pdfBytes: ByteArray, invoice: RechnungDO): ByteArray {
         val invoiceId = invoice.id ?: return pdfBytes
         val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
+            .filter { it.description != INVOICE_PDF_MARKER }
         if (attachments.isEmpty()) return pdfBytes
 
         val doc = Loader.loadPDF(pdfBytes)
@@ -158,6 +161,55 @@ class EInvoiceExportService(
         } finally {
             doc.close()
         }
+    }
+
+    fun getUploadedInvoicePdf(invoiceId: Long?): ByteArray? {
+        invoiceId ?: return null
+        val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
+        val pdfAttachment = attachments.firstOrNull { it.description == INVOICE_PDF_MARKER } ?: return null
+        val fileId = pdfAttachment.fileId ?: return null
+        val nodePath = attachmentsService.getPath(JCR_PATH, invoiceId)
+        val fileObject = repoService.getFileInfo(nodePath, AttachmentsService.DEFAULT_NODE, fileId = fileId)
+            ?: return null
+        if (!repoService.retrieveFile(fileObject)) return null
+        log.info { "Using uploaded invoice PDF '${pdfAttachment.name}' for invoice id=$invoiceId" }
+        return fileObject.content
+    }
+
+    fun deleteUploadedInvoicePdf(invoiceId: Long) {
+        val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
+        val pdfAttachment = attachments.firstOrNull { it.description == INVOICE_PDF_MARKER } ?: return
+        val fileId = pdfAttachment.fileId ?: return
+        val nodePath = attachmentsService.getPath(JCR_PATH, invoiceId)
+        val fileObject = org.projectforge.jcr.FileObject(nodePath, AttachmentsService.DEFAULT_NODE, fileId = fileId)
+        repoService.deleteFile(fileObject)
+        log.info { "Deleted uploaded invoice PDF for invoice id=$invoiceId" }
+    }
+
+    fun uploadInvoicePdf(invoiceId: Long, fileName: String, pdfContent: ByteArray) {
+        deleteUploadedInvoicePdf(invoiceId)
+        val nodePath = attachmentsService.getPath(JCR_PATH, invoiceId)
+        repoService.ensureNode(null, nodePath)
+        val fileInfo = org.projectforge.jcr.FileInfo(fileName = fileName, description = INVOICE_PDF_MARKER)
+        val fileObject = org.projectforge.jcr.FileObject(nodePath, AttachmentsService.DEFAULT_NODE, fileInfo = fileInfo)
+        fileObject.content = pdfContent
+        repoService.storeFile(fileObject, InternalFileSizeChecker)
+        log.info { "Uploaded invoice PDF '$fileName' (${pdfContent.size} bytes) for invoice id=$invoiceId" }
+    }
+
+    private object InternalFileSizeChecker : org.projectforge.jcr.FileSizeChecker {
+        override val maxFileSize: Long = 50 * 1024 * 1024 // 50 MB
+        override fun checkSize(file: org.projectforge.jcr.FileInfo, data: Any?, displayUserMessage: Boolean) {
+            if ((file.size ?: 0) > maxFileSize) {
+                throw IllegalStateException("Invoice PDF too large (max 50 MB)")
+            }
+        }
+    }
+
+    fun getUploadedInvoicePdfInfo(invoiceId: Long?): org.projectforge.framework.jcr.Attachment? {
+        invoiceId ?: return null
+        val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
+        return attachments.firstOrNull { it.description == INVOICE_PDF_MARKER }
     }
 
     private fun generateInvoicePdf(invoice: RechnungDO): ByteArray? {
@@ -284,6 +336,7 @@ class EInvoiceExportService(
     private fun embedAttachments(mustangInvoice: Invoice, invoice: RechnungDO) {
         val invoiceId = invoice.id ?: return
         val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
+            .filter { it.description != INVOICE_PDF_MARKER }
         attachments.forEach { attachment ->
             val fileId = attachment.fileId ?: return@forEach
             val nodePath = attachmentsService.getPath(JCR_PATH, invoiceId)
