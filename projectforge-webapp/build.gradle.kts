@@ -44,30 +44,27 @@ tasks {
 
     register<com.github.gradle.node.npm.task.NpmTask>("npmBuild") {
         group = "build"
-        description = "Builds the React project"
+        description = "Builds the React project with Vite"
         args.set(listOf("run", "build"))
         dependsOn("npmInstall")
 
-        inputs.files(fileTree("src")) // All source files as input
-        outputs.dir("build") // React output directory as output
+        inputs.files(fileTree("src"))
+        inputs.file("index.html")
+        inputs.file("vite.config.ts")
+        outputs.dir("dist")
     }
 
     register<Copy>("copyReactBuild") {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         group = "build"
         description = "Copies built React files to the target directory"
-        dependsOn("npmBuild") // Depends on the React build process
-        from(file("build")) {
-            // Exclude the target directory to prevent recursion
+        dependsOn("npmBuild")
+        from(file("dist")) {
             exclude("resources/main/static/**")
         }
-        from(file("src")) {
-            include("index.html")
-        }
-        into(layout.buildDirectory.dir("resources/main/static")) // Target directory in the Gradle project
-        // Skip task if target directory is up-to-date
-        inputs.dir("build") // React build directory as input
-        outputs.dir(layout.buildDirectory.dir("resources/main/static")) // Static resources directory as output
+        into(layout.buildDirectory.dir("resources/main/static"))
+        inputs.dir("dist")
+        outputs.dir(layout.buildDirectory.dir("resources/main/static"))
     }
 
     register<Jar>("webAppJar") {
