@@ -557,36 +557,36 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
         // Invoice PDF upload (used as base for ZUGFeRD instead of docx conversion)
         if (data.getId() != null) {
           final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.rechnung.invoicePdf"));
-          final EInvoiceExportService eInvoiceService = WicketSupport.get(EInvoiceExportService.class);
-          final org.projectforge.framework.jcr.Attachment existingPdf = eInvoiceService.getUploadedInvoicePdfInfo(data.getId());
-          final StringBuilder pdfHtml = new StringBuilder();
+          final org.projectforge.framework.jcr.Attachment existingPdf =
+              WicketSupport.get(EInvoiceExportService.class).getUploadedInvoicePdfInfo(data.getId());
           if (existingPdf != null) {
-            pdfHtml.append("<span>")
-                .append(org.apache.commons.text.StringEscapeUtils.escapeHtml4(existingPdf.getName()))
-                .append(" (").append(existingPdf.getSizeHumanReadable()).append(")")
-                .append("</span> ");
-          }
-          pdfHtml.append("<br/><small>").append(getString("fibu.rechnung.invoicePdf.hint")).append("</small>");
-          final org.projectforge.web.wicket.flowlayout.DivTextPanel pdfInfoPanel =
-              new org.projectforge.web.wicket.flowlayout.DivTextPanel(fs.newChildId(), pdfHtml.toString());
-          pdfInfoPanel.setEscapeModelStringsInLabel(false);
-          fs.add(pdfInfoPanel);
-          final org.apache.wicket.markup.html.form.upload.FileUploadField pdfUploadField =
-              new org.apache.wicket.markup.html.form.upload.FileUploadField(org.projectforge.web.wicket.flowlayout.FileUploadPanel.WICKET_ID);
-          fs.add(new org.projectforge.web.wicket.flowlayout.FileUploadPanel(fs.newChildId(), pdfUploadField));
-          if (existingPdf != null) {
-            appendNewAjaxActionButton(new de.micromata.wicket.ajax.AjaxFormSubmitCallback() {
+            final org.projectforge.web.wicket.flowlayout.DivTextPanel filePanel =
+                new org.projectforge.web.wicket.flowlayout.DivTextPanel(fs.newChildId(),
+                    org.apache.commons.text.StringEscapeUtils.escapeHtml4(existingPdf.getName())
+                        + " (" + existingPdf.getSizeHumanReadable() + ")");
+            fs.add(filePanel);
+            final org.apache.wicket.ajax.markup.html.form.AjaxButton deleteBtn =
+                new org.apache.wicket.ajax.markup.html.form.AjaxButton(SingleButtonPanel.WICKET_ID, form) {
               @Override
-              public void callback(final AjaxRequestTarget target) {
-                eInvoiceService.deleteUploadedInvoicePdf(data.getId());
+              protected void onSubmit(AjaxRequestTarget target) {
+                WicketSupport.get(EInvoiceExportService.class).deleteUploadedInvoicePdf(data.getId());
                 throw new org.apache.wicket.RestartResponseException(new RechnungEditPage(data));
               }
-              @Override
-              public void onError(final AjaxRequestTarget target, final org.apache.wicket.markup.html.form.Form<?> form) {
-                target.add(formFeedback);
-              }
-            }, getString("delete"), SingleButtonPanel.DANGER);
+            };
+            deleteBtn.setDefaultFormProcessing(false);
+            fs.add(new SingleButtonPanel(fs.newChildId(), deleteBtn, getString("delete"), SingleButtonPanel.DANGER));
           }
+          final org.projectforge.web.wicket.flowlayout.DivTextPanel hintPanel =
+              new org.projectforge.web.wicket.flowlayout.DivTextPanel(fs.newChildId(),
+                  "<small>" + getString("fibu.rechnung.invoicePdf.hint") + "</small>");
+          hintPanel.setEscapeModelStringsInLabel(false);
+          fs.add(hintPanel);
+          final org.apache.wicket.markup.html.form.upload.FileUploadField pdfUploadField =
+              new org.apache.wicket.markup.html.form.upload.FileUploadField(org.projectforge.web.wicket.flowlayout.FileUploadPanel.WICKET_ID);
+          final org.projectforge.web.wicket.flowlayout.FileUploadPanel uploadPanel =
+              new org.projectforge.web.wicket.flowlayout.FileUploadPanel(fs.newChildId(), pdfUploadField);
+          uploadPanel.get("main:removeFileSelection").setVisible(false);
+          fs.add(uploadPanel);
           this.invoicePdfUploadField = pdfUploadField;
         }
       }

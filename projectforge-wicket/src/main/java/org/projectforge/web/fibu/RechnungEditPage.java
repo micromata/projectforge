@@ -52,6 +52,7 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
     public RechnungEditPage(final RechnungDO data) {
         super(new PageParameters(), "fibu.rechnung");
         init(data);
+        addExportMenu();
         addEInvoiceMenu();
         getData().recalculate(); // Muss immer gemacht werden, damit das Zahlungsziel in Tagen berechnet wird.
     }
@@ -65,34 +66,41 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
             getData().setStatus(RechnungStatus.GESTELLT);
             getData().setTyp(RechnungTyp.RECHNUNG);
         } else {
-            final ContentMenuEntryPanel exportMenu = new ContentMenuEntryPanel(getNewContentMenuChildId(), getString("fibu.rechnung.exportInvoice"));
-            addContentMenuEntry(exportMenu);
-            for (String variant : WicketSupport.get(InvoiceService.class).getTemplateVariants()) {
-                String variantTitle;
-                if (StringUtils.isNotBlank(variant)) {
-                    variantTitle = variant;
-                } else {
-                    variantTitle = getString("default");
-                }
-                String title = getString("fibu.rechnung.exportInvoice") + " (" + variantTitle.replace('_', ' ') + ")";
-                final ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(), new SubmitLink(
-                        ContentMenuEntryPanel.LINK_ID, form) {
-                    @Override
-                    public void onSubmit() {
-                        log.debug("Export invoice.");
-                        ByteArrayOutputStream baos = WicketSupport.get(InvoiceService.class).getInvoiceWordDocument(getData(), variant);
-                        if (baos != null) {
-                            String filename = WicketSupport.get(InvoiceService.class).getInvoiceFilename(getData());
-                            DownloadUtils.setDownloadTarget(baos.toByteArray(), filename);
-                        }
-                    }
-
-                }.setDefaultFormProcessing(false), title);
-                exportMenu.addSubMenuEntry(menu);
-            }
+            addExportMenu();
         }
         addEInvoiceMenu();
         getData().recalculate(); // Muss immer gemacht werden, damit das Zahlungsziel in Tagen berechnet wird.
+    }
+
+    private void addExportMenu() {
+        if (isNew()) {
+            return;
+        }
+        final ContentMenuEntryPanel exportMenu = new ContentMenuEntryPanel(getNewContentMenuChildId(), getString("fibu.rechnung.exportInvoice"));
+        addContentMenuEntry(exportMenu);
+        for (String variant : WicketSupport.get(InvoiceService.class).getTemplateVariants()) {
+            String variantTitle;
+            if (StringUtils.isNotBlank(variant)) {
+                variantTitle = variant;
+            } else {
+                variantTitle = getString("default");
+            }
+            String title = getString("fibu.rechnung.exportInvoice") + " (" + variantTitle.replace('_', ' ') + ")";
+            final ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(), new SubmitLink(
+                    ContentMenuEntryPanel.LINK_ID, form) {
+                @Override
+                public void onSubmit() {
+                    log.debug("Export invoice.");
+                    ByteArrayOutputStream baos = WicketSupport.get(InvoiceService.class).getInvoiceWordDocument(getData(), variant);
+                    if (baos != null) {
+                        String filename = WicketSupport.get(InvoiceService.class).getInvoiceFilename(getData());
+                        DownloadUtils.setDownloadTarget(baos.toByteArray(), filename);
+                    }
+                }
+
+            }.setDefaultFormProcessing(false), title);
+            exportMenu.addSubMenuEntry(menu);
+        }
     }
 
     private void addEInvoiceMenu() {

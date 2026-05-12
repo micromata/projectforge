@@ -25,6 +25,7 @@ package org.projectforge.rest.dto
 
 import org.projectforge.business.fibu.*
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.jcr.Attachment
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -54,7 +55,10 @@ class Rechnung(
     var konto: Konto? = null,
     var discountPercent: BigDecimal? = null,
     var discountMaturity: LocalDate? = null,
-) : BaseDTO<RechnungDO>(), IRechnung {
+    override var attachmentsCounter: Int? = null,
+    override var attachmentsSize: Long? = null,
+    override var attachments: List<Attachment>? = null,
+) : BaseDTO<RechnungDO>(), IRechnung, AttachmentsSupport {
     override var positionen: MutableList<RechnungsPosition>? = null
 
     var netSum: BigDecimal = BigDecimal.ZERO
