@@ -9,7 +9,6 @@ import './assets/style/projectforge.scss';
 import { createRoot } from 'react-dom/client';
 import ProjectForge from './containers/ProjectForge';
 import reducer from './reducers';
-import * as serviceWorker from './serviceWorker';
 import './utilities/global';
 import CustomRouter from './containers/CustomRouter';
 
@@ -28,8 +27,3 @@ createRoot(document.getElementById('root')).render(
         </CustomRouter>
     </Provider>,
 );
-
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: http://bit.ly/CRA-PWA
-serviceWorker.unregister();

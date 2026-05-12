@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "ES2020",
     "lib": [
       "dom",
       "dom.iterable",
@@ -13,21 +13,20 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
-    "module": "esnext",
-    "moduleResolution": "node",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "types": ["vite/client"]
   },
   "include": [
     "src/**/*.tsx",
     "src/**/*.ts",
     "src/**/*.d.ts",
     "src/**/*.js",
-    "src/**/*.jsx",
-    "src/**/*.scss",
-    "src/react-app-env.d.ts"
+    "src/**/*.jsx"
   ],
   "exclude": [
     "node_modules"
