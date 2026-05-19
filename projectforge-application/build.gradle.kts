@@ -92,6 +92,8 @@ dependencies {
     implementation("org.springframework.security:spring-security-config:$springSecurityVersion")
     implementation("org.springframework.security:spring-security-core:$springSecurityVersion")
     implementation("org.springframework.security:spring-security-crypto:$springSecurityVersion")
+    implementation("org.springframework.security:spring-security-oauth2-client:$springSecurityVersion")
+    implementation("org.springframework.security:spring-security-oauth2-jose:$springSecurityVersion")
     implementation("org.springframework.security:spring-security-web:$springSecurityVersion")
     implementation("org.springframework:spring-aop:$springVersion")
     implementation("org.springframework:spring-aspects:$springVersion")

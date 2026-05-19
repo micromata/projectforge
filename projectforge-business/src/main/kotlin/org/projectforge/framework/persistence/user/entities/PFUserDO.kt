@@ -57,6 +57,10 @@ import java.util.*
     NamedQuery(
         name = PFUserDO.FIND_OTHER_USER_BY_USERNAME,
         query = "from PFUserDO where username=:username and id<>:id"
+    ),
+    NamedQuery(
+        name = PFUserDO.FIND_BY_IDP_EXTERNAL_ID,
+        query = "from PFUserDO where idpExternalId=:idpExternalId"
     )
 )
 open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSupport {
@@ -437,6 +441,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
 
     companion object {
         const val FIND_BY_USERNAME = "PFUserDO_FindByUsername"
+        const val FIND_BY_IDP_EXTERNAL_ID = "PFUserDO_FindByIdpExternalId"
 
         /**
          * For detecting the existing of given username in the database for other user than given. Avoids duplicate usernames.

@@ -59,6 +59,9 @@ public class WebXMLInitializer implements ServletContextInitializer {
     @Value("${projectforge.security.csp-header-value:}") // defaults to empty string
     private String cspHeaderValue;
 
+    @Value("${projectforge.gateway.enabled:false}")
+    private boolean gatewayMode;
+
     private static final String PARAM_APP_BEAN = "applicationBean";
 
     @Autowired
@@ -78,29 +81,37 @@ public class WebXMLInitializer implements ServletContextInitializer {
             FilterRegistration.Dynamic corsPreflightFilter = sc.addFilter("CorsPreflightFilter", CorsPreflightFilter.class);
             corsPreflightFilter.addMappingForUrlPatterns(null, false, "/*");
         }
-        /*
-         * Redirect orphaned links from former versions of ProjectForge (e. g. if link in e-mails were changed due to migrations or refactoring.
-         */
-        sc.addFilter("redirectOrphanedLinks", new OrphanedLinkFilter()).addMappingForUrlPatterns(null, false, "/*");
 
         cardDavInit.init(sc);
 
-        boolean filterAfterInternal = false;
         RestUtils.registerFilter(sc, "loggingFilter", LoggingFilter.class, false, "/*");
-        RestUtils.registerFilter(sc, "UserFilter", WicketUserFilter.class, filterAfterInternal, "/wa/*");
-        RestUtils.registerFilter(sc, "springContext", SpringThreadLocalFilter.class, filterAfterInternal, "/wa/*");
 
-        final FilterRegistration wicketApp = RestUtils.registerFilter(sc, "wicket.app", WicketFilter.class, filterAfterInternal, "/wa/*");
-        wicketApp.setInitParameter(WicketFilter.APP_FACT_PARAM, SpringWebApplicationFactory.class.getName());
-        wicketApp.setInitParameter(PARAM_APP_BEAN, "wicketApplication");
-        wicketApp.setInitParameter(WicketFilter.FILTER_MAPPING_PARAM, "/wa/*");
+        if (gatewayMode) {
+            // Gateway mode: only CardDAV, ICS export, DataTransfer, and sync API
+            sc.addFilter("locale", new LocaleFilter()).addMappingForUrlPatterns(null, false,
+                    "/" + RestPaths.REST_PUBLIC + "/*");
+            RestUtils.registerFilter(sc, "calendarSubscriptionFilter", RestCalendarSubscriptionUserFilter.class, false, Rest.CALENDAR_EXPORT_BASE_URI);
+            log.info("Gateway mode active: Wicket and internal REST filters are disabled.");
+        } else {
+            // Normal mode: full application
+            sc.addFilter("redirectOrphanedLinks", new OrphanedLinkFilter()).addMappingForUrlPatterns(null, false, "/*");
 
-        sc.addFilter("locale", new LocaleFilter()).addMappingForUrlPatterns(null, false,
-                "/" + RestPaths.REST_PUBLIC + "/*"); // Needed for login service.
+            boolean filterAfterInternal = false;
+            RestUtils.registerFilter(sc, "UserFilter", WicketUserFilter.class, filterAfterInternal, "/wa/*");
+            RestUtils.registerFilter(sc, "springContext", SpringThreadLocalFilter.class, filterAfterInternal, "/wa/*");
 
-        RestUtils.registerFilter(sc, "restUserFilter", RestUserFilter.class, false,
-                "/" + RestPaths.REST + "/*");
-        RestUtils.registerFilter(sc, "calendarSubscriptionFilter", RestCalendarSubscriptionUserFilter.class, false, Rest.CALENDAR_EXPORT_BASE_URI);
+            final FilterRegistration wicketApp = RestUtils.registerFilter(sc, "wicket.app", WicketFilter.class, filterAfterInternal, "/wa/*");
+            wicketApp.setInitParameter(WicketFilter.APP_FACT_PARAM, SpringWebApplicationFactory.class.getName());
+            wicketApp.setInitParameter(PARAM_APP_BEAN, "wicketApplication");
+            wicketApp.setInitParameter(WicketFilter.FILTER_MAPPING_PARAM, "/wa/*");
+
+            sc.addFilter("locale", new LocaleFilter()).addMappingForUrlPatterns(null, false,
+                    "/" + RestPaths.REST_PUBLIC + "/*"); // Needed for login service.
+
+            RestUtils.registerFilter(sc, "restUserFilter", RestUserFilter.class, false,
+                    "/" + RestPaths.REST + "/*");
+            RestUtils.registerFilter(sc, "calendarSubscriptionFilter", RestCalendarSubscriptionUserFilter.class, false, Rest.CALENDAR_EXPORT_BASE_URI);
+        }
 
         final FilterRegistration expire = sc.addFilter("expire", ResponseHeaderFilter.class);
         expire.setInitParameter("Cache-Control", "public, max-age=7200");

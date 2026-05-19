@@ -225,6 +225,15 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         )
     }
 
+    fun getUserByIdpExternalId(idpExternalId: String?): PFUserDO? {
+        if (idpExternalId.isNullOrBlank()) return null
+        return persistenceService.selectNamedSingleResult(
+            PFUserDO.FIND_BY_IDP_EXTERNAL_ID,
+            PFUserDO::class.java,
+            Pair("idpExternalId", idpExternalId),
+        )
+    }
+
     /**
      * User can modify own setting, this method ensures that only such properties will be updated, the user's are allowed
      * to.

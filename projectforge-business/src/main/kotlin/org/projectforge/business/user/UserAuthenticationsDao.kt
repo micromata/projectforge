@@ -287,6 +287,18 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
     }
 
     /**
+     * Sets a token for a user without access checks. Used by gateway sync to replicate tokens.
+     * @param userId The user ID.
+     * @param type The token type (DAV_TOKEN, CALENDAR_REST, etc.)
+     * @param plainToken The decrypted/plain token value to store (will be encrypted).
+     */
+    open fun internalSetToken(userId: Long, type: UserTokenType, plainToken: String) {
+        val authentications = ensureAuthentications(userId, checkAccess = false)
+        authentications.setToken(type, encryptToken(plainToken), true)
+        update(authentications, checkAccess = false)
+    }
+
+    /**
      * Creates a new authenticator token for the logged-in user.
      * @see TimeBased2FA.standard
      * @see TimeBased2FA.generateSecretKey
