@@ -210,7 +210,6 @@ class ForecastOrderPosInfo(
     private fun distributeMonthlyValues(
         distributionStartDay: PFDay,
     ) {
-        val monthCount = distributionStartDay.monthsBetween(periodOfPerformanceEnd) + 1 // Jan-Jan -> 1, Jan-Feb -> 2, ...
         val firstMonth =
             if (ForecastUtils.getForecastType(orderInfo, orderPosInfo) == AuftragForecastType.CURRENT_MONTH) {
                 // Start distribution in the current month:
@@ -223,10 +222,13 @@ class ForecastOrderPosInfo(
         if (lastMonth < firstMonth) { // should not happen
             return
         }
-        val partlyNetSum = weightedNetSumWithoutPaymentSchedule.divide(
-            BigDecimal.valueOf(monthCount),
-            RoundingMode.HALF_UP
-        )
+        val effectiveStart = maxOf(firstMonth, baseMonth)
+        val remainingMonthCount = months.count { it.date >= effectiveStart }.toLong()
+        val partlyNetSum = if (remainingMonthCount > 0) {
+            toBeInvoicedSum.divide(BigDecimal.valueOf(remainingMonthCount), RoundingMode.HALF_UP)
+        } else {
+            toBeInvoicedSum
+        }
         futureInvoicesAmountRest = toBeInvoicedSum
         months.forEachIndexed { index, monthEntry ->
             val month = monthEntry.date

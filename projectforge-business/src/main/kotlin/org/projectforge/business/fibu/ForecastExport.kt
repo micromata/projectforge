@@ -704,6 +704,9 @@ open class ForecastExport { // open needed by Wicket.
             }
             sheet.setStringValue(row, ForecastCol.PAYMENT_SCHEDULE.header, str)
         }
+        order.statusBeschreibung?.let {
+            sheet.setStringValue(row, ForecastCol.STATUS_BESCHREIBUNG.header, it)
+        }
         forecastInfo.months.forEach { monthEntry ->
             val monthDate = monthEntry.date
             val offset = ctx.startDate.monthsBetween(monthDate).toInt()

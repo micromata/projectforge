@@ -82,6 +82,7 @@ class OrderInfo : Serializable {
     @JsonSerialize(using = IdOnlySerializer::class)
     var contactPerson: PFUserDO? = null
     var bemerkung: String? = null
+    var statusBeschreibung: String? = null
     var paymentScheduleEntries: Collection<PaymentScheduleInfo>? = null
 
     /**
@@ -131,6 +132,7 @@ class OrderInfo : Serializable {
         periodOfPerformanceEnd = order.periodOfPerformanceEnd
         contactPerson = order.contactPerson
         bemerkung = order.bemerkung.abbreviate(30)
+        statusBeschreibung = order.statusBeschreibung
         updatePaymentScheduleEntries(paymentSchedules)
     }
 

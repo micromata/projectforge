@@ -74,7 +74,7 @@ internal class ForecastExportContext(
         EINTRITTSWAHRSCHEINLICHKEIT("Eintrittswahrsch. in %"), ANSPRECHPARTNER("Ansprechpartner"),
         STRUKTUR_ELEMENT("Strukturelement"), BEMERKUNG("Bemerkung"), PROBABILITY_NETSUM("gewichtete Nettosumme"),
         ANZAHL_MONATE("Anzahl Monate"), FORECAST_TYPE("Forecasttyp"), PAYMENT_SCHEDULE("Zahlplan"),
-        REMAINING("Rest"), DIFFERENCE("Abweichung"), WARNING("Warnung"),
+        STATUS_BESCHREIBUNG("Beschreibung Status"), REMAINING("Rest"), DIFFERENCE("Abweichung"), WARNING("Warnung"),
         PROJECT_ID("ProjectID"), VISIBLE("visible"), VISIBLE_PROJECT_ID("visibleID")
     }
 
