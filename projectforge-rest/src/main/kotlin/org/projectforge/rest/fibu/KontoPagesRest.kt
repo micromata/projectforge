@@ -106,6 +106,10 @@ class KontoPagesRest
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "nummer", "status", "bezeichnung", "description")))
+                .add(UIRow()
+                        .add(UICol()
+                                .add(UILabel("fibu.konto.eInvoice"))
+                                .add(lc, "contactPerson", "street", "zipCode", "city", "country", "vatId", "leitwegId", "eInvoiceEmail", "sellerBankAccountName")))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

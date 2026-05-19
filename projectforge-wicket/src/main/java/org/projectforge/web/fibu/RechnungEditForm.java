@@ -181,7 +181,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
     }
     {
       // E-Invoice summary (read-only display of filled e-invoice fields)
-      final FieldsetPanel fs1 = gridBuilder.newFieldset(getString("fibu.kunde.eInvoice"));
+      final FieldsetPanel fs1 = gridBuilder.newFieldset(getString("fibu.konto.eInvoice"));
       eInvoiceSummaryLabel = new org.apache.wicket.markup.html.basic.Label(fs1.newChildId(),
           new org.apache.wicket.model.LoadableDetachableModel<String>() {
             @Override
@@ -199,22 +199,26 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
       fs1.add(eInvoiceSummaryLabel);
     }
     {
-      // Customer address fields (used for invoice export and e-invoice)
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.street"));
+      // Customer contact person and address fields (used for invoice export and e-invoice)
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto.contactPerson"));
+      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerContactPerson")));
+    }
+    {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto.street"));
       fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "customerAddress")));
     }
     {
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.zipCode"));
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto.zipCode"));
       final MaxLengthTextField zipField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerZipCode"));
       WicketUtils.setSize(zipField, 10);
       fs.add(zipField);
     }
     {
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.city"));
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto.city"));
       fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerCity")));
     }
     {
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.country"));
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto.country"));
       final MaxLengthTextField countryField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerCountry"));
       WicketUtils.setSize(countryField, 2);
       fs.add(countryField);
@@ -361,7 +365,8 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
   }
 
   private boolean hasEInvoiceData() {
-    return StringUtils.isNotBlank(data.getCustomerAddress())
+    return StringUtils.isNotBlank(data.getCustomerContactPerson())
+        || StringUtils.isNotBlank(data.getCustomerAddress())
         || StringUtils.isNotBlank(data.getCustomerZipCode())
         || StringUtils.isNotBlank(data.getCustomerCity())
         || StringUtils.isNotBlank(data.getCustomerVatId())
@@ -372,6 +377,9 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
 
   private String buildEInvoiceSummary() {
     final java.util.List<String> parts = new java.util.ArrayList<>();
+    if (StringUtils.isNotBlank(data.getCustomerContactPerson())) {
+      parts.add(getString("fibu.konto.contactPerson") + ": " + data.getCustomerContactPerson());
+    }
     final StringBuilder addr = new StringBuilder();
     if (StringUtils.isNotBlank(data.getCustomerAddress())) {
       addr.append(data.getCustomerAddress().trim().replace("\n", ", ").replaceAll("\\s*,\\s*", ", "));
@@ -386,9 +394,9 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
       addr.append(data.getCustomerCountry());
     }
     if (addr.length() > 0) parts.add(addr.toString());
-    if (StringUtils.isNotBlank(data.getCustomerVatId())) parts.add(getString("fibu.kunde.vatId") + ": " + data.getCustomerVatId());
-    if (StringUtils.isNotBlank(data.getCustomerLeitwegId())) parts.add(getString("fibu.kunde.leitwegId") + ": " + data.getCustomerLeitwegId());
-    if (StringUtils.isNotBlank(data.getCustomerEInvoiceEmail())) parts.add(getString("fibu.kunde.eInvoiceEmail") + ": " + data.getCustomerEInvoiceEmail());
+    if (StringUtils.isNotBlank(data.getCustomerVatId())) parts.add(getString("fibu.konto.vatId") + ": " + data.getCustomerVatId());
+    if (StringUtils.isNotBlank(data.getCustomerLeitwegId())) parts.add(getString("fibu.konto.leitwegId") + ": " + data.getCustomerLeitwegId());
+    if (StringUtils.isNotBlank(data.getCustomerEInvoiceEmail())) parts.add(getString("fibu.konto.eInvoiceEmail") + ": " + data.getCustomerEInvoiceEmail());
     if (StringUtils.isNotBlank(data.getSellerBankAccount())) {
       final EInvoiceSellerConfig cfg = WicketSupport.get(EInvoiceSellerConfig.class);
       final BankAccountConfig ba = cfg.findBankAccount(data.getSellerBankAccount());
@@ -411,7 +419,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
 
     @Override
     public void init() {
-      setTitle(getString("fibu.kunde.eInvoice"));
+      setTitle(getString("fibu.konto.eInvoice"));
       super.init(new Form<String>(getFormId()));
       form.setMultiPart(true);
       // Download behavior for XRechnung export
@@ -500,27 +508,31 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
       }, getString("fibu.rechnung.exportZUGFeRD"), SingleButtonPanel.NORMAL);
       gridBuilder.newGridPanel();
       {
-        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.street"));
+        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto.contactPerson"));
+        fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerContactPerson")));
+      }
+      {
+        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto.street"));
         fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "customerAddress")), true);
       }
       {
-        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.zipCode"));
+        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto.zipCode"));
         fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerZipCode")));
       }
       {
-        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.city"));
+        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto.city"));
         fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerCity")));
       }
       {
-        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.vatId"));
+        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto.vatId"));
         fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerVatId")));
       }
       {
-        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.leitwegId"));
+        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto.leitwegId"));
         fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerLeitwegId")));
       }
       {
-        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.eInvoiceEmail"));
+        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto.eInvoiceEmail"));
         fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerEInvoiceEmail")));
       }
       {

@@ -25,12 +25,16 @@ package org.projectforge.web.fibu;
 
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
+import org.projectforge.business.fibu.BankAccountConfig;
+import org.projectforge.business.fibu.EInvoiceSellerConfig;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KontoStatus;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
+import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.components.MinMaxNumberField;
 import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
@@ -90,6 +94,60 @@ public class KontoEditForm extends AbstractEditForm<KontoDO, KontoEditPage>
       // Description
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("description"));
       fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<String>(data, "description")));
+    }
+    // E-Invoice fields
+    gridBuilder.newGridPanel();
+    gridBuilder.newFormHeading(getString("fibu.konto.eInvoice"));
+    {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto.contactPerson"));
+      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "contactPerson")));
+    }
+    {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto.street"));
+      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "street")));
+    }
+    {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto.zipCode"));
+      final MaxLengthTextField zipField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "zipCode"));
+      WicketUtils.setSize(zipField, 10);
+      fs.add(zipField);
+    }
+    {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto.city"));
+      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "city")));
+    }
+    {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto.country"));
+      final MaxLengthTextField countryField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "country"));
+      WicketUtils.setSize(countryField, 2);
+      fs.add(countryField);
+    }
+    {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto.vatId"));
+      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "vatId")));
+    }
+    {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto.leitwegId"));
+      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "leitwegId")));
+      fs.addHelpIcon(getString("fibu.konto.leitwegId.tooltip"));
+    }
+    {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto.eInvoiceEmail"));
+      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "eInvoiceEmail")));
+    }
+    {
+      final EInvoiceSellerConfig sellerConfig = WicketSupport.get(EInvoiceSellerConfig.class);
+      if (!sellerConfig.getBankAccounts().isEmpty()) {
+        final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto.sellerBankAccountName"));
+        final java.util.List<String> nameChoices = new java.util.ArrayList<>();
+        for (BankAccountConfig account : sellerConfig.getBankAccounts()) {
+          nameChoices.add(account.getName());
+        }
+        final DropDownChoice<String> bankNameChoice = new DropDownChoice<>(fs.getDropDownChoiceId(),
+            new PropertyModel<>(data, "sellerBankAccountName"), nameChoices);
+        bankNameChoice.setNullValid(true);
+        fs.add(bankNameChoice);
+      }
     }
   }
 

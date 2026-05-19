@@ -237,26 +237,41 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
                 kunde = loaded;
             }
         }
-        if (StringUtils.isBlank(getData().getCustomerAddress())) {
-            getData().setCustomerAddress(kunde.getStreet());
-        }
-        if (StringUtils.isBlank(getData().getCustomerZipCode())) {
-            getData().setCustomerZipCode(kunde.getZipCode());
-        }
-        if (StringUtils.isBlank(getData().getCustomerCity())) {
-            getData().setCustomerCity(kunde.getCity());
-        }
-        if (StringUtils.isBlank(getData().getCustomerCountry())) {
-            getData().setCustomerCountry(kunde.getCountry());
-        }
-        if (StringUtils.isBlank(getData().getCustomerVatId())) {
-            getData().setCustomerVatId(kunde.getVatId());
-        }
-        if (StringUtils.isBlank(getData().getCustomerLeitwegId())) {
-            getData().setCustomerLeitwegId(kunde.getLeitwegId());
-        }
-        if (StringUtils.isBlank(getData().getCustomerEInvoiceEmail())) {
-            getData().setCustomerEInvoiceEmail(kunde.getEInvoiceEmail());
+        final KontoDO konto = kunde.getKonto();
+        if (konto != null) {
+            if (StringUtils.isBlank(getData().getCustomerContactPerson())) {
+                getData().setCustomerContactPerson(konto.getContactPerson());
+            }
+            if (StringUtils.isBlank(getData().getCustomerAddress())) {
+                getData().setCustomerAddress(konto.getStreet());
+            }
+            if (StringUtils.isBlank(getData().getCustomerZipCode())) {
+                getData().setCustomerZipCode(konto.getZipCode());
+            }
+            if (StringUtils.isBlank(getData().getCustomerCity())) {
+                getData().setCustomerCity(konto.getCity());
+            }
+            if (StringUtils.isBlank(getData().getCustomerCountry())) {
+                getData().setCustomerCountry(konto.getCountry());
+            }
+            if (StringUtils.isBlank(getData().getCustomerVatId())) {
+                getData().setCustomerVatId(konto.getVatId());
+            }
+            if (StringUtils.isBlank(getData().getCustomerLeitwegId())) {
+                getData().setCustomerLeitwegId(konto.getLeitwegId());
+            }
+            if (StringUtils.isBlank(getData().getCustomerEInvoiceEmail())) {
+                getData().setCustomerEInvoiceEmail(konto.getEInvoiceEmail());
+            }
+            if (StringUtils.isBlank(getData().getSellerBankAccount()) && konto.getSellerBankAccountName() != null) {
+                final EInvoiceSellerConfig sellerConfig = WicketSupport.get(EInvoiceSellerConfig.class);
+                for (BankAccountConfig account : sellerConfig.getBankAccounts()) {
+                    if (konto.getSellerBankAccountName().equals(account.getName())) {
+                        getData().setSellerBankAccount(account.getIban());
+                        break;
+                    }
+                }
+            }
         }
     }
 

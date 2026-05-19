@@ -65,9 +65,10 @@ class EInvoiceExportServiceTest {
     }
 
     private fun createTestInvoice(): RechnungDO {
-        val kunde = KundeDO().apply {
-            nummer = 1L
-            name = "Testkundin GmbH"
+        val konto = KontoDO().apply {
+            nummer = 10000
+            bezeichnung = "Testkundin"
+            contactPerson = "Max Mustermann"
             street = "Musterstraße 42"
             zipCode = "12345"
             city = "Berlin"
@@ -75,6 +76,11 @@ class EInvoiceExportServiceTest {
             vatId = "DE987654321"
             leitwegId = "04011000-1234512345-12"
             eInvoiceEmail = "rechnung@testkundin.de"
+        }
+        val kunde = KundeDO().apply {
+            nummer = 1L
+            name = "Testkundin GmbH"
+            this.konto = konto
         }
 
         val pos1 = RechnungsPositionDO().apply {
@@ -166,9 +172,13 @@ class EInvoiceExportServiceTest {
             kunde = KundeDO().apply {
                 nummer = 1L
                 name = "Test GmbH"
-                street = null
-                zipCode = null
-                city = null
+                konto = KontoDO().apply {
+                    nummer = 10001
+                    bezeichnung = "Test"
+                    street = null
+                    zipCode = null
+                    city = null
+                }
             }
         }
 

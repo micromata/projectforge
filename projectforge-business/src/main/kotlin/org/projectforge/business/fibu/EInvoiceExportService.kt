@@ -255,9 +255,10 @@ class EInvoiceExportService(
         if (customerName.isNullOrBlank()) {
             errors.add("Customer name is missing (no customer assigned and no customer text)")
         }
-        val street = invoice.customerAddress ?: kunde?.street
-        val zip = invoice.customerZipCode ?: kunde?.zipCode
-        val city = invoice.customerCity ?: kunde?.city
+        val konto = kunde?.konto
+        val street = invoice.customerAddress ?: konto?.street
+        val zip = invoice.customerZipCode ?: konto?.zipCode
+        val city = invoice.customerCity ?: konto?.city
         if (street.isNullOrBlank()) {
             errors.add("Customer address/street is missing")
         } else if (zip.isNullOrBlank() || city.isNullOrBlank()) {
@@ -265,7 +266,7 @@ class EInvoiceExportService(
                 errors.add("Customer address incomplete (zip and city required)")
             }
         }
-        val buyerEmail = invoice.customerEInvoiceEmail ?: kunde?.eInvoiceEmail
+        val buyerEmail = invoice.customerEInvoiceEmail ?: konto?.eInvoiceEmail
         if (buyerEmail.isNullOrBlank()) {
             log.warn { "Buyer electronic address (e-invoice email) is missing for invoice #${invoice.nummer} – PEPPOL validation may warn." }
         }
@@ -298,13 +299,13 @@ class EInvoiceExportService(
         mustangInvoice.setDetailedDeliveryPeriod(toDate(deliveryBegin), toDate(deliveryEnd))
 
         // Buyer reference: Leitweg-ID (BT-10, required for XRechnung to public sector)
-        val buyerReference = invoice.customerLeitwegId ?: invoice.kunde?.leitwegId ?: invoice.customerref1
+        val buyerReference = invoice.customerLeitwegId ?: invoice.kunde?.konto?.leitwegId ?: invoice.customerref1
         if (!buyerReference.isNullOrBlank()) {
             mustangInvoice.setReferenceNumber(buyerReference)
         }
 
         // Buyer order reference (BT-13)
-        if (!invoice.customerref1.isNullOrBlank() && invoice.kunde?.leitwegId != null) {
+        if (!invoice.customerref1.isNullOrBlank() && invoice.kunde?.konto?.leitwegId != null) {
             mustangInvoice.setBuyerOrderReferencedDocumentID(invoice.customerref1)
         }
 
@@ -389,10 +390,11 @@ class EInvoiceExportService(
 
     private fun buildBuyer(invoice: RechnungDO): TradeParty {
         val kunde = invoice.kunde
-        var street = invoice.customerAddress ?: kunde?.street ?: ""
-        var zip = invoice.customerZipCode ?: kunde?.zipCode ?: ""
-        var city = invoice.customerCity ?: kunde?.city ?: ""
-        val country = invoice.customerCountry ?: kunde?.country ?: "DE"
+        val konto = kunde?.konto
+        var street = invoice.customerAddress ?: konto?.street ?: ""
+        var zip = invoice.customerZipCode ?: konto?.zipCode ?: ""
+        var city = invoice.customerCity ?: konto?.city ?: ""
+        val country = invoice.customerCountry ?: konto?.country ?: "DE"
         if (zip.isBlank() && city.isBlank() && street.contains("\n")) {
             val lines = street.lines().map { it.trim() }.filter { it.isNotBlank() }
             if (lines.size >= 2) {
@@ -414,14 +416,18 @@ class EInvoiceExportService(
             city,
             country
         )
-        val vatId = invoice.customerVatId ?: kunde?.vatId
+        val vatId = invoice.customerVatId ?: konto?.vatId
         if (!vatId.isNullOrBlank()) {
             buyer.addVATID(vatId)
         }
-        val buyerEmail = invoice.customerEInvoiceEmail ?: kunde?.eInvoiceEmail
+        val buyerEmail = invoice.customerEInvoiceEmail ?: konto?.eInvoiceEmail
         if (!buyerEmail.isNullOrBlank()) {
             buyer.setEmail(buyerEmail)
             buyer.addUriUniversalCommunicationID(SchemedID("EM", buyerEmail))
+        }
+        val contactPerson = invoice.customerContactPerson ?: konto?.contactPerson
+        if (!contactPerson.isNullOrBlank()) {
+            buyer.setContact(Contact(contactPerson, null, buyerEmail))
         }
         return buyer
     }

@@ -102,36 +102,6 @@ open class KundeDO : AbstractHistorizableBaseDO<Long>(), DisplayNameCapable {
     @get:Column(length = 4000)
     open var description: String? = null
 
-    // E-Invoice fields (XRechnung/ZUGFeRD)
-
-    @PropertyInfo(i18nKey = "fibu.kunde.vatId")
-    @get:Column(name = "vat_id", length = 20)
-    open var vatId: String? = null
-
-    @PropertyInfo(i18nKey = "fibu.kunde.street")
-    @get:Column(length = 255)
-    open var street: String? = null
-
-    @PropertyInfo(i18nKey = "fibu.kunde.zipCode")
-    @get:Column(name = "zip_code", length = 10)
-    open var zipCode: String? = null
-
-    @PropertyInfo(i18nKey = "fibu.kunde.city")
-    @get:Column(length = 100)
-    open var city: String? = null
-
-    @PropertyInfo(i18nKey = "fibu.kunde.country")
-    @get:Column(length = 2)
-    open var country: String? = null
-
-    @PropertyInfo(i18nKey = "fibu.kunde.leitwegId")
-    @get:Column(name = "leitweg_id", length = 50)
-    open var leitwegId: String? = null
-
-    @PropertyInfo(i18nKey = "fibu.kunde.eInvoiceEmail")
-    @get:Column(name = "e_invoice_email", length = 255)
-    open var eInvoiceEmail: String? = null
-
     /**
      * This Datev account number is used for the exports of invoices. This account numbers may-be overwritten by the
      * ProjektDO which is assigned to an invoice.

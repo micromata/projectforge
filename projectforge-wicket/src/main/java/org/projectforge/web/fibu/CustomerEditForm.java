@@ -121,42 +121,6 @@ public class CustomerEditForm extends AbstractEditForm<KundeDO, CustomerEditPage
             fs.add(statusChoice);
         }
 
-        // E-Invoice fields
-        gridBuilder.newGridPanel();
-        gridBuilder.newFormHeading(getString("fibu.kunde.eInvoice"));
-        {
-            final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.street"));
-            fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "street")));
-        }
-        {
-            final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.zipCode"));
-            final MaxLengthTextField zipField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "zipCode"));
-            WicketUtils.setSize(zipField, 10);
-            fs.add(zipField);
-        }
-        {
-            final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.city"));
-            fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "city")));
-        }
-        {
-            final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.country"));
-            final MaxLengthTextField countryField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "country"));
-            WicketUtils.setSize(countryField, 2);
-            fs.add(countryField);
-        }
-        {
-            final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.vatId"));
-            fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "vatId")));
-        }
-        {
-            final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.leitwegId"));
-            fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "leitwegId")));
-            fs.addHelpIcon(getString("fibu.kunde.leitwegId.tooltip"));
-        }
-        {
-            final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.eInvoiceEmail"));
-            fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "eInvoiceEmail")));
-        }
     }
 
     @Override

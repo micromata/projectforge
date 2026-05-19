@@ -187,9 +187,17 @@ open class InvoiceService {
     private fun buildFullCustomerAddress(data: RechnungDO): String {
         val hasStructuredFields = !data.customerZipCode.isNullOrBlank() || !data.customerCity.isNullOrBlank()
         if (!hasStructuredFields) {
-            return data.customerAddress ?: ""
+            val prefix = data.customerContactPerson?.takeIf { it.isNotBlank() }
+            return if (prefix != null && !data.customerAddress.isNullOrBlank()) {
+                "$prefix\r\n${data.customerAddress}"
+            } else {
+                data.customerAddress ?: ""
+            }
         }
         val lines = mutableListOf<String>()
+        if (!data.customerContactPerson.isNullOrBlank()) {
+            lines.add(data.customerContactPerson!!)
+        }
         if (!data.customerAddress.isNullOrBlank()) {
             lines.add(data.customerAddress!!)
         }
