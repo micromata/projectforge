@@ -27,58 +27,47 @@ import jakarta.servlet.Filter
 import jakarta.servlet.FilterChain
 import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
+import org.projectforge.business.user.UserDao
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.api.UserContext
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.core.annotation.Order
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.stereotype.Component
 
 private val log = KotlinLogging.logger {}
 
+/**
+ * Sets up ThreadLocalUserContext from the OAuth2 session for authenticated requests.
+ * This ensures PF business logic has access to the logged-in user.
+ */
 @Component
-@Order(1)
+@Order(2)
 @ConditionalOnProperty(name = ["projectforge.gateway.enabled"], havingValue = "true")
-class GatewayEndpointFilter : Filter {
-
-    private val allowedPrefixes = listOf(
-        "/carddav/",
-        "/.well-known/carddav",
-        "/export/ProjectForge.ics",
-        "/rsPublic/datatransfer/",
-        "/rs/datatransfer/",
-        "/api/gateway/sync/",
-        "/login/oauth2/",
-        "/oauth2/",
-        "/logout",
-        "/rsPublic/login",
-        "/rsPublic/setup",
-    )
-
-    private val allowedExtensions = listOf(
-        ".css", ".js", ".png", ".jpg", ".gif", ".ico", ".svg", ".woff", ".woff2", ".ttf",
-    )
+class GatewaySessionFilter(
+    private val userDao: UserDao,
+) : Filter {
 
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
-        val httpRequest = request as HttpServletRequest
-        val path = httpRequest.requestURI
-
-        if (isAllowed(path)) {
+        try {
+            val authentication = SecurityContextHolder.getContext().authentication
+            if (authentication != null && authentication.isAuthenticated) {
+                val principal = authentication.principal
+                if (principal is OidcUser && ThreadLocalUserContext.loggedInUser == null) {
+                    val sub = principal.subject
+                    val username = principal.preferredUsername
+                    val pfUser = userDao.getUserByIdpExternalId(sub)
+                        ?: userDao.getInternalByName(username)
+                    if (pfUser != null) {
+                        ThreadLocalUserContext.userContext = UserContext(pfUser)
+                    }
+                }
+            }
             chain.doFilter(request, response)
-        } else {
-            log.debug { "Gateway mode: blocked request to $path" }
-            (response as HttpServletResponse).sendError(HttpServletResponse.SC_NOT_FOUND)
+        } finally {
+            ThreadLocalUserContext.clear()
         }
-    }
-
-    private fun isAllowed(path: String): Boolean {
-        if (path == "/" || path == "/favicon.ico") return true
-        for (prefix in allowedPrefixes) {
-            if (path.startsWith(prefix)) return true
-        }
-        for (ext in allowedExtensions) {
-            if (path.endsWith(ext)) return true
-        }
-        return false
     }
 }

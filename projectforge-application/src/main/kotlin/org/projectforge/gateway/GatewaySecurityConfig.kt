@@ -23,6 +23,7 @@
 
 package org.projectforge.gateway
 
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -34,6 +35,9 @@ import org.springframework.security.web.firewall.StrictHttpFirewall
 @Configuration
 @ConditionalOnProperty(name = ["projectforge.gateway.enabled"], havingValue = "true")
 open class GatewaySecurityConfig {
+
+    @Autowired
+    private lateinit var gatewayOAuth2UserService: GatewayOAuth2UserService
 
     @Bean
     @Throws(Exception::class)
@@ -56,7 +60,17 @@ open class GatewaySecurityConfig {
                     // Block everything else
                     .anyRequest().denyAll()
             }
-            .oauth2Login { }
+            .oauth2Login { oauth2 ->
+                oauth2.userInfoEndpoint { userInfo ->
+                    userInfo.oidcUserService(gatewayOAuth2UserService)
+                }
+                oauth2.defaultSuccessUrl("/rs/datatransfer", true)
+            }
+            .logout { logout ->
+                logout.logoutSuccessUrl("/")
+                logout.invalidateHttpSession(true)
+                logout.clearAuthentication(true)
+            }
             .csrf { csrf -> csrf.disable() }
 
         http.setSharedObject(HttpFirewall::class.java, firewall)
