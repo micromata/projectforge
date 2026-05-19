@@ -122,36 +122,23 @@ class GatewaySyncPushService(
 
         for (user in users) {
             try {
-                // Set user context to generate ICS as this user
                 ThreadLocalUserContext.userContext = UserContext(user)
                 val userId = user.id!!
+                val token = userAuthenticationsService.getToken(userId, UserTokenType.CALENDAR_REST) ?: continue
 
-                // Get all calendars accessible by this user
+                // Generate ICS for each accessible team calendar
                 val calendars = teamCalCache.allAccessibleCalendars
-                if (calendars.isNullOrEmpty()) continue
-
-                // Generate ICS for each calendar the user has access to
-                for (cal in calendars) {
+                for (cal in calendars.orEmpty()) {
                     val calId = cal.id ?: continue
-                    val params = "token=${userAuthenticationsService.getToken(userId, UserTokenType.CALENDAR_REST)}&calId=$calId"
-                    val encryptedQ = userAuthenticationsService.encrypt(userId, UserTokenType.CALENDAR_REST, params)
-                        ?: continue
-
-                    // Call the ICS export internally
-                    val response = calendarSubscriptionServiceRest.exportCalendar(
-                        createMockRequest(userId, encryptedQ)
-                    )
-                    if (response.statusCode.is2xxSuccessful && response.body != null) {
-                        val body = response.body
-                        val icsData = when (body) {
-                            is ByteArray -> String(body, Charsets.UTF_8)
-                            else -> body.toString()
-                        }
-                        if (icsData.isNotBlank()) {
-                            icsEntries.add(SyncIcsEntryDto(userId = userId, queryParam = encryptedQ, icsData = icsData))
-                        }
-                    }
+                    generateAndAddIcsEntry(userId, token, "calId=$calId", icsEntries)
                 }
+
+                // Generate Timesheets ICS for this user
+                generateAndAddIcsEntry(userId, token, "timesheetUser=$userId", icsEntries)
+
+                // Generate Holidays ICS (same for everyone, but cached per user+q)
+                generateAndAddIcsEntry(userId, token, "holidays=true", icsEntries)
+
             } catch (e: Exception) {
                 log.error(e) { "Error generating ICS for user '${user.username}'" }
             } finally {
@@ -165,8 +152,30 @@ class GatewaySyncPushService(
         log.info { "ICS push complete: ${icsEntries.size} entries" }
     }
 
-    private fun createMockRequest(userId: Long, q: String): jakarta.servlet.http.HttpServletRequest {
-        return MockIcsRequest(userId, q)
+    private fun generateAndAddIcsEntry(
+        userId: Long,
+        token: String,
+        additionalParams: String,
+        entries: MutableList<SyncIcsEntryDto>,
+    ) {
+        val params = "token=$token&$additionalParams"
+        val encryptedQ = userAuthenticationsService.encrypt(userId, UserTokenType.CALENDAR_REST, params) ?: return
+
+        try {
+            val response = calendarSubscriptionServiceRest.exportCalendar(MockIcsRequest(userId, encryptedQ))
+            if (response.statusCode.is2xxSuccessful && response.body != null) {
+                val body = response.body
+                val icsData = when (body) {
+                    is ByteArray -> String(body, Charsets.UTF_8)
+                    else -> body.toString()
+                }
+                if (icsData.isNotBlank()) {
+                    entries.add(SyncIcsEntryDto(userId = userId, queryParam = encryptedQ, icsData = icsData))
+                }
+            }
+        } catch (e: Exception) {
+            log.debug { "Failed to generate ICS for user $userId, params=$additionalParams: ${e.message}" }
+        }
     }
 
     fun pushAll() {
