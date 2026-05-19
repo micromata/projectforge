@@ -25,12 +25,19 @@ package org.projectforge.gateway.push
 
 import mu.KotlinLogging
 import org.projectforge.business.address.AddressDao
+import org.projectforge.business.teamcal.admin.TeamCalCache
+import org.projectforge.business.teamcal.service.CalendarFeedService
 import org.projectforge.business.user.UserAuthenticationsDao
+import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserTokenType
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.api.UserContext
+import org.projectforge.rest.pub.CalendarSubscriptionServiceRest
 import org.projectforge.gateway.sync.dto.SyncAddressDto
 import org.projectforge.gateway.sync.dto.SyncGroupDto
+import org.projectforge.gateway.sync.dto.SyncIcsEntryDto
 import org.projectforge.gateway.sync.dto.SyncUserDto
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
@@ -46,6 +53,9 @@ class GatewaySyncPushService(
     private val userGroupCache: UserGroupCache,
     private val addressDao: AddressDao,
     private val userAuthenticationsDao: UserAuthenticationsDao,
+    private val userAuthenticationsService: UserAuthenticationsService,
+    private val teamCalCache: TeamCalCache,
+    private val calendarSubscriptionServiceRest: CalendarSubscriptionServiceRest,
 ) {
     private val webClient: WebClient by lazy {
         WebClient.builder()
@@ -105,16 +115,65 @@ class GatewaySyncPushService(
         postSync("/addressbooks", dtos)
     }
 
-    fun pushCalendars() {
-        log.info { "Pushing calendars to gateway..." }
-        // TODO: Implement calendar push when requirements are defined
+    fun pushIcsData() {
+        log.info { "Pushing ICS calendar data to gateway..." }
+        val users = userDao.selectAll(checkAccess = false).filter { it.hasSystemAccess() }
+        val icsEntries = mutableListOf<SyncIcsEntryDto>()
+
+        for (user in users) {
+            try {
+                // Set user context to generate ICS as this user
+                ThreadLocalUserContext.userContext = UserContext(user)
+                val userId = user.id!!
+
+                // Get all calendars accessible by this user
+                val calendars = teamCalCache.allAccessibleCalendars
+                if (calendars.isNullOrEmpty()) continue
+
+                // Generate ICS for each calendar the user has access to
+                for (cal in calendars) {
+                    val calId = cal.id ?: continue
+                    val params = "token=${userAuthenticationsService.getToken(userId, UserTokenType.CALENDAR_REST)}&calId=$calId"
+                    val encryptedQ = userAuthenticationsService.encrypt(userId, UserTokenType.CALENDAR_REST, params)
+                        ?: continue
+
+                    // Call the ICS export internally
+                    val response = calendarSubscriptionServiceRest.exportCalendar(
+                        createMockRequest(userId, encryptedQ)
+                    )
+                    if (response.statusCode.is2xxSuccessful && response.body != null) {
+                        val body = response.body
+                        val icsData = when (body) {
+                            is ByteArray -> String(body, Charsets.UTF_8)
+                            else -> body.toString()
+                        }
+                        if (icsData.isNotBlank()) {
+                            icsEntries.add(SyncIcsEntryDto(userId = userId, queryParam = encryptedQ, icsData = icsData))
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                log.error(e) { "Error generating ICS for user '${user.username}'" }
+            } finally {
+                ThreadLocalUserContext.clear()
+            }
+        }
+
+        if (icsEntries.isNotEmpty()) {
+            postSync("/ics", icsEntries)
+        }
+        log.info { "ICS push complete: ${icsEntries.size} entries" }
+    }
+
+    private fun createMockRequest(userId: Long, q: String): jakarta.servlet.http.HttpServletRequest {
+        return MockIcsRequest(userId, q)
     }
 
     fun pushAll() {
         pushUsers()
         pushGroups()
         pushAddressBooks()
-        pushCalendars()
+        pushIcsData()
     }
 
     private fun postSync(path: String, body: Any) {

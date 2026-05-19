@@ -21,12 +21,33 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.gateway.sync.dto
+package org.projectforge.gateway.sync
 
-data class SyncCalendarDto(
-    val calendarId: Long,
-    val title: String,
-    val description: String? = null,
-    val ownerUsername: String? = null,
-    val icsData: String? = null,
-)
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.stereotype.Component
+import java.util.concurrent.ConcurrentHashMap
+
+/**
+ * In-memory cache for ICS calendar data pushed from the main instance.
+ * Key: "userId:queryParam", Value: ICS data as String.
+ */
+@Component
+@ConditionalOnProperty(name = ["projectforge.gateway.enabled"], havingValue = "true")
+class GatewayIcsCache {
+
+    private val cache = ConcurrentHashMap<String, String>()
+
+    fun put(userId: Long, queryParam: String, icsData: String) {
+        cache["$userId:$queryParam"] = icsData
+    }
+
+    fun get(userId: Long, queryParam: String): String? {
+        return cache["$userId:$queryParam"]
+    }
+
+    fun clear() {
+        cache.clear()
+    }
+
+    fun size(): Int = cache.size
+}

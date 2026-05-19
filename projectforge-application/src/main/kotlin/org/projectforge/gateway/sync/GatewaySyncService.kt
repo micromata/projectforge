@@ -34,8 +34,8 @@ import org.projectforge.business.user.UserTokenType
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.gateway.sync.dto.SyncAddressDto
-import org.projectforge.gateway.sync.dto.SyncCalendarDto
 import org.projectforge.gateway.sync.dto.SyncGroupDto
+import org.projectforge.gateway.sync.dto.SyncIcsEntryDto
 import org.projectforge.gateway.sync.dto.SyncUserDto
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
@@ -49,6 +49,7 @@ class GatewaySyncService(
     private val groupDao: GroupDao,
     private val addressDao: AddressDao,
     private val userAuthenticationsDao: UserAuthenticationsDao,
+    private val gatewayIcsCache: GatewayIcsCache,
 ) {
 
     fun syncUsers(users: List<SyncUserDto>): SyncResult {
@@ -170,13 +171,14 @@ class GatewaySyncService(
         return SyncResult(created = created, updated = updated, errors = errors)
     }
 
-    fun syncCalendars(calendars: List<SyncCalendarDto>): SyncResult {
-        // Calendar sync stores ICS data for the ICS subscription export.
-        // The actual calendar events are served by CalendarSubscriptionServiceRest
-        // which generates ICS on-the-fly from the database.
-        // TODO: Implement when calendar sync requirements are fully defined
-        log.info { "Calendar sync received: ${calendars.size} calendars (implementation pending)" }
-        return SyncResult(created = 0, updated = 0, errors = 0)
+    fun syncIcsEntries(entries: List<SyncIcsEntryDto>): SyncResult {
+        var updated = 0
+        for (entry in entries) {
+            gatewayIcsCache.put(entry.userId, entry.queryParam, entry.icsData)
+            updated++
+        }
+        log.info { "ICS cache sync complete: $updated entries updated" }
+        return SyncResult(created = 0, updated = updated, errors = 0)
     }
 
     data class SyncResult(

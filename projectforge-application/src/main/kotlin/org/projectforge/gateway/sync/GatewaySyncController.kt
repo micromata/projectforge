@@ -25,8 +25,8 @@ package org.projectforge.gateway.sync
 
 import mu.KotlinLogging
 import org.projectforge.gateway.sync.dto.SyncAddressDto
-import org.projectforge.gateway.sync.dto.SyncCalendarDto
 import org.projectforge.gateway.sync.dto.SyncGroupDto
+import org.projectforge.gateway.sync.dto.SyncIcsEntryDto
 import org.projectforge.gateway.sync.dto.SyncUserDto
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -83,16 +83,16 @@ class GatewaySyncController(
         return ResponseEntity.ok(result)
     }
 
-    @PostMapping("/calendars")
-    fun syncCalendars(
+    @PostMapping("/ics")
+    fun syncIcsEntries(
         @RequestHeader("X-Gateway-Secret") secret: String,
-        @RequestBody calendars: List<SyncCalendarDto>,
+        @RequestBody entries: List<SyncIcsEntryDto>,
     ): ResponseEntity<Any> {
         if (!authenticateSecret(secret)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         }
-        log.info { "Receiving sync: ${calendars.size} calendars" }
-        val result = gatewaySyncService.syncCalendars(calendars)
+        log.info { "Receiving sync: ${entries.size} ICS entries" }
+        val result = gatewaySyncService.syncIcsEntries(entries)
         return ResponseEntity.ok(result)
     }
 
