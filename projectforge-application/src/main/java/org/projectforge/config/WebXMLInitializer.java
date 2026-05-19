@@ -87,10 +87,10 @@ public class WebXMLInitializer implements ServletContextInitializer {
         RestUtils.registerFilter(sc, "loggingFilter", LoggingFilter.class, false, "/*");
 
         if (gatewayMode) {
-            // Gateway mode: only CardDAV, ICS export, DataTransfer, and sync API
+            // Gateway mode: only CardDAV, ICS export (via GatewayIcsExportController), DataTransfer, and sync API
             sc.addFilter("locale", new LocaleFilter()).addMappingForUrlPatterns(null, false,
                     "/" + RestPaths.REST_PUBLIC + "/*");
-            RestUtils.registerFilter(sc, "calendarSubscriptionFilter", RestCalendarSubscriptionUserFilter.class, false, Rest.CALENDAR_EXPORT_BASE_URI);
+            // No calendarSubscriptionFilter in gateway mode — GatewayIcsExportController handles ICS requests
             log.info("Gateway mode active: Wicket and internal REST filters are disabled.");
         } else {
             // Normal mode: full application
