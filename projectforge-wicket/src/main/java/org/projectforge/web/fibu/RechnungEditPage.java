@@ -112,15 +112,20 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
                     @Override
                     protected void onSubmit(org.apache.wicket.ajax.AjaxRequestTarget target) {
                         log.debug("Save/create and open E-Rechnung dialog.");
-                        prefillCustomerAddressFields();
-                        if (isNew()) {
-                            onSaveOrUpdate();
-                            getBaseDao().insert(getData());
-                        } else {
-                            getBaseDao().update(getData());
+                        try {
+                            prefillCustomerAddressFields();
+                            if (isNew()) {
+                                onSaveOrUpdate();
+                                getBaseDao().insert(getData());
+                            } else {
+                                getBaseDao().update(getData());
+                            }
+                            form.eInvoiceDialog.addContent(target);
+                            form.eInvoiceDialog.open(target);
+                        } catch (final org.projectforge.common.i18n.UserException ex) {
+                            form.error(translateParams(ex));
+                            target.add(form.getFeedbackPanel());
                         }
-                        form.eInvoiceDialog.addContent(target);
-                        form.eInvoiceDialog.open(target);
                     }
                     @Override
                     protected void onError(org.apache.wicket.ajax.AjaxRequestTarget target) {
