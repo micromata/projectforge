@@ -73,6 +73,9 @@ private val log = KotlinLogging.logger {}
  */
 @RestController
 @RequestMapping(Rest.CALENDAR_EXPORT_BASE_URI)
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+    name = ["projectforge.gateway.enabled"], havingValue = "false", matchIfMissing = true
+)
 class CalendarSubscriptionServiceRest {
     @Autowired
     private lateinit var timesheetDao: TimesheetDao
