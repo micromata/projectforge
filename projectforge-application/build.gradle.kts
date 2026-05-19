@@ -51,6 +51,8 @@ dependencies {
     implementation(project(":org.projectforge.plugins.todo"))
     testImplementation(project(":projectforge-commons-test"))
     testImplementation(libs.org.mockito.core)
+    testImplementation(libs.org.mockito.junit.jupiter)
+    testImplementation(libs.org.mockito.kotlin)
 
     // Kotlin jars for scripting, must be extracted in fat jar.
     kotlinCompilerDependencies.add("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
@@ -222,6 +224,11 @@ sourceSets {
 }
 
 val kotlinCompilerDependencyFiles = kotlinCompilerDependency.map { it.name }
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
 tasks.named("processResources") {
     dependsOn(":projectforge-webapp:npmBuild", ":projectforge-webapp:copyReactBuild")
 }

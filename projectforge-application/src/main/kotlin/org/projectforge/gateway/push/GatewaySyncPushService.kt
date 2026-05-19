@@ -130,7 +130,7 @@ class GatewaySyncPushService(
                 val calendars = teamCalCache.allAccessibleCalendars
                 for (cal in calendars.orEmpty()) {
                     val calId = cal.id ?: continue
-                    generateAndAddIcsEntry(userId, token, "calId=$calId", icsEntries)
+                    generateAndAddIcsEntry(userId, token, "teamCals=$calId", icsEntries)
                 }
 
                 // Generate Timesheets ICS for this user
