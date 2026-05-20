@@ -24,6 +24,8 @@
 package org.projectforge.business.fibu
 
 import mu.KotlinLogging
+import org.apache.pdfbox.Loader
+import org.apache.pdfbox.text.PDFTextStripper
 import org.mustangproject.FileAttachment
 import org.mustangproject.Invoice
 import org.mustangproject.TradeParty
@@ -91,11 +93,23 @@ class EInvoiceReadService {
             idx++
         }
 
-        val invoiceData = buildInvoiceData(invoice, importer).copy(
+        var invoiceData = buildInvoiceData(invoice, importer).copy(
             format = "ZUGFeRD",
             profile = profile,
             attachments = attachmentList,
         )
+
+        // Check if seller IBAN from XML is present in the PDF text
+        val sellerIban = invoiceData.seller?.iban
+        if (!sellerIban.isNullOrBlank()) {
+            val pdfText = extractPdfText(content)
+            if (pdfText != null && !pdfText.contains(sellerIban.replace(" ", ""))) {
+                invoiceData = invoiceData.copy(
+                    warnings = invoiceData.warnings +
+                        "Die IBAN des Verkäufers ($sellerIban) aus den XML-Daten konnte im PDF-Dokument nicht gefunden werden (bitte prüfen!)."
+                )
+            }
+        }
 
         return ParseResult(invoiceData, attachmentBytes)
     }
@@ -205,7 +219,50 @@ class EInvoiceReadService {
             amountDue = parseBigDecimal(safeGet { importer.amount }),
             lineItems = lineItems,
             validationErrors = validationErrors,
-        )
+        ).let { data ->
+            data.copy(validationErrors = data.validationErrors + validate(data))
+        }
+    }
+
+    private fun validate(data: EInvoiceData): List<String> {
+        val errors = mutableListOf<String>()
+        if (data.invoiceNumber.isNullOrBlank()) {
+            errors.add("[BT-1] Invoice number is missing.")
+        }
+        if (data.issueDate.isNullOrBlank()) {
+            errors.add("[BT-2] Invoice issue date is missing.")
+        }
+        if (data.documentTypeCode.isNullOrBlank()) {
+            errors.add("[BT-3] Invoice type code is missing.")
+        }
+        if (data.currency.isNullOrBlank()) {
+            errors.add("[BT-5] Invoice currency code is missing.")
+        }
+        if (data.seller?.name.isNullOrBlank()) {
+            errors.add("[BT-27] Seller name is missing.")
+        }
+        if (data.buyer?.name.isNullOrBlank()) {
+            errors.add("[BT-44] Buyer name is missing.")
+        }
+        if (data.buyerReference.isNullOrBlank()) {
+            errors.add("[BR-DE-15] Buyer reference (BT-10) is missing.")
+        }
+        if (data.seller?.city.isNullOrBlank()) {
+            errors.add("[BR-DE-3] Seller city (BT-37) is missing.")
+        }
+        if (data.seller?.zip.isNullOrBlank()) {
+            errors.add("[BR-DE-4] Seller post code (BT-38) is missing.")
+        }
+        if (data.buyer?.city.isNullOrBlank()) {
+            errors.add("[BR-DE-7] Buyer city (BT-52) is missing.")
+        }
+        if (data.buyer?.zip.isNullOrBlank()) {
+            errors.add("[BR-DE-8] Buyer post code (BT-53) is missing.")
+        }
+        if (data.lineItems.isEmpty()) {
+            errors.add("[BR-16] An invoice shall have at least one invoice line.")
+        }
+        return errors
     }
 
     private fun buildParty(party: TradeParty): EInvoiceParty {
@@ -258,6 +315,17 @@ class EInvoiceReadService {
         return try {
             BigDecimal(value)
         } catch (e: NumberFormatException) {
+            null
+        }
+    }
+
+    private fun extractPdfText(content: ByteArray): String? {
+        return try {
+            Loader.loadPDF(content).use { document ->
+                PDFTextStripper().getText(document).replace(" ", "")
+            }
+        } catch (e: Exception) {
+            log.warn("Failed to extract PDF text for IBAN check: ${e.message}")
             null
         }
     }

@@ -44,6 +44,7 @@ data class EInvoiceData(
     val lineItems: List<EInvoiceLineItem> = emptyList(),
     val attachments: List<EInvoiceAttachment> = emptyList(),
     val validationErrors: List<String> = emptyList(),
+    val warnings: List<String> = emptyList(),
     val format: String? = null,
     val profile: String? = null,
 )

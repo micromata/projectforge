@@ -189,11 +189,19 @@ class EInvoiceCheckerPageRest : AbstractDynamicPageRest() {
             )
         )
 
-        // Validation status
+        // Validation errors at the top
         if (data.validationErrors.isEmpty()) {
             layout.add(UIAlert("fibu.eInvoiceChecker.valid", color = UIColor.SUCCESS))
         } else {
             layout.add(UIAlert("fibu.eInvoiceChecker.invalid", color = UIColor.DANGER))
+            data.validationErrors.forEach { error ->
+                layout.add(UIAlert(message = error, color = UIColor.DANGER))
+            }
+        }
+
+        // Warnings
+        data.warnings.forEach { warning ->
+            layout.add(UIAlert(message = warning, color = UIColor.WARNING))
         }
 
         // Document metadata
@@ -235,10 +243,10 @@ class EInvoiceCheckerPageRest : AbstractDynamicPageRest() {
 
         // Amounts
         val amountsFieldset = UIFieldset(title = "fibu.eInvoiceChecker.amounts")
-        amountsFieldset.add(UIRow().add(UICol().add(UIReadOnlyField("totalNetAmount", label = "fibu.auftrag.nettoSumme"))))
-        amountsFieldset.add(UIRow().add(UICol().add(UIReadOnlyField("totalTaxAmount", label = "fibu.rechnung.mehrwertSteuerSatz"))))
-        amountsFieldset.add(UIRow().add(UICol().add(UIReadOnlyField("totalGrossAmount", label = "fibu.rechnung.bruttoBetrag"))))
-        amountsFieldset.add(UIRow().add(UICol().add(UIReadOnlyField("amountDue", label = "fibu.eInvoiceChecker.amountDue"))))
+        amountsFieldset.add(UIRow().add(UICol().add(UIReadOnlyField("totalNetAmount", label = "fibu.auftrag.nettoSumme", dataType = UIDataType.AMOUNT))))
+        amountsFieldset.add(UIRow().add(UICol().add(UIReadOnlyField("totalTaxAmount", label = "fibu.rechnung.mehrwertSteuerSatz", dataType = UIDataType.AMOUNT))))
+        amountsFieldset.add(UIRow().add(UICol().add(UIReadOnlyField("totalGrossAmount", label = "fibu.rechnung.bruttoBetrag", dataType = UIDataType.AMOUNT))))
+        amountsFieldset.add(UIRow().add(UICol().add(UIReadOnlyField("amountDue", label = "fibu.eInvoiceChecker.amountDue", dataType = UIDataType.AMOUNT))))
         layout.add(amountsFieldset)
 
         // Line items table
@@ -249,8 +257,8 @@ class EInvoiceCheckerPageRest : AbstractDynamicPageRest() {
                 .add(UITableColumn("description", title = "description"))
                 .add(UITableColumn("quantity", title = "fibu.rechnung.menge", dataType = UIDataType.DECIMAL))
                 .add(UITableColumn("unit", title = "fibu.eInvoiceChecker.unit"))
-                .add(UITableColumn("unitPrice", title = "fibu.rechnung.position.einzelNetto", dataType = UIDataType.DECIMAL))
-                .add(UITableColumn("netAmount", title = "fibu.auftrag.nettoSumme", dataType = UIDataType.DECIMAL))
+                .add(UITableColumn("unitPrice", title = "fibu.rechnung.position.einzelNetto", dataType = UIDataType.AMOUNT))
+                .add(UITableColumn("netAmount", title = "fibu.auftrag.nettoSumme", dataType = UIDataType.AMOUNT))
                 .add(UITableColumn("vatPercent", title = "fibu.rechnung.mehrwertSteuerSatz", dataType = UIDataType.DECIMAL))
             itemsFieldset.add(table)
             layout.add(itemsFieldset)
@@ -271,14 +279,6 @@ class EInvoiceCheckerPageRest : AbstractDynamicPageRest() {
             layout.add(attFieldset)
         }
 
-        // Validation errors
-        if (data.validationErrors.isNotEmpty()) {
-            val valFieldset = UIFieldset(title = "fibu.eInvoiceChecker.validation")
-            data.validationErrors.forEach { error ->
-                valFieldset.add(UIAlert(message = error, color = UIColor.DANGER))
-            }
-            layout.add(valFieldset)
-        }
 
         LayoutUtils.process(layout)
 
