@@ -273,7 +273,7 @@ class EInvoiceCheckerPageRest : AbstractDynamicPageRest() {
             )
                 .add(UITableColumn("filename", title = "attachment.fileName"))
                 .add(UITableColumn("mimeType", title = "fibu.eInvoiceChecker.mimeType"))
-                .add(UITableColumn("size", title = "attachment.fileSize", dataType = UIDataType.INT))
+                .add(UITableColumn("sizeFormatted", title = "attachment.fileSize"))
                 .add(UITableColumn("description", title = "description"))
             attFieldset.add(attTable)
             layout.add(attFieldset)

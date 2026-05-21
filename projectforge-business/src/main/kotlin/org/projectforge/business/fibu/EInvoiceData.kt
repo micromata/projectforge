@@ -79,5 +79,6 @@ data class EInvoiceAttachment(
     val mimeType: String? = null,
     val description: String? = null,
     val size: Int = 0,
+    val sizeFormatted: String? = null,
     val index: Int = 0,
 )

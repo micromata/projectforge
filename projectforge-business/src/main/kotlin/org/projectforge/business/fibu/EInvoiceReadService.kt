@@ -32,6 +32,7 @@ import org.mustangproject.TradeParty
 import org.mustangproject.ZUGFeRD.ZUGFeRDImporter
 import org.mustangproject.ZUGFeRD.ZUGFeRDInvoiceImporter
 import org.mustangproject.ZUGFeRD.XRechnungImporter
+import org.projectforge.framework.utils.NumberHelper
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 import java.math.BigDecimal
@@ -80,13 +81,15 @@ class EInvoiceReadService {
             val key = "${att.filename}:${att.data?.size}"
             if (!seen.add(key)) continue
             att.data?.let { attachmentBytes[idx] = it }
+            val attSize = att.data?.size ?: 0
             attachmentList.add(
                 EInvoiceAttachment(
                     id = idx + 1,
                     filename = att.filename ?: "attachment_$idx",
                     mimeType = att.mimetype,
                     description = att.description,
-                    size = att.data?.size ?: 0,
+                    size = attSize,
+                    sizeFormatted = NumberHelper.formatBytes(attSize),
                     index = idx,
                 )
             )
@@ -127,12 +130,14 @@ class EInvoiceReadService {
         val attachmentBytes = mutableMapOf<Int, ByteArray>()
         val attachmentList = xmlAttachments.mapIndexed { index, att ->
             att.data?.let { attachmentBytes[index] = it }
+            val attSize = att.data?.size ?: 0
             EInvoiceAttachment(
                 id = index + 1,
                 filename = att.filename ?: "attachment_$index",
                 mimeType = att.mimetype,
                 description = att.description,
-                size = att.data?.size ?: 0,
+                size = attSize,
+                sizeFormatted = NumberHelper.formatBytes(attSize),
                 index = index,
             )
         }

@@ -410,7 +410,7 @@ class EInvoiceExportService(
             }
         }
         val buyer = TradeParty(
-            kunde?.name ?: invoice.kundeText ?: "",
+            konto?.bezeichnung ?: kunde?.name ?: invoice.kundeText ?: "",
             street,
             zip,
             city,

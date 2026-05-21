@@ -67,7 +67,7 @@ class EInvoiceExportServiceTest {
     private fun createTestInvoice(): RechnungDO {
         val konto = KontoDO().apply {
             nummer = 10000
-            bezeichnung = "Testkundin"
+            bezeichnung = "Testkundin GmbH"
             contactPerson = "Max Mustermann"
             street = "Musterstraße 42"
             zipCode = "12345"
