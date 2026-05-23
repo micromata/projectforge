@@ -65,6 +65,7 @@ class AuftragsCacheService {
                     order.probabilityOfOccurrence = getInt(tuple, "probabilityOfOccurrence")
                     order.forecastType = tuple.get("forecastType", AuftragForecastType::class.java)
                     order.bemerkung = getString(tuple, "bemerkung")
+                    order.statusBeschreibung = getString(tuple, "statusBeschreibung")
                     order.periodOfPerformanceBegin = getLocalDate(tuple, "periodOfPerformanceBegin")
                     order.periodOfPerformanceEnd = getLocalDate(tuple, "periodOfPerformanceEnd")
                     order.kundeText = getString(tuple, "kundeText")
@@ -141,6 +142,7 @@ class AuftragsCacheService {
             SELECT a.id as id,a.deleted as deleted,a.created as created,a.titel as titel,a.status as status,
                    a.nummer as nummer,a.angebotsDatum as angebotsDatum,a.erfassungsDatum as erfassungsDatum,
                    a.entscheidungsDatum as entscheidungsDatum,a.bemerkung as bemerkung,
+                   a.statusBeschreibung as statusBeschreibung,
                    a.probabilityOfOccurrence as probabilityOfOccurrence,
                    a.forecastType as forecastType,
                    a.periodOfPerformanceBegin as periodOfPerformanceBegin, a.periodOfPerformanceEnd as periodOfPerformanceEnd,

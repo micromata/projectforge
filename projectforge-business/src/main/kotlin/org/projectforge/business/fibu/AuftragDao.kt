@@ -105,6 +105,10 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         userRightId = USER_RIGHT_ID
     }
 
+    override fun isAutocompletionPropertyEnabled(property: String?): Boolean {
+        return property == "kundeText"
+    }
+
     /**
      * Could not use injection by spring, because TaskTree is already injected in AuftragDao.
      *

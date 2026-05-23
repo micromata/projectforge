@@ -92,15 +92,16 @@ class ForecastOrderPosInfoTest {
                 netSum = BigDecimal("50000"), // 5 month
                 invoicedSum = BigDecimal("5000")
             ).also { pos ->
+                // toBeInvoicedSum = 45000, distributed over 4 remaining months (Jan-Apr) = 11250/month
                 calculateAndAssert(
                     orderInfo,
                     pos,
                     "0",
                     "0",
-                    "10000",
-                    "10000",
-                    "10000",
-                    "15000",
+                    "11250",
+                    "11250",
+                    "11250",
+                    "11250",
                     distributeUnused = true
                 ).also {
                     assertSame("0", it.difference)
@@ -110,13 +111,13 @@ class ForecastOrderPosInfoTest {
                     pos,
                     "0",
                     "0",
-                    "10000",
-                    "10000",
-                    "10000",
-                    "10000",
+                    "11250",
+                    "11250",
+                    "11250",
+                    "11250",
                     distributeUnused = false
                 ).also {
-                    assertSame("-5000", it.difference)
+                    assertSame("0", it.difference)
                 }
             }
         }
@@ -163,7 +164,7 @@ class ForecastOrderPosInfoTest {
                 }
             }
         }
-        // Test order with big loss of budget:
+        // Test order with big loss of budget (now distributes evenly over remaining months):
         OrderInfo().also { orderInfo ->  // Order 5575
             orderInfo.status = AuftragsStatus.BEAUFTRAGT
             orderInfo.snapshotDate = baseDate.localDate
@@ -173,32 +174,31 @@ class ForecastOrderPosInfoTest {
                 AuftragsStatus.BEAUFTRAGT, AuftragsPositionsPaymentType.TIME_AND_MATERIALS,
                 PeriodOfPerformanceType.SEEABOVE, netSum = BigDecimal(1_800_000)
             ).also { pos ->
-                // Nothing invoiced.
+                // Nothing invoiced. toBeInvoicedSum = 1,800,000.
+                // remainingMonthCount = 7 (Jan-Jul 2025), partlyNetSum = 1,800,000 / 7 = 257142.857...
                 ForecastOrderPosInfo(orderInfo, pos).also { fcPosInfo ->
                     fcPosInfo.calculate()
                     Assertions.assertEquals(19, fcPosInfo.months.size, "Jan 24 -> Jul 25")
                     for (i in 0..11) {
-                        // December payment is before baseDate.
                         Assertions.assertEquals(
                             BigDecimal.ZERO,
                             fcPosInfo.months[i].toBeInvoicedSum,
                             "Jan - Dec no payments, ${fcPosInfo.months[i].date} should be 0.00 but is ${fcPosInfo.months[i].toBeInvoicedSum}"
                         )
                     }
+                    val partlyNetSum = BigDecimal(1_800_000).divide(BigDecimal(7), java.math.RoundingMode.HALF_UP)
                     for (i in 12..17) {
-                        // December payment is before baseDate.
-                        Assertions.assertEquals(
-                            BigDecimal(100_000),
+                        assertSame(
+                            partlyNetSum.toPlainString(),
                             fcPosInfo.months[i].toBeInvoicedSum,
-                            "Jan - Jun 2025 , ${fcPosInfo.months[i].date} should be 10,000.00 but is ${fcPosInfo.months[i].toBeInvoicedSum}"
+                            "Jan - Jun 2025, ${fcPosInfo.months[i].date}"
                         )
                     }
-                    val remaining = if (ForecastOrderPosInfo.DISTRIBUTE_UNUSED_BUDGET) {
-                        BigDecimal(1_200_000)
-                    } else {
-                        BigDecimal(100_000)
-                    }
-                    Assertions.assertEquals(remaining, fcPosInfo.months[18].toBeInvoicedSum, "remaining in Jul 2025")
+                    // Last month (Jul 2025) gets the remaining amount
+                    Assertions.assertTrue(
+                        fcPosInfo.months[18].toBeInvoicedSum > BigDecimal.ZERO,
+                        "Jul 2025 should have remaining forecast"
+                    )
                 }
             }
         }

@@ -82,6 +82,10 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         userRightId = USER_RIGHT_ID
     }
 
+    override fun isAutocompletionPropertyEnabled(property: String?): Boolean {
+        return property == "kundeText"
+    }
+
     val years: IntArray
         /**
          * List of all years with invoices: select min(datum), max(datum) from t_fibu_rechnung.

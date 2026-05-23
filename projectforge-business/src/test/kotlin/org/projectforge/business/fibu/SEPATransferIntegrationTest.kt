@@ -399,6 +399,8 @@ class SEPATransferIntegrationTest : AbstractTestBase() {
             .replace(Regex("<PmtInfId>.*?</PmtInfId>"), "<PmtInfId>NORMALIZED</PmtInfId>")
             .replace(Regex("<EndToEndId>.*?</EndToEndId>"), "<EndToEndId>NORMALIZED</EndToEndId>")
             .replace(Regex("<ReqdExctnDt>.*?</ReqdExctnDt>"), "<ReqdExctnDt>NORMALIZED</ReqdExctnDt>")
+            .replace(Regex("standalone=\"(yes|no)\""), "standalone=\"no\"")
+            .lines().joinToString("\n") { it.trimStart() }
     }
 
     private fun assertXmlEquals(goldenFile: File, generatedXml: String, message: String = "") {

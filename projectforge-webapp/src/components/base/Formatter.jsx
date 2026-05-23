@@ -125,6 +125,7 @@ const mapStateToProps = ({ authentication }) => ({
     dateFormat: authentication.user.jsDateFormat,
     timestampFormatSeconds: authentication.user.jsTimestampFormatSeconds,
     timestampFormatMinutes: authentication.user.jsTimestampFormatMinutes,
+    locale: authentication.user.locale,
 });
 
 export default connect(mapStateToProps)(Formatter);

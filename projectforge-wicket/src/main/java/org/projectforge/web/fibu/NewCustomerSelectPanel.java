@@ -43,6 +43,7 @@ import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractForm;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WebConstants;
+import org.projectforge.web.wicket.autocompletion.PFAutoCompleteMaxLengthTextField;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.components.FavoritesChoicePanel;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
@@ -190,7 +191,12 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
     public NewCustomerSelectPanel init() {
         super.init();
         if (kundeText != null) {
-            kundeTextField = new MaxLengthTextField("kundeText", kundeText) {
+            kundeTextField = new PFAutoCompleteMaxLengthTextField("kundeText", kundeText) {
+                @Override
+                protected List<String> getChoices(final String input) {
+                    return WicketSupport.get(RechnungDao.class).getAutocompletion("kundeText", input);
+                }
+
                 @Override
                 public boolean isVisible() {
                     return (NewCustomerSelectPanel.this.getModelObject() == null
@@ -198,6 +204,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
                             .getModelObject().getNummer()) == false);
                 }
             };
+            ((PFAutoCompleteMaxLengthTextField) kundeTextField).withMatchContains(true).withMinChars(2);
             kundeTextField.add(AttributeModifier.append("placeholder", I18nHelper.getLocalizedMessage("fibu.kunde.text")));
             add(kundeTextField);
         } else {

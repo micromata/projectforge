@@ -378,6 +378,10 @@ open class MenuCreator {
                 badgeCounter =
                 { auftragsCache.getToBeInvoicedCounter() })
         )
+        fibuMenu.add(
+            MenuItemDef(MenuItemDefId.E_INVOICE_CHECKER,
+                checkAccess = { isInGroup(*FIBU_ORGA_GROUPS) })
+        )
 
         //////////////////////////////////////
         //

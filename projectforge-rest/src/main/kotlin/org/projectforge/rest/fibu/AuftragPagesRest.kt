@@ -255,7 +255,8 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
           )
           .add(
             UICol()
-              .add(lc, "kunde", "kundeText")
+              .add(lc, "kunde")
+              .add(UIInput("kundeText", lc).enableAutoCompletion(this))
           )
       )
       .add(
