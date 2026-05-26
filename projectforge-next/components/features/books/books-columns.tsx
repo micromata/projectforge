@@ -8,7 +8,7 @@ import type { Book } from "./types";
 export const booksColumns: ColumnDef<Book>[] = [
   {
     accessorKey: "angelegt",
-    size: 100,
+    size: 84,
     header: ({ column }) => (
       <DataTableColumnHeader column={column}>Angelegt</DataTableColumnHeader>
     ),
@@ -18,7 +18,7 @@ export const booksColumns: ColumnDef<Book>[] = [
   },
   {
     accessorKey: "jahr",
-    size: 70,
+    size: 56,
     header: ({ column }) => (
       <DataTableColumnHeader column={column}>Jahr</DataTableColumnHeader>
     ),
@@ -28,7 +28,7 @@ export const booksColumns: ColumnDef<Book>[] = [
   },
   {
     accessorKey: "sig",
-    size: 90,
+    size: 76,
     header: ({ column }) => (
       <DataTableColumnHeader column={column}>Signatur</DataTableColumnHeader>
     ),
@@ -40,7 +40,7 @@ export const booksColumns: ColumnDef<Book>[] = [
   },
   {
     accessorKey: "autor",
-    size: 170,
+    size: 140,
     header: ({ column }) => (
       <DataTableColumnHeader column={column}>Autor:innen</DataTableColumnHeader>
     ),
@@ -50,7 +50,7 @@ export const booksColumns: ColumnDef<Book>[] = [
   },
   {
     accessorKey: "titel",
-    minSize: 240,
+    minSize: 200,
     header: ({ column }) => (
       <DataTableColumnHeader column={column}>Titel</DataTableColumnHeader>
     ),
@@ -65,7 +65,7 @@ export const booksColumns: ColumnDef<Book>[] = [
   },
   {
     accessorKey: "key",
-    size: 160,
+    size: 132,
     header: ({ column }) => (
       <DataTableColumnHeader column={column}>
         Schlüsselworte
@@ -77,7 +77,7 @@ export const booksColumns: ColumnDef<Book>[] = [
   },
   {
     accessorKey: "ausgelBy",
-    size: 170,
+    size: 140,
     header: ({ column }) => (
       <DataTableColumnHeader column={column}>
         Ausgeliehen von
@@ -86,7 +86,7 @@ export const booksColumns: ColumnDef<Book>[] = [
     cell: ({ row }) =>
       row.original.avail ? (
         <span
-          className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap"
+          className="inline-flex items-center rounded-full border px-2 py-0 text-[10px] font-semibold whitespace-nowrap"
           style={{
             background: "var(--status-available-bg)",
             color: "var(--status-available)",
@@ -97,7 +97,7 @@ export const booksColumns: ColumnDef<Book>[] = [
         </span>
       ) : (
         <span
-          className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap"
+          className="inline-flex items-center rounded-full border px-2 py-0 text-[10px] font-semibold whitespace-nowrap"
           style={{
             background: "var(--status-loaned-bg)",
             color: "var(--status-loaned)",

@@ -124,7 +124,7 @@ export function DataTable<TData>({
         {isFetching && !showSkeleton && (
           <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-0.5 animate-pulse bg-primary/40" />
         )}
-        <Table className="text-sm">
+        <Table className="text-xs [&_td]:px-2 [&_td]:py-1 [&_th]:h-7 [&_th]:px-2">
           <TableHeader className="bg-muted/40">
             {table.getHeaderGroups().map((hg) => (
               <TableRow key={hg.id}>
@@ -137,6 +137,7 @@ export function DataTable<TData>({
                       maxWidth: header.column.columnDef.maxSize,
                     }}
                     className={cn(
+                      "text-[10px]",
                       header.column.getIsSorted() && "bg-primary/10"
                     )}
                   >
@@ -148,7 +149,7 @@ export function DataTable<TData>({
                         )}
                   </TableHead>
                 ))}
-                {rowActions && <TableHead style={{ width: 96 }} />}
+                {rowActions && <TableHead style={{ width: 80 }} />}
               </TableRow>
             ))}
           </TableHeader>
