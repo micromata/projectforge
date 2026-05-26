@@ -10,6 +10,20 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
+  --color-brand-teal: var(--brand-teal);
+  --color-brand-teal-dark: var(--brand-teal-dark);
+  --color-brand-pink: var(--brand-pink);
+  --color-brand-pink-dark: var(--brand-pink-dark);
+  --color-brand-yellow: var(--brand-yellow);
+  --color-brand-yellow-dark: var(--brand-yellow-dark);
+  --color-brand-green: var(--brand-green);
+  --color-brand-green-dark: var(--brand-green-dark);
+  --color-status-loaned: var(--status-loaned);
+  --color-status-loaned-bg: var(--status-loaned-bg);
+  --color-status-loaned-border: var(--status-loaned-border);
+  --color-status-available: var(--status-available);
+  --color-status-available-bg: var(--status-available-bg);
+  --color-status-available-border: var(--status-available-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,14 +63,32 @@
 }
 
 :root {
+  /* Micromata brand palette */
+  --brand-teal: #009ba3;
+  --brand-teal-dark: #007480;
+  --brand-pink: #e10057;
+  --brand-pink-dark: #a70836;
+  --brand-yellow: #ffcb00;
+  --brand-yellow-dark: #ff9d01;
+  --brand-green: #75be01;
+  --brand-green-dark: #32912e;
+
+  /* Status tokens (book availability) */
+  --status-loaned: var(--brand-pink);
+  --status-loaned-bg: rgba(225, 0, 87, 0.09);
+  --status-loaned-border: rgba(225, 0, 87, 0.25);
+  --status-available: var(--brand-green);
+  --status-available-bg: rgba(117, 190, 1, 0.1);
+  --status-available-border: rgba(117, 190, 1, 0.3);
+
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  --primary: var(--brand-teal);
+  --primary-foreground: #ffffff;
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -66,21 +98,23 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --ring: var(--brand-teal);
+  --chart-1: var(--brand-teal);
+  --chart-2: var(--brand-pink);
+  --chart-3: var(--brand-yellow);
+  --chart-4: var(--brand-green);
+  --chart-5: var(--brand-teal-dark);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  /* Sidebar — light variant */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #374151;
+  --sidebar-primary: var(--brand-teal);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(0, 155, 163, 0.1);
+  --sidebar-accent-foreground: var(--brand-teal);
+  --sidebar-border: #eef0f4;
+  --sidebar-ring: var(--brand-teal);
 }
 
 .dark {
