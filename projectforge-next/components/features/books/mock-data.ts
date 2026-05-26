@@ -1,6 +1,6 @@
 import type { Book } from "./types";
 
-export const BOOKS: Book[] = [
+const SEED: Book[] = [
   {
     id: 1,
     angelegt: "27.02.2012",
@@ -134,3 +134,45 @@ export const BOOKS: Book[] = [
     avail: true,
   },
 ];
+
+const BORROWERS = [
+  "Fink, Laura",
+  "Weber, Max",
+  "Frank, Anna",
+  "Müller, Hans",
+  "Richter, Klaus",
+  "Braun, Eva",
+  "Schmidt, Karl",
+  "Becker, Maria",
+  "Hoffmann, Jens",
+  "Wagner, Petra",
+];
+
+function pad2(n: number) {
+  return n.toString().padStart(2, "0");
+}
+
+function generated(): Book[] {
+  const out: Book[] = [];
+  for (let i = SEED.length + 1; i <= 234; i++) {
+    const seed = SEED[i % SEED.length];
+    const day = ((i * 7) % 28) + 1;
+    const month = ((i * 3) % 12) + 1;
+    const year = 2008 + ((i * 5) % 16);
+    const avail = i % 3 === 0;
+    out.push({
+      id: i,
+      angelegt: `${pad2(day)}.${pad2(month)}.${year}`,
+      jahr: String(2005 + ((i * 11) % 19)),
+      sig: `${seed.sig.split("-")[0]}-${100 + i}`,
+      autor: seed.autor,
+      titel: `${seed.titel} (Band ${1 + (i % 9)})`,
+      key: seed.key,
+      ausgelBy: avail ? "—" : BORROWERS[i % BORROWERS.length],
+      avail,
+    });
+  }
+  return out;
+}
+
+export const BOOKS: Book[] = [...SEED, ...generated()];

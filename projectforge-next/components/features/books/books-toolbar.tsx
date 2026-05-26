@@ -77,9 +77,6 @@ export function BooksToolbar({
             className="h-9 pl-9"
           />
         </div>
-        <span className="whitespace-nowrap text-xs font-medium text-muted-foreground">
-          1–50 von 234 Einträgen
-        </span>
       </div>
 
       {filters.length > 0 && (
