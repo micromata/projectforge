@@ -21,11 +21,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-      - uses: actions/jekyll-build-pages@v1
+
+      - uses: ruby/setup-ruby@v1
         with:
-          source: ./site
-          destination: ./_site
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: site
+
+      - uses: actions/configure-pages@v5
+
+      - name: Build Jekyll site
+        run: bundle exec jekyll build --destination ../_site
+        working-directory: site
+        env:
+          JEKYLL_ENV: production
+
       - uses: actions/upload-pages-artifact@v3
 
   deploy:
