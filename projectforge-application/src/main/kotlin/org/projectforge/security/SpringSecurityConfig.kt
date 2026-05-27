@@ -24,6 +24,7 @@
 package org.projectforge.security
 
 import org.projectforge.framework.utils.NumberHelper
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -42,6 +43,13 @@ import org.springframework.security.web.firewall.StrictHttpFirewall
 @Configuration
 @ConditionalOnProperty(name = ["projectforge.gateway.enabled"], havingValue = "false", matchIfMissing = true)
 open class SpringSecurityConfig {
+
+    @Autowired(required = false)
+    private var oAuth2UserService: OAuth2UserService? = null
+
+    @Autowired(required = false)
+    private var oAuth2LoginSuccessHandler: OAuth2LoginSuccessHandler? = null
+
     @Bean
     @Throws(Exception::class)
     open fun securityFilterChain(http: HttpSecurity, firewall: HttpFirewall): SecurityFilterChain {
@@ -52,6 +60,18 @@ open class SpringSecurityConfig {
             } // Allow all requests without Authentication
             )
             .csrf({ csrf -> csrf.disable() }) // CSRF ist done by PF.
+
+        oAuth2UserService?.let { userService ->
+            http.oauth2Login { oauth2 ->
+                oauth2.userInfoEndpoint { userInfo ->
+                    userInfo.oidcUserService(userService)
+                }
+                oAuth2LoginSuccessHandler?.let { successHandler ->
+                    oauth2.successHandler(successHandler)
+                }
+            }
+        }
+
         // Configure the firewall to allow WebDAV methods:
         http.setSharedObject(HttpFirewall::class.java, firewall)
         return http.build()

@@ -21,12 +21,11 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.gateway
+package org.projectforge.security
 
 import mu.KotlinLogging
 import org.projectforge.business.user.UserDao
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.api.UserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService
@@ -38,8 +37,8 @@ import org.springframework.stereotype.Service
 private val log = KotlinLogging.logger {}
 
 @Service
-@ConditionalOnProperty(name = ["projectforge.gateway.enabled"], havingValue = "true")
-open class GatewayOAuth2UserService(
+@ConditionalOnProperty(name = ["spring.security.oauth2.client.registration.authentik.client-id"])
+open class OAuth2UserService(
     private val userDao: UserDao,
 ) : OidcUserService() {
 
@@ -49,15 +48,11 @@ open class GatewayOAuth2UserService(
         val sub = oidcUser.subject
         val preferredUsername = oidcUser.preferredUsername
 
-        // Try to find the PF user by idpExternalId (= Authentik sub claim)
-        var pfUser = userDao.getUserByIdpExternalId(sub)
-        if (pfUser == null && preferredUsername != null) {
-            pfUser = userDao.getInternalByName(preferredUsername)
-        }
+        val pfUser = resolveUser(sub, preferredUsername)
         if (pfUser == null) {
             log.warn { "OAuth2 login rejected: no local user found for sub=$sub, username=$preferredUsername" }
             throw OAuth2AuthenticationException(
-                OAuth2Error("user_not_found", "No local user found for this identity. User must be synced first.", null)
+                OAuth2Error("user_not_found", "No local user found for this identity.", null)
             )
         }
         if (pfUser.deactivated == true) {
@@ -68,9 +63,14 @@ open class GatewayOAuth2UserService(
         }
 
         log.info { "OAuth2 login successful for user '${pfUser.username}' (sub=$sub)" }
-        val userContext = UserContext(pfUser)
-        ThreadLocalUserContext.userContext = userContext
-
         return oidcUser
+    }
+
+    fun resolveUser(sub: String?, preferredUsername: String?): PFUserDO? {
+        var pfUser = sub?.let { userDao.getUserByIdpExternalId(it) }
+        if (pfUser == null && preferredUsername != null) {
+            pfUser = userDao.getInternalByName(preferredUsername)
+        }
+        return pfUser
     }
 }

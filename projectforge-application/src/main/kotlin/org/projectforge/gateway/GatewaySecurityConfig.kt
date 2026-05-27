@@ -23,6 +23,7 @@
 
 package org.projectforge.gateway
 
+import org.projectforge.security.OAuth2UserService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
@@ -37,7 +38,7 @@ import org.springframework.security.web.firewall.StrictHttpFirewall
 open class GatewaySecurityConfig {
 
     @Autowired
-    private lateinit var gatewayOAuth2UserService: GatewayOAuth2UserService
+    private lateinit var oAuth2UserService: OAuth2UserService
 
     @Bean
     @Throws(Exception::class)
@@ -62,7 +63,7 @@ open class GatewaySecurityConfig {
             }
             .oauth2Login { oauth2 ->
                 oauth2.userInfoEndpoint { userInfo ->
-                    userInfo.oidcUserService(gatewayOAuth2UserService)
+                    userInfo.oidcUserService(oAuth2UserService)
                 }
                 oauth2.defaultSuccessUrl("/rs/datatransfer", true)
             }
