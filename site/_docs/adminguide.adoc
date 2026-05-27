@@ -965,6 +965,173 @@ projectforge.login.handlerClass=LoginDefaultHandler
 ...
 ----
 
+=== OAuth2 / OIDC Authentication
+
+ProjectForge supports authentication via an external OAuth2/OIDC provider.
+Users log in through the identity provider (e.g. Authentik, Keycloak) and are redirected back to ProjectForge.
+The user must already exist in ProjectForge (matched by `idpExternalId` or username).
+
+==== Configuration
+
+Add the following OAuth2/OIDC client configuration to `application.properties`:
+
+[source,properties]
+----
+spring.security.oauth2.client.registration.authentik.client-id=${AUTHENTIK_CLIENT_ID}
+spring.security.oauth2.client.registration.authentik.client-secret=${AUTHENTIK_CLIENT_SECRET}
+spring.security.oauth2.client.registration.authentik.scope=openid,profile,email
+spring.security.oauth2.client.registration.authentik.authorization-grant-type=authorization_code
+spring.security.oauth2.client.registration.authentik.redirect-uri={baseUrl}/login/oauth2/code/{registrationId}
+spring.security.oauth2.client.provider.authentik.issuer-uri=${AUTHENTIK_ISSUER_URI}
+----
+
+Replace `authentik` with your provider's registration name (e.g. `keycloak`) and configure the issuer URI accordingly.
+
+==== User mapping
+
+On successful OAuth2 login, ProjectForge resolves the local user account as follows:
+
+. Match the OIDC `sub` claim against the `idpExternalId` field of ProjectForge users
+. If no match is found, fall back to matching the `preferred_username` claim against the ProjectForge username
+. If still no match: login is rejected
+
+Deactivated users are always rejected regardless of a valid OAuth2 session.
+
+==== External Gateway mode
+
+ProjectForge can run as a reduced, public-facing instance that authenticates *exclusively* via OAuth2/OIDC.
+In this mode only the following services are exposed:
+
+* CardDAV (address book sync)
+* CalDAV / ICS subscriptions (calendar export)
+* DataTransfer (file exchange areas)
+
+Activate with the Spring profile `external-gateway`:
+
+[source,shell]
+----
+--spring.profiles.active=external-gateway
+----
+
+Additional gateway-specific configuration:
+
+[source,properties]
+----
+projectforge.gateway.enabled=true
+projectforge.gateway.sync.secret=${GATEWAY_SYNC_SECRET}
+----
+
+The internal ProjectForge instance syncs user data to the gateway via the shared secret.
+
+=== Identity Provider Sync (IdP)
+
+ProjectForge can act as a master for user and group data, provisioning them into an external identity provider.
+This is independent of the OAuth2 login described above — it handles user/group lifecycle management.
+Currently supported providers are *Keycloak* and *Authentik*.
+
+==== Configuration
+
+[source,properties]
+----
+# Provider: "keycloak" (default) or "authentik"
+projectforge.idp.provider=keycloak
+projectforge.login.handlerClass=IdpMasterLoginHandler
+
+# Optional: sync passwords to IdP on successful login
+projectforge.idp.syncPasswords=false
+----
+
+==== Keycloak setup
+
+===== Realm and client
+
+. Create a realm (e.g. `acme.com`)
+. Enable locales globally: `de`, `en`
+. Create a client `projectforge` (confidential, service account enabled)
+. Note down the client secret
+
+[source,properties]
+----
+projectforge.keycloak.serverUrl=https://auth.acme.com
+projectforge.keycloak.realm=acme.com
+projectforge.keycloak.clientId=projectforge
+projectforge.keycloak.clientSecret=<secret>
+projectforge.keycloak.pageSize=100
+----
+
+===== User attributes
+
+Create the following custom user attributes in the Keycloak realm:
+
+[cols="2,1,1,3"]
+|===
+|Attribute |Min Length |Max Length |Notes
+
+|`jiraUsername` |0 |100 |
+|`mobilePhone` |0 |255 |
+|`gender` | | |Options: `MALE`, `FEMALE`, `DIVERSE`, `UNKNOWN`
+|`locale` |0 |— |Validated automatically (`de`, `en`)
+|`organization` |0 |255 |
+|`description` |0 |255 |
+|`nickname` |0 |255 |
+|`sambaNTWlanPassword` |0 |255 |WLAN password (Samba NT hash)
+|===
+
+Set the username validator minimum length to *2* (Keycloak default is 3; reduced for short usernames like `jo`).
+
+IMPORTANT: Users must *not* be allowed to edit their own attributes (name, first name, etc.) in Keycloak.
+
+==== Authentik setup
+
+. Create a new role (e.g. `projectforge-sync`) with permissions: Group (add, change, delete, view), User (add, change, delete, view, add/remove user to group)
+. Create a sync user in Admin with this role
+. Create an API token: Admin -> Directory -> Tokens and App passwords -> Create
+
+[source,properties]
+----
+projectforge.authentik.serverUrl=https://authentik.acme.com
+projectforge.authentik.apiToken=<api-token>
+projectforge.authentik.pageSize=100
+----
+
+Authentik stores custom attributes as a JSON object on users/groups — no pre-configuration of attribute schemas is needed.
+
+==== Attribute mappings
+
+Configure which ProjectForge fields are synced to IdP user/group attributes:
+
+[source,properties]
+----
+projectforge.idp.userAttributes.jiraUsername=jiraUsername
+projectforge.idp.userAttributes.mobilePhone=mobilePhone
+projectforge.idp.userAttributes.gender=gender
+projectforge.idp.userAttributes.locale=locale
+projectforge.idp.userAttributes.organization=organization
+projectforge.idp.userAttributes.description=description
+projectforge.idp.userAttributes.nickname=nickname
+
+projectforge.idp.groupAttributes.description=description
+projectforge.idp.groupAttributes.organization=organization
+----
+
+==== WLAN password sync (optional)
+
+[source,properties]
+----
+projectforge.idp.wlanPasswordAttribute=sambaNTWlanPassword
+----
+
+==== Login handlers
+
+[cols="2,4"]
+|===
+|Handler |Description
+
+|`LoginDefaultHandler` |No external IdP (default)
+|`IdpMasterLoginHandler` |ProjectForge is master; users/groups are pushed PF -> IdP
+|`IdpLoginHandler` |IdP is master; users/groups are pulled IdP -> PF
+|===
+
 === Troubleshouting
 ==== NullPointerException on pages with diagrams und Linux
 If you will receive exceptions while calling pages with diagrams such as under menu project management -> my statistics:
