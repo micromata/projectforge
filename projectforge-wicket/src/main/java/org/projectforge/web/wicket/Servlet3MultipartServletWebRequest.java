@@ -75,6 +75,9 @@ public class Servlet3MultipartServletWebRequest extends MultipartServletWebReque
                 }
                 parsePart(part);
             }
+        } catch (IllegalStateException e) {
+            LOG.error(e.getMessage(), e);
+            throw new RuntimeException("Cannot parse Parts: " + e.getMessage(), e);
         } catch (IOException | ServletException e) {
             throw new RuntimeException("Cannot parse Parts: " + e.getMessage(), e);
         }
