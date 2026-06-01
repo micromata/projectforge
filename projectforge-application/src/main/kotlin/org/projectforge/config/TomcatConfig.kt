@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-class TomcatConfig {
+open class TomcatConfig {
     @Bean
     fun tomcatCustomizer(): WebServerFactoryCustomizer<TomcatServletWebServerFactory> {
         return WebServerFactoryCustomizer { factory ->
