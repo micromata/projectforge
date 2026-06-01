@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 open class TomcatConfig {
     @Bean
-    fun tomcatCustomizer(): WebServerFactoryCustomizer<TomcatServletWebServerFactory> {
+    open fun tomcatCustomizer(): WebServerFactoryCustomizer<TomcatServletWebServerFactory> {
         return WebServerFactoryCustomizer { factory ->
             factory.addConnectorCustomizers({ connector ->
                 // Tomcat 10.1.42+ defaults to 50 parts per multipart request.
