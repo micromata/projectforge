@@ -132,10 +132,19 @@ mkdir -p ~/gateway/ProjectForge
 projectforge.gateway.enabled=true
 projectforge.gateway.sync.secret=test-secret-12345
 
+# PostgreSQL
 spring.datasource.url=jdbc:postgresql://postgres:5432/projectforge
 spring.datasource.driver-class-name=org.postgresql.Driver
 spring.datasource.username=projectforge
 spring.datasource.password=projectforge-gw-pass
+
+# OAuth2/OIDC (required for gateway mode)
+spring.security.oauth2.client.registration.authentik.client-id=YOUR_CLIENT_ID
+spring.security.oauth2.client.registration.authentik.client-secret=YOUR_CLIENT_SECRET
+spring.security.oauth2.client.registration.authentik.scope=openid,profile,email
+spring.security.oauth2.client.registration.authentik.authorization-grant-type=authorization_code
+spring.security.oauth2.client.registration.authentik.redirect-uri={baseUrl}/login/oauth2/code/{registrationId}
+spring.security.oauth2.client.provider.authentik.issuer-uri=https://auth.example.com/application/o/projectforge/
 ```
 
 Permissions setzen (Container läuft als User `projectforge`, UID 101):
@@ -206,19 +215,8 @@ sudo sysctl net.ipv4.ip_unprivileged_port_start=80
 
 ---
 
-## Phase 2: OAuth/Authentik hinzufügen
+## OAuth/Authentik Redirect-URI
 
-Nach erfolgreichem Sync-Test in `projectforge.properties` der Gateway-Instanz ergänzen:
-
-```properties
-spring.security.oauth2.client.registration.authentik.client-id=YOUR_CLIENT_ID
-spring.security.oauth2.client.registration.authentik.client-secret=YOUR_CLIENT_SECRET
-spring.security.oauth2.client.registration.authentik.scope=openid,profile,email
-spring.security.oauth2.client.registration.authentik.authorization-grant-type=authorization_code
-spring.security.oauth2.client.registration.authentik.redirect-uri={baseUrl}/login/oauth2/code/{registrationId}
-spring.security.oauth2.client.provider.authentik.issuer-uri=https://auth.example.com/application/o/projectforge/
-```
-
-Redirect-URI im Authentik-Provider registrieren:
+Im Authentik-Provider die Redirect-URI registrieren:
 - Lokal: `http://localhost:8090/login/oauth2/code/authentik`
 - Remote: `https://gateway.example.com/login/oauth2/code/authentik`

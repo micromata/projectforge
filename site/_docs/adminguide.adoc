@@ -1015,7 +1015,7 @@ Activate with the Spring profile `external-gateway`:
 
 ===== Minimal gateway configuration
 
-The gateway instance's `projectforge.properties` requires only the gateway mode and database connection.
+The gateway instance's `projectforge.properties` requires the gateway mode, database connection, and OAuth2/OIDC configuration.
 All other gateway settings (CardDAV, menu visibility) are provided by the `external-gateway` profile automatically.
 
 [source,properties]
@@ -1029,15 +1029,20 @@ spring.datasource.url=jdbc:postgresql://postgres:5432/projectforge
 spring.datasource.driver-class-name=org.postgresql.Driver
 spring.datasource.username=projectforge
 spring.datasource.password=<your-password>
+
+# OAuth2/OIDC (required — gateway authenticates exclusively via OAuth2)
+spring.security.oauth2.client.registration.authentik.client-id=${AUTHENTIK_CLIENT_ID}
+spring.security.oauth2.client.registration.authentik.client-secret=${AUTHENTIK_CLIENT_SECRET}
+spring.security.oauth2.client.registration.authentik.scope=openid,profile,email
+spring.security.oauth2.client.registration.authentik.authorization-grant-type=authorization_code
+spring.security.oauth2.client.registration.authentik.redirect-uri={baseUrl}/login/oauth2/code/{registrationId}
+spring.security.oauth2.client.provider.authentik.issuer-uri=${AUTHENTIK_ISSUER_URI}
 ----
 
-For testing with HSQLDB (no external database needed):
+For testing with HSQLDB (no external database needed), replace the PostgreSQL block:
 
 [source,properties]
 ----
-projectforge.gateway.enabled=true
-projectforge.gateway.sync.secret=${GATEWAY_SYNC_SECRET}
-
 spring.datasource.url=jdbc:hsqldb:file:${projectforge.base.dir}/database/projectforge;shutdown=true
 spring.datasource.driver-class-name=org.hsqldb.jdbc.JDBCDriver
 spring.datasource.username=sa
