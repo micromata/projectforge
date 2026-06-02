@@ -390,7 +390,7 @@ class EInvoiceExportService(
 
     private fun buildBuyer(invoice: RechnungDO): TradeParty {
         val kunde = invoice.kunde
-        val konto = kunde?.konto
+        val konto = invoice.konto ?: kunde?.konto
         var street = invoice.customerAddress ?: konto?.street ?: ""
         var zip = invoice.customerZipCode ?: konto?.zipCode ?: ""
         var city = invoice.customerCity ?: konto?.city ?: ""
