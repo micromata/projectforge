@@ -113,26 +113,45 @@ podman build \
 
 ```bash
 podman save micromata/projectforge-gateway:test | ssh user@server podman load
-
 scp docker/compose/gateway/docker-compose-gateway.yml user@server:~/gateway/
-scp docker/compose/gateway/projectforge.properties user@server:~/gateway/
 ```
 
-### 3. Auf Server starten
+### 3. ProjectForge-Home auf dem Server einrichten
+
+Das Verzeichnis `~/gateway/ProjectForge` wird als Bind-Mount ins Container gemappt.
+Hier liegen Properties, Logs, Lucene-Index und Uploads direkt im Filesystem:
 
 ```bash
 ssh user@server
+mkdir -p ~/gateway/ProjectForge
+```
+
+`~/gateway/ProjectForge/projectforge.properties` anlegen:
+
+```properties
+projectforge.gateway.enabled=true
+projectforge.gateway.sync.secret=test-secret-12345
+
+spring.datasource.url=jdbc:postgresql://postgres:5432/projectforge
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.datasource.username=projectforge
+spring.datasource.password=projectforge-gw-pass
+```
+
+Permissions setzen (Container läuft als User `projectforge`, UID 101):
+
+```bash
+podman unshare chown -R 101:101 ~/gateway/ProjectForge
+```
+
+### 4. Auf Server starten
+
+```bash
 cd ~/gateway
 podman-compose -f docker-compose-gateway.yml up -d
 ```
 
-Alternativ mit `podman compose` (Podman 4.7+):
-
-```bash
-podman compose -f docker-compose-gateway.yml up -d
-```
-
-### 4. Main-Instanz auf Remote zeigen
+### 5. Main-Instanz auf Remote zeigen
 
 In `~/.ProjectForge/projectforge.properties`:
 
@@ -143,11 +162,14 @@ projectforge.gateway.push.secret=test-secret-12345
 projectforge.gateway.push.syncIntervalMs=60000
 ```
 
-### 5. Logs und Status prüfen
+### 6. Logs und Status prüfen
 
 ```bash
-# Auf dem Server
-podman logs -f gateway-projectforge-gateway-1
+# Logs direkt im Filesystem
+tail -f ~/gateway/ProjectForge/logs/ProjectForge.log
+
+# Oder über Podman
+podman logs -f gateway_projectforge-gateway_1
 podman ps
 ```
 

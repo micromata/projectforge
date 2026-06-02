@@ -1013,12 +1013,35 @@ Activate with the Spring profile `external-gateway`:
 --spring.profiles.active=external-gateway
 ----
 
-Additional gateway-specific configuration:
+===== Minimal gateway configuration
+
+The gateway instance's `projectforge.properties` requires only the gateway mode and database connection.
+All other gateway settings (CardDAV, menu visibility) are provided by the `external-gateway` profile automatically.
+
+[source,properties]
+----
+# Gateway mode
+projectforge.gateway.enabled=true
+projectforge.gateway.sync.secret=${GATEWAY_SYNC_SECRET}
+
+# PostgreSQL (adjust host/credentials to your setup)
+spring.datasource.url=jdbc:postgresql://postgres:5432/projectforge
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.datasource.username=projectforge
+spring.datasource.password=<your-password>
+----
+
+For testing with HSQLDB (no external database needed):
 
 [source,properties]
 ----
 projectforge.gateway.enabled=true
 projectforge.gateway.sync.secret=${GATEWAY_SYNC_SECRET}
+
+spring.datasource.url=jdbc:hsqldb:file:${projectforge.base.dir}/database/projectforge;shutdown=true
+spring.datasource.driver-class-name=org.hsqldb.jdbc.JDBCDriver
+spring.datasource.username=sa
+spring.datasource.password=
 ----
 
 The internal ProjectForge instance syncs user data to the gateway via the shared secret.

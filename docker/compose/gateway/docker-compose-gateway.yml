@@ -9,10 +9,9 @@ services:
       - PROJECTFORGE_HOME=/ProjectForge
       - GATEWAY_SYNC_SECRET=test-secret-12345
       - JAVA_ARGS=--spring.profiles.active=external-gateway
-      - DOCKER_OPTS=-Ddocker=stack
+      - DOCKER_OPTS=-Dprojectforge.base.dir=/ProjectForge -Ddocker=stack
     volumes:
-      - gateway-data:/ProjectForge
-      - ./projectforge.properties:/ProjectForge/projectforge.properties:ro
+      - ./ProjectForge:/ProjectForge
     depends_on:
       postgres:
         condition: service_healthy
@@ -36,5 +35,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  gateway-data:
   postgres-data:
