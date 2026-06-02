@@ -89,14 +89,24 @@ podman build \
   -t micromata/projectforge-gateway:test .
 ```
 
-Falls der Build lokal zu langsam ist (QEMU-Emulation), alternativ auf dem Server bauen:
+Falls der Build lokal zu langsam ist (QEMU-Emulation), alternativ auf dem Server bauen.
+Das Dockerfile erwartet `docker/entrypoint.sh` und `docker/environment.sh` relativ zum Build-Kontext:
 
 ```bash
-scp projectforge-application/build/libs/projectforge-application-8.2-SNAPSHOT.jar user@server:~/gateway/
-scp Dockerfile docker/entrypoint.sh docker/environment.sh user@server:~/gateway/
-ssh user@server "cd ~/gateway && podman build \
+# Lokal: Dateien in korrekter Struktur auf den Server kopieren
+ssh user@server "mkdir -p ~/build/docker"
+scp projectforge-application/build/libs/projectforge-application-8.2-SNAPSHOT.jar user@server:~/build/
+scp Dockerfile user@server:~/build/
+scp docker/entrypoint.sh docker/environment.sh user@server:~/build/docker/
+```
+
+```bash
+# Auf dem Server bauen
+ssh user@server
+cd ~/build
+podman build \
   --build-arg JAR_FILE=projectforge-application-8.2-SNAPSHOT.jar \
-  -t micromata/projectforge-gateway:test ."
+  -t micromata/projectforge-gateway:test .
 ```
 
 ### 2. Image auf Server übertragen

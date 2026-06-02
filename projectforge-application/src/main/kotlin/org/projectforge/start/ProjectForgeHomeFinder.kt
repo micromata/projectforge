@@ -286,7 +286,12 @@ class ProjectForgeHomeFinder {
         if (location.indexOf('!') > 0) {
           location = location.substring(0, location.indexOf('!'))
         }
-        var file: File? = File(URI(location))
+        val uri = URI(location)
+        if (uri.scheme != "file") {
+          log.info("Cannot resolve executable dir from non-file URI: $location")
+          return null
+        }
+        var file: File? = File(uri)
         for (i in 0..99) { // Paranoi counter for endless loops (circular file system links)
           if (file == null) {
             return null
@@ -299,6 +304,9 @@ class ProjectForgeHomeFinder {
         null
       } catch (ex: URISyntaxException) {
         log.error("Internal error while trying to get the location of ProjectForge's running code: " + ex.message, ex)
+        null
+      } catch (ex: IllegalArgumentException) {
+        log.info("Cannot resolve executable dir (URI scheme not supported): " + ex.message)
         null
       }
     }
