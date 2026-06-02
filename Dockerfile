@@ -1,4 +1,4 @@
-FROM openjdk:17-slim
+FROM docker.io/eclipse-temurin:17-jre-jammy
 
 # Argument for JAR file name to use in working directory:
 ARG JAR_FILE

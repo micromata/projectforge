@@ -1023,6 +1023,32 @@ projectforge.gateway.sync.secret=${GATEWAY_SYNC_SECRET}
 
 The internal ProjectForge instance syncs user data to the gateway via the shared secret.
 
+===== Main instance push configuration
+
+The main (internal) ProjectForge instance must be configured to push user, group, address and calendar data to the gateway.
+Add the following to the main instance's `projectforge.properties`:
+
+[source,properties]
+----
+projectforge.gateway.push.enabled=true
+projectforge.gateway.push.url=https://gateway.example.com/api/gateway/sync
+projectforge.gateway.push.secret=${GATEWAY_SYNC_SECRET}
+projectforge.gateway.push.syncIntervalMs=900000
+----
+
+[cols="2,4"]
+|===
+|Property |Description
+
+|`push.enabled` |Enable periodic sync push to the gateway instance
+|`push.url` |Base URL of the gateway's sync API endpoint
+|`push.secret` |Shared secret (must match `projectforge.gateway.sync.secret` on the gateway)
+|`push.syncIntervalMs` |Interval between sync pushes in milliseconds (default: 900000 = 15 minutes)
+|===
+
+The push service sends users, groups, address books, and cached ICS calendar data to the gateway.
+All requests are authenticated via the `X-Gateway-Secret` HTTP header.
+
 === Identity Provider Sync (IdP)
 
 ProjectForge can act as a master for user and group data, provisioning them into an external identity provider.
