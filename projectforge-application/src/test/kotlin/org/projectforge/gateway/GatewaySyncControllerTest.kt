@@ -68,9 +68,6 @@ class GatewaySyncControllerTest {
             SyncUserDto(
                 username = "testuser",
                 idpExternalId = "sub-123",
-                email = "test@example.com",
-                firstname = "Test",
-                lastname = "User",
                 davToken = "dav-token",
                 calendarRestToken = "cal-token",
                 active = true,

@@ -26,11 +26,8 @@ package org.projectforge.gateway.sync
 import mu.KotlinLogging
 import org.projectforge.business.address.AddressbookDao
 import org.projectforge.business.address.AddressbookDO
-import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressDO
-import org.projectforge.business.user.GroupDao
 import org.projectforge.business.user.UserAuthenticationsDao
-import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
@@ -48,12 +45,9 @@ private val log = KotlinLogging.logger {}
 @Service
 @ConditionalOnProperty(name = ["projectforge.gateway.enabled"], havingValue = "true")
 class GatewaySyncService(
-    private val userDao: UserDao,
-    private val groupDao: GroupDao,
-    private val addressDao: AddressDao,
-    private val addressbookDao: AddressbookDao,
-    private val userAuthenticationsDao: UserAuthenticationsDao,
     private val persistenceService: PfPersistenceService,
+    private val userAuthenticationsDao: UserAuthenticationsDao,
+    private val userGroupCache: UserGroupCache,
     private val gatewayIcsCache: GatewayIcsCache,
 ) {
 
@@ -61,37 +55,48 @@ class GatewaySyncService(
         var created = 0
         var updated = 0
         var errors = 0
-        for (dto in users) {
-            try {
-                var user = userDao.getInternalByName(dto.username)
-                if (user == null) {
-                    user = PFUserDO()
-                    user.username = dto.username
-                    user.idpExternalId = dto.idpExternalId
-                    user.deactivated = !dto.active
-                    userDao.insert(user, checkAccess = false)
-                    created++
-                } else {
-                    user.idpExternalId = dto.idpExternalId
-                    user.deactivated = !dto.active
-                    userDao.update(user, checkAccess = false)
-                    updated++
-                }
-                // Sync tokens if provided
-                user.id?.let { userId ->
-                    dto.davToken?.let { token ->
-                        userAuthenticationsDao.internalSetToken(userId, UserTokenType.DAV_TOKEN, token)
+        persistenceService.runInTransaction { context ->
+            val em = context.em
+            for (dto in users) {
+                try {
+                    val existing = em.createQuery(
+                        "SELECT u FROM PFUserDO u WHERE u.username = :name",
+                        PFUserDO::class.java
+                    ).setParameter("name", dto.username).resultList.firstOrNull()
+
+                    val user: PFUserDO
+                    if (existing == null) {
+                        user = PFUserDO()
+                        user.username = dto.username
+                        user.idpExternalId = dto.idpExternalId
+                        user.deactivated = !dto.active
+                        em.persist(user)
+                        em.flush()
+                        created++
+                    } else {
+                        existing.idpExternalId = dto.idpExternalId
+                        existing.deactivated = !dto.active
+                        user = em.merge(existing)
+                        updated++
                     }
-                    dto.calendarRestToken?.let { token ->
-                        userAuthenticationsDao.internalSetToken(userId, UserTokenType.CALENDAR_REST, token)
+
+                    // Sync tokens if provided
+                    user.id?.let { userId ->
+                        dto.davToken?.let { token ->
+                            userAuthenticationsDao.internalSetToken(userId, UserTokenType.DAV_TOKEN, token)
+                        }
+                        dto.calendarRestToken?.let { token ->
+                            userAuthenticationsDao.internalSetToken(userId, UserTokenType.CALENDAR_REST, token)
+                        }
                     }
+                } catch (e: Exception) {
+                    log.error(e) { "Error syncing user '${dto.username}'" }
+                    errors++
                 }
-            } catch (e: Exception) {
-                log.error(e) { "Error syncing user '${dto.username}'" }
-                errors++
             }
         }
         log.info { "User sync complete: created=$created, updated=$updated, errors=$errors" }
+        userGroupCache.setExpired()
         return SyncResult(created = created, updated = updated, errors = errors)
     }
 
@@ -99,44 +104,67 @@ class GatewaySyncService(
         var created = 0
         var updated = 0
         var errors = 0
-        for (dto in groups) {
-            try {
-                var group = groupDao.getByName(dto.name)
-                if (group == null) {
-                    group = GroupDO()
-                    group.name = dto.name
-                    groupDao.insert(group, checkAccess = false)
-                    created++
-                } else {
-                    updated++
+        persistenceService.runInTransaction { context ->
+            val em = context.em
+            for (dto in groups) {
+                try {
+                    var group = em.createQuery(
+                        "SELECT g FROM GroupDO g WHERE g.name = :name",
+                        GroupDO::class.java
+                    ).setParameter("name", dto.name).resultList.firstOrNull()
+
+                    if (group == null) {
+                        group = GroupDO()
+                        group.name = dto.name
+                        em.persist(group)
+                        em.flush()
+                        created++
+                    } else {
+                        updated++
+                    }
+                    val groupId = group.id!!
+
+                    // Clear and re-populate t_group_user
+                    em.createNativeQuery("DELETE FROM t_group_user WHERE group_id = :gid")
+                        .setParameter("gid", groupId).executeUpdate()
+
+                    for (username in dto.memberUsernames) {
+                        em.createNativeQuery(
+                            "INSERT INTO t_group_user (group_id, user_id) SELECT :gid, pk FROM t_pf_user WHERE username = :uname"
+                        ).setParameter("gid", groupId).setParameter("uname", username).executeUpdate()
+                    }
+                } catch (e: Exception) {
+                    log.error(e) { "Error syncing group '${dto.name}'" }
+                    errors++
                 }
-                // Update member assignments
-                val memberUsers = dto.memberUsernames.mapNotNull { username ->
-                    userDao.getInternalByName(username)
-                }
-                if (memberUsers.isNotEmpty()) {
-                    groupDao.setAssignedUsers(group, memberUsers)
-                }
-            } catch (e: Exception) {
-                log.error(e) { "Error syncing group '${dto.name}'" }
-                errors++
             }
         }
         log.info { "Group sync complete: created=$created, updated=$updated, errors=$errors" }
+        userGroupCache.setExpired()
         return SyncResult(created = created, updated = updated, errors = errors)
     }
 
     fun syncAddresses(addresses: List<SyncAddressDto>): SyncResult {
-        ensureGlobalAddressbookExists()
         var created = 0
         var updated = 0
         var errors = 0
-        for (dto in addresses) {
-            try {
-                var address = addressDao.findByUid(dto.uid)
-                if (address == null) {
-                    address = AddressDO()
-                    address.uid = dto.uid
+        persistenceService.runInTransaction { context ->
+            val em = context.em
+            ensureGlobalAddressbookExists(em)
+            for (dto in addresses) {
+                try {
+                    var address = em.createQuery(
+                        "SELECT a FROM AddressDO a WHERE a.uid = :uid",
+                        AddressDO::class.java
+                    ).setParameter("uid", dto.uid).resultList.firstOrNull()
+
+                    if (address == null) {
+                        address = AddressDO()
+                        address.uid = dto.uid
+                        created++
+                    } else {
+                        updated++
+                    }
                     address.firstName = dto.firstName
                     address.name = dto.lastName
                     address.organization = dto.organization
@@ -145,23 +173,11 @@ class GatewaySyncService(
                     address.businessPhone = dto.businessPhone
                     address.mobilePhone = dto.mobilePhone
                     address.privatePhone = dto.privatePhone
-                    addressDao.insert(address, checkAccess = false)
-                    created++
-                } else {
-                    address.firstName = dto.firstName
-                    address.name = dto.lastName
-                    address.organization = dto.organization
-                    address.email = dto.email
-                    address.privateEmail = dto.privateEmail
-                    address.businessPhone = dto.businessPhone
-                    address.mobilePhone = dto.mobilePhone
-                    address.privatePhone = dto.privatePhone
-                    addressDao.update(address, checkAccess = false)
-                    updated++
+                    em.merge(address)
+                } catch (e: Exception) {
+                    log.error(e) { "Error syncing address uid='${dto.uid}'" }
+                    errors++
                 }
-            } catch (e: Exception) {
-                log.error(e) { "Error syncing address uid='${dto.uid}'" }
-                errors++
             }
         }
         log.info { "Address sync complete: created=$created, updated=$updated, errors=$errors" }
@@ -178,16 +194,13 @@ class GatewaySyncService(
         return SyncResult(created = 0, updated = updated, errors = 0)
     }
 
-    private fun ensureGlobalAddressbookExists() {
-        if (addressbookDao.globalAddressbookOrNull == null) {
+    private fun ensureGlobalAddressbookExists(em: jakarta.persistence.EntityManager) {
+        val exists = em.find(AddressbookDO::class.java, AddressbookDao.GLOBAL_ADDRESSBOOK_ID)
+        if (exists == null) {
             log.info { "Creating global addressbook (required for address sync on gateway)." }
-            persistenceService.runInTransaction { context ->
-                val ab = AddressbookDO()
-                ab.id = AddressbookDao.GLOBAL_ADDRESSBOOK_ID
-                ab.title = "Global"
-                ab.description = "Global addressbook"
-                context.em.persist(ab)
-            }
+            em.createNativeQuery(
+                "INSERT INTO t_addressbook (pk, title, description, deleted, created, last_update) VALUES (:id, 'Global', 'Global addressbook', false, NOW(), NOW())"
+            ).setParameter("id", AddressbookDao.GLOBAL_ADDRESSBOOK_ID).executeUpdate()
         }
     }
 

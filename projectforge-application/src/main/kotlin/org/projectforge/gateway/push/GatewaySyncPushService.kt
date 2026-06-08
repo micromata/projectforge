@@ -134,14 +134,14 @@ class GatewaySyncPushService(
                 val calendars = teamCalCache.allAccessibleCalendars
                 for (cal in calendars.orEmpty()) {
                     val calId = cal.id ?: continue
-                    generateAndAddIcsEntry(userId, token, "teamCals=$calId", icsEntries)
+                    generateAndAddIcsEntry(user, userId, token, "teamCals=$calId", icsEntries)
                 }
 
                 // Generate Timesheets ICS for this user
-                generateAndAddIcsEntry(userId, token, "timesheetUser=$userId", icsEntries)
+                generateAndAddIcsEntry(user, userId, token, "timesheetUser=$userId", icsEntries)
 
                 // Generate Holidays ICS (same for everyone, but cached per user+q)
-                generateAndAddIcsEntry(userId, token, "holidays=true", icsEntries)
+                generateAndAddIcsEntry(user, userId, token, "holidays=true", icsEntries)
 
             } catch (e: Exception) {
                 log.error(e) { "Error generating ICS for user '${user.username}'" }
@@ -157,12 +157,15 @@ class GatewaySyncPushService(
     }
 
     private fun generateAndAddIcsEntry(
+        user: org.projectforge.framework.persistence.user.entities.PFUserDO,
         userId: Long,
         token: String,
         additionalParams: String,
         entries: MutableList<SyncIcsEntryDto>,
     ) {
         val serviceRest = calendarSubscriptionServiceRest ?: return
+        // Restore user context because exportCalendar() clears it in its finally block
+        ThreadLocalUserContext.userContext = UserContext(user)
         val params = "token=$token&$additionalParams"
         val storedToken = userAuthenticationsService.internalGetToken(userId, UserTokenType.CALENDAR_REST)
         if (storedToken == null) {
