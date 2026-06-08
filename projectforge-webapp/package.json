@@ -40,7 +40,7 @@
     "moment-timezone": "^0.6.1",
     "node-fetch": "^3.3.2",
     "prop-types": "^15.8.1",
-    "qs": "^6.15.1",
+    "qs": "^6.15.2",
     "rc-time-picker": "^3.7.3",
     "react": "^19.2.5",
     "react-ace": "^14.0.1",
