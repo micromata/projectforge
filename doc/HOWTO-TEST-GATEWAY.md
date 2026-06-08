@@ -5,10 +5,10 @@
 ### 1. Gateway-Datenverzeichnis
 
 ```bash
-mkdir -p ~/.ProjectForgeGateway
+mkdir -p ~/ProjectForgeGateway
 ```
 
-Die Datei `~/.ProjectForgeGateway/projectforge.properties` anlegen:
+Die Datei `~/ProjectForgeGateway/projectforge.properties` anlegen:
 
 ```properties
 projectforge.domain=http://localhost:8090
@@ -24,7 +24,7 @@ projectforge.carddav.server.enable=true
 
 ### 2. Main-Instanz konfigurieren
 
-In `~/.ProjectForge/projectforge.properties` ergänzen:
+In `~/ProjectForge/projectforge.properties` ergänzen:
 
 ```properties
 projectforge.gateway.push.enabled=true
@@ -39,8 +39,8 @@ projectforge.gateway.push.syncIntervalMs=60000
 
 ```bash
 ./gradlew :projectforge-application:bootJar
-java -jar projectforge-application/build/libs/projectforge-application-*.jar \
-  -Dprojectforge.base.dir=$HOME/.ProjectForgeGateway \
+java -Dprojectforge.base.dir=$HOME/ProjectForgeGateway \
+  -jar projectforge-application/build/libs/projectforge-application-{VERSION}.jar \
   --spring.profiles.active=external-gateway
 ```
 
@@ -162,7 +162,7 @@ podman-compose -f docker-compose-gateway.yml up -d
 
 ### 5. Main-Instanz auf Remote zeigen
 
-In `~/.ProjectForge/projectforge.properties`:
+In `~/ProjectForge/projectforge.properties`:
 
 ```properties
 projectforge.gateway.push.enabled=true

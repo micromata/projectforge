@@ -39,6 +39,7 @@ import org.projectforge.gateway.sync.dto.SyncAddressDto
 import org.projectforge.gateway.sync.dto.SyncGroupDto
 import org.projectforge.gateway.sync.dto.SyncIcsEntryDto
 import org.projectforge.gateway.sync.dto.SyncUserDto
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
@@ -55,8 +56,9 @@ class GatewaySyncPushService(
     private val userAuthenticationsDao: UserAuthenticationsDao,
     private val userAuthenticationsService: UserAuthenticationsService,
     private val teamCalCache: TeamCalCache,
-    private val calendarSubscriptionServiceRest: CalendarSubscriptionServiceRest,
 ) {
+    @Autowired(required = false)
+    private var calendarSubscriptionServiceRest: CalendarSubscriptionServiceRest? = null
     private val webClient: WebClient by lazy {
         WebClient.builder()
             .baseUrl(config.url)
@@ -64,7 +66,7 @@ class GatewaySyncPushService(
             .build()
     }
 
-    fun pushUsers() {
+    fun pushUsers(): Boolean {
         log.info { "Pushing users to gateway..." }
         val users = userDao.selectAll(checkAccess = false)
         val dtos = users.filter { it.hasSystemAccess() }.map { user ->
@@ -80,7 +82,7 @@ class GatewaySyncPushService(
                 active = user.hasSystemAccess(),
             )
         }
-        postSync("/users", dtos)
+        return postSync("/users", dtos)
     }
 
     fun pushGroups() {
@@ -116,6 +118,11 @@ class GatewaySyncPushService(
     }
 
     fun pushIcsData() {
+        val serviceRest = calendarSubscriptionServiceRest
+        if (serviceRest == null) {
+            log.info { "Skipping ICS push (CalendarSubscriptionServiceRest not available)" }
+            return
+        }
         log.info { "Pushing ICS calendar data to gateway..." }
         val users = userDao.selectAll(checkAccess = false).filter { it.hasSystemAccess() }
         val icsEntries = mutableListOf<SyncIcsEntryDto>()
@@ -158,11 +165,12 @@ class GatewaySyncPushService(
         additionalParams: String,
         entries: MutableList<SyncIcsEntryDto>,
     ) {
+        val serviceRest = calendarSubscriptionServiceRest ?: return
         val params = "token=$token&$additionalParams"
         val encryptedQ = userAuthenticationsService.encrypt(userId, UserTokenType.CALENDAR_REST, params) ?: return
 
         try {
-            val response = calendarSubscriptionServiceRest.exportCalendar(MockIcsRequest(userId, encryptedQ))
+            val response = serviceRest.exportCalendar(MockIcsRequest(userId, encryptedQ))
             if (response.statusCode.is2xxSuccessful && response.body != null) {
                 val body = response.body
                 val icsData = when (body) {
@@ -179,13 +187,13 @@ class GatewaySyncPushService(
     }
 
     fun pushAll() {
-        pushUsers()
+        if (!pushUsers()) return
         pushGroups()
         pushAddressBooks()
         pushIcsData()
     }
 
-    private fun postSync(path: String, body: Any) {
+    private fun postSync(path: String, body: Any): Boolean {
         try {
             val response = webClient.post()
                 .uri(path)
@@ -194,8 +202,23 @@ class GatewaySyncPushService(
                 .toBodilessEntity()
                 .block()
             log.info { "Sync push to $path completed: status=${response?.statusCode}" }
+            return true
         } catch (e: Exception) {
-            log.error(e) { "Sync push to $path failed" }
+            if (isConnectionError(e)) {
+                log.warn { "Gateway not reachable at ${config.url} (sync skipped): Sync push to $path failed" }
+            } else {
+                log.error(e) { "Sync push to $path failed" }
+            }
+            return false
         }
+    }
+
+    private fun isConnectionError(e: Exception): Boolean {
+        var cause: Throwable? = e
+        while (cause != null) {
+            if (cause is java.net.ConnectException) return true
+            cause = cause.cause
+        }
+        return false
     }
 }
