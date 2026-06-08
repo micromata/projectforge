@@ -32,6 +32,7 @@ import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserTokenType
+import org.projectforge.framework.utils.Crypt
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.rest.pub.CalendarSubscriptionServiceRest
@@ -131,7 +132,7 @@ class GatewaySyncPushService(
             try {
                 ThreadLocalUserContext.userContext = UserContext(user)
                 val userId = user.id!!
-                val token = userAuthenticationsService.getToken(userId, UserTokenType.CALENDAR_REST) ?: continue
+                val token = userAuthenticationsService.internalGetToken(userId, UserTokenType.CALENDAR_REST) ?: continue
 
                 // Generate ICS for each accessible team calendar
                 val calendars = teamCalCache.allAccessibleCalendars
@@ -167,7 +168,13 @@ class GatewaySyncPushService(
     ) {
         val serviceRest = calendarSubscriptionServiceRest ?: return
         val params = "token=$token&$additionalParams"
-        val encryptedQ = userAuthenticationsService.encrypt(userId, UserTokenType.CALENDAR_REST, params) ?: return
+        val storedToken = userAuthenticationsService.internalGetToken(userId, UserTokenType.CALENDAR_REST)
+        if (storedToken == null) {
+            log.debug { "No CALENDAR_REST token for user $userId, skipping ICS entry." }
+            return
+        }
+        val authenticationToken = storedToken.padEnd(32, 'x')
+        val encryptedQ = Crypt.encrypt(authenticationToken, params) ?: return
 
         try {
             val response = serviceRest.exportCalendar(MockIcsRequest(userId, encryptedQ))
