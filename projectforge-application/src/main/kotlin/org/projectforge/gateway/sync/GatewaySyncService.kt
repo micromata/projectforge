@@ -24,6 +24,8 @@
 package org.projectforge.gateway.sync
 
 import mu.KotlinLogging
+import org.projectforge.business.address.AddressbookDao
+import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.user.GroupDao
@@ -48,6 +50,7 @@ class GatewaySyncService(
     private val userDao: UserDao,
     private val groupDao: GroupDao,
     private val addressDao: AddressDao,
+    private val addressbookDao: AddressbookDao,
     private val userAuthenticationsDao: UserAuthenticationsDao,
     private val gatewayIcsCache: GatewayIcsCache,
 ) {
@@ -131,6 +134,7 @@ class GatewaySyncService(
     }
 
     fun syncAddresses(addresses: List<SyncAddressDto>): SyncResult {
+        ensureGlobalAddressbookExists()
         var created = 0
         var updated = 0
         var errors = 0
@@ -179,6 +183,17 @@ class GatewaySyncService(
         }
         log.info { "ICS cache sync complete: $updated entries updated" }
         return SyncResult(created = 0, updated = updated, errors = 0)
+    }
+
+    private fun ensureGlobalAddressbookExists() {
+        if (addressbookDao.globalAddressbookOrNull == null) {
+            log.info { "Creating global addressbook (required for address sync on gateway)." }
+            val ab = AddressbookDO()
+            ab.id = AddressbookDao.GLOBAL_ADDRESSBOOK_ID
+            ab.title = "Global"
+            ab.description = "Global addressbook"
+            addressbookDao.insert(ab, checkAccess = false)
+        }
     }
 
     data class SyncResult(
