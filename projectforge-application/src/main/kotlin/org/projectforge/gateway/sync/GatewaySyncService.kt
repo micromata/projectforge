@@ -33,6 +33,7 @@ import org.projectforge.business.user.UserAuthenticationsDao
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserTokenType
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.gateway.sync.dto.SyncAddressDto
@@ -52,6 +53,7 @@ class GatewaySyncService(
     private val addressDao: AddressDao,
     private val addressbookDao: AddressbookDao,
     private val userAuthenticationsDao: UserAuthenticationsDao,
+    private val persistenceService: PfPersistenceService,
     private val gatewayIcsCache: GatewayIcsCache,
 ) {
 
@@ -65,17 +67,11 @@ class GatewaySyncService(
                 if (user == null) {
                     user = PFUserDO()
                     user.username = dto.username
-                    user.firstname = dto.firstname
-                    user.lastname = dto.lastname
-                    user.email = dto.email
                     user.idpExternalId = dto.idpExternalId
                     user.deactivated = !dto.active
                     userDao.insert(user, checkAccess = false)
                     created++
                 } else {
-                    user.firstname = dto.firstname
-                    user.lastname = dto.lastname
-                    user.email = dto.email
                     user.idpExternalId = dto.idpExternalId
                     user.deactivated = !dto.active
                     userDao.update(user, checkAccess = false)
@@ -109,12 +105,9 @@ class GatewaySyncService(
                 if (group == null) {
                     group = GroupDO()
                     group.name = dto.name
-                    group.description = dto.description
                     groupDao.insert(group, checkAccess = false)
                     created++
                 } else {
-                    group.description = dto.description
-                    groupDao.update(group, checkAccess = false)
                     updated++
                 }
                 // Update member assignments
@@ -188,11 +181,13 @@ class GatewaySyncService(
     private fun ensureGlobalAddressbookExists() {
         if (addressbookDao.globalAddressbookOrNull == null) {
             log.info { "Creating global addressbook (required for address sync on gateway)." }
-            val ab = AddressbookDO()
-            ab.id = AddressbookDao.GLOBAL_ADDRESSBOOK_ID
-            ab.title = "Global"
-            ab.description = "Global addressbook"
-            addressbookDao.insert(ab, checkAccess = false)
+            persistenceService.runInTransaction { context ->
+                val ab = AddressbookDO()
+                ab.id = AddressbookDao.GLOBAL_ADDRESSBOOK_ID
+                ab.title = "Global"
+                ab.description = "Global addressbook"
+                context.em.persist(ab)
+            }
         }
     }
 

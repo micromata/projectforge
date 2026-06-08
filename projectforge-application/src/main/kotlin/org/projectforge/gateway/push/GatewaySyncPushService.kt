@@ -75,9 +75,6 @@ class GatewaySyncPushService(
             SyncUserDto(
                 username = user.username!!,
                 idpExternalId = user.idpExternalId,
-                email = user.email,
-                firstname = user.firstname,
-                lastname = user.lastname,
                 davToken = userAuthenticationsDao.internalGetToken(userId, UserTokenType.DAV_TOKEN),
                 calendarRestToken = userAuthenticationsDao.internalGetToken(userId, UserTokenType.CALENDAR_REST),
                 active = user.hasSystemAccess(),
@@ -92,7 +89,6 @@ class GatewaySyncPushService(
         val dtos = groups.map { group ->
             SyncGroupDto(
                 name = group.name!!,
-                description = group.description,
                 memberUsernames = group.assignedUsers?.mapNotNull { it.username } ?: emptyList(),
             )
         }

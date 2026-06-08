@@ -184,6 +184,46 @@ podman ps
 
 ---
 
+## Synchronisierte Daten (Need-to-know-Prinzip)
+
+Die Main-Instanz pusht nur die minimal notwendigen Daten an das Gateway:
+
+### Users
+| Feld | Beschreibung |
+|------|-------------|
+| `username` | Eindeutiger Benutzername (Identifikation) |
+| `idpExternalId` | IdP-ID für OAuth2/OIDC-Login am Gateway |
+| `davToken` | Token für CardDAV/CalDAV-Authentifizierung |
+| `calendarRestToken` | Token für ICS-Kalender-Subscriptions |
+| `active` | Aktiv-Status (Zugangssteuerung) |
+
+**Nicht synchronisiert:** E-Mail, Vorname, Nachname, Passwort-Hashes, Locale, etc.
+
+### Groups
+| Feld | Beschreibung |
+|------|-------------|
+| `name` | Gruppenname |
+| `memberUsernames` | Liste der Mitglieder (Usernames) |
+
+**Nicht synchronisiert:** Beschreibung, Rechte-Details.
+
+### Addresses
+Vollständige Kontaktdaten für CardDAV (Name, Organisation, E-Mail, Telefon).
+
+### ICS-Daten
+Vorberechnete ICS-Kalender-Exports pro User und Kalender.
+
+### Hinweis: Automatisch generierte Tokens auf dem Gateway
+
+Beim ersten Sync eines Users erzeugt das Gateway automatisch **alle** Token-Typen
+(`CALENDAR_REST`, `DAV_TOKEN`, `REST_CLIENT`, `STAY_LOGGED_IN_KEY`) in der lokalen
+`T_USER_AUTHENTICATIONS`-Tabelle. Die Tokens für `REST_CLIENT` und `STAY_LOGGED_IN_KEY`
+werden **nicht** von der Main-Instanz übertragen, sondern lokal als Nebeneffekt der
+`UserAuthenticationsDao`-Initialisierung generiert. Sie werden auf dem Gateway nicht
+funktional genutzt und können ignoriert werden.
+
+---
+
 ## Troubleshooting
 
 ### Base-Image nicht gefunden

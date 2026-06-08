@@ -26,9 +26,6 @@ package org.projectforge.gateway.sync.dto
 data class SyncUserDto(
     val username: String,
     val idpExternalId: String? = null,
-    val email: String? = null,
-    val firstname: String? = null,
-    val lastname: String? = null,
     val davToken: String? = null,
     val calendarRestToken: String? = null,
     val active: Boolean = true,

@@ -25,6 +25,5 @@ package org.projectforge.gateway.sync.dto
 
 data class SyncGroupDto(
     val name: String,
-    val description: String? = null,
     val memberUsernames: List<String> = emptyList(),
 )
