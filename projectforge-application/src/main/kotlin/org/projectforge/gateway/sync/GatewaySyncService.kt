@@ -27,18 +27,18 @@ import mu.KotlinLogging
 import org.projectforge.business.address.AddressbookDao
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.address.AddressDO
-import org.projectforge.business.user.UserAuthenticationsDao
 import org.projectforge.business.user.UserGroupCache
-import org.projectforge.business.user.UserTokenType
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
 import org.projectforge.gateway.sync.dto.SyncAddressDto
 import org.projectforge.gateway.sync.dto.SyncGroupDto
 import org.projectforge.gateway.sync.dto.SyncIcsEntryDto
 import org.projectforge.gateway.sync.dto.SyncUserDto
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
+import java.util.Date
 
 private val log = KotlinLogging.logger {}
 
@@ -46,7 +46,6 @@ private val log = KotlinLogging.logger {}
 @ConditionalOnProperty(name = ["projectforge.gateway.enabled"], havingValue = "true")
 class GatewaySyncService(
     private val persistenceService: PfPersistenceService,
-    private val userAuthenticationsDao: UserAuthenticationsDao,
     private val userGroupCache: UserGroupCache,
     private val gatewayIcsCache: GatewayIcsCache,
 ) {
@@ -80,13 +79,24 @@ class GatewaySyncService(
                         updated++
                     }
 
-                    // Sync tokens if provided
+                    // Sync tokens if provided (already encrypted, store 1:1)
                     user.id?.let { userId ->
-                        dto.davToken?.let { token ->
-                            userAuthenticationsDao.internalSetToken(userId, UserTokenType.DAV_TOKEN, token)
-                        }
-                        dto.calendarRestToken?.let { token ->
-                            userAuthenticationsDao.internalSetToken(userId, UserTokenType.CALENDAR_REST, token)
+                        if (dto.davToken != null || dto.calendarRestToken != null) {
+                            val auth = em.createQuery(
+                                "SELECT a FROM UserAuthenticationsDO a WHERE a.user.id = :userId",
+                                UserAuthenticationsDO::class.java
+                            ).setParameter("userId", userId).resultList.firstOrNull()
+                                ?: UserAuthenticationsDO().also {
+                                    it.user = user
+                                    it.created = Date()
+                                }
+
+                            val now = Date()
+                            dto.davToken?.let { auth.davToken = it; auth.davTokenCreationDate = now }
+                            dto.calendarRestToken?.let { auth.calendarExportToken = it; auth.calendarExportTokenCreationDate = now }
+                            auth.lastUpdate = now
+
+                            if (auth.id == null) em.persist(auth) else em.merge(auth)
                         }
                     }
                 } catch (e: Exception) {

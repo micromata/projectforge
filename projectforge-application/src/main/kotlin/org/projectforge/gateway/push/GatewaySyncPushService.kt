@@ -27,19 +27,20 @@ import mu.KotlinLogging
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.teamcal.admin.TeamCalCache
 import org.projectforge.business.teamcal.service.CalendarFeedService
-import org.projectforge.business.user.UserAuthenticationsDao
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserTokenType
-import org.projectforge.framework.utils.Crypt
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
-import org.projectforge.rest.pub.CalendarSubscriptionServiceRest
+import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
+import org.projectforge.framework.utils.Crypt
 import org.projectforge.gateway.sync.dto.SyncAddressDto
 import org.projectforge.gateway.sync.dto.SyncGroupDto
 import org.projectforge.gateway.sync.dto.SyncIcsEntryDto
 import org.projectforge.gateway.sync.dto.SyncUserDto
+import org.projectforge.rest.pub.CalendarSubscriptionServiceRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
@@ -54,12 +55,15 @@ class GatewaySyncPushService(
     private val userDao: UserDao,
     private val userGroupCache: UserGroupCache,
     private val addressDao: AddressDao,
-    private val userAuthenticationsDao: UserAuthenticationsDao,
+    private val persistenceService: PfPersistenceService,
     private val userAuthenticationsService: UserAuthenticationsService,
     private val teamCalCache: TeamCalCache,
 ) {
     @Autowired(required = false)
     private var calendarSubscriptionServiceRest: CalendarSubscriptionServiceRest? = null
+
+    private val lastPushHashes = mutableMapOf<String, Int>()
+
     private val webClient: WebClient by lazy {
         WebClient.builder()
             .baseUrl(config.url)
@@ -70,13 +74,17 @@ class GatewaySyncPushService(
     fun pushUsers(): Boolean {
         log.info { "Pushing users to gateway..." }
         val users = userDao.selectAll(checkAccess = false)
+        val authByUserId = persistenceService.executeQuery(
+            "SELECT a FROM UserAuthenticationsDO a",
+            UserAuthenticationsDO::class.java,
+        ).associateBy { it.userId }
         val dtos = users.filter { it.hasSystemAccess() }.map { user ->
-            val userId = user.id!!
+            val auth = authByUserId[user.id]
             SyncUserDto(
                 username = user.username!!,
                 idpExternalId = user.idpExternalId,
-                davToken = userAuthenticationsDao.internalGetToken(userId, UserTokenType.DAV_TOKEN),
-                calendarRestToken = userAuthenticationsDao.internalGetToken(userId, UserTokenType.CALENDAR_REST),
+                davToken = auth?.davToken,
+                calendarRestToken = auth?.calendarExportToken,
                 active = user.hasSystemAccess(),
             )
         }
@@ -121,8 +129,14 @@ class GatewaySyncPushService(
             return
         }
         log.info { "Pushing ICS calendar data to gateway..." }
-        val users = userDao.selectAll(checkAccess = false).filter { it.hasSystemAccess() }
+        val users = userDao.selectAll(checkAccess = false).filter { it.hasSystemAccess() && !it.deactivated }
         val icsEntries = mutableListOf<SyncIcsEntryDto>()
+        var skippedUnchanged = 0
+
+        // Holidays are identical for all users – generate once and reuse
+        var holidaysIcsData: String? = null
+        var holidaysEncryptedQ: String? = null
+        var holidaysUserId: Long? = null
 
         for (user in users) {
             try {
@@ -134,14 +148,35 @@ class GatewaySyncPushService(
                 val calendars = teamCalCache.allAccessibleCalendars
                 for (cal in calendars.orEmpty()) {
                     val calId = cal.id ?: continue
-                    generateAndAddIcsEntry(user, userId, token, "teamCals=$calId", icsEntries)
+                    val count = generateAndAddIcsEntry(user, userId, token, "teamCals=$calId", icsEntries)
+                    if (count == 0) skippedUnchanged++
                 }
 
                 // Generate Timesheets ICS for this user
-                generateAndAddIcsEntry(user, userId, token, "timesheetUser=$userId", icsEntries)
+                if (generateAndAddIcsEntry(user, userId, token, "timesheetUser=$userId", icsEntries) == 0) {
+                    skippedUnchanged++
+                }
 
-                // Generate Holidays ICS (same for everyone, but cached per user+q)
-                generateAndAddIcsEntry(user, userId, token, "holidays=true", icsEntries)
+                // Holidays are identical for all users – generate only for the first user
+                if (holidaysIcsData == null) {
+                    if (generateAndAddIcsEntry(user, userId, token, "holidays=true", icsEntries) > 0) {
+                        val lastEntry = icsEntries.last()
+                        holidaysIcsData = lastEntry.icsData
+                        holidaysEncryptedQ = lastEntry.queryParam
+                        holidaysUserId = lastEntry.userId
+                    }
+                } else {
+                    // Reuse holidays ICS data with this user's encrypted query param
+                    val params = "token=$token&holidays=true"
+                    val storedToken = userAuthenticationsService.internalGetToken(userId, UserTokenType.CALENDAR_REST)
+                    if (storedToken != null) {
+                        val authenticationToken = storedToken.padEnd(32, 'x')
+                        val encryptedQ = Crypt.encrypt(authenticationToken, params)
+                        if (encryptedQ != null) {
+                            icsEntries.add(SyncIcsEntryDto(userId = userId, queryParam = encryptedQ, icsData = holidaysIcsData))
+                        }
+                    }
+                }
 
             } catch (e: Exception) {
                 log.error(e) { "Error generating ICS for user '${user.username}'" }
@@ -153,27 +188,29 @@ class GatewaySyncPushService(
         if (icsEntries.isNotEmpty()) {
             postSync("/ics", icsEntries)
         }
-        log.info { "ICS push complete: ${icsEntries.size} entries" }
+        log.info { "ICS push complete: ${icsEntries.size} entries pushed, $skippedUnchanged unchanged (skipped)" }
     }
 
+    /**
+     * @return 1 if entry was added, 0 if skipped (unchanged or error)
+     */
     private fun generateAndAddIcsEntry(
         user: org.projectforge.framework.persistence.user.entities.PFUserDO,
         userId: Long,
         token: String,
         additionalParams: String,
         entries: MutableList<SyncIcsEntryDto>,
-    ) {
-        val serviceRest = calendarSubscriptionServiceRest ?: return
-        // Restore user context because exportCalendar() clears it in its finally block
+    ): Int {
+        val serviceRest = calendarSubscriptionServiceRest ?: return 0
         ThreadLocalUserContext.userContext = UserContext(user)
         val params = "token=$token&$additionalParams"
         val storedToken = userAuthenticationsService.internalGetToken(userId, UserTokenType.CALENDAR_REST)
         if (storedToken == null) {
             log.debug { "No CALENDAR_REST token for user $userId, skipping ICS entry." }
-            return
+            return 0
         }
         val authenticationToken = storedToken.padEnd(32, 'x')
-        val encryptedQ = Crypt.encrypt(authenticationToken, params) ?: return
+        val encryptedQ = Crypt.encrypt(authenticationToken, params) ?: return 0
 
         try {
             val response = serviceRest.exportCalendar(MockIcsRequest(userId, encryptedQ))
@@ -184,12 +221,20 @@ class GatewaySyncPushService(
                     else -> body.toString()
                 }
                 if (icsData.isNotBlank()) {
+                    val cacheKey = "$userId:$additionalParams"
+                    val hash = icsData.hashCode()
+                    if (lastPushHashes[cacheKey] == hash) {
+                        return 0
+                    }
+                    lastPushHashes[cacheKey] = hash
                     entries.add(SyncIcsEntryDto(userId = userId, queryParam = encryptedQ, icsData = icsData))
+                    return 1
                 }
             }
         } catch (e: Exception) {
             log.debug { "Failed to generate ICS for user $userId, params=$additionalParams: ${e.message}" }
         }
+        return 0
     }
 
     fun pushAll() {
