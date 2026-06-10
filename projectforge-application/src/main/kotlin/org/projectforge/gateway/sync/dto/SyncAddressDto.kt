@@ -35,4 +35,6 @@ data class SyncAddressDto(
     val mobilePhone: String? = null,
     val privatePhone: String? = null,
     val vCardData: String? = null,
+    val imageData: String? = null,
+    val imageType: String? = null,
 )

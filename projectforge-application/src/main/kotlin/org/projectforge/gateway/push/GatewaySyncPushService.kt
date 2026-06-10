@@ -25,6 +25,7 @@ package org.projectforge.gateway.push
 
 import mu.KotlinLogging
 import org.projectforge.business.address.AddressDao
+import org.projectforge.business.address.AddressImageDO
 import org.projectforge.business.teamcal.admin.TeamCalCache
 import org.projectforge.business.teamcal.service.CalendarFeedService
 import org.projectforge.business.user.UserAuthenticationsService
@@ -45,6 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
+import java.util.Base64
 
 private val log = KotlinLogging.logger {}
 
@@ -106,7 +108,19 @@ class GatewaySyncPushService(
     fun pushAddressBooks() {
         log.info { "Pushing address books to gateway..." }
         val addresses = addressDao.findAll()
+        val imagesByAddressId = persistenceService.runReadOnly { context ->
+            val images = context.executeQuery(
+                "SELECT i FROM AddressImageDO i",
+                AddressImageDO::class.java,
+            )
+            images.mapNotNull { img ->
+                val addressId = img.address?.id ?: return@mapNotNull null
+                val data = img.image ?: return@mapNotNull null
+                addressId to Pair(Base64.getEncoder().encodeToString(data), img.imageType?.name)
+            }.toMap()
+        }
         val dtos = addresses.filterNotNull().map { address ->
+            val imgPair = imagesByAddressId[address.id]
             SyncAddressDto(
                 uid = address.uid ?: "pf-${address.id}",
                 firstName = address.firstName,
@@ -117,6 +131,8 @@ class GatewaySyncPushService(
                 businessPhone = address.businessPhone,
                 mobilePhone = address.mobilePhone,
                 privatePhone = address.privatePhone,
+                imageData = imgPair?.first,
+                imageType = imgPair?.second,
             )
         }
         postSync("/addressbooks", dtos)

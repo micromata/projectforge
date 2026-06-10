@@ -24,9 +24,11 @@
 package org.projectforge.gateway.sync
 
 import mu.KotlinLogging
+import org.projectforge.business.address.AddressImageDO
 import org.projectforge.business.address.AddressbookDao
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.address.AddressDO
+import org.projectforge.business.address.ImageType
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.GroupDO
@@ -38,6 +40,7 @@ import org.projectforge.gateway.sync.dto.SyncIcsEntryDto
 import org.projectforge.gateway.sync.dto.SyncUserDto
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
+import java.util.Base64
 import java.util.Date
 
 private val log = KotlinLogging.logger {}
@@ -184,6 +187,33 @@ class GatewaySyncService(
                     address.mobilePhone = dto.mobilePhone
                     address.privatePhone = dto.privatePhone
                     em.merge(address)
+                    em.flush()
+
+                    // Sync image
+                    val addressId = address.id
+                    if (addressId != null) {
+                        if (dto.imageData != null) {
+                            val imageBytes = Base64.getDecoder().decode(dto.imageData)
+                            val imageType = try { ImageType.valueOf(dto.imageType ?: "JPEG") } catch (_: Exception) { ImageType.JPEG }
+                            var img = em.createQuery(
+                                "SELECT i FROM AddressImageDO i WHERE i.address.id = :aid",
+                                AddressImageDO::class.java
+                            ).setParameter("aid", addressId).resultList.firstOrNull()
+                            if (img == null) {
+                                img = AddressImageDO()
+                                img.address = address
+                            }
+                            img.image = imageBytes
+                            img.imageType = imageType
+                            img.lastUpdate = Date()
+                            if (img.id == null) em.persist(img) else em.merge(img)
+                            address.imageLastUpdate = img.lastUpdate
+                        } else {
+                            em.createQuery("DELETE FROM AddressImageDO i WHERE i.address.id = :aid")
+                                .setParameter("aid", addressId).executeUpdate()
+                            address.imageLastUpdate = null
+                        }
+                    }
                 } catch (e: Exception) {
                     log.error(e) { "Error syncing address uid='${dto.uid}'" }
                     errors++
