@@ -46,6 +46,7 @@ import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -61,6 +62,12 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
 
     @Autowired
     private lateinit var configurationChecker: ConfigurationChecker
+
+    @Value("\${projectforge.gateway.push.enabled:false}")
+    private var gatewayPushEnabled: Boolean = false
+
+    @Value("\${projectforge.gateway.push.url:}")
+    private var gatewayPushUrl: String = ""
 
     @PostConstruct
     private fun postConstruct() {
@@ -122,6 +129,17 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
         magicFilter: MagicFilter,
         userAccess: UILayout.UserAccess
     ) {
+        if (gatewayPushEnabled) {
+            val gatewayHost = gatewayPushUrl.ifBlank { "Gateway" }
+            layout.add(
+                UIAlert(
+                    message = "Externer Zugriff (lesend/schreibend) kann hier nicht konfiguriert werden. " +
+                        "Datentransferbereiche mit externem Zugriff müssen auf dem Server $gatewayHost angelegt und administriert werden.",
+                    color = UIColor.INFO,
+                    icon = UIIconType.INFO,
+                )
+            )
+        }
         layout.add(
             UITable.createUIResultSetTable()
                 .add(lc, "created")
@@ -292,6 +310,17 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
         )
         val externalAccessFieldset =
             UIFieldset(UILength(md = 12, lg = 12), title = "plugins.datatransfer.external.access.title")
+        if (gatewayPushEnabled) {
+            val gatewayHost = gatewayPushUrl.ifBlank { "Gateway" }
+            externalAccessFieldset.add(
+                UIAlert(
+                    message = "Externer Zugriff kann hier nicht konfiguriert werden. " +
+                        "Dazu muss ein Datentransferbereich auf dem Server $gatewayHost angelegt und administriert werden.",
+                    color = UIColor.INFO,
+                    icon = UIIconType.INFO,
+                )
+            )
+        }
 
         val expiryDaysSelectValues =
             DataTransferAreaDao.EXPIRY_DAYS_VALUES.map { UISelectValue(it.key, translateMsg(it.value, it.key)) }
