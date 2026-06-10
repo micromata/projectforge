@@ -35,4 +35,6 @@ open class GatewaySyncPushConfig {
     var url: String = ""
     var secret: String = ""
     var syncIntervalMs: Long = 900000
+    var syncAddresses: Boolean = true
+    var syncCalendar: Boolean = true
 }

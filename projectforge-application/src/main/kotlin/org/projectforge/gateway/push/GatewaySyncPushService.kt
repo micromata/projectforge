@@ -256,8 +256,8 @@ class GatewaySyncPushService(
     fun pushAll() {
         if (!pushUsers()) return
         pushGroups()
-        pushAddressBooks()
-        pushIcsData()
+        if (config.syncAddresses) pushAddressBooks()
+        if (config.syncCalendar) pushIcsData()
     }
 
     private fun postSync(path: String, body: Any): Boolean {

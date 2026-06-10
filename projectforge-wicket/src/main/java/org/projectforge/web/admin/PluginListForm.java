@@ -35,6 +35,7 @@ import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 
 import java.util.List;
+import java.util.Collections;
 
 /**
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
@@ -51,10 +52,17 @@ public class PluginListForm extends AbstractStandardForm<PluginListForm, PluginL
   @Override
   protected void init() {
     super.init();
-    List<AbstractPlugin> availables = WicketSupport.get(PluginAdminService.class).getAvailablePlugins();
-    List<String> activatedPlugins = WicketSupport.get(PluginAdminService.class).getActivatedPluginsFromConfiguration();
+    PluginAdminService pluginAdminService = WicketSupport.get(PluginAdminService.class);
+    List<AbstractPlugin> availables = pluginAdminService.getAvailablePlugins();
+    List<String> activatedPlugins = pluginAdminService.getActivatedPluginsFromConfiguration();
+    List<String> ensureActiveIds = pluginAdminService.getEnsureActivePluginIds();
 
     gridBuilder.newFormHeading("Please note: (de)activation of plugins will take effect only after restart!");
+
+    if (!ensureActiveIds.isEmpty()) {
+      gridBuilder.newFormHeading("The following plugins are activated via projectforge.properties and cannot be deactivated here: "
+          + String.join(", ", ensureActiveIds));
+    }
 
     for (AbstractPlugin plugin : availables) {
       gridBuilder.newGridPanel();

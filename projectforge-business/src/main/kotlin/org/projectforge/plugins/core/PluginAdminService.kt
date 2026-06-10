@@ -32,6 +32,7 @@ import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.configuration.entities.ConfigurationDO
 import org.projectforge.web.WicketSupport
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
 import java.util.*
@@ -51,6 +52,12 @@ open class PluginAdminService {
 
     @Autowired
     private lateinit var applicationContext: ApplicationContext
+
+    @Value("\${projectforge.plugins.ensure-active:}")
+    private var ensureActivePluginsConfig: String = ""
+
+    val ensureActivePluginIds: List<String>
+        get() = ensureActivePluginsConfig.split(",").map { it.trim() }.filter { it.isNotEmpty() }
 
     /**
      * All plugins registered as Spring components (activated as well as not activated ones).
@@ -158,9 +165,15 @@ open class PluginAdminService {
     private fun initializeActivePlugins(onlyConfiguredActive: Boolean) {
         val plugins = allPlugins
         val activatedPluginsByConfig = if (isFirstStart()) {
-            INITIAL_ACTIVATED_PLUGINS
+            INITIAL_ACTIVATED_PLUGINS.toMutableList()
         } else {
             activatedPluginsFromConfiguration
+        }
+        for (pluginId in ensureActivePluginIds) {
+            if (!activatedPluginsByConfig.contains(pluginId)) {
+                activatedPluginsByConfig.add(pluginId)
+                log.info { "Ensuring plugin '$pluginId' is active (configured via projectforge.plugins.ensure-active)." }
+            }
         }
         for (plugin in plugins) {
             if (onlyConfiguredActive && !activatedPluginsByConfig.contains(plugin.info.id)) {
