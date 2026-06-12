@@ -214,7 +214,6 @@ public class WicketApplication extends WebApplication implements WicketApplicati
         // Wicket workaround for not be able to proxy Kotlin base SpringBeans:
         WicketSupport.register(applicationContext);
         WebRegistry.getInstance().init();
-        pluginAdminService.initializeActivePlugins();
         setDefaultPage(DEFAULT_PAGE);
         // ExternalResourceLoader must be registered FIRST to have highest priority
         // This ensures custom i18n properties (CustomerI18nResources) override built-in translations

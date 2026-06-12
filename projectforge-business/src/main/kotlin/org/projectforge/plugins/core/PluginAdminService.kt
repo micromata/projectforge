@@ -33,7 +33,9 @@ import org.projectforge.framework.configuration.entities.ConfigurationDO
 import org.projectforge.web.WicketSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.ApplicationContext
+import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -139,6 +141,13 @@ open class PluginAdminService {
             }
             return plugins.split(",").map { it.trim { it <= ' ' } }.sorted().toMutableList()
         }
+
+    @EventListener(ApplicationReadyEvent::class)
+    fun onApplicationReady() {
+        log.info { "Initializing plugins on application ready..." }
+        WicketSupport.register(applicationContext)
+        initializeActivePlugins(true)
+    }
 
     /**
      * Will be active plugins
