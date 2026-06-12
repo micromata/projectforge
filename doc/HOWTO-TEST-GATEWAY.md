@@ -46,9 +46,7 @@ java -Dprojectforge.base.dir=$HOME/ProjectForgeGateway \
 
 **Terminal 2 – Main-Instanz:**
 
-```bash
-./gradlew bootRun
-```
+Starten mit ```-Dprojectforge.base.dir=$HOME/ProjectForge```
 
 ### 4. Sync prüfen
 
@@ -78,30 +76,22 @@ curl -X PROPFIND http://localhost:8090/.well-known/carddav
 sudo apt update && sudo apt install -y podman podman-compose
 ```
 
-### 1. Image bauen (lokal mit Podman)
+### 1. JAR lokal bauen und Image auf dem Server erstellen
+
+**Lokal: Fat-JAR bauen und Build-Kontext auf den Server kopieren**
 
 ```bash
 ./gradlew :projectforge-application:bootJar
 
-podman build \
-  --platform linux/amd64 \
-  --build-arg JAR_FILE=projectforge-application/build/libs/projectforge-application-8.2-SNAPSHOT.jar \
-  -t micromata/projectforge-gateway:test .
-```
-
-Falls der Build lokal zu langsam ist (QEMU-Emulation), alternativ auf dem Server bauen.
-Das Dockerfile erwartet `docker/entrypoint.sh` und `docker/environment.sh` relativ zum Build-Kontext:
-
-```bash
-# Lokal: Dateien in korrekter Struktur auf den Server kopieren
 ssh user@server "mkdir -p ~/build/docker"
 scp projectforge-application/build/libs/projectforge-application-8.2-SNAPSHOT.jar user@server:~/build/
 scp Dockerfile user@server:~/build/
 scp docker/entrypoint.sh docker/environment.sh user@server:~/build/docker/
 ```
 
+**Auf dem Server: Docker-Image bauen**
+
 ```bash
-# Auf dem Server bauen
 ssh user@server
 cd ~/build
 podman build \
@@ -109,14 +99,43 @@ podman build \
   -t micromata/projectforge-gateway:test .
 ```
 
-### 2. Image auf Server übertragen
+### 2. Compose- und Nginx-Dateien auf den Server kopieren
 
 ```bash
-podman save micromata/projectforge-gateway:test | ssh user@server podman load
 scp docker/compose/gateway/docker-compose-gateway.yml user@server:~/gateway/
+scp -r docker/compose/gateway/nginx user@server:~/gateway/
 ```
 
-### 3. ProjectForge-Home auf dem Server einrichten
+### 3. TLS-Zertifikat erstellen (Let's Encrypt)
+
+Beim ersten Start muss das Zertifikat initial erzeugt werden. Dazu `gateway.example.com`
+durch den tatsächlichen Hostnamen ersetzen (auch in `nginx/nginx.conf`):
+
+```bash
+ssh user@server
+cd ~/gateway
+mkdir -p nginx/certs nginx/webroot
+
+# Temporär Nginx ohne SSL starten (für ACME-Challenge)
+podman run --rm -d --name nginx-init \
+  -p 80:80 \
+  -v ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro \
+  -v ./nginx/webroot:/var/www/certbot \
+  docker.io/library/nginx:alpine
+
+# Zertifikat holen
+podman run --rm \
+  -v ./nginx/certs:/etc/letsencrypt \
+  -v ./nginx/webroot:/var/www/certbot \
+  docker.io/certbot/certbot certonly \
+    --webroot -w /var/www/certbot \
+    -d gateway.example.com \
+    --agree-tos --non-interactive -m admin@example.com
+
+podman stop nginx-init
+```
+
+### 4. ProjectForge-Home auf dem Server einrichten
 
 Das Verzeichnis `~/gateway/ProjectForge` wird als Bind-Mount ins Container gemappt.
 Hier liegen Properties, Logs, Lucene-Index und Uploads direkt im Filesystem:
@@ -129,6 +148,7 @@ mkdir -p ~/gateway/ProjectForge
 `~/gateway/ProjectForge/projectforge.properties` anlegen:
 
 ```properties
+projectforge.domain=https://gateway.example.com
 projectforge.gateway.enabled=true
 projectforge.gateway.sync.secret=test-secret-12345
 
@@ -153,25 +173,29 @@ Permissions setzen (Container läuft als User `projectforge`, UID 101):
 podman unshare chown -R 101:101 ~/gateway/ProjectForge
 ```
 
-### 4. Auf Server starten
+### 5. Auf Server starten
 
 ```bash
 cd ~/gateway
 podman-compose -f docker-compose-gateway.yml up -d
 ```
 
-### 5. Main-Instanz auf Remote zeigen
+Das Gateway ist nun unter `https://gateway.example.com` erreichbar.
+Nginx terminiert TLS und leitet intern an den Spring-Boot-Container weiter.
+Certbot erneuert das Zertifikat automatisch alle 12h.
+
+### 6. Main-Instanz auf Remote zeigen
 
 In `~/ProjectForge/projectforge.properties`:
 
 ```properties
 projectforge.gateway.push.enabled=true
-projectforge.gateway.push.url=http://REMOTE_IP:8090/api/gateway/sync
+projectforge.gateway.push.url=https://gateway.example.com/api/gateway/sync
 projectforge.gateway.push.secret=test-secret-12345
 projectforge.gateway.push.syncIntervalMs=60000
 ```
 
-### 6. Logs und Status prüfen
+### 7. Logs und Status prüfen
 
 ```bash
 # Logs direkt im Filesystem
