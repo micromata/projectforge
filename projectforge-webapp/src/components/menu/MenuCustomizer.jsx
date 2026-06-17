@@ -10,9 +10,6 @@ import {
     KeyboardSensor,
     closestCenter,
     closestCorners,
-    DragStartEvent,
-    DragEndEvent,
-    DragOverEvent,
     useDroppable,
 } from '@dnd-kit/core';
 import {
