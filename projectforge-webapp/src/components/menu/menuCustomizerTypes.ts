@@ -28,10 +28,14 @@ export interface MenuCustomizerState {
   draggedItem: MenuItem | null;
   error: string | null;
   success: string | null;
+  toast: string | null;
   isDirty: boolean;
   editingGroupId: string | null;
   showGroupInput: boolean;
   newGroupName: string;
+  search: string;
+  collapsedGroups: Set<string>;
+  collapsedCategories: Set<string>;
 }
 
 export type MenuAction =
@@ -56,7 +60,11 @@ export type MenuAction =
   | { type: 'SET_NEW_GROUP_NAME'; payload: string }
   | { type: 'SET_EDITING_GROUP'; payload: string | null }
   | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'SET_SUCCESS'; payload: string | null };
+  | { type: 'SET_SUCCESS'; payload: string | null }
+  | { type: 'SET_TOAST'; payload: string | null }
+  | { type: 'SET_SEARCH'; payload: string }
+  | { type: 'TOGGLE_GROUP_COLLAPSE'; payload: string }
+  | { type: 'TOGGLE_CATEGORY_COLLAPSE'; payload: string };
 
 export interface DragData {
   type: 'item' | 'group';

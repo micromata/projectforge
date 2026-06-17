@@ -13,10 +13,14 @@ export const initialState: MenuCustomizerState = {
   draggedItem: null,
   error: null,
   success: null,
+  toast: null,
   isDirty: false,
   editingGroupId: null,
   showGroupInput: false,
   newGroupName: '',
+  search: '',
+  collapsedGroups: new Set(),
+  collapsedCategories: new Set(),
 };
 
 export function menuCustomizerReducer(state: MenuCustomizerState, action: MenuAction): MenuCustomizerState {
@@ -176,7 +180,7 @@ export function menuCustomizerReducer(state: MenuCustomizerState, action: MenuAc
         loading: false,
         lastSavedMenu: state.customMenu.map(item => ({ ...item, subMenu: item.subMenu ? [...item.subMenu] : undefined })),
         isDirty: false,
-        success: state.translations.menuSavedSuccessfully || 'Menu saved successfully',
+        toast: state.translations.menuSavedSuccessfully || 'Menu saved successfully',
       };
 
     case 'SAVE_FAILURE':
@@ -187,7 +191,7 @@ export function menuCustomizerReducer(state: MenuCustomizerState, action: MenuAc
         ...state,
         customMenu: state.lastSavedMenu.map(item => ({ ...item, subMenu: item.subMenu ? [...item.subMenu] : undefined })),
         isDirty: false,
-        success: state.translations.undo || 'Changes undone',
+        toast: state.translations.undo || 'Changes undone',
       };
 
     case 'SET_CUSTOM_MENU':
@@ -210,6 +214,26 @@ export function menuCustomizerReducer(state: MenuCustomizerState, action: MenuAc
 
     case 'SET_SUCCESS':
       return { ...state, success: action.payload };
+
+    case 'SET_TOAST':
+      return { ...state, toast: action.payload };
+
+    case 'SET_SEARCH':
+      return { ...state, search: action.payload };
+
+    case 'TOGGLE_GROUP_COLLAPSE': {
+      const newSet = new Set(state.collapsedGroups);
+      if (newSet.has(action.payload)) newSet.delete(action.payload);
+      else newSet.add(action.payload);
+      return { ...state, collapsedGroups: newSet };
+    }
+
+    case 'TOGGLE_CATEGORY_COLLAPSE': {
+      const newSet = new Set(state.collapsedCategories);
+      if (newSet.has(action.payload)) newSet.delete(action.payload);
+      else newSet.add(action.payload);
+      return { ...state, collapsedCategories: newSet };
+    }
 
     default:
       return state;

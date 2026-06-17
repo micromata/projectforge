@@ -2,8 +2,7 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEllipsisV, faMinus, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { Button } from 'reactstrap';
+import { faGripVertical, faMinus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { MenuItem, DragData, Translations } from '../menuCustomizerTypes';
 import { getItemId } from '../menuCustomizerUtils';
 import styles from '../MenuCustomizer.module.scss';
@@ -30,7 +29,7 @@ export function SortableMenuItem({ item, container, sortableId, translations, on
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition: isDragging ? 'none' : (transition || undefined),
-    opacity: isDragging ? 0.4 : 1,
+    opacity: isDragging ? 0.45 : 1,
   };
 
   const isInGroup = container !== 'favorites';
@@ -44,31 +43,17 @@ export function SortableMenuItem({ item, container, sortableId, translations, on
       {...attributes}
       {...listeners}
     >
-      <div className={styles.menuItemContent}>
-        <FontAwesomeIcon icon={faEllipsisV} className={styles.dragHandle} />
-        <span className={styles.itemTitle}>{item.title}</span>
-        {isInGroup ? (
-          <Button
-            color="link"
-            className={styles.actionButton}
-            onClick={(e) => { e.stopPropagation(); onRemove(itemId, container); }}
-            onMouseDown={(e) => e.stopPropagation()}
-            title={translations.removeFromGroup || 'Remove from group'}
-          >
-            <FontAwesomeIcon icon={faMinus} />
-          </Button>
-        ) : (
-          <Button
-            color="link"
-            className={styles.actionButton}
-            onClick={(e) => { e.stopPropagation(); onRemove(itemId); }}
-            onMouseDown={(e) => e.stopPropagation()}
-            title={translations.removeFromFavorites || 'Remove from favorites'}
-          >
-            <FontAwesomeIcon icon={faTrash} />
-          </Button>
-        )}
-      </div>
+      <FontAwesomeIcon icon={faGripVertical} className={styles.grip} />
+      <span className={styles.itemTitle}>{item.title}</span>
+      <button
+        type="button"
+        className={styles.removeButton}
+        onClick={(e) => { e.stopPropagation(); onRemove(itemId, isInGroup ? container : undefined); }}
+        onMouseDown={(e) => e.stopPropagation()}
+        title={isInGroup ? (translations.removeFromGroup || 'Remove from group') : (translations.removeFromFavorites || 'Remove')}
+      >
+        <FontAwesomeIcon icon={isInGroup ? faMinus : faTrash} size="xs" />
+      </button>
     </div>
   );
 }

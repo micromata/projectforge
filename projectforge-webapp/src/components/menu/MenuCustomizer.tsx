@@ -1,5 +1,4 @@
 import React, { useReducer, useEffect, useCallback } from 'react';
-import { Alert } from 'reactstrap';
 import {
   DndContext,
   DragOverlay,
@@ -15,10 +14,11 @@ import { menuCustomizerReducer, initialState } from './menuCustomizerReducer';
 import { useMenuDragDrop } from './useMenuDragDrop';
 import * as api from './menuCustomizerApi';
 import { cleanMenuForSave } from './menuCustomizerUtils';
+import { MenuItem } from './menuCustomizerTypes';
 import { CustomMenuPanel } from './components/CustomMenuPanel';
 import { TemplateMenuPanel } from './components/TemplateMenuPanel';
-import { ActionBar } from './components/ActionBar';
 import { DragOverlayContent } from './components/DragOverlayContent';
+import { Toast } from './components/Toast';
 import LoadingContainer from '../design/loading-container';
 import styles from './MenuCustomizer.module.scss';
 
@@ -41,15 +41,15 @@ function MenuCustomizer() {
     dispatch({ type: 'LOAD_START' });
     api.loadMenuData()
       .then(data => dispatch({ type: 'LOAD_SUCCESS', payload: data }))
-      .catch(() => dispatch({ type: 'LOAD_FAILURE', payload: 'Error loading menu data. Please try again.' }));
+      .catch(() => dispatch({ type: 'LOAD_FAILURE', payload: 'Error loading menu data.' }));
   }, []);
 
   useEffect(() => {
-    if (state.success || state.error) {
-      const timer = setTimeout(() => dispatch({ type: 'CLEAR_MESSAGE' }), 3000);
+    if (state.toast) {
+      const timer = setTimeout(() => dispatch({ type: 'SET_TOAST', payload: null }), 2200);
       return () => clearTimeout(timer);
     }
-  }, [state.success, state.error]);
+  }, [state.toast]);
 
   const handleSave = useCallback(async () => {
     dispatch({ type: 'SAVE_START' });
@@ -57,7 +57,7 @@ function MenuCustomizer() {
       await api.saveCustomMenu(cleanMenuForSave(state.customMenu));
       dispatch({ type: 'SAVE_SUCCESS' });
     } catch {
-      dispatch({ type: 'SAVE_FAILURE', payload: state.translations.errorSavingMenu || 'Error saving menu.' });
+      dispatch({ type: 'SET_ERROR', payload: state.translations.errorSavingMenu || 'Error saving menu.' });
     }
   }, [state.customMenu, state.translations]);
 
@@ -68,28 +68,28 @@ function MenuCustomizer() {
     try {
       const items = await api.loadDefaultMenu();
       dispatch({ type: 'SET_CUSTOM_MENU', payload: items });
-      dispatch({ type: 'SET_SUCCESS', payload: state.translations.loadDefault || 'Default menu loaded' });
+      dispatch({ type: 'SET_TOAST', payload: state.translations.loadDefault || 'Standard geladen' });
     } catch {
-      dispatch({ type: 'LOAD_FAILURE', payload: state.translations.errorLoadingMenu || 'Error loading default menu.' });
+      dispatch({ type: 'LOAD_FAILURE', payload: 'Error loading default menu.' });
     }
   }, [state.translations]);
 
   const handleReset = useCallback(async () => {
-    if (!window.confirm(state.translations.confirmReset || 'Are you sure you want to reset your menu to default?')) return;
+    if (!window.confirm(state.translations.confirmReset || 'Menü wirklich auf Standard zurücksetzen?')) return;
     dispatch({ type: 'LOAD_START' });
     try {
       await api.resetMenu();
       const data = await api.loadMenuData();
       dispatch({ type: 'LOAD_SUCCESS', payload: data });
-      dispatch({ type: 'SET_SUCCESS', payload: state.translations.menuResetSuccessfully || 'Menu reset successfully' });
+      dispatch({ type: 'SET_TOAST', payload: state.translations.menuResetSuccessfully || 'Menü zurückgesetzt' });
     } catch {
-      dispatch({ type: 'LOAD_FAILURE', payload: state.translations.errorResettingMenu || 'Error resetting menu.' });
+      dispatch({ type: 'LOAD_FAILURE', payload: 'Error resetting menu.' });
     }
   }, [state.translations]);
 
   const handleAddGroup = useCallback(() => {
     if (!state.newGroupName.trim()) {
-      dispatch({ type: 'SET_ERROR', payload: state.translations.groupNameCannotBeEmpty || 'Group name cannot be empty' });
+      dispatch({ type: 'SET_ERROR', payload: state.translations.groupNameCannotBeEmpty || 'Gruppenname darf nicht leer sein' });
       return;
     }
     dispatch({ type: 'ADD_GROUP', payload: { name: state.newGroupName } });
@@ -98,6 +98,13 @@ function MenuCustomizer() {
   const handleRemoveItem = useCallback((itemId: string, groupId?: string) => {
     dispatch({ type: 'REMOVE_ITEM', payload: { itemId, groupId } });
   }, []);
+
+  const handleClickAdd = useCallback((item: MenuItem) => {
+    dispatch({
+      type: 'ADD_FROM_TEMPLATE',
+      payload: { item, targetContainer: 'favorites', targetIndex: state.customMenu.length },
+    });
+  }, [state.customMenu.length]);
 
   if (state.loading) return <LoadingContainer className="" loading>{null}</LoadingContainer>;
 
@@ -110,49 +117,72 @@ function MenuCustomizer() {
       autoScroll={{ threshold: { x: 0.1, y: 0.2 } }}
     >
       <div className={styles.menuCustomizer}>
-        <h2>{state.translations.title || 'Customize Your Menu'}</h2>
-        {state.error && <Alert color="danger">{state.error}</Alert>}
-        {state.success && <Alert color="success">{state.success}</Alert>}
+        <div className={styles.header}>
+          <div>
+            <h1>{state.translations.title || 'Dein Menü anpassen'}</h1>
+            <p>Stelle dein persönliches Navigationsmenü zusammen: ziehe Einträge aus der Vorlage rechts nach links — oder klicke sie an.</p>
+          </div>
+          <div className={styles.legend}>
+            <span><i className={`${styles.dot} ${styles.dotPrimary}`} />Dein Menü</span>
+            <span><i className={`${styles.dot} ${styles.dotSuccess}`} />Vorlage</span>
+          </div>
+        </div>
 
-        <CustomMenuPanel
-          customMenu={state.customMenu}
-          translations={state.translations}
-          showGroupInput={state.showGroupInput}
-          newGroupName={state.newGroupName}
-          editingGroupId={state.editingGroupId}
-          onAddGroup={handleAddGroup}
-          onShowGroupInput={(show) => dispatch({ type: 'SET_SHOW_GROUP_INPUT', payload: show })}
-          onGroupNameChange={(name) => dispatch({ type: 'SET_NEW_GROUP_NAME', payload: name })}
-          onRemoveItem={handleRemoveItem}
-          onStartEditGroup={(id) => dispatch({ type: 'SET_EDITING_GROUP', payload: id })}
-          onSaveEditGroup={(groupId, name) => {
-            if (!name.trim()) {
-              dispatch({ type: 'SET_ERROR', payload: state.translations.groupNameCannotBeEmpty || 'Group name cannot be empty' });
-              return;
-            }
-            dispatch({ type: 'RENAME_GROUP', payload: { groupId, name } });
-          }}
-          onCancelEditGroup={() => dispatch({ type: 'SET_EDITING_GROUP', payload: null })}
-        />
+        {state.error && (
+          <div style={{ padding: '0 28px 12px' }}>
+            <div style={{ padding: '10px 14px', background: '#fdeeed', border: '1px solid #ecb3ae', borderRadius: 9, color: '#c44b43', fontSize: 13 }}>
+              {state.error}
+            </div>
+          </div>
+        )}
 
-        <ActionBar
-          translations={state.translations}
-          isDirty={state.isDirty}
-          onSave={handleSave}
-          onUndo={handleUndo}
-          onLoadDefault={handleLoadDefault}
-          onReset={handleReset}
-        />
+        <div className={styles.layout}>
+          <CustomMenuPanel
+            customMenu={state.customMenu}
+            translations={state.translations}
+            showGroupInput={state.showGroupInput}
+            newGroupName={state.newGroupName}
+            editingGroupId={state.editingGroupId}
+            isDirty={state.isDirty}
+            collapsedGroups={state.collapsedGroups}
+            onAddGroup={handleAddGroup}
+            onShowGroupInput={(show) => dispatch({ type: 'SET_SHOW_GROUP_INPUT', payload: show })}
+            onGroupNameChange={(name) => dispatch({ type: 'SET_NEW_GROUP_NAME', payload: name })}
+            onRemoveItem={handleRemoveItem}
+            onStartEditGroup={(id) => dispatch({ type: 'SET_EDITING_GROUP', payload: id })}
+            onSaveEditGroup={(groupId, name) => {
+              if (!name.trim()) {
+                dispatch({ type: 'SET_ERROR', payload: state.translations.groupNameCannotBeEmpty || 'Gruppenname darf nicht leer sein' });
+                return;
+              }
+              dispatch({ type: 'RENAME_GROUP', payload: { groupId, name } });
+            }}
+            onCancelEditGroup={() => dispatch({ type: 'SET_EDITING_GROUP', payload: null })}
+            onToggleGroupCollapse={(id) => dispatch({ type: 'TOGGLE_GROUP_COLLAPSE', payload: id })}
+            onSave={handleSave}
+            onUndo={handleUndo}
+            onLoadDefault={handleLoadDefault}
+            onReset={handleReset}
+          />
 
-        <TemplateMenuPanel
-          mainMenuStructured={state.mainMenuStructured}
-          translations={state.translations}
-        />
+          <TemplateMenuPanel
+            mainMenuStructured={state.mainMenuStructured}
+            customMenu={state.customMenu}
+            translations={state.translations}
+            search={state.search}
+            collapsedCategories={state.collapsedCategories}
+            onSearchChange={(value) => dispatch({ type: 'SET_SEARCH', payload: value })}
+            onToggleCategory={(id) => dispatch({ type: 'TOGGLE_CATEGORY_COLLAPSE', payload: id })}
+            onClickAdd={handleClickAdd}
+          />
+        </div>
       </div>
 
       <DragOverlay>
         {state.draggedItem ? <DragOverlayContent item={state.draggedItem} /> : null}
       </DragOverlay>
+
+      {state.toast && <Toast message={state.toast} />}
     </DndContext>
   );
 }
