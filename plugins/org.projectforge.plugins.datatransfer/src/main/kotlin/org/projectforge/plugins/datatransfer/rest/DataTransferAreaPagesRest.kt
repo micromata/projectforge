@@ -26,6 +26,7 @@ package org.projectforge.plugins.datatransfer.rest
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.configuration.ConfigurationChecker
 import org.projectforge.framework.i18n.translate
@@ -61,6 +62,9 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
 
     @Autowired
     private lateinit var configurationChecker: ConfigurationChecker
+
+    @Autowired
+    private lateinit var userGroupCache: UserGroupCache
 
     @PostConstruct
     private fun postConstruct() {
@@ -229,6 +233,28 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
                         ), fieldId = "maxUploadSizeKB"
                     )
                 )
+            }
+        }
+        dto.observers?.let { observers ->
+            if (observers.isNotEmpty()) {
+                val adminIds = dto.admins?.mapNotNull { it.id }?.toSet() ?: emptySet()
+                val accessUserIds = dto.accessUsers?.mapNotNull { it.id }?.toSet() ?: emptySet()
+                val accessGroupIds = dto.accessGroups?.mapNotNull { it.id }?.toTypedArray() ?: emptyArray()
+                val observersWithoutAccess = observers.filter { observer ->
+                    val observerId = observer.id ?: return@filter false
+                    observerId !in adminIds
+                            && observerId !in accessUserIds
+                            && (accessGroupIds.isEmpty() || !userGroupCache.isUserMemberOfAtLeastOneGroup(observerId, *accessGroupIds))
+                }
+                if (observersWithoutAccess.isNotEmpty()) {
+                    val names = observersWithoutAccess.joinToString { it.displayName ?: "???" }
+                    validationErrors.add(
+                        ValidationError(
+                            translateMsg("plugins.datatransfer.validation.error.observerWithoutAccess", names),
+                            fieldId = "observers"
+                        )
+                    )
+                }
             }
         }
     }
