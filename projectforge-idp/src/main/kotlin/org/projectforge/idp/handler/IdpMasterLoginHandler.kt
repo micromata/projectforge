@@ -449,8 +449,7 @@ open class IdpMasterLoginHandler : LoginHandler {
         if (wlanAttr.isNullOrBlank() || !isLdapConfigured()) return
 
         val candidates = users.filter { pfUser ->
-            pfUser.lastWlanPasswordChange != null
-                && !pfUser.deleted && !pfUser.localUser
+            !pfUser.deleted && !pfUser.localUser
                 && pfUser.username != null
                 && idpUserIdByUsername.containsKey(pfUser.username)
                 && idpUserByUsername[pfUser.username]
