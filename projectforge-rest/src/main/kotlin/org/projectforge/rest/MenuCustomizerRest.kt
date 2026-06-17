@@ -47,7 +47,6 @@ class MenuCustomizerRest {
     
     class MenuCustomizerPageData(
         val translations: Map<String, String>,
-        val excelMenuUrl: String
     )
     
     @Autowired
@@ -84,15 +83,12 @@ class MenuCustomizerRest {
             "errorSavingMenu" to translate("menu.customizer.errorSavingMenu"),
             "errorResettingMenu" to translate("menu.customizer.errorResettingMenu"),
             "confirmReset" to translate("menu.customizer.confirmReset"),
-            "excelMenu" to translate("menu.customizer.excelMenu"),
-            "excelMenuTooltip" to translate("menu.customizer.excelMenuTooltip"),
             "undo" to translate("menu.customizer.undo"),
             "loadDefault" to translate("menu.customizer.loadDefault")
         )
         
         val pageData = MenuCustomizerPageData(
             translations = translations,
-            excelMenuUrl = "/react/myMenu/dynamic/"
         )
         
         return ResponseEntity.ok(pageData)

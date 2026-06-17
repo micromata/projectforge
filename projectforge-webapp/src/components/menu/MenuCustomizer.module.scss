@@ -2,11 +2,6 @@
 
 .menuCustomizer {
   padding: 20px;
-  
-  // Prevent auto-scrolling during drag operations
-  * {
-    scroll-behavior: auto !important;
-  }
 }
 
 .customMenuSection {
