@@ -1,6 +1,7 @@
 import { MenuItem } from './menuCustomizerTypes';
 
-export function getItemId(item: MenuItem): string {
+export function getItemId(item: MenuItem | undefined | null): string {
+  if (!item) return '';
   return item.id || item.key || '';
 }
 

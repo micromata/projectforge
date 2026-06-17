@@ -43,8 +43,8 @@ export function TemplateMenuPanel({
       <div className={styles.panelHeader}>
         <div className={styles.panelTitleRow}>
           <div>
-            <span className={styles.panelTitle}>Verfügbare Einträge</span>
-            <span className={styles.panelMeta}>Vorlage</span>
+            <span className={styles.panelTitle}>{translations.templateTitle || 'Available Entries'}</span>
+            <span className={styles.panelMeta}>{translations.templateLabel || 'Template'}</span>
           </div>
         </div>
         <div className={styles.searchWrap}>
@@ -53,11 +53,11 @@ export function TemplateMenuPanel({
             type="text"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Suchen..."
+            placeholder={translations.searchPlaceholder || 'Search...'}
           />
         </div>
         <p className={styles.searchHint}>
-          Klicke einen Eintrag an oder ziehe ihn nach links in dein Menü.
+          {translations.searchHint || ''}
         </p>
       </div>
 
@@ -97,6 +97,7 @@ export function TemplateMenuPanel({
                         key={getItemId(item)}
                         item={item}
                         isAdded={isDuplicate(customMenu, getItemId(item))}
+                        translations={translations}
                         onClickAdd={onClickAdd}
                       />
                     ))}
@@ -105,7 +106,7 @@ export function TemplateMenuPanel({
               </div>
             );
           }) : (
-            <div className={styles.noResults}>Keine Einträge gefunden</div>
+            <div className={styles.noResults}>{translations.noResults || 'No entries found'}</div>
           )}
         </SortableContext>
       </div>

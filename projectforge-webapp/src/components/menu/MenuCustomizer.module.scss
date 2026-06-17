@@ -100,12 +100,21 @@ $font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, 
   &.dotSuccess { background: $success; }
 }
 
+/* ---- Toolbar (above both panels) ---- */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  padding: 0 28px 14px;
+}
+
 /* ---- Two-column layout ---- */
 .layout {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
   gap: 22px;
   padding: 0 28px 24px;
 }
@@ -148,14 +157,56 @@ $font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, 
   overflow: auto;
   padding: 16px;
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: flex-start;
+  align-content: flex-start;
   background: $scroll-bg;
+}
+
+/* ---- Favorite chip (compact item in favorites) ---- */
+.favChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 11px 6px 9px;
+  background: #fff;
+  border: 1px solid $primary-bd;
+  border-radius: $r-item;
+  font-size: 12.5px;
+  line-height: 1;
+  cursor: grab;
+  transition: border-color .12s ease, background .12s ease, box-shadow .12s ease, transform .12s ease;
+  position: relative;
+
+  .favChipDot { width: 6px; height: 6px; border-radius: 50%; background: $primary; flex: none; }
+  .favChipLabel { white-space: nowrap; }
+
+  &:hover:not(.dragging) {
+    border-color: $primary;
+    background: $primary-soft;
+    box-shadow: 0 1px 4px rgba(47, 111, 237, .18);
+    transform: translateY(-1px);
+  }
+  &.dragging { opacity: .35; }
+
+  .favChipRemove {
+    position: absolute;
+    top: -6px; right: -6px;
+    width: 16px; height: 16px;
+    display: flex; align-items: center; justify-content: center;
+    background: #fff; border: 1px solid #d6dae0;
+    border-radius: 50%; font-size: 9px; color: #aab2bd;
+    cursor: pointer; opacity: 0;
+    transition: opacity .12s ease, color .12s ease, background .12s ease;
+    &:hover { background: #fdeeed; color: $danger-fg; border-color: $danger-bd; }
+  }
+  &:hover .favChipRemove { opacity: 1; }
 }
 
 /* ---- Group (container) ---- */
 .group {
-  flex: none;
+  flex: 0 0 100%;
   width: 100%;
   background: $panel-bg;
   border: 1px solid $primary-bd;
@@ -200,16 +251,14 @@ $font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, 
     &:hover { background: #dde9fd; }
   }
   .delete:hover { background: #fbe4e2; color: #d65a52; }
-  .chevron { transition: transform .18s ease; }
-  .chevronCollapsed { transform: rotate(-90deg); }
 }
 
 .groupBody {
   padding: 9px;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-height: 50px;
+  flex-wrap: wrap;
+  gap: 7px;
+  min-height: 40px;
   background: $panel-bg;
   border: 2px dashed transparent;
   border-top: none;
@@ -228,39 +277,6 @@ $font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, 
   font-size: 12.5px;
   font-style: italic;
   color: $muted-light;
-}
-
-/* ---- Menu items in favorites ---- */
-.menuItem {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 10px 12px;
-  background: $panel-bg;
-  border: 1px solid $panel-border;
-  border-left: 3px solid $primary;
-  border-radius: 10px;
-  box-shadow: $shadow-card;
-  cursor: grab;
-  transition: border-color .12s ease, box-shadow .12s ease;
-
-  &:hover:not(.dragging) { border-color: $primary-bd; box-shadow: $shadow-hover; }
-  &.dragging { opacity: .45; }
-
-  .grip { color: $grip; flex: none; }
-  .itemTitle { flex: 1; min-width: 0; font-size: 14px; font-weight: 500;
-               white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-}
-
-/* kompaktere Variante innerhalb einer Gruppe */
-.groupBody .menuItem {
-  padding: 7px 9px;
-  border-radius: 7px;
-  border: 1px solid $item-bd;
-  border-left: 3px solid $primary;
-  box-shadow: none;
-  .itemTitle { font-size: 13px; font-weight: 400; }
 }
 
 .removeButton {
@@ -303,16 +319,12 @@ $font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, 
   .emptyText  { font-size: 13.5px; line-height: 1.5; color: $muted; }
 }
 
-/* ---- Action bar ---- */
+/* ---- Action bar (in header) ---- */
 .actionButtons {
-  flex: none;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 9px;
-  padding: 13px 16px;
-  border-top: 1px solid #eef0f3;
-  background: $panel-bg;
+  gap: 7px;
 }
 
 @mixin btn {
@@ -508,11 +520,14 @@ $font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, 
 
 /* ---- Drag overlay (@dnd-kit DragOverlay) ---- */
 .dragOverlayItem {
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 12px;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 11px 6px 9px;
   background: #fff;
-  border: 1px solid $primary-bd;
+  border: 1px solid $primary;
   border-radius: $r-item;
-  box-shadow: 0 4px 8px rgba(16, 24, 40, .25);
-  font-size: 13px;
+  box-shadow: 0 4px 12px rgba(16, 24, 40, .25);
+  font-size: 12.5px;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: grabbing;
 }

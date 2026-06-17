@@ -30,6 +30,9 @@ export function menuCustomizerReducer(state: MenuCustomizerState, action: MenuAc
 
     case 'LOAD_SUCCESS': {
       const { mainMenuStructured, mainMenuFlat, customMenu, translations } = action.payload;
+      const collapsedGroups = new Set(
+        customMenu.filter(item => Array.isArray(item.subMenu)).map(item => getItemId(item))
+      );
       return {
         ...state,
         loading: false,
@@ -40,6 +43,7 @@ export function menuCustomizerReducer(state: MenuCustomizerState, action: MenuAc
         translations,
         isDirty: false,
         error: null,
+        collapsedGroups,
       };
     }
 

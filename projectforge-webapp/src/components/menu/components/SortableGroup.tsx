@@ -1,10 +1,10 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGripVertical, faFolder, faChevronDown, faPen, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faGripVertical, faFolder, faPen, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { MenuItem, DragData, Translations } from '../menuCustomizerTypes';
 import { getItemId } from '../menuCustomizerUtils';
 import { SortableMenuItem } from './SortableMenuItem';
@@ -15,18 +15,16 @@ interface Props {
   translations: Translations;
   editingGroupId: string | null;
   newGroupName: string;
-  collapsed: boolean;
   onRemove: (itemId: string, groupId?: string) => void;
   onStartEdit: (groupId: string) => void;
   onSaveEdit: (groupId: string, name: string) => void;
   onCancelEdit: () => void;
   onNameChange: (name: string) => void;
-  onToggleCollapse: (groupId: string) => void;
 }
 
 export function SortableGroup({
-  item, translations, editingGroupId, newGroupName, collapsed,
-  onRemove, onStartEdit, onSaveEdit, onCancelEdit, onNameChange, onToggleCollapse,
+  item, translations, editingGroupId, newGroupName,
+  onRemove, onStartEdit, onSaveEdit, onCancelEdit, onNameChange,
 }: Props) {
   const groupId = getItemId(item);
   const sortableId = `grp_${groupId}`;
@@ -79,16 +77,6 @@ export function SortableGroup({
         <span className={styles.groupCount}>{subItems.length}</span>
 
         <div className={styles.groupActions}>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onToggleCollapse(groupId); }}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <FontAwesomeIcon
-              icon={faChevronDown}
-              className={`${styles.chevron} ${collapsed ? styles.chevronCollapsed : ''}`}
-            />
-          </button>
           {!isEditing && (
             <button
               type="button"
@@ -111,15 +99,13 @@ export function SortableGroup({
         </div>
       </div>
 
-      {!collapsed && (
-        <GroupDropArea groupId={groupId} groupItemIds={groupItemIds} subItems={subItems}
-          translations={translations} onRemove={onRemove} />
-      )}
+      <GroupDropBody groupId={groupId} groupItemIds={groupItemIds} subItems={subItems}
+        translations={translations} onRemove={onRemove} />
     </div>
   );
 }
 
-function GroupDropArea({ groupId, groupItemIds, subItems, translations, onRemove }: {
+function GroupDropBody({ groupId, groupItemIds, subItems, translations, onRemove }: {
   groupId: string;
   groupItemIds: string[];
   subItems: MenuItem[];
@@ -127,12 +113,12 @@ function GroupDropArea({ groupId, groupItemIds, subItems, translations, onRemove
   onRemove: (itemId: string, groupId?: string) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({
-    id: `drop_${groupId}`,
+    id: `dropbody_${groupId}`,
     data: { type: 'item', item: { id: groupId, title: '' }, container: groupId } as DragData,
   });
 
   return (
-    <SortableContext id={groupId} items={groupItemIds} strategy={verticalListSortingStrategy}>
+    <SortableContext id={groupId} items={groupItemIds} strategy={rectSortingStrategy}>
       <div ref={setNodeRef} className={`${styles.groupBody} ${isOver ? styles.draggingOver : ''}`}>
         {subItems.length > 0 ? subItems.map(sub => (
           <SortableMenuItem
@@ -145,7 +131,7 @@ function GroupDropArea({ groupId, groupItemIds, subItems, translations, onRemove
           />
         )) : (
           <div className={styles.emptyGroup}>
-            {translations.dropItemsHere || 'Einträge hierher ziehen'}
+            {translations.dropItemsHere || 'Drop items here'}
           </div>
         )}
       </div>

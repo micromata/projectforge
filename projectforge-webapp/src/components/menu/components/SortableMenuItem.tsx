@@ -2,7 +2,7 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGripVertical, faMinus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { MenuItem, DragData, Translations } from '../menuCustomizerTypes';
 import { getItemId } from '../menuCustomizerUtils';
 import styles from '../MenuCustomizer.module.scss';
@@ -29,7 +29,6 @@ export function SortableMenuItem({ item, container, sortableId, translations, on
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition: isDragging ? 'none' : (transition || undefined),
-    opacity: isDragging ? 0.45 : 1,
   };
 
   const isInGroup = container !== 'favorites';
@@ -39,20 +38,20 @@ export function SortableMenuItem({ item, container, sortableId, translations, on
     <div
       ref={setNodeRef}
       style={style}
-      className={`${styles.menuItem} ${isDragging ? styles.dragging : ''}`}
+      className={`${styles.favChip} ${isDragging ? styles.dragging : ''}`}
       {...attributes}
       {...listeners}
     >
-      <FontAwesomeIcon icon={faGripVertical} className={styles.grip} />
-      <span className={styles.itemTitle}>{item.title}</span>
+      <span className={styles.favChipDot} />
+      <span className={styles.favChipLabel}>{item.title}</span>
       <button
         type="button"
-        className={styles.removeButton}
+        className={styles.favChipRemove}
         onClick={(e) => { e.stopPropagation(); onRemove(itemId, isInGroup ? container : undefined); }}
         onMouseDown={(e) => e.stopPropagation()}
-        title={isInGroup ? (translations.removeFromGroup || 'Remove from group') : (translations.removeFromFavorites || 'Remove')}
+        title={isInGroup ? (translations.removeFromGroup || 'Remove') : (translations.removeFromFavorites || 'Remove')}
       >
-        <FontAwesomeIcon icon={isInGroup ? faMinus : faTrash} size="xs" />
+        <FontAwesomeIcon icon={faTimes} />
       </button>
     </div>
   );

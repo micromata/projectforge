@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 import { MenuCustomizerState, MenuAction, DragData, MenuItem } from './menuCustomizerTypes';
-import { getItemId, isGroup } from './menuCustomizerUtils';
+import { getItemId } from './menuCustomizerUtils';
 
 export function useMenuDragDrop(
   state: MenuCustomizerState,
@@ -9,7 +9,7 @@ export function useMenuDragDrop(
 ) {
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const data = event.active.data.current as DragData | undefined;
-    if (data) {
+    if (data?.item) {
       dispatch({ type: 'DRAG_START', payload: { id: String(event.active.id), item: data.item } });
     }
   }, [dispatch]);
@@ -18,52 +18,67 @@ export function useMenuDragDrop(
     dispatch({ type: 'DRAG_END' });
 
     const { active, over } = event;
-    if (!over) return;
+    if (!over || active.id === over.id) return;
 
     const activeData = active.data.current as DragData | undefined;
     const overData = over.data.current as DragData | undefined;
-    if (!activeData) return;
-
-    // Prevent groups from being dropped into other groups
-    if (activeData.type === 'group' && overData?.container !== 'favorites' && overData?.container !== 'template') {
-      return;
-    }
+    if (!activeData?.item) return;
 
     const sourceContainer = activeData.container;
     const targetContainer = overData?.container || 'favorites';
 
-    // Template → favorites/group: ADD
+    // Don't drop into template
+    if (targetContainer === 'template') return;
+
+    // Prevent groups from being dropped into other groups
+    if (activeData.type === 'group' && targetContainer !== 'favorites') return;
+
+    // From template: add to target
     if (sourceContainer === 'template') {
-      const targetIndex = getTargetIndex(state.customMenu, targetContainer, over.id as string, overData);
+      const targetIndex = overData?.item
+        ? getItemIndex(state.customMenu, targetContainer, overData.item)
+        : getEndIndex(state.customMenu, targetContainer);
       dispatch({
         type: 'ADD_FROM_TEMPLATE',
-        payload: { item: activeData.item, targetContainer, targetIndex },
+        payload: { item: activeData.item, targetContainer, targetIndex: targetIndex !== -1 ? targetIndex : getEndIndex(state.customMenu, targetContainer) },
       });
       return;
     }
 
-    // Same container: REORDER
+    // Same container: reorder
     if (sourceContainer === targetContainer) {
       const oldIndex = getItemIndex(state.customMenu, sourceContainer, activeData.item);
-      const overItem = overData?.item;
-      const newIndex = overItem
-        ? getItemIndex(state.customMenu, targetContainer, overItem)
-        : getTargetIndex(state.customMenu, targetContainer, over.id as string, overData);
+      let newIndex = overData?.item
+        ? getItemIndex(state.customMenu, targetContainer, overData.item)
+        : -1;
 
-      if (oldIndex !== -1 && newIndex !== -1) {
+      // Dropped on the container background (green) → move to end
+      if (newIndex === -1) {
+        newIndex = getEndIndex(state.customMenu, targetContainer) - 1;
+      }
+
+      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
         dispatch({ type: 'REORDER', payload: { container: sourceContainer, oldIndex, newIndex } });
       }
       return;
     }
 
-    // Different containers: MOVE
+    // Cross-container: move
     const sourceIndex = getItemIndex(state.customMenu, sourceContainer, activeData.item);
-    const targetIndex = getTargetIndex(state.customMenu, targetContainer, over.id as string, overData);
+    const targetIndex = overData?.item
+      ? getItemIndex(state.customMenu, targetContainer, overData.item)
+      : getEndIndex(state.customMenu, targetContainer);
 
     if (sourceIndex !== -1) {
       dispatch({
         type: 'MOVE_TO_CONTAINER',
-        payload: { item: activeData.item, sourceContainer, sourceIndex, targetContainer, targetIndex },
+        payload: {
+          item: activeData.item,
+          sourceContainer,
+          sourceIndex,
+          targetContainer,
+          targetIndex: targetIndex !== -1 ? targetIndex : getEndIndex(state.customMenu, targetContainer),
+        },
       });
     }
   }, [state.customMenu, dispatch]);
@@ -73,30 +88,16 @@ export function useMenuDragDrop(
 
 function getItemIndex(customMenu: MenuItem[], container: string, item: MenuItem): number {
   const itemId = getItemId(item);
+  if (!itemId) return -1;
   if (container === 'favorites') {
     return customMenu.findIndex(i => getItemId(i) === itemId);
   }
-  // Group container
   const group = customMenu.find(g => getItemId(g) === container);
-  if (group?.subMenu) {
-    return group.subMenu.findIndex(i => getItemId(i) === itemId);
-  }
-  return -1;
+  return group?.subMenu?.findIndex(i => getItemId(i) === itemId) ?? -1;
 }
 
-function getTargetIndex(customMenu: MenuItem[], container: string, _overId: string, overData?: DragData): number {
-  if (container === 'favorites') {
-    if (overData?.item) {
-      const idx = customMenu.findIndex(i => getItemId(i) === getItemId(overData.item));
-      return idx !== -1 ? idx : customMenu.length;
-    }
-    return customMenu.length;
-  }
-  // Group container
+function getEndIndex(customMenu: MenuItem[], container: string): number {
+  if (container === 'favorites') return customMenu.length;
   const group = customMenu.find(g => getItemId(g) === container);
-  if (group?.subMenu && overData?.item) {
-    const idx = group.subMenu.findIndex(i => getItemId(i) === getItemId(overData.item));
-    return idx !== -1 ? idx : group.subMenu.length;
-  }
   return group?.subMenu?.length || 0;
 }

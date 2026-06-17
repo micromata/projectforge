@@ -3,17 +3,18 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck } from '@fortawesome/free-solid-svg-icons';
-import { MenuItem, DragData } from '../menuCustomizerTypes';
+import { MenuItem, DragData, Translations } from '../menuCustomizerTypes';
 import { getItemId } from '../menuCustomizerUtils';
 import styles from '../MenuCustomizer.module.scss';
 
 interface Props {
   item: MenuItem;
   isAdded: boolean;
+  translations: Translations;
   onClickAdd: (item: MenuItem) => void;
 }
 
-export function TemplateChip({ item, isAdded, onClickAdd }: Props) {
+export function TemplateChip({ item, isAdded, translations, onClickAdd }: Props) {
   const sortableId = `tpl_${getItemId(item)}`;
   const data: DragData = { type: 'item', item, container: 'template' };
 
@@ -28,7 +29,7 @@ export function TemplateChip({ item, isAdded, onClickAdd }: Props) {
 
   if (isAdded) {
     return (
-      <div className={styles.chipAdded} title="Bereits in deinem Menü">
+      <div className={styles.chipAdded} title={translations.alreadyAdded || 'Already in your menu'}>
         <FontAwesomeIcon icon={faCheck} className={styles.chipCheck} size="xs" />
         <span className={styles.chipLabel}>{item.title}</span>
       </div>

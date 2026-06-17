@@ -84,7 +84,19 @@ class MenuCustomizerRest {
             "errorResettingMenu" to translate("menu.customizer.errorResettingMenu"),
             "confirmReset" to translate("menu.customizer.confirmReset"),
             "undo" to translate("menu.customizer.undo"),
-            "loadDefault" to translate("menu.customizer.loadDefault")
+            "loadDefault" to translate("menu.customizer.loadDefault"),
+            "subtitle" to translate("menu.customizer.subtitle"),
+            "legendMyMenu" to translate("menu.customizer.legendMyMenu"),
+            "legendTemplate" to translate("menu.customizer.legendTemplate"),
+            "templateTitle" to translate("menu.customizer.templateTitle"),
+            "templateLabel" to translate("menu.customizer.templateLabel"),
+            "searchPlaceholder" to translate("menu.customizer.searchPlaceholder"),
+            "searchHint" to translate("menu.customizer.searchHint"),
+            "noResults" to translate("menu.customizer.noResults"),
+            "alreadyAdded" to translate("menu.customizer.alreadyAdded"),
+            "emptyMenuTitle" to translate("menu.customizer.emptyMenuTitle"),
+            "emptyMenuText" to translate("menu.customizer.emptyMenuText"),
+            "group" to translate("menu.customizer.group")
         )
         
         val pageData = MenuCustomizerPageData(

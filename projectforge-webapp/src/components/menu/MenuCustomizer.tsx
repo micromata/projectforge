@@ -1,4 +1,6 @@
 import React, { useReducer, useEffect, useCallback } from 'react';
+import { useDispatch } from 'react-redux';
+import { loadMenu } from '../../actions/menu';
 import {
   DndContext,
   DragOverlay,
@@ -6,10 +8,12 @@ import {
   useSensors,
   PointerSensor,
   KeyboardSensor,
+  closestCenter,
   pointerWithin,
-  rectIntersection,
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFloppyDisk, faRotateLeft } from '@fortawesome/free-solid-svg-icons';
 import { menuCustomizerReducer, initialState } from './menuCustomizerReducer';
 import { useMenuDragDrop } from './useMenuDragDrop';
 import * as api from './menuCustomizerApi';
@@ -25,11 +29,12 @@ import styles from './MenuCustomizer.module.scss';
 function customCollisionDetection(args: Parameters<typeof pointerWithin>[0]) {
   const pointerCollisions = pointerWithin(args);
   if (pointerCollisions.length > 0) return pointerCollisions;
-  return rectIntersection(args);
+  return closestCenter(args);
 }
 
 function MenuCustomizer() {
   const [state, dispatch] = useReducer(menuCustomizerReducer, initialState);
+  const reduxDispatch = useDispatch();
   const { handleDragStart, handleDragEnd } = useMenuDragDrop(state, dispatch);
 
   const sensors = useSensors(
@@ -56,40 +61,41 @@ function MenuCustomizer() {
     try {
       await api.saveCustomMenu(cleanMenuForSave(state.customMenu));
       dispatch({ type: 'SAVE_SUCCESS' });
+      reduxDispatch(loadMenu() as any);
     } catch {
       dispatch({ type: 'SET_ERROR', payload: state.translations.errorSavingMenu || 'Error saving menu.' });
     }
-  }, [state.customMenu, state.translations]);
+  }, [state.customMenu, state.translations, reduxDispatch]);
 
   const handleUndo = useCallback(() => dispatch({ type: 'UNDO' }), []);
 
   const handleLoadDefault = useCallback(async () => {
-    dispatch({ type: 'LOAD_START' });
     try {
       const items = await api.loadDefaultMenu();
       dispatch({ type: 'SET_CUSTOM_MENU', payload: items });
-      dispatch({ type: 'SET_TOAST', payload: state.translations.loadDefault || 'Standard geladen' });
+      dispatch({ type: 'SET_TOAST', payload: state.translations.loadDefault || 'Default loaded' });
     } catch {
-      dispatch({ type: 'LOAD_FAILURE', payload: 'Error loading default menu.' });
+      dispatch({ type: 'SET_ERROR', payload: 'Error loading default menu.' });
     }
   }, [state.translations]);
 
   const handleReset = useCallback(async () => {
-    if (!window.confirm(state.translations.confirmReset || 'Menü wirklich auf Standard zurücksetzen?')) return;
+    if (!window.confirm(state.translations.confirmReset || 'Reset menu to default?')) return;
     dispatch({ type: 'LOAD_START' });
     try {
       await api.resetMenu();
       const data = await api.loadMenuData();
       dispatch({ type: 'LOAD_SUCCESS', payload: data });
       dispatch({ type: 'SET_TOAST', payload: state.translations.menuResetSuccessfully || 'Menü zurückgesetzt' });
+      reduxDispatch(loadMenu() as any);
     } catch {
       dispatch({ type: 'LOAD_FAILURE', payload: 'Error resetting menu.' });
     }
-  }, [state.translations]);
+  }, [state.translations, reduxDispatch]);
 
   const handleAddGroup = useCallback(() => {
     if (!state.newGroupName.trim()) {
-      dispatch({ type: 'SET_ERROR', payload: state.translations.groupNameCannotBeEmpty || 'Gruppenname darf nicht leer sein' });
+      dispatch({ type: 'SET_ERROR', payload: state.translations.groupNameCannotBeEmpty || 'Group name cannot be empty' });
       return;
     }
     dispatch({ type: 'ADD_GROUP', payload: { name: state.newGroupName } });
@@ -119,12 +125,8 @@ function MenuCustomizer() {
       <div className={styles.menuCustomizer}>
         <div className={styles.header}>
           <div>
-            <h1>{state.translations.title || 'Dein Menü anpassen'}</h1>
-            <p>Stelle dein persönliches Navigationsmenü zusammen: ziehe Einträge aus der Vorlage rechts nach links — oder klicke sie an.</p>
-          </div>
-          <div className={styles.legend}>
-            <span><i className={`${styles.dot} ${styles.dotPrimary}`} />Dein Menü</span>
-            <span><i className={`${styles.dot} ${styles.dotSuccess}`} />Vorlage</span>
+            <h1>{state.translations.title || 'Customize Your Menu'}</h1>
+            <p>{state.translations.subtitle || ''}</p>
           </div>
         </div>
 
@@ -136,6 +138,23 @@ function MenuCustomizer() {
           </div>
         )}
 
+        <div className={styles.toolbar}>
+          <button type="button" className={styles.btnPrimary} onClick={handleSave} disabled={!state.isDirty}>
+            <FontAwesomeIcon icon={faFloppyDisk} size="sm" />
+            {state.translations.saveChanges || 'Save'}
+          </button>
+          <button type="button" className={styles.btnSecondary} onClick={handleUndo} disabled={!state.isDirty}>
+            <FontAwesomeIcon icon={faRotateLeft} size="sm" />
+            {state.translations.undo || 'Undo'}
+          </button>
+          <button type="button" className={styles.btnWarning} onClick={handleLoadDefault}>
+            {state.translations.loadDefault || 'Load Default'}
+          </button>
+          <button type="button" className={styles.btnDanger} onClick={handleReset}>
+            {state.translations.resetToDefault || 'Reset'}
+          </button>
+        </div>
+
         <div className={styles.layout}>
           <CustomMenuPanel
             customMenu={state.customMenu}
@@ -143,8 +162,6 @@ function MenuCustomizer() {
             showGroupInput={state.showGroupInput}
             newGroupName={state.newGroupName}
             editingGroupId={state.editingGroupId}
-            isDirty={state.isDirty}
-            collapsedGroups={state.collapsedGroups}
             onAddGroup={handleAddGroup}
             onShowGroupInput={(show) => dispatch({ type: 'SET_SHOW_GROUP_INPUT', payload: show })}
             onGroupNameChange={(name) => dispatch({ type: 'SET_NEW_GROUP_NAME', payload: name })}
@@ -152,17 +169,12 @@ function MenuCustomizer() {
             onStartEditGroup={(id) => dispatch({ type: 'SET_EDITING_GROUP', payload: id })}
             onSaveEditGroup={(groupId, name) => {
               if (!name.trim()) {
-                dispatch({ type: 'SET_ERROR', payload: state.translations.groupNameCannotBeEmpty || 'Gruppenname darf nicht leer sein' });
+                dispatch({ type: 'SET_ERROR', payload: state.translations.groupNameCannotBeEmpty || 'Group name cannot be empty' });
                 return;
               }
               dispatch({ type: 'RENAME_GROUP', payload: { groupId, name } });
             }}
             onCancelEditGroup={() => dispatch({ type: 'SET_EDITING_GROUP', payload: null })}
-            onToggleGroupCollapse={(id) => dispatch({ type: 'TOGGLE_GROUP_COLLAPSE', payload: id })}
-            onSave={handleSave}
-            onUndo={handleUndo}
-            onLoadDefault={handleLoadDefault}
-            onReset={handleReset}
           />
 
           <TemplateMenuPanel
