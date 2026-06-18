@@ -35,7 +35,7 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUserId
 import org.projectforge.framework.time.DateHelper
-import org.projectforge.framework.utils.FileHelper
+import org.projectforge.common.FilenameUtils
 import org.projectforge.framework.utils.MarkdownBuilder
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.marketing.*
@@ -823,7 +823,7 @@ class AddressCampaignValuePagesRest :
         }
 
         // Create filename with campaign name and date
-        val campaignName = FileHelper.createSafeFilename(campaign.title ?: "Campaign", 200)
+        val campaignName = FilenameUtils.createSafeFilename(campaign.title ?: "Campaign", maxlength = 200)
         val filename = "ProjectForge-AddressCampaignExport_${campaignName}_${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx"
         return RestUtils.downloadFile(filename, xls)
     }

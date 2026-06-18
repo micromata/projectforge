@@ -23,9 +23,9 @@
 
 package org.projectforge.web
 
-import org.apache.hc.core5.net.URLEncodedUtils
 import java.net.InetAddress
 import java.net.URI
+import java.net.URLDecoder
 import java.net.URLEncoder
 import java.net.UnknownHostException
 import java.nio.charset.StandardCharsets
@@ -86,8 +86,12 @@ object WebUtils {
   fun parseQueryParams(uriString: String?): MutableList<Pair<String, String>> {
     val result = mutableListOf<Pair<String, String>>()
     uriString ?: return result
-    URLEncodedUtils.parse(URI(uriString), StandardCharsets.UTF_8).forEach {
-      result.add(Pair(it.name, URLEncoder.encode(it.value, StandardCharsets.UTF_8)))
+    val query = URI(uriString).rawQuery ?: return result
+    query.split("&").forEach { param ->
+      val parts = param.split("=", limit = 2)
+      val name = URLDecoder.decode(parts[0], StandardCharsets.UTF_8)
+      val value = if (parts.size > 1) parts[1] else ""
+      result.add(Pair(name, URLEncoder.encode(URLDecoder.decode(value, StandardCharsets.UTF_8), StandardCharsets.UTF_8)))
     }
     return result
   }

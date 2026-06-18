@@ -85,6 +85,7 @@ class ProjectForgeEndpoints : IProjectForgeEndpoints {
         reflections.get(Scanners.SubTypes.of(AbstractUnsecureBasePage::class.java).asClass<Class<out Page>>())
       wicketPages.forEach { pageClass ->
         if (!newWicketPagesMap.containsValue(pageClass) && !Modifier.isAbstract(pageClass.getModifiers())) {
+          @Suppress("UNCHECKED_CAST")
           pageClass as Class<out WebPage>
           newWicketPagesMap[WebRegistry.getInstance().getMountPoint(pageClass)] = pageClass
         }

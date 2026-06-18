@@ -181,7 +181,7 @@ class Configuration(
         for (param in ConfigurationParam.values()) {
             var configuration: ConfigurationDO? = null
             for (entry in list) {
-                if (StringUtils.equals(param.key, entry.parameter)) {
+                if (param.key == entry.parameter) {
                     configuration = entry
                     break
                 }

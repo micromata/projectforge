@@ -75,12 +75,13 @@ class ParallelUserTestClientMain {
                     val request = HttpGet(url)
                     println("User $userId making request to: $url")
 
-                    httpClient.execute(request).use { response ->
+                    httpClient.execute(request) { response ->
                         val entity = response.entity
                         if (entity != null) {
                             val responseBody = EntityUtils.toString(entity)
                             println("User $userId received response: $responseBody")
                         }
+                        Unit
                     }
 
                     // Wartezeit zwischen den Requests

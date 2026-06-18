@@ -125,7 +125,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
   ): ResponseEntity<ResponseAction> {
     if (result.body?.targetType == TargetType.UPDATE) {
       // Update also the ui of the client (on success, the password fields will be shown after 2FA).
-      result.body.let {
+      result.body?.let {
         it.addVariable("data", data) // Renew data (needed for webAuthnFinish)
         it.addVariable("ui", createLayout(request, response, data))
       }

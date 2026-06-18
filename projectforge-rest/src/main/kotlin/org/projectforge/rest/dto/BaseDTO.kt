@@ -146,6 +146,7 @@ open class BaseDTO<T : ExtendedBaseDO<Long>>(
                                     val srcValue = srcField.get(src)
                                     if (srcValue != null) {
                                         val instance = destType.getDeclaredConstructor().newInstance()
+                                        @Suppress("UNCHECKED_CAST")
                                         (instance as BaseDO<Long>).id = (srcValue as BaseDTO<*>).id
                                         destField.isAccessible = true
                                         destField.set(dest, instance)

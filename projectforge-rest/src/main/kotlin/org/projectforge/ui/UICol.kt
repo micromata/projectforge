@@ -74,9 +74,7 @@ open class UICol(
   fun add(layoutSettings: LayoutContext, vararg ids: String, createRowCol: Boolean = false): UICol {
     ids.forEach {
       val element = LayoutUtils.buildLabelInputElement(layoutSettings, it)
-      if (element != null) {
-        add(LayoutUtils.prepareElementToAdd(element, createRowCol))
-      }
+      add(LayoutUtils.prepareElementToAdd(element, createRowCol))
     }
     return this
   }
@@ -84,9 +82,7 @@ open class UICol(
   fun add(layoutSettings: LayoutContext, vararg properties: KProperty<*>, createRowCol: Boolean = false): UICol {
     properties.forEach {
       val element = LayoutUtils.buildLabelInputElement(layoutSettings, it.name)
-      if (element != null) {
-        add(LayoutUtils.prepareElementToAdd(element, createRowCol))
-      }
+      add(LayoutUtils.prepareElementToAdd(element, createRowCol))
     }
     return this
   }

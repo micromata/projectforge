@@ -76,7 +76,7 @@ class SmsSender(private var config: SmsSenderConfig) {
     val method = createHttpMethod(proceededUrl, phoneNumber, message)
     createHttpClient().use { client ->
       return try {
-        client.execute(method).use { httpResponse ->
+        client.execute(method) { httpResponse ->
           val statusCode = httpResponse.code
           var response: String? = null
           if (statusCode == HttpStatus.SC_OK) {
@@ -150,8 +150,8 @@ class SmsSender(private var config: SmsSenderConfig) {
   private fun replaceVariables(str: String?, number: String?, message: String, urlEncode: Boolean): String? {
     var str = str
     if (number == null) return ""
-    str = StringUtils.replaceOnce(str, "#number", if (urlEncode) encode(number) else number)
-    str = StringUtils.replaceOnce(str, "#message", if (urlEncode) encode(message) else message)
+    str = str?.replaceFirst("#number", if (urlEncode) encode(number) else number)
+    str = str?.replaceFirst("#message", if (urlEncode) encode(message) else message)
     return str
   }
 

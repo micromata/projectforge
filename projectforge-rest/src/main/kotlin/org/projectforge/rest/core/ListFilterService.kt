@@ -57,7 +57,7 @@ class ListFilterService {
                                 + " (OK, probably new software release).")
             }
         }
-        val result = filterClazz.newInstance()
+        val result = filterClazz.getDeclaredConstructor().newInstance()
         result.reset()
         userPrefRestService.putEntry(session, PREF_AREA, filterClazz.name, result, true)
         return result
