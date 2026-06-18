@@ -3,11 +3,12 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
 import { DataTableColumnHeader } from "@/components/data-table";
-import type { Book } from "./types";
+import { StatusBadge } from "./status-badge";
+import type { BookListRow } from "./types";
 
-export const booksColumns: ColumnDef<Book>[] = [
+export const booksColumns: ColumnDef<BookListRow>[] = [
   {
-    accessorKey: "angelegt",
+    accessorKey: "created",
     size: 84,
     header: ({ column }) => (
       <DataTableColumnHeader column={column}>Angelegt</DataTableColumnHeader>
@@ -17,7 +18,7 @@ export const booksColumns: ColumnDef<Book>[] = [
     ),
   },
   {
-    accessorKey: "jahr",
+    accessorKey: "yearOfPublishing",
     size: 56,
     header: ({ column }) => (
       <DataTableColumnHeader column={column}>Jahr</DataTableColumnHeader>
@@ -27,7 +28,7 @@ export const booksColumns: ColumnDef<Book>[] = [
     ),
   },
   {
-    accessorKey: "sig",
+    accessorKey: "signature",
     size: 76,
     header: ({ column }) => (
       <DataTableColumnHeader column={column}>Signatur</DataTableColumnHeader>
@@ -39,7 +40,7 @@ export const booksColumns: ColumnDef<Book>[] = [
     ),
   },
   {
-    accessorKey: "autor",
+    accessorKey: "authors",
     size: 140,
     header: ({ column }) => (
       <DataTableColumnHeader column={column}>Autor:innen</DataTableColumnHeader>
@@ -49,7 +50,7 @@ export const booksColumns: ColumnDef<Book>[] = [
     ),
   },
   {
-    accessorKey: "titel",
+    accessorKey: "title",
     minSize: 200,
     header: ({ column }) => (
       <DataTableColumnHeader column={column}>Titel</DataTableColumnHeader>
@@ -59,12 +60,12 @@ export const booksColumns: ColumnDef<Book>[] = [
         href={`/books/${row.original.id}`}
         className="block truncate font-semibold text-primary hover:underline"
       >
-        {row.original.titel}
+        {row.original.title}
       </Link>
     ),
   },
   {
-    accessorKey: "key",
+    accessorKey: "keywords",
     size: 132,
     header: ({ column }) => (
       <DataTableColumnHeader column={column}>
@@ -76,36 +77,21 @@ export const booksColumns: ColumnDef<Book>[] = [
     ),
   },
   {
-    accessorKey: "ausgelBy",
+    id: "lendOutBy",
+    accessorFn: (row) => row.lendOutBy?.displayName ?? "",
     size: 140,
     header: ({ column }) => (
       <DataTableColumnHeader column={column}>
         Ausgeliehen von
       </DataTableColumnHeader>
     ),
-    cell: ({ row }) =>
-      row.original.avail ? (
-        <span
-          className="inline-flex items-center rounded-full border px-2 py-0 text-[10px] font-semibold whitespace-nowrap"
-          style={{
-            background: "var(--status-available-bg)",
-            color: "var(--status-available)",
-            borderColor: "var(--status-available-border)",
-          }}
-        >
-          ● Verfügbar
-        </span>
+    cell: ({ row }) => {
+      const borrower = row.original.lendOutBy;
+      return borrower ? (
+        <StatusBadge lendOut label={borrower.displayName} />
       ) : (
-        <span
-          className="inline-flex items-center rounded-full border px-2 py-0 text-[10px] font-semibold whitespace-nowrap"
-          style={{
-            background: "var(--status-loaned-bg)",
-            color: "var(--status-loaned)",
-            borderColor: "var(--status-loaned-border)",
-          }}
-        >
-          ● {row.original.ausgelBy}
-        </span>
-      ),
+        <StatusBadge lendOut={false} label="Verfügbar" />
+      );
+    },
   },
 ];

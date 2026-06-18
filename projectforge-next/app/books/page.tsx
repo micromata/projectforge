@@ -9,7 +9,7 @@ import { booksColumns } from "@/components/features/books/books-columns";
 import { BookRowActions } from "@/components/features/books/book-row-actions";
 import { BooksToolbar } from "@/components/features/books/books-toolbar";
 import { BooksFilterPanel } from "@/components/features/books/books-filter-panel";
-import type { Book } from "@/components/features/books/types";
+import type { BookListRow } from "@/components/features/books/types";
 
 export default function BooksPage() {
   const [filters, setFilters] = useState([
@@ -28,7 +28,7 @@ export default function BooksPage() {
     setPagination,
     globalFilter,
     setGlobalFilter,
-  } = useMagicFilterQuery<Book>({
+  } = useMagicFilterQuery<BookListRow>({
     entity: "book",
     queryKey: ["books"],
     initialPageSize: 50,
@@ -48,7 +48,7 @@ export default function BooksPage() {
             onClearAll={() => setFilters([])}
           />
           <div className="flex flex-1 overflow-hidden">
-            <DataTable<Book>
+            <DataTable<BookListRow>
               columns={booksColumns}
               data={data}
               rowCount={rowCount}

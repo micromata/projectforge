@@ -1,31 +1,44 @@
 import { NextResponse } from "next/server";
 import { BOOKS } from "@/components/features/books/mock-data";
-import type { Book } from "@/components/features/books/types";
+import type { BookDetail, BookListRow } from "@/components/features/books/types";
 import type { MagicFilter, ResultSet } from "@/lib/rs/types";
 
 // Mock of POST /rs/book/list. Mirrors the Spring Boot AbstractPagesRest contract:
-// accepts a MagicFilter, returns a ResultSet<Book>. Replace by a rewrite to the
-// Spring backend once auth is wired.
+// accepts a MagicFilter, returns a ResultSet<BookListRow>. Replace by a rewrite
+// to the Spring backend once auth is wired.
+
+function project(b: BookDetail): BookListRow {
+  return {
+    id: b.id,
+    title: b.title,
+    authors: b.authors,
+    signature: b.signature,
+    yearOfPublishing: b.yearOfPublishing,
+    keywords: b.keywords,
+    lendOutBy: b.lendOutBy,
+    created: b.created,
+  };
+}
 
 export async function POST(request: Request): Promise<Response> {
   const filter = (await request.json()) as MagicFilter;
 
   const search = filter.searchString?.trim().toLowerCase();
-  let rows: Book[] = BOOKS;
+  let rows: BookDetail[] = BOOKS;
 
   if (search) {
     rows = rows.filter(
       (b) =>
-        b.titel.toLowerCase().includes(search) ||
-        b.autor.toLowerCase().includes(search) ||
-        b.sig.toLowerCase().includes(search) ||
-        b.key.toLowerCase().includes(search)
+        b.title.toLowerCase().includes(search) ||
+        (b.authors ?? "").toLowerCase().includes(search) ||
+        (b.signature ?? "").toLowerCase().includes(search) ||
+        (b.keywords ?? "").toLowerCase().includes(search)
     );
   }
 
   const sort = filter.sortProperties?.[0];
   if (sort?.property) {
-    const prop = sort.property as keyof Book;
+    const prop = sort.property as keyof BookDetail;
     const dir = sort.sortOrder === "DESCENDING" ? -1 : 1;
     rows = [...rows].sort((a, b) => {
       const av = a[prop];
@@ -48,9 +61,9 @@ export async function POST(request: Request): Promise<Response> {
       : 50);
   const pageIndex = Number(filter.extended?.page ?? 0);
   const start = pageIndex * pageSize;
-  const paged = rows.slice(start, start + pageSize);
+  const paged = rows.slice(start, start + pageSize).map(project);
 
-  const result: ResultSet<Book> = {
+  const result: ResultSet<BookListRow> = {
     resultSet: paged,
     totalSize,
     paginationPageSize: pageSize,

@@ -1,0 +1,72 @@
+{
+  "books": {
+    "title": "Bücherliste",
+    "edit": {
+      "breadcrumbBack": "Bücherliste",
+      "tabs": {
+        "general": "Allgemein",
+        "loan": "Ausleihe",
+        "notes": "Notizen",
+        "history": "Verlauf"
+      },
+      "sections": {
+        "general": "Allgemeine Informationen",
+        "loan": "Ausleihe",
+        "loanHistory": "Ausleihhistorie",
+        "notes": "Notizen",
+        "history": "Änderungsverlauf"
+      },
+      "fields": {
+        "title": "Titel",
+        "signature": "Signatur",
+        "yearOfPublishing": "Jahr der Veröffentlichung",
+        "publisher": "Verlag",
+        "isbn": "ISBN",
+        "editor": "Auflage",
+        "authors": "Autor:innen",
+        "addAuthor": "Autor hinzufügen…",
+        "keywords": "Schlüsselworte",
+        "keywordsHint": "Einzelne Schlüsselworte mit Enter oder Komma bestätigen",
+        "lendOutBy": "Ausgeliehen von",
+        "lendOutDate": "Ausgeliehen seit",
+        "lendOutDueDate": "Zurück bis",
+        "lendOutComment": "Bemerkung zur Ausleihe",
+        "status": "Ausleihstatus",
+        "abstract": "Beschreibung",
+        "comment": "Interne Notizen",
+        "commentHint": "Nur für Administratoren sichtbar",
+        "totalLoans": "Gesamte Ausleihen",
+        "totalLoansHint": "Automatisch berechnet — nicht editierbar"
+      },
+      "status": {
+        "available": "Verfügbar",
+        "loaned": "Ausgeliehen",
+        "active": "Aktiv",
+        "returned": "Zurückgegeben"
+      },
+      "loanHistory": {
+        "from": "Ausgeliehen von",
+        "since": "Von",
+        "until": "Bis",
+        "status": "Status",
+        "empty": "Keine Ausleihhistorie vorhanden"
+      },
+      "actions": {
+        "cancel": "Abbrechen",
+        "save": "Speichern",
+        "delete": "Löschen",
+        "lastSaved": "Zuletzt gespeichert: {time}"
+      },
+      "history": {
+        "loading": "Verlauf wird geladen…",
+        "empty": "Keine Verlaufseinträge vorhanden",
+        "fieldsChanged": "Felder geändert: {fields}",
+        "operation": {
+          "Insert": "Datensatz angelegt",
+          "Update": "Datensatz bearbeitet",
+          "Delete": "Datensatz gelöscht"
+        }
+      }
+    }
+  }
+}

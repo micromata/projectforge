@@ -6,10 +6,10 @@ import {
   Delete01Icon,
   Edit02Icon,
 } from "@hugeicons/core-free-icons";
-import type { Book } from "./types";
+import type { BookListRow } from "./types";
 
 export interface BookRowActionsProps {
-  row: Book;
+  row: BookListRow;
 }
 
 export function BookRowActions({ row }: BookRowActionsProps) {
@@ -18,14 +18,14 @@ export function BookRowActions({ row }: BookRowActionsProps) {
       <button
         type="button"
         className="flex size-6 items-center justify-center rounded-sm bg-primary/10 text-primary hover:bg-primary/20"
-        aria-label={`Buch ${row.titel} bearbeiten`}
+        aria-label={`Buch ${row.title} bearbeiten`}
       >
         <HugeiconsIcon icon={Edit02Icon} size={12} />
       </button>
       <button
         type="button"
         className="flex size-6 items-center justify-center rounded-sm bg-primary/10 text-primary hover:bg-primary/20"
-        aria-label={`Buch ${row.titel} kopieren`}
+        aria-label={`Buch ${row.title} kopieren`}
       >
         <HugeiconsIcon icon={Copy01Icon} size={12} />
       </button>
@@ -36,7 +36,7 @@ export function BookRowActions({ row }: BookRowActionsProps) {
           background: "var(--status-loaned-bg)",
           color: "var(--status-loaned)",
         }}
-        aria-label={`Buch ${row.titel} löschen`}
+        aria-label={`Buch ${row.title} löschen`}
       >
         <HugeiconsIcon icon={Delete01Icon} size={12} />
       </button>

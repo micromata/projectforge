@@ -1,1 +1,72 @@
-{}
+{
+  "books": {
+    "title": "Books",
+    "edit": {
+      "breadcrumbBack": "Books",
+      "tabs": {
+        "general": "General",
+        "loan": "Loan",
+        "notes": "Notes",
+        "history": "History"
+      },
+      "sections": {
+        "general": "General information",
+        "loan": "Loan",
+        "loanHistory": "Loan history",
+        "notes": "Notes",
+        "history": "Change history"
+      },
+      "fields": {
+        "title": "Title",
+        "signature": "Signature",
+        "yearOfPublishing": "Year of publishing",
+        "publisher": "Publisher",
+        "isbn": "ISBN",
+        "editor": "Edition",
+        "authors": "Authors",
+        "addAuthor": "Add author…",
+        "keywords": "Keywords",
+        "keywordsHint": "Confirm keywords with Enter or comma",
+        "lendOutBy": "Lent out by",
+        "lendOutDate": "Lent out since",
+        "lendOutDueDate": "Return by",
+        "lendOutComment": "Loan comment",
+        "status": "Loan status",
+        "abstract": "Description",
+        "comment": "Internal notes",
+        "commentHint": "Visible to administrators only",
+        "totalLoans": "Total loans",
+        "totalLoansHint": "Automatically calculated — not editable"
+      },
+      "status": {
+        "available": "Available",
+        "loaned": "Lent out",
+        "active": "Active",
+        "returned": "Returned"
+      },
+      "loanHistory": {
+        "from": "Lent out by",
+        "since": "From",
+        "until": "Until",
+        "status": "Status",
+        "empty": "No loan history"
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "save": "Save",
+        "delete": "Delete",
+        "lastSaved": "Last saved: {time}"
+      },
+      "history": {
+        "loading": "Loading history…",
+        "empty": "No history entries",
+        "fieldsChanged": "Fields changed: {fields}",
+        "operation": {
+          "Insert": "Record created",
+          "Update": "Record updated",
+          "Delete": "Record deleted"
+        }
+      }
+    }
+  }
+}
