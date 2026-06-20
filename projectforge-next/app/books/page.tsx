@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/shared/app-sidebar";
-import { BrandStripe } from "@/components/shared/brand-stripe";
+import { PageShell } from "@/components/shared/page-shell";
+import { ListPageShell } from "@/components/shared/list-page-shell";
 import { DataTable, useMagicFilterQuery } from "@/components/data-table";
 import { booksColumns } from "@/components/features/books/books-columns";
 import { BookRowActions } from "@/components/features/books/book-row-actions";
@@ -35,11 +34,9 @@ export default function BooksPage() {
   });
 
   return (
-    <div className="flex h-full min-h-screen flex-col">
-      <BrandStripe />
-      <SidebarProvider className="flex flex-1 overflow-hidden">
-        <AppSidebar />
-        <SidebarInset className="flex flex-1 flex-col overflow-hidden">
+    <PageShell>
+      <ListPageShell
+        toolbar={
           <BooksToolbar
             search={globalFilter}
             onSearch={setGlobalFilter}
@@ -47,28 +44,27 @@ export default function BooksPage() {
             onRemove={(k) => setFilters((f) => f.filter((x) => x.key !== k))}
             onClearAll={() => setFilters([])}
           />
-          <div className="flex flex-1 overflow-hidden">
-            <DataTable<BookListRow>
-              columns={booksColumns}
-              data={data}
-              rowCount={rowCount}
-              sorting={sorting}
-              onSortingChange={setSorting}
-              pagination={pagination}
-              onPaginationChange={setPagination}
-              manualSorting
-              manualPagination
-              manualFiltering
-              isLoading={isLoading}
-              isFetching={isFetching}
-              getRowId={(row) => String(row.id)}
-              rowActions={(row) => <BookRowActions row={row} />}
-              className="flex-1"
-            />
-            <BooksFilterPanel className="hidden lg:flex" />
-          </div>
-        </SidebarInset>
-      </SidebarProvider>
-    </div>
+        }
+        filterPanel={<BooksFilterPanel className="hidden lg:flex" />}
+      >
+        <DataTable<BookListRow>
+          columns={booksColumns}
+          data={data}
+          rowCount={rowCount}
+          sorting={sorting}
+          onSortingChange={setSorting}
+          pagination={pagination}
+          onPaginationChange={setPagination}
+          manualSorting
+          manualPagination
+          manualFiltering
+          isLoading={isLoading}
+          isFetching={isFetching}
+          getRowId={(row) => String(row.id)}
+          rowActions={(row) => <BookRowActions row={row} />}
+          className="flex-1"
+        />
+      </ListPageShell>
+    </PageShell>
   );
 }

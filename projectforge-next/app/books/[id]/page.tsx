@@ -1,7 +1,5 @@
 import { notFound } from "next/navigation";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/shared/app-sidebar";
-import { BrandStripe } from "@/components/shared/brand-stripe";
+import { PageShell } from "@/components/shared/page-shell";
 import { BookEditForm } from "@/components/features/books/edit/book-edit-form";
 
 interface Props {
@@ -14,14 +12,8 @@ export default async function BookEditPage({ params }: Props) {
   if (!Number.isFinite(id) || id <= 0) notFound();
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
-      <BrandStripe />
-      <SidebarProvider className="!min-h-0 flex flex-1 overflow-hidden">
-        <AppSidebar />
-        <SidebarInset className="flex flex-1 flex-col overflow-hidden">
-          <BookEditForm bookId={id} />
-        </SidebarInset>
-      </SidebarProvider>
-    </div>
+    <PageShell>
+      <BookEditForm bookId={id} />
+    </PageShell>
   );
 }

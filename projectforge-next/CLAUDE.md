@@ -111,3 +111,7 @@ The agent must `grep`/`find` before writing new code. The directories below are 
 7. `store/` — Zustand stores.
 
 When you add a new reusable, place it in the matching tier. Do not duplicate functionality across tiers.
+
+## Migrating pages
+
+To migrate an entity page from Wicket or the old React webapp to this Next.js app, use the `/migrate-page` skill (`.claude/skills/migrate-page/SKILL.md`). It documents the full workflow: locating source pages and DTOs in the Java backend, using the reusable shell components (`PageShell`, `ListPageShell`, `EditPageShell`), wiring `lib/rs/`, and following all conventions. The books entity is the reference implementation.
