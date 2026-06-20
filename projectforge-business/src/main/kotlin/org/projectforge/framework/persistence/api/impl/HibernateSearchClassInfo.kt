@@ -247,8 +247,9 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
                 jgen.writeNull()
                 return
             }
-            value as Array<ClassBridge>
-            jgen.writeString(value.joinToString(", ") { it.name })
+            @Suppress("UNCHECKED_CAST")
+            val bridges = value as Array<ClassBridge>
+            jgen.writeString(bridges.joinToString(", ") { it.name })
         }
     }
 }

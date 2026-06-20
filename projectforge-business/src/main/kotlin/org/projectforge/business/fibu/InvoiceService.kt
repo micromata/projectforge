@@ -186,7 +186,7 @@ open class InvoiceService {
 
     private fun buildFullCustomerAddress(data: RechnungDO): String {
         val lines = listOfNotNull(
-            (data.kunde?.konto?.bezeichnung ?: data.kunde?.name ?: data.kundeText)?.takeIf { it.isNotBlank() },
+            (data.konto?.bezeichnung ?: data.kunde?.konto?.bezeichnung ?: data.kunde?.name ?: data.kundeText)?.takeIf { it.isNotBlank() },
             data.customerContactPerson?.takeIf { it.isNotBlank() },
             data.customerAddress?.takeIf { it.isNotBlank() },
             listOfNotNull(
@@ -300,7 +300,7 @@ open class InvoiceService {
         }
         //Rechnungsnummer_Kunde_Projekt_Betreff(mit Unterstrichen statt Leerzeichen)_Datum(2017-07-04)
         val number = if (invoice.nummer != null) invoice.nummer.toString() else ""
-        val customerName = invoice.kunde?.konto?.bezeichnung ?: invoice.kunde?.name ?: invoice.kundeText
+        val customerName = invoice.konto?.bezeichnung ?: invoice.kunde?.konto?.bezeichnung ?: invoice.kunde?.name ?: invoice.kundeText
         var customer = if (!customerName.isNullOrBlank()) "_$customerName" else ""
         val project = if (invoice.projekt != null) "_" + invoice.projekt!!.name else ""
         val subject = if (invoice.betreff != null) "_" + invoice.betreff else ""

@@ -25,7 +25,7 @@ package org.projectforge.business.vacation.service
 
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
-import org.projectforge.business.fibu.EmployeeService
+import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.cache.AbstractCache
@@ -42,9 +42,6 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 class ConflictingVacationsCache() : AbstractCache() {
-    @Autowired
-    private lateinit var employeeService: EmployeeService
-
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
@@ -102,8 +99,8 @@ class ConflictingVacationsCache() : AbstractCache() {
     }
 
     fun numberOfConflicts(userId: Long): Int {
-        employeeService.findByUserId(userId)?.id?.let { employeeId ->
-            checkRefresh()
+        checkRefresh()
+        EmployeeCache.instance.getEmployeeIdByUserId(userId)?.let { employeeId ->
             synchronized(allConflictingVacations) {
                 return conflictingVacationsByEmployee[employeeId]?.size ?: 0
             }

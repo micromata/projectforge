@@ -172,7 +172,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
     open var recurrenceRule: String? = null
         set(recurrenceRule) {
             this.recurrenceRuleObject = null
-            field = if (StringUtils.startsWith(recurrenceRule, "RRULE:")) {
+            field = if (recurrenceRule?.startsWith("RRULE:") == true) {
                 recurrenceRule!!.substring(6)
             } else recurrenceRule
         }

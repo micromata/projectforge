@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu.kost;
 
+import org.jetbrains.annotations.NotNull;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -50,6 +51,11 @@ public class Kost2ArtDao extends BaseDao<Kost2ArtDO> {
     @Override
     public void afterInsertOrModify(final Kost2ArtDO obj, final OperationType operationType) {
         kostCache.updateKost2Arts();
+    }
+
+    @Override
+    public boolean isNew(@NotNull Kost2ArtDO obj) {
+        return obj.getCreated() == null;
     }
 
     @Override

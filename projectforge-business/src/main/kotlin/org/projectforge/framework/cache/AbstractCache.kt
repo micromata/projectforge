@@ -23,8 +23,13 @@
 
 package org.projectforge.framework.cache
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicBoolean
 
 private val log = KotlinLogging.logger {}
 
@@ -51,6 +56,9 @@ abstract class AbstractCache {
     @Transient
     var isRefreshInProgress: Boolean = false
         private set
+
+    @Transient
+    private val refreshing = AtomicBoolean(false)
 
     /**
      * @return true if the cache is initialized, otherwise false (no refresh has been made yet).
@@ -87,11 +95,11 @@ abstract class AbstractCache {
     }
 
     /**
-     * Sets the cache to expired and calls checkRefresh, which forces refresh.
+     * Sets the cache to expired and performs a synchronous refresh.
      */
     fun forceReload() {
         setExpired()
-        checkRefresh()
+        performRefresh()
     }
 
     fun register(listener: CacheListener) {
@@ -104,29 +112,66 @@ abstract class AbstractCache {
     }
 
     /**
-     * Checks the expired time and calls refresh, if cache is expired.
+     * Checks the expired time and triggers refresh if cache is expired.
+     * When the cache was explicitly invalidated (via setExpired/forceReload/clear) or is not yet
+     * initialized, the refresh runs synchronously. When the cache expired only due to time
+     * (age > expireTime), the refresh runs asynchronously to avoid blocking threads that may
+     * hold DB connections.
      */
     protected fun checkRefresh() {
-        cacheListeners?.forEach { listener -> listener.onBeforeCacheRefresh() }
-        synchronized(this) {
-            if (isRefreshInProgress) {
-                // Do nothing because refreshing is already in progress.
-                return
-            }
-            if (this.isExpired || System.currentTimeMillis() - this.timeOfLastRefresh > this.expireTime) {
+        if (this.isExpired) {
+            // Explicitly invalidated or not yet initialized: must refresh synchronously.
+            doRefreshSynchronously()
+            return
+        }
+
+        if (System.currentTimeMillis() - this.timeOfLastRefresh <= this.expireTime) {
+            return
+        }
+
+        if (!initialized) {
+            doRefreshSynchronously()
+            return
+        }
+
+        // Cache is initialized and expired only by time: trigger async refresh, return stale data.
+        if (refreshing.compareAndSet(false, true)) {
+            refreshScope.launch {
                 try {
-                    isRefreshInProgress = true
-                    this.timeOfLastRefresh = System.currentTimeMillis()
-                    try {
-                        this.refresh()
-                    } catch (ex: Throwable) {
-                        log.error(ex.message, ex)
-                    }
-                    this.isExpired = false
+                    performRefresh()
                 } finally {
-                    isRefreshInProgress = false
+                    refreshing.set(false)
                 }
             }
+        }
+    }
+
+    private fun doRefreshSynchronously() {
+        synchronized(this) {
+            if (!this.isExpired && initialized) {
+                // Another thread already refreshed while we waited for the lock.
+                return
+            }
+            if (isRefreshInProgress) {
+                return
+            }
+            performRefresh()
+        }
+    }
+
+    private fun performRefresh() {
+        cacheListeners?.forEach { listener -> listener.onBeforeCacheRefresh() }
+        try {
+            isRefreshInProgress = true
+            this.timeOfLastRefresh = System.currentTimeMillis()
+            try {
+                this.refresh()
+            } catch (ex: Throwable) {
+                log.error(ex.message, ex)
+            }
+            this.isExpired = false
+        } finally {
+            isRefreshInProgress = false
         }
         cacheListeners?.let {
             synchronized(it) {
@@ -144,6 +189,8 @@ abstract class AbstractCache {
     protected abstract fun refresh()
 
     companion object {
+        private val refreshScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
         /**
          * Milliseconds.
          */

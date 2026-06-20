@@ -168,7 +168,7 @@ class TeamCalDao : BaseDao<TeamCalDO>(TeamCalDO::class.java) {
 
     override fun afterUpdate(obj: TeamCalDO, dbObj: TeamCalDO?, isModified: Boolean) {
         if (dbObj != null && obj.externalSubscription
-            && !StringUtils.equals(obj.externalSubscriptionUrl, dbObj.externalSubscriptionUrl)
+            && obj.externalSubscriptionUrl != dbObj.externalSubscriptionUrl
         ) {
             // only update if the url has changed!
             teamEventExternalSubscriptionCache.updateCache(obj)

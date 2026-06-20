@@ -37,7 +37,7 @@ class BasicAuthenticationData(request: HttpServletRequest, authHeader: String, r
 
   init {
     val basic = StringUtils.split(authHeader)
-    if (basic.size != 2 || !StringUtils.equalsIgnoreCase(basic[0], "Basic")) {
+    if (basic.size != 2 || !basic[0].equals("Basic", ignoreCase = true)) {
       if (required) {
         logError(
           request,

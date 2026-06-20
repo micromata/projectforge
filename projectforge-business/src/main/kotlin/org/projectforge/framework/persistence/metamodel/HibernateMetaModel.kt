@@ -26,7 +26,6 @@ package org.projectforge.framework.persistence.metamodel
 import jakarta.persistence.Column
 import mu.KotlinLogging
 import org.hibernate.engine.spi.SessionFactoryImplementor
-import org.hibernate.metamodel.spi.MetamodelImplementor
 import org.hibernate.persister.entity.SingleTableEntityPersister
 import org.projectforge.framework.persistence.api.BaseDO
 import kotlin.reflect.KCallable
@@ -39,7 +38,6 @@ private val log = KotlinLogging.logger {}
  */
 object HibernateMetaModel {
     private lateinit var sessionFactory: SessionFactoryImplementor
-    private lateinit var metamodel: MetamodelImplementor
     private val entityInfoByName = mutableMapOf<String, EntityInfo>()
     private val entityInfoByEntityClass = mutableMapOf<Class<*>, EntityInfo>()
 
@@ -98,12 +96,12 @@ object HibernateMetaModel {
     /** Called by HibernateUtils. */
     fun internalInit(sessionFactory: SessionFactoryImplementor) {
         this.sessionFactory = sessionFactory
-        val metamodel = sessionFactory.metamodel as MetamodelImplementor
-        this.metamodel = metamodel
+        val mappingMetamodel = sessionFactory.mappingMetamodel
+        val jpaMetamodel = (sessionFactory as jakarta.persistence.EntityManagerFactory).metamodel
         // Register all entities:
-        metamodel.entities.forEach { entityType ->
-            val entityClass = entityType.javaType
-            val entityPersister = metamodel.entityPersister(entityClass)
+        mappingMetamodel.streamEntityDescriptors().forEach { entityPersister ->
+            val entityClass = entityPersister.mappedClass
+            val entityType = jpaMetamodel.entity(entityClass)
             val tableName = if (entityPersister is SingleTableEntityPersister) {
                 entityPersister.tableName
             } else {

@@ -172,7 +172,7 @@ open class TeamEventAttendeeDO : DefaultBaseDO(), Comparable<TeamEventAttendeeDO
       return false
     }
     val o = other as TeamEventAttendeeDO?
-    if (this.url != null && o!!.url != null && StringUtils.equals(this.url, o.url)) {
+    if (this.url != null && o!!.url != null && this.url == o.url) {
       return true
     }
     if (this.addressId != null && o!!.addressId != null && this.addressId == o.addressId) {

@@ -282,9 +282,9 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         if (!super.wantsReindexAllDependentObjects(obj, dbObj)) {
             return false
         }
-        return !StringUtils.equals(obj.username, dbObj.username)
-                || !StringUtils.equals(obj.firstname, dbObj.firstname)
-                || !StringUtils.equals(obj.lastname, dbObj.lastname)
+        return obj.username != dbObj.username
+                || obj.firstname != dbObj.firstname
+                || obj.lastname != dbObj.lastname
     }
 
     override fun newInstance(): PFUserDO {
