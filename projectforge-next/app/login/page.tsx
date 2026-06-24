@@ -4,12 +4,19 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { login } from "@/lib/rs/client";
+import {
+  loginWithResponse,
+  fetchUserStatus,
+  cancel2FA,
+} from "@/lib/rs/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { TwoFactorForm } from "@/components/shared/two-factor-form";
+
+type Stage = "credentials" | "2fa";
 
 export default function LoginPage() {
   const t = useTranslations("login");
@@ -17,27 +24,57 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
 
+  const [stage, setStage] = useState<Stage>("credentials");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [stayLoggedIn, setStayLoggedIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  const returnUrl = searchParams.get("returnUrl") || "/";
+
+  async function completeLogin() {
+    try {
+      await fetchUserStatus();
+      await queryClient.invalidateQueries({ queryKey: ["userStatus"] });
+      router.push(returnUrl);
+    } catch {
+      setStage("2fa");
+    }
+  }
+
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
 
     try {
-      await login(username, password, stayLoggedIn);
-      await queryClient.invalidateQueries({ queryKey: ["userStatus"] });
-      const returnUrl = searchParams.get("returnUrl") || "/";
-      router.push(returnUrl);
+      const response = await loginWithResponse(username, password, stayLoggedIn);
+      if (response.targetType === "CHECK_AUTHENTICATION") {
+        await completeLogin();
+      } else {
+        setError(t("error"));
+      }
     } catch {
       setError(t("error"));
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  if (stage === "2fa") {
+    return (
+      <TwoFactorForm
+        onSuccess={async () => {
+          await queryClient.invalidateQueries({ queryKey: ["userStatus"] });
+          router.push(returnUrl);
+        }}
+        onCancel={async () => {
+          await cancel2FA();
+          setStage("credentials");
+        }}
+      />
+    );
   }
 
   return (
@@ -47,7 +84,7 @@ export default function LoginPage() {
           <CardTitle className="text-2xl">{t("title")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="grid gap-4">
+          <form onSubmit={handleLogin} className="grid gap-4">
             {error && (
               <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {error}

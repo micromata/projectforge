@@ -16,6 +16,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+function toInternalHref(url: string | undefined): string {
+  if (!url) return "#";
+  let path = url;
+  if (path.startsWith("react/")) path = path.slice("react".length);
+  else if (!path.startsWith("/") && !path.startsWith("http")) path = "/" + path;
+  return path;
+}
+
 export function TopNavigation() {
   const { data: menu } = useMenu();
   const { user } = useAuth();
@@ -86,7 +94,7 @@ function CategoryColumn({
       {category.subMenu?.map((item) => (
         <Link
           key={item.key ?? item.url ?? item.title}
-          href={item.url ?? "#"}
+          href={toInternalHref(item.url)}
           onClick={onSelect}
           className="rounded-sm px-2 py-1 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
         >
@@ -109,7 +117,7 @@ function FavoritesBar({ items }: { items: MenuItem[] }) {
     <div className="hidden md:flex items-center gap-1">
       {items.map((item) => (
         <Button key={item.key ?? item.url ?? item.title} variant="ghost" size="sm" asChild>
-          <Link href={item.url ?? "#"}>{item.title}</Link>
+          <Link href={toInternalHref(item.url)}>{item.title}</Link>
         </Button>
       ))}
     </div>
@@ -143,7 +151,7 @@ function UserMenu({
           }
           return (
             <DropdownMenuItem key={item.key ?? item.url ?? item.title} asChild>
-              <Link href={item.url ?? "#"}>{item.title}</Link>
+              <Link href={toInternalHref(item.url)}>{item.title}</Link>
             </DropdownMenuItem>
           );
         })}

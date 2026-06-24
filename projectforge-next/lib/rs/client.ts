@@ -22,7 +22,8 @@ async function request<O>(
   init: RequestInit,
   signal?: AbortSignal
 ): Promise<O> {
-  const res = await fetch(path, {
+  const url = path.startsWith("http") ? path : `/react${path}`;
+  const res = await fetch(url, {
     credentials: "include",
     ...init,
     signal,
@@ -101,7 +102,10 @@ export function login(
 ): Promise<unknown> {
   return request<unknown>(
     "/rsPublic/login",
-    { method: "POST", body: JSON.stringify({ username, password, stayLoggedIn }) },
+    {
+      method: "POST",
+      body: JSON.stringify({ data: { username, password, stayLoggedIn } }),
+    },
     signal
   );
 }
@@ -112,6 +116,63 @@ export function fetchUserStatus(signal?: AbortSignal): Promise<UserStatus> {
 
 export function logout(signal?: AbortSignal): Promise<unknown> {
   return request<unknown>("/rs/logout", { method: "GET" }, signal);
+}
+
+// --- 2FA ---
+
+export interface LoginResponse {
+  targetType: "CHECK_AUTHENTICATION" | "UPDATE";
+  url?: string | null;
+  variables?: Record<string, unknown>;
+}
+
+export async function loginWithResponse(
+  username: string,
+  password: string,
+  stayLoggedIn: boolean,
+  signal?: AbortSignal
+): Promise<LoginResponse> {
+  const url = `/react/rsPublic/login`;
+  const res = await fetch(url, {
+    credentials: "include",
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ data: { username, password, stayLoggedIn } }),
+    signal,
+  });
+  const body = await res.json();
+  if (!res.ok && body?.targetType !== "UPDATE") {
+    throw new RsError(res.status, `${res.status} Login failed`);
+  }
+  return body as LoginResponse;
+}
+
+export async function checkOtp(
+  code: string,
+  signal?: AbortSignal
+): Promise<LoginResponse> {
+  const url = `/react/rsPublic/2FA/checkOTP`;
+  const res = await fetch(url, {
+    credentials: "include",
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ data: { code } }),
+    signal,
+  });
+  const body = await res.json();
+  return body as LoginResponse;
+}
+
+export function sendSmsCode(signal?: AbortSignal): Promise<unknown> {
+  return request<unknown>("/rsPublic/2FA/sendSmsCode", { method: "GET" }, signal);
+}
+
+export function sendMailCode(signal?: AbortSignal): Promise<unknown> {
+  return request<unknown>("/rsPublic/2FA/sendMailCode", { method: "GET" }, signal);
+}
+
+export function cancel2FA(signal?: AbortSignal): Promise<unknown> {
+  return request<unknown>("/rsPublic/2FA/cancel", { method: "GET" }, signal);
 }
 
 // --- Menu ---

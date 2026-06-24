@@ -6,7 +6,21 @@
     "stayLoggedIn": "Angemeldet bleiben",
     "submit": "Anmelden",
     "submitting": "Anmelden…",
-    "error": "Anmeldung fehlgeschlagen"
+    "error": "Anmeldung fehlgeschlagen",
+    "twoFactor": {
+      "title": "Zweifaktor-Authentifizierung",
+      "description": "Ein zweiter Faktor ist nun erforderlich. Hier kann ein 2. Faktor (z. B. OTP-Einmalpasswort) eingegeben werden: Aus einer Authenticator-App, Code per SMS oder E-Mail oder über einen registrierten WebAuthn-Token.",
+      "code": "Code",
+      "verify": "Prüfen",
+      "verifying": "Prüfe…",
+      "cancel": "Abbrechen",
+      "sendSms": "SMS-Code anfordern",
+      "sendMail": "E-Mail-Code anfordern",
+      "webAuthn": "WebAuthn",
+      "smsSent": "SMS-Code wurde gesendet",
+      "mailSent": "E-Mail-Code wurde gesendet",
+      "error": "Code ungültig oder abgelaufen"
+    }
   },
   "books": {
     "title": "Bücherliste",

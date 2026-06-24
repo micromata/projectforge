@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { fetchInitialList } from "@/lib/rs/client";
+import { fetchInitialList, fetchListData } from "@/lib/rs/client";
 import { PageShell } from "@/components/shared/page-shell";
 import { DynamicLayoutProvider } from "@/components/dynamic/dynamic-context";
 import { DynamicRenderer } from "@/components/dynamic/dynamic-renderer";
@@ -11,12 +11,25 @@ import { DynamicActionGroup } from "@/components/dynamic/dynamic-action-group";
 export default function DynamicListPage() {
   const { category } = useParams<{ category: string }>();
 
-  const { data: response, isLoading } = useQuery({
-    queryKey: ["list", category],
+  const { data: initial, isLoading: isLoadingInit } = useQuery({
+    queryKey: ["initialList", category],
     queryFn: ({ signal }) => fetchInitialList(category, signal),
   });
 
-  if (isLoading) {
+  const filter = (initial as unknown as Record<string, unknown>)?.filter as
+    | Record<string, unknown>
+    | undefined;
+
+  const { data: listResponse, isLoading: isLoadingList } = useQuery({
+    queryKey: ["listData", category, filter],
+    queryFn: ({ signal }) =>
+      fetchListData(category, filter as never, signal),
+    enabled: !!initial && !!filter,
+  });
+
+  const isLoading = isLoadingInit || isLoadingList;
+
+  if (isLoading && !initial) {
     return (
       <PageShell>
         <div className="flex flex-1 items-center justify-center">
@@ -26,7 +39,7 @@ export default function DynamicListPage() {
     );
   }
 
-  if (!response?.ui) {
+  if (!initial?.ui) {
     return (
       <PageShell>
         <div className="p-6 text-muted-foreground">Page not found.</div>
@@ -34,22 +47,32 @@ export default function DynamicListPage() {
     );
   }
 
+  const mergedData = { ...(initial.data ?? {}), ...(listResponse?.data ?? {}) };
+  const resultInfo = (listResponse?.data as Record<string, unknown>)
+    ?.resultInfo as string | undefined;
+
   return (
     <PageShell>
       <DynamicLayoutProvider
-        ui={response.ui}
-        initialData={response.data ?? {}}
-        initialVariables={response.variables}
-        initialValidationErrors={response.validationErrors}
+        ui={initial.ui}
+        initialData={mergedData}
+        initialVariables={initial.variables}
+        initialValidationErrors={initial.validationErrors}
       >
         <div className="flex flex-1 flex-col overflow-hidden">
-          {response.ui.title && (
+          {initial.ui.title && (
             <h1 className="px-6 pt-4 pb-2 text-xl font-semibold">
-              {response.ui.title}
+              {initial.ui.title}
             </h1>
           )}
           <div className="flex-1 overflow-auto px-6 pb-6">
-            <DynamicRenderer content={response.ui.layout} />
+            <DynamicRenderer content={initial.ui.layout} />
+            {resultInfo && (
+              <div
+                className="mt-4 text-sm text-muted-foreground prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: resultInfo }}
+              />
+            )}
           </div>
           <DynamicActionGroup />
         </div>

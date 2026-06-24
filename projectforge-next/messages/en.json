@@ -6,7 +6,21 @@
     "stayLoggedIn": "Stay logged in",
     "submit": "Sign in",
     "submitting": "Signing in…",
-    "error": "Login failed"
+    "error": "Login failed",
+    "twoFactor": {
+      "title": "Two-Factor Authentication",
+      "description": "A second factor is required. You can enter an OTP from your authenticator app, request a code via SMS or email, or use a registered WebAuthn token.",
+      "code": "Code",
+      "verify": "Verify",
+      "verifying": "Verifying…",
+      "cancel": "Cancel",
+      "sendSms": "Request SMS code",
+      "sendMail": "Request email code",
+      "webAuthn": "WebAuthn",
+      "smsSent": "SMS code has been sent",
+      "mailSent": "Email code has been sent",
+      "error": "Code invalid or expired"
+    }
   },
   "books": {
     "title": "Books",

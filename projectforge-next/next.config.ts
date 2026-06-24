@@ -4,9 +4,13 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const nextConfig: NextConfig = {
+  basePath: "/react",
   async rewrites() {
     return [
-      { source: "/rs/:path*", destination: "http://localhost:8080/rs/:path*" },
+      {
+        source: "/rs/:path*",
+        destination: "http://localhost:8080/rs/:path*",
+      },
       {
         source: "/rsPublic/:path*",
         destination: "http://localhost:8080/rsPublic/:path*",
