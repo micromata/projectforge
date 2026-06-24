@@ -1,4 +1,13 @@
 {
+  "login": {
+    "title": "ProjectForge",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "stayLoggedIn": "Angemeldet bleiben",
+    "submit": "Anmelden",
+    "submitting": "Anmelden…",
+    "error": "Anmeldung fehlgeschlagen"
+  },
   "books": {
     "title": "Bücherliste",
     "edit": {
