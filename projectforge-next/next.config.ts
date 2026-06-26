@@ -5,6 +5,9 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const nextConfig: NextConfig = {
   basePath: "/react",
+  turbopack: {
+    root: __dirname,
+  },
   async rewrites() {
     return [
       {

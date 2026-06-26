@@ -2,7 +2,10 @@
 
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { fetchInitialList, fetchListData } from "@/lib/rs/client";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
+import { fetchInitialList } from "@/lib/rs/client";
 import { PageShell } from "@/components/shared/page-shell";
 import { DynamicLayoutProvider } from "@/components/dynamic/dynamic-context";
 import { DynamicRenderer } from "@/components/dynamic/dynamic-renderer";
@@ -11,25 +14,12 @@ import { DynamicActionGroup } from "@/components/dynamic/dynamic-action-group";
 export default function DynamicListPage() {
   const { category } = useParams<{ category: string }>();
 
-  const { data: initial, isLoading: isLoadingInit } = useQuery({
+  const { data: response, isLoading } = useQuery({
     queryKey: ["initialList", category],
     queryFn: ({ signal }) => fetchInitialList(category, signal),
   });
 
-  const filter = (initial as unknown as Record<string, unknown>)?.filter as
-    | Record<string, unknown>
-    | undefined;
-
-  const { data: listResponse, isLoading: isLoadingList } = useQuery({
-    queryKey: ["listData", category, filter],
-    queryFn: ({ signal }) =>
-      fetchListData(category, filter as never, signal),
-    enabled: !!initial && !!filter,
-  });
-
-  const isLoading = isLoadingInit || isLoadingList;
-
-  if (isLoading && !initial) {
+  if (isLoading) {
     return (
       <PageShell>
         <div className="flex flex-1 items-center justify-center">
@@ -39,7 +29,7 @@ export default function DynamicListPage() {
     );
   }
 
-  if (!initial?.ui) {
+  if (!response?.ui) {
     return (
       <PageShell>
         <div className="p-6 text-muted-foreground">Page not found.</div>
@@ -47,31 +37,42 @@ export default function DynamicListPage() {
     );
   }
 
-  const mergedData = { ...(initial.data ?? {}), ...(listResponse?.data ?? {}) };
-  const resultInfo = (listResponse?.data as Record<string, unknown>)
+  const resultInfo = (response.data as Record<string, unknown>)
     ?.resultInfo as string | undefined;
 
   return (
     <PageShell>
       <DynamicLayoutProvider
-        ui={initial.ui}
-        initialData={mergedData}
-        initialVariables={initial.variables}
-        initialValidationErrors={initial.validationErrors}
+        ui={response.ui}
+        initialData={response.data ?? {}}
+        initialVariables={response.variables}
+        initialValidationErrors={response.validationErrors}
       >
         <div className="flex flex-1 flex-col overflow-hidden">
-          {initial.ui.title && (
+          {response.ui.title && (
             <h1 className="px-6 pt-4 pb-2 text-xl font-semibold">
-              {initial.ui.title}
+              {response.ui.title}
             </h1>
           )}
           <div className="flex-1 overflow-auto px-6 pb-6">
-            <DynamicRenderer content={initial.ui.layout} />
+            <DynamicRenderer content={response.ui.layout} />
             {resultInfo && (
-              <div
-                className="mt-4 text-sm text-muted-foreground prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: resultInfo }}
-              />
+              <div className="mt-4 rounded-md bg-sky-50 px-4 py-3 text-sm dark:bg-sky-950">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeRaw]}
+                  components={{
+                    ul: ({ children }) => (
+                      <ul className="list-disc pl-4 space-y-1">{children}</ul>
+                    ),
+                    li: ({ children }) => (
+                      <li className="text-muted-foreground">{children}</li>
+                    ),
+                  }}
+                >
+                  {resultInfo}
+                </ReactMarkdown>
+              </div>
             )}
           </div>
           <DynamicActionGroup />
