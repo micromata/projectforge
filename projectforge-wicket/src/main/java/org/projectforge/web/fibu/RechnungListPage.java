@@ -228,6 +228,8 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
                 cellItemListener.populateItem(item, componentId, rowModel);
             }
         });
+        columns.add(new CellItemListenerPropertyColumn<RechnungDO>(getString("attachments.short"), null, "attachmentsSizeFormatted",
+                cellItemListener));
         columns.add(new CellItemListenerPropertyColumn<RechnungDO>(RechnungDO.class, getSortable("bemerkung", sortable),
                 "bemerkung",
                 cellItemListener));

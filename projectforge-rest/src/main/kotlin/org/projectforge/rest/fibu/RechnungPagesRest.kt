@@ -86,6 +86,7 @@ class RechnungPagesRest :
             .add(lc, "statusAsString", headerName = "fibu.rechnung.status", width = 100)
             .add(infoLC, "netSum")
             .add(infoLC, "grossSumWithDiscount")
+            .add(lc, "attachmentsSizeFormatted")
             .add(lc, "konto", "periodOfPerformanceBegin", "periodOfPerformanceEnd", "bemerkung")
             .add(field = "kost1List", headerName = translate("fibu.kost1"), tooltipField = "kost1Info")
             .add(field = "kost2List", headerName = translate("fibu.kost2"), tooltipField = "kost2Info")
