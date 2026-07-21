@@ -111,7 +111,7 @@ class HibernateUtilsTest : AbstractTestBase() {
     @Test
     fun propertyLengthTest() {
         var length = getPropertyLength(TaskDO::class.java.name, "title")
-        Assertions.assertEquals(40, length)
+        Assertions.assertEquals(100, length)
         length = getPropertyLength(TaskDO::class.java.name, "shortDescription")
         Assertions.assertEquals(255, length)
         length = getPropertyLength(TaskDO::class.java, "shortDescription")
