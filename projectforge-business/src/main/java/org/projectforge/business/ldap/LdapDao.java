@@ -405,14 +405,17 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   {
     final Object id = getId(obj);
     // The dn is may-be changed, so find the original dn by id:
-    final T origObject = findById(id, obj.getOrganizationalUnit());
+    T origObject = findById(id, obj.getOrganizationalUnit());
     if (origObject == null) {
-      throw new RuntimeException("Object with id "
-          + id
-          + " not found in search base '"
+      log.warn("Object with id '" + id + "' not found in '"
           + StringHelper.listToString(",", obj.getOrganizationalUnit())
-          + "'. Can't move the object: "
-          + obj);
+          + "'. Searching in base '" + getOuBase() + "'...");
+      origObject = findById(id, getOuBase());
+    }
+    if (origObject == null) {
+      log.error("Object with id '" + id + "' not found in base '"
+          + getOuBase() + "'. Skipping move for: " + obj);
+      return;
     }
     final String ou = LdapUtils.getOrganizationalUnit(newOrganizationalUnit);
     final String origOu = LdapUtils.getOu(origObject.getOrganizationalUnit());
