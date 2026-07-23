@@ -233,6 +233,21 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
       databaseActionsMenu.addSubMenuEntry(optimizeAddressImagesLinkMenuItem);
       optimizeAddressImagesLink.add(WicketUtils.javaScriptConfirmDialogOnClick("Do you really want to proceed all address images?") );
     }
+    {
+      // Reset IdP password sync flag for all users.
+      final Link<Void> resetIdpPasswordSyncLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
+        @Override
+        public void onClick() {
+          resetIdpPasswordSync();
+        }
+      };
+      final ContentMenuEntryPanel resetIdpPasswordSyncLinkMenuItem = new ContentMenuEntryPanel(
+          databaseActionsMenu.newSubMenuChildId(),
+          resetIdpPasswordSyncLink, "Reset IdP password sync")
+          .setTooltip("Resets the IdP password sync flag for all non-local users. Passwords will be re-synced on next login.");
+      databaseActionsMenu.addSubMenuEntry(resetIdpPasswordSyncLinkMenuItem);
+      resetIdpPasswordSyncLink.add(WicketUtils.javaScriptConfirmDialogOnClick("Do you really want to reset the IdP password sync flag for all users? Passwords will be re-synced on next login."));
+    }
   }
 
   @SuppressWarnings("serial")
@@ -406,6 +421,13 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     final String result = WicketSupport.get(AddressImageDao.class).shrinkAllImagesAndRebuildPreviews();
     final String filename = "address-image-processing-" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
     DownloadUtils.setDownloadTarget(result.getBytes(), filename);
+  }
+
+  protected void resetIdpPasswordSync() {
+    log.info("Administration: reset IdP password sync flag for all users.");
+    checkAccess();
+    final int count = WicketSupport.get(org.projectforge.business.user.UserDao.class).resetIdpPasswordSync();
+    setResponsePage(new MessagePage("administration.idpPasswordSyncReset", String.valueOf(count)));
   }
 
   @Override

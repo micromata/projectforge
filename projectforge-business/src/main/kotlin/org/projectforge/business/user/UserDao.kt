@@ -199,6 +199,28 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
     }
 
     /**
+     * Resets lastIdpPasswordSync for all non-deleted, non-local users that have it set.
+     * This forces a password re-sync to the IdP on the next login.
+     * @return the number of affected users
+     */
+    fun resetIdpPasswordSync(): Int {
+        return persistenceService.runInTransaction { context ->
+            val cb = context.em.criteriaBuilder
+            val criteriaUpdate = cb.createCriteriaUpdate(PFUserDO::class.java)
+            val root = criteriaUpdate.from(PFUserDO::class.java)
+            criteriaUpdate.set(root.get<Date?>("lastIdpPasswordSync"), null as Date?)
+            criteriaUpdate.where(
+                cb.and(
+                    cb.equal(root.get<Boolean>("deleted"), false),
+                    cb.equal(root.get<Boolean>("localUser"), false),
+                    cb.isNotNull(root.get<Date>("lastIdpPasswordSync"))
+                )
+            )
+            context.em.createQuery(criteriaUpdate).executeUpdate()
+        }
+    }
+
+    /**
      * Does an user with the given username already exists? Works also for existing users (if username was modified).
      */
     fun doesUsernameAlreadyExist(user: PFUserDO): Boolean {
