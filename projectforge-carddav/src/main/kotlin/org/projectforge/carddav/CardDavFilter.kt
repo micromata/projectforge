@@ -141,6 +141,11 @@ class CardDavFilter : Filter {
                             normalizedUri.matches(NORMALIZED_GET_PHOTO_REQUEST_REGEX)
                 }
 
+                "PUT" -> {
+                    log.debug { "PUT call detected: $normalizedUri" }
+                    return urlMatches(normalizedUri, "users", "principals")
+                }
+
                 "OPTIONS" -> {
                     log.debug { "OPTIONS call detected: $normalizedUri" }
                     return urlMatches(normalizedUri, "users", "principals")
