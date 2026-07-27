@@ -151,7 +151,7 @@ open class UIAgGrid(
             return UIAgGrid("resultSet", listPageTable = true)
         }
 
-        private const val GET_ROW_CLASS = "if (params.node.data?.deleted) { return 'ag-row-deleted'; }"
+        private const val GET_ROW_CLASS = "if (params.node.data?.deleted) { return 'row-deleted'; }"
     }
 
     fun enablePagination(size: Int = 50) {

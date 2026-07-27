@@ -51,8 +51,7 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.aggrid.AGGridSupport
 import org.projectforge.rest.dto.*
-import org.projectforge.rest.dto.aggrid.AGColumnState
-import org.projectforge.rest.dto.aggrid.AGGridStateRequest
+import org.projectforge.rest.dto.datatable.DataTableStateRequest
 import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
@@ -932,12 +931,8 @@ constructor(
      * @return "OK" string response
      */
     @PostMapping(RestPaths.SET_COLUMN_STATES)
-    fun updateColumnStates(@Valid @RequestBody gridStateRequest: AGGridStateRequest): String {
-        agGridSupport.storeGridState(
-            category,
-            gridStateRequest.columnState,
-            gridStateRequest.filterModel
-        )
+    fun updateColumnStates(@Valid @RequestBody request: DataTableStateRequest): String {
+        agGridSupport.storeGridState(category, request)
         return "OK"
     }
 

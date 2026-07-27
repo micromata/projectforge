@@ -179,11 +179,11 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
             agGrid.paginationPageSize = 500
             agGrid.withGetRowClass(
                 """if (params.node.data.status === 'NEW') {
-             return 'ag-row-green';
+             return 'row-green';
            } else if (['DELETED', 'FAULTY', 'UNKNOWN', 'UNKNOWN_MODIFICATION'].includes(params.node.data.status)) {
-             return 'ag-row-red';
+             return 'row-red';
            } else if (params.node.data.status === 'MODIFIED') {
-             return 'ag-row-blue';
+             return 'row-blue';
         }""".trimMargin()
             )
         }

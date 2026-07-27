@@ -93,9 +93,9 @@ class RechnungPagesRest :
             .withMultiRowSelection(request, magicFilter)
             .withGetRowClass(
                 """if (params.node.data.ueberfaellig) {
-            return 'ag-row-red';
+            return 'row-red';
         } else if (params.node.data.status !== 'BEZAHLT') {
-            return 'ag-row-blue';
+            return 'row-blue';
         }"""
             )
     }
