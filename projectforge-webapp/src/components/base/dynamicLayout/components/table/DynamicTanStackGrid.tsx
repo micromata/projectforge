@@ -123,6 +123,10 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
     const [columnOrder, setColumnOrder] = useState<ColumnOrderState>(initialColumnOrder);
     const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
     const [columnPinning, setColumnPinning] = useState<ColumnPinningState>(initialPinning);
+    const [paginationState, setPaginationState] = useState({
+        pageIndex: 0,
+        pageSize: (data as any)?.paginationPageSize || paginationPageSize || 50,
+    });
 
     // Row class function
     // eslint-disable-next-line no-new-func
@@ -138,7 +142,7 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
             columnOrder,
             columnSizing,
             columnPinning,
-            ...(pagination ? { pagination: { pageIndex: 0, pageSize: (data as any)?.paginationPageSize || paginationPageSize } } : {}),
+            ...(pagination ? { pagination: paginationState } : {}),
         },
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -146,6 +150,7 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
         onColumnOrderChange: setColumnOrder,
         onColumnSizingChange: setColumnSizing,
         onColumnPinningChange: setColumnPinning,
+        ...(pagination ? { onPaginationChange: setPaginationState } : {}),
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
