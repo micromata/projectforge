@@ -12,6 +12,7 @@ import {
     ColumnOrderState,
     ColumnSizingState,
     ColumnPinningState,
+    FilterFn,
 } from '@tanstack/react-table';
 import { connect } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router';
@@ -20,6 +21,7 @@ import { getServiceURL } from '../../../../../utilities/rest';
 import { buildColumnDefs, modifyRedirectUrl, DataTableColumnDef } from './tanstack/tableUtils';
 import TanStackPagination from './tanstack/TanStackPagination';
 import TanStackColumnPanel from './tanstack/TanStackColumnPanel';
+import TanStackColumnFilter from './tanstack/TanStackColumnFilter';
 import CellRendererDispatch from './tanstack/CellRendererDispatch';
 
 interface DynamicTanStackGridProps {
@@ -50,6 +52,26 @@ interface DynamicTanStackGridProps {
     userDecimalSeparator?: string;
 }
 
+// Custom filter: checks if cell value (resolved to string) is in the selected set
+const setFilterFn: FilterFn<Record<string, unknown>> = (row, columnId, filterValue) => {
+    if (!filterValue || !Array.isArray(filterValue) || filterValue.length === 0) return false;
+    const cellValue = row.getValue(columnId);
+    let cellStr: string;
+    if (cellValue == null || cellValue === '') {
+        cellStr = '';
+    } else if (typeof cellValue === 'object') {
+        if (Array.isArray(cellValue)) {
+            return cellValue.some((item: any) =>
+                filterValue.includes(item?.displayName ?? String(item)),
+            );
+        }
+        cellStr = (cellValue as any).displayName ?? String(cellValue);
+    } else {
+        cellStr = String(cellValue);
+    }
+    return filterValue.includes(cellStr);
+};
+
 function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
     const {
         columnDefs,
@@ -72,6 +94,7 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
     const { data, variables } = React.useContext(DynamicLayoutContext);
     const navigate = useNavigate();
     const location = useLocation();
+    const [openFilterColumnId, setOpenFilterColumnId] = useState<string | null>(null);
 
     const rowData: Record<string, unknown>[] = useMemo(() => {
         if (entries) return entries;
@@ -81,7 +104,7 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
         return [];
     }, [entries, id, data, variables]);
 
-    const columns = useMemo(() => buildColumnDefs(columnDefs || []), [columnDefs]);
+    const baseColumns = useMemo(() => buildColumnDefs(columnDefs || []), [columnDefs]);
 
     // Initialize sorting from sortModel
     const initialSorting: SortingState = useMemo(() => {
@@ -123,10 +146,22 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
     const [columnOrder, setColumnOrder] = useState<ColumnOrderState>(initialColumnOrder);
     const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
     const [columnPinning, setColumnPinning] = useState<ColumnPinningState>(initialPinning);
+
     const [paginationState, setPaginationState] = useState({
         pageIndex: 0,
         pageSize: (data as any)?.paginationPageSize || paginationPageSize || 50,
     });
+
+    // Sort columns by our own columnOrder state (TanStack's internal columnOrder has a memoization bug)
+    const columns = useMemo(() => {
+        if (!columnOrder || columnOrder.length === 0) return baseColumns;
+        const orderMap = new Map(columnOrder.map((id, idx) => [id, idx]));
+        return [...baseColumns].sort((a, b) => {
+            const ai = orderMap.get(a.id as string) ?? 9999;
+            const bi = orderMap.get(b.id as string) ?? 9999;
+            return ai - bi;
+        });
+    }, [baseColumns, columnOrder]);
 
     // Row class function
     // eslint-disable-next-line no-new-func
@@ -139,7 +174,6 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
             sorting,
             columnFilters,
             columnVisibility,
-            columnOrder,
             columnSizing,
             columnPinning,
             ...(pagination ? { pagination: paginationState } : {}),
@@ -147,7 +181,6 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         onColumnVisibilityChange: setColumnVisibility,
-        onColumnOrderChange: setColumnOrder,
         onColumnSizingChange: setColumnSizing,
         onColumnPinningChange: setColumnPinning,
         ...(pagination ? { onPaginationChange: setPaginationState } : {}),
@@ -156,9 +189,11 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
         getFilteredRowModel: getFilteredRowModel(),
         ...(pagination ? { getPaginationRowModel: getPaginationRowModel() } : {}),
         columnResizeMode: 'onChange',
+        filterFns: { setFilter: setFilterFn },
         defaultColumn: {
             minSize: 50,
             size: 150,
+            filterFn: setFilterFn,
         },
     });
 
@@ -173,7 +208,7 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
     const postColumnState = useCallback(() => {
         if (!onColumnStatesChangedUrl) return;
         const state = {
-            columnOrder: table.getState().columnOrder,
+            columnOrder,
             columnSizing: table.getState().columnSizing,
             columnVisibility: table.getState().columnVisibility,
             columnPinning: table.getState().columnPinning,
@@ -186,7 +221,7 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(state),
         });
-    }, [onColumnStatesChangedUrl, table]);
+    }, [onColumnStatesChangedUrl, table, columnOrder]);
 
     const debouncedPostState = useCallback(() => {
         if (debounceTimer.current) clearTimeout(debounceTimer.current);
@@ -267,6 +302,8 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
             <div className="d-flex gap-2">
                 <TanStackColumnPanel
                     table={table}
+                    columnOrder={columnOrder}
+                    onColumnOrderChange={setColumnOrder}
                     resetGridStateUrl={resetGridStateUrl}
                     onReset={handleReset}
                 />
@@ -282,9 +319,12 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                                         style={{
                                             width: header.getSize(),
                                             position: header.column.getIsPinned() ? 'sticky' : undefined,
-                                            left: header.column.getIsPinned() === 'left' ? 0 : undefined,
+                                            left: header.column.getIsPinned() === 'left'
+                                                ? header.column.getStart('left')
+                                                : undefined,
                                             right: header.column.getIsPinned() === 'right' ? 0 : undefined,
-                                            zIndex: header.column.getIsPinned() ? 1 : undefined,
+                                            zIndex: header.column.getIsPinned() ? 2 : undefined,
+                                            backgroundColor: header.column.getIsPinned() ? 'var(--bs-table-bg, #fff)' : undefined,
                                             cursor: header.column.getCanSort() ? 'pointer' : undefined,
                                         }}
                                         className={
@@ -321,7 +361,29 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                                                 : flexRender(header.column.columnDef.header, header.getContext())}
                                             {header.column.getIsSorted() === 'asc' && ' ▲'}
                                             {header.column.getIsSorted() === 'desc' && ' ▼'}
+                                            {header.column.getCanFilter() && (
+                                                <span
+                                                    className={`ms-auto ${header.column.getIsFiltered() ? 'text-primary' : 'text-muted'}`}
+                                                    style={{ cursor: 'pointer', fontSize: '0.7rem' }}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setOpenFilterColumnId(
+                                                            openFilterColumnId === header.column.id ? null : header.column.id,
+                                                        );
+                                                    }}
+                                                    title="Filter"
+                                                >
+                                                    <i className="fas fa-filter" />
+                                                </span>
+                                            )}
                                         </div>
+                                        {openFilterColumnId === header.column.id && (
+                                            <TanStackColumnFilter
+                                                column={header.column}
+                                                table={table}
+                                                onClose={() => setOpenFilterColumnId(null)}
+                                            />
+                                        )}
                                         {header.column.getCanResize() && (
                                             <div
                                                 onMouseDown={(e) => {
@@ -390,8 +452,12 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                                             style={{
                                                 width: cell.column.getSize(),
                                                 position: cell.column.getIsPinned() ? 'sticky' : undefined,
-                                                left: cell.column.getIsPinned() === 'left' ? 0 : undefined,
+                                                left: cell.column.getIsPinned() === 'left'
+                                                    ? cell.column.getStart('left')
+                                                    : undefined,
                                                 right: cell.column.getIsPinned() === 'right' ? 0 : undefined,
+                                                zIndex: cell.column.getIsPinned() ? 1 : undefined,
+                                                backgroundColor: cell.column.getIsPinned() ? 'var(--bs-table-bg, #fff)' : undefined,
                                                 whiteSpace: (cell.column.columnDef.meta as any)?.wrapText ? 'pre-line' : undefined,
                                             }}
                                         >
