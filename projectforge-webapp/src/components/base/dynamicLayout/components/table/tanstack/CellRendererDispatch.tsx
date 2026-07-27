@@ -22,6 +22,17 @@ export default function CellRendererDispatch({ cell }: CellRendererDispatchProps
 
     if (!renderer) {
         if (value == null) return null;
+        // Handle objects with displayName (e.g. User objects)
+        if (typeof value === 'object') {
+            if (Array.isArray(value)) {
+                const names = value.map((item: any) => item?.displayName ?? String(item)).join(', ');
+                return <>{names}</>;
+            }
+            if ((value as any).displayName) {
+                return <>{(value as any).displayName}</>;
+            }
+            return null;
+        }
         return <>{String(value)}</>;
     }
 

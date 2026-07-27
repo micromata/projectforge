@@ -16,6 +16,8 @@ export interface DataTableColumnDef {
     cellRendererParams?: Record<string, unknown>;
     dataType?: string;
     formatter?: string;
+    valueGetter?: string;
+    valueFormatter?: string;
     valueIconMap?: Record<string, string[]>;
     type?: string;
     headerTooltip?: string;
@@ -33,10 +35,27 @@ export function resolveNestedValue(row: Record<string, unknown>, fieldPath: stri
     }, row);
 }
 
+/**
+ * Evaluates a valueGetter string like "data?.lendOutBy?.displayName"
+ * by extracting the dot path and resolving it against the row.
+ */
+function evaluateValueGetter(valueGetter: string, row: Record<string, unknown>): unknown {
+    // Strip "data?." or "data." prefix, then replace "?." with "."
+    const path = valueGetter
+        .replace(/^data\??\./, '')
+        .replace(/\?\./g, '.');
+    return resolveNestedValue(row, path);
+}
+
 export function buildColumnDefs(columns: DataTableColumnDef[]): ColumnDef<Record<string, unknown>>[] {
     return columns.map((col) => ({
         id: col.field,
-        accessorFn: (row: Record<string, unknown>) => resolveNestedValue(row, col.field),
+        accessorFn: (row: Record<string, unknown>) => {
+            if (col.valueGetter) {
+                return evaluateValueGetter(col.valueGetter, row);
+            }
+            return resolveNestedValue(row, col.field);
+        },
         header: col.headerName || col.field,
         size: col.width || 150,
         minSize: col.minWidth || 50,
