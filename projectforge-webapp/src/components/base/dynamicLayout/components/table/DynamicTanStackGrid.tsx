@@ -246,8 +246,9 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
         }
     }, []);
 
-    // Column drag and drop
+    // Column drag and drop — disabled while resizing
     const draggedColumn = useRef<string | null>(null);
+    const isResizing = useRef(false);
 
     return (
         <div className="tanstack-grid-wrapper">
@@ -262,7 +263,7 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                 />
             </div>
             <div className="table-responsive">
-                <table className="table table-striped table-hover table-sm">
+                <table className="table table-striped table-hover table-sm" style={{ tableLayout: 'fixed', width: table.getTotalSize() }}>
                     <thead>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <tr key={headerGroup.id}>
@@ -282,8 +283,14 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                                         }
                                         title={(header.column.columnDef.meta as any)?.headerTooltip}
                                         onClick={header.column.getToggleSortingHandler()}
-                                        draggable
-                                        onDragStart={() => { draggedColumn.current = header.column.id; }}
+                                        draggable={!isResizing.current}
+                                        onDragStart={(e) => {
+                                            if (isResizing.current) {
+                                                e.preventDefault();
+                                                return;
+                                            }
+                                            draggedColumn.current = header.column.id;
+                                        }}
                                         onDragOver={(e) => e.preventDefault()}
                                         onDrop={() => {
                                             if (draggedColumn.current && draggedColumn.current !== header.column.id) {
@@ -308,15 +315,36 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                                         </div>
                                         {header.column.getCanResize() && (
                                             <div
-                                                onMouseDown={header.getResizeHandler()}
-                                                onTouchStart={header.getResizeHandler()}
+                                                onMouseDown={(e) => {
+                                                    isResizing.current = true;
+                                                    header.getResizeHandler()(e);
+                                                    const onMouseUp = () => {
+                                                        isResizing.current = false;
+                                                        document.removeEventListener('mouseup', onMouseUp);
+                                                    };
+                                                    document.addEventListener('mouseup', onMouseUp);
+                                                }}
+                                                onTouchStart={(e) => {
+                                                    isResizing.current = true;
+                                                    header.getResizeHandler()(e);
+                                                    const onTouchEnd = () => {
+                                                        isResizing.current = false;
+                                                        document.removeEventListener('touchend', onTouchEnd);
+                                                    };
+                                                    document.addEventListener('touchend', onTouchEnd);
+                                                }}
+                                                onDragStart={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                }}
+                                                draggable={false}
                                                 className="resizer"
                                                 style={{
                                                     position: 'absolute',
                                                     right: 0,
                                                     top: 0,
                                                     height: '100%',
-                                                    width: 4,
+                                                    width: 6,
                                                     cursor: 'col-resize',
                                                     userSelect: 'none',
                                                     touchAction: 'none',
