@@ -200,6 +200,10 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
 
     // Row click handler
     const handleRowClick = useCallback((row: Record<string, unknown>) => {
+        // Don't navigate if user is selecting text
+        const selection = window.getSelection();
+        if (selection && selection.toString().length > 0) return;
+
         if (rowClickFunction) {
             rowClickFunction(row);
             return;
