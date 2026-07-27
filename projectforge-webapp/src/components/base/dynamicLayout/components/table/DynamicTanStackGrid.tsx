@@ -263,7 +263,7 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                 />
             </div>
             <div className="table-responsive">
-                <table className="table table-striped table-hover table-sm" style={{ tableLayout: 'fixed', width: table.getTotalSize() }}>
+                <table className="table table-striped table-hover table-sm" style={{ tableLayout: 'fixed', width: Math.max(table.getTotalSize(), 100) }}>
                     <thead>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <tr key={headerGroup.id}>

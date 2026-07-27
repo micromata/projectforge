@@ -24,6 +24,12 @@
 
 // TanStack table
 .tanstack-grid-wrapper {
+  th, td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   th {
     position: relative;
     user-select: none;
