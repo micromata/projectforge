@@ -30,10 +30,11 @@ export default function TanStackColumnFilter({ column, table, onClose }: TanStac
     }, [currentFilter]);
 
     const [mode, setMode] = useState<Mode>(initialMode);
-    const [textValue, setTextValue] = useState<string>(
+    // Shared input for both the selection-mode search box and the contains/notContains value,
+    // so the typed string is preserved when switching modes.
+    const [inputText, setInputText] = useState<string>(
         (currentFilter && typeof currentFilter === 'object' && (currentFilter as any).value) || '',
     );
-    const [search, setSearch] = useState('');
 
     // Get all unique values for selection mode
     const allValues = useMemo(() => {
@@ -61,11 +62,11 @@ export default function TanStackColumnFilter({ column, table, onClose }: TanStac
 
     // Filter values by search in selection mode
     const filteredValues = useMemo(() => {
-        if (!search) return allValues;
-        const lower = search.toLowerCase();
+        if (!inputText) return allValues;
+        const lower = inputText.toLowerCase();
         const blankLabel = t('filter.blank', 'Blank').toLowerCase();
         return allValues.filter((v) => (v === '' ? blankLabel : v.toLowerCase()).includes(lower));
-    }, [allValues, search]);
+    }, [allValues, inputText]);
 
     // Selection state
     const selectedValues = useMemo(() => {
@@ -104,14 +105,14 @@ export default function TanStackColumnFilter({ column, table, onClose }: TanStac
         if (mode === 'blank' || mode === 'notBlank') {
             column.setFilterValue({ type: 'text', operator: mode });
         } else if (mode === 'contains' || mode === 'notContains') {
-            if (!textValue) {
+            if (!inputText) {
                 column.setFilterValue(undefined);
             } else {
-                column.setFilterValue({ type: 'text', operator: mode, value: textValue });
+                column.setFilterValue({ type: 'text', operator: mode, value: inputText });
             }
         }
         onClose();
-    }, [column, mode, textValue, onClose]);
+    }, [column, mode, inputText, onClose]);
 
     const reset = useCallback(() => {
         column.setFilterValue(undefined);
@@ -158,8 +159,8 @@ export default function TanStackColumnFilter({ column, table, onClose }: TanStac
                             type="text"
                             className="form-control form-control-sm mb-2"
                             placeholder={t('filter.search', 'Search...')}
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+                            value={inputText}
+                            onChange={(e) => setInputText(e.target.value)}
                             ref={(el) => el?.focus({ preventScroll: true })}
                         />
                         <div className="form-check border-bottom pb-1 mb-1">
@@ -190,7 +191,10 @@ export default function TanStackColumnFilter({ column, table, onClose }: TanStac
                                 </div>
                             ))}
                         </div>
-                        <div className="d-flex justify-content-end mt-2">
+                        <div className="d-flex justify-content-between mt-2">
+                            <button type="button" className="btn btn-sm btn-outline-secondary" onClick={reset}>
+                                {t('filter.reset', 'Reset')}
+                            </button>
                             <button type="button" className="btn btn-sm btn-outline-secondary" onClick={onClose}>
                                 {t('filter.close', 'Close')}
                             </button>
@@ -204,8 +208,8 @@ export default function TanStackColumnFilter({ column, table, onClose }: TanStac
                             type="text"
                             className="form-control form-control-sm mb-2"
                             placeholder={t('filter.value', 'Value')}
-                            value={textValue}
-                            onChange={(e) => setTextValue(e.target.value)}
+                            value={inputText}
+                            onChange={(e) => setInputText(e.target.value)}
                             ref={(el) => el?.focus({ preventScroll: true })}
                         />
                         <div className="d-flex justify-content-between">

@@ -571,11 +571,13 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                                         }}
                                     >
                                         <div className="d-flex align-items-center gap-1">
-                                            {header.isPlaceholder
-                                                ? null
-                                                : flexRender(header.column.columnDef.header, header.getContext())}
-                                            {header.column.getIsSorted() === 'asc' && ' ▲'}
-                                            {header.column.getIsSorted() === 'desc' && ' ▼'}
+                                            <span className="text-truncate" style={{ minWidth: 0, flex: '1 1 auto' }}>
+                                                {header.isPlaceholder
+                                                    ? null
+                                                    : flexRender(header.column.columnDef.header, header.getContext())}
+                                                {header.column.getIsSorted() === 'asc' && ' ▲'}
+                                                {header.column.getIsSorted() === 'desc' && ' ▼'}
+                                            </span>
                                             {header.column.getCanFilter() && (
                                                 <span
                                                     ref={(el) => { filterAnchorRefs.current[header.column.id] = el; }}
@@ -587,6 +589,7 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                                                         zIndex: 2,
                                                         padding: '2px 5px',
                                                         borderRadius: '3px',
+                                                        flex: '0 0 auto',
                                                         ...(header.column.getIsFiltered() ? { backgroundColor: '#0d6efd' } : {}),
                                                     }}
                                                     onClick={(e) => {
