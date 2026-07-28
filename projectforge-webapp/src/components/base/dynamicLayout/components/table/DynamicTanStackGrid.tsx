@@ -35,6 +35,7 @@ interface DynamicTanStackGridProps {
     selectedEntities?: number[];
     onSelectionChange?: (selectedRows: Record<string, unknown>[]) => void;
     rowClickRedirectUrl?: string;
+    rowClickPostUrl?: string;
     rowClickOpenModal?: boolean;
     rowClickFunction?: (row: Record<string, unknown>) => void;
     onColumnStatesChangedUrl?: string;
@@ -85,6 +86,7 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
         selectedEntities,
         onSelectionChange,
         rowClickRedirectUrl,
+        rowClickPostUrl,
         rowClickOpenModal,
         rowClickFunction,
         onColumnStatesChangedUrl,
@@ -97,7 +99,7 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
         highlightId,
     } = props;
 
-    const { data, variables } = React.useContext(DynamicLayoutContext);
+    const { data, variables, callAction } = React.useContext(DynamicLayoutContext);
     const navigate = useNavigate();
     const location = useLocation();
     const [openFilterColumnId, setOpenFilterColumnId] = useState<string | null>(null);
@@ -275,6 +277,18 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
             rowClickFunction(row);
             return;
         }
+        if (rowClickPostUrl) {
+            fetch(getServiceURL(`${rowClickPostUrl}/${row.id}`), {
+                credentials: 'include',
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+                body: JSON.stringify({ data }),
+            })
+                .then((res) => res.json())
+                .then((json) => { callAction({ responseAction: json }); })
+                .catch((error) => console.error('rowClickPostUrl error:', error));
+            return;
+        }
         if (!rowClickRedirectUrl) return;
         let url = modifyRedirectUrl(rowClickRedirectUrl, row);
         if (rowClickOpenModal) {
@@ -283,7 +297,7 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
         } else {
             navigate(url);
         }
-    }, [rowClickRedirectUrl, rowClickOpenModal, rowClickFunction, navigate, location]);
+    }, [rowClickRedirectUrl, rowClickPostUrl, rowClickOpenModal, rowClickFunction, navigate, location, data, callAction]);
 
     // Highlight row scrolling
     const highlightRowId = (data as any)?.highlightRowId || highlightId;

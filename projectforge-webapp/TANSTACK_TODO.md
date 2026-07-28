@@ -9,6 +9,7 @@ Stand: 2026-07-28
 - [x] Checkbox-Spalte rendern (TanStack `enableRowSelection`)
 - [x] `selectedEntities` vom Backend wiederherstellen (pre-checked rows)
 - [x] Cancel/Next-Buttons mit tatsächlicher Selection verknüpfen
+- [x] Klick, Shift+Klick (Range), Ctrl/Cmd+Klick (additiv), Pfeiltasten+Shift, Leertaste
 - [ ] Testen mit Massenbearbeitung (Timesheets), Multi-Select-Seiten
 - Dateien: `DynamicListPageTanStackGrid.tsx`, `DynamicTanStackGrid.tsx`
 
@@ -29,17 +30,18 @@ Stand: 2026-07-28
 - Datei: `DynamicTanStackGrid.tsx`, `tableUtils.ts`
 
 ### valueFormatter
-- [ ] Backend schickt JS-Expressions (z.B. für ADDRESS_BOOK)
-- [ ] Dot-Path-Auswertung analog zu `valueGetter`, aber für die Anzeige
-- [ ] Fallback: Wenn `cellRenderer: "formatter"` gesetzt ist, wird das bereits über den Formatter abgedeckt — prüfen welche Spalten `valueFormatter` ohne `cellRenderer` nutzen
-- Dateien: `CellRendererDispatch.tsx`, `tableUtils.ts`
+- [x] Geprüft: Wird nur für ADDRESS_BOOK genutzt (Array → displayName join)
+- [x] CellRendererDispatch handelt Arrays mit displayName bereits nativ (Zeile 27-29)
+- [x] Kein zusätzlicher Code nötig
+- Dateien: `CellRendererDispatch.tsx`
 
 ## Priorität 3: Kleinere Lücken
 
 ### rowClickPostUrl
-- [ ] POST an URL bei Zeilen-Klick (statt Navigation)
-- [ ] Analog zu `rowClickRedirectUrl`, aber mit fetch POST
+- [x] POST an `${rowClickPostUrl}/${row.id}` bei Zeilen-Klick
+- [x] Response wird über `callAction({ responseAction: json })` verarbeitet
 - Datei: `DynamicTanStackGrid.tsx`
+- Testen: EInvoiceCheckerPageRest (Attachment-Download), MerlinPagesRest (Variable bearbeiten)
 
 ### lockPosition im Header-DnD
 - [x] Angepinnte Spalten im Header-Drag-and-Drop nicht verschiebbar (draggable=false, Drop ignored)
@@ -52,13 +54,13 @@ Stand: 2026-07-28
 - [ ] Für MVP reicht der Set-Filter — typed Filter nur bei Bedarf nachziehen
 
 ### autoHeight
-- [ ] Zeilen automatisch an Inhalt anpassen wenn `autoHeight: true`
-- [ ] Aktuell: `white-space: nowrap` + `overflow: hidden` auf allen Zellen
-- [ ] Bei `autoHeight`/`wrapText`: `white-space: pre-line` wird schon gesetzt, aber Zeilenhöhe ist fix
+- [x] Funktioniert implizit: HTML-Tabellen passen Zeilenhöhe automatisch an
+- [x] `wrapText` → `white-space: pre-line` ist bereits implementiert
+- Kein zusätzlicher Code nötig
 
 ### Grid-Container-Höhe (height)
-- [ ] `height`-Prop vom Backend wird ignoriert
-- [ ] Ggf. `max-height` + `overflow-y: auto` auf `.table-responsive`
+- [x] Geprüft: `height`-Prop wird im Backend nirgends gesetzt (nur auskommentiert)
+- [x] Kein Handlungsbedarf
 
 ## Nicht benötigt
 
