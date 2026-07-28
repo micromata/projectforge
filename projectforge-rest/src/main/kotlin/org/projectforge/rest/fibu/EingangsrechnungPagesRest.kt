@@ -90,9 +90,9 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
             .withMultiRowSelection(request, magicFilter)
             .withGetRowClass(
                 """if (params.node.data.ueberfaellig) {
-            return 'ag-row-red';
+            return 'row-red';
         } else if (!params.node.data.bezahlDatum) {
-            return 'ag-row-blue';
+            return 'row-blue';
         }"""
             )
     }

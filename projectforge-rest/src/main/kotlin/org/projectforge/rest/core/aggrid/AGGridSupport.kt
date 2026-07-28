@@ -33,7 +33,7 @@ import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
-import org.projectforge.rest.dto.aggrid.AGColumnState
+import org.projectforge.rest.dto.datatable.DataTableStateRequest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.*
@@ -48,44 +48,21 @@ class AGGridSupport {
     @Autowired
     private lateinit var userPrefService: UserPrefService
 
-    fun storeGridState(category: String, columnState: List<AGColumnState>?, filterModel: Map<String, Any>?) {
+    fun storeGridState(category: String, request: DataTableStateRequest) {
         val gridState = userPrefService.ensureEntry(category, USER_PREF_PARAM_GRID_STATE, GridState())
 
-        // Store column state if provided
-        if (columnState != null) {
-            gridState.columnState =
-                columnState.map { ColumnStateEntry(colId = it.colId, hide = it.hide, width = it.width, pinned = it.pinned) }
-            val newSortModel = mutableListOf<SortModelEntry>()
-            columnState.forEach { entry ->
-                val colId = entry.colId
-                val sort = entry.sort
-                val sortIndex = entry.sortIndex
-                if (colId != null && sort != null && sortIndex != null) {
-                    newSortModel.add(SortModelEntry(colId, entry.sort, entry.sortIndex))
-                }
-            }
-            gridState.sortModel = newSortModel
-        }
+        request.columnOrder?.let { gridState.columnOrder = it }
+        request.columnSizing?.let { gridState.columnSizing = it }
+        request.columnVisibility?.let { gridState.columnVisibility = it }
+        request.columnPinning?.let { gridState.columnPinning = it }
+        request.sorting?.let { gridState.sorting = it }
+        request.columnFilters?.let { gridState.columnFilters = it }
 
-        // Store filter model if provided
-        if (filterModel != null) {
-            gridState.filterModel = filterModel
-        }
-
-        // Persist the modified grid state
         userPrefService.putEntry(category, USER_PREF_PARAM_GRID_STATE, gridState, true)
     }
 
-    private fun getColumnState(category: String): List<ColumnStateEntry>? {
-        return userPrefService.getEntry(category, USER_PREF_PARAM_GRID_STATE, GridState::class.java)?.columnState
-    }
-
-    private fun getSortModel(category: String): List<SortModelEntry>? {
-        return userPrefService.getEntry(category, USER_PREF_PARAM_GRID_STATE, GridState::class.java)?.sortModel
-    }
-
-    private fun getFilterModel(category: String): Map<String, Any>? {
-        return userPrefService.getEntry(category, USER_PREF_PARAM_GRID_STATE, GridState::class.java)?.filterModel
+    private fun getGridState(category: String): GridState? {
+        return userPrefService.getEntry(category, USER_PREF_PARAM_GRID_STATE, GridState::class.java)
     }
 
     /**
@@ -98,14 +75,6 @@ class AGGridSupport {
 
     /**
      * Prepares an AG-Grid for a list page, handling multi-selection if applicable.
-     * @param request The HTTP servlet request.
-     * @param layout The UI layout to which the grid will be added.
-     * @param magicFilter The magic filter for data retrieval.
-     * @param pagesRest The pages REST controller.
-     * @param pageAfterMultiSelect The page to navigate to after multi-selection (optional).
-     * @param userAccess The user's access rights.
-     * @param rowClickUrl The URL to redirect to on row click (optional).
-     * @param legendText Optional legend text to display below the grid in the UIAlert about sortinfo.
      */
     fun prepareUIGrid4ListPage(
         request: HttpServletRequest,
@@ -118,7 +87,7 @@ class AGGridSupport {
         legendText: String? = null,
     ): UIAgGrid {
         val agGrid = UIAgGrid.createUIResultSetTable()
-        magicFilter.maxRows = QueryFilter.QUERY_FILTER_MAX_ROWS // Fix it from previous.
+        magicFilter.maxRows = QueryFilter.QUERY_FILTER_MAX_ROWS
         agGrid.enablePagination()
         magicFilter.paginationPageSize?.let { agGrid.paginationPageSize = it }
         layout.add(agGrid)
@@ -139,7 +108,6 @@ class AGGridSupport {
                 "'$legendText\n${translate("agGrid.sortInfo")}"
             }
             layout.add(UIAlert(message = message, color = UIColor.INFO, markdown = true))
-            // Done for multiselect by prepareUIGrid4MultiSelectionListPage:
             agGrid.onColumnStatesChangedUrl =
                 RestResolver.getRestUrl(pagesRest::class.java, RestPaths.SET_COLUMN_STATES)
             agGrid.resetGridStateUrl =
@@ -159,7 +127,6 @@ class AGGridSupport {
             request,
             callerRest::class.java
         )?.paginationPageSize?.let { paginationPageSize ->
-            // pageSize was initially set by Wicket's list page. So use the same pagination size.
             agGrid.paginationPageSize = paginationPageSize
         }
         if (pageAfterMultiSelect != null) {
@@ -188,72 +155,94 @@ class AGGridSupport {
     }
 
     fun restoreColumnsFromUserPref(category: String, agGrid: UIAgGrid) {
-        val columnStates = getColumnState(category)
-        if (columnStates != null) {
-            // Separate locked and unlocked columns
+        val gridState = getGridState(category) ?: return
+
+        // Restore column order
+        val columnOrder = gridState.columnOrder
+        if (columnOrder != null && columnOrder.isNotEmpty()) {
             val lockedColumns = agGrid.columnDefs.filter { it.lockPosition != null }
             val unlockedColumnDefs = agGrid.columnDefs.filter { it.lockPosition == null }
 
-            // Reorder only unlocked columns based on user preferences
             val reorderedUnlockedColumns = mutableListOf<UIAgGridColumnDef>()
             val processedColumns = mutableSetOf<String>()
-            columnStates.forEach { columnState ->
-                unlockedColumnDefs.find { it.field == columnState.colId }?.let { colDef ->
+            columnOrder.forEach { colId ->
+                unlockedColumnDefs.find { it.field == colId }?.let { colDef ->
                     reorderedUnlockedColumns.add(colDef)
-                    colDef.field?.let {
-                        processedColumns.add(it)
-                    }
+                    colDef.field?.let { processedColumns.add(it) }
                 }
             }
-            // Add unlocked columns not part of columnStates
             unlockedColumnDefs.forEach { colDef ->
                 if (!processedColumns.contains(colDef.field)) {
                     reorderedUnlockedColumns.add(colDef)
                 }
             }
-
-            // Combine: locked columns first (in original order), then reordered unlocked columns
             agGrid.columnDefs = (lockedColumns + reorderedUnlockedColumns).toMutableList()
+        }
 
-            // Restore width, hide, pinned for all columns
+        // Restore column sizing
+        val columnSizing = gridState.columnSizing
+        if (columnSizing != null) {
             agGrid.columnDefs.forEach { colDef ->
-                columnStates.find { it.colId == colDef.field }?.let { columnState ->
-                    // Only restore width if column is resizable
+                val field = colDef.field ?: return@forEach
+                columnSizing[field]?.let { width ->
                     if (colDef.resizable != false) {
-                        colDef.width = columnState.width
-                    }
-                    colDef.hide = columnState.hide
-                    // Don't restore pinned for locked columns - they should always be pinned according to lockPosition
-                    if (colDef.lockPosition == null) {
-                        colDef.pinned = columnState.pinned
+                        colDef.width = width
                     }
                 }
             }
         }
-        agGrid.sortModel = getSortModel(category)
-        agGrid.filterModel = getFilterModel(category)
+
+        // Restore column visibility
+        val columnVisibility = gridState.columnVisibility
+        if (columnVisibility != null) {
+            agGrid.columnDefs.forEach { colDef ->
+                val field = colDef.field ?: return@forEach
+                columnVisibility[field]?.let { visible ->
+                    colDef.hide = !visible
+                }
+            }
+        }
+
+        // Restore column pinning
+        val columnPinning = gridState.columnPinning
+        if (columnPinning != null) {
+            agGrid.columnDefs.forEach { colDef ->
+                if (colDef.lockPosition != null) return@forEach
+                val field = colDef.field ?: return@forEach
+                colDef.pinned = when {
+                    columnPinning.left?.contains(field) == true -> "left"
+                    columnPinning.right?.contains(field) == true -> "right"
+                    else -> null
+                }
+            }
+        }
+
+        // Restore sorting as sortModel (for frontend consumption)
+        val sorting = gridState.sorting
+        if (sorting != null && sorting.isNotEmpty()) {
+            agGrid.sortModel = sorting.mapIndexedNotNull { index, entry ->
+                val id = entry.id ?: return@mapIndexedNotNull null
+                SortModelEntry(
+                    colId = id,
+                    sort = if (entry.desc == true) "desc" else "asc",
+                    sortIndex = index,
+                )
+            }
+        }
     }
 
     /**
      * Finds the AG Grid element in a UI layout.
      * Searches recursively through all UI elements and containers.
-     *
-     * @param layout The UI layout to search in
-     * @return The first UIAgGrid found, or null if none exists
      */
     fun findAgGridElement(layout: UILayout?): UIAgGrid? {
         layout ?: return null
-        // Search in layout.layout first (where AG Grid is usually added)
         findAgGridInContent(layout.layout)?.let { return it }
-        // Also search in namedContainers for completeness
         return findAgGridInContent(layout.namedContainers.flatMap { it.content })
     }
 
     /**
      * Recursively searches for UIAgGrid in a list of UI elements.
-     *
-     * @param content List of UI elements to search
-     * @return The first UIAgGrid found, or null if none exists
      */
     fun findAgGridInContent(content: List<UIElement>): UIAgGrid? {
         for (element in content) {
@@ -273,9 +262,6 @@ class AGGridSupport {
     /**
      * Creates a ResponseAction for resetting grid state.
      * Includes columnDefs, sortModel, and an empty filterModel.
-     *
-     * @param agGrid The AG Grid element with default column definitions
-     * @return ResponseAction with UPDATE target type and grid state variables
      */
     fun createResetGridStateResponse(agGrid: UIAgGrid?): ResponseAction {
         return ResponseAction(targetType = TargetType.UPDATE).apply {

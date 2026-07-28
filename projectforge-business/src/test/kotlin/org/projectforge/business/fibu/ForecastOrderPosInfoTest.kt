@@ -92,16 +92,18 @@ class ForecastOrderPosInfoTest {
                 netSum = BigDecimal("50000"), // 5 month
                 invoicedSum = BigDecimal("5000")
             ).also { pos ->
-                // toBeInvoicedSum = 45000, distributed over 4 remaining months (Jan-Apr) = 11250/month
+                // toBeInvoicedSum = 45000, distributed over 3 remaining months (Feb-Apr) = 15000/month
+                // Jan is skipped because for FOLLOWING_MONTH the baseMonth entry represents last month's
+                // (already completed) work.
                 calculateAndAssert(
                     orderInfo,
                     pos,
                     "0",
                     "0",
-                    "11250",
-                    "11250",
-                    "11250",
-                    "11250",
+                    "0",
+                    "15000",
+                    "15000",
+                    "15000",
                     distributeUnused = true
                 ).also {
                     assertSame("0", it.difference)
@@ -111,10 +113,10 @@ class ForecastOrderPosInfoTest {
                     pos,
                     "0",
                     "0",
-                    "11250",
-                    "11250",
-                    "11250",
-                    "11250",
+                    "0",
+                    "15000",
+                    "15000",
+                    "15000",
                     distributeUnused = false
                 ).also {
                     assertSame("0", it.difference)
@@ -175,23 +177,24 @@ class ForecastOrderPosInfoTest {
                 PeriodOfPerformanceType.SEEABOVE, netSum = BigDecimal(1_800_000)
             ).also { pos ->
                 // Nothing invoiced. toBeInvoicedSum = 1,800,000.
-                // remainingMonthCount = 7 (Jan-Jul 2025), partlyNetSum = 1,800,000 / 7 = 257142.857...
+                // remainingMonthCount = 6 (Feb-Jul 2025), partlyNetSum = 1,800,000 / 6 = 300,000
+                // Jan 2025 is skipped (FOLLOWING_MONTH: baseMonth entry represents Dec's work).
                 ForecastOrderPosInfo(orderInfo, pos).also { fcPosInfo ->
                     fcPosInfo.calculate()
                     Assertions.assertEquals(19, fcPosInfo.months.size, "Jan 24 -> Jul 25")
-                    for (i in 0..11) {
+                    for (i in 0..12) {
                         Assertions.assertEquals(
                             BigDecimal.ZERO,
                             fcPosInfo.months[i].toBeInvoicedSum,
-                            "Jan - Dec no payments, ${fcPosInfo.months[i].date} should be 0.00 but is ${fcPosInfo.months[i].toBeInvoicedSum}"
+                            "Jan 24 - Jan 25 no payments, ${fcPosInfo.months[i].date} should be 0.00 but is ${fcPosInfo.months[i].toBeInvoicedSum}"
                         )
                     }
-                    val partlyNetSum = BigDecimal(1_800_000).divide(BigDecimal(7), java.math.RoundingMode.HALF_UP)
-                    for (i in 12..17) {
+                    val partlyNetSum = BigDecimal(1_800_000).divide(BigDecimal(6), java.math.RoundingMode.HALF_UP)
+                    for (i in 13..17) {
                         assertSame(
                             partlyNetSum.toPlainString(),
                             fcPosInfo.months[i].toBeInvoicedSum,
-                            "Jan - Jun 2025, ${fcPosInfo.months[i].date}"
+                            "Feb - Jun 2025, ${fcPosInfo.months[i].date}"
                         )
                     }
                     // Last month (Jul 2025) gets the remaining amount
@@ -199,6 +202,124 @@ class ForecastOrderPosInfoTest {
                         fcPosInfo.months[18].toBeInvoicedSum > BigDecimal.ZERO,
                         "Jul 2025 should have remaining forecast"
                     )
+                }
+            }
+        }
+    }
+
+    /**
+     * Reproduces the reported bug: For FOLLOWING_MONTH (retroactive invoicing) orders, the current month
+     * was incorrectly included in the remaining month count, dividing by 7 instead of 6.
+     * Example: Order 6863 with performance period Jan-Dec 2026, baseMonth=Jul 2026.
+     */
+    @Test
+    fun `following month forecast should not count current month`() {
+        val julBaseDate = PFDay.of(2026, Month.JULY, 15)
+        // Scenario similar to reported order 6863: T&M, FOLLOWING_MONTH, full year 2026, partially invoiced.
+        OrderInfo().also { orderInfo ->
+            orderInfo.status = AuftragsStatus.BEAUFTRAGT
+            orderInfo.snapshotDate = julBaseDate.localDate
+            orderInfo.periodOfPerformanceBegin = LocalDate.of(2026, Month.JANUARY, 1)
+            orderInfo.periodOfPerformanceEnd = LocalDate.of(2026, Month.DECEMBER, 31)
+            createPos(
+                AuftragsStatus.BEAUFTRAGT,
+                AuftragsPositionsPaymentType.TIME_AND_MATERIALS,
+                PeriodOfPerformanceType.SEEABOVE,
+                netSum = BigDecimal("120000"),
+                invoicedSum = BigDecimal("60000"), // Jan-Jun invoiced
+            ).also { pos ->
+                // toBeInvoicedSum = 60000, remaining months = Aug-Jan2027 = 6 (not 7!)
+                // partlyNetSum = 60000 / 6 = 10000
+                ForecastOrderPosInfo(orderInfo, pos).also { fcPosInfo ->
+                    fcPosInfo.calculate()
+                    // Months: Jan2026..Jan2027 = 13 months (FOLLOWING_MONTH adds 1)
+                    Assertions.assertEquals(13, fcPosInfo.months.size)
+                    // Jan-Jul should be 0 (past + current month for FOLLOWING_MONTH)
+                    for (i in 0..6) {
+                        Assertions.assertEquals(
+                            BigDecimal.ZERO,
+                            fcPosInfo.months[i].toBeInvoicedSum,
+                            "Month ${fcPosInfo.months[i].date} should be 0"
+                        )
+                    }
+                    // Aug-Jan2027 = 6 months, each 10000
+                    for (i in 7..12) {
+                        assertSame(
+                            "10000",
+                            fcPosInfo.months[i].toBeInvoicedSum,
+                            "Month ${fcPosInfo.months[i].date} should be 10000"
+                        )
+                    }
+                }
+            }
+        }
+        // Same scenario but with CURRENT_MONTH: current month IS included in distribution.
+        OrderInfo().also { orderInfo ->
+            orderInfo.status = AuftragsStatus.BEAUFTRAGT
+            orderInfo.snapshotDate = julBaseDate.localDate
+            orderInfo.periodOfPerformanceBegin = LocalDate.of(2026, Month.JANUARY, 1)
+            orderInfo.periodOfPerformanceEnd = LocalDate.of(2026, Month.DECEMBER, 31)
+            createPos(
+                AuftragsStatus.BEAUFTRAGT,
+                AuftragsPositionsPaymentType.TIME_AND_MATERIALS,
+                PeriodOfPerformanceType.SEEABOVE,
+                netSum = BigDecimal("120000"),
+                invoicedSum = BigDecimal("60000"),
+            ).also { pos ->
+                pos.forecastType = AuftragForecastType.CURRENT_MONTH
+                // toBeInvoicedSum = 60000, remaining months = Jul-Dec = 6
+                // partlyNetSum = 60000 / 6 = 10000
+                ForecastOrderPosInfo(orderInfo, pos).also { fcPosInfo ->
+                    fcPosInfo.calculate()
+                    // Months: Jan2026..Dec2026 = 12 months (no extra month for CURRENT_MONTH)
+                    Assertions.assertEquals(12, fcPosInfo.months.size)
+                    // Jan-Jun should be 0 (past)
+                    for (i in 0..5) {
+                        Assertions.assertEquals(
+                            BigDecimal.ZERO,
+                            fcPosInfo.months[i].toBeInvoicedSum,
+                            "Month ${fcPosInfo.months[i].date} should be 0"
+                        )
+                    }
+                    // Jul-Dec = 6 months, each 10000
+                    for (i in 6..11) {
+                        assertSame(
+                            "10000",
+                            fcPosInfo.months[i].toBeInvoicedSum,
+                            "Month ${fcPosInfo.months[i].date} should be 10000"
+                        )
+                    }
+                }
+            }
+        }
+        // Festpreispaket with FOLLOWING_MONTH (similar to reported order 6809):
+        // Fixed price goes to the last month, so the month-count bug doesn't affect the amount,
+        // but the distribution position matters.
+        OrderInfo().also { orderInfo ->
+            orderInfo.status = AuftragsStatus.BEAUFTRAGT
+            orderInfo.snapshotDate = julBaseDate.localDate
+            orderInfo.periodOfPerformanceBegin = LocalDate.of(2026, Month.JANUARY, 1)
+            orderInfo.periodOfPerformanceEnd = LocalDate.of(2026, Month.DECEMBER, 31)
+            createPos(
+                AuftragsStatus.BEAUFTRAGT,
+                AuftragsPositionsPaymentType.FESTPREISPAKET,
+                PeriodOfPerformanceType.SEEABOVE,
+                netSum = BigDecimal("80000"),
+                invoicedSum = BigDecimal("40000"),
+            ).also { pos ->
+                // FESTPREISPAKET: remaining sum goes to last month (Jan 2027 for FOLLOWING_MONTH)
+                ForecastOrderPosInfo(orderInfo, pos).also { fcPosInfo ->
+                    fcPosInfo.calculate()
+                    Assertions.assertEquals(13, fcPosInfo.months.size)
+                    // All months 0 except last (Jan 2027)
+                    for (i in 0..11) {
+                        Assertions.assertEquals(
+                            BigDecimal.ZERO,
+                            fcPosInfo.months[i].toBeInvoicedSum,
+                            "Month ${fcPosInfo.months[i].date} should be 0"
+                        )
+                    }
+                    assertSame("40000", fcPosInfo.months[12].toBeInvoicedSum, "Jan 2027 should have remaining")
                 }
             }
         }

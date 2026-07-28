@@ -21,21 +21,55 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.core.aggrid
-
-import org.projectforge.rest.dto.datatable.DataTableColumnFilter
-import org.projectforge.rest.dto.datatable.DataTableColumnPinning
-import org.projectforge.rest.dto.datatable.DataTableSortingEntry
+package org.projectforge.rest.dto.datatable
 
 /**
- * For saving current gridState in user's pref.
- * Stores TanStack Table native state format.
+ * Request DTO for saving table grid state.
+ * Sent from the frontend when grid state changes (column order, sizing, visibility, sorting, filters).
  */
-class GridState {
+class DataTableStateRequest {
+    /**
+     * Column order as list of field IDs.
+     */
     var columnOrder: List<String>? = null
+
+    /**
+     * Column widths by field ID.
+     */
     var columnSizing: Map<String, Int>? = null
+
+    /**
+     * Column visibility: maps field ID to false for hidden columns (absent = visible).
+     */
     var columnVisibility: Map<String, Boolean>? = null
+
+    /**
+     * Pinned columns.
+     */
     var columnPinning: DataTableColumnPinning? = null
+
+    /**
+     * Current sorting state.
+     */
     var sorting: List<DataTableSortingEntry>? = null
+
+    /**
+     * Active column filters.
+     */
     var columnFilters: List<DataTableColumnFilter>? = null
+}
+
+class DataTableColumnPinning {
+    var left: List<String>? = null
+    var right: List<String>? = null
+}
+
+class DataTableSortingEntry {
+    var id: String? = null
+    var desc: Boolean? = null
+}
+
+class DataTableColumnFilter {
+    var id: String? = null
+    var value: Any? = null
 }

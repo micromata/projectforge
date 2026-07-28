@@ -3,60 +3,47 @@
 @import './theming';
 @import '@fortawesome/fontawesome-free/scss/solid';
 
-:root {
-  --ag-icon-font-family: "agGridAlpine";
-}
-
-.ag-row-red {
+// Data table row styling
+.row-red {
   color: red !important;
 }
 
-.ag-row-blue {
+.row-blue {
   color: blue !important;
 }
 
-.ag-row-green {
+.row-green {
   color: green !important;
 }
 
-.ag-row-deleted {
+.row-deleted {
   color: red !important;
   text-decoration: line-through !important;
   font-style: italic !important;
 }
 
-.ag-row-highlighted {
-  background-color: #f4d5cb !important;
-}
+// TanStack table
+.tanstack-grid-wrapper {
+  th, td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
-.ag-tooltip {
-  background-color: black !important;
-  color: white !important;
-  white-space: pre-wrap !important;
-}
+  th {
+    position: relative;
+    user-select: none;
 
-// AG Grid pagination at top
-.ag-grid-wrapper-pagination-top {
-  .ag-root-wrapper {
-    display: flex;
-    flex-direction: column;
+    .resizer {
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
 
-    .ag-paging-panel {
-      order: -1;
+    &:hover .resizer {
+      opacity: 1;
+      background-color: rgba(0, 0, 0, 0.2);
     }
   }
-}
-
-// AG Grid popup menus (column context menus, filter menus, etc.) should appear above modals
-.ag-popup,
-.ag-menu,
-.ag-column-select-panel {
-  z-index: 1050 !important; // Higher than modal (1010) and dropdown (1020)
-}
-
-// AG Grid overlay (loading overlay, etc.)
-.ag-overlay {
-  z-index: 1040 !important; // Just below AG menus but above modals
 }
 
 div.dropZone {

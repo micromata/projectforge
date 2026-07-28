@@ -511,25 +511,20 @@ abstract class OakStorage(val mainNodeName: String) {
             log.error { "File is encrypted, but no password given to decrypt in repository '${node.path}': $fileObject" }
             return null
         }
-        var binary: Binary? = null
-        try {
-            binary = node.getProperty(PROPERTY_FILECONTENT)?.binary ?: return null
-            return if (useEncryptedFile || password.isNullOrBlank()) {
-                binary.stream
-            } else {
-                try {
-                    CryptStreamUtils.pipeToDecryptedInputStream(binary.stream, password)
-                } catch (ex: Exception) {
-                    if (CryptStreamUtils.wasWrongPassword(ex)) {
-                        log.error { "Can't decrypt and retrieve file (wrong password) in repository '${node.path}': $fileObject" }
-                        null
-                    } else {
-                        throw ex
-                    }
+        val binary = node.getProperty(PROPERTY_FILECONTENT)?.binary ?: return null
+        return if (useEncryptedFile || password.isNullOrBlank()) {
+            binary.stream
+        } else {
+            try {
+                CryptStreamUtils.pipeToDecryptedInputStream(binary.stream, password)
+            } catch (ex: Exception) {
+                if (CryptStreamUtils.wasWrongPassword(ex)) {
+                    log.error { "Can't decrypt and retrieve file (wrong password) in repository '${node.path}': $fileObject" }
+                    null
+                } else {
+                    throw ex
                 }
             }
-        } finally {
-            binary?.dispose()
         }
     }
 
@@ -538,13 +533,8 @@ abstract class OakStorage(val mainNodeName: String) {
         if (!suppressLogInfo) {
             log.info { "Determining size of file from repository '${node.path}': '${fileObject.fileName}'..." }
         }
-        var binary: Binary? = null
-        try {
-            binary = node.getProperty(PROPERTY_FILECONTENT)?.binary
-            return binary?.size
-        } finally {
-            binary?.dispose()
-        }
+        val binary = node.getProperty(PROPERTY_FILECONTENT)?.binary
+        return binary?.size
     }
 
     internal fun getNode(

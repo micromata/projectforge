@@ -25,6 +25,7 @@ package org.projectforge.plugins.merlin
 
 import com.lowagie.text.Font
 import com.lowagie.text.FontFactory
+import com.lowagie.text.pdf.BaseFont
 import fr.opensagres.xdocreport.itext.extension.font.IFontProvider
 import mu.KotlinLogging
 import java.awt.Color
@@ -46,6 +47,11 @@ class MerlinFontProvider(val fontService: MerlinFontService) : IFontProvider {
         throw RuntimeException(ex)
       }
     }
-    return FontFactory.getFont(familyName, encoding, size, style, color)
+    try {
+      return FontFactory.getFont(familyName, encoding, size, style, color)
+    } catch (ex: Exception) {
+      log.warn("Font '$familyName' with encoding '$encoding' not found, falling back to default encoding: ${ex.message}")
+      return FontFactory.getFont(familyName, BaseFont.CP1252, size, style, color)
+    }
   }
 }

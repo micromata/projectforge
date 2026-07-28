@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.merlin
 
+import com.lowagie.text.FontFactory
 import com.lowagie.text.pdf.BaseFont
 import mu.KotlinLogging
 import org.projectforge.business.configuration.ConfigurationService
@@ -63,8 +64,10 @@ open class MerlinFontService {
         val baseFont = BaseFont.createFont(file.absolutePath, "Identity-H", BaseFont.EMBEDDED)
         val name = getCanonicalFontname(baseFont.postscriptFontName)
         fonts[name] = baseFont
+        FontFactory.register(file.absolutePath)
       }
     }
+    log.info { "Registered ${fonts.size} font(s). FontFactory knows ${FontFactory.getRegisteredFonts().size} font(s)." }
   }
 
   private fun getCanonicalFontname(fontName: String): String {

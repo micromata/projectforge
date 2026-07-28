@@ -5,7 +5,7 @@ import { faDownload, faEdit, faLock } from '@fortawesome/free-solid-svg-icons';
 import { evalServiceURL, getServiceURL } from '../../../../../utilities/rest';
 import { MultipleFileUploadArea } from '../upload/MultipleFileUploadArea';
 import { DynamicLayoutContext } from '../../context';
-import DynamicAgGrid from '../table/DynamicAgGrid';
+import DynamicTanStackGrid from '../table/DynamicTanStackGrid';
 import DynamicAlert from '../DynamicAlert';
 import DynamicButton from '../DynamicButton';
 
@@ -153,7 +153,7 @@ function DynamicAttachmentList({
 
     const table = attachments && attachments.length > 0 && (
         <>
-            <DynamicAgGrid
+            <DynamicTanStackGrid
                 {...agGrid}
                 onGridApiReady={onGridApiReady}
                 columnDefs={agGrid.columnDefs}

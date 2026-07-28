@@ -83,9 +83,10 @@ class ForecastExportTest : AbstractTestBase() {
             forecastSheet.headRow // Enforce analyzing the column definitions.
 
             // order 1
+            // With FOLLOWING_MONTH (default), baseMonth is today (monthCols[4]) and effectiveStart is next month.
+            // Since the period ends at monthCols[4], no future distribution remains.
             Assertions.assertTrue(forecastSheet.getCell(firstRow + 1, monthCols[3])!!.stringCellValue.isNullOrBlank())
-            val amount = forecastSheet.getCell(firstRow + 1, monthCols[4])!!.numericCellValue
-            assertAmount(order1.getPosition(1)!!.nettoSumme!!.divide(BigDecimal(4)), amount)
+            Assertions.assertTrue(forecastSheet.getCell(firstRow + 1, monthCols[4])!!.stringCellValue.isNullOrBlank())
         }
     }
 

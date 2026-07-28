@@ -222,7 +222,14 @@ class ForecastOrderPosInfo(
         if (lastMonth < firstMonth) { // should not happen
             return
         }
-        val effectiveStart = maxOf(firstMonth, baseMonth)
+        val forecastType = ForecastUtils.getForecastType(orderInfo, orderPosInfo)
+        val effectiveStart = if (forecastType == AuftragForecastType.CURRENT_MONTH) {
+            maxOf(firstMonth, baseMonth)
+        } else {
+            // For FOLLOWING_MONTH: the current month's entry represents last month's work (already past),
+            // so start distribution from next month.
+            maxOf(firstMonth, baseMonth.plusMonths(1))
+        }
         val remainingMonthCount = months.count { it.date >= effectiveStart }.toLong()
         val partlyNetSum = if (remainingMonthCount > 0) {
             toBeInvoicedSum.divide(BigDecimal.valueOf(remainingMonthCount), RoundingMode.HALF_UP)
@@ -233,8 +240,8 @@ class ForecastOrderPosInfo(
         months.forEachIndexed { index, monthEntry ->
             val month = monthEntry.date
             if (month >= firstMonth) { // Start distribution not before firstMonth.
-                if (month >= baseMonth) {
-                    // Distribute payments only in future (after base month).
+                if (month >= effectiveStart) {
+                    // Distribute payments only in future.
                     var value = partlyNetSum
                     if (index == months.size - 1) {
                         // If month is the last month of performance period, the total rest of sum is to be invoiced.

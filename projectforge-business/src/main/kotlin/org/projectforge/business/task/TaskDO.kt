@@ -372,7 +372,7 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
 
         const val FIND_BY_PARENTTASKID_AND_TITLE = "TaskDO_FindByParentTaskIdAndTitle"
 
-        const val TITLE_LENGTH = 40
+        const val TITLE_LENGTH = 100
 
         const val DESCRIPTION_LENGTH = 4000
 
