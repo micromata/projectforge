@@ -251,6 +251,12 @@ constructor(
             "reset", "datatable.no-records-found", "date.begin", "date.end", "exportAsXls",
             "search.lastMinute", "search.lastHour", "calendar.today", "search.sinceYesterday",
             "multiselection.button",
+            "columns", "columns.manage", "columns.pin", "columns.reset", "columns.unpin", "columns.dragToSort",
+            "filter.apply", "filter.reset", "filter.close", "filter.search", "filter.selectAll", "filter.selection",
+            "filter.equals", "filter.notEqual", "filter.greaterThan", "filter.lessThan",
+            "filter.between", "filter.blank", "filter.notBlank", "filter.before", "filter.after",
+            "filter.contains", "filter.notContains", "filter.startsWith", "filter.endsWith",
+            "filter.value", "filter.valueTo",
         )
         layout.addTranslation("search.lastMinutes.10", translateMsg("search.lastMinutes", 10))
         layout.addTranslation("search.lastMinutes.30", translateMsg("search.lastMinutes", 30))

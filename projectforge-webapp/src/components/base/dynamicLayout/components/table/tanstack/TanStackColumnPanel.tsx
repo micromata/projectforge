@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Table } from '@tanstack/react-table';
 import { getServiceURL } from '../../../../../../utilities/rest';
+import { DynamicLayoutContext } from '../../../context';
 
 interface TanStackColumnPanelProps {
     table: Table<Record<string, unknown>>;
@@ -17,6 +18,9 @@ export default function TanStackColumnPanel({
     resetGridStateUrl,
     onReset,
 }: TanStackColumnPanelProps) {
+    const { ui } = useContext(DynamicLayoutContext);
+    const t = (key: string, fallback: string) => (ui as any)?.translations?.[key] || fallback;
+
     const [open, setOpen] = useState(false);
     const panelRef = useRef<HTMLDivElement>(null);
     const draggedId = useRef<string | null>(null);
@@ -121,7 +125,7 @@ export default function TanStackColumnPanel({
                 type="button"
                 className="btn btn-sm btn-outline-secondary mb-2"
                 onClick={() => setOpen(true)}
-                title="Spalten verwalten"
+                title={t('columns.manage', 'Manage columns')}
             >
                 <i className="fas fa-columns" />
             </button>
@@ -131,12 +135,12 @@ export default function TanStackColumnPanel({
     return (
         <div ref={panelRef} className="card card-body p-2 mb-2" style={{ maxWidth: 320 }}>
             <div className="d-flex justify-content-between align-items-center mb-2">
-                <strong className="small">Spalten</strong>
+                <strong className="small">{t('columns', 'Columns')}</strong>
                 <button
                     type="button"
                     className="btn-close btn-close-sm"
                     onClick={() => setOpen(false)}
-                    aria-label="Schließen"
+                    aria-label={t('filter.close', 'Close')}
                 />
             </div>
             <div style={{ maxHeight: 300, overflowY: 'auto' }}>
@@ -162,7 +166,7 @@ export default function TanStackColumnPanel({
                             type="button"
                             className="btn btn-sm p-0 text-primary"
                             onClick={() => handleTogglePin(column.id)}
-                            title="Nicht mehr anheften"
+                            title={t('columns.unpin', 'Unpin')}
                             style={{ fontSize: '0.75rem', lineHeight: 1 }}
                         >
                             <i className="fas fa-thumbtack" />
@@ -183,7 +187,7 @@ export default function TanStackColumnPanel({
                         <span
                             className="text-muted"
                             style={{ cursor: 'grab', padding: '0 4px' }}
-                            title="Ziehen zum Sortieren"
+                            title={t('columns.dragToSort', 'Drag to sort')}
                         >
                             ⠿
                         </span>
@@ -203,7 +207,7 @@ export default function TanStackColumnPanel({
                             type="button"
                             className="btn btn-sm p-0 text-muted"
                             onClick={() => handleTogglePin(column.id)}
-                            title="Links anheften"
+                            title={t('columns.pin', 'Pin left')}
                             style={{ fontSize: '0.75rem', lineHeight: 1 }}
                         >
                             <i className="fas fa-thumbtack" />
@@ -217,7 +221,7 @@ export default function TanStackColumnPanel({
                     className="btn btn-sm btn-outline-secondary mt-2"
                     onClick={handleReset}
                 >
-                    Spalten zurücksetzen
+                    {t('columns.reset', 'Reset columns')}
                 </button>
             )}
         </div>

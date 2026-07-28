@@ -23,6 +23,9 @@ import { buildColumnDefs, modifyRedirectUrl, DataTableColumnDef } from './tansta
 import TanStackPagination from './tanstack/TanStackPagination';
 import TanStackColumnPanel from './tanstack/TanStackColumnPanel';
 import TanStackColumnFilter from './tanstack/TanStackColumnFilter';
+import TanStackNumberFilter from './tanstack/TanStackNumberFilter';
+import TanStackDateFilter from './tanstack/TanStackDateFilter';
+import FilterPortal from './tanstack/FilterPortal';
 import CellRendererDispatch from './tanstack/CellRendererDispatch';
 
 interface DynamicTanStackGridProps {
@@ -76,6 +79,74 @@ const setFilterFn: FilterFn<Record<string, unknown>> = (row, columnId, filterVal
     return filterValue.includes(cellStr);
 };
 
+// Number filter function
+const numberFilterFn: FilterFn<Record<string, unknown>> = (row, columnId, filterValue) => {
+    if (!filterValue || filterValue.type !== 'number') return true;
+    const cellValue = row.getValue(columnId);
+    const { operator, value, valueTo } = filterValue;
+    if (operator === 'blank') return cellValue == null || cellValue === '';
+    if (operator === 'notBlank') return cellValue != null && cellValue !== '';
+    const num = typeof cellValue === 'number' ? cellValue : parseFloat(String(cellValue ?? ''));
+    if (isNaN(num)) return false;
+    switch (operator) {
+        case 'equals': return num === value;
+        case 'notEqual': return num !== value;
+        case 'greaterThan': return num > value;
+        case 'lessThan': return num < value;
+        case 'between': return num >= value && num <= (valueTo ?? value);
+        default: return true;
+    }
+};
+
+// Date filter function
+const dateFilterFn: FilterFn<Record<string, unknown>> = (row, columnId, filterValue) => {
+    if (!filterValue || filterValue.type !== 'date') return true;
+    const cellValue = row.getValue(columnId);
+    const { operator, value, valueTo } = filterValue;
+    if (operator === 'blank') return cellValue == null || cellValue === '';
+    if (operator === 'notBlank') return cellValue != null && cellValue !== '';
+    const cellStr = String(cellValue ?? '').substring(0, 10);
+    if (!cellStr) return false;
+    switch (operator) {
+        case 'equals': return cellStr === value;
+        case 'notEqual': return cellStr !== value;
+        case 'before': return cellStr < value;
+        case 'after': return cellStr > value;
+        case 'between': return cellStr >= value && cellStr <= (valueTo ?? value);
+        default: return true;
+    }
+};
+
+// Text filter function
+const textFilterFn: FilterFn<Record<string, unknown>> = (row, columnId, filterValue) => {
+    if (!filterValue || filterValue.type !== 'text') return true;
+    const cellValue = row.getValue(columnId);
+    const { operator, value } = filterValue;
+    if (operator === 'blank') return cellValue == null || cellValue === '';
+    if (operator === 'notBlank') return cellValue != null && cellValue !== '';
+    const cellStr = String(cellValue ?? '').toLowerCase();
+    const search = (value || '').toLowerCase();
+    switch (operator) {
+        case 'contains': return cellStr.includes(search);
+        case 'notContains': return !cellStr.includes(search);
+        case 'equals': return cellStr === search;
+        case 'notEqual': return cellStr !== search;
+        case 'startsWith': return cellStr.startsWith(search);
+        case 'endsWith': return cellStr.endsWith(search);
+        default: return true;
+    }
+};
+
+// Dispatcher filter: routes to set/number/date/text based on filterValue shape
+const universalFilterFn: FilterFn<Record<string, unknown>> = (row, columnId, filterValue) => {
+    if (!filterValue) return true;
+    if (Array.isArray(filterValue)) return setFilterFn(row, columnId, filterValue, () => {});
+    if (filterValue.type === 'number') return numberFilterFn(row, columnId, filterValue, () => {});
+    if (filterValue.type === 'date') return dateFilterFn(row, columnId, filterValue, () => {});
+    if (filterValue.type === 'text') return textFilterFn(row, columnId, filterValue, () => {});
+    return true;
+};
+
 function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
     const {
         columnDefs,
@@ -103,6 +174,7 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
     const navigate = useNavigate();
     const location = useLocation();
     const [openFilterColumnId, setOpenFilterColumnId] = useState<string | null>(null);
+    const filterAnchorRefs = useRef<Record<string, HTMLSpanElement | null>>({});
 
     const rowData: Record<string, unknown>[] = useMemo(() => {
         if (entries) return entries;
@@ -223,11 +295,11 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
         getFilteredRowModel: getFilteredRowModel(),
         ...(pagination ? { getPaginationRowModel: getPaginationRowModel() } : {}),
         columnResizeMode: 'onChange',
-        filterFns: { setFilter: setFilterFn },
+        filterFns: { setFilter: setFilterFn, numberFilter: numberFilterFn, dateFilter: dateFilterFn, textFilter: textFilterFn, universalFilter: universalFilterFn },
         defaultColumn: {
             minSize: 50,
             size: 150,
-            filterFn: setFilterFn,
+            filterFn: universalFilterFn,
         },
     });
 
@@ -496,10 +568,20 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                                             {header.column.getIsSorted() === 'desc' && ' ▼'}
                                             {header.column.getCanFilter() && (
                                                 <span
-                                                    className={`ms-auto ${header.column.getIsFiltered() ? 'text-primary' : 'text-muted'}`}
-                                                    style={{ cursor: 'pointer', fontSize: '0.7rem' }}
+                                                    ref={(el) => { filterAnchorRefs.current[header.column.id] = el; }}
+                                                    className={`ms-auto ${header.column.getIsFiltered() ? 'text-white' : 'text-muted'}`}
+                                                    style={{
+                                                        cursor: 'pointer',
+                                                        fontSize: '0.7rem',
+                                                        position: 'relative',
+                                                        zIndex: 2,
+                                                        padding: '2px 5px',
+                                                        borderRadius: '3px',
+                                                        ...(header.column.getIsFiltered() ? { backgroundColor: '#0d6efd' } : {}),
+                                                    }}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
+                                                        e.preventDefault();
                                                         setOpenFilterColumnId(
                                                             openFilterColumnId === header.column.id ? null : header.column.id,
                                                         );
@@ -510,13 +592,6 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                                                 </span>
                                             )}
                                         </div>
-                                        {openFilterColumnId === header.column.id && (
-                                            <TanStackColumnFilter
-                                                column={header.column}
-                                                table={table}
-                                                onClose={() => setOpenFilterColumnId(null)}
-                                            />
-                                        )}
                                         {header.column.getCanResize() && (
                                             <div
                                                 onMouseDown={(e) => {
@@ -640,6 +715,28 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                     </tbody>
                 </table>
             </div>
+            {openFilterColumnId && (() => {
+                const filterColumn = table.getColumn(openFilterColumnId);
+                if (!filterColumn) return null;
+                const filterMeta = filterColumn.columnDef.meta as any;
+                const filterType = filterMeta?.filter;
+                const closeFilter = () => setOpenFilterColumnId(null);
+                let filterComponent: React.ReactNode;
+                if (filterType === 'agNumberColumnFilter') {
+                    filterComponent = <TanStackNumberFilter column={filterColumn} onClose={closeFilter} />;
+                } else if (filterType === 'agDateColumnFilter') {
+                    filterComponent = <TanStackDateFilter column={filterColumn} onClose={closeFilter} />;
+                } else if (filterType === 'agTextColumnFilter') {
+                    filterComponent = <TanStackColumnFilter column={filterColumn} table={table} onClose={closeFilter} />;
+                } else {
+                    filterComponent = <TanStackColumnFilter column={filterColumn} table={table} onClose={closeFilter} />;
+                }
+                return (
+                    <FilterPortal anchorEl={filterAnchorRefs.current[openFilterColumnId]} onClose={closeFilter}>
+                        {filterComponent}
+                    </FilterPortal>
+                );
+            })()}
             {pagination && table.getPageCount() > 1 && (
                 <TanStackPagination table={table} pageSizeSelector={paginationPageSizeSelector} />
             )}

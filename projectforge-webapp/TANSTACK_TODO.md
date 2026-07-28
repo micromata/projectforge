@@ -47,11 +47,15 @@ Stand: 2026-07-28
 - [x] Angepinnte Spalten im Header-Drag-and-Drop nicht verschiebbar (draggable=false, Drop ignored)
 - Datei: `DynamicTanStackGrid.tsx`
 
-### Typed Filter (Optional)
-- [ ] Aktuell nur Set-Filter (Checkbox-Liste)
-- [ ] Optional: Number-Range-Filter, Date-Picker-Filter, Text-Contains-Filter
-- [ ] AG-Grid hatte: `agNumberColumnFilter`, `agDateColumnFilter`, `agTextColumnFilter`
-- [ ] Für MVP reicht der Set-Filter — typed Filter nur bei Bedarf nachziehen
+### Typed Filter
+- [x] Number-Filter: Gleich, Ungleich, Größer als, Kleiner als, Zwischen, Leer, Nicht leer
+- [x] Date-Filter: Gleich, Ungleich, Vor, Nach, Zwischen, Leer, Nicht leer
+- [x] Text-Filter: Enthält, Enthält nicht, Gleich, Ungleich, Beginnt mit, Endet mit, Leer, Nicht leer
+- [x] Set-/Text-Filter vereint als Combobox (Auswahl/Enthält/Enthält nicht/Leer/Nicht leer)
+- [x] TanStackTextFilter entfernt (Funktionalität in TanStackColumnFilter integriert)
+- [x] Universelle FilterFn dispatched anhand des filterValue-Typs
+- [x] Filter-Typ aus `meta.filter` (agNumberColumnFilter, agDateColumnFilter, agTextColumnFilter)
+- [x] Alle Strings i18n-fähig (DE/EN)
 
 ### autoHeight
 - [x] Funktioniert implizit: HTML-Tabellen passen Zeilenhöhe automatisch an
