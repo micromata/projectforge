@@ -453,11 +453,11 @@ open class UIAgGridColumnDef(
                         }
                         col.setApplyAndResetButton()
                     } else if (java.util.Date::class.java == elementInfo.propertyClass) {
-                        if (field in arrayOf("created", "lastUpdate")) {
-                            useFormatter = Formatter.DATE
-                        } else {
-                            useFormatter = Formatter.TIMESTAMP_MINUTES
+                        useFormatter = Formatter.TIMESTAMP_MINUTES
+                        if (col.filter == null || col.filter == true) {
+                            col.filter = "agDateColumnFilter"
                         }
+                        col.setApplyAndResetButton()
                     } else if (elementInfo.propertyClass == String::class.java) {
                         if ((elementInfo.maxLength ?: 0) > 1000 && width == null) {
                             col.width = LONG_DESCRIPTION_WIDTH // Extra wide column

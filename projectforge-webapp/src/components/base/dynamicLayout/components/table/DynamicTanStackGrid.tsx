@@ -98,6 +98,16 @@ const numberFilterFn: FilterFn<Record<string, unknown>> = (row, columnId, filter
     }
 };
 
+// Convert cell value (epoch millis or ISO string) to YYYY-MM-DD for comparison
+const toDateStr = (cellValue: unknown): string => {
+    if (cellValue == null || cellValue === '') return '';
+    if (typeof cellValue === 'number') {
+        const d = new Date(cellValue);
+        return d.toISOString().substring(0, 10);
+    }
+    return String(cellValue).substring(0, 10);
+};
+
 // Date filter function
 const dateFilterFn: FilterFn<Record<string, unknown>> = (row, columnId, filterValue) => {
     if (!filterValue || filterValue.type !== 'date') return true;
@@ -105,7 +115,7 @@ const dateFilterFn: FilterFn<Record<string, unknown>> = (row, columnId, filterVa
     const { operator, value, valueTo } = filterValue;
     if (operator === 'blank') return cellValue == null || cellValue === '';
     if (operator === 'notBlank') return cellValue != null && cellValue !== '';
-    const cellStr = String(cellValue ?? '').substring(0, 10);
+    const cellStr = toDateStr(cellValue);
     if (!cellStr) return false;
     switch (operator) {
         case 'equals': return cellStr === value;

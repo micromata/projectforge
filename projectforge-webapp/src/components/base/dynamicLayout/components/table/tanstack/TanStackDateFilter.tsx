@@ -1,6 +1,21 @@
 import React, { useCallback, useContext, useState } from 'react';
+import moment from 'moment';
+import 'react-day-picker/src/style.css';
 import { Column } from '@tanstack/react-table';
 import { DynamicLayoutContext } from '../../../context';
+import DateInput from '../../../../../design/input/calendar/DateInput';
+
+const ISO_DATE = 'YYYY-MM-DD';
+
+// Convert stored filter string (YYYY-MM-DD) to a Date for DateInput.
+const strToDate = (str?: string): Date | undefined => {
+    if (!str) return undefined;
+    const m = moment(str, ISO_DATE, true);
+    return m.isValid() ? m.toDate() : undefined;
+};
+
+// Convert a Date from DateInput back to the stored filter string (YYYY-MM-DD).
+const dateToStr = (date?: Date): string => (date ? moment(date).format(ISO_DATE) : '');
 
 type Operator = 'equals' | 'notEqual' | 'before' | 'after' | 'between' | 'blank' | 'notBlank';
 
@@ -32,7 +47,7 @@ export default function TanStackDateFilter({ column, onClose }: TanStackDateFilt
 
     const current = column.getFilterValue() as DateFilterValue | undefined;
 
-    const [operator, setOperator] = useState<Operator>(current?.operator || 'equals');
+    const [operator, setOperator] = useState<Operator>(current?.operator || 'after');
     const [value, setValue] = useState<string>(current?.value || '');
     const [valueTo, setValueTo] = useState<string>(current?.valueTo || '');
 
@@ -53,6 +68,19 @@ export default function TanStackDateFilter({ column, onClose }: TanStackDateFilt
         }
         onClose();
     }, [column, operator, value, valueTo, needsValue, needsSecondValue, onClose]);
+
+    // Commit directly from an Enter press: the passed date is used instead of the
+    // (not yet flushed) value state. Only for single-value operators.
+    const applyEnter = useCallback((date: Date) => {
+        if (!needsValue || needsSecondValue) return;
+        const str = dateToStr(date);
+        if (!str) {
+            column.setFilterValue(undefined);
+        } else {
+            column.setFilterValue({ type: 'date', operator, value: str } as DateFilterValue);
+        }
+        onClose();
+    }, [column, operator, needsValue, needsSecondValue, onClose]);
 
     const reset = useCallback(() => {
         column.setFilterValue(undefined);
@@ -76,21 +104,23 @@ export default function TanStackDateFilter({ column, onClose }: TanStackDateFilt
                     ))}
                 </select>
                 {needsValue && (
-                    <input
-                        type="date"
-                        className="form-control form-control-sm mb-2"
-                        value={value}
-                        onChange={(e) => setValue(e.target.value)}
-                        ref={(el) => el?.focus({ preventScroll: true })}
-                    />
+                    <div className="form-control form-control-sm mb-2 d-flex align-items-center">
+                        <DateInput
+                            value={strToDate(value)}
+                            setDate={(d?: Date) => setValue(dateToStr(d))}
+                            onEnter={applyEnter}
+                            noInputContainer
+                        />
+                    </div>
                 )}
                 {needsSecondValue && (
-                    <input
-                        type="date"
-                        className="form-control form-control-sm mb-2"
-                        value={valueTo}
-                        onChange={(e) => setValueTo(e.target.value)}
-                    />
+                    <div className="form-control form-control-sm mb-2 d-flex align-items-center">
+                        <DateInput
+                            value={strToDate(valueTo)}
+                            setDate={(d?: Date) => setValueTo(dateToStr(d))}
+                            noInputContainer
+                        />
+                    </div>
                 )}
                 <div className="d-flex justify-content-between">
                     <button type="button" className="btn btn-sm btn-outline-secondary" onClick={reset}>

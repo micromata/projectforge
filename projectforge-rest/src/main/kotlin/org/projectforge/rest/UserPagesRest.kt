@@ -197,7 +197,7 @@ class UserPagesRest
                     )
                 )
             agGrid.add("lastLoginTimeAgo", headerName = "login.lastLogin")
-            agGrid.add("lastUpdate", headerName = "lastUpdate")
+            agGrid.add(lc, "lastUpdate", headerName = "lastUpdate")
         }
         agGrid.add(lc, PFUserDO::lastname, PFUserDO::firstname)
         if (adminAccess) {
