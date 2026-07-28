@@ -12,6 +12,7 @@ import {
     ColumnOrderState,
     ColumnSizingState,
     ColumnPinningState,
+    RowSelectionState,
     FilterFn,
 } from '@tanstack/react-table';
 import { connect } from 'react-redux';
@@ -31,6 +32,8 @@ interface DynamicTanStackGridProps {
     sortModel?: Array<{ colId: string; sort: string; sortIndex?: number }>;
     filterModel?: Record<string, unknown>;
     rowSelection?: { mode?: string; enableClickSelection?: boolean };
+    selectedEntities?: number[];
+    onSelectionChange?: (selectedRows: Record<string, unknown>[]) => void;
     rowClickRedirectUrl?: string;
     rowClickOpenModal?: boolean;
     rowClickFunction?: (row: Record<string, unknown>) => void;
@@ -78,6 +81,9 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
         id,
         entries,
         sortModel,
+        rowSelection,
+        selectedEntities,
+        onSelectionChange,
         rowClickRedirectUrl,
         rowClickOpenModal,
         rowClickFunction,
@@ -152,6 +158,30 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
         pageSize: (data as any)?.paginationPageSize || paginationPageSize || 50,
     });
 
+    // Row selection state
+    const enableSelection = rowSelection?.mode === 'multiRow';
+    const initialRowSelection: RowSelectionState = useMemo(() => {
+        if (!enableSelection || !selectedEntities || selectedEntities.length === 0) return {};
+        const sel: RowSelectionState = {};
+        rowData.forEach((row, idx) => {
+            if (selectedEntities.includes((row as any).id)) {
+                sel[idx] = true;
+            }
+        });
+        return sel;
+    }, [enableSelection, selectedEntities, rowData]);
+    const [rowSelectionState, setRowSelectionState] = useState<RowSelectionState>(initialRowSelection);
+
+    // Notify parent of selection changes
+    useEffect(() => {
+        if (!enableSelection || !onSelectionChange) return;
+        const selected = Object.keys(rowSelectionState)
+            .filter((key) => rowSelectionState[key])
+            .map((key) => rowData[parseInt(key, 10)])
+            .filter(Boolean);
+        onSelectionChange(selected);
+    }, [rowSelectionState, enableSelection, onSelectionChange, rowData]);
+
     // Sort columns by our own columnOrder state (TanStack's internal columnOrder has a memoization bug)
     const columns = useMemo(() => {
         if (!columnOrder || columnOrder.length === 0) return baseColumns;
@@ -177,6 +207,7 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
             columnSizing,
             columnPinning,
             ...(pagination ? { pagination: paginationState } : {}),
+            ...(enableSelection ? { rowSelection: rowSelectionState } : {}),
         },
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -184,6 +215,7 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
         onColumnSizingChange: setColumnSizing,
         onColumnPinningChange: setColumnPinning,
         ...(pagination ? { onPaginationChange: setPaginationState } : {}),
+        ...(enableSelection ? { onRowSelectionChange: setRowSelectionState, enableRowSelection: true } : {}),
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
@@ -290,6 +322,76 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
         }
     }, []);
 
+    // Selection: track anchor row for Shift-click range selection
+    const anchorRowIdx = useRef<number | null>(null);
+
+    const handleRowSelection = useCallback((rowIdx: number, e: React.MouseEvent) => {
+        if (!enableSelection) return;
+        setRowSelectionState((prev) => {
+            if (e.shiftKey && anchorRowIdx.current !== null) {
+                // Range select from anchor to current
+                const start = Math.min(anchorRowIdx.current, rowIdx);
+                const end = Math.max(anchorRowIdx.current, rowIdx);
+                const next: RowSelectionState = {};
+                for (let i = start; i <= end; i++) {
+                    next[i] = true;
+                }
+                return next;
+            }
+            if (e.ctrlKey || e.metaKey) {
+                // Toggle single row additively, update anchor
+                anchorRowIdx.current = rowIdx;
+                const next = { ...prev };
+                if (next[rowIdx]) {
+                    delete next[rowIdx];
+                } else {
+                    next[rowIdx] = true;
+                }
+                return next;
+            }
+            // Plain click: select only this row
+            anchorRowIdx.current = rowIdx;
+            return { [rowIdx]: true };
+        });
+        setFocusedRowIdx(rowIdx);
+    }, [enableSelection]);
+
+    // Keyboard navigation for selection
+    const [focusedRowIdx, setFocusedRowIdx] = useState<number | null>(null);
+    const tbodyRef = useRef<HTMLTableSectionElement>(null);
+
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (!enableSelection) return;
+        const rows = table.getRowModel().rows;
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            const next = Math.min((focusedRowIdx ?? -1) + 1, rows.length - 1);
+            setFocusedRowIdx(next);
+            if (e.shiftKey) {
+                setRowSelectionState((prev) => ({ ...prev, [next]: true }));
+            }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            const next = Math.max((focusedRowIdx ?? 1) - 1, 0);
+            setFocusedRowIdx(next);
+            if (e.shiftKey) {
+                setRowSelectionState((prev) => ({ ...prev, [next]: true }));
+            }
+        } else if (e.key === ' ' && focusedRowIdx !== null) {
+            e.preventDefault();
+            setRowSelectionState((prev) => {
+                const next = { ...prev };
+                if (next[focusedRowIdx]) {
+                    delete next[focusedRowIdx];
+                } else {
+                    next[focusedRowIdx] = true;
+                }
+                return next;
+            });
+            anchorRowIdx.current = focusedRowIdx;
+        }
+    }, [enableSelection, table, focusedRowIdx]);
+
     // Column drag and drop — disabled while resizing
     const draggedColumn = useRef<string | null>(null);
     const isResizing = useRef(false);
@@ -313,11 +415,24 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                     <thead>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <tr key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => (
+                                {enableSelection && (
+                                    <th style={{ width: 40, textAlign: 'center', position: 'sticky', left: 0, zIndex: 2, backgroundColor: 'var(--bs-table-bg, #fff)' }}>
+                                        <input
+                                            type="checkbox"
+                                            checked={table.getIsAllRowsSelected()}
+                                            onChange={table.getToggleAllRowsSelectedHandler()}
+                                        />
+                                    </th>
+                                )}
+                                {headerGroup.headers.map((header) => {
+                                    const headerMeta = header.column.columnDef.meta as any;
+                                    const isHeaderNumeric = headerMeta?.type === 'numericColumn' || headerMeta?.type === 'rightAligned';
+                                    return (
                                     <th
                                         key={header.id}
                                         style={{
                                             width: header.getSize(),
+                                            textAlign: isHeaderNumeric ? 'right' : undefined,
                                             position: header.column.getIsPinned() ? 'sticky' : undefined,
                                             left: header.column.getIsPinned() === 'left'
                                                 ? header.column.getStart('left')
@@ -328,13 +443,13 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                                             cursor: header.column.getCanSort() ? 'pointer' : undefined,
                                         }}
                                         className={
-                                            (header.column.columnDef.meta as any)?.headerClass?.join(' ') || ''
+                                            headerMeta?.headerClass?.join(' ') || ''
                                         }
-                                        title={(header.column.columnDef.meta as any)?.headerTooltip}
+                                        title={headerMeta?.headerTooltip}
                                         onClick={header.column.getToggleSortingHandler()}
-                                        draggable={!isResizing.current}
+                                        draggable={!isResizing.current && !header.column.getIsPinned()}
                                         onDragStart={(e) => {
-                                            if (isResizing.current) {
+                                            if (isResizing.current || header.column.getIsPinned()) {
                                                 e.preventDefault();
                                                 return;
                                             }
@@ -342,6 +457,10 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                                         }}
                                         onDragOver={(e) => e.preventDefault()}
                                         onDrop={() => {
+                                            if (header.column.getIsPinned()) {
+                                                draggedColumn.current = null;
+                                                return;
+                                            }
                                             if (draggedColumn.current && draggedColumn.current !== header.column.id) {
                                                 const newOrder = [...columnOrder];
                                                 const fromIdx = newOrder.indexOf(draggedColumn.current);
@@ -424,16 +543,23 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                                             />
                                         )}
                                     </th>
-                                ))}
+                                    );
+                                })}
                             </tr>
                         ))}
                     </thead>
-                    <tbody>
-                        {table.getRowModel().rows.map((row) => {
+                    <tbody ref={tbodyRef} tabIndex={enableSelection ? 0 : undefined} onKeyDown={enableSelection ? handleKeyDown : undefined}>
+                        {table.getRowModel().rows.map((row, rowIdx) => {
                             const rowClasses: string[] = [];
                             if (getRowClassFn) {
                                 const cls = getRowClassFn({ data: row.original, node: { data: row.original } });
                                 if (cls) rowClasses.push(cls);
+                            }
+                            if (enableSelection && row.getIsSelected()) {
+                                rowClasses.push('table-primary');
+                            }
+                            if (enableSelection && focusedRowIdx === rowIdx) {
+                                rowClasses.push('table-active');
                             }
                             if (highlightRowId && (row.original as any).id === highlightRowId) {
                                 rowClasses.push('table-warning');
@@ -443,14 +569,43 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                                     key={row.id}
                                     data-row-id={(row.original as any).id}
                                     className={rowClasses.join(' ') || undefined}
-                                    onClick={() => handleRowClick(row.original)}
-                                    style={{ cursor: rowClickRedirectUrl ? 'pointer' : undefined }}
+                                    onClick={(e) => {
+                                        if (enableSelection) {
+                                            if (e.shiftKey) {
+                                                e.preventDefault();
+                                                window.getSelection()?.removeAllRanges();
+                                            }
+                                            handleRowSelection(rowIdx, e);
+                                        } else {
+                                            handleRowClick(row.original);
+                                        }
+                                    }}
+                                    style={{
+                                        cursor: (rowClickRedirectUrl || enableSelection) ? 'pointer' : undefined,
+                                        userSelect: enableSelection ? 'none' : undefined,
+                                    }}
                                 >
-                                    {row.getVisibleCells().map((cell) => (
+                                    {enableSelection && (
+                                        <td style={{ width: 40, textAlign: 'center', position: 'sticky', left: 0, zIndex: 1, backgroundColor: 'var(--bs-table-bg, #fff)' }} onClick={(e) => e.stopPropagation()}>
+                                            <input
+                                                type="checkbox"
+                                                checked={row.getIsSelected()}
+                                                onChange={row.getToggleSelectedHandler()}
+                                            />
+                                        </td>
+                                    )}
+                                    {row.getVisibleCells().map((cell) => {
+                                        const meta = cell.column.columnDef.meta as any;
+                                        const tooltipField = meta?.tooltipField;
+                                        const tooltip = tooltipField ? String((row.original as any)[tooltipField] ?? '') : undefined;
+                                        const isNumeric = meta?.type === 'numericColumn' || meta?.type === 'rightAligned';
+                                        return (
                                         <td
                                             key={cell.id}
+                                            title={tooltip || undefined}
                                             style={{
                                                 width: cell.column.getSize(),
+                                                textAlign: isNumeric ? 'right' : undefined,
                                                 position: cell.column.getIsPinned() ? 'sticky' : undefined,
                                                 left: cell.column.getIsPinned() === 'left'
                                                     ? cell.column.getStart('left')
@@ -458,12 +613,13 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                                                 right: cell.column.getIsPinned() === 'right' ? 0 : undefined,
                                                 zIndex: cell.column.getIsPinned() ? 1 : undefined,
                                                 backgroundColor: cell.column.getIsPinned() ? 'var(--bs-table-bg, #fff)' : undefined,
-                                                whiteSpace: (cell.column.columnDef.meta as any)?.wrapText ? 'pre-line' : undefined,
+                                                whiteSpace: meta?.wrapText ? 'pre-line' : undefined,
                                             }}
                                         >
                                             <CellRendererDispatch cell={cell} />
                                         </td>
-                                    ))}
+                                        );
+                                    })}
                                 </tr>
                             );
                         })}

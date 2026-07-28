@@ -13,6 +13,7 @@ interface DynamicListPageTanStackGridProps {
     sortModel?: Array<{ colId: string; sort: string; sortIndex?: number }>;
     filterModel?: Record<string, unknown>;
     rowSelection?: { mode?: string; enableClickSelection?: boolean; enableSelectionWithoutKeys?: boolean };
+    selectedEntities?: number[];
     rowClickRedirectUrl?: string;
     rowClickOpenModal?: boolean;
     onColumnStatesChangedUrl?: string;
@@ -34,6 +35,7 @@ function DynamicListPageTanStackGrid({
     sortModel,
     filterModel,
     rowSelection,
+    selectedEntities,
     rowClickRedirectUrl,
     rowClickOpenModal,
     onColumnStatesChangedUrl,
@@ -102,6 +104,8 @@ function DynamicListPageTanStackGrid({
                 sortModel={sortModel}
                 filterModel={filterModel}
                 rowSelection={rowSelection}
+                selectedEntities={selectedEntities}
+                onSelectionChange={setSelectedRows}
                 rowClickRedirectUrl={rowClickRedirectUrl}
                 rowClickOpenModal={rowClickOpenModal}
                 onColumnStatesChangedUrl={onColumnStatesChangedUrl}

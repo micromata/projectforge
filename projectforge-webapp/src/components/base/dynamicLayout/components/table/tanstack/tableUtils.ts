@@ -76,6 +76,7 @@ export function buildColumnDefs(columns: DataTableColumnDef[]): ColumnDef<Record
             headerClass: col.headerClass,
             headerTooltip: col.headerTooltip,
             tooltipField: col.tooltipField,
+            type: col.type,
             wrapText: col.wrapText,
             autoHeight: col.autoHeight,
         },
