@@ -45,6 +45,7 @@ internal class ForecastExportContext(
     val forecastSheet: ExcelSheet,
     val invoicesSheet: ExcelSheet,
     val invoicesPrevYearSheet: ExcelSheet,
+    val invoicesPrevPrevYearSheet: ExcelSheet,
     val planningSheet: ExcelSheet,
     val planningInvoicesSheet: ExcelSheet,
     val startDate: PFDay,
@@ -58,6 +59,7 @@ internal class ForecastExportContext(
         FORECAST("Forecast_Data"),
         INVOICES("Rechnungen"),
         INVOICES_PREV_YEAR("Rechnungen Vorjahr"),
+        INVOICES_PREV_PREV_YEAR("Rechnungen Vorvorjahr"),
         PLANNING("Planning_Data"),
         PLANNING_INVOICES("Planning_Invoices"),
         INFO("Info")

@@ -79,7 +79,7 @@ internal class ForecastExportInvoices { // open needed by Wicket.
                     ctx.orderMapByPositionId[orderPosId] = order
                 }
                 var monthIndex = getMonthIndex(ctx, PFDay.fromOrNow(invoice.datum))
-                if (monthIndex !in -12..11) {
+                if (monthIndex !in -24..11) {
                     return@forEach // continue
                 }
                 if (monthIndex >= 0) {
@@ -99,11 +99,25 @@ internal class ForecastExportInvoices { // open needed by Wicket.
                             )
                         }
                     }
-                } else {
+                } else if (monthIndex >= -12) {
+                    // The 12 months before startDate: shift into the same Month1..Month12 columns of the prev-year sheet.
                     monthIndex += 12
                     insertIntoSheet(
                         ctx,
                         ctx.invoicesPrevYearSheet,
+                        invoice,
+                        pos,
+                        order,
+                        orderPosId,
+                        firstMonthCol,
+                        monthIndex
+                    )
+                } else {
+                    // The 12 months two years before startDate (-24..-13): shift into the prev-prev-year sheet.
+                    monthIndex += 24
+                    insertIntoSheet(
+                        ctx,
+                        ctx.invoicesPrevPrevYearSheet,
                         invoice,
                         pos,
                         order,

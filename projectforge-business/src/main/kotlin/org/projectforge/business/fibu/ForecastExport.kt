@@ -117,7 +117,7 @@ open class ForecastExport { // open needed by Wicket.
         //filter.auftragFakturiertFilterStatus = origFilter.auftragFakturiertFilterStatus
         //filter.auftragsPositionsPaymentType = origFilter.auftragsPositionsPaymentType
         filter.periodOfPerformanceStartDate =
-            startDate.plusYears(-2).localDate // Go 2 years back for getting all orders referred by invoices of prior year.
+            startDate.plusYears(-3).localDate // Go 3 years back for getting all orders referred by invoices of the two prior years.
         filter.user = origFilter.user
         val scriptLogger = ThreadLocalScriptingContext.getLogger()
         val closestPlanningDate = getClosestSnapshotDate(planningDate, scriptLogger, "planning")
@@ -241,9 +241,10 @@ open class ForecastExport { // open needed by Wicket.
         }
         val useAuftragsCache = snapshotDate == null
         val prevYearBaseDate = startDate.plusYears(-1) // One year back for getting all invoices.
+        val prevPrevYearBaseDate = startDate.plusYears(-2) // Two years back for the prev-prev-year comparison.
         val invoiceFilter = RechnungFilter()
         invoiceFilter.fromDate =
-            prevYearBaseDate.plusDays(-1).localDate // Go 1 day back, paranoia setting for getting all invoices for given time period.
+            prevPrevYearBaseDate.plusDays(-1).localDate // Go 1 day back, paranoia setting for getting all invoices for given time period.
         if (snapshotDate != null) {
             // Don't load invoices later than snapshotDate:
             invoiceFilter.toDate = snapshotDate.minusDays(1)
@@ -279,6 +280,11 @@ open class ForecastExport { // open needed by Wicket.
             InvoicesCol.entries.forEach { invoicesPrevYearSheet.registerColumn(it.header) }
             MonthCol.entries.forEach { invoicesPrevYearSheet.registerColumn(it.header) }
 
+            val invoicesPrevPrevYearSheet = workbook.getSheet(Sheet.INVOICES_PREV_PREV_YEAR.title)!!
+            log.debug { "InvoicesPriorPriorYearSheet sheet: $invoicesPrevPrevYearSheet" }
+            InvoicesCol.entries.forEach { invoicesPrevPrevYearSheet.registerColumn(it.header) }
+            MonthCol.entries.forEach { invoicesPrevPrevYearSheet.registerColumn(it.header) }
+
             val planningInvoicesSheet = workbook.getSheet(Sheet.PLANNING_INVOICES.title)!!
             log.debug { "PlanningInvoicesSheet sheet: $planningInvoicesSheet" }
             InvoicesCol.entries.forEach { planningInvoicesSheet.registerColumn(it.header) }
@@ -289,6 +295,7 @@ open class ForecastExport { // open needed by Wicket.
                 forecastSheet = forecastSheet,
                 invoicesSheet = invoicesSheet,
                 invoicesPrevYearSheet = invoicesPrevYearSheet,
+                invoicesPrevPrevYearSheet = invoicesPrevPrevYearSheet,
                 planningSheet = planningSheet,
                 planningInvoicesSheet = planningInvoicesSheet,
                 startDate = startDate,
@@ -327,6 +334,7 @@ open class ForecastExport { // open needed by Wicket.
             replaceMonthDatesInHeaderRow(planningSheet, startDate, true)
             replaceMonthDatesInHeaderRow(invoicesSheet, startDate)
             replaceMonthDatesInHeaderRow(invoicesPrevYearSheet, prevYearBaseDate)
+            replaceMonthDatesInHeaderRow(invoicesPrevPrevYearSheet, prevPrevYearBaseDate)
             replaceMonthDatesInHeaderRow(planningInvoicesSheet, startDate)
             if (!ctx.hasUnitColEntries) {
                 ExcelUtils.setColumnHidden(forecastSheet, ForecastCol.UNIT.header, true)
@@ -335,6 +343,7 @@ open class ForecastExport { // open needed by Wicket.
             ExcelUtils.setAutoFilter(forecastSheet, FORECAST_HEAD_ROW, 0, FORECAST_NUMBER_OF_COLS_AUTOFILTER)
             invoicesSheet.setAutoFilter()
             invoicesPrevYearSheet.setAutoFilter()
+            invoicesPrevPrevYearSheet.setAutoFilter()
             ExcelUtils.setAutoFilter(planningSheet, FORECAST_HEAD_ROW, 0, FORECAST_NUMBER_OF_COLS_AUTOFILTER)
             planningInvoicesSheet.setAutoFilter()
 
