@@ -653,6 +653,81 @@ class ForecastOrderPosInfoTest {
     }
 
     /**
+     * The pointed "all revenue lands in the last month" case for a T&M call-off order: 120000 for the calendar year,
+     * only 1000/month called off (Jan-Nov invoiced = 11000). In December, the single remaining future month, the two
+     * modes diverge sharply:
+     *
+     * - distributeUnusedBudget = true (default): December absorbs the whole remaining 109000 at once (the reported
+     *   over-estimation — the forecast suddenly spikes in the last month).
+     * - distributeUnusedBudget = false: December stays at the ~1000 run rate; the un-called ~108000 is reported as a
+     *   negative difference with a warning instead of being booked as revenue.
+     *
+     * CURRENT_MONTH so the performance period is exactly Jan-Dec (no trailing FOLLOWING_MONTH month), leaving December
+     * as the one and only future month.
+     */
+    @Test
+    fun `time and materials call-off books whole rest in last month only when distributeUnusedBudget is true`() {
+        fun buildOrder() = OrderInfo().also { orderInfo ->
+            orderInfo.status = AuftragsStatus.BEAUFTRAGT
+            // Base month = December 2025; Jan-Nov called off at 1000/month (11 months elapsed, 11000 invoiced).
+            orderInfo.snapshotDate = PFDay.of(2025, Month.DECEMBER, 5).localDate
+            orderInfo.periodOfPerformanceBegin = LocalDate.of(2025, Month.JANUARY, 1)
+            orderInfo.periodOfPerformanceEnd = LocalDate.of(2025, Month.DECEMBER, 31)
+        }
+
+        fun buildPos(orderInfo: OrderInfo) = createPos(
+            AuftragsStatus.BEAUFTRAGT, AuftragsPositionsPaymentType.TIME_AND_MATERIALS,
+            PeriodOfPerformanceType.SEEABOVE, netSum = BigDecimal("120000"), invoicedSum = BigDecimal("11000")
+        ).also { pos ->
+            pos.forecastType = AuftragForecastType.CURRENT_MONTH
+        }
+
+        // distributeUnusedBudget = true: December (the only future month) absorbs the whole remaining 109000.
+        buildOrder().also { orderInfo ->
+            buildPos(orderInfo).also { pos ->
+                ForecastOrderPosInfo(orderInfo, pos).also { fcPosInfo ->
+                    fcPosInfo.lastInvoiceMonth = PFDay.of(2025, Month.NOVEMBER, 30)
+                    fcPosInfo.distributeUnusedBudget = true
+                    fcPosInfo.calculate()
+                    val futureMonths = fcPosInfo.months.filter { it.toBeInvoicedSum.signum() != 0 }
+                    Assertions.assertEquals(
+                        1, futureMonths.size,
+                        "Only December should carry forecast, was: " +
+                                futureMonths.joinToString { "${it.date}=${it.toBeInvoicedSum}" }
+                    )
+                    Assertions.assertEquals(Month.DECEMBER, futureMonths[0].date.month)
+                    assertSame("109000", futureMonths[0].toBeInvoicedSum, "December absorbs the whole remaining budget")
+                }
+            }
+        }
+
+        // distributeUnusedBudget = false: December stays at the ~1000 run rate; the rest is a negative difference.
+        buildOrder().also { orderInfo ->
+            buildPos(orderInfo).also { pos ->
+                ForecastOrderPosInfo(orderInfo, pos).also { fcPosInfo ->
+                    fcPosInfo.lastInvoiceMonth = PFDay.of(2025, Month.NOVEMBER, 30)
+                    fcPosInfo.distributeUnusedBudget = false
+                    fcPosInfo.calculate()
+                    val futureMonths = fcPosInfo.months.filter { it.toBeInvoicedSum.signum() != 0 }
+                    Assertions.assertEquals(
+                        1, futureMonths.size,
+                        "Only December should carry forecast, was: " +
+                                futureMonths.joinToString { "${it.date}=${it.toBeInvoicedSum}" }
+                    )
+                    Assertions.assertEquals(Month.DECEMBER, futureMonths[0].date.month)
+                    // Run rate = 11000 / 11 elapsed months = 1000. December forecast at 1000, NOT the whole 109000.
+                    assertSame("1000", futureMonths[0].toBeInvoicedSum, "December stays at the run rate")
+                    Assertions.assertTrue(
+                        fcPosInfo.difference < BigDecimal("-100000"),
+                        "Un-called budget must be a negative difference, was ${fcPosInfo.difference}"
+                    )
+                    Assertions.assertTrue(fcPosInfo.lostBudgetWarning, "Budget under-run warning expected")
+                }
+            }
+        }
+    }
+
+    /**
      * PAUSCHALE (flat monthly fee): the fee is spread evenly over the whole performance period. If less is invoiced,
      * the future monthly fee does NOT increase — the pauschale stays fixed and the shortfall is reported as a
      * negative difference with a warning.
