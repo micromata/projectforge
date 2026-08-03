@@ -259,43 +259,79 @@ class ForecastOrderPosInfo(
         } else {
             toBeInvoicedSum
         }
+        // Determine the per-month forecast rate and whether the last month absorbs the remaining budget:
+        // - PAUSCHALE: a fixed monthly rate over the whole performance period. Under-invoicing does NOT raise the
+        //   future rate; the not-reached budget shows up as a negative difference (with warning). Independent of the
+        //   distributeUnusedBudget switch.
+        // - TIME_AND_MATERIALS with distributeUnusedBudget = false: extrapolate the historical call-off run rate
+        //   (invoiced so far / elapsed performance months). Not-called-off budget is NOT assumed as future revenue
+        //   but shown as a negative difference (with warning). This avoids forecasting the whole unused budget into
+        //   the last month(s) of a call-off order. See order 120k call-off example.
+        // - TIME_AND_MATERIALS with distributeUnusedBudget = true (default): even distribution of the remaining
+        //   budget over the remaining months, the last month absorbing the rest (previous behavior).
+        val paymentType = orderPosInfo.paymentType
+        val useRunRate = paymentType == AuftragsPositionsPaymentType.PAUSCHALE ||
+                (paymentType == AuftragsPositionsPaymentType.TIME_AND_MATERIALS && !distributeUnusedBudget)
+        val monthlyRate: BigDecimal = when {
+            paymentType == AuftragsPositionsPaymentType.PAUSCHALE -> {
+                // Fixed pauschale rate = weighted net sum / total performance months.
+                val totalMonths = ForecastUtils.getMonthCountForOrderPosition(orderInfo, orderPosInfo)
+                if (totalMonths != null && totalMonths > BigDecimal.ZERO) {
+                    weightedNetSum.divide(totalMonths, 2, RoundingMode.HALF_UP)
+                } else {
+                    partlyNetSum
+                }
+            }
+
+            paymentType == AuftragsPositionsPaymentType.TIME_AND_MATERIALS && !distributeUnusedBudget -> {
+                // Historical run rate = invoiced so far / elapsed performance months (before distribution start).
+                val elapsedMonths = periodOfPerformanceBegin.beginOfMonth.monthsBetween(effectiveStart)
+                if (elapsedMonths > 0 && invoicedSum > BigDecimal.ZERO) {
+                    invoicedSum.divide(BigDecimal.valueOf(elapsedMonths), 2, RoundingMode.HALF_UP)
+                } else {
+                    // No invoicing history yet: fall back to even distribution of the remaining budget.
+                    partlyNetSum
+                }
+            }
+
+            else -> partlyNetSum
+        }
         futureInvoicesAmountRest = toBeInvoicedSum
+        var lastAssignedMonth: MonthEntry? = null
         months.forEachIndexed { index, monthEntry ->
             val month = monthEntry.date
             if (month >= firstMonth) { // Start distribution not before firstMonth.
                 if (month >= effectiveStart) {
                     // Distribute payments only in future.
-                    var value = partlyNetSum
-                    if (index == months.size - 1) {
-                        // If month is the last month of performance period, the total rest of sum is to be invoiced.
+                    var value = if (useRunRate) monthlyRate else partlyNetSum
+                    if (useRunRate) {
+                        // Never forecast more than remains to be invoiced (cap to budget, no over-estimation).
+                        value = minOf(value, futureInvoicesAmountRest)
+                    } else if (index == months.size - 1) {
+                        // Even distribution: the last month of the performance period absorbs the total rest.
                         if (distributeUnusedBudget) {
-                            // Version 1 (unused budget will be added to last month (overestimation)):
+                            // Unused budget is added to the last month (may overestimate):
                             value = futureInvoicesAmountRest
                         } else {
-                            // Version 2 (unused budget isn't part of forecast and will be shown as negative difference sum (more realistic scenario?):
                             value = minOf(partlyNetSum, futureInvoicesAmountRest)
                         }
                         if (futureInvoicesAmountRest > partlyNetSum) {
-                            monthEntry.lostBudget = futureInvoicesAmountRest - partlyNetSum
-                            monthEntry.lostBudgetPercent =
-                                if (weightedNetSum > BigDecimal.ZERO) {
-                                    (monthEntry.lostBudget * BigDecimal(100)).divide(
-                                        weightedNetSum,
-                                        RoundingMode.HALF_UP
-                                    ).toInt()
-                                } else {
-                                    0
-                                }
-                            if (monthEntry.lostBudgetPercent >= PERCENTAGE_OF_LOST_BUDGET_WARNING) {
-                                monthEntry.lostBudgetWarning = true
-                            }
+                            setLostBudget(monthEntry, futureInvoicesAmountRest - partlyNetSum)
                         }
                     }
                     if (value.abs() > BigDecimal.ONE) { // values < 0 are possible for Abrufaufträge (Sarah fragen, 4273)
                         setMonthValue(month, value)
+                        lastAssignedMonth = monthEntry
                     }
                     futureInvoicesAmountRest -= value // Don't forecast more than to be invoiced.
                 }
+            }
+        }
+        // For run-rate distribution, budget that won't be reached at the current rate is a shortfall: report it as a
+        // negative difference and flag a warning on the last forecast month (under-run of a call-off / pauschale).
+        if (useRunRate && futureInvoicesAmountRest > BigDecimal.ONE) {
+            (lastAssignedMonth ?: months.lastOrNull { it.date >= effectiveStart })?.let { monthEntry ->
+                setLostBudget(monthEntry, futureInvoicesAmountRest)
             }
         }
         // Calculate the difference between to be invoiced sum and forecasted sums:
@@ -303,6 +339,22 @@ class ForecastOrderPosInfo(
             futureInvoicesAmountRest = BigDecimal.ZERO
         }
         difference = futureInvoicesAmountRest.negate()
+    }
+
+    /**
+     * Marks the given month with lost/under-run budget and raises a warning if it exceeds
+     * [PERCENTAGE_OF_LOST_BUDGET_WARNING] percent of the weighted net sum.
+     */
+    private fun setLostBudget(monthEntry: MonthEntry, lostBudget: BigDecimal) {
+        monthEntry.lostBudget = lostBudget
+        monthEntry.lostBudgetPercent = if (weightedNetSum > BigDecimal.ZERO) {
+            (lostBudget * BigDecimal(100)).divide(weightedNetSum, RoundingMode.HALF_UP).toInt()
+        } else {
+            0
+        }
+        if (monthEntry.lostBudgetPercent >= PERCENTAGE_OF_LOST_BUDGET_WARNING) {
+            monthEntry.lostBudgetWarning = true
+        }
     }
 
     /**
