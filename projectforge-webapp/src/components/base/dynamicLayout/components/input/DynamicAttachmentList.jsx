@@ -170,7 +170,6 @@ function DynamicAttachmentList({
                     // A row click opens the detail dialog (handleRowClick); selection is reserved
                     // to the checkbox column only.
                     enableClickSelection: false,
-                    enableSelectionWithoutKeys: true,
                 }}
                 components={{
                     action: Action,

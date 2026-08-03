@@ -12,7 +12,7 @@ interface DynamicListPageTanStackGridProps {
     id?: string;
     sortModel?: Array<{ colId: string; sort: string; sortIndex?: number }>;
     filterModel?: Record<string, unknown>;
-    rowSelection?: { mode?: string; enableClickSelection?: boolean; enableSelectionWithoutKeys?: boolean };
+    rowSelection?: { mode?: string; enableClickSelection?: boolean };
     selectedEntities?: number[];
     rowClickRedirectUrl?: string;
     rowClickOpenModal?: boolean;
