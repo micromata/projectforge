@@ -420,8 +420,11 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
     final String ou = LdapUtils.getOrganizationalUnit(newOrganizationalUnit);
     final String origOu = LdapUtils.getOu(origObject.getOrganizationalUnit());
     if (!StringUtils.equals(origOu, ou)) {
-      log.info("Move object with id '" + obj.getId() + "' from '" + origOu + "' to '" + ou);
-      final String dnIdentifier = buildDnIdentifier(obj);
+      // Use the real rdn of the found entry (may be cn=... even if useUidInDn is set) instead of reconstructing it via
+      // buildDnIdentifier(obj). Otherwise the modify DN operation fails with 'entry does not exist' (see #6809).
+      final String dnIdentifier = getRdn(origObject);
+      log.info("Move object with id '" + obj.getId() + "' from '" + dnIdentifier + "," + origOu + "' to '"
+          + dnIdentifier + "," + ou + "'");
       ctx.rename(dnIdentifier + "," + origOu, dnIdentifier + "," + ou);
     }
   }
@@ -438,16 +441,18 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
     // The dn is may-be changed, so find the original dn by id:
     final T origObject = findById(id, obj.getOrganizationalUnit());
     if (origObject == null) {
-      throw new RuntimeException("Object with id "
-          + id
-          + " not found in search base '"
+      log.error("Object with id '" + id + "' not found in search base '"
           + StringHelper.listToString(",", obj.getOrganizationalUnit())
-          + "'. Can't rename the object: "
-          + obj);
+          + "'. Skipping rename for: " + obj);
+      return;
     }
     final String ou = LdapUtils.getOu(origObject.getOrganizationalUnit());
-    log.info("Rename object with id '" + obj.getId() + "' from '" + oldDnIdentifier + "' to '" + newDnIdentifier);
-    ctx.rename(oldDnIdentifier + "," + ou, newDnIdentifier + "," + ou);
+    // Use the real rdn of the found entry (may be cn=... even if useUidInDn is set) as source, instead of the
+    // reconstructed oldDnIdentifier. Otherwise the modify DN operation fails with 'entry does not exist' (see #6809).
+    final String oldRdn = getRdn(origObject);
+    log.info("Rename object with id '" + obj.getId() + "' from '" + oldRdn + "," + ou + "' to '"
+        + newDnIdentifier + "," + ou + "'");
+    ctx.rename(oldRdn + "," + ou, newDnIdentifier + "," + ou);
   }
 
   protected String getLogInfo(final T obj)
@@ -599,6 +604,32 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   protected String buildDnIdentifier(final T obj)
   {
     return "cn=" + LdapUtils.escapeCommonName(obj.getCommonName());
+  }
+
+  /**
+   * Returns the real rdn (relative distinguished name, i. e. the first component of the dn, such as
+   * {@code cn=Kai Reinhard} or {@code uid=kai}) of the given object as it is actually stored in the directory.
+   * <p>
+   * This must be used instead of {@link #buildDnIdentifier(LdapObject)} whenever an existing entry is addressed (move,
+   * rename), because {@link #buildDnIdentifier(LdapObject)} reconstructs the identifier from the configured naming
+   * attribute (e. g. uid). Legacy entries may still use cn as rdn, so reconstructing would produce a dn that doesn't
+   * exist and the operation would fail with 'entry does not exist' (see #6809).
+   *
+   * @param obj the object whose dn was populated by {@link #findById(DirContext, Object, String...)} etc.
+   * @return the rdn taken from {@link LdapObject#getDn()}, or {@link #buildDnIdentifier(LdapObject)} as fallback if no
+   * dn is available.
+   */
+  protected String getRdn(final T obj)
+  {
+    final String dn = obj.getDn();
+    if (StringUtils.isNotBlank(dn)) {
+      final int idx = dn.indexOf(',');
+      final String rdn = (idx > 0 ? dn.substring(0, idx) : dn).trim();
+      if (StringUtils.isNotBlank(rdn)) {
+        return rdn;
+      }
+    }
+    return buildDnIdentifier(obj);
   }
 
   /**
