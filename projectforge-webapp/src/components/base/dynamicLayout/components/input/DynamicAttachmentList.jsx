@@ -148,6 +148,10 @@ function DynamicAttachmentList({
                 absolute: true,
             },
         });
+        // Clear the selection after deletion. Selection state is keyed by row index, so a
+        // leftover entry would otherwise re-appear on whichever row shifts into the deleted
+        // row's position.
+        gridApi.resetRowSelection();
     }, [gridApi]);
 
     const table = attachments && attachments.length > 0 && (
