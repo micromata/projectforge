@@ -97,7 +97,7 @@ function DynamicAttachmentList({
     };
 
     const handleDownloadSelectedClick = React.useCallback(() => {
-        const selectedIds = gridApi.getSelectedRows().map((item) => item.fileId);
+        const selectedIds = gridApi.getSelectedRowModel().rows.map((row) => row.original.fileId);
         if (selectedIds.length === 0) {
             return; // Do nothing, no rows selected.
         }
@@ -113,8 +113,7 @@ function DynamicAttachmentList({
         });
     }, [gridApi]);
 
-    const handleRowClick = (event) => {
-        const entry = event.data;
+    const handleRowClick = (entry) => {
         if (readOnly || downloadOnRowClick) {
             download(entry.fileId);
         } else {
@@ -132,7 +131,7 @@ function DynamicAttachmentList({
     };
 
     const handleDeleteSelectedClick = React.useCallback(() => {
-        const selectedIds = gridApi.getSelectedRows().map((item) => item.fileId);
+        const selectedIds = gridApi.getSelectedRowModel().rows.map((row) => row.original.fileId);
         if (selectedIds.length === 0) {
             return; // Do nothing, no rows selected.
         }
@@ -168,7 +167,9 @@ function DynamicAttachmentList({
                 rowClickFunction={handleRowClick}
                 rowSelection={{
                     mode: 'multiRow',
-                    enableClickSelection: true,
+                    // A row click opens the detail dialog (handleRowClick); selection is reserved
+                    // to the checkbox column only.
+                    enableClickSelection: false,
                     enableSelectionWithoutKeys: true,
                 }}
                 components={{

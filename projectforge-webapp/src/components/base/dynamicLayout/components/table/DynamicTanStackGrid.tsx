@@ -41,6 +41,10 @@ interface DynamicTanStackGridProps {
     rowClickPostUrl?: string;
     rowClickOpenModal?: boolean;
     rowClickFunction?: (row: Record<string, unknown>) => void;
+    // Custom cell renderer components keyed by the `cellRenderer` name sent from the backend
+    // (e.g. { action: ActionComponent, filename: FilenameComponent }). Each receives AG-Grid-style
+    // params ({ data, value, ... }) for backwards compatibility with the former AG-Grid renderers.
+    components?: Record<string, React.ComponentType<any>>;
     onColumnStatesChangedUrl?: string;
     resetGridStateUrl?: string;
     onGridApiReady?: (table: unknown) => void;
@@ -58,6 +62,10 @@ interface DynamicTanStackGridProps {
     userThousandSeparator?: string;
     userDecimalSeparator?: string;
 }
+
+// Stable empty array reference so an absent data slice doesn't create a new [] each render
+// (which would needlessly re-run the rowData memo and downstream table computations).
+const EMPTY_ROW_DATA: Record<string, unknown>[] = [];
 
 // Custom filter: checks if cell value (resolved to string) is in the selected set
 const setFilterFn: FilterFn<Record<string, unknown>> = (row, columnId, filterValue) => {
@@ -170,6 +178,7 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
         rowClickPostUrl,
         rowClickOpenModal,
         rowClickFunction,
+        components,
         onColumnStatesChangedUrl,
         resetGridStateUrl,
         onGridApiReady,
@@ -186,13 +195,15 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
     const [openFilterColumnId, setOpenFilterColumnId] = useState<string | null>(null);
     const filterAnchorRefs = useRef<Record<string, HTMLSpanElement | null>>({});
 
-    const rowData: Record<string, unknown>[] = useMemo(() => {
-        if (entries) return entries;
-        if (id && data) {
-            return (Object as any).getByString(data, id) || (Object as any).getByString(variables, id) || [];
-        }
-        return [];
-    }, [entries, id, data, variables]);
+    // Resolve the row data slice. Note: the Redux reducer merges responses (e.g. after an
+    // upload) by mutating the `data` object in place (lodash `set` in Object.combine), so the
+    // `data` reference stays stable while `data.attachments` becomes a new array. We therefore
+    // must NOT memoize on `data` alone — that would return a stale array and the grid would not
+    // refresh. Resolving the slice directly on every render is correct: lodash `get` returns the
+    // same reference until the slice actually changes, so downstream memos still short-circuit.
+    const rowData: Record<string, unknown>[] = entries
+        || (id ? ((Object as any).getByString(data, id) || (Object as any).getByString(variables, id)) : undefined)
+        || EMPTY_ROW_DATA;
 
     const baseColumns = useMemo(() => buildColumnDefs(columnDefs || []), [columnDefs]);
 
@@ -244,6 +255,11 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
 
     // Row selection state
     const enableSelection = rowSelection?.mode === 'multiRow';
+    // When selection is enabled, a plain row click normally toggles selection. Some tables
+    // (e.g. the attachment/file transfer list) want the row click to trigger the row action
+    // (open detail dialog / download) instead, and reserve selection to the checkbox column.
+    // Such tables pass enableClickSelection: false.
+    const enableClickSelection = rowSelection?.enableClickSelection !== false;
     const initialRowSelection: RowSelectionState = useMemo(() => {
         if (!enableSelection || !selectedEntities || selectedEntities.length === 0) return {};
         const sel: RowSelectionState = {};
@@ -672,18 +688,22 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                                     data-row-id={(row.original as any).id}
                                     className={rowClasses.join(' ') || undefined}
                                     onClick={(e) => {
-                                        if (enableSelection) {
+                                        if (enableSelection && enableClickSelection) {
                                             if (e.shiftKey) {
                                                 e.preventDefault();
                                                 window.getSelection()?.removeAllRanges();
                                             }
                                             handleRowSelection(rowIdx, e);
                                         } else {
+                                            // Selection reserved to the checkbox column: a row click
+                                            // triggers the row action (e.g. open detail dialog).
                                             handleRowClick(row.original);
                                         }
                                     }}
                                     style={{
-                                        cursor: (rowClickRedirectUrl || enableSelection) ? 'pointer' : undefined,
+                                        cursor: (rowClickRedirectUrl || rowClickFunction
+                                            || (enableSelection && enableClickSelection))
+                                            ? 'pointer' : undefined,
                                         userSelect: enableSelection ? 'none' : undefined,
                                     }}
                                 >
@@ -718,7 +738,7 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                                                 whiteSpace: meta?.wrapText ? 'pre-line' : undefined,
                                             }}
                                         >
-                                            <CellRendererDispatch cell={cell} />
+                                            <CellRendererDispatch cell={cell} components={components} />
                                         </td>
                                         );
                                     })}

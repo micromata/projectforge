@@ -36,12 +36,12 @@ export function resolveNestedValue(row: Record<string, unknown>, fieldPath: stri
 }
 
 /**
- * Evaluates a valueGetter string like "data?.lendOutBy?.displayName"
- * by extracting the dot path and resolving it against the row.
+ * Evaluates a valueGetter/valueFormatter string like "data?.lendOutBy?.displayName" or
+ * "data.sizeHumanReadable" by extracting the dot path and resolving it against the row.
  */
-function evaluateValueGetter(valueGetter: string, row: Record<string, unknown>): unknown {
+export function evaluateFieldExpression(expression: string, row: Record<string, unknown>): unknown {
     // Strip "data?." or "data." prefix, then replace "?." with "."
-    const path = valueGetter
+    const path = expression
         .replace(/^data\??\./, '')
         .replace(/\?\./g, '.');
     return resolveNestedValue(row, path);
@@ -52,7 +52,7 @@ export function buildColumnDefs(columns: DataTableColumnDef[]): ColumnDef<Record
         id: col.field,
         accessorFn: (row: Record<string, unknown>) => {
             if (col.valueGetter) {
-                return evaluateValueGetter(col.valueGetter, row);
+                return evaluateFieldExpression(col.valueGetter, row);
             }
             return resolveNestedValue(row, col.field);
         },
@@ -67,6 +67,7 @@ export function buildColumnDefs(columns: DataTableColumnDef[]): ColumnDef<Record
             field: col.field,
             cellRenderer: col.cellRenderer,
             cellRendererParams: col.cellRendererParams,
+            valueFormatter: col.valueFormatter,
             dataType: col.dataType,
             formatter: col.formatter,
             valueIconMap: col.valueIconMap,
