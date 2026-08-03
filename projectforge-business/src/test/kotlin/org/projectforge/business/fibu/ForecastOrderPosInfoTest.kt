@@ -255,6 +255,7 @@ class ForecastOrderPosInfoTest {
                 // actual invoice is dated July. toBeInvoicedSum = 60000, remaining months = Aug-Jan2027 = 6 (not 7!)
                 // partlyNetSum = 60000 / 6 = 10000
                 ForecastOrderPosInfo(orderInfo, pos).also { fcPosInfo ->
+                    fcPosInfo.distributeUnusedBudget = true // This test verifies even distribution, not run-rate.
                     fcPosInfo.lastInvoiceMonth = PFDay.of(2026, Month.JULY, 3)
                     fcPosInfo.calculate()
                     // Months: Jan2026..Jan2027 = 13 months (FOLLOWING_MONTH adds 1)
@@ -296,6 +297,7 @@ class ForecastOrderPosInfoTest {
                 // toBeInvoicedSum = 60000, remaining months = Jul-Dec = 6
                 // partlyNetSum = 60000 / 6 = 10000
                 ForecastOrderPosInfo(orderInfo, pos).also { fcPosInfo ->
+                    fcPosInfo.distributeUnusedBudget = true // This test verifies even distribution, not run-rate.
                     fcPosInfo.lastInvoiceMonth = PFDay.of(2026, Month.JUNE, 30)
                     fcPosInfo.calculate()
                     // Months: Jan2026..Dec2026 = 12 months (no extra month for CURRENT_MONTH)
@@ -379,6 +381,7 @@ class ForecastOrderPosInfoTest {
                 // Latest actual invoice is dated July (June's work); the August invoice is NOT written yet.
                 // toBeInvoicedSum = 60000, remaining months = Aug-Jan2027 = 6, partlyNetSum = 10000.
                 ForecastOrderPosInfo(orderInfo, pos).also { fcPosInfo ->
+                    fcPosInfo.distributeUnusedBudget = true // This test verifies even distribution, not run-rate.
                     fcPosInfo.lastInvoiceMonth = PFDay.of(2026, Month.JULY, 3)
                     fcPosInfo.calculate()
                     Assertions.assertEquals(13, fcPosInfo.months.size)
@@ -417,6 +420,7 @@ class ForecastOrderPosInfoTest {
                 invoicedSum = BigDecimal("60000"),
             ).also { pos ->
                 ForecastOrderPosInfo(orderInfo, pos).also { fcPosInfo ->
+                    fcPosInfo.distributeUnusedBudget = true // This test verifies even distribution, not run-rate.
                     fcPosInfo.lastInvoiceMonth = PFDay.of(2026, Month.AUGUST, 2)
                     fcPosInfo.calculate()
                     Assertions.assertEquals(13, fcPosInfo.months.size)
@@ -752,7 +756,10 @@ class ForecastOrderPosInfoTest {
             orderInfo: OrderInfo,
             pos: OrderPositionInfo,
             vararg months: String,
-            distributeUnused: Boolean = ForecastOrderPosInfo.defaultDistributeUnusedBudget,
+            // Fixed true (even distribution), NOT ForecastOrderPosInfo.defaultDistributeUnusedBudget: these
+            // assertions verify even distribution and must stay deterministic regardless of the configured global
+            // default (which a Spring-based test in the same JVM may flip to false).
+            distributeUnused: Boolean = true,
             lastInvoiceMonth: PFDay? = null,
         ): ForecastOrderPosInfo {
             return calculateAndAssert(orderInfo, pos, months.toList(), distributeUnused, lastInvoiceMonth)
@@ -762,7 +769,7 @@ class ForecastOrderPosInfoTest {
             orderInfo: OrderInfo,
             pos: OrderPositionInfo,
             months: List<String>,
-            distributeUnused: Boolean = ForecastOrderPosInfo.defaultDistributeUnusedBudget,
+            distributeUnused: Boolean = true,
             lastInvoiceMonth: PFDay? = null,
         ): ForecastOrderPosInfo {
             ForecastOrderPosInfo(orderInfo, pos).also { fcPosInfo ->
