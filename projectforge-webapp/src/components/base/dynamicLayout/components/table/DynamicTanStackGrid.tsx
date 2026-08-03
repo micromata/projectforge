@@ -437,16 +437,24 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
     // Selection: track anchor row for Shift-click range selection
     const anchorRowIdx = useRef<number | null>(null);
 
+    // rowIdx is the position in the currently displayed (sorted/filtered) row list. The TanStack
+    // rowSelection state, however, is keyed by row.id (the original data index), so we must map
+    // display positions to row.id — otherwise, when the table is sorted, clicking a row would
+    // select whichever row happens to sit at that index in the unsorted data.
     const handleRowSelection = useCallback((rowIdx: number, e: React.MouseEvent) => {
         if (!enableSelection) return;
+        const orderedRows = table.getRowModel().rows;
+        const rowId = orderedRows[rowIdx]?.id;
+        if (rowId == null) return;
         setRowSelectionState((prev) => {
             if (e.shiftKey && anchorRowIdx.current !== null) {
-                // Range select from anchor to current
+                // Range select from anchor to current (over the displayed order)
                 const start = Math.min(anchorRowIdx.current, rowIdx);
                 const end = Math.max(anchorRowIdx.current, rowIdx);
                 const next: RowSelectionState = {};
                 for (let i = start; i <= end; i++) {
-                    next[i] = true;
+                    const id = orderedRows[i]?.id;
+                    if (id != null) next[id] = true;
                 }
                 return next;
             }
@@ -454,19 +462,19 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                 // Toggle single row additively, update anchor
                 anchorRowIdx.current = rowIdx;
                 const next = { ...prev };
-                if (next[rowIdx]) {
-                    delete next[rowIdx];
+                if (next[rowId]) {
+                    delete next[rowId];
                 } else {
-                    next[rowIdx] = true;
+                    next[rowId] = true;
                 }
                 return next;
             }
             // Plain click: select only this row
             anchorRowIdx.current = rowIdx;
-            return { [rowIdx]: true };
+            return { [rowId]: true };
         });
         setFocusedRowIdx(rowIdx);
-    }, [enableSelection]);
+    }, [enableSelection, table]);
 
     // Keyboard navigation for selection
     const [focusedRowIdx, setFocusedRowIdx] = useState<number | null>(null);
@@ -480,27 +488,32 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
             const next = Math.min((focusedRowIdx ?? -1) + 1, rows.length - 1);
             setFocusedRowIdx(next);
             if (e.shiftKey) {
-                setRowSelectionState((prev) => ({ ...prev, [next]: true }));
+                const id = rows[next]?.id;
+                if (id != null) setRowSelectionState((prev) => ({ ...prev, [id]: true }));
             }
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
             const next = Math.max((focusedRowIdx ?? 1) - 1, 0);
             setFocusedRowIdx(next);
             if (e.shiftKey) {
-                setRowSelectionState((prev) => ({ ...prev, [next]: true }));
+                const id = rows[next]?.id;
+                if (id != null) setRowSelectionState((prev) => ({ ...prev, [id]: true }));
             }
         } else if (e.key === ' ' && focusedRowIdx !== null) {
             e.preventDefault();
-            setRowSelectionState((prev) => {
-                const next = { ...prev };
-                if (next[focusedRowIdx]) {
-                    delete next[focusedRowIdx];
-                } else {
-                    next[focusedRowIdx] = true;
-                }
-                return next;
-            });
-            anchorRowIdx.current = focusedRowIdx;
+            const id = rows[focusedRowIdx]?.id;
+            if (id != null) {
+                setRowSelectionState((prev) => {
+                    const next = { ...prev };
+                    if (next[id]) {
+                        delete next[id];
+                    } else {
+                        next[id] = true;
+                    }
+                    return next;
+                });
+                anchorRowIdx.current = focusedRowIdx;
+            }
         }
     }, [enableSelection, table, focusedRowIdx]);
 
