@@ -152,6 +152,10 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
     var invoicingQuota: BigDecimal? = null
         private set
 
+    private var invoicingQuotaBilledMillis: Long = 0
+
+    private var invoicingQuotaTotalMillis: Long = 0
+
     private var vacationCount: BigDecimal? = BigDecimal.ZERO
 
     private var vacationPlannedCount: BigDecimal? = BigDecimal.ZERO
@@ -330,7 +334,11 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
         }
         val invoicingQuotaService = WicketSupport.get(InvoicingQuotaService::class.java)
         if (invoicingQuotaService?.isEnabled() == true) {
-            this.invoicingQuota = invoicingQuotaService.calculateQuota(kost2Durations)
+            invoicingQuotaService.calculateQuotaResult(kost2Durations)?.let { result ->
+                this.invoicingQuota = result.quota
+                this.invoicingQuotaBilledMillis = result.billedDurationMillis
+                this.invoicingQuotaTotalMillis = result.totalDurationMillis
+            }
         }
     }
 
@@ -402,6 +410,21 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
     val formattedInvoicingQuota: String?
         get() = invoicingQuota?.formatFractionAsPercent(true)
 
+    val formattedInvoicingQuotaTooltip: String?
+        /**
+         * @return A localized explanation of how the invoicing quota was computed for this concrete report,
+         * including the billed and total (billable) work durations, or null if no quota is available.
+         */
+        get() {
+            val quota = invoicingQuota ?: return null
+            return getLocalizedMessage(
+                "fibu.common.invoicingQuota.tooltip",
+                formatDurationHours(invoicingQuotaBilledMillis),
+                formatDurationHours(invoicingQuotaTotalMillis),
+                quota.formatFractionAsPercent(true),
+            )
+        }
+
     companion object {
         private const val serialVersionUID = -4636357379552246075L
 
@@ -439,6 +462,16 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
             if (duration == 0L) {
                 return ""
             }
+            return formatDurationHours(duration)
+        }
+
+        /**
+         * Formats a duration in milliseconds as hours with 2 decimals. Unlike [getFormattedDuration],
+         * a duration of 0 is rendered as "0" (not an empty string), which is required for the invoicing
+         * quota tooltip where a billed duration of 0 (quota 0 %) must still be shown.
+         */
+        @JvmStatic
+        fun formatDurationHours(duration: Long): String {
             val hours = BigDecimal(duration).divide(
                 BigDecimal(1000 * 60 * 60), 2,
                 RoundingMode.HALF_UP

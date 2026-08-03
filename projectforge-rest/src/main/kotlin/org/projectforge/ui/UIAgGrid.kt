@@ -52,8 +52,6 @@ open class UIAgGrid(
         val mode: String = if (multi) "multiRow" else "singleRow"
         @Suppress("unused") // Needed by AgGrid
         val enableClickSelection: Boolean? = if (multi) true else null
-        @Suppress("unused") // Needed by AgGrid
-        val enableSelectionWithoutKeys: Boolean? = if (multi) true else null
     }
 
     /**

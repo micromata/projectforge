@@ -49,6 +49,7 @@ function TaskTreeTable({
                     highlightId={highlightTaskId}
                     sortModel={sortModel}
                     filterModel={filterModel}
+                    onCellClicked={onCellClicked}
                     onColumnStatesChangedUrl={onColumnStatesChangedUrl}
                     resetGridStateUrl={resetGridStateUrl}
                 />

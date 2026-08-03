@@ -41,6 +41,14 @@ interface DynamicTanStackGridProps {
     rowClickPostUrl?: string;
     rowClickOpenModal?: boolean;
     rowClickFunction?: (row: Record<string, unknown>) => void;
+    // Called when a single cell is clicked, with the AG-Grid-style event shape
+    // { data: rowData, colDef: { field } }. Used e.g. by the task tree to distinguish a click on
+    // the title column (expand/collapse) from a click on another column (select).
+    onCellClicked?: (event: { data: Record<string, unknown>; colDef: { field: string } }) => void;
+    // Custom cell renderer components keyed by the `cellRenderer` name sent from the backend
+    // (e.g. { action: ActionComponent, filename: FilenameComponent }). Each receives AG-Grid-style
+    // params ({ data, value, ... }) for backwards compatibility with the former AG-Grid renderers.
+    components?: Record<string, React.ComponentType<any>>;
     onColumnStatesChangedUrl?: string;
     resetGridStateUrl?: string;
     onGridApiReady?: (table: unknown) => void;
@@ -58,6 +66,10 @@ interface DynamicTanStackGridProps {
     userThousandSeparator?: string;
     userDecimalSeparator?: string;
 }
+
+// Stable empty array reference so an absent data slice doesn't create a new [] each render
+// (which would needlessly re-run the rowData memo and downstream table computations).
+const EMPTY_ROW_DATA: Record<string, unknown>[] = [];
 
 // Custom filter: checks if cell value (resolved to string) is in the selected set
 const setFilterFn: FilterFn<Record<string, unknown>> = (row, columnId, filterValue) => {
@@ -170,6 +182,8 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
         rowClickPostUrl,
         rowClickOpenModal,
         rowClickFunction,
+        onCellClicked,
+        components,
         onColumnStatesChangedUrl,
         resetGridStateUrl,
         onGridApiReady,
@@ -186,13 +200,15 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
     const [openFilterColumnId, setOpenFilterColumnId] = useState<string | null>(null);
     const filterAnchorRefs = useRef<Record<string, HTMLSpanElement | null>>({});
 
-    const rowData: Record<string, unknown>[] = useMemo(() => {
-        if (entries) return entries;
-        if (id && data) {
-            return (Object as any).getByString(data, id) || (Object as any).getByString(variables, id) || [];
-        }
-        return [];
-    }, [entries, id, data, variables]);
+    // Resolve the row data slice. Note: the Redux reducer merges responses (e.g. after an
+    // upload) by mutating the `data` object in place (lodash `set` in Object.combine), so the
+    // `data` reference stays stable while `data.attachments` becomes a new array. We therefore
+    // must NOT memoize on `data` alone — that would return a stale array and the grid would not
+    // refresh. Resolving the slice directly on every render is correct: lodash `get` returns the
+    // same reference until the slice actually changes, so downstream memos still short-circuit.
+    const rowData: Record<string, unknown>[] = entries
+        || (id ? ((Object as any).getByString(data, id) || (Object as any).getByString(variables, id)) : undefined)
+        || EMPTY_ROW_DATA;
 
     const baseColumns = useMemo(() => buildColumnDefs(columnDefs || []), [columnDefs]);
 
@@ -244,6 +260,11 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
 
     // Row selection state
     const enableSelection = rowSelection?.mode === 'multiRow';
+    // When selection is enabled, a plain row click normally toggles selection. Some tables
+    // (e.g. the attachment/file transfer list) want the row click to trigger the row action
+    // (open detail dialog / download) instead, and reserve selection to the checkbox column.
+    // Such tables pass enableClickSelection: false.
+    const enableClickSelection = rowSelection?.enableClickSelection !== false;
     const initialRowSelection: RowSelectionState = useMemo(() => {
         if (!enableSelection || !selectedEntities || selectedEntities.length === 0) return {};
         const sel: RowSelectionState = {};
@@ -421,16 +442,24 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
     // Selection: track anchor row for Shift-click range selection
     const anchorRowIdx = useRef<number | null>(null);
 
+    // rowIdx is the position in the currently displayed (sorted/filtered) row list. The TanStack
+    // rowSelection state, however, is keyed by row.id (the original data index), so we must map
+    // display positions to row.id — otherwise, when the table is sorted, clicking a row would
+    // select whichever row happens to sit at that index in the unsorted data.
     const handleRowSelection = useCallback((rowIdx: number, e: React.MouseEvent) => {
         if (!enableSelection) return;
+        const orderedRows = table.getRowModel().rows;
+        const rowId = orderedRows[rowIdx]?.id;
+        if (rowId == null) return;
         setRowSelectionState((prev) => {
             if (e.shiftKey && anchorRowIdx.current !== null) {
-                // Range select from anchor to current
+                // Range select from anchor to current (over the displayed order)
                 const start = Math.min(anchorRowIdx.current, rowIdx);
                 const end = Math.max(anchorRowIdx.current, rowIdx);
                 const next: RowSelectionState = {};
                 for (let i = start; i <= end; i++) {
-                    next[i] = true;
+                    const id = orderedRows[i]?.id;
+                    if (id != null) next[id] = true;
                 }
                 return next;
             }
@@ -438,19 +467,19 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                 // Toggle single row additively, update anchor
                 anchorRowIdx.current = rowIdx;
                 const next = { ...prev };
-                if (next[rowIdx]) {
-                    delete next[rowIdx];
+                if (next[rowId]) {
+                    delete next[rowId];
                 } else {
-                    next[rowIdx] = true;
+                    next[rowId] = true;
                 }
                 return next;
             }
             // Plain click: select only this row
             anchorRowIdx.current = rowIdx;
-            return { [rowIdx]: true };
+            return { [rowId]: true };
         });
         setFocusedRowIdx(rowIdx);
-    }, [enableSelection]);
+    }, [enableSelection, table]);
 
     // Keyboard navigation for selection
     const [focusedRowIdx, setFocusedRowIdx] = useState<number | null>(null);
@@ -464,27 +493,32 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
             const next = Math.min((focusedRowIdx ?? -1) + 1, rows.length - 1);
             setFocusedRowIdx(next);
             if (e.shiftKey) {
-                setRowSelectionState((prev) => ({ ...prev, [next]: true }));
+                const id = rows[next]?.id;
+                if (id != null) setRowSelectionState((prev) => ({ ...prev, [id]: true }));
             }
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
             const next = Math.max((focusedRowIdx ?? 1) - 1, 0);
             setFocusedRowIdx(next);
             if (e.shiftKey) {
-                setRowSelectionState((prev) => ({ ...prev, [next]: true }));
+                const id = rows[next]?.id;
+                if (id != null) setRowSelectionState((prev) => ({ ...prev, [id]: true }));
             }
         } else if (e.key === ' ' && focusedRowIdx !== null) {
             e.preventDefault();
-            setRowSelectionState((prev) => {
-                const next = { ...prev };
-                if (next[focusedRowIdx]) {
-                    delete next[focusedRowIdx];
-                } else {
-                    next[focusedRowIdx] = true;
-                }
-                return next;
-            });
-            anchorRowIdx.current = focusedRowIdx;
+            const id = rows[focusedRowIdx]?.id;
+            if (id != null) {
+                setRowSelectionState((prev) => {
+                    const next = { ...prev };
+                    if (next[id]) {
+                        delete next[id];
+                    } else {
+                        next[id] = true;
+                    }
+                    return next;
+                });
+                anchorRowIdx.current = focusedRowIdx;
+            }
         }
     }, [enableSelection, table, focusedRowIdx]);
 
@@ -672,18 +706,22 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                                     data-row-id={(row.original as any).id}
                                     className={rowClasses.join(' ') || undefined}
                                     onClick={(e) => {
-                                        if (enableSelection) {
+                                        if (enableSelection && enableClickSelection) {
                                             if (e.shiftKey) {
                                                 e.preventDefault();
                                                 window.getSelection()?.removeAllRanges();
                                             }
                                             handleRowSelection(rowIdx, e);
                                         } else {
+                                            // Selection reserved to the checkbox column: a row click
+                                            // triggers the row action (e.g. open detail dialog).
                                             handleRowClick(row.original);
                                         }
                                     }}
                                     style={{
-                                        cursor: (rowClickRedirectUrl || enableSelection) ? 'pointer' : undefined,
+                                        cursor: (rowClickRedirectUrl || rowClickFunction
+                                            || (enableSelection && enableClickSelection))
+                                            ? 'pointer' : undefined,
                                         userSelect: enableSelection ? 'none' : undefined,
                                     }}
                                 >
@@ -701,10 +739,17 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                                         const tooltipField = meta?.tooltipField;
                                         const tooltip = tooltipField ? String((row.original as any)[tooltipField] ?? '') : undefined;
                                         const isNumeric = meta?.type === 'numericColumn' || meta?.type === 'rightAligned';
+                                        const cellField = meta?.field || cell.column.id;
                                         return (
                                         <td
                                             key={cell.id}
                                             title={tooltip || undefined}
+                                            onClick={onCellClicked ? (e) => {
+                                                // Per-cell click (e.g. task tree): expose column field so
+                                                // the parent can branch (title column → expand, else select).
+                                                e.stopPropagation();
+                                                onCellClicked({ data: row.original, colDef: { field: cellField } });
+                                            } : undefined}
                                             style={{
                                                 width: cell.column.getSize(),
                                                 textAlign: isNumeric ? 'right' : undefined,
@@ -716,9 +761,10 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                                                 zIndex: cell.column.getIsPinned() ? 1 : undefined,
                                                 backgroundColor: cell.column.getIsPinned() ? 'var(--bs-table-bg, #fff)' : undefined,
                                                 whiteSpace: meta?.wrapText ? 'pre-line' : undefined,
+                                                cursor: onCellClicked ? 'pointer' : undefined,
                                             }}
                                         >
-                                            <CellRendererDispatch cell={cell} />
+                                            <CellRendererDispatch cell={cell} components={components} />
                                         </td>
                                         );
                                     })}

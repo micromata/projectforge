@@ -45,6 +45,7 @@ internal class ForecastExportContext(
     val forecastSheet: ExcelSheet,
     val invoicesSheet: ExcelSheet,
     val invoicesPrevYearSheet: ExcelSheet,
+    val invoicesPrevPrevYearSheet: ExcelSheet,
     val planningSheet: ExcelSheet,
     val planningInvoicesSheet: ExcelSheet,
     val startDate: PFDay,
@@ -53,11 +54,17 @@ internal class ForecastExportContext(
     val planningDate: LocalDate? = null,
     val snapshot: Boolean = false,
     val fillUnitCol: ((orderInfo: OrderInfo) -> String)? = null,
+    /**
+     * If true (default), unused budget is booked as future revenue in the last month of the performance period.
+     * If false, it is shown as a negative difference (more conservative). See [ForecastOrderPosInfo.distributeUnusedBudget].
+     */
+    val distributeUnusedBudget: Boolean = true,
 ) {
     enum class Sheet(val title: String) {
         FORECAST("Forecast_Data"),
         INVOICES("Rechnungen"),
         INVOICES_PREV_YEAR("Rechnungen Vorjahr"),
+        INVOICES_PREV_PREV_YEAR("Rechnungen Vorvorjahr"),
         PLANNING("Planning_Data"),
         PLANNING_INVOICES("Planning_Invoices"),
         INFO("Info")

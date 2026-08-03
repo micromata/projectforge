@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import { applyMiddleware, createStore } from 'redux';
 import { thunk } from 'redux-thunk';
 import reducer from '../reducers';
+import CustomRouter from './CustomRouter';
 import ProjectForge from './ProjectForge';
 
 describe('renders without crashing', () => {
@@ -13,7 +14,9 @@ describe('renders without crashing', () => {
 
         createRoot(div).render(
             <Provider store={store}>
-                <ProjectForge />
+                <CustomRouter>
+                    <ProjectForge />
+                </CustomRouter>
             </Provider>,
         );
     });
@@ -26,7 +29,10 @@ describe('renders without crashing', () => {
                 authentication: {
                     loading: false,
                     error: null,
-                    loggedIn: true,
+                    user: {
+                        userId: 42,
+                        username: 'kai',
+                    },
                 },
             },
             applyMiddleware(thunk),
@@ -34,7 +40,9 @@ describe('renders without crashing', () => {
 
         createRoot(div).render(
             <Provider store={store}>
-                <ProjectForge />
+                <CustomRouter>
+                    <ProjectForge />
+                </CustomRouter>
             </Provider>,
         );
     });
