@@ -95,6 +95,17 @@ class ForecastOrderPosInfo(
     lateinit var paymentSchedules: List<OrderInfo.PaymentScheduleInfo>
     private var distributionStartDay = periodOfPerformanceBegin
 
+    /**
+     * The month of the latest actual invoice for this order position (already filtered by snapshot/base date by the
+     * caller), or null if nothing was invoiced yet. Must be set before [calculate] is called.
+     *
+     * This is used by [distributeMonthlyValues] to decide where the forecast distribution starts: months that are
+     * already covered by an actual invoice must not be forecast again. For retroactive invoicing (FOLLOWING_MONTH)
+     * this is what distinguishes "the current month's revenue is already invoiced" (start next month) from
+     * "the current month is not invoiced yet" (include the current month in the distribution).
+     */
+    var lastInvoiceMonth: PFDay? = null
+
     val months = mutableListOf<MonthEntry>()
     val paymentEntries = mutableListOf<PaymentEntryInfo>()
 
@@ -222,14 +233,15 @@ class ForecastOrderPosInfo(
         if (lastMonth < firstMonth) { // should not happen
             return
         }
-        val forecastType = ForecastUtils.getForecastType(orderInfo, orderPosInfo)
-        val effectiveStart = if (forecastType == AuftragForecastType.CURRENT_MONTH) {
-            maxOf(firstMonth, baseMonth)
-        } else {
-            // For FOLLOWING_MONTH: the current month's entry represents last month's work (already past),
-            // so start distribution from next month.
-            maxOf(firstMonth, baseMonth.plusMonths(1))
-        }
+        // Never forecast a month that is already covered by an actual invoice: distribution starts after the latest
+        // invoiced month. For retroactive invoicing (FOLLOWING_MONTH) this is the key: the current month is only
+        // "already handled" once its invoice has actually been written. If it hasn't been written yet, the current
+        // month must remain part of the forecast (otherwise its revenue would be dropped and the remaining budget
+        // spread over too few months). See orders 6809 / 6863.
+        val firstNotInvoicedMonth = lastInvoiceMonth?.beginOfMonth?.plusMonths(1)
+        // Distribution must not start before the current month (baseMonth) nor before firstMonth (forecast-type
+        // dependent begin), and must skip any month already invoiced.
+        val effectiveStart = maxOf(firstMonth, baseMonth, firstNotInvoicedMonth ?: baseMonth)
         val remainingMonthCount = months.count { it.date >= effectiveStart }.toLong()
         val partlyNetSum = if (remainingMonthCount > 0) {
             toBeInvoicedSum.divide(BigDecimal.valueOf(remainingMonthCount), RoundingMode.HALF_UP)

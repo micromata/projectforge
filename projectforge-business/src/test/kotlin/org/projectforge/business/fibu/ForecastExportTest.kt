@@ -82,11 +82,14 @@ class ForecastExportTest : AbstractTestBase() {
             val firstRow = 10
             forecastSheet.headRow // Enforce analyzing the column definitions.
 
-            // order 1
-            // With FOLLOWING_MONTH (default), baseMonth is today (monthCols[4]) and effectiveStart is next month.
-            // Since the period ends at monthCols[4], no future distribution remains.
+            // This row is a T&M FOLLOWING_MONTH order: performance period monthCols[1]..monthCols[4], with actual
+            // invoices in monthCols[2] and monthCols[3] only (toBeInvoiced = 2000). Today is monthCols[4].
+            // Since the current month (monthCols[4]) has NOT been invoiced yet, it must still carry forecast:
+            // the remaining 2000 is distributed over monthCols[4] and monthCols[5] = 1000 each (see orders 6809/5503).
+            // The invoiced/past month monthCols[3] must be blank.
             Assertions.assertTrue(forecastSheet.getCell(firstRow + 1, monthCols[3])!!.stringCellValue.isNullOrBlank())
-            Assertions.assertTrue(forecastSheet.getCell(firstRow + 1, monthCols[4])!!.stringCellValue.isNullOrBlank())
+            assertAmount(BigDecimal(1000), forecastSheet.getCell(firstRow + 1, monthCols[4])!!.numericCellValue)
+            assertAmount(BigDecimal(1000), forecastSheet.getCell(firstRow + 1, monthCols[5])!!.numericCellValue)
         }
     }
 

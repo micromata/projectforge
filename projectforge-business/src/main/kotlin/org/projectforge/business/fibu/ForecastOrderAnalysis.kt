@@ -64,14 +64,16 @@ class ForecastOrderAnalysis {
 
     private fun exportOrderAnalysis(orderInfo: OrderInfo?): List<ForecastOrderPosInfo>? {
         orderInfo ?: return null
+        val snapshotDate = orderInfo.snapshotDate
         val result = orderInfo.infoPositions?.map { posInfo ->
             ForecastOrderPosInfo(orderInfo, posInfo).also {
+                // Distribution must not re-forecast months already covered by actual invoices:
+                it.lastInvoiceMonth = latestInvoiceMonth(posInfo, snapshotDate)
                 it.calculate()
             }
         }?.sortedBy { it.orderPosNumber }
         result?.forEach { fcPosInfo ->
             val posInfo = fcPosInfo.orderPosInfo
-            val snapshotDate = orderInfo.snapshotDate
             // Add all invoices:
             filterInvoices(posInfo, snapshotDate)?.forEach { invoicePosInfo ->
                 val invoiceInfo = invoicePosInfo.rechnungInfo
@@ -413,6 +415,15 @@ class ForecastOrderAnalysis {
         } else {
             invoicePositions?.filter { (it.rechnungInfo?.date ?: LocalDate.MAX) <= snapshotDate }
         }
+    }
+
+    /**
+     * @return The month (begin of month) of the latest actual invoice for the given position (respecting the
+     * snapshot date), or null if nothing was invoiced yet.
+     */
+    private fun latestInvoiceMonth(posInfo: OrderPositionInfo, snapshotDate: LocalDate?): PFDay? {
+        val latest = filterInvoices(posInfo, snapshotDate)?.mapNotNull { it.rechnungInfo?.date }?.maxOrNull()
+        return latest?.let { PFDay.from(it).beginOfMonth }
     }
 
     companion object {

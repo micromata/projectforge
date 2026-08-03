@@ -602,6 +602,12 @@ open class ForecastExport { // open needed by Wicket.
         val netSum = pos.netSum ?: BigDecimal.ZERO
         val invoicedSum = posInfo?.invoicedSum ?: BigDecimal.ZERO
         val forecastInfo = ForecastOrderPosInfo(order, pos)
+        // Distribution must not re-forecast months already covered by actual invoices (respecting baseDate):
+        forecastInfo.lastInvoiceMonth = rechnungCache.getRechnungsPosInfosByAuftragsPositionId(pos.id)
+            ?.filter { baseDate == null || (it.rechnungInfo?.date ?: LocalDate.MAX) <= baseDate }
+            ?.mapNotNull { it.rechnungInfo?.date }
+            ?.maxOrNull()
+            ?.let { PFDay.from(it).beginOfMonth }
         forecastInfo.calculate()
         sheet.setBigDecimalValue(row, ForecastCol.NETTOSUMME.header, netSum).cellStyle = ctx.currencyCellStyle
         if (invoicedSum.compareTo(BigDecimal.ZERO) != 0) {
