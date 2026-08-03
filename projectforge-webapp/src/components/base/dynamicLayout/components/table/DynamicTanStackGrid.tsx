@@ -41,6 +41,10 @@ interface DynamicTanStackGridProps {
     rowClickPostUrl?: string;
     rowClickOpenModal?: boolean;
     rowClickFunction?: (row: Record<string, unknown>) => void;
+    // Called when a single cell is clicked, with the AG-Grid-style event shape
+    // { data: rowData, colDef: { field } }. Used e.g. by the task tree to distinguish a click on
+    // the title column (expand/collapse) from a click on another column (select).
+    onCellClicked?: (event: { data: Record<string, unknown>; colDef: { field: string } }) => void;
     // Custom cell renderer components keyed by the `cellRenderer` name sent from the backend
     // (e.g. { action: ActionComponent, filename: FilenameComponent }). Each receives AG-Grid-style
     // params ({ data, value, ... }) for backwards compatibility with the former AG-Grid renderers.
@@ -178,6 +182,7 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
         rowClickPostUrl,
         rowClickOpenModal,
         rowClickFunction,
+        onCellClicked,
         components,
         onColumnStatesChangedUrl,
         resetGridStateUrl,
@@ -734,10 +739,17 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                                         const tooltipField = meta?.tooltipField;
                                         const tooltip = tooltipField ? String((row.original as any)[tooltipField] ?? '') : undefined;
                                         const isNumeric = meta?.type === 'numericColumn' || meta?.type === 'rightAligned';
+                                        const cellField = meta?.field || cell.column.id;
                                         return (
                                         <td
                                             key={cell.id}
                                             title={tooltip || undefined}
+                                            onClick={onCellClicked ? (e) => {
+                                                // Per-cell click (e.g. task tree): expose column field so
+                                                // the parent can branch (title column → expand, else select).
+                                                e.stopPropagation();
+                                                onCellClicked({ data: row.original, colDef: { field: cellField } });
+                                            } : undefined}
                                             style={{
                                                 width: cell.column.getSize(),
                                                 textAlign: isNumeric ? 'right' : undefined,
@@ -749,6 +761,7 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
                                                 zIndex: cell.column.getIsPinned() ? 1 : undefined,
                                                 backgroundColor: cell.column.getIsPinned() ? 'var(--bs-table-bg, #fff)' : undefined,
                                                 whiteSpace: meta?.wrapText ? 'pre-line' : undefined,
+                                                cursor: onCellClicked ? 'pointer' : undefined,
                                             }}
                                         >
                                             <CellRendererDispatch cell={cell} components={components} />
