@@ -45,7 +45,9 @@ import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
+import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
 import java.io.IOException
@@ -95,6 +97,19 @@ open class ForecastExport { // open needed by Wicket.
     private lateinit var applicationContext: ApplicationContext
 
     /**
+     * Global default for distributing unused budget of an order position in the forecast (configurable via
+     * application.properties). Used for single-order analyses and as the fallback for the Excel export when the
+     * script doesn't override it. See [ForecastOrderPosInfo.distributeUnusedBudget].
+     */
+    @Value("\${projectforge.fibu.forecast.distributeUnusedBudget:true}")
+    private var distributeUnusedBudget = true
+
+    @PostConstruct
+    private fun init() {
+        ForecastOrderPosInfo.defaultDistributeUnusedBudget = distributeUnusedBudget
+    }
+
+    /**
      * Export the forecast sheet.
      * @param origFilter The filter for the orders to export.
      * @param planningDate If given, the monthly forecast will be calculated with the specified date and inserted as plan data.
@@ -107,6 +122,7 @@ open class ForecastExport { // open needed by Wicket.
         origFilter: AuftragFilter,
         planningDate: LocalDate? = null,
         snapshotDate: LocalDate? = null,
+        distributeUnusedBudget: Boolean? = null,
         fillUnitCol: ((orderInfo: OrderInfo) -> String)? = null,
     ): ByteArray? {
         val startDateParam = origFilter.periodOfPerformanceStartDate
@@ -160,6 +176,7 @@ open class ForecastExport { // open needed by Wicket.
                 showAll = showAll,
                 auftragFilter = filter,
                 scriptLogger = scriptLogger,
+                distributeUnusedBudget = distributeUnusedBudget ?: ForecastOrderPosInfo.defaultDistributeUnusedBudget,
                 fillUnitCol = fillUnitCol,
             )
         } catch (ex: Exception) {
@@ -231,6 +248,7 @@ open class ForecastExport { // open needed by Wicket.
         snapshotDate: LocalDate?,
         auftragFilter: AuftragFilter,
         scriptLogger: ScriptLogger?,
+        distributeUnusedBudget: Boolean,
         fillUnitCol: ((orderInfo: OrderInfo) -> String)?,
     ): ByteArray? {
         if (orderList.isEmpty()) {
@@ -304,6 +322,7 @@ open class ForecastExport { // open needed by Wicket.
                 planningDate = planningDate,
                 snapshot = snapshotDate != null,
                 fillUnitCol = fillUnitCol,
+                distributeUnusedBudget = distributeUnusedBudget,
             )
             ctx.showAll = showAll
 
@@ -602,6 +621,7 @@ open class ForecastExport { // open needed by Wicket.
         val netSum = pos.netSum ?: BigDecimal.ZERO
         val invoicedSum = posInfo?.invoicedSum ?: BigDecimal.ZERO
         val forecastInfo = ForecastOrderPosInfo(order, pos)
+        forecastInfo.distributeUnusedBudget = ctx.distributeUnusedBudget
         // Distribution must not re-forecast months already covered by actual invoices (respecting baseDate):
         forecastInfo.lastInvoiceMonth = rechnungCache.getRechnungsPosInfosByAuftragsPositionId(pos.id)
             ?.filter { baseDate == null || (it.rechnungInfo?.date ?: LocalDate.MAX) <= baseDate }

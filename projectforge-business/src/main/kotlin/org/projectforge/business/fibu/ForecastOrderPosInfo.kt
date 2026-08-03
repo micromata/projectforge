@@ -106,6 +106,17 @@ class ForecastOrderPosInfo(
      */
     var lastInvoiceMonth: PFDay? = null
 
+    /**
+     * If true (default), unused/undistributed budget of the order position is booked as future revenue in the last
+     * month of the performance period (may overestimate upcoming revenue). If false, this budget is not part of the
+     * forecast and is shown as a negative difference sum (more conservative). Must be set before [calculate] is called.
+     *
+     * This is passed through from the forecast export (e.g. as a script parameter of Forecast.kts), so the behavior
+     * can be chosen per export run. If not set, it falls back to the globally configured
+     * [defaultDistributeUnusedBudget] (application.properties).
+     */
+    var distributeUnusedBudget: Boolean = defaultDistributeUnusedBudget
+
     val months = mutableListOf<MonthEntry>()
     val paymentEntries = mutableListOf<PaymentEntryInfo>()
 
@@ -257,7 +268,7 @@ class ForecastOrderPosInfo(
                     var value = partlyNetSum
                     if (index == months.size - 1) {
                         // If month is the last month of performance period, the total rest of sum is to be invoiced.
-                        if (DISTRIBUTE_UNUSED_BUDGET) {
+                        if (distributeUnusedBudget) {
                             // Version 1 (unused budget will be added to last month (overestimation)):
                             value = futureInvoicesAmountRest
                         } else {
@@ -334,9 +345,14 @@ class ForecastOrderPosInfo(
         const val PERCENTAGE_OF_LOST_BUDGET_WARNING = 10
 
         /**
+         * Global default for [distributeUnusedBudget], configurable via application.properties
+         * (`projectforge.fibu.forecast.distributeUnusedBudget`), set by [ForecastExport] on startup.
          * If true, unused budget will be added to the last distributed month.
          * If false, this budget will be added to the difference sum.
+         *
+         * The forecast Excel export (Forecast.kts) may override this per run via a script parameter; single-order
+         * analyses ([ForecastOrderAnalysis]) use this configured default.
          */
-        internal var DISTRIBUTE_UNUSED_BUDGET = true
+        var defaultDistributeUnusedBudget = true
     }
 }

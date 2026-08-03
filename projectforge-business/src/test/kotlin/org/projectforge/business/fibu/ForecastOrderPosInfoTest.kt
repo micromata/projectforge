@@ -567,6 +567,53 @@ class ForecastOrderPosInfoTest {
         }
     }
 
+    /**
+     * Documents the current effect of the [ForecastOrderPosInfo.distributeUnusedBudget] switch (configurable via
+     * application.properties / the Forecast.kts script parameter).
+     *
+     * Since the #6424 fix, the remaining budget is divided by exactly the remaining month count and distributed
+     * evenly, so the last month only ever holds its own fair share — there is no "unused budget" pile-up. As a
+     * result both switch settings currently produce the same distribution (apart from sub-euro rounding) and the
+     * forecast never over-estimates future revenue: the total distributed always equals toBeInvoicedSum. The switch
+     * is kept wired through for the (currently rare) cases where a last-month rest can still arise and for forward
+     * compatibility, but it must not change the conserved total.
+     */
+    @Test
+    fun `distributeUnusedBudget switch never over-estimates and conserves the total`() {
+        fun buildOrder() = OrderInfo().also { orderInfo ->
+            orderInfo.status = AuftragsStatus.BEAUFTRAGT
+            orderInfo.snapshotDate = baseDate.localDate
+            orderInfo.periodOfPerformanceBegin = LocalDate.of(2024, Month.JANUARY, 1)
+            orderInfo.periodOfPerformanceEnd = LocalDate.of(2025, Month.MARCH, 31)
+        }
+        // Call-off (Abruf) budget, heavily under-invoiced: big net sum, little invoiced, few remaining months.
+        for (distributeUnused in listOf(true, false)) {
+            buildOrder().also { orderInfo ->
+                createPos(
+                    AuftragsStatus.BEAUFTRAGT, AuftragsPositionsPaymentType.TIME_AND_MATERIALS,
+                    PeriodOfPerformanceType.SEEABOVE, netSum = BigDecimal("120000"), invoicedSum = BigDecimal("10000")
+                ).also { pos ->
+                    ForecastOrderPosInfo(orderInfo, pos).also { fcPosInfo ->
+                        fcPosInfo.distributeUnusedBudget = distributeUnused
+                        fcPosInfo.calculate()
+                        val distributed = fcPosInfo.months.sumOf { it.toBeInvoicedSum }
+                        // No over-estimation: never forecast more than remains to be invoiced.
+                        Assertions.assertTrue(
+                            distributed <= fcPosInfo.toBeInvoicedSum.add(BigDecimal.ONE),
+                            "Over-estimation (distributeUnused=$distributeUnused): $distributed > ${fcPosInfo.toBeInvoicedSum}"
+                        )
+                        // Conservation: distributed forecast plus the reported shortfall equals toBeInvoicedSum.
+                        assertSame(
+                            fcPosInfo.toBeInvoicedSum.toPlainString(),
+                            distributed.subtract(fcPosInfo.difference),
+                            "Conservation (distributeUnused=$distributeUnused)"
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     @Test
     fun `test fixed price orders`() {
         OrderInfo().also { orderInfo ->  // Order 6215
@@ -632,7 +679,7 @@ class ForecastOrderPosInfoTest {
             orderInfo: OrderInfo,
             pos: OrderPositionInfo,
             vararg months: String,
-            distributeUnused: Boolean = ForecastOrderPosInfo.DISTRIBUTE_UNUSED_BUDGET,
+            distributeUnused: Boolean = ForecastOrderPosInfo.defaultDistributeUnusedBudget,
             lastInvoiceMonth: PFDay? = null,
         ): ForecastOrderPosInfo {
             return calculateAndAssert(orderInfo, pos, months.toList(), distributeUnused, lastInvoiceMonth)
@@ -642,16 +689,14 @@ class ForecastOrderPosInfoTest {
             orderInfo: OrderInfo,
             pos: OrderPositionInfo,
             months: List<String>,
-            distributeUnused: Boolean = ForecastOrderPosInfo.DISTRIBUTE_UNUSED_BUDGET,
+            distributeUnused: Boolean = ForecastOrderPosInfo.defaultDistributeUnusedBudget,
             lastInvoiceMonth: PFDay? = null,
         ): ForecastOrderPosInfo {
             ForecastOrderPosInfo(orderInfo, pos).also { fcPosInfo ->
-                val saveDefault = ForecastOrderPosInfo.DISTRIBUTE_UNUSED_BUDGET
-                ForecastOrderPosInfo.DISTRIBUTE_UNUSED_BUDGET = distributeUnused
+                fcPosInfo.distributeUnusedBudget = distributeUnused
                 fcPosInfo.lastInvoiceMonth = lastInvoiceMonth
                 fcPosInfo.calculate()
                 assertMonths(fcPosInfo, months)
-                ForecastOrderPosInfo.DISTRIBUTE_UNUSED_BUDGET = saveDefault
                 return fcPosInfo
             }
         }
