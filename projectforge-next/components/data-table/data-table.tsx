@@ -25,8 +25,17 @@ const ROW_ACTIONS_WIDTH = 80;
  * Sticky offsets for pinned columns. Uses getStart/getAfter so several columns can
  * be pinned to the same side without overlapping.
  */
+/**
+ * Sticky offsets for pinned columns. Uses getStart/getAfter so several columns can
+ * be pinned to the same side without overlapping.
+ *
+ * A pinned header cell sticks on both axes, so it needs `top` as well — this
+ * inline style would otherwise override the class that pins the header vertically,
+ * and the pinned columns' headers would scroll away while the others stayed.
+ */
 function pinnedStyle<TData>(
-  column: Column<TData, unknown>
+  column: Column<TData, unknown>,
+  isHeader = false
 ): React.CSSProperties {
   const pinned = column.getIsPinned();
   if (!pinned) return {};
@@ -34,22 +43,18 @@ function pinnedStyle<TData>(
     position: "sticky",
     left: pinned === "left" ? column.getStart("left") : undefined,
     right: pinned === "right" ? column.getAfter("right") : undefined,
-    // Above scrolling cells, below the sticky header (z-20).
-    zIndex: 1,
+    top: isHeader ? 0 : undefined,
+    // Header above everything, pinned body cells above the scrolling ones.
+    zIndex: isHeader ? 30 : 1,
   };
 }
 
 /** Marks the boundary between pinned and scrolling columns. */
-function pinnedClass<TData>(
-  column: Column<TData, unknown>,
-  /** Header cells bring their own background; body cells need an opaque one so
-   *  scrolling columns don't show through. */
-  opaque = true
-): string | undefined {
+/** Marks the boundary between pinned and scrolling columns. */
+function pinnedClass<TData>(column: Column<TData, unknown>): string | undefined {
   const pinned = column.getIsPinned();
   if (!pinned) return undefined;
   return cn(
-    opaque && "bg-background",
     pinned === "left" && column.getIsLastColumn("left") && "border-r",
     pinned === "right" && column.getIsFirstColumn("right") && "border-l"
   );
@@ -126,7 +131,7 @@ export function DataTable<TData>({
                 {hg.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    style={pinnedStyle(header.column)}
+                    style={pinnedStyle(header.column, true)}
                     // The whole cell sorts, rather than a button around the label:
                     // such a button competes with the filter icon for space and
                     // pushes it out of a narrow column. Shift-click adds a column
@@ -137,14 +142,17 @@ export function DataTable<TData>({
                     }
                     className={cn(
                       // sticky per cell (not on thead): with border-collapse
-                      // sticky is ignored on thead/tr. Own background so rows
-                      // don't show through while scrolling underneath.
+                      // sticky is ignored on thead/tr. Own opaque background so
+                      // rows don't show through while scrolling underneath — the
+                      // sorted tint goes on a layer above it (see below), since a
+                      // translucent tint alone would let rows through.
                       "group/th sticky top-0 z-20 truncate border-b bg-muted text-[10px]",
                       // select-none: shift-clicking would otherwise select text.
                       header.column.getCanSort() &&
                         "cursor-pointer select-none",
-                      header.column.getIsSorted() && "bg-primary/10",
-                      pinnedClass(header.column, false)
+                      header.column.getIsSorted() &&
+                        "before:pointer-events-none before:absolute before:inset-0 before:bg-primary/10",
+                      pinnedClass(header.column)
                     )}
                   >
                     {header.isPlaceholder
@@ -241,8 +249,12 @@ function DataTableRow<TData>({
           style={pinnedStyle(cell.column)}
           className={cn(
             // border-b per cell: with border-separate the row's own border-b
-            // doesn't render.
-            "truncate border-b",
+            // doesn't render. Opaque background so columns scrolling past don't
+            // show through the pinned ones, which sit in the same stacking layer —
+            // which also means the row's hover colour has to be applied per cell.
+            // Fully opaque (no /50): a translucent hover would undo exactly the
+            // coverage the background provides.
+            "truncate border-b bg-background group-hover:bg-muted",
             // Hover marker as a pseudo element on the first cell: a dedicated <td>
             // would occupy a column slot and shift every cell out of its column.
             index === 0 &&
