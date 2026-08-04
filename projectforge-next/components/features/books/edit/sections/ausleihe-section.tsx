@@ -3,7 +3,11 @@
 import { useTranslations } from "next-intl";
 import { SectionCard } from "@/components/shared/section-card";
 import { SectionHeader } from "@/components/shared/section-header";
-import { InputField, SelectField, type SelectOption } from "../book-edit-fields";
+import {
+  InputField,
+  SelectField,
+  type SelectOption,
+} from "../book-edit-fields";
 import { LendOutByField } from "./lend-out-by-field";
 import { AusleiheHistoryTable } from "../ausleihe-history-table";
 import type { BookDetail } from "../../types";
@@ -33,7 +37,11 @@ export function AusleiheSection({ book }: Props) {
           label={t("fields.lendOutDate")}
         />
         <InputField name="lendOutComment" label={t("fields.lendOutComment")} />
-        <SelectField name="status" label={t("fields.status")} options={statusOptions} />
+        <SelectField
+          name="status"
+          label={t("fields.status")}
+          options={statusOptions}
+        />
       </div>
       <div className="mt-6">
         <SectionHeader title={t("sections.loanHistory")} />

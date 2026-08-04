@@ -2,10 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Delete01Icon,
-  FloppyDiskIcon,
-} from "@hugeicons/core-free-icons";
+import { Delete01Icon, FloppyDiskIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 
 export interface BookEditActionsProps {

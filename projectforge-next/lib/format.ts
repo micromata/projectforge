@@ -20,7 +20,9 @@ function toBcp47(locale: string | undefined): string {
   return locale ? locale.replace("_", "-") : "de-DE";
 }
 
-export function formatContextFrom(user: UserData | null | undefined): FormatContext {
+export function formatContextFrom(
+  user: UserData | null | undefined
+): FormatContext {
   return {
     locale: toBcp47(user?.locale),
     timeZone: user?.timeZone,
@@ -30,7 +32,8 @@ export function formatContextFrom(user: UserData | null | undefined): FormatCont
 
 function toDate(value: unknown): Date | null {
   if (value == null || value === "") return null;
-  const date = typeof value === "number" ? new Date(value) : new Date(String(value));
+  const date =
+    typeof value === "number" ? new Date(value) : new Date(String(value));
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
@@ -102,9 +105,8 @@ export function formatCurrency(value: unknown, ctx: FormatContext): string {
   return new Intl.NumberFormat(ctx.locale, {
     style: "currency",
     // The backend may send a symbol ("€"); Intl needs an ISO code.
-    currency: ctx.currency && /^[A-Z]{3}$/.test(ctx.currency)
-      ? ctx.currency
-      : "EUR",
+    currency:
+      ctx.currency && /^[A-Z]{3}$/.test(ctx.currency) ? ctx.currency : "EUR",
   }).format(numeric);
 }
 

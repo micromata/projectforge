@@ -36,7 +36,10 @@ function initialMode(
   return kind === "text" ? "selection" : kind;
 }
 
-export function ColumnFilter<TData>({ column, kind }: ColumnFilterProps<TData>) {
+export function ColumnFilter<TData>({
+  column,
+  kind,
+}: ColumnFilterProps<TData>) {
   const t = useTranslations("filter");
   const current = column.getFilterValue() as ColumnFilterValue | undefined;
   const [mode, setMode] = useState<Mode>(() => initialMode(current, kind));
@@ -49,15 +52,11 @@ export function ColumnFilter<TData>({ column, kind }: ColumnFilterProps<TData>) 
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="selection">{t("selection")}</SelectItem>
-          {kind === "text" && (
-            <SelectItem value="text">{t("text")}</SelectItem>
-          )}
+          {kind === "text" && <SelectItem value="text">{t("text")}</SelectItem>}
           {kind === "number" && (
             <SelectItem value="number">{t("number")}</SelectItem>
           )}
-          {kind === "date" && (
-            <SelectItem value="date">{t("date")}</SelectItem>
-          )}
+          {kind === "date" && <SelectItem value="date">{t("date")}</SelectItem>}
         </SelectContent>
       </Select>
 
@@ -82,7 +81,11 @@ export function ColumnFilter<TData>({ column, kind }: ColumnFilterProps<TData>) 
 }
 
 /** Checkbox list of the distinct values present in the column. */
-function SelectionFilter<TData>({ column }: { column: Column<TData, unknown> }) {
+function SelectionFilter<TData>({
+  column,
+}: {
+  column: Column<TData, unknown>;
+}) {
   const t = useTranslations("filter");
   const [search, setSearch] = useState("");
   const selected = column.getFilterValue();
@@ -111,9 +114,7 @@ function SelectionFilter<TData>({ column }: { column: Column<TData, unknown> }) 
     if (checked) next.add(value);
     else next.delete(value);
     // "everything selected" is the same as "no filter" — keeps the state clean.
-    column.setFilterValue(
-      next.size === values.length ? undefined : [...next]
-    );
+    column.setFilterValue(next.size === values.length ? undefined : [...next]);
   }
 
   return (
@@ -147,7 +148,9 @@ function SelectionFilter<TData>({ column }: { column: Column<TData, unknown> }) 
               checked={accepted.includes(value)}
               onCheckedChange={(checked) => toggle(value, checked === true)}
             />
-            <span className="truncate">{value === "" ? t("blank") : value}</span>
+            <span className="truncate">
+              {value === "" ? t("blank") : value}
+            </span>
           </label>
         ))}
       </div>
@@ -205,7 +208,10 @@ const OPERATORS: Record<"text" | "number" | "date", string[]> = {
 };
 
 /** Date columns read "on"/"not on" rather than "equals"/"not equal". */
-function operatorKey(mode: "text" | "number" | "date", operator: string): string {
+function operatorKey(
+  mode: "text" | "number" | "date",
+  operator: string
+): string {
   if (mode !== "date") return operator;
   if (operator === "equals") return "dateEquals";
   if (operator === "notEqual") return "dateNotEqual";
@@ -243,7 +249,8 @@ function ComparisonFilter<TData>({
 
   const needsValue = operator !== "blank" && operator !== "notBlank";
   const needsRange = operator === "between";
-  const inputType = mode === "date" ? "date" : mode === "number" ? "number" : "text";
+  const inputType =
+    mode === "date" ? "date" : mode === "number" ? "number" : "text";
 
   function apply() {
     if (!needsValue) {

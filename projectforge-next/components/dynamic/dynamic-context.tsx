@@ -29,7 +29,8 @@ const DynamicLayoutContext = createContext<DynamicLayoutContextValue | null>(
 
 export function useDynamicLayout() {
   const ctx = useContext(DynamicLayoutContext);
-  if (!ctx) throw new Error("useDynamicLayout must be inside DynamicLayoutProvider");
+  if (!ctx)
+    throw new Error("useDynamicLayout must be inside DynamicLayoutProvider");
   return ctx;
 }
 
@@ -91,7 +92,8 @@ export function DynamicLayoutProvider({
         const response = await callActionApi(action.url, data);
         setValidationErrors(response.validationErrors ?? []);
 
-        const targetType = response.targetType ?? action.responseAction?.targetType;
+        const targetType =
+          response.targetType ?? action.responseAction?.targetType;
 
         switch (targetType) {
           case "REDIRECT":

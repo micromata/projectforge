@@ -47,7 +47,9 @@ export function isLocale(value: string | undefined | null): value is Locale {
 }
 
 /** Maps a backend/browser locale such as "de_DE" or "en-GB" onto a supported locale. */
-export function normalizeLocale(value: string | undefined | null): Locale | undefined {
+export function normalizeLocale(
+  value: string | undefined | null
+): Locale | undefined {
   if (!value) return undefined;
   const language = value.replace("_", "-").split("-")[0].toLowerCase();
   return isLocale(language) ? language : undefined;

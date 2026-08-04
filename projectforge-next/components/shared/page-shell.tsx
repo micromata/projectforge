@@ -13,9 +13,7 @@ export function PageShell({ children }: PageShellProps) {
     <div className="flex h-screen flex-col overflow-hidden">
       <BrandStripe />
       <TopNavigation />
-      <main className="flex flex-1 flex-col overflow-auto">
-        {children}
-      </main>
+      <main className="flex flex-1 flex-col overflow-auto">{children}</main>
     </div>
   );
 }

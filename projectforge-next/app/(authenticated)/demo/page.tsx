@@ -12,7 +12,6 @@ import { BooksFilterPanel } from "@/components/features/books/books-filter-panel
 import type { BookListRow } from "@/components/features/books/types";
 
 export default function DemoPage() {
-
   const columns = useBooksColumns();
   const {
     data,
@@ -39,10 +38,7 @@ export default function DemoPage() {
         <SidebarInset className="flex flex-1 flex-col overflow-hidden">
           <ListPageShell
             toolbar={
-              <BooksToolbar
-                search={globalFilter}
-                onSearch={setGlobalFilter}
-              />
+              <BooksToolbar search={globalFilter} onSearch={setGlobalFilter} />
             }
             filterPanel={<BooksFilterPanel className="hidden lg:flex" />}
           >

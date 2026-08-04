@@ -33,16 +33,15 @@ export function DynamicTextarea({ node }: DynamicComponentProps) {
         className={cn(error && "border-destructive")}
         onChange={(e) => setData({ [id]: e.target.value })}
       />
-      {error && (
-        <p className="text-xs text-destructive">{error.message}</p>
-      )}
+      {error && <p className="text-xs text-destructive">{error.message}</p>}
     </div>
   );
 }
 
 function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
   return path.split(".").reduce<unknown>((acc, key) => {
-    if (acc && typeof acc === "object") return (acc as Record<string, unknown>)[key];
+    if (acc && typeof acc === "object")
+      return (acc as Record<string, unknown>)[key];
     return undefined;
   }, obj);
 }

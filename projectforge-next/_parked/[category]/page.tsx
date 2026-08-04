@@ -37,8 +37,9 @@ export default function DynamicListPage() {
     );
   }
 
-  const resultInfo = (response.data as Record<string, unknown>)
-    ?.resultInfo as string | undefined;
+  const resultInfo = (response.data as Record<string, unknown>)?.resultInfo as
+    | string
+    | undefined;
 
   return (
     <PageShell>

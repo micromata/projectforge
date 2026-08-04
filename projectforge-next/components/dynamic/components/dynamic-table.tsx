@@ -30,7 +30,8 @@ export function DynamicTable({ node }: DynamicComponentProps) {
           <tr className="border-b bg-muted/50">
             {columns.map((col, i) => {
               const key = col.field ?? col.id ?? String(i);
-              const label = col.headerName ?? col.title ?? col.field ?? col.id ?? "";
+              const label =
+                col.headerName ?? col.title ?? col.field ?? col.id ?? "";
               return (
                 <th
                   key={key}

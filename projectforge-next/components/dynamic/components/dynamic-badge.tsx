@@ -8,7 +8,10 @@ export function DynamicBadge({ node }: DynamicComponentProps) {
   const { translate } = useDynamicLayout();
 
   if (node.type === "BADGE_LIST") {
-    const badges = (node.badges ?? []) as Array<{ title?: string; style?: string }>;
+    const badges = (node.badges ?? []) as Array<{
+      title?: string;
+      style?: string;
+    }>;
     return (
       <div className="flex flex-wrap gap-1">
         {badges.map((b, idx) => (

@@ -160,7 +160,9 @@ export function DataTableColumnPanel<TData>({
                       key={column.id}
                       column={column}
                       label={columnLabel(column)}
-                      isLastVisible={column.getIsVisible() && visibleCount === 1}
+                      isLastVisible={
+                        column.getIsVisible() && visibleCount === 1
+                      }
                       pinLabel={t("unpin")}
                       dragLabel={t("dragToSort")}
                       onTogglePin={() => togglePin(column)}
@@ -246,8 +248,14 @@ function SortableColumnRow<TData>({
   dragLabel,
   onTogglePin,
 }: ColumnRowProps<TData>) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: column.id });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: column.id });
   const isPinned = !!column.getIsPinned();
 
   return (

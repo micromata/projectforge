@@ -87,7 +87,10 @@ function CategoriesDropdown({ categories }: { categories: MenuItem[] }) {
           <span className="hidden sm:inline">Menü</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-[600px] max-h-[70vh] overflow-y-auto">
+      <DropdownMenuContent
+        align="start"
+        className="w-[600px] max-h-[70vh] overflow-y-auto"
+      >
         <div className="grid grid-cols-2 gap-4 p-3 sm:grid-cols-3 lg:grid-cols-4">
           {categories.map((category) => (
             <CategoryColumn
@@ -139,7 +142,12 @@ function FavoritesBar({ items }: { items: MenuItem[] }) {
   return (
     <div className="hidden md:flex items-center gap-1">
       {items.map((item) => (
-        <Button key={item.key ?? item.url ?? item.title} variant="ghost" size="sm" asChild>
+        <Button
+          key={item.key ?? item.url ?? item.title}
+          variant="ghost"
+          size="sm"
+          asChild
+        >
           <MenuLink url={item.url}>{item.title}</MenuLink>
         </Button>
       ))}

@@ -52,7 +52,6 @@ export function BooksToolbar({
           />
         </div>
       </div>
-
     </div>
   );
 }

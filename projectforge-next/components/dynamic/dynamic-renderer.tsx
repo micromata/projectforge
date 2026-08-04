@@ -46,7 +46,11 @@ const COMPONENT_MAP: Record<string, ComponentType<DynamicComponentProps>> = {
   SPACER: DynamicSpacer,
 };
 
-export function DynamicRenderer({ content }: { content?: DynamicLayoutNode[] }) {
+export function DynamicRenderer({
+  content,
+}: {
+  content?: DynamicLayoutNode[];
+}) {
   if (!content || content.length === 0) return null;
 
   return (

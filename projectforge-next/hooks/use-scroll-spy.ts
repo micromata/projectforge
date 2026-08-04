@@ -7,10 +7,7 @@ interface UseScrollSpyOptions {
   scrollInset?: number;
 }
 
-export function useScrollSpy(
-  sectionCount: number,
-  opts?: UseScrollSpyOptions
-) {
+export function useScrollSpy(sectionCount: number, opts?: UseScrollSpyOptions) {
   const offset = opts?.offset ?? 80;
   const scrollInset = opts?.scrollInset ?? 6;
 

@@ -13,7 +13,11 @@ export interface EditPageTabsProps {
   onSelect: (index: number) => void;
 }
 
-export function EditPageTabs({ tabs, activeIndex, onSelect }: EditPageTabsProps) {
+export function EditPageTabs({
+  tabs,
+  activeIndex,
+  onSelect,
+}: EditPageTabsProps) {
   return (
     <div
       role="tablist"

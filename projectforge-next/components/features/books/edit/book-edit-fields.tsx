@@ -1,7 +1,12 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -60,7 +65,10 @@ function FieldShell({
   children: ReactNode;
 }) {
   return (
-    <Field data-invalid={invalid || undefined} className={cn("gap-1.5", className)}>
+    <Field
+      data-invalid={invalid || undefined}
+      className={cn("gap-1.5", className)}
+    >
       <FieldLabel className="text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
         {label}
         {required && <span className="ml-0.5 text-primary">*</span>}
@@ -88,7 +96,11 @@ export function InputField({
     <form.Field name={name as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       {(field: any) => {
-        const meta = field.state.meta as { isTouched: boolean; isValid: boolean; errors?: unknown[] };
+        const meta = field.state.meta as {
+          isTouched: boolean;
+          isValid: boolean;
+          errors?: unknown[];
+        };
         const invalid = meta.isTouched && !meta.isValid;
         const raw = field.state.value as string | null;
         return (
@@ -131,7 +143,11 @@ export function TextAreaField({
     <form.Field name={name as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       {(field: any) => {
-        const meta = field.state.meta as { isTouched: boolean; isValid: boolean; errors?: unknown[] };
+        const meta = field.state.meta as {
+          isTouched: boolean;
+          isValid: boolean;
+          errors?: unknown[];
+        };
         const invalid = meta.isTouched && !meta.isValid;
         const raw = field.state.value as string | null;
         return (
@@ -178,7 +194,11 @@ export function SelectField({
     <form.Field name={name as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       {(field: any) => {
-        const meta = field.state.meta as { isTouched: boolean; isValid: boolean; errors?: unknown[] };
+        const meta = field.state.meta as {
+          isTouched: boolean;
+          isValid: boolean;
+          errors?: unknown[];
+        };
         const invalid = meta.isTouched && !meta.isValid;
         const raw = (field.state.value as string | null) ?? "";
         return (

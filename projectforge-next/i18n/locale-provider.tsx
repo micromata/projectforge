@@ -27,7 +27,9 @@ const listeners = new Set<() => void>();
 function getSnapshot(): Locale {
   if (currentLocale === null) {
     currentLocale =
-      readCookieLocale() ?? normalizeLocale(navigator.language) ?? DEFAULT_LOCALE;
+      readCookieLocale() ??
+      normalizeLocale(navigator.language) ??
+      DEFAULT_LOCALE;
   }
   return currentLocale;
 }
@@ -47,7 +49,11 @@ function subscribe(onChange: () => void) {
  * locale) → browser language → default.
  */
 export function useLocale() {
-  const locale = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const locale = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot
+  );
 
   const setLocale = useCallback((next: Locale) => {
     if (currentLocale === next) return;

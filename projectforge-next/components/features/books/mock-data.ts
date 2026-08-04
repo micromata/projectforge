@@ -116,7 +116,8 @@ const SEEDS: Seed[] = [
     editor: "Neuauflage",
     isbn: "978-3-492-31234-5",
     keywords: "physics, quantum",
-    abstractText: "Allgemein verständliche Einführung in die Quantenelektrodynamik.",
+    abstractText:
+      "Allgemein verständliche Einführung in die Quantenelektrodynamik.",
     created: "11.09.2022",
     lendOutByIdx: null,
     lendOutDate: null,
@@ -279,7 +280,10 @@ export function findBook(id: number): BookDetail | undefined {
   return BOOKS.find((b) => b.id === id);
 }
 
-export function updateBook(id: number, patch: Partial<BookDetail>): BookDetail | undefined {
+export function updateBook(
+  id: number,
+  patch: Partial<BookDetail>
+): BookDetail | undefined {
   const idx = BOOKS.findIndex((b) => b.id === id);
   if (idx < 0) return undefined;
   BOOKS[idx] = { ...BOOKS[idx], ...patch, id: BOOKS[idx].id };

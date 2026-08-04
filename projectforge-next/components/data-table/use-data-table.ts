@@ -90,15 +90,21 @@ export function useDataTable<TData>({
   initialPageSize = 50,
 }: UseDataTableOptions<TData>): Table<TData> {
   const [internalSorting, setInternalSorting] = useState<SortingState>([]);
-  const [internalPagination, setInternalPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: initialPageSize,
-  });
-  const [internalFilters, setInternalFilters] = useState<ColumnFiltersState>([]);
+  const [internalPagination, setInternalPagination] = useState<PaginationState>(
+    {
+      pageIndex: 0,
+      pageSize: initialPageSize,
+    }
+  );
+  const [internalFilters, setInternalFilters] = useState<ColumnFiltersState>(
+    []
+  );
   const [internalVisibility, setInternalVisibility] = useState<VisibilityState>(
     {}
   );
-  const [internalPinning, setInternalPinning] = useState<ColumnPinningState>({});
+  const [internalPinning, setInternalPinning] = useState<ColumnPinningState>(
+    {}
+  );
   const [internalSizing, setInternalSizing] = useState<ColumnSizingState>({});
   const [internalOrder, setInternalOrder] = useState<ColumnOrderState>([]);
 
@@ -112,7 +118,9 @@ export function useDataTable<TData>({
       : getPaginationRowModel(),
     // Column filters always work on the client: the backend returns the whole
     // result set, so there is nothing to round-trip for them.
-    getFilteredRowModel: enableColumnFilters ? getFilteredRowModel() : undefined,
+    getFilteredRowModel: enableColumnFilters
+      ? getFilteredRowModel()
+      : undefined,
     getFacetedRowModel: enableColumnFilters ? getFacetedRowModel() : undefined,
     getFacetedUniqueValues: enableColumnFilters
       ? getFacetedUniqueValues()

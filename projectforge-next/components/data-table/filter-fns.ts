@@ -172,8 +172,7 @@ function matchesDate(value: unknown, filter: DateFilterValue): boolean {
       return date > filter.value;
     case "between":
       return (
-        date >= filter.value &&
-        (!filter.valueTo || date <= filter.valueTo)
+        date >= filter.value && (!filter.valueTo || date <= filter.valueTo)
       );
     default:
       return true;

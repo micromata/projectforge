@@ -11,7 +11,11 @@ export function NotizenSection() {
     <SectionCard>
       <SectionHeader title={t("sections.notes")} />
       <div className="flex flex-col gap-4">
-        <TextAreaField name="abstractText" label={t("fields.abstract")} rows={4} />
+        <TextAreaField
+          name="abstractText"
+          label={t("fields.abstract")}
+          rows={4}
+        />
         <TextAreaField
           name="comment"
           label={t("fields.comment")}
