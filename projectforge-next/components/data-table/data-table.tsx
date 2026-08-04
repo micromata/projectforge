@@ -9,7 +9,6 @@ import {
 import { useTranslations } from "next-intl";
 import { useDataTable, type UseDataTableOptions } from "./use-data-table";
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
@@ -26,7 +25,9 @@ const ROW_ACTIONS_WIDTH = 80;
  * Sticky offsets for pinned columns. Uses getStart/getAfter so several columns can
  * be pinned to the same side without overlapping.
  */
-function pinnedStyle<TData>(column: Column<TData, unknown>): React.CSSProperties {
+function pinnedStyle<TData>(
+  column: Column<TData, unknown>
+): React.CSSProperties {
   const pinned = column.getIsPinned();
   if (!pinned) return {};
   return {
@@ -104,8 +105,12 @@ export function DataTable<TData>({
             Every width is explicit and the table is exactly as wide as their sum,
             so resizing one column leaves the others alone: any spare space in the
             container goes to the filler column below, never to the data columns. */}
-        <Table
-          className="min-w-full table-fixed text-xs [&_td]:px-2 [&_td]:py-1 [&_th]:h-7 [&_th]:px-2"
+        {/* Plain <table> instead of the shadcn Table primitive: that one wraps the
+            table in its own overflow-x-auto element, which becomes the scroll
+            container the sticky header would stick to — the wrong one, since
+            vertical scrolling happens further out. */}
+        <table
+          className="min-w-full table-fixed border-separate border-spacing-0 text-xs [&_td]:px-2 [&_td]:py-1 [&_th]:h-7 [&_th]:px-2"
           style={{ width: totalWidth }}
         >
           <colgroup>
@@ -115,7 +120,7 @@ export function DataTable<TData>({
             {rowActions && <col style={{ width: ROW_ACTIONS_WIDTH }} />}
             <col />
           </colgroup>
-          <TableHeader className="sticky top-0 z-20 bg-muted">
+          <TableHeader>
             {table.getHeaderGroups().map((hg) => (
               <TableRow key={hg.id}>
                 {hg.headers.map((header) => (
@@ -127,13 +132,17 @@ export function DataTable<TData>({
                     // pushes it out of a narrow column. Shift-click adds a column
                     // to the sort (TanStack's default).
                     onClick={header.column.getToggleSortingHandler()}
-                    title={header.column.getCanSort() ? tColumns("sort") : undefined}
+                    title={
+                      header.column.getCanSort() ? tColumns("sort") : undefined
+                    }
                     className={cn(
-                      // Own background: the sticky header would otherwise let
-                      // rows show through as they scroll underneath.
-                      "group/th relative truncate bg-muted text-[10px]",
+                      // sticky per cell (not on thead): with border-collapse
+                      // sticky is ignored on thead/tr. Own background so rows
+                      // don't show through while scrolling underneath.
+                      "group/th sticky top-0 z-20 truncate border-b bg-muted text-[10px]",
                       // select-none: shift-clicking would otherwise select text.
-                      header.column.getCanSort() && "cursor-pointer select-none",
+                      header.column.getCanSort() &&
+                        "cursor-pointer select-none",
                       header.column.getIsSorted() && "bg-primary/10",
                       pinnedClass(header.column, false)
                     )}
@@ -203,7 +212,7 @@ export function DataTable<TData>({
                 ))
             )}
           </TableBody>
-        </Table>
+        </table>
       </div>
       <DataTablePagination table={table} />
     </div>
@@ -231,7 +240,9 @@ function DataTableRow<TData>({
           key={cell.id}
           style={pinnedStyle(cell.column)}
           className={cn(
-            "truncate",
+            // border-b per cell: with border-separate the row's own border-b
+            // doesn't render.
+            "truncate border-b",
             // Hover marker as a pseudo element on the first cell: a dedicated <td>
             // would occupy a column slot and shift every cell out of its column.
             index === 0 &&
