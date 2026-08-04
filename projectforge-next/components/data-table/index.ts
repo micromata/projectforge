@@ -15,4 +15,7 @@ export type { UseDataTableOptions } from "./use-data-table";
 export { useMagicFilterQuery } from "./use-magic-filter-query";
 export { useTableState } from "./use-table-state";
 export type { ColumnState, TableStateResult } from "./use-table-state";
-export { useColumnStatePersistence } from "./use-column-state-persistence";
+export {
+  useColumnStatePersistence,
+  useStoredColumnState,
+} from "./use-column-state-persistence";

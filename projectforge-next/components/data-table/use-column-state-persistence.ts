@@ -1,24 +1,45 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
+import {
+  fetchColumnStates,
+  saveColumnStates,
+  type ColumnStateDto,
+} from "@/lib/rs/client";
 import type { ColumnState } from "./use-table-state";
 
 const DEBOUNCE_MS = 500;
 
 /**
- * Persists the column state to the backend (AbstractPagesRest's setColumnStates,
- * stored in user prefs per entity category).
+ * Loads the column state the backend keeps per entity category (user prefs).
  *
- * Skips the initial render: the state has just been restored from the server, so
- * posting it straight back would be a pointless write on every page view. Pending
- * writes are flushed on unmount so a resize right before navigating isn't lost.
+ * `isPending` matters to the caller: applying the state only once it has arrived
+ * avoids a visible jump from default layout to stored layout.
+ */
+export function useStoredColumnState(entity: string | undefined) {
+  return useQuery<ColumnStateDto>({
+    queryKey: ["columnStates", entity],
+    queryFn: ({ signal }) => fetchColumnStates(entity!, signal),
+    enabled: !!entity,
+    // A layout preference is worth one request per session, not per mount.
+    staleTime: Infinity,
+    retry: false,
+  });
+}
+
+/**
+ * Persists the column state back to the backend, debounced.
+ *
+ * Only mount this once the stored state has been read (see useStoredColumnState),
+ * otherwise the first render writes defaults over it. Pending writes are flushed
+ * on unmount so a resize right before navigating isn't lost.
  */
 export function useColumnStatePersistence(
-  url: string | undefined,
+  entity: string | undefined,
   state: ColumnState
 ) {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isFirstRun = useRef(true);
   // Read inside the timeout so a flush always sends the newest state.
   const latest = useRef(state);
 
@@ -29,22 +50,12 @@ export function useColumnStatePersistence(
   }, [state]);
 
   useEffect(() => {
-    if (!url) return;
-    if (isFirstRun.current) {
-      isFirstRun.current = false;
-      return;
-    }
+    if (!entity) return;
 
     const post = () => {
       timer.current = null;
-      void fetch(url, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(latest.current),
-        keepalive: true,
-      }).catch(() => {
-        // Losing a column-layout preference must never surface as a user error.
+      void saveColumnStates(entity, latest.current).catch(() => {
+        // Losing a layout preference must never surface as a user error.
       });
     };
 
@@ -57,5 +68,5 @@ export function useColumnStatePersistence(
         post();
       }
     };
-  }, [url, serialized]);
+  }, [entity, serialized]);
 }

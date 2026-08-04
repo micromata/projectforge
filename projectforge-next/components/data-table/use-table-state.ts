@@ -12,11 +12,8 @@ import type {
 
 /**
  * The column state the backend persists per entity category (user prefs, via
- * AbstractPagesRest's setColumnStates). The wire format is TanStack's own state
- * shape, so these slices map 1:1.
- *
- * Note: the backend stores columnFilters but never returns them — it folds the
- * restored state back into the column defs instead (see AGGridSupport).
+ * AbstractPagesRest's setColumnStates / columnStates). The wire format is
+ * TanStack's own state shape, so these slices map 1:1.
  */
 export interface ColumnState {
   columnOrder?: ColumnOrderState;
@@ -33,6 +30,13 @@ export interface TableStateOptions {
   initialPinning?: ColumnPinningState;
   initialSizing?: ColumnSizingState;
   initialOrder?: ColumnOrderState;
+  /**
+   * State previously stored for this user (e.g. from the backend), used as the
+   * starting point. It has to be present on the first render — state can't be
+   * swapped in later without fighting the user's edits — so the caller should
+   * hold the table back until it has loaded.
+   */
+  restoredState?: ColumnState;
 }
 
 /** Bundles the column-related state slices shared by DataTable and its toolbars. */
@@ -42,17 +46,29 @@ export function useTableState({
   initialPinning = {},
   initialSizing = {},
   initialOrder = [],
+  restoredState,
 }: TableStateOptions = {}) {
-  const [sorting, setSorting] = useState<SortingState>(initialSorting);
+  // Each slice of the stored state is optional: the backend omits whatever the
+  // user never changed. columnFilters are deliberately not restored — reopening
+  // a list with filters applied but not visible is confusing.
+  const [sorting, setSorting] = useState<SortingState>(
+    restoredState?.sorting?.length ? restoredState.sorting : initialSorting
+  );
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] =
-    useState<VisibilityState>(initialVisibility);
-  const [columnPinning, setColumnPinning] =
-    useState<ColumnPinningState>(initialPinning);
-  const [columnSizing, setColumnSizing] =
-    useState<ColumnSizingState>(initialSizing);
-  const [columnOrder, setColumnOrder] =
-    useState<ColumnOrderState>(initialOrder);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    restoredState?.columnVisibility ?? initialVisibility
+  );
+  const [columnPinning, setColumnPinning] = useState<ColumnPinningState>(
+    restoredState?.columnPinning ?? initialPinning
+  );
+  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>(
+    restoredState?.columnSizing ?? initialSizing
+  );
+  const [columnOrder, setColumnOrder] = useState<ColumnOrderState>(
+    restoredState?.columnOrder?.length
+      ? restoredState.columnOrder
+      : initialOrder
+  );
 
   return {
     sorting,

@@ -50,6 +50,7 @@ import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.aggrid.AGGridSupport
+import org.projectforge.rest.core.aggrid.GridState
 import org.projectforge.rest.dto.*
 import org.projectforge.rest.dto.datatable.DataTableStateRequest
 import org.projectforge.rest.multiselect.MultiSelectionSupport
@@ -940,6 +941,20 @@ constructor(
     fun updateColumnStates(@Valid @RequestBody request: DataTableStateRequest): String {
         agGridSupport.storeGridState(category, request)
         return "OK"
+    }
+
+    /**
+     * The user's stored grid state (column order, width, visibility, pinning, sorting), or an empty
+     * state if there is none yet.
+     *
+     * Counterpart to [updateColumnStates] for pages that aren't built from a [UILayout]: those get
+     * the state folded into their column definitions instead (see
+     * AGGridSupport.restoreColumnsFromUserPref), which a hand-built page has no equivalent of.
+     * The format is TanStack Table's own state, so the frontend can apply it as is.
+     */
+    @GetMapping(RestPaths.COLUMN_STATES)
+    fun getColumnStates(): GridState {
+        return agGridSupport.getGridState(category) ?: GridState()
     }
 
     protected open fun autoSaveOnClone(

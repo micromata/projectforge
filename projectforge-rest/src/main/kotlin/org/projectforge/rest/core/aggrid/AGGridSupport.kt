@@ -61,7 +61,14 @@ class AGGridSupport {
         userPrefService.putEntry(category, USER_PREF_PARAM_GRID_STATE, gridState, true)
     }
 
-    private fun getGridState(category: String): GridState? {
+    /**
+     * The stored grid state, or null if the user has none yet.
+     *
+     * Pages built from a [UILayout] don't need this: [restoreColumnsFromUserPref] folds the state
+     * back into the column definitions for them. Hand-built frontend pages have no layout to fold
+     * it into and read the state directly instead (see AbstractPagesRest.getColumnStates).
+     */
+    fun getGridState(category: String): GridState? {
         return userPrefService.getEntry(category, USER_PREF_PARAM_GRID_STATE, GridState::class.java)
     }
 

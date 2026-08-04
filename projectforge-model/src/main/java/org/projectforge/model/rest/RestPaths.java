@@ -66,6 +66,11 @@ public class RestPaths
 
   public static final String SET_COLUMN_STATES = "setColumnStates";
 
+  /**
+   * Reads back what SET_COLUMN_STATES stored, for pages that aren't built from a UILayout.
+   */
+  public static final String COLUMN_STATES = "columnStates";
+
   public static final String WATCH_FIELDS = "watchFields";
 
   public static final String FILTER_RESET = "filterReset";
