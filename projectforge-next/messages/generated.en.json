@@ -56,6 +56,10 @@
     "pin": "Pin left",
     "pinned": "Pinned",
     "reset": "Reset columns",
+    "sort": "Sort (shift-click to sort by several columns)",
+    "sortAscending": "Sorted ascending",
+    "sortDescending": "Sorted descending",
+    "sortPosition": "Sort position {arg0}",
     "unpin": "Unpin"
   },
   "created": "created",

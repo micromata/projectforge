@@ -80,6 +80,7 @@ export function DataTable<TData>({
   ...tableOptions
 }: DataTableProps<TData>) {
   const t = useTranslations("table");
+  const tColumns = useTranslations("columns");
   // Only used when no table was passed in; the hook must run unconditionally.
   const ownTable = useDataTable(tableOptions);
   const table = tableProp ?? ownTable;
@@ -121,10 +122,18 @@ export function DataTable<TData>({
                   <TableHead
                     key={header.id}
                     style={pinnedStyle(header.column)}
+                    // The whole cell sorts, rather than a button around the label:
+                    // such a button competes with the filter icon for space and
+                    // pushes it out of a narrow column. Shift-click adds a column
+                    // to the sort (TanStack's default).
+                    onClick={header.column.getToggleSortingHandler()}
+                    title={header.column.getCanSort() ? tColumns("sort") : undefined}
                     className={cn(
                       // Own background: the sticky header would otherwise let
                       // rows show through as they scroll underneath.
                       "group/th relative truncate bg-muted text-[10px]",
+                      // select-none: shift-clicking would otherwise select text.
+                      header.column.getCanSort() && "cursor-pointer select-none",
                       header.column.getIsSorted() && "bg-primary/10",
                       pinnedClass(header.column, false)
                     )}

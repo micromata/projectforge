@@ -56,6 +56,10 @@
     "pin": "Links anheften",
     "pinned": "Angeheftet",
     "reset": "Spalten zurücksetzen",
+    "sort": "Sortieren (Shift-Klick für mehrere Spalten)",
+    "sortAscending": "Aufsteigend sortiert",
+    "sortDescending": "Absteigend sortiert",
+    "sortPosition": "Sortierposition {arg0}",
     "unpin": "Nicht mehr anheften"
   },
   "created": "angelegt",

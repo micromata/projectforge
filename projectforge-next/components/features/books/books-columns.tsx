@@ -24,8 +24,8 @@ export function useBooksColumns(): ColumnDef<BookListRow>[] {
     meta: { label: t("created") },
     // Wide enough for a localised date and time.
     size: 130,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} filterKind="date">
+    header: ({ column, table }) => (
+      <DataTableColumnHeader column={column} table={table} filterKind="date">
         {t("created")}
       </DataTableColumnHeader>
     ),
@@ -39,8 +39,8 @@ export function useBooksColumns(): ColumnDef<BookListRow>[] {
     accessorKey: "yearOfPublishing",
     meta: { label: tBook("yearOfPublishing.short") },
     size: 56,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} filterKind="number">
+    header: ({ column, table }) => (
+      <DataTableColumnHeader column={column} table={table} filterKind="number">
         {tBook("yearOfPublishing.short")}
       </DataTableColumnHeader>
     ),
@@ -52,8 +52,8 @@ export function useBooksColumns(): ColumnDef<BookListRow>[] {
     accessorKey: "signature",
     meta: { label: tBook("signature") },
     size: 76,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} filterKind="text">
+    header: ({ column, table }) => (
+      <DataTableColumnHeader column={column} table={table} filterKind="text">
         {tBook("signature")}
       </DataTableColumnHeader>
     ),
@@ -67,8 +67,8 @@ export function useBooksColumns(): ColumnDef<BookListRow>[] {
     accessorKey: "authors",
     meta: { label: tBook("authors") },
     size: 140,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} filterKind="text">
+    header: ({ column, table }) => (
+      <DataTableColumnHeader column={column} table={table} filterKind="text">
         {tBook("authors")}
       </DataTableColumnHeader>
     ),
@@ -83,8 +83,8 @@ export function useBooksColumns(): ColumnDef<BookListRow>[] {
     // column would fall back to TanStack's 150px default.
     size: 280,
     minSize: 200,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} filterKind="text">
+    header: ({ column, table }) => (
+      <DataTableColumnHeader column={column} table={table} filterKind="text">
         {tBook("title._")}
       </DataTableColumnHeader>
     ),
@@ -101,8 +101,8 @@ export function useBooksColumns(): ColumnDef<BookListRow>[] {
     accessorKey: "keywords",
     meta: { label: tBook("keywords") },
     size: 132,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} filterKind="text">
+    header: ({ column, table }) => (
+      <DataTableColumnHeader column={column} table={table} filterKind="text">
         {tBook("keywords")}
       </DataTableColumnHeader>
     ),
@@ -115,8 +115,8 @@ export function useBooksColumns(): ColumnDef<BookListRow>[] {
     meta: { label: tBook("lendOutBy") },
     accessorFn: (row) => row.lendOutBy?.displayName ?? "",
     size: 140,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} filterKind="text">
+    header: ({ column, table }) => (
+      <DataTableColumnHeader column={column} table={table} filterKind="text">
         {tBook("lendOutBy")}
       </DataTableColumnHeader>
     ),
