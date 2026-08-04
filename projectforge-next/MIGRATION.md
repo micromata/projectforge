@@ -255,36 +255,54 @@ als eigener Commit).
   Die Server-Garantien bleiben: 10-Minuten-2FA-Fenster, CSRF-Token, Mail-OTP
   gesperrt, Token nach Erfolg invalidiert.
 
+**Erledigt: Spaltenzustand-Persistenz.** Breiten, Sichtbarkeit, Pinning,
+Reihenfolge und Sortierung liegen serverseitig in den User-Prefs pro Entität und
+gelten damit geräteübergreifend. Gespeichert wurde schon vorher über
+`setColumnStates`, aber **nur beim UILayout-Aufbau zurückgelesen** (in die
+ColumnDefs, `AGGridSupport.restoreColumnsFromUserPref`) – handgebaute Seiten
+haben kein Layout dafür. Deshalb gibt es jetzt einen GET-Endpunkt
+(`AbstractPagesRest.getColumnStates`, `RestPaths.COLUMN_STATES`), der den
+`GridState` als natives TanStack-Format liefert. Die Tabelle montiert erst, wenn
+er da ist – er initialisiert TanStacks State, ein Nachschieben würde mit den
+Änderungen des Nutzers kollidieren. `columnFilters` wird bewusst **nicht**
+wiederhergestellt (unsichtbar greifende Filter irritieren; das Backend liefert
+sie ohnehin nie zurück).
+
+**Erledigt: Filter-Panel.** Ein-/ausschiebbares Seitenpanel im
+`filterPanel`-Slot von `ListPageShell`; eingeklappt zeigt ein Knopf die Anzahl
+aktiver Filter. Die Attrappe (hartkodierte Autorennamen, erfundene Zahlen
+234/189/45) ist ersetzt. Bausteine: `components/data-table/filter-panel.tsx`,
+`filter-panel-field.tsx`, `lib/rs/filter-elements.ts`, `hooks/use-initial-list.ts`.
+
+- **Die Felder kommen vom Backend**, nicht aus dem Frontend: `UINamedContainer("searchFilter")`
+  mit `FILTER_ELEMENT`-Kindern, abgeleitet aus `baseDao.searchFields` plus vier
+  Standardfeldern (Änderer, Änderungszeitraum, History-Wert, gelöscht). Für Bücher
+  sind das 21 Felder über alle sechs Typen (STRING, DATE, TIMESTAMP, BOOLEAN,
+  OBJECT, LIST). Jede weitere Entität funktioniert ohne Zutun.
+- **Serverseitig** über `MagicFilter.entries` – anders als die Spalten-Filter im
+  Header, die auf dem geladenen Ergebnis arbeiten.
+- **Zwei Kontrakt-Fallen:** STRING wird zu `LIKE` über das *ganze* Feld, das Panel
+  setzt daher Wildcards (`Larkin` fände sonst `Peter J. Larkin` nicht) und
+  respektiert selbst gesetzte. Bereichsgrenzen heißen auf dem Draht `from`/`to`,
+  nicht `fromValue`/`toValue` (`@JsonProperty`).
+
 **Offen:**
 
-1. **Spaltenzustand persistieren.** `useColumnStatePersistence` ist gebaut, aber
-   noch **nicht verdrahtet** – es fehlt die `setColumnStates`-URL, die aus dem
-   Layout kommt (`AbstractPagesRest`, User-Prefs pro Entity-Kategorie). Das
-   Wire-Format ist natives TanStack-State (`DataTableStateRequest`/`GridState`),
-   kein AG-Grid-Erbe. Achtung: `columnFilters` wird gespeichert, aber vom Backend
-   **nie zurückgeliefert** – der restaurierte Zustand wird stattdessen in die
-   ColumnDefs zurückgeschrieben (`AGGridSupport.restoreColumnsFromUserPref`).
-2. **Filter-Panel echt anbinden** (Ziel, nicht wegfallen lassen): ein von der
-   Seite **ein- und ausschiebbares** Filterpanel. Der jetzige Stand
-   `books-filter-panel.tsx` ist eine Design-Attrappe – hartkodierte Autorennamen,
-   erfundene Zahlen (234/189/45), gespeicherte Filter, an keinen Query gebunden.
-   Deshalb ist es auf der `books`-Seite vorübergehend **ausgehängt** (zusammen mit
-   den Attrappen-Chips und dem „Gespeichert"-Button); die Spalten-Filter im Header
-   sind der funktionierende Zwischenstand. Es hängt noch an `demo/` als
-   Design-Referenz.
-
-   Für die echte Umsetzung:
-   - **Serverseitige Filterung** über `MagicFilter.entries` (`MagicFilterEntry`
-     mit `field` + `value`), nicht clientseitig wie die Spalten-Filter. Welche
-     Felder eine Entity anbietet, liefert das Backend im Layout als
-     `UINamedContainer("searchFilter")` mit `FILTER_ELEMENT`-Kindern
-     (`LayoutListFilterUtils.createNamedSearchFilterContainer`) – die Felder und
-     etwaige Zahlen müssen von dort kommen, nicht erfunden sein.
-   - **Gespeicherte Filter** = Filter-Favoriten des Backends
-     (`AbstractPagesRest`: `filter/select|create|rename|update|delete|reset`).
-   - **Ein-/Ausschieben:** `ListPageShell` hat bereits einen `filterPanel`-Slot
-     (rechte Spalte); für das Verschieben bietet shadcn `Sheet` (mobil) bzw. ein
-     kollabierbares Panel (Desktop) an. Zustand pro Nutzer merken.
+1. **Aktive Filter als Pillen unter der Suchleiste.** Wie in der Design-Referenz
+   (`demo/`): pro gesetztem Filter eine Pille mit Label und Entfernen-Kreuz, dazu
+   „Alle löschen“. Die Attrappe dafür wurde entfernt, weil sie an keinen Query
+   gebunden war (Vorlage in der Historie: `books-toolbar.tsx` vor `fa0c23c48`).
+   Jetzt umsetzbar, da die Filterwerte vorliegen – Label aus `FilterElement.label`
+   plus Wert, Entfernen setzt den Eintrag zurück.
+2. **Gespeicherte Filter** = Filter-Favoriten des Backends
+   (`AbstractPagesRest`: `filter/select|create|rename|update|delete|reset`);
+   `initialList` liefert sie als `filterFavorites`.
+3. **OBJECT- und TIMESTAMP-Felder vervollständigen.** OBJECT (z.B. „geändert
+   durch“) nutzt derzeit ein einfaches Textfeld – für die Entitätssuche fehlt eine
+   Autocomplete-Komponente gegen `autoCompletion.url`. Bei TIMESTAMP fehlt die
+   Schnellauswahl (`selectors`: Jahr/Monat/Woche/Tag/bis-jetzt).
+4. **Panel-Zustand pro Nutzer merken** (offen/zu, gesetzte Filter). Das Backend
+   speichert den aktuellen `MagicFilter` bereits (`saveCurrentFilter`).
 
 3. **Zell-Rendering/Formatter fehlen noch.** Die alte App hat einen
    Formatter-Zoo (`Formatter.jsx`, `FormatterFormat.js`: Währung, Prozent,
