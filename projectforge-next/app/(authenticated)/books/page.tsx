@@ -2,16 +2,21 @@
 
 import { PageShell } from "@/components/shared/page-shell";
 import { ListPageShell } from "@/components/shared/list-page-shell";
+import { useMemo, useState } from "react";
 import {
   DataTable,
   DataTableColumnPanel,
+  FilterPanel,
   useColumnStatePersistence,
   useDataTable,
   useMagicFilterQuery,
   useStoredColumnState,
   useTableState,
   type ColumnState,
+  type FilterValues,
 } from "@/components/data-table";
+import { filterElementsOf } from "@/lib/rs/filter-elements";
+import { useInitialList } from "@/hooks/use-initial-list";
 import { useBooksColumns } from "@/components/features/books/books-columns";
 import { BookRowActions } from "@/components/features/books/book-row-actions";
 import { BooksToolbar } from "@/components/features/books/books-toolbar";
@@ -42,6 +47,22 @@ export default function BooksPage() {
 
 function BooksList({ storedState }: { storedState: ColumnState }) {
   const columns = useBooksColumns();
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filterValues, setFilterValues] = useState<FilterValues>({});
+
+  // Which filter fields exist is decided by the backend per entity, so they come
+  // from the list layout rather than being declared here.
+  const layout = useInitialList(ENTITY);
+  const filterElements = useMemo(
+    () => filterElementsOf(layout.data?.ui),
+    [layout.data]
+  );
+
+  const filterEntries = useMemo(
+    () =>
+      Object.entries(filterValues).map(([field, value]) => ({ field, value })),
+    [filterValues]
+  );
   const columnState = useTableState({
     restoredState: storedState,
     initialSorting: storedState.sorting,
@@ -65,6 +86,8 @@ function BooksList({ storedState }: { storedState: ColumnState }) {
     // Sorting drives the backend query, so it lives with the query, not in the
     // column state — the stored order seeds it here.
     initialSorting: storedState.sorting,
+    // Panel filters are applied server-side, unlike the header's column filters.
+    filterEntries,
   });
 
   // Owned here so the toolbar's column panel and the table share one instance.
@@ -122,6 +145,15 @@ function BooksList({ storedState }: { storedState: ColumnState }) {
             columnPanel={
               <DataTableColumnPanel table={table} onReset={resetColumns} />
             }
+          />
+        }
+        filterPanel={
+          <FilterPanel
+            elements={filterElements}
+            values={filterValues}
+            onChange={setFilterValues}
+            open={filterOpen}
+            onOpenChange={setFilterOpen}
           />
         }
       >

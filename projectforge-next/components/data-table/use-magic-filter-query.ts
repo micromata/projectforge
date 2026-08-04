@@ -9,7 +9,7 @@ import type {
 } from "@tanstack/react-table";
 import { fetchList } from "@/lib/rs/client";
 import { paginationPageSizeEntry } from "@/lib/rs/types";
-import type { MagicFilter, ResultSet } from "@/lib/rs/types";
+import type { MagicFilter, MagicFilterEntry, ResultSet } from "@/lib/rs/types";
 
 interface UseMagicFilterQueryOptions {
   /** Backend entity, e.g. "book" — maps to POST /rs/{entity}/list. */
@@ -19,6 +19,12 @@ interface UseMagicFilterQueryOptions {
   initialPageSize?: number;
   initialGlobalFilter?: string;
   initialSorting?: SortingState;
+  /**
+   * Server-side filter entries (from the filter panel). Passed as data rather
+   * than through buildFilter so a caller doesn't have to memoise a callback to
+   * avoid refetching on every render.
+   */
+  filterEntries?: MagicFilterEntry[];
   /** Hook that lets callers customize the MagicFilter before it's sent. */
   buildFilter?: (base: MagicFilter) => MagicFilter;
   enabled?: boolean;
@@ -46,6 +52,7 @@ export function useMagicFilterQuery<O>({
   initialPageSize = 50,
   initialGlobalFilter = "",
   initialSorting = [],
+  filterEntries,
   buildFilter,
   enabled = true,
 }: UseMagicFilterQueryOptions): UseMagicFilterQueryResult<O> {
@@ -62,13 +69,20 @@ export function useMagicFilterQuery<O>({
     setPagination((p) => ({ ...p, pageIndex: 0 }));
   };
 
+  // Compared by content, then parsed back inside the memo: a caller passing a
+  // fresh array each render must not trigger a refetch.
+  const serializedEntries = JSON.stringify(filterEntries ?? []);
+
   // The page index is deliberately not part of the filter: AbstractPagesRest.getList
   // returns the whole result list (capped by maxRows) rather than a single page, so
   // paging happens on the client below. Only the page size is sent, as the entry the
   // backend expects.
   const filter: MagicFilter = useMemo(() => {
     const base: MagicFilter = {
-      entries: [paginationPageSizeEntry(pagination.pageSize)],
+      entries: [
+        paginationPageSizeEntry(pagination.pageSize),
+        ...(JSON.parse(serializedEntries) as MagicFilterEntry[]),
+      ],
       sortProperties: sorting.map((s) => ({
         property: s.id,
         sortOrder: s.desc ? "DESCENDING" : "ASCENDING",
@@ -76,7 +90,7 @@ export function useMagicFilterQuery<O>({
       searchString: globalFilter || undefined,
     };
     return buildFilter ? buildFilter(base) : base;
-  }, [sorting, pagination.pageSize, globalFilter, buildFilter]);
+  }, [sorting, pagination.pageSize, globalFilter, serializedEntries, buildFilter]);
 
   const query = useQuery<ResultSet<O>>({
     queryKey: [...queryKey, filter],

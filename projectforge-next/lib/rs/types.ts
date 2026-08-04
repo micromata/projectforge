@@ -13,12 +13,16 @@ export interface SortProperty {
 
 export interface MagicFilterEntryValue {
   value?: string;
+  /** Accepted values for a LIST filter. */
   values?: string[];
+  /** Referenced entity for an OBJECT filter (history search by user). */
   id?: number;
   label?: string;
   displayName?: string;
-  fromValue?: string;
-  toValue?: string;
+  // Range bounds. The Kotlin fields are fromValue/toValue but @JsonProperty
+  // renames them on the wire, so these are the names the backend accepts.
+  from?: string;
+  to?: string;
 }
 
 export interface MagicFilterEntry {
@@ -151,6 +155,47 @@ export interface DynamicLayoutNode {
   [prop: string]: unknown;
 }
 
+/**
+ * A filter field the backend offers for a list page. Delivered inside the
+ * `searchFilter` named container of a list layout, built by
+ * LayoutListFilterUtils.createNamedSearchFilterContainer from the DAO's search
+ * fields — so the set differs per entity.
+ */
+export type FilterType =
+  | "STRING"
+  | "DATE"
+  | "TIMESTAMP"
+  | "BOOLEAN"
+  | "OBJECT"
+  | "LIST";
+
+export interface FilterListValue {
+  id: string;
+  displayName: string;
+}
+
+export interface FilterElement {
+  id: string;
+  key: string;
+  type: "FILTER_ELEMENT";
+  filterType: FilterType;
+  label?: string;
+  /** LIST: the values to choose from. */
+  values?: FilterListValue[];
+  /** LIST: whether several values may be selected. */
+  multi?: boolean;
+  /** OBJECT: endpoint for looking up entities while typing. */
+  autoCompletion?: {
+    minChars?: number;
+    type?: string;
+    url?: string;
+  };
+  /** TIMESTAMP: allows an open-ended range. */
+  openInterval?: boolean;
+  /** TIMESTAMP: quick range presets (YEAR, MONTH, WEEK, DAY, UNTIL_NOW). */
+  selectors?: string[];
+}
+
 export interface ValidationError {
   fieldId: string;
   message: string;
@@ -173,6 +218,12 @@ export interface ResponseAction {
   variables?: Record<string, unknown>;
 }
 
+export interface NamedContainer {
+  id: string;
+  type: string;
+  content?: DynamicLayoutNode[];
+}
+
 export interface DynamicUIResponse {
   layout: DynamicLayoutNode[];
   layoutBelowActions?: DynamicLayoutNode[];
@@ -181,7 +232,8 @@ export interface DynamicUIResponse {
   title?: string;
   translations?: Record<string, string>;
   watchFields?: string[];
-  namedContainers?: Record<string, DynamicLayoutNode[]>;
+  // An array, not a map: each container carries its own id (e.g. "searchFilter").
+  namedContainers?: NamedContainer[];
 }
 
 export interface DynamicPageResponse {
