@@ -63,6 +63,18 @@ object GenerateNextI18nMessagesMain {
     "filter.",
     "created",
     "modified",
+    // Authentication (login, 2FA, password reset). Only the keys the frontend can show —
+    // user.My2FA.setup.* holds long markdown blobs of the setup page, which next doesn't have.
+    "cancel",
+    "login", // login (the button label), login.title, login.error.* …
+    "password", // password, passwordRepeat and password.forgotten/reset.*
+    "username",
+    "user.My2FA.expired",
+    "user.My2FA.required",
+    "user.My2FACode.",
+    "user.changePassword.",
+    "webauthn.error.",
+    "webauthn.registration.button.",
   )
 
   @JvmStatic

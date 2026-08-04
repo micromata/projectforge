@@ -1,26 +1,25 @@
 {
   "login": {
-    "title": "ProjectForge",
-    "username": "Benutzername",
-    "password": "Passwort",
-    "stayLoggedIn": "Angemeldet bleiben",
-    "submit": "Anmelden",
     "submitting": "Anmelden…",
-    "error": "Anmeldung fehlgeschlagen",
     "twoFactor": {
-      "title": "Zweifaktor-Authentifizierung",
-      "description": "Ein zweiter Faktor ist nun erforderlich. Hier kann ein 2. Faktor (z. B. OTP-Einmalpasswort) eingegeben werden: Aus einer Authenticator-App, Code per SMS oder E-Mail oder über einen registrierten WebAuthn-Token.",
-      "code": "Code",
-      "verify": "Prüfen",
       "verifying": "Prüfe…",
-      "cancel": "Abbrechen",
-      "sendSms": "SMS-Code anfordern",
-      "sendMail": "E-Mail-Code anfordern",
-      "webAuthn": "WebAuthn",
+      "webAuthnRunning": "Warte auf Token…",
       "smsSent": "SMS-Code wurde gesendet",
-      "mailSent": "E-Mail-Code wurde gesendet",
-      "error": "Code ungültig oder abgelaufen"
+      "mailSent": "E-Mail-Code wurde gesendet"
     }
+  },
+  "passwordForgotten": {
+    "submitting": "Sende…",
+    "mailSent": "Sofern der Zugang existiert, wurde eine E-Mail mit einem Link zum Zurücksetzen verschickt. Bitte auch den Spam-Ordner prüfen.",
+    "backToLogin": "Zurück zur Anmeldung",
+    "error": "Das Zurücksetzen konnte nicht angefordert werden"
+  },
+  "passwordReset": {
+    "submit": "Passwort ändern",
+    "submitting": "Ändere…",
+    "requestNewLink": "Neuen Link anfordern",
+    "backToLogin": "Zurück zur Anmeldung",
+    "error": "Das Passwort konnte nicht geändert werden"
   },
   "books": {
     "title": "Bücherliste",

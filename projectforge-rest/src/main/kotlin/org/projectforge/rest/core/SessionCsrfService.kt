@@ -86,7 +86,11 @@ open class SessionCsrfService {
     return ServerData(csrfToken = ensureAndGetToken(request))
   }
 
-  private fun checkToken(request: HttpServletRequest, token: String?): Boolean {
+  /**
+   * Checks the given csrf token against the token of the user's session. Used by clients not working with
+   * [PostData]/[ServerData] (projectforge-next).
+   */
+  fun checkToken(request: HttpServletRequest, token: String?): Boolean {
     if (token.isNullOrEmpty() || token.trim().length < TOKEN_LENGTH) {
       log.info { "Token to short, check failed for session id '${RequestLog.getTruncatedSessionId(request)}'." }
       return false

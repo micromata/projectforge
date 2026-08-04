@@ -68,9 +68,13 @@ class LoginServiceRest {
             var redirect: String? = null
             val returnToCaller =
                 serverData?.returnToCaller ?: request.getSession(false)?.getAttribute(ORIGIN_URL_SESSION_KEY) as String?
+            val referer = request.getHeader("Referer")
             if (!returnToCaller.isNullOrBlank()) {
                 redirect = URLDecoder.decode(returnToCaller, "UTF-8")
-            } else if (request.getHeader("Referer")?.contains("/public/login") == true) {
+            } else if (referer?.contains("/${Constants.NEXT_APP_PATH}") == true) {
+                // A login of projectforge-next should return to projectforge-next:
+                redirect = "/${Constants.NEXT_APP_PATH}"
+            } else if (referer?.contains("/public/login") == true) {
                 redirect = "/${Constants.REACT_APP_PATH}calendar"
             }
             // redirect might be "null" (string):

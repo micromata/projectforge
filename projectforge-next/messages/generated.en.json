@@ -50,6 +50,7 @@
       "short": "Year"
     }
   },
+  "cancel": "Cancel",
   "columns": {
     "dragToSort": "Drag to sort",
     "manage": "Manage columns",
@@ -92,7 +93,140 @@
     "value": "Value",
     "valueTo": "To"
   },
+  "login": {
+    "_": "Login",
+    "adminLoginRequired": "Maintenance mode: Please use ProjectForge only as administrator!",
+    "error": {
+      "loginExpired": "Login failed. Please contact an administrator because your log-in is expired.",
+      "loginFailed": "Login failed. Please check your login name and password (case sensitive!)."
+    },
+    "lastLogin": "Last login",
+    "loginFailures": "Login failures",
+    "passwordReset": {
+      "_": "Reset password",
+      "info": "A link for password reset will be sent by mail."
+    },
+    "stayLoggedIn": {
+      "_": "Remember my login on this computer.",
+      "invalidateAllStayLoggedInSessions": {
+        "_": "Terminate all stay-logged-in sessions.",
+        "successfullDeleted": "All stay-logged-in sessions were successfully terminated.",
+        "tooltip": "If you choose this function, a new code will be generated. After, any existing stay-logged-in-session will be terminated."
+      },
+      "tooltip": "You can stay logged in on this computer. On log-out this marker (cookie) will be removed on the current computer / browser. If you change your username and/or passwort, all stay-logged-in markers will be invalidated. Under my account you can mark all existing stay-logged-in markers as invalid."
+    },
+    "successful": "You're successfully logged in. Enjoy ProjectForge!",
+    "timeOffset": "Your account is now locked for further {arg0} seconds due to {arg1} failed login attempts. Please try again later.",
+    "title": "Login"
+  },
   "modified": "modified",
   "modifiedBy": "modified by",
-  "modifiedHistoryValue": "history value of modification"
+  "modifiedHistoryValue": "history value of modification",
+  "password": {
+    "_": "Password",
+    "forgotten": {
+      "link": "Forgotten credentials?",
+      "mail": {
+        "subject": "Password reset ProjectForge®"
+      },
+      "mailSentTo": "Mail with reset link mailed to '{arg0}'. Please check also Your spam folder and check, if Your username or e-mail is correct.",
+      "request": "Request reset",
+      "title": "Forgotten password"
+    },
+    "reset": {
+      "error": "No valid password reset session found. The session is already used, expired, or non-existing. Please retry.",
+      "mail": {
+        "link": "Please use this link to reset Your password: {arg0}",
+        "message": {
+          "1": "Please note: You will need a second authentification factor to reset Your password.",
+          "2": "If you haven't configured a second factor, such as Authenticator-App or mobile phone, You have to contact Your ProjectForge administrator."
+        }
+      },
+      "title": "Reset password",
+      "username_email": "Username/e-mail"
+    }
+  },
+  "passwordRepeat": "Repeat password",
+  "user": {
+    "My2FA": {
+      "expired": "For the requested action a 2FA is required not older than {arg0}.",
+      "required": {
+        "_": "A (new) two-factor authentication is required for proceeding.",
+        "extended": "A (new) two-factor authentication is required for proceeding due to security reasons. You may request a code (see link below code field) or, if configured, use Your authenticator app."
+      }
+    },
+    "My2FACode": {
+      "authentification": {
+        "info": "A second factor is required for proceeding. Please enter any 2nd factor (e.g. OTP) you have (requested): from Your Authenticator-App or received by SMS or mail or you may use any WebAuthn token you have registered."
+      },
+      "code": {
+        "_": "Code",
+        "info": "Code from your authenticator app or the one time password (OTP) you received by e-mail of text message.",
+        "validate": "Validate"
+      },
+      "error": {
+        "timePenalty": {
+          "message": "You have been blocked until {arg0} ({arg1}) after {arg2} failed code checks. Please note, that your account might be deactivated after {arg3} failed OTP checks."
+        },
+        "validation": "Code not correct or two-factor authentication not configured."
+      },
+      "lastSuccessful2FA": "Last successful 2 FA",
+      "password": {
+        "info": "The password is only needed as an additional factor if you received the code via e-mail.",
+        "wrong": "Password check failed."
+      },
+      "sendCode": {
+        "mail": {
+          "_": "Request mail code",
+          "info": "Send code as e-mail. The code will be valid up to 2 minutes and your password is required when validating the sent code.",
+          "message": "Your code is: {arg0}",
+          "sentSuccessfully": "Mail was successfully sent to Your e-mail address at {arg0}",
+          "title": "Message from ProjectForge"
+        },
+        "sms": {
+          "_": "Request SMS code",
+          "info": "Request code as text message to your mobile phone. The code will be valid up to 2 minutes.",
+          "sentSuccessfully": "Message successfully sent to Your mobile phone at {arg0}."
+        }
+      },
+      "title": "Two-factor authentication"
+    },
+    "changePassword": {
+      "error": {
+        "noCharacter": "Password must have at minimum one letter.",
+        "noNonCharacter": "Password must have at minimum one non-letter.",
+        "notMinLength": "Password must have at least {arg0} characters.",
+        "oldPasswdEqualsNew": "New password should not be the same as the old one.",
+        "oldPasswordWrong": "Old password does not match.",
+        "passwordQualityCheck": "Password must have at least {arg0} characters and at minimum one letter and one non-letter character."
+      },
+      "msg": {
+        "passwordSuccessfullyChanged": "Password successfully changed."
+      },
+      "newPassword": "New password",
+      "notSupported": "The change of password isn't supported. Please contact your administrator.",
+      "oldPassword": "Old password",
+      "password": {
+        "lastChange": "Last change of password"
+      },
+      "title": "Change own password"
+    }
+  },
+  "username": "User name",
+  "webauthn": {
+    "error": {
+      "process": "Error while processing authentication.",
+      "userNotOwnerOrEntryDoesnotExist": "The user has no access to this foreign webauthn entry or no such entry exists.",
+      "validate": "Error while validating authentication."
+    },
+    "registration": {
+      "button": {
+        "authenticate": {
+          "_": "WebAuthn",
+          "info": "You may use any of your registered WebAuthn tokens here (for example Yubikey)."
+        },
+        "register": "Register"
+      }
+    }
+  }
 }

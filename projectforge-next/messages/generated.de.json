@@ -50,6 +50,7 @@
       "short": "Jahr"
     }
   },
+  "cancel": "Abbrechen",
   "columns": {
     "dragToSort": "Ziehen zum Sortieren",
     "manage": "Spalten verwalten",
@@ -92,7 +93,140 @@
     "value": "Wert",
     "valueTo": "Bis"
   },
+  "login": {
+    "_": "Anmelden",
+    "adminLoginRequired": "Wartungsmodus: Bitte als Administrator:in anmelden!",
+    "error": {
+      "loginExpired": "Die Anmeldung war nicht erfolgreich. Bitte Administrator:in kontaktieren, da der Zugang abgelaufen ist.",
+      "loginFailed": "Die Anmeldung war nicht erfolgreich. Bitte Eingabe nochmals prüfen (Groß-/Kleinschreibung bitte beachten)."
+    },
+    "lastLogin": "Letze Anmeldung",
+    "loginFailures": "Anmeldefehlversuche",
+    "passwordReset": {
+      "_": "Passwort zurücksetzen",
+      "info": "Ein Link zum Passwortrücksetzen wird per E-Mail gesendet (ein 2. Faktor wird benötigt)."
+    },
+    "stayLoggedIn": {
+      "_": "An diesem Browser angemeldet bleiben.",
+      "invalidateAllStayLoggedInSessions": {
+        "_": "Alle Angemeldet-bleiben-Sitzungen beenden.",
+        "successfullDeleted": "Alle Angemeldet-bleiben-Sitzungen wurden erfolgreich beendet.",
+        "tooltip": "Über diese wird ein neuer Code generiert. Damit werden alle eventuell noch vorhanden Angemeldet-bleiben-Sitzungen ungültig."
+      },
+      "tooltip": "Du kannst an diesem Browser angemeldet bleiben, wenn du diese Funktion anwählst. Bei Abmeldung wird dieses Merkmal (Cookie) wieder entfernt. Änderst du dein Passwort und/oder Benutzer:innamen werden alle Browseranmeldungen zunächst ungültig. Außerdem kannst di unter Mein Account alle vorhandenen Browseranmeldungen auf ungültig setzen. Diese Funktion kann immer wieder erneut genutzt werden."
+    },
+    "successful": "Anmeldung erfolgreich. Viel Spaß mit ProjectForge!",
+    "timeOffset": "Der Zugang ist noch für {arg0} Sekunden gesperrt auf Grund von {arg1} Fehlanmeldungen. Bitte später nochmals versuchen.",
+    "title": "Anmeldung"
+  },
   "modified": "geändert",
   "modifiedBy": "geändert durch",
-  "modifiedHistoryValue": "Wert in der Änderungshistorie"
+  "modifiedHistoryValue": "Wert in der Änderungshistorie",
+  "password": {
+    "_": "Passwort",
+    "forgotten": {
+      "link": "Zugangsdaten vergessen?",
+      "mail": {
+        "subject": "Passwortreset ProjectForge®"
+      },
+      "mailSentTo": "E-Mail mit dem Passwortrücksetzen-Link wurde gesendet an '{arg0}'. Bitte im Spam-Ordner schauen bzw. überprüfen, ob der Benutzer:innenname bzw. E-Mail korrekt ist.",
+      "request": "Rücksetzen anfordern",
+      "title": "Passwort vergessen"
+    },
+    "reset": {
+      "error": "Es wurde keine gültige Passwortreset-Sitzung gefunden. Entweder ist sie schon verbraucht, abgelaufen oder nicht vorhanden. Bitte erneut versuchen.",
+      "mail": {
+        "link": "Über diesen Link kann das Passwort zurückgesetzt werden: {arg0}",
+        "message": {
+          "1": "Bitte beachten: Es wird für das Zurücksetzen aus Sicherheitsgründen ein zweiter Faktor benötigt.",
+          "2": "Wenn noch kein zweiter, persönlicher Faktor konfiguriert wurde (Authenticator-App oder Mobilfunknummer), muss ein ProjectForge-Administrator kontaktiert werden."
+        }
+      },
+      "title": "Passwort zurücksetzen",
+      "username_email": "Benutzer:inname/E-Mail"
+    }
+  },
+  "passwordRepeat": "Passwort wiederholen",
+  "user": {
+    "My2FA": {
+      "expired": "Für die angeforderte Aktion ist eine (erneute) Zwei-Faktor-Authentifizierung erforderlich, die nicht älter als {arg0} ist.",
+      "required": {
+        "_": "Eine (erneute) Zwei-Faktor-Authentifizierung ist erforderlich.",
+        "extended": "Eine (erneute) Zwei-Faktor-Authentifizierung ist aus Sicherheitsgründen erforderlich. Du kannst hierzu einen Code anfordern (s. Link unterhalb des Code-Feldes) oder, falls konfiguriert, deine Authenticator-App benutzen."
+      }
+    },
+    "My2FACode": {
+      "authentification": {
+        "info": "Ein zweiter Faktor ist nun erforderlich. Hier kann ein 2. Faktor (z. B. OTP-Einmalpasswort) eingegeben werden: Aus einer Authenticator-App, ein angeforderter Code per SMS oder E-Mail oder über einen registrierten WebAuthn-Token."
+      },
+      "code": {
+        "_": "Code",
+        "info": "Code aus der Authenticator-App oder der Code (Einmalpasswort), welches per E-Mail oder SMS versendet wurde.",
+        "validate": "Prüfen"
+      },
+      "error": {
+        "timePenalty": {
+          "message": "Die Funktion ist aus Sicherheitsgründen blockiert bis {arg0} ({arg1}) nach {arg2} Fehlversuchen. Bitte beachten, dass dieser Account nach {arg3} Fehlversuchen gesperrt wird."
+        },
+        "validation": "Code nicht gültig oder die Zweifaktor-Authentifizierung ist noch nicht eingerichtet."
+      },
+      "lastSuccessful2FA": "Letzte erfolgreiche 2. Faktorauthentifizierung",
+      "password": {
+        "info": "Das Password wird nur beim Versenden des Einmalpassworts per E-Mail aus Sicherheitsgründen verlangt.",
+        "wrong": "Passwortprüfung fehlgeschlagen."
+      },
+      "sendCode": {
+        "mail": {
+          "_": "E-Mail-Code anfordern",
+          "info": "Code per E-Mail anfordern. Dieser Code ist bis zu 2 Minuten gültig.",
+          "message": "Der Code lautet: {arg0}",
+          "sentSuccessfully": "Der 2. Faktor wurde erfolgreich per E-Mail versendet um {arg0}",
+          "title": "Nachricht von ProjectForge"
+        },
+        "sms": {
+          "_": "SMS-Code anfordern",
+          "info": "Coder per SMS anfordern. Dieser Code ist bis zu 2 Minuten gültig.",
+          "sentSuccessfully": "Der 2. Faktor wurde erfolgreich per SMS versendet um {arg0}."
+        }
+      },
+      "title": "Zweifaktor-Authentifizierung"
+    },
+    "changePassword": {
+      "error": {
+        "noCharacter": "Passwort muss mindestens einen Buchstaben haben.",
+        "noNonCharacter": "Passwort muss mindestens einen Nicht-Buchstaben haben.",
+        "notMinLength": "Passwort muss mindestens {arg0} Zeichen haben.",
+        "oldPasswdEqualsNew": "Neues Passwort darf nicht dem alten entsprechen.",
+        "oldPasswordWrong": "Das alte Passwort wurde nicht korrekt eingegeben.",
+        "passwordQualityCheck": "Passwort muss mindestens {arg0} Zeichen und sowohl mindestens einen Buchstaben als auch einen Nicht-Buchstaben enthalten."
+      },
+      "msg": {
+        "passwordSuccessfullyChanged": "Passwort wurde erfolgreich geändert."
+      },
+      "newPassword": "Neues Passwort",
+      "notSupported": "Die Passwortänderung wird nicht unterstützt. Kontaktieren Sie Ihre:n Administrator:in.",
+      "oldPassword": "Altes Passwort",
+      "password": {
+        "lastChange": "Letzte Passwortänderung"
+      },
+      "title": "Eigenes Passwort ändern"
+    }
+  },
+  "username": "Benutzer:innenname",
+  "webauthn": {
+    "error": {
+      "process": "Fehler im Authentifizierungsprozess.",
+      "userNotOwnerOrEntryDoesnotExist": "Der/die Benutzer:in hat nicht das Recht, auf fremde WebAuthn-Einträge zuzugreifen oder der gesuchte Eintrag existiert nicht.",
+      "validate": "Fehler bei der Validierung der Authentifizierungsdaten."
+    },
+    "registration": {
+      "button": {
+        "authenticate": {
+          "_": "WebAuthn",
+          "info": "Du kannst hier registrierte WebAuthn-Token benutzen (z. B. Yubikey)."
+        },
+        "register": "Registrieren"
+      }
+    }
+  }
 }

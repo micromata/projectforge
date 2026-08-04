@@ -322,7 +322,9 @@ open class My2FARequestHandler {
     @JvmField
     val MY_2FA_URL = MenuItemDefId.MY_2FA.url!!
 
-    private val NO_2FA_URLS = arrayOf("/rs/menu", "/rs/userStatus", "/rs/2FA", "/rsPublic", "/rs/webauthn/webAuthn")
+    // /rs/next2FA is the 2FA of projectforge-next (org.projectforge.rest.my2fa.My2FANextRest).
+    private val NO_2FA_URLS =
+      arrayOf("/rs/menu", "/rs/userStatus", "/rs/2FA", "/rs/next2FA", "/rsPublic", "/rs/webauthn/webAuthn")
 
     private val NO_2FA_URL_MATCHERS = arrayOf("^/rs/\\w*/autosearch".toRegex(), "^/rs/\\w*/autocomplete".toRegex())
 

@@ -8,11 +8,11 @@ migrieren – im Parallelbetrieb, so dass Releases pro Seite möglich sind.
 
 Alle Frontends werden von der einen Spring-Boot-App auf `:8080` serviert:
 
-| Frontend | Modul | Pfad | Technik |
-|---|---|---|---|
-| Wicket (Legacy) | `projectforge-wicket` | `/wa/*` | server-rendered, Servlet-Filter (`WebXMLInitializer.java`) |
-| Alte React-App | `projectforge-webapp` | `/react/**` | backend-getriebener „Dynamic Renderer" (UILayout-JSON), CRA→Vite |
-| **projectforge-next** | `projectforge-next` | `/next/**` | Next.js 16 App Router, statisch exportiert |
+| Frontend              | Modul                 | Pfad        | Technik                                                          |
+| --------------------- | --------------------- | ----------- | ---------------------------------------------------------------- |
+| Wicket (Legacy)       | `projectforge-wicket` | `/wa/*`     | server-rendered, Servlet-Filter (`WebXMLInitializer.java`)       |
+| Alte React-App        | `projectforge-webapp` | `/react/**` | backend-getriebener „Dynamic Renderer" (UILayout-JSON), CRA→Vite |
+| **projectforge-next** | `projectforge-next`   | `/next/**`  | Next.js 16 App Router, statisch exportiert                       |
 
 **Geteilte Authentifizierung.** Spring Security ist `permitAll`
 (`SpringSecurityConfig.kt`); die Authentifizierung übernehmen PF-Servlet-Filter
@@ -208,6 +208,53 @@ vorhanden) erhalten bleiben und sich einen Namespace teilen können.
 Kollisionsfall `book.title` (Leaf) + `book.title.add` (Objekt) → `_`-Schlüssel.
 **Regel:** neue UI-Texte zuerst in `I18nResources` anlegen, dann generieren.
 
+**Erledigt: Auth-Flow vollständig in next.** Login, 2FA (inkl. WebAuthn),
+Passwort-vergessen, Passwort-Reset per Token-Link und der In-Session-2FA-Dialog
+laufen jetzt in `next`; die React-Anmeldung ist nur noch Rückfallebene (Löschung
+als eigener Commit).
+
+- **Neue schlanke JSON-Endpunkte** statt UILayout-Parsing:
+  `org.projectforge.rest.pub.next.LoginNextRest` (`/rsPublic/nextLogin`),
+  `TwoFactorLoginNextRest` (`/rsPublic/next2FALogin`), `PasswordResetNextRest`
+  (`/rsPublic/nextPasswordReset`) und `org.projectforge.rest.my2fa.My2FANextRest`
+  (`/rs/next2FA`). Alle delegieren an die unveränderten Services
+  (`LoginService`, `My2FAServicesRest`, `WebAuthnServicesRest`,
+  `PasswordResetService`, `UserService`) – **keine** Auth-Logik dupliziert.
+  Grund: Im alten Protokoll steckt der Login-Fehler als `UIAlert` im Layout und
+  die verfügbaren 2FA-Methoden ergeben sich aus den vom Server eingebauten
+  Buttons. Genau das soll next nicht mehr lesen.
+- **`TwoFactorMethods`-DTO** (`otp`/`sms`/`mail`/`webAuthn`) mit derselben
+  Bedingungslogik wie `My2FAServicesRest.fillCodeCol`: SMS nur bei
+  `smsConfigured` + gültiger Mobilnummer, WebAuthn nur bei registriertem Token,
+  Mail beim Passwort-Reset gesperrt. So zeigt next keinen Button an, den der
+  Server ablehnen würde.
+- **Explizites `TWO_FACTOR_REQUIRED`** statt Rückschluss aus einem
+  fehlgeschlagenen `userStatus`-Call. `GET nextLogin/status` liefert zusätzlich
+  `motd` und den 2FA-Zwischenzustand – damit bleibt ein Browser-Reload während
+  des 2FA-Schritts im 2FA-Formular (war vorher ein Bug).
+- **In-Session-2FA ist transparent.** `RestAuthenticationUtils` antwortet
+  next-Clients (Header `X-PF-Frontend: next`, sonst Referer) mit
+  `403 {twoFactorRequired, expiryMillis}` statt einer `ResponseAction` mit
+  `/react`-URL. `lib/rs/client.ts` fängt das zentral ab, der
+  `TwoFactorProvider` öffnet den Dialog, danach wird der Request **einmal**
+  wiederholt. `/rs/next2FA` steht dafür in `My2FARequestHandler.NO_2FA_URLS`.
+- **`SessionCsrfService.checkToken` ist public**, weil next kein
+  `PostData`/`ServerData` benutzt.
+- **WebAuthn**: `lib/webauthn.ts` portiert die Konvertierung 1:1 aus
+  `projectforge-webapp/src/utilities/webauthn.js` – das Backend erwartet
+  base64url plus zurückgespiegelte `requestId`/`challenge`/`sessionToken`, nicht
+  das `webauthn-json`-Format.
+- **i18n konsequent generiert:** die Auth-Prefixe (`login`, `password`,
+  `user.My2FACode.`, `user.changePassword.`, `webauthn.error.`, `username`,
+  `cancel`, …) sind in `GenerateNextI18nMessagesMain` aufgenommen; die
+  Frontend-Kataloge halten nur noch die Texte ohne Backend-Pendant
+  (Zwischenzustände wie „Prüfe…", „Warte auf Token…").
+- Der Passwort-Reset führt eigene Session-Bookkeeping (eigener Session-Key)
+  neben `PasswordResetPageRest`: jedes Frontend erzeugt und verbraucht seinen
+  eigenen Link, validiert wird der Token vom gemeinsamen `PasswordResetService`.
+  Die Server-Garantien bleiben: 10-Minuten-2FA-Fenster, CSRF-Token, Mail-OTP
+  gesperrt, Token nach Erfolg invalidiert.
+
 **Offen:**
 
 1. **Spaltenzustand persistieren.** `useColumnStatePersistence` ist gebaut, aber
@@ -238,6 +285,7 @@ Kollisionsfall `book.title` (Leaf) + `book.title.add` (Objekt) → `_`-Schlüsse
    - **Ein-/Ausschieben:** `ListPageShell` hat bereits einen `filterPanel`-Slot
      (rechte Spalte); für das Verschieben bietet shadcn `Sheet` (mobil) bzw. ein
      kollabierbares Panel (Desktop) an. Zustand pro Nutzer merken.
+
 3. **Zell-Rendering/Formatter fehlen noch.** Die alte App hat einen
    Formatter-Zoo (`Formatter.jsx`, `FormatterFormat.js`: Währung, Prozent,
    Datum/Timestamp, Task-Pfade, `displayName`-Auflösung), den der Dynamic-Renderer
@@ -295,7 +343,7 @@ Port der Referenz `projectforge-webapp/src/components/base/dynamicLayout/` nach
 - **`filterModel`** – Prop existiert, wird nie gelesen, Backend liefert immer `{}`.
 - **`FilterPortal.tsx`** (händisches Popover mit Collision-Detection) – Radix/
   shadcn `Popover` deckt das ab; im Port bereits so gelöst.
-- **`modifyRedirectUrl`**: ersetzt Platzhalter für *jedes* Row-Feld, auch als
+- **`modifyRedirectUrl`**: ersetzt Platzhalter für _jedes_ Row-Feld, auch als
   Pfadsegment (`/feld` → `/wert`). Auf explizites `{id}`/`:id`-Matching reduzieren.
 
 **Verifikation.** Eine UILayout-Seite (z.B. `address`, `timesheet`) über den
@@ -385,6 +433,8 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
 - **Phase 1.5, größter Teil** – `MagicFilter`-Kontrakt (Listen laden wieder),
   Tabellen-Funktionen portiert (Resizing, Spalten ein-/ausblenden, Pinning,
   Reorder, Spalten-Filter), i18n-Generierung aus `I18nResources`.
+- **Auth-Flow** – Login, 2FA inkl. WebAuthn, Passwort-vergessen/-Reset und
+  In-Session-2FA-Dialog laufen in next (React-Login nur noch Rückfallebene).
 
 **Als nächstes:**
 
@@ -396,6 +446,9 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
    Schritt den `UIAgGridColumnDef → ColumnDef`-Adapter und die Formatter.
 3. **Phase 3** – Auftragsbuch als handgebauter Härtefall (parallel zu Phase 2
    möglich).
+4. **Auth im Browser durchspielen** (steht noch aus, s. Liste unten) und danach
+   den React-Auth-Code löschen: `WebAuthnAuthenticate.jsx`,
+   `actions/authentication.js`, `/react/public/login`-Routing.
 
 **Reihenfolge-Grundsatz:** `books` bleibt die Vorlage – was dort fehlt, fehlt
 jeder migrierten Seite. Deshalb erst `books` fertig, dann in die Breite.

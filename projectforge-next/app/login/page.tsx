@@ -1,22 +1,24 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import {
-  loginWithResponse,
-  fetchUserStatus,
-  cancel2FA,
-} from "@/lib/rs/client";
+  cancelLogin,
+  fetchLoginState,
+  login,
+  type TwoFactorMethods,
+} from "@/lib/rs/auth";
+import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { AuthCard } from "@/components/shared/auth-card";
+import { FormAlert } from "@/components/shared/form-alert";
 import { TwoFactorForm } from "@/components/shared/two-factor-form";
-
-type Stage = "credentials" | "2fa";
 
 export default function LoginPage() {
   // useSearchParams() must be wrapped in Suspense for the static export build.
@@ -29,117 +31,162 @@ export default function LoginPage() {
 
 function LoginForm() {
   const t = useTranslations("login");
+  // Backend bundle keys (GenerateNextI18nMessagesMain): shared with Wicket/React.
+  const tb = useTranslations();
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
 
-  const [stage, setStage] = useState<Stage>("credentials");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [stayLoggedIn, setStayLoggedIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [motd, setMotd] = useState<string | null>(null);
+  // Set once username/password were accepted but a second factor is missing.
+  const [methods, setMethods] = useState<TwoFactorMethods | null>(null);
 
   const returnUrl = searchParams.get("returnUrl") || "/";
 
-  async function completeLogin() {
-    try {
-      await fetchUserStatus();
+  /**
+   * Follows the server's redirect if it points at another frontend, otherwise
+   * routes inside this app.
+   */
+  const goTo = useCallback(
+    async (redirectUrl?: string | null) => {
       await queryClient.invalidateQueries({ queryKey: ["userStatus"] });
-      router.push(returnUrl);
-    } catch {
-      setStage("2fa");
-    }
-  }
+      if (!redirectUrl) {
+        router.push(returnUrl);
+        return;
+      }
+      const target = resolveMenuUrl(redirectUrl);
+      if (target.kind === "internal") {
+        router.push(target.href);
+      } else {
+        window.location.assign(toAbsoluteUrl(target));
+      }
+    },
+    [queryClient, returnUrl, router]
+  );
+
+  // The session may already be logged-in, or pre-logged-in with a pending
+  // second factor (e.g. after a browser reload during the 2FA step).
+  useEffect(() => {
+    let cancelled = false;
+    fetchLoginState(returnUrl)
+      .then((state) => {
+        if (cancelled) return;
+        if (state.setupRedirectUrl) {
+          window.location.assign(state.setupRedirectUrl);
+          return;
+        }
+        setMotd(state.messageOfTheDay ?? null);
+        if (state.twoFactorRequired) {
+          setMethods(state.methods ?? null);
+        } else if (state.loggedIn) {
+          void goTo(null);
+        }
+      })
+      .catch(() => {
+        /* The login form works without the state, so stay silent. */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [goTo, returnUrl]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
-
     try {
-      const response = await loginWithResponse(username, password, stayLoggedIn);
-      if (response.targetType === "CHECK_AUTHENTICATION") {
-        await completeLogin();
+      const result = await login(username, password, stayLoggedIn);
+      if (result.status === "SUCCESS") {
+        await goTo(result.redirectUrl);
+      } else if (result.status === "TWO_FACTOR_REQUIRED") {
+        setMethods(
+          result.methods ?? {
+            otp: true,
+            sms: false,
+            mail: false,
+            webAuthn: false,
+          }
+        );
       } else {
-        setError(t("error"));
+        setError(result.message ?? tb("login.error.loginFailed"));
       }
     } catch {
-      setError(t("error"));
+      setError(tb("login.error.loginFailed"));
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  if (stage === "2fa") {
+  if (methods) {
     return (
-      <TwoFactorForm
-        onSuccess={async () => {
-          await queryClient.invalidateQueries({ queryKey: ["userStatus"] });
-          router.push(returnUrl);
-        }}
-        onCancel={async () => {
-          await cancel2FA();
-          setStage("credentials");
-        }}
-      />
+      <AuthCard title={tb("user.My2FACode.title")}>
+        <TwoFactorForm
+          context="login"
+          methods={methods}
+          onSuccess={(result) => void goTo(result.redirectUrl)}
+          onCancel={async () => {
+            await cancelLogin();
+            setMethods(null);
+            setPassword("");
+          }}
+        />
+      </AuthCard>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">{t("title")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="grid gap-4">
-            {error && (
-              <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                {error}
-              </div>
-            )}
-            <div className="grid gap-2">
-              <Label htmlFor="username">{t("username")}</Label>
-              <Input
-                id="username"
-                type="text"
-                autoComplete="username"
-                autoFocus
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">{t("password")}</Label>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="stayLoggedIn"
-                checked={stayLoggedIn}
-                onCheckedChange={(checked) =>
-                  setStayLoggedIn(checked === true)
-                }
-              />
-              <Label htmlFor="stayLoggedIn" className="text-sm font-normal">
-                {t("stayLoggedIn")}
-              </Label>
-            </div>
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? t("submitting") : t("submit")}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+    <AuthCard title={tb("login.title")}>
+      <form onSubmit={handleLogin} className="grid gap-4">
+        {motd && <FormAlert tone="info">{motd}</FormAlert>}
+        {error && <FormAlert tone="error">{error}</FormAlert>}
+        <div className="grid gap-2">
+          <Label htmlFor="username">{tb("username")}</Label>
+          <Input
+            id="username"
+            type="text"
+            autoComplete="username"
+            autoFocus
+            required
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="password">{tb("password._")}</Label>
+          <Input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="stayLoggedIn"
+            checked={stayLoggedIn}
+            onCheckedChange={(checked) => setStayLoggedIn(checked === true)}
+          />
+          <Label htmlFor="stayLoggedIn" className="text-sm font-normal">
+            {tb("login.stayLoggedIn._")}
+          </Label>
+        </div>
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? t("submitting") : tb("login._")}
+        </Button>
+        <Link
+          href="/password-forgotten"
+          className="text-center text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
+        >
+          {tb("password.forgotten.link")}
+        </Link>
+      </form>
+    </AuthCard>
   );
 }

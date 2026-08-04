@@ -24,6 +24,7 @@
 package org.projectforge.web.rest
 
 import mu.KotlinLogging
+import org.projectforge.Constants
 import org.projectforge.SystemStatus
 import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.user.UserAccessLogEntries
@@ -38,6 +39,7 @@ import org.projectforge.rest.AuthenticationOld
 import org.projectforge.rest.ConnectionSettings
 import org.projectforge.rest.converter.DateTimeFormat
 import org.projectforge.rest.my2fa.My2FAPageRest
+import org.projectforge.rest.pub.next.TwoFactorRequired
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.security.My2FARequestHandler
 import org.projectforge.security.RegisterUser4Thread
@@ -280,6 +282,16 @@ open class RestAuthenticationUtils {
       val expiryMillis = my2FARequestHandler.handleRequest(authInfo.request, authInfo.response, false)
       if (expiryMillis != null) {
         log.info { "2FA is required for this request: ${authInfo.request.requestURI}" }
+        if (isNextClient(request)) {
+          // projectforge-next doesn't know the UILayout based ResponseAction protocol: it opens its own 2FA dialog
+          // and repeats the request afterwards (see lib/rs/client.ts).
+          response.status = HttpStatus.FORBIDDEN.value()
+          response.setContentType(MediaType.APPLICATION_JSON_VALUE)
+          response.writer.write(
+            JsonUtils.toJson(TwoFactorRequired(expiryMillis = expiryMillis), ignoreNullableProps = true)
+          )
+          return
+        }
         response.status = HttpStatus.OK.value()
         response.setContentType(MediaType.APPLICATION_JSON_VALUE)
         val url = request.requestURI
@@ -391,6 +403,22 @@ open class RestAuthenticationUtils {
   }
 
   companion object {
+    /**
+     * Header sent by projectforge-next (lib/rs/client.ts) to identify itself. The Referer is used as fallback, because
+     * the static export is served under [Constants.NEXT_APP_PATH].
+     */
+    const val NEXT_CLIENT_HEADER = "X-PF-Frontend"
+
+    /**
+     * @return true, if the request was sent by projectforge-next (which can't handle UILayout based ResponseActions).
+     */
+    fun isNextClient(request: HttpServletRequest): Boolean {
+      if (request.getHeader(NEXT_CLIENT_HEADER) == Constants.NEXT) {
+        return true
+      }
+      return request.getHeader("Referer")?.contains("/${Constants.NEXT_APP_PATH}") == true
+    }
+
     /**
      * "Authentication-User-Id" and "authenticationUserId".
      */

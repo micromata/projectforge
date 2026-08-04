@@ -17,10 +17,32 @@ export class RsError extends Error {
   }
 }
 
-async function request<O>(
+// Body Spring sends (403) when My2FARequestHandler demands a second factor for a
+// protected action, see RestAuthenticationUtils.doFilter / TwoFactorRequired.
+interface TwoFactorRequiredBody {
+  twoFactorRequired?: boolean;
+  expiryMillis?: number;
+}
+
+/**
+ * Asks the user for a second factor and resolves to true once it succeeded.
+ * Registered by the app shell (see components/shared/two-factor-provider.tsx) so
+ * request() can transparently repeat the interrupted call.
+ */
+export type TwoFactorHandler = (expiryMillis?: number) => Promise<boolean>;
+
+let twoFactorHandler: TwoFactorHandler | null = null;
+
+export function setTwoFactorHandler(handler: TwoFactorHandler | null): void {
+  twoFactorHandler = handler;
+}
+
+export async function request<O>(
   path: string,
   init: RequestInit,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  // Internal: a retried request must not trigger the 2FA dialog a second time.
+  isRetry = false
 ): Promise<O> {
   // Backend paths (/rs, /rsPublic) are root-relative, NOT prefixed with the
   // app's basePath: Spring serves them at the origin root, not under /next.
@@ -32,9 +54,23 @@ async function request<O>(
     signal,
     headers: {
       "Content-Type": "application/json",
+      // Tells the backend to answer with plain JSON instead of a UILayout
+      // ResponseAction (RestAuthenticationUtils.isNextClient).
+      "X-PF-Frontend": "next",
       ...(init.headers ?? {}),
     },
   });
+  if (res.status === 403 && !isRetry && twoFactorHandler) {
+    const body = (await res
+      .clone()
+      .json()
+      .catch(() => null)) as TwoFactorRequiredBody | null;
+    if (body?.twoFactorRequired) {
+      if (await twoFactorHandler(body.expiryMillis)) {
+        return request<O>(path, init, signal, true);
+      }
+    }
+  }
   if (!res.ok) {
     throw new RsError(res.status, `${res.status} ${res.statusText}: ${path}`);
   }
@@ -87,9 +123,7 @@ export function fetchHistory<O>(
 
 // --- Authentication ---
 
-export function fetchSystemStatus(
-  signal?: AbortSignal
-): Promise<SystemStatus> {
+export function fetchSystemStatus(signal?: AbortSignal): Promise<SystemStatus> {
   return request<SystemStatus>(
     "/rsPublic/systemStatus",
     { method: "GET" },
@@ -97,21 +131,8 @@ export function fetchSystemStatus(
   );
 }
 
-export function login(
-  username: string,
-  password: string,
-  stayLoggedIn: boolean,
-  signal?: AbortSignal
-): Promise<unknown> {
-  return request<unknown>(
-    "/rsPublic/login",
-    {
-      method: "POST",
-      body: JSON.stringify({ data: { username, password, stayLoggedIn } }),
-    },
-    signal
-  );
-}
+// Login, 2FA and password reset live in ./auth.ts (they speak the next-only
+// JSON contract, not the UILayout ResponseAction protocol).
 
 export function fetchUserStatus(signal?: AbortSignal): Promise<UserStatus> {
   return request<UserStatus>("/rs/userStatus", { method: "GET" }, signal);
@@ -121,61 +142,39 @@ export function logout(signal?: AbortSignal): Promise<unknown> {
   return request<unknown>("/rs/logout", { method: "GET" }, signal);
 }
 
-// --- 2FA ---
+// --- Column state (per entity category, stored in the user's prefs) ---
 
-export interface LoginResponse {
-  targetType: "CHECK_AUTHENTICATION" | "UPDATE";
-  url?: string | null;
-  variables?: Record<string, unknown>;
+/** TanStack Table's own state shape, mirroring GridState/DataTableStateRequest. */
+export interface ColumnStateDto {
+  columnOrder?: string[];
+  columnSizing?: Record<string, number>;
+  columnVisibility?: Record<string, boolean>;
+  columnPinning?: { left?: string[]; right?: string[] };
+  sorting?: { id: string; desc: boolean }[];
+  columnFilters?: { id: string; value: unknown }[];
 }
 
-export async function loginWithResponse(
-  username: string,
-  password: string,
-  stayLoggedIn: boolean,
+export function fetchColumnStates(
+  entity: string,
   signal?: AbortSignal
-): Promise<LoginResponse> {
-  const url = `/rsPublic/login`;
-  const res = await fetch(url, {
-    credentials: "include",
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ data: { username, password, stayLoggedIn } }),
-    signal,
-  });
-  const body = await res.json();
-  if (!res.ok && body?.targetType !== "UPDATE") {
-    throw new RsError(res.status, `${res.status} Login failed`);
-  }
-  return body as LoginResponse;
+): Promise<ColumnStateDto> {
+  return request<ColumnStateDto>(
+    `/rs/${entity}/columnStates`,
+    { method: "GET" },
+    signal
+  );
 }
 
-export async function checkOtp(
-  code: string,
+export function saveColumnStates(
+  entity: string,
+  state: ColumnStateDto,
   signal?: AbortSignal
-): Promise<LoginResponse> {
-  const url = `/rsPublic/2FA/checkOTP`;
-  const res = await fetch(url, {
-    credentials: "include",
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ data: { code } }),
-    signal,
-  });
-  const body = await res.json();
-  return body as LoginResponse;
-}
-
-export function sendSmsCode(signal?: AbortSignal): Promise<unknown> {
-  return request<unknown>("/rsPublic/2FA/sendSmsCode", { method: "GET" }, signal);
-}
-
-export function sendMailCode(signal?: AbortSignal): Promise<unknown> {
-  return request<unknown>("/rsPublic/2FA/sendMailCode", { method: "GET" }, signal);
-}
-
-export function cancel2FA(signal?: AbortSignal): Promise<unknown> {
-  return request<unknown>("/rsPublic/2FA/cancel", { method: "GET" }, signal);
+): Promise<unknown> {
+  return request<unknown>(
+    `/rs/${entity}/setColumnStates`,
+    { method: "POST", body: JSON.stringify(state) },
+    signal
+  );
 }
 
 // --- Menu ---
