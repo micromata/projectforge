@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import { ThemeProvider } from "next-themes";
-import { NextIntlClientProvider } from "next-intl";
-import { getLocale, getMessages } from "next-intl/server";
+import { LocaleProvider } from "@/i18n/locale-provider";
+import { DEFAULT_LOCALE } from "@/i18n/config";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryProvider } from "@/lib/query-client";
@@ -24,17 +24,16 @@ export const metadata: Metadata = {
   title: "ProjectForge",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const locale = await getLocale();
-  const messages = await getMessages();
-
   return (
     <html
-      lang={locale}
+      // The static export prerenders with the default locale; LocaleProvider
+      // sets the real one (and this lang attribute) on the client.
+      lang={DEFAULT_LOCALE}
       suppressHydrationWarning
       className={cn(
         "h-full",
@@ -46,14 +45,14 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <NextIntlClientProvider locale={locale} messages={messages}>
+          <LocaleProvider>
             <QueryProvider>
               <TooltipProvider>
                 {children}
                 <Toaster richColors position="top-right" />
               </TooltipProvider>
             </QueryProvider>
-          </NextIntlClientProvider>
+          </LocaleProvider>
         </ThemeProvider>
       </body>
     </html>

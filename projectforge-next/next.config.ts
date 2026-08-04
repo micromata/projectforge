@@ -1,9 +1,8 @@
 import type { NextConfig } from "next";
-import createNextIntlPlugin from "next-intl/plugin";
 import { BASE_PATH } from "./lib/config";
 
-const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
-
+// No next-intl plugin: the static export has no server, so the locale and
+// message catalogs are resolved on the client (see i18n/locale-provider.tsx).
 const nextConfig: NextConfig = {
   // Served by Spring under /next, side-by-side with the legacy /react app.
   basePath: BASE_PATH,
@@ -37,4 +36,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withNextIntl(nextConfig);
+export default nextConfig;
