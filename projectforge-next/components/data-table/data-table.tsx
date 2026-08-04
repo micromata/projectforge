@@ -33,16 +33,22 @@ function pinnedStyle<TData>(column: Column<TData, unknown>): React.CSSProperties
     position: "sticky",
     left: pinned === "left" ? column.getStart("left") : undefined,
     right: pinned === "right" ? column.getAfter("right") : undefined,
+    // Above scrolling cells, below the sticky header (z-20).
     zIndex: 1,
   };
 }
 
 /** Marks the boundary between pinned and scrolling columns. */
-function pinnedClass<TData>(column: Column<TData, unknown>): string | undefined {
+function pinnedClass<TData>(
+  column: Column<TData, unknown>,
+  /** Header cells bring their own background; body cells need an opaque one so
+   *  scrolling columns don't show through. */
+  opaque = true
+): string | undefined {
   const pinned = column.getIsPinned();
   if (!pinned) return undefined;
   return cn(
-    "bg-background",
+    opaque && "bg-background",
     pinned === "left" && column.getIsLastColumn("left") && "border-r",
     pinned === "right" && column.getIsFirstColumn("right") && "border-l"
   );
@@ -108,7 +114,7 @@ export function DataTable<TData>({
             {rowActions && <col style={{ width: ROW_ACTIONS_WIDTH }} />}
             <col />
           </colgroup>
-          <TableHeader className="bg-muted/40">
+          <TableHeader className="sticky top-0 z-20 bg-muted">
             {table.getHeaderGroups().map((hg) => (
               <TableRow key={hg.id}>
                 {hg.headers.map((header) => (
@@ -116,9 +122,11 @@ export function DataTable<TData>({
                     key={header.id}
                     style={pinnedStyle(header.column)}
                     className={cn(
-                      "group/th relative truncate text-[10px]",
+                      // Own background: the sticky header would otherwise let
+                      // rows show through as they scroll underneath.
+                      "group/th relative truncate bg-muted text-[10px]",
                       header.column.getIsSorted() && "bg-primary/10",
-                      pinnedClass(header.column)
+                      pinnedClass(header.column, false)
                     )}
                   >
                     {header.isPlaceholder

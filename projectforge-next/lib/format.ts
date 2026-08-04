@@ -1,0 +1,230 @@
+import type { UserData } from "./rs/types";
+
+/**
+ * Value formatting based on the user's locale, time zone and currency, which the
+ * backend sends in userData.
+ *
+ * Uses Intl rather than the `jsDateFormat`/`jsTimestampFormat*` patterns from
+ * userData: those are moment.js syntax ("DD.MM.YYYY HH:mm") and moment is not a
+ * dependency here. Intl derives the same layout from the locale.
+ */
+
+export interface FormatContext {
+  locale: string;
+  timeZone?: string;
+  currency?: string;
+}
+
+/** Maps a backend locale ("de_DE") onto a BCP-47 tag Intl understands. */
+function toBcp47(locale: string | undefined): string {
+  return locale ? locale.replace("_", "-") : "de-DE";
+}
+
+export function formatContextFrom(user: UserData | null | undefined): FormatContext {
+  return {
+    locale: toBcp47(user?.locale),
+    timeZone: user?.timeZone,
+    currency: user?.currency,
+  };
+}
+
+function toDate(value: unknown): Date | null {
+  if (value == null || value === "") return null;
+  const date = typeof value === "number" ? new Date(value) : new Date(String(value));
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+/** Date only, e.g. 17.06.2016. */
+export function formatDate(value: unknown, ctx: FormatContext): string {
+  const date = toDate(value);
+  if (!date) return "";
+  return new Intl.DateTimeFormat(ctx.locale, {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: ctx.timeZone,
+  }).format(date);
+}
+
+/** Date and time to the minute, e.g. 17.06.2016, 14:33. */
+export function formatTimestampMinutes(
+  value: unknown,
+  ctx: FormatContext
+): string {
+  const date = toDate(value);
+  if (!date) return "";
+  return new Intl.DateTimeFormat(ctx.locale, {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: ctx.timeZone,
+  }).format(date);
+}
+
+/** Date and time to the second. */
+export function formatTimestampSeconds(
+  value: unknown,
+  ctx: FormatContext
+): string {
+  const date = toDate(value);
+  if (!date) return "";
+  return new Intl.DateTimeFormat(ctx.locale, {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    timeZone: ctx.timeZone,
+  }).format(date);
+}
+
+export function formatNumber(
+  value: unknown,
+  ctx: FormatContext,
+  fractionDigits?: number
+): string {
+  if (value == null || value === "") return "";
+  const numeric = typeof value === "number" ? value : Number(value);
+  if (Number.isNaN(numeric)) return "";
+  return new Intl.NumberFormat(ctx.locale, {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  }).format(numeric);
+}
+
+export function formatCurrency(value: unknown, ctx: FormatContext): string {
+  if (value == null || value === "") return "";
+  const numeric = typeof value === "number" ? value : Number(value);
+  if (Number.isNaN(numeric)) return "";
+  return new Intl.NumberFormat(ctx.locale, {
+    style: "currency",
+    // The backend may send a symbol ("€"); Intl needs an ISO code.
+    currency: ctx.currency && /^[A-Z]{3}$/.test(ctx.currency)
+      ? ctx.currency
+      : "EUR",
+  }).format(numeric);
+}
+
+/** Integer percentage, e.g. 19 → "19 %". */
+export function formatPercentage(value: unknown, ctx: FormatContext): string {
+  if (value == null || value === "") return "";
+  const numeric = typeof value === "number" ? value : Number(value);
+  if (Number.isNaN(numeric)) return "";
+  return new Intl.NumberFormat(ctx.locale, {
+    style: "percent",
+    maximumFractionDigits: 1,
+  }).format(numeric / 100);
+}
+
+/** Decimal fraction as a percentage, e.g. 0.19 → "19 %". */
+export function formatPercentageDecimal(
+  value: unknown,
+  ctx: FormatContext
+): string {
+  if (value == null || value === "") return "";
+  const numeric = typeof value === "number" ? value : Number(value);
+  if (Number.isNaN(numeric)) return "";
+  return new Intl.NumberFormat(ctx.locale, {
+    style: "percent",
+    maximumFractionDigits: 1,
+  }).format(numeric);
+}
+
+/** Resolves the display text of a referenced entity, or a list of them. */
+export function formatDisplayName(value: unknown): string {
+  if (value == null) return "";
+  if (Array.isArray(value)) return value.map(formatDisplayName).join(", ");
+  if (typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    const name =
+      record.displayName ??
+      record.fullname ??
+      record.username ??
+      record.title ??
+      // Cost/account references carry their number, orders their position.
+      record.formattedNumber ??
+      record.number ??
+      record.name;
+    return name == null ? "" : String(name);
+  }
+  return String(value);
+}
+
+/**
+ * The formatter names the backend sends in a column def
+ * (UIAgGridColumnDef.Formatter). BOOLEAN, RATING and CONSUMPTION are missing on
+ * purpose: they render icons or a progress bar rather than text, so they belong
+ * in a cell component, not here.
+ */
+export type FormatterName =
+  | "CURRENCY"
+  | "CURRENCY_PLAIN"
+  | "DATE"
+  | "NUMBER"
+  | "TIMESTAMP_MINUTES"
+  | "TIMESTAMP_SECONDS"
+  | "PERCENTAGE"
+  | "PERCENTAGE_DECIMAL"
+  | "SHOW_DISPLAYNAME"
+  | "SHOW_LIST_OF_DISPLAYNAMES"
+  | "ADDRESS_BOOK"
+  | "AUFTRAG_POSITION"
+  | "EMPLOYEE"
+  | "COST1"
+  | "COST2"
+  | "CUSTOMER"
+  | "GROUP"
+  | "KONTO"
+  | "PROJECT"
+  | "TASK_PATH"
+  | "USER";
+
+/**
+ * Formats a cell value the way the backend's formatter name asks for. Unknown
+ * names fall back to the plain value so a new backend formatter degrades to
+ * readable text instead of an empty cell.
+ */
+export function formatValue(
+  value: unknown,
+  formatter: FormatterName | string | undefined,
+  ctx: FormatContext
+): string {
+  switch (formatter) {
+    case "DATE":
+      return formatDate(value, ctx);
+    case "TIMESTAMP_MINUTES":
+      return formatTimestampMinutes(value, ctx);
+    case "TIMESTAMP_SECONDS":
+      return formatTimestampSeconds(value, ctx);
+    case "CURRENCY":
+      return formatCurrency(value, ctx);
+    case "CURRENCY_PLAIN":
+      return formatNumber(value, ctx, 2);
+    case "NUMBER":
+      return formatNumber(value, ctx);
+    case "PERCENTAGE":
+      return formatPercentage(value, ctx);
+    case "PERCENTAGE_DECIMAL":
+      return formatPercentageDecimal(value, ctx);
+    // All of these resolve a referenced entity to its display text.
+    case "SHOW_DISPLAYNAME":
+    case "SHOW_LIST_OF_DISPLAYNAMES":
+    case "ADDRESS_BOOK":
+    case "AUFTRAG_POSITION":
+    case "EMPLOYEE":
+    case "COST1":
+    case "COST2":
+    case "CUSTOMER":
+    case "GROUP":
+    case "KONTO":
+    case "PROJECT":
+    case "TASK_PATH":
+    case "USER":
+      return formatDisplayName(value);
+    default:
+      return formatDisplayName(value);
+  }
+}

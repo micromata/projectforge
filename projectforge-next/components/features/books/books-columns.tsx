@@ -3,6 +3,8 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { useFormatContext } from "@/hooks/use-format";
+import { formatTimestampMinutes } from "@/lib/format";
 import { DataTableColumnHeader } from "@/components/data-table";
 import { StatusBadge } from "./status-badge";
 import type { BookListRow } from "./types";
@@ -14,19 +16,23 @@ import type { BookListRow } from "./types";
 export function useBooksColumns(): ColumnDef<BookListRow>[] {
   const t = useTranslations();
   const tBook = useTranslations("book");
+  const formatCtx = useFormatContext();
 
   return [
   {
     accessorKey: "created",
     meta: { label: t("created") },
-    size: 84,
+    // Wide enough for a localised date and time.
+    size: 130,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} filterKind="date">
         {t("created")}
       </DataTableColumnHeader>
     ),
     cell: ({ getValue }) => (
-      <span className="text-muted-foreground">{getValue<string>()}</span>
+      <span className="text-muted-foreground">
+        {formatTimestampMinutes(getValue<string>(), formatCtx)}
+      </span>
     ),
   },
   {

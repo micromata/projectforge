@@ -79,10 +79,20 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
         }
     }
 
+    /**
+     * Entries without a value sort last in both directions, matching the criteria search
+     * (see DBQueryBuilderByCriteria.addOrder). Text columns hold two representations of "no
+     * value" — `null` and, in some records, an empty string — so both are treated alike;
+     * otherwise blank entries lead the list in one direction or the other depending on which
+     * representation a record happens to use.
+     */
     override fun sort(list: List<O>): List<O> {
         val collator = Collator.getInstance(ThreadLocalUserContext.locale)
         val errorProperties = mutableListOf<String>()
         return list.sortedWith(object : Comparator<O> {
+            /** null and blank strings count as "no value". */
+            fun isBlank(value: Any?): Boolean = value == null || (value is String && value.isEmpty())
+
             override fun compare(o1: O, o2: O): Int {
                 if (sortProperties.isEmpty()) {
                     return 0
@@ -92,6 +102,15 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
                     try {
                         val val1 = BeanHelper.getNestedProperty(o1, sortProperty.property)
                         val val2 = BeanHelper.getNestedProperty(o2, sortProperty.property)
+                        val blank1 = isBlank(val1)
+                        val blank2 = isBlank(val2)
+                        if (blank1 || blank2) {
+                            // Not swapped for descending: blanks belong last either way.
+                            if (blank1 != blank2) {
+                                ctb.append(if (blank1) 1 else 0, if (blank2) 1 else 0)
+                            }
+                            continue // Both blank: equal for this property, compare the next one.
+                        }
                         if (val1 is String) {
                             // Strings should be compared by using locale dependent collator (especially for german Umlaute)
                             if (sortProperty.ascending) {
@@ -107,9 +126,9 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
                             }
                         } else {
                             if (sortProperty.ascending) {
-                                ctb.append(val1?.toString(), val2?.toString())
+                                ctb.append(val1.toString(), val2?.toString())
                             } else {
-                                ctb.append(val2?.toString(), val1?.toString())
+                                ctb.append(val2?.toString(), val1.toString())
                             }
                         }
                     } catch (ex: Exception) {
