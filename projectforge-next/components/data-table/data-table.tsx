@@ -216,8 +216,9 @@ export function DataTable<TData>({
   if (tableRef) tableRef(table);
 
   const visibleColumns = table.getVisibleLeafColumns();
-  const cols = visibleColumns.length + (rowActions ? 1 : 0);
-  const lastColumnIndex = visibleColumns.length - 1;
+  const cols = visibleColumns.length + (rowActions ? 1 : 0) + 1; // + filler
+  // The table is exactly the sum of its column widths; the filler column then
+  // stretches to the container so the header background spans the full width.
   const totalWidth =
     table.getTotalSize() + (rowActions ? ROW_ACTIONS_WIDTH : 0);
   const showSkeleton = isLoading && data.length === 0;
@@ -230,26 +231,19 @@ export function DataTable<TData>({
         )}
         {/* table-fixed makes the colgroup widths authoritative — without it the
             browser sizes columns by content and header and body drift apart.
-            The explicit width keeps those widths exact instead of being stretched
-            proportionally to fill the container, which resizing depends on; the
-            last column absorbs any remaining space. */}
+            Every width is explicit and the table is exactly as wide as their sum,
+            so resizing one column leaves the others alone: any spare space in the
+            container goes to the filler column below, never to the data columns. */}
         <Table
-          className="table-fixed text-xs [&_td]:px-2 [&_td]:py-1 [&_th]:h-7 [&_th]:px-2"
-          style={{ width: Math.max(totalWidth, 100), minWidth: "100%" }}
+          className="min-w-full table-fixed text-xs [&_td]:px-2 [&_td]:py-1 [&_th]:h-7 [&_th]:px-2"
+          style={{ width: totalWidth }}
         >
           <colgroup>
-            {table.getVisibleLeafColumns().map((column, index) => (
-              <col
-                key={column.id}
-                style={
-                  // Let the last column take the slack so there is no dead area.
-                  index === lastColumnIndex && !rowActions
-                    ? undefined
-                    : { width: column.getSize() }
-                }
-              />
+            {table.getVisibleLeafColumns().map((column) => (
+              <col key={column.id} style={{ width: column.getSize() }} />
             ))}
             {rowActions && <col style={{ width: ROW_ACTIONS_WIDTH }} />}
+            <col />
           </colgroup>
           <TableHeader className="bg-muted/40">
             {table.getHeaderGroups().map((hg) => (
@@ -288,6 +282,9 @@ export function DataTable<TData>({
                   </TableHead>
                 ))}
                 {rowActions && <TableHead />}
+                {/* Filler: absorbs leftover container width so resizing a column
+                    never redistributes width across the others. */}
+                <TableHead aria-hidden />
               </TableRow>
             ))}
           </TableHeader>
@@ -301,6 +298,7 @@ export function DataTable<TData>({
                     </TableCell>
                   ))}
                   {rowActions && <TableCell />}
+                  <TableCell aria-hidden />
                 </TableRow>
               ))
             ) : table.getRowModel().rows.length === 0 ? (
@@ -374,6 +372,7 @@ function DataTableRow<TData>({
           </div>
         </TableCell>
       )}
+      <TableCell aria-hidden />
     </TableRow>
   );
 }
