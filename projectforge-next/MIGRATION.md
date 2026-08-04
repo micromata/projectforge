@@ -163,29 +163,78 @@ Beide Abweichungen entstanden für die Mock-Routen; seit deren Entfernung gilt d
 echte Kontrakt. **Regel:** `lib/rs/types.ts` darf nur Felder enthalten, die die
 Kotlin-Klasse deserialisieren kann.
 
+**Erledigt: Tabellen-Funktionen portiert.** Vorlage war der TanStack-Umbau der
+alten React-App (`projectforge-webapp/src/.../components/table/` mit
+`DynamicTanStackGrid.tsx` und `tanstack/*`) – konzeptuell übernommen, nicht
+kopiert, da dort reactstrap/Bootstrap statt shadcn/Tailwind zum Einsatz kommt.
+
+`components/data-table/` enthält jetzt: `data-table.tsx` (Rendering inkl. Pinning
+und Resize-Handle), `data-table-column-panel.tsx` (Ein-/Ausblenden, Pinning,
+Drag-Reorder), `column-filter.tsx` (Text/Zahl/Datum/Auswahl), `filter-fns.ts`,
+`use-table-state.ts` (die sechs State-Slices),
+`use-column-state-persistence.ts`, `types.ts` (`ColumnMeta`-Augmentation).
+
+Wichtige Details für spätere Seiten:
+
+- **`table-fixed` + `colgroup` sind zwingend.** Setzt man Breiten nur auf die
+  Header-Zellen, layoutet der Browser nach Inhalt und Header/Body driften
+  auseinander. Ebenso braucht die Tabelle eine **explizite** Breite
+  (`getTotalSize()`, `minWidth: 100%`): mit `w-full` streckt der Browser die
+  Spalten proportional, die gerenderte Breite weicht von `getSize()` ab und
+  Resizing greift nicht.
+- **Kein zusätzliches `<td>` pro Zeile.** Ein Extra-`<td>` (z.B. für einen
+  Hover-Balken) belegt einen Spalten-Slot und verschiebt alle Zellen um eine
+  Spalte. Dekoration gehört in ein Pseudoelement.
+- **`meta.label` statt `columnDef.header`,** wo Klartext gebraucht wird
+  (Spalten-Panel, aria-Labels): `header` rendert eine Komponente.
+- **Spalten-Filter laufen clientseitig** – konsequent dazu, dass `getList` die
+  ganze Liste liefert. Eine einzige `filterFn` dispatcht über die Wertform, damit
+  der Filter-State JSON-serialisierbar bleibt (Voraussetzung für die Persistenz).
+- **Zwei Bugs der Vorlage nicht mitportiert:** gepinnte Spalten nutzen
+  `getAfter('right')` statt hartkodiert `0` (mehrere rechts gepinnte überlagerten
+  sich), und der State-POST feuert nicht beim Mount (schrieb sonst bei jedem
+  Seitenaufruf zurück, was er gerade geladen hatte).
+
+**Erledigt: i18n wird generiert, nicht dupliziert.** Das Backend hat `columns.*`
+und `filter.*` bereits vollständig in beiden Sprachen; die Frontend-Kataloge
+hatten angefangen, sie zu kopieren.
+`GenerateNextI18nMessagesMain` (in `DevelopmentMainForRelease`, direkt neben dem
+Sortier-Schritt, der die Quelle pflegt) erzeugt `messages/generated.<locale>.json`
+aus `I18nResources`. Keys werden per **Prefix** gewählt (`book.`, `columns.`,
+`filter.`, …) statt enumeriert – ein paar unbenutzte Keys sind besser als eine
+Liste, die veraltet. Die generierten Dateien liegen getrennt und werden **tief**
+gemerged, damit frontend-eigene Texte (z.B. `login.username`, im Backend nicht
+vorhanden) erhalten bleiben und sich einen Namespace teilen können.
+Kollisionsfall `book.title` (Leaf) + `book.title.add` (Objekt) → `_`-Schlüssel.
+**Regel:** neue UI-Texte zuerst in `I18nResources` anlegen, dann generieren.
+
 **Offen:**
 
-1. **Tabellen-Funktionen aus dem TanStack-Umbau übernehmen.** Die alte React-App
-   hat Spalten-Filter, Resizing, Ein-/Ausblenden und Pinning bereits gelöst –
-   Referenz: `projectforge-webapp/src/components/base/dynamicLayout/components/table/`
-   (`DynamicTanStackGrid.tsx` sowie `tanstack/TanStackColumnPanel.tsx`,
-   `TanStackColumnFilter.tsx`, `TanStackDateFilter.tsx`, `TanStackNumberFilter.tsx`,
-   `TanStackPagination.tsx`, `FilterPortal.tsx`, `CellRendererDispatch.tsx`,
-   `tableUtils.ts`). `projectforge-next/components/data-table/` hat davon bislang
-   nur `data-table.tsx`, Column-Header und Pagination. Spaltenbreiten sind
-   derzeit verrutscht.
-   Spaltenzustand persistiert das Backend über `setColumnStates`
-   (`AbstractPagesRest`, User-Prefs) – beim Port mitdenken.
-2. **Filter-Panel ist Design-Attrappe.** `books-filter-panel.tsx` enthält
-   hartkodierte Autorennamen, erfundene Zahlen (234/189/45) und gespeicherte
-   Filter; nichts davon ist an einen Query gebunden. Deshalb ändert
-   „Filter löschen" nichts. Ebenso sind die Chips in `books/page.tsx` bloßer
-   `useState`-Initialwert. Entweder echt anbinden (Status/Autor als
-   `MagicFilterEntry`, Zahlen vom Backend) oder entfernen.
-3. **Konventions-Drift:** `books`-Edit nutzt `@tanstack/react-form`, `CLAUDE.md`
+1. **Spaltenzustand persistieren.** `useColumnStatePersistence` ist gebaut, aber
+   noch **nicht verdrahtet** – es fehlt die `setColumnStates`-URL, die aus dem
+   Layout kommt (`AbstractPagesRest`, User-Prefs pro Entity-Kategorie). Das
+   Wire-Format ist natives TanStack-State (`DataTableStateRequest`/`GridState`),
+   kein AG-Grid-Erbe. Achtung: `columnFilters` wird gespeichert, aber vom Backend
+   **nie zurückgeliefert** – der restaurierte Zustand wird stattdessen in die
+   ColumnDefs zurückgeschrieben (`AGGridSupport.restoreColumnsFromUserPref`).
+2. **Filter-Panel ist Design-Attrappe** – `books-filter-panel.tsx` mit
+   hartkodierten Autorennamen, erfundenen Zahlen (234/189/45) und gespeicherten
+   Filtern, an keinen Query gebunden. Auf der `books`-Seite ist es (mit den
+   Attrappen-Chips und dem „Gespeichert"-Button) **bereits entfernt**; die
+   Spalten-Filter im Header sind der funktionierende Ersatz. Es hängt nur noch an
+   `demo/`. Zu klären: gespeicherte Filter echt anbinden (das Backend hat
+   Filter-Favoriten, `AbstractPagesRest` `filter/select|create|…`) oder die
+   Attrappe löschen.
+3. **Zell-Rendering/Formatter fehlen noch.** Die alte App hat einen
+   Formatter-Zoo (`Formatter.jsx`, `FormatterFormat.js`: Währung, Prozent,
+   Datum/Timestamp, Task-Pfade, `displayName`-Auflösung), den der Dynamic-Renderer
+   in Phase 2 braucht. Muster: Registry `name → Komponente`
+   (`CellRendererDispatch.tsx`) – ohne die AG-Grid-Params-Hülle.
+4. **Konventions-Drift:** `books`-Edit nutzt `@tanstack/react-form`, `CLAUDE.md`
    schreibt `react-hook-form` vor. Vor der Bulk-Migration entscheiden.
-4. Nicht browserseitig verifiziert: englischer Locale-Pfad und der vollständige
-   Login-Flow mit echten Daten.
+5. Nicht browserseitig verifiziert: englischer Locale-Pfad, vollständiger
+   Login-Flow mit echten Daten, und das visuelle Ergebnis der Tabelle
+   (Spaltenbreiten, Resize, Popovers).
 
 ### Phase 2 – Dynamic-Renderer in Next vervollständigen (Bulk-Migration)
 
@@ -201,8 +250,16 @@ Port der Referenz `projectforge-webapp/src/components/base/dynamicLayout/` nach
 3. **RHF + Zod** statt rohem `setData` (Projekt-Konvention). Hinweis: `books`-Edit
    nutzt abweichend `@tanstack/react-form` – vor dem Bulk-Track auf eine Form-Lib
    festlegen.
-4. **`DataTable`-Integration** für Listen (heute statische HTML-Tabelle) an
-   `components/data-table/` + `useMagicFilterQuery` (Server-Sort/Page/Search).
+4. **`DataTable`-Integration** für Listen: `components/dynamic/components/dynamic-table.tsx`
+   ist eine handgeschriebene `<table>` (liest nur `hide`) und sollte durch die nun
+   vollständige `DataTable` ersetzt werden. Dafür braucht es einen **Adapter**
+   `UIAgGridColumnDef → ColumnDef` (Vorlage: `tanstack/tableUtils.ts`
+   `buildColumnDefs`), der die AG-Grid-Wire-Namen normalisiert:
+   `filter: 'agTextColumnFilter'|'agNumberColumnFilter'|'agDateColumnFilter'` →
+   `FilterKind`, `type: 'numericColumn'|'rightAligned'` → `meta.align`,
+   `headerName` → `meta.label`, `hide`/`pinned`/`width` → Initial-State.
+   `sortModel: [{colId, sort}]` → `SortingState`. So bleibt „AgGrid" in der
+   Adapter-Schicht und sickert nicht in die Komponenten.
 5. **Fehlende UIElement-Typen** aus `UIElementType.kt` (~40 Typen) ergänzen:
    Date/Time-Picker, Autocomplete/`DynamicObjectSelect`, RADIOBUTTON, RATING,
    EDITOR, ATTACHMENT_LIST, DROP_AREA, PROGRESS, FILTER_ELEMENT, NAMED_CONTAINER,
@@ -212,6 +269,21 @@ Port der Referenz `projectforge-webapp/src/components/base/dynamicLayout/` nach
    (Adress-Bild/Telefon/VCard-Import, `book.lendOutComponent`,
    Kalender-Recurrency, Cost-Number, Invoice-Positionen, WebAuthn, `access.table`,
    …).
+
+**Nicht mitportieren – Altlasten der Vorlage:**
+
+- **`getRowClass` und `rowClickFunction` als JavaScript-Strings**, die per
+  `Function(...)` bzw. `window.<name>` ausgeführt werden (`UIAgGrid.kt` liefert
+  z.B. `"if (params.node.data?.deleted) …"`). Das ist Codeausführung aus einer
+  Server-Response und in Next.js zusätzlich CSP-problematisch. Deklarativ
+  ersetzen (Row-Class aus `row.original.deleted` ableiten).
+- **AG-Grid-Params-Hüllen** (`{ data, value, colDef: { field, cellRendererParams } }`)
+  durch die Renderer-Kette. Im Port `{ row, value, columnId }`.
+- **`filterModel`** – Prop existiert, wird nie gelesen, Backend liefert immer `{}`.
+- **`FilterPortal.tsx`** (händisches Popover mit Collision-Detection) – Radix/
+  shadcn `Popover` deckt das ab; im Port bereits so gelöst.
+- **`modifyRedirectUrl`**: ersetzt Platzhalter für *jedes* Row-Feld, auch als
+  Pfadsegment (`/feld` → `/wert`). Auf explizites `{id}`/`:id`-Matching reduzieren.
 
 **Verifikation.** Eine UILayout-Seite (z.B. `address`, `timesheet`) über den
 Next-Renderer laden, gegen die alte React-Seite vergleichen (Layout,
@@ -252,7 +324,10 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
 - `lib/api-client.ts` (veralteter Zweit-Client, unbenutzt) entfernen; `lib/rs/`
   bleibt einzige Backend-Schnittstelle.
 - `components/features/books/mock-data.ts` (seit Entfernen der Mock-Routen
-  unbenutzt) entfernen oder auf MSW umstellen.
+  unbenutzt) entfernen – oder für Tests mit `msw` nutzen, das als Dependency
+  vorhanden, aber nirgends eingebunden ist. Es gibt bislang **keine Tests**;
+  `filter-fns.ts` und `lib/menu-url.ts` wären reine Funktionslogik und ein guter
+  Anfang.
 - `_parked/[category]/` reaktivieren, sobald der Dynamic-Renderer trägt (Phase 2)
   – dort liegen die generischen List-/Form-Routen, die für den Static Export
   vorübergehend aus `app/` genommen wurden.
@@ -276,22 +351,38 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
   `lib/rs/{client.ts,types.ts}`
 - **Next-Packaging-Vorlage:** `projectforge-webapp/build.gradle.kts`,
   `projectforge-application/build.gradle.kts`
+- **i18n:** Quelle `projectforge-business/src/main/resources/I18nResources[_de].properties`;
+  Generator `projectforge-application/src/test/kotlin/org/projectforge/development/GenerateNextI18nMessagesMain.kt`
+  (läuft via `DevelopmentMainForRelease`); Frontend `projectforge-next/i18n/`,
+  `messages/` (`generated.*.json` nicht von Hand ändern)
+- **Tabelle:** `projectforge-next/components/data-table/*`; Port-Vorlage
+  `projectforge-webapp/src/components/base/dynamicLayout/components/table/`
+  (inkl. `tanstack/`); Backend-Spaltenzustand
+  `projectforge-rest/.../core/aggrid/AGGridSupport.kt`, `GridState.kt`,
+  `rest/dto/datatable/DataTableStateRequest.kt`
 - **Auftragsbuch:** `projectforge-wicket/.../web/fibu/AuftragEditForm.kt`,
   `projectforge-rest/.../fibu/AuftragPagesRest.kt`, `rest/dto/Auftrag.kt`
 
 ## Stand & nächste Schritte
 
-Erledigt: **Phase 0** (Parallelbetrieb, Static-Export-Packaging) und **Phase 1**
-(Menü-Schalter pro Seite; `BOOK_LIST` zeigt auf `next/books`).
+**Erledigt:**
 
-Als nächstes:
+- **Phase 0** – Parallelbetrieb, Static-Export-Packaging, client-seitige i18n.
+- **Phase 1** – Menü-Schalter pro Seite; `BOOK_LIST` zeigt auf `next/books`.
+- **Phase 1.5, größter Teil** – `MagicFilter`-Kontrakt (Listen laden wieder),
+  Tabellen-Funktionen portiert (Resizing, Spalten ein-/ausblenden, Pinning,
+  Reorder, Spalten-Filter), i18n-Generierung aus `I18nResources`.
 
-1. **Phase 1.5** – `books` fertigstellen: Tabellen-Funktionen aus dem
-   TanStack-Umbau der alten React-App übernehmen (Filter, Resizing, Spalten
-   ein-/ausblenden, Pinning), dann das Filter-Panel echt anbinden oder entfernen.
-   Erst danach weitere Seiten umziehen: `books` ist die Vorlage, die jede weitere
-   Seite erbt.
+**Als nächstes:**
+
+1. **Phase 1.5 abschließen:** Spaltenzustand-Persistenz verdrahten
+   (`setColumnStates`-URL aus dem Layout), Filter-Panel anbinden oder entfernen.
+   Vorher das visuelle Ergebnis der Tabelle im Browser prüfen – das steht noch aus.
 2. **Phase 2** – Dynamic-Renderer ausbauen (bringt die ~36 UILayout-Seiten in der
-   Masse) – profitiert direkt von der fertigen `DataTable`.
+   Masse). Profitiert direkt von der fertigen `DataTable`; braucht als ersten
+   Schritt den `UIAgGridColumnDef → ColumnDef`-Adapter und die Formatter.
 3. **Phase 3** – Auftragsbuch als handgebauter Härtefall (parallel zu Phase 2
    möglich).
+
+**Reihenfolge-Grundsatz:** `books` bleibt die Vorlage – was dort fehlt, fehlt
+jeder migrierten Seite. Deshalb erst `books` fertig, dann in die Breite.
