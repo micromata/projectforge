@@ -217,14 +217,27 @@ Kollisionsfall `book.title` (Leaf) + `book.title.add` (Objekt) → `_`-Schlüsse
    kein AG-Grid-Erbe. Achtung: `columnFilters` wird gespeichert, aber vom Backend
    **nie zurückgeliefert** – der restaurierte Zustand wird stattdessen in die
    ColumnDefs zurückgeschrieben (`AGGridSupport.restoreColumnsFromUserPref`).
-2. **Filter-Panel ist Design-Attrappe** – `books-filter-panel.tsx` mit
-   hartkodierten Autorennamen, erfundenen Zahlen (234/189/45) und gespeicherten
-   Filtern, an keinen Query gebunden. Auf der `books`-Seite ist es (mit den
-   Attrappen-Chips und dem „Gespeichert"-Button) **bereits entfernt**; die
-   Spalten-Filter im Header sind der funktionierende Ersatz. Es hängt nur noch an
-   `demo/`. Zu klären: gespeicherte Filter echt anbinden (das Backend hat
-   Filter-Favoriten, `AbstractPagesRest` `filter/select|create|…`) oder die
-   Attrappe löschen.
+2. **Filter-Panel echt anbinden** (Ziel, nicht wegfallen lassen): ein von der
+   Seite **ein- und ausschiebbares** Filterpanel. Der jetzige Stand
+   `books-filter-panel.tsx` ist eine Design-Attrappe – hartkodierte Autorennamen,
+   erfundene Zahlen (234/189/45), gespeicherte Filter, an keinen Query gebunden.
+   Deshalb ist es auf der `books`-Seite vorübergehend **ausgehängt** (zusammen mit
+   den Attrappen-Chips und dem „Gespeichert"-Button); die Spalten-Filter im Header
+   sind der funktionierende Zwischenstand. Es hängt noch an `demo/` als
+   Design-Referenz.
+
+   Für die echte Umsetzung:
+   - **Serverseitige Filterung** über `MagicFilter.entries` (`MagicFilterEntry`
+     mit `field` + `value`), nicht clientseitig wie die Spalten-Filter. Welche
+     Felder eine Entity anbietet, liefert das Backend im Layout als
+     `UINamedContainer("searchFilter")` mit `FILTER_ELEMENT`-Kindern
+     (`LayoutListFilterUtils.createNamedSearchFilterContainer`) – die Felder und
+     etwaige Zahlen müssen von dort kommen, nicht erfunden sein.
+   - **Gespeicherte Filter** = Filter-Favoriten des Backends
+     (`AbstractPagesRest`: `filter/select|create|rename|update|delete|reset`).
+   - **Ein-/Ausschieben:** `ListPageShell` hat bereits einen `filterPanel`-Slot
+     (rechte Spalte); für das Verschieben bietet shadcn `Sheet` (mobil) bzw. ein
+     kollabierbares Panel (Desktop) an. Zustand pro Nutzer merken.
 3. **Zell-Rendering/Formatter fehlen noch.** Die alte App hat einen
    Formatter-Zoo (`Formatter.jsx`, `FormatterFormat.js`: Währung, Prozent,
    Datum/Timestamp, Task-Pfade, `displayName`-Auflösung), den der Dynamic-Renderer
