@@ -1,34 +1,22 @@
 "use client";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ArrowDown01Icon,
-  PlusSignIcon,
-  Search01Icon,
-} from "@hugeicons/core-free-icons";
+import { PlusSignIcon, Search01Icon } from "@hugeicons/core-free-icons";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-interface FilterChip {
-  key: string;
-  label: string;
-}
-
 interface BooksToolbarProps {
   search: string;
   onSearch: (v: string) => void;
-  filters: FilterChip[];
-  onRemove: (key: string) => void;
-  onClearAll: () => void;
+  /** Column visibility/pinning panel, rendered once the table instance exists. */
+  columnPanel?: React.ReactNode;
 }
 
 export function BooksToolbar({
   search,
   onSearch,
-  filters,
-  onRemove,
-  onClearAll,
+  columnPanel,
 }: BooksToolbarProps) {
   return (
     <div className="border-b bg-background">
@@ -40,19 +28,7 @@ export function BooksToolbar({
           <h1 className="text-lg font-bold tracking-tight">Bücherliste</h1>
         </div>
         <div className="flex-1" />
-        <Button variant="outline" size="sm" className="gap-1.5">
-          <span>Spalten</span>
-          <HugeiconsIcon icon={ArrowDown01Icon} size={12} />
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-1.5 border-primary/25 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary"
-        >
-          <span style={{ color: "var(--brand-yellow)" }}>★</span>
-          <span>Gespeichert</span>
-          <HugeiconsIcon icon={ArrowDown01Icon} size={12} />
-        </Button>
+        {columnPanel}
         <Button asChild size="sm" className="gap-1.5">
           <Link href="/books/new">
             <HugeiconsIcon icon={PlusSignIcon} size={13} />
@@ -77,33 +53,6 @@ export function BooksToolbar({
         </div>
       </div>
 
-      {filters.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5 px-4 pb-2.5">
-          {filters.map((f) => (
-            <span
-              key={f.key}
-              className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary"
-            >
-              {f.label}
-              <button
-                type="button"
-                onClick={() => onRemove(f.key)}
-                className="flex size-4 items-center justify-center rounded-full hover:bg-primary/20"
-                aria-label={`${f.label} entfernen`}
-              >
-                ×
-              </button>
-            </span>
-          ))}
-          <button
-            type="button"
-            onClick={onClearAll}
-            className="px-1 text-xs font-semibold text-muted-foreground hover:text-foreground"
-          >
-            Alle löschen
-          </button>
-        </div>
-      )}
     </div>
   );
 }

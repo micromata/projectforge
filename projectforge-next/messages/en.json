@@ -91,5 +91,17 @@
         }
       }
     }
+  },
+  "table": {
+    "resize": "Resize column",
+    "filter": "Filter column",
+    "empty": "No entries"
+  },
+  "filter": {
+    "selectNone": "Select none",
+    "text": "Text",
+    "number": "Number",
+    "date": "Date",
+    "blank": "(blank)"
   }
 }

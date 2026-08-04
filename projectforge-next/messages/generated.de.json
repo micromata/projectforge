@@ -1,0 +1,93 @@
+{
+  "book": {
+    "abstract": "Zusammenfassung",
+    "authors": "Autor:innen",
+    "books": "Bücher",
+    "editor": "Herausgeber:in",
+    "error": {
+      "number": "Im Veröffentlichungsjahr sind nur Zahlen erlaubt",
+      "signatureAlreadyExists": "Signatur existiert bereits.",
+      "toFewFields": "Für einen Eintrag sollten weitere Felder ausgefüllt werden."
+    },
+    "isbn": "ISBN",
+    "keywords": "Schlüsselworte",
+    "lendOut": "Ausleihen",
+    "lendOutBy": "Ausgeliehen von",
+    "lendOutNote": "Ausleihnotiz (optional)",
+    "lending": "Ausleihe",
+    "publisher": "Verlag",
+    "returnBook": "Zurückgeben",
+    "signature": "Signatur",
+    "status": {
+      "disposed": "entsorgt",
+      "missed": "vermisst",
+      "present": "vorhanden",
+      "unknown": "unbekannt"
+    },
+    "title": {
+      "_": "Titel",
+      "add": "Neues Buch",
+      "edit": "Buch bearbeiten",
+      "heading": "Bücher",
+      "list": "Bücherliste"
+    },
+    "type": {
+      "_": "Typ",
+      "article": "Artikel",
+      "audiobook": "Hörbuch",
+      "book": "Buch",
+      "ebook": "E-Book",
+      "film": "Film (Datenträger)",
+      "magazine": "Magazin",
+      "misc": "Sonstiges",
+      "newspaper": "Zeitung",
+      "periodical": "Periodika",
+      "software": "Software (Datenträger)",
+      "thesis": "Abschlussarbeit"
+    },
+    "yearOfPublishing": {
+      "_": "Jahr der Veröffentlichung",
+      "short": "Jahr"
+    }
+  },
+  "columns": {
+    "dragToSort": "Ziehen zum Sortieren",
+    "manage": "Spalten verwalten",
+    "pin": "Links anheften",
+    "reset": "Spalten zurücksetzen",
+    "unpin": "Nicht mehr anheften"
+  },
+  "created": "angelegt",
+  "createdBy": "angelegt von",
+  "filter": {
+    "after": "Nach",
+    "all": "alle",
+    "apply": "Anwenden",
+    "before": "Vor",
+    "between": "Zwischen",
+    "blank": "Leer",
+    "close": "Schließen",
+    "contains": "Enthält",
+    "emptyValue": "leerer Wert",
+    "endsWith": "Endet mit",
+    "equals": "Gleich",
+    "extendedSearch": "Erweiterte Suche",
+    "faulty": "fehlerhaft",
+    "greaterThan": "Größer als",
+    "lessThan": "Kleiner als",
+    "newest": "die neuesten",
+    "notBlank": "Nicht leer",
+    "notContains": "Enthält nicht",
+    "notEqual": "Ungleich",
+    "reset": "Zurücksetzen",
+    "search": "Suchen...",
+    "selectAll": "Alles auswählen",
+    "selection": "Auswahl",
+    "startsWith": "Beginnt mit",
+    "value": "Wert",
+    "valueTo": "Bis"
+  },
+  "modified": "geändert",
+  "modifiedBy": "geändert durch",
+  "modifiedHistoryValue": "Wert in der Änderungshistorie"
+}

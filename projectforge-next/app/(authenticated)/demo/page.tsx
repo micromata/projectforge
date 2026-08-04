@@ -1,23 +1,19 @@
 "use client";
 
-import { useState } from "react";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/shared/app-sidebar";
 import { BrandStripe } from "@/components/shared/brand-stripe";
 import { ListPageShell } from "@/components/shared/list-page-shell";
 import { DataTable, useMagicFilterQuery } from "@/components/data-table";
-import { booksColumns } from "@/components/features/books/books-columns";
+import { useBooksColumns } from "@/components/features/books/books-columns";
 import { BookRowActions } from "@/components/features/books/book-row-actions";
 import { BooksToolbar } from "@/components/features/books/books-toolbar";
 import { BooksFilterPanel } from "@/components/features/books/books-filter-panel";
 import type { BookListRow } from "@/components/features/books/types";
 
 export default function DemoPage() {
-  const [filters, setFilters] = useState([
-    { key: "status", label: "Status: Aktiv" },
-    { key: "autor", label: "Autor: Larkin" },
-  ]);
 
+  const columns = useBooksColumns();
   const {
     data,
     rowCount,
@@ -46,17 +42,12 @@ export default function DemoPage() {
               <BooksToolbar
                 search={globalFilter}
                 onSearch={setGlobalFilter}
-                filters={filters}
-                onRemove={(k) =>
-                  setFilters((f) => f.filter((x) => x.key !== k))
-                }
-                onClearAll={() => setFilters([])}
               />
             }
             filterPanel={<BooksFilterPanel className="hidden lg:flex" />}
           >
             <DataTable<BookListRow>
-              columns={booksColumns}
+              columns={columns}
               data={data}
               rowCount={rowCount}
               sorting={sorting}

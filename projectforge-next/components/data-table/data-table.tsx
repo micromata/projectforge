@@ -3,17 +3,28 @@
 import {
   flexRender,
   getCoreRowModel,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
+  getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  type Column,
   type ColumnDef,
+  type ColumnFiltersState,
+  type ColumnOrderState,
+  type ColumnPinningState,
+  type ColumnSizingState,
   type OnChangeFn,
   type PaginationState,
   type Row,
   type SortingState,
   type Table as TanstackTable,
+  type VisibilityState,
   useReactTable,
 } from "@tanstack/react-table";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { universalFilterFnFor } from "./filter-fns";
 import {
   Table,
   TableBody,
@@ -26,6 +37,34 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { DataTablePagination } from "./data-table-pagination";
 
+const ROW_ACTIONS_WIDTH = 80;
+
+/**
+ * Sticky offsets for pinned columns. Uses getStart/getAfter so several columns can
+ * be pinned to the same side without overlapping.
+ */
+function pinnedStyle<TData>(column: Column<TData, unknown>): React.CSSProperties {
+  const pinned = column.getIsPinned();
+  if (!pinned) return {};
+  return {
+    position: "sticky",
+    left: pinned === "left" ? column.getStart("left") : undefined,
+    right: pinned === "right" ? column.getAfter("right") : undefined,
+    zIndex: 1,
+  };
+}
+
+/** Marks the boundary between pinned and scrolling columns. */
+function pinnedClass<TData>(column: Column<TData, unknown>): string | undefined {
+  const pinned = column.getIsPinned();
+  if (!pinned) return undefined;
+  return cn(
+    "bg-background",
+    pinned === "left" && column.getIsLastColumn("left") && "border-r",
+    pinned === "right" && column.getIsFirstColumn("right") && "border-l"
+  );
+}
+
 export interface DataTableProps<TData> {
   columns: ColumnDef<TData, unknown>[];
   data: TData[];
@@ -37,6 +76,20 @@ export interface DataTableProps<TData> {
   onSortingChange?: OnChangeFn<SortingState>;
   pagination?: PaginationState;
   onPaginationChange?: OnChangeFn<PaginationState>;
+  columnFilters?: ColumnFiltersState;
+  onColumnFiltersChange?: OnChangeFn<ColumnFiltersState>;
+  columnVisibility?: VisibilityState;
+  onColumnVisibilityChange?: OnChangeFn<VisibilityState>;
+  columnPinning?: ColumnPinningState;
+  onColumnPinningChange?: OnChangeFn<ColumnPinningState>;
+  columnSizing?: ColumnSizingState;
+  onColumnSizingChange?: OnChangeFn<ColumnSizingState>;
+  columnOrder?: ColumnOrderState;
+  onColumnOrderChange?: OnChangeFn<ColumnOrderState>;
+
+  /** Column filters are applied client-side; the backend returns the full result set. */
+  enableColumnFilters?: boolean;
+  enableColumnResizing?: boolean;
 
   manualSorting?: boolean;
   manualPagination?: boolean;
@@ -66,6 +119,18 @@ export function DataTable<TData>({
   onSortingChange,
   pagination: paginationProp,
   onPaginationChange,
+  columnFilters: columnFiltersProp,
+  onColumnFiltersChange,
+  columnVisibility: columnVisibilityProp,
+  onColumnVisibilityChange,
+  columnPinning: columnPinningProp,
+  onColumnPinningChange,
+  columnSizing: columnSizingProp,
+  onColumnSizingChange,
+  columnOrder: columnOrderProp,
+  onColumnOrderChange,
+  enableColumnFilters = false,
+  enableColumnResizing = false,
   manualSorting = false,
   manualPagination = false,
   manualFiltering = false,
@@ -79,6 +144,7 @@ export function DataTable<TData>({
   tableRef,
   initialPageSize = 50,
 }: DataTableProps<TData>) {
+  const t = useTranslations("table");
   const [internalSorting, setInternalSorting] = useState<SortingState>([]);
   const [internalPagination, setInternalPagination] = useState<PaginationState>(
     {
@@ -86,6 +152,13 @@ export function DataTable<TData>({
       pageSize: initialPageSize,
     }
   );
+  const [internalFilters, setInternalFilters] = useState<ColumnFiltersState>([]);
+  const [internalVisibility, setInternalVisibility] = useState<VisibilityState>(
+    {}
+  );
+  const [internalPinning, setInternalPinning] = useState<ColumnPinningState>({});
+  const [internalSizing, setInternalSizing] = useState<ColumnSizingState>({});
+  const [internalOrder, setInternalOrder] = useState<ColumnOrderState>([]);
 
   const sortingControlled = sortingProp !== undefined;
   const paginationControlled = paginationProp !== undefined;
@@ -98,6 +171,22 @@ export function DataTable<TData>({
     getPaginationRowModel: manualPagination
       ? undefined
       : getPaginationRowModel(),
+    // Column filters always work on the client: the backend returns the whole
+    // result set, so there is nothing to round-trip for them.
+    getFilteredRowModel: enableColumnFilters
+      ? getFilteredRowModel()
+      : undefined,
+    getFacetedRowModel: enableColumnFilters ? getFacetedRowModel() : undefined,
+    getFacetedUniqueValues: enableColumnFilters
+      ? getFacetedUniqueValues()
+      : undefined,
+    defaultColumn: {
+      minSize: 50,
+      size: 150,
+      filterFn: universalFilterFnFor<TData>(),
+    },
+    enableColumnResizing,
+    columnResizeMode: "onChange",
     manualSorting,
     manualPagination,
     manualFiltering,
@@ -105,17 +194,28 @@ export function DataTable<TData>({
     state: {
       sorting: sortingControlled ? sortingProp : internalSorting,
       pagination: paginationControlled ? paginationProp : internalPagination,
+      columnFilters: columnFiltersProp ?? internalFilters,
+      columnVisibility: columnVisibilityProp ?? internalVisibility,
+      columnPinning: columnPinningProp ?? internalPinning,
+      columnSizing: columnSizingProp ?? internalSizing,
+      columnOrder: columnOrderProp ?? internalOrder,
     },
     onSortingChange: sortingControlled ? onSortingChange : setInternalSorting,
     onPaginationChange: paginationControlled
       ? onPaginationChange
       : setInternalPagination,
+    onColumnFiltersChange: onColumnFiltersChange ?? setInternalFilters,
+    onColumnVisibilityChange:
+      onColumnVisibilityChange ?? setInternalVisibility,
+    onColumnPinningChange: onColumnPinningChange ?? setInternalPinning,
+    onColumnSizingChange: onColumnSizingChange ?? setInternalSizing,
+    onColumnOrderChange: onColumnOrderChange ?? setInternalOrder,
     getRowId,
   });
 
   if (tableRef) tableRef(table);
 
-  const cols = table.getVisibleFlatColumns().length + (rowActions ? 1 : 0);
+  const cols = table.getVisibleLeafColumns().length + (rowActions ? 1 : 0);
   const showSkeleton = isLoading && data.length === 0;
 
   return (
@@ -124,21 +224,26 @@ export function DataTable<TData>({
         {isFetching && !showSkeleton && (
           <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-0.5 animate-pulse bg-primary/40" />
         )}
-        <Table className="text-xs [&_td]:px-2 [&_td]:py-1 [&_th]:h-7 [&_th]:px-2">
+        {/* table-fixed: without it the browser sizes columns by content and the
+            header widths below are ignored, so header and body drift apart. */}
+        <Table className="table-fixed text-xs [&_td]:px-2 [&_td]:py-1 [&_th]:h-7 [&_th]:px-2">
+          <colgroup>
+            {table.getVisibleLeafColumns().map((column) => (
+              <col key={column.id} style={{ width: column.getSize() }} />
+            ))}
+            {rowActions && <col style={{ width: ROW_ACTIONS_WIDTH }} />}
+          </colgroup>
           <TableHeader className="bg-muted/40">
             {table.getHeaderGroups().map((hg) => (
               <TableRow key={hg.id}>
                 {hg.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    style={{
-                      width: header.column.columnDef.size,
-                      minWidth: header.column.columnDef.minSize,
-                      maxWidth: header.column.columnDef.maxSize,
-                    }}
+                    style={pinnedStyle(header.column)}
                     className={cn(
-                      "text-[10px]",
-                      header.column.getIsSorted() && "bg-primary/10"
+                      "group/th relative truncate text-[10px]",
+                      header.column.getIsSorted() && "bg-primary/10",
+                      pinnedClass(header.column)
                     )}
                   >
                     {header.isPlaceholder
@@ -147,9 +252,24 @@ export function DataTable<TData>({
                           header.column.columnDef.header,
                           header.getContext()
                         )}
+                    {header.column.getCanResize() && (
+                      <span
+                        role="separator"
+                        aria-orientation="vertical"
+                        aria-label={t("resize")}
+                        onMouseDown={header.getResizeHandler()}
+                        onTouchStart={header.getResizeHandler()}
+                        onClick={(e) => e.stopPropagation()}
+                        className={cn(
+                          "absolute inset-y-0 right-0 w-1 cursor-col-resize touch-none select-none opacity-0 transition-opacity hover:opacity-100",
+                          "bg-primary/40",
+                          header.column.getIsResizing() && "opacity-100"
+                        )}
+                      />
+                    )}
                   </TableHead>
                 ))}
-                {rowActions && <TableHead style={{ width: 80 }} />}
+                {rowActions && <TableHead />}
               </TableRow>
             ))}
           </TableHeader>
@@ -157,7 +277,7 @@ export function DataTable<TData>({
             {showSkeleton ? (
               Array.from({ length: 8 }).map((_, i) => (
                 <TableRow key={`skeleton-${i}`}>
-                  {table.getVisibleFlatColumns().map((c) => (
+                  {table.getVisibleLeafColumns().map((c) => (
                     <TableCell key={c.id}>
                       <Skeleton className="h-4 w-full max-w-32" />
                     </TableCell>
@@ -171,7 +291,7 @@ export function DataTable<TData>({
                   colSpan={cols}
                   className="py-12 text-center text-sm text-muted-foreground"
                 >
-                  {emptyState ?? "Keine Einträge"}
+                  {emptyState ?? t("empty")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -215,7 +335,11 @@ function DataTableRow<TData>({
         className="pointer-events-none absolute inset-y-0 left-0 w-[3px] bg-primary opacity-0 transition-opacity group-hover:opacity-100"
       />
       {row.getVisibleCells().map((cell) => (
-        <TableCell key={cell.id}>
+        <TableCell
+          key={cell.id}
+          style={pinnedStyle(cell.column)}
+          className={cn("truncate", pinnedClass(cell.column))}
+        >
           {flexRender(cell.column.columnDef.cell, cell.getContext())}
         </TableCell>
       ))}

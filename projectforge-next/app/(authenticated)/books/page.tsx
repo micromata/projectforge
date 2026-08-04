@@ -1,20 +1,24 @@
 "use client";
 
-import { useState } from "react";
 import { PageShell } from "@/components/shared/page-shell";
 import { ListPageShell } from "@/components/shared/list-page-shell";
-import { DataTable, useMagicFilterQuery } from "@/components/data-table";
-import { booksColumns } from "@/components/features/books/books-columns";
+import {
+  DataTable,
+  DataTableColumnPanel,
+  useMagicFilterQuery,
+  useTableState,
+} from "@/components/data-table";
+import { useBooksColumns } from "@/components/features/books/books-columns";
 import { BookRowActions } from "@/components/features/books/book-row-actions";
 import { BooksToolbar } from "@/components/features/books/books-toolbar";
-import { BooksFilterPanel } from "@/components/features/books/books-filter-panel";
 import type { BookListRow } from "@/components/features/books/types";
+import type { Table } from "@tanstack/react-table";
+import { useState } from "react";
 
 export default function BooksPage() {
-  const [filters, setFilters] = useState([
-    { key: "status", label: "Status: Aktiv" },
-    { key: "autor", label: "Autor: Larkin" },
-  ]);
+  const columns = useBooksColumns();
+  const [table, setTable] = useState<Table<BookListRow> | null>(null);
+  const columnState = useTableState();
 
   const {
     data,
@@ -40,21 +44,30 @@ export default function BooksPage() {
           <BooksToolbar
             search={globalFilter}
             onSearch={setGlobalFilter}
-            filters={filters}
-            onRemove={(k) => setFilters((f) => f.filter((x) => x.key !== k))}
-            onClearAll={() => setFilters([])}
+            columnPanel={
+              table ? <DataTableColumnPanel table={table} /> : undefined
+            }
           />
         }
-        filterPanel={<BooksFilterPanel className="hidden lg:flex" />}
       >
         <DataTable<BookListRow>
-          columns={booksColumns}
+          columns={columns}
           data={data}
           rowCount={rowCount}
           sorting={sorting}
           onSortingChange={setSorting}
           pagination={pagination}
           onPaginationChange={setPagination}
+          columnFilters={columnState.columnFilters}
+          onColumnFiltersChange={columnState.setColumnFilters}
+          columnVisibility={columnState.columnVisibility}
+          onColumnVisibilityChange={columnState.setColumnVisibility}
+          columnPinning={columnState.columnPinning}
+          onColumnPinningChange={columnState.setColumnPinning}
+          columnSizing={columnState.columnSizing}
+          onColumnSizingChange={columnState.setColumnSizing}
+          enableColumnFilters
+          enableColumnResizing
           manualSorting
           manualPagination
           manualFiltering
@@ -62,6 +75,7 @@ export default function BooksPage() {
           isFetching={isFetching}
           getRowId={(row) => String(row.id)}
           rowActions={(row) => <BookRowActions row={row} />}
+          tableRef={setTable}
           className="flex-1"
         />
       </ListPageShell>

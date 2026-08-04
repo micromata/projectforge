@@ -91,5 +91,17 @@
         }
       }
     }
+  },
+  "table": {
+    "resize": "Spaltenbreite ändern",
+    "filter": "Spalte filtern",
+    "empty": "Keine Einträge"
+  },
+  "filter": {
+    "selectNone": "Keine auswählen",
+    "text": "Text",
+    "number": "Zahl",
+    "date": "Datum",
+    "blank": "(leer)"
   }
 }

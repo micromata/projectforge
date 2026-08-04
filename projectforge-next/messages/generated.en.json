@@ -1,0 +1,93 @@
+{
+  "book": {
+    "abstract": "Abstract",
+    "authors": "Authors",
+    "books": "Books",
+    "editor": "Editor",
+    "error": {
+      "number": "In Year of publishing are only numbers allowed",
+      "signatureAlreadyExists": "Signature already exists.",
+      "toFewFields": "To few fields given."
+    },
+    "isbn": "ISBN",
+    "keywords": "Keywords",
+    "lendOut": "Lend out",
+    "lendOutBy": "Lend out by",
+    "lendOutNote": "Lending note (optional)",
+    "lending": "Lending",
+    "publisher": "Publisher",
+    "returnBook": "Return",
+    "signature": "Signature",
+    "status": {
+      "disposed": "disposed",
+      "missed": "missed",
+      "present": "present",
+      "unknown": "unknown"
+    },
+    "title": {
+      "_": "Title",
+      "add": "Add new book",
+      "edit": "Edit book",
+      "heading": "Books",
+      "list": "Book list"
+    },
+    "type": {
+      "_": "Type",
+      "article": "Article",
+      "audiobook": "audio book",
+      "book": "Book",
+      "ebook": "e-book",
+      "film": "Film (data medium)",
+      "magazine": "Magazine",
+      "misc": "Misc",
+      "newspaper": "Newspaper",
+      "periodical": "Periodical",
+      "software": "Software (data medium)",
+      "thesis": "Thesis"
+    },
+    "yearOfPublishing": {
+      "_": "Year of Publishing",
+      "short": "Year"
+    }
+  },
+  "columns": {
+    "dragToSort": "Drag to sort",
+    "manage": "Manage columns",
+    "pin": "Pin left",
+    "reset": "Reset columns",
+    "unpin": "Unpin"
+  },
+  "created": "created",
+  "createdBy": "created by",
+  "filter": {
+    "after": "After",
+    "all": "all",
+    "apply": "Apply",
+    "before": "Before",
+    "between": "Between",
+    "blank": "Blank",
+    "close": "Close",
+    "contains": "Contains",
+    "emptyValue": "empty value",
+    "endsWith": "Ends with",
+    "equals": "Equals",
+    "extendedSearch": "Extended search",
+    "faulty": "faulty",
+    "greaterThan": "Greater than",
+    "lessThan": "Less than",
+    "newest": "newest",
+    "notBlank": "Not blank",
+    "notContains": "Does not contain",
+    "notEqual": "Not equal",
+    "reset": "Reset",
+    "search": "Search...",
+    "selectAll": "Select all",
+    "selection": "Selection",
+    "startsWith": "Starts with",
+    "value": "Value",
+    "valueTo": "To"
+  },
+  "modified": "modified",
+  "modifiedBy": "modified by",
+  "modifiedHistoryValue": "history value of modification"
+}

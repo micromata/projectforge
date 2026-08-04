@@ -28,17 +28,22 @@ import org.projectforge.i18n.I18nKeysUsage
 /**
  * Main class for development tasks.
  * Should be called before committing changes and releasing a new version.
- * It checks and fixes source file headers, sorts and checks I18n properties and analyzes and saves i18n key usage.
+ * It checks and fixes source file headers, sorts and checks I18n properties, generates the
+ * projectforge-next message catalogs from them and analyzes and saves i18n key usage.
  */
 fun main(args: Array<String>) {
   println("*************************************************")
   println("**** Checking and fixing source file headers. ***")
   println("*************************************************")
-  SourceFileHeadersMain.main(args)
+    SourceFileHeadersMain.main(args)
   println("*************************************************")
   println("**** Sorting and checking I18n properties.    ***")
   println("*************************************************")
   SortAndCheckI18nPropertiesMain.main(args)
+  println("*************************************************")
+  println("**** Generating projectforge-next messages.   ***")
+  println("*************************************************")
+  GenerateNextI18nMessagesMain.main(args)
   println("*************************************************")
   println("**** Analyzing and saving i18n key usage.     ***")
   println("*************************************************")

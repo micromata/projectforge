@@ -2,16 +2,27 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { DataTableColumnHeader } from "@/components/data-table";
 import { StatusBadge } from "./status-badge";
 import type { BookListRow } from "./types";
 
-export const booksColumns: ColumnDef<BookListRow>[] = [
+/**
+ * Column defs as a hook: the header labels come from the backend's i18n bundle
+ * (see GenerateNextI18nMessagesMain), which needs the translation context.
+ */
+export function useBooksColumns(): ColumnDef<BookListRow>[] {
+  const t = useTranslations();
+  const tBook = useTranslations("book");
+
+  return [
   {
     accessorKey: "created",
     size: 84,
     header: ({ column }) => (
-      <DataTableColumnHeader column={column}>Angelegt</DataTableColumnHeader>
+      <DataTableColumnHeader column={column} filterKind="date">
+        {t("created")}
+      </DataTableColumnHeader>
     ),
     cell: ({ getValue }) => (
       <span className="text-muted-foreground">{getValue<string>()}</span>
@@ -21,7 +32,9 @@ export const booksColumns: ColumnDef<BookListRow>[] = [
     accessorKey: "yearOfPublishing",
     size: 56,
     header: ({ column }) => (
-      <DataTableColumnHeader column={column}>Jahr</DataTableColumnHeader>
+      <DataTableColumnHeader column={column} filterKind="number">
+        {tBook("yearOfPublishing.short")}
+      </DataTableColumnHeader>
     ),
     cell: ({ getValue }) => (
       <span className="font-medium">{getValue<string>()}</span>
@@ -31,7 +44,9 @@ export const booksColumns: ColumnDef<BookListRow>[] = [
     accessorKey: "signature",
     size: 76,
     header: ({ column }) => (
-      <DataTableColumnHeader column={column}>Signatur</DataTableColumnHeader>
+      <DataTableColumnHeader column={column} filterKind="text">
+        {tBook("signature")}
+      </DataTableColumnHeader>
     ),
     cell: ({ getValue }) => (
       <span className="inline-flex items-center rounded-sm border border-border bg-muted px-1.5 py-0.5 font-mono text-[11px] font-semibold text-foreground/80">
@@ -43,7 +58,9 @@ export const booksColumns: ColumnDef<BookListRow>[] = [
     accessorKey: "authors",
     size: 140,
     header: ({ column }) => (
-      <DataTableColumnHeader column={column}>Autor:innen</DataTableColumnHeader>
+      <DataTableColumnHeader column={column} filterKind="text">
+        {tBook("authors")}
+      </DataTableColumnHeader>
     ),
     cell: ({ getValue }) => (
       <span className="font-medium">{getValue<string>()}</span>
@@ -51,9 +68,14 @@ export const booksColumns: ColumnDef<BookListRow>[] = [
   },
   {
     accessorKey: "title",
+    // Explicit size: the fixed table layout ignores minSize, so without it the
+    // column would fall back to TanStack's 150px default.
+    size: 280,
     minSize: 200,
     header: ({ column }) => (
-      <DataTableColumnHeader column={column}>Titel</DataTableColumnHeader>
+      <DataTableColumnHeader column={column} filterKind="text">
+        {tBook("title._")}
+      </DataTableColumnHeader>
     ),
     cell: ({ row }) => (
       <Link
@@ -68,8 +90,8 @@ export const booksColumns: ColumnDef<BookListRow>[] = [
     accessorKey: "keywords",
     size: 132,
     header: ({ column }) => (
-      <DataTableColumnHeader column={column}>
-        Schlüsselworte
+      <DataTableColumnHeader column={column} filterKind="text">
+        {tBook("keywords")}
       </DataTableColumnHeader>
     ),
     cell: ({ getValue }) => (
@@ -81,8 +103,8 @@ export const booksColumns: ColumnDef<BookListRow>[] = [
     accessorFn: (row) => row.lendOutBy?.displayName ?? "",
     size: 140,
     header: ({ column }) => (
-      <DataTableColumnHeader column={column}>
-        Ausgeliehen von
+      <DataTableColumnHeader column={column} filterKind="text">
+        {tBook("lendOutBy")}
       </DataTableColumnHeader>
     ),
     cell: ({ row }) => {
@@ -90,8 +112,9 @@ export const booksColumns: ColumnDef<BookListRow>[] = [
       return borrower ? (
         <StatusBadge lendOut label={borrower.displayName} />
       ) : (
-        <StatusBadge lendOut={false} label="Verfügbar" />
+        <StatusBadge lendOut={false} label={t("book.status.present")} />
       );
     },
   },
-];
+  ];
+}
