@@ -12,6 +12,7 @@ import ListPage from './page/list/ListPage';
 import TaskTreePage from './page/TaskTreePage';
 import ModalRoutes from './ModalRoutes';
 import RedirectToWicket from './RedirectToWicket';
+import RedirectToNext from './RedirectToNext';
 import FormModal from './page/form/FormModal';
 import MenuCustomizerPanel from './panel/menu/MenuCustomizerPanel';
 
@@ -19,6 +20,14 @@ export const wicketRoute = (
     <Route
         path="/wa/*"
         element={<RedirectToWicket />}
+    />
+);
+
+// Pages already migrated to projectforge-next; needs a real page load, not client-side routing.
+export const nextRoute = (
+    <Route
+        path="/next/*"
+        element={<RedirectToNext />}
     />
 );
 
@@ -42,6 +51,7 @@ function AuthorizedRoutes(
     const getRoutesWithLocation = (location) => (
         <Routes location={location}>
             {wicketRoute}
+            {nextRoute}
             {publicRoute}
             <Route
                 exact

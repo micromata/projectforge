@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMenu } from "@/hooks/use-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { logout } from "@/lib/rs/client";
+import { resolveMenuUrl } from "@/lib/menu-url";
 import type { MenuItem } from "@/lib/rs/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,12 +17,34 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-function toInternalHref(url: string | undefined): string {
-  if (!url) return "#";
-  let path = url;
-  if (path.startsWith("react/")) path = path.slice("react".length);
-  else if (!path.startsWith("/") && !path.startsWith("http")) path = "/" + path;
-  return path;
+/**
+ * Renders a menu entry as a client-side link when it belongs to this app, and as a plain anchor
+ * (full page load) when it points at the legacy React app or Wicket.
+ */
+function MenuLink({
+  url,
+  children,
+  className,
+  onClick,
+}: {
+  url: string | undefined;
+  children: React.ReactNode;
+  className?: string;
+  onClick?: () => void;
+}) {
+  const target = resolveMenuUrl(url);
+  if (target.kind === "external") {
+    return (
+      <a href={target.href} className={className} onClick={onClick}>
+        {children}
+      </a>
+    );
+  }
+  return (
+    <Link href={target.href} className={className} onClick={onClick}>
+      {children}
+    </Link>
+  );
 }
 
 export function TopNavigation() {
@@ -92,9 +115,9 @@ function CategoryColumn({
         {category.title}
       </span>
       {category.subMenu?.map((item) => (
-        <Link
+        <MenuLink
           key={item.key ?? item.url ?? item.title}
-          href={toInternalHref(item.url)}
+          url={item.url}
           onClick={onSelect}
           className="rounded-sm px-2 py-1 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
         >
@@ -104,7 +127,7 @@ function CategoryColumn({
               {item.badge.counter}
             </span>
           ) : null}
-        </Link>
+        </MenuLink>
       ))}
     </div>
   );
@@ -117,7 +140,7 @@ function FavoritesBar({ items }: { items: MenuItem[] }) {
     <div className="hidden md:flex items-center gap-1">
       {items.map((item) => (
         <Button key={item.key ?? item.url ?? item.title} variant="ghost" size="sm" asChild>
-          <Link href={toInternalHref(item.url)}>{item.title}</Link>
+          <MenuLink url={item.url}>{item.title}</MenuLink>
         </Button>
       ))}
     </div>
@@ -151,7 +174,7 @@ function UserMenu({
           }
           return (
             <DropdownMenuItem key={item.key ?? item.url ?? item.title} asChild>
-              <Link href={toInternalHref(item.url)}>{item.title}</Link>
+              <MenuLink url={item.url}>{item.title}</MenuLink>
             </DropdownMenuItem>
           );
         })}

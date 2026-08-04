@@ -48,7 +48,9 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     ADMIN_LOG_VIEWER("system.admin.logViewer.title", "${getReactDynamicPageUrl("adminLogViewer")}/-1"), //
     BANK_ACCOUNT_LIST("menu.finance.bankAccounts"), //
     BIRTHDAY_BUTLER("menu.birthdayButler", getReactDynamicPageUrl("birthdayButler")), //
-    BOOK_LIST("menu.bookList", getReactListUrl("book")), //
+    // Migrated to projectforge-next. Its route is the plural noun ("books"), unlike the REST
+    // category ("book") the legacy React app used as its url.
+    BOOK_LIST("menu.bookList", getNextListUrl("books")), //
     CALENDAR("menu.calendar", getReactListUrl("calendar")), //
     CALENDAR_LIST("menu.plugins.teamcal", getReactListUrl("teamCal")), //
     CHANGE_PASSWORD("menu.changePassword", getReactDynamicPageUrl("changePassword")), //
@@ -126,4 +128,13 @@ private fun getReactListUrl(name: String): String {
 
 fun getReactDynamicPageUrl(name: String): String {
     return "${Constants.REACT_APP_PATH}$name/dynamic"
+}
+
+/**
+ * Url of a list page served by projectforge-next (Next.js). Switching a menu entry from
+ * [getReactListUrl] (or a `wa/` Wicket url) to this is the per-page release switch during the
+ * frontend migration: the frontend is chosen per menu item, so both apps can run side by side.
+ */
+private fun getNextListUrl(name: String): String {
+    return "${Constants.NEXT_APP_PATH}$name"
 }
