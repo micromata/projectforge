@@ -7,6 +7,7 @@ import {
   DataTable,
   DataTableColumnPanel,
   FilterPanel,
+  FilterPills,
   useColumnStatePersistence,
   useDataTable,
   useMagicFilterQuery,
@@ -144,6 +145,14 @@ function BooksList({ storedState }: { storedState: ColumnState }) {
             onSearch={setGlobalFilter}
             columnPanel={
               <DataTableColumnPanel table={table} onReset={resetColumns} />
+            }
+            filterPills={
+              <FilterPills
+                elements={filterElements}
+                values={filterValues}
+                onChange={setFilterValues}
+                className="px-4 pb-2.5"
+              />
             }
           />
         }

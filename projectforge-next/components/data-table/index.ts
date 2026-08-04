@@ -6,6 +6,7 @@ export type { DataTableProps } from "./data-table";
 export { DataTableColumnHeader } from "./data-table-column-header";
 export { DataTableColumnPanel } from "./data-table-column-panel";
 export { FilterPanel } from "./filter-panel";
+export { FilterPills } from "./filter-pills";
 export type { FilterValues } from "./filter-panel";
 export { DataTablePagination } from "./data-table-pagination";
 export { ColumnFilter } from "./column-filter";

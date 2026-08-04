@@ -11,12 +11,15 @@ interface BooksToolbarProps {
   onSearch: (v: string) => void;
   /** Column visibility/pinning panel, rendered once the table instance exists. */
   columnPanel?: React.ReactNode;
+  /** Active filters as removable pills, shown below the search field. */
+  filterPills?: React.ReactNode;
 }
 
 export function BooksToolbar({
   search,
   onSearch,
   columnPanel,
+  filterPills,
 }: BooksToolbarProps) {
   return (
     <div className="border-b bg-background">
@@ -52,6 +55,8 @@ export function BooksToolbar({
           />
         </div>
       </div>
+
+      {filterPills}
     </div>
   );
 }
