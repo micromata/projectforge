@@ -10,6 +10,8 @@ export { ColumnFilter } from "./column-filter";
 export type { FilterKind } from "./column-filter";
 export { universalFilterFn, toFilterText, toDateString } from "./filter-fns";
 export type { ColumnFilterValue } from "./filter-fns";
+export { useDataTable } from "./use-data-table";
+export type { UseDataTableOptions } from "./use-data-table";
 export { useMagicFilterQuery } from "./use-magic-filter-query";
 export { useTableState } from "./use-table-state";
 export type { ColumnState, TableStateResult } from "./use-table-state";

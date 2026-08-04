@@ -127,7 +127,11 @@ export function DataTableColumnPanel<TData>({
       <PopoverContent align="end" className="w-80 p-0">
         <div className="max-h-96 overflow-y-auto p-1">
           {pinned.length > 0 && (
-            <>
+            <div className="mb-1 rounded-sm bg-primary/5 p-1">
+              <p className="flex items-center gap-1 px-1 pb-1 text-[11px] font-medium text-primary">
+                <HugeiconsIcon icon={PinIcon} size={11} />
+                {t("pinned")}
+              </p>
               {pinned.map((column) => (
                 <ColumnRow
                   key={column.id}
@@ -138,8 +142,7 @@ export function DataTableColumnPanel<TData>({
                   onTogglePin={() => togglePin(column)}
                 />
               ))}
-              <Separator className="my-1" />
-            </>
+            </div>
           )}
           <p className="px-2 pb-1 text-[11px] text-muted-foreground">
             {t("dragToSort")}
@@ -223,7 +226,7 @@ function ColumnRow<TData>({
   onTogglePin,
 }: ColumnRowProps<TData>) {
   return (
-    <div className="flex items-center gap-1.5 rounded-sm px-2 py-1.5 hover:bg-accent">
+    <div className="flex items-center gap-1.5 rounded-sm px-2 py-1.5 hover:bg-accent/60">
       <span className="w-[13px] shrink-0" aria-hidden />
       <ColumnRowControls
         column={column}

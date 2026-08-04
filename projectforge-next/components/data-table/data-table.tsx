@@ -2,29 +2,12 @@
 
 import {
   flexRender,
-  getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
   type Column,
-  type ColumnDef,
-  type ColumnFiltersState,
-  type ColumnOrderState,
-  type ColumnPinningState,
-  type ColumnSizingState,
-  type OnChangeFn,
-  type PaginationState,
   type Row,
-  type SortingState,
   type Table as TanstackTable,
-  type VisibilityState,
-  useReactTable,
 } from "@tanstack/react-table";
-import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { universalFilterFnFor } from "./filter-fns";
+import { useDataTable, type UseDataTableOptions } from "./use-data-table";
 import {
   Table,
   TableBody,
@@ -65,155 +48,35 @@ function pinnedClass<TData>(column: Column<TData, unknown>): string | undefined 
   );
 }
 
-export interface DataTableProps<TData> {
-  columns: ColumnDef<TData, unknown>[];
-  data: TData[];
-  /** Total row count (server-side). Required when manualPagination is true. */
-  rowCount?: number;
-
-  // Controlled state (optional). If not provided, the component manages it internally.
-  sorting?: SortingState;
-  onSortingChange?: OnChangeFn<SortingState>;
-  pagination?: PaginationState;
-  onPaginationChange?: OnChangeFn<PaginationState>;
-  columnFilters?: ColumnFiltersState;
-  onColumnFiltersChange?: OnChangeFn<ColumnFiltersState>;
-  columnVisibility?: VisibilityState;
-  onColumnVisibilityChange?: OnChangeFn<VisibilityState>;
-  columnPinning?: ColumnPinningState;
-  onColumnPinningChange?: OnChangeFn<ColumnPinningState>;
-  columnSizing?: ColumnSizingState;
-  onColumnSizingChange?: OnChangeFn<ColumnSizingState>;
-  columnOrder?: ColumnOrderState;
-  onColumnOrderChange?: OnChangeFn<ColumnOrderState>;
-
-  /** Column filters are applied client-side; the backend returns the full result set. */
-  enableColumnFilters?: boolean;
-  enableColumnResizing?: boolean;
-
-  manualSorting?: boolean;
-  manualPagination?: boolean;
-  manualFiltering?: boolean;
+export interface DataTableProps<TData> extends UseDataTableOptions<TData> {
+  /** Pass a table created by useDataTable to share it with a toolbar; otherwise
+   *  DataTable creates its own. */
+  table?: TanstackTable<TData>;
 
   isLoading?: boolean;
   isFetching?: boolean;
 
   onRowClick?: (row: TData) => void;
   rowActions?: (row: TData) => React.ReactNode;
-  getRowId?: (row: TData, index: number) => string;
 
   emptyState?: React.ReactNode;
   className?: string;
-
-  /** Optional render prop to access the TanStack table instance from outside. */
-  tableRef?: (table: TanstackTable<TData>) => void;
-
-  initialPageSize?: number;
 }
 
 export function DataTable<TData>({
-  columns,
-  data,
-  rowCount,
-  sorting: sortingProp,
-  onSortingChange,
-  pagination: paginationProp,
-  onPaginationChange,
-  columnFilters: columnFiltersProp,
-  onColumnFiltersChange,
-  columnVisibility: columnVisibilityProp,
-  onColumnVisibilityChange,
-  columnPinning: columnPinningProp,
-  onColumnPinningChange,
-  columnSizing: columnSizingProp,
-  onColumnSizingChange,
-  columnOrder: columnOrderProp,
-  onColumnOrderChange,
-  enableColumnFilters = false,
-  enableColumnResizing = false,
-  manualSorting = false,
-  manualPagination = false,
-  manualFiltering = false,
+  table: tableProp,
   isLoading = false,
   isFetching = false,
   onRowClick,
   rowActions,
-  getRowId,
   emptyState,
   className,
-  tableRef,
-  initialPageSize = 50,
+  ...tableOptions
 }: DataTableProps<TData>) {
   const t = useTranslations("table");
-  const [internalSorting, setInternalSorting] = useState<SortingState>([]);
-  const [internalPagination, setInternalPagination] = useState<PaginationState>(
-    {
-      pageIndex: 0,
-      pageSize: initialPageSize,
-    }
-  );
-  const [internalFilters, setInternalFilters] = useState<ColumnFiltersState>([]);
-  const [internalVisibility, setInternalVisibility] = useState<VisibilityState>(
-    {}
-  );
-  const [internalPinning, setInternalPinning] = useState<ColumnPinningState>({});
-  const [internalSizing, setInternalSizing] = useState<ColumnSizingState>({});
-  const [internalOrder, setInternalOrder] = useState<ColumnOrderState>([]);
-
-  const sortingControlled = sortingProp !== undefined;
-  const paginationControlled = paginationProp !== undefined;
-
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: manualSorting ? undefined : getSortedRowModel(),
-    getPaginationRowModel: manualPagination
-      ? undefined
-      : getPaginationRowModel(),
-    // Column filters always work on the client: the backend returns the whole
-    // result set, so there is nothing to round-trip for them.
-    getFilteredRowModel: enableColumnFilters
-      ? getFilteredRowModel()
-      : undefined,
-    getFacetedRowModel: enableColumnFilters ? getFacetedRowModel() : undefined,
-    getFacetedUniqueValues: enableColumnFilters
-      ? getFacetedUniqueValues()
-      : undefined,
-    defaultColumn: {
-      minSize: 50,
-      size: 150,
-      filterFn: universalFilterFnFor<TData>(),
-    },
-    enableColumnResizing,
-    columnResizeMode: "onChange",
-    manualSorting,
-    manualPagination,
-    manualFiltering,
-    rowCount: manualPagination ? rowCount : undefined,
-    state: {
-      sorting: sortingControlled ? sortingProp : internalSorting,
-      pagination: paginationControlled ? paginationProp : internalPagination,
-      columnFilters: columnFiltersProp ?? internalFilters,
-      columnVisibility: columnVisibilityProp ?? internalVisibility,
-      columnPinning: columnPinningProp ?? internalPinning,
-      columnSizing: columnSizingProp ?? internalSizing,
-      columnOrder: columnOrderProp ?? internalOrder,
-    },
-    onSortingChange: sortingControlled ? onSortingChange : setInternalSorting,
-    onPaginationChange: paginationControlled
-      ? onPaginationChange
-      : setInternalPagination,
-    onColumnFiltersChange: onColumnFiltersChange ?? setInternalFilters,
-    onColumnVisibilityChange:
-      onColumnVisibilityChange ?? setInternalVisibility,
-    onColumnPinningChange: onColumnPinningChange ?? setInternalPinning,
-    onColumnSizingChange: onColumnSizingChange ?? setInternalSizing,
-    onColumnOrderChange: onColumnOrderChange ?? setInternalOrder,
-    getRowId,
-  });
-
-  if (tableRef) tableRef(table);
+  // Only used when no table was passed in; the hook must run unconditionally.
+  const ownTable = useDataTable(tableOptions);
+  const table = tableProp ?? ownTable;
 
   const visibleColumns = table.getVisibleLeafColumns();
   const cols = visibleColumns.length + (rowActions ? 1 : 0) + 1; // + filler
@@ -221,7 +84,7 @@ export function DataTable<TData>({
   // stretches to the container so the header background spans the full width.
   const totalWidth =
     table.getTotalSize() + (rowActions ? ROW_ACTIONS_WIDTH : 0);
-  const showSkeleton = isLoading && data.length === 0;
+  const showSkeleton = isLoading && table.getRowModel().rows.length === 0;
 
   return (
     <div className={cn("flex flex-1 flex-col overflow-hidden", className)}>
