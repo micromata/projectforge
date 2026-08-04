@@ -45,16 +45,28 @@ tasks {
         args.set(listOf("run", "build"))
         dependsOn("npmInstall")
 
-        inputs.files(fileTree("app"))
-        inputs.files(fileTree("components"))
-        inputs.files(fileTree("hooks"))
-        inputs.files(fileTree("lib"))
-        inputs.files(fileTree("store"))
-        inputs.files(fileTree("i18n"))
-        inputs.files(fileTree("messages"))
-        inputs.files(fileTree("public"))
-        inputs.file("next.config.ts")
-        inputs.file("package.json")
+        // Track the whole project rather than a hand-picked list of sources: build-relevant config
+        // (tsconfig.json, postcss.config.mjs, ...) is easy to forget, and missing an input means a
+        // stale build silently passes. Excludes cover outputs, caches and non-build files.
+        inputs.files(
+            fileTree(layout.projectDirectory) {
+                exclude(
+                    "node/**",
+                    "node_modules/**",
+                    "out/**",
+                    ".next/**",
+                    "build/**",
+                    "_parked/**",
+                    "**/*.md",
+                    "tsconfig.tsbuildinfo",
+                    ".gitignore",
+                    ".prettierignore",
+                    ".prettierrc",
+                    "eslint.config.mjs",
+                    "build.gradle.kts",
+                )
+            }
+        ).withPropertyName("projectSources")
         outputs.dir("out")
     }
 
