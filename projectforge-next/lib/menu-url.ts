@@ -40,6 +40,24 @@ export function resolveMenuUrl(url: string | undefined | null): MenuTarget {
   return { kind: "internal", href: `/${path}` };
 }
 
+/**
+ * Keeps a redirect target (`?returnUrl=…` or the server's `redirectUrl`) on this
+ * server. The backend hands the url back unvalidated (LoginServiceRest.getRedirectUrl
+ * decodes whatever the caller stored), so anything with a scheme or a host —
+ * `https://evil.example`, `//evil.example`, `/\evil.example` — is dropped and the
+ * caller falls back to its own default.
+ */
+export function sanitizeRedirectUrl(
+  url: string | undefined | null
+): string | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  if (!trimmed || /^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return null;
+  // "//host", "/\host" and "\\host" are all read as a host by browsers.
+  if (/^[/\\][/\\]/.test(trimmed)) return null;
+  return trimmed;
+}
+
 /** Absolute url for a full page load, including this app's base path when it targets Next. */
 export function toAbsoluteUrl(target: MenuTarget): string {
   return target.kind === "internal" && !target.href.startsWith("#")

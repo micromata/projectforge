@@ -410,6 +410,10 @@ open class RestAuthenticationUtils {
     const val NEXT_CLIENT_HEADER = "X-PF-Frontend"
 
     /**
+     * Both the header and the Referer are under the client's control, so this is **not** a trust boundary and must
+     * never gate access: it only picks the shape of the response. Every caller uses it in a branch that denies the
+     * request either way (JSON for next, ResponseAction for the UILayout clients).
+     *
      * @return true, if the request was sent by projectforge-next (which can't handle UILayout based ResponseActions).
      */
     fun isNextClient(request: HttpServletRequest): Boolean {

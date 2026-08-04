@@ -255,6 +255,36 @@ als eigener Commit).
   Die Server-Garantien bleiben: 10-Minuten-2FA-Fenster, CSRF-Token, Mail-OTP
   gesperrt, Token nach Erfolg invalidiert.
 
+**Sicherheits-Review gegen die React-Version (abgeschlossen).** Der Auth-Teil
+wurde Code-für-Code gegen `LoginPageRest`, `My2FAServicesRest`,
+`PasswordResetPageRest` und die React-Komponenten geprüft. Keine Rechte- oder
+Authentifizierungslücke: Brute-Force (`LoginProtection`,
+`My2FABruteForceProtection` über `internalCheckOTP`), Session-Fixation
+(`LoginService.internalLogin`) und die serverseitige WebAuthn-Challenge aus der
+Session werden vollständig wiederverwendet; `RegisterUser4Thread` ist überall in
+`finally` geklammert. Behoben wurden:
+
+- `LoginNextRest.login()` prüfte `ThreadLocalUserContext.userContext == null`.
+  Der Thread-lokale Wert ist auf `/rsPublic/*` immer `null` (der
+  `RestUserFilter` läuft nur auf `/rs/*`), also landete **jeder** Login im
+  2FA-Dialog. Jetzt wie in `getStatus`: `getUserContext(request)?.new2FARequired`.
+- `two-factor-provider.tsx` sammelt mehrere gleichzeitig unterbrochene Requests
+  in einer Resolver-Liste; vorher scheiterten alle bis auf einen.
+- `sanitizeRedirectUrl` (`lib/menu-url.ts`) verwirft `returnUrl`/`redirectUrl`
+  mit Schema oder Host – `LoginServiceRest.getRedirectUrl` gibt den Wert
+  ungeprüft zurück, `/next/login?returnUrl=…` war damit ein Open Redirect.
+- `NextTwoFactorSupport.sendMailCode` prüft `isMail2FADisabledForUser` vorab
+  (sonst `require` in `My2FAHttpService` → HTTP 500 statt Meldung).
+
+Bewusst als Legacy-Parität belassen: `cancel` ist überall ein zustandsändernder
+`@GetMapping` (Umstellung betrifft beide Frontends), das `last2FA`-Cookie wird
+auch im Reset-Flow geschrieben, `CookieService.checkStayLoggedIn` stellt
+`lastSuccessful2FA` nicht wieder her (Zeile auskommentiert), und `NO_2FA_URLS`
+matcht per Prefix. Strenger als Legacy: `PasswordResetNextRest.setPassword`
+erzwingt das 2FA serverseitig, `PasswordResetPageRest.post()` nur per UI.
+Offen: `toPublicKeyOptions` reicht `extensions` nicht mehr durch – mit einem
+echten Token im Browser prüfen.
+
 **Erledigt: Spaltenzustand-Persistenz.** Breiten, Sichtbarkeit, Pinning,
 Reihenfolge und Sortierung liegen serverseitig in den User-Prefs pro Entität und
 gelten damit geräteübergreifend. Gespeichert wurde schon vorher über
@@ -281,7 +311,7 @@ aktiver Filter. Die Attrappe (hartkodierte Autorennamen, erfundene Zahlen
   OBJECT, LIST). Jede weitere Entität funktioniert ohne Zutun.
 - **Serverseitig** über `MagicFilter.entries` – anders als die Spalten-Filter im
   Header, die auf dem geladenen Ergebnis arbeiten.
-- **Zwei Kontrakt-Fallen:** STRING wird zu `LIKE` über das *ganze* Feld, das Panel
+- **Zwei Kontrakt-Fallen:** STRING wird zu `LIKE` über das _ganze_ Feld, das Panel
   setzt daher Wildcards (`Larkin` fände sonst `Peter J. Larkin` nicht) und
   respektiert selbst gesetzte. Bereichsgrenzen heißen auf dem Draht `from`/`to`,
   nicht `fromValue`/`toValue` (`@JsonProperty`).
@@ -304,14 +334,14 @@ aktiver Filter. Die Attrappe (hartkodierte Autorennamen, erfundene Zahlen
 4. **Panel-Zustand pro Nutzer merken** (offen/zu, gesetzte Filter). Das Backend
    speichert den aktuellen `MagicFilter` bereits (`saveCurrentFilter`).
 
-3. **Zell-Rendering/Formatter fehlen noch.** Die alte App hat einen
+5. **Zell-Rendering/Formatter fehlen noch.** Die alte App hat einen
    Formatter-Zoo (`Formatter.jsx`, `FormatterFormat.js`: Währung, Prozent,
    Datum/Timestamp, Task-Pfade, `displayName`-Auflösung), den der Dynamic-Renderer
    in Phase 2 braucht. Muster: Registry `name → Komponente`
    (`CellRendererDispatch.tsx`) – ohne die AG-Grid-Params-Hülle.
-4. **Konventions-Drift:** `books`-Edit nutzt `@tanstack/react-form`, `CLAUDE.md`
+6. **Konventions-Drift:** `books`-Edit nutzt `@tanstack/react-form`, `CLAUDE.md`
    schreibt `react-hook-form` vor. Vor der Bulk-Migration entscheiden.
-5. Nicht browserseitig verifiziert: englischer Locale-Pfad, vollständiger
+7. Nicht browserseitig verifiziert: englischer Locale-Pfad, vollständiger
    Login-Flow mit echten Daten, und das visuelle Ergebnis der Tabelle
    (Spaltenbreiten, Resize, Popovers).
 

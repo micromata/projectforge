@@ -11,7 +11,11 @@ import {
   login,
   type TwoFactorMethods,
 } from "@/lib/rs/auth";
-import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
+import {
+  resolveMenuUrl,
+  sanitizeRedirectUrl,
+  toAbsoluteUrl,
+} from "@/lib/menu-url";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,7 +50,9 @@ function LoginForm() {
   // Set once username/password were accepted but a second factor is missing.
   const [methods, setMethods] = useState<TwoFactorMethods | null>(null);
 
-  const returnUrl = searchParams.get("returnUrl") || "/";
+  // Both the query param and the server's redirectUrl are caller-supplied, so
+  // they must stay on this server (open redirect otherwise).
+  const returnUrl = sanitizeRedirectUrl(searchParams.get("returnUrl")) ?? "/";
 
   /**
    * Follows the server's redirect if it points at another frontend, otherwise
@@ -55,11 +61,12 @@ function LoginForm() {
   const goTo = useCallback(
     async (redirectUrl?: string | null) => {
       await queryClient.invalidateQueries({ queryKey: ["userStatus"] });
-      if (!redirectUrl) {
+      const safeUrl = sanitizeRedirectUrl(redirectUrl);
+      if (!safeUrl) {
         router.push(returnUrl);
         return;
       }
-      const target = resolveMenuUrl(redirectUrl);
+      const target = resolveMenuUrl(safeUrl);
       if (target.kind === "internal") {
         router.push(target.href);
       } else {

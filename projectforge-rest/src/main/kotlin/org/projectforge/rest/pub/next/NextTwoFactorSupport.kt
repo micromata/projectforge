@@ -30,6 +30,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.my2fa.My2FAServicesRest
+import org.projectforge.security.My2FAService
 import org.projectforge.security.OTPCheckResult
 import org.projectforge.security.WebAuthnServicesRest
 import org.projectforge.security.dto.WebAuthnFinishRequest
@@ -54,6 +55,9 @@ class NextTwoFactorSupport {
 
     @Autowired
     private lateinit var my2FAHttpService: My2FAHttpService
+
+    @Autowired
+    private lateinit var my2FAService: My2FAService
 
     @Autowired
     private lateinit var webAuthnServicesRest: WebAuthnServicesRest
@@ -105,6 +109,12 @@ class NextTwoFactorSupport {
         if (user.email.isNullOrBlank()) {
             log.error { "User '${user.username}' tried to send 2FA code as mail, but e-mail address isn't available." }
             return NextTwoFactorResult(success = false, message = translate("mail.error.missingToAddress"))
+        }
+        if (my2FAService.isMail2FADisabledForUser()) {
+            // Otherwise My2FAHttpService.createAndMailOTP would throw (require), resulting in a 500 instead of a
+            // message. next doesn't offer the button in this case (see NextTwoFactorMethodsService.getMethods).
+            log.error { "User '${user.username}' tried to send 2FA code as mail, but mail 2FA is disabled for the user's groups." }
+            return NextTwoFactorResult(success = false, message = translate("user.My2FACode.error.validation"))
         }
         return toResult(my2FAHttpService.createAndMailOTP(request))
     }

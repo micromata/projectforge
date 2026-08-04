@@ -26,7 +26,6 @@ package org.projectforge.rest.pub.next
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.projectforge.business.login.LoginResultStatus
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.login.LoginData
 import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
@@ -99,12 +98,14 @@ open class LoginNextRest {
                 message = loginResultStatus.localizedMessage,
             )
         }
-        if (ThreadLocalUserContext.userContext == null) {
-            // Password was OK, but the user isn't logged-in yet, so a second factor is required (same condition as
-            // used by LoginPageRest.login):
+        // Password was OK, but a second factor may still be missing. Read it from the session (as getStatus does):
+        // ThreadLocalUserContext isn't an option here, because RestUserFilter runs on /rs/* only, not on /rsPublic/*
+        // (see WebXMLInitializer), so it would always be null.
+        val userContext = LoginService.getUserContext(request)
+        if (userContext?.new2FARequired == true) {
             return NextLoginResult(
                 status = NextLoginStatus.TWO_FACTOR_REQUIRED,
-                methods = twoFactorMethodsService.getMethods(LoginService.getUserContext(request)),
+                methods = twoFactorMethodsService.getMethods(userContext),
             )
         }
         return NextLoginResult(

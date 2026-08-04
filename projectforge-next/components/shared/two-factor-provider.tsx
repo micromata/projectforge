@@ -25,12 +25,14 @@ export function TwoFactorProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<TwoFactorState | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  // Resolves the pending request()'s promise: true = retry, false = give up.
-  const resolveRef = useRef<((success: boolean) => void) | null>(null);
+  // Resolves the pending requests' promises: true = retry, false = give up.
+  // Several requests may be interrupted by the same expiry, so this is a list.
+  const resolversRef = useRef<((success: boolean) => void)[]>([]);
 
   const settle = useCallback((success: boolean) => {
-    resolveRef.current?.(success);
-    resolveRef.current = null;
+    const resolvers = resolversRef.current;
+    resolversRef.current = [];
+    resolvers.forEach((resolve) => resolve(success));
     setIsOpen(false);
     setState(null);
     setLoadError(null);
@@ -38,15 +40,18 @@ export function TwoFactorProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setTwoFactorHandler((expiryMillis) => {
-      // A second demand while the dialog is open joins the pending one.
-      if (resolveRef.current) return Promise.resolve(false);
-      setIsOpen(true);
-      fetchTwoFactorState(expiryMillis)
-        .then(setState)
-        .catch(() => setLoadError(t("user.My2FACode.error.validation")));
-      return new Promise<boolean>((resolve) => {
-        resolveRef.current = resolve;
+      // A second demand while the dialog is open joins the pending one: one
+      // successful 2FA lets every interrupted request through.
+      const pending = new Promise<boolean>((resolve) => {
+        resolversRef.current.push(resolve);
       });
+      if (resolversRef.current.length === 1) {
+        setIsOpen(true);
+        fetchTwoFactorState(expiryMillis)
+          .then(setState)
+          .catch(() => setLoadError(t("user.My2FACode.error.validation")));
+      }
+      return pending;
     });
     return () => setTwoFactorHandler(null);
   }, [t]);

@@ -323,6 +323,8 @@ open class My2FARequestHandler {
     val MY_2FA_URL = MenuItemDefId.MY_2FA.url!!
 
     // /rs/next2FA is the 2FA of projectforge-next (org.projectforge.rest.my2fa.My2FANextRest).
+    // Matched by prefix (see no2FAUrl), so a new controller whose path merely starts with one of these entries
+    // (e. g. /rs/next2FAsomething) would silently be exempt from 2FA as well. Keep new paths clearly distinct.
     private val NO_2FA_URLS =
       arrayOf("/rs/menu", "/rs/userStatus", "/rs/2FA", "/rs/next2FA", "/rsPublic", "/rs/webauthn/webAuthn")
 
