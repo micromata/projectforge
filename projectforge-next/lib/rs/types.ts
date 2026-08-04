@@ -27,6 +27,10 @@ export interface MagicFilterEntry {
   search?: string;
 }
 
+// Only fields the Kotlin MagicFilter can deserialize. It rejects unknown ones
+// (no @JsonIgnoreProperties), so anything extra fails the whole request with 400.
+// Notably `paginationPageSize` is a computed read-only val there: it is returned
+// in ResultSet but must be SENT as an entry with field="paginationPageSize".
 export interface MagicFilter {
   entries: MagicFilterEntry[];
   sortProperties: SortProperty[];
@@ -35,12 +39,21 @@ export interface MagicFilter {
   deleted?: boolean | null;
   maxRows?: number;
   autoWildcardSearch?: boolean;
-  // The Kotlin side reads page size from an entry with field="paginationPageSize".
-  // We mirror that, but also accept it at top level for ergonomics on the mock route.
-  paginationPageSize?: number;
-  // Pragmatic extension: the backend MagicFilter has no native page index. We use
-  // `extended.page` for now; later this can be folded into a server-side cursor.
+  sortAndLimitMaxRowsWhileSelect?: boolean;
+  multiSelection?: boolean | null;
+  name?: string;
+  id?: number;
   extended?: Record<string, unknown>;
+}
+
+export const PAGINATION_PAGE_SIZE_FIELD = "paginationPageSize";
+
+/** Page size travels as a filter entry, mirroring MagicFilter.paginationPageSize. */
+export function paginationPageSizeEntry(pageSize: number): MagicFilterEntry {
+  return {
+    field: PAGINATION_PAGE_SIZE_FIELD,
+    value: { value: String(pageSize) },
+  };
 }
 
 export interface ResultSet<O> {

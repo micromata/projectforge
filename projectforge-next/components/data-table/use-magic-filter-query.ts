@@ -8,6 +8,7 @@ import type {
   SortingState,
 } from "@tanstack/react-table";
 import { fetchList } from "@/lib/rs/client";
+import { paginationPageSizeEntry } from "@/lib/rs/types";
 import type { MagicFilter, ResultSet } from "@/lib/rs/types";
 
 interface UseMagicFilterQueryOptions {
@@ -61,19 +62,21 @@ export function useMagicFilterQuery<O>({
     setPagination((p) => ({ ...p, pageIndex: 0 }));
   };
 
+  // The page index is deliberately not part of the filter: AbstractPagesRest.getList
+  // returns the whole result list (capped by maxRows) rather than a single page, so
+  // paging happens on the client below. Only the page size is sent, as the entry the
+  // backend expects.
   const filter: MagicFilter = useMemo(() => {
     const base: MagicFilter = {
-      entries: [],
+      entries: [paginationPageSizeEntry(pagination.pageSize)],
       sortProperties: sorting.map((s) => ({
         property: s.id,
         sortOrder: s.desc ? "DESCENDING" : "ASCENDING",
       })),
       searchString: globalFilter || undefined,
-      paginationPageSize: pagination.pageSize,
-      extended: { page: pagination.pageIndex },
     };
     return buildFilter ? buildFilter(base) : base;
-  }, [sorting, pagination, globalFilter, buildFilter]);
+  }, [sorting, pagination.pageSize, globalFilter, buildFilter]);
 
   const query = useQuery<ResultSet<O>>({
     queryKey: [...queryKey, filter],
@@ -82,9 +85,15 @@ export function useMagicFilterQuery<O>({
     enabled,
   });
 
+  const allRows = query.data?.resultSet;
+  const pageRows = useMemo(() => {
+    const start = pagination.pageIndex * pagination.pageSize;
+    return (allRows ?? []).slice(start, start + pagination.pageSize);
+  }, [allRows, pagination.pageIndex, pagination.pageSize]);
+
   return {
-    data: query.data?.resultSet ?? [],
-    rowCount: query.data?.totalSize ?? 0,
+    data: pageRows,
+    rowCount: query.data?.totalSize ?? allRows?.length ?? 0,
     isLoading: query.isLoading,
     isFetching: query.isFetching,
     isError: query.isError,
