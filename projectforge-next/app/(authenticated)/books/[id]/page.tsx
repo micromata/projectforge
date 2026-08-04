@@ -1,19 +1,12 @@
-import { notFound } from "next/navigation";
-import { PageShell } from "@/components/shared/page-shell";
-import { BookEditForm } from "@/components/features/books/edit/book-edit-form";
+import { BookEditPageClient } from "./page-client";
 
-interface Props {
-  params: Promise<{ id: string }>;
+// Static export emits a single placeholder route; Spring forwards /next/**
+// deep links (e.g. /next/books/5) to the SPA shell, where the client reads the
+// real id from the URL at runtime.
+export function generateStaticParams() {
+  return [{ id: "new" }];
 }
 
-export default async function BookEditPage({ params }: Props) {
-  const { id: raw } = await params;
-  const id = Number(raw);
-  if (!Number.isFinite(id) || id <= 0) notFound();
-
-  return (
-    <PageShell>
-      <BookEditForm bookId={id} />
-    </PageShell>
-  );
+export default function BookEditPage() {
+  return <BookEditPageClient />;
 }

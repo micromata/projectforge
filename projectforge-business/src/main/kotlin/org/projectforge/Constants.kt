@@ -81,6 +81,13 @@ object Constants {
   const val RESOURCE_BUNDLE_NAME = "I18nResources"
   const val REACT = "react"
   const val REACT_APP_PATH = "react/"
+
+  /**
+   * Base path of the Next.js frontend (projectforge-next), served side-by-side
+   * with the legacy React app ([REACT_APP_PATH]) during the migration.
+   */
+  const val NEXT = "next"
+  const val NEXT_APP_PATH = "next/"
   const val WICKET_APPLICATION_PATH = "wa/"
   const val WICKET_REQUEST_TIMEOUT_MINUTES = 5
 

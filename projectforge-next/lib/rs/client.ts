@@ -22,7 +22,10 @@ async function request<O>(
   init: RequestInit,
   signal?: AbortSignal
 ): Promise<O> {
-  const url = path.startsWith("http") ? path : `/react${path}`;
+  // Backend paths (/rs, /rsPublic) are root-relative, NOT prefixed with the
+  // app's basePath: Spring serves them at the origin root, not under /next.
+  // Dev: next.config.ts rewrites proxy them to :8080. Prod: same Spring origin.
+  const url = path;
   const res = await fetch(url, {
     credentials: "include",
     ...init,
@@ -132,7 +135,7 @@ export async function loginWithResponse(
   stayLoggedIn: boolean,
   signal?: AbortSignal
 ): Promise<LoginResponse> {
-  const url = `/react/rsPublic/login`;
+  const url = `/rsPublic/login`;
   const res = await fetch(url, {
     credentials: "include",
     method: "POST",
@@ -151,7 +154,7 @@ export async function checkOtp(
   code: string,
   signal?: AbortSignal
 ): Promise<LoginResponse> {
-  const url = `/react/rsPublic/2FA/checkOTP`;
+  const url = `/rsPublic/2FA/checkOTP`;
   const res = await fetch(url, {
     credentials: "include",
     method: "POST",

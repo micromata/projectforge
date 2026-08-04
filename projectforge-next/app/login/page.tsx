@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
@@ -19,6 +19,15 @@ import { TwoFactorForm } from "@/components/shared/two-factor-form";
 type Stage = "credentials" | "2fa";
 
 export default function LoginPage() {
+  // useSearchParams() must be wrapped in Suspense for the static export build.
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const t = useTranslations("login");
   const router = useRouter();
   const searchParams = useSearchParams();

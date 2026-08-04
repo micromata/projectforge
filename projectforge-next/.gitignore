@@ -2,6 +2,8 @@
 
 # dependencies
 /node_modules
+# Node/npm downloaded by the Gradle node plugin (see build.gradle.kts)
+/node
 /.pnp
 .pnp.*
 .yarn/*

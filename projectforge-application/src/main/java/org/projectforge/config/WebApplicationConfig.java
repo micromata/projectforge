@@ -27,9 +27,12 @@ import org.projectforge.Constants;
 import org.projectforge.framework.configuration.PFSpringConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.resource.PathResourceResolver;
 
 @Configuration
 public class WebApplicationConfig implements WebMvcConfigurer {
@@ -41,6 +44,66 @@ public class WebApplicationConfig implements WebMvcConfigurer {
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
         registry.addViewController("/" + Constants.REACT_APP_PATH + "**").setViewName("forward:/react-app.html");
+        // Root of the Next.js app: an empty resource path isn't resolved by the resource handler below, so map the
+        // bare base path explicitly. These patterns match exactly and therefore don't interfere with asset requests.
+        registry.addViewController("/" + Constants.NEXT).setViewName("redirect:/" + Constants.NEXT_APP_PATH);
+        registry.addViewController("/" + Constants.NEXT_APP_PATH).setViewName("forward:/" + Constants.NEXT_APP_PATH + "index.html");
+    }
+
+    /**
+     * projectforge-next (Next.js static export) is served side-by-side with the legacy React app during the migration.
+     * <p>
+     * Unlike the legacy React app (whose assets live at the root, so a plain view-controller forward suffices), the
+     * Next.js export places its assets under the base path ({@code /next/_next/**}). A naive forward of {@code /next/**}
+     * to the SPA shell would therefore swallow asset requests. This resource handler instead serves real files first
+     * (assets, per-route {@code index.html}) and only falls back to the SPA shell ({@code 404.html}) for page routes
+     * that have no own file (deep links such as {@code /next/books/5}). Missing assets still yield a real 404.
+     * <p>
+     * The export is packaged into {@code classpath:/static/next/} (see projectforge-next Gradle build).
+     */
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/" + Constants.NEXT_APP_PATH + "**")
+                .addResourceLocations("classpath:/static/" + Constants.NEXT_APP_PATH)
+                .resourceChain(true)
+                .addResolver(new NextSpaResourceResolver());
+    }
+
+    /**
+     * Resolves a request under {@code /next/**} to a static file, applying Next.js static-export conventions
+     * (directory {@code index.html}, {@code <route>.html}) and falling back to the SPA shell for page routes.
+     */
+    private static class NextSpaResourceResolver extends PathResourceResolver {
+        private static final String SPA_SHELL = "404.html";
+
+        @Override
+        protected Resource getResource(String resourcePath, Resource location) throws java.io.IOException {
+            // 1. Exact file (assets like _next/static/*.js, favicon.ico, and <route>/index.html when path ends in "/").
+            Resource resource = tryResource(resourcePath, location);
+            if (resource != null) return resource;
+            if (resourcePath.isEmpty() || resourcePath.endsWith("/")) {
+                resource = tryResource(resourcePath + "index.html", location);
+                if (resource != null) return resource;
+            } else {
+                // 2. Page route without trailing slash: <route>/index.html or <route>.html.
+                resource = tryResource(resourcePath + "/index.html", location);
+                if (resource == null) resource = tryResource(resourcePath + ".html", location);
+                if (resource != null) return resource;
+            }
+            // 3. Asset request (has a non-.html extension) that wasn't found → real 404, do not mask with HTML.
+            int lastSlash = resourcePath.lastIndexOf('/');
+            String lastSegment = lastSlash >= 0 ? resourcePath.substring(lastSlash + 1) : resourcePath;
+            if (lastSegment.contains(".") && !lastSegment.endsWith(".html")) {
+                return null;
+            }
+            // 4. Page route (deep link) with no own file → serve the SPA shell for client-side routing.
+            return tryResource(SPA_SHELL, location);
+        }
+
+        private Resource tryResource(String resourcePath, Resource location) throws java.io.IOException {
+            Resource resource = location.createRelative(resourcePath);
+            return (resource.isReadable()) ? resource : null;
+        }
     }
 
     @Override
