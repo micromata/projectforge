@@ -12,7 +12,7 @@ Alle Frontends werden von der einen Spring-Boot-App auf `:8080` serviert:
 |---|---|---|---|
 | Wicket (Legacy) | `projectforge-wicket` | `/wa/*` | server-rendered, Servlet-Filter (`WebXMLInitializer.java`) |
 | Alte React-App | `projectforge-webapp` | `/react/**` | backend-getriebener „Dynamic Renderer" (UILayout-JSON), CRA→Vite |
-| **projectforge-next** | `projectforge-next` | `/next/**` (Ziel) | Next.js 16 App Router, statisch exportiert |
+| **projectforge-next** | `projectforge-next` | `/next/**` | Next.js 16 App Router, statisch exportiert |
 
 **Geteilte Authentifizierung.** Spring Security ist `permitAll`
 (`SpringSecurityConfig.kt`); die Authentifizierung übernehmen PF-Servlet-Filter
@@ -70,11 +70,9 @@ Dev-Server sie anbietet:
 - `/rs` + `/rsPublic`: Prod läuft same-origin unter `/next` → relative API-Calls
   treffen dieselbe Spring-Origin, kein Proxy nötig. `lib/rs/client.ts` muss in
   **beiden** Modi funktionieren (relativer Basis-Pfad, `credentials: "include"`).
-- Die Mock-Route-Handler (`app/rs/book/*`) sind ein reines **Dev-Hilfsmittel** und
-  existieren in Prod nicht.
-- **i18n:** `i18n/request.ts` (heute server-seitig, hartkodiert `de`) muss auf
-  **client-seitige** Locale-Ermittlung umgestellt werden (Cookie /
-  `userStatus.locale`).
+- **Keine Route Handlers** (`route.ts`): mit `output: 'export'` grundsätzlich
+  inkompatibel. Mocks gehören in MSW o.Ä., nicht in `app/`.
+- **i18n** läuft client-seitig (Cookie / `userStatus.locale`) – siehe Phase 0.
 - **Routen:** dynamische Segmente (`[category]`, `[id]`) müssen statisch
   exportierbar sein – `generateStaticParams` oder Client-seitiges Catch-all-Routing.
 - **CI-Gate:** Der Gradle-Build baut immer den Static Export – so werden Dev-only-
@@ -82,34 +80,112 @@ Dev-Server sie anbietet:
 
 ## Phasen
 
-### Phase 0 – Parallelbetrieb herstellen
+### Phase 0 – Parallelbetrieb herstellen ✅ erledigt
 
-1. `basePath: "/next"` in `next.config.ts` (statt `/react`); same-origin-Prefixe
-   in `lib/rs/client.ts` entsprechend anpassen.
-2. Spring-Serving für `/next`: View-Controller-Forward analog
-   `WebApplicationConfig.java:43` → `/next/**` → `forward:/next-app.html`. Neue
-   Konstante `NEXT_APP_PATH = "next/"` in `Constants.kt`.
-3. Gradle-Packaging analog `projectforge-webapp/build.gradle.kts`: Node-Plugin,
-   `npmBuild` (`next build` → `out/`), Copy nach `build/resources/main/static`,
-   Einbindung in `projectforge-application/build.gradle.kts`
-   (`processResources`/`bootJar` dependsOn). projectforge-next bleibt Build-
-   Artefakt-Lieferant, kein Kotlin-Compile-Modul.
-4. i18n client-seitig umstellen.
-5. Static-Export-Kompatibilität herstellen (`output: 'export'`, dynamische Routen
-   auf Client-Resolution), Dev-Server :3000 für HMR beibehalten.
+`basePath: "/next"`, `output: 'export'`, `trailingSlash: true`; `BASE_PATH` als
+einzige Quelle in `lib/config.ts`. Backend: `NEXT`/`NEXT_APP_PATH` in
+`Constants.kt`. Build: eigenes Gradle-Modul `projectforge-next`
+(`npmBuild` → `out/` → `static/next/`), verdrahtet in `settings.gradle.kts` und
+`projectforge-application` (`processResources`, `bootJar`).
 
-**Verifikation.** Dev: `next dev` (:3000) + `bootRun` (:8080), Live-Reload, Login
-geteilt. Prod-Simulation: `next build` (`export`) fehlerfrei, Boot-Jar mit
-eingebetteten Assets, `/react` und `/next` erreichbar, ein Login authentifiziert
-beide.
+**Abweichungen von der ursprünglichen Planung** – hier lagen die Fallstricke:
 
-### Phase 1 – Menü-gesteuertes Routing pro Seite
+- **Kein View-Controller-Forward, sondern ein Resource-Handler.** Die alte
+  React-App kommt mit einem simplen `/react/**`-Forward aus, weil ihre Assets an
+  der **Root** liegen (`/assets/*`). Der Next-Export legt sie dagegen **unter**
+  den basePath (`/next/_next/*`), ein Catch-all-Forward würde sie verschlucken.
+  `WebApplicationConfig` nutzt daher einen `PathResourceResolver`: echte Dateien
+  und Assets zuerst, dann `<route>/index.html` bzw. `<route>.html`, fehlende
+  Assets → echter 404, und nur Page-Routen ohne eigene Datei → `404.html` als
+  SPA-Shell. Damit sind Deep-Links/Bookmarks (`/next/books/5`) möglich.
+  Der Wurzelpfad `/next/` braucht zusätzlich einen expliziten View-Controller
+  (leerer Resource-Pfad wird vom Resolver nicht aufgelöst).
+- **API-Calls sind root-relativ**, nicht mit basePath geprefixt: Spring serviert
+  `/rs` + `/rsPublic` an der Origin-Root, nicht unter `/next`. Die Dev-`rewrites()`
+  brauchen daher `basePath: false`.
+- **Mock-Route-Handler entfernt** (`app/rs/book/*`): `route.ts`-Handler sind mit
+  `output: 'export'` grundsätzlich inkompatibel. `mock-data.ts` bleibt liegen,
+  wird aber nirgends mehr importiert (Kandidat für MSW oder Löschung).
+- **Static-Export-Anpassungen:** `/login` braucht eine Suspense-Boundary
+  (`useSearchParams`); `books/[id]` ist in Server-Wrapper (`generateStaticParams`
+  mit Platzhalter) + Client-Component (`page-client.tsx`, ID via `useParams`)
+  geteilt.
+- **i18n** ist client-seitig (`i18n/config.ts`, `i18n/locale-provider.tsx`):
+  Cookie → Browser-Sprache → `de`, übernimmt nach Login `userData.locale`. Beide
+  Kataloge sind gebündelt; `NextIntlClientProvider` braucht eine explizite
+  `timeZone`, sonst schlägt das Prerendering fehl. Das next-intl-**Plugin** und
+  `i18n/request.ts` sind entfernt.
 
-`MenuItemDefId.kt` unterscheidet URLs bereits nach Wicket (`wa/...`) vs. React;
-um `next/...`-Ziele erweitern. Der Menü-Client (`top-navigation.tsx`,
-`MenuRest.kt`) öffnet `next/`-, `react/`- und `wa/`-Links als jeweiliges Frontend.
-Pro migrierter Seite wird die Menü-URL auf `next/...` umgestellt – das ist der
-Release-Schalter je Seite.
+**Verifiziert** gegen die laufende App: `/next/books/`, Deep-Links
+`/next/books/5` und `/next/order/edit/5` liefern die Shell (200), Assets laden
+korrekt, fehlende Assets ergeben 404, `/react` unbeschädigt. Der Gradle-Build ist
+inkrementell (kein Node-Build ohne Änderung).
+
+### Phase 1 – Menü-gesteuertes Routing pro Seite ✅ erledigt
+
+`getNextListUrl()` in `MenuItemDefId.kt`; **`BOOK_LIST` ist auf `next/books`
+umgestellt** – der erste Release-Schalter. Alle anderen Einträge zeigen weiter auf
+`react/...` bzw. `wa/...`.
+
+Beide Frontends müssen das Präfix beachten:
+
+- **projectforge-next:** `lib/menu-url.ts` löst Menü-URLs auf → `next/` als
+  internes Client-Routing, `react/`/`wa/`/absolut als Hard-Navigation.
+  `MenuLink` in `top-navigation.tsx` nutzt das.
+- **Alte React-App:** neue Route `/next/*` → `RedirectToNext.tsx` (analog zum
+  bestehenden `/wa/*` → `RedirectToWicket`), in **beiden** Routen-Listen
+  (`AuthorizedRoutes.jsx`, `ProjectForge.jsx`). Ohne das würde die alte App
+  `next/books` als eigene Kategorie interpretieren und ins Leere laufen.
+
+**Wichtig für weitere Umstellungen:** Die Menü-URL muss die **Next-Route** nennen,
+nicht die REST-Kategorie. Beispiel Bücher: Route `books` (Plural), REST-Kategorie
+`book` (Singular). Zeigt die URL auf eine nicht existierende Route, liefert Spring
+stillschweigend die SPA-Shell und die Seite bleibt leer.
+
+### Phase 1.5 – `books` produktionsreif machen 🔶 in Arbeit
+
+`books` ist die Referenz-Implementierung: Was hier nicht funktioniert, fehlt
+später jeder migrierten Seite. Daher **vor** weiteren Seiten abschließen.
+
+**Erledigt:** Der `MagicFilter`-Kontrakt. Jeder `/rs/{entity}/list`-Aufruf endete
+mit HTTP 400, die Liste blieb leer. Ursachen:
+
+- `paginationPageSize` wurde als Top-Level-Feld gesendet, ist im Backend aber ein
+  **berechnetes read-only `val`**, das die Größe aus einem `entries`-Eintrag liest.
+  Es wird in `ResultSet` zurückgegeben, aber nie akzeptiert. `MagicFilter` lehnt
+  unbekannte Felder strikt ab (kein `@JsonIgnoreProperties`) → 400.
+  → Jetzt via `paginationPageSizeEntry()` als Filter-Eintrag.
+- `extended.page` war wirkungslos: **`AbstractPagesRest.getList` paginiert nicht
+  serverseitig**, es liefert die ganze Liste (bis `maxRows`).
+  → Pagination erfolgt clientseitig über das Ergebnis, wie in der alten React-App.
+
+Beide Abweichungen entstanden für die Mock-Routen; seit deren Entfernung gilt der
+echte Kontrakt. **Regel:** `lib/rs/types.ts` darf nur Felder enthalten, die die
+Kotlin-Klasse deserialisieren kann.
+
+**Offen:**
+
+1. **Tabellen-Funktionen aus dem TanStack-Umbau übernehmen.** Die alte React-App
+   hat Spalten-Filter, Resizing, Ein-/Ausblenden und Pinning bereits gelöst –
+   Referenz: `projectforge-webapp/src/components/base/dynamicLayout/components/table/`
+   (`DynamicTanStackGrid.tsx` sowie `tanstack/TanStackColumnPanel.tsx`,
+   `TanStackColumnFilter.tsx`, `TanStackDateFilter.tsx`, `TanStackNumberFilter.tsx`,
+   `TanStackPagination.tsx`, `FilterPortal.tsx`, `CellRendererDispatch.tsx`,
+   `tableUtils.ts`). `projectforge-next/components/data-table/` hat davon bislang
+   nur `data-table.tsx`, Column-Header und Pagination. Spaltenbreiten sind
+   derzeit verrutscht.
+   Spaltenzustand persistiert das Backend über `setColumnStates`
+   (`AbstractPagesRest`, User-Prefs) – beim Port mitdenken.
+2. **Filter-Panel ist Design-Attrappe.** `books-filter-panel.tsx` enthält
+   hartkodierte Autorennamen, erfundene Zahlen (234/189/45) und gespeicherte
+   Filter; nichts davon ist an einen Query gebunden. Deshalb ändert
+   „Filter löschen" nichts. Ebenso sind die Chips in `books/page.tsx` bloßer
+   `useState`-Initialwert. Entweder echt anbinden (Status/Autor als
+   `MagicFilterEntry`, Zahlen vom Backend) oder entfernen.
+3. **Konventions-Drift:** `books`-Edit nutzt `@tanstack/react-form`, `CLAUDE.md`
+   schreibt `react-hook-form` vor. Vor der Bulk-Migration entscheiden.
+4. Nicht browserseitig verifiziert: englischer Locale-Pfad und der vollständige
+   Login-Flow mit echten Daten.
 
 ### Phase 2 – Dynamic-Renderer in Next vervollständigen (Bulk-Migration)
 
@@ -173,8 +249,15 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
   `settings.gradle.kts` + Build entfernen, `/react`- und `/wa`-Serving/Filter
   (`WebApplicationConfig`, `WebXMLInitializer`) entfernen, ggf. `NEXT_APP_PATH` →
   `/` als Default.
-- `lib/api-client.ts` (veralteter Zweit-Client) entfernen; `lib/rs/` bleibt
-  einzige Backend-Schnittstelle.
+- `lib/api-client.ts` (veralteter Zweit-Client, unbenutzt) entfernen; `lib/rs/`
+  bleibt einzige Backend-Schnittstelle.
+- `components/features/books/mock-data.ts` (seit Entfernen der Mock-Routen
+  unbenutzt) entfernen oder auf MSW umstellen.
+- `_parked/[category]/` reaktivieren, sobald der Dynamic-Renderer trägt (Phase 2)
+  – dort liegen die generischen List-/Form-Routen, die für den Static Export
+  vorübergehend aus `app/` genommen wurden.
+- `app/(authenticated)/page.tsx` ist noch die Starter-Vorlage; `demo/` ist eine
+  Design-Referenz und kein Produktivziel.
 
 ## Kritische Dateien (Referenz)
 
@@ -196,11 +279,19 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
 - **Auftragsbuch:** `projectforge-wicket/.../web/fibu/AuftragEditForm.kt`,
   `projectforge-rest/.../fibu/AuftragPagesRest.kt`, `rest/dto/Auftrag.kt`
 
-## Empfohlene Reihenfolge
+## Stand & nächste Schritte
 
-1. Phase 0.1–0.2 (basePath `/next` + Spring-Forward) – kleinster Schritt zum
-   echten Parallelbetrieb im Dev.
-2. Phase 0.3 (Gradle-Packaging) + Static-Export-Kompatibilität.
-3. Phase 1 (Menü-Schalter) – ab hier parallele Releases pro Seite möglich.
-4. Danach parallel: Phase 2 (Renderer-Ausbau für die Masse) und Phase 3
-   (Auftragsbuch als handgebauter Härtefall).
+Erledigt: **Phase 0** (Parallelbetrieb, Static-Export-Packaging) und **Phase 1**
+(Menü-Schalter pro Seite; `BOOK_LIST` zeigt auf `next/books`).
+
+Als nächstes:
+
+1. **Phase 1.5** – `books` fertigstellen: Tabellen-Funktionen aus dem
+   TanStack-Umbau der alten React-App übernehmen (Filter, Resizing, Spalten
+   ein-/ausblenden, Pinning), dann das Filter-Panel echt anbinden oder entfernen.
+   Erst danach weitere Seiten umziehen: `books` ist die Vorlage, die jede weitere
+   Seite erbt.
+2. **Phase 2** – Dynamic-Renderer ausbauen (bringt die ~36 UILayout-Seiten in der
+   Masse) – profitiert direkt von der fertigen `DataTable`.
+3. **Phase 3** – Auftragsbuch als handgebauter Härtefall (parallel zu Phase 2
+   möglich).
