@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import type { Column, Table } from "@tanstack/react-table";
 import {
   DndContext,
@@ -62,11 +63,12 @@ export function DataTableColumnPanel<TData>({
   const hideable = table.getAllLeafColumns().filter((c) => c.getCanHide());
   const visibleCount = hideable.filter((c) => c.getIsVisible()).length;
 
-  // Pinned columns lead the table, so the list shows them first and outside the
-  // sortable area; the order within each group follows columnOrder.
+  // Pinned columns lead the table, so they form their own group here. Dragging
+  // sorts within a group; moving between groups is what the pin toggle does.
   const pinned = hideable.filter((c) => c.getIsPinned());
-  const sortable = hideable.filter((c) => !c.getIsPinned());
-  const sortableIds = sortable.map((c) => c.id);
+  const unpinned = hideable.filter((c) => !c.getIsPinned());
+  const pinnedIds = pinned.map((c) => c.id);
+  const unpinnedIds = unpinned.map((c) => c.id);
 
   const sensors = useSensors(
     // A small threshold so clicking the checkbox isn't swallowed by a drag.
@@ -78,19 +80,23 @@ export function DataTableColumnPanel<TData>({
     setDragId(null);
     if (!over || active.id === over.id) return;
 
-    const from = sortableIds.indexOf(String(active.id));
-    const to = sortableIds.indexOf(String(over.id));
+    const activeId = String(active.id);
+    const overId = String(over.id);
+    const isPinnedGroup = pinnedIds.includes(activeId);
+    const group = isPinnedGroup ? pinnedIds : unpinnedIds;
+
+    const from = group.indexOf(activeId);
+    const to = group.indexOf(overId);
+    // Ignore drops onto the other group — pinning moves columns between them.
     if (from < 0 || to < 0) return;
 
-    // Reorder within the unpinned group, then rebuild the full column order so
-    // pinned columns keep their leading positions.
-    const reordered = arrayMove(sortableIds, from, to);
-    table.setColumnOrder([...pinned.map((c) => c.id), ...reordered]);
+    const reordered = arrayMove(group, from, to);
+    table.setColumnOrder(
+      isPinnedGroup
+        ? [...reordered, ...unpinnedIds]
+        : [...pinnedIds, ...reordered]
+    );
   }
-
-  const draggedColumn = dragId
-    ? sortable.find((c) => c.id === dragId)
-    : undefined;
 
   /**
    * Pins or unpins and moves the column accordingly. `column.pin()` only touches
@@ -106,15 +112,18 @@ export function DataTableColumnPanel<TData>({
 
     if (isPinned) {
       column.pin(false);
-      // Back behind the remaining pinned columns.
-      const stillPinned = pinned.filter((c) => c.id !== column.id).length;
-      others.splice(stillPinned, 0, column.id);
+      // Just behind the columns that stay pinned.
+      others.splice(pinnedIds.length - 1, 0, column.id);
     } else {
       column.pin("left");
-      others.unshift(column.id);
+      others.splice(pinnedIds.length, 0, column.id);
     }
     table.setColumnOrder(others);
   }
+
+  const draggedColumn = dragId
+    ? hideable.find((c) => c.id === dragId)
+    : undefined;
 
   return (
     <Popover>
@@ -125,43 +134,49 @@ export function DataTableColumnPanel<TData>({
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0">
-        <div className="max-h-96 overflow-y-auto p-1">
-          {pinned.length > 0 && (
-            <div className="mb-1 rounded-sm bg-primary/5 p-1">
-              <p className="flex items-center gap-1 px-1 pb-1 text-[11px] font-medium text-primary">
-                <HugeiconsIcon icon={PinIcon} size={11} />
-                {t("pinned")}
-              </p>
-              {pinned.map((column) => (
-                <ColumnRow
-                  key={column.id}
-                  column={column}
-                  label={columnLabel(column)}
-                  isLastVisible={column.getIsVisible() && visibleCount === 1}
-                  pinLabel={t("unpin")}
-                  onTogglePin={() => togglePin(column)}
-                />
-              ))}
-            </div>
-          )}
-          <p className="px-2 pb-1 text-[11px] text-muted-foreground">
-            {t("dragToSort")}
-          </p>
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            modifiers={[restrictToVerticalAxis]}
-            onDragStart={({ active }: DragStartEvent) =>
-              setDragId(String(active.id))
-            }
-            onDragEnd={handleDragEnd}
-            onDragCancel={() => setDragId(null)}
-          >
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          modifiers={[restrictToVerticalAxis]}
+          onDragStart={({ active }: DragStartEvent) =>
+            setDragId(String(active.id))
+          }
+          onDragEnd={handleDragEnd}
+          onDragCancel={() => setDragId(null)}
+        >
+          <div className="max-h-96 overflow-y-auto p-1">
+            {pinned.length > 0 && (
+              <div className="mb-1 rounded-sm bg-primary/5 p-1">
+                <p className="flex items-center gap-1 px-1 pb-1 text-[11px] font-medium text-primary">
+                  <HugeiconsIcon icon={PinIcon} size={11} />
+                  {t("pinned")}
+                </p>
+                <SortableContext
+                  items={pinnedIds}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {pinned.map((column) => (
+                    <SortableColumnRow
+                      key={column.id}
+                      column={column}
+                      label={columnLabel(column)}
+                      isLastVisible={column.getIsVisible() && visibleCount === 1}
+                      pinLabel={t("unpin")}
+                      dragLabel={t("dragToSort")}
+                      onTogglePin={() => togglePin(column)}
+                    />
+                  ))}
+                </SortableContext>
+              </div>
+            )}
+            <p className="px-2 pb-1 text-[11px] text-muted-foreground">
+              {t("dragToSort")}
+            </p>
             <SortableContext
-              items={sortableIds}
+              items={unpinnedIds}
               strategy={verticalListSortingStrategy}
             >
-              {sortable.map((column) => (
+              {unpinned.map((column) => (
                 <SortableColumnRow
                   key={column.id}
                   column={column}
@@ -173,21 +188,27 @@ export function DataTableColumnPanel<TData>({
                 />
               ))}
             </SortableContext>
-            {/* Follows the cursor so it's obvious what is being moved. */}
-            <DragOverlay>
-              {draggedColumn && (
-                <div className="flex items-center gap-1.5 rounded-sm border bg-popover px-2 py-1.5 shadow-lg">
-                  <HugeiconsIcon
-                    icon={UnfoldMoreIcon}
-                    size={13}
-                    className="text-muted-foreground"
-                  />
-                  <span className="text-sm">{columnLabel(draggedColumn)}</span>
-                </div>
-              )}
-            </DragOverlay>
-          </DndContext>
-        </div>
+          </div>
+          {/* Portalled to the body: the popover is positioned with a CSS
+              transform, which offsets the overlay's fixed positioning and would
+              leave the dragged row somewhere off-screen. */}
+          {typeof document !== "undefined" &&
+            createPortal(
+              <DragOverlay>
+                {draggedColumn && (
+                  <div className="flex items-center gap-1.5 rounded-sm border bg-popover px-2 py-1.5 text-sm shadow-lg">
+                    <HugeiconsIcon
+                      icon={UnfoldMoreIcon}
+                      size={13}
+                      className="text-muted-foreground"
+                    />
+                    <span>{columnLabel(draggedColumn)}</span>
+                  </div>
+                )}
+              </DragOverlay>,
+              document.body
+            )}
+        </DndContext>
         {onReset && (
           <>
             <Separator />
@@ -213,30 +234,8 @@ interface ColumnRowProps<TData> {
   label: string;
   isLastVisible: boolean;
   pinLabel: string;
-  dragLabel?: string;
+  dragLabel: string;
   onTogglePin: () => void;
-}
-
-/** A pinned column: visible and unpinnable, but not reorderable. */
-function ColumnRow<TData>({
-  column,
-  label,
-  isLastVisible,
-  pinLabel,
-  onTogglePin,
-}: ColumnRowProps<TData>) {
-  return (
-    <div className="flex items-center gap-1.5 rounded-sm px-2 py-1.5 hover:bg-accent/60">
-      <span className="w-[13px] shrink-0" aria-hidden />
-      <ColumnRowControls
-        column={column}
-        label={label}
-        isLastVisible={isLastVisible}
-        pinLabel={pinLabel}
-        onTogglePin={onTogglePin}
-      />
-    </div>
-  );
 }
 
 function SortableColumnRow<TData>({
@@ -249,6 +248,7 @@ function SortableColumnRow<TData>({
 }: ColumnRowProps<TData>) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: column.id });
+  const isPinned = !!column.getIsPinned();
 
   return (
     <div
@@ -258,43 +258,23 @@ function SortableColumnRow<TData>({
         transition: isDragging ? "none" : (transition ?? undefined),
       }}
       className={cn(
-        "flex items-center gap-1.5 rounded-sm px-2 py-1.5 hover:bg-accent",
-        // Leave a gap where the row will land; the overlay shows the row itself.
-        isDragging && "opacity-0"
+        "flex items-center gap-1.5 rounded-sm px-2 py-1.5",
+        // Dashed outline marks the slot the row will drop into, while the overlay
+        // shows the row itself following the cursor.
+        isDragging
+          ? "bg-muted/50 outline-1 outline-dashed outline-primary"
+          : "hover:bg-accent/60"
       )}
     >
       <button
         type="button"
         className="shrink-0 cursor-grab touch-none text-muted-foreground/60 active:cursor-grabbing"
-        aria-label={dragLabel ? `${label}: ${dragLabel}` : label}
+        aria-label={`${label}: ${dragLabel}`}
         {...attributes}
         {...listeners}
       >
         <HugeiconsIcon icon={UnfoldMoreIcon} size={13} />
       </button>
-      <ColumnRowControls
-        column={column}
-        label={label}
-        isLastVisible={isLastVisible}
-        pinLabel={pinLabel}
-        onTogglePin={onTogglePin}
-      />
-    </div>
-  );
-}
-
-/** Checkbox, label and pin toggle — identical for pinned and sortable rows. */
-function ColumnRowControls<TData>({
-  column,
-  label,
-  isLastVisible,
-  pinLabel,
-  onTogglePin,
-}: ColumnRowProps<TData>) {
-  const isPinned = !!column.getIsPinned();
-
-  return (
-    <>
       <Checkbox
         id={`col-${column.id}`}
         checked={column.getIsVisible()}
@@ -324,6 +304,6 @@ function ColumnRowControls<TData>({
           className={cn(isPinned ? "text-primary" : "text-muted-foreground/60")}
         />
       </Button>
-    </>
+    </div>
   );
 }
