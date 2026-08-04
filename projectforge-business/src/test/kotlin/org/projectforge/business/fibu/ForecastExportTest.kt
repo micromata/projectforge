@@ -25,6 +25,11 @@ package org.projectforge.business.fibu
 
 import de.micromata.merlin.excel.ExcelWorkbook
 import org.apache.commons.io.FileUtils
+import org.apache.poi.ss.usermodel.CellType
+import org.apache.poi.ss.usermodel.Row
+import org.apache.poi.ss.usermodel.Sheet
+import org.apache.poi.ss.util.CellReference
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.time.PFDay
@@ -44,6 +49,146 @@ class ForecastExportTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var forecastExport: ForecastExport
+
+    @Autowired
+    private lateinit var projektDao: ProjektDao
+
+    @Autowired
+    private lateinit var auftragsCache: AuftragsCache
+
+    /**
+     * The filter selection of the first tab (Forecast_Data) is propagated to the invoice sheets (Rechnungen, Vorjahr,
+     * Vorvorjahr) by project id only: visibleID contains the project ids of the visible rows, and each invoice row's
+     * visible column does a COUNTIF against it. So every invoice row needs a project id, and visibleID must never
+     * contain a numeric 0 (a blank project id falling through the IF), otherwise all invoices without project would
+     * count in every filter selection.
+     */
+    @Test
+    fun filterPropagationTest() {
+        logon(TEST_FINANCE_USER)
+        val today = PFDay.now()
+        val baseDate = today.plusMonths(-4)
+
+        val projekt = ProjektDO()
+        projekt.nummer = 1
+        projekt.name = "ForecastExportTest - project"
+        val projektId = projektDao.insert(projekt, checkAccess = false)
+
+        // Order with project, invoiced. The invoice itself has no project: it must inherit the order's project.
+        val orderWithProject = createOrder(baseDate, AuftragsStatus.BEAUFTRAGT, baseDate, baseDate.plusMonths(4))
+        // Attached is important, otherwise deadlock.
+        orderWithProject.projekt = projektDao.find(projektId, checkAccess = false, attached = true)
+        val pos = addPosition(
+            orderWithProject, 1, AuftragsStatus.BEAUFTRAGT, 5000.0, AuftragsPositionsPaymentType.TIME_AND_MATERIALS
+        )
+        val orderId = auftragDao.insert(orderWithProject)
+
+        // Order without any project, invoiced: neither the invoice nor the order references a project.
+        val orderWithoutProject = createOrder(baseDate, AuftragsStatus.BEAUFTRAGT, baseDate, baseDate.plusMonths(4))
+        addPosition(
+            orderWithoutProject, 1, AuftragsStatus.BEAUFTRAGT, 3000.0, AuftragsPositionsPaymentType.TIME_AND_MATERIALS
+        )
+        val orderWithoutProjectId = auftragDao.insert(orderWithoutProject)
+        // The invoice positions are only linked to their order positions via AuftragsCache:
+        auftragsCache.setExpired()
+        auftragsCache.forceReload()
+        Assertions.assertNotNull(pos)
+
+        // Both invoices have no own project: the first one must inherit the project of its order, the second one has
+        // no project at all.
+        val invoice = createInvoice(baseDate.plusMonths(1))
+        addPosition(invoice, 1000.0, auftragDao.find(orderId)!!.getPosition(1))
+        rechnungDao.insert(invoice)
+        val invoice2 = createInvoice(baseDate.plusMonths(1))
+        addPosition(invoice2, 500.0, auftragDao.find(orderWithoutProjectId)!!.getPosition(1))
+        rechnungDao.insert(invoice2)
+
+        val filter = AuftragFilter()
+        filter.periodOfPerformanceStartDate = baseDate.localDate
+        val ba = forecastExport.xlsExport(filter, distributeUnusedBudget = true)
+        Assertions.assertNotNull(ba, "Export expected.")
+
+        // Plain POI, no merlin: merlin's head row analysis runs into an endless recursion on formula cells.
+        XSSFWorkbook(ByteArrayInputStream(ba)).use { workbook ->
+            val forecastSheet = workbook.getSheet(ForecastExportContext.Sheet.FORECAST.title)!!
+            val forecastHeadRow = findHeadRow(forecastSheet, ForecastExportContext.ForecastCol.PROJECT_ID.header)
+            val projectIdCol = findColumn(forecastHeadRow, ForecastExportContext.ForecastCol.PROJECT_ID.header)
+            val projectIdColLetters = CellReference.convertNumToColString(projectIdCol)
+            val visibleIdCol = findColumn(forecastHeadRow, ForecastExportContext.ForecastCol.VISIBLE_PROJECT_ID.header)
+            var visibleIdCells = 0
+            val forecastProjectIds = mutableSetOf<Long>()
+            val invoiceProjectIds = mutableSetOf<Long>()
+            for (rowNum in forecastHeadRow.rowNum + 1..forecastSheet.lastRowNum) {
+                val row = forecastSheet.getRow(rowNum) ?: continue
+                row.getCell(projectIdCol)?.let {
+                    if (it.cellType == CellType.NUMERIC) {
+                        forecastProjectIds.add(it.numericCellValue.toLong())
+                    }
+                }
+                val cell = row.getCell(visibleIdCol) ?: continue
+                if (cell.cellType != CellType.FORMULA) {
+                    continue
+                }
+                ++visibleIdCells
+                // Blank project ids must not fall through the IF as numeric 0, otherwise COUNTIF of the invoice sheets
+                // would match every invoice without project against every order row without project:
+                val formula = cell.cellFormula
+                Assertions.assertTrue(
+                    formula.contains("AND(") && formula.contains("$projectIdColLetters${rowNum + 1}<>\"\""),
+                    "visibleID formula of row ${rowNum + 1} must guard against blank project ids: $formula"
+                )
+            }
+            Assertions.assertTrue(visibleIdCells > 0, "visibleID cells expected.")
+
+            // Every invoice row must carry a project id, otherwise the filter can't be propagated to it:
+            var invoiceRows = 0
+            ForecastExportContext.Sheet.entries.filter { it.title.startsWith("Rechnungen") }.forEach { sheetEnum ->
+                val sheet = workbook.getSheet(sheetEnum.title)!!
+                val headRow = findHeadRow(sheet, ForecastExportContext.InvoicesCol.PROJECT_ID.header)
+                val invoiceProjectIdCol = findColumn(headRow, ForecastExportContext.InvoicesCol.PROJECT_ID.header)
+                for (rowNum in headRow.rowNum + 1..sheet.lastRowNum) {
+                    val row = sheet.getRow(rowNum) ?: continue
+                    val cell = row.getCell(invoiceProjectIdCol)
+                    Assertions.assertNotNull(cell, "${sheetEnum.title} row ${rowNum + 1}: ProjectID cell expected.")
+                    Assertions.assertEquals(
+                        CellType.NUMERIC, cell!!.cellType,
+                        "${sheetEnum.title} row ${rowNum + 1}: ProjectID must be set (order project or PROJECT_ID_NONE)."
+                    )
+                    Assertions.assertNotEquals(
+                        0.0, cell.numericCellValue,
+                        "${sheetEnum.title} row ${rowNum + 1}: ProjectID must not be 0."
+                    )
+                    ++invoiceRows
+                    invoiceProjectIds.add(cell.numericCellValue.toLong())
+                }
+            }
+            Assertions.assertTrue(invoiceRows >= 2, "At least both invoices of this test expected: $invoiceRows")
+            // The invoice without own project inherits the project of its order, the one without any project gets the
+            // pseudo id, which is only visible as long as no filter is set:
+            Assertions.assertTrue(
+                invoiceProjectIds.containsAll(listOf(projektId, ForecastExportContext.PROJECT_ID_NONE)),
+                "Order project (inherited) and PROJECT_ID_NONE expected: $invoiceProjectIds"
+            )
+            Assertions.assertTrue(
+                forecastProjectIds.contains(ForecastExportContext.PROJECT_ID_NONE),
+                "Pseudo order row for invoices without project expected in the forecast sheet."
+            )
+        }
+    }
+
+    private fun findHeadRow(sheet: Sheet, header: String): Row {
+        for (rowNum in 0..sheet.lastRowNum) {
+            val row = sheet.getRow(rowNum) ?: continue
+            if (row.any { it.cellType == CellType.STRING && it.stringCellValue == header }) {
+                return row
+            }
+        }
+        throw AssertionError("Head row with column '$header' not found in sheet '${sheet.sheetName}'.")
+    }
+
+    private fun findColumn(headRow: Row, header: String): Int {
+        return headRow.first { it.cellType == CellType.STRING && it.stringCellValue == header }.columnIndex
+    }
 
     @Test
     fun exportTest() {

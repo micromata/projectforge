@@ -143,16 +143,24 @@ internal class ForecastExportInvoices { // open needed by Wicket.
         val rowNumber = sheet.createRow().rowNum
         val excelRowNumber = rowNumber + 1  // Excel row numbers start with 1.
         sheet.setIntValue(rowNumber, ForecastExportContext.InvoicesCol.INVOICE_NR.header, invoice.nummer)
+        // Fall back to the project of the order: the filter selection of the forecast sheet is propagated by project
+        // id only, so every invoice row needs one. Invoices without any project get PROJECT_ID_NONE (see the
+        // 'without project' pseudo order row in the forecast sheet).
+        val projectId = invoice.projekt?.id ?: order?.projektId
+        if (projectId == null) {
+            ctx.hasInvoicesWithoutProject = true
+        }
         ExcelUtils.setLongValue(
             sheet,
             rowNumber,
             ForecastExportContext.InvoicesCol.PROJECT_ID.header,
-            invoice.projekt?.id
+            projectId ?: ForecastExportContext.PROJECT_ID_NONE
         )
         sheet.setStringValue(rowNumber, ForecastExportContext.InvoicesCol.POS_NR.header, "#${pos.number}")
         val visibleProjectIdCol =
             ctx.forecastSheet.getColumnDef(ForecastCol.VISIBLE_PROJECT_ID.header)?.columnNumberAsLetters
-        val projectIdCol = ctx.invoicesSheet.getColumnDef(ForecastExportContext.InvoicesCol.PROJECT_ID.header)?.columnNumberAsLetters
+        val projectIdCol =
+            sheet.getColumnDef(ForecastExportContext.InvoicesCol.PROJECT_ID.header)?.columnNumberAsLetters
         ExcelUtils.setCellFormula(
             sheet,
             rowNumber,

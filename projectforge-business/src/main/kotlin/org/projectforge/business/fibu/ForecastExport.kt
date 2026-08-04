@@ -446,7 +446,7 @@ open class ForecastExport { // open needed by Wicket.
             }
             if (ForecastUtils.auftragsStatusToShow.contains(auftragDO.status)) {
                 orderInfo.infoPositions?.forEach { pos ->
-                    if (pos.status in ForecastUtils.auftragsPositionsStatusToShow) {
+                    if (pos.status in ForecastUtils.auftragsPositionsStatusToShow && isRelevant(ctx, orderInfo, pos)) {
                         addOrderPosition(
                             ctx,
                             sheet,
@@ -462,6 +462,29 @@ open class ForecastExport { // open needed by Wicket.
             }
         }
         if (sheet == ctx.forecastSheet) {
+            if (ctx.hasInvoicesWithoutProject) {
+                // Invoices without any assignable project can't be filtered by unit, customer or project. They are
+                // represented by this single pseudo order row: visible (and thus part of the sums) as long as no filter
+                // is set, hidden as soon as the user filters.
+                OrderInfo().let { orderInfo ->
+                    orderInfo.nummer = 0
+                    orderInfo.projektId = Context.PROJECT_ID_NONE
+                    orderInfo.status = AuftragsStatus.IN_ERSTELLUNG
+                    orderInfo.angebotsDatum = baseDate
+                    orderInfo.titel = translate("fibu.auftrag.forecast.withoutProject")
+                    orderInfo.projektAsString = orderInfo.titel
+                    OrderPositionInfo().let { posInfo ->
+                        posInfo.auftrag = orderInfo
+                        posInfo.status = AuftragsStatus.IN_ERSTELLUNG
+                        posInfo.titel = orderInfo.titel
+                        posInfo.number = 0
+                        addOrderPosition(
+                            ctx, sheet, currentRow++, orderInfo, posInfo, baseDate = baseDate,
+                            useAuftragsCache = useAuftragsCache
+                        )
+                    }
+                }
+            }
             val missedProjectIds = ctx.invoicedProjectIds - ctx.orderProjectIds
             missedProjectIds.forEach { projectId ->
                 // For all projects that have been invoiced but for which no
@@ -490,6 +513,31 @@ open class ForecastExport { // open needed by Wicket.
             }
         }
         return orderPositionFound
+    }
+
+    /**
+     * The order list is loaded 3 years back, because invoices of the two prior years must be able to find their orders
+     * (see [xlsExport]). Such old orders would only clutter the sheet and the filter drop downs, so only positions are
+     * written as rows which are relevant for this export:
+     * - their period of performance overlaps the exported 12 months, or
+     * - their project was invoiced in one of the three year windows: these rows carry unit/customer for propagating the
+     *   filter selection to the (prev/prev-prev year) invoice sheets and must not be dropped.
+     */
+    private fun isRelevant(ctx: Context, order: OrderInfo, pos: OrderPositionInfo): Boolean {
+        if (order.projektId?.let { ctx.invoicedProjectIds.contains(it) } == true) {
+            return true
+        }
+        // The forecast revenue of a position may appear one month after the end of the performance period
+        // (AuftragForecastType.FOLLOWING_MONTH), so start one month earlier:
+        val from = ctx.startDate.plusMonths(-1)
+        val end = ForecastUtils.getEndLeistungszeitraum(order, pos)
+        if (!end.isBefore(from) && !ForecastUtils.getStartLeistungszeitraum(order, pos).isAfter(ctx.endDate)) {
+            return true
+        }
+        // Payment schedules may be scheduled after the end of the performance period (see ForecastOrderPosInfo.createMonths):
+        return ForecastUtils.getPaymentSchedule(order, pos).any { schedule ->
+            schedule.scheduleDate?.let { it >= from.localDate && it <= ctx.endDate.localDate } == true
+        }
     }
 
     private fun fillPlanningForecast(planningDate: LocalDate?, ctx: Context) {
@@ -567,11 +615,13 @@ open class ForecastExport { // open needed by Wicket.
             ExcelUtils.setCellFormula(sheet, row, ForecastCol.VISIBLE.header, "SUBTOTAL(3, A$excelRow)")
             val visibleCol = ctx.forecastSheet.getColumnDef(ForecastCol.VISIBLE.header)?.columnNumberAsLetters
             val projectIdCol = ctx.forecastSheet.getColumnDef(ForecastCol.PROJECT_ID.header)?.columnNumberAsLetters
+            // Blank project ids must not fall through as numeric 0: COUNTIF of the invoice sheets would then match
+            // every invoice without project against every order row without project, no matter which filter is set.
             ExcelUtils.setCellFormula(
                 sheet,
                 row,
                 ForecastCol.VISIBLE_PROJECT_ID.header,
-                "IF($visibleCol$excelRow=1, $projectIdCol$excelRow, \"\")"
+                "IF(AND($visibleCol$excelRow=1, $projectIdCol$excelRow<>\"\"), $projectIdCol$excelRow, \"\")"
             )
         }
         order.angebotsDatum?.let {

@@ -165,4 +165,20 @@ internal class ForecastExportContext(
     val orderMapByPositionId = mutableMapOf<Long, OrderInfo>()
 
     var hasUnitColEntries = false
+
+    /**
+     * True, if at least one invoice was exported for which neither the invoice itself nor its order references a
+     * project. Such invoices get [PROJECT_ID_NONE] as project id and are represented by a single pseudo order row
+     * in the forecast sheet, so they are part of the unfiltered sums, but drop out as soon as the user filters by
+     * unit, customer or project.
+     */
+    var hasInvoicesWithoutProject = false
+
+    companion object {
+        /**
+         * Pseudo project id for invoices without any assignable project. Needed because the filter selection of the
+         * forecast sheet is propagated to the invoice sheets by project id only (see visible/visibleID columns).
+         */
+        const val PROJECT_ID_NONE = -1L
+    }
 }
