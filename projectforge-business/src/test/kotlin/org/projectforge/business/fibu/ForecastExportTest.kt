@@ -32,6 +32,8 @@ import org.apache.poi.ss.util.CellReference
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDay
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.test.WorkFileHelper
@@ -39,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.io.ByteArrayInputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.util.Locale
 
 class ForecastExportTest : AbstractTestBase() {
     @Autowired
@@ -55,6 +58,96 @@ class ForecastExportTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var auftragsCache: AuftragsCache
+
+    @Autowired
+    private lateinit var forecastOrderAnalysis: ForecastOrderAnalysis
+
+    /**
+     * The order analysis shows both cases of projectforge.fibu.forecast.distributeUnusedBudget, but only if they
+     * differ (T&M orders with a run rate below the even distribution).
+     */
+    @Test
+    fun orderAnalysisDistributeUnusedBudgetTest() {
+        logon(TEST_FINANCE_USER)
+        val baseDate = PFDay.now().plusMonths(-4)
+
+        // T&M, 5000 for 5 months (1000 per month), but only 500 invoiced so far: the run rate (distributeUnusedBudget
+        // = false) is far below the even distribution (= true), so both variants must be shown.
+        val tmOrder = createOrder(baseDate, AuftragsStatus.BEAUFTRAGT, baseDate, baseDate.plusMonths(4))
+        addPosition(tmOrder, 1, AuftragsStatus.BEAUFTRAGT, 5000.0, AuftragsPositionsPaymentType.TIME_AND_MATERIALS)
+        val tmOrderId = auftragDao.insert(tmOrder)
+        auftragsCache.setExpired()
+        auftragsCache.forceReload()
+        val invoice = createInvoice(baseDate.plusMonths(1))
+        addPosition(invoice, 500.0, auftragDao.find(tmOrderId)!!.getPosition(1))
+        rechnungDao.insert(invoice)
+
+        val withDistribution = translate("fibu.auftrag.forecast.analysis.variants.true.label")
+        val withoutDistribution = translate("fibu.auftrag.forecast.analysis.variants.false.label")
+        val tmHtml = forecastOrderAnalysis.htmlExport(orderId = tmOrderId, checkAccess = false)
+        Assertions.assertTrue(
+            tmHtml.contains(withDistribution) && tmHtml.contains(withoutDistribution),
+            "Both variants expected for a T&M order with a run rate below the even distribution."
+        )
+        assertTranslated(tmHtml)
+
+        // The whole page must be translated, so check the German version as well:
+        val user = ThreadLocalUserContext.loggedInUser!!
+        val locale = user.locale
+        user.locale = Locale.GERMAN
+        try {
+            val germanHtml = forecastOrderAnalysis.htmlExport(orderId = tmOrderId, checkAccess = false)
+            assertTranslated(germanHtml)
+            Assertions.assertTrue(
+                germanHtml.contains("Forecast-Analyse des Auftrags"),
+                "German title expected: ${germanHtml.take(500)}"
+            )
+        } finally {
+            user.locale = locale
+        }
+
+        // Fixed price without any invoice: the whole net sum is scheduled at the end of the performance period in both
+        // cases, so only one variant may be shown.
+        val fixedOrder = createOrder(baseDate, AuftragsStatus.BEAUFTRAGT, baseDate, baseDate.plusMonths(4))
+        addPosition(fixedOrder, 1, AuftragsStatus.BEAUFTRAGT, 5000.0, AuftragsPositionsPaymentType.FESTPREISPAKET)
+        val fixedOrderId = auftragDao.insert(fixedOrder)
+
+        val fixedHtml = forecastOrderAnalysis.htmlExport(orderId = fixedOrderId, checkAccess = false)
+        Assertions.assertFalse(
+            fixedHtml.contains(withDistribution) || fixedHtml.contains(withoutDistribution),
+            "Only one variant expected for a fixed price order without invoices (both variants are equal)."
+        )
+        assertTranslated(fixedHtml)
+    }
+
+    /**
+     * The zip archive and all Excel files of a forecast script run must carry the variant they were calculated with,
+     * so the results of both runs can be compared without mixing them up.
+     */
+    @Test
+    fun filenameVariantTest() {
+        val startDate = PFDay.withDate(2025, java.time.Month.JANUARY, 1)
+        Assertions.assertTrue(
+            forecastExport.getFilename(startDate, extension = ".zip", distributeUnusedBudget = true)
+                .endsWith("_optimistisch.zip")
+        )
+        Assertions.assertTrue(
+            forecastExport.getFilename(startDate, extension = ".xlsx", part = "ACME", distributeUnusedBudget = false)
+                .endsWith("_konservativ.xlsx")
+        )
+        // Without an explicit value the configured default is used:
+        val default = if (ForecastOrderPosInfo.defaultDistributeUnusedBudget) "_optimistisch" else "_konservativ"
+        Assertions.assertTrue(forecastExport.getFilename(startDate).endsWith(default))
+        Assertions.assertEquals("_optimistisch", forecastExport.variantSuffix(true))
+        Assertions.assertEquals("_konservativ", forecastExport.variantSuffix(false))
+    }
+
+    /**
+     * I18nHelper renders missing i18n keys as '???key???', so the page must not contain any '???'.
+     */
+    private fun assertTranslated(html: String) {
+        Assertions.assertFalse(html.contains("???"), "All i18n keys of the analysis page must be defined: $html")
+    }
 
     /**
      * The filter selection of the first tab (Forecast_Data) is propagated to the invoice sheets (Rechnungen, Vorjahr,
@@ -237,6 +330,24 @@ class ForecastExportTest : AbstractTestBase() {
             Assertions.assertTrue(forecastSheet.getCell(firstRow + 1, monthCols[3])!!.stringCellValue.isNullOrBlank())
             assertAmount(BigDecimal(1000), forecastSheet.getCell(firstRow + 1, monthCols[4])!!.numericCellValue)
             assertAmount(BigDecimal(1000), forecastSheet.getCell(firstRow + 1, monthCols[5])!!.numericCellValue)
+
+            // The info sheet must document the variant this forecast was calculated with:
+            val infoSheet = workbook.getSheet(ForecastExportContext.Sheet.INFO.title)!!
+            Assertions.assertEquals(
+                forecastExport.variantInfo(true),
+                infoSheet.getCell(3, 1)?.stringCellValue,
+                "Info sheet must contain the optimistic variant info."
+            )
+            Assertions.assertTrue(
+                forecastExport.variantInfo(true).startsWith(
+                    translate("fibu.auftrag.forecast.analysis.variants.true.label")
+                )
+            )
+            Assertions.assertTrue(
+                forecastExport.variantInfo(false).startsWith(
+                    translate("fibu.auftrag.forecast.analysis.variants.false.label")
+                )
+            )
         }
     }
 

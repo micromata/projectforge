@@ -402,8 +402,8 @@ class ForecastOrderPosInfo(
          * If true, unused budget will be added to the last distributed month.
          * If false, this budget will be added to the difference sum.
          *
-         * The forecast Excel export (Forecast.kts) may override this per run via a script parameter; single-order
-         * analyses ([ForecastOrderAnalysis]) use this configured default.
+         * The forecast Excel export (Forecast.kts) may override this per run via a script parameter; the single-order
+         * analysis ([ForecastOrderAnalysis]) calculates both variants and shows them side by side if they differ.
          */
         var defaultDistributeUnusedBudget = true
     }

@@ -190,8 +190,13 @@ open class ForecastExport { // open needed by Wicket.
         return if (startDateParam != null) PFDay.from(startDateParam).beginOfMonth else PFDay.now().beginOfYear
     }
 
-    open fun getExcelFilenmame(origFilter: AuftragFilter): String {
-        return getFilename(getStartDate(origFilter), extension = ".xlsx")
+    @JvmOverloads
+    open fun getExcelFilenmame(origFilter: AuftragFilter, distributeUnusedBudget: Boolean? = null): String {
+        return getFilename(
+            getStartDate(origFilter),
+            extension = ".xlsx",
+            distributeUnusedBudget = distributeUnusedBudget,
+        )
     }
 
     private fun getClosestSnapshotDate(date: LocalDate?, scriptLogger: ScriptLogger?, name: String): LocalDate? {
@@ -205,18 +210,23 @@ open class ForecastExport { // open needed by Wicket.
     }
 
     /**
-     * Get the export filename. Example: 'Forecast-start-2021-01_2025-01-02_22-48.xlsx'
-     * or 'Forecast-ACME-snapshot-2023-08-01-start-2023-01-2025-01-02_22-48.zip'.
+     * Get the export filename. Example: 'Forecast-start-2021-01_optimistisch_2025-01-02_22-48.xlsx'
+     * or 'Forecast-ACME-snapshot-2023-08-01-start-2023-01_konservativ-2025-01-02_22-48.zip'.
      * @param startDate The start date for the forecast.
      * @param extension The optional file extension ('.xlsx' or '.zip').
      * @param part The optional part of the export file (e.g. 'ACME', 'Customer', ...).
+     * @param distributeUnusedBudget The variant the forecast was calculated with, shown as '_optimistisch' resp.
+     * '_konservativ' in the filename. If null, the configured default is used
+     * ([ForecastOrderPosInfo.defaultDistributeUnusedBudget]).
      */
+    @JvmOverloads
     open fun getFilename(
         startDate: PFDay,
         extension: String? = null,
         part: String? = null,
         planningDate: LocalDate? = null,
-        snapshot: LocalDate? = null
+        snapshot: LocalDate? = null,
+        distributeUnusedBudget: Boolean? = null,
     ): String {
         val startDateString = "-start_${startDate.year}-${startDate.monthValue.format2Digits()}"
         val partString = if (part.isNullOrBlank()) "" else "-${FilenameUtils.escapeFilename(part)}"
@@ -224,8 +234,32 @@ open class ForecastExport { // open needed by Wicket.
         val planningDateString = if (planningDate != null) "-plan_${usePlanningDate}" else ""
         val useSnapshot = orderbookSnapshotsService.findClosestSnapshotDate(snapshot)
         val snapshotString = if (useSnapshot != null) "-snapshot_${useSnapshot}" else ""
+        val variantString = variantSuffix(distributeUnusedBudget)
         val created = DateHelper.getDateAsFilenameSuffix()
-        return "${created}_Forecast$partString$planningDateString$snapshotString${startDateString}${extension ?: ""}"
+        return "${created}_Forecast$partString$planningDateString$snapshotString$startDateString$variantString${extension ?: ""}"
+    }
+
+    /**
+     * @return '_optimistisch', if the unused budget is distributed, otherwise '_konservativ' (see
+     * [ForecastOrderPosInfo.distributeUnusedBudget]). Both variants of the same forecast run may be compared, so the
+     * variant must be part of every filename of the zip archive as well as of the archive itself.
+     */
+    open fun variantSuffix(distributeUnusedBudget: Boolean? = null): String {
+        return if (distributeUnusedBudget ?: ForecastOrderPosInfo.defaultDistributeUnusedBudget) {
+            "_optimistisch"
+        } else {
+            "_konservativ"
+        }
+    }
+
+    /**
+     * @return The human readable information (label and explanation) how the unused budget of time&amp;material
+     * positions is handled, shown on the 'Info' sheet of the Excel export (multiline, the cell is wrapped).
+     * The same wording is used by the single order analysis ([ForecastOrderAnalysis]).
+     */
+    open fun variantInfo(distributeUnusedBudget: Boolean): String {
+        val i18nPrefix = "fibu.auftrag.forecast.analysis.variants.$distributeUnusedBudget"
+        return "${translate("$i18nPrefix.label")}\n${translate(i18nPrefix)}"
     }
 
     /**
@@ -330,6 +364,9 @@ open class ForecastExport { // open needed by Wicket.
             infoSheet.setDateValue(0, 1, Date(), ctx.excelDateFormat)
             planningDate?.let { infoSheet.setDateValue(1, 1, it, ctx.excelDateFormat) }
             snapshotDate?.let { infoSheet.setDateValue(2, 1, it, ctx.excelDateFormat) }
+            // Row 4 (0-based 3) of the info sheet: how the unused budget of time&material positions is handled in
+            // this run (see projectforge.fibu.forecast.distributeUnusedBudget):
+            infoSheet.setStringValue(3, 1, variantInfo(ctx.distributeUnusedBudget))
             log.debug { "info sheet: $infoSheet" }
 
             analyzeOrderPositions(orderList, ctx, planningData = false)
