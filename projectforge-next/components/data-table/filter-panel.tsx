@@ -49,7 +49,11 @@ export function FilterPanel({
           title={t("show")}
           className="gap-1"
         >
-          <HugeiconsIcon icon={ArrowRight01Icon} size={14} className="rotate-180" />
+          <HugeiconsIcon
+            icon={ArrowRight01Icon}
+            size={14}
+            className="rotate-180"
+          />
           {activeCount > 0 && (
             <span className="rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
               {activeCount}

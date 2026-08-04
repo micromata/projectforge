@@ -27,14 +27,42 @@ export function FilterPanelField({
 
   switch (element.filterType) {
     case "LIST":
-      return <ListField element={element} value={value} onChange={onChange} label={label} />;
+      return (
+        <ListField
+          element={element}
+          value={value}
+          onChange={onChange}
+          label={label}
+        />
+      );
     case "BOOLEAN":
-      return <BooleanField value={value} onChange={onChange} label={label} id={element.id} />;
+      return (
+        <BooleanField
+          value={value}
+          onChange={onChange}
+          label={label}
+          id={element.id}
+        />
+      );
     case "DATE":
     case "TIMESTAMP":
-      return <RangeField value={value} onChange={onChange} label={label} id={element.id} />;
+      return (
+        <RangeField
+          value={value}
+          onChange={onChange}
+          label={label}
+          id={element.id}
+        />
+      );
     default:
-      return <TextField value={value} onChange={onChange} label={label} id={element.id} />;
+      return (
+        <TextField
+          value={value}
+          onChange={onChange}
+          label={label}
+          id={element.id}
+        />
+      );
   }
 }
 

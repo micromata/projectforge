@@ -51,7 +51,9 @@ function pinnedStyle<TData>(
 
 /** Marks the boundary between pinned and scrolling columns. */
 /** Marks the boundary between pinned and scrolling columns. */
-function pinnedClass<TData>(column: Column<TData, unknown>): string | undefined {
+function pinnedClass<TData>(
+  column: Column<TData, unknown>
+): string | undefined {
   const pinned = column.getIsPinned();
   if (!pinned) return undefined;
   return cn(

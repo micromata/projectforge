@@ -90,7 +90,13 @@ export function useMagicFilterQuery<O>({
       searchString: globalFilter || undefined,
     };
     return buildFilter ? buildFilter(base) : base;
-  }, [sorting, pagination.pageSize, globalFilter, serializedEntries, buildFilter]);
+  }, [
+    sorting,
+    pagination.pageSize,
+    globalFilter,
+    serializedEntries,
+    buildFilter,
+  ]);
 
   const query = useQuery<ResultSet<O>>({
     queryKey: [...queryKey, filter],

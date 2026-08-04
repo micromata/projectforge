@@ -15,14 +15,17 @@ const SEARCH_FILTER_CONTAINER = "searchFilter";
  * (LayoutListFilterUtils.createNamedSearchFilterContainer), so it can't be
  * hard-coded in the frontend.
  */
-export function filterElementsOf(ui: DynamicUIResponse | undefined): FilterElement[] {
+export function filterElementsOf(
+  ui: DynamicUIResponse | undefined
+): FilterElement[] {
   const container = ui?.namedContainers?.find(
     (c) => c.id === SEARCH_FILTER_CONTAINER
   );
   return (container?.content ?? []).filter(isFilterElement);
 }
 
-function isFilterElement(node: DynamicLayoutNode): node is DynamicLayoutNode &
-  FilterElement {
+function isFilterElement(
+  node: DynamicLayoutNode
+): node is DynamicLayoutNode & FilterElement {
   return node.type === "FILTER_ELEMENT" && typeof node.id === "string";
 }
