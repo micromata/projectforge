@@ -215,7 +215,11 @@ export function DataTable<TData>({
 
   if (tableRef) tableRef(table);
 
-  const cols = table.getVisibleLeafColumns().length + (rowActions ? 1 : 0);
+  const visibleColumns = table.getVisibleLeafColumns();
+  const cols = visibleColumns.length + (rowActions ? 1 : 0);
+  const lastColumnIndex = visibleColumns.length - 1;
+  const totalWidth =
+    table.getTotalSize() + (rowActions ? ROW_ACTIONS_WIDTH : 0);
   const showSkeleton = isLoading && data.length === 0;
 
   return (
@@ -224,12 +228,26 @@ export function DataTable<TData>({
         {isFetching && !showSkeleton && (
           <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-0.5 animate-pulse bg-primary/40" />
         )}
-        {/* table-fixed: without it the browser sizes columns by content and the
-            header widths below are ignored, so header and body drift apart. */}
-        <Table className="table-fixed text-xs [&_td]:px-2 [&_td]:py-1 [&_th]:h-7 [&_th]:px-2">
+        {/* table-fixed makes the colgroup widths authoritative — without it the
+            browser sizes columns by content and header and body drift apart.
+            The explicit width keeps those widths exact instead of being stretched
+            proportionally to fill the container, which resizing depends on; the
+            last column absorbs any remaining space. */}
+        <Table
+          className="table-fixed text-xs [&_td]:px-2 [&_td]:py-1 [&_th]:h-7 [&_th]:px-2"
+          style={{ width: Math.max(totalWidth, 100), minWidth: "100%" }}
+        >
           <colgroup>
-            {table.getVisibleLeafColumns().map((column) => (
-              <col key={column.id} style={{ width: column.getSize() }} />
+            {table.getVisibleLeafColumns().map((column, index) => (
+              <col
+                key={column.id}
+                style={
+                  // Let the last column take the slack so there is no dead area.
+                  index === lastColumnIndex && !rowActions
+                    ? undefined
+                    : { width: column.getSize() }
+                }
+              />
             ))}
             {rowActions && <col style={{ width: ROW_ACTIONS_WIDTH }} />}
           </colgroup>
@@ -261,9 +279,9 @@ export function DataTable<TData>({
                         onTouchStart={header.getResizeHandler()}
                         onClick={(e) => e.stopPropagation()}
                         className={cn(
-                          "absolute inset-y-0 right-0 w-1 cursor-col-resize touch-none select-none opacity-0 transition-opacity hover:opacity-100",
-                          "bg-primary/40",
-                          header.column.getIsResizing() && "opacity-100"
+                          "absolute inset-y-0 right-0 w-1 cursor-col-resize touch-none select-none",
+                          "bg-border transition-colors hover:bg-primary",
+                          header.column.getIsResizing() && "bg-primary"
                         )}
                       />
                     )}
@@ -327,18 +345,21 @@ function DataTableRow<TData>({
 }: DataTableRowProps<TData>) {
   return (
     <TableRow
-      className={cn("group relative", onRowClick && "cursor-pointer")}
+      className={cn("group", onRowClick && "cursor-pointer")}
       onClick={onRowClick ? () => onRowClick(row.original) : undefined}
     >
-      <td
-        aria-hidden
-        className="pointer-events-none absolute inset-y-0 left-0 w-[3px] bg-primary opacity-0 transition-opacity group-hover:opacity-100"
-      />
-      {row.getVisibleCells().map((cell) => (
+      {row.getVisibleCells().map((cell, index) => (
         <TableCell
           key={cell.id}
           style={pinnedStyle(cell.column)}
-          className={cn("truncate", pinnedClass(cell.column))}
+          className={cn(
+            "truncate",
+            // Hover marker as a pseudo element on the first cell: a dedicated <td>
+            // would occupy a column slot and shift every cell out of its column.
+            index === 0 &&
+              "relative before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:w-[3px] before:bg-primary before:opacity-0 before:transition-opacity group-hover:before:opacity-100",
+            pinnedClass(cell.column)
+          )}
         >
           {flexRender(cell.column.columnDef.cell, cell.getContext())}
         </TableCell>

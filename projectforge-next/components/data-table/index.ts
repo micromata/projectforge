@@ -1,3 +1,6 @@
+// Registers the ColumnMeta augmentation (meta.label, meta.align).
+import "./types";
+
 export { DataTable } from "./data-table";
 export type { DataTableProps } from "./data-table";
 export { DataTableColumnHeader } from "./data-table-column-header";

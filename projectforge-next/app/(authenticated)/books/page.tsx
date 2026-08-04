@@ -66,6 +66,8 @@ export default function BooksPage() {
           onColumnPinningChange={columnState.setColumnPinning}
           columnSizing={columnState.columnSizing}
           onColumnSizingChange={columnState.setColumnSizing}
+          columnOrder={columnState.columnOrder}
+          onColumnOrderChange={columnState.setColumnOrder}
           enableColumnFilters
           enableColumnResizing
           manualSorting

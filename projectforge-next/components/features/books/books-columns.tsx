@@ -18,6 +18,7 @@ export function useBooksColumns(): ColumnDef<BookListRow>[] {
   return [
   {
     accessorKey: "created",
+    meta: { label: t("created") },
     size: 84,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} filterKind="date">
@@ -30,6 +31,7 @@ export function useBooksColumns(): ColumnDef<BookListRow>[] {
   },
   {
     accessorKey: "yearOfPublishing",
+    meta: { label: tBook("yearOfPublishing.short") },
     size: 56,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} filterKind="number">
@@ -42,6 +44,7 @@ export function useBooksColumns(): ColumnDef<BookListRow>[] {
   },
   {
     accessorKey: "signature",
+    meta: { label: tBook("signature") },
     size: 76,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} filterKind="text">
@@ -56,6 +59,7 @@ export function useBooksColumns(): ColumnDef<BookListRow>[] {
   },
   {
     accessorKey: "authors",
+    meta: { label: tBook("authors") },
     size: 140,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} filterKind="text">
@@ -68,6 +72,7 @@ export function useBooksColumns(): ColumnDef<BookListRow>[] {
   },
   {
     accessorKey: "title",
+    meta: { label: tBook("title._") },
     // Explicit size: the fixed table layout ignores minSize, so without it the
     // column would fall back to TanStack's 150px default.
     size: 280,
@@ -88,6 +93,7 @@ export function useBooksColumns(): ColumnDef<BookListRow>[] {
   },
   {
     accessorKey: "keywords",
+    meta: { label: tBook("keywords") },
     size: 132,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} filterKind="text">
@@ -100,6 +106,7 @@ export function useBooksColumns(): ColumnDef<BookListRow>[] {
   },
   {
     id: "lendOutBy",
+    meta: { label: tBook("lendOutBy") },
     accessorFn: (row) => row.lendOutBy?.displayName ?? "",
     size: 140,
     header: ({ column }) => (
