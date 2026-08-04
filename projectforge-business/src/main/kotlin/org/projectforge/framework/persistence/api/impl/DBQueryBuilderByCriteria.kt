@@ -75,13 +75,14 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Long>>(
     }
 
     /**
-     * Adds an order by clause, sorting entries without a value last in both directions.
+     * Adds an order by clause that treats entries without a value as the smallest value, so they
+     * lead an ascending sort and trail a descending one — reversing the sort brings them into view.
      *
      * Text columns hold two representations of "no value": historically `null`, in some records an
-     * empty string. Left alone, an ascending sort puts the empty strings first (they are the
-     * smallest value) while a descending sort puts the nulls first (PostgreSQL's default), so
-     * blank entries lead the list either way and which ones do depends on the record. Mapping
-     * empty strings to null and asking for nulls last makes the order predictable and symmetric.
+     * empty string. Left alone the two behave differently — ascending leads with the empty strings
+     * (the smallest value), descending leads with the nulls (PostgreSQL's default) — so which blank
+     * entries surface depends on the record. Mapping empty strings to null makes them
+     * interchangeable, and the null precedence follows the sort direction.
      */
     fun addOrder(sortProperty: SortProperty) {
         try {
@@ -95,10 +96,12 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Long>>(
                 field as JpaExpression<*>
             }
             val direction = if (sortProperty.ascending) SortDirection.ASCENDING else SortDirection.DESCENDING
+            // Nulls count as the smallest value, so they flip with the direction.
+            val nulls = if (sortProperty.ascending) NullPrecedence.FIRST else NullPrecedence.LAST
             if (log.isDebugEnabled) {
-                log.debug("Adding criteria orderBy (${ctx.entityName}): order by ${sortProperty.property} $direction nulls last.")
+                log.debug("Adding criteria orderBy (${ctx.entityName}): order by ${sortProperty.property} $direction nulls ${nulls.name.lowercase()}.")
             }
-            order.add(cb.sort(expression, direction, NullPrecedence.LAST))
+            order.add(cb.sort(expression, direction, nulls))
         } catch (ex: Exception) {
             log.error("Can't add order for property '${ctx.entityName}.${sortProperty.property}: ${ex.message}")
         }

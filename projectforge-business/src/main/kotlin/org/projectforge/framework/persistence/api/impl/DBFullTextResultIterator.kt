@@ -80,11 +80,11 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
     }
 
     /**
-     * Entries without a value sort last in both directions, matching the criteria search
-     * (see DBQueryBuilderByCriteria.addOrder). Text columns hold two representations of "no
-     * value" — `null` and, in some records, an empty string — so both are treated alike;
-     * otherwise blank entries lead the list in one direction or the other depending on which
-     * representation a record happens to use.
+     * Entries without a value count as the smallest value, matching the criteria search (see
+     * DBQueryBuilderByCriteria.addOrder): they lead an ascending sort and trail a descending one,
+     * so reversing the sort brings them into view. Text columns hold two representations of "no
+     * value" — `null` and, in some records, an empty string — which are treated alike; otherwise
+     * which blank entries surface depends on the representation a record happens to use.
      */
     override fun sort(list: List<O>): List<O> {
         val collator = Collator.getInstance(ThreadLocalUserContext.locale)
@@ -105,9 +105,15 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
                         val blank1 = isBlank(val1)
                         val blank2 = isBlank(val2)
                         if (blank1 || blank2) {
-                            // Not swapped for descending: blanks belong last either way.
                             if (blank1 != blank2) {
-                                ctb.append(if (blank1) 1 else 0, if (blank2) 1 else 0)
+                                // Blank ranks lowest, so the order flips with the direction.
+                                val rank1 = if (blank1) 0 else 1
+                                val rank2 = if (blank2) 0 else 1
+                                if (sortProperty.ascending) {
+                                    ctb.append(rank1, rank2)
+                                } else {
+                                    ctb.append(rank2, rank1)
+                                }
                             }
                             continue // Both blank: equal for this property, compare the next one.
                         }
