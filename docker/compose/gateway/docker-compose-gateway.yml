@@ -28,7 +28,7 @@ services:
       - "8080"
     environment:
       - PROJECTFORGE_HOME=/ProjectForge
-      - GATEWAY_SYNC_SECRET=test-secret-12345
+      # The gateway sync secret is configured in ProjectForge/projectforge.properties.
       - JAVA_ARGS=--spring.profiles.active=external-gateway
       - DOCKER_OPTS=-Dprojectforge.base.dir=/ProjectForge -Ddocker=stack
     volumes:

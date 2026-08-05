@@ -1021,17 +1021,28 @@ All other gateway settings (CardDAV, menu visibility) are provided by the `exter
 The OAuth2/OIDC configuration is only needed for the DataTransfer UI: CardDAV and CalDAV/ICS authenticate
 via tokens and work without it. If the OAuth2 client is not configured, the gateway starts without a login option.
 
+NOTE: ProjectForge adds the home `projectforge.properties` as `--spring.config.additional-location`,
+which Spring loads with the highest priority. It therefore overrides the `external-gateway` profile,
+so keep this file limited to the settings below rather than repeating profile defaults.
+
 [source,properties]
 ----
+# Public URL of the gateway, including the port if published directly.
+# This is the {baseUrl} of the OAuth2 redirect URI below.
+projectforge.domain=https://gateway.example.com
+
 # Gateway mode
 projectforge.gateway.enabled=true
-projectforge.gateway.sync.secret=${GATEWAY_SYNC_SECRET}
+projectforge.gateway.sync.secret=<shared-secret>
 
 # PostgreSQL (adjust host/credentials to your setup)
 spring.datasource.url=jdbc:postgresql://postgres:5432/projectforge
 spring.datasource.driver-class-name=org.postgresql.Driver
 spring.datasource.username=projectforge
 spring.datasource.password=<your-password>
+
+# Required: the DAV and calendar tokens pushed by the main instance are stored encrypted.
+projectforge.security.authenticationTokenEncryptionKey=<your-key>
 
 # OAuth2/OIDC (only required for the DataTransfer UI)
 spring.security.oauth2.client.registration.authentik.client-id=${AUTHENTIK_CLIENT_ID}
@@ -1063,7 +1074,7 @@ Add the following to the main instance's `projectforge.properties`:
 ----
 projectforge.gateway.push.enabled=true
 projectforge.gateway.push.url=https://gateway.example.com/api/gateway/sync
-projectforge.gateway.push.secret=${GATEWAY_SYNC_SECRET}
+projectforge.gateway.push.secret=<shared-secret>
 projectforge.gateway.push.syncIntervalMs=900000
 ----
 

@@ -156,12 +156,25 @@ ssh user@server
 mkdir -p ~/gateway/ProjectForge
 ```
 
-Create `~/gateway/ProjectForge/projectforge.properties`:
+Create `~/gateway/ProjectForge/projectforge.properties`. Only the settings below are needed —
+CardDAV and the menu visibility come from the `external-gateway` profile automatically.
+
+`projectforge.domain` must match the URL the gateway is actually reached at, including the
+port when the container port is published directly (the default from `application.properties`
+is `http://localhost:8080`). It is the `{baseUrl}` of the OAuth2 redirect URI and therefore
+has to match what is registered in Authentik.
+
+Set `projectforge.gateway.sync.secret` here as a literal value and drop `GATEWAY_SYNC_SECRET`
+from the compose file. The `external-gateway` profile defaults the property to
+`${GATEWAY_SYNC_SECRET:}`, but since this file has the higher priority it simply wins, so the
+environment variable is not needed. Keeping the secret out of the compose file also keeps it
+out of version control and out of the container environment, where `podman inspect` would
+expose it.
 
 ```properties
 projectforge.domain=https://gateway.example.com
 projectforge.gateway.enabled=true
-projectforge.gateway.sync.secret=test-secret-12345
+projectforge.gateway.sync.secret=<your-secret>
 
 # PostgreSQL
 spring.datasource.url=jdbc:postgresql://postgres:5432/projectforge
@@ -183,6 +196,17 @@ spring.security.oauth2.client.provider.authentik.issuer-uri=https://auth.example
 
 Note that `#` does not start a comment in the middle of a properties line — a comment
 appended to a value becomes part of that value. Always put comments on their own line.
+
+`projectforge.security.authenticationTokenEncryptionKey` is required: the DAV and calendar
+tokens pushed by the main instance are stored encrypted, so without the key they cannot be
+decrypted. If the key is lost or changed later, all users have to renew their authentication
+passwords.
+
+**Precedence:** ProjectForge adds the home `projectforge.properties` as
+`--spring.config.additional-location`, which Spring loads with the *highest* priority — it
+therefore overrides the `external-gateway` profile. Setting for example
+`projectforge.carddav.server.enable=false` here silently wins over the profile, so keep this
+file limited to the settings above.
 
 **OAuth2 note:** the OAuth2 block is optional. Without `client-id` the `OAuth2UserService`
 bean is not created and the gateway starts without any login option — CardDAV and ICS still
