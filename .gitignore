@@ -56,3 +56,13 @@ projectforge-business/src/main/kotlin/testscripts
 
 # MCP Server Configuration (contains secrets)
 .mcp.json
+
+# projectforge-next (Next.js) artifacts. Also ignored by projectforge-next/.gitignore,
+# but that file only exists in nextjs-migration, so repeat them here to keep the
+# artifacts ignored on branches without it.
+/projectforge-next/node_modules
+/projectforge-next/node
+/projectforge-next/.next
+/projectforge-next/out
+/projectforge-next/next-env.d.ts
+/projectforge-next/tsconfig.tsbuildinfo
