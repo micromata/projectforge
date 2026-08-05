@@ -28,7 +28,11 @@ import org.junit.jupiter.api.Test
 import org.projectforge.commons.test.TestUtils.Companion.assertSame
 import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
+import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class AuftragsCacheTest : AbstractTestBase() {
     @Autowired
@@ -36,6 +40,9 @@ class AuftragsCacheTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var auftragsCache: AuftragsCache
+
+    @Autowired
+    private lateinit var auftragsRechnungCache: AuftragsRechnungCache
 
     @Autowired
     private lateinit var rechnungDao: RechnungDao
@@ -155,6 +162,107 @@ class AuftragsCacheTest : AbstractTestBase() {
         auftragsCache.getOrderInfo(order.id).let { orderInfo ->
             assertValues(orderInfo, akquiseSum = 300, netSum = 300, invoicedSum = 250)
         }
+    }
+
+    /**
+     * [AuftragsCache] and [AuftragsRechnungCache] use each other, so the order of their refreshes decided whether the
+     * invoiced sums of the orders were calculated on top of the invoice positions or on top of an empty invoice cache
+     * (resulting in invoicedSum = 0 for all positions). Whatever the order is, one access has to deliver correct sums.
+     */
+    @Test
+    fun `invoiced sums are correct whatever the refresh order of the caches is`() {
+        val order = createOrderWithInvoice(netSum = 500, invoicedSum = 300)
+        // AuftragsRechnungCache first, AuftragsCache afterwards:
+        auftragsRechnungCache.forceReload()
+        auftragsCache.setExpired()
+        assertInvoicedSums(order, netSum = 500, invoicedSum = 300)
+
+        // AuftragsCache first, AuftragsRechnungCache afterwards:
+        auftragsCache.forceReload()
+        auftragsRechnungCache.setExpired()
+        assertInvoicedSums(order, netSum = 500, invoicedSum = 300)
+
+        // Both invalidated (as done by SystemService.refreshCaches), no refresh yet:
+        auftragsRechnungCache.setExpired()
+        auftragsCache.setExpired()
+        assertInvoicedSums(order, netSum = 500, invoicedSum = 300)
+
+        // Both invalidated and both reloaded, order cache first (this was the failing case):
+        auftragsRechnungCache.setExpired()
+        auftragsCache.setExpired()
+        auftragsCache.forceReload()
+        auftragsRechnungCache.forceReload()
+        assertInvoicedSums(order, netSum = 500, invoicedSum = 300)
+    }
+
+    /**
+     * Concurrent access must not result in an order info calculated on top of a cache which is currently rebuilding
+     * (this was the reason why the invoiced sums were 0 after the release: two threads refreshed [AuftragsCache] at the
+     * same time and the loser overwrote the correct result).
+     */
+    @Test
+    fun `invoiced sums are correct after concurrent cache reloads`() {
+        val order = createOrderWithInvoice(netSum = 800, invoicedSum = 250)
+        val numberOfThreads = 6
+        val start = CountDownLatch(1)
+        val executor = Executors.newFixedThreadPool(numberOfThreads)
+        try {
+            val futures = (1..numberOfThreads).map { idx ->
+                executor.submit {
+                    start.await()
+                    if (idx % 2 == 0) {
+                        auftragsCache.forceReload()
+                    } else {
+                        auftragsRechnungCache.forceReload()
+                    }
+                }
+            }
+            start.countDown()
+            futures.forEach { it.get(60, TimeUnit.SECONDS) }
+        } finally {
+            executor.shutdownNow()
+        }
+        assertInvoicedSums(order, netSum = 800, invoicedSum = 250)
+    }
+
+    /**
+     * Creates an order with one position of [netSum] and one invoice of [invoicedSum] assigned to this position.
+     */
+    private fun createOrderWithInvoice(netSum: Int, invoicedSum: Int): AuftragDO {
+        val order = AuftragDO().also {
+            it.addPosition(AuftragsPositionDO().also { pos ->
+                pos.titel = "Pos 1"
+                pos.nettoSumme = netSum.toBigDecimal()
+                pos.status = AuftragsStatus.BEAUFTRAGT
+            })
+            it.status = AuftragsStatus.BEAUFTRAGT
+            it.nummer = auftragDao.nextNumber
+        }
+        auftragDao.insert(order, checkAccess = false)
+        val invoice = RechnungDO().also {
+            it.addPosition(RechnungsPositionDO().also { pos ->
+                pos.auftragsPosition = order.positionen!!.first()
+                pos.menge = BigDecimal.ONE
+                pos.einzelNetto = invoicedSum.toBigDecimal()
+            })
+            it.datum = LocalDate.now()
+            it.faelligkeit = LocalDate.now().plusDays(14)
+            it.kundeText = "ACME"
+            it.nummer = rechnungDao.nextNumber
+        }
+        rechnungDao.insert(invoice, checkAccess = false)
+        return order
+    }
+
+    private fun assertInvoicedSums(order: AuftragDO, netSum: Int, invoicedSum: Int) {
+        val orderInfo = auftragsCache.getOrderInfo(order.id)
+        Assertions.assertNotNull(orderInfo, "OrderInfo not found.")
+        assertSame(invoicedSum, orderInfo!!.invoicedSum, "Invoiced sum of the order.")
+        assertSame(netSum - invoicedSum, orderInfo.notYetInvoicedSum, "Not yet invoiced sum of the order.")
+        val posInfo = auftragsCache.getOrderPositionInfosByAuftragId(order.id)?.firstOrNull()
+        Assertions.assertNotNull(posInfo, "OrderPositionInfo not found.")
+        assertSame(invoicedSum, posInfo!!.invoicedSum, "Invoiced sum of the order position.")
+        assertSame(netSum - invoicedSum, posInfo.notYetInvoiced, "Not yet invoiced sum of the order position.")
     }
 
     private fun assertValues(
