@@ -64,6 +64,7 @@ class EInvoiceExportService(
     private val invoiceService: InvoiceService,
     private val attachmentsService: AttachmentsService,
     private val repoService: RepoService,
+    private val rechnungDao: RechnungDao,
 ) {
     companion object {
         const val JCR_PATH = "org.projectforge.rechnung"
@@ -177,6 +178,23 @@ class EInvoiceExportService(
     }
 
     fun deleteUploadedInvoicePdf(invoiceId: Long) {
+        deleteUploadedInvoicePdfInternal(invoiceId)
+        updateAttachmentsCounter(invoiceId)
+    }
+
+    fun uploadInvoicePdf(invoiceId: Long, fileName: String, pdfContent: ByteArray) {
+        deleteUploadedInvoicePdfInternal(invoiceId)
+        val nodePath = attachmentsService.getPath(JCR_PATH, invoiceId)
+        repoService.ensureNode(null, nodePath)
+        val fileInfo = org.projectforge.jcr.FileInfo(fileName = fileName, description = INVOICE_PDF_MARKER)
+        val fileObject = org.projectforge.jcr.FileObject(nodePath, AttachmentsService.DEFAULT_NODE, fileInfo = fileInfo)
+        fileObject.content = pdfContent
+        repoService.storeFile(fileObject, InternalFileSizeChecker)
+        log.info { "Uploaded invoice PDF '$fileName' (${pdfContent.size} bytes) for invoice id=$invoiceId" }
+        updateAttachmentsCounter(invoiceId)
+    }
+
+    private fun deleteUploadedInvoicePdfInternal(invoiceId: Long) {
         val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
         val pdfAttachment = attachments.firstOrNull { it.description == INVOICE_PDF_MARKER } ?: return
         val fileId = pdfAttachment.fileId ?: return
@@ -186,15 +204,14 @@ class EInvoiceExportService(
         log.info { "Deleted uploaded invoice PDF for invoice id=$invoiceId" }
     }
 
-    fun uploadInvoicePdf(invoiceId: Long, fileName: String, pdfContent: ByteArray) {
-        deleteUploadedInvoicePdf(invoiceId)
-        val nodePath = attachmentsService.getPath(JCR_PATH, invoiceId)
-        repoService.ensureNode(null, nodePath)
-        val fileInfo = org.projectforge.jcr.FileInfo(fileName = fileName, description = INVOICE_PDF_MARKER)
-        val fileObject = org.projectforge.jcr.FileObject(nodePath, AttachmentsService.DEFAULT_NODE, fileInfo = fileInfo)
-        fileObject.content = pdfContent
-        repoService.storeFile(fileObject, InternalFileSizeChecker)
-        log.info { "Uploaded invoice PDF '$fileName' (${pdfContent.size} bytes) for invoice id=$invoiceId" }
+    private fun updateAttachmentsCounter(invoiceId: Long) {
+        val invoice = rechnungDao.find(invoiceId, checkAccess = false) ?: return
+        val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
+        invoice.attachmentsCounter = if (attachments.isNotEmpty()) attachments.size else null
+        invoice.attachmentsSize = if (attachments.isNotEmpty()) attachments.sumOf { it.size ?: 0L } else null
+        invoice.attachmentsNames = if (attachments.isNotEmpty()) attachments.joinToString(" ") { it.name ?: "" } else null
+        invoice.attachmentsIds = if (attachments.isNotEmpty()) attachments.joinToString(" ") { it.fileId ?: "" } else null
+        rechnungDao.updateAny(invoice, checkAccess = false)
     }
 
     private object InternalFileSizeChecker : org.projectforge.jcr.FileSizeChecker {

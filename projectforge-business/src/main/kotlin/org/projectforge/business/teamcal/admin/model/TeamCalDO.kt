@@ -196,6 +196,6 @@ open class TeamCalDO : BaseUserGroupRightsDO() {
         }
         return if (this.id == other.id) {
             true
-        } else StringUtils.equals(title, other.title)
+        } else title == other.title
     }
 }

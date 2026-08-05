@@ -52,8 +52,6 @@ open class UIAgGrid(
         val mode: String = if (multi) "multiRow" else "singleRow"
         @Suppress("unused") // Needed by AgGrid
         val enableClickSelection: Boolean? = if (multi) true else null
-        @Suppress("unused") // Needed by AgGrid
-        val enableSelectionWithoutKeys: Boolean? = if (multi) true else null
     }
 
     /**
@@ -151,7 +149,7 @@ open class UIAgGrid(
             return UIAgGrid("resultSet", listPageTable = true)
         }
 
-        private const val GET_ROW_CLASS = "if (params.node.data?.deleted) { return 'ag-row-deleted'; }"
+        private const val GET_ROW_CLASS = "if (params.node.data?.deleted) { return 'row-deleted'; }"
     }
 
     fun enablePagination(size: Int = 50) {

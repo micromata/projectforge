@@ -114,7 +114,7 @@ class DatabaseWriter(val emgrFactory: EntityManagerFactory) {
 
     private fun dump(entityClass: Class<*>, session: Session, jgen: JsonGenerator) {
         val sql = "select o from ${entityClass.name} o"
-        val list = session.createQuery(sql).setReadOnly(true).list()
+        val list = session.createQuery(sql, Any::class.java).setReadOnly(true).list()
         if (list.isEmpty()) return
         jgen.writeStartObject();
         jgen.writeArrayFieldStart("${entityClass.simpleName}")

@@ -45,7 +45,7 @@ import org.projectforge.rest.core.ListFilterService
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.core.aggrid.AGGridSupport
 import org.projectforge.rest.core.aggrid.SortModelEntry
-import org.projectforge.rest.dto.aggrid.AGGridStateRequest
+import org.projectforge.rest.dto.datatable.DataTableStateRequest
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -497,15 +497,11 @@ class TaskServicesRest {
     }
 
     /**
-     * Saves AG-Grid state (column order, width, visibility, filters, etc.) for task tree.
+     * Saves grid state (column order, width, visibility, filters, etc.) for task tree.
      */
     @PostMapping("tree/${RestPaths.SET_COLUMN_STATES}")
-    fun updateColumnStates(@Valid @RequestBody gridStateRequest: AGGridStateRequest): String {
-        agGridSupport.storeGridState(
-            GRID_CATEGORY,
-            gridStateRequest.columnState,
-            gridStateRequest.filterModel
-        )
+    fun updateColumnStates(@Valid @RequestBody request: DataTableStateRequest): String {
+        agGridSupport.storeGridState(GRID_CATEGORY, request)
         return "OK"
     }
 

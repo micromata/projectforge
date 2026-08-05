@@ -404,7 +404,7 @@ class CardDavTestClient(private val baseUrl: String, username: String, password:
                 val urlMatch = """PHOTO[^:]*:(.+)""".toRegex(RegexOption.IGNORE_CASE).find(photoProperty)
                 val url = urlMatch?.groupValues?.get(1)?.trim() ?: "unknown"
                 val typeMatch = """TYPE=([^;:]+)""".toRegex(RegexOption.IGNORE_CASE).find(photoProperty)
-                val type = typeMatch?.groupValues?.get(1)?.toUpperCase() ?: "UNKNOWN"
+                val type = typeMatch?.groupValues?.get(1)?.uppercase() ?: "UNKNOWN"
                 "PHOTO URL ($type): ${url.take(60)}${if (url.length > 60) "..." else ""}"
             }
             photoProperty.contains("ENCODING=b", ignoreCase = true) ||
@@ -413,7 +413,7 @@ class CardDavTestClient(private val baseUrl: String, username: String, password:
                 // Embedded mode (base64 or data URI)
                 val typeMatch = """TYPE=([^;:]+)""".toRegex(RegexOption.IGNORE_CASE).find(photoProperty)
                     ?: """data:image/([^;]+)""".toRegex().find(photoProperty)
-                val type = typeMatch?.groupValues?.get(1)?.toUpperCase() ?: "UNKNOWN"
+                val type = typeMatch?.groupValues?.get(1)?.uppercase() ?: "UNKNOWN"
                 val dataLength = photoProperty.length
                 "PHOTO EMBEDDED ($type): ${dataLength} chars"
             }

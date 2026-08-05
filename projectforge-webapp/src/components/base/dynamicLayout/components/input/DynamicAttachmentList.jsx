@@ -5,7 +5,7 @@ import { faDownload, faEdit, faLock } from '@fortawesome/free-solid-svg-icons';
 import { evalServiceURL, getServiceURL } from '../../../../../utilities/rest';
 import { MultipleFileUploadArea } from '../upload/MultipleFileUploadArea';
 import { DynamicLayoutContext } from '../../context';
-import DynamicAgGrid from '../table/DynamicAgGrid';
+import DynamicTanStackGrid from '../table/DynamicTanStackGrid';
 import DynamicAlert from '../DynamicAlert';
 import DynamicButton from '../DynamicButton';
 
@@ -97,7 +97,7 @@ function DynamicAttachmentList({
     };
 
     const handleDownloadSelectedClick = React.useCallback(() => {
-        const selectedIds = gridApi.getSelectedRows().map((item) => item.fileId);
+        const selectedIds = gridApi.getSelectedRowModel().rows.map((row) => row.original.fileId);
         if (selectedIds.length === 0) {
             return; // Do nothing, no rows selected.
         }
@@ -113,8 +113,7 @@ function DynamicAttachmentList({
         });
     }, [gridApi]);
 
-    const handleRowClick = (event) => {
-        const entry = event.data;
+    const handleRowClick = (entry) => {
         if (readOnly || downloadOnRowClick) {
             download(entry.fileId);
         } else {
@@ -132,7 +131,7 @@ function DynamicAttachmentList({
     };
 
     const handleDeleteSelectedClick = React.useCallback(() => {
-        const selectedIds = gridApi.getSelectedRows().map((item) => item.fileId);
+        const selectedIds = gridApi.getSelectedRowModel().rows.map((row) => row.original.fileId);
         if (selectedIds.length === 0) {
             return; // Do nothing, no rows selected.
         }
@@ -149,11 +148,15 @@ function DynamicAttachmentList({
                 absolute: true,
             },
         });
+        // Clear the selection after deletion. Selection state is keyed by row index, so a
+        // leftover entry would otherwise re-appear on whichever row shifts into the deleted
+        // row's position.
+        gridApi.resetRowSelection();
     }, [gridApi]);
 
     const table = attachments && attachments.length > 0 && (
         <>
-            <DynamicAgGrid
+            <DynamicTanStackGrid
                 {...agGrid}
                 onGridApiReady={onGridApiReady}
                 columnDefs={agGrid.columnDefs}
@@ -168,8 +171,9 @@ function DynamicAttachmentList({
                 rowClickFunction={handleRowClick}
                 rowSelection={{
                     mode: 'multiRow',
-                    enableClickSelection: true,
-                    enableSelectionWithoutKeys: true,
+                    // A row click opens the detail dialog (handleRowClick); selection is reserved
+                    // to the checkbox column only.
+                    enableClickSelection: false,
                 }}
                 components={{
                     action: Action,

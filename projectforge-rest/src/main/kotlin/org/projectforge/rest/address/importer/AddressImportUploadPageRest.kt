@@ -296,13 +296,13 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
         // Row styling based on status
         agGrid.withGetRowClass(
             """if (params.node.data.status === 'NEW') {
-             return 'ag-row-green';
+             return 'row-green';
            } else if (['DELETED', 'FAULTY', 'UNKNOWN', 'UNKNOWN_MODIFICATION'].includes(params.node.data.status)) {
-             return 'ag-row-red';
+             return 'row-red';
            } else if (params.node.data.status === 'MODIFIED') {
-             return 'ag-row-blue';
+             return 'row-blue';
            } else if (params.node.data.status === 'IMPORTED') {
-             return 'ag-row-grey';
+             return 'row-grey';
         }""".trimMargin()
         )
 
@@ -496,12 +496,8 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
      * POST endpoint: Saves grid state (column order, width, filters, etc.)
      */
     @PostMapping(RestPaths.SET_COLUMN_STATES)
-    fun updateColumnStates(@Valid @RequestBody gridStateRequest: org.projectforge.rest.dto.aggrid.AGGridStateRequest): String {
-        agGridSupport.storeGridState(
-            category,
-            gridStateRequest.columnState,
-            gridStateRequest.filterModel
-        )
+    fun updateColumnStates(@Valid @RequestBody request: org.projectforge.rest.dto.datatable.DataTableStateRequest): String {
+        agGridSupport.storeGridState(category, request)
         return "OK"
     }
 

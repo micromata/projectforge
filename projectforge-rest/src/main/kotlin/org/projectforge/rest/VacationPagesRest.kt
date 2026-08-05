@@ -167,7 +167,7 @@ class VacationPagesRest :
             .add(lc, "comment")
             .withGetRowClass(
                 """if (params.node.data.conflict) {
-            return 'ag-row-red';
+            return 'row-red';
         }"""
             )
         layout.add(

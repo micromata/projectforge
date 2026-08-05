@@ -83,6 +83,7 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
                 try {
                     val field = campaignFilter.javaClass.getDeclaredField("addressFilter")
                     field.isAccessible = true
+                    @Suppress("UNCHECKED_CAST")
                     field.get(campaignFilter) as? CustomResultFilter<org.projectforge.business.address.AddressDO>
                 } catch (e: Exception) {
                     log.warn { "Could not extract address filter from CampaignValueFilterAdapter: ${e.message}" }

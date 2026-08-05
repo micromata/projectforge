@@ -36,6 +36,7 @@ class EInvoiceExportServiceTest {
     private val invoiceServiceMock: InvoiceService = Mockito.mock(InvoiceService::class.java)
     private val attachmentsServiceMock: AttachmentsService = Mockito.mock(AttachmentsService::class.java)
     private val repoServiceMock: RepoService = Mockito.mock(RepoService::class.java)
+    private val rechnungDaoMock: RechnungDao = Mockito.mock(RechnungDao::class.java)
 
 
     private fun createSellerConfig(): EInvoiceSellerConfig {
@@ -115,7 +116,7 @@ class EInvoiceExportServiceTest {
 
     @Test
     fun exportAsXRechnung() {
-        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock)
+        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock, rechnungDaoMock)
         val invoice = createTestInvoice()
 
         val xml = service.exportAsXRechnung(invoice)
@@ -135,7 +136,7 @@ class EInvoiceExportServiceTest {
 
     @Test
     fun exportCreditNote() {
-        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock)
+        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock, rechnungDaoMock)
         val invoice = createTestInvoice().apply {
             typ = RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN
         }
@@ -147,7 +148,7 @@ class EInvoiceExportServiceTest {
 
     @Test
     fun validateMissingFields() {
-        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock)
+        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock, rechnungDaoMock)
 
         val invoice = RechnungDO().apply {
             nummer = null
@@ -166,7 +167,7 @@ class EInvoiceExportServiceTest {
 
     @Test
     fun validateIncompleteCustomerAddress() {
-        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock)
+        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock, rechnungDaoMock)
 
         val invoice = createTestInvoice().apply {
             kunde = KundeDO().apply {
@@ -188,7 +189,7 @@ class EInvoiceExportServiceTest {
 
     @Test
     fun validateUnconfiguredSeller() {
-        val service = EInvoiceExportService(EInvoiceSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock)
+        val service = EInvoiceExportService(EInvoiceSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock, rechnungDaoMock)
 
         val invoice = createTestInvoice().apply { sellerBankAccount = null }
         val errors = service.validate(invoice)
@@ -197,7 +198,7 @@ class EInvoiceExportServiceTest {
 
     @Test
     fun getExportFilename() {
-        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock)
+        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock, rechnungDaoMock)
         val invoice = createTestInvoice()
 
         assertEquals("XRechnung_2024001.xml", service.getExportFilename(invoice))
@@ -205,7 +206,7 @@ class EInvoiceExportServiceTest {
 
     @Test
     fun getExportFilenameDraft() {
-        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock)
+        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock, rechnungDaoMock)
         val invoice = createTestInvoice().apply { nummer = null }
 
         assertEquals("XRechnung_draft.xml", service.getExportFilename(invoice))
@@ -213,7 +214,7 @@ class EInvoiceExportServiceTest {
 
     @Test
     fun exportWithSkonto() {
-        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock)
+        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock, rechnungDaoMock)
         val invoice = createTestInvoice().apply {
             discountPercent = BigDecimal("2")
             discountMaturity = LocalDate.of(2024, 6, 25)
@@ -226,7 +227,7 @@ class EInvoiceExportServiceTest {
 
     @Test
     fun exportWithZeroVat() {
-        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock)
+        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock, rechnungDaoMock)
         val invoice = createTestInvoice().apply {
             positionen = mutableListOf(
                 RechnungsPositionDO().apply {

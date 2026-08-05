@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Alert } from 'reactstrap';
-import DynamicAgGrid from '../../../components/base/dynamicLayout/components/table/DynamicAgGrid';
+import DynamicTanStackGrid from '../../../components/base/dynamicLayout/components/table/DynamicTanStackGrid';
 import TaskTreeContext from './TaskTreeContext';
 
 function TaskTreeTable({
@@ -42,18 +42,16 @@ function TaskTreeTable({
     return (
         <div>
             <div className="table-responsive">
-                <DynamicAgGrid
+                <DynamicTanStackGrid
                     onGridApiReady={onGridApiReady}
                     columnDefs={columnDefs}
                     entries={nodes}
-                    height={400}
-                    onCellClicked={onCellClicked}
                     highlightId={highlightTaskId}
                     sortModel={sortModel}
                     filterModel={filterModel}
+                    onCellClicked={onCellClicked}
                     onColumnStatesChangedUrl={onColumnStatesChangedUrl}
                     resetGridStateUrl={resetGridStateUrl}
-                    // visible={visible}
                 />
             </div>
             <Alert color="light">

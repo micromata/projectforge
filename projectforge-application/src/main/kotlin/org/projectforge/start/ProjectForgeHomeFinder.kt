@@ -183,14 +183,14 @@ class ProjectForgeHomeFinder {
             "1"
           ) {
             override fun answerValid(answer: String): Boolean {
-              return StringUtils.equalsAny(answer, "1", "2", "3")
+              return answer in arrayOf("1", "2", "3")
             }
           }.ask()
         }
         userAcceptsGraphicalTerminal =
-          if (StringUtils.startsWithIgnoreCase(answer, "y") || StringUtils.equals(answer, "2")) {
+          if (answer?.startsWith("y", ignoreCase = true) == true || answer == "2") {
             WizardMode.CONSOLE
-          } else if (StringUtils.equals(answer, "1")) {
+          } else if (answer == "1") {
             WizardMode.DESKTOP
           } else {
             WizardMode.NONE

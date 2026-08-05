@@ -51,8 +51,7 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.aggrid.AGGridSupport
 import org.projectforge.rest.dto.*
-import org.projectforge.rest.dto.aggrid.AGColumnState
-import org.projectforge.rest.dto.aggrid.AGGridStateRequest
+import org.projectforge.rest.dto.datatable.DataTableStateRequest
 import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
@@ -252,6 +251,12 @@ constructor(
             "reset", "datatable.no-records-found", "date.begin", "date.end", "exportAsXls",
             "search.lastMinute", "search.lastHour", "calendar.today", "search.sinceYesterday",
             "multiselection.button",
+            "columns", "columns.manage", "columns.pin", "columns.reset", "columns.unpin", "columns.dragToSort",
+            "filter.apply", "filter.reset", "filter.close", "filter.search", "filter.selectAll", "filter.selection",
+            "filter.equals", "filter.notEqual", "filter.greaterThan", "filter.lessThan",
+            "filter.between", "filter.blank", "filter.notBlank", "filter.before", "filter.after",
+            "filter.contains", "filter.notContains", "filter.startsWith", "filter.endsWith",
+            "filter.value", "filter.valueTo",
         )
         layout.addTranslation("search.lastMinutes.10", translateMsg("search.lastMinutes", 10))
         layout.addTranslation("search.lastMinutes.30", translateMsg("search.lastMinutes", 30))
@@ -932,12 +937,8 @@ constructor(
      * @return "OK" string response
      */
     @PostMapping(RestPaths.SET_COLUMN_STATES)
-    fun updateColumnStates(@Valid @RequestBody gridStateRequest: AGGridStateRequest): String {
-        agGridSupport.storeGridState(
-            category,
-            gridStateRequest.columnState,
-            gridStateRequest.filterModel
-        )
+    fun updateColumnStates(@Valid @RequestBody request: DataTableStateRequest): String {
+        agGridSupport.storeGridState(category, request)
         return "OK"
     }
 

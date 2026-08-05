@@ -153,6 +153,15 @@ class UserPagesRest
     override fun transformForDB(dto: User): PFUserDO {
         val userDO = PFUserDO()
         dto.copyTo(userDO)
+        // The User DTO doesn't carry these IdP related fields (they are managed by the IdP sync, not by the
+        // edit form). Restore them from the DB on update, otherwise the merge would overwrite the existing
+        // values with null and the background IdP sync would re-populate them later as user "anon".
+        dto.id?.let { id ->
+            baseDao.find(id, checkAccess = false)?.let { dbUser ->
+                userDO.idpExternalId = dbUser.idpExternalId
+                userDO.lastIdpPasswordSync = dbUser.lastIdpPasswordSync
+            }
+        }
         return userDO
     }
 
@@ -197,7 +206,7 @@ class UserPagesRest
                     )
                 )
             agGrid.add("lastLoginTimeAgo", headerName = "login.lastLogin")
-            agGrid.add("lastUpdate", headerName = "lastUpdate")
+            agGrid.add(lc, "lastUpdate", headerName = "lastUpdate")
         }
         agGrid.add(lc, PFUserDO::lastname, PFUserDO::firstname)
         if (adminAccess) {

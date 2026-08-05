@@ -209,8 +209,9 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
      * '/${plugin.package}/flyway/dbmigration'
      */
     protected open fun buildFlywayClasspath(): Array<String> {
-        val vendor =
-            DatabaseDialect.getFlywayVendorName(WicketSupport.get(DataSource::class.java).connection.metaData.databaseProductName)
+        val vendor = WicketSupport.get(DataSource::class.java).connection.use { connection ->
+            DatabaseDialect.getFlywayVendorName(connection.metaData.databaseProductName)
+        }
         // Class.packageName since java 9, but want to be compatible with Java 8:
         val packageLocation = this::class.java.`package`.name.replace('.', '/')
         return arrayOf(

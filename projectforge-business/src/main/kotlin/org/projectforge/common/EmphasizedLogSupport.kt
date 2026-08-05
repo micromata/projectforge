@@ -109,7 +109,7 @@ class EmphasizedLogSupport @JvmOverloads constructor(
 
     fun log(text: String): EmphasizedLogSupport {
         ensureStart()
-        if (StringUtils.contains(text, "\n")) {
+        if (text.contains("\n")) {
             for (line in StringUtils.splitPreserveAllTokens(text, '\n')) {
                 logLineText(line)
             }

@@ -609,7 +609,7 @@ class AddressPagesRest
             userAccess,
             legendText = translate("address.list.legend")
         ).withGetRowClass(
-            """if (params.node.data.address.isFavoriteCard) { return 'ag-row-blue'; }"""
+            """if (params.node.data.address.isFavoriteCard) { return 'row-blue'; }"""
         )
 
 

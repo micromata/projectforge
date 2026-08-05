@@ -25,8 +25,15 @@ package org.projectforge.business.fibu
 
 import de.micromata.merlin.excel.ExcelWorkbook
 import org.apache.commons.io.FileUtils
+import org.apache.poi.ss.usermodel.CellType
+import org.apache.poi.ss.usermodel.Row
+import org.apache.poi.ss.usermodel.Sheet
+import org.apache.poi.ss.util.CellReference
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDay
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.test.WorkFileHelper
@@ -34,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.io.ByteArrayInputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.util.Locale
 
 class ForecastExportTest : AbstractTestBase() {
     @Autowired
@@ -44,6 +52,236 @@ class ForecastExportTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var forecastExport: ForecastExport
+
+    @Autowired
+    private lateinit var projektDao: ProjektDao
+
+    @Autowired
+    private lateinit var auftragsCache: AuftragsCache
+
+    @Autowired
+    private lateinit var forecastOrderAnalysis: ForecastOrderAnalysis
+
+    /**
+     * The order analysis shows both cases of projectforge.fibu.forecast.distributeUnusedBudget, but only if they
+     * differ (T&M orders with a run rate below the even distribution).
+     */
+    @Test
+    fun orderAnalysisDistributeUnusedBudgetTest() {
+        logon(TEST_FINANCE_USER)
+        val baseDate = PFDay.now().plusMonths(-4)
+
+        // T&M, 5000 for 5 months (1000 per month), but only 500 invoiced so far: the run rate (distributeUnusedBudget
+        // = false) is far below the even distribution (= true), so both variants must be shown.
+        val tmOrder = createOrder(baseDate, AuftragsStatus.BEAUFTRAGT, baseDate, baseDate.plusMonths(4))
+        addPosition(tmOrder, 1, AuftragsStatus.BEAUFTRAGT, 5000.0, AuftragsPositionsPaymentType.TIME_AND_MATERIALS)
+        val tmOrderId = auftragDao.insert(tmOrder)
+        auftragsCache.setExpired()
+        auftragsCache.forceReload()
+        val invoice = createInvoice(baseDate.plusMonths(1))
+        addPosition(invoice, 500.0, auftragDao.find(tmOrderId)!!.getPosition(1))
+        rechnungDao.insert(invoice)
+
+        val withDistribution = translate("fibu.auftrag.forecast.analysis.variants.true.label")
+        val withoutDistribution = translate("fibu.auftrag.forecast.analysis.variants.false.label")
+        val tmHtml = forecastOrderAnalysis.htmlExport(orderId = tmOrderId, checkAccess = false)
+        Assertions.assertTrue(
+            tmHtml.contains(withDistribution) && tmHtml.contains(withoutDistribution),
+            "Both variants expected for a T&M order with a run rate below the even distribution."
+        )
+        assertTranslated(tmHtml)
+
+        // The whole page must be translated, so check the German version as well:
+        val user = ThreadLocalUserContext.loggedInUser!!
+        val locale = user.locale
+        user.locale = Locale.GERMAN
+        try {
+            val germanHtml = forecastOrderAnalysis.htmlExport(orderId = tmOrderId, checkAccess = false)
+            assertTranslated(germanHtml)
+            Assertions.assertTrue(
+                germanHtml.contains("Forecast-Analyse des Auftrags"),
+                "German title expected: ${germanHtml.take(500)}"
+            )
+        } finally {
+            user.locale = locale
+        }
+
+        // Fixed price without any invoice: the whole net sum is scheduled at the end of the performance period in both
+        // cases, so only one variant may be shown.
+        val fixedOrder = createOrder(baseDate, AuftragsStatus.BEAUFTRAGT, baseDate, baseDate.plusMonths(4))
+        addPosition(fixedOrder, 1, AuftragsStatus.BEAUFTRAGT, 5000.0, AuftragsPositionsPaymentType.FESTPREISPAKET)
+        val fixedOrderId = auftragDao.insert(fixedOrder)
+
+        val fixedHtml = forecastOrderAnalysis.htmlExport(orderId = fixedOrderId, checkAccess = false)
+        Assertions.assertFalse(
+            fixedHtml.contains(withDistribution) || fixedHtml.contains(withoutDistribution),
+            "Only one variant expected for a fixed price order without invoices (both variants are equal)."
+        )
+        assertTranslated(fixedHtml)
+    }
+
+    /**
+     * The zip archive and all Excel files of a forecast script run must carry the variant they were calculated with,
+     * so the results of both runs can be compared without mixing them up.
+     */
+    @Test
+    fun filenameVariantTest() {
+        val startDate = PFDay.withDate(2025, java.time.Month.JANUARY, 1)
+        Assertions.assertTrue(
+            forecastExport.getFilename(startDate, extension = ".zip", distributeUnusedBudget = true)
+                .endsWith("_optimistisch.zip")
+        )
+        Assertions.assertTrue(
+            forecastExport.getFilename(startDate, extension = ".xlsx", part = "ACME", distributeUnusedBudget = false)
+                .endsWith("_konservativ.xlsx")
+        )
+        // Without an explicit value the configured default is used:
+        val default = if (ForecastOrderPosInfo.defaultDistributeUnusedBudget) "_optimistisch" else "_konservativ"
+        Assertions.assertTrue(forecastExport.getFilename(startDate).endsWith(default))
+        Assertions.assertEquals("_optimistisch", forecastExport.variantSuffix(true))
+        Assertions.assertEquals("_konservativ", forecastExport.variantSuffix(false))
+    }
+
+    /**
+     * I18nHelper renders missing i18n keys as '???key???', so the page must not contain any '???'.
+     */
+    private fun assertTranslated(html: String) {
+        Assertions.assertFalse(html.contains("???"), "All i18n keys of the analysis page must be defined: $html")
+    }
+
+    /**
+     * The filter selection of the first tab (Forecast_Data) is propagated to the invoice sheets (Rechnungen, Vorjahr,
+     * Vorvorjahr) by project id only: visibleID contains the project ids of the visible rows, and each invoice row's
+     * visible column does a COUNTIF against it. So every invoice row needs a project id, and visibleID must never
+     * contain a numeric 0 (a blank project id falling through the IF), otherwise all invoices without project would
+     * count in every filter selection.
+     */
+    @Test
+    fun filterPropagationTest() {
+        logon(TEST_FINANCE_USER)
+        val today = PFDay.now()
+        val baseDate = today.plusMonths(-4)
+
+        val projekt = ProjektDO()
+        projekt.nummer = 1
+        projekt.name = "ForecastExportTest - project"
+        val projektId = projektDao.insert(projekt, checkAccess = false)
+
+        // Order with project, invoiced. The invoice itself has no project: it must inherit the order's project.
+        val orderWithProject = createOrder(baseDate, AuftragsStatus.BEAUFTRAGT, baseDate, baseDate.plusMonths(4))
+        // Attached is important, otherwise deadlock.
+        orderWithProject.projekt = projektDao.find(projektId, checkAccess = false, attached = true)
+        val pos = addPosition(
+            orderWithProject, 1, AuftragsStatus.BEAUFTRAGT, 5000.0, AuftragsPositionsPaymentType.TIME_AND_MATERIALS
+        )
+        val orderId = auftragDao.insert(orderWithProject)
+
+        // Order without any project, invoiced: neither the invoice nor the order references a project.
+        val orderWithoutProject = createOrder(baseDate, AuftragsStatus.BEAUFTRAGT, baseDate, baseDate.plusMonths(4))
+        addPosition(
+            orderWithoutProject, 1, AuftragsStatus.BEAUFTRAGT, 3000.0, AuftragsPositionsPaymentType.TIME_AND_MATERIALS
+        )
+        val orderWithoutProjectId = auftragDao.insert(orderWithoutProject)
+        // The invoice positions are only linked to their order positions via AuftragsCache:
+        auftragsCache.setExpired()
+        auftragsCache.forceReload()
+        Assertions.assertNotNull(pos)
+
+        // Both invoices have no own project: the first one must inherit the project of its order, the second one has
+        // no project at all.
+        val invoice = createInvoice(baseDate.plusMonths(1))
+        addPosition(invoice, 1000.0, auftragDao.find(orderId)!!.getPosition(1))
+        rechnungDao.insert(invoice)
+        val invoice2 = createInvoice(baseDate.plusMonths(1))
+        addPosition(invoice2, 500.0, auftragDao.find(orderWithoutProjectId)!!.getPosition(1))
+        rechnungDao.insert(invoice2)
+
+        val filter = AuftragFilter()
+        filter.periodOfPerformanceStartDate = baseDate.localDate
+        val ba = forecastExport.xlsExport(filter, distributeUnusedBudget = true)
+        Assertions.assertNotNull(ba, "Export expected.")
+
+        // Plain POI, no merlin: merlin's head row analysis runs into an endless recursion on formula cells.
+        XSSFWorkbook(ByteArrayInputStream(ba)).use { workbook ->
+            val forecastSheet = workbook.getSheet(ForecastExportContext.Sheet.FORECAST.title)!!
+            val forecastHeadRow = findHeadRow(forecastSheet, ForecastExportContext.ForecastCol.PROJECT_ID.header)
+            val projectIdCol = findColumn(forecastHeadRow, ForecastExportContext.ForecastCol.PROJECT_ID.header)
+            val projectIdColLetters = CellReference.convertNumToColString(projectIdCol)
+            val visibleIdCol = findColumn(forecastHeadRow, ForecastExportContext.ForecastCol.VISIBLE_PROJECT_ID.header)
+            var visibleIdCells = 0
+            val forecastProjectIds = mutableSetOf<Long>()
+            val invoiceProjectIds = mutableSetOf<Long>()
+            for (rowNum in forecastHeadRow.rowNum + 1..forecastSheet.lastRowNum) {
+                val row = forecastSheet.getRow(rowNum) ?: continue
+                row.getCell(projectIdCol)?.let {
+                    if (it.cellType == CellType.NUMERIC) {
+                        forecastProjectIds.add(it.numericCellValue.toLong())
+                    }
+                }
+                val cell = row.getCell(visibleIdCol) ?: continue
+                if (cell.cellType != CellType.FORMULA) {
+                    continue
+                }
+                ++visibleIdCells
+                // Blank project ids must not fall through the IF as numeric 0, otherwise COUNTIF of the invoice sheets
+                // would match every invoice without project against every order row without project:
+                val formula = cell.cellFormula
+                Assertions.assertTrue(
+                    formula.contains("AND(") && formula.contains("$projectIdColLetters${rowNum + 1}<>\"\""),
+                    "visibleID formula of row ${rowNum + 1} must guard against blank project ids: $formula"
+                )
+            }
+            Assertions.assertTrue(visibleIdCells > 0, "visibleID cells expected.")
+
+            // Every invoice row must carry a project id, otherwise the filter can't be propagated to it:
+            var invoiceRows = 0
+            ForecastExportContext.Sheet.entries.filter { it.title.startsWith("Rechnungen") }.forEach { sheetEnum ->
+                val sheet = workbook.getSheet(sheetEnum.title)!!
+                val headRow = findHeadRow(sheet, ForecastExportContext.InvoicesCol.PROJECT_ID.header)
+                val invoiceProjectIdCol = findColumn(headRow, ForecastExportContext.InvoicesCol.PROJECT_ID.header)
+                for (rowNum in headRow.rowNum + 1..sheet.lastRowNum) {
+                    val row = sheet.getRow(rowNum) ?: continue
+                    val cell = row.getCell(invoiceProjectIdCol)
+                    Assertions.assertNotNull(cell, "${sheetEnum.title} row ${rowNum + 1}: ProjectID cell expected.")
+                    Assertions.assertEquals(
+                        CellType.NUMERIC, cell!!.cellType,
+                        "${sheetEnum.title} row ${rowNum + 1}: ProjectID must be set (order project or PROJECT_ID_NONE)."
+                    )
+                    Assertions.assertNotEquals(
+                        0.0, cell.numericCellValue,
+                        "${sheetEnum.title} row ${rowNum + 1}: ProjectID must not be 0."
+                    )
+                    ++invoiceRows
+                    invoiceProjectIds.add(cell.numericCellValue.toLong())
+                }
+            }
+            Assertions.assertTrue(invoiceRows >= 2, "At least both invoices of this test expected: $invoiceRows")
+            // The invoice without own project inherits the project of its order, the one without any project gets the
+            // pseudo id, which is only visible as long as no filter is set:
+            Assertions.assertTrue(
+                invoiceProjectIds.containsAll(listOf(projektId, ForecastExportContext.PROJECT_ID_NONE)),
+                "Order project (inherited) and PROJECT_ID_NONE expected: $invoiceProjectIds"
+            )
+            Assertions.assertTrue(
+                forecastProjectIds.contains(ForecastExportContext.PROJECT_ID_NONE),
+                "Pseudo order row for invoices without project expected in the forecast sheet."
+            )
+        }
+    }
+
+    private fun findHeadRow(sheet: Sheet, header: String): Row {
+        for (rowNum in 0..sheet.lastRowNum) {
+            val row = sheet.getRow(rowNum) ?: continue
+            if (row.any { it.cellType == CellType.STRING && it.stringCellValue == header }) {
+                return row
+            }
+        }
+        throw AssertionError("Head row with column '$header' not found in sheet '${sheet.sheetName}'.")
+    }
+
+    private fun findColumn(headRow: Row, header: String): Int {
+        return headRow.first { it.cellType == CellType.STRING && it.stringCellValue == header }.columnIndex
+    }
 
     @Test
     fun exportTest() {
@@ -69,7 +307,9 @@ class ForecastExportTest : AbstractTestBase() {
 
         val filter = AuftragFilter()
         filter.periodOfPerformanceStartDate = baseDate.localDate
-        val ba = forecastExport.xlsExport(filter)
+        // Assert even distribution explicitly, independent of the configured default (application.properties may set
+        // projectforge.fibu.forecast.distributeUnusedBudget=false).
+        val ba = forecastExport.xlsExport(filter, distributeUnusedBudget = true)
         val excelFile = WorkFileHelper.getWorkFile("forecast.xlsx")
         baseLog.info("Writing forecast Excel file to work directory: " + excelFile.absolutePath)
         FileUtils.writeByteArrayToFile(excelFile, ba)
@@ -82,10 +322,32 @@ class ForecastExportTest : AbstractTestBase() {
             val firstRow = 10
             forecastSheet.headRow // Enforce analyzing the column definitions.
 
-            // order 1
+            // This row is a T&M FOLLOWING_MONTH order: performance period monthCols[1]..monthCols[4], with actual
+            // invoices in monthCols[2] and monthCols[3] only (toBeInvoiced = 2000). Today is monthCols[4].
+            // Since the current month (monthCols[4]) has NOT been invoiced yet, it must still carry forecast:
+            // the remaining 2000 is distributed over monthCols[4] and monthCols[5] = 1000 each (see orders 6809/5503).
+            // The invoiced/past month monthCols[3] must be blank.
             Assertions.assertTrue(forecastSheet.getCell(firstRow + 1, monthCols[3])!!.stringCellValue.isNullOrBlank())
-            val amount = forecastSheet.getCell(firstRow + 1, monthCols[4])!!.numericCellValue
-            assertAmount(order1.getPosition(1)!!.nettoSumme!!.divide(BigDecimal(4)), amount)
+            assertAmount(BigDecimal(1000), forecastSheet.getCell(firstRow + 1, monthCols[4])!!.numericCellValue)
+            assertAmount(BigDecimal(1000), forecastSheet.getCell(firstRow + 1, monthCols[5])!!.numericCellValue)
+
+            // The info sheet must document the variant this forecast was calculated with:
+            val infoSheet = workbook.getSheet(ForecastExportContext.Sheet.INFO.title)!!
+            Assertions.assertEquals(
+                forecastExport.variantInfo(true),
+                infoSheet.getCell(3, 1)?.stringCellValue,
+                "Info sheet must contain the optimistic variant info."
+            )
+            Assertions.assertTrue(
+                forecastExport.variantInfo(true).startsWith(
+                    translate("fibu.auftrag.forecast.analysis.variants.true.label")
+                )
+            )
+            Assertions.assertTrue(
+                forecastExport.variantInfo(false).startsWith(
+                    translate("fibu.auftrag.forecast.analysis.variants.false.label")
+                )
+            )
         }
     }
 

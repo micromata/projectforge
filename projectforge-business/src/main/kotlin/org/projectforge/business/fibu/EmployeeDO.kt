@@ -215,9 +215,9 @@ open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
         val u2 = other.user
         if (u1 == null) return -1
         if (u2 == null) return 1
-        var result = StringUtils.compare(u1.lastname, u2.lastname)
+        var result = compareValues(u1.lastname, u2.lastname)
         if (result == 0) {
-            result = StringUtils.compare(u1.firstname, u2.firstname)
+            result = compareValues(u1.firstname, u2.firstname)
         }
         return result
     }

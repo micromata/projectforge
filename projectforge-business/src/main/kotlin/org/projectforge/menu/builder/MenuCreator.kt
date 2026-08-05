@@ -76,6 +76,8 @@ open class MenuCreator {
         }
     }
 
+    private data class PluginMenuRegistration(val parentId: String, val menuItemDef: MenuItemDef)
+
     @Autowired
     private lateinit var auftragsCache: AuftragsCache
     private var menuItemDefHolder = MenuItemDefHolder()
@@ -109,6 +111,8 @@ open class MenuCreator {
 
     private var initialized = false
 
+    private val pluginMenuRegistrations = mutableListOf<PluginMenuRegistration>()
+
     /**
      * Plugins may register entries for the user's personal menu at the top right.
      */
@@ -129,6 +133,14 @@ open class MenuCreator {
         initialized = false
         menuItemDefHolder = MenuItemDefHolder()
         initialize()
+        pluginMenuRegistrations.forEach { registration ->
+            findById(registration.parentId)?.let {
+                if (it.children?.any { child -> child.id == registration.menuItemDef.id } != true) {
+                    it.add(registration.menuItemDef)
+                }
+            } ?: log.error { "Can't re-register plugin menu '${registration.menuItemDef.id}': parentId=${registration.parentId} not found." }
+        }
+        log.info { "Menu refreshed including ${pluginMenuRegistrations.size} plugin menu entries." }
     }
 
     /**
@@ -142,9 +154,8 @@ open class MenuCreator {
         synchronized(menuItemDefHolder) {
             findById(parentId)?.let {
                 it.add(menuItemDef)
-            } ?: {
-                log.error { "Can't add Menu ${menuItemDef.id}: parentId=$parentId not found." }
-            }
+            } ?: log.error { "Can't add Menu ${menuItemDef.id}: parentId=$parentId not found." }
+            pluginMenuRegistrations.add(PluginMenuRegistration(parentId, menuItemDef))
         }
     }
 

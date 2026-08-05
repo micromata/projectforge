@@ -246,7 +246,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
       // Attachments (JCR file attachments with download links + edit link to React page)
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("attachments"));
       final StringBuilder attachmentsHtml = new StringBuilder();
-      if (data.getId() != null && data.getAttachmentsCounter() != null && data.getAttachmentsCounter() > 0) {
+      if (data.getId() != null) {
         final org.projectforge.rest.fibu.RechnungPagesRest rechnungPagesRest = WicketSupport.get(org.projectforge.rest.fibu.RechnungPagesRest.class);
         final org.projectforge.framework.jcr.AttachmentsService attachmentsService = WicketSupport.get(org.projectforge.framework.jcr.AttachmentsService.class);
         final java.util.List<org.projectforge.framework.jcr.Attachment> attachments = attachmentsService.getAttachments(
@@ -270,7 +270,9 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
                 .append(" (").append(att.getSizeHumanReadable()).append(")")
                 .append("</a><br/>");
           }
-          attachmentsHtml.append("<br/>");
+          if (attachmentsHtml.length() > 0) {
+            attachmentsHtml.append("<br/>");
+          }
         }
       }
       final String editLink = "<a href=\"/react/outgoingInvoice/edit/" + data.getId() + "\" target=\"_blank\">" + getString("edit") + "</a>";

@@ -83,6 +83,17 @@ class InvoicingQuotaService(
      * @return The invoicing quota as a decimal (0.0 - 1.0), or null if disabled or no data
      */
     fun calculateQuota(kost2Durations: Map<Long, MonthlyEmployeeReportEntry>): BigDecimal? {
+        return calculateQuotaResult(kost2Durations)?.quota
+    }
+
+    /**
+     * Calculate the invoicing quota including the underlying billed and total durations, so callers may
+     * present the concrete numbers (e.g. in a tooltip explaining how the quota was computed).
+     *
+     * @param kost2Durations Map of Kost2 ID to MonthlyEmployeeReportEntry
+     * @return The invoicing quota result, or null if disabled or no (non-ignored) data
+     */
+    fun calculateQuotaResult(kost2Durations: Map<Long, MonthlyEmployeeReportEntry>): InvoicingQuotaResult? {
         if (!isEnabled()) return null
 
         var totalDuration = 0L
@@ -101,11 +112,12 @@ class InvoicingQuotaService(
         }
 
         return if (totalDuration > 0) {
-            BigDecimal(billedDuration).divide(
+            val quota = BigDecimal(billedDuration).divide(
                 BigDecimal(totalDuration),
                 4,
                 RoundingMode.HALF_UP
             )
+            InvoicingQuotaResult(quota, billedDuration, totalDuration)
         } else {
             null
         }
@@ -138,3 +150,16 @@ class InvoicingQuotaService(
         return value.matches(Regex(regexPattern))
     }
 }
+
+/**
+ * Result of an invoicing quota calculation, carrying the quota fraction together with the billed and total
+ * durations it was derived from (both in milliseconds, based on [MonthlyEmployeeReportEntry.workFractionMillis]).
+ */
+class InvoicingQuotaResult(
+    /** The invoicing quota as a decimal fraction (0.0 - 1.0), scale 4, HALF_UP. */
+    val quota: BigDecimal,
+    /** Sum of billed work durations in milliseconds (numerator). */
+    val billedDurationMillis: Long,
+    /** Sum of all non-ignored work durations in milliseconds (denominator). */
+    val totalDurationMillis: Long,
+)

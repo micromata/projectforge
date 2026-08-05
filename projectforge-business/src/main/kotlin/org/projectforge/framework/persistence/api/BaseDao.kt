@@ -80,7 +80,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
      * or in React pages.
      * At default, it's the simple name of the DO clazz without extension "DO".
      */
-    val identifier: String by lazy { StringUtils.uncapitalize(StringUtils.removeEnd(doClass.simpleName, "DO")) }
+    val identifier: String by lazy { doClass.simpleName.removeSuffix("DO").replaceFirstChar { it.lowercase() } }
 
     @JvmField
     var logDatabaseActions: Boolean = true

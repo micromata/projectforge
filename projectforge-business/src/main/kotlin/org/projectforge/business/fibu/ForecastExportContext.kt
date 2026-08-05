@@ -45,6 +45,7 @@ internal class ForecastExportContext(
     val forecastSheet: ExcelSheet,
     val invoicesSheet: ExcelSheet,
     val invoicesPrevYearSheet: ExcelSheet,
+    val invoicesPrevPrevYearSheet: ExcelSheet,
     val planningSheet: ExcelSheet,
     val planningInvoicesSheet: ExcelSheet,
     val startDate: PFDay,
@@ -53,11 +54,17 @@ internal class ForecastExportContext(
     val planningDate: LocalDate? = null,
     val snapshot: Boolean = false,
     val fillUnitCol: ((orderInfo: OrderInfo) -> String)? = null,
+    /**
+     * If true (default), unused budget is booked as future revenue in the last month of the performance period.
+     * If false, it is shown as a negative difference (more conservative). See [ForecastOrderPosInfo.distributeUnusedBudget].
+     */
+    val distributeUnusedBudget: Boolean = true,
 ) {
     enum class Sheet(val title: String) {
         FORECAST("Forecast_Data"),
         INVOICES("Rechnungen"),
         INVOICES_PREV_YEAR("Rechnungen Vorjahr"),
+        INVOICES_PREV_PREV_YEAR("Rechnungen Vorvorjahr"),
         PLANNING("Planning_Data"),
         PLANNING_INVOICES("Planning_Invoices"),
         INFO("Info")
@@ -158,4 +165,20 @@ internal class ForecastExportContext(
     val orderMapByPositionId = mutableMapOf<Long, OrderInfo>()
 
     var hasUnitColEntries = false
+
+    /**
+     * True, if at least one invoice was exported for which neither the invoice itself nor its order references a
+     * project. Such invoices get [PROJECT_ID_NONE] as project id and are represented by a single pseudo order row
+     * in the forecast sheet, so they are part of the unfiltered sums, but drop out as soon as the user filters by
+     * unit, customer or project.
+     */
+    var hasInvoicesWithoutProject = false
+
+    companion object {
+        /**
+         * Pseudo project id for invoices without any assignable project. Needed because the filter selection of the
+         * forecast sheet is propagated to the invoice sheets by project id only (see visible/visibleID columns).
+         */
+        const val PROJECT_ID_NONE = -1L
+    }
 }
