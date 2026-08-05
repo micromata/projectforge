@@ -231,6 +231,8 @@ Set permissions (the container runs as user `projectforge`, UID 101):
 podman unshare chown -R 101:101 ~/gateway/ProjectForge
 ```
 
+After this, the files are no longer editable directly — see the troubleshooting entry below.
+
 ### 5. Start on the server
 
 ```bash
@@ -324,6 +326,34 @@ branch — if it predates the fix, rebuild the JAR and the image.
 
 The auto-generated `environment.sh` in the ProjectForge home overrides `JAVA_ARGS`. See the
 note in step 4.
+
+### Files in the ProjectForge home cannot be edited (and `chown` fails)
+
+After `podman unshare chown -R 101:101`, `ls -l` shows an owner like `689924` and editing
+`projectforge.properties` is denied — as is `chown`, even though the files nominally belong
+to you.
+
+With rootless Podman, container UIDs are mapped into your subordinate UID range from
+`/etc/subuid`: container UID 0 becomes your own UID, and everything above it lands in the
+subuid range (`689924` above is the mapping of container UID 101, the `projectforge` user from
+the Dockerfile). Those UIDs are allocated to you but are not your login user, so you have
+neither write access nor the `CAP_CHOWN` needed to change ownership — that capability only
+exists inside the namespace.
+
+Edit inside the namespace, where you are root:
+
+```bash
+podman unshare vi ~/gateway/ProjectForge/projectforge.properties
+```
+
+Alternatively hand a single file back to yourself, edit it normally, then return it (container
+UID 0 maps to your own user on the host):
+
+```bash
+podman unshare chown 0:0 ~/gateway/ProjectForge/projectforge.properties
+# edit
+podman unshare chown 101:101 ~/gateway/ProjectForge/projectforge.properties
+```
 
 ### Base image not found
 
