@@ -34,6 +34,7 @@ import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.util.TreeSet
+import java.util.concurrent.atomic.AtomicInteger
 
 private val log = KotlinLogging.logger {}
 
@@ -70,14 +71,43 @@ class AuftragsRechnungCache : AbstractCache() {
     private var invoicePositionMapByRechnungId = mapOf<Long, MutableSet<RechnungPosInfo>>()
 
     /**
-     * [AuftragsCache.refresh] uses this cache via [OrderPositionInfo] and vice versa. Both caches must run twice.
+     * [AuftragsCache.refresh] uses this cache via [OrderPositionInfo] and vice versa, so neither cache can be
+     * calculated correctly in a single pass: whichever runs first sees the other one empty. Therefore every refresh of
+     * this cache triggers a re-calculation of [AuftragsCache] (see [auftragsCacheListener]), which in turn re-reads
+     * this cache. This counter breaks that ping-pong after [MAX_COUPLED_REFRESH_ROUNDS] rounds, which is all it takes:
+     * once both caches have been calculated on top of a filled counterpart, the result is stable.
+     *
+     * Reset whenever this cache is invalidated from the outside, so a later invalidation heals the order sums again
+     * (before, a one-shot flag made this work on startup only, leaving OrderPositionInfo.invoicedSum at 0 forever if
+     * AuftragsCache happened to be refreshed while this cache was still empty).
      */
-    private var ready = false
+    private val coupledRefreshRounds = AtomicInteger(0)
+
+    /**
+     * True, if [refresh] couldn't resolve all invoice positions to their orders, because [AuftragsCache] wasn't
+     * available at that moment. [invoicePositionMapByAuftragId] is then incomplete and this cache must run again after
+     * [AuftragsCache] is done.
+     */
+    @Volatile
+    private var orderResolutionIncomplete = false
+
+    /**
+     * True while this cache is re-read only to complete [invoicePositionMapByAuftragId] (see
+     * [orderResolutionIncomplete]). [AuftragsCache] is up-to-date in that case and must not be refreshed again.
+     */
+    @Volatile
+    private var suppressCoupledRefresh = false
 
     @PostConstruct
     private fun init() {
         rechnungDao.register(rechnungListener)
         auftragsCache.register(auftragsCacheListener)
+    }
+
+    override fun setExpired() {
+        // New data: the coupled refresh of AuftragsCache has to be done again.
+        coupledRefreshRounds.set(0)
+        super.setExpired()
     }
 
     /**
@@ -108,6 +138,7 @@ class AuftragsRechnungCache : AbstractCache() {
     override fun refresh() {
         log.info("Initializing AuftragsRechnungCache...")
         val duration = LogDuration()
+        orderResolutionIncomplete = false
         val list = rechnungJdbcService.selectRechnungsPositionenWithAuftragPosition()
         // This method must not be synchronized because it works with new copies of maps.
         val mapByAuftragId = mutableMapOf<Long, TreeSet<Long>>()
@@ -129,6 +160,12 @@ class AuftragsRechnungCache : AbstractCache() {
             //val auftrag = auftragsPosition.auftrag
             val rechnungPosInfo = rechnungCache.ensureRechnungPosInfo(pos)
             pos.info = rechnungPosInfo
+            if (auftrag == null) {
+                // AuftragsCache doesn't know this position (yet): it is refreshing right now and calls this refresh
+                // nested (see auftragsCacheListener), so its order map isn't available. invoicePositionMapByAuftragId
+                // stays incomplete and has to be rebuilt afterwards:
+                orderResolutionIncomplete = true
+            }
             auftrag?.id?.let { auftragId ->
                 pos.id?.let { mapByAuftragId.getOrPut(auftragId) { TreeSet() }.add(it) }
             }
@@ -141,10 +178,27 @@ class AuftragsRechnungCache : AbstractCache() {
         this.invoicePositionMapByAuftragId = mapByAuftragId
         this.invoicePositionMapByAuftragsPositionId = mapByAuftragsPositionId
         this.invoicePositionMapByRechnungId = mapByRechnungsPositionMapByRechnungId
-        if (!auftragsCache.initialized) {
-            log.info { "AuftragsCache not yet initialized. Must re-run this refresh after initialization of AuftragsCache." }
-        }
         log.info { "Initializing of AuftragsRechnungCache done: ${duration.toSeconds()}." }
+        // The invoice positions of the orders are known now, so the order sums (OrderPositionInfo.invoicedSum) have to
+        // be re-calculated on top of them:
+        refreshAuftragsCacheIfNeeded()
+    }
+
+    /**
+     * Re-calculates [AuftragsCache], because its order sums were calculated while this cache was still empty or
+     * outdated. Limited to [MAX_COUPLED_REFRESH_ROUNDS] rounds, see [coupledRefreshRounds].
+     */
+    private fun refreshAuftragsCacheIfNeeded() {
+        if (suppressCoupledRefresh) {
+            log.debug { "AuftragsCache is up-to-date, only this cache had to be completed." }
+            return
+        }
+        if (coupledRefreshRounds.incrementAndGet() > MAX_COUPLED_REFRESH_ROUNDS) {
+            log.debug { "AuftragsCache already re-calculated with this invoice data, nothing to do." }
+            return
+        }
+        log.info { "Forcing AuftragsCache to refresh, so the invoiced sums of the orders are calculated correctly." }
+        auftragsCache.forceReload()
     }
 
     private val rechnungListener = object : BaseDOModifiedListener<RechnungDO> {
@@ -156,16 +210,41 @@ class AuftragsRechnungCache : AbstractCache() {
         }
     }
 
+    /**
+     * [AuftragsCache] resolves its order positions to invoice positions via this cache, so this cache must be filled
+     * whenever the order cache is (re-)calculated.
+     */
     private val auftragsCacheListener = object : CacheListener {
-        override fun onAfterCacheRefresh() {
-            if (!ready) {
-                ready = true
-                auftragsCache.unregister(this)
-                log.info { "Forcing to refresh." }
+        override fun onBeforeCacheRefresh() {
+            if (!initialized) {
+                log.info { "AuftragsCache is refreshing, but the invoices aren't read yet. Reading them first." }
+                // Fills this cache. The coupled refresh of AuftragsCache triggered afterwards is a no-op while
+                // AuftragsCache is refreshing anyway (guarded in AbstractCache.performRefresh).
                 forceReload()
-                log.info { "Forcing AuftragsCache to refresh." }
-                auftragsCache.forceReload()
             }
         }
+
+        override fun onAfterCacheRefresh() {
+            if (orderResolutionIncomplete) {
+                // Our order map was built without AuftragsCache (nested refresh). Now that the orders are known, it
+                // can be completed. AuftragsCache is up-to-date, so this must not trigger it again:
+                log.info { "AuftragsCache is available now, re-reading the invoices of the orders." }
+                suppressCoupledRefresh = true
+                try {
+                    forceReload()
+                } finally {
+                    suppressCoupledRefresh = false
+                }
+            }
+        }
+    }
+
+    companion object {
+        /**
+         * How often a refresh of this cache may trigger a re-calculation of [AuftragsCache] before the ping-pong
+         * between both caches is stopped. One round is enough: [AuftragsCache] then calculates its order sums on top
+         * of a completely filled invoice cache. See [coupledRefreshRounds].
+         */
+        private const val MAX_COUPLED_REFRESH_ROUNDS = 1
     }
 }
