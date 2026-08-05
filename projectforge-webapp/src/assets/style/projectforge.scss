@@ -1,7 +1,9 @@
 @import '../fonts/roboto/index.css';
 @import 'bootstrap/scss/bootstrap';
 @import './theming';
-@import '@fortawesome/fontawesome-free/scss/solid';
+// Use the pre-built CSS (not scss/solid): only there the relative ../webfonts/ url is
+// resolvable by Vite (it sits next to the webfonts dir), so the font gets bundled/hashed.
+@import '@fortawesome/fontawesome-free/css/solid.css';
 
 // Data table row styling
 .row-red {

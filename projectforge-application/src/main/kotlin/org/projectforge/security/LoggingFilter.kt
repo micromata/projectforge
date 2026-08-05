@@ -127,6 +127,7 @@ class LoggingFilter : Filter {
       "/wa/", // Wicket stuff
       "/rsPublic/", // Public rest services (no login required)
       "/static/", // resources (css, images, js, ...)
+      "/assets/", // Vite build artifacts of the React app (js, css, fonts, images)
       "/export/", // ProjectForge.ics
       "/styles/", // Used by Wicket pages
       "/fonts/", // Used by Wicket pages
