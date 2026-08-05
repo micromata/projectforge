@@ -1,14 +1,14 @@
-# Gateway Teststellung aufbauen
+# Setting up a gateway test installation
 
-## Variante A: Lokal mit HSQLDB (schnellster Weg)
+## Variant A: Local with HSQLDB (fastest way)
 
-### 1. Gateway-Datenverzeichnis
+### 1. Gateway data directory
 
 ```bash
 mkdir -p ~/ProjectForgeGateway
 ```
 
-Die Datei `~/ProjectForgeGateway/projectforge.properties` anlegen:
+Create the file `~/ProjectForgeGateway/projectforge.properties`:
 
 ```properties
 projectforge.domain=http://localhost:8090
@@ -22,9 +22,9 @@ spring.datasource.password=
 projectforge.carddav.server.enable=true
 ```
 
-### 2. Main-Instanz konfigurieren
+### 2. Configure the main instance
 
-In `~/ProjectForge/projectforge.properties` ergänzen:
+Add to `~/ProjectForge/projectforge.properties`:
 
 ```properties
 projectforge.gateway.push.enabled=true
@@ -33,9 +33,9 @@ projectforge.gateway.push.secret=test-secret-12345
 projectforge.gateway.push.syncIntervalMs=60000
 ```
 
-### 3. Starten
+### 3. Start
 
-**Terminal 1 – Gateway:**
+**Terminal 1 – gateway:**
 
 ```bash
 ./gradlew :projectforge-application:bootJar
@@ -44,41 +44,41 @@ java -Dprojectforge.base.dir=$HOME/ProjectForgeGateway \
   --spring.profiles.active=external-gateway
 ```
 
-**Terminal 2 – Main-Instanz:**
+**Terminal 2 – main instance:**
 
-Starten mit ```-Dprojectforge.base.dir=$HOME/ProjectForge```
+Start with ```-Dprojectforge.base.dir=$HOME/ProjectForge```
 
-### 4. Sync prüfen
+### 4. Verify the sync
 
-Nach max 60s erscheinen Sync-Requests in den Gateway-Logs. Manuell testen:
+Sync requests appear in the gateway logs after at most 60s. Manual test:
 
 ```bash
-# User-Sync simulieren
+# Simulate a user sync
 curl -X POST http://localhost:8090/api/gateway/sync/users \
   -H "X-Gateway-Secret: test-secret-12345" \
   -H "Content-Type: application/json" \
   -d '[{"username":"testuser","email":"test@example.com","active":true}]'
 
-# Endpoint-Filter prüfen (muss 404 liefern)
+# Check the endpoint filter (must return 404)
 curl -s -o /dev/null -w "%{http_code}" http://localhost:8090/wa/
 
-# CardDAV erreichbar
+# CardDAV reachable
 curl -X PROPFIND http://localhost:8090/.well-known/carddav
 ```
 
 ---
 
-## Variante B: Podman + Postgres auf Debian-Server
+## Variant B: Podman + Postgres on a Debian server
 
-### Voraussetzungen auf dem Server
+### Prerequisites on the server
 
 ```bash
 sudo apt update && sudo apt install -y podman podman-compose
 ```
 
-### 1. JAR lokal bauen und Image auf dem Server erstellen
+### 1. Build the JAR locally and create the image on the server
 
-**Lokal: Fat-JAR bauen und Build-Kontext auf den Server kopieren**
+**Locally: build the fat JAR and copy the build context to the server**
 
 ```bash
 ./gradlew :projectforge-application:bootJar
@@ -89,7 +89,7 @@ scp Dockerfile user@server:~/build/
 scp docker/entrypoint.sh docker/environment.sh user@server:~/build/docker/
 ```
 
-**Auf dem Server: Docker-Image bauen**
+**On the server: build the Docker image**
 
 ```bash
 ssh user@server
@@ -99,31 +99,42 @@ podman build \
   -t micromata/projectforge-gateway:test .
 ```
 
-### 2. Compose- und Nginx-Dateien auf den Server kopieren
+Rebuild both the JAR and the image after code changes, otherwise a stale build keeps
+running. The commit of the running build is logged at startup (`git=<branch>@<hash>`) and
+can be compared against the branch.
+
+### 2. Copy compose and nginx files to the server
 
 ```bash
 scp docker/compose/gateway/docker-compose-gateway.yml user@server:~/gateway/
 scp -r docker/compose/gateway/nginx user@server:~/gateway/
+scp docker/compose/gateway/projectforge.properties user@server:~/gateway/ProjectForge/
 ```
 
-### 3. TLS-Zertifikat erstellen (Let's Encrypt)
+The compose file terminates TLS via nginx, which is the recommended setup. For a quick
+test without TLS, drop the `nginx` and `certbot` services, publish the application port
+directly (`ports: - "8090:8080"`) and skip step 3. In that case `projectforge.domain` and
+the redirect URI registered in Authentik must use `http://<host>:8090` instead of the
+HTTPS host name.
 
-Beim ersten Start muss das Zertifikat initial erzeugt werden. Dazu `gateway.example.com`
-durch den tatsächlichen Hostnamen ersetzen (auch in `nginx/nginx.conf`):
+### 3. Create a TLS certificate (Let's Encrypt)
+
+On first start the certificate has to be created initially. Replace `gateway.example.com`
+with the actual host name (in `nginx/nginx.conf` as well):
 
 ```bash
 ssh user@server
 cd ~/gateway
 mkdir -p nginx/certs nginx/webroot
 
-# Temporär Nginx ohne SSL starten (für ACME-Challenge)
+# Temporarily start nginx without SSL (for the ACME challenge)
 podman run --rm -d --name nginx-init \
   -p 80:80 \
   -v ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro \
   -v ./nginx/webroot:/var/www/certbot \
   docker.io/library/nginx:alpine
 
-# Zertifikat holen
+# Obtain the certificate
 podman run --rm \
   -v ./nginx/certs:/etc/letsencrypt \
   -v ./nginx/webroot:/var/www/certbot \
@@ -135,17 +146,17 @@ podman run --rm \
 podman stop nginx-init
 ```
 
-### 4. ProjectForge-Home auf dem Server einrichten
+### 4. Set up the ProjectForge home on the server
 
-Das Verzeichnis `~/gateway/ProjectForge` wird als Bind-Mount ins Container gemappt.
-Hier liegen Properties, Logs, Lucene-Index und Uploads direkt im Filesystem:
+The directory `~/gateway/ProjectForge` is bind-mounted into the container. Properties,
+logs, the Lucene index and uploads live directly in the file system:
 
 ```bash
 ssh user@server
 mkdir -p ~/gateway/ProjectForge
 ```
 
-`~/gateway/ProjectForge/projectforge.properties` anlegen:
+Create `~/gateway/ProjectForge/projectforge.properties`:
 
 ```properties
 projectforge.domain=https://gateway.example.com
@@ -158,7 +169,10 @@ spring.datasource.driver-class-name=org.postgresql.Driver
 spring.datasource.username=projectforge
 spring.datasource.password=projectforge-gw-pass
 
-# OAuth2/OIDC (required for gateway mode)
+# Encryption key for the users' authentication tokens
+projectforge.security.authenticationTokenEncryptionKey=CHANGE_ME
+
+# OAuth2/OIDC — only required for the DataTransfer UI (see note below)
 spring.security.oauth2.client.registration.authentik.client-id=YOUR_CLIENT_ID
 spring.security.oauth2.client.registration.authentik.client-secret=YOUR_CLIENT_SECRET
 spring.security.oauth2.client.registration.authentik.scope=openid,profile,email
@@ -167,24 +181,44 @@ spring.security.oauth2.client.registration.authentik.redirect-uri={baseUrl}/logi
 spring.security.oauth2.client.provider.authentik.issuer-uri=https://auth.example.com/application/o/projectforge/
 ```
 
-Permissions setzen (Container läuft als User `projectforge`, UID 101):
+Note that `#` does not start a comment in the middle of a properties line — a comment
+appended to a value becomes part of that value. Always put comments on their own line.
+
+**OAuth2 note:** the OAuth2 block is optional. Without `client-id` the `OAuth2UserService`
+bean is not created and the gateway starts without any login option — CardDAV and ICS still
+work, since they authenticate via tokens. Only the DataTransfer UI
+(`/rs/datatransfer/**`) requires OAuth2.
+
+**Important — Spring profile and `environment.sh`:** in docker mode ProjectForge creates an
+`environment.sh` in the ProjectForge home on first start, containing an empty
+`export JAVA_ARGS=`. Since `entrypoint.sh` sources that file, a `JAVA_ARGS=--spring.profiles.active=external-gateway`
+passed via the container environment used to be lost from the second start onwards (visible
+in the log as `No active profile set`). After the fix in `docker/entrypoint.sh`, values from
+the container environment take precedence. With older images, set the profile directly in
+`~/gateway/ProjectForge/environment.sh` instead:
+
+```bash
+export JAVA_ARGS=--spring.profiles.active=external-gateway
+```
+
+Set permissions (the container runs as user `projectforge`, UID 101):
 
 ```bash
 podman unshare chown -R 101:101 ~/gateway/ProjectForge
 ```
 
-### 5. Auf Server starten
+### 5. Start on the server
 
 ```bash
 cd ~/gateway
 podman-compose -f docker-compose-gateway.yml up -d
 ```
 
-Das Gateway ist nun unter `https://gateway.example.com` erreichbar.
-Nginx terminiert TLS und leitet intern an den Spring-Boot-Container weiter.
-Certbot erneuert das Zertifikat automatisch alle 12h.
+The gateway is now reachable at `https://gateway.example.com`. Nginx terminates TLS and
+forwards internally to the Spring Boot container. Certbot renews the certificate
+automatically every 12h.
 
-### 6. Main-Instanz auf Remote zeigen
+### 6. Point the main instance at the remote gateway
 
 In `~/ProjectForge/projectforge.properties`:
 
@@ -195,72 +229,90 @@ projectforge.gateway.push.secret=test-secret-12345
 projectforge.gateway.push.syncIntervalMs=60000
 ```
 
-### 7. Logs und Status prüfen
+### 7. Check logs and status
 
 ```bash
-# Logs direkt im Filesystem
+# Logs directly in the file system
 tail -f ~/gateway/ProjectForge/logs/ProjectForge.log
 
-# Oder über Podman
+# Or via Podman
 podman logs -f gateway_projectforge-gateway_1
 podman ps
 ```
 
 ---
 
-## Synchronisierte Daten (Need-to-know-Prinzip)
+## Synced data (need-to-know principle)
 
-Die Main-Instanz pusht nur die minimal notwendigen Daten an das Gateway:
+The main instance pushes only the minimum necessary data to the gateway:
 
 ### Users
-| Feld | Beschreibung |
+| Field | Description |
 |------|-------------|
-| `username` | Eindeutiger Benutzername (Identifikation) |
-| `idpExternalId` | IdP-ID für OAuth2/OIDC-Login am Gateway |
-| `davToken` | Token für CardDAV/CalDAV-Authentifizierung |
-| `calendarRestToken` | Token für ICS-Kalender-Subscriptions |
-| `active` | Aktiv-Status (Zugangssteuerung) |
+| `username` | Unique user name (identification) |
+| `idpExternalId` | IdP id for OAuth2/OIDC login at the gateway |
+| `davToken` | Token for CardDAV/CalDAV authentication |
+| `calendarRestToken` | Token for ICS calendar subscriptions |
+| `active` | Active state (access control) |
 
-**Nicht synchronisiert:** E-Mail, Vorname, Nachname, Passwort-Hashes, Locale, etc.
+**Not synced:** email, first name, last name, password hashes, locale, etc.
 
 ### Groups
-| Feld | Beschreibung |
+| Field | Description |
 |------|-------------|
-| `name` | Gruppenname |
-| `memberUsernames` | Liste der Mitglieder (Usernames) |
+| `name` | Group name |
+| `memberUsernames` | List of members (user names) |
 
-**Nicht synchronisiert:** Beschreibung, Rechte-Details.
+**Not synced:** description, permission details.
 
 ### Addresses
-Vollständige Kontaktdaten für CardDAV (Name, Organisation, E-Mail, Telefon).
+Full contact data for CardDAV (name, organization, email, phone).
 
-### ICS-Daten
-Vorberechnete ICS-Kalender-Exports pro User und Kalender.
+### ICS data
+Pre-computed ICS calendar exports per user and calendar.
 
-### Hinweis: Automatisch generierte Tokens auf dem Gateway
+### Note: automatically generated tokens on the gateway
 
-Beim ersten Sync eines Users erzeugt das Gateway automatisch **alle** Token-Typen
-(`CALENDAR_REST`, `DAV_TOKEN`, `REST_CLIENT`, `STAY_LOGGED_IN_KEY`) in der lokalen
-`T_USER_AUTHENTICATIONS`-Tabelle. Die Tokens für `REST_CLIENT` und `STAY_LOGGED_IN_KEY`
-werden **nicht** von der Main-Instanz übertragen, sondern lokal als Nebeneffekt der
-`UserAuthenticationsDao`-Initialisierung generiert. Sie werden auf dem Gateway nicht
-funktional genutzt und können ignoriert werden.
+On a user's first sync the gateway automatically creates **all** token types
+(`CALENDAR_REST`, `DAV_TOKEN`, `REST_CLIENT`, `STAY_LOGGED_IN_KEY`) in its local
+`T_USER_AUTHENTICATIONS` table. The tokens for `REST_CLIENT` and `STAY_LOGGED_IN_KEY` are
+**not** transferred by the main instance but generated locally as a side effect of
+`UserAuthenticationsDao` initialization. They are not used functionally on the gateway and
+can be ignored.
 
 ---
 
 ## Troubleshooting
 
-### Base-Image nicht gefunden
+### Startup fails: no bean of type `OAuth2UserService`
 
-Das Dockerfile nutzt `docker.io/eclipse-temurin:17-jre-jammy`. Falls Podman die Registry nicht findet:
+```
+Field oAuth2UserService in org.projectforge.gateway.GatewaySecurityConfig required a bean
+of type 'org.projectforge.security.OAuth2UserService' that could not be found.
+```
+
+Older builds injected the service as mandatory, so the gateway refused to start without
+OAuth2 configuration. This was fixed by commit `08b59438` ("Improve gateway resilience");
+the dependency is optional now. Compare the commit hash in the startup log against the
+branch — if it predates the fix, rebuild the JAR and the image.
+
+### `No active profile set` although `JAVA_ARGS` is set in compose
+
+The auto-generated `environment.sh` in the ProjectForge home overrides `JAVA_ARGS`. See the
+note in step 4.
+
+### Base image not found
+
+The Dockerfile uses `docker.io/eclipse-temurin:17-jre-jammy`. If Podman cannot resolve the
+registry:
 
 ```bash
 podman pull docker.io/eclipse-temurin:17-jre-jammy
 ```
 
-### JAR_FILE Build-Argument
+### JAR_FILE build argument
 
-Das Build-Argument muss den relativen Pfad zum Fat-JAR enthalten (nicht das `-plain.jar`):
+The build argument must contain the relative path to the fat JAR (not the `-plain.jar`):
 
 ```bash
 podman build \
@@ -269,9 +321,9 @@ podman build \
   -t micromata/projectforge-gateway:test .
 ```
 
-### Podman rootless: Port < 1024
+### Podman rootless: port < 1024
 
-Falls der Gateway auf Port 80/443 laufen soll:
+If the gateway should listen on port 80/443:
 
 ```bash
 sudo sysctl net.ipv4.ip_unprivileged_port_start=80
@@ -279,8 +331,8 @@ sudo sysctl net.ipv4.ip_unprivileged_port_start=80
 
 ---
 
-## OAuth/Authentik Redirect-URI
+## OAuth/Authentik redirect URI
 
-Im Authentik-Provider die Redirect-URI registrieren:
-- Lokal: `http://localhost:8090/login/oauth2/code/authentik`
+Register the redirect URI in the Authentik provider:
+- Local: `http://localhost:8090/login/oauth2/code/authentik`
 - Remote: `https://gateway.example.com/login/oauth2/code/authentik`

@@ -50,7 +50,17 @@ echo "Starting ${APP_NAME}..."
 ENVIRONMENT_FILE=/ProjectForge/environment.sh
 if [ -f "$ENVIRONMENT_FILE" ]; then
   echo "Sourcing $ENVIRONMENT_FILE..."
+  # ProjectForge creates environment.sh itself on first start in docker mode with empty
+  # JAVA_OPTS/JAVA_ARGS. Values passed via the container environment must survive that.
+  ENV_JAVA_OPTS="$JAVA_OPTS"
+  ENV_JAVA_ARGS="$JAVA_ARGS"
   . $ENVIRONMENT_FILE
+  if [ -n "$ENV_JAVA_OPTS" ]; then
+    JAVA_OPTS="$ENV_JAVA_OPTS"
+  fi
+  if [ -n "$ENV_JAVA_ARGS" ]; then
+    JAVA_ARGS="$ENV_JAVA_ARGS"
+  fi
 fi
 
 if [ -n "$JAVA_OPTS" ]; then

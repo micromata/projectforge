@@ -1015,8 +1015,11 @@ Activate with the Spring profile `external-gateway`:
 
 ===== Minimal gateway configuration
 
-The gateway instance's `projectforge.properties` requires the gateway mode, database connection, and OAuth2/OIDC configuration.
+The gateway instance's `projectforge.properties` requires the gateway mode and the database connection.
 All other gateway settings (CardDAV, menu visibility) are provided by the `external-gateway` profile automatically.
+
+The OAuth2/OIDC configuration is only needed for the DataTransfer UI: CardDAV and CalDAV/ICS authenticate
+via tokens and work without it. If the OAuth2 client is not configured, the gateway starts without a login option.
 
 [source,properties]
 ----
@@ -1030,7 +1033,7 @@ spring.datasource.driver-class-name=org.postgresql.Driver
 spring.datasource.username=projectforge
 spring.datasource.password=<your-password>
 
-# OAuth2/OIDC (required — gateway authenticates exclusively via OAuth2)
+# OAuth2/OIDC (only required for the DataTransfer UI)
 spring.security.oauth2.client.registration.authentik.client-id=${AUTHENTIK_CLIENT_ID}
 spring.security.oauth2.client.registration.authentik.client-secret=${AUTHENTIK_CLIENT_SECRET}
 spring.security.oauth2.client.registration.authentik.scope=openid,profile,email
