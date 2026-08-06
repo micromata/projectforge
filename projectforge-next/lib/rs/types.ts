@@ -194,6 +194,13 @@ export interface FilterElement {
   openInterval?: boolean;
   /** TIMESTAMP: quick range presets (YEAR, MONTH, WEEK, DAY, UNTIL_NOW). */
   selectors?: string[];
+  /**
+   * The backend asks for this filter to stay visible on the list page, even without a value
+   * (UIFilterElement.defaultFilter — e.g. the address list's "only my addresses").
+   */
+  defaultFilter?: boolean;
+  /** Explains a cryptic field name; the only place the backend can do so. */
+  tooltip?: string;
 }
 
 export interface ValidationError {

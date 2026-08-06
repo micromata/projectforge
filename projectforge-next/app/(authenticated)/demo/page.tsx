@@ -8,7 +8,6 @@ import { DataTable, useMagicFilterQuery } from "@/components/data-table";
 import { useBooksColumns } from "@/components/features/books/books-columns";
 import { BookRowActions } from "@/components/features/books/book-row-actions";
 import { BooksToolbar } from "@/components/features/books/books-toolbar";
-import { BooksFilterPanel } from "@/components/features/books/books-filter-panel";
 import type { BookListRow } from "@/components/features/books/types";
 
 export default function DemoPage() {
@@ -40,7 +39,6 @@ export default function DemoPage() {
             toolbar={
               <BooksToolbar search={globalFilter} onSearch={setGlobalFilter} />
             }
-            filterPanel={<BooksFilterPanel className="hidden lg:flex" />}
           >
             <DataTable<BookListRow>
               columns={columns}

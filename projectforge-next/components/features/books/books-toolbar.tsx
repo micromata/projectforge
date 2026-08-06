@@ -2,6 +2,7 @@
 
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PlusSignIcon, Search01Icon } from "@hugeicons/core-free-icons";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,7 @@ interface BooksToolbarProps {
   onSearch: (v: string) => void;
   /** Column visibility/pinning panel, rendered once the table instance exists. */
   columnPanel?: React.ReactNode;
-  /** Active filters as removable pills, shown below the search field. */
+  /** Active filters as editable pills plus the "all filters" trigger. */
   filterPills?: React.ReactNode;
 }
 
@@ -21,21 +22,24 @@ export function BooksToolbar({
   columnPanel,
   filterPills,
 }: BooksToolbarProps) {
+  const t = useTranslations();
+
   return (
     <div className="border-b bg-background">
       <div className="flex items-center gap-3 px-4 pt-3">
         <div>
           <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-            Projektmanagement
+            {t("menu.common")}
           </p>
-          <h1 className="text-lg font-bold tracking-tight">Bücherliste</h1>
+          <h1 className="text-lg font-bold tracking-tight">
+            {t("books.title")}
+          </h1>
         </div>
         <div className="flex-1" />
-        {columnPanel}
         <Button asChild size="sm" className="gap-1.5">
           <Link href="/books/new">
             <HugeiconsIcon icon={PlusSignIcon} size={13} />
-            Hinzufügen
+            {t("book.title.add")}
           </Link>
         </Button>
       </div>
@@ -50,13 +54,19 @@ export function BooksToolbar({
           <Input
             value={search}
             onChange={(e) => onSearch(e.target.value)}
-            placeholder="Bücherliste durchsuchen…"
+            placeholder={t("books.searchPlaceholder")}
             className="h-9 pl-9"
           />
         </div>
       </div>
 
-      {filterPills}
+      {/* Filters left, table settings right: both act on the list below, not on the page. */}
+      {(filterPills || columnPanel) && (
+        <div className="flex items-start gap-3 px-4 pb-2.5">
+          <div className="flex-1">{filterPills}</div>
+          {columnPanel}
+        </div>
+      )}
     </div>
   );
 }

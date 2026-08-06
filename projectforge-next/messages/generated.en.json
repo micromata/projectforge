@@ -1,4 +1,5 @@
 {
+  "apply": "Apply",
   "book": {
     "abstract": "Abstract",
     "authors": "Authors",
@@ -52,6 +53,7 @@
   },
   "cancel": "Cancel",
   "columns": {
+    "_": "Columns",
     "dragToSort": "Drag to sort",
     "manage": "Manage columns",
     "pin": "Pin left",
@@ -65,9 +67,14 @@
   },
   "created": "created",
   "createdBy": "created by",
+  "delete": "Delete",
+  "deleted": "deleted",
   "filter": {
+    "activeCount": "Active filters: {arg0}",
+    "addField": "Add filter",
     "after": "After",
     "all": "all",
+    "allFilters": "All filters",
     "apply": "Apply",
     "before": "Before",
     "between": "Between",
@@ -75,6 +82,7 @@
     "clearAll": "Clear all",
     "close": "Close",
     "contains": "Contains",
+    "editEntry": "Edit filter {arg0}",
     "emptyValue": "empty value",
     "endsWith": "Ends with",
     "equals": "Equals",
@@ -85,6 +93,7 @@
     "lessThan": "Less than",
     "newest": "newest",
     "noFields": "No filter fields available",
+    "noMatch": "No matching filter field",
     "notBlank": "Not blank",
     "notContains": "Does not contain",
     "notEqual": "Not equal",
@@ -126,6 +135,7 @@
     "title": "Login"
   },
   "menu": {
+    "common": "Common",
     "favorites": {
       "more": "More favorites"
     },
@@ -162,6 +172,7 @@
     }
   },
   "passwordRepeat": "Repeat password",
+  "save": "Save",
   "user": {
     "My2FA": {
       "expired": "For the requested action a 2FA is required not older than {arg0}.",

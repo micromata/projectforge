@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import {
   DataTable,
   DataTableColumnPanel,
-  FilterPanel,
+  FilterAllDialog,
   FilterPills,
   useColumnStatePersistence,
   useDataTable,
@@ -48,7 +48,6 @@ export default function BooksPage() {
 
 function BooksList({ storedState }: { storedState: ColumnState }) {
   const columns = useBooksColumns();
-  const [filterOpen, setFilterOpen] = useState(false);
   const [filterValues, setFilterValues] = useState<FilterValues>({});
 
   // Which filter fields exist is decided by the backend per entity, so they come
@@ -144,25 +143,27 @@ function BooksList({ storedState }: { storedState: ColumnState }) {
             search={globalFilter}
             onSearch={setGlobalFilter}
             columnPanel={
-              <DataTableColumnPanel table={table} onReset={resetColumns} />
+              <DataTableColumnPanel
+                table={table}
+                onReset={resetColumns}
+                className="h-6 rounded-full px-2.5 text-xs"
+              />
             }
             filterPills={
               <FilterPills
                 elements={filterElements}
                 values={filterValues}
                 onChange={setFilterValues}
-                className="px-4 pb-2.5"
+                trailing={
+                  <FilterAllDialog
+                    elements={filterElements}
+                    values={filterValues}
+                    onApply={setFilterValues}
+                    className="h-6 gap-1 rounded-full px-2.5 text-xs"
+                  />
+                }
               />
             }
-          />
-        }
-        filterPanel={
-          <FilterPanel
-            elements={filterElements}
-            values={filterValues}
-            onChange={setFilterValues}
-            open={filterOpen}
-            onOpenChange={setFilterOpen}
           />
         }
       >

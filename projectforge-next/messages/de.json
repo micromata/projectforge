@@ -23,6 +23,7 @@
   },
   "books": {
     "title": "Bücherliste",
+    "searchPlaceholder": "Bücherliste durchsuchen…",
     "edit": {
       "breadcrumbBack": "Bücherliste",
       "tabs": {

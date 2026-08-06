@@ -39,6 +39,8 @@ import { cn } from "@/lib/utils";
 interface DataTableColumnPanelProps<TData> {
   table: Table<TData>;
   onReset?: () => void;
+  /** Styles the trigger, e.g. to sit at pill height in a filter row. */
+  className?: string;
 }
 
 /**
@@ -56,6 +58,7 @@ function columnLabel<TData>(column: Column<TData, unknown>): string {
 export function DataTableColumnPanel<TData>({
   table,
   onReset,
+  className,
 }: DataTableColumnPanelProps<TData>) {
   const t = useTranslations("columns");
   const [dragId, setDragId] = useState<string | null>(null);
@@ -128,9 +131,15 @@ export function DataTableColumnPanel<TData>({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-1.5">
+        {/* Short label, full one as the tooltip: this sits in the filter row, not in a menu. */}
+        <Button
+          variant="outline"
+          size="sm"
+          title={t("manage")}
+          className={cn("gap-1.5", className)}
+        >
           <HugeiconsIcon icon={TableIcon} size={14} />
-          <span>{t("manage")}</span>
+          <span>{t("_")}</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0">

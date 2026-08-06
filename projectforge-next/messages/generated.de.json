@@ -1,4 +1,5 @@
 {
+  "apply": "Übernehmen",
   "book": {
     "abstract": "Zusammenfassung",
     "authors": "Autor:innen",
@@ -52,6 +53,7 @@
   },
   "cancel": "Abbrechen",
   "columns": {
+    "_": "Spalten",
     "dragToSort": "Ziehen zum Sortieren",
     "manage": "Spalten verwalten",
     "pin": "Links anheften",
@@ -65,9 +67,14 @@
   },
   "created": "angelegt",
   "createdBy": "angelegt von",
+  "delete": "Löschen",
+  "deleted": "gelöscht",
   "filter": {
+    "activeCount": "Aktive Filter: {arg0}",
+    "addField": "Filter hinzufügen",
     "after": "Nach",
     "all": "alle",
+    "allFilters": "Alle Filter",
     "apply": "Anwenden",
     "before": "Vor",
     "between": "Zwischen",
@@ -75,6 +82,7 @@
     "clearAll": "Alle löschen",
     "close": "Schließen",
     "contains": "Enthält",
+    "editEntry": "Filter {arg0} bearbeiten",
     "emptyValue": "leerer Wert",
     "endsWith": "Endet mit",
     "equals": "Gleich",
@@ -85,6 +93,7 @@
     "lessThan": "Kleiner als",
     "newest": "die neuesten",
     "noFields": "Keine Filterfelder verfügbar",
+    "noMatch": "Kein passendes Filterfeld",
     "notBlank": "Nicht leer",
     "notContains": "Enthält nicht",
     "notEqual": "Ungleich",
@@ -126,6 +135,7 @@
     "title": "Anmeldung"
   },
   "menu": {
+    "common": "Allgemein",
     "favorites": {
       "more": "Weitere Favoriten"
     },
@@ -162,6 +172,7 @@
     }
   },
   "passwordRepeat": "Passwort wiederholen",
+  "save": "Speichern",
   "user": {
     "My2FA": {
       "expired": "Für die angeforderte Aktion ist eine (erneute) Zwei-Faktor-Authentifizierung erforderlich, die nicht älter als {arg0} ist.",

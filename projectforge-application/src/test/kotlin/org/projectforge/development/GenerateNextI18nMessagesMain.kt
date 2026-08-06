@@ -59,15 +59,23 @@ object GenerateNextI18nMessagesMain {
    */
   private val PREFIXES = listOf(
     "book.",
-    "columns.",
+    // Without the dot, so the bare "columns" key exports too (as "columns._", see JsonNode.put).
+    "columns",
     "filter.",
     "created",
     "modified",
+    // Generic button labels. "delete" also matches "deleted" — harmless, and the alternative is
+    // spelling out every key that happens to share a prefix.
+    "apply",
+    "delete",
+    "save",
     // Top navigation. Not the whole "menu." tree: the entry titles come translated from /rs/menu,
     // only the chrome around them needs its own texts.
     "menu.main.title",
     "menu.favorites.more",
     "menu.myAccount",
+    // Category above a list page's heading, e.g. "Common / Books" — the entry's menu parent.
+    "menu.common",
     // Authentication (login, 2FA, password reset). Only the keys the frontend can show —
     // user.My2FA.setup.* holds long markdown blobs of the setup page, which next doesn't have.
     "cancel",
