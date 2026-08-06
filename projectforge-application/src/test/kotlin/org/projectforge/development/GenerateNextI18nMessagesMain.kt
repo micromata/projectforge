@@ -63,6 +63,11 @@ object GenerateNextI18nMessagesMain {
     "filter.",
     "created",
     "modified",
+    // Top navigation. Not the whole "menu." tree: the entry titles come translated from /rs/menu,
+    // only the chrome around them needs its own texts.
+    "menu.main.title",
+    "menu.favorites.more",
+    "menu.myAccount",
     // Authentication (login, 2FA, password reset). Only the keys the frontend can show —
     // user.My2FA.setup.* holds long markdown blobs of the setup page, which next doesn't have.
     "cancel",

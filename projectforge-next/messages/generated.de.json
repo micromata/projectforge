@@ -125,6 +125,15 @@
     "timeOffset": "Der Zugang ist noch für {arg0} Sekunden gesperrt auf Grund von {arg1} Fehlanmeldungen. Bitte später nochmals versuchen.",
     "title": "Anmeldung"
   },
+  "menu": {
+    "favorites": {
+      "more": "Weitere Favoriten"
+    },
+    "main": {
+      "title": "Hauptmenü"
+    },
+    "myAccount": "Mein Zugang"
+  },
   "modified": "geändert",
   "modifiedBy": "geändert durch",
   "modifiedHistoryValue": "Wert in der Änderungshistorie",

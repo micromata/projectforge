@@ -125,6 +125,15 @@
     "timeOffset": "Your account is now locked for further {arg0} seconds due to {arg1} failed login attempts. Please try again later.",
     "title": "Login"
   },
+  "menu": {
+    "favorites": {
+      "more": "More favorites"
+    },
+    "main": {
+      "title": "Main menu"
+    },
+    "myAccount": "My account"
+  },
   "modified": "modified",
   "modifiedBy": "modified by",
   "modifiedHistoryValue": "history value of modification",

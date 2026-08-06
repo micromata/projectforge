@@ -1,51 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMenu } from "@/hooks/use-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { logout } from "@/lib/rs/client";
-import { resolveMenuUrl } from "@/lib/menu-url";
-import type { MenuItem } from "@/lib/rs/types";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-/**
- * Renders a menu entry as a client-side link when it belongs to this app, and as a plain anchor
- * (full page load) when it points at the legacy React app or Wicket.
- */
-function MenuLink({
-  url,
-  children,
-  className,
-  onClick,
-}: {
-  url: string | undefined;
-  children: React.ReactNode;
-  className?: string;
-  onClick?: () => void;
-}) {
-  const target = resolveMenuUrl(url);
-  if (target.kind === "external") {
-    return (
-      <a href={target.href} className={className} onClick={onClick}>
-        {children}
-      </a>
-    );
-  }
-  return (
-    <Link href={target.href} className={className} onClick={onClick}>
-      {children}
-    </Link>
-  );
-}
+import { MainMenuDropdown } from "@/components/shared/main-menu-dropdown";
+import { FavoritesBar } from "@/components/shared/favorites-bar";
+import { UserMenu } from "@/components/shared/user-menu";
 
 export function TopNavigation() {
   const { data: menu } = useMenu();
@@ -60,10 +22,11 @@ export function TopNavigation() {
   }
 
   return (
-    <nav className="flex h-12 items-center border-b bg-background px-4 gap-2">
-      <CategoriesDropdown categories={menu?.mainMenu?.menuItems ?? []} />
+    <nav className="flex h-12 items-center gap-2 border-b bg-background px-4">
+      <MainMenuDropdown categories={menu?.mainMenu?.menuItems ?? []} />
       <FavoritesBar items={menu?.favoritesMenu?.menuItems ?? []} />
-      <div className="ml-auto">
+      {/* ml-auto keeps the user menu right-aligned even when there are no favourites at all. */}
+      <div className="ml-auto shrink-0">
         <UserMenu
           items={menu?.myAccountMenu?.menuItems ?? []}
           username={user?.fullname ?? user?.username ?? ""}
@@ -71,141 +34,5 @@ export function TopNavigation() {
         />
       </div>
     </nav>
-  );
-}
-
-function CategoriesDropdown({ categories }: { categories: MenuItem[] }) {
-  const [open, setOpen] = useState(false);
-
-  if (categories.length === 0) return null;
-
-  return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-1.5">
-          <MenuIcon className="h-4 w-4" />
-          <span className="hidden sm:inline">Menü</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="start"
-        className="w-[600px] max-h-[70vh] overflow-y-auto"
-      >
-        <div className="grid grid-cols-2 gap-4 p-3 sm:grid-cols-3 lg:grid-cols-4">
-          {categories.map((category) => (
-            <CategoryColumn
-              key={category.id ?? category.title}
-              category={category}
-              onSelect={() => setOpen(false)}
-            />
-          ))}
-        </div>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
-function CategoryColumn({
-  category,
-  onSelect,
-}: {
-  category: MenuItem;
-  onSelect: () => void;
-}) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <span className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-        {category.title}
-      </span>
-      {category.subMenu?.map((item) => (
-        <MenuLink
-          key={item.key ?? item.url ?? item.title}
-          url={item.url}
-          onClick={onSelect}
-          className="rounded-sm px-2 py-1 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
-        >
-          {item.title}
-          {item.badge?.counter ? (
-            <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs text-primary-foreground">
-              {item.badge.counter}
-            </span>
-          ) : null}
-        </MenuLink>
-      ))}
-    </div>
-  );
-}
-
-function FavoritesBar({ items }: { items: MenuItem[] }) {
-  if (items.length === 0) return null;
-
-  return (
-    <div className="hidden md:flex items-center gap-1">
-      {items.map((item) => (
-        <Button
-          key={item.key ?? item.url ?? item.title}
-          variant="ghost"
-          size="sm"
-          asChild
-        >
-          <MenuLink url={item.url}>{item.title}</MenuLink>
-        </Button>
-      ))}
-    </div>
-  );
-}
-
-function UserMenu({
-  items,
-  username,
-  onLogout,
-}: {
-  items: MenuItem[];
-  username: string;
-  onLogout: () => void;
-}) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm">
-          {username}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {items.map((item) => {
-          if (item.url === "/logout" || item.key === "LOGOUT") {
-            return (
-              <DropdownMenuItem key="logout" onSelect={onLogout}>
-                {item.title}
-              </DropdownMenuItem>
-            );
-          }
-          return (
-            <DropdownMenuItem key={item.key ?? item.url ?? item.title} asChild>
-              <MenuLink url={item.url}>{item.title}</MenuLink>
-            </DropdownMenuItem>
-          );
-        })}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
-function MenuIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <line x1="3" y1="6" x2="21" y2="6" />
-      <line x1="3" y1="12" x2="21" y2="12" />
-      <line x1="3" y1="18" x2="21" y2="18" />
-    </svg>
   );
 }
