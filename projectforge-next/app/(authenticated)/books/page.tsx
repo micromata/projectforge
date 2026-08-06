@@ -111,9 +111,9 @@ function BooksList({ storedState }: { storedState: ColumnState }) {
     onColumnOrderChange: columnState.setColumnOrder,
     enableColumnFilters: true,
     enableColumnResizing: true,
+    // Sorting and the search string go to Spring; the column filters and paging work
+    // on the client, because getList returns the whole result set at once.
     manualSorting: true,
-    manualPagination: true,
-    manualFiltering: true,
     getRowId: (row: BookListRow) => String(row.id),
   });
 

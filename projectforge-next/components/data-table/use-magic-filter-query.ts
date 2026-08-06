@@ -31,6 +31,11 @@ interface UseMagicFilterQueryOptions {
 }
 
 interface UseMagicFilterQueryResult<O> {
+  /**
+   * The whole result set, not a single page: AbstractPagesRest.getList returns
+   * everything up to maxRows. Paging is left to the table, which has to filter
+   * before it pages — slicing here would filter the visible page only.
+   */
   data: O[];
   rowCount: number;
   isLoading: boolean;
@@ -106,14 +111,12 @@ export function useMagicFilterQuery<O>({
   });
 
   const allRows = query.data?.resultSet;
-  const pageRows = useMemo(() => {
-    const start = pagination.pageIndex * pagination.pageSize;
-    return (allRows ?? []).slice(start, start + pagination.pageSize);
-  }, [allRows, pagination.pageIndex, pagination.pageSize]);
+  // Stable identity while no result is in: a fresh [] would rebuild the table's rows.
+  const rows = useMemo(() => allRows ?? [], [allRows]);
 
   return {
-    data: pageRows,
-    rowCount: query.data?.totalSize ?? allRows?.length ?? 0,
+    data: rows,
+    rowCount: query.data?.totalSize ?? rows.length,
     isLoading: query.isLoading,
     isFetching: query.isFetching,
     isError: query.isError,

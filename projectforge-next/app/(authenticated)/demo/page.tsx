@@ -49,8 +49,6 @@ export default function DemoPage() {
               pagination={pagination}
               onPaginationChange={setPagination}
               manualSorting
-              manualPagination
-              manualFiltering
               isLoading={isLoading}
               isFetching={isFetching}
               getRowId={(row) => String(row.id)}

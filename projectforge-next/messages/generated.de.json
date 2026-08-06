@@ -82,6 +82,8 @@
     "clearAll": "Alle löschen",
     "close": "Schließen",
     "contains": "Enthält",
+    "dateEquals": "Am",
+    "dateNotEqual": "Nicht am",
     "editEntry": "Filter {arg0} bearbeiten",
     "emptyValue": "leerer Wert",
     "endsWith": "Endet mit",

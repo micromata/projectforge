@@ -40,6 +40,7 @@ export function DataTableColumnHeader<TData, TValue>({
   filterKind,
 }: DataTableColumnHeaderProps<TData, TValue>) {
   const t = useTranslations("columns");
+  const tFilter = useTranslations("filter");
   const canFilter = !!filterKind && column.getCanFilter();
   const sorted = column.getIsSorted();
   // A "1" is just noise while a single column is sorted.
@@ -89,7 +90,7 @@ export function DataTableColumnHeader<TData, TValue>({
           <PopoverTrigger asChild>
             <button
               type="button"
-              aria-label={t("filter")}
+              aria-label={tFilter("title")}
               // Stop the click from reaching the header cell, which sorts.
               onClick={(e) => e.stopPropagation()}
               className={cn(
