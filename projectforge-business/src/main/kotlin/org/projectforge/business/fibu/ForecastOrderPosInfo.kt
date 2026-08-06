@@ -267,11 +267,16 @@ class ForecastOrderPosInfo(
         //   (invoiced so far / elapsed performance months). Not-called-off budget is NOT assumed as future revenue
         //   but shown as a negative difference (with warning). This avoids forecasting the whole unused budget into
         //   the last month(s) of a call-off order. See order 120k call-off example.
+        //   But only if enough invoicing history exists (see [hasSufficientRunRateHistory]): in the ramp-up phase of
+        //   an order the call-off volume is not yet representative, so extrapolating it would understate the
+        //   forecast dramatically. During ramp-up the remaining budget is distributed evenly instead.
         // - TIME_AND_MATERIALS with distributeUnusedBudget = true (default): even distribution of the remaining
         //   budget over the remaining months, the last month absorbing the rest (previous behavior).
         val paymentType = orderPosInfo.paymentType
+        val elapsedPerformanceMonths = elapsedPerformanceMonths(effectiveStart)
         val useRunRate = paymentType == AuftragsPositionsPaymentType.PAUSCHALE ||
-                (paymentType == AuftragsPositionsPaymentType.TIME_AND_MATERIALS && !distributeUnusedBudget)
+                (paymentType == AuftragsPositionsPaymentType.TIME_AND_MATERIALS && !distributeUnusedBudget &&
+                        hasSufficientRunRateHistory(elapsedPerformanceMonths))
         val monthlyRate: BigDecimal = when {
             paymentType == AuftragsPositionsPaymentType.PAUSCHALE -> {
                 // Fixed pauschale rate = weighted net sum / total performance months.
@@ -283,11 +288,10 @@ class ForecastOrderPosInfo(
                 }
             }
 
-            paymentType == AuftragsPositionsPaymentType.TIME_AND_MATERIALS && !distributeUnusedBudget -> {
+            useRunRate -> {
                 // Historical run rate = invoiced so far / elapsed performance months (before distribution start).
-                val elapsedMonths = periodOfPerformanceBegin.beginOfMonth.monthsBetween(effectiveStart)
-                if (elapsedMonths > 0 && invoicedSum > BigDecimal.ZERO) {
-                    invoicedSum.divide(BigDecimal.valueOf(elapsedMonths), 2, RoundingMode.HALF_UP)
+                if (elapsedPerformanceMonths > BigDecimal.ZERO && invoicedSum > BigDecimal.ZERO) {
+                    invoicedSum.divide(elapsedPerformanceMonths, 2, RoundingMode.HALF_UP)
                 } else {
                     // No invoicing history yet: fall back to even distribution of the remaining budget.
                     partlyNetSum
@@ -339,6 +343,50 @@ class ForecastOrderPosInfo(
             futureInvoicesAmountRest = BigDecimal.ZERO
         }
         difference = futureInvoicesAmountRest.negate()
+    }
+
+    /**
+     * The number of performance months elapsed before the forecast distribution starts, counting a partial first
+     * month proportionally: a performance period beginning on the 15th of a 31 day month counts as 17/31 = 0.55
+     * months, not as a full one. Otherwise the run rate of orders starting mid-month would be systematically too low
+     * (the first month's invoice covers only part of that month).
+     *
+     * @param effectiveStart First month of the forecast distribution.
+     * @return Elapsed months (>= 0), fractional.
+     */
+    private fun elapsedPerformanceMonths(effectiveStart: PFDay): BigDecimal {
+        val beginMonth = periodOfPerformanceBegin.beginOfMonth
+        if (effectiveStart <= beginMonth) {
+            return BigDecimal.ZERO
+        }
+        // Full months after the (possibly partial) first performance month:
+        val fullMonths = beginMonth.plusMonths(1).monthsBetween(effectiveStart)
+        val daysInFirstMonth = periodOfPerformanceBegin.endOfMonth.dayOfMonth
+        val remainingDaysOfFirstMonth = daysInFirstMonth - periodOfPerformanceBegin.dayOfMonth + 1
+        val firstMonthFraction = BigDecimal.valueOf(remainingDaysOfFirstMonth.toLong())
+            .divide(BigDecimal.valueOf(daysInFirstMonth.toLong()), 4, RoundingMode.HALF_UP)
+        return BigDecimal.valueOf(fullMonths) + firstMonthFraction
+    }
+
+    /**
+     * Is the invoicing history long enough to extrapolate a call-off run rate from it?
+     *
+     * An order that just started its performance period has no representative call-off volume yet: the project is
+     * ramping up, so the first invoices are small (or the first month is only a partial one). Extrapolating that rate
+     * over the whole remaining period would forecast almost no revenue and report nearly the whole budget as lost,
+     * which makes the conservative variant useless for such orders (see order 7234).
+     *
+     * Therefore the run rate is only used once at least [RUN_RATE_MIN_ELAPSED_MONTHS] performance months have elapsed
+     * or at least half of the performance period is over (the latter covers short orders which would never reach the
+     * absolute threshold). Before that, the remaining budget is distributed evenly (like the optimistic variant).
+     */
+    private fun hasSufficientRunRateHistory(elapsedMonths: BigDecimal): Boolean {
+        if (elapsedMonths >= BigDecimal(RUN_RATE_MIN_ELAPSED_MONTHS)) {
+            return true
+        }
+        val totalMonths = ForecastUtils.getMonthCountForOrderPosition(orderInfo, orderPosInfo)
+            ?: return false // Unknown performance period: don't extrapolate.
+        return elapsedMonths >= totalMonths.divide(BigDecimal(2), 4, RoundingMode.HALF_UP)
     }
 
     /**
@@ -395,6 +443,13 @@ class ForecastOrderPosInfo(
 
     companion object {
         const val PERCENTAGE_OF_LOST_BUDGET_WARNING = 10
+
+        /**
+         * Minimum number of elapsed performance months required before the conservative variant extrapolates the
+         * historical call-off run rate. See [hasSufficientRunRateHistory]. Also shown in the explanation of the
+         * conservative variant (i18n key `fibu.auftrag.forecast.analysis.variants.false`).
+         */
+        const val RUN_RATE_MIN_ELAPSED_MONTHS = 3
 
         /**
          * Global default for [distributeUnusedBudget], configurable via application.properties

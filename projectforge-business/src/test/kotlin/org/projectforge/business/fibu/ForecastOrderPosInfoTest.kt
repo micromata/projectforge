@@ -111,18 +111,21 @@ class ForecastOrderPosInfoTest {
                     assertSame("0", it.difference)
                 }
                 // distributeUnused = false for T&M: extrapolate the historical call-off run rate instead of
-                // spreading the remaining budget. invoicedSum = 5000 over 3 elapsed months (Nov, Dec, Jan) = 1666.67
-                // per month. Feb-Apr are forecast at that rate; the not-called-off budget (~40000) is reported as a
-                // negative difference with a budget warning rather than assumed as future revenue.
+                // spreading the remaining budget. Elapsed performance months = 2.6: November is a partial month
+                // (begin Nov 13th => 18/30 = 0.6) plus the full months December and January. So the run rate is
+                // 5000 / 2.6 = 1923.08 per month. The 3-months threshold isn't reached yet, but more than half of the
+                // 5 months performance period is over, so the call-off history is considered representative.
+                // Feb-Apr are forecast at that rate; the not-called-off budget (~39000) is reported as a negative
+                // difference with a budget warning rather than assumed as future revenue.
                 calculateAndAssert(
                     orderInfo,
                     pos,
                     "0",
                     "0",
                     "0",
-                    "1666.67",
-                    "1666.67",
-                    "1666.67",
+                    "1923.08",
+                    "1923.08",
+                    "1923.08",
                     distributeUnused = false,
                     lastInvoiceMonth = janInvoice,
                 ).also {
@@ -131,6 +134,45 @@ class ForecastOrderPosInfoTest {
                         "Under-run must be reported as negative difference, was ${it.difference}"
                     )
                     Assertions.assertTrue(it.lostBudgetWarning, "Budget under-run warning expected")
+                }
+            }
+        }
+        OrderInfo().also { orderInfo -> // Order 7234: ramp-up phase, see `ramp-up phase is not extrapolated`
+            orderInfo.status = AuftragsStatus.BEAUFTRAGT
+            orderInfo.snapshotDate = baseDate.localDate
+            createPos(
+                AuftragsStatus.BEAUFTRAGT,
+                AuftragsPositionsPaymentType.TIME_AND_MATERIALS,
+                PeriodOfPerformanceType.OWN,
+                // Performance period just started (baseDate is January 8th, 2025), only a small first invoice:
+                periodOfPerformanceBegin = LocalDate.of(2024, Month.DECEMBER, 15),
+                periodOfPerformanceEnd = LocalDate.of(2025, Month.JUNE, 30),
+                netSum = BigDecimal("176358"),
+                invoicedSum = BigDecimal("3545.62"),
+            ).also { pos ->
+                // Only 0.55 + 1 = 1.55 performance months elapsed (Dec 15th - Jan 31st) and far less than half of the
+                // 7 months period is over: the call-off volume of the ramp-up phase must NOT be extrapolated. So the
+                // remaining budget (176358 - 3545.62 = 172812.38) is distributed evenly over the remaining months
+                // Feb-Jul (6 months) = 28802.06 instead of forecasting a ~2287/month run rate.
+                calculateAndAssert(
+                    orderInfo,
+                    pos,
+                    "0", // Dec 2024 (past)
+                    "0", // Jan 2025 (already invoiced)
+                    "28802.06",
+                    "28802.06",
+                    "28802.06",
+                    "28802.06",
+                    "28802.06",
+                    "28802.06",
+                    distributeUnused = false,
+                    lastInvoiceMonth = PFDay.of(2025, Month.JANUARY, 5),
+                ).also {
+                    assertSame("0", it.difference, "No under-run reported during ramp-up phase")
+                    Assertions.assertFalse(
+                        it.lostBudgetWarning,
+                        "No budget warning during ramp-up phase, the invoicing isn't representative yet",
+                    )
                 }
             }
         }

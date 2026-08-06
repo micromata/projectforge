@@ -259,7 +259,9 @@ open class ForecastExport { // open needed by Wicket.
      */
     open fun variantInfo(distributeUnusedBudget: Boolean): String {
         val i18nPrefix = "fibu.auftrag.forecast.analysis.variants.$distributeUnusedBudget"
-        return "${translate("$i18nPrefix.label")}\n${translate(i18nPrefix)}"
+        // The conservative explanation contains the ramp-up threshold as message parameter {0}:
+        val explanation = translateMsg(i18nPrefix, ForecastOrderPosInfo.RUN_RATE_MIN_ELAPSED_MONTHS)
+        return "${translate("$i18nPrefix.label")}\n$explanation"
     }
 
     /**

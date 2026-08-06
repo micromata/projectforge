@@ -189,7 +189,12 @@ class ForecastOrderAnalysis {
                     }
                     ul.addItem().also { item ->
                         item.add(variantLabel(false), bold = true)
-                            .add(": " + translate("$I18N_PREFIX.variants.false"))
+                            .add(
+                                ": " + translateMsg(
+                                    "$I18N_PREFIX.variants.false",
+                                    ForecastOrderPosInfo.RUN_RATE_MIN_ELAPSED_MONTHS,
+                                )
+                            )
                     }
                 })
                 div.add(
