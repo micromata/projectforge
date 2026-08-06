@@ -378,12 +378,83 @@ alten React-Seite. Bausteine: `components/data-table/use-filter-favorites.ts`,
    Datum/Timestamp, Task-Pfade, `displayName`-Auflösung), den der Dynamic-Renderer
    in Phase 2 braucht. Muster: Registry `name → Komponente`
    (`CellRendererDispatch.tsx`) – ohne die AG-Grid-Params-Hülle.
-4. **Konventions-Drift:** `books`-Edit nutzt `@tanstack/react-form`, `CLAUDE.md`
+4. **CSRF-Schutz für die next-Aufrufe** – siehe eigener Abschnitt unten. Muss in
+   `books` gelöst werden, bevor es in die Breite geht: jede migrierte Seite erbt
+   den Mechanismus.
+5. **Konventions-Drift:** `books`-Edit nutzt `@tanstack/react-form`, `CLAUDE.md`
    schreibt `react-hook-form` vor. Vor der Bulk-Migration entscheiden.
-5. Nicht browserseitig verifiziert: englischer Locale-Pfad, vollständiger
+6. Nicht browserseitig verifiziert: englischer Locale-Pfad, vollständiger
    Login-Flow mit echten Daten, das visuelle Ergebnis der Tabelle
    (Spaltenbreiten, Resize, Popovers) und der Favoriten-Durchlauf
    (anwenden/anlegen/umbenennen/überschreiben/löschen).
+
+#### Offen: CSRF-Schutz (querschnittlich, blockiert die Breite)
+
+**Der Stand.** Die Authentifizierung hängt am `JSESSIONID`-Cookie, das der Browser
+bei _jedem_ Request mitschickt – auch bei einem, den eine fremde Seite auslöst.
+Der Schutz dagegen ist im Backend vorhanden (`SessionCsrfService`: Token pro
+Session, 30 Zeichen, `NumberHelper.getSecureRandomAlphanumeric`), aber er greift
+nur dort, wo er auch aufgerufen wird – und das ist an den `PostData`/`ServerData`-
+Kontrakt der alten React-App gebunden: `createServerData(request)` legt das Token
+in die `FormLayoutData` einer Edit-Seite, `validateCsrfToken(request, postData)`
+liest es aus `postData.serverData` zurück. **next benutzt weder `PostData` noch
+`ServerData`** und bekommt deshalb an keiner Stelle ein Token in die Hand.
+
+Genau eine Ausnahme existiert schon und ist die Vorlage: der Passwort-Reset. Dafür
+wurde `SessionCsrfService.checkToken(request, token)` public gemacht,
+`PasswordResetNextRest` gibt das Token im `GET`-Aufruf mit
+(`csrfToken = createServerData(request).csrfToken`) und prüft es beim `setPassword`
+gegen die Session. Für alles andere in next fehlt es.
+
+**Ungeschützt sind damit heute** alle zustandsändernden Aufrufe aus
+`lib/rs/client.ts`:
+
+- `setColumnStates` (`@PostMapping`, `updateColumnStates` prüft nichts – auch für
+  die React-App nicht),
+- `filter/create` und `filter/update` (`@PostMapping`, ohne Prüfung),
+- `filter/rename`, `filter/delete`, `filter/select` – als `@GetMapping`
+  zustandsändernd und damit sogar per `<img src>` auslösbar,
+- `saveOrUpdate`/`markAsDeleted`/`delete`/`undelete`/`cancel`: die prüfen
+  serverseitig **und würden einen next-Aufruf ablehnen**, weil ohne
+  `serverData.csrfToken` `checkToken` fehlschlägt. Sobald die Edit-Seiten in next
+  wirklich speichern, läuft das also auf. Zusätzlich antwortet der Fehlerfall mit
+  einer `ResponseAction` (`TargetType.UPDATE`) – ein Format, das next nicht liest.
+
+Der Schaden ist real, nicht theoretisch: Es gibt kein `SameSite`-Attribut in der
+Konfiguration (nirgends gesetzt, weder Code noch `application.properties`), also
+gilt der Browser-Default `Lax`. Der schützt Cross-Site-`POST`s, aber **nicht**
+die zustandsändernden `GET`s oben – ein Link genügt, um einem eingeloggten Nutzer
+Filter-Favoriten zu löschen.
+
+**Zu entscheiden (Vorschlag):**
+
+1. **Ein Token für die ganze Session an next ausliefern**, nicht pro Seite: am
+   naheliegendsten in `userStatus` (holt next beim App-Start ohnehin) bzw. beim
+   Login. Es liegt im Client in einem Modul-State neben dem 2FA-Handler, nicht in
+   `localStorage` – ein XSS soll es nicht abgreifen können, und ein Reload holt
+   `userStatus` neu.
+2. **`request()` in `lib/rs/client.ts` schickt es bei jeder nicht-`GET`-Methode
+   als Header** (`X-PF-CSRF-Token`) mit. Zentral, damit keine Aufrufstelle es
+   vergessen kann – dieselbe Stelle, an der schon `X-PF-Frontend: next` und die
+   2FA-Wiederholung sitzen. Ein Header ist dem Body-Feld vorzuziehen: er
+   funktioniert auch für Aufrufe ohne Body und ist Cross-Site nicht setzbar.
+3. **Serverseitig ein Filter/Interceptor für `/rs/*`**, der für next-Clients
+   (`X-PF-Frontend: next`) bei jeder zustandsändernden Methode gegen
+   `SessionCsrfService.checkToken` prüft und mit `403` antwortet – nicht mit einer
+   `ResponseAction`. Der Rest-Client-Fall (`loggedInByAuthenticationToken`) bleibt
+   ausgenommen, wie in `validateCsrfToken` schon vorgesehen.
+4. **Die zustandsändernden `@GetMapping`s auf `POST` umstellen** – betrifft
+   `filter/rename|delete|select`, `filterReset` und `cancel`. Das berührt beide
+   Frontends, also entweder beide Aufrufstellen mitziehen oder die Methode
+   zusätzlich anbieten, solange `/react` noch lebt.
+5. **`SameSite=Lax` explizit setzen** (`server.servlet.session.cookie.same-site`)
+   statt sich auf den Browser-Default zu verlassen – Defense in Depth, ersetzt
+   Punkt 2/3 nicht. `Strict` würde die Rückkehr aus dem Passwort-Reset-Mail-Link
+   brechen.
+
+Punkt 4 und 5 sind Backend-Aufräumarbeiten und können später kommen; **1–3 sind
+die Voraussetzung dafür, dass eine next-Seite überhaupt schreiben darf** – ohne
+sie scheitert das erste echte Speichern aus `books`-Edit an `validateCsrfToken`.
 
 ### Phase 2 – Dynamic-Renderer in Next vervollständigen (Bulk-Migration)
 
@@ -489,6 +560,10 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
   `.../config/WebXMLInitializer.java`, `projectforge-business/.../Constants.kt`
 - **Auth/Session:** `SpringSecurityConfig.kt`, `LoginService.kt`,
   `WicketUserFilter.kt`, `RestUserFilter.kt`
+- **CSRF:** `projectforge-rest/.../rest/core/SessionCsrfService.kt`,
+  `rest/dto/ServerData.kt`, `AbstractDynamicPageRest.kt` (`createServerData`/
+  `validateCsrfToken`); next-Vorlage `rest/pub/next/PasswordResetNextRest.kt`;
+  Cookie-Flags `CookieService.kt`
 - **Menü:** `projectforge-business/.../menu/builder/MenuItemDefId.kt`,
   `MenuCreator.kt`; `projectforge-rest/.../MenuRest.kt`
 - **Dynamic-Renderer Backend:** `projectforge-rest/src/main/kotlin/org/projectforge/ui/`
@@ -528,16 +603,19 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
 
 **Als nächstes:**
 
-1. **Phase 1.5 abschließen:** OBJECT-Autocomplete und TIMESTAMP-Schnellauswahl,
+1. **CSRF-Schutz verdrahten** (s. eigener Abschnitt in Phase 1.5). Zieht sich durch
+   alle Seiten und blockiert das erste echte Speichern aus next – deshalb vor der
+   Bulk-Migration.
+2. **Phase 1.5 abschließen:** OBJECT-Autocomplete und TIMESTAMP-Schnellauswahl,
    gesetzte Filter beim Seitenaufruf wiederherstellen. Vorher das visuelle
    Ergebnis der Tabelle und den Favoriten-Durchlauf im Browser prüfen – das steht
    noch aus.
-2. **Phase 2** – Dynamic-Renderer ausbauen (bringt die ~36 UILayout-Seiten in der
+3. **Phase 2** – Dynamic-Renderer ausbauen (bringt die ~36 UILayout-Seiten in der
    Masse). Profitiert direkt von der fertigen `DataTable`; braucht als ersten
    Schritt den `UIAgGridColumnDef → ColumnDef`-Adapter und die Formatter.
-3. **Phase 3** – Auftragsbuch als handgebauter Härtefall (parallel zu Phase 2
+4. **Phase 3** – Auftragsbuch als handgebauter Härtefall (parallel zu Phase 2
    möglich).
-4. **Auth im Browser durchspielen** (steht noch aus, s. Liste unten) und danach
+5. **Auth im Browser durchspielen** (steht noch aus, s. Liste unten) und danach
    den React-Auth-Code löschen: `WebAuthnAuthenticate.jsx`,
    `actions/authentication.js`, `/react/public/login`-Routing.
 
