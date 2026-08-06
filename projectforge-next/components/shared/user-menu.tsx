@@ -1,6 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 import type { MenuItem } from "@/lib/rs/types";
 import { buttonVariants } from "@/components/ui/button";
@@ -15,6 +17,9 @@ import { MENU_HOVER_CLASS, MenuLink } from "@/components/shared/menu-link";
 /**
  * "My account" menu on the right of the nav bar; logout is handled in-app, not as a link.
  * Belongs inside the nav's `Menubar`.
+ *
+ * MenuRest builds this menu with a single top-level item carrying the user's name and hangs
+ * the real entries below it (see MenuRest.getMenu), so the entries are one level down.
  */
 export function UserMenu({
   items,
@@ -26,6 +31,8 @@ export function UserMenu({
   onLogout: () => void;
 }) {
   const t = useTranslations("menu");
+  // Tolerate a flat menu too: the wrapper is MenuRest's doing, not part of the contract.
+  const entries = items.flatMap((item) => item.subMenu ?? [item]);
 
   return (
     <MenubarMenu>
@@ -37,10 +44,12 @@ export function UserMenu({
         aria-label={t("myAccount")}
       >
         <span className="truncate">{username}</span>
+        {/* Same icon and size as a favourites folder, so both read as openable. */}
+        <HugeiconsIcon icon={ArrowDown01Icon} size={14} className="shrink-0" />
       </MenubarTrigger>
       <MenubarContent align="end">
-        {items.map((item) => {
-          if (item.url === "/logout" || item.key === "LOGOUT") {
+        {entries.map((item) => {
+          if (item.key === "LOGOUT" || item.url === "logout") {
             return (
               <MenubarItem
                 key="logout"
@@ -53,8 +62,18 @@ export function UserMenu({
           }
           return (
             <MenubarItem key={item.key ?? item.url ?? item.title} asChild>
-              <MenuLink url={item.url} className={MENU_HOVER_CLASS}>
-                {item.title}
+              <MenuLink
+                url={item.url}
+                title={item.title}
+                className={MENU_HOVER_CLASS}
+              >
+                <span className="truncate">{item.title}</span>
+                {/* "2FA setup" carries a counter; without this it would be lost here. */}
+                {item.badge?.counter ? (
+                  <span className="ml-auto inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1 text-xs text-primary-foreground">
+                    {item.badge.counter}
+                  </span>
+                ) : null}
               </MenuLink>
             </MenubarItem>
           );

@@ -91,7 +91,8 @@ export function MainMenuDropdown({ categories }: { categories: MenuItem[] }) {
 function CategoryColumn({ category }: { category: MenuItem }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="truncate px-2 py-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+      {/* The brand token, not text-primary: --primary turns near-white in dark mode. */}
+      <span className="truncate px-2 py-1 text-xs font-semibold tracking-wide text-brand-teal uppercase">
         {category.title}
       </span>
       {category.subMenu?.map((item) => (
