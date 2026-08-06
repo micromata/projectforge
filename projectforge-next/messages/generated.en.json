@@ -69,6 +69,21 @@
   "createdBy": "created by",
   "delete": "Delete",
   "deleted": "deleted",
+  "favorite": {
+    "_": "Favorite",
+    "addNew": "New favorite",
+    "filter": {
+      "addNew": "New Filter",
+      "list": "Saved filters",
+      "none": "No saved filters yet",
+      "select": "Apply filter {arg0}"
+    },
+    "untitled": "untitled"
+  },
+  "favorites": {
+    "_": "Favorites",
+    "saveModification": "Save modification"
+  },
   "filter": {
     "activeCount": "Active filters: {arg0}",
     "addField": "Add filter",
@@ -150,6 +165,7 @@
   "modified": "modified",
   "modifiedBy": "modified by",
   "modifiedHistoryValue": "history value of modification",
+  "name": "Name",
   "password": {
     "_": "Password",
     "forgotten": {
@@ -175,7 +191,9 @@
     }
   },
   "passwordRepeat": "Repeat password",
+  "rename": "rename",
   "save": "Save",
+  "uptodate": "up-to-date",
   "user": {
     "My2FA": {
       "expired": "For the requested action a 2FA is required not older than {arg0}.",

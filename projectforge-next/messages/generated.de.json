@@ -69,6 +69,21 @@
   "createdBy": "angelegt von",
   "delete": "Löschen",
   "deleted": "gelöscht",
+  "favorite": {
+    "_": "Favorit",
+    "addNew": "Neuer Favorit",
+    "filter": {
+      "addNew": "Neuer Filter",
+      "list": "Gespeicherte Filter",
+      "none": "Noch keine gespeicherten Filter",
+      "select": "Filter {arg0} anwenden"
+    },
+    "untitled": "unbenannt"
+  },
+  "favorites": {
+    "_": "Favoriten",
+    "saveModification": "Änderungen speichern"
+  },
   "filter": {
     "activeCount": "Aktive Filter: {arg0}",
     "addField": "Filter hinzufügen",
@@ -150,6 +165,7 @@
   "modified": "geändert",
   "modifiedBy": "geändert durch",
   "modifiedHistoryValue": "Wert in der Änderungshistorie",
+  "name": "Name",
   "password": {
     "_": "Passwort",
     "forgotten": {
@@ -175,7 +191,9 @@
     }
   },
   "passwordRepeat": "Passwort wiederholen",
+  "rename": "Umbenennen",
   "save": "Speichern",
+  "uptodate": "aktuell",
   "user": {
     "My2FA": {
       "expired": "Für die angeforderte Aktion ist eine (erneute) Zwei-Faktor-Authentifizierung erforderlich, die nicht älter als {arg0} ist.",

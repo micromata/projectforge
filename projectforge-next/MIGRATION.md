@@ -298,11 +298,20 @@ er da ist – er initialisiert TanStacks State, ein Nachschieben würde mit den
 wiederhergestellt (unsichtbar greifende Filter irritieren; das Backend liefert
 sie ohnehin nie zurück).
 
-**Erledigt: Filter-Panel.** Ein-/ausschiebbares Seitenpanel im
-`filterPanel`-Slot von `ListPageShell`; eingeklappt zeigt ein Knopf die Anzahl
-aktiver Filter. Die Attrappe (hartkodierte Autorennamen, erfundene Zahlen
-234/189/45) ist ersetzt. Bausteine: `components/data-table/filter-panel.tsx`,
-`filter-panel-field.tsx`, `lib/rs/filter-elements.ts`, `hooks/use-initial-list.ts`.
+**Erledigt: Listen-Filter als Pillen-Zeile.** Erst ein ein-/ausschiebbares
+Seitenpanel, dann verworfen: 288px Spalte für ~40 Suchfelder, nur über eine
+Schiene erreichbar, die den Tabellenkopf überlappte. Primäre Oberfläche ist nun –
+wie bei den alten MagicFilters – eine Pillen-Zeile unter der Suchleiste: ein
+„+“-Chip wählt ein Feld (cmdk, sucht Label _und_ rohe Id, damit technische Felder
+findbar bleiben), Klick auf eine Pille bearbeitet sie im Popover, „Alle Filter“
+öffnet einen Dialog mit allen Feldern im Raster. Der Dialog bearbeitet einen
+Draft und übernimmt erst auf Knopfdruck, weil jede angewandte Änderung ein neuer
+Query-Key ist. „Spalten“ sitzt in derselben Zeile – beide wirken auf die Liste,
+nicht auf die Seite. Bausteine: `components/data-table/filter-pills.tsx`,
+`filter-pill.tsx`, `filter-field-picker.tsx`, `filter-field.tsx`,
+`filter-field-inputs.tsx`, `filter-field-grid.tsx`, `filter-all-dialog.tsx`,
+`filter-value.ts`, `use-list-filters.ts`, `lib/rs/filter-elements.ts`,
+`hooks/use-initial-list.ts`.
 
 - **Die Felder kommen vom Backend**, nicht aus dem Frontend: `UINamedContainer("searchFilter")`
   mit `FILTER_ELEMENT`-Kindern, abgeleitet aus `baseDao.searchFields` plus vier
@@ -311,39 +320,70 @@ aktiver Filter. Die Attrappe (hartkodierte Autorennamen, erfundene Zahlen
   OBJECT, LIST). Jede weitere Entität funktioniert ohne Zutun.
 - **Serverseitig** über `MagicFilter.entries` – anders als die Spalten-Filter im
   Header, die auf dem geladenen Ergebnis arbeiten.
-- **Zwei Kontrakt-Fallen:** STRING wird zu `LIKE` über das _ganze_ Feld, das Panel
+- **Zwei Kontrakt-Fallen:** STRING wird zu `LIKE` über das _ganze_ Feld, die Zeile
   setzt daher Wildcards (`Larkin` fände sonst `Peter J. Larkin` nicht) und
   respektiert selbst gesetzte. Bereichsgrenzen heißen auf dem Draht `from`/`to`,
   nicht `fromValue`/`toValue` (`@JsonProperty`).
+- **Pillen lesen die Werte so, wie sie eingegeben wurden:** LIST-Ids werden zu
+  Anzeigenamen, Bereiche als „von – bis“, die LIKE-Wildcards wieder abgeschnitten;
+  eine BOOLEAN-Pille zeigt nur das Label, „true“ trägt nichts bei.
+
+**Erledigt: Spalten-Filter im Header.** Der Trichter sammelte Werte, wandte sie
+aber nie an – `manualFiltering` ließ TanStack das ungefilterte Core-Model
+zurückgeben, und `useMagicFilterQuery` schnitt die aktuelle Seite selbst heraus,
+so dass ein Client-Filter nur diese Seite gesehen hätte. Da `getList` das ganze
+Ergebnis liefert, gibt der Hook jetzt alle Zeilen zurück; Filtern und Paging macht
+die Tabelle (sie filtert vor dem Paginieren), Sortierung und Suchstring gehen
+weiter an Spring. Oberhalb von 20 verschiedenen Werten öffnet das Popover den
+Vergleichs- statt den Auswahl-Filter: die Werteliste war unbegrenzt und
+unvirtualisiert, eine Spalte mit fast eindeutigen Werten montierte Tausende
+Komponenten pro Klick. Die Auswahl bleibt erreichbar, beschriftet mit ihrer Größe
+(„Auswahl (4.312)“), damit die Kosten vor dem Umschalten sichtbar sind.
+
+**Erledigt: Gespeicherte Filter.** Das sind die **Filter-Favoriten des Backends**
+(`AbstractPagesRest`, `filter/select|create|update|rename|delete`, abgelegt in den
+User-Prefs) – ein hier gespeicherter Filter erscheint also auch in der Liste der
+alten React-Seite. Bausteine: `components/data-table/use-filter-favorites.ts`,
+`filter-favorites-menu.tsx`, `filter-favorite-entry.tsx`, `lib/rs/client.ts`.
+
+- **Kontrakt-Fallen:** `filter/delete` und `filter/rename` sind
+  zustandsändernde `@GetMapping` (Legacy-Parität, s.o. bei `cancel`).
+  `filter/create` erwartet den Filter **ohne** `id` – mit Id würde das Backend
+  daraus ein Update machen. `filter/update` ersetzt den ganzen Favoriten, der
+  Name muss also mitreisen, sonst verliert er ihn; die Antwort ist eine **leere
+  Map**. Nur `filter/select` antwortet mit einer vollen `InitialListData`.
+- **Eine Quelle der Wahrheit für die Liste:** sie kommt mit `initialList` und wird
+  im `["initialList", entity]`-Cache gepatcht (nicht in eigenem State gehalten).
+  Gelesen wird über `useInitialList`, nicht per `getQueryData` – letzteres
+  abonniert nicht, ein umbenannter Favorit würde nicht neu rendern.
+- **Welcher Favorit angewandt ist, ist Client-State.** Das Backend speichert den
+  aktuellen Filter bei _jedem_ Listenaufruf neu (`saveCurrentFilter`); seine `id`
+  zurückzulesen würde einen Favoriten behaupten, dessen Werte der Nutzer längst
+  geändert hat.
+- Ein leerer Name ist erlaubt: `Favorites.fixNamesAndIds` vergibt „unbenannt“
+  (`favorite.untitled`).
 
 **Offen:**
 
-1. **Aktive Filter als Pillen unter der Suchleiste.** Wie in der Design-Referenz
-   (`demo/`): pro gesetztem Filter eine Pille mit Label und Entfernen-Kreuz, dazu
-   „Alle löschen“. Die Attrappe dafür wurde entfernt, weil sie an keinen Query
-   gebunden war (Vorlage in der Historie: `books-toolbar.tsx` vor `fa0c23c48`).
-   Jetzt umsetzbar, da die Filterwerte vorliegen – Label aus `FilterElement.label`
-   plus Wert, Entfernen setzt den Eintrag zurück.
-2. **Gespeicherte Filter** = Filter-Favoriten des Backends
-   (`AbstractPagesRest`: `filter/select|create|rename|update|delete|reset`);
-   `initialList` liefert sie als `filterFavorites`.
-3. **OBJECT- und TIMESTAMP-Felder vervollständigen.** OBJECT (z.B. „geändert
+1. **OBJECT- und TIMESTAMP-Felder vervollständigen.** OBJECT (z.B. „geändert
    durch“) nutzt derzeit ein einfaches Textfeld – für die Entitätssuche fehlt eine
    Autocomplete-Komponente gegen `autoCompletion.url`. Bei TIMESTAMP fehlt die
    Schnellauswahl (`selectors`: Jahr/Monat/Woche/Tag/bis-jetzt).
-4. **Panel-Zustand pro Nutzer merken** (offen/zu, gesetzte Filter). Das Backend
-   speichert den aktuellen `MagicFilter` bereits (`saveCurrentFilter`).
-
-5. **Zell-Rendering/Formatter fehlen noch.** Die alte App hat einen
+2. **Gesetzte Filter beim Seitenaufruf wiederherstellen.** Das Backend liefert den
+   gespeicherten aktuellen `MagicFilter` in `initialList` mit; die Seite startet
+   bislang bewusst leer (daran hängt auch der `currentId`-Punkt oben).
+   `filter/reset` ist noch nicht angebunden.
+3. **Zell-Rendering/Formatter fehlen noch.** Die alte App hat einen
    Formatter-Zoo (`Formatter.jsx`, `FormatterFormat.js`: Währung, Prozent,
    Datum/Timestamp, Task-Pfade, `displayName`-Auflösung), den der Dynamic-Renderer
    in Phase 2 braucht. Muster: Registry `name → Komponente`
    (`CellRendererDispatch.tsx`) – ohne die AG-Grid-Params-Hülle.
-6. **Konventions-Drift:** `books`-Edit nutzt `@tanstack/react-form`, `CLAUDE.md`
+4. **Konventions-Drift:** `books`-Edit nutzt `@tanstack/react-form`, `CLAUDE.md`
    schreibt `react-hook-form` vor. Vor der Bulk-Migration entscheiden.
-7. Nicht browserseitig verifiziert: englischer Locale-Pfad, vollständiger
-   Login-Flow mit echten Daten, und das visuelle Ergebnis der Tabelle
-   (Spaltenbreiten, Resize, Popovers).
+5. Nicht browserseitig verifiziert: englischer Locale-Pfad, vollständiger
+   Login-Flow mit echten Daten, das visuelle Ergebnis der Tabelle
+   (Spaltenbreiten, Resize, Popovers) und der Favoriten-Durchlauf
+   (anwenden/anlegen/umbenennen/überschreiben/löschen).
 
 ### Phase 2 – Dynamic-Renderer in Next vervollständigen (Bulk-Migration)
 
@@ -480,15 +520,18 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
 - **Phase 1** – Menü-Schalter pro Seite; `BOOK_LIST` zeigt auf `next/books`.
 - **Phase 1.5, größter Teil** – `MagicFilter`-Kontrakt (Listen laden wieder),
   Tabellen-Funktionen portiert (Resizing, Spalten ein-/ausblenden, Pinning,
-  Reorder, Spalten-Filter), i18n-Generierung aus `I18nResources`.
+  Reorder, Spalten-Filter), Spaltenzustand-Persistenz, Listen-Filter als
+  Pillen-Zeile inkl. gespeicherter Filter (Backend-Favoriten),
+  i18n-Generierung aus `I18nResources`.
 - **Auth-Flow** – Login, 2FA inkl. WebAuthn, Passwort-vergessen/-Reset und
   In-Session-2FA-Dialog laufen in next (React-Login nur noch Rückfallebene).
 
 **Als nächstes:**
 
-1. **Phase 1.5 abschließen:** Spaltenzustand-Persistenz verdrahten
-   (`setColumnStates`-URL aus dem Layout), Filter-Panel anbinden oder entfernen.
-   Vorher das visuelle Ergebnis der Tabelle im Browser prüfen – das steht noch aus.
+1. **Phase 1.5 abschließen:** OBJECT-Autocomplete und TIMESTAMP-Schnellauswahl,
+   gesetzte Filter beim Seitenaufruf wiederherstellen. Vorher das visuelle
+   Ergebnis der Tabelle und den Favoriten-Durchlauf im Browser prüfen – das steht
+   noch aus.
 2. **Phase 2** – Dynamic-Renderer ausbauen (bringt die ~36 UILayout-Seiten in der
    Masse). Profitiert direkt von der fertigen `DataTable`; braucht als ersten
    Schritt den `UIAgGridColumnDef → ColumnDef`-Adapter und die Formatter.

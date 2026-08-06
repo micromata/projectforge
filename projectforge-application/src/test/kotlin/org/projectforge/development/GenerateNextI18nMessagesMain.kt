@@ -71,6 +71,11 @@ object GenerateNextI18nMessagesMain {
     "apply",
     "delete",
     "save",
+    "name",
+    "rename",
+    "uptodate",
+    // Saved list filters. Without the dot so the bare "favorite"/"favorites" keys export too.
+    "favorite",
     // Top navigation. Not the whole "menu." tree: the entry titles come translated from /rs/menu,
     // only the chrome around them needs its own texts.
     "menu.main.title",

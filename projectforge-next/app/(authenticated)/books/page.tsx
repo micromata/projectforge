@@ -3,22 +3,22 @@
 import { PageShell } from "@/components/shared/page-shell";
 import { ListPageShell } from "@/components/shared/list-page-shell";
 import { Spinner } from "@/components/shared/spinner";
-import { useMemo, useState } from "react";
 import {
   DataTable,
   DataTableColumnPanel,
   FilterAllDialog,
+  FilterFavoritesMenu,
   FilterPills,
+  filterValuesFromEntries,
   useColumnStatePersistence,
   useDataTable,
+  useFilterFavorites,
+  useListFilters,
   useMagicFilterQuery,
   useStoredColumnState,
   useTableState,
   type ColumnState,
-  type FilterValues,
 } from "@/components/data-table";
-import { filterElementsOf } from "@/lib/rs/filter-elements";
-import { useInitialList } from "@/hooks/use-initial-list";
 import { useBooksColumns } from "@/components/features/books/books-columns";
 import { BookRowActions } from "@/components/features/books/book-row-actions";
 import { BooksToolbar } from "@/components/features/books/books-toolbar";
@@ -49,21 +49,8 @@ export default function BooksPage() {
 
 function BooksList({ storedState }: { storedState: ColumnState }) {
   const columns = useBooksColumns();
-  const [filterValues, setFilterValues] = useState<FilterValues>({});
+  const filters = useListFilters(ENTITY);
 
-  // Which filter fields exist is decided by the backend per entity, so they come
-  // from the list layout rather than being declared here.
-  const layout = useInitialList(ENTITY);
-  const filterElements = useMemo(
-    () => filterElementsOf(layout.data?.ui),
-    [layout.data]
-  );
-
-  const filterEntries = useMemo(
-    () =>
-      Object.entries(filterValues).map(([field, value]) => ({ field, value })),
-    [filterValues]
-  );
   const columnState = useTableState({
     restoredState: storedState,
     initialSorting: storedState.sorting,
@@ -74,12 +61,14 @@ function BooksList({ storedState }: { storedState: ColumnState }) {
     rowCount,
     isLoading,
     isFetching,
+    filter,
     sorting,
     setSorting,
     pagination,
     setPagination,
     globalFilter,
     setGlobalFilter,
+    applyFilter,
   } = useMagicFilterQuery<BookListRow>({
     entity: ENTITY,
     queryKey: ["books"],
@@ -87,8 +76,19 @@ function BooksList({ storedState }: { storedState: ColumnState }) {
     // Sorting drives the backend query, so it lives with the query, not in the
     // column state — the stored order seeds it here.
     initialSorting: storedState.sorting,
-    // Panel filters are applied server-side, unlike the header's column filters.
-    filterEntries,
+    // The pill filters are applied server-side, unlike the header's column filters.
+    filterEntries: filters.entries,
+  });
+
+  // The user's saved filters — the backend's filter favorites, so a filter saved
+  // here is the same one the legacy list page offers.
+  const favorites = useFilterFavorites({
+    entity: ENTITY,
+    filter,
+    onApply: (applied) => {
+      filters.setValues(filterValuesFromEntries(applied.entries));
+      applyFilter(applied);
+    },
   });
 
   // Owned here so the toolbar's column panel and the table share one instance.
@@ -152,16 +152,22 @@ function BooksList({ storedState }: { storedState: ColumnState }) {
             }
             filterPills={
               <FilterPills
-                elements={filterElements}
-                values={filterValues}
-                onChange={setFilterValues}
+                elements={filters.elements}
+                values={filters.values}
+                onChange={filters.setValues}
                 trailing={
-                  <FilterAllDialog
-                    elements={filterElements}
-                    values={filterValues}
-                    onApply={setFilterValues}
-                    className="h-6 gap-1 rounded-full px-2.5 text-xs"
-                  />
+                  <>
+                    <FilterAllDialog
+                      elements={filters.elements}
+                      values={filters.values}
+                      onApply={filters.setValues}
+                      className="h-6 gap-1 rounded-full px-2.5 text-xs"
+                    />
+                    <FilterFavoritesMenu
+                      favorites={favorites}
+                      className="h-6 gap-1 rounded-full px-2.5 text-xs"
+                    />
+                  </>
                 }
               />
             }

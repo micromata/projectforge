@@ -38,6 +38,8 @@ interface UseMagicFilterQueryResult<O> {
    */
   data: O[];
   rowCount: number;
+  /** The filter as sent, so it can be stored as a favorite. */
+  filter: MagicFilter;
   isLoading: boolean;
   isFetching: boolean;
   isError: boolean;
@@ -49,6 +51,12 @@ interface UseMagicFilterQueryResult<O> {
   setPagination: OnChangeFn<PaginationState>;
   globalFilter: string;
   setGlobalFilter: (v: string) => void;
+  /**
+   * Takes over search string and sort order of a filter the backend handed back
+   * (a saved filter that was applied). The field entries are the caller's, since
+   * it owns the filter values.
+   */
+  applyFilter: (filter: MagicFilter) => void;
 }
 
 export function useMagicFilterQuery<O>({
@@ -117,6 +125,7 @@ export function useMagicFilterQuery<O>({
   return {
     data: rows,
     rowCount: query.data?.totalSize ?? rows.length,
+    filter,
     isLoading: query.isLoading,
     isFetching: query.isFetching,
     isError: query.isError,
@@ -127,5 +136,19 @@ export function useMagicFilterQuery<O>({
     setPagination,
     globalFilter,
     setGlobalFilter,
+    applyFilter,
   };
+
+  function applyFilter(applied: MagicFilter) {
+    setGlobalFilterState(applied.searchString ?? "");
+    setSorting(
+      (applied.sortProperties ?? []).map((property) => ({
+        id: property.property,
+        desc: property.sortOrder === "DESCENDING",
+      }))
+    );
+    // A different filter means a different result set — page 1 is the only page
+    // guaranteed to exist.
+    setPagination((p) => ({ ...p, pageIndex: 0 }));
+  }
 }

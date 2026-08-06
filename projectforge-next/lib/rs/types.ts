@@ -243,6 +243,37 @@ export interface DynamicUIResponse {
   namedContainers?: NamedContainer[];
 }
 
+/** One saved filter, mirroring Favorites.FavoriteIdTitle. */
+export interface FavoriteIdTitle {
+  id: number;
+  name: string;
+}
+
+/**
+ * What `{entity}/initialList` and the `filter/*` endpoints return
+ * (AbstractPagesRest.InitialListData).
+ *
+ * Beyond the layout it carries the filter state the backend keeps per user: the
+ * current filter (stored on every list call, see saveCurrentFilter) and the list
+ * of saved filters.
+ */
+export interface InitialListData extends DynamicPageResponse {
+  filter?: MagicFilter;
+  filterFavorites?: FavoriteIdTitle[];
+  standardEditPage?: string;
+  quickSelectUrl?: string;
+  useModalEditDialog?: boolean;
+}
+
+/**
+ * Answer of `filter/create|rename|update|delete`: a map holding whichever of the
+ * two values the endpoint touched. `filter/update` returns an empty map.
+ */
+export interface FilterFavoritesResponse {
+  filter?: MagicFilter;
+  filterFavorites?: FavoriteIdTitle[];
+}
+
 export interface DynamicPageResponse {
   ui: DynamicUIResponse;
   data: Record<string, unknown>;

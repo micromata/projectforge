@@ -1,7 +1,38 @@
-import type { FilterElement, MagicFilterEntryValue } from "@/lib/rs/types";
+import {
+  PAGINATION_PAGE_SIZE_FIELD,
+  type FilterElement,
+  type MagicFilterEntry,
+  type MagicFilterEntryValue,
+} from "@/lib/rs/types";
 
 /** The filter values of one list, keyed by the backend field id. */
 export type FilterValues = Record<string, MagicFilterEntryValue>;
+
+/** The values as the entries MagicFilter expects, in a stable (sorted) order. */
+export function filterEntriesOf(values: FilterValues): MagicFilterEntry[] {
+  return Object.keys(values)
+    .sort()
+    .map((field) => ({ field, value: values[field] }));
+}
+
+/**
+ * The reverse: the field entries of a MagicFilter as filter values.
+ *
+ * Used when the backend hands a whole filter back (a saved filter that was
+ * applied). Entries without a field are dropped — MagicFilter.init does the same —
+ * and so is the page size, which travels as an entry but is not a filter.
+ */
+export function filterValuesFromEntries(
+  entries: MagicFilterEntry[] | undefined
+): FilterValues {
+  const values: FilterValues = {};
+  entries?.forEach((entry) => {
+    if (!entry.field || entry.field === PAGINATION_PAGE_SIZE_FIELD) return;
+    if (isEmptyFilterValue(entry.value)) return;
+    values[entry.field] = entry.value as MagicFilterEntryValue;
+  });
+  return values;
+}
 
 /**
  * Wraps the term in wildcards: the backend turns a STRING entry into a LIKE

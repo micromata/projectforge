@@ -1,5 +1,7 @@
 import type {
   DynamicPageResponse,
+  FilterFavoritesResponse,
+  InitialListData,
   MagicFilter,
   MenuData,
   ResultSet,
@@ -177,6 +179,78 @@ export function saveColumnStates(
   );
 }
 
+// --- Saved list filters (AbstractPagesRest "filter/*", stored in the user's prefs) ---
+
+/**
+ * Applies a saved filter and returns the whole list page state for it.
+ *
+ * The endpoint also makes it the user's current filter server-side, so the answer
+ * is an InitialListData — the same payload initialList delivers.
+ */
+export function selectFilterFavorite(
+  entity: string,
+  id: number,
+  signal?: AbortSignal
+): Promise<InitialListData> {
+  return request<InitialListData>(
+    `/rs/${entity}/filter/select?id=${id}`,
+    { method: "GET" },
+    signal
+  );
+}
+
+/** Saves the given filter under a new name. `filter.id` must be unset. */
+export function createFilterFavorite(
+  entity: string,
+  filter: MagicFilter,
+  signal?: AbortSignal
+): Promise<FilterFavoritesResponse> {
+  return request<FilterFavoritesResponse>(
+    `/rs/${entity}/filter/create`,
+    { method: "POST", body: JSON.stringify(filter) },
+    signal
+  );
+}
+
+/** Overwrites the saved filter identified by `filter.id` with the given values. */
+export function updateFilterFavorite(
+  entity: string,
+  filter: MagicFilter,
+  signal?: AbortSignal
+): Promise<FilterFavoritesResponse> {
+  return request<FilterFavoritesResponse>(
+    `/rs/${entity}/filter/update`,
+    { method: "POST", body: JSON.stringify(filter) },
+    signal
+  );
+}
+
+export function renameFilterFavorite(
+  entity: string,
+  id: number,
+  newName: string,
+  signal?: AbortSignal
+): Promise<FilterFavoritesResponse> {
+  return request<FilterFavoritesResponse>(
+    `/rs/${entity}/filter/rename?id=${id}&newName=${encodeURIComponent(newName)}`,
+    { method: "GET" },
+    signal
+  );
+}
+
+/** GET despite deleting — the endpoint is shared with the legacy frontend. */
+export function deleteFilterFavorite(
+  entity: string,
+  id: number,
+  signal?: AbortSignal
+): Promise<FilterFavoritesResponse> {
+  return request<FilterFavoritesResponse>(
+    `/rs/${entity}/filter/delete?id=${id}`,
+    { method: "GET" },
+    signal
+  );
+}
+
 // --- Menu ---
 
 export function fetchMenu(signal?: AbortSignal): Promise<MenuData> {
@@ -188,8 +262,8 @@ export function fetchMenu(signal?: AbortSignal): Promise<MenuData> {
 export function fetchInitialList(
   category: string,
   signal?: AbortSignal
-): Promise<DynamicPageResponse> {
-  return request<DynamicPageResponse>(
+): Promise<InitialListData> {
+  return request<InitialListData>(
     `/rs/${category}/initialList`,
     { method: "GET" },
     signal
