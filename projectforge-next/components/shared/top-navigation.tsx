@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMenu } from "@/hooks/use-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { logout } from "@/lib/rs/client";
+import { Menubar } from "@/components/ui/menubar";
 import { MainMenuDropdown } from "@/components/shared/main-menu-dropdown";
 import { FavoritesBar } from "@/components/shared/favorites-bar";
 import { UserMenu } from "@/components/shared/user-menu";
@@ -22,17 +23,24 @@ export function TopNavigation() {
   }
 
   return (
-    <nav className="flex h-12 items-center gap-2 border-b bg-background px-4">
-      <MainMenuDropdown categories={menu?.mainMenu?.menuItems ?? []} />
-      <FavoritesBar items={menu?.favoritesMenu?.menuItems ?? []} />
-      {/* ml-auto keeps the user menu right-aligned even when there are no favourites at all. */}
-      <div className="ml-auto shrink-0">
-        <UserMenu
-          items={menu?.myAccountMenu?.menuItems ?? []}
-          username={user?.fullname ?? user?.username ?? ""}
-          onLogout={handleLogout}
-        />
-      </div>
-    </nav>
+    // One Menubar around all menus: that is what lets a single click switch from an open menu to
+    // another one, instead of the first click only closing what was open.
+    <Menubar
+      asChild
+      className="h-12 gap-2 rounded-none border-x-0 border-t-0 bg-background px-4"
+    >
+      <nav>
+        <MainMenuDropdown categories={menu?.mainMenu?.menuItems ?? []} />
+        <FavoritesBar items={menu?.favoritesMenu?.menuItems ?? []} />
+        {/* ml-auto keeps the user menu right-aligned even when there are no favourites at all. */}
+        <div className="ml-auto flex shrink-0 items-center">
+          <UserMenu
+            items={menu?.myAccountMenu?.menuItems ?? []}
+            username={user?.fullname ?? user?.username ?? ""}
+            onLogout={handleLogout}
+          />
+        </div>
+      </nav>
+    </Menubar>
   );
 }

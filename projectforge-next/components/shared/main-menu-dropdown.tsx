@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Menu01Icon } from "@hugeicons/core-free-icons";
@@ -8,13 +7,14 @@ import { balanceMenuColumns } from "@/lib/menu-columns";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import type { MenuItem } from "@/lib/rs/types";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MenuLink } from "@/components/shared/menu-link";
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarTrigger,
+} from "@/components/ui/menubar";
+import { MENU_HOVER_CLASS, MenuLink } from "@/components/shared/menu-link";
 
 /**
  * Column count and panel width come from the same place: with the two split up, the panel used to
@@ -37,8 +37,8 @@ function useMenuLayout() {
   return LAYOUTS.base;
 }
 
+/** The full menu tree, grouped into balanced columns. Belongs inside the nav's `Menubar`. */
 export function MainMenuDropdown({ categories }: { categories: MenuItem[] }) {
-  const [open, setOpen] = useState(false);
   const t = useTranslations("menu");
   const { columns, widthClass } = useMenuLayout();
   const balanced = balanceMenuColumns(categories, columns);
@@ -46,24 +46,24 @@ export function MainMenuDropdown({ categories }: { categories: MenuItem[] }) {
   if (balanced.length === 0) return null;
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="gap-1.5"
-          aria-label={t("main.title")}
-        >
-          <HugeiconsIcon icon={Menu01Icon} size={16} />
-          <span className="hidden sm:inline">{t("main.title")}</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
+    <MenubarMenu>
+      <MenubarTrigger
+        className={cn(
+          buttonVariants({ variant: "ghost", size: "sm" }),
+          "shrink-0 cursor-pointer"
+        )}
+        aria-label={t("main.title")}
+      >
+        <HugeiconsIcon icon={Menu01Icon} size={16} />
+        <span className="hidden sm:inline">{t("main.title")}</span>
+      </MenubarTrigger>
+      <MenubarContent
         align="start"
         collisionPadding={12}
         className={cn(
           widthClass,
-          "max-w-[calc(100vw-1.5rem)] max-h-[min(80vh,var(--radix-dropdown-menu-content-available-height))] overflow-y-auto p-3"
+          // overflow-y-auto overrides the primitive's overflow-hidden so tall menus can scroll.
+          "max-h-[min(80vh,var(--radix-menubar-content-available-height))] max-w-[calc(100vw-1.5rem)] overflow-y-auto p-3"
         )}
       >
         <div className="flex items-start gap-6">
@@ -78,44 +78,39 @@ export function MainMenuDropdown({ categories }: { categories: MenuItem[] }) {
                 <CategoryColumn
                   key={category.id ?? category.title}
                   category={category}
-                  onSelect={() => setOpen(false)}
                 />
               ))}
             </div>
           ))}
         </div>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </MenubarContent>
+    </MenubarMenu>
   );
 }
 
-function CategoryColumn({
-  category,
-  onSelect,
-}: {
-  category: MenuItem;
-  onSelect: () => void;
-}) {
+function CategoryColumn({ category }: { category: MenuItem }) {
   return (
     <div className="flex flex-col gap-0.5">
       <span className="truncate px-2 py-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
         {category.title}
       </span>
       {category.subMenu?.map((item) => (
-        <MenuLink
-          key={item.key ?? item.url ?? item.title}
-          url={item.url}
-          title={item.title}
-          onClick={onSelect}
-          className="flex items-center gap-1.5 rounded-sm px-2 py-1 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-        >
-          <span className="truncate">{item.title}</span>
-          {item.badge?.counter ? (
-            <span className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1 text-xs text-primary-foreground">
-              {item.badge.counter}
-            </span>
-          ) : null}
-        </MenuLink>
+        // MenubarItem, not a bare link: it is what closes the panel on click and wires up
+        // keyboard navigation.
+        <MenubarItem key={item.key ?? item.url ?? item.title} asChild>
+          <MenuLink
+            url={item.url}
+            title={item.title}
+            className={cn("text-sm", MENU_HOVER_CLASS)}
+          >
+            <span className="truncate">{item.title}</span>
+            {item.badge?.counter ? (
+              <span className="ml-auto inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1 text-xs text-primary-foreground">
+                {item.badge.counter}
+              </span>
+            ) : null}
+          </MenuLink>
+        </MenubarItem>
       ))}
     </div>
   );

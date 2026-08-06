@@ -1,17 +1,21 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
 import type { MenuItem } from "@/lib/rs/types";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MenuLink } from "@/components/shared/menu-link";
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarTrigger,
+} from "@/components/ui/menubar";
+import { MENU_HOVER_CLASS, MenuLink } from "@/components/shared/menu-link";
 
-/** "My account" menu on the right of the nav bar; logout is handled in-app, not as a link. */
+/**
+ * "My account" menu on the right of the nav bar; logout is handled in-app, not as a link.
+ * Belongs inside the nav's `Menubar`.
+ */
 export function UserMenu({
   items,
   username,
@@ -24,33 +28,38 @@ export function UserMenu({
   const t = useTranslations("menu");
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="max-w-40 shrink-0"
-          aria-label={t("myAccount")}
-        >
-          <span className="truncate">{username}</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+    <MenubarMenu>
+      <MenubarTrigger
+        className={cn(
+          buttonVariants({ variant: "ghost", size: "sm" }),
+          "max-w-40 shrink-0 cursor-pointer"
+        )}
+        aria-label={t("myAccount")}
+      >
+        <span className="truncate">{username}</span>
+      </MenubarTrigger>
+      <MenubarContent align="end">
         {items.map((item) => {
           if (item.url === "/logout" || item.key === "LOGOUT") {
             return (
-              <DropdownMenuItem key="logout" onSelect={onLogout}>
+              <MenubarItem
+                key="logout"
+                className={MENU_HOVER_CLASS}
+                onSelect={onLogout}
+              >
                 {item.title}
-              </DropdownMenuItem>
+              </MenubarItem>
             );
           }
           return (
-            <DropdownMenuItem key={item.key ?? item.url ?? item.title} asChild>
-              <MenuLink url={item.url}>{item.title}</MenuLink>
-            </DropdownMenuItem>
+            <MenubarItem key={item.key ?? item.url ?? item.title} asChild>
+              <MenuLink url={item.url} className={MENU_HOVER_CLASS}>
+                {item.title}
+              </MenuLink>
+            </MenubarItem>
           );
         })}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </MenubarContent>
+    </MenubarMenu>
   );
 }

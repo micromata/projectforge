@@ -2,6 +2,13 @@ import Link from "next/link";
 import { resolveMenuUrl } from "@/lib/menu-url";
 
 /**
+ * Hover feedback for menu entries and triggers. The shadcn menu primitives only highlight on
+ * `focus:` and set `cursor-default`, which reads as inactive for entries that are in fact links.
+ */
+export const MENU_HOVER_CLASS =
+  "cursor-pointer hover:bg-accent hover:text-accent-foreground";
+
+/**
  * Renders a menu entry as a client-side link when it belongs to this app, and as a plain anchor
  * (full page load) when it points at the legacy React app or Wicket.
  */
