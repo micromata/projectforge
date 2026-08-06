@@ -391,12 +391,17 @@ alten React-Seite. Bausteine: `components/data-table/use-filter-favorites.ts`,
 4. **CSRF-Schutz für die next-Aufrufe** – siehe eigener Abschnitt unten. Muss in
    `books` gelöst werden, bevor es in die Breite geht: jede migrierte Seite erbt
    den Mechanismus.
-5. **Konventions-Drift:** `books`-Edit nutzt `@tanstack/react-form`, `CLAUDE.md`
-   schreibt `react-hook-form` vor. Vor der Bulk-Migration entscheiden.
+5. **Validierungsregeln nicht duplizieren** – siehe eigener Abschnitt unten.
+   `books`-Edit ist der Präzedenzfall für alle handgebauten Seiten: solange dort
+   `required` und Feldlängen von Hand stehen, erbt jede weitere Seite das Muster.
 6. Nicht browserseitig verifiziert: englischer Locale-Pfad, vollständiger
    Login-Flow mit echten Daten, das visuelle Ergebnis der Tabelle
    (Spaltenbreiten, Resize, Popovers) und der Favoriten-Durchlauf
    (anwenden/anlegen/umbenennen/überschreiben/löschen).
+
+Erledigt seit der letzten Fassung: die Form-Library-Drift (`CLAUDE.md` schreibt
+inzwischen `@tanstack/react-form` + Zod für handgebaute Formulare vor, dynamische
+Seiten bleiben bewusst ohne Form-Library – s. Phase 2).
 
 #### Offen: CSRF-Schutz (querschnittlich, blockiert die Breite)
 
@@ -465,6 +470,72 @@ Filter-Favoriten zu löschen.
 Punkt 4 und 5 sind Backend-Aufräumarbeiten und können später kommen; **1–3 sind
 die Voraussetzung dafür, dass eine next-Seite überhaupt schreiben darf** – ohne
 sie scheitert das erste echte Speichern aus `books`-Edit an `validateCsrfToken`.
+
+#### Offen: Validierungsregeln nicht duplizieren
+
+**Der Stand.** Feldlängen, Typen und Pflichtfelder sind im Backend genau einmal
+deklariert – und zwar _nicht_ per Bean Validation (die Entities haben keine
+`@NotNull`/`@Size`-Annotationen), sondern über zwei Quellen:
+
+- JPA `@Column(length = …, nullable = …)` am Getter der `…DO`-Klasse
+  (`BookDO.title` → 255, `BookDO.keywords` → 1024),
+- ProjectForge-eigenes `@PropertyInfo(i18nKey, required, type)`
+  (`projectforge-common/.../common/anots/PropertyInfo.java`).
+
+Zusammengeführt werden sie automatisch in `projectforge-rest/.../ui/ElementsRegistry.kt`:
+`maxLength` kommt aus der Spaltenlänge, `required` wird gesetzt, sobald
+`!colinfo.nullable || propertyInfo.required` gilt (Booleans ausgenommen), und ab
+`maxLength >= 256` wird ein `UIInput` zur `UITextArea` befördert. Auf dem Draht
+landet das in `UIInput.maxLength/required/dataType` bzw. `UITextArea.maxLength`.
+Geprüft wird serverseitig mit derselben Registry
+(`rest/core/ValidationUtils.validateRequiredFields`); Fehler kommen als **HTTP 406**
+mit `ResponseAction.validationErrors` (`fieldId` + übersetzte `message`,
+s. `AbstractPagesRestUtils.kt`).
+
+**Das Duplikat.** Der Dynamic-Renderer in next liest diese Angaben bereits und
+bekommt sie damit geschenkt (`components/dynamic/components/input/*` und
+`components/dynamic/components/dynamic-field.tsx`). Nur der handgebaute Zweig
+deklariert sie erneut:
+`components/features/books/edit/book-edit-schema.ts` hat `required` hartcodiert
+(inkl. deutschem Meldungstext im Code, an next-intl vorbei), `allgemein-section.tsx`
+setzt `required` ein zweites Mal als Prop – und die Feldlängen fehlen ganz. Eine
+Spaltenlänge im Backend zu ändern verändert das Frontend also nicht; es bleibt
+still falsch. Dazu wertet `books`-Edit die 406-`validationErrors` bisher nicht aus.
+
+**Grundsatz.** Feldlängen, Typen und `required` werden im Frontend **nie** erneut
+deklariert. Frontend-Validierung ist reine UX-Vorwegnahme der Server-Regel; die
+Autorität bleibt der Server (406).
+
+**Beschlossener Weg – zwei Kanäle, getrennt nach Seitentyp:**
+
+1. **Dynamische Seiten (Phase 2): zur Laufzeit**, wie in der alten React-App.
+   Nichts zu bauen – `maxLength`, `required` und `dataType` kommen im `UILayout`
+   mit. Regel für neue Element-Komponenten in `components/dynamic/`: diese Props
+   durchreichen, niemals eigene Grenzen oder Pflichtfeld-Logik erfinden.
+2. **Handgebaute Seiten (`books`-Edit, Phase 3 Auftragsbuch): generiert**, analog
+   zur i18n-Generierung. Ein Generator neben `GenerateNextI18nMessagesMain.kt`
+   (gleiches Package, Aufruf über `DevelopmentMainForRelease`, Output committet)
+   schreibt pro Entität je Property `{ maxLength, required, dataType, i18nKey }`
+   in eine TS-Datei; die Zod-Schemata leiten sich daraus ab statt die Regeln zu
+   wiederholen. Gegenüber dem Laufzeitweg spricht dafür: kein zusätzlicher Request
+   auf einer statisch exportierten Seite, echte Typsicherheit, und ein Feld, das
+   im Backend verschwindet, fällt sofort im `npm run typecheck` auf.
+
+**Noch zu klären (bewusst offen):**
+
+- **Auswahl der Entitäten** – Prefix-/Whitelist wie bei den i18n-Keys oder alle
+  registrierten `…DO`s? Nur handgebaute Seiten brauchen die Dateien.
+- **Woher die Längen kommen** – `framework/persistence/jpa/EntityMetaDataRegistry`
+  liest sie rein reflexiv aus den Annotationen (keine DB, keine
+  `EntityManagerFactory`), `framework/persistence/metamodel/HibernateMetaModel`
+  braucht eine laufende Persistenzschicht. Für einen Generator ist die reflexive
+  Variante die richtige.
+- **Ableitungshelfer im Frontend** – z.B. `lib/validation/from-metadata.ts`:
+  Metadaten → Zod-Bausteine (`min(1)` bei `required`, `max(maxLength)`), mit
+  Meldungstexten über next-intl statt hartcodiert.
+- **406-Auswertung im handgebauten Zweig** – `validationErrors` per `fieldId` auf
+  die Formularfelder mappen, wie es der dynamische Zweig schon tut. Ohne das
+  bleibt die Server-Regel unsichtbar, sobald sie strenger ist als die generierte.
 
 ### Phase 2 – Dynamic-Renderer in Next vervollständigen (Bulk-Migration)
 
@@ -614,6 +685,11 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
   `rest/dto/ServerData.kt`, `AbstractDynamicPageRest.kt` (`createServerData`/
   `validateCsrfToken`); next-Vorlage `rest/pub/next/PasswordResetNextRest.kt`;
   Cookie-Flags `CookieService.kt`
+- **Validierungs-Metadaten:** `projectforge-common/.../common/anots/PropertyInfo.java`,
+  `projectforge-rest/.../ui/ElementsRegistry.kt` (+ `ElementInfo.kt`),
+  `rest/core/ValidationUtils.kt`, `AbstractPagesRestUtils.kt` (406-Antwort);
+  reflexive Metadaten `projectforge-business/.../framework/persistence/jpa/EntityMetaDataRegistry.kt`;
+  Frontend-Duplikat `projectforge-next/components/features/books/edit/book-edit-schema.ts`
 - **Menü:** `projectforge-business/.../menu/builder/MenuItemDefId.kt`,
   `MenuCreator.kt`; `projectforge-rest/.../MenuRest.kt`
 - **Dynamic-Renderer Backend:** `projectforge-rest/src/main/kotlin/org/projectforge/ui/`
@@ -657,9 +733,11 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
    alle Seiten und blockiert das erste echte Speichern aus next – deshalb vor der
    Bulk-Migration.
 2. **Phase 1.5 abschließen:** OBJECT-Autocomplete und TIMESTAMP-Schnellauswahl,
-   gesetzte Filter beim Seitenaufruf wiederherstellen. Vorher das visuelle
-   Ergebnis der Tabelle und den Favoriten-Durchlauf im Browser prüfen – das steht
-   noch aus.
+   gesetzte Filter beim Seitenaufruf wiederherstellen, und `books`-Edit als saubere
+   Vorlage: Validierungsregeln aus den Backend-Metadaten ableiten statt sie zu
+   wiederholen, plus Auswertung der 406-`validationErrors` (s. eigener Abschnitt).
+   Vorher das visuelle Ergebnis der Tabelle und den Favoriten-Durchlauf im Browser
+   prüfen – das steht noch aus.
 3. **Phase 2** – Dynamic-Renderer ausbauen (bringt die ~36 UILayout-Seiten in der
    Masse). Profitiert direkt von der fertigen `DataTable`; braucht als ersten
    Schritt den `UIAgGridColumnDef → ColumnDef`-Adapter und die Formatter.
