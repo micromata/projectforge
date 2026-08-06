@@ -1,66 +1,10 @@
 import type { FilterFn, Row } from "@tanstack/react-table";
-
-// Column filter values are plain, JSON-serialisable objects so the whole filter
-// state can be persisted server-side. A single filterFn routes on the value
-// shape: an array means "selection", otherwise the `type` discriminator decides.
-
-export type TextOperator =
-  | "contains"
-  | "notContains"
-  | "equals"
-  | "notEqual"
-  | "startsWith"
-  | "endsWith"
-  | "blank"
-  | "notBlank";
-
-export type NumberOperator =
-  | "equals"
-  | "notEqual"
-  | "greaterThan"
-  | "lessThan"
-  | "between"
-  | "blank"
-  | "notBlank";
-
-export type DateOperator =
-  | "equals"
-  | "notEqual"
-  | "before"
-  | "after"
-  | "between"
-  | "blank"
-  | "notBlank";
-
-export interface TextFilterValue {
-  type: "text";
-  operator: TextOperator;
-  value?: string;
-}
-
-export interface NumberFilterValue {
-  type: "number";
-  operator: NumberOperator;
-  value?: number;
-  valueTo?: number;
-}
-
-export interface DateFilterValue {
-  type: "date";
-  operator: DateOperator;
-  /** ISO date (YYYY-MM-DD); compared as a string. */
-  value?: string;
-  valueTo?: string;
-}
-
-/** A selection filter is the list of accepted display values. */
-export type SelectionFilterValue = string[];
-
-export type ColumnFilterValue =
-  | TextFilterValue
-  | NumberFilterValue
-  | DateFilterValue
-  | SelectionFilterValue;
+import type {
+  ColumnFilterValue,
+  DateFilterValue,
+  NumberFilterValue,
+  TextFilterValue,
+} from "./column-filter-types";
 
 /** Renders a cell value the way the selection filter lists it. */
 export function toFilterText(value: unknown): string {
@@ -71,6 +15,13 @@ export function toFilterText(value: unknown): string {
     return displayName == null ? "" : String(displayName);
   }
   return String(value);
+}
+
+/** Sort order of the selection list: blanks last, the rest by the user's locale. */
+export function compareFilterText(a: string, b: string): number {
+  if (a === "") return 1;
+  if (b === "") return -1;
+  return a.localeCompare(b);
 }
 
 /** Normalises epoch millis or an ISO timestamp to YYYY-MM-DD. */

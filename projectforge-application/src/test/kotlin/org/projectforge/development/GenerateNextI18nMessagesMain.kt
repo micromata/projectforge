@@ -64,6 +64,8 @@ object GenerateNextI18nMessagesMain {
     "filter.",
     "created",
     "modified",
+    // Wait indicator, e.g. while a column filter builds its value list.
+    "loading",
     // Generic button labels. "delete" also matches "deleted" — harmless, and the alternative is
     // spelling out every key that happens to share a prefix.
     "apply",

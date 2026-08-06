@@ -2,6 +2,7 @@
 
 import { PageShell } from "@/components/shared/page-shell";
 import { ListPageShell } from "@/components/shared/list-page-shell";
+import { Spinner } from "@/components/shared/spinner";
 import { useMemo, useState } from "react";
 import {
   DataTable,
@@ -36,7 +37,7 @@ export default function BooksPage() {
     return (
       <PageShell>
         <div className="flex flex-1 items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary" />
+          <Spinner />
         </div>
       </PageShell>
     );

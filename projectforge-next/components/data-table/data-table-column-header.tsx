@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/popover";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
-import { ColumnFilter, type FilterKind } from "./column-filter";
+import { ColumnFilter } from "./column-filter";
+import type { FilterKind } from "./column-filter-types";
 
 interface DataTableColumnHeaderProps<TData, TValue> {
   column: Column<TData, TValue>;

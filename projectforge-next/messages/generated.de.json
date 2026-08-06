@@ -110,6 +110,7 @@
     "value": "Wert",
     "valueTo": "Bis"
   },
+  "loading": "Laden...",
   "login": {
     "_": "Anmelden",
     "adminLoginRequired": "Wartungsmodus: Bitte als Administrator:in anmelden!",

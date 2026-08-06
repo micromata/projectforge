@@ -110,6 +110,7 @@
     "value": "Value",
     "valueTo": "To"
   },
+  "loading": "Loading...",
   "login": {
     "_": "Login",
     "adminLoginRequired": "Maintenance mode: Please use ProjectForge only as administrator!",
