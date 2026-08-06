@@ -85,9 +85,7 @@ function describeValue(
 ): string {
   if (value.values?.length) {
     return value.values
-      .map(
-        (id) => element?.values?.find((v) => v.id === id)?.displayName ?? id
-      )
+      .map((id) => element?.values?.find((v) => v.id === id)?.displayName ?? id)
       .join(", ");
   }
   if (value.from || value.to) {
