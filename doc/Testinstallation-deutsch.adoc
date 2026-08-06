@@ -6,8 +6,8 @@ Die aktuellste Version dieser Datei befindet sich https://github.com/micromata/p
 
 `projectforge-application-8.1-xxx.jar` herunterladen
 
-===== Java 17 installieren
-Open-JDK 17 installieren bzw. entsprechendes Docker-Image verwenden.
+===== Java 21 installieren
+Open-JDK 21 installieren bzw. entsprechendes Docker-Image verwenden.
 
 ==== Erststart
 
