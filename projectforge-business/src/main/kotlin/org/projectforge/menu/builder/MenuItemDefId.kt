@@ -24,6 +24,7 @@
 package org.projectforge.menu.builder
 
 import org.projectforge.Constants
+import org.projectforge.NextMigration
 
 private const val TWO_FACTOR_AUTHENTIFICATION_SUB_URL_PRIV = "2FA"
 
@@ -48,9 +49,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     ADMIN_LOG_VIEWER("system.admin.logViewer.title", "${getReactDynamicPageUrl("adminLogViewer")}/-1"), //
     BANK_ACCOUNT_LIST("menu.finance.bankAccounts"), //
     BIRTHDAY_BUTLER("menu.birthdayButler", getReactDynamicPageUrl("birthdayButler")), //
-    // Migrated to projectforge-next. Its route is the plural noun ("books"), unlike the REST
-    // category ("book") the legacy React app used as its url.
-    BOOK_LIST("menu.bookList", getNextListUrl("books")), //
+    BOOK_LIST("menu.bookList", getListUrl("book")), //
     CALENDAR("menu.calendar", getReactListUrl("calendar")), //
     CALENDAR_LIST("menu.plugins.teamcal", getReactListUrl("teamCal")), //
     CHANGE_PASSWORD("menu.changePassword", getReactDynamicPageUrl("changePassword")), //
@@ -122,19 +121,23 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     }
 }
 
+/**
+ * Url of a list page, pointing at whichever frontend currently serves it. [NextMigration] decides:
+ * migrated pages resolve to `next/<route>`, all others to `react/<category>`. Switching a page is
+ * therefore an entry in [NextMigration], not an edit here - that keeps the menu url and the server
+ * side redirect targets (see `PagesResolver`) from drifting apart.
+ *
+ * @param category The REST category (derived from the `@RequestMapping` of the `*PagesRest` class),
+ * e.g. `book` - *not* the route of the next page (`books`).
+ */
+private fun getListUrl(category: String): String {
+    return NextMigration.listUrl(category)
+}
+
 private fun getReactListUrl(name: String): String {
     return "${Constants.REACT_APP_PATH}$name"
 }
 
 fun getReactDynamicPageUrl(name: String): String {
     return "${Constants.REACT_APP_PATH}$name/dynamic"
-}
-
-/**
- * Url of a list page served by projectforge-next (Next.js). Switching a menu entry from
- * [getReactListUrl] (or a `wa/` Wicket url) to this is the per-page release switch during the
- * frontend migration: the frontend is chosen per menu item, so both apps can run side by side.
- */
-private fun getNextListUrl(name: String): String {
-    return "${Constants.NEXT_APP_PATH}$name"
 }

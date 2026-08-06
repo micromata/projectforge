@@ -103,5 +103,12 @@
     "number": "Zahl",
     "date": "Datum",
     "blank": "(leer)"
+  },
+  "dynamic": {
+    "search": "Suchen…",
+    "noOptions": "Keine Auswahl",
+    "create": "„{value}“ hinzufügen",
+    "remove": "{label} entfernen",
+    "empty": "—"
   }
 }

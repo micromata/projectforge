@@ -2,6 +2,7 @@
 
 import type { DynamicComponentProps } from "../dynamic-renderer";
 import { useDynamicLayout } from "../dynamic-context";
+import { getByPath } from "@/lib/dynamic/path";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -14,7 +15,7 @@ export function DynamicTextarea({ node }: DynamicComponentProps) {
   const maxLength = node.maxLength as number | undefined;
   const rows = (node.rows as number) ?? 3;
 
-  const rawValue = getNestedValue(data, id);
+  const rawValue = getByPath(data, id);
   const value = rawValue != null ? String(rawValue) : "";
   const error = validationErrors.find((e) => e.fieldId === id);
 
@@ -36,12 +37,4 @@ export function DynamicTextarea({ node }: DynamicComponentProps) {
       {error && <p className="text-xs text-destructive">{error.message}</p>}
     </div>
   );
-}
-
-function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
-  return path.split(".").reduce<unknown>((acc, key) => {
-    if (acc && typeof acc === "object")
-      return (acc as Record<string, unknown>)[key];
-    return undefined;
-  }, obj);
 }

@@ -24,9 +24,12 @@
 package org.projectforge.rest.core
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.projectforge.NextMigration
 import org.projectforge.rest.AddressPagesRest
+import org.projectforge.rest.BookPagesRest
 import org.projectforge.rest.calendar.CalendarSubscriptionInfoPageRest
 
 class PageResolverTest {
@@ -57,5 +60,25 @@ class PageResolverTest {
         assertEquals("react/calendarSubscription/dynamic", PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java, trailingSlash = false))
         assertEquals("react/calendarSubscription/dynamic/", PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java))
         assertEquals("react/calendarSubscription/dynamic/123", PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java, id = 123))
+    }
+
+    /**
+     * Pages migrated to projectforge-next must resolve to `next/<route>`, so that server side
+     * redirects don't throw the user back into the legacy React app. The route may differ from the
+     * rest category: `book` -> `books`.
+     */
+    @Test
+    fun migratedToNextTest() {
+        assertEquals("next/books", PagesResolver.getListPageUrl(BookPagesRest::class.java))
+        assertEquals("/next/books", PagesResolver.getListPageUrl(BookPagesRest::class.java, absolute = true))
+        assertEquals("next/books?str=test", PagesResolver.getListPageUrl(BookPagesRest::class.java, mapOf("str" to "test")))
+        // books is hand built in projectforge-next, so its edit route is /books/<id>, not /books/edit/<id>:
+        assertEquals("next/books/42", PagesResolver.getEditPageUrl(BookPagesRest::class.java, 42))
+        assertEquals("next/books/new", NextMigration.newEntryUrl("book"))
+        assertEquals("next/books/:id", NextMigration.standardEditPage("book"))
+        // Not migrated: unchanged, and the category is used as the route.
+        assertFalse(NextMigration.isMigrated("address"))
+        assertEquals("react/address/edit", NextMigration.newEntryUrl("address"))
+        assertEquals("react/address/edit/:id", NextMigration.standardEditPage("address"))
     }
 }

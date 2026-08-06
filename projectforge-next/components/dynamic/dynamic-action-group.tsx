@@ -1,6 +1,7 @@
 "use client";
 
 import { useDynamicLayout } from "./dynamic-context";
+import { buttonVariant } from "./button-variant";
 import { Button } from "@/components/ui/button";
 
 export function DynamicActionGroup() {
@@ -14,8 +15,9 @@ export function DynamicActionGroup() {
       {actions.map((action) => (
         <Button
           key={action.id}
-          variant={mapStyleToVariant(action.style)}
-          disabled={isFetching}
+          variant={buttonVariant(action.color, action.outline)}
+          disabled={isFetching || action.disabled}
+          title={action.tooltip}
           onClick={() => callAction(action)}
         >
           {translate(action.title ?? action.id)}
@@ -23,22 +25,4 @@ export function DynamicActionGroup() {
       ))}
     </div>
   );
-}
-
-function mapStyleToVariant(
-  style?: string
-): "default" | "destructive" | "outline" | "secondary" | "ghost" {
-  switch (style) {
-    case "danger":
-      return "destructive";
-    case "primary":
-    case "success":
-      return "default";
-    case "secondary":
-      return "secondary";
-    case "link":
-      return "ghost";
-    default:
-      return "outline";
-  }
 }

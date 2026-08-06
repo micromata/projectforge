@@ -208,21 +208,98 @@ export interface ValidationError {
   message: string;
 }
 
+/** Lower-case on the wire, see the @JsonProperty names of org.projectforge.ui.UIColor. */
+export type UIColorName =
+  | "danger"
+  | "dark"
+  | "info"
+  | "light"
+  | "link"
+  | "primary"
+  | "secondary"
+  | "success"
+  | "warning";
+
+/** A button of the action group or of the layout (org.projectforge.ui.UIButton). */
 export interface ActionDef {
   id: string;
   title?: string;
-  style?: string;
-  type?: string;
-  url?: string;
-  responseAction?: ResponseAction;
+  color?: UIColorName;
+  outline?: boolean;
+  default?: boolean;
+  tooltip?: string;
+  disabled?: boolean;
   confirmMessage?: string;
+  responseAction?: ResponseAction;
 }
 
-export interface ResponseAction {
-  targetType: string;
-  url?: string;
+/** org.projectforge.ui.TargetType. */
+export type TargetType =
+  | "REDIRECT"
+  | "DOWNLOAD"
+  | "UPDATE"
+  | "GET"
+  | "PUT"
+  | "POST"
+  | "DELETE"
+  | "MODAL"
+  | "CLOSE_MODAL"
+  | "RELOAD"
+  | "NOTHING"
+  | "TOAST"
+  | "CHECK_AUTHENTICATION";
+
+/** org.projectforge.ui.ResponseAction.Message - the text is already translated by the backend. */
+export interface ResponseActionMessage {
+  i18nKey?: string;
   message?: string;
+  technicalMessage?: string;
+  color?: UIColorName;
+}
+
+/** What every action endpoint answers: how the client should proceed. */
+export interface ResponseAction {
+  targetType?: TargetType;
+  url?: string;
+  /** UPDATE/CLOSE_MODAL: merge the payload into the current state instead of replacing it. */
+  merge?: boolean;
+  validationErrors?: ValidationError[];
+  message?: ResponseActionMessage;
   variables?: Record<string, unknown>;
+}
+
+/**
+ * Opaque state the server keeps per edit page (csrf token, return-to-caller); the client only
+ * echoes it back - see rest/dto/ServerData.kt.
+ */
+export interface ServerData {
+  csrfToken?: string;
+  returnToCaller?: string;
+  returnToCallerParams?: Record<string, string>;
+}
+
+/** Body of save/update/delete/cancel/watchFields - see rest/dto/PostData.kt. */
+export interface PostData<D = Record<string, unknown>> {
+  data: D;
+  watchFieldsTriggered?: string[];
+  serverData?: ServerData;
+}
+
+export interface AutoCompletion {
+  /** Number of characters before the lookup fires; UIInput/UISelect default it to 2. */
+  minChars?: number;
+  values?: { value: unknown; label: string; allSearchableFields?: string }[];
+  /** USER, EMPLOYEE, GROUP, CUSTOMER, PROJECT - set when the field stores whole entities. */
+  type?: string;
+  /** Contains a literal ":search" placeholder to substitute. */
+  url?: string;
+  urlParams?: Record<string, string>;
+}
+
+/** One offered option of a UISelect (org.projectforge.ui.UISelectValue). */
+export interface UISelectValue {
+  id: unknown;
+  displayName: string;
 }
 
 export interface NamedContainer {
@@ -232,6 +309,8 @@ export interface NamedContainer {
 }
 
 export interface DynamicUIResponse {
+  /** Identifies this layout instance; used to keep dom ids unique (UILayout.uid). */
+  uid?: string;
   layout: DynamicLayoutNode[];
   layoutBelowActions?: DynamicLayoutNode[];
   actions?: ActionDef[];
@@ -274,11 +353,14 @@ export interface FilterFavoritesResponse {
   filterFavorites?: FavoriteIdTitle[];
 }
 
-export interface DynamicPageResponse {
+/**
+ * Layout and data in one - see rest/dto/FormLayoutData.kt.
+ *
+ * The same shape doubles as the answer of an action endpoint, which is why it carries the
+ * ResponseAction fields as well (the backend writes both into one JSON object).
+ */
+export interface DynamicPageResponse extends ResponseAction {
   ui: DynamicUIResponse;
   data: Record<string, unknown>;
-  variables?: Record<string, unknown>;
-  validationErrors?: ValidationError[];
-  targetType?: string;
-  url?: string;
+  serverData?: ServerData;
 }

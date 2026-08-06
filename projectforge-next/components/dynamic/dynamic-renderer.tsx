@@ -5,9 +5,11 @@ import type { DynamicLayoutNode } from "@/lib/rs/types";
 import { DynamicGroup } from "./components/dynamic-group";
 import { DynamicFieldset } from "./components/dynamic-fieldset";
 import { DynamicLabel } from "./components/dynamic-label";
-import { DynamicInput } from "./components/dynamic-input";
+import { DynamicInputResolver } from "./components/input/dynamic-input-resolver";
 import { DynamicCheckbox } from "./components/dynamic-checkbox";
-import { DynamicSelect } from "./components/dynamic-select";
+import { DynamicSelect } from "./components/select/dynamic-select";
+import { DynamicRadioButton } from "./components/dynamic-radiobutton";
+import { DynamicList } from "./components/dynamic-list";
 import { DynamicTextarea } from "./components/dynamic-textarea";
 import { DynamicButton } from "./components/dynamic-button";
 import { DynamicReadonlyField } from "./components/dynamic-readonly-field";
@@ -29,10 +31,12 @@ const COMPONENT_MAP: Record<string, ComponentType<DynamicComponentProps>> = {
   INLINE_GROUP: DynamicGroup,
   FIELDSET: DynamicFieldset,
   LABEL: DynamicLabel,
-  INPUT: DynamicInput,
+  INPUT: DynamicInputResolver,
   CHECKBOX: DynamicCheckbox,
   SELECT: DynamicSelect,
   CREATABLE_SELECT: DynamicSelect,
+  RADIOBUTTON: DynamicRadioButton,
+  LIST: DynamicList,
   TEXTAREA: DynamicTextarea,
   BUTTON: DynamicButton,
   READONLY_FIELD: DynamicReadonlyField,

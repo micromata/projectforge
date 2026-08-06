@@ -39,13 +39,19 @@ export function setTwoFactorHandler(handler: TwoFactorHandler | null): void {
   twoFactorHandler = handler;
 }
 
-export async function request<O>(
+/**
+ * Sends a request and hands back the raw Response, 2FA retry included.
+ *
+ * Dynamic pages need this instead of request(): their protocol uses the status code (406 carries
+ * validation errors) and the content type (octet-stream is a download) as data.
+ */
+export async function rawRequest(
   path: string,
   init: RequestInit,
   signal?: AbortSignal,
   // Internal: a retried request must not trigger the 2FA dialog a second time.
   isRetry = false
-): Promise<O> {
+): Promise<Response> {
   // Backend paths (/rs, /rsPublic) are root-relative, NOT prefixed with the
   // app's basePath: Spring serves them at the origin root, not under /next.
   // Dev: next.config.ts rewrites proxy them to :8080. Prod: same Spring origin.
@@ -69,10 +75,19 @@ export async function request<O>(
       .catch(() => null)) as TwoFactorRequiredBody | null;
     if (body?.twoFactorRequired) {
       if (await twoFactorHandler(body.expiryMillis)) {
-        return request<O>(path, init, signal, true);
+        return rawRequest(path, init, signal, true);
       }
     }
   }
+  return res;
+}
+
+export async function request<O>(
+  path: string,
+  init: RequestInit,
+  signal?: AbortSignal
+): Promise<O> {
+  const res = await rawRequest(path, init, signal);
   if (!res.ok) {
     throw new RsError(res.status, `${res.status} ${res.statusText}: ${path}`);
   }
@@ -297,15 +312,4 @@ export function fetchDynamic(
   );
 }
 
-export function callAction(
-  url: string,
-  data: Record<string, unknown>,
-  serverData?: Record<string, unknown>,
-  signal?: AbortSignal
-): Promise<DynamicPageResponse> {
-  return request<DynamicPageResponse>(
-    url,
-    { method: "POST", body: JSON.stringify({ data, serverData }) },
-    signal
-  );
-}
+// Actions of a dynamic page are sent by lib/rs/dynamic.ts - they need the raw Response.

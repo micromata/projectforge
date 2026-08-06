@@ -27,7 +27,7 @@ import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import mu.KotlinLogging
-import org.projectforge.Constants
+import org.projectforge.NextMigration
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.DisplayNameCapable
@@ -105,7 +105,7 @@ constructor(
      */
     open val autoCompleteSearchFields: Array<String>? = null
 
-    open val addNewEntryUrl: String by lazy { "${Constants.REACT_APP_PATH}$category/edit" }
+    open val addNewEntryUrl: String by lazy { NextMigration.newEntryUrl(category) }
 
     /**
      * If true, edit pages will open in modal dialogs instead of full page navigation.
@@ -431,7 +431,7 @@ constructor(
      * @return the standard edit page at default.
      */
     protected open fun getStandardEditPage(): String {
-        return "${Constants.REACT_APP_PATH}$category/edit/:id"
+        return NextMigration.standardEditPage(category)
     }
 
     /**

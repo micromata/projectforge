@@ -58,6 +58,16 @@ stößt der backend-gesteuerte Dynamic-Renderer prinzipiell an seine Grenzen.
 - **Prod:** **Kein Node-Server.** Reiner Static Export, von Spring unter `/next`
   ausgeliefert.
 
+`output: 'export'` ist deshalb **nur in Prod** gesetzt (`isProd` in
+`next.config.ts`). Grund: der Dev-Server lehnt mit aktivem Export jeden
+dynamischen Param ab, den `generateStaticParams()` nicht auflistet – jeder
+Deep-Link (`/next/books/5`, `/next/address/edit/42`) antwortet dann mit 500, also
+genau die URLs, die man testen will. In Prod funktionieren sie, weil Spring auf
+die SPA-Shell (`404.html`) zurückfällt und der Client die Params zur Laufzeit
+liest; der Dev-Server hat diesen Fallback nicht und will stattdessen
+vorrendern. Das CI-Gate bleibt scharf, weil der Gradle-Build (`npmBuild`) immer
+mit Export baut.
+
 ### Constraint: Dev-Komfort darf die Prod-Tauglichkeit nicht brechen
 
 Weil Prod ein reiner Static Export ohne Node ist, darf Feature-Code **keine**
@@ -459,18 +469,55 @@ sie scheitert das erste echte Speichern aus `books`-Edit an `validateCsrfToken`.
 ### Phase 2 – Dynamic-Renderer in Next vervollständigen (Bulk-Migration)
 
 Port der Referenz `projectforge-webapp/src/components/base/dynamicLayout/` nach
-`projectforge-next/components/dynamic/`. Lücken (Ist → Soll):
+`projectforge-next/components/dynamic/`.
 
-1. **`callAction`/`ResponseAction`-Interpreter** vervollständigen (alle
-   `TargetType`: REDIRECT, UPDATE, DOWNLOAD, MODAL, CLOSE_MODAL, TOAST,
-   CHECK_AUTHENTICATION, GET/POST/PUT/DELETE mit rekursivem Feedback,
-   406→ValidationErrors).
-2. **`watchFields`** verdrahten: Feldänderung → diff gegen `ui.watchFields` →
-   `POST {category}/watchFields` → `UPDATE`-Merge.
-3. **RHF + Zod** statt rohem `setData` (Projekt-Konvention). Hinweis: `books`-Edit
-   nutzt abweichend `@tanstack/react-form` – vor dem Bulk-Track auf eine Form-Lib
-   festlegen.
-4. **`DataTable`-Integration** für Listen: `components/dynamic/components/dynamic-table.tsx`
+#### Erledigt: Protokoll-Fundament (Stand 08/2026)
+
+Das Fundament steht, nachgewiesen an genau einer Seite (`address/edit`). Kein
+Menü-Eintrag zeigt bislang auf eine dynamische next-Seite; die Route wird direkt
+aufgerufen (`/next/address/edit/42`).
+
+- **Frontend-Wahl serverseitig zentralisiert:**
+  `projectforge-business/.../NextMigration.kt` ist die einzige Stelle, die über
+  `/react` vs. `/next` entscheidet. `PagesResolver` (kein `REACT_PATH` mehr),
+  `AbstractPagesRest.addNewEntryUrl`/`getStandardEditPage` und `MenuItemDefId`
+  fragen dort. Eine Seite umschalten = ein Eintrag in `NextMigration.MIGRATED`.
+  Kategorie und next-Route dürfen abweichen (`book` → `books`), ebenso die
+  Edit-Route handgebauter Seiten (`books/:id` statt `books/edit/:id`).
+  Review-Gate bei jedem Flip: `grep -rn "REACT_APP_PATH"` – ca. 10 verstreute
+  Literale (Timesheet, MyAccount, TeamEvent, Kalender, Login) und 7
+  Plugin-Menü-Literale zeigen noch direkt auf `/react`.
+- **`ResponseAction`-Interpreter** vollständig: `components/dynamic/use-dynamic-actions.ts`
+  deckt REDIRECT, UPDATE (inkl. `merge`), GET/POST/PUT/DELETE mit rekursivem
+  Feedback (Tiefe max. 5), RELOAD (`invalidateQueries`, kein `location.reload`),
+  CHECK_AUTHENTICATION, DOWNLOAD, NOTHING und die Message-Toasts ab.
+  406 → `validationErrors` in den State, pro Feld über `fieldId` gerendert.
+  MODAL/CLOSE_MODAL sind Notlösungen (Seite öffnen bzw. `router.back()`).
+- **`watchFields`** verdrahtet: `setData` diffed pfadbewusst gegen
+  `ui.watchFields` (`lib/dynamic/watch-fields.ts`), sammelt 150 ms und postet
+  `{category}/watchFields`.
+- **CSRF** gelöst: `serverData` liegt im Layout-State und wird in jedem `PostData`
+  zurückgespiegelt; ein neues `serverData` in einer Antwort ersetzt es. Pro Seite,
+  nie global.
+- **Form-Handling entschieden:** dynamische Seiten bleiben kontextgetrieben
+  (`data`/`setData`/`validationErrors`), **ohne Form-Library** – das Feldset ist
+  serverdefiniert und die Validierung kommt als 406 vom Server, ein zur Laufzeit
+  generiertes Zod-Schema wäre wertlos. Handgebaute Features nutzen weiter
+  `@tanstack/react-form`. `CLAUDE.md` ist entsprechend präzisiert.
+- **Element-Typen** für `address/edit`: `INPUT` löst über `dataType` auf
+  (`components/input/dynamic-input-resolver.tsx`), `SELECT`/`CREATABLE_SELECT`
+  (single/multi × feste Werte/Server-Lookup) in `components/select/`,
+  `RADIOBUTTON`, `LIST`, Autocomplete, Date. Alles Übrige rendert als
+  `DynamicFallback` – in dev sichtbar, damit Lücken beim Diff auffallen.
+- **Routen:** `app/(authenticated)/[category]/[type]/[...params]/` mit
+  Platzhalter-`generateStaticParams()` und `useParams()` zur Laufzeit; Deep-Links
+  liefert `NextSpaResourceResolver` über `404.html`. Achtung Route-Shadowing:
+  konkrete Routen (`books`) gehen dem Catch-all vor – `HAND_BUILT_CATEGORIES` in
+  `page-client.tsx` hält das synchron mit `NextMigration.MIGRATED`.
+
+Verbliebene Lücken:
+
+1. **`DataTable`-Integration** für Listen: `components/dynamic/components/dynamic-table.tsx`
    ist eine handgeschriebene `<table>` (liest nur `hide`) und sollte durch die nun
    vollständige `DataTable` ersetzt werden. Dafür braucht es einen **Adapter**
    `UIAgGridColumnDef → ColumnDef` (Vorlage: `tanstack/tableUtils.ts`
@@ -480,11 +527,14 @@ Port der Referenz `projectforge-webapp/src/components/base/dynamicLayout/` nach
    `headerName` → `meta.label`, `hide`/`pinned`/`width` → Initial-State.
    `sortModel: [{colId, sort}]` → `SortingState`. So bleibt „AgGrid" in der
    Adapter-Schicht und sickert nicht in die Komponenten.
-5. **Fehlende UIElement-Typen** aus `UIElementType.kt` (~40 Typen) ergänzen:
-   Date/Time-Picker, Autocomplete/`DynamicObjectSelect`, RADIOBUTTON, RATING,
-   EDITOR, ATTACHMENT_LIST, DROP_AREA, PROGRESS, FILTER_ELEMENT, NAMED_CONTAINER,
-   `layoutBelowActions`, `pageMenu`.
-6. **`UICustomized`-Escape-Hatch** (alt: ~30 String-IDs → bespoke Komponenten)
+2. **Fehlende UIElement-Typen** aus `UIElementType.kt` ergänzen: Entity-Picker
+   (USER, GROUP, EMPLOYEE, COST1, COST2, KONTO, TASK, LOCALE, TIMEZONE, PICTURE),
+   RATING, EDITOR, ATTACHMENT_LIST, DROP_AREA, PROGRESS, `pageMenu`.
+3. **`MODAL`/`CLOSE_MODAL`** richtig: der `location.state.background`-Trick des
+   alten Routers existiert im App Router nicht. Später über einen Modal-Stack in
+   `store/ui-store.ts` + `ui/dialog.tsx`; Trade-off: keine teilbaren
+   Modal-Deep-Links (Konsequenz des Static-Exports).
+4. **`UICustomized`-Escape-Hatch** (alt: ~30 String-IDs → bespoke Komponenten)
    als Registry nachbauen; die Komponenten selbst sind manuelle Ports
    (Adress-Bild/Telefon/VCard-Import, `book.lendOutComponent`,
    Kalender-Recurrency, Cost-Number, Invoice-Positionen, WebAuthn, `access.table`,

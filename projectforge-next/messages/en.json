@@ -103,5 +103,12 @@
     "number": "Number",
     "date": "Date",
     "blank": "(blank)"
+  },
+  "dynamic": {
+    "search": "Search…",
+    "noOptions": "No options",
+    "create": "Add \"{value}\"",
+    "remove": "Remove {label}",
+    "empty": "—"
   }
 }

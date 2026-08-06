@@ -2,6 +2,7 @@
 
 import type { DynamicComponentProps } from "../dynamic-renderer";
 import { useDynamicLayout } from "../dynamic-context";
+import { getByPath } from "@/lib/dynamic/path";
 import { Label } from "@/components/ui/label";
 
 export function DynamicReadonlyField({ node }: DynamicComponentProps) {
@@ -10,7 +11,7 @@ export function DynamicReadonlyField({ node }: DynamicComponentProps) {
   const id = node.id as string;
   const label = node.label as string | undefined;
 
-  const rawValue = getNestedValue(data, id);
+  const rawValue = getByPath(data, id);
   const displayValue = rawValue != null ? String(rawValue) : "—";
 
   return (
@@ -23,12 +24,4 @@ export function DynamicReadonlyField({ node }: DynamicComponentProps) {
       <span className="text-sm">{displayValue}</span>
     </div>
   );
-}
-
-function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
-  return path.split(".").reduce<unknown>((acc, key) => {
-    if (acc && typeof acc === "object")
-      return (acc as Record<string, unknown>)[key];
-    return undefined;
-  }, obj);
 }

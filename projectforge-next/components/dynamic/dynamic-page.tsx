@@ -1,0 +1,54 @@
+"use client";
+
+import { DynamicLayoutProvider } from "./dynamic-context";
+import { DynamicRenderer } from "./dynamic-renderer";
+import { DynamicActionGroup } from "./dynamic-action-group";
+import type { DynamicPageResponse } from "@/lib/rs/types";
+import type { ReactNode } from "react";
+
+interface DynamicPageProps {
+  response: DynamicPageResponse;
+  category: string;
+  queryKey: readonly unknown[];
+  /** Rendered below the layout, above the action buttons (list pages add their result info here). */
+  children?: ReactNode;
+}
+
+/**
+ * Frame shared by all server-laid-out pages: title, layout, action buttons and the layout the
+ * backend wants below them (`UILayout.layoutBelowActions`, used for history tables).
+ */
+export function DynamicPage({
+  response,
+  category,
+  queryKey,
+  children,
+}: DynamicPageProps) {
+  return (
+    <DynamicLayoutProvider
+      response={response}
+      category={category}
+      queryKey={queryKey}
+    >
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {response.ui.title && (
+          <h1 className="px-6 pt-4 pb-2 text-xl font-semibold">
+            {response.ui.title}
+          </h1>
+        )}
+        <div className="flex-1 overflow-auto px-6 pb-6">
+          <div className="flex flex-col gap-4">
+            <DynamicRenderer content={response.ui.layout} />
+          </div>
+          {children}
+        </div>
+        <DynamicActionGroup />
+        {response.ui.layoutBelowActions && (
+          <div className="px-6 pb-6">
+            <DynamicRenderer content={response.ui.layoutBelowActions} />
+          </div>
+        )}
+      </div>
+    </DynamicLayoutProvider>
+  );
+}

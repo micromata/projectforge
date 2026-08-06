@@ -39,6 +39,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.projectforge.Constants;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -129,7 +130,8 @@ public class NavTopPanel extends NavAbstractPanel {
       } else {
         final ExternalLink myAccountLink = new ExternalLink("myAccountLink", PagesResolver.getDynamicPageUrl(MyAccountPageRest.class, null, null, true));
         add(myAccountLink);
-        final ExternalLink customizeMenuLink = new ExternalLink("customizeMenuLink", "/" + PagesResolver.REACT_PATH + "/customizeMenu");
+        // customizeMenu is a React-only page (no rest category), so it is not part of NextMigration.
+        final ExternalLink customizeMenuLink = new ExternalLink("customizeMenuLink", "/" + Constants.REACT_APP_PATH + "customizeMenu");
         add(customizeMenuLink);
         final ExternalLink my2FactorAuthentificationLink = new ExternalLink("my2FactorAuthentificationLink", PagesResolver.getDynamicPageUrl(My2FASetupPageRest.class, null, null, true));
         add(my2FactorAuthentificationLink);

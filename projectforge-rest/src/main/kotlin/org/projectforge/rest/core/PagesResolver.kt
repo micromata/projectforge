@@ -25,6 +25,7 @@ package org.projectforge.rest.core
 
 import mu.KotlinLogging
 import org.projectforge.Constants
+import org.projectforge.NextMigration
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.utils.NumberHelper
@@ -41,10 +42,13 @@ private val log = KotlinLogging.logger {}
  * Helper for getting url of list and edit pages.
  */
 object PagesResolver {
-    const val REACT_PATH = "react"
-
     private val pagesRegistry = mutableMapOf<String, AbstractPagesRest<*, *, *>>()
 
+    /**
+     * The url of the edit page. For pages migrated to projectforge-next the route registered in
+     * [NextMigration] is used, because a hand built page may deviate from the generic
+     * `<route>/edit/<id>` shape of the UILayout pages (books e.g. uses `books/<id>` and `books/new`).
+     */
     @JvmStatic
     fun getEditPageUrl(
         pagesRestClass: Class<out AbstractPagesRest<*, *, *>>,
@@ -53,17 +57,14 @@ object PagesResolver {
         absolute: Boolean = false,
         returnToCaller: String? = null,
     ): String {
-        val path = getRequestMappingPath(pagesRestClass) ?: return "NOT_FOUND"
-        val prefix = if (absolute) "/" else ""
-        val idString = if (id != null) {
-            "/$id"
+        val category = getCategory(pagesRestClass) ?: return "NOT_FOUND"
+        val path = if (id != null) {
+            NextMigration.standardEditPage(category).replace(NextMigration.ID_PLACEHOLDER, "$id")
         } else {
-            ""
+            NextMigration.newEntryUrl(category)
         }
-        if (path.startsWith('/')) {
-            return "$path/edit$idString${getQueryString(params, returnToCaller)}"
-        }
-        return "$prefix$path/edit$idString${getQueryString(params, returnToCaller)}"
+        val prefix = if (absolute) "/" else ""
+        return "$prefix$path${getQueryString(params, returnToCaller)}"
     }
 
 
@@ -139,7 +140,7 @@ object PagesResolver {
      * @return the default url (calendar url).
      */
     fun getDefaultUrl(): String {
-        return "/${Constants.REACT_APP_PATH}calendar"
+        return "/${NextMigration.listUrl("calendar")}"
     }
 
     fun register(category: String, pagesRest: AbstractPagesRest<*, *, *>) {
@@ -153,6 +154,31 @@ object PagesResolver {
         return pagesRegistry[category]
     }
 
+    /**
+     * @return The rest category of the given rest class (the first path segment after
+     * [Rest.URL]), or null if the class has no `@RequestMapping` or is a public page.
+     */
+    private fun getCategory(clazz: Class<*>): String? {
+        val requestMapping = clazz.annotations.find { it is RequestMapping } as? RequestMapping
+        if (requestMapping == null) {
+            log.error("RequestMapping annotation not found in class '$clazz'.")
+            return null
+        }
+        val path = requestMapping.value[0]
+        if (path.startsWith(Rest.PUBLIC_URL)) {
+            return null
+        }
+        return path.removePrefix(Rest.URL).removePrefix("/").substringBefore('/')
+    }
+
+    /**
+     * Builds the frontend path of a page from the `@RequestMapping` of its rest class, pointing at
+     * whichever frontend currently serves it: [NextMigration] maps the rest category to the route
+     * of projectforge-next for migrated pages, everything else stays in the legacy React app.
+     *
+     * Public pages (`/rsPublic`) are always served by the React app for now (login and friends
+     * already have their own lean endpoints in projectforge-next).
+     */
     private fun getRequestMappingPath(clazz: Class<*>, suffix: String = ""): String? {
         val requestMapping = clazz.annotations.find { it is RequestMapping } as? RequestMapping
         if (requestMapping == null) {
@@ -161,12 +187,14 @@ object PagesResolver {
         }
         val path = requestMapping.value[0]
         if (path.startsWith(Rest.PUBLIC_URL)) {
-            val subpath = requestMapping.value[0].removePrefix(Rest.PUBLIC_URL)
-            return "${REACT_PATH}/public$subpath$suffix"
-        } else {
-            val subpath = requestMapping.value[0].removePrefix(Rest.URL)
-            return "$REACT_PATH$subpath$suffix"
+            val subpath = path.removePrefix(Rest.PUBLIC_URL)
+            return "${Constants.REACT}/public$subpath$suffix"
         }
+        // subpath is e.g. "/book" or "/book/subPage": the first segment is the rest category.
+        val subpath = path.removePrefix(Rest.URL)
+        val category = subpath.removePrefix("/").substringBefore('/')
+        val remainder = subpath.removePrefix("/").removePrefix(category)
+        return "${NextMigration.listUrl(category)}$remainder$suffix"
     }
 
     private fun getQueryString(params: Map<String, Any?>? = null, returnToCaller: String? = null): String {

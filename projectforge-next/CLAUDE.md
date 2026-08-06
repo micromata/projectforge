@@ -75,8 +75,8 @@ Cross-feature imports are forbidden. If two features need the same thing, it bel
 
 ## Forms, validation, i18n
 
-- **`react-hook-form` + Zod** for all forms via the shadcn `Form` primitive (`zodResolver`). No raw `<form onSubmit>` handlers.
-- **Zod schemas mirror Spring Boot DTOs exactly** when wiring real endpoints. Schema lives next to the feature.
+- **Hand-built forms use `@tanstack/react-form` + Zod.** The schema lives next to the feature and mirrors the Spring Boot DTO exactly. No raw `<form onSubmit>` handlers. (`books/edit` is the reference.)
+- **Server-laid-out forms use no form library.** Pages rendered from a `UILayout` (`components/dynamic/`) are context-driven: `data` / `setData` / `validationErrors` from `DynamicLayoutProvider`. The field set only exists at runtime and validation is the server's (HTTP 406 carries `validationErrors`), so a Zod schema would have to be generated per response and would validate nothing the server doesn't. Do not introduce a form library there.
 - **All user-facing strings via `next-intl`.** Reference via `useTranslations` / `getTranslations`. No hardcoded German (or any natural language) in JSX. When you touch a file with hardcoded strings, migrate them.
 - **`I18nResources.properties` is the source of truth, not `messages/*.json`.** New texts go into `projectforge-business/src/main/resources/I18nResources.properties` (English) and `I18nResources_de.properties` (German), and the key's prefix must be covered by `PREFIXES` in `projectforge-application/src/test/kotlin/org/projectforge/development/GenerateNextI18nMessagesMain.kt`. Then run `DevelopmentMainForRelease` (same package) — it sorts the bundles, regenerates `messages/generated.<locale>.json` and refreshes the i18n key usage. Reuse existing keys wherever one fits; the backend bundle already covers most domain vocabulary.
 - `messages/de.json` / `messages/en.json` are hand-written and hold **only** texts with no backend counterpart (transient UI states like „Prüfe…"). They are deep-merged over the generated catalogs (`i18n/config.ts`), so both can share a namespace.

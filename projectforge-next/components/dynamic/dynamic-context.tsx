@@ -1,31 +1,39 @@
 "use client";
 
-import { createContext, useCallback, useContext, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+} from "react";
 import type { ReactNode } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { callAction as callActionApi } from "@/lib/rs/client";
+import type { DataObject } from "@/lib/dynamic/path";
 import type {
   ActionDef,
+  DynamicPageResponse,
   DynamicUIResponse,
   ValidationError,
 } from "@/lib/rs/types";
+import { useDynamicActions } from "./use-dynamic-actions";
+import { useDynamicLayoutState } from "./use-dynamic-layout";
 
 export interface DynamicLayoutContextValue {
-  data: Record<string, unknown>;
+  data: DataObject;
   ui: DynamicUIResponse;
-  variables: Record<string, unknown>;
+  variables: DataObject;
   validationErrors: ValidationError[];
   isFetching: boolean;
-  setData: (patch: Record<string, unknown>) => void;
-  setVariables: (patch: Record<string, unknown>) => void;
+  setData: (patch: DataObject) => void;
+  setVariables: (patch: DataObject) => void;
   callAction: (action: ActionDef) => Promise<void>;
+  /** Looks up a label in `ui.translations`; falls back to the key so a gap stays visible. */
   translate: (key: string) => string;
 }
 
-const DynamicLayoutContext = createContext<DynamicLayoutContextValue | null>(
-  null
-);
+/** Exported for DynamicList, which re-provides a scoped view of one list element. */
+export const DynamicLayoutContext =
+  createContext<DynamicLayoutContextValue | null>(null);
 
 export function useDynamicLayout() {
   const ctx = useContext(DynamicLayoutContext);
@@ -35,118 +43,55 @@ export function useDynamicLayout() {
 }
 
 interface ProviderProps {
-  ui: DynamicUIResponse;
-  initialData: Record<string, unknown>;
-  initialVariables?: Record<string, unknown>;
-  initialValidationErrors?: ValidationError[];
+  /** The server's answer, layout and data in one - see rest/dto/FormLayoutData.kt. */
+  response: DynamicPageResponse;
+  /** Rest category, needed for the `{category}/watchFields` endpoint. */
+  category: string;
+  /** Query key of the page's layout query, invalidated by a RELOAD action. */
+  queryKey: readonly unknown[];
   children: ReactNode;
-  onUpdate?: (response: {
-    data: Record<string, unknown>;
-    ui?: DynamicUIResponse;
-    variables?: Record<string, unknown>;
-    validationErrors?: ValidationError[];
-  }) => void;
 }
 
 export function DynamicLayoutProvider({
-  ui,
-  initialData,
-  initialVariables,
-  initialValidationErrors,
+  response,
+  category,
+  queryKey,
   children,
-  onUpdate,
 }: ProviderProps) {
-  const router = useRouter();
-  const [data, setDataState] = useState<Record<string, unknown>>(initialData);
-  const [variables, setVariablesState] = useState<Record<string, unknown>>(
-    initialVariables ?? {}
+  // The two hooks are mutually dependent: a data change may trigger a watchFields call, whose
+  // answer is an action that changes the data again. The store is created first, and the action
+  // hook is wired into it afterwards through this ref.
+  const triggerRef = useRef<((triggered: string[]) => void) | null>(null);
+  const trigger = useCallback(
+    (triggered: string[]) => triggerRef.current?.(triggered),
+    []
   );
-  const [validationErrors, setValidationErrors] = useState<ValidationError[]>(
-    initialValidationErrors ?? []
+  const store = useDynamicLayoutState(response, trigger);
+  const { callAction, triggerWatchFields } = useDynamicActions(
+    store,
+    category,
+    queryKey
   );
-  const [isFetching, setIsFetching] = useState(false);
-
-  const setData = useCallback((patch: Record<string, unknown>) => {
-    setDataState((prev) => ({ ...prev, ...patch }));
-  }, []);
-
-  const setVariables = useCallback((patch: Record<string, unknown>) => {
-    setVariablesState((prev) => ({ ...prev, ...patch }));
-  }, []);
+  useEffect(() => {
+    triggerRef.current = triggerWatchFields;
+  }, [triggerWatchFields]);
 
   const translate = useCallback(
-    (key: string) => ui.translations?.[key] ?? key,
-    [ui.translations]
-  );
-
-  const handleAction = useCallback(
-    async (action: ActionDef) => {
-      if (!action.url) return;
-
-      if (action.confirmMessage && !window.confirm(action.confirmMessage)) {
-        return;
-      }
-
-      setIsFetching(true);
-      try {
-        const response = await callActionApi(action.url, data);
-        setValidationErrors(response.validationErrors ?? []);
-
-        const targetType =
-          response.targetType ?? action.responseAction?.targetType;
-
-        switch (targetType) {
-          case "REDIRECT":
-          case "CHECK_AUTHENTICATION": {
-            const url = response.url ?? action.responseAction?.url;
-            if (url) router.push(url);
-            break;
-          }
-          case "UPDATE":
-            setDataState(response.data ?? {});
-            if (response.variables) setVariablesState(response.variables);
-            onUpdate?.(response);
-            break;
-          case "CLOSE_MODAL":
-          case "CANCEL":
-            router.back();
-            break;
-          case "TOAST": {
-            const msg = response.url ?? action.responseAction?.message ?? "";
-            toast.success(msg);
-            break;
-          }
-          case "DOWNLOAD": {
-            const url = response.url ?? action.responseAction?.url;
-            if (url) window.location.href = url;
-            break;
-          }
-          case "NOTHING":
-            break;
-          default:
-            if (response.url) router.push(response.url);
-            break;
-        }
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Action failed");
-      } finally {
-        setIsFetching(false);
-      }
-    },
-    [data, router, onUpdate]
+    (key: string) => store.ui.translations?.[key] ?? key,
+    [store.ui.translations]
   );
 
   return (
     <DynamicLayoutContext.Provider
       value={{
-        data,
-        ui,
-        variables,
-        validationErrors,
-        isFetching,
-        setData,
-        setVariables,
-        callAction: handleAction,
+        data: store.data,
+        ui: store.ui,
+        variables: store.variables,
+        validationErrors: store.validationErrors,
+        isFetching: store.isFetching,
+        setData: store.setData,
+        setVariables: store.setVariables,
+        callAction,
         translate,
       }}
     >
