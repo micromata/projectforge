@@ -97,6 +97,25 @@
   --history-comment-bg: rgba(255, 203, 0, 0.14);
   --history-comment-border: rgba(255, 157, 1, 0.35);
 
+  /*
+   * Highlighted list rows. The backend names the colour, not the meaning
+   * (UIAgGrid.getRowClass: 'row-red' for overdue, conflicting or faulty rows,
+   * 'row-blue' for pending ones, 'row-green' for new/positive, 'row-grey' for
+   * already imported), so the tokens keep those names.
+   */
+  --row-deleted: rgba(120, 120, 120, 0.12);
+  --row-red: rgba(225, 0, 87, 0.09);
+  --row-green: rgba(117, 190, 1, 0.11);
+  --row-blue: rgba(0, 155, 163, 0.09);
+  --row-grey: rgba(120, 120, 120, 0.07);
+
+  /* Consumption bar (task lists): one fill colour per Consumption.Status */
+  --consumption-track: oklch(0.93 0 0);
+  --consumption-ok: var(--brand-green);
+  --consumption-warn: var(--brand-yellow);
+  --consumption-alert: var(--brand-yellow-dark);
+  --consumption-over: var(--brand-pink);
+
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -172,6 +191,14 @@
   --history-new-bg: rgba(117, 190, 1, 0.22);
   --history-comment-bg: rgba(255, 203, 0, 0.16);
   --history-comment-border: rgba(255, 203, 0, 0.3);
+
+  /* Row tints and the bar's track need more opacity on the dark card */
+  --row-deleted: rgba(255, 255, 255, 0.06);
+  --row-red: rgba(225, 0, 87, 0.2);
+  --row-green: rgba(117, 190, 1, 0.18);
+  --row-blue: rgba(0, 155, 163, 0.2);
+  --row-grey: rgba(255, 255, 255, 0.04);
+  --consumption-track: oklch(0.32 0 0);
 }
 
 @layer base {
@@ -184,4 +211,68 @@
   html {
     @apply font-sans;
   }
+}
+
+/*
+ * Highlighted list rows. The cells carry their own opaque background (so pinned
+ * columns cover the ones scrolling underneath), so the tint has to be set on the
+ * cells rather than on the row. Hover still wins — it comes later in the cascade.
+ */
+.row-deleted > td {
+  background-color: var(--row-deleted);
+  text-decoration: line-through;
+}
+.row-red > td {
+  background-color: var(--row-red);
+}
+.row-green > td {
+  background-color: var(--row-green);
+}
+.row-blue > td {
+  background-color: var(--row-blue);
+}
+.row-grey > td {
+  background-color: var(--row-grey);
+}
+
+/* Consumption bar: a track with a fill whose width is the booked percentage. */
+.consumption-track {
+  display: block;
+  height: 0.5rem;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: var(--consumption-track);
+}
+.consumption-bar {
+  display: block;
+  height: 100%;
+  border-radius: 9999px;
+  background-color: var(--consumption-ok);
+}
+/* Nothing booked yet: an empty track. */
+.consumption-none > .consumption-bar {
+  background-color: transparent;
+}
+.consumption-80 > .consumption-bar {
+  background-color: var(--consumption-warn);
+}
+.consumption-90 > .consumption-bar {
+  background-color: var(--consumption-alert);
+}
+/*
+ * Overbooked: the track turns red and the bar shows how much of the budget the
+ * plan covers, i.e. the colours swap roles (see Consumption.barPercentage).
+ */
+.consumption-overbooked {
+  background-color: var(--consumption-over);
+}
+.consumption-overbooked > .consumption-bar {
+  background-color: var(--consumption-alert);
+}
+.consumption-overbooked-min {
+  background-color: var(--consumption-over);
+}
+.consumption-overbooked-min > .consumption-bar {
+  background-color: var(--consumption-track);
 }

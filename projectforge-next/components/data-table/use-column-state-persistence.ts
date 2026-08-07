@@ -3,40 +3,48 @@
 import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  fetchColumnStates,
-  saveColumnStates,
+  fetchColumnStatesFromUrl,
+  saveColumnStatesToUrl,
   type ColumnStateDto,
-} from "@/lib/rs/client";
+} from "@/lib/rs/column-state";
 import type { ColumnState } from "./use-table-state";
 
 const DEBOUNCE_MS = 500;
 
 /**
- * Loads the column state the backend keeps per entity category (user prefs).
+ * Loads the column state stored for the user from an explicit URL.
  *
  * `isPending` matters to the caller: applying the state only once it has arrived
- * avoids a visible jump from default layout to stored layout.
+ * avoids a visible jump from default layout to stored layout. Without a URL the
+ * query stays idle, so a caller can pass one that isn't known yet.
  */
-export function useStoredColumnState(entity: string | undefined) {
+export function useStoredColumnStateByUrl(url: string | undefined) {
   return useQuery<ColumnStateDto>({
-    queryKey: ["columnStates", entity],
-    queryFn: ({ signal }) => fetchColumnStates(entity!, signal),
-    enabled: !!entity,
+    queryKey: ["columnStates", url],
+    queryFn: ({ signal }) => fetchColumnStatesFromUrl(url!, signal),
+    enabled: !!url,
     // A layout preference is worth one request per session, not per mount.
     staleTime: Infinity,
     retry: false,
   });
 }
 
+/** The same, for a list page addressed by its entity category. */
+export function useStoredColumnState(entity: string | undefined) {
+  return useStoredColumnStateByUrl(
+    entity ? `/rs/${entity}/columnStates` : undefined
+  );
+}
+
 /**
- * Persists the column state back to the backend, debounced.
+ * Persists the column state to the given URL, debounced.
  *
  * Only mount this once the stored state has been read (see useStoredColumnState),
  * otherwise the first render writes defaults over it. Pending writes are flushed
  * on unmount so a resize right before navigating isn't lost.
  */
-export function useColumnStatePersistence(
-  entity: string | undefined,
+export function useColumnStatePersistenceByUrl(
+  url: string | undefined,
   state: ColumnState
 ) {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -50,11 +58,11 @@ export function useColumnStatePersistence(
   }, [state]);
 
   useEffect(() => {
-    if (!entity) return;
+    if (!url) return;
 
     const post = () => {
       timer.current = null;
-      void saveColumnStates(entity, latest.current).catch(() => {
+      void saveColumnStatesToUrl(url, latest.current).catch(() => {
         // Losing a layout preference must never surface as a user error.
       });
     };
@@ -68,5 +76,16 @@ export function useColumnStatePersistence(
         post();
       }
     };
-  }, [entity, serialized]);
+  }, [url, serialized]);
+}
+
+/** The same, for a list page addressed by its entity category. */
+export function useColumnStatePersistence(
+  entity: string | undefined,
+  state: ColumnState
+) {
+  useColumnStatePersistenceByUrl(
+    entity ? `/rs/${entity}/setColumnStates` : undefined,
+    state
+  );
 }

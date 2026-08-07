@@ -1,4 +1,4 @@
-// Registers the ColumnMeta augmentation (meta.label, meta.align).
+// Registers the ColumnMeta augmentation (meta.label, meta.align, meta.cellSpec, ...).
 import "./types";
 
 export { DataTable } from "./data-table";
@@ -30,5 +30,9 @@ export { useTableState } from "./use-table-state";
 export type { ColumnState, TableStateResult } from "./use-table-state";
 export {
   useColumnStatePersistence,
+  useColumnStatePersistenceByUrl,
   useStoredColumnState,
+  useStoredColumnStateByUrl,
 } from "./use-column-state-persistence";
+export { renderCell } from "./cells/cell-registry";
+export type { CellIconName, CellKind, CellSpec } from "./cells/cell-types";

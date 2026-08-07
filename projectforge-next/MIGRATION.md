@@ -434,17 +434,12 @@ den Filter als `restoredFilter`.
    im Backend zurücksetzt (`RestPaths.FILTER_RESET`, ebenfalls ein
    zustandsänderndes `@GetMapping`). Beim Zurücksetzen müsste auch der
    Favoriten-Bezug fallen.
-3. **Zell-Rendering/Formatter fehlen noch.** Die alte App hat einen
-   Formatter-Zoo (`Formatter.jsx`, `FormatterFormat.js`: Währung, Prozent,
-   Datum/Timestamp, Task-Pfade, `displayName`-Auflösung), den der Dynamic-Renderer
-   in Phase 2 braucht. Muster: Registry `name → Komponente`
-   (`CellRendererDispatch.tsx`) – ohne die AG-Grid-Params-Hülle.
-4. **Validierungsregeln nicht duplizieren** – siehe eigener Abschnitt unten.
+3. **Validierungsregeln nicht duplizieren** – siehe eigener Abschnitt unten.
    `books`-Edit ist der Präzedenzfall für alle handgebauten Seiten: solange dort
    `required` und Feldlängen von Hand stehen, erbt jede weitere Seite das Muster.
    Die 406-Auswertung steht inzwischen (s. „Erledigt: Speichern und Löschen“), der
    Metadaten-Generator fehlt weiterhin.
-5. **Das Edit-Gerüst ist noch nicht geteilt.** `books/edit` hält Submit-Ablauf,
+4. **Das Edit-Gerüst ist noch nicht geteilt.** `books/edit` hält Submit-Ablauf,
    406-Mapping, „gespeichert“-Toast, URL-Wechsel nach dem ersten Speichern,
    Lösch-Bestätigung und Aktionsleiste selbst. Jede weitere handgebaute Edit-Seite
    würde diese Blöcke kopieren. Sobald die zweite existiert (Phase 3,
@@ -452,7 +447,7 @@ den Filter als `restoredFilter`.
    `hooks/` – ein `useEntityEditForm(entity, schema, …)` plus eine
    `EntityEditActions`-Leiste. Bewusst erst dann: mit nur einem Aufrufer wäre die
    Abstraktion geraten, nicht abgeleitet.
-6. Nicht browserseitig verifiziert: englischer Locale-Pfad, vollständiger
+5. Nicht browserseitig verifiziert: englischer Locale-Pfad, vollständiger
    Login-Flow mit echten Daten, das visuelle Ergebnis der Tabelle
    (Spaltenbreiten, Resize, Popovers), der Favoriten-Durchlauf
    (anwenden/anlegen/umbenennen/überschreiben/löschen) sowie Speichern, Anlegen
@@ -782,24 +777,14 @@ aufgerufen (`/next/address/edit/42`).
 
 Verbliebene Lücken:
 
-1. **`DataTable`-Integration** für Listen: `components/dynamic/components/dynamic-table.tsx`
-   ist eine handgeschriebene `<table>` (liest nur `hide`) und sollte durch die nun
-   vollständige `DataTable` ersetzt werden. Dafür braucht es einen **Adapter**
-   `UIAgGridColumnDef → ColumnDef` (Vorlage: `tanstack/tableUtils.ts`
-   `buildColumnDefs`), der die AG-Grid-Wire-Namen normalisiert:
-   `filter: 'agTextColumnFilter'|'agNumberColumnFilter'|'agDateColumnFilter'` →
-   `FilterKind`, `type: 'numericColumn'|'rightAligned'` → `meta.align`,
-   `headerName` → `meta.label`, `hide`/`pinned`/`width` → Initial-State.
-   `sortModel: [{colId, sort}]` → `SortingState`. So bleibt „AgGrid" in der
-   Adapter-Schicht und sickert nicht in die Komponenten.
-2. **Fehlende UIElement-Typen** aus `UIElementType.kt` ergänzen: Entity-Picker
+1. **Fehlende UIElement-Typen** aus `UIElementType.kt` ergänzen: Entity-Picker
    (USER, GROUP, EMPLOYEE, COST1, COST2, KONTO, TASK, LOCALE, TIMEZONE, PICTURE),
    RATING, EDITOR, ATTACHMENT_LIST, DROP_AREA, PROGRESS, `pageMenu`.
-3. **`MODAL`/`CLOSE_MODAL`** richtig: der `location.state.background`-Trick des
+2. **`MODAL`/`CLOSE_MODAL`** richtig: der `location.state.background`-Trick des
    alten Routers existiert im App Router nicht. Später über einen Modal-Stack in
    `store/ui-store.ts` + `ui/dialog.tsx`; Trade-off: keine teilbaren
    Modal-Deep-Links (Konsequenz des Static-Exports).
-4. **`UICustomized`-Escape-Hatch** (alt: ~30 String-IDs → bespoke Komponenten)
+3. **`UICustomized`-Escape-Hatch** (alt: ~30 String-IDs → bespoke Komponenten)
    als Registry nachbauen; die Komponenten selbst sind manuelle Ports
    (Adress-Bild/Telefon/VCard-Import, `book.lendOutComponent`,
    Kalender-Recurrency, Cost-Number, Invoice-Positionen, WebAuthn, `access.table`,
@@ -823,6 +808,64 @@ Verbliebene Lücken:
 **Verifikation.** Eine UILayout-Seite (z.B. `address`, `timesheet`) über den
 Next-Renderer laden, gegen die alte React-Seite vergleichen (Layout,
 watchFields-Roundtrip, Speichern, Validierung, History).
+
+#### Erledigt: Listen rendern mit der echten `DataTable` (Adapter + Formatter)
+
+`components/dynamic/components/dynamic-table.tsx` (handgeschriebene `<table>`, las
+nur `hide`, `JSON.stringify` für Objekte) ist gelöscht. Jeder `AG_GRID`/`TABLE`-
+Knoten läuft jetzt durch `components/dynamic/components/grid/` auf dieselbe
+`DataTable` wie die `books`-Liste – mit Resize, Spalten-Panel, Pinning,
+Header-Filtern und Zustands-Persistenz.
+
+- **Adapter in `lib/dynamic/grid/`** (reines TS): `column-def-adapter.ts`
+  (`field`→`id`/`accessorFn`, `filter: 'agTextColumnFilter'|…`→`meta.filterKind`,
+  `type: 'numericColumn'|'rightAligned'`→`meta.align`, `width`→`size`),
+  `initial-state.ts` (`hide`/`pinned`/`width`/Reihenfolge/`sortModel` →
+  `ColumnState`), `cell-spec.ts`, `value-path.ts`, `row-class.ts`, `row-click.ts`.
+  Das AG-Grid-Vokabular endet damit an dieser Schicht.
+- **Zell-Renderer in `components/data-table/cells/`** (nicht in `dynamic/`, damit
+  auch handgebaute Seiten sie nutzen dürfen): Registry `CellKind → Komponente` über
+  `lib/format.ts`/`lib/format-names.ts`. Drei Formatter-Bugs der Vorlage sind dabei
+  behoben statt mitportiert (`AUFTRAG_POSITION` und `TIMESTAMP_SECONDS` matchten
+  die falschen Namen und rendern in `/react` `'???'`, `BOOLEAN` gab einen rohen
+  Boolean zurück); ein unbekannter Formatter fällt auf Klartext zurück, kein
+  `'???'`.
+- **Kein `Function()`/`eval`.** `valueGetter`/`valueFormatter` werden strikt als
+  Punktpfad geparst, alles andere mit einer Dev-Warnung verworfen (`address`
+  liefert z.B. ein `map(...)`-Lambda für die Adressbücher). `getRowClass` erkennt
+  die Prädikat-Formen der acht `withGetRowClass`-Sender deklarativ und normalisiert
+  `ag-row-green` → `row-green`. **Die richtige Lösung ist serverseitig:**
+  `getRowClass: String` sollte in `UIAgGrid.kt` ein strukturiertes `rowHighlights`
+  werden – die Mustertabelle ist die Brücke bis dahin.
+- **Kein zweiter Request für den Spaltenzustand.**
+  `AGGridSupport.restoreColumnsFromUserPref` faltet den gespeicherten Zustand
+  bereits in die gesendeten `columnDefs` und liefert das passende `sortModel` – die
+  Layout-Antwort _ist_ der wiederhergestellte Zustand, `initialStateFrom(grid)`
+  berechnet ihn synchron. Persistiert wird URL-basiert
+  (`onColumnStatesChangedUrl`/`resetGridStateUrl` aus dem Layout), weil eine
+  Ableitung aus der Kategorie für `TaskServicesRest` falsch wäre.
+- **Generische Listen-Route reaktiviert:** `app/(authenticated)/[category]/`
+  (Server-Wrapper + `page-client.tsx`), `HAND_BUILT_CATEGORIES` liegt jetzt in
+  `lib/hand-built-categories.ts` und wird von beiden generischen Routen geteilt.
+- **Verifiziert** (`e2e/dynamic-grid.spec.ts`, Playwright gegen das laufende
+  System): `vacation` – `valueGetter` (`employee.displayName`), DATE-Formatter,
+  `row-red` aus `getRowClass`, Row-Click auf `/react/vacation/edit/<id>`, und als
+  stärkstes Signal Sortieren + Spalte verstecken → Reload → identisches Layout →
+  „Spalten zurücksetzen“ stellt sie wieder her. Manuell geprüft: `skillentry`
+  (RATING als Sterne, `aria-label` „Bewertung: n“), `address` (Formatter, Pinning,
+  Icon-Header; die drei `customized`-Spalten degradieren wie geplant auf Text).
+- **Zwei Abweichungen von der Planannahme:** `task/initialList` ist ein
+  `TABLE_LIST_PAGE` mit `columns` statt `columnDefs` und läuft daher durch
+  `dynamic-grid-fallback.tsx` – TREE_NAVIGATION/CONSUMPTION sind von dort nicht
+  erreichbar (sie stecken in `TaskServicesRest`, nicht im Listen-Layout). Und die
+  Prüfseiten „skillmatrix“/„invoice“ heißen als REST-Kategorie `skillentry` bzw.
+  `outgoingInvoice`; letztere braucht das Recht `FIBU_AUSGANGSRECHNUNGEN` und war
+  mit dem Testkonto nicht prüfbar, CURRENCY ist damit noch offen.
+
+Noch offen an dieser Stelle: die Renderer für `customized`/`diffCell`/
+`importStatusCell` (deren Kontrakt enthält `onClick`-JS-Quelltext), Auf-/Zuklappen
+bei TREE_NAVIGATION, Mehrfachauswahl, `?modal=true`, `highlightRowId` und
+serverseitige Sortierung.
 
 ### Phase 3 – Komplexe Wicket-Seiten handbauen (Beispiel Auftragsbuch)
 
@@ -954,6 +997,12 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
   Link-Reiter statt Section im Scroll-Bereich (lädt damit erst beim Öffnen),
   generische UI in `components/shared/history/`, Kommentarfunktion über das
   Backend-Flag `supportsUserComments` gesteuert. Browser-Prüfung steht aus.
+- **Dynamische Listen auf der echten `DataTable`** – `UIAgGridColumnDef → ColumnDef`-
+  Adapter (`lib/dynamic/grid/`), Zell-Formatter-Registry
+  (`components/data-table/cells/`), deklarativer Ersatz für `getRowClass`/
+  `rowClickRedirectUrl` ohne Codeausführung, URL-basierte Spaltenzustands-
+  Persistenz, generische Listen-Route wieder aktiv. Gegen das laufende System
+  geprüft (`e2e/dynamic-grid.spec.ts`).
 
 **Als nächstes:**
 
@@ -964,8 +1013,9 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
    Ergebnis der Tabelle, den Favoriten-Durchlauf sowie Speichern/Anlegen/Löschen
    im Browser prüfen – das steht noch aus.
 2. **Phase 2** – Dynamic-Renderer ausbauen (bringt die ~36 UILayout-Seiten in der
-   Masse). Profitiert direkt von der fertigen `DataTable`; braucht als ersten
-   Schritt den `UIAgGridColumnDef → ColumnDef`-Adapter und die Formatter.
+   Masse). Listen rendern inzwischen mit der echten `DataTable`; als nächstes
+   fehlen die Entity-Picker-Elementtypen und der `UICustomized`-Escape-Hatch. Erst
+   danach lohnt es, Seiten in `NextMigration.MIGRATED` umzuschalten.
 3. **Phase 3** – Auftragsbuch als handgebauter Härtefall (parallel zu Phase 2
    möglich).
 4. **Auth im Browser durchspielen** (steht noch aus, s. Liste unten) und danach

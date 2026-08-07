@@ -1,3 +1,4 @@
+import { canonicalFormatter, type FormatterName } from "./format-names";
 import type { UserData } from "./rs/types";
 
 /**
@@ -156,45 +157,20 @@ export function formatDisplayName(value: unknown): string {
 }
 
 /**
- * The formatter names the backend sends in a column def
- * (UIAgGridColumnDef.Formatter). BOOLEAN, RATING and CONSUMPTION are missing on
- * purpose: they render icons or a progress bar rather than text, so they belong
- * in a cell component, not here.
- */
-export type FormatterName =
-  | "CURRENCY"
-  | "CURRENCY_PLAIN"
-  | "DATE"
-  | "NUMBER"
-  | "TIMESTAMP_MINUTES"
-  | "TIMESTAMP_SECONDS"
-  | "PERCENTAGE"
-  | "PERCENTAGE_DECIMAL"
-  | "SHOW_DISPLAYNAME"
-  | "SHOW_LIST_OF_DISPLAYNAMES"
-  | "ADDRESS_BOOK"
-  | "AUFTRAG_POSITION"
-  | "EMPLOYEE"
-  | "COST1"
-  | "COST2"
-  | "CUSTOMER"
-  | "GROUP"
-  | "KONTO"
-  | "PROJECT"
-  | "TASK_PATH"
-  | "USER";
-
-/**
  * Formats a cell value the way the backend's formatter name asks for. Unknown
  * names fall back to the plain value so a new backend formatter degrades to
- * readable text instead of an empty cell.
+ * readable text instead of an empty cell — the legacy webapp rendered a literal
+ * '???' there, which leaked into the UI.
+ *
+ * BOOLEAN, RATING, CONSUMPTION and TREE_NAVIGATION are handled by a cell
+ * component instead (see formatterToCellKind) and end up in the default branch.
  */
 export function formatValue(
   value: unknown,
   formatter: FormatterName | string | undefined,
   ctx: FormatContext
 ): string {
-  switch (formatter) {
+  switch (canonicalFormatter(formatter)) {
     case "DATE":
       return formatDate(value, ctx);
     case "TIMESTAMP_MINUTES":

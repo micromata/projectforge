@@ -24,7 +24,20 @@ export { expect };
  */
 export async function login(page: Page): Promise<void> {
   const { username, password } = readCredentials();
+  // The login state is fetched by an effect of the login page, so its response proves React has
+  // hydrated. Without that wait the form is filled and submitted while the markup is still inert:
+  // the typed values never reach React's state, the submit handler isn't attached yet, and the test
+  // sits on /login until it times out. Registered before the navigation so it cannot be missed.
+  const hydrated = page
+    .waitForResponse(
+      (response) => response.url().includes("/nextLogin/status"),
+      {
+        timeout: 30_000,
+      }
+    )
+    .catch(() => undefined);
   await goto(page, "/login");
+  await hydrated;
   await page.fill("#username", username);
   await page.fill("#password", password);
   await page.locator('button[type="submit"]').click();

@@ -5,16 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchDynamic } from "@/lib/rs/client";
 import { PageShell } from "@/components/shared/page-shell";
 import { DynamicPage } from "@/components/dynamic/dynamic-page";
-
-/**
- * Categories that have a hand built page in this app. They own concrete routes (`books/[id]`),
- * which Next resolves before this catch-all - so reaching this component with one of them means
- * the url was wrong, not that the generic renderer should take over.
- *
- * Keep in sync with NextMigration.MIGRATED in projectforge-business: a category is either hand
- * built (listed here) or server-laid-out (rendered here), never both.
- */
-const HAND_BUILT_CATEGORIES = ["book", "books"];
+import { isHandBuilt } from "@/lib/hand-built-categories";
 
 /**
  * Renders any server-laid-out edit page, e.g. `/next/address/edit/42`.
@@ -30,7 +21,7 @@ export function DynamicFormPageClient() {
   }>();
 
   const id = params?.[0];
-  const handBuilt = HAND_BUILT_CATEGORIES.includes(category);
+  const handBuilt = isHandBuilt(category);
   const queryKey = ["dynamic", category, type, id] as const;
 
   const { data: response, isLoading } = useQuery({

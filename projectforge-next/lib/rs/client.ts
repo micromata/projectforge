@@ -221,41 +221,6 @@ export async function logout(signal?: AbortSignal): Promise<unknown> {
   }
 }
 
-// --- Column state (per entity category, stored in the user's prefs) ---
-
-/** TanStack Table's own state shape, mirroring GridState/DataTableStateRequest. */
-export interface ColumnStateDto {
-  columnOrder?: string[];
-  columnSizing?: Record<string, number>;
-  columnVisibility?: Record<string, boolean>;
-  columnPinning?: { left?: string[]; right?: string[] };
-  sorting?: { id: string; desc: boolean }[];
-  columnFilters?: { id: string; value: unknown }[];
-}
-
-export function fetchColumnStates(
-  entity: string,
-  signal?: AbortSignal
-): Promise<ColumnStateDto> {
-  return request<ColumnStateDto>(
-    `/rs/${entity}/columnStates`,
-    { method: "GET" },
-    signal
-  );
-}
-
-export function saveColumnStates(
-  entity: string,
-  state: ColumnStateDto,
-  signal?: AbortSignal
-): Promise<unknown> {
-  return request<unknown>(
-    `/rs/${entity}/setColumnStates`,
-    { method: "POST", body: JSON.stringify(state) },
-    signal
-  );
-}
-
 // --- Saved list filters (AbstractPagesRest "filter/*", stored in the user's prefs) ---
 
 /**

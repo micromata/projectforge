@@ -14,7 +14,7 @@ import { DynamicTextarea } from "./components/dynamic-textarea";
 import { DynamicButton } from "./components/dynamic-button";
 import { DynamicReadonlyField } from "./components/dynamic-readonly-field";
 import { DynamicAlert } from "./components/dynamic-alert";
-import { DynamicTable } from "./components/dynamic-table";
+import { DynamicGrid } from "./components/grid/dynamic-grid";
 import { DynamicBadge } from "./components/dynamic-badge";
 import { DynamicSpacer } from "./components/dynamic-spacer";
 import { DynamicFallback } from "./components/dynamic-fallback";
@@ -41,10 +41,10 @@ const COMPONENT_MAP: Record<string, ComponentType<DynamicComponentProps>> = {
   BUTTON: DynamicButton,
   READONLY_FIELD: DynamicReadonlyField,
   ALERT: DynamicAlert,
-  TABLE: DynamicTable,
-  TABLE_LIST_PAGE: DynamicTable,
-  AG_GRID: DynamicTable,
-  AG_GRID_LIST_PAGE: DynamicTable,
+  TABLE: DynamicGrid,
+  TABLE_LIST_PAGE: DynamicGrid,
+  AG_GRID: DynamicGrid,
+  AG_GRID_LIST_PAGE: DynamicGrid,
   BADGE: DynamicBadge,
   BADGE_LIST: DynamicBadge,
   SPACER: DynamicSpacer,
